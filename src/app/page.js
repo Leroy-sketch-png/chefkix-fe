@@ -1,103 +1,216 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from 'react';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [rawText, setRawText] = useState('');
+  const [gamifiedRecipe, setGamifiedRecipe] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // New state for the playable experience
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [timerId, setTimerId] = useState(null);
+
+  // useEffect to manage the timer countdown
+  useEffect(() => {
+    // Clear any existing timer when the component re-renders or unmounts
+    if (timerId) {
+      clearInterval(timerId);
+    }
+
+    if (isGameStarted && gamifiedRecipe && currentStepIndex < gamifiedRecipe.steps.length) {
+      const currentStep = gamifiedRecipe.steps[currentStepIndex];
+      if (currentStep.timer) {
+        setTimeLeft(currentStep.timer);
+
+        const newTimerId = setInterval(() => {
+          setTimeLeft(prevTime => {
+            if (prevTime <= 1) {
+              clearInterval(newTimerId);
+              // Handle timer completion (e.g., automatically move to next step)
+              return 0;
+            }
+            return prevTime - 1;
+          });
+        }, 1000);
+
+        setTimerId(newTimerId);
+      } else {
+        // No timer for this step
+        setTimeLeft(null);
+      }
+    }
+  }, [currentStepIndex, isGameStarted, gamifiedRecipe]);
+
+  const handleProcessRecipe = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setGamifiedRecipe(null);
+    setIsGameStarted(false); // Reset game state
+
+    // Get the value directly from the textarea on form submit
+    const inputText = e.target.elements.recipeInput.value;
+
+    try {
+      const response = await fetch('http://localhost:8080/api/v1/recipes/gamify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ RawText: inputText }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setGamifiedRecipe(data);
+
+    } catch (e) {
+      setError('An error occurred while processing the recipe.');
+      console.error('Error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartGame = () => {
+    setIsGameStarted(true);
+    setCurrentStepIndex(0);
+  };
+
+  const handleNextStep = () => {
+    if (currentStepIndex < gamifiedRecipe.steps.length - 1) {
+      setCurrentStepIndex(prevIndex => prevIndex + 1);
+    } else {
+      // End of recipe, reset game
+      setIsGameStarted(false);
+      setCurrentStepIndex(0);
+    }
+  };
+  
+  // Conditionally render the step-by-step view
+  const renderGamifiedView = () => {
+    if (!gamifiedRecipe) return null;
+
+    if (!isGameStarted) {
+      return (
+        <div className="text-center">
+          <button
+            onClick={handleStartGame}
+            className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Start Cooking
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      );
+    }
+
+    const currentStep = gamifiedRecipe.steps[currentStepIndex];
+    const isLastStep = currentStepIndex === gamifiedRecipe.steps.length - 1;
+
+    return (
+      <div>
+        <h3 className="text-xl font-bold mb-2 text-gray-900">
+          {/* Updated heading color to be very dark */}
+          {gamifiedRecipe.title}
+        </h3>
+        <div className="mb-4">
+          <span className="font-semibold mr-2 text-gray-800">Badges:</span>
+          {gamifiedRecipe.badges.map((badge, index) => (
+            <span key={index} className="inline-block bg-green-200 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">
+              {badge}
+            </span>
+          ))}
+        </div>
+        
+        {/* Current Step Display */}
+        <div className="border-b py-2 last:border-b-0">
+          <p className="font-semibold text-lg text-gray-800">Step {currentStepIndex + 1}:</p>
+          <p className="ml-4 text-gray-900">
+            {/* Updated instruction color for better readability */}
+            {currentStep.instruction}
+          </p>
+          
+          <ul className="ml-4 mt-2 text-sm text-gray-700">
+            {/* Updated details color to be darker */}
+            <li><span className="font-medium">Action:</span> {currentStep.action || 'N/A'}</li>
+            <li><span className="font-medium">Ingredients:</span> {currentStep.ingredients?.join(', ') || 'N/A'}</li>
+          </ul>
+        </div>
+
+        {/* Timer Section */}
+        {currentStep.timer && timeLeft !== null && (
+          <div className="mt-4 text-center">
+            <span className="text-4xl font-bold text-blue-600">{timeLeft}</span>
+            <span className="text-lg font-medium text-gray-800 ml-1">seconds left</span>
+          </div>
+        )}
+        
+        {/* Next Step Button */}
+        <div className="mt-6 text-center">
+          <button
+            onClick={handleNextStep}
+            className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700"
+          >
+            {isLastStep ? 'Finish Cooking' : 'Next Step'}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="container mx-auto">
+        <h1 className="text-4xl font-bold text-center text-gray-900 mb-8">
+          {/* Updated main heading color */}
+          ChefKix Prototype
+        </h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Input Section */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              {/* Updated heading color */}
+              Enter Your Recipe
+            </h2>
+            <form onSubmit={handleProcessRecipe}>
+              <textarea
+                className="w-full p-4 h-64 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 text-gray-800"
+                placeholder="Paste your recipe here..."
+                id="recipeInput" 
+                value={rawText}
+                onChange={(e) => setRawText(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+              >
+                {loading ? 'Processing...' : 'Gamify Recipe'}
+              </button>
+            </form>
+          </div>
+
+          {/* Output Section */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              {/* Updated heading color */}
+              Gamified Output
+            </h2>
+            {loading && <p className="text-center text-gray-700">Loading...</p>}
+            {error && <p className="text-center text-red-500">{error}</p>}
+            
+            {renderGamifiedView()}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
