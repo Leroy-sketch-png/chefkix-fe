@@ -39,6 +39,6 @@ The following scripts are available in `package.json`:
 - **Code Style**: The project uses **Prettier** for automated code formatting to ensure consistency. The configuration is in `.prettierrc`.
 - **Linting**: **ESLint** is configured via `eslint.config.mjs` using the recommended Next.js configuration.
 - **Git Workflow**:
-    - **Branching**: All new work is done on feature branches, typically prefixed with `feat/` or `fix/` (e.g., `feat/project-setup-and-auth`).
-    - **Commits**: We use the **Conventional Commits** specification for clear and descriptive commit messages (e.g., `feat: ...`, `fix: ...`, `chore(dev): ...`).
+  - **Branching**: All new work is done on feature branches, typically prefixed with `feat/` or `fix/` (e.g., `feat/project-setup-and-auth`).
+  - **Commits**: We use the **Conventional Commits** specification for clear and descriptive commit messages (e.g., `feat: ...`, `fix: ...`, `chore(dev): ...`).
 - **API Backend**: The application communicates with a backend service expected to be running at `http://localhost:8080`.

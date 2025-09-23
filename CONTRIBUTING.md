@@ -20,10 +20,10 @@ To ensure consistency and quality, we follow a strict development workflow. Plea
 
 We use a Trunk-Based Development model. All work should be done in short-lived feature branches.
 
--   **main**: The default and main branch. It must always be stable.
--   **Feature Branches**: Name your branches using the convention `<type>/<short-description>`, where `<type>` is one of `feat`, `fix`, or `chore`.
-    -   Example: `feat/user-login-form`
-    -   Example: `fix/api-error-handling`
+- **main**: The default and main branch. It must always be stable.
+- **Feature Branches**: Name your branches using the convention `<type>/<short-description>`, where `<type>` is one of `feat`, `fix`, or `chore`.
+  - Example: `feat/user-login-form`
+  - Example: `fix/api-error-handling`
 
 ### Committing
 
@@ -39,19 +39,19 @@ A commit message should be structured as follows:
 [optional footer]
 ```
 
--   **type**: `feat`, `fix`, `chore`, `docs`, `style`, `refactor`, `test`, etc.
--   **scope**: The part of the codebase you are changing (e.g., `auth`, `api`, `ui`).
+- **type**: `feat`, `fix`, `chore`, `docs`, `style`, `refactor`, `test`, etc.
+- **scope**: The part of the codebase you are changing (e.g., `auth`, `api`, `ui`).
 
 ### Pull Requests (PRs)
 
--   All work must be submitted via a Pull Request (PR).
--   Ensure your PR is small and focused on a single task.
--   Your PR must pass all CI checks (linting, formatting, tests).
--   Update documentation if you are changing any behavior.
+- All work must be submitted via a Pull Request (PR).
+- Ensure your PR is small and focused on a single task.
+- Your PR must pass all CI checks (linting, formatting, tests).
+- Update documentation if you are changing any behavior.
 
 ### Code Style
 
--   **Formatting**: We use Prettier for automated code formatting. Run `npm run format` before committing.
--   **Linting**: We use ESLint to catch code quality issues. Run `npm run lint` to check your code.
+- **Formatting**: We use Prettier for automated code formatting. Run `npm run format` before committing.
+- **Linting**: We use ESLint to catch code quality issues. Run `npm run lint` to check your code.
 
 By following these guidelines, you help us maintain a high-quality and collaborative development environment.

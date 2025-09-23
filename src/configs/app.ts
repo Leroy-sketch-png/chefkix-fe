@@ -1,5 +1,5 @@
 const app = {
-    AXIOS_TIMEOUT: 30000,
-};
+	AXIOS_TIMEOUT: 30000,
+}
 
-export default app;
+export default app
