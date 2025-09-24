@@ -54,5 +54,6 @@ The following scripts are available in `package.json`:
 ### Mock Authentication (Complete)
 
 - **Sign-In Feature**: The UI and logic for a user sign-in flow have been implemented.
+- **Sign-Up Feature**: The UI and logic for a user sign-up flow have been implemented, including a mock service with success and failure cases.
 - **Mock Service**: To enable parallel development, the authentication API has been mocked. The service simulates success and failure cases for the `signIn` function.
 - **Path Aliases**: TypeScript path aliases (`@/*`) have been configured for cleaner imports.
