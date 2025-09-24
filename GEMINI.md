@@ -57,3 +57,17 @@ The following scripts are available in `package.json`:
 - **Sign-Up Feature**: The UI and logic for a user sign-up flow have been implemented, including a mock service with success and failure cases.
 - **Mock Service**: To enable parallel development, the authentication API has been mocked. The service simulates success and failure cases for the `signIn` function.
 - **Path Aliases**: TypeScript path aliases (`@/*`) have been configured for cleaner imports.
+
+### Continuous Integration (CI) (Complete)
+
+- **GitHub Actions Workflow**: A basic CI workflow has been implemented using GitHub Actions, configured to run on pushes to `main` and on pull requests targeting `main`.
+- **Automated Checks**: The workflow includes steps for checking out code, setting up Node.js, installing dependencies, linting, and building the project.
+
+### State Management (Zustand) (Complete)
+
+- **Zustand Integration**: Integrated Zustand for client-side state management, starting with an authentication store.
+
+### UI Components (shadcn/ui) (Complete)
+
+- **shadcn/ui Setup**: Initialized and configured shadcn/ui.
+- **Core Components Added**: Added Button, Input, and Form components from shadcn/ui.
