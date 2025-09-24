@@ -27,3 +27,8 @@ export interface SignUpDto {
 	email: string
 	password: string
 }
+
+export interface AuthSuccessResponse {
+	user: User
+	token: string
+}

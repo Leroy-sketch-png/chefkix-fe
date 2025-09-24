@@ -42,3 +42,17 @@ The following scripts are available in `package.json`:
   - **Branching**: All new work is done on feature branches, typically prefixed with `feat/` or `fix/` (e.g., `feat/project-setup-and-auth`).
   - **Commits**: We use the **Conventional Commits** specification for clear and descriptive commit messages (e.g., `feat: ...`, `fix: ...`, `chore(dev): ...`).
 - **API Backend**: The application communicates with a backend service expected to be running at `http://localhost:8080`.
+
+## 4. Development Progress
+
+### Initial Setup (Complete)
+
+- **Workflow Established**: A professional `Branch -> Develop -> Test -> Commit -> Merge -> Clean Up` cycle is in place.
+- **Quality Gates**: The project is configured with `husky` to run `prettier` (formatting) and `eslint` (linting) as pre-commit hooks, ensuring code quality.
+- **Project Structure**: Standard directories (`tests/`, `docs/`) and documentation (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`) have been created.
+
+### Mock Authentication (Complete)
+
+- **Sign-In Feature**: The UI and logic for a user sign-in flow have been implemented.
+- **Mock Service**: To enable parallel development, the authentication API has been mocked. The service simulates success and failure cases for the `signIn` function.
+- **Path Aliases**: TypeScript path aliases (`@/*`) have been configured for cleaner imports.
