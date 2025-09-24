@@ -1,4 +1,9 @@
-import { ApiResponse, AuthSuccessResponse, SignInDto } from '@/lib/types'
+import {
+	ApiResponse,
+	AuthSuccessResponse,
+	SignInDto,
+	SignUpDto,
+} from '@/lib/types'
 
 // Mock sign-in function
 export const signIn = (
@@ -38,6 +43,46 @@ export const signIn = (
 					},
 				}
 				resolve(mockErrorResponse)
+			}
+		}, 1500)
+	})
+}
+
+// Mock sign-up function
+export const signUp = (
+	data: SignUpDto,
+): Promise<ApiResponse<AuthSuccessResponse>> => {
+	return new Promise(resolve => {
+		// Simulate a network delay of 1.5 seconds
+		setTimeout(() => {
+			if (data.email === 'test@example.com') {
+				// Simulate a user already exists error
+				const mockErrorResponse: ApiResponse<AuthSuccessResponse> = {
+					success: false,
+					statusCode: 409, // 409 Conflict
+					message: 'A user with this email already exists.',
+					error: {
+						email: ['A user with this email already exists.'],
+					},
+				}
+				resolve(mockErrorResponse)
+			} else {
+				// On success, resolve with a new mock user and token
+				const mockSuccessResponse: ApiResponse<AuthSuccessResponse> = {
+					success: true,
+					statusCode: 201, // 201 Created
+					data: {
+						user: {
+							id: '2', // New user ID
+							email: data.email,
+							firstName: data.username, // Use username as firstName for mock
+							lastName: '',
+						},
+						token: 'new-fake-jwt-token-for-development',
+					},
+					message: 'Account created successfully!',
+				}
+				resolve(mockSuccessResponse)
 			}
 		}, 1500)
 	})

@@ -47,7 +47,7 @@ export default function Home() {
 				setTimeLeft(null)
 			}
 		}
-	}, [currentStepIndex, isGameStarted, gamifiedRecipe])
+	}, [currentStepIndex, isGameStarted, gamifiedRecipe, timerId])
 
 	const handleProcessRecipe = async e => {
 		e.preventDefault()
