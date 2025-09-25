@@ -61,7 +61,11 @@ The following scripts are available in `package.json`:
 ### Continuous Integration (CI) (Complete)
 
 - **GitHub Actions Workflow**: A basic CI workflow has been implemented using GitHub Actions, configured to run on pushes to `main` and on pull requests targeting `main`.
-- **Automated Checks**: The workflow includes steps for checking out code, setting up Node.js, installing dependencies, linting, and building the project.
+- **Automated Checks**: The workflow includes steps for checking out code, setting up Node.js, installing dependencies, linting, **type checking**, and building the project.
+
+### Pre-commit Hooks (Complete)
+
+- **Husky Enhancements**: The `.husky/pre-commit` hook has been updated to automatically stage files modified by the formatter, ensuring consistent code style before commits.
 
 ### State Management (Zustand) (Complete)
 
