@@ -28,7 +28,7 @@ const formSchema = z.object({
 
 export function SignInForm() {
 	const router = useRouter()
-	const isLoggedIn = useAuthStore(state => state.isLoggedIn)
+	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -39,23 +39,17 @@ export function SignInForm() {
 	})
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
-		console.log('Attempting sign-in with:', values)
-		// Corrected: Pass the entire values object as SignInDto
 		const response = await signIn({
-			usernameOrEmail: values.email,
+			emailOrUsername: values.email,
 			password: values.password,
 		})
 
-		if (response.success) {
-			console.log('Sign-in successful:', response.data)
-			useAuthStore.getState().login(values.email)
+		if (response.success && response.data) {
+			useAuthStore.getState().login(response.data.user, response.data.token)
 			router.push('/')
 		} else {
-			console.error('Sign-in failed:', response.error)
-			// Corrected: Extract the error message from the response.error object
-			const errorMessage =
-				response.error?.general?.[0] || response.message || 'Sign-in failed.'
-			form.setError('email', {
+			const errorMessage = response.message || 'An unknown error occurred.'
+			form.setError('root.general' as any, {
 				type: 'manual',
 				message: errorMessage,
 			})
@@ -64,12 +58,20 @@ export function SignInForm() {
 
 	return (
 		<div className='w-full max-w-md space-y-8'>
-			<p>Logged In Status: {isLoggedIn ? 'Yes' : 'No'}</p>
+			<p>Authenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
 			<h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
 				Sign in to your account
 			</h2>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+					{form.formState.errors.root?.general && (
+						<div
+							className='rounded-md bg-red-50 p-4 text-sm text-red-700'
+							role='alert'
+						>
+							{(form.formState.errors.root.general as any).message}
+						</div>
+					)}
 					<FormField
 						control={form.control}
 						name='email'

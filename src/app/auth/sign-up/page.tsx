@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import SignUpForm from './components/SignUpForm'
+import { SignUpForm } from './components/SignUpForm'
 
 const SignUpPage = () => {
 	return (
@@ -13,15 +13,6 @@ const SignUpPage = () => {
 				</p>
 				<SignUpForm />
 			</div>
-			<p className='mt-6 text-center text-sm text-gray-600'>
-				Already have an account?{' '}
-				<Link
-					href='/auth/sign-in'
-					className='font-medium text-indigo-600 hover:text-indigo-500'
-				>
-					Sign In
-				</Link>
-			</p>
 		</div>
 	)
 }
