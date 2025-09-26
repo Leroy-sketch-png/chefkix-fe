@@ -7,10 +7,9 @@ export interface ApiResponse<T> {
 }
 
 export interface User {
-	id: string
+	id: number
 	email: string
-	firstName?: string
-	lastName?: string
+	username: string
 }
 
 export interface ChildrenProps {
@@ -18,7 +17,7 @@ export interface ChildrenProps {
 }
 
 export interface SignInDto {
-	usernameOrEmail: string
+	emailOrUsername: string
 	password: string
 }
 
@@ -28,7 +27,7 @@ export interface SignUpDto {
 	password: string
 }
 
-export interface AuthSuccessResponse {
+export interface LoginSuccessResponse {
 	user: User
 	token: string
 }

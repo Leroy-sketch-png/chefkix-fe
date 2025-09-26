@@ -36,14 +36,13 @@ yarn-error.log*
 /.env.local
 /.env.keys
 
+# Session-specific files
+GEMINI.md
+session_prompt.txt
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Session-specific files
-logic_reference.txt
-session_prompt.txt
-WORKFLOW.md

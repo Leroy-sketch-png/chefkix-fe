@@ -1,15 +1,19 @@
+import { User } from '@/lib/types'
 import { create } from 'zustand'
 
 interface AuthState {
-	isLoggedIn: boolean
-	user: { email: string } | null
-	login: (email: string) => void
+	isAuthenticated: boolean
+	user: User | null
+	token: string | null
+	login: (user: User, token: string) => void
 	logout: () => void
 }
 
 export const useAuthStore = create<AuthState>(set => ({
-	isLoggedIn: false,
+	isAuthenticated: false,
 	user: null,
-	login: (email: string) => set({ isLoggedIn: true, user: { email } }),
-	logout: () => set({ isLoggedIn: false, user: null }),
+	token: null,
+	login: (user: User, token: string) =>
+		set({ isAuthenticated: true, user, token }),
+	logout: () => set({ isAuthenticated: false, user: null, token: null }),
 }))

@@ -1,89 +1,52 @@
+import { api } from '@/lib/axios'
 import {
 	ApiResponse,
-	AuthSuccessResponse,
+	LoginSuccessResponse,
 	SignInDto,
 	SignUpDto,
 } from '@/lib/types'
+import { AxiosError } from 'axios'
 
-// Mock sign-in function
-export const signIn = (
+// Sign-in function
+export const signIn = async (
 	data: SignInDto,
-): Promise<ApiResponse<AuthSuccessResponse>> => {
-	return new Promise(resolve => {
-		// Simulate a network delay of 1.5 seconds
-		setTimeout(() => {
-			if (
-				data.usernameOrEmail === 'test@example.com' &&
-				data.password === 'password'
-			) {
-				// On success, resolve with a mock user and token
-				const mockSuccessResponse: ApiResponse<AuthSuccessResponse> = {
-					success: true,
-					statusCode: 200,
-					data: {
-						user: {
-							id: '1',
-							email: 'test@example.com',
-							firstName: 'Test',
-							lastName: 'User',
-						},
-						token: 'fake-jwt-token-for-development',
-					},
-					message: 'Login successful',
-				}
-				resolve(mockSuccessResponse)
-			} else {
-				// On failure, resolve with a mock error response
-				const mockErrorResponse: ApiResponse<AuthSuccessResponse> = {
-					success: false,
-					statusCode: 401,
-					message: 'Invalid credentials. Please try again.',
-					error: {
-						general: ['Invalid username or password'],
-					},
-				}
-				resolve(mockErrorResponse)
-			}
-		}, 1500)
-	})
+): Promise<ApiResponse<LoginSuccessResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<LoginSuccessResponse>>(
+			'/api/auth/login',
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
 }
 
-// Mock sign-up function
-export const signUp = (
-	data: SignUpDto,
-): Promise<ApiResponse<AuthSuccessResponse>> => {
-	return new Promise(resolve => {
-		// Simulate a network delay of 1.5 seconds
-		setTimeout(() => {
-			if (data.email === 'test@example.com') {
-				// Simulate a user already exists error
-				const mockErrorResponse: ApiResponse<AuthSuccessResponse> = {
-					success: false,
-					statusCode: 409, // 409 Conflict
-					message: 'A user with this email already exists.',
-					error: {
-						email: ['A user with this email already exists.'],
-					},
-				}
-				resolve(mockErrorResponse)
-			} else {
-				// On success, resolve with a new mock user and token
-				const mockSuccessResponse: ApiResponse<AuthSuccessResponse> = {
-					success: true,
-					statusCode: 201, // 201 Created
-					data: {
-						user: {
-							id: '2', // New user ID
-							email: data.email,
-							firstName: data.username, // Use username as firstName for mock
-							lastName: '',
-						},
-						token: 'new-fake-jwt-token-for-development',
-					},
-					message: 'Account created successfully!',
-				}
-				resolve(mockSuccessResponse)
-			}
-		}, 1500)
-	})
+// Sign-up function
+export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
+	try {
+		const response = await api.post<ApiResponse<string>>(
+			'/api/auth/register',
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<string>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
 }
