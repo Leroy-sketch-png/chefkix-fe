@@ -6,6 +6,7 @@ import {
 	SignUpDto,
 } from '@/lib/types'
 import { AxiosError } from 'axios'
+import { API_ENDPOINTS } from '@/constants'
 
 // Sign-in function
 export const signIn = async (
@@ -13,7 +14,7 @@ export const signIn = async (
 ): Promise<ApiResponse<LoginSuccessResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<LoginSuccessResponse>>(
-			'/api/auth/login',
+			API_ENDPOINTS.AUTH.LOGIN,
 			data,
 		)
 		return response.data
@@ -34,7 +35,7 @@ export const signIn = async (
 export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 	try {
 		const response = await api.post<ApiResponse<string>>(
-			'/api/auth/register',
+			API_ENDPOINTS.AUTH.REGISTER,
 			data,
 		)
 		return response.data

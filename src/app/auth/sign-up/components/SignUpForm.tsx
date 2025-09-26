@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { signUp } from '@/services/auth'
-import { useAuthStore } from '@/store/authStore'
+import { PATHS } from '@/constants/paths'
 
 const formSchema = z.object({
 	username: z.string().min(2, {
@@ -46,7 +46,7 @@ export function SignUpForm() {
 
 		if (response.success) {
 			// The user is not automatically logged in on sign up, so we redirect to sign-in page.
-			router.push('/auth/sign-in')
+			router.push(PATHS.AUTH.SIGN_IN)
 		} else {
 			if (response.error) {
 				Object.keys(response.error).forEach(key => {
@@ -142,7 +142,7 @@ export function SignUpForm() {
 			<div className='text-center text-sm text-gray-600'>
 				Already have an account?{' '}
 				<Link
-					href='/auth/sign-in'
+					href={PATHS.AUTH.SIGN_IN}
 					className='font-medium text-indigo-600 hover:text-indigo-500'
 				>
 					Sign In

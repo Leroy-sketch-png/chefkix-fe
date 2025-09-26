@@ -17,7 +17,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { signIn } from '@/services/auth'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
+import { PATHS } from '@/constants/paths'
 
 const formSchema = z.object({
 	email: z.string().email({ message: 'Invalid email address.' }),
@@ -28,7 +29,7 @@ const formSchema = z.object({
 
 export function SignInForm() {
 	const router = useRouter()
-	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+	const { login, isAuthenticated } = useAuth()
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -45,8 +46,8 @@ export function SignInForm() {
 		})
 
 		if (response.success && response.data) {
-			useAuthStore.getState().login(response.data.user, response.data.token)
-			router.push('/')
+			login(response.data.user, response.data.token)
+			router.push(PATHS.HOME)
 		} else {
 			const errorMessage = response.message || 'An unknown error occurred.'
 			form.setError('root.general' as any, {
@@ -115,7 +116,7 @@ export function SignInForm() {
 			<div className='text-center text-sm text-gray-600'>
 				Don&apos;t have an account?{' '}
 				<Link
-					href='/auth/sign-up'
+					href={PATHS.AUTH.SIGN_UP}
 					className='font-medium text-indigo-600 hover:text-indigo-500'
 				>
 					Sign Up
