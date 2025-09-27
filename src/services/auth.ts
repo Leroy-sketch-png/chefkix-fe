@@ -3,8 +3,10 @@ import {
 	ApiResponse,
 	IntrospectResponse,
 	LoginSuccessResponse,
+	SendOtpDto,
 	SignInDto,
 	SignUpDto,
+	VerifyOtpDto,
 } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
@@ -72,6 +74,52 @@ export const introspect = async (
 			success: false,
 			message: 'Session expired or invalid. Please sign in again.',
 			statusCode: 401,
+		}
+	}
+}
+
+// Send OTP function
+export const sendOtp = async (
+	data: SendOtpDto,
+): Promise<ApiResponse<string>> => {
+	try {
+		const response = await api.post<ApiResponse<string>>(
+			API_ENDPOINTS.AUTH.SEND_OTP,
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<string>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+// Verify OTP function
+export const verifyOtp = async (
+	data: VerifyOtpDto,
+): Promise<ApiResponse<string>> => {
+	try {
+		const response = await api.post<ApiResponse<string>>(
+			API_ENDPOINTS.AUTH.VERIFY_OTP,
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<string>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
 		}
 	}
 }

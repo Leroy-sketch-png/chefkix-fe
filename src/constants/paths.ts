@@ -1,9 +1,9 @@
 export const PATHS = {
 	HOME: '/',
+	DASHBOARD: '/dashboard',
 	AUTH: {
 		SIGN_IN: '/auth/sign-in',
 		SIGN_UP: '/auth/sign-up',
+		VERIFY_OTP: '/auth/verify-otp',
 	},
-	// Add other main paths here
-	DASHBOARD: '/dashboard',
 }
