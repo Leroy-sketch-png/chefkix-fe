@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { VerifyOtpForm } from './components/VerifyOtpForm'
+import { VerifyOtpForm } from '@/components/auth/VerifyOtpForm'
 
 const VerifyOtpPage = () => {
 	return (
