@@ -1,6 +1,7 @@
 import { api } from '@/lib/axios'
 import {
 	ApiResponse,
+	IntrospectResponse,
 	LoginSuccessResponse,
 	SignInDto,
 	SignUpDto,
@@ -48,6 +49,29 @@ export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 			success: false,
 			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
+		}
+	}
+}
+
+// Token introspection function
+export const introspect = async (
+	token: string,
+): Promise<ApiResponse<IntrospectResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<IntrospectResponse>>(
+			API_ENDPOINTS.AUTH.INTROSPECT,
+			{ token },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<IntrospectResponse>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Session expired or invalid. Please sign in again.',
+			statusCode: 401,
 		}
 	}
 }
