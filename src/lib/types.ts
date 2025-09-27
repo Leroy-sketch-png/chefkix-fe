@@ -39,3 +39,12 @@ export interface LoginSuccessResponse {
 	user: User
 	token: string
 }
+
+export interface VerifyOtpDto {
+	email: string
+	otp: string
+}
+
+export interface SendOtpDto {
+	email: string
+}

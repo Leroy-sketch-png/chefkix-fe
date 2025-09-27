@@ -45,8 +45,9 @@ export function SignUpForm() {
 		const response = await signUp(values)
 
 		if (response.success) {
-			// The user is not automatically logged in on sign up, so we redirect to sign-in page.
-			router.push(PATHS.AUTH.SIGN_IN)
+			router.push(
+				`${PATHS.AUTH.VERIFY_OTP}?email=${encodeURIComponent(values.email)}`,
+			)
 		} else {
 			if (response.error) {
 				Object.keys(response.error).forEach(key => {
