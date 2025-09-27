@@ -27,6 +27,14 @@ export interface SignUpDto {
 	password: string
 }
 
+export interface IntrospectRequest {
+	token: string
+}
+
+export interface IntrospectResponse {
+	valid: boolean
+}
+
 export interface LoginSuccessResponse {
 	user: User
 	token: string
