@@ -10,10 +10,15 @@ export const API_ENDPOINTS = {
 	PROFILE: {
 		GET_BY_USERNAME: (username: string) => `/api/profiles/${username}`,
 		GET_ME: '/api/profiles/me',
+		GET_ALL: '/api/profiles',
 	},
 	SOCIAL: {
 		TOGGLE_FOLLOW: (userId: string) => `/api/social/toggle-follow/${userId}`,
 		TOGGLE_FRIEND_REQUEST: (userId: string) =>
 			`/api/social/toggle-friend-request/${userId}`,
+		ACCEPT_FRIEND_REQUEST: (userId: string) =>
+			`/api/social/accept-friend-request/${userId}`,
+		DECLINE_FRIEND_REQUEST: (userId: string) =>
+			`/api/social/decline-friend-request/${userId}`,
 	},
 } as const

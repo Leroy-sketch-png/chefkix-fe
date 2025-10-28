@@ -23,3 +23,41 @@ export const getProfileByUsername = async (
 		}
 	}
 }
+
+export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
+	try {
+		const response = await api.get<ApiResponse<Profile>>(
+			API_ENDPOINTS.PROFILE.GET_ME,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Profile>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const getAllProfiles = async (): Promise<ApiResponse<Profile[]>> => {
+	try {
+		const response = await api.get<ApiResponse<Profile[]>>(
+			API_ENDPOINTS.PROFILE.GET_ALL,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
