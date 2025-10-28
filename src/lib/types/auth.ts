@@ -1,7 +1,9 @@
 export interface User {
-	id: number
+	id: string
 	email: string
-	username: string
+	name: string
+	provider: string
+	emailVerified: boolean
 }
 
 export interface SignInDto {
@@ -35,4 +37,8 @@ export interface VerifyOtpDto {
 
 export interface SendOtpDto {
 	email: string
+}
+
+export interface GoogleSignInDto {
+	code: string
 }

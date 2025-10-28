@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { signUp } from '@/services/auth'
-import { PATHS } from '@/constants/paths'
+import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 
 const formSchema = z.object({
 	username: z.string().min(2, {
@@ -53,7 +53,7 @@ export function SignUpForm() {
 				Object.keys(response.error).forEach(key => {
 					const field = key as keyof z.infer<typeof formSchema>
 					const message =
-						response.error?.[field]?.join(', ') || 'An error occurred.'
+						response.error?.[field]?.join(', ') || SIGN_UP_MESSAGES.ERROR
 					form.setError(field, {
 						type: 'manual',
 						message: message,
@@ -62,7 +62,7 @@ export function SignUpForm() {
 			} else {
 				form.setError('root.general' as any, {
 					type: 'manual',
-					message: response.message || 'Sign-up failed.',
+					message: response.message || SIGN_UP_MESSAGES.FAILED,
 				})
 			}
 		}
