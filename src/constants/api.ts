@@ -20,5 +20,6 @@ export const API_ENDPOINTS = {
 			`/api/social/accept-friend-request/${userId}`,
 		DECLINE_FRIEND_REQUEST: (userId: string) =>
 			`/api/social/decline-friend-request/${userId}`,
+		UNFRIEND: (userId: string) => `/api/social/unfriend/${userId}`,
 	},
 } as const

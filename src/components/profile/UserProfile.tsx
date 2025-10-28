@@ -3,9 +3,20 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Profile, RelationshipStatus } from '@/lib/types'
-import { Award, UserPlus, UserCheck, MessageCircle, Clock } from 'lucide-react'
+import {
+	Award,
+	UserPlus,
+	UserCheck,
+	MessageCircle,
+	Clock,
+	UserX,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { toggleFollow, toggleFriendRequest } from '@/services/social'
+import {
+	toggleFollow,
+	toggleFriendRequest,
+	unfriendUser,
+} from '@/services/social'
 
 type UserProfileProps = {
 	profile: Profile
@@ -40,6 +51,21 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 		// TODO: Add error handling toast
 	}
 
+	const handleUnfriend = async () => {
+		const response = await unfriendUser(profile.userId)
+		if (response.success && response.data) {
+			setProfile(prev => ({
+				...prev,
+				relationshipStatus: response.data?.relationshipStatus,
+				statistics: {
+					...prev.statistics,
+					friendCount: response.data.statistics.friendCount,
+				},
+			}))
+		}
+		// TODO: Add error handling toast
+	}
+
 	const renderFollowButton = () => {
 		if (profile.isFollowing) {
 			return (
@@ -61,9 +87,9 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 		switch (profile.relationshipStatus) {
 			case 'FRIENDS':
 				return (
-					<Button variant='secondary' disabled>
-						<UserCheck className='mr-2 h-4 w-4' />
-						Friends
+					<Button onClick={handleUnfriend} variant='destructive'>
+						<UserX className='mr-2 h-4 w-4' />
+						Unfriend
 					</Button>
 				)
 			case 'PENDING_SENT':
