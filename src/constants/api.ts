@@ -3,10 +3,17 @@ export const API_ENDPOINTS = {
 		LOGIN: '/api/auth/login',
 		REGISTER: '/api/auth/register',
 		INTROSPECT: '/api/auth/introspect',
-		VERIFY_OTP: '/api/auth/verify-otp',
 		SEND_OTP: '/api/auth/send-otp',
+		VERIFY_OTP: '/api/auth/verify-otp',
 		GOOGLE: '/api/auth/google',
 	},
-	// Add other resource endpoints here
-	// e.g., RECIPES: '/api/recipes',
-}
+	PROFILE: {
+		GET_BY_USERNAME: (username: string) => `/api/profiles/${username}`,
+		GET_ME: '/api/profiles/me',
+	},
+	SOCIAL: {
+		TOGGLE_FOLLOW: (userId: string) => `/api/social/toggle-follow/${userId}`,
+		TOGGLE_FRIEND_REQUEST: (userId: string) =>
+			`/api/social/toggle-friend-request/${userId}`,
+	},
+} as const
