@@ -1,11 +1,7 @@
 import { getProfileByUsername } from '@/services/profile'
 import { UserProfile } from '@/components/profile/UserProfile'
 
-type Props = {
-	params: { username: string }
-}
-
-const ProfilePage = async ({ params }: Props) => {
+const ProfilePage = async ({ params }) => {
 	const { success, data: profile } = await getProfileByUsername(params.username)
 
 	if (!success || !profile) {

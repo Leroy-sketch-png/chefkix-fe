@@ -1,16 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Profile, RelationshipStatus } from '@/lib/types'
 import { Award, UserPlus, UserCheck, MessageCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toggleFollow, toggleFriendRequest } from '@/services/social'
-
-// TODO: Replace with actual Image component if using next/image
-// eslint-disable-next-line @next/next/no-img-element
-const Img = (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-	<img {...props} />
-)
 
 type UserProfileProps = {
 	profile: Profile
@@ -96,11 +91,12 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 		<div className='mx-auto my-8 max-w-4xl rounded-lg bg-white p-8 shadow-md'>
 			{/* Profile Header */}
 			<header className='flex items-center gap-6 border-b border-gray-200 pb-6'>
-				<div className='h-24 w-24 flex-shrink-0 overflow-hidden rounded-full border-4 border-primary'>
-					<Img
+				<div className='relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-full border-4 border-primary'>
+					<Image
 						src={profile.avatarUrl || 'https://i.pravatar.cc/150'}
 						alt={`${profile.displayName}'s avatar`}
-						className='h-full w-full object-cover'
+						fill
+						className='object-cover'
 					/>
 				</div>
 				<div className='flex-grow'>
