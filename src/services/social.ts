@@ -5,6 +5,7 @@ import {
 	DeclineFriendResponse,
 	ToggleFollowResponse,
 	ToggleFriendRequestResponse,
+	UnfriendResponse,
 } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
@@ -84,6 +85,27 @@ export const declineFriendRequest = async (
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<DeclineFriendResponse>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const unfriendUser = async (
+	userId: string,
+): Promise<ApiResponse<UnfriendResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<UnfriendResponse>>(
+			API_ENDPOINTS.SOCIAL.UNFRIEND(userId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<UnfriendResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
