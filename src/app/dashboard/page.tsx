@@ -24,7 +24,7 @@ const DashboardPage = () => {
 					{user ? (
 						<p className='text-lg text-gray-700'>
 							You are signed in as{' '}
-							<span className='font-semibold'>{user.username}</span>.
+							<span className='font-semibold'>{user.name}</span>.
 						</p>
 					) : (
 						<p className='text-lg text-gray-700'>Loading user data...</p>

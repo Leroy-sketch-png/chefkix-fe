@@ -7,6 +7,7 @@ import {
 	SignInDto,
 	SignUpDto,
 	VerifyOtpDto,
+	GoogleSignInDto,
 } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
@@ -113,6 +114,29 @@ export const verifyOtp = async (
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<string>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+// Google Sign-In function
+export const googleSignIn = async (
+	data: GoogleSignInDto,
+): Promise<ApiResponse<LoginSuccessResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<LoginSuccessResponse>>(
+			API_ENDPOINTS.AUTH.GOOGLE,
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}

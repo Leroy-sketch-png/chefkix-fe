@@ -16,12 +16,15 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { signIn } from '@/services/auth'
+import { signIn, googleSignIn } from '@/services/auth'
 import { useAuth } from '@/hooks/useAuth'
-import { PATHS } from '@/constants/paths'
+import { AUTH_MESSAGES, PATHS } from '@/constants'
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 
 const formSchema = z.object({
-	email: z.string().email({ message: 'Invalid email address.' }),
+	emailOrUsername: z
+		.string()
+		.min(3, { message: 'Email or username must be at least 3 characters.' }),
 	password: z.string().min(6, {
 		message: 'Password must be at least 6 characters.',
 	}),
@@ -34,14 +37,14 @@ export function SignInForm() {
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			email: '',
+			emailOrUsername: '',
 			password: '',
 		},
 	})
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		const response = await signIn({
-			emailOrUsername: values.email,
+			emailOrUsername: values.emailOrUsername,
 			password: values.password,
 		})
 
@@ -75,13 +78,13 @@ export function SignInForm() {
 					)}
 					<FormField
 						control={form.control}
-						name='email'
+						name='emailOrUsername'
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Email</FormLabel>
+								<FormLabel>Email or Username</FormLabel>
 								<FormControl>
 									<Input
-										placeholder='test@example.com'
+										placeholder='yourname or test@example.com'
 										{...field}
 										className='text-gray-900'
 									/>
@@ -111,6 +114,28 @@ export function SignInForm() {
 					<Button type='submit' className='w-full'>
 						Sign In
 					</Button>
+					<GoogleSignInButton
+						onSuccess={async code => {
+							const response = await googleSignIn({ code })
+							if (response.success && response.data) {
+								login(response.data.user, response.data.token)
+								router.push(PATHS.HOME)
+							} else {
+								const errorMessage =
+									response.message || 'Google sign-in failed.'
+								form.setError('root.general' as any, {
+									type: 'manual',
+									message: errorMessage,
+								})
+							}
+						}}
+						onFailure={error => {
+							form.setError('root.general' as any, {
+								type: 'manual',
+								message: error.message || 'Google sign-in failed.',
+							})
+						}}
+					/>
 				</form>
 			</Form>
 			<div className='text-center text-sm text-gray-600'>

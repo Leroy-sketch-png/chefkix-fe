@@ -22,9 +22,11 @@ describe('signIn', () => {
 		}
 		const mockSuccessData: LoginSuccessResponse = {
 			user: {
-				id: 1,
+				id: '1',
 				email: 'test@example.com',
-				username: 'testuser',
+				name: 'testuser',
+				provider: 'credentials',
+				emailVerified: true,
 			},
 			token: 'fake-jwt-token',
 		}

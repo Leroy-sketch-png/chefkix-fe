@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { sendOtp, verifyOtp } from '@/services/auth'
-import { PATHS } from '@/constants'
+import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
 import { useState } from 'react'
 
 const formSchema = z.object({
@@ -37,35 +37,35 @@ export const VerifyOtpForm = () => {
 
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		if (!email) {
-			setError('Email not found. Please try signing up again.')
+			setError(VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND)
 			return
 		}
 
 		const response = await verifyOtp({ email, otp: values.otp })
 
 		if (response.success) {
-			setSuccess('Email verified successfully! Redirecting to sign-in...')
+			setSuccess(VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS)
 			setError(null)
 			setTimeout(() => {
 				router.push(PATHS.AUTH.SIGN_IN)
 			}, 2000)
 		} else {
-			setError(response.message || 'Invalid OTP. Please try again.')
+			setError(response.message || VERIFY_OTP_MESSAGES.INVALID_OTP)
 			setSuccess(null)
 		}
 	}
 
 	const handleResendOtp = async () => {
 		if (!email) {
-			setError('Email not found. Cannot resend OTP.')
+			setError(VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND_FOR_RESEND)
 			return
 		}
 		const response = await sendOtp({ email })
 		if (response.success) {
-			setSuccess('A new OTP has been sent to your email.')
+			setSuccess(VERIFY_OTP_MESSAGES.RESEND_SUCCESS)
 			setError(null)
 		} else {
-			setError(response.message || 'Failed to resend OTP.')
+			setError(response.message || VERIFY_OTP_MESSAGES.RESEND_FAILED)
 			setSuccess(null)
 		}
 	}
@@ -75,8 +75,7 @@ export const VerifyOtpForm = () => {
 			<div className='rounded-lg bg-white p-8 text-center shadow-md'>
 				<h2 className='text-2xl font-bold text-red-600'>Error</h2>
 				<p className='mt-4 text-gray-700'>
-					No email address was provided. Please return to the sign-up page and
-					try again.
+					{VERIFY_OTP_MESSAGES.NO_EMAIL_PROVIDED}
 				</p>
 				<Button
 					onClick={() => router.push(PATHS.AUTH.SIGN_UP)}
