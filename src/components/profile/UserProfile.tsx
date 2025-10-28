@@ -1,8 +1,10 @@
 'use client'
 
-import { Profile } from '@/lib/types'
-import { Award, UserPlus, UserCheck, MessageCircle } from 'lucide-react'
+import { useState } from 'react'
+import { Profile, RelationshipStatus } from '@/lib/types'
+import { Award, UserPlus, UserCheck, MessageCircle, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { toggleFollow, toggleFriendRequest } from '@/services/social'
 
 // TODO: Replace with actual Image component if using next/image
 // eslint-disable-next-line @next/next/no-img-element
@@ -14,7 +16,82 @@ type UserProfileProps = {
 	profile: Profile
 }
 
-export const UserProfile = ({ profile }: UserProfileProps) => {
+export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
+	const [profile, setProfile] = useState<Profile>(initialProfile)
+
+	const handleFollow = async () => {
+		const response = await toggleFollow(profile.userId)
+		if (response.success && response.data) {
+			setProfile(prev => ({
+				...prev,
+				isFollowing: response.data?.isFollowing,
+				statistics: {
+					...prev.statistics,
+					followerCount: response.data.statistics.followerCount,
+				},
+			}))
+		}
+		// TODO: Add error handling toast
+	}
+
+	const handleFriendRequest = async () => {
+		const response = await toggleFriendRequest(profile.userId)
+		if (response.success && response.data) {
+			setProfile(prev => ({
+				...prev,
+				relationshipStatus: response.data?.relationshipStatus,
+			}))
+		}
+		// TODO: Add error handling toast
+	}
+
+	const renderFollowButton = () => {
+		if (profile.isFollowing) {
+			return (
+				<Button onClick={handleFollow} variant='secondary'>
+					<UserCheck className='mr-2 h-4 w-4' />
+					Following
+				</Button>
+			)
+		}
+		return (
+			<Button onClick={handleFollow}>
+				<UserPlus className='mr-2 h-4 w-4' />
+				Follow
+			</Button>
+		)
+	}
+
+	const renderFriendButton = () => {
+		switch (profile.relationshipStatus) {
+			case 'FRIENDS':
+				return (
+					<Button variant='secondary' disabled>
+						<UserCheck className='mr-2 h-4 w-4' />
+						Friends
+					</Button>
+				)
+			case 'PENDING_SENT':
+				return (
+					<Button onClick={handleFriendRequest} variant='secondary'>
+						<Clock className='mr-2 h-4 w-4' />
+						Pending
+					</Button>
+				)
+			case 'PENDING_RECEIVED':
+				return (
+					<Button>Accept Request</Button> // TODO: Implement accept/decline
+				)
+			default:
+				return (
+					<Button onClick={handleFriendRequest} variant='secondary'>
+						<UserPlus className='mr-2 h-4 w-4' />
+						Add Friend
+					</Button>
+				)
+		}
+	}
+
 	return (
 		<div className='mx-auto my-8 max-w-4xl rounded-lg bg-white p-8 shadow-md'>
 			{/* Profile Header */}
@@ -70,14 +147,8 @@ export const UserProfile = ({ profile }: UserProfileProps) => {
 
 			{/* Profile Actions */}
 			<div className='flex justify-center gap-4 py-6'>
-				<Button>
-					<UserPlus className='mr-2 h-4 w-4' />
-					Follow
-				</Button>
-				<Button variant='secondary'>
-					<UserCheck className='mr-2 h-4 w-4' />
-					Add Friend
-				</Button>
+				{renderFollowButton()}
+				{renderFriendButton()}
 				<Button variant='secondary'>
 					<MessageCircle className='mr-2 h-4 w-4' />
 					Message
