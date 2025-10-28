@@ -1,6 +1,8 @@
 import { api } from '@/lib/axios'
 import {
+	AcceptFriendResponse,
 	ApiResponse,
+	DeclineFriendResponse,
 	ToggleFollowResponse,
 	ToggleFriendRequestResponse,
 } from '@/lib/types'
@@ -40,6 +42,48 @@ export const toggleFriendRequest = async (
 		const axiosError = error as AxiosError<
 			ApiResponse<ToggleFriendRequestResponse>
 		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const acceptFriendRequest = async (
+	userId: string,
+): Promise<ApiResponse<AcceptFriendResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<AcceptFriendResponse>>(
+			API_ENDPOINTS.SOCIAL.ACCEPT_FRIEND_REQUEST(userId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<AcceptFriendResponse>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const declineFriendRequest = async (
+	userId: string,
+): Promise<ApiResponse<DeclineFriendResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<DeclineFriendResponse>>(
+			API_ENDPOINTS.SOCIAL.DECLINE_FRIEND_REQUEST(userId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<DeclineFriendResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
