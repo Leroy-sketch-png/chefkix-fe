@@ -6,6 +6,7 @@ import { Topbar } from '@/components/layout/Topbar'
 import { LeftSidebar } from '@/components/layout/LeftSidebar'
 import { RightSidebar } from '@/components/layout/RightSidebar'
 import { MessagesDrawer } from '@/components/layout/MessagesDrawer'
+import { NotificationsPopup } from '@/components/layout/NotificationsPopup'
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -47,6 +48,7 @@ export default function RootLayout({
 							<RightSidebar />
 						</div>
 						<MessagesDrawer />
+						<NotificationsPopup />
 					</AuthProvider>
 				</GoogleOAuthProvider>
 			</body>
