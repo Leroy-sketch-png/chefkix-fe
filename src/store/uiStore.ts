@@ -5,6 +5,8 @@ interface UiState {
 	toggleMessagesDrawer: () => void
 	isNotificationsPopupOpen: boolean
 	toggleNotificationsPopup: () => void
+	isCookingPlayerOpen: boolean
+	toggleCookingPlayer: () => void
 }
 
 export const useUiStore = create<UiState>(set => ({
@@ -16,4 +18,7 @@ export const useUiStore = create<UiState>(set => ({
 		set(state => ({
 			isNotificationsPopupOpen: !state.isNotificationsPopupOpen,
 		})),
+	isCookingPlayerOpen: false,
+	toggleCookingPlayer: () =>
+		set(state => ({ isCookingPlayerOpen: !state.isCookingPlayerOpen })),
 }))

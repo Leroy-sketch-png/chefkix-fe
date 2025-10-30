@@ -7,6 +7,7 @@ import { LeftSidebar } from '@/components/layout/LeftSidebar'
 import { RightSidebar } from '@/components/layout/RightSidebar'
 import { MessagesDrawer } from '@/components/layout/MessagesDrawer'
 import { NotificationsPopup } from '@/components/layout/NotificationsPopup'
+import { CookingPlayer } from '@/components/cooking/CookingPlayer'
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -49,6 +50,7 @@ export default function RootLayout({
 						</div>
 						<MessagesDrawer />
 						<NotificationsPopup />
+						<CookingPlayer />
 					</AuthProvider>
 				</GoogleOAuthProvider>
 			</body>
