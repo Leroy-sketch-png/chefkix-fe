@@ -2,12 +2,6 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-import { Topbar } from '@/components/layout/Topbar'
-import { LeftSidebar } from '@/components/layout/LeftSidebar'
-import { RightSidebar } from '@/components/layout/RightSidebar'
-import { MessagesDrawer } from '@/components/layout/MessagesDrawer'
-import { NotificationsPopup } from '@/components/layout/NotificationsPopup'
-import { CookingPlayer } from '@/components/cooking/CookingPlayer'
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -37,21 +31,7 @@ export default function RootLayout({
 				<GoogleOAuthProvider
 					clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
 				>
-					<AuthProvider>
-						<div className='grid min-h-screen w-full grid-cols-1 bg-background md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr_300px]'>
-							<LeftSidebar />
-							<div className='flex flex-col'>
-								<Topbar />
-								<main className='flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6'>
-									{children}
-								</main>
-							</div>
-							<RightSidebar />
-						</div>
-						<MessagesDrawer />
-						<NotificationsPopup />
-						<CookingPlayer />
-					</AuthProvider>
+					<AuthProvider>{children}</AuthProvider>
 				</GoogleOAuthProvider>
 			</body>
 		</html>
