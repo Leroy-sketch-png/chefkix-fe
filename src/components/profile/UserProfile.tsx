@@ -10,8 +10,10 @@ import {
 	MessageCircle,
 	Clock,
 	UserX,
+	Settings,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
 	toggleFollow,
 	toggleFriendRequest,
@@ -20,22 +22,20 @@ import {
 
 type UserProfileProps = {
 	profile: Profile
+	currentUserId?: string // Make currentUserId optional
 }
 
-export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
+export const UserProfile = ({
+	profile: initialProfile,
+	currentUserId,
+}: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
+	const isOwnProfile = profile.userId === currentUserId
 
 	const handleFollow = async () => {
 		const response = await toggleFollow(profile.userId)
 		if (response.success && response.data) {
-			setProfile(prev => ({
-				...prev,
-				isFollowing: response.data?.isFollowing,
-				statistics: {
-					...prev.statistics,
-					followerCount: response.data.statistics.followerCount,
-				},
-			}))
+			setProfile(response.data)
 		}
 		// TODO: Add error handling toast
 	}
@@ -43,10 +43,7 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	const handleFriendRequest = async () => {
 		const response = await toggleFriendRequest(profile.userId)
 		if (response.success && response.data) {
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: response.data?.relationshipStatus,
-			}))
+			setProfile(response.data)
 		}
 		// TODO: Add error handling toast
 	}
@@ -54,9 +51,10 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	const handleUnfriend = async () => {
 		const response = await unfriendUser(profile.userId)
 		if (response.success && response.data) {
+			// The unfriend response is smaller, so we merge it manually
 			setProfile(prev => ({
 				...prev,
-				relationshipStatus: response.data?.relationshipStatus,
+				relationshipStatus: response.data.relationshipStatus,
 				statistics: {
 					...prev.statistics,
 					friendCount: response.data.statistics.friendCount,
@@ -67,6 +65,8 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	}
 
 	const renderFollowButton = () => {
+		if (isOwnProfile) return null
+
 		if (profile.isFollowing) {
 			return (
 				<Button onClick={handleFollow} variant='secondary'>
@@ -84,6 +84,8 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	}
 
 	const renderFriendButton = () => {
+		if (isOwnProfile) return null
+
 		switch (profile.relationshipStatus) {
 			case 'FRIENDS':
 				return (
@@ -132,15 +134,28 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 					<span className='font-semibold text-primary'>
 						@{profile.username}
 					</span>
+					{isOwnProfile && (
+						<span className='mt-1 block text-sm text-gray-500'>
+							{profile.email}
+						</span>
+					)}
 					<p className='mt-3 max-w-lg text-sm text-gray-600'>{profile.bio}</p>
 				</div>
-				<div className='flex min-w-[100px] flex-col items-center gap-1 rounded-lg bg-yellow-100 p-4 text-yellow-700'>
-					<Award className='h-8 w-8' />
-					<span className='text-lg font-bold'>
-						Level {profile.statistics.currentLevel}
-					</span>
-					{profile.statistics.title && (
-						<small className='font-medium'>{profile.statistics.title}</small>
+				<div className='flex flex-col gap-2'>
+					<div className='flex w-full min-w-[100px] flex-col items-center gap-1 rounded-lg bg-yellow-100 p-4 text-yellow-700'>
+						<Award className='h-8 w-8' />
+						<span className='text-lg font-bold'>
+							Level {profile.statistics.currentLevel}
+						</span>
+						{profile.statistics.title && (
+							<small className='font-medium'>{profile.statistics.title}</small>
+						)}
+					</div>
+					{isOwnProfile && (
+						<Button variant='outline'>
+							<Settings className='mr-2 h-4 w-4' />
+							Edit Profile
+						</Button>
 					)}
 				</div>
 			</header>
@@ -169,6 +184,14 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 
 			{/* Profile Actions */}
 			<div className='flex justify-center gap-4 py-6'>
+				{isOwnProfile && profile.statistics.friendRequestCount > 0 && (
+					<Button variant='ghost'>
+						Friend Requests
+						<Badge className='ml-2'>
+							{profile.statistics.friendRequestCount}
+						</Badge>
+					</Button>
+				)}
 				{renderFollowButton()}
 				{renderFriendButton()}
 				<Button variant='secondary'>
