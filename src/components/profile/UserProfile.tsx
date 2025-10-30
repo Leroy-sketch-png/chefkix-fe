@@ -10,8 +10,10 @@ import {
 	MessageCircle,
 	Clock,
 	UserX,
+	Settings,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
 	toggleFollow,
 	toggleFriendRequest,
@@ -132,15 +134,28 @@ export const UserProfile = ({
 					<span className='font-semibold text-primary'>
 						@{profile.username}
 					</span>
+					{isOwnProfile && (
+						<span className='mt-1 block text-sm text-gray-500'>
+							{profile.email}
+						</span>
+					)}
 					<p className='mt-3 max-w-lg text-sm text-gray-600'>{profile.bio}</p>
 				</div>
-				<div className='flex min-w-[100px] flex-col items-center gap-1 rounded-lg bg-yellow-100 p-4 text-yellow-700'>
-					<Award className='h-8 w-8' />
-					<span className='text-lg font-bold'>
-						Level {profile.statistics.currentLevel}
-					</span>
-					{profile.statistics.title && (
-						<small className='font-medium'>{profile.statistics.title}</small>
+				<div className='flex flex-col gap-2'>
+					<div className='flex w-full min-w-[100px] flex-col items-center gap-1 rounded-lg bg-yellow-100 p-4 text-yellow-700'>
+						<Award className='h-8 w-8' />
+						<span className='text-lg font-bold'>
+							Level {profile.statistics.currentLevel}
+						</span>
+						{profile.statistics.title && (
+							<small className='font-medium'>{profile.statistics.title}</small>
+						)}
+					</div>
+					{isOwnProfile && (
+						<Button variant='outline'>
+							<Settings className='mr-2 h-4 w-4' />
+							Edit Profile
+						</Button>
 					)}
 				</div>
 			</header>
@@ -169,6 +184,14 @@ export const UserProfile = ({
 
 			{/* Profile Actions */}
 			<div className='flex justify-center gap-4 py-6'>
+				{isOwnProfile && profile.statistics.friendRequestCount > 0 && (
+					<Button variant='ghost'>
+						Friend Requests
+						<Badge className='ml-2'>
+							{profile.statistics.friendRequestCount}
+						</Badge>
+					</Button>
+				)}
 				{renderFollowButton()}
 				{renderFriendButton()}
 				<Button variant='secondary'>
