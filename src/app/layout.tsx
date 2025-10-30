@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Topbar } from '@/components/layout/Topbar'
 import { LeftSidebar } from '@/components/layout/LeftSidebar'
 import { RightSidebar } from '@/components/layout/RightSidebar'
+import { MessagesDrawer } from '@/components/layout/MessagesDrawer'
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -45,6 +46,7 @@ export default function RootLayout({
 							</div>
 							<RightSidebar />
 						</div>
+						<MessagesDrawer />
 					</AuthProvider>
 				</GoogleOAuthProvider>
 			</body>

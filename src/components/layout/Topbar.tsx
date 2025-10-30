@@ -5,9 +5,11 @@ import { Bell, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import Image from 'next/image'
+import { useUiStore } from '@/store/uiStore'
 
 export const Topbar = () => {
 	const { user } = useAuth()
+	const { toggleMessagesDrawer } = useUiStore()
 
 	return (
 		<header className='flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6'>
@@ -17,7 +19,12 @@ export const Topbar = () => {
 					<Bell className='h-4 w-4' />
 					<span className='sr-only'>Toggle notifications</span>
 				</Button>
-				<Button variant='outline' size='icon' className='h-8 w-8'>
+				<Button
+					variant='outline'
+					size='icon'
+					className='h-8 w-8'
+					onClick={toggleMessagesDrawer}
+				>
 					<MessageSquare className='h-4 w-4' />
 					<span className='sr-only'>Toggle messages</span>
 				</Button>
