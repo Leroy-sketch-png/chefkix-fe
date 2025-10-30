@@ -1,18 +1,7 @@
 import { Profile, RelationshipStatus, Statistics } from './profile'
 
-export interface ToggleFollowResponse extends Partial<Profile> {
-	profileId: string
-	userId: string
-	statistics: Statistics
-	isFollowing: boolean
-}
-
-export interface ToggleFriendRequestResponse extends Partial<Profile> {
-	profileId: string
-	userId: string
-	statistics: Statistics
-	relationshipStatus: RelationshipStatus
-}
+export type ToggleFollowResponse = Profile
+export type ToggleFriendRequestResponse = Profile
 
 export interface AcceptFriendResponse extends Partial<Profile> {
 	profileId: string

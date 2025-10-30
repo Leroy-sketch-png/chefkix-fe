@@ -20,22 +20,20 @@ import {
 
 type UserProfileProps = {
 	profile: Profile
+	currentUserId?: string // Make currentUserId optional
 }
 
-export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
+export const UserProfile = ({
+	profile: initialProfile,
+	currentUserId,
+}: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
+	const isOwnProfile = profile.userId === currentUserId
 
 	const handleFollow = async () => {
 		const response = await toggleFollow(profile.userId)
 		if (response.success && response.data) {
-			setProfile(prev => ({
-				...prev,
-				isFollowing: response.data?.isFollowing,
-				statistics: {
-					...prev.statistics,
-					followerCount: response.data.statistics.followerCount,
-				},
-			}))
+			setProfile(response.data)
 		}
 		// TODO: Add error handling toast
 	}
@@ -43,10 +41,7 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	const handleFriendRequest = async () => {
 		const response = await toggleFriendRequest(profile.userId)
 		if (response.success && response.data) {
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: response.data?.relationshipStatus,
-			}))
+			setProfile(response.data)
 		}
 		// TODO: Add error handling toast
 	}
@@ -54,9 +49,10 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	const handleUnfriend = async () => {
 		const response = await unfriendUser(profile.userId)
 		if (response.success && response.data) {
+			// The unfriend response is smaller, so we merge it manually
 			setProfile(prev => ({
 				...prev,
-				relationshipStatus: response.data?.relationshipStatus,
+				relationshipStatus: response.data.relationshipStatus,
 				statistics: {
 					...prev.statistics,
 					friendCount: response.data.statistics.friendCount,
@@ -67,6 +63,8 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	}
 
 	const renderFollowButton = () => {
+		if (isOwnProfile) return null
+
 		if (profile.isFollowing) {
 			return (
 				<Button onClick={handleFollow} variant='secondary'>
@@ -84,6 +82,8 @@ export const UserProfile = ({ profile: initialProfile }: UserProfileProps) => {
 	}
 
 	const renderFriendButton = () => {
+		if (isOwnProfile) return null
+
 		switch (profile.relationshipStatus) {
 			case 'FRIENDS':
 				return (
