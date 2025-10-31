@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function CreateRecipePage() {
 	return (
-		<div className='mx-auto max-w-6xl p-4'>
+		<PageContainer maxWidth='xl'>
 			<h1 className='mb-6 text-3xl font-bold'>Create New Recipe</h1>
 			<div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
 				{/* Left Column: Form */}
@@ -75,6 +76,6 @@ export default function CreateRecipePage() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</PageContainer>
 	)
 }

@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 const leaderboard = [
 	{
@@ -32,7 +33,7 @@ const leaderboard = [
 
 export default function CommunityPage() {
 	return (
-		<div className='mx-auto max-w-6xl p-4'>
+		<PageContainer maxWidth='xl'>
 			<div className='mb-8 rounded-lg border bg-card p-6 shadow-sm'>
 				<h1 className='mb-2 text-3xl font-bold'>Community Hub</h1>
 				<p className='mb-6 text-muted-foreground'>
@@ -113,6 +114,6 @@ export default function CommunityPage() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</PageContainer>
 	)
 }

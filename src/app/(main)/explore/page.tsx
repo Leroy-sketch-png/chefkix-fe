@@ -3,10 +3,11 @@
 import Image from 'next/image'
 import { Clock, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function ExplorePage() {
 	return (
-		<div className='mx-auto max-w-6xl p-4'>
+		<PageContainer maxWidth='xl'>
 			<h1 className='mb-2 text-3xl font-bold'>Explore Recipes</h1>
 			<p className='mb-6 text-muted-foreground'>
 				Discover new dishes and flavors from around the world.
@@ -60,6 +61,6 @@ export default function ExplorePage() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</PageContainer>
 	)
 }

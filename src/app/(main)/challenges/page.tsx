@@ -1,10 +1,11 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function ChallengesPage() {
 	return (
-		<div className='mx-auto max-w-4xl p-4'>
+		<PageContainer maxWidth='md'>
 			<h1 className='mb-2 text-3xl font-bold'>Weekly Challenges</h1>
 			<p className='mb-6 text-muted-foreground'>
 				Test your skills and earn exclusive badges!
@@ -31,6 +32,6 @@ export default function ChallengesPage() {
 					3 days left • 1,204 participants
 				</p>
 			</div>
-		</div>
+		</PageContainer>
 	)
 }
