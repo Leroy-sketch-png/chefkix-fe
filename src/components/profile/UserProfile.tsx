@@ -88,7 +88,7 @@ export const UserProfile = ({
 
 		// Optimistic UI update
 		const newStatus: RelationshipStatus =
-			previousStatus === 'PENDING_SENT' ? 'NONE' : 'PENDING_SENT'
+			previousStatus === 'PENDING_SENT' ? 'NOT_FRIENDS' : 'PENDING_SENT'
 		setProfile(prev => ({
 			...prev,
 			relationshipStatus: newStatus,
@@ -122,7 +122,7 @@ export const UserProfile = ({
 		// Optimistic UI update
 		setProfile(prev => ({
 			...prev,
-			relationshipStatus: 'NONE' as RelationshipStatus,
+			relationshipStatus: 'NOT_FRIENDS' as RelationshipStatus,
 			statistics: {
 				...prev.statistics,
 				friendCount: prev.statistics.friendCount - 1,
@@ -200,7 +200,7 @@ export const UserProfile = ({
 		// Optimistic UI update
 		setProfile(prev => ({
 			...prev,
-			relationshipStatus: 'NONE' as RelationshipStatus,
+			relationshipStatus: 'NOT_FRIENDS' as RelationshipStatus,
 		}))
 
 		const response = await declineFriendRequest(profile.userId)
