@@ -6,6 +6,7 @@ import { UserCard } from './UserCard'
 import { Input } from '@/components/ui/input'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Users, Search } from 'lucide-react'
+import { StaggerContainer } from '@/components/ui/stagger-animation'
 
 type Props = {
 	profiles: Profile[]
@@ -54,11 +55,11 @@ export const UserDiscoveryClient = ({ profiles }: Props) => {
 					/>
 				)
 			) : (
-				<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+				<StaggerContainer className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
 					{filteredProfiles.map(profile => (
 						<UserCard key={profile.userId} profile={profile} />
 					))}
-				</div>
+				</StaggerContainer>
 			)}
 		</div>
 	)

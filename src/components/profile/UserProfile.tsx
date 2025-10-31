@@ -25,6 +25,8 @@ import {
 } from '@/services/social'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { triggerFriendConfetti } from '@/lib/confetti'
+import { motion } from 'framer-motion'
 
 type UserProfileProps = {
 	profile: Profile
@@ -177,6 +179,8 @@ export const UserProfile = ({
 		if (response.success && response.data) {
 			setProfile(response.data)
 			toast.success(`You and ${profile.displayName} are now friends!`)
+			// Celebrate with confetti! 🎉
+			triggerFriendConfetti()
 		} else {
 			// Revert on error
 			setProfile(prev => ({
