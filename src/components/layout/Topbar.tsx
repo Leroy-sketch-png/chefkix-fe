@@ -36,11 +36,11 @@ export const Topbar = () => {
 			</div>
 			<div>
 				{user && (
-					<Link href={`/${user.name}`}>
+					<Link href={`/${user.username}`}>
 						<div className='relative h-9 w-9 overflow-hidden rounded-full'>
 							<Image
 								src={user.avatarUrl || 'https://i.pravatar.cc/150'}
-								alt={`${user.name}'s avatar`}
+								alt={`${user.username}'s avatar`}
 								fill
 								className='object-cover'
 							/>
