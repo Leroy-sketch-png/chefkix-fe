@@ -59,7 +59,7 @@ export const acceptFriendRequest = async (
 ): Promise<ApiResponse<AcceptFriendResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<AcceptFriendResponse>>(
-			API_ENDPOINTS.SOCIAL.ACCEPT_FRIEND_REQUEST(userId),
+			API_ENDPOINTS.SOCIAL.ACCEPT_FRIEND(userId),
 		)
 		return response.data
 	} catch (error) {
@@ -80,7 +80,7 @@ export const declineFriendRequest = async (
 ): Promise<ApiResponse<DeclineFriendResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<DeclineFriendResponse>>(
-			API_ENDPOINTS.SOCIAL.DECLINE_FRIEND_REQUEST(userId),
+			API_ENDPOINTS.SOCIAL.DECLINE_FRIEND(userId),
 		)
 		return response.data
 	} catch (error) {
