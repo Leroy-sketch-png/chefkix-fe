@@ -93,6 +93,14 @@ module.exports = {
 						boxShadow: '0 0 10px 15px rgba(255, 210, 74, 0)',
 					},
 				},
+				shimmer: {
+					'0%': {
+						backgroundPosition: '-1000px 0',
+					},
+					'100%': {
+						backgroundPosition: '1000px 0',
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -100,6 +108,7 @@ module.exports = {
 				fadeIn: 'fadeIn 0.3s ease-in-out',
 				slideInUp: 'slideInUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
 				pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				shimmer: 'shimmer 2s infinite linear',
 			},
 		},
 	},

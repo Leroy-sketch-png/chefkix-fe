@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { Profile } from '@/lib/types'
 import { UserCard } from './UserCard'
 import { Input } from '@/components/ui/input'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Users, Search } from 'lucide-react'
 
 type Props = {
 	profiles: Profile[]
@@ -35,11 +37,29 @@ export const UserDiscoveryClient = ({ profiles }: Props) => {
 				</div>
 			</div>
 
-			<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-				{filteredProfiles.map(profile => (
-					<UserCard key={profile.userId} profile={profile} />
-				))}
-			</div>
+			{filteredProfiles.length === 0 ? (
+				searchTerm ? (
+					<EmptyState
+						icon={Search}
+						title='No users found'
+						description={`No results for "${searchTerm}". Try a different search term.`}
+						actionLabel='Clear Search'
+						onAction={() => setSearchTerm('')}
+					/>
+				) : (
+					<EmptyState
+						icon={Users}
+						title='No users yet'
+						description='Be the first to join the community!'
+					/>
+				)
+			) : (
+				<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+					{filteredProfiles.map(profile => (
+						<UserCard key={profile.userId} profile={profile} />
+					))}
+				</div>
+			)}
 		</div>
 	)
 }
