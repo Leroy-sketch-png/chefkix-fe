@@ -1,5 +1,6 @@
 import { getProfileByUsername, getMyProfile } from '@/services/profile'
 import { UserProfile } from '@/components/profile/UserProfile'
+import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 
 interface ProfilePageProps {
 	params: Promise<{
@@ -13,8 +14,7 @@ const ProfilePage = async ({ params }: ProfilePageProps) => {
 	const { data: currentUserProfile } = await getMyProfile()
 
 	if (!success || !profile) {
-		// TODO: Create a proper not-found page
-		return <div>Profile not found</div>
+		return <ProfileNotFound username={username} />
 	}
 
 	return (
