@@ -1,6 +1,6 @@
 import { api } from '@/lib/axios'
 import { signIn, signUp, sendOtp, verifyOtp } from '@/services/auth'
-import { LoginSuccessResponse } from '@/lib/types'
+import { LoginSuccessResponse, User } from '@/lib/types'
 
 // Mock the entire axios module to avoid real network calls
 jest.mock('@/lib/axios')
@@ -20,14 +20,40 @@ describe('signIn', () => {
 			emailOrUsername: 'test@example.com',
 			password: 'password123',
 		}
-		const mockSuccessData: LoginSuccessResponse = {
-			user: {
-				id: '1',
-				email: 'test@example.com',
-				name: 'testuser',
-				provider: 'credentials',
-				emailVerified: true,
+
+		const mockUser: User = {
+			id: 'user-id-1',
+			email: 'test@example.com',
+			name: 'testuser',
+			provider: 'credentials',
+			emailVerified: true,
+			profileId: 'profile-id-1',
+			userId: 'user-id-1',
+			username: 'testuser',
+			firstName: 'Test',
+			lastName: 'User',
+			dob: '2000-01-01',
+			displayName: 'Test User',
+			phoneNumber: null,
+			avatarUrl: 'http://example.com/avatar.png',
+			bio: 'A test user',
+			accountType: 'user',
+			location: 'Test City',
+			preferences: [],
+			statistics: {
+				followerCount: 0,
+				followingCount: 0,
+				friendCount: 0,
+				friendRequestCount: 0,
+				currentLevel: 1,
 			},
+			friends: [],
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		}
+
+		const mockSuccessData: LoginSuccessResponse = {
+			user: mockUser,
 			token: 'fake-jwt-token',
 		}
 		const mockApiResponse = {

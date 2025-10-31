@@ -1,4 +1,6 @@
-export interface User {
+import { Profile } from './profile'
+
+export interface User extends Profile {
 	id: string
 	email: string
 	name: string

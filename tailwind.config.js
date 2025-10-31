@@ -2,10 +2,10 @@
 module.exports = {
 	darkMode: ['class'],
 	content: [
-		'./pages/**/*.{ts,tsx}',
-		'./components/**/*.{ts,tsx}',
-		'./app/**/*.{ts,tsx}',
-		'./src/**/*.{ts,tsx}',
+		'./pages/**/*.{js,ts,jsx,tsx,mdx}',
+		'./components/**/*.{js,ts,jsx,tsx,mdx}',
+		'./app/**/*.{js,ts,jsx,tsx,mdx}',
+		'./src/**/*.{js,ts,jsx,tsx,mdx}',
 	],
 	theme: {
 		container: {
@@ -53,8 +53,12 @@ module.exports = {
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
+				md: `calc(var(--radius) - 2px)`,
 				sm: 'calc(var(--radius) - 4px)',
+			},
+			fontFamily: {
+				sans: ['var(--font-geist-sans)'],
+				mono: ['var(--font-geist-mono)'],
 			},
 			keyframes: {
 				'accordion-down': {
@@ -65,10 +69,37 @@ module.exports = {
 					from: { height: 'var(--radix-accordion-content-height)' },
 					to: { height: 0 },
 				},
+				fadeIn: {
+					from: { opacity: 0 },
+					to: { opacity: 1 },
+				},
+				slideInUp: {
+					from: {
+						opacity: 0,
+						transform: 'translateY(50px) scale(0.95)',
+					},
+					to: {
+						opacity: 1,
+						transform: 'translateY(0) scale(1)',
+					},
+				},
+				pulse: {
+					'0%, 100%': {
+						transform: 'scale(1)',
+						boxShadow: '0 0 0 0 rgba(255, 210, 74, 0.7)',
+					},
+					'50%': {
+						transform: 'scale(1.05)',
+						boxShadow: '0 0 10px 15px rgba(255, 210, 74, 0)',
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
+				fadeIn: 'fadeIn 0.3s ease-in-out',
+				slideInUp: 'slideInUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+				pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 			},
 		},
 	},
