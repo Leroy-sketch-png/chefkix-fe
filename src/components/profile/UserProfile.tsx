@@ -24,6 +24,7 @@ import {
 	declineFriendRequest,
 } from '@/services/social'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 type UserProfileProps = {
 	profile: Profile
@@ -35,26 +36,101 @@ export const UserProfile = ({
 	currentUserId,
 }: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
+	const [isLoading, setIsLoading] = useState(false)
 	const isOwnProfile = profile.userId === currentUserId
 
 	const handleFollow = async () => {
+		setIsLoading(true)
+		const wasFollowing = profile.isFollowing
+
+		// Optimistic UI update
+		setProfile(prev => ({
+			...prev,
+			isFollowing: !prev.isFollowing,
+			statistics: {
+				...prev.statistics,
+				followerCount: prev.isFollowing
+					? prev.statistics.followerCount - 1
+					: prev.statistics.followerCount + 1,
+			},
+		}))
+
 		const response = await toggleFollow(profile.userId)
+
 		if (response.success && response.data) {
 			setProfile(response.data)
+			toast.success(
+				wasFollowing
+					? `Unfollowed ${profile.displayName}`
+					: `Now following ${profile.displayName}`,
+			)
+		} else {
+			// Revert optimistic update on error
+			setProfile(prev => ({
+				...prev,
+				isFollowing: wasFollowing,
+				statistics: {
+					...prev.statistics,
+					followerCount: wasFollowing
+						? prev.statistics.followerCount + 1
+						: prev.statistics.followerCount - 1,
+				},
+			}))
+			toast.error(response.message || 'Failed to update follow status')
 		}
-		// TODO: Add error handling toast
+
+		setIsLoading(false)
 	}
 
 	const handleFriendRequest = async () => {
+		setIsLoading(true)
+		const previousStatus = profile.relationshipStatus
+
+		// Optimistic UI update
+		const newStatus: RelationshipStatus =
+			previousStatus === 'PENDING_SENT' ? 'NONE' : 'PENDING_SENT'
+		setProfile(prev => ({
+			...prev,
+			relationshipStatus: newStatus,
+		}))
+
 		const response = await toggleFriendRequest(profile.userId)
+
 		if (response.success && response.data) {
 			setProfile(response.data)
+			toast.success(
+				previousStatus === 'PENDING_SENT'
+					? 'Friend request cancelled'
+					: 'Friend request sent!',
+			)
+		} else {
+			// Revert on error
+			setProfile(prev => ({
+				...prev,
+				relationshipStatus: previousStatus,
+			}))
+			toast.error(response.message || 'Failed to send friend request')
 		}
-		// TODO: Add error handling toast
+
+		setIsLoading(false)
 	}
 
 	const handleUnfriend = async () => {
+		setIsLoading(true)
+		const previousFriendCount = profile.statistics.friendCount
+
+		// Optimistic UI update
+		setProfile(prev => ({
+			...prev,
+			relationshipStatus: 'NONE' as RelationshipStatus,
+			statistics: {
+				...prev.statistics,
+				friendCount: prev.statistics.friendCount - 1,
+			},
+		}))
+
 		const response = await unfriendUser(profile.userId)
+
 		if (response.success && response.data) {
 			// The unfriend response is smaller, so we merge it manually
 			setProfile(prev => ({
@@ -65,20 +141,70 @@ export const UserProfile = ({
 					friendCount: response.data.statistics.friendCount,
 				},
 			}))
+			toast.success(`Removed ${profile.displayName} from friends`)
+		} else {
+			// Revert on error
+			setProfile(prev => ({
+				...prev,
+				relationshipStatus: 'FRIENDS' as RelationshipStatus,
+				statistics: {
+					...prev.statistics,
+					friendCount: previousFriendCount,
+				},
+			}))
+			toast.error(response.message || 'Failed to unfriend user')
 		}
-		// TODO: Add error handling toast
+
+		setIsLoading(false)
 	}
 
 	const handleAcceptFriend = async () => {
+		setIsLoading(true)
+		const previousStatus = profile.relationshipStatus
+
+		// Optimistic UI update
+		setProfile(prev => ({
+			...prev,
+			relationshipStatus: 'FRIENDS' as RelationshipStatus,
+			statistics: {
+				...prev.statistics,
+				friendCount: prev.statistics.friendCount + 1,
+			},
+		}))
+
 		const response = await acceptFriendRequest(profile.userId)
+
 		if (response.success && response.data) {
 			setProfile(response.data)
+			toast.success(`You and ${profile.displayName} are now friends!`)
+		} else {
+			// Revert on error
+			setProfile(prev => ({
+				...prev,
+				relationshipStatus: previousStatus,
+				statistics: {
+					...prev.statistics,
+					friendCount: prev.statistics.friendCount - 1,
+				},
+			}))
+			toast.error(response.message || 'Failed to accept friend request')
 		}
-		// TODO: Add error handling toast
+
+		setIsLoading(false)
 	}
 
 	const handleDeclineFriend = async () => {
+		setIsLoading(true)
+		const previousStatus = profile.relationshipStatus
+
+		// Optimistic UI update
+		setProfile(prev => ({
+			...prev,
+			relationshipStatus: 'NONE' as RelationshipStatus,
+		}))
+
 		const response = await declineFriendRequest(profile.userId)
+
 		if (response.success && response.data) {
 			// Decline response is smaller, merge manually
 			setProfile(prev => ({
@@ -90,8 +216,17 @@ export const UserProfile = ({
 					...response.data.statistics,
 				},
 			}))
+			toast.success('Friend request declined')
+		} else {
+			// Revert on error
+			setProfile(prev => ({
+				...prev,
+				relationshipStatus: previousStatus,
+			}))
+			toast.error(response.message || 'Failed to decline friend request')
 		}
-		// TODO: Add error handling toast
+
+		setIsLoading(false)
 	}
 
 	const renderFollowButton = () => {
@@ -99,14 +234,14 @@ export const UserProfile = ({
 
 		if (profile.isFollowing) {
 			return (
-				<Button onClick={handleFollow} variant='secondary'>
+				<Button onClick={handleFollow} variant='secondary' disabled={isLoading}>
 					<UserCheck className='mr-2 h-4 w-4' />
 					Following
 				</Button>
 			)
 		}
 		return (
-			<Button onClick={handleFollow}>
+			<Button onClick={handleFollow} disabled={isLoading}>
 				<UserPlus className='mr-2 h-4 w-4' />
 				Follow
 			</Button>
@@ -119,14 +254,22 @@ export const UserProfile = ({
 		switch (profile.relationshipStatus) {
 			case 'FRIENDS':
 				return (
-					<Button onClick={handleUnfriend} variant='destructive'>
+					<Button
+						onClick={handleUnfriend}
+						variant='destructive'
+						disabled={isLoading}
+					>
 						<UserX className='mr-2 h-4 w-4' />
 						Unfriend
 					</Button>
 				)
 			case 'PENDING_SENT':
 				return (
-					<Button onClick={handleFriendRequest} variant='secondary'>
+					<Button
+						onClick={handleFriendRequest}
+						variant='secondary'
+						disabled={isLoading}
+					>
 						<Clock className='mr-2 h-4 w-4' />
 						Pending
 					</Button>
@@ -134,18 +277,30 @@ export const UserProfile = ({
 			case 'PENDING_RECEIVED':
 				return (
 					<div className='flex gap-2'>
-						<Button onClick={handleAcceptFriend} variant='default'>
+						<Button
+							onClick={handleAcceptFriend}
+							variant='default'
+							disabled={isLoading}
+						>
 							<UserCheck className='mr-2 h-4 w-4' />
 							Accept
 						</Button>
-						<Button onClick={handleDeclineFriend} variant='outline'>
+						<Button
+							onClick={handleDeclineFriend}
+							variant='outline'
+							disabled={isLoading}
+						>
 							Decline
 						</Button>
 					</div>
 				)
 			default:
 				return (
-					<Button onClick={handleFriendRequest} variant='secondary'>
+					<Button
+						onClick={handleFriendRequest}
+						variant='secondary'
+						disabled={isLoading}
+					>
 						<UserPlus className='mr-2 h-4 w-4' />
 						Add Friend
 					</Button>

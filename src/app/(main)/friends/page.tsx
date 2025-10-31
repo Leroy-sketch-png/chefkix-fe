@@ -1,11 +1,16 @@
 import { getMyProfile } from '@/services/profile'
+import { ErrorState } from '@/components/ui/error-state'
 
 const FriendsPage = async () => {
 	const { success, data: profile } = await getMyProfile()
 
 	if (!success || !profile) {
-		// TODO: Handle error case
-		return <div>Could not load profile.</div>
+		return (
+			<ErrorState
+				title='Failed to load profile'
+				message='We could not load your profile data. Please try again.'
+			/>
+		)
 	}
 
 	// TODO: We need to get the full profiles of the friend requests, not just the IDs.
