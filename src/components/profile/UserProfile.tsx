@@ -20,6 +20,8 @@ import {
 	toggleFollow,
 	toggleFriendRequest,
 	unfriendUser,
+	acceptFriendRequest,
+	declineFriendRequest,
 } from '@/services/social'
 import Link from 'next/link'
 
@@ -67,6 +69,31 @@ export const UserProfile = ({
 		// TODO: Add error handling toast
 	}
 
+	const handleAcceptFriend = async () => {
+		const response = await acceptFriendRequest(profile.userId)
+		if (response.success && response.data) {
+			setProfile(response.data)
+		}
+		// TODO: Add error handling toast
+	}
+
+	const handleDeclineFriend = async () => {
+		const response = await declineFriendRequest(profile.userId)
+		if (response.success && response.data) {
+			// Decline response is smaller, merge manually
+			setProfile(prev => ({
+				...prev,
+				relationshipStatus: response.data.relationshipStatus,
+				isFollowing: response.data.isFollowing,
+				statistics: {
+					...prev.statistics,
+					...response.data.statistics,
+				},
+			}))
+		}
+		// TODO: Add error handling toast
+	}
+
 	const renderFollowButton = () => {
 		if (isOwnProfile) return null
 
@@ -106,7 +133,15 @@ export const UserProfile = ({
 				)
 			case 'PENDING_RECEIVED':
 				return (
-					<Button>Accept Request</Button> // TODO: Implement accept/decline
+					<div className='flex gap-2'>
+						<Button onClick={handleAcceptFriend} variant='default'>
+							<UserCheck className='mr-2 h-4 w-4' />
+							Accept
+						</Button>
+						<Button onClick={handleDeclineFriend} variant='outline'>
+							Decline
+						</Button>
+					</div>
 				)
 			default:
 				return (
