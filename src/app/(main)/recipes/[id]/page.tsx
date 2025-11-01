@@ -145,16 +145,12 @@ export default function RecipeDetailPage() {
 
 	if (error || !recipe) {
 		return (
-			<PageContainer maxWidth='4xl'>
+			<PageContainer maxWidth='2xl'>
 				<ErrorState
 					title='Recipe not found'
-					description={
-						error || 'The recipe you are looking for does not exist.'
-					}
-					action={{
-						label: 'Browse Recipes',
-						onClick: () => router.push('/explore'),
-					}}
+					message={error || 'The recipe you are looking for does not exist.'}
+					onRetry={() => router.push('/explore')}
+					showHomeButton
 				/>
 			</PageContainer>
 		)
@@ -163,7 +159,7 @@ export default function RecipeDetailPage() {
 	const totalTime = recipe.prepTime + recipe.cookTime
 
 	return (
-		<PageContainer maxWidth='4xl'>
+		<PageContainer maxWidth='2xl'>
 			{/* Hero Section */}
 			<div className='mb-8 overflow-hidden rounded-2xl border bg-card shadow-lg'>
 				<div className='relative h-[400px] w-full'>
@@ -374,7 +370,7 @@ export default function RecipeDetailPage() {
 // Loading skeleton component
 function RecipeDetailSkeleton() {
 	return (
-		<PageContainer maxWidth='4xl'>
+		<PageContainer maxWidth='2xl'>
 			<div className='mb-8 overflow-hidden rounded-2xl border bg-card shadow-lg'>
 				<Skeleton className='h-[400px] w-full' />
 				<div className='p-6 md:p-8'>

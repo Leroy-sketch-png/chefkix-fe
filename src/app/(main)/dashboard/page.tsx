@@ -70,11 +70,8 @@ export default function DashboardPage() {
 			{error && (
 				<ErrorState
 					title='Failed to load feed'
-					description={error}
-					action={{
-						label: 'Try Again',
-						onClick: () => window.location.reload(),
-					}}
+					message={error}
+					onRetry={() => window.location.reload()}
 				/>
 			)}
 
@@ -83,23 +80,22 @@ export default function DashboardPage() {
 					title='Your feed is empty'
 					description='Follow chefs and add friends to see their latest recipes here!'
 					icon={Users}
-					action={
-						<div className='flex gap-3'>
-							<Link href='/discover'>
-								<Button>
-									<Users className='mr-2 h-4 w-4' />
-									Discover People
-								</Button>
-							</Link>
-							<Link href='/explore'>
-								<Button variant='outline'>
-									<ChefHat className='mr-2 h-4 w-4' />
-									Browse Recipes
-								</Button>
-							</Link>
-						</div>
-					}
-				/>
+				>
+					<div className='flex gap-3'>
+						<Link href='/discover'>
+							<Button>
+								<Users className='mr-2 h-4 w-4' />
+								Discover People
+							</Button>
+						</Link>
+						<Link href='/explore'>
+							<Button variant='outline'>
+								<ChefHat className='mr-2 h-4 w-4' />
+								Browse Recipes
+							</Button>
+						</Link>
+					</div>
+				</EmptyState>
 			)}
 
 			{!isLoading && !error && recipes.length > 0 && (

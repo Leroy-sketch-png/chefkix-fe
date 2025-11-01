@@ -109,11 +109,8 @@ export default function ExplorePage() {
 			{error && (
 				<ErrorState
 					title='Failed to load recipes'
-					description={error}
-					action={{
-						label: 'Try Again',
-						onClick: () => window.location.reload(),
-					}}
+					message={error}
+					onRetry={() => window.location.reload()}
 				/>
 			)}
 
