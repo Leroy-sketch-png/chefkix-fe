@@ -21,6 +21,14 @@ export const API_ENDPOINTS = {
 		DECLINE_FRIEND: (userId: string) => `/api/social/decline-friend/${userId}`,
 		UNFRIEND: (userId: string) => `/api/social/unfriend/${userId}`,
 	},
+	POST: {
+		CREATE: '/api/post/create',
+		UPDATE: (postId: string) => `/api/post/update?postId=${postId}`,
+		DELETE: (postId: string) => `/api/post/delete?postId=${postId}`,
+		TOGGLE_LIKE: (postId: string) => `/api/post/toggle-like/${postId}`,
+		GET_FEED: '/api/posts/feed',
+		GET_BY_USER: (userId: string) => `/api/posts/user/${userId}`,
+	},
 	STATISTICS: {
 		ADD_XP: '/api/statistics/add_xp',
 	},
