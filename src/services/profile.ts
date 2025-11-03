@@ -24,10 +24,17 @@ export const getProfileByUserId = async (
 	}
 }
 
+/**
+ * Get profile by username or userId.
+ * According to API spec, the endpoint /api/profiles/{userId} accepts both.
+ * This is the canonical way to fetch profiles.
+ */
 export const getProfileByUsername = async (
 	username: string,
 ): Promise<ApiResponse<Profile>> => {
 	try {
+		// The API spec indicates that /api/profiles/{userId} accepts BOTH userId and username
+		// So we use the same endpoint for both lookups
 		const response = await api.get<ApiResponse<Profile>>(
 			API_ENDPOINTS.PROFILE.GET_BY_USERNAME(username),
 		)

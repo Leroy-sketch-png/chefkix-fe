@@ -10,6 +10,34 @@ import {
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
 
+/**
+ * Social API Service
+ *
+ * API Behavior Summary (from backend spec):
+ *
+ * 1. toggleFollow:
+ *    - Returns the TARGET user's profile with updated followerCount and isFollowing
+ *
+ * 2. toggleFriendRequest:
+ *    - Sends/cancels friend request
+ *    - Returns the TARGET user's profile with updated friendRequestCount and relationshipStatus
+ *
+ * 3. acceptFriendRequest:
+ *    - Accepts pending friend request
+ *    - Returns the SENDER's profile with updated friendCount and relationshipStatus = 'FRIENDS'
+ *    - Both users' friendCount increment, requester's friendRequestCount decrements
+ *
+ * 4. declineFriendRequest:
+ *    - Declines pending friend request
+ *    - Returns SENDER's profile (reduced) with relationshipStatus = 'NOT_FRIENDS'
+ *    - Requester's friendRequestCount decrements
+ *
+ * 5. unfriendUser:
+ *    - Removes friendship
+ *    - Returns the ex-FRIEND's profile (reduced) with updated friendCount and relationshipStatus = 'NOT_FRIENDS'
+ *    - Both users' friendCount decrement
+ */
+
 export const toggleFollow = async (
 	userId: string,
 ): Promise<ApiResponse<ToggleFollowResponse>> => {
