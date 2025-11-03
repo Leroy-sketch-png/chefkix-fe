@@ -61,7 +61,7 @@ export default function Home() {
 
 		try {
 			const response = await fetch(
-				'http://localhost:8080/api/v1/recipes/gamify',
+				'http://localhost:8888/api/v1/recipes/gamify',
 				{
 					method: 'POST',
 					headers: {

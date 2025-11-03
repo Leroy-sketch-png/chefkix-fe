@@ -111,7 +111,9 @@ export const CreatePostForm = ({
 						<div className='font-semibold text-gray-900'>
 							{currentUser?.displayName || 'You'}
 						</div>
-						<div className='text-sm text-gray-500'>Share what you're cooking!</div>
+						<div className='text-sm text-gray-500'>
+							Share what you&apos;re cooking!
+						</div>
 					</div>
 				</div>
 

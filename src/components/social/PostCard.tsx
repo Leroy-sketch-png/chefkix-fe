@@ -146,9 +146,13 @@ export const PostCard = ({
 						/>
 					</div>
 					<div>
-						<div className='font-semibold text-gray-900'>{post.displayName}</div>
+						<div className='font-semibold text-gray-900'>
+							{post.displayName}
+						</div>
 						<div className='text-sm text-gray-500'>
-							{formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+							{formatDistanceToNow(new Date(post.createdAt), {
+								addSuffix: true,
+							})}
 						</div>
 					</div>
 				</Link>

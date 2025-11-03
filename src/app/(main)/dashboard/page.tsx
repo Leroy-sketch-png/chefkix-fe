@@ -46,9 +46,7 @@ export default function DashboardPage() {
 	}
 
 	const handlePostUpdate = (updatedPost: Post) => {
-		setPosts(prev =>
-			prev.map(p => (p.id === updatedPost.id ? updatedPost : p)),
-		)
+		setPosts(prev => prev.map(p => (p.id === updatedPost.id ? updatedPost : p)))
 	}
 
 	const handlePostDelete = (postId: string) => {
