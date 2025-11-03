@@ -20,7 +20,10 @@ export interface UnfriendResponse {
 	profileId: string
 	userId: string
 	displayName: string
-	statistics: Pick<Statistics, 'followerCount' | 'friendCount'>
+	statistics: Pick<
+		Statistics,
+		'followerCount' | 'friendCount' | 'friendRequestCount'
+	>
 	relationshipStatus: 'NOT_FRIENDS'
 	isFollowing: boolean
 }

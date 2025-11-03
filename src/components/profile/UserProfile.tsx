@@ -87,18 +87,30 @@ export const UserProfile = ({
 	const handleFriendRequest = async () => {
 		setIsLoading(true)
 		const previousStatus = profile.relationshipStatus
+		const previousRequestCount = profile.statistics.friendRequestCount
 
 		// Optimistic UI update
 		const newStatus: RelationshipStatus =
 			previousStatus === 'PENDING_SENT' ? 'NOT_FRIENDS' : 'PENDING_SENT'
+
+		// Update relationshipStatus AND friendRequestCount according to API spec
 		setProfile(prev => ({
 			...prev,
 			relationshipStatus: newStatus,
+			statistics: {
+				...prev.statistics,
+				// Increment if sending request, decrement if cancelling
+				friendRequestCount:
+					newStatus === 'PENDING_SENT'
+						? prev.statistics.friendRequestCount + 1
+						: prev.statistics.friendRequestCount - 1,
+			},
 		}))
 
 		const response = await toggleFriendRequest(profile.userId)
 
 		if (response.success && response.data) {
+			// Server returns the full profile with updated statistics
 			setProfile(response.data)
 			toast.success(
 				previousStatus === 'PENDING_SENT'
@@ -110,6 +122,10 @@ export const UserProfile = ({
 			setProfile(prev => ({
 				...prev,
 				relationshipStatus: previousStatus,
+				statistics: {
+					...prev.statistics,
+					friendRequestCount: previousRequestCount,
+				},
 			}))
 			toast.error(response.message || 'Failed to send friend request')
 		}
@@ -163,20 +179,26 @@ export const UserProfile = ({
 	const handleAcceptFriend = async () => {
 		setIsLoading(true)
 		const previousStatus = profile.relationshipStatus
+		const previousFriendCount = profile.statistics.friendCount
+		const previousRequestCount = profile.statistics.friendRequestCount
 
 		// Optimistic UI update
+		// According to API spec: accepting increments friendCount for both users
 		setProfile(prev => ({
 			...prev,
 			relationshipStatus: 'FRIENDS' as RelationshipStatus,
 			statistics: {
 				...prev.statistics,
 				friendCount: prev.statistics.friendCount + 1,
+				// The request is consumed, so decrement friendRequestCount
+				friendRequestCount: Math.max(0, prev.statistics.friendRequestCount - 1),
 			},
 		}))
 
 		const response = await acceptFriendRequest(profile.userId)
 
 		if (response.success && response.data) {
+			// Server returns full profile with updated statistics
 			setProfile(response.data)
 			toast.success(`You and ${profile.displayName} are now friends!`)
 			// Celebrate with confetti! 🎉
@@ -188,7 +210,8 @@ export const UserProfile = ({
 				relationshipStatus: previousStatus,
 				statistics: {
 					...prev.statistics,
-					friendCount: prev.statistics.friendCount - 1,
+					friendCount: previousFriendCount,
+					friendRequestCount: previousRequestCount,
 				},
 			}))
 			toast.error(response.message || 'Failed to accept friend request')
@@ -200,11 +223,18 @@ export const UserProfile = ({
 	const handleDeclineFriend = async () => {
 		setIsLoading(true)
 		const previousStatus = profile.relationshipStatus
+		const previousRequestCount = profile.statistics.friendRequestCount
 
 		// Optimistic UI update
+		// According to API spec: declining decrements friendRequestCount
 		setProfile(prev => ({
 			...prev,
 			relationshipStatus: 'NOT_FRIENDS' as RelationshipStatus,
+			statistics: {
+				...prev.statistics,
+				// The request is consumed, so decrement friendRequestCount
+				friendRequestCount: Math.max(0, prev.statistics.friendRequestCount - 1),
+			},
 		}))
 
 		const response = await declineFriendRequest(profile.userId)
@@ -226,6 +256,10 @@ export const UserProfile = ({
 			setProfile(prev => ({
 				...prev,
 				relationshipStatus: previousStatus,
+				statistics: {
+					...prev.statistics,
+					friendRequestCount: previousRequestCount,
+				},
 			}))
 			toast.error(response.message || 'Failed to decline friend request')
 		}
