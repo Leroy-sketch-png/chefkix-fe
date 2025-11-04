@@ -26,20 +26,20 @@ export const EmptyState = ({
 }: EmptyStateProps) => {
 	return (
 		<div className='flex min-h-[50vh] flex-col items-center justify-center px-4 py-12'>
-			<div className='mx-auto max-w-md text-center'>
+			<div className='mx-auto max-w-md animate-fadeIn text-center'>
 				<div className='mb-6 flex justify-center'>
-					<div className='rounded-full bg-muted p-6'>
-						<Icon className='h-12 w-12 text-muted-foreground' />
+					<div className='rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-8 shadow-lg'>
+						<Icon className='h-16 w-16 text-primary' />
 					</div>
 				</div>
 
-				<h3 className='mb-2 text-xl font-semibold'>{title}</h3>
-				<p className='mb-6 text-muted-foreground'>{description}</p>
+				<h3 className='mb-2 text-xl font-bold text-text'>{title}</h3>
+				<p className='mb-6 text-muted'>{description}</p>
 
 				{children ? (
 					children
 				) : (actionLabel && actionHref) || onAction ? (
-					<Button asChild={!!actionHref} onClick={onAction}>
+					<Button asChild={!!actionHref} onClick={onAction} variant='gradient'>
 						{actionHref ? (
 							<Link href={actionHref}>{actionLabel}</Link>
 						) : (
