@@ -18,16 +18,16 @@ export const CookingPlayer = () => {
 	if (!isCookingPlayerOpen) return null
 
 	return (
-		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm animate-in fade-in'>
-			<div className='flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-lg animate-in slide-in-from-bottom-12'>
+		<div className='fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm animate-in fade-in'>
+			<div className='flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-card shadow-lg animate-in slide-in-from-bottom-12'>
 				{/* Header */}
-				<div className='relative bg-gradient-to-r from-red-400 to-orange-400 p-6 text-center text-white'>
-					<button className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/30'>
+				<div className='relative bg-gradient-to-r from-destructive to-gold p-6 text-center text-primary-foreground'>
+					<button className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-card/20 px-3 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-card/30'>
 						<Sparkles className='h-4 w-4' /> AI Remix
 					</button>
 					<button
 						onClick={toggleCookingPlayer}
-						className='absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-black/20 transition-colors hover:bg-black/40'
+						className='absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-foreground/20 transition-colors hover:bg-foreground/40'
 					>
 						<X className='h-5 w-5' />
 					</button>
@@ -99,7 +99,7 @@ export const CookingPlayer = () => {
 					<button className='flex items-center gap-2 rounded-full bg-border px-6 py-3 font-bold text-muted-foreground transition-colors hover:bg-border/80'>
 						<ChevronLeft /> Back
 					</button>
-					<button className='flex items-center gap-2 rounded-full bg-gradient-to-r from-green-400 to-green-500 px-6 py-3 font-bold text-white transition-transform hover:scale-105'>
+					<button className='flex items-center gap-2 rounded-full bg-gradient-to-r from-accent to-accent-strong px-6 py-3 font-bold text-accent-foreground transition-transform hover:scale-105'>
 						Next Step <ChevronRight />
 					</button>
 				</div>

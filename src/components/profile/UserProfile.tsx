@@ -21,7 +21,7 @@ import {
 	toggleFriendRequest,
 	unfriendUser,
 	acceptFriendRequest,
-	declineFriendRequest,
+	rejectFriendRequest,
 } from '@/services/social'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -237,7 +237,7 @@ export const UserProfile = ({
 			},
 		}))
 
-		const response = await declineFriendRequest(profile.userId)
+		const response = await rejectFriendRequest(profile.userId)
 
 		if (response.success && response.data) {
 			// Decline response is smaller, merge manually
@@ -355,7 +355,7 @@ export const UserProfile = ({
 				</div>
 				<div className='p-6'>
 					<div className='relative -mt-20 flex items-end justify-between'>
-						<div className='relative h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-sm'>
+						<div className='relative h-32 w-32 overflow-hidden rounded-full border-4 border-card bg-muted shadow-sm'>
 							<Image
 								src={profile.avatarUrl || 'https://i.pravatar.cc/150'}
 								alt={`${profile.displayName}'s avatar`}
@@ -388,7 +388,7 @@ export const UserProfile = ({
 					<div className='mt-4'>
 						<h1 className='text-2xl font-bold'>{profile.displayName}</h1>
 						<p className='text-muted-foreground'>@{profile.username}</p>
-						<p className='mt-2 text-sm text-gray-600'>{profile.bio}</p>
+						<p className='mt-2 text-sm text-muted-foreground'>{profile.bio}</p>
 					</div>
 
 					<div className='mt-6 flex justify-around border-t border-b py-4'>

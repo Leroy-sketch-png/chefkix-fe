@@ -116,7 +116,7 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 				/>
 				{/* Difficulty badge */}
 				<div
-					className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.3px] text-white ${
+					className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.3px] text-primary-foreground ${
 						recipe.difficulty === 'EASY'
 							? 'bg-gradient-to-br from-[#a8e063] to-[#56ab2f]'
 							: recipe.difficulty === 'MEDIUM'
@@ -149,7 +149,7 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 					<span>⭐ {likeCount} likes</span>
 				</div>
 				<div className='flex gap-2'>
-					<button className='relative flex-1 overflow-hidden rounded-[10px] border-none bg-gradient-to-br from-[#f093fb] to-[#f5576c] py-3 font-bold text-white shadow-[0_4px_15px_0_rgba(245,87,108,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(245,87,108,0.6)] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+					<button className='relative flex-1 overflow-hidden rounded-[10px] border-none bg-gradient-to-br from-[#f093fb] to-[#f5576c] py-3 font-bold text-primary-foreground shadow-[0_4px_15px_0_rgba(245,87,108,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(245,87,108,0.6)] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
 						Cook Recipe
 					</button>
 				</div>

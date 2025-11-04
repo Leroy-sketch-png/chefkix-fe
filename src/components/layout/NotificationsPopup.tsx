@@ -68,10 +68,10 @@ const notifications: Notification[] = [
 
 const NotificationBadge = ({ type }: { type: NotificationType }) => {
 	const iconMap = {
-		like: { icon: Heart, bg: 'bg-red-500' },
+		like: { icon: Heart, bg: 'bg-destructive' },
 		comment: { icon: MessageCircle, bg: 'bg-primary' },
-		follow: { icon: UserPlus, bg: 'bg-green-500' },
-		cook: { icon: ChefHat, bg: 'bg-orange-500' },
+		follow: { icon: UserPlus, bg: 'bg-accent' },
+		cook: { icon: ChefHat, bg: 'bg-gold' },
 		achievement: { icon: ChefHat, bg: 'bg-gradient-gold' },
 	}
 
@@ -84,7 +84,7 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 				bg,
 			)}
 		>
-			<Icon className='h-3 w-3 text-white' />
+			<Icon className='h-3 w-3 text-primary-foreground' />
 		</div>
 	)
 }
@@ -175,7 +175,7 @@ export const NotificationsPopup = () => {
 
 							{/* Follow back button */}
 							{notif.type === 'follow' && !notif.read && (
-								<button className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-primary/90'>
+								<button className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary/90'>
 									Follow Back
 								</button>
 							)}

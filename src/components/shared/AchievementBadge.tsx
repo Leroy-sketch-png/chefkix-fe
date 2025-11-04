@@ -185,7 +185,7 @@ export const AchievementModal = ({
 
 	return (
 		<div
-			className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-black/70 p-5 backdrop-blur-sm'
+			className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/70 p-5 backdrop-blur-sm'
 			onClick={onClose}
 		>
 			<div
@@ -195,7 +195,7 @@ export const AchievementModal = ({
 				{/* Close Button */}
 				<button
 					onClick={onClose}
-					className='absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/30 text-white transition-all hover:bg-black/50 hover:rotate-90'
+					className='absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-foreground/30 text-background transition-all hover:bg-foreground/50 hover:rotate-90'
 				>
 					<X className='h-5 w-5' />
 				</button>
@@ -267,7 +267,7 @@ export const AchievementModal = ({
 					{/* Share Button */}
 					<button
 						onClick={onShare}
-						className='flex w-full items-center justify-center gap-2 rounded-[var(--radius)] bg-gradient-primary px-4 py-3.5 text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(102,126,234,0.4)]'
+						className='flex w-full items-center justify-center gap-2 rounded-[var(--radius)] bg-gradient-primary px-4 py-3.5 text-[15px] font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(102,126,234,0.4)]'
 					>
 						<Share2 className='h-5 w-5' />
 						<span>Share Achievement</span>

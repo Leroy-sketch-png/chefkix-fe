@@ -9,11 +9,11 @@ const buttonVariants = cva(
 		variants: {
 			variant: {
 				default:
-					'bg-primary text-white shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
+					'bg-primary text-primary-foreground shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
 				gradient:
-					'bg-gradient-primary text-white shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
+					'bg-gradient-primary text-primary-foreground shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
 				destructive:
-					'bg-destructive text-white shadow-[0_4px_15px_0_rgba(231,76,60,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(231,76,60,0.6)] active:translate-y-0 active:scale-[0.98]',
+					'bg-destructive text-destructive-foreground shadow-[0_4px_15px_0_rgba(231,76,60,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(231,76,60,0.6)] active:translate-y-0 active:scale-[0.98]',
 				outline:
 					'border-2 border-border bg-transparent text-text shadow-sm hover:bg-bg hover:border-primary hover:text-primary active:scale-[0.98]',
 				secondary:

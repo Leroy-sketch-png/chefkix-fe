@@ -64,7 +64,7 @@ export const Modal = ({
 
 	return (
 		<div
-			className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-black/60 p-6 backdrop-blur-sm'
+			className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm'
 			onClick={closeOnOverlayClick ? onClose : undefined}
 		>
 			<div
@@ -219,11 +219,11 @@ export const ConfirmModal = ({
 					onClick={onConfirm}
 					disabled={isLoading}
 					className={cn(
-						'rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50',
+						'rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-50',
 						variant === 'default' &&
-							'bg-primary hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]',
+							'bg-primary text-primary-foreground hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]',
 						variant === 'danger' &&
-							'bg-red-500 hover:shadow-[0_4px_12px_rgba(239,68,68,0.4)]',
+							'bg-destructive text-destructive-foreground hover:shadow-[0_4px_12px_rgba(239,68,68,0.4)]',
 					)}
 				>
 					{isLoading ? 'Processing...' : confirmText}
@@ -256,9 +256,9 @@ export const AlertModal = ({
 }: AlertModalProps) => {
 	const typeColors = {
 		info: 'text-primary',
-		success: 'text-green-500',
-		error: 'text-red-500',
-		warning: 'text-orange-500',
+		success: 'text-accent',
+		error: 'text-destructive',
+		warning: 'text-gold',
 	}
 
 	return (
@@ -276,7 +276,7 @@ export const AlertModal = ({
 			<ModalFooter>
 				<button
 					onClick={onClose}
-					className='rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]'
+					className='rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]'
 				>
 					{buttonText}
 				</button>

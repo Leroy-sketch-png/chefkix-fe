@@ -33,11 +33,7 @@ const leaderboard = [
 ]
 
 const rankIcons = [Trophy, Medal, Award]
-const rankColors = [
-	'text-yellow-500',
-	'text-gray-400',
-	'text-orange-600',
-] as const
+const rankColors = ['text-gold', 'text-muted-foreground', 'text-gold'] as const
 
 export default function CommunityPage() {
 	return (
@@ -60,7 +56,7 @@ export default function CommunityPage() {
 					</div>
 					<div className='group text-center transition-transform duration-300 hover:scale-105'>
 						<div className='mb-2 flex items-center justify-center gap-2'>
-							<Wifi className='h-5 w-5 text-green-500' />
+							<Wifi className='h-5 w-5 text-accent' />
 							<h3 className='text-2xl font-bold'>2,408</h3>
 						</div>
 						<span className='text-sm text-muted-foreground'>Online Now</span>
@@ -107,7 +103,7 @@ export default function CommunityPage() {
 								</div>
 
 								{/* XP Badge */}
-								<div className='shrink-0 rounded-full bg-gradient-to-r from-green-500/10 to-green-600/10 px-4 py-1.5 text-sm font-semibold text-green-600 transition-all duration-300 group-hover:shadow-[0_0_12px_rgba(34,197,94,0.2)]'>
+								<div className='shrink-0 rounded-full bg-gradient-to-r from-accent/10 to-accent-strong/10 px-4 py-1.5 text-sm font-semibold text-accent-foreground transition-all duration-300 group-hover:shadow-[0_0_12px_rgba(34,197,94,0.2)]'>
 									{chef.xp}
 								</div>
 							</div>
@@ -148,7 +144,7 @@ export default function CommunityPage() {
 					</div>
 
 					{/* VS Divider */}
-					<div className='flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl font-bold text-white shadow-[0_4px_12px_rgba(102,126,234,0.3)]'>
+					<div className='flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl font-bold text-primary-foreground shadow-[0_4px_12px_rgba(102,126,234,0.3)]'>
 						VS
 					</div>
 

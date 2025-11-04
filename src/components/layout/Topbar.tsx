@@ -32,7 +32,7 @@ export const Topbar = () => {
 			</Link>
 
 			{/* Search Bar */}
-			<div className='group relative flex flex-1 items-center gap-3 rounded-full border border-border bg-bg px-4 py-2.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] transition-all duration-300 focus-within:border-primary focus-within:bg-white focus-within:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05),0_0_0_3px_rgba(102,126,234,0.1),0_4px_12px_rgba(102,126,234,0.15)] max-md:max-w-[300px]'>
+			<div className='group relative flex flex-1 items-center gap-3 rounded-full border border-border bg-bg px-4 py-2.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] transition-all duration-300 focus-within:border-primary focus-within:bg-card focus-within:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05),0_0_0_3px_rgba(102,126,234,0.1),0_4px_12px_rgba(102,126,234,0.15)] max-md:max-w-[300px]'>
 				<Search className='h-5 w-5 shrink-0 text-muted transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
 				<input
 					type='text'
@@ -51,7 +51,7 @@ export const Topbar = () => {
 					onClick={() => setMode('player')}
 					className={`flex items-center gap-2 rounded-[20px] px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-300 ${
 						mode === 'player'
-							? 'bg-primary text-white shadow-md'
+							? 'bg-primary text-primary-foreground shadow-md'
 							: 'text-muted hover:text-text'
 					}`}
 				>
@@ -62,7 +62,7 @@ export const Topbar = () => {
 					onClick={() => setMode('creator')}
 					className={`flex items-center gap-2 rounded-[20px] px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-300 ${
 						mode === 'creator'
-							? 'bg-primary text-white shadow-md'
+							? 'bg-primary text-primary-foreground shadow-md'
 							: 'text-muted hover:text-text'
 					}`}
 				>
@@ -81,12 +81,12 @@ export const Topbar = () => {
 					</div>
 
 					{/* XP Bar */}
-					<div className='h-2 w-20 overflow-hidden rounded-lg bg-black/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'>
+					<div className='h-2 w-20 overflow-hidden rounded-lg bg-muted/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'>
 						<div
 							className='relative h-full bg-gradient-success shadow-[0_0_10px_rgba(168,224,99,0.5),inset_0_1px_0_rgba(255,255,255,0.3)] transition-all duration-[800ms] ease-[cubic-bezier(0.25,0.8,0.25,1)]'
 							style={{ width: `${Math.min(xpProgress, 100)}%` }}
 						>
-							<div className='absolute inset-0 animate-xp-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent' />
+							<div className='absolute inset-0 animate-xp-shimmer bg-gradient-to-r from-transparent via-card/40 to-transparent' />
 						</div>
 					</div>
 
@@ -113,7 +113,7 @@ export const Topbar = () => {
 					aria-label='Notifications'
 				>
 					<Bell className='h-5 w-5' />
-					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-[11px] font-bold text-white'>
+					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-[11px] font-bold text-accent-foreground'>
 						3
 					</span>
 				</button>
@@ -123,7 +123,7 @@ export const Topbar = () => {
 					aria-label='Messages'
 				>
 					<MessageSquare className='h-5 w-5' />
-					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-[11px] font-bold text-white'>
+					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-[11px] font-bold text-accent-foreground'>
 						2
 					</span>
 				</button>

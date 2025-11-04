@@ -43,7 +43,7 @@ export const RightSidebar = () => {
 	return (
 		<aside className='hidden border-l border-border bg-panel-bg p-6 lg:flex lg:flex-col lg:gap-6'>
 			{/* Progress Card */}
-			<div className='rounded-radius border border-white/[0.18] bg-white/70 p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_0_0_rgba(255,255,255,0.5)] backdrop-blur-[10px] backdrop-saturate-[180%]'>
+			<div className='rounded-radius border border-border bg-card p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_0_0_rgba(255,255,255,0.5)] backdrop-blur-[10px] backdrop-saturate-[180%]'>
 				<div className='mb-4 text-[14px] font-bold uppercase tracking-[0.5px]'>
 					Your Progress
 				</div>
@@ -53,7 +53,7 @@ export const RightSidebar = () => {
 						<strong>{currentXP}</strong> / {xpGoal} XP
 					</div>
 				</div>
-				<div className='h-2.5 overflow-hidden rounded-[5px] bg-black/10'>
+				<div className='h-2.5 overflow-hidden rounded-[5px] bg-muted/50'>
 					<div
 						className='h-full rounded-[5px] bg-mint transition-all duration-500 ease-out'
 						style={{ width: `${Math.min(xpProgress, 100)}%` }}
@@ -65,7 +65,7 @@ export const RightSidebar = () => {
 			</div>
 
 			{/* Trending Creators Card */}
-			<div className='rounded-radius border border-white/[0.18] bg-white/70 p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_0_0_rgba(255,255,255,0.5)] backdrop-blur-[10px] backdrop-saturate-[180%]'>
+			<div className='rounded-radius border border-border bg-card p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_0_0_rgba(255,255,255,0.5)] backdrop-blur-[10px] backdrop-saturate-[180%]'>
 				<div className='mb-4 text-[14px] font-bold uppercase tracking-[0.5px]'>
 					Trending Creators
 				</div>
@@ -92,7 +92,7 @@ export const RightSidebar = () => {
 								</div>
 								<button
 									onClick={() => handleFollow(suggestion.id)}
-									className='relative overflow-hidden rounded-[20px] border-none bg-gradient-primary px-3 py-1.5 text-[12px] font-semibold text-white shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
+									className='relative overflow-hidden rounded-[20px] border-none bg-gradient-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
 								>
 									{isFollowed ? 'Following' : 'Follow'}
 								</button>

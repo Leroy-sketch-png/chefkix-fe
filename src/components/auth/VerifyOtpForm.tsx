@@ -109,9 +109,11 @@ export const VerifyOtpForm = () => {
 							</FormItem>
 						)}
 					/>
-					{error && <p className='text-sm font-medium text-red-500'>{error}</p>}
+					{error && (
+						<p className='text-sm font-medium text-destructive'>{error}</p>
+					)}
 					{success && (
-						<p className='text-sm font-medium text-green-500'>{success}</p>
+						<p className='text-sm font-medium text-accent'>{success}</p>
 					)}
 					<Button type='submit' className='w-full'>
 						Verify Email

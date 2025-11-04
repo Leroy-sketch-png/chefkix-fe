@@ -64,7 +64,7 @@ export const MobileBottomNav = () => {
 							href={item.href}
 							className='relative -mt-6 flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] transition-all active:bg-muted max-w-[80px]'
 						>
-							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-white shadow-[0_8px_24px_rgba(102,126,234,0.4)] transition-all active:scale-90'>
+							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-[0_8px_24px_rgba(102,126,234,0.4)] transition-all active:scale-90'>
 								<Icon className='h-7 w-7' />
 							</div>
 						</Link>
@@ -88,7 +88,7 @@ export const MobileBottomNav = () => {
 								)}
 							/>
 							{item.badge && (
-								<span className='absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full border-2 border-card bg-red-500' />
+								<span className='absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full border-2 border-card bg-destructive' />
 							)}
 						</div>
 						<span className='text-[11px] font-semibold'>{item.label}</span>
@@ -138,7 +138,7 @@ export const MobileTabBar = ({
 						className={cn(
 							'flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-all active:scale-95',
 							activeTab === tab.id
-								? 'bg-primary text-white'
+								? 'bg-primary text-primary-foreground'
 								: 'text-muted-foreground hover:bg-muted',
 						)}
 					>

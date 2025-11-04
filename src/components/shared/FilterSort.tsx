@@ -77,7 +77,7 @@ export const FilterBar = ({
 				<Filter className='h-[18px] w-[18px] text-muted-foreground' />
 				<span>Filters</span>
 				{activeFiltersCount > 0 && (
-					<span className='min-w-[18px] rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-bold text-white'>
+					<span className='min-w-[18px] rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-bold text-primary-foreground'>
 						{activeFiltersCount}
 					</span>
 				)}
@@ -288,7 +288,7 @@ export const CheckboxFilter = ({
 				className='peer sr-only'
 			/>
 			<div className='grid h-[18px] w-[18px] flex-shrink-0 place-items-center rounded-md border-2 border-border transition-all peer-checked:border-primary peer-checked:bg-primary'>
-				<div className='h-2.5 w-2.5 scale-0 rounded-sm bg-white transition-transform peer-checked:scale-100' />
+				<div className='h-2.5 w-2.5 scale-0 rounded-sm bg-card transition-transform peer-checked:scale-100' />
 			</div>
 			<span className='flex-1 text-sm text-foreground'>{label}</span>
 			{count !== undefined && (
@@ -387,7 +387,7 @@ export const CuisinePill = ({
 			className={cn(
 				'rounded-full border px-4 py-2 text-xs font-semibold transition-all',
 				active
-					? 'border-primary bg-primary text-white'
+					? 'border-primary bg-primary text-primary-foreground'
 					: 'border-border bg-muted/20 text-foreground hover:border-primary hover:bg-primary/5',
 			)}
 		>

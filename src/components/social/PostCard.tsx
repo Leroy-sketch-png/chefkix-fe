@@ -167,9 +167,9 @@ export const PostCard = ({
 					<div className='relative'>
 						<button
 							onClick={() => setShowMenu(!showMenu)}
-							className='rounded-full p-2 transition-colors hover:bg-gray-100'
+							className='rounded-full p-2 transition-colors hover:bg-muted'
 						>
-							<MoreVertical className='h-5 w-5 text-gray-600' />
+							<MoreVertical className='h-5 w-5 text-muted-foreground' />
 						</button>
 
 						<AnimatePresence>
@@ -186,7 +186,7 @@ export const PostCard = ({
 												setIsEditing(true)
 												setShowMenu(false)
 											}}
-											className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50'
+											className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:bg-muted'
 										>
 											<Pencil className='h-4 w-4' />
 											Edit post
@@ -194,7 +194,7 @@ export const PostCard = ({
 									)}
 									<button
 										onClick={handleDelete}
-										className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50'
+										className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 									>
 										<Trash2 className='h-4 w-4' />
 										Delete post
@@ -208,23 +208,23 @@ export const PostCard = ({
 
 			{/* Content */}
 			{isEditing ? (
-				<div className='space-y-3 border-t border-gray-100 p-4'>
+				<div className='space-y-3 border-t border-border p-4'>
 					<textarea
 						value={editContent}
 						onChange={e => setEditContent(e.target.value)}
-						className='min-h-[100px] w-full resize-none rounded-lg border border-gray-300 p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='min-h-[100px] w-full resize-none rounded-lg border border-border p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						placeholder='Edit your post...'
 					/>
 					<input
 						value={editTags}
 						onChange={e => setEditTags(e.target.value)}
-						className='w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='w-full rounded-lg border border-border px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						placeholder='Tags (comma-separated)'
 					/>
 					<div className='flex gap-2'>
 						<button
 							onClick={handleEdit}
-							className='flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white transition-colors hover:bg-primary/90'
+							className='flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
 						>
 							Save
 						</button>
@@ -234,7 +234,7 @@ export const PostCard = ({
 								setEditContent(post.content)
 								setEditTags(post.tags.join(', '))
 							}}
-							className='flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50'
+							className='flex-1 rounded-lg border border-border px-4 py-2 font-medium text-foreground transition-colors hover:bg-muted'
 						>
 							Cancel
 						</button>
@@ -243,7 +243,9 @@ export const PostCard = ({
 			) : (
 				<>
 					<div className='px-4 pb-3'>
-						<p className='whitespace-pre-wrap text-gray-800'>{post.content}</p>
+						<p className='whitespace-pre-wrap text-foreground'>
+							{post.content}
+						</p>
 						{post.tags.length > 0 && (
 							<div className='mt-2 flex flex-wrap gap-2'>
 								{post.tags.map(tag => (
@@ -260,7 +262,7 @@ export const PostCard = ({
 
 					{/* Media */}
 					{post.photoUrls && post.photoUrls.length > 0 && (
-						<div className='relative aspect-video w-full overflow-hidden bg-gray-100'>
+						<div className='relative aspect-video w-full overflow-hidden bg-muted'>
 							<Image
 								src={post.photoUrls[0]}
 								alt='Post media'
@@ -268,7 +270,7 @@ export const PostCard = ({
 								className='object-cover transition-transform duration-500 group-hover:scale-105'
 							/>
 							{post.photoUrls.length > 1 && (
-								<div className='absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white'>
+								<div className='absolute bottom-2 right-2 rounded-full bg-foreground/60 px-2 py-1 text-xs text-background'>
 									+{post.photoUrls.length - 1} more
 								</div>
 							)}
@@ -276,7 +278,7 @@ export const PostCard = ({
 					)}
 
 					{post.videoUrl && (
-						<div className='relative aspect-video w-full overflow-hidden bg-gray-100'>
+						<div className='relative aspect-video w-full overflow-hidden bg-muted'>
 							<video src={post.videoUrl} controls className='h-full w-full' />
 						</div>
 					)}
@@ -347,10 +349,10 @@ export const PostCard = ({
 					>
 						<div className='flex gap-2 p-4'>
 							<input
-								className='flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+								className='flex-1 rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 								placeholder='Add a comment...'
 							/>
-							<button className='rounded-lg bg-primary px-4 py-2 font-semibold text-white transition-colors hover:bg-primary/90'>
+							<button className='rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground transition-colors hover:bg-primary/90'>
 								Post
 							</button>
 						</div>
