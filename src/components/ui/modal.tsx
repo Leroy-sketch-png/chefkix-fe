@@ -103,7 +103,7 @@ export const ModalHeader = ({
 	return (
 		<div
 			className={cn(
-				'flex items-center justify-between border-b border-border px-6 py-5',
+				'flex items-center justify-between border-b border-border px-6 py-4',
 				className,
 			)}
 		>
@@ -112,10 +112,10 @@ export const ModalHeader = ({
 			{showCloseButton && onClose && (
 				<button
 					onClick={onClose}
-					className='grid h-9 w-9 place-items-center rounded-full bg-muted text-muted-foreground transition-all hover:bg-muted/80 hover:text-foreground'
+					className='grid size-9 place-items-center rounded-full bg-muted text-muted-foreground transition-all hover:bg-muted/80 hover:text-foreground'
 					aria-label='Close modal'
 				>
-					<X className='h-5 w-5' />
+					<X className='size-5' />
 				</button>
 			)}
 		</div>

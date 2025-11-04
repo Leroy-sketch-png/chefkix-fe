@@ -1,31 +1,33 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
+
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-	'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none overflow-hidden',
+	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
 	{
 		variants: {
 			variant: {
 				default:
-					'bg-primary text-primary-foreground shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
+					'bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0',
 				gradient:
-					'bg-gradient-primary text-primary-foreground shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
+					'bg-gradient-primary text-white hover:shadow-warm hover:-translate-y-0.5 active:translate-y-0 shadow-md',
 				destructive:
-					'bg-destructive text-destructive-foreground shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]',
+					'bg-destructive text-white hover:bg-destructive/90 shadow-sm hover:shadow-md',
 				outline:
-					'border-2 border-border bg-transparent text-text shadow-sm hover:bg-bg hover:border-primary hover:text-primary active:scale-[0.98]',
-				secondary:
-					'bg-muted text-text hover:bg-muted-strong active:scale-[0.98]',
-				ghost: 'hover:bg-accent/10 hover:text-primary active:scale-[0.98]',
+					'border-2 border-primary/20 bg-transparent text-primary hover:bg-primary/5 hover:border-primary/40',
+				secondary: 'bg-accent/10 text-accent-strong hover:bg-accent/20',
+				ghost: 'hover:bg-accent/10 hover:text-accent-strong',
 				link: 'text-primary underline-offset-4 hover:underline',
 			},
 			size: {
-				default: 'h-11 px-5 py-2.5',
-				sm: 'h-9 px-3.5 py-2 text-sm',
-				lg: 'h-12 px-6 py-3 text-base',
-				icon: 'size-11',
+				default: 'h-9 px-4 py-2 has-[>svg]:px-3',
+				sm: 'h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
+				lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
+				icon: 'size-9',
+				'icon-sm': 'size-8',
+				'icon-lg': 'size-10',
 			},
 		},
 		defaultVariants: {
@@ -40,56 +42,19 @@ function Button({
 	variant,
 	size,
 	asChild = false,
-	onClick,
 	...props
 }: React.ComponentProps<'button'> &
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean
 	}) {
 	const Comp = asChild ? Slot : 'button'
-	const rippleRef = React.useRef<HTMLSpanElement>(null)
-
-	const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-		// Create ripple effect
-		if (rippleRef.current) {
-			const ripple = document.createElement('span')
-			const rect = e.currentTarget.getBoundingClientRect()
-			const size = Math.max(rect.width, rect.height)
-			const x = e.clientX - rect.left - size / 2
-			const y = e.clientY - rect.top - size / 2
-
-			ripple.style.cssText = `
-				position: absolute;
-				width: ${size}px;
-				height: ${size}px;
-				left: ${x}px;
-				top: ${y}px;
-				background: rgba(255, 255, 255, 0.6);
-				border-radius: 50%;
-				pointer-events: none;
-				animation: ripple 0.6s ease-out;
-			`
-
-			rippleRef.current.appendChild(ripple)
-
-			setTimeout(() => {
-				ripple.remove()
-			}, 600)
-		}
-
-		onClick?.(e)
-	}
 
 	return (
 		<Comp
 			data-slot='button'
-			className={cn(buttonVariants({ variant, size }), className)}
-			onClick={handleClick}
+			className={cn(buttonVariants({ variant, size, className }))}
 			{...props}
-		>
-			{props.children}
-			<span ref={rippleRef} className='pointer-events-none absolute inset-0' />
-		</Comp>
+		/>
 	)
 }
 

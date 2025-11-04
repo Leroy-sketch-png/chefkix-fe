@@ -8,56 +8,65 @@
    =================================== */
 
 :root {
-	/* ============ COLORS ============ */
+	/* ============ COLORS - WARM KITCHEN PALETTE ============ */
 
-	/* Backgrounds */
-	--bg: #f5f7fa;
+	/* Backgrounds - Warm cream tones like fresh pastry */
+	--bg: #faf8f5;
 	--panel-bg: #ffffff;
 
-	/* Brand Colors */
-	--accent-light: #fdeae7;
-	--accent: #e39e92;
-	--accent-strong: #c25e50;
-	--primary: #667eea;
-	--primary-dark: #5a67d8;
-	--primary-light: #7c89f5;
+	/* Brand Colors - Appetizing warmth */
+	--accent-light: #fff4ed;
+	--accent: #ff8c42;
+	--accent-strong: #ff6b1a;
+	--primary: #ff6b35;
+	--primary-dark: #e85d2a;
+	--primary-light: #ff8456;
 
-	/* Semantic Colors */
-	--mint: #a9f99d;
-	--gold: #ffd24a;
-	--text: #1a202c;
-	--muted: #718096;
-	--muted-strong: #4a5568;
-	--border-color: #e2e8f0;
-	--border: #e2e8f0; /* Alias for Tailwind's border-border utility */
+	/* Semantic Colors - Fresh ingredients */
+	--mint: #86d293;
+	--gold: #ffc145;
+	--text: #2d1810;
+	--muted: #8b7355;
+	--muted-strong: #5c4a3a;
+	--border-color: #ede6dd;
+	--border: #ede6dd;
+	--destructive: #dc2626;
 
-	/* ============ GRADIENTS ============ */
-	--gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	--gradient-success: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
-	--gradient-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-	--gradient-cool: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-	--gradient-gold: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+	/* ============ GRADIENTS - CULINARY INSPIRED ============ */
+	--gradient-primary: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+	--gradient-success: linear-gradient(135deg, #86d293 0%, #52b788 100%);
+	--gradient-warm: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+	--gradient-cool: linear-gradient(135deg, #4facfe 0%, #00d4ff 100%);
+	--gradient-gold: linear-gradient(135deg, #ffc145 0%, #ff8c42 100%);
+	--gradient-sunset: linear-gradient(
+		135deg,
+		#ff6b35 0%,
+		#ff8c42 50%,
+		#ffc145 100%
+	);
 
 	/* ============ LAYOUT ============ */
 	--nav-w: 92px;
 	--right-w: 280px;
-	--radius: 12px;
-	--radius-sm: 10px;
-	--radius-lg: 20px;
+	--radius: 16px;
+	--radius-sm: 12px;
+	--radius-lg: 24px;
 
 	/* Elevated surface tokens */
 	--bg-elev: #ffffff;
 	--surface: #ffffff;
 
-	/* ============ SHADOWS ============ */
-	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-	--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
-	--shadow-glow: 0 0 20px rgba(102, 126, 234, 0.4);
+	/* ============ SHADOWS - WARM & ELEGANT ============ */
+	--shadow-sm: 0 2px 8px rgba(255, 107, 53, 0.06);
+	--shadow-md: 0 4px 16px rgba(255, 107, 53, 0.1);
+	--shadow-lg: 0 8px 32px rgba(255, 107, 53, 0.15);
+	--shadow-glow: 0 0 24px rgba(255, 107, 53, 0.3);
+	--shadow-warm: 0 4px 20px rgba(255, 140, 66, 0.25);
 
-	/* ============ TRANSITIONS ============ */
+	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
 	--transition-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+	--transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 	/* ============ SPACING SCALE ============ */
 	--space-xs: 4px;
@@ -237,10 +246,9 @@
    GLOBAL RESETS & BASE STYLES
    =================================== */
 
+/* ============ MINIMAL GLOBAL RESETS (Don't override component styles!) ============ */
 * {
 	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
 }
 
 html,
@@ -250,8 +258,15 @@ body {
 }
 
 body {
+	margin: 0;
+	padding: 0;
 	font-family: var(--font-family);
 	background: var(--bg);
+	background-image:
+		radial-gradient(at 20% 30%, rgba(255, 107, 53, 0.03) 0px, transparent 50%),
+		radial-gradient(at 80% 70%, rgba(255, 140, 66, 0.04) 0px, transparent 50%),
+		radial-gradient(at 50% 50%, rgba(255, 193, 69, 0.02) 0px, transparent 50%);
+	background-attachment: fixed;
 	color: var(--text);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -262,42 +277,29 @@ html {
 	font-size: 16px;
 }
 
-h1 {
+/* Typography utilities (use these explicitly, don't force globally) */
+.heading-1 {
 	font-size: var(--font-size-2xl);
-	margin-bottom: 0.5rem;
 	font-weight: var(--font-weight-bold);
 	line-height: 1.2;
 }
 
-h2 {
+.heading-2 {
 	font-size: var(--font-size-xl);
-	margin-bottom: 0.5rem;
 	font-weight: var(--font-weight-bold);
 	line-height: 1.2;
 }
 
-h3 {
+.heading-3 {
 	font-size: var(--font-size-lg);
-	margin-bottom: 0.375rem;
 	font-weight: var(--font-weight-bold);
 	line-height: 1.2;
 }
 
-h4,
-h5,
-h6 {
-	font-weight: var(--font-weight-bold);
-	line-height: 1.2;
-}
-
-/* Focus styles for keyboard accessibility */
-:focus {
-	outline: none;
-}
-
+/* Focus styles - Let components handle their own focus */
 :focus-visible {
-	box-shadow: 0 0 0 4px var(--focus);
-	border-radius: 8px;
+	outline: 2px solid var(--ring, var(--primary));
+	outline-offset: 2px;
 }
 
 a {
@@ -310,35 +312,26 @@ img {
 	display: block;
 }
 
-button {
-	font-family: inherit;
-	cursor: pointer;
-}
-
-input,
-textarea,
-select {
-	font-family: inherit;
-	font-size: inherit;
-}
-
-/* ============ CUSTOM SCROLLBAR ============ */
+/* ============ CUSTOM SCROLLBAR - WARM THEME ============ */
 ::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
+	width: 10px;
+	height: 10px;
 }
 
 ::-webkit-scrollbar-track {
 	background: var(--bg);
+	border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: var(--gradient-primary);
-	border-radius: 4px;
+	background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+	border-radius: 8px;
+	border: 2px solid var(--bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(135deg, #764ba2, #667eea);
+	background: linear-gradient(135deg, #ff8c42, #ffc145);
+	transform: scale(1.05);
 }
 
 /* ============ UTILITY CLASSES ============ */
@@ -366,6 +359,69 @@ select {
 	border-width: 0;
 }
 
+/* ============ MICRO-INTERACTIONS & POLISH ============ */
+@keyframes shimmer {
+	0% {
+		background-position: -1000px 0;
+	}
+	100% {
+		background-position: 1000px 0;
+	}
+}
+
+@keyframes float {
+	0%,
+	100% {
+		transform: translateY(0px);
+	}
+	50% {
+		transform: translateY(-10px);
+	}
+}
+
+@keyframes glow-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+	}
+	50% {
+		box-shadow: 0 0 35px rgba(255, 107, 53, 0.5);
+	}
+}
+
+.animate-shimmer {
+	animation: shimmer 3s infinite linear;
+}
+
+.animate-float {
+	animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+	animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+textarea,
+select {
+	transition: all 0.2s var(--transition-ease);
+}
+
+/* Elegant hover lift for cards */
+.card-hover {
+	transition:
+		transform 0.3s var(--transition-ease),
+		box-shadow 0.3s var(--transition-ease);
+}
+
+.card-hover:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-warm);
+}
+
 /* ============ REDUCED MOTION ============ */
 @media (prefers-reduced-motion: reduce) {
 	*,
@@ -378,12 +434,5 @@ select {
 	}
 }
 
-@layer base {
-	* {
-		border-color: var(--border-color);
-		outline-color: hsl(var(--ring) / 0.5);
-	}
-	body {
-		@apply bg-background text-foreground;
-	}
-}
+/* Removed @layer base - it was overriding component styles globally */
+/* Let components handle their own borders and outlines */
