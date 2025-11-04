@@ -21,7 +21,7 @@ import {
 	toggleFriendRequest,
 	unfriendUser,
 	acceptFriendRequest,
-	rejectFriendRequest,
+	declineFriendRequest,
 } from '@/services/social'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -237,7 +237,7 @@ export const UserProfile = ({
 			},
 		}))
 
-		const response = await rejectFriendRequest(profile.userId)
+		const response = await declineFriendRequest(profile.userId)
 
 		if (response.success && response.data) {
 			// Decline response is smaller, merge manually

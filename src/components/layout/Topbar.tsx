@@ -183,7 +183,7 @@ export const Topbar = () => {
 			{/* Communication Icons */}
 			<div className='flex gap-4'>
 				<button
-					onClick={toggleNotifications}
+					onClick={toggleNotificationsPopup}
 					className='relative cursor-pointer text-muted transition-colors hover:text-primary'
 					aria-label='Notifications'
 				>
