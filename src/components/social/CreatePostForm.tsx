@@ -94,11 +94,11 @@ export const CreatePostForm = ({
 		<motion.div
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md'
+			className='overflow-hidden rounded-lg border border-border bg-card shadow-md'
 		>
 			<form onSubmit={handleSubmit}>
 				{/* Header */}
-				<div className='flex items-center gap-3 border-b border-gray-100 p-4'>
+				<div className='flex items-center gap-3 border-b border-border p-4'>
 					<div className='relative h-12 w-12'>
 						<Image
 							src={currentUser?.avatarUrl || 'https://i.pravatar.cc/48'}
@@ -108,10 +108,10 @@ export const CreatePostForm = ({
 						/>
 					</div>
 					<div>
-						<div className='font-semibold text-gray-900'>
+						<div className='font-semibold text-foreground'>
 							{currentUser?.displayName || 'You'}
 						</div>
-						<div className='text-sm text-gray-500'>
+						<div className='text-sm text-muted-foreground'>
 							Share what you&apos;re cooking!
 						</div>
 					</div>
@@ -123,7 +123,7 @@ export const CreatePostForm = ({
 						value={content}
 						onChange={e => setContent(e.target.value)}
 						placeholder="What's cooking? Share your culinary journey..."
-						className='w-full resize-none rounded-lg border border-gray-300 p-3 text-gray-800 placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='w-full resize-none rounded-lg border border-border p-3 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						rows={4}
 					/>
 
@@ -153,7 +153,7 @@ export const CreatePostForm = ({
 										<button
 											type='button'
 											onClick={() => removePhoto(index)}
-											className='absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100'
+											className='absolute right-1 top-1 rounded-full bg-foreground/60 p-1 text-background opacity-0 transition-opacity group-hover:opacity-100'
 										>
 											<X className='h-4 w-4' />
 										</button>
@@ -173,7 +173,7 @@ export const CreatePostForm = ({
 								className='mt-3 space-y-3'
 							>
 								<div>
-									<label className='mb-1 block text-sm font-medium text-gray-700'>
+									<label className='mb-1 block text-sm font-medium text-foreground'>
 										Video URL (optional)
 									</label>
 									<input
@@ -181,11 +181,11 @@ export const CreatePostForm = ({
 										value={videoUrl}
 										onChange={e => setVideoUrl(e.target.value)}
 										placeholder='https://...'
-										className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+										className='w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 									/>
 								</div>
 								<div>
-									<label className='mb-1 block text-sm font-medium text-gray-700'>
+									<label className='mb-1 block text-sm font-medium text-foreground'>
 										Tags (comma-separated)
 									</label>
 									<input
@@ -193,7 +193,7 @@ export const CreatePostForm = ({
 										value={tags}
 										onChange={e => setTags(e.target.value)}
 										placeholder='baking, bread, sourdough'
-										className='w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+										className='w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 									/>
 								</div>
 							</motion.div>
@@ -202,10 +202,10 @@ export const CreatePostForm = ({
 				</div>
 
 				{/* Footer Actions */}
-				<div className='flex items-center justify-between border-t border-gray-100 bg-gray-50/50 p-3'>
+				<div className='flex items-center justify-between border-t border-border bg-muted/30 p-3'>
 					<div className='flex gap-2'>
-						<label className='group cursor-pointer rounded-lg p-2 transition-colors hover:bg-gray-100'>
-							<ImageIcon className='h-5 w-5 text-gray-600 transition-colors group-hover:text-primary' />
+						<label className='group cursor-pointer rounded-lg p-2 transition-colors hover:bg-muted'>
+							<ImageIcon className='h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary' />
 							<input
 								type='file'
 								accept='image/*'
@@ -219,8 +219,10 @@ export const CreatePostForm = ({
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
-							className={`rounded-lg p-2 transition-colors hover:bg-gray-100 ${
-								showAdvanced ? 'bg-primary/10 text-primary' : 'text-gray-600'
+							className={`rounded-lg p-2 transition-colors hover:bg-muted ${
+								showAdvanced
+									? 'bg-primary/10 text-primary'
+									: 'text-muted-foreground'
 							}`}
 						>
 							<Video className='h-5 w-5' />
@@ -229,8 +231,10 @@ export const CreatePostForm = ({
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
-							className={`rounded-lg p-2 transition-colors hover:bg-gray-100 ${
-								showAdvanced ? 'bg-primary/10 text-primary' : 'text-gray-600'
+							className={`rounded-lg p-2 transition-colors hover:bg-muted ${
+								showAdvanced
+									? 'bg-primary/10 text-primary'
+									: 'text-muted-foreground'
 							}`}
 						>
 							<Tag className='h-5 w-5' />
@@ -240,11 +244,11 @@ export const CreatePostForm = ({
 					<button
 						type='submit'
 						disabled={isSubmitting || !content.trim()}
-						className='flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isSubmitting ? (
 							<>
-								<div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' />
+								<div className='h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent' />
 								<span>Posting...</span>
 							</>
 						) : (

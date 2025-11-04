@@ -12,7 +12,7 @@ export const ProfileSkeleton = () => {
 				<div className='p-6'>
 					<div className='relative -mt-20 flex items-end justify-between'>
 						{/* Avatar Skeleton */}
-						<Skeleton className='h-32 w-32 rounded-full border-4 border-white' />
+						<Skeleton className='h-32 w-32 rounded-full border-4 border-card' />
 
 						{/* Action Buttons Skeleton */}
 						<div className='flex gap-2'>

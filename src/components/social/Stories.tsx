@@ -2,12 +2,28 @@
 
 import { Plus } from 'lucide-react'
 import Image from 'next/image'
+import { cn } from '@/lib/utils'
 
 // Mock data - should come from API/store in production
 const stories = [
-	{ id: 1, username: 'ChefAnna', avatar: 'https://i.pravatar.cc/64?u=1' },
-	{ id: 2, username: 'MarcoB', avatar: 'https://i.pravatar.cc/64?u=2' },
-	{ id: 3, username: 'Sofi_Cooks', avatar: 'https://i.pravatar.cc/64?u=3' },
+	{
+		id: 1,
+		username: 'ChefAnna',
+		avatar: 'https://i.pravatar.cc/64?u=1',
+		viewed: false,
+	},
+	{
+		id: 2,
+		username: 'MarcoB',
+		avatar: 'https://i.pravatar.cc/64?u=2',
+		viewed: true,
+	},
+	{
+		id: 3,
+		username: 'Sofi_Cooks',
+		avatar: 'https://i.pravatar.cc/64?u=3',
+		viewed: false,
+	},
 ]
 
 interface StoriesProps {
@@ -32,30 +48,43 @@ export const Stories = ({
 			)}
 			<div className='flex gap-4 overflow-x-auto pb-2 scrollbar-hide'>
 				{/* Add Story */}
-				<div className='flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0'>
-					<div className='grid h-16 w-16 place-items-center rounded-full border-2 border-dashed border-primary bg-muted'>
+				<div className='group flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0'>
+					<div className='grid h-16 w-16 place-items-center rounded-full border-2 border-dashed border-primary bg-primary/5 transition-all duration-300 hover:scale-110 hover:rotate-6 hover:bg-primary/10'>
 						<Plus className='h-6 w-6 text-primary' />
 					</div>
-					<span className='text-xs font-medium'>Your Story</span>
+					<span className='text-xs font-medium text-foreground'>Add Story</span>
 				</div>
 
 				{/* Story Items */}
 				{stories.map(story => (
 					<div
 						key={story.id}
-						className='flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0'
+						className={cn(
+							'group flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0',
+							story.viewed && 'opacity-60 hover:opacity-80',
+						)}
 					>
-						<div className='h-16 w-16 rounded-full border-2 border-primary p-1 transition-transform duration-300 ease-in-out hover:scale-105'>
-							<div className='relative h-full w-full overflow-hidden rounded-full'>
+						<div
+							className={cn(
+								'relative h-16 w-16 rounded-full p-[3px] transition-all duration-300',
+								!story.viewed &&
+									'bg-gradient-to-br from-primary to-accent animate-story-pulse',
+								story.viewed && 'bg-border',
+								'hover:scale-110 hover:rotate-[5deg]',
+							)}
+						>
+							<div className='relative h-full w-full overflow-hidden rounded-full bg-background p-[2px]'>
 								<Image
 									src={story.avatar}
 									alt={story.username}
 									fill
-									className='object-cover'
+									className='rounded-full object-cover'
 								/>
 							</div>
 						</div>
-						<span className='text-xs font-medium'>{story.username}</span>
+						<span className='text-xs font-medium text-foreground'>
+							{story.username}
+						</span>
 					</div>
 				))}
 			</div>

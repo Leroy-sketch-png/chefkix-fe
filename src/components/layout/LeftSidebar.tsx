@@ -5,73 +5,57 @@ import { usePathname } from 'next/navigation'
 import {
 	Home,
 	Compass,
-	Award,
+	Target,
 	PlusSquare,
 	Users,
-	User,
+	MessageCircle,
 	Settings,
-	Search,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 
 const navItems = [
 	{ href: '/dashboard', icon: Home, label: 'Home' },
-	{ href: '/discover', icon: Search, label: 'Discover' },
 	{ href: '/explore', icon: Compass, label: 'Explore' },
-	{ href: '/challenges', icon: Award, label: 'Challenges' },
-	{ href: '/create', icon: PlusSquare, label: 'Create' },
+	{ href: '/challenges', icon: Target, label: 'Challenges' },
 	{ href: '/community', icon: Users, label: 'Community' },
-	// Note: Profile link is dynamic based on username
+	{ href: '/create', icon: PlusSquare, label: 'Create' },
 	{ href: '/settings', icon: Settings, label: 'Settings' },
+	{ href: '/messages', icon: MessageCircle, label: 'Messages' },
 ]
 
 export const LeftSidebar = () => {
 	const pathname = usePathname()
 	const { user } = useAuth()
 
+	const isActive = (href: string) => {
+		if (href === '/dashboard') return pathname === href || pathname === '/'
+		return pathname.startsWith(href)
+	}
+
 	return (
-		<div className='hidden border-r bg-muted/40 md:block'>
-			<div className='flex h-full max-h-screen flex-col gap-2'>
-				<div className='flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6'>
+		<nav
+			className='hidden border-r border-border bg-panel-bg px-3 py-6 md:flex md:flex-col md:items-center md:gap-4'
+			aria-label='Main navigation'
+		>
+			{navItems.map(item => {
+				const active = isActive(item.href)
+				const Icon = item.icon
+				return (
 					<Link
-						href='/dashboard'
-						className='flex items-center gap-2 font-semibold'
+						key={item.href}
+						href={item.href}
+						className='group relative flex w-full flex-col items-center gap-1 rounded-radius px-1.5 py-3 text-xs font-semibold uppercase tracking-[0.6px] text-muted transition-all duration-300 hover:bg-bg hover:text-text data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-transparent data-[active=true]:text-primary data-[active=true]:shadow-sm'
+						data-active={active}
+						title={item.label}
 					>
-						<span className=''>Chefkix</span>
+						{/* Active indicator bar */}
+						<div className='absolute left-0 top-1/2 h-0 w-[3px] -translate-y-1/2 rounded-r-[3px] bg-gradient-primary transition-all duration-300 group-data-[active=true]:h-[70%]' />
+
+						<Icon className='h-6 w-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-[5deg] group-data-[active=true]:drop-shadow-glow' />
+						<div>{item.label}</div>
 					</Link>
-				</div>
-				<div className='flex-1'>
-					<nav className='grid items-start px-2 text-sm font-medium lg:px-4'>
-						{navItems.map(item => (
-							<Link
-								key={item.label}
-								href={item.href}
-								className={cn(
-									'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-									{ 'bg-muted text-primary': pathname === item.href },
-								)}
-							>
-								<item.icon className='h-4 w-4' />
-								{item.label}
-							</Link>
-						))}
-						{/* Dynamic Profile Link */}
-						{user && (
-							<Link
-								href={`/${user.username}`}
-								className={cn(
-									'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-									{ 'bg-muted text-primary': pathname === `/${user.username}` },
-								)}
-							>
-								<User className='h-4 w-4' />
-								Profile
-							</Link>
-						)}
-					</nav>
-				</div>
-			</div>
-		</div>
+				)
+			})}
+		</nav>
 	)
 }

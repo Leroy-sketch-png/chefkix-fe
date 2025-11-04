@@ -108,7 +108,7 @@ export const declineFriendRequest = async (
 ): Promise<ApiResponse<DeclineFriendResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<DeclineFriendResponse>>(
-			API_ENDPOINTS.SOCIAL.DECLINE_FRIEND(userId),
+			API_ENDPOINTS.SOCIAL.REJECT_FRIEND(userId),
 		)
 		return response.data
 	} catch (error) {

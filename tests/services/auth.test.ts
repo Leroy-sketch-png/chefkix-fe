@@ -74,7 +74,7 @@ describe('signIn', () => {
 		expect(response.data?.user.email).toBe('test@example.com')
 		expect(response.data?.token).toBe('fake-jwt-token')
 		expect(mockedApi.post).toHaveBeenCalledWith(
-			'/api/auth/login',
+			'/api/v1/auth/login',
 			validCredentials,
 		)
 	})
@@ -138,7 +138,7 @@ describe('signUp', () => {
 		expect(response.statusCode).toBe(201)
 		expect(typeof response.data).toBe('string')
 		expect(mockedApi.post).toHaveBeenCalledWith(
-			'/api/auth/register',
+			'/api/v1/auth/register',
 			newUserData,
 		)
 	})
@@ -200,7 +200,7 @@ describe('sendOtp', () => {
 		expect(response.statusCode).toBe(200)
 		expect(response.message).toBe('OTP sent successfully.')
 		expect(mockedApi.post).toHaveBeenCalledWith(
-			'/api/auth/send-otp',
+			'/api/v1/auth/send-otp',
 			otpRequest,
 		)
 	})
@@ -254,7 +254,7 @@ describe('verifyOtp', () => {
 		expect(response.statusCode).toBe(200)
 		expect(response.message).toBe('Email verified successfully.')
 		expect(mockedApi.post).toHaveBeenCalledWith(
-			'/api/auth/verify-otp',
+			'/api/v1/auth/verify-otp',
 			verificationData,
 		)
 	})

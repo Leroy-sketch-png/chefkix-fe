@@ -15,7 +15,7 @@ export const UserCard = ({ profile }: UserCardProps) => {
 		<motion.div variants={staggerItemVariants}>
 			<Link href={`/${profile.username}`}>
 				<motion.div
-					className='cursor-pointer rounded-lg border bg-white p-4 shadow-sm transition-all hover:shadow-md'
+					className='cursor-pointer rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md'
 					whileHover={{ scale: 1.02, y: -4 }}
 					transition={{ duration: 0.2 }}
 				>
@@ -29,10 +29,10 @@ export const UserCard = ({ profile }: UserCardProps) => {
 							/>
 						</div>
 						<div className='overflow-hidden'>
-							<h3 className='truncate text-lg font-bold text-gray-900'>
+							<h3 className='truncate text-lg font-bold text-foreground'>
 								{profile.displayName}
 							</h3>
-							<p className='truncate text-sm text-gray-500'>
+							<p className='truncate text-sm text-muted-foreground'>
 								@{profile.username}
 							</p>
 						</div>
@@ -42,13 +42,13 @@ export const UserCard = ({ profile }: UserCardProps) => {
 							<span className='font-bold'>
 								{profile.statistics.followerCount}
 							</span>
-							<span className='ml-1 text-gray-500'>Followers</span>
+							<span className='ml-1 text-muted-foreground'>Followers</span>
 						</div>
 						<div>
 							<span className='font-bold'>
 								{profile.statistics.currentLevel}
 							</span>
-							<span className='ml-1 text-gray-500'>Level</span>
+							<span className='ml-1 text-muted-foreground'>Level</span>
 						</div>
 					</div>
 				</motion.div>

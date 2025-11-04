@@ -63,14 +63,14 @@ export function SignInForm() {
 	return (
 		<div className='w-full max-w-md space-y-8'>
 			<p>Authenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
-			<h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
+			<h2 className='mt-6 text-center text-3xl font-extrabold text-foreground'>
 				Sign in to your account
 			</h2>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
 					{form.formState.errors.root?.general && (
 						<div
-							className='rounded-md bg-red-50 p-4 text-sm text-red-700'
+							className='rounded-md bg-destructive/10 p-4 text-sm text-destructive'
 							role='alert'
 						>
 							{(form.formState.errors.root.general as any).message}
@@ -86,7 +86,7 @@ export function SignInForm() {
 									<Input
 										placeholder='yourname or test@example.com'
 										{...field}
-										className='text-gray-900'
+										className='text-foreground'
 									/>
 								</FormControl>
 								<FormMessage />
@@ -104,7 +104,7 @@ export function SignInForm() {
 										type='password'
 										placeholder='password'
 										{...field}
-										className='text-gray-900'
+										className='text-foreground'
 									/>
 								</FormControl>
 								<FormMessage />
@@ -138,11 +138,11 @@ export function SignInForm() {
 					/>
 				</form>
 			</Form>
-			<div className='text-center text-sm text-gray-600'>
+			<div className='text-center text-sm text-muted-foreground'>
 				Don&apos;t have an account?{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_UP}
-					className='font-medium text-indigo-600 hover:text-indigo-500'
+					className='font-medium text-primary hover:text-primary-dark'
 				>
 					Sign Up
 				</Link>

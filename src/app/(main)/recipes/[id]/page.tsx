@@ -173,15 +173,15 @@ export default function RecipeDetailPage() {
 					{recipe.videoUrl && (
 						<button
 							onClick={toggleCookingPlayer}
-							className='absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[2px] transition-all hover:bg-black/40'
+							className='absolute inset-0 flex items-center justify-center bg-foreground/30 backdrop-blur-[2px] transition-all hover:bg-foreground/40'
 						>
-							<div className='grid h-20 w-20 place-items-center rounded-full bg-white/90 shadow-xl transition-transform hover:scale-110'>
+							<div className='grid h-20 w-20 place-items-center rounded-full bg-card/90 shadow-xl transition-transform hover:scale-110'>
 								<Play className='ml-1 h-8 w-8 fill-primary text-primary' />
 							</div>
 						</button>
 					)}
 					{/* Difficulty badge */}
-					<div className='absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur-sm'>
+					<div className='absolute left-4 top-4 rounded-full bg-foreground/70 px-3 py-1.5 text-sm font-semibold text-background backdrop-blur-sm'>
 						{recipe.difficulty}
 					</div>
 				</div>
