@@ -18,7 +18,7 @@ export const API_ENDPOINTS = {
 		TOGGLE_FRIEND_REQUEST: (userId: string) =>
 			`/api/social/toggle-friend-request/${userId}`,
 		ACCEPT_FRIEND: (userId: string) => `/api/social/accept-friend/${userId}`,
-		DECLINE_FRIEND: (userId: string) => `/api/social/decline-friend/${userId}`,
+		REJECT_FRIEND: (userId: string) => `/api/social/reject-friend/${userId}`,
 		UNFRIEND: (userId: string) => `/api/social/unfriend/${userId}`,
 	},
 	POST: {
