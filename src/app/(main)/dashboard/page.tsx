@@ -1,21 +1,24 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Recipe } from '@/lib/types/recipe'
-import { getFeedRecipes } from '@/services/recipe'
+import { Post } from '@/lib/types'
+import { getFeedPosts } from '@/services/post'
 import { PageContainer } from '@/components/layout/PageContainer'
-import { RecipeCard } from '@/components/recipe/RecipeCard'
+import { PostCard } from '@/components/social/PostCard'
+import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Stories } from '@/components/social/Stories'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import { ChefHat, Users } from 'lucide-react'
+import { Users, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function DashboardPage() {
-	const [recipes, setRecipes] = useState<Recipe[]>([])
+	const { user } = useAuth()
+	const [posts, setPosts] = useState<Post[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 
@@ -24,9 +27,9 @@ export default function DashboardPage() {
 			setIsLoading(true)
 			setError(null)
 			try {
-				const response = await getFeedRecipes({ limit: 20 })
+				const response = await getFeedPosts({ limit: 20 })
 				if (response.success && response.data) {
-					setRecipes(response.data)
+					setPosts(response.data)
 				}
 			} catch (err) {
 				setError('Failed to load feed')
@@ -38,10 +41,16 @@ export default function DashboardPage() {
 		fetchFeed()
 	}, [])
 
-	const handleRecipeUpdate = (updatedRecipe: Recipe) => {
-		setRecipes(prev =>
-			prev.map(r => (r.id === updatedRecipe.id ? updatedRecipe : r)),
-		)
+	const handlePostCreated = (newPost: Post) => {
+		setPosts(prev => [newPost, ...prev])
+	}
+
+	const handlePostUpdate = (updatedPost: Post) => {
+		setPosts(prev => prev.map(p => (p.id === updatedPost.id ? updatedPost : p)))
+	}
+
+	const handlePostDelete = (postId: string) => {
+		setPosts(prev => prev.filter(p => p.id !== postId))
 	}
 
 	return (
@@ -54,15 +63,31 @@ export default function DashboardPage() {
 			<div className='mb-6'>
 				<h1 className='mb-2 text-3xl font-bold'>Your Feed</h1>
 				<p className='text-muted-foreground'>
-					Latest recipes from your friends and favorite chefs
+					Share your culinary journey and see what your friends are cooking
 				</p>
+			</div>
+
+			{/* Create Post Form */}
+			<div className='mb-6'>
+				<CreatePostForm
+					onPostCreated={handlePostCreated}
+					currentUser={
+						user
+							? {
+									userId: user.id,
+									displayName: user.username,
+									avatarUrl: user.avatarUrl,
+								}
+							: undefined
+					}
+				/>
 			</div>
 
 			{/* Content */}
 			{isLoading && (
-				<div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-					{[1, 2, 3, 4, 5, 6].map(i => (
-						<RecipeCardSkeleton key={i} />
+				<div className='space-y-6'>
+					{[1, 2, 3].map(i => (
+						<PostCardSkeleton key={i} />
 					))}
 				</div>
 			)}
@@ -75,11 +100,11 @@ export default function DashboardPage() {
 				/>
 			)}
 
-			{!isLoading && !error && recipes.length === 0 && (
+			{!isLoading && !error && posts.length === 0 && (
 				<EmptyState
 					title='Your feed is empty'
-					description='Follow chefs and add friends to see their latest recipes here!'
-					icon={Users}
+					description='Follow chefs and add friends to see their latest posts here!'
+					icon={MessageSquare}
 				>
 					<div className='flex gap-3'>
 						<Link href='/discover'>
@@ -90,21 +115,23 @@ export default function DashboardPage() {
 						</Link>
 						<Link href='/explore'>
 							<Button variant='outline'>
-								<ChefHat className='mr-2 h-4 w-4' />
-								Browse Recipes
+								<MessageSquare className='mr-2 h-4 w-4' />
+								Explore Posts
 							</Button>
 						</Link>
 					</div>
 				</EmptyState>
 			)}
 
-			{!isLoading && !error && recipes.length > 0 && (
-				<StaggerContainer className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-					{recipes.map(recipe => (
-						<RecipeCard
-							key={recipe.id}
-							recipe={recipe}
-							onUpdate={handleRecipeUpdate}
+			{!isLoading && !error && posts.length > 0 && (
+				<StaggerContainer className='space-y-6'>
+					{posts.map(post => (
+						<PostCard
+							key={post.id}
+							post={post}
+							onUpdate={handlePostUpdate}
+							onDelete={handlePostDelete}
+							currentUserId={user?.id}
 						/>
 					))}
 				</StaggerContainer>
@@ -113,15 +140,26 @@ export default function DashboardPage() {
 	)
 }
 
-function RecipeCardSkeleton() {
+function PostCardSkeleton() {
 	return (
 		<div className='overflow-hidden rounded-lg border bg-card shadow-sm'>
-			<Skeleton className='h-48 w-full' />
-			<div className='p-4'>
-				<Skeleton className='mb-2 h-6 w-3/4' />
-				<Skeleton className='mb-4 h-4 w-full' />
-				<Skeleton className='mb-4 h-4 w-1/2' />
-				<Skeleton className='h-10 w-full' />
+			<div className='flex items-center gap-3 p-4'>
+				<Skeleton className='h-12 w-12 rounded-full' />
+				<div className='flex-1'>
+					<Skeleton className='mb-2 h-4 w-32' />
+					<Skeleton className='h-3 w-24' />
+				</div>
+			</div>
+			<div className='p-4 pt-0'>
+				<Skeleton className='mb-2 h-4 w-full' />
+				<Skeleton className='mb-4 h-4 w-3/4' />
+				<Skeleton className='h-48 w-full rounded-lg' />
+			</div>
+			<div className='flex justify-around border-t p-2'>
+				<Skeleton className='h-8 w-20' />
+				<Skeleton className='h-8 w-20' />
+				<Skeleton className='h-8 w-20' />
+				<Skeleton className='h-8 w-20' />
 			</div>
 		</div>
 	)
