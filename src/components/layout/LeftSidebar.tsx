@@ -44,14 +44,14 @@ export const LeftSidebar = () => {
 					<Link
 						key={item.href}
 						href={item.href}
-						className='group relative flex w-full flex-col items-center gap-1 rounded-radius px-1.5 py-3 text-[11px] font-semibold uppercase tracking-[0.6px] text-muted transition-all duration-300 hover:bg-bg hover:text-text data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-transparent data-[active=true]:text-primary data-[active=true]:shadow-[inset_0_0_20px_rgba(102,126,234,0.1)]'
+						className='group relative flex w-full flex-col items-center gap-1 rounded-radius px-1.5 py-3 text-xs font-semibold uppercase tracking-[0.6px] text-muted transition-all duration-300 hover:bg-bg hover:text-text data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-transparent data-[active=true]:text-primary data-[active=true]:shadow-sm'
 						data-active={active}
 						title={item.label}
 					>
 						{/* Active indicator bar */}
 						<div className='absolute left-0 top-1/2 h-0 w-[3px] -translate-y-1/2 rounded-r-[3px] bg-gradient-primary transition-all duration-300 group-data-[active=true]:h-[70%]' />
 
-						<Icon className='h-6 w-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-[5deg] group-data-[active=true]:drop-shadow-[0_0_8px_rgba(102,126,234,0.6)]' />
+						<Icon className='h-6 w-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-[5deg] group-data-[active=true]:drop-shadow-glow' />
 						<div>{item.label}</div>
 					</Link>
 				)

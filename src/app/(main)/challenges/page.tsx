@@ -18,39 +18,34 @@ export default function ChallengesPage() {
 			</div>
 
 			{/* Active Challenge Card */}
-			<div className='group animate-scaleIn rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-6 shadow-[0_8px_16px_rgba(0,0,0,0.08)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(102,126,234,0.15)]'>
+			<div className='group animate-scaleIn rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-glow'>
 				{/* Badge */}
 				<div className='mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary'>
 					<Sparkles className='h-4 w-4' />
 					Weekly Challenge
 				</div>
-
 				{/* Title */}
 				<h2 className='mb-3 text-2xl font-bold'>The Ultimate Pasta-Off</h2>
-
 				{/* Description */}
 				<p className='mb-6 leading-relaxed text-muted-foreground'>
 					Create an original pasta dish using only 5 ingredients. Most creative
 					recipe wins!
 				</p>
-
 				{/* CTA Button */}
 				<Button
 					size='lg'
-					className='group/btn mb-6 w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(102,126,234,0.3)] active:scale-95 sm:w-auto'
+					className='group/btn mb-6 w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 sm:w-auto'
 				>
 					<Trophy className='mr-2 h-5 w-5 transition-transform group-hover/btn:scale-110' />
 					Join Challenge
 				</Button>
-
 				{/* Progress Bar */}
 				<div className='mb-3 h-3 w-full overflow-hidden rounded-full bg-muted'>
 					<div
-						className='h-full rounded-full bg-gradient-to-r from-primary to-accent shadow-[0_0_12px_rgba(102,126,234,0.6)] transition-all duration-500'
+						className='h-full rounded-full bg-gradient-to-r from-primary to-accent shadow-glow transition-all duration-500'
 						style={{ width: '40%' }}
 					></div>
-				</div>
-
+				</div>{' '}
 				{/* Stats */}
 				<div className='flex items-center gap-4 text-sm text-muted-foreground'>
 					<div className='flex items-center gap-1.5'>

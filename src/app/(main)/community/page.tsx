@@ -39,7 +39,7 @@ export default function CommunityPage() {
 	return (
 		<PageContainer maxWidth='xl'>
 			{/* Community Stats Card */}
-			<div className='mb-8 animate-fadeIn rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-accent/5 p-6 shadow-[0_8px_16px_rgba(0,0,0,0.08)] backdrop-blur-sm'>
+			<div className='mb-8 animate-fadeIn rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-accent/5 p-6 shadow-lg backdrop-blur-sm'>
 				<h1 className='mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-3xl font-bold text-transparent'>
 					Community Hub
 				</h1>
@@ -65,7 +65,7 @@ export default function CommunityPage() {
 			</div>
 
 			{/* Leaderboard Card */}
-			<div className='mb-8 animate-scaleIn rounded-2xl border border-border bg-card p-6 shadow-[0_8px_16px_rgba(0,0,0,0.08)] backdrop-blur-sm'>
+			<div className='mb-8 animate-scaleIn rounded-2xl border border-border bg-card p-6 shadow-lg backdrop-blur-sm'>
 				<div className='mb-6 flex items-center gap-2'>
 					<Flame className='h-6 w-6 text-orange-500' />
 					<h2 className='text-2xl font-bold'>Top Chefs This Week</h2>
@@ -77,7 +77,7 @@ export default function CommunityPage() {
 						return (
 							<div
 								key={chef.id}
-								className='group flex items-center gap-4 rounded-xl border border-border bg-card/50 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-card hover:shadow-[0_4px_12px_rgba(102,126,234,0.1)]'
+								className='group flex items-center gap-4 rounded-xl border border-border bg-card/50 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-card hover:shadow-md'
 							>
 								{/* Rank Badge */}
 								<div className='flex h-12 w-12 shrink-0 items-center justify-center'>
@@ -103,7 +103,7 @@ export default function CommunityPage() {
 								</div>
 
 								{/* XP Badge */}
-								<div className='shrink-0 rounded-full bg-gradient-to-r from-accent/10 to-accent-strong/10 px-4 py-1.5 text-sm font-semibold text-accent-foreground transition-all duration-300 group-hover:shadow-[0_0_12px_rgba(34,197,94,0.2)]'>
+								<div className='shrink-0 rounded-full bg-gradient-to-r from-accent/10 to-accent-strong/10 px-4 py-1.5 text-sm font-semibold text-accent-foreground transition-all duration-300 group-hover:shadow-glow'>
 									{chef.xp}
 								</div>
 							</div>
@@ -113,7 +113,7 @@ export default function CommunityPage() {
 			</div>
 
 			{/* Battle Arena Card */}
-			<div className='animate-scaleIn rounded-2xl border border-border bg-card p-6 shadow-[0_8px_16px_rgba(0,0,0,0.08)] backdrop-blur-sm'>
+			<div className='animate-scaleIn rounded-2xl border border-border bg-card p-6 shadow-lg backdrop-blur-sm'>
 				<h2 className='mb-2 text-2xl font-bold'>Chef Battle Arena</h2>
 				<p className='mb-6 text-muted-foreground'>
 					Vote for your favorite dish!
@@ -121,7 +121,7 @@ export default function CommunityPage() {
 				<div className='flex flex-col items-center justify-center gap-8 md:flex-row'>
 					{/* Dish 1 */}
 					<div className='group w-full max-w-xs transition-transform duration-300 hover:scale-105'>
-						<div className='relative mb-4 aspect-square overflow-hidden rounded-2xl shadow-[0_8px_16px_rgba(0,0,0,0.1)] transition-all duration-300 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)]'>
+						<div className='relative mb-4 aspect-square overflow-hidden rounded-2xl shadow-lg transition-all duration-300 group-hover:shadow-glow'>
 							<Image
 								src='https://i.imgur.com/cO1mO8w.jpeg'
 								alt='Tacos'
@@ -136,21 +136,19 @@ export default function CommunityPage() {
 							by @JamieO
 						</p>
 						<Button
-							className='w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(102,126,234,0.3)] active:scale-95'
+							className='w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:scale-95'
 							size='lg'
 						>
 							Vote
 						</Button>
 					</div>
-
 					{/* VS Divider */}
-					<div className='flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl font-bold text-primary-foreground shadow-[0_4px_12px_rgba(102,126,234,0.3)]'>
+					<div className='flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl font-bold text-primary-foreground shadow-md'>
 						VS
-					</div>
-
+					</div>{' '}
 					{/* Dish 2 */}
 					<div className='group w-full max-w-xs transition-transform duration-300 hover:scale-105'>
-						<div className='relative mb-4 aspect-square overflow-hidden rounded-2xl shadow-[0_8px_16px_rgba(0,0,0,0.1)] transition-all duration-300 group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)]'>
+						<div className='relative mb-4 aspect-square overflow-hidden rounded-2xl shadow-lg transition-all duration-300 group-hover:shadow-glow'>
 							<Image
 								src='https://i.imgur.com/v8SjYfT.jpeg'
 								alt='Ramen'
@@ -165,7 +163,7 @@ export default function CommunityPage() {
 							by @Nigella
 						</p>
 						<Button
-							className='w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(102,126,234,0.3)] active:scale-95'
+							className='w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:scale-95'
 							size='lg'
 						>
 							Vote

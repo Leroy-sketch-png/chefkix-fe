@@ -44,13 +44,13 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 			<div className='w-full'>
 				<textarea
 					className={cn(
-						'min-h-[100px] w-full resize-y rounded-radius border-2 border-border bg-panel-bg px-4 py-3 text-[15px] transition-all duration-200 placeholder:text-muted focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,126,234,0.1)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-bg',
+						'min-h-[100px] w-full resize-y rounded-radius border-2 border-border bg-panel-bg px-4 py-3 text-base transition-all duration-200 placeholder:text-muted focus:border-primary focus:shadow-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-bg',
 						error &&
-							'border-[#e74c3c] bg-[#e74c3c]/5 focus:border-[#e74c3c] focus:shadow-[0_0_0_3px_rgba(231,76,60,0.1)]',
+							'border-destructive bg-destructive/5 focus:border-destructive focus:shadow-sm',
 						success &&
-							'border-[#27ae60] bg-[#27ae60]/5 focus:border-[#27ae60] focus:shadow-[0_0_0_3px_rgba(39,174,96,0.1)]',
+							'border-accent bg-accent/5 focus:border-accent focus:shadow-sm',
 						warning &&
-							'border-[#f39c12] bg-[#f39c12]/5 focus:border-[#f39c12] focus:shadow-[0_0_0_3px_rgba(243,156,18,0.1)]',
+							'border-gold bg-gold/5 focus:border-gold focus:shadow-sm',
 						className,
 					)}
 					ref={ref}
@@ -70,7 +70,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 					{...props}
 				/>
 				{showCharCount && charLimit && (
-					<div className='mt-1 text-right text-[12px] text-muted'>
+					<div className='mt-1 text-right text-xs text-muted'>
 						<span className='font-semibold text-primary'>{charCount}</span> /{' '}
 						<span>{charLimit}</span>
 					</div>
@@ -78,7 +78,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 				{error && (
 					<div
 						id={`${props.id}-error`}
-						className='mt-1.5 flex items-center gap-1.5 text-[13px] text-[#e74c3c]'
+						className='mt-1.5 flex items-center gap-1.5 text-sm text-destructive'
 					>
 						<AlertTriangle className='h-3.5 w-3.5' />
 						{error}
@@ -87,7 +87,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 				{!error && success && (
 					<div
 						id={`${props.id}-success`}
-						className='mt-1.5 flex items-center gap-1.5 text-[13px] text-[#27ae60]'
+						className='mt-1.5 flex items-center gap-1.5 text-sm text-accent'
 					>
 						<CheckCircle className='h-3.5 w-3.5' />
 						{success}
@@ -96,7 +96,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 				{!error && !success && warning && (
 					<div
 						id={`${props.id}-warning`}
-						className='mt-1.5 flex items-center gap-1.5 text-[13px] text-[#f39c12]'
+						className='mt-1.5 flex items-center gap-1.5 text-sm text-gold'
 					>
 						<AlertTriangle className='h-3.5 w-3.5' />
 						{warning}

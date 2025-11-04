@@ -72,12 +72,12 @@ export const FilterBar = ({
 			{/* Filter Button */}
 			<button
 				onClick={onFilterClick}
-				className='flex items-center gap-2 rounded-[var(--radius)] border border-border bg-card px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary hover:shadow-[0_0_0_3px_rgba(102,126,234,0.1)]'
+				className='flex items-center gap-2 rounded-radius border border-border bg-card px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary hover:shadow-sm'
 			>
 				<Filter className='h-[18px] w-[18px] text-muted-foreground' />
 				<span>Filters</span>
 				{activeFiltersCount > 0 && (
-					<span className='min-w-[18px] rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-bold text-primary-foreground'>
+					<span className='min-w-[18px] rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold text-primary-foreground'>
 						{activeFiltersCount}
 					</span>
 				)}
@@ -85,7 +85,7 @@ export const FilterBar = ({
 
 			{/* Sort Dropdown - Simplified for now, can be enhanced with Radix UI dropdown */}
 			<div className='relative'>
-				<button className='flex items-center gap-2 rounded-[var(--radius)] border border-border bg-card px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary hover:shadow-[0_0_0_3px_rgba(102,126,234,0.1)]'>
+				<button className='flex items-center gap-2 rounded-radius border border-border bg-card px-4 py-2.5 text-sm font-semibold transition-all hover:border-primary hover:shadow-sm'>
 					<ArrowUpDown className='h-[18px] w-[18px] text-muted-foreground' />
 					<span>{selectedSort}</span>
 					<ChevronDown className='h-[18px] w-[18px] text-muted-foreground' />

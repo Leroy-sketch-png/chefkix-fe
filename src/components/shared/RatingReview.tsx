@@ -231,7 +231,7 @@ export const ReviewCard = ({
 					{images.map((image, index) => (
 						<div
 							key={index}
-							className='relative h-[120px] w-[120px] flex-shrink-0 cursor-pointer overflow-hidden rounded-lg transition-transform duration-200 hover:scale-105'
+							className='relative h-30 w-30 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg transition-transform duration-200 hover:scale-105'
 						>
 							<Image
 								src={image}
@@ -332,7 +332,7 @@ export const RatingBreakdown = ({
 			<div className='flex flex-col gap-3'>
 				{[5, 4, 3, 2, 1].map(star => (
 					<div key={star} className='flex items-center gap-3'>
-						<span className='min-w-[60px] text-xs text-muted-foreground'>
+						<span className='min-w-15 text-xs text-muted-foreground'>
 							{star} stars
 						</span>
 						<div className='h-2 flex-1 overflow-hidden rounded-full bg-muted/20'>
@@ -343,7 +343,7 @@ export const RatingBreakdown = ({
 								}}
 							/>
 						</div>
-						<span className='min-w-[40px] text-right text-xs text-muted-foreground'>
+						<span className='min-w-10 text-right text-xs text-muted-foreground'>
 							{breakdown[star as keyof typeof breakdown]}
 						</span>
 					</div>

@@ -51,7 +51,7 @@ export const MobileBottomNav = () => {
 	}
 
 	return (
-		<nav className='fixed bottom-0 left-0 right-0 z-sticky hidden h-[72px] items-center justify-around border-t border-border bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'>
+		<nav className='fixed bottom-0 left-0 right-0 z-sticky hidden h-18 items-center justify-around border-t border-border bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'>
 			{navItems.map((item, index) => {
 				const Icon = item.icon
 				const active = isActive(item.href)
@@ -62,9 +62,9 @@ export const MobileBottomNav = () => {
 						<Link
 							key={item.href}
 							href={item.href}
-							className='relative -mt-6 flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] transition-all active:bg-muted max-w-[80px]'
+							className='relative -mt-6 flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] transition-all active:bg-muted max-w-20'
 						>
-							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-[0_8px_24px_rgba(102,126,234,0.4)] transition-all active:scale-90'>
+							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-lg transition-all active:scale-90'>
 								<Icon className='h-7 w-7' />
 							</div>
 						</Link>
@@ -76,7 +76,7 @@ export const MobileBottomNav = () => {
 						key={item.href}
 						href={item.href}
 						className={cn(
-							'flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] px-3 py-2 transition-all active:bg-muted max-w-[80px]',
+							'flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] px-3 py-2 transition-all active:bg-muted max-w-20',
 							active ? 'text-primary' : 'text-muted-foreground',
 						)}
 					>
@@ -91,7 +91,7 @@ export const MobileBottomNav = () => {
 								<span className='absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full border-2 border-card bg-destructive' />
 							)}
 						</div>
-						<span className='text-[11px] font-semibold'>{item.label}</span>
+						<span className='text-xs font-semibold'>{item.label}</span>
 					</Link>
 				)
 			})}

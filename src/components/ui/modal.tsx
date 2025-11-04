@@ -69,7 +69,7 @@ export const Modal = ({
 		>
 			<div
 				className={cn(
-					'relative flex max-h-[90vh] w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-[0_24px_64px_rgba(0,0,0,0.3)]',
+					'relative flex max-h-[90vh] w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-glow',
 					sizeClasses[size],
 					className,
 				)}
@@ -221,9 +221,9 @@ export const ConfirmModal = ({
 					className={cn(
 						'rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-50',
 						variant === 'default' &&
-							'bg-primary text-primary-foreground hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]',
+							'bg-primary text-primary-foreground hover:shadow-md',
 						variant === 'danger' &&
-							'bg-destructive text-destructive-foreground hover:shadow-[0_4px_12px_rgba(239,68,68,0.4)]',
+							'bg-destructive text-destructive-foreground hover:shadow-md',
 					)}
 				>
 					{isLoading ? 'Processing...' : confirmText}
@@ -276,7 +276,7 @@ export const AlertModal = ({
 			<ModalFooter>
 				<button
 					onClick={onClose}
-					className='rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]'
+					className='rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-md'
 				>
 					{buttonText}
 				</button>

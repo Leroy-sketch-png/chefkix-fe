@@ -4,16 +4,16 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-	'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] text-sm font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none overflow-hidden',
+	'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none overflow-hidden',
 	{
 		variants: {
 			variant: {
 				default:
-					'bg-primary text-primary-foreground shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
+					'bg-primary text-primary-foreground shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
 				gradient:
-					'bg-gradient-primary text-primary-foreground shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
+					'bg-gradient-primary text-primary-foreground shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]',
 				destructive:
-					'bg-destructive text-destructive-foreground shadow-[0_4px_15px_0_rgba(231,76,60,0.4)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(231,76,60,0.6)] active:translate-y-0 active:scale-[0.98]',
+					'bg-destructive text-destructive-foreground shadow-md hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]',
 				outline:
 					'border-2 border-border bg-transparent text-text shadow-sm hover:bg-bg hover:border-primary hover:text-primary active:scale-[0.98]',
 				secondary:
@@ -23,8 +23,8 @@ const buttonVariants = cva(
 			},
 			size: {
 				default: 'h-11 px-5 py-2.5',
-				sm: 'h-9 px-3.5 py-2 text-[13px]',
-				lg: 'h-12 px-6 py-3 text-[15px]',
+				sm: 'h-9 px-3.5 py-2 text-sm',
+				lg: 'h-12 px-6 py-3 text-base',
 				icon: 'size-11',
 			},
 		},

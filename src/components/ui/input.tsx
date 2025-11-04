@@ -39,15 +39,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					<input
 						type={type}
 						className={cn(
-							'h-12 w-full rounded-radius border-2 border-border bg-panel-bg px-4 text-[15px] transition-all duration-200 placeholder:text-muted focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,126,234,0.1)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-bg',
+							'h-12 w-full rounded-radius border-2 border-border bg-panel-bg px-4 text-base transition-all duration-200 placeholder:text-muted focus:border-primary focus:shadow-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-bg',
 							leftIcon && 'pl-11',
 							hasValidation && 'pr-11',
 							error &&
-								'border-[#e74c3c] bg-[#e74c3c]/5 focus:border-[#e74c3c] focus:shadow-[0_0_0_3px_rgba(231,76,60,0.1)]',
+								'border-destructive bg-destructive/5 focus:border-destructive focus:shadow-sm',
 							success &&
-								'border-[#27ae60] bg-[#27ae60]/5 focus:border-[#27ae60] focus:shadow-[0_0_0_3px_rgba(39,174,96,0.1)]',
+								'border-accent bg-accent/5 focus:border-accent focus:shadow-sm',
 							warning &&
-								'border-[#f39c12] bg-[#f39c12]/5 focus:border-[#f39c12] focus:shadow-[0_0_0_3px_rgba(243,156,18,0.1)]',
+								'border-gold bg-gold/5 focus:border-gold focus:shadow-sm',
 							className,
 						)}
 						ref={ref}
@@ -71,24 +71,24 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					)}
 					{!loading && error && (
 						<div className='pointer-events-none absolute right-3.5'>
-							<AlertCircle className='h-5 w-5 text-[#e74c3c]' />
+							<AlertCircle className='h-5 w-5 text-destructive' />
 						</div>
 					)}
 					{!loading && success && (
 						<div className='pointer-events-none absolute right-3.5'>
-							<CheckCircle className='h-5 w-5 text-[#27ae60]' />
+							<CheckCircle className='h-5 w-5 text-accent' />
 						</div>
 					)}
 					{!loading && warning && (
 						<div className='pointer-events-none absolute right-3.5'>
-							<AlertTriangle className='h-5 w-5 text-[#f39c12]' />
+							<AlertTriangle className='h-5 w-5 text-gold' />
 						</div>
 					)}
 				</div>
 				{error && (
 					<div
 						id={`${props.id}-error`}
-						className='mt-1.5 flex items-center gap-1.5 text-[13px] text-[#e74c3c]'
+						className='mt-1.5 flex items-center gap-1.5 text-sm text-destructive'
 					>
 						<AlertTriangle className='h-3.5 w-3.5' />
 						{error}
@@ -97,7 +97,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 				{!error && success && (
 					<div
 						id={`${props.id}-success`}
-						className='mt-1.5 flex items-center gap-1.5 text-[13px] text-[#27ae60]'
+						className='mt-1.5 flex items-center gap-1.5 text-sm text-accent'
 					>
 						<CheckCircle className='h-3.5 w-3.5' />
 						{success}
@@ -106,7 +106,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 				{!error && !success && warning && (
 					<div
 						id={`${props.id}-warning`}
-						className='mt-1.5 flex items-center gap-1.5 text-[13px] text-[#f39c12]'
+						className='mt-1.5 flex items-center gap-1.5 text-sm text-gold'
 					>
 						<AlertTriangle className='h-3.5 w-3.5' />
 						{warning}

@@ -102,12 +102,12 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 	return (
 		<Link
 			href={`/recipes/${recipe.id}`}
-			className='group block overflow-hidden rounded-radius bg-panel-bg shadow-md transition-all duration-300 hover:-translate-y-2 hover:rotate-x-[2deg] hover:shadow-[0_20px_40px_rgba(0,0,0,0.15),0_0_0_1px_rgba(102,126,234,0.1)] [transform-style:preserve-3d]'
+			className='group block overflow-hidden rounded-radius bg-panel-bg shadow-md transition-all duration-300 hover:-translate-y-2 hover:rotate-x-[2deg] hover:shadow-glow [transform-style:preserve-3d]'
 		>
 			{/* Gradient overlay on hover */}
 			<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
 
-			<div className='relative h-[150px] w-full overflow-hidden'>
+			<div className='relative h-36 w-full overflow-hidden'>
 				<Image
 					src={recipe.imageUrl}
 					alt={recipe.title}
@@ -116,12 +116,12 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 				/>
 				{/* Difficulty badge */}
 				<div
-					className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.3px] text-primary-foreground ${
+					className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.3px] text-primary-foreground ${
 						recipe.difficulty === 'EASY'
-							? 'bg-gradient-to-br from-[#a8e063] to-[#56ab2f]'
+							? 'bg-gradient-to-br from-success to-success/80'
 							: recipe.difficulty === 'MEDIUM'
-								? 'bg-gradient-to-br from-[#f093fb] to-[#f5576c]'
-								: 'bg-gradient-to-br from-[#fa709a] to-[#fee140]'
+								? 'bg-gradient-to-br from-accent to-accent-variant'
+								: 'bg-gradient-to-br from-destructive to-gold'
 					}`}
 				>
 					{recipe.difficulty}
@@ -130,26 +130,26 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 				<button
 					onClick={handleSaveClick}
 					disabled={isSaveLoading}
-					className={`absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-[10px] border-none transition-all duration-300 ${
+					className={`absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 						isSaved
-							? 'bg-[#f39c12]/10 text-[#f39c12]'
+							? 'bg-gold/10 text-gold'
 							: 'bg-bg text-muted hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
 					}`}
 				>
-					<Bookmark className={`h-5 w-5 ${isSaved ? 'fill-[#f39c12]' : ''}`} />
+					<Bookmark className={`h-5 w-5 ${isSaved ? 'fill-gold' : ''}`} />
 				</button>
 			</div>
 			<div className='p-4'>
-				<h3 className='mb-2 text-[18px] font-bold'>{recipe.title}</h3>
+				<h3 className='mb-2 text-lg font-bold'>{recipe.title}</h3>
 				<p className='mb-3 line-clamp-2 text-sm text-muted'>
 					{recipe.description}
 				</p>
-				<div className='mb-4 flex items-center justify-between text-[13px] text-muted'>
+				<div className='mb-4 flex items-center justify-between text-sm text-muted'>
 					<span>By {recipe.author?.displayName || 'Unknown'}</span>
 					<span>⭐ {likeCount} likes</span>
 				</div>
 				<div className='flex gap-2'>
-					<button className='relative flex-1 overflow-hidden rounded-[10px] border-none bg-gradient-to-br from-[#f093fb] to-[#f5576c] py-3 font-bold text-primary-foreground shadow-[0_4px_15px_0_rgba(245,87,108,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(245,87,108,0.6)] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+					<button className='relative flex-1 overflow-hidden rounded-sm border-none bg-gradient-to-br from-accent to-accent-variant py-3 font-bold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
 						Cook Recipe
 					</button>
 				</div>

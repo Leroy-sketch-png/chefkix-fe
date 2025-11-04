@@ -135,7 +135,7 @@ export const PostCard = ({
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.95 }}
-			className='group relative mb-6 overflow-hidden rounded-radius border-l-[3px] border-l-transparent bg-panel-bg shadow-md transition-all duration-[400ms] hover:-translate-y-1 hover:border-l-primary hover:shadow-[0_12px_40px_rgba(31,38,135,0.2),0_0_0_1px_rgba(102,126,234,0.1)]'
+			className='group relative mb-6 overflow-hidden rounded-radius border-l-[3px] border-l-transparent bg-panel-bg shadow-md transition-all duration-[400ms] hover:-translate-y-1 hover:border-l-primary hover:shadow-lg'
 		>
 			{/* Header */}
 			<div className='flex items-center justify-between p-4'>
@@ -148,14 +148,14 @@ export const PostCard = ({
 							src={post.avatarUrl || 'https://i.pravatar.cc/48'}
 							alt={post.displayName}
 							fill
-							className='rounded-full object-cover shadow-[0_0_0_2px_var(--panel-bg),0_0_0_3px_#667eea,0_4px_12px_rgba(0,0,0,0.12)] transition-all group-hover:scale-105 group-hover:shadow-[0_0_0_2px_var(--panel-bg),0_0_0_3px_#667eea,0_6px_16px_rgba(102,126,234,0.3)]'
+							className='rounded-full object-cover shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
 						/>
 					</div>
 					<div>
-						<div className='text-[16px] font-bold text-text'>
+						<div className='text-base font-bold text-text'>
 							{post.displayName}
 						</div>
-						<div className='text-[13px] text-muted'>
+						<div className='text-sm text-muted'>
 							{formatDistanceToNow(new Date(post.createdAt), {
 								addSuffix: true,
 							})}
@@ -286,11 +286,11 @@ export const PostCard = ({
 			)}
 
 			{/* Actions */}
-			<div className='flex justify-around border-t border-border bg-[#fafbff] p-2'>
+			<div className='flex justify-around border-t border-border bg-card p-2'>
 				<button
 					onClick={handleLike}
 					disabled={isLiking}
-					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold transition-all ${
+					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
 						post.isLiked
 							? 'text-primary'
 							: 'text-muted hover:bg-bg hover:text-primary'
@@ -299,29 +299,26 @@ export const PostCard = ({
 					<Heart
 						className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
 							post.isLiked
-								? 'animate-heart-beat fill-[#e74c3c] stroke-[#e74c3c]'
-								: 'group-hover/btn:fill-[#e74c3c] group-hover/btn:stroke-[#e74c3c]'
+								? 'animate-heart-beat fill-destructive stroke-destructive'
+								: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
 						}`}
 					/>
 					<span>{post.likes}</span>
-				</button>
-
+				</button>{' '}
 				<button
 					onClick={() => setShowComments(!showComments)}
-					className='group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold text-muted transition-all hover:bg-bg hover:text-primary'
+					className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted transition-all hover:bg-bg hover:text-primary'
 				>
 					<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
 					<span>{post.commentCount}</span>
 				</button>
-
-				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold text-muted transition-all hover:bg-bg hover:text-primary'>
+				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted transition-all hover:bg-bg hover:text-primary'>
 					<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
 					<span>Share</span>
 				</button>
-
 				<button
 					onClick={handleSave}
-					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold transition-all ${
+					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
 						isSaved
 							? 'text-primary'
 							: 'text-muted hover:bg-bg hover:text-primary'
@@ -330,8 +327,8 @@ export const PostCard = ({
 					<Bookmark
 						className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
 							isSaved
-								? 'fill-[#f39c12] stroke-[#f39c12]'
-								: 'group-hover/btn:fill-[#f39c12] group-hover/btn:stroke-[#f39c12]'
+								? 'fill-gold stroke-gold'
+								: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
 						}`}
 					/>
 					<span>Save</span>

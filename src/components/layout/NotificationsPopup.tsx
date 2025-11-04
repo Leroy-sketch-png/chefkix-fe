@@ -113,7 +113,7 @@ export const NotificationsPopup = () => {
 			/>
 
 			{/* Dropdown */}
-			<div className='absolute right-6 top-16 z-50 w-[400px] max-h-[600px] animate-slideInDown overflow-hidden rounded-[var(--radius)] border border-border bg-card text-card-foreground shadow-[0_12px_48px_rgba(0,0,0,0.2)]'>
+			<div className='absolute right-6 top-16 z-50 w-96 max-h-[600px] animate-slideInDown overflow-hidden rounded-radius border border-border bg-card text-card-foreground shadow-glow'>
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border p-4'>
 					<h3 className='text-lg font-bold text-foreground'>Notifications</h3>
@@ -127,7 +127,7 @@ export const NotificationsPopup = () => {
 				</div>
 
 				{/* Notification List */}
-				<div className='max-h-[480px] overflow-y-auto'>
+				<div className='max-h-96 overflow-y-auto'>
 					{notifications.map(notif => (
 						<div
 							key={notif.id}
@@ -148,7 +148,6 @@ export const NotificationsPopup = () => {
 								</div>
 								<NotificationBadge type={notif.type} />
 							</div>
-
 							{/* Content */}
 							<div className='flex-1 min-w-0'>
 								<p className='text-sm leading-relaxed text-foreground'>
@@ -167,12 +166,10 @@ export const NotificationsPopup = () => {
 									{notif.time}
 								</span>
 							</div>
-
 							{/* Unread dot */}
 							{!notif.read && (
-								<div className='absolute right-4 top-5 h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(102,126,234,0.6)]' />
-							)}
-
+								<div className='absolute right-4 top-5 h-2 w-2 rounded-full bg-primary shadow-glow' />
+							)}{' '}
 							{/* Follow back button */}
 							{notif.type === 'follow' && !notif.read && (
 								<button className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary/90'>

@@ -43,8 +43,8 @@ export const RightSidebar = () => {
 	return (
 		<aside className='hidden border-l border-border bg-panel-bg p-6 lg:flex lg:flex-col lg:gap-6'>
 			{/* Progress Card */}
-			<div className='rounded-radius border border-border bg-card p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_0_0_rgba(255,255,255,0.5)] backdrop-blur-[10px] backdrop-saturate-[180%]'>
-				<div className='mb-4 text-[14px] font-bold uppercase tracking-[0.5px]'>
+			<div className='rounded-radius border border-border bg-card p-4 shadow-lg backdrop-blur-[10px] backdrop-saturate-[180%]'>
+				<div className='mb-4 text-sm font-bold uppercase tracking-[0.5px]'>
 					Your Progress
 				</div>
 				<div className='mb-2 flex items-center gap-3'>
@@ -53,20 +53,20 @@ export const RightSidebar = () => {
 						<strong>{currentXP}</strong> / {xpGoal} XP
 					</div>
 				</div>
-				<div className='h-2.5 overflow-hidden rounded-[5px] bg-muted/50'>
+				<div className='h-2.5 overflow-hidden rounded-sm bg-muted/50'>
 					<div
-						className='h-full rounded-[5px] bg-mint transition-all duration-500 ease-out'
+						className='h-full rounded-sm bg-mint transition-all duration-500 ease-out'
 						style={{ width: `${Math.min(xpProgress, 100)}%` }}
 					/>
 				</div>
-				<div className='mt-2 text-[13px] text-muted'>
+				<div className='mt-2 text-sm text-muted'>
 					{xpToNext} XP to next level!
 				</div>
 			</div>
 
 			{/* Trending Creators Card */}
-			<div className='rounded-radius border border-border bg-card p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_0_0_rgba(255,255,255,0.5)] backdrop-blur-[10px] backdrop-saturate-[180%]'>
-				<div className='mb-4 text-[14px] font-bold uppercase tracking-[0.5px]'>
+			<div className='rounded-radius border border-border bg-card p-4 shadow-lg backdrop-blur-[10px] backdrop-saturate-[180%]'>
+				<div className='mb-4 text-sm font-bold uppercase tracking-[0.5px]'>
 					Trending Creators
 				</div>
 				<div className='flex flex-col gap-3'>
@@ -74,7 +74,7 @@ export const RightSidebar = () => {
 						const isFollowed = followedIds.includes(suggestion.id)
 						return (
 							<div key={suggestion.id} className='flex items-center gap-3'>
-								<div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full shadow-[0_0_0_2px_var(--panel-bg),0_0_0_3px_#667eea,0_4px_12px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_0_2px_var(--panel-bg),0_0_0_3px_#667eea,0_6px_16px_rgba(102,126,234,0.3)]'>
+								<div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg'>
 									<Image
 										src={suggestion.avatar}
 										alt={suggestion.name}
@@ -83,16 +83,14 @@ export const RightSidebar = () => {
 									/>
 								</div>
 								<div className='min-w-0 flex-1'>
-									<strong className='block text-[14px]'>
-										{suggestion.name}
-									</strong>
-									<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-muted'>
+									<strong className='block text-sm'>{suggestion.name}</strong>
+									<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm text-muted'>
 										{suggestion.description}
 									</span>
 								</div>
 								<button
 									onClick={() => handleFollow(suggestion.id)}
-									className='relative overflow-hidden rounded-[20px] border-none bg-gradient-primary px-3 py-1.5 text-[12px] font-semibold text-primary-foreground shadow-[0_4px_15px_0_rgba(102,126,234,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_0_rgba(102,126,234,0.6)] active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
+									className='relative overflow-hidden rounded-lg border-none bg-gradient-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
 								>
 									{isFollowed ? 'Following' : 'Follow'}
 								</button>

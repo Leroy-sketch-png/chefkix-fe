@@ -54,8 +54,7 @@ export const AchievementBadge = ({
 			onClick={unlocked ? onClick : undefined}
 			className={cn(
 				'relative cursor-pointer overflow-hidden rounded-[var(--radius)] border-2 border-border bg-card p-5 text-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-				unlocked &&
-					'hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)]',
+				unlocked && 'hover:-translate-y-1 hover:shadow-md',
 				!unlocked && 'cursor-default opacity-50',
 				className,
 			)}
@@ -72,10 +71,10 @@ export const AchievementBadge = ({
 						'border-accent bg-gradient-to-br from-accent to-accent/80',
 					unlocked &&
 						rarity === 'epic' &&
-						'border-[#764ba2] bg-gradient-to-br from-[#667eea] to-[#764ba2]',
+						'border-epic bg-gradient-to-br from-[#667eea] to-epic',
 					unlocked &&
 						rarity === 'legendary' &&
-						'border-[var(--gold)] bg-gradient-gold shadow-[0_0_32px_rgba(255,210,74,0.5)]',
+						'border-gold bg-gradient-gold shadow-glow',
 				)}
 			>
 				<div className='relative z-[2] text-[40px]'>{emoji}</div>
@@ -90,24 +89,21 @@ export const AchievementBadge = ({
 					<div className='absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_2s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,210,74,0.4),transparent_70%)]' />
 				)}
 			</div>
-
 			{/* Badge Info */}
 			<div className='mb-1 text-sm font-bold text-foreground'>{name}</div>
-
 			{/* Rarity Tag */}
 			{unlocked && rarity && rarity !== 'common' && (
 				<div
 					className={cn(
-						'mb-1 inline-block rounded-lg px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider',
+						'mb-1 inline-block rounded-lg px-2 py-0.5 text-xs font-extrabold uppercase tracking-wider',
 						rarity === 'rare' && 'bg-accent/20 text-accent',
-						rarity === 'epic' && 'bg-[#764ba2]/20 text-[#764ba2]',
-						rarity === 'legendary' && 'bg-[var(--gold)]/20 text-[var(--gold)]',
+						rarity === 'epic' && 'bg-epic/20 text-epic',
+						rarity === 'legendary' && 'bg-gold/20 text-gold',
 					)}
 				>
 					{rarity}
 				</div>
-			)}
-
+			)}{' '}
 			{/* Description or Progress */}
 			<div className='text-xs leading-snug text-muted-foreground'>
 				{!unlocked && progress
@@ -189,7 +185,7 @@ export const AchievementModal = ({
 			onClick={onClose}
 		>
 			<div
-				className='relative w-full max-w-[500px] animate-scaleIn overflow-hidden rounded-[var(--radius-lg)] bg-card'
+				className='relative w-full max-w-lg animate-scaleIn overflow-hidden rounded-[var(--radius-lg)] bg-card'
 				onClick={e => e.stopPropagation()}
 			>
 				{/* Close Button */}
@@ -212,10 +208,10 @@ export const AchievementModal = ({
 					)}
 				>
 					{/* Background Glow */}
-					<div className='absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,255,255,0.3),transparent_70%)]' />
+					<div className='absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,255,255,0.3),transparent_70%)]' />
 
 					{/* Badge Icon */}
-					<div className='relative mx-auto grid h-[120px] w-[120px] place-items-center rounded-full bg-card shadow-[0_12px_48px_rgba(0,0,0,0.3)]'>
+					<div className='relative mx-auto grid h-30 w-30 place-items-center rounded-full bg-card shadow-glow'>
 						<div className='relative z-[2] text-[60px]'>{emoji}</div>
 						<div className='absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
 					</div>
@@ -225,21 +221,18 @@ export const AchievementModal = ({
 				<div className='p-8 text-center'>
 					{/* Rarity */}
 					{rarity && rarity !== 'common' && (
-						<div className='mb-2 text-[11px] font-extrabold uppercase tracking-[1.5px] text-[var(--gold)]'>
+						<div className='mb-2 text-xs font-extrabold uppercase tracking-[1.5px] text-gold'>
 							{rarity}
 						</div>
 					)}
-
 					{/* Title */}
-					<h2 className='mb-3 text-[28px] font-extrabold text-foreground'>
+					<h2 className='mb-3 text-2xl font-extrabold text-foreground'>
 						{name}
 					</h2>
-
 					{/* Description */}
-					<p className='mb-8 text-[15px] leading-relaxed text-muted-foreground'>
+					<p className='mb-8 text-base leading-relaxed text-muted-foreground'>
 						{description}
-					</p>
-
+					</p>{' '}
 					{/* Stats */}
 					<div className='mb-8 grid grid-cols-3 gap-5 rounded-[var(--radius)] bg-muted/20 p-6'>
 						<div className='text-center'>
@@ -263,11 +256,10 @@ export const AchievementModal = ({
 							</div>
 						</div>
 					</div>
-
 					{/* Share Button */}
 					<button
 						onClick={onShare}
-						className='flex w-full items-center justify-center gap-2 rounded-[var(--radius)] bg-gradient-primary px-4 py-3.5 text-[15px] font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(102,126,234,0.4)]'
+						className='flex w-full items-center justify-center gap-2 rounded-radius bg-gradient-primary px-4 py-3.5 text-base font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg'
 					>
 						<Share2 className='h-5 w-5' />
 						<span>Share Achievement</span>
