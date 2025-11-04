@@ -39,6 +39,7 @@ export const PostCard = ({
 	const [isEditing, setIsEditing] = useState(false)
 	const [editContent, setEditContent] = useState(post.content)
 	const [editTags, setEditTags] = useState(post.tags.join(', '))
+	const [isSaved, setIsSaved] = useState(false)
 
 	const isOwner = currentUserId === post.userId
 	const createdAt = new Date(post.createdAt)
@@ -82,6 +83,11 @@ export const PostCard = ({
 		}
 
 		setIsLiking(false)
+	}
+
+	const handleSave = () => {
+		setIsSaved(!isSaved)
+		toast.success(isSaved ? 'Removed from saved' : 'Saved successfully!')
 	}
 
 	const handleDelete = async () => {
@@ -129,7 +135,7 @@ export const PostCard = ({
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.95 }}
-			className='group relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-xl'
+			className='group relative mb-6 overflow-hidden rounded-radius border-l-[3px] border-l-transparent bg-panel-bg shadow-md transition-all duration-[400ms] hover:-translate-y-1 hover:border-l-primary hover:shadow-[0_12px_40px_rgba(31,38,135,0.2),0_0_0_1px_rgba(102,126,234,0.1)]'
 		>
 			{/* Header */}
 			<div className='flex items-center justify-between p-4'>
@@ -142,14 +148,14 @@ export const PostCard = ({
 							src={post.avatarUrl || 'https://i.pravatar.cc/48'}
 							alt={post.displayName}
 							fill
-							className='rounded-full object-cover ring-2 ring-primary/10 transition-all group-hover:ring-primary/30'
+							className='rounded-full object-cover shadow-[0_0_0_2px_var(--panel-bg),0_0_0_3px_#667eea,0_4px_12px_rgba(0,0,0,0.12)] transition-all group-hover:scale-105 group-hover:shadow-[0_0_0_2px_var(--panel-bg),0_0_0_3px_#667eea,0_6px_16px_rgba(102,126,234,0.3)]'
 						/>
 					</div>
 					<div>
-						<div className='font-semibold text-gray-900'>
+						<div className='text-[16px] font-bold text-text'>
 							{post.displayName}
 						</div>
-						<div className='text-sm text-gray-500'>
+						<div className='text-[13px] text-muted'>
 							{formatDistanceToNow(new Date(post.createdAt), {
 								addSuffix: true,
 							})}
@@ -278,39 +284,55 @@ export const PostCard = ({
 			)}
 
 			{/* Actions */}
-			<div className='flex justify-around border-t border-gray-100 bg-gray-50/50 p-2'>
+			<div className='flex justify-around border-t border-border-color bg-[#fafbff] p-2'>
 				<button
 					onClick={handleLike}
 					disabled={isLiking}
-					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-semibold transition-all ${
+					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold transition-all ${
 						post.isLiked
-							? 'text-red-500'
-							: 'text-gray-600 hover:bg-red-50 hover:text-red-500'
+							? 'text-primary'
+							: 'text-muted hover:bg-bg hover:text-primary'
 					}`}
 				>
 					<Heart
-						className={`h-5 w-5 transition-transform group-hover/btn:scale-110 ${
-							post.isLiked ? 'fill-current' : ''
+						className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
+							post.isLiked
+								? 'animate-heart-beat fill-[#e74c3c] stroke-[#e74c3c]'
+								: 'group-hover/btn:fill-[#e74c3c] group-hover/btn:stroke-[#e74c3c]'
 						}`}
 					/>
-					<span className='text-sm'>{post.likes}</span>
+					<span>{post.likes}</span>
 				</button>
 
 				<button
 					onClick={() => setShowComments(!showComments)}
-					className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-semibold text-gray-600 transition-all hover:bg-blue-50 hover:text-blue-500'
+					className='group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold text-muted transition-all hover:bg-bg hover:text-primary'
 				>
-					<MessageSquare className='h-5 w-5 transition-transform group-hover/btn:scale-110' />
-					<span className='text-sm'>{post.commentCount}</span>
+					<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
+					<span>{post.commentCount}</span>
 				</button>
 
-				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-semibold text-gray-600 transition-all hover:bg-green-50 hover:text-green-500'>
-					<Send className='h-5 w-5 transition-transform group-hover/btn:scale-110' />
-					<span className='text-sm'>Share</span>
+				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold text-muted transition-all hover:bg-bg hover:text-primary'>
+					<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
+					<span>Share</span>
 				</button>
 
-				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-semibold text-gray-600 transition-all hover:bg-amber-50 hover:text-amber-500'>
-					<Bookmark className='h-5 w-5 transition-transform group-hover/btn:scale-110' />
+				<button
+					onClick={handleSave}
+					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-[20px] px-3 py-2 text-[14px] font-semibold transition-all ${
+						isSaved
+							? 'text-primary'
+							: 'text-muted hover:bg-bg hover:text-primary'
+					}`}
+				>
+					<Bookmark
+						className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
+							isSaved
+								? 'fill-[#f39c12] stroke-[#f39c12]'
+								: 'group-hover/btn:fill-[#f39c12] group-hover/btn:stroke-[#f39c12]'
+						}`}
+					/>
+					<span>Save</span>
 				</button>
 			</div>
 
