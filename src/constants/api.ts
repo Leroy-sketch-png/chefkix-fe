@@ -31,8 +31,8 @@ export const API_ENDPOINTS = {
 		UPDATE: (postId: string) => `${API_PREFIX}/post/update?postId=${postId}`,
 		DELETE: (postId: string) => `${API_PREFIX}/post/delete?postId=${postId}`,
 		TOGGLE_LIKE: (postId: string) => `${API_PREFIX}/post/toggle-like/${postId}`,
-		GET_FEED: `${API_PREFIX}/posts/feed`,
-		GET_BY_USER: (userId: string) => `${API_PREFIX}/posts/user/${userId}`,
+		GET_FEED: `${API_PREFIX}/post/feed`,
+		GET_BY_USER: (userId: string) => `${API_PREFIX}/post/${userId}`,
 	},
 	RECIPES: {
 		BASE: `${API_PREFIX}/recipes`,

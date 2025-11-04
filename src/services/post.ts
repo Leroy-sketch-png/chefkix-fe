@@ -7,6 +7,7 @@ import {
 	ToggleLikeResponse,
 } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
+import { toBackendPagination } from '@/lib/apiUtils'
 import { AxiosError } from 'axios'
 
 /**
@@ -154,12 +155,15 @@ export const toggleLike = async (
 export const getFeedPosts = async (params?: {
 	limit?: number
 	offset?: number
+	page?: number
+	size?: number
 }): Promise<ApiResponse<Post[]>> => {
 	try {
+		const backendParams = toBackendPagination(params) ?? params
 		const response = await api.get<ApiResponse<Post[]>>(
 			API_ENDPOINTS.POST.GET_FEED,
 			{
-				params,
+				params: backendParams,
 			},
 		)
 		return response.data
@@ -178,13 +182,14 @@ export const getFeedPosts = async (params?: {
 
 export const getPostsByUser = async (
 	userId: string,
-	params?: { limit?: number; offset?: number },
+	params?: { limit?: number; offset?: number; page?: number; size?: number },
 ): Promise<ApiResponse<Post[]>> => {
 	try {
+		const backendParams = toBackendPagination(params) ?? params
 		const response = await api.get<ApiResponse<Post[]>>(
 			API_ENDPOINTS.POST.GET_BY_USER(userId),
 			{
-				params,
+				params: backendParams,
 			},
 		)
 		return response.data
