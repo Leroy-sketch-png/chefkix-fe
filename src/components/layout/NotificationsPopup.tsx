@@ -2,64 +2,197 @@
 
 import { useUiStore } from '@/store/uiStore'
 import Image from 'next/image'
+import {
+	Heart,
+	MessageCircle,
+	UserPlus,
+	ChefHat,
+	X,
+	CheckCheck,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-const notifications = [
+type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
+
+interface Notification {
+	id: number
+	type: NotificationType
+	user: string
+	avatar: string
+	action: string
+	target?: string
+	time: string
+	read: boolean
+}
+
+const notifications: Notification[] = [
 	{
 		id: 1,
-		user: 'SauceBoss',
-		avatar: 'https://i.pravatar.cc/40?u=2',
-		action: 'liked your post.',
+		type: 'like',
+		user: 'Chef Marco',
+		avatar: 'https://i.pravatar.cc/48?u=1',
+		action: 'liked your recipe',
+		target: 'Spicy Carbonara',
+		time: '2 minutes ago',
 		read: false,
 	},
 	{
 		id: 2,
-		user: 'ChefAnna',
-		avatar: 'https://i.pravatar.cc/40?u=1',
-		action: 'started following you.',
+		type: 'comment',
+		user: 'Lisa Chen',
+		avatar: 'https://i.pravatar.cc/48?u=2',
+		action: 'commented: "This looks amazing! 🤤"',
+		time: '15 minutes ago',
 		read: false,
 	},
 	{
 		id: 3,
-		user: 'MarcoB',
-		avatar: 'https://i.pravatar.cc/40?u=3',
-		action: 'commented on your recipe.',
+		type: 'follow',
+		user: 'RamenKing',
+		avatar: 'https://i.pravatar.cc/48?u=3',
+		action: 'started following you',
+		time: '1 hour ago',
+		read: true,
+	},
+	{
+		id: 4,
+		type: 'cook',
+		user: 'PastryQueen',
+		avatar: 'https://i.pravatar.cc/48?u=4',
+		action: 'cooked your recipe',
+		target: 'Fluffy Pancakes',
+		time: '3 hours ago',
 		read: true,
 	},
 ]
 
+const NotificationBadge = ({ type }: { type: NotificationType }) => {
+	const iconMap = {
+		like: { icon: Heart, bg: 'bg-red-500' },
+		comment: { icon: MessageCircle, bg: 'bg-primary' },
+		follow: { icon: UserPlus, bg: 'bg-green-500' },
+		cook: { icon: ChefHat, bg: 'bg-orange-500' },
+		achievement: { icon: ChefHat, bg: 'bg-gradient-gold' },
+	}
+
+	const { icon: Icon, bg } = iconMap[type]
+
+	return (
+		<div
+			className={cn(
+				'absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-card',
+				bg,
+			)}
+		>
+			<Icon className='h-3 w-3 text-white' />
+		</div>
+	)
+}
+
 export const NotificationsPopup = () => {
-	const { isNotificationsPopupOpen } = useUiStore()
+	const { isNotificationsPopupOpen, toggleNotificationsPopup } = useUiStore()
 
 	if (!isNotificationsPopupOpen) return null
 
+	const handleMarkAllRead = () => {
+		// TODO: Implement mark all as read
+		console.log('Mark all as read')
+	}
+
+	const handleClose = () => {
+		toggleNotificationsPopup()
+	}
+
 	return (
-		<div className='absolute right-6 top-16 z-50 w-[300px] overflow-hidden rounded-lg border bg-card text-card-foreground shadow-lg'>
-			<div className='border-b p-3 font-semibold'>
-				<h3>Notifications</h3>
-			</div>
-			<div>
-				{notifications.map(notif => (
-					<div
-						key={notif.id}
-						className='flex cursor-pointer items-center gap-3 p-3 hover:bg-muted'
+		<>
+			{/* Backdrop */}
+			<div
+				className='fixed inset-0 z-40'
+				onClick={handleClose}
+				aria-hidden='true'
+			/>
+
+			{/* Dropdown */}
+			<div className='absolute right-6 top-16 z-50 w-[400px] max-h-[600px] animate-slideInDown overflow-hidden rounded-[var(--radius)] border border-border bg-card text-card-foreground shadow-[0_12px_48px_rgba(0,0,0,0.2)]'>
+				{/* Header */}
+				<div className='flex items-center justify-between border-b border-border p-4'>
+					<h3 className='text-lg font-bold text-foreground'>Notifications</h3>
+					<button
+						onClick={handleMarkAllRead}
+						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary/10'
 					>
-						<div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full'>
-							<Image
-								src={notif.avatar}
-								alt={notif.user}
-								fill
-								className='object-cover'
-							/>
+						<CheckCheck className='h-4 w-4' />
+						Mark all read
+					</button>
+				</div>
+
+				{/* Notification List */}
+				<div className='max-h-[480px] overflow-y-auto'>
+					{notifications.map(notif => (
+						<div
+							key={notif.id}
+							className={cn(
+								'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-muted/50',
+								!notif.read && 'bg-primary/5',
+							)}
+						>
+							{/* Avatar with badge */}
+							<div className='relative flex-shrink-0'>
+								<div className='relative h-12 w-12 overflow-hidden rounded-full shadow-md'>
+									<Image
+										src={notif.avatar}
+										alt={notif.user}
+										fill
+										className='object-cover'
+									/>
+								</div>
+								<NotificationBadge type={notif.type} />
+							</div>
+
+							{/* Content */}
+							<div className='flex-1 min-w-0'>
+								<p className='text-sm leading-relaxed text-foreground'>
+									<span className='font-semibold'>{notif.user}</span>{' '}
+									{notif.action}
+									{notif.target && (
+										<>
+											{' '}
+											<span className='font-medium text-primary'>
+												&ldquo;{notif.target}&rdquo;
+											</span>
+										</>
+									)}
+								</p>
+								<span className='text-xs text-muted-foreground'>
+									{notif.time}
+								</span>
+							</div>
+
+							{/* Unread dot */}
+							{!notif.read && (
+								<div className='absolute right-4 top-5 h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(102,126,234,0.6)]' />
+							)}
+
+							{/* Follow back button */}
+							{notif.type === 'follow' && !notif.read && (
+								<button className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-primary/90'>
+									Follow Back
+								</button>
+							)}
 						</div>
-						<p className='text-sm'>
-							<span className={!notif.read ? 'font-bold' : ''}>
-								{notif.user}
-							</span>
-							{notif.action}
-						</p>
-					</div>
-				))}
+					))}
+				</div>
+
+				{/* Footer */}
+				<div className='border-t border-border p-3 text-center'>
+					<a
+						href='#'
+						className='text-sm font-semibold text-primary transition-colors hover:text-primary/80'
+					>
+						View All Notifications
+					</a>
+				</div>
 			</div>
-		</div>
+		</>
 	)
 }
