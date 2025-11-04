@@ -72,9 +72,9 @@ export const VerifyOtpForm = () => {
 
 	if (!email) {
 		return (
-			<div className='rounded-lg bg-white p-8 text-center shadow-md'>
-				<h2 className='text-2xl font-bold text-red-600'>Error</h2>
-				<p className='mt-4 text-gray-700'>
+			<div className='rounded-lg bg-card p-8 text-center shadow-md'>
+				<h2 className='text-2xl font-bold text-destructive'>Error</h2>
+				<p className='mt-4 text-foreground'>
 					{VERIFY_OTP_MESSAGES.NO_EMAIL_PROVIDED}
 				</p>
 				<Button
@@ -88,9 +88,9 @@ export const VerifyOtpForm = () => {
 	}
 
 	return (
-		<div className='rounded-lg bg-white p-8 shadow-md'>
+		<div className='rounded-lg bg-card p-8 shadow-md'>
 			<h2 className='text-center text-2xl font-bold'>Verify Your Email</h2>
-			<p className='mt-2 text-center text-sm text-gray-600'>
+			<p className='mt-2 text-center text-sm text-muted-foreground'>
 				An OTP has been sent to <strong>{email}</strong>. Please enter it below.
 			</p>
 			<Form {...form}>

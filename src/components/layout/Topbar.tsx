@@ -21,7 +21,7 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='sticky top-0 z-sticky flex h-[72px] items-center gap-6 border-b border-border-color bg-panel-bg px-6'
+			className='sticky top-0 z-sticky flex h-[72px] items-center gap-6 border-b border-border bg-panel-bg px-6'
 			role='banner'
 		>
 			{/* Logo */}
@@ -32,7 +32,7 @@ export const Topbar = () => {
 			</Link>
 
 			{/* Search Bar */}
-			<div className='group relative flex flex-1 items-center gap-3 rounded-full border border-border-color bg-bg px-4 py-2.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] transition-all duration-300 focus-within:border-primary focus-within:bg-white focus-within:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05),0_0_0_3px_rgba(102,126,234,0.1),0_4px_12px_rgba(102,126,234,0.15)] max-md:max-w-[300px]'>
+			<div className='group relative flex flex-1 items-center gap-3 rounded-full border border-border bg-bg px-4 py-2.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] transition-all duration-300 focus-within:border-primary focus-within:bg-white focus-within:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05),0_0_0_3px_rgba(102,126,234,0.1),0_4px_12px_rgba(102,126,234,0.15)] max-md:max-w-[300px]'>
 				<Search className='h-5 w-5 shrink-0 text-muted transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
 				<input
 					type='text'
@@ -46,7 +46,7 @@ export const Topbar = () => {
 			<div className='flex-1' />
 
 			{/* Mode Toggle - Hidden on mobile */}
-			<div className='hidden items-center gap-1 rounded-[25px] border border-border-color bg-bg p-1 md:flex'>
+			<div className='hidden items-center gap-1 rounded-[25px] border border-border bg-bg p-1 md:flex'>
 				<button
 					onClick={() => setMode('player')}
 					className={`flex items-center gap-2 rounded-[20px] px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-300 ${

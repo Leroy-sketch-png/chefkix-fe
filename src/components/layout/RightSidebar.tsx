@@ -41,7 +41,7 @@ export const RightSidebar = () => {
 	const xpToNext = xpGoal - currentXP
 
 	return (
-		<aside className='hidden border-l border-border-color bg-panel-bg p-6 lg:flex lg:flex-col lg:gap-6'>
+		<aside className='hidden border-l border-border bg-panel-bg p-6 lg:flex lg:flex-col lg:gap-6'>
 			{/* Progress Card */}
 			<div className='rounded-radius border border-white/[0.18] bg-white/70 p-4 shadow-[0_8px_32px_0_rgba(31,38,135,0.15),inset_0_1px_0_0_rgba(255,255,255,0.5)] backdrop-blur-[10px] backdrop-saturate-[180%]'>
 				<div className='mb-4 text-[14px] font-bold uppercase tracking-[0.5px]'>

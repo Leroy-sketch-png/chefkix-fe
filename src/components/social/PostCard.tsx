@@ -178,7 +178,7 @@ export const PostCard = ({
 									initial={{ opacity: 0, scale: 0.95, y: -10 }}
 									animate={{ opacity: 1, scale: 1, y: 0 }}
 									exit={{ opacity: 0, scale: 0.95, y: -10 }}
-									className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border bg-white py-1 shadow-lg'
+									className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-border bg-card py-1 shadow-lg'
 								>
 									{canEdit && (
 										<button
@@ -284,7 +284,7 @@ export const PostCard = ({
 			)}
 
 			{/* Actions */}
-			<div className='flex justify-around border-t border-border-color bg-[#fafbff] p-2'>
+			<div className='flex justify-around border-t border-border bg-[#fafbff] p-2'>
 				<button
 					onClick={handleLike}
 					disabled={isLiking}
@@ -343,7 +343,7 @@ export const PostCard = ({
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}
-						className='overflow-hidden border-t border-gray-100 bg-white'
+						className='overflow-hidden border-t border-border bg-card'
 					>
 						<div className='flex gap-2 p-4'>
 							<input

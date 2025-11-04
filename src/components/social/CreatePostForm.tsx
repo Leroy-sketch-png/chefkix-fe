@@ -94,11 +94,11 @@ export const CreatePostForm = ({
 		<motion.div
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md'
+			className='overflow-hidden rounded-lg border border-border bg-card shadow-md'
 		>
 			<form onSubmit={handleSubmit}>
 				{/* Header */}
-				<div className='flex items-center gap-3 border-b border-gray-100 p-4'>
+				<div className='flex items-center gap-3 border-b border-border p-4'>
 					<div className='relative h-12 w-12'>
 						<Image
 							src={currentUser?.avatarUrl || 'https://i.pravatar.cc/48'}

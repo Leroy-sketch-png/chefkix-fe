@@ -29,6 +29,7 @@
 	--muted: #718096;
 	--muted-strong: #4a5568;
 	--border-color: #e2e8f0;
+	--border: #e2e8f0; /* Alias for Tailwind's border-border utility */
 
 	/* ============ GRADIENTS ============ */
 	--gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -111,14 +112,57 @@
 }
 
 @theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
+	/* Colors - Define all design system colors for Tailwind utilities */
+	--color-background: var(--bg);
+	--color-foreground: var(--text);
+	--color-border: var(--border-color);
+	--color-ring: var(--focus);
+
+	/* Custom semantic colors */
+	--color-bg: var(--bg);
+	--color-text: var(--text);
+	--color-panel-bg: var(--panel-bg);
+	--color-muted: var(--muted);
+	--color-muted-strong: var(--muted-strong);
+	--color-muted-foreground: var(--muted);
+
+	/* Brand colors */
+	--color-primary: var(--primary);
+	--color-primary-dark: var(--primary-dark);
+	--color-primary-light: var(--primary-light);
+	--color-primary-foreground: #ffffff;
+
+	--color-accent: var(--accent);
+	--color-accent-light: var(--accent-light);
+	--color-accent-strong: var(--accent-strong);
+	--color-accent-foreground: var(--text);
+
+	--color-mint: var(--mint);
+	--color-gold: var(--gold);
+
+	/* Surface colors */
+	--color-card: var(--panel-bg);
+	--color-card-foreground: var(--text);
+	--color-popover: var(--panel-bg);
+	--color-popover-foreground: var(--text);
+
+	/* Semantic colors */
+	--color-destructive: #e74c3c;
+	--color-destructive-foreground: #ffffff;
+	--color-secondary: var(--muted);
+	--color-secondary-foreground: var(--text);
+
+	/* Typography */
 	--font-sans: var(--font-family);
 	--font-mono: var(--font-geist-mono);
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
+	--font-display: var(--font-display);
+
+	/* Border radius */
+	--radius: var(--radius);
+	--radius-sm: var(--radius-sm);
+	--radius-md: var(--radius);
+	--radius-lg: var(--radius-lg);
+	--radius-xl: calc(var(--radius-lg) + 4px);
 }
 
 /* ===================================
@@ -268,7 +312,8 @@ select {
 
 @layer base {
 	* {
-		@apply border-border outline-ring/50;
+		border-color: var(--border-color);
+		outline-color: hsl(var(--ring) / 0.5);
 	}
 	body {
 		@apply bg-background text-foreground;

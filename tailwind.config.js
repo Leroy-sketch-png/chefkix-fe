@@ -23,6 +23,10 @@ module.exports = {
 				ring: 'var(--focus)',
 				background: 'var(--bg)',
 				foreground: 'var(--text)',
+				// Semantic color aliases for easier usage
+				bg: 'var(--bg)',
+				text: 'var(--text)',
+				'panel-bg': 'var(--panel-bg)',
 				primary: {
 					DEFAULT: 'var(--primary)',
 					dark: 'var(--primary-dark)',
@@ -61,6 +65,7 @@ module.exports = {
 			},
 			borderRadius: {
 				DEFAULT: 'var(--radius)',
+				radius: 'var(--radius)', // Alias for components using 'rounded-radius'
 				sm: 'var(--radius-sm)',
 				lg: 'var(--radius-lg)',
 				xl: 'var(--radius-lg)',

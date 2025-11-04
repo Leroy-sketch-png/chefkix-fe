@@ -215,7 +215,7 @@ export const AchievementModal = ({
 					<div className='absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,255,255,0.3),transparent_70%)]' />
 
 					{/* Badge Icon */}
-					<div className='relative mx-auto grid h-[120px] w-[120px] place-items-center rounded-full bg-white shadow-[0_12px_48px_rgba(0,0,0,0.3)]'>
+					<div className='relative mx-auto grid h-[120px] w-[120px] place-items-center rounded-full bg-card shadow-[0_12px_48px_rgba(0,0,0,0.3)]'>
 						<div className='relative z-[2] text-[60px]'>{emoji}</div>
 						<div className='absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
 					</div>

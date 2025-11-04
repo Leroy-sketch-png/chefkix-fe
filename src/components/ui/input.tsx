@@ -39,7 +39,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 					<input
 						type={type}
 						className={cn(
-							'h-12 w-full rounded-radius border-2 border-border-color bg-panel-bg px-4 text-[15px] transition-all duration-200 placeholder:text-muted focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,126,234,0.1)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-bg',
+							'h-12 w-full rounded-radius border-2 border-border bg-panel-bg px-4 text-[15px] transition-all duration-200 placeholder:text-muted focus:border-primary focus:shadow-[0_0_0_3px_rgba(102,126,234,0.1)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-bg',
 							leftIcon && 'pl-11',
 							hasValidation && 'pr-11',
 							error &&

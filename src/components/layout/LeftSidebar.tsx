@@ -34,7 +34,7 @@ export const LeftSidebar = () => {
 
 	return (
 		<nav
-			className='hidden border-r border-border-color bg-panel-bg px-3 py-6 md:flex md:flex-col md:items-center md:gap-4'
+			className='hidden border-r border-border bg-panel-bg px-3 py-6 md:flex md:flex-col md:items-center md:gap-4'
 			aria-label='Main navigation'
 		>
 			{navItems.map(item => {
