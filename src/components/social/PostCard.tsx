@@ -218,7 +218,7 @@ export const PostCard = ({
 					<textarea
 						value={editContent}
 						onChange={e => setEditContent(e.target.value)}
-						className='min-h-[100px] w-full resize-none rounded-lg border border-border p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='min-h-textarea w-full resize-none rounded-lg border border-border p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						placeholder='Edit your post...'
 					/>
 					<input
@@ -266,15 +266,21 @@ export const PostCard = ({
 						)}
 					</div>
 
-					{/* Media */}
-					{post.photoUrl && (
+					{/* Media - Support both photoUrl (legacy) and photoUrls (canonical) */}
+					{(post.photoUrl || (post.photoUrls && post.photoUrls.length > 0)) && (
 						<div className='relative aspect-video w-full overflow-hidden bg-muted'>
 							<Image
-								src={post.photoUrl}
+								src={post.photoUrl || post.photoUrls?.[0] || ''}
 								alt='Post media'
 								fill
 								className='object-cover transition-transform duration-500 group-hover:scale-105'
 							/>
+							{/* Show indicator if multiple photos (canonical array format) */}
+							{post.photoUrls && post.photoUrls.length > 1 && (
+								<div className='absolute right-2 top-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm'>
+									1/{post.photoUrls.length}
+								</div>
+							)}
 						</div>
 					)}
 

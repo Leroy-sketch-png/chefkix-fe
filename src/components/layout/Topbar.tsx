@@ -17,6 +17,7 @@ import Image from 'next/image'
 import { useUiStore } from '@/store/uiStore'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { logout as logoutService } from '@/services/auth'
 
 export const Topbar = () => {
 	const { user, logout } = useAuth()
@@ -26,9 +27,18 @@ export const Topbar = () => {
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const router = useRouter()
 
-	const handleLogout = () => {
-		logout()
-		router.push(PATHS.AUTH.SIGN_IN)
+	const handleLogout = async () => {
+		try {
+			// Call backend logout to invalidate session/cookies
+			await logoutService()
+		} catch (error) {
+			console.error('Logout error:', error)
+			// Continue with local logout even if backend call fails
+		} finally {
+			// Always clear local state and redirect
+			logout()
+			router.push(PATHS.AUTH.SIGN_IN)
+		}
 	}
 
 	// Calculate XP progress if we have user statistics - with null safety
@@ -45,12 +55,12 @@ export const Topbar = () => {
 			{/* Logo */}
 			{/* Brand / Logo */}
 			<Link href='/dashboard' className='flex items-center gap-2'>
-				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary md:text-[32px]'>
+				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary md:text-2xl'>
 					Chefkix
 				</div>
 			</Link>{' '}
 			{/* Search Bar - flexible, min width to prevent collapse */}
-			<div className='group relative flex min-w-[120px] flex-1 items-center gap-3 rounded-full border border-border bg-bg px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:bg-card focus-within:shadow-md md:px-4 md:py-2.5'>
+			<div className='group relative flex min-w-search flex-1 items-center gap-3 rounded-full border border-border bg-bg px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:bg-card focus-within:shadow-md md:px-4 md:py-2.5'>
 				<Search className='h-5 w-5 shrink-0 text-muted-foreground transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
 				<input
 					type='text'

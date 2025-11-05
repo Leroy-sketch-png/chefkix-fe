@@ -25,7 +25,7 @@ export const EmptyState = ({
 	children,
 }: EmptyStateProps) => {
 	return (
-		<div className='flex min-h-[50vh] flex-col items-center justify-center px-4 py-12'>
+		<div className='flex min-h-content flex-col items-center justify-center px-4 py-12'>
 			<div className='mx-auto max-w-md animate-fadeIn text-center'>
 				<div className='mb-6 flex justify-center'>
 					<div className='rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-8 shadow-lg'>

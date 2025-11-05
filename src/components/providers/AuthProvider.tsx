@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { AUTH_ROUTES, PATHS, PUBLIC_ROUTES } from '@/constants'
-import { introspect } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 
 interface AuthProviderProps {
@@ -38,26 +37,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				return
 			}
 
-			// If an accessToken exists, we must validate it with the backend.
-			const response = await introspect(accessToken)
-
-			if (!response.success || !response.data?.valid) {
-				// If the token is invalid, log the user out.
-				logout()
-			} else {
-				// Token is valid. If we don't have user data, fetch it.
-				if (!user) {
-					const profileResponse = await getMyProfile()
-					if (profileResponse.success && profileResponse.data) {
-						setUser(profileResponse.data)
-					} else {
-						// Failed to fetch profile, logout
-						logout()
-					}
+			// Token exists - Keycloak handles validation internally.
+			// We just need to ensure we have user data.
+			// If we don't have user data, fetch it.
+			if (!user) {
+				const profileResponse = await getMyProfile()
+				if (profileResponse.success && profileResponse.data) {
+					setUser(profileResponse.data)
+				} else {
+					// Failed to fetch profile, logout
+					logout()
 				}
-				// We're done loading
-				setLoading(false)
 			}
+			// We're done loading
+			setLoading(false)
 		}
 
 		validateSession()

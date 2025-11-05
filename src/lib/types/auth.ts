@@ -14,14 +14,6 @@ export interface SignUpDto {
 	password: string
 }
 
-export interface IntrospectRequest {
-	token: string
-}
-
-export interface IntrospectResponse {
-	valid: boolean
-}
-
 export interface LoginSuccessResponse {
 	accessToken: string
 	refreshToken: null // Always null in response body; real refreshToken is in HttpOnly cookie
