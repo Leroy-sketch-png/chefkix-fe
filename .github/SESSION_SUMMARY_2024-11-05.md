@@ -135,6 +135,7 @@ These features are documented but cannot be implemented until backend provides e
    - Check OAuth2 client ID/secret for Google auth
 
 3. **Build Verification**
+
    ```bash
    npm run build
    ```
