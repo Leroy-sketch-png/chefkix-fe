@@ -11,9 +11,9 @@ export default function MainAppLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<div className='grid min-h-screen w-full grid-cols-1 bg-background md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr_300px]'>
+		<div className='flex min-h-screen w-full overflow-x-hidden bg-background'>
 			<LeftSidebar />
-			<div className='flex flex-col'>
+			<div className='flex min-w-0 flex-1 flex-col'>
 				<Topbar />
 				<main className='flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6'>
 					{children}

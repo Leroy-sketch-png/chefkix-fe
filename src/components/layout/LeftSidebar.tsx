@@ -44,7 +44,7 @@ export const LeftSidebar = () => {
 					<Link
 						key={item.href}
 						href={item.href}
-						className='group relative flex w-full flex-col items-center gap-1 rounded-radius px-1.5 py-3 text-xs font-semibold uppercase tracking-[0.6px] text-muted transition-all duration-300 hover:bg-bg hover:text-text data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-transparent data-[active=true]:text-primary data-[active=true]:shadow-sm'
+						className='group relative flex w-full flex-col items-center gap-1 rounded-radius px-1.5 py-3 text-xs font-semibold uppercase tracking-[0.6px] text-muted-foreground transition-all duration-300 hover:bg-bg hover:text-text data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-transparent data-[active=true]:text-primary data-[active=true]:shadow-sm'
 						data-active={active}
 						title={item.label}
 					>

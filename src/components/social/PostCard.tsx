@@ -146,22 +146,22 @@ export const PostCard = ({
 			{/* Header */}
 			<div className='flex items-center justify-between p-4'>
 				<Link
-					href={`/${post.userId}`}
+					href={`/${post.userId ?? ''}`}
 					className='flex items-center gap-3 transition-opacity hover:opacity-80'
 				>
 					<div className='relative h-12 w-12'>
 						<Image
 							src={post.avatarUrl || 'https://i.pravatar.cc/48'}
-							alt={post.displayName}
+							alt={post.displayName || 'User'}
 							fill
 							className='rounded-full object-cover shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
 						/>
 					</div>
 					<div>
 						<div className='text-base font-bold text-text'>
-							{post.displayName}
+							{post.displayName || 'Unknown User'}
 						</div>
-						<div className='text-sm text-muted'>
+						<div className='text-sm text-muted-foreground'>
 							{formatDistanceToNow(new Date(post.createdAt), {
 								addSuffix: true,
 							})}
@@ -299,7 +299,7 @@ export const PostCard = ({
 					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
 						post.isLiked
 							? 'text-primary'
-							: 'text-muted hover:bg-bg hover:text-primary'
+							: 'text-muted-foreground hover:bg-bg hover:text-primary'
 					}`}
 				>
 					<Heart
@@ -309,16 +309,16 @@ export const PostCard = ({
 								: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
 						}`}
 					/>
-					<span>{post.likes}</span>
+					<span>{post.likes ?? 0}</span>
 				</button>{' '}
 				<button
 					onClick={() => setShowComments(!showComments)}
-					className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted transition-all hover:bg-bg hover:text-primary'
+					className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-all hover:bg-bg hover:text-primary'
 				>
 					<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
-					<span>{post.commentCount}</span>
+					<span>{post.commentCount ?? 0}</span>
 				</button>
-				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted transition-all hover:bg-bg hover:text-primary'>
+				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-all hover:bg-bg hover:text-primary'>
 					<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
 					<span>Share</span>
 				</button>
@@ -327,7 +327,7 @@ export const PostCard = ({
 					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
 						isSaved
 							? 'text-primary'
-							: 'text-muted hover:bg-bg hover:text-primary'
+							: 'text-muted-foreground hover:bg-bg hover:text-primary'
 					}`}
 				>
 					<Bookmark

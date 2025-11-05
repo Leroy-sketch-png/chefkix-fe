@@ -5,11 +5,13 @@ import { useGoogleLogin } from '@react-oauth/google'
 interface GoogleSignInButtonProps {
 	onSuccess: (code: string) => void
 	onFailure: (error: any) => void
+	text?: string
 }
 
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 	onSuccess,
 	onFailure,
+	text = 'Sign in with Google',
 }) => {
 	const login = useGoogleLogin({
 		onSuccess: tokenResponse => {
@@ -27,7 +29,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 
 	return (
 		<Button onClick={() => login()} className='w-full'>
-			Sign in with Google
+			{text}
 		</Button>
 	)
 }

@@ -115,6 +115,7 @@ export function SignInForm() {
 						Sign In
 					</Button>
 					<GoogleSignInButton
+						text='Sign in with Google'
 						onSuccess={async code => {
 							const response = await googleSignIn({ code })
 							if (response.success && response.data) {
@@ -139,12 +140,12 @@ export function SignInForm() {
 				</form>
 			</Form>
 			<div className='text-center text-sm text-muted-foreground'>
-				Don&apos;t have an account?{' '}
+				New here?{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_UP}
 					className='font-medium text-primary hover:text-primary-dark'
 				>
-					Sign Up
+					Create an account
 				</Link>
 			</div>
 		</div>

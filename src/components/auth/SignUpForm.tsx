@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { signUp } from '@/services/auth'
 import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 
 const formSchema = z.object({
 	username: z.string().min(2, {
@@ -136,14 +137,32 @@ export function SignUpForm() {
 						)}
 					/>
 					<Button type='submit' className='w-full'>
-						Create Account
+						Sign Up
 					</Button>
+					<div className='relative my-6 flex items-center'>
+						<span className='flex-1 border-t border-border'></span>
+						<span className='mx-4 text-xs text-muted-foreground'>or</span>
+						<span className='flex-1 border-t border-border'></span>
+					</div>
+					<div className='w-full'>
+						<GoogleSignInButton
+							onSuccess={code => {
+								// TODO: Handle Google sign-up logic (call signUp with Google code)
+								router.push(PATHS.DASHBOARD)
+							}}
+							onFailure={error => {
+								// TODO: Show error toast
+								console.error(error)
+							}}
+							text='Sign up with Google'
+						/>
+					</div>
 				</form>
 			</Form>
 			<div className='text-center text-sm text-muted-foreground'>
-				Already have an account?{' '}
+				Already a member?{' '}
 				<Link
-					href={PATHS.AUTH.SIGN_UP}
+					href={PATHS.AUTH.SIGN_IN}
 					className='font-medium text-primary hover:text-primary-dark'
 				>
 					Sign In
