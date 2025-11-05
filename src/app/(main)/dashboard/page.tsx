@@ -74,7 +74,7 @@ export default function DashboardPage() {
 					currentUser={
 						user
 							? {
-									userId: user.id ?? '',
+									userId: user.userId ?? '',
 									displayName: user.displayName || user.username || 'User',
 									avatarUrl: user.avatarUrl,
 								}
@@ -131,7 +131,7 @@ export default function DashboardPage() {
 							post={post}
 							onUpdate={handlePostUpdate}
 							onDelete={handlePostDelete}
-							currentUserId={user?.id}
+							currentUserId={user?.userId}
 						/>
 					))}
 				</StaggerContainer>

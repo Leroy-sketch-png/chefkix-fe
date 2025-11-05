@@ -6,14 +6,14 @@ export const API_ENDPOINTS = {
 		REGISTER: `${API_PREFIX}/auth/register`,
 		INTROSPECT: `${API_PREFIX}/auth/introspect`,
 		SEND_OTP: `${API_PREFIX}/auth/send-otp`,
-		VERIFY_OTP: `${API_PREFIX}/auth/verify-otp`,
+		VERIFY_OTP: `${API_PREFIX}/auth/verify-otp-user`,
 		GOOGLE: `${API_PREFIX}/auth/google`,
+		REFRESH_TOKEN: `${API_PREFIX}/auth/refresh-token`,
+		ME: `${API_PREFIX}/auth/me`,
 	},
 	PROFILE: {
-		GET_BY_USER_ID: (userId: string) => `${API_PREFIX}/profiles/${userId}`,
-		GET_BY_USERNAME: (username: string) => `${API_PREFIX}/profiles/${username}`,
-		GET_ME: `${API_PREFIX}/profiles/me`,
-		GET_ALL: `${API_PREFIX}/profiles`,
+		GET_BY_USER_ID: (userId: string) => `${API_PREFIX}/auth/${userId}`,
+		GET_ALL: `${API_PREFIX}/auth/profiles`,
 	},
 	SOCIAL: {
 		TOGGLE_FOLLOW: (userId: string) =>
@@ -31,8 +31,8 @@ export const API_ENDPOINTS = {
 		UPDATE: (postId: string) => `${API_PREFIX}/post/update?postId=${postId}`,
 		DELETE: (postId: string) => `${API_PREFIX}/post/delete?postId=${postId}`,
 		TOGGLE_LIKE: (postId: string) => `${API_PREFIX}/post/toggle-like/${postId}`,
-		GET_FEED: `${API_PREFIX}/post/feed`,
-		GET_BY_USER: (userId: string) => `${API_PREFIX}/post/${userId}`,
+		GET_ALL: `${API_PREFIX}/post/all`,
+		GET_FEED: (userId: string) => `${API_PREFIX}/post/feed?userId=${userId}`,
 	},
 	RECIPES: {
 		BASE: `${API_PREFIX}/recipes`,
@@ -49,6 +49,6 @@ export const API_ENDPOINTS = {
 		LIKED: `${API_PREFIX}/recipes/liked`,
 	},
 	STATISTICS: {
-		ADD_XP: `${API_PREFIX}/statistics/add_xp`,
+		ADD_XP: `${API_PREFIX}/statistic/add_xp`,
 	},
 } as const

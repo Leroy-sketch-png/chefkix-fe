@@ -9,24 +9,25 @@ export interface Post {
 	displayName: string
 	avatarUrl?: string
 	content: string
-	photoUrls: string[]
-	videoUrl?: string | null
+	slug: string
+	photoUrl: string | null
+	videoUrl: string | null
+	postUrl: string
 	tags: string[]
 	likes: number
 	commentCount: number
-	slug: string
-	postUrl: string
 	createdAt: string
 	updatedAt: string | null
 	isLiked?: boolean // Client-side flag for optimistic UI
 }
 
 export interface CreatePostRequest {
+	userId: string
+	avatarUrl: string
 	content: string
-	photoUrls?: File[] // Will be sent as multipart/form-data
+	photoUrl?: string
 	videoUrl?: string
 	tags?: string[]
-	avatarUrl?: string
 }
 
 export interface UpdatePostRequest {

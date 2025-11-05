@@ -146,7 +146,7 @@ export const PostCard = ({
 			{/* Header */}
 			<div className='flex items-center justify-between p-4'>
 				<Link
-					href={`/${post.userId ?? ''}`}
+					href={post.userId ? `/${post.userId}` : '/dashboard'}
 					className='flex items-center gap-3 transition-opacity hover:opacity-80'
 				>
 					<div className='relative h-12 w-12'>
@@ -267,19 +267,14 @@ export const PostCard = ({
 					</div>
 
 					{/* Media */}
-					{post.photoUrls && post.photoUrls.length > 0 && (
+					{post.photoUrl && (
 						<div className='relative aspect-video w-full overflow-hidden bg-muted'>
 							<Image
-								src={post.photoUrls[0]}
+								src={post.photoUrl}
 								alt='Post media'
 								fill
 								className='object-cover transition-transform duration-500 group-hover:scale-105'
 							/>
-							{post.photoUrls.length > 1 && (
-								<div className='absolute bottom-2 right-2 rounded-full bg-foreground/60 px-2 py-1 text-xs text-background'>
-									+{post.photoUrls.length - 1} more
-								</div>
-							)}
 						</div>
 					)}
 

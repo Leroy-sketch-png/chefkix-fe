@@ -5,9 +5,10 @@ import { persist } from 'zustand/middleware'
 interface AuthState {
 	isAuthenticated: boolean
 	user: User | null
-	token: string | null
+	accessToken: string | null
 	isLoading: boolean
-	login: (user: User, token: string) => void
+	login: (accessToken: string, user?: User) => void
+	setUser: (user: User) => void
 	logout: () => void
 	setLoading: (isLoading: boolean) => void
 }
@@ -17,15 +18,53 @@ export const useAuthStore = create<AuthState>()(
 		set => ({
 			isAuthenticated: false,
 			user: null,
-			token: null,
+			accessToken: null,
 			isLoading: true,
-			login: (user: User, token: string) =>
-				set({ isAuthenticated: true, user, token, isLoading: false }),
+			login: (accessToken: string, user?: User) => {
+				// Critical: reject login without a valid access token
+				if (!accessToken || accessToken.trim() === '') {
+					console.error(
+						'[authStore] Login rejected: missing or empty accessToken',
+					)
+					set({
+						isAuthenticated: false,
+						user: null,
+						accessToken: null,
+						isLoading: false,
+					})
+					return
+				}
+
+				// If user is provided, validate it has userId
+				if (user && !user.userId) {
+					console.error(
+						'[authStore] Login rejected: user missing userId field',
+						{ user },
+					)
+					set({
+						isAuthenticated: false,
+						user: null,
+						accessToken: null,
+						isLoading: false,
+					})
+					return
+				}
+
+				set({
+					isAuthenticated: true,
+					user: user || null,
+					accessToken,
+					isLoading: false,
+				})
+			},
+			setUser: (user: User) => {
+				set({ user })
+			},
 			logout: () =>
 				set({
 					isAuthenticated: false,
 					user: null,
-					token: null,
+					accessToken: null,
 					isLoading: false,
 				}),
 			setLoading: (isLoading: boolean) => set({ isLoading }),

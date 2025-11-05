@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { signIn, googleSignIn } from '@/services/auth'
+import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { AUTH_MESSAGES, PATHS } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
@@ -32,7 +33,7 @@ const formSchema = z.object({
 
 export function SignInForm() {
 	const router = useRouter()
-	const { login, isAuthenticated } = useAuth()
+	const { login, setUser, isAuthenticated } = useAuth()
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -49,8 +50,30 @@ export function SignInForm() {
 		})
 
 		if (response.success && response.data) {
-			login(response.data.user, response.data.token)
-			router.push(PATHS.HOME)
+			// Backend returns only accessToken - validate it exists
+			if (!response.data.accessToken) {
+				form.setError('root.general' as any, {
+					type: 'manual',
+					message:
+						'Authentication failed: no access token received from server.',
+				})
+				return
+			}
+
+			// Set the token first (without user)
+			login(response.data.accessToken)
+
+			// Then fetch the user profile
+			const profileResponse = await getMyProfile()
+			if (profileResponse.success && profileResponse.data) {
+				setUser(profileResponse.data)
+				router.push(PATHS.HOME)
+			} else {
+				form.setError('root.general' as any, {
+					type: 'manual',
+					message: 'Failed to fetch user profile. Please try again.',
+				})
+			}
 		} else {
 			const errorMessage = response.message || 'An unknown error occurred.'
 			form.setError('root.general' as any, {
@@ -119,8 +142,30 @@ export function SignInForm() {
 						onSuccess={async code => {
 							const response = await googleSignIn({ code })
 							if (response.success && response.data) {
-								login(response.data.user, response.data.token)
-								router.push(PATHS.HOME)
+								// Backend returns only accessToken - validate it exists
+								if (!response.data.accessToken) {
+									form.setError('root.general' as any, {
+										type: 'manual',
+										message:
+											'Authentication failed: no access token received from server.',
+									})
+									return
+								}
+
+								// Set the token first (without user)
+								login(response.data.accessToken)
+
+								// Then fetch the user profile
+								const profileResponse = await getMyProfile()
+								if (profileResponse.success && profileResponse.data) {
+									setUser(profileResponse.data)
+									router.push(PATHS.HOME)
+								} else {
+									form.setError('root.general' as any, {
+										type: 'manual',
+										message: 'Failed to fetch user profile. Please try again.',
+									})
+								}
 							} else {
 								const errorMessage =
 									response.message || 'Google sign-in failed.'

@@ -8,13 +8,14 @@ export const api = axios.create({
 		'Content-Type': 'application/json',
 	},
 	timeout: app.AXIOS_TIMEOUT,
+	withCredentials: true, // Enable sending/receiving HttpOnly cookies (refreshToken)
 })
 
 // Request Interceptor: Add the auth token to every request if it exists.
 api.interceptors.request.use(config => {
-	const token = useAuthStore.getState().token
-	if (token) {
-		config.headers.Authorization = `Bearer ${token}`
+	const accessToken = useAuthStore.getState().accessToken
+	if (accessToken) {
+		config.headers.Authorization = `Bearer ${accessToken}`
 	}
 	return config
 })
@@ -32,6 +33,19 @@ api.interceptors.response.use(
 		return response
 	},
 	(error: AxiosError) => {
+		// Handle 401 Unauthorized by forcing logout
+		if (error.response?.status === 401) {
+			// Clear auth state when token is invalid/expired
+			const { logout } = useAuthStore.getState()
+			logout()
+
+			// Redirect to sign-in if we're in browser context
+			if (typeof window !== 'undefined') {
+				window.location.href =
+					'/auth/sign-in?error=Session expired. Please sign in again.'
+			}
+		}
+
 		if (error.response) {
 			const backendError = error.response.data as any
 			error.response.data = {
