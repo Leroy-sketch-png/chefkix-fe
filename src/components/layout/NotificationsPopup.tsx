@@ -95,8 +95,8 @@ export const NotificationsPopup = () => {
 	if (!isNotificationsPopupOpen) return null
 
 	const handleMarkAllRead = () => {
-		// TODO: Implement mark all as read
-		console.log('Mark all as read')
+		// TODO: Implement mark all as read API call
+		// toast.info('Mark all as read feature coming soon')
 	}
 
 	const handleClose = () => {

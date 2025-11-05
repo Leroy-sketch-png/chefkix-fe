@@ -110,6 +110,11 @@ module.exports = {
 				'2xl': 'var(--space-2xl)',
 				'3xl': 'var(--space-3xl)',
 			},
+			width: {
+				// Canonical layout sizes mapped to CSS variables defined in globals.css
+				nav: 'var(--nav-w)',
+				right: 'var(--right-w)',
+			},
 			boxShadow: {
 				sm: 'var(--shadow-sm)',
 				DEFAULT: 'var(--shadow-md)',

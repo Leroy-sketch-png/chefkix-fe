@@ -1,20 +1,20 @@
-import { getProfileByUsername, getMyProfile } from '@/services/profile'
+import { getProfileByUserId, getMyProfile } from '@/services/profile'
 import { UserProfile } from '@/components/profile/UserProfile'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 
 interface ProfilePageProps {
 	params: Promise<{
-		username: string
+		userId: string
 	}>
 }
 
 const ProfilePage = async ({ params }: ProfilePageProps) => {
-	const { username } = await params
-	const { success, data: profile } = await getProfileByUsername(username)
+	const { userId } = await params
+	const { success, data: profile } = await getProfileByUserId(userId)
 	const { data: currentUserProfile } = await getMyProfile()
 
 	if (!success || !profile) {
-		return <ProfileNotFound username={username} />
+		return <ProfileNotFound />
 	}
 
 	return (

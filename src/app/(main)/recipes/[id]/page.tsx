@@ -195,7 +195,7 @@ export default function RecipeDetailPage() {
 						<p className='mb-4 text-muted-foreground'>{recipe.description}</p>
 						{recipe.author && (
 							<Link
-								href={`/${recipe.author.username}`}
+								href={`/${recipe.author.userId}`}
 								className='flex items-center gap-3 hover:underline'
 							>
 								<div className='relative h-10 w-10 overflow-hidden rounded-full'>

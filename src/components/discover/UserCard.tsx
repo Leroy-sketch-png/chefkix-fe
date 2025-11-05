@@ -13,7 +13,7 @@ interface UserCardProps {
 export const UserCard = ({ profile }: UserCardProps) => {
 	return (
 		<motion.div variants={staggerItemVariants}>
-			<Link href={`/${profile.username}`}>
+			<Link href={`/${profile.userId}`}>
 				<motion.div
 					className='cursor-pointer rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md'
 					whileHover={{ scale: 1.02, y: -4 }}
