@@ -30,18 +30,18 @@ export const RightSidebar = () => {
 		)
 	}
 
-	// Calculate XP progress if we have user statistics
+	// Calculate XP progress if we have user statistics - with null safety
 	const xpProgress =
-		user?.statistics?.currentXP && user?.statistics?.currentXPGoal
+		user?.statistics?.currentXP != null && user?.statistics?.currentXPGoal
 			? (user.statistics.currentXP / user.statistics.currentXPGoal) * 100
 			: 57 // Default value for display
 
-	const currentXP = user?.statistics?.currentXP || 20
-	const xpGoal = user?.statistics?.currentXPGoal || 35
-	const xpToNext = xpGoal - currentXP
+	const currentXP = user?.statistics?.currentXP ?? 20
+	const xpGoal = user?.statistics?.currentXPGoal ?? 35
+	const xpToNext = Math.max(0, xpGoal - currentXP)
 
 	return (
-		<aside className='hidden border-l border-border bg-panel-bg p-6 lg:flex lg:flex-col lg:gap-6'>
+		<aside className='hidden w-right border-l border-border bg-panel-bg p-6 xl:flex xl:flex-col xl:gap-6'>
 			{/* Progress Card */}
 			<div className='rounded-radius border border-border bg-card p-4 shadow-lg backdrop-blur-[10px] backdrop-saturate-[180%]'>
 				<div className='mb-4 text-sm font-bold uppercase tracking-[0.5px]'>
@@ -59,7 +59,7 @@ export const RightSidebar = () => {
 						style={{ width: `${Math.min(xpProgress, 100)}%` }}
 					/>
 				</div>
-				<div className='mt-2 text-sm text-muted'>
+				<div className='mt-2 text-sm text-muted-foreground'>
 					{xpToNext} XP to next level!
 				</div>
 			</div>
@@ -84,7 +84,7 @@ export const RightSidebar = () => {
 								</div>
 								<div className='min-w-0 flex-1'>
 									<strong className='block text-sm'>{suggestion.name}</strong>
-									<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm text-muted'>
+									<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm text-muted-foreground'>
 										{suggestion.description}
 									</span>
 								</div>

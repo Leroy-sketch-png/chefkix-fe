@@ -133,7 +133,7 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 					className={`absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 						isSaved
 							? 'bg-gold/10 text-gold'
-							: 'bg-bg text-muted hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
+							: 'bg-bg text-muted-foreground hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
 					}`}
 				>
 					<Bookmark className={`h-5 w-5 ${isSaved ? 'fill-gold' : ''}`} />
@@ -141,10 +141,10 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 			</div>
 			<div className='p-4'>
 				<h3 className='mb-2 text-lg font-bold'>{recipe.title}</h3>
-				<p className='mb-3 line-clamp-2 text-sm text-muted'>
+				<p className='mb-3 line-clamp-2 text-sm text-muted-foreground'>
 					{recipe.description}
 				</p>
-				<div className='mb-4 flex items-center justify-between text-sm text-muted'>
+				<div className='mb-4 flex items-center justify-between text-sm text-muted-foreground'>
 					<span>By {recipe.author?.displayName || 'Unknown'}</span>
 					<span>⭐ {likeCount} likes</span>
 				</div>

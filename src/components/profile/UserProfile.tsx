@@ -386,27 +386,33 @@ export const UserProfile = ({
 					</div>
 
 					<div className='mt-4'>
-						<h1 className='text-2xl font-bold'>{profile.displayName}</h1>
-						<p className='text-muted-foreground'>@{profile.username}</p>
-						<p className='mt-2 text-sm text-muted-foreground'>{profile.bio}</p>
+						<h1 className='text-2xl font-bold'>
+							{profile.displayName || 'Unknown User'}
+						</h1>
+						<p className='text-muted-foreground'>
+							@{profile.username || 'user'}
+						</p>
+						<p className='mt-2 text-sm text-muted-foreground'>
+							{profile.bio || 'No bio available'}
+						</p>
 					</div>
 
 					<div className='mt-6 flex justify-around border-t border-b py-4'>
 						<div className='text-center'>
 							<span className='block text-xl font-bold'>
-								{profile.statistics.followerCount.toLocaleString()}
+								{(profile.statistics?.followerCount ?? 0).toLocaleString()}
 							</span>
 							<span className='text-sm text-muted-foreground'>Followers</span>
 						</div>
 						<div className='text-center'>
 							<span className='block text-xl font-bold'>
-								{profile.statistics.followingCount.toLocaleString()}
+								{(profile.statistics?.followingCount ?? 0).toLocaleString()}
 							</span>
 							<span className='text-sm text-muted-foreground'>Following</span>
 						</div>
 						<div className='text-center'>
 							<span className='block text-xl font-bold'>
-								{profile.statistics.friendCount.toLocaleString()}
+								{(profile.statistics?.friendCount ?? 0).toLocaleString()}
 							</span>
 							<span className='text-sm text-muted-foreground'>Friends</span>
 						</div>

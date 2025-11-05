@@ -74,8 +74,8 @@ export default function DashboardPage() {
 					currentUser={
 						user
 							? {
-									userId: user.id,
-									displayName: user.username,
+									userId: user.id ?? '',
+									displayName: user.displayName || user.username || 'User',
 									avatarUrl: user.avatarUrl,
 								}
 							: undefined
@@ -106,7 +106,7 @@ export default function DashboardPage() {
 					description='Follow chefs and add friends to see their latest posts here!'
 					icon={MessageSquare}
 				>
-					<div className='flex gap-3'>
+					<div className='flex flex-wrap justify-center gap-3'>
 						<Link href='/discover'>
 							<Button>
 								<Users className='mr-2 h-4 w-4' />

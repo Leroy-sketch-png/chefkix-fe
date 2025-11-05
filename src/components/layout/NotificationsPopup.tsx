@@ -113,7 +113,7 @@ export const NotificationsPopup = () => {
 			/>
 
 			{/* Dropdown */}
-			<div className='absolute right-6 top-16 z-50 w-96 max-h-[600px] animate-slideInDown overflow-hidden rounded-radius border border-border bg-card text-card-foreground shadow-glow'>
+			<div className='fixed right-2 top-16 z-50 w-[calc(100vw-16px)] max-w-md animate-slideInDown overflow-hidden rounded-radius border border-border bg-card text-card-foreground shadow-glow md:absolute md:right-6 md:w-96'>
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border p-4'>
 					<h3 className='text-lg font-bold text-foreground'>Notifications</h3>

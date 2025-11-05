@@ -26,7 +26,8 @@
 	--mint: #86d293;
 	--gold: #ffc145;
 	--text: #2d1810;
-	--muted: #8b7355;
+	--muted: #f5f1ed;
+	--muted-foreground: #6b5845;
 	--muted-strong: #5c4a3a;
 	--border-color: #ede6dd;
 	--border: #ede6dd;
@@ -46,11 +47,23 @@
 	);
 
 	/* ============ LAYOUT ============ */
-	--nav-w: 92px;
+	--nav-w: 80px;
 	--right-w: 280px;
 	--radius: 16px;
 	--radius-sm: 12px;
 	--radius-lg: 24px;
+
+	/* Heights */
+	--h-topbar: 72px;
+	--h-mobile-nav: 72px;
+
+	/* Z-index scale */
+	--z-base: 1;
+	--z-dropdown: 50;
+	--z-sticky: 100;
+	--z-modal: 1000;
+	--z-notification: 1100;
+	--z-tooltip: 1200;
 
 	/* Elevated surface tokens */
 	--bg-elev: #ffffff;
@@ -133,7 +146,7 @@
 	--color-panel-bg: var(--panel-bg);
 	--color-muted: var(--muted);
 	--color-muted-strong: var(--muted-strong);
-	--color-muted-foreground: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
 
 	/* Brand colors */
 	--color-primary: var(--primary);
@@ -158,8 +171,8 @@
 	/* Semantic colors */
 	--color-destructive: #e74c3c;
 	--color-destructive-foreground: #ffffff;
-	--color-secondary: var(--muted);
-	--color-secondary-foreground: var(--text);
+	--color-secondary: #fff4ed;
+	--color-secondary-foreground: #2d1810;
 
 	/* Typography */
 	--font-sans: var(--font-family);
