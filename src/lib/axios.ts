@@ -1,5 +1,6 @@
 import app from '@/configs/app'
 import { useAuthStore } from '@/store/authStore'
+import { PATHS, AUTH_MESSAGES } from '@/constants'
 import axios, {
 	AxiosError,
 	AxiosResponse,
@@ -76,8 +77,7 @@ api.interceptors.response.use(
 				logout()
 
 				if (typeof window !== 'undefined') {
-					window.location.href =
-						'/auth/sign-in?error=Session expired. Please sign in again.'
+					window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.SESSION_EXPIRED)}`
 				}
 				return Promise.reject(error)
 			}
@@ -114,8 +114,7 @@ api.interceptors.response.use(
 					logout()
 
 					if (typeof window !== 'undefined') {
-						window.location.href =
-							'/auth/sign-in?error=Session expired. Please sign in again.'
+						window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.SESSION_EXPIRED)}`
 					}
 					return Promise.reject(refreshError)
 				}

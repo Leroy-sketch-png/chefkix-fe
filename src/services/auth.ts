@@ -10,6 +10,7 @@ import {
 } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
+import { AUTH_MESSAGES } from '@/constants/messages'
 
 // Sign-in function
 export const signIn = async (
@@ -28,7 +29,7 @@ export const signIn = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
@@ -49,7 +50,7 @@ export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
@@ -69,7 +70,7 @@ export const logout = async (): Promise<ApiResponse<string>> => {
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred during logout.',
+			message: AUTH_MESSAGES.LOGOUT_ERROR,
 			statusCode: 500,
 		}
 	}
@@ -92,7 +93,7 @@ export const sendOtp = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
@@ -115,7 +116,7 @@ export const verifyOtp = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
@@ -129,8 +130,7 @@ export const googleSignIn = async (
 	// Placeholder implementation - endpoint not yet available
 	return {
 		success: false,
-		message:
-			'Google Sign-In is temporarily unavailable. Please use email/password.',
+		message: AUTH_MESSAGES.GOOGLE_UNAVAILABLE,
 		statusCode: 503,
 	}
 
@@ -148,7 +148,7 @@ export const googleSignIn = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}

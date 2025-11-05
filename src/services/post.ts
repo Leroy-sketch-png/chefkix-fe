@@ -161,7 +161,7 @@ export const getFeedPosts = async (params?: {
 	try {
 		const backendParams = toBackendPagination(params) ?? params
 		const response = await api.get<ApiResponse<Post[]>>(
-			API_ENDPOINTS.POST.GET_FEED,
+			API_ENDPOINTS.POST.GET_ALL,
 			{
 				params: backendParams,
 			},
@@ -187,7 +187,7 @@ export const getPostsByUser = async (
 	try {
 		const backendParams = toBackendPagination(params) ?? params
 		const response = await api.get<ApiResponse<Post[]>>(
-			API_ENDPOINTS.POST.GET_BY_USER(userId),
+			API_ENDPOINTS.POST.GET_FEED(userId),
 			{
 				params: backendParams,
 			},

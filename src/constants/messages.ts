@@ -1,12 +1,33 @@
+/**
+ * Centralized UI/UX Messages
+ * Single source of truth for all user-facing strings
+ */
+
+// ============ AUTH MESSAGES ============
 export const AUTH_MESSAGES = {
 	UNKNOWN_ERROR: 'An unexpected error occurred. Please try again later.',
 	GOOGLE_SIGN_IN_FAILED: 'Google sign-in failed.',
-}
+	SESSION_EXPIRED: 'Session expired. Please sign in again.',
+	GOOGLE_UNAVAILABLE:
+		'Google Sign-In is temporarily unavailable. Please use email/password.',
+	LOGOUT_ERROR: 'Logout failed, but your session has been cleared locally.',
+} as const
 
 export const SIGN_UP_MESSAGES = {
 	ERROR: 'An error occurred.',
 	FAILED: 'Sign-up failed.',
-}
+	PAGE_TITLE: 'Create an Account',
+	PAGE_SUBTITLE: 'Join ChefKix and start your culinary journey',
+	FORM_TITLE: 'Get Started',
+	ALREADY_HAVE_ACCOUNT: 'Already have an account?',
+} as const
+
+export const SIGN_IN_MESSAGES = {
+	PAGE_TITLE: 'Welcome Back',
+	PAGE_SUBTITLE: 'Sign in to continue your culinary adventure',
+	NO_ACCOUNT: "Don't have an account?",
+	FORGOT_PASSWORD: 'Forgot your password?',
+} as const
 
 export const VERIFY_OTP_MESSAGES = {
 	EMAIL_NOT_FOUND: 'Email not found. Please try signing up again.',
@@ -18,4 +39,54 @@ export const VERIFY_OTP_MESSAGES = {
 	RESEND_FAILED: 'Failed to resend OTP.',
 	NO_EMAIL_PROVIDED:
 		'No email address was provided. Please return to the sign-up page and try again.',
-}
+	PAGE_TITLE: 'Verify Your Email',
+	PAGE_SUBTITLE: 'Enter the verification code sent to your email',
+} as const
+
+// ============ PROFILE MESSAGES ============
+export const PROFILE_MESSAGES = {
+	NOT_FOUND: 'Profile not found',
+	NOT_FOUND_DESCRIPTION: 'The user you are looking for does not exist.',
+	LOADING: 'Loading profile...',
+} as const
+
+// ============ POST MESSAGES ============
+export const POST_MESSAGES = {
+	DELETE_CONFIRM: 'Are you sure you want to delete this post?',
+	DELETE_SUCCESS: 'Post deleted successfully',
+	DELETE_FAILED: 'Failed to delete post',
+	UPDATE_SUCCESS: 'Post updated successfully',
+	UPDATE_FAILED: 'Failed to update post',
+	LIKE_FAILED: 'Failed to like post',
+	SAVE_SUCCESS: 'Saved successfully!',
+	REMOVE_SAVED: 'Removed from saved',
+	EDIT_POST: 'Edit post',
+	DELETE_POST: 'Delete post',
+	CANCEL: 'Cancel',
+	SAVE: 'Save',
+	EDIT_TIME_LIMIT: 'You can only edit within 1 hour of posting',
+	CONTENT_EMPTY: 'Content cannot be empty',
+	CREATE_SUCCESS: 'Post created successfully!',
+	CREATE_EMPTY: 'Please write something!',
+} as const
+
+// ============ RECIPE MESSAGES ============
+export const RECIPE_MESSAGES = {
+	LIKE_FAILED: 'Failed to like recipe',
+	SAVE_FAILED: 'Failed to save recipe',
+	LINK_COPIED: 'Link copied to clipboard!',
+} as const
+
+// ============ SOCIAL MESSAGES ============
+export const SOCIAL_MESSAGES = {
+	FRIEND_REQUEST_DECLINED: 'Friend request declined',
+} as const
+
+// ============ COMMON MESSAGES ============
+export const COMMON_MESSAGES = {
+	LOADING: 'Loading...',
+	ERROR: 'An error occurred',
+	SUCCESS: 'Success!',
+	TRY_AGAIN: 'Please try again',
+	BACK_HOME: 'Back to Home',
+} as const

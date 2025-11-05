@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Post } from '@/lib/types'
 import { toggleLike, deletePost, updatePost } from '@/services/post'
 import { toast } from 'sonner'
+import { POST_MESSAGES } from '@/constants/messages'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -79,7 +80,7 @@ export const PostCard = ({
 				isLiked: wasLiked,
 				likes: previousLikes,
 			}))
-			toast.error(response.message || 'Failed to like post')
+			toast.error(response.message || POST_MESSAGES.LIKE_FAILED)
 		}
 
 		setIsLiking(false)
@@ -87,25 +88,27 @@ export const PostCard = ({
 
 	const handleSave = () => {
 		setIsSaved(!isSaved)
-		toast.success(isSaved ? 'Removed from saved' : 'Saved successfully!')
+		toast.success(
+			isSaved ? POST_MESSAGES.REMOVE_SAVED : POST_MESSAGES.SAVE_SUCCESS,
+		)
 	}
 
 	const handleDelete = async () => {
-		if (!window.confirm('Are you sure you want to delete this post?')) return
+		if (!window.confirm(POST_MESSAGES.DELETE_CONFIRM)) return
 
 		const response = await deletePost(post.id)
 		if (response.success) {
-			toast.success('Post deleted successfully')
+			toast.success(POST_MESSAGES.DELETE_SUCCESS)
 			onDelete?.(post.id)
 		} else {
-			toast.error(response.message || 'Failed to delete post')
+			toast.error(response.message || POST_MESSAGES.DELETE_FAILED)
 		}
 		setShowMenu(false)
 	}
 
 	const handleEdit = async () => {
 		if (!editContent.trim()) {
-			toast.error('Content cannot be empty')
+			toast.error(POST_MESSAGES.CONTENT_EMPTY)
 			return
 		}
 
@@ -121,7 +124,7 @@ export const PostCard = ({
 
 		if (response.statusCode === 410) {
 			// Post edit window expired (backend)
-			toast.error('This post can no longer be edited (editing window expired)')
+			toast.error(POST_MESSAGES.EDIT_TIME_LIMIT)
 			return
 		}
 
@@ -129,9 +132,9 @@ export const PostCard = ({
 			setPost(response.data)
 			onUpdate?.(response.data)
 			setIsEditing(false)
-			toast.success('Post updated successfully')
+			toast.success(POST_MESSAGES.UPDATE_SUCCESS)
 		} else {
-			toast.error(response.message || 'Failed to update post')
+			toast.error(response.message || POST_MESSAGES.UPDATE_FAILED)
 		}
 	}
 

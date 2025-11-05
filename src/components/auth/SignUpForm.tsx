@@ -70,12 +70,9 @@ export function SignUpForm() {
 	}
 
 	return (
-		<div className='w-full max-w-md space-y-8'>
-			<h2 className='mt-6 text-center text-3xl font-extrabold text-foreground'>
-				Create your account
-			</h2>
+		<div className='w-full space-y-6'>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
 					{form.formState.errors.root?.general && (
 						<div
 							className='rounded-md bg-destructive/10 p-4 text-sm text-destructive'
@@ -136,8 +133,14 @@ export function SignUpForm() {
 							</FormItem>
 						)}
 					/>
-					<Button type='submit' className='w-full'>
-						Sign Up
+					<Button
+						type='submit'
+						className='w-full'
+						disabled={form.formState.isSubmitting}
+					>
+						{form.formState.isSubmitting
+							? 'Creating account...'
+							: SIGN_UP_MESSAGES.FORM_TITLE}
 					</Button>
 					<div className='relative my-6 flex items-center'>
 						<span className='flex-1 border-t border-border'></span>
@@ -160,10 +163,10 @@ export function SignUpForm() {
 				</form>
 			</Form>
 			<div className='text-center text-sm text-muted-foreground'>
-				Already a member?{' '}
+				{SIGN_UP_MESSAGES.ALREADY_HAVE_ACCOUNT}{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_IN}
-					className='font-medium text-primary hover:text-primary-dark'
+					className='font-medium text-primary transition-colors hover:text-primary-dark'
 				>
 					Sign In
 				</Link>
