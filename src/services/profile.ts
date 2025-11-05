@@ -24,34 +24,8 @@ export const getProfileByUserId = async (
 	}
 }
 
-/**
- * Get profile by username or userId.
- * According to API spec, the endpoint /api/profiles/{userId} accepts both.
- * This is the canonical way to fetch profiles.
- */
-export const getProfileByUsername = async (
-	username: string,
-): Promise<ApiResponse<Profile>> => {
-	try {
-		// Per API contract the profiles endpoint accepts only userId.
-		// We intentionally call the GET_BY_USER_ID endpoint here so the
-		// backend will return an error if a non-id (username) is supplied.
-		const response = await api.get<ApiResponse<Profile>>(
-			API_ENDPOINTS.PROFILE.GET_BY_USER_ID(username),
-		)
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<Profile>>
-		if (axiosError.response) {
-			return axiosError.response.data
-		}
-		return {
-			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
-			statusCode: 500,
-		}
-	}
-}
+// Note: getProfileByUsername removed - backend only supports userId (UUID) lookups.
+// All profile fetches should use getProfileByUserId() instead.
 
 export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 	try {

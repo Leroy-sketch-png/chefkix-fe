@@ -4,11 +4,7 @@ import { UserX, Home, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
-interface ProfileNotFoundProps {
-	username?: string
-}
-
-export const ProfileNotFound = ({ username }: ProfileNotFoundProps) => {
+export const ProfileNotFound = () => {
 	return (
 		<div className='flex min-h-[70vh] flex-col items-center justify-center px-4'>
 			<div className='mx-auto max-w-md text-center'>
@@ -20,14 +16,7 @@ export const ProfileNotFound = ({ username }: ProfileNotFoundProps) => {
 
 				<h1 className='mb-2 text-3xl font-bold'>Profile Not Found</h1>
 				<p className='mb-8 text-muted-foreground'>
-					{username ? (
-						<>
-							The profile <span className='font-semibold'>@{username}</span>{' '}
-							doesn&apos;t exist or has been removed.
-						</>
-					) : (
-						<>This profile doesn&apos;t exist or has been removed.</>
-					)}
+					This profile doesn&apos;t exist or has been removed.
 				</p>
 
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>

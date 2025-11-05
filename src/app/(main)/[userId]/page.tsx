@@ -4,20 +4,17 @@ import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 
 interface ProfilePageProps {
 	params: Promise<{
-		username: string
+		userId: string
 	}>
 }
 
 const ProfilePage = async ({ params }: ProfilePageProps) => {
-	const { username } = await params
-	// NOTE: Backend contract uses userId (UUID) for profile lookups.
-	// The route segment is still named `[username]` for now; it must contain the
-	// user's id (UUID). Update routes/links later to use `[userId]`.
-	const { success, data: profile } = await getProfileByUserId(username)
+	const { userId } = await params
+	const { success, data: profile } = await getProfileByUserId(userId)
 	const { data: currentUserProfile } = await getMyProfile()
 
 	if (!success || !profile) {
-		return <ProfileNotFound username={username} />
+		return <ProfileNotFound />
 	}
 
 	return (

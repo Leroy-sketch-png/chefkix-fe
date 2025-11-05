@@ -119,6 +119,12 @@ export const PostCard = ({
 			tags,
 		})
 
+		if (response.statusCode === 410) {
+			// Post edit window expired (backend)
+			toast.error('This post can no longer be edited (editing window expired)')
+			return
+		}
+
 		if (response.success && response.data) {
 			setPost(response.data)
 			onUpdate?.(response.data)
@@ -140,7 +146,7 @@ export const PostCard = ({
 			{/* Header */}
 			<div className='flex items-center justify-between p-4'>
 				<Link
-					href={`/${post.displayName}`}
+					href={`/${post.userId}`}
 					className='flex items-center gap-3 transition-opacity hover:opacity-80'
 				>
 					<div className='relative h-12 w-12'>

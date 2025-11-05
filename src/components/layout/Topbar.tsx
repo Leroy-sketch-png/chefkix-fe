@@ -87,7 +87,7 @@ export const Topbar = () => {
 					</div>
 
 					{/* Avatar */}
-					<Link href={`/${user.username}`}>
+					<Link href={`/${user.userId}`}>
 						<div className='group relative h-11 w-11 cursor-pointer rounded-full shadow-lg transition-all duration-300 hover:translate-y-[-3px] hover:scale-105 hover:shadow-glow'>
 							<Image
 								src={user.avatarUrl || 'https://i.pravatar.cc/44'}
@@ -167,7 +167,7 @@ export const Topbar = () => {
 						</div>
 					</div>
 					{/* Avatar */}
-					<Link href={`/${user.username}`}>
+					<Link href={`/${user.userId}`}>
 						<div className='group relative h-11 w-11 cursor-pointer rounded-full shadow-lg transition-all duration-300 hover:translate-y-[-3px] hover:scale-105 hover:shadow-glow'>
 							<Image
 								src={user.avatarUrl || 'https://i.pravatar.cc/44'}
