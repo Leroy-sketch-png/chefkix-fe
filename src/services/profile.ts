@@ -29,9 +29,7 @@ export const getProfileByUserId = async (
 
 export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 	try {
-		const response = await api.get<ApiResponse<Profile>>(
-			API_ENDPOINTS.PROFILE.GET_ME,
-		)
+		const response = await api.get<ApiResponse<Profile>>(API_ENDPOINTS.AUTH.ME)
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Profile>>

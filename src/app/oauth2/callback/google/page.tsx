@@ -4,12 +4,13 @@ import { useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { googleSignIn } from '@/services/auth'
+import { getMyProfile } from '@/services/profile'
 import { AUTH_MESSAGES, PATHS } from '@/constants'
 
 const GoogleCallbackPage = () => {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const { login } = useAuth()
+	const { login, setUser } = useAuth()
 
 	useEffect(() => {
 		const code = searchParams.get('code')
@@ -28,8 +29,27 @@ const GoogleCallbackPage = () => {
 			const exchangeCodeForToken = async () => {
 				const response = await googleSignIn({ code })
 				if (response.success && response.data) {
-					login(response.data.user, response.data.token)
-					router.push(PATHS.HOME)
+					// Backend returns only accessToken - validate it exists
+					if (!response.data.accessToken) {
+						router.push(
+							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Authentication failed: no access token received from server.')}`,
+						)
+						return
+					}
+
+					// Set the token first (without user)
+					login(response.data.accessToken)
+
+					// Then fetch the user profile
+					const profileResponse = await getMyProfile()
+					if (profileResponse.success && profileResponse.data) {
+						setUser(profileResponse.data)
+						router.push(PATHS.HOME)
+					} else {
+						router.push(
+							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Failed to fetch user profile.')}`,
+						)
+					}
 				} else {
 					// Handle failure: redirect to sign-in with an error message
 					const errorMessage =
@@ -47,7 +67,7 @@ const GoogleCallbackPage = () => {
 				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.UNKNOWN_ERROR)}`,
 			)
 		}
-	}, [searchParams, router, login])
+	}, [searchParams, router, login, setUser])
 
 	return (
 		<div className='flex min-h-screen flex-col items-center justify-center'>

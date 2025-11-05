@@ -1,7 +1,6 @@
 import { api } from '@/lib/axios'
 import {
 	ApiResponse,
-	IntrospectResponse,
 	LoginSuccessResponse,
 	SendOtpDto,
 	SignInDto,
@@ -11,6 +10,7 @@ import {
 } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
+import { AUTH_MESSAGES } from '@/constants/messages'
 
 // Sign-in function
 export const signIn = async (
@@ -29,7 +29,7 @@ export const signIn = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
@@ -50,31 +50,28 @@ export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
 }
 
-// Token introspection function
-export const introspect = async (
-	token: string,
-): Promise<ApiResponse<IntrospectResponse>> => {
+// Logout function - calls backend to invalidate session
+export const logout = async (): Promise<ApiResponse<string>> => {
 	try {
-		const response = await api.post<ApiResponse<IntrospectResponse>>(
-			API_ENDPOINTS.AUTH.INTROSPECT,
-			{ token },
+		const response = await api.post<ApiResponse<string>>(
+			API_ENDPOINTS.AUTH.LOGOUT,
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<IntrospectResponse>>
+		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
 		return {
 			success: false,
-			message: 'Session expired or invalid. Please sign in again.',
-			statusCode: 401,
+			message: AUTH_MESSAGES.LOGOUT_ERROR,
+			statusCode: 500,
 		}
 	}
 }
@@ -96,7 +93,7 @@ export const sendOtp = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
@@ -119,16 +116,25 @@ export const verifyOtp = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
 }
 
 // Google Sign-In function
+// TODO: Google OAuth endpoint is pending backend implementation
 export const googleSignIn = async (
 	data: GoogleSignInDto,
 ): Promise<ApiResponse<LoginSuccessResponse>> => {
+	// Placeholder implementation - endpoint not yet available
+	return {
+		success: false,
+		message: AUTH_MESSAGES.GOOGLE_UNAVAILABLE,
+		statusCode: 503,
+	}
+
+	/* Uncomment when backend implements Google OAuth:
 	try {
 		const response = await api.post<ApiResponse<LoginSuccessResponse>>(
 			API_ENDPOINTS.AUTH.GOOGLE,
@@ -142,8 +148,9 @@ export const googleSignIn = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: AUTH_MESSAGES.UNKNOWN_ERROR,
 			statusCode: 500,
 		}
 	}
+	*/
 }

@@ -56,6 +56,9 @@
 	/* Heights */
 	--h-topbar: 72px;
 	--h-mobile-nav: 72px;
+	--h-textarea-min: 100px; /* Minimum height for textareas */
+	--h-content-min: 50vh; /* Minimum content height (empty states) */
+	--h-content-tall: 60vh; /* Taller content height (error states) */
 
 	/* Z-index scale */
 	--z-base: 1;

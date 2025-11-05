@@ -3,23 +3,31 @@ export interface Statistics {
 	followingCount: number
 	friendCount: number
 	friendRequestCount: number
+	recipeCount: number
+	postCount: number
+	favouriteCount: number
 	currentLevel: number
-	currentXP?: number
-	currentXPGoal?: number
-	title?: string
+	currentXP: number
+	currentXPGoal: number
+	title: 'BEGINNER' | 'AMATEUR' | 'SEMIPRO' | 'PRO'
+	streakCount: number
+	reputation: number
 }
 
 export interface Friend {
-	userId: string
+	friendId: string
 	friendedAt: string
 }
 
 export type RelationshipStatus =
 	| 'SELF'
 	| 'FRIENDS'
+	| 'REQUEST_SENT'
+	| 'REQUEST_RECEIVED'
+	| 'NOT_FRIENDS'
+	// Legacy names for backward compatibility
 	| 'PENDING_SENT'
 	| 'PENDING_RECEIVED'
-	| 'NOT_FRIENDS'
 
 export interface Profile {
 	profileId: string
@@ -33,7 +41,7 @@ export interface Profile {
 	phoneNumber: string | null
 	avatarUrl: string
 	bio: string
-	accountType: 'user' | 'chef'
+	accountType: 'normal' | 'chef' | 'admin'
 	location: string
 	preferences: string[]
 	statistics: Statistics

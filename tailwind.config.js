@@ -115,6 +115,15 @@ module.exports = {
 				nav: 'var(--nav-w)',
 				right: 'var(--right-w)',
 			},
+			minWidth: {
+				nav: 'var(--nav-w)',
+				search: '120px', // Search bar minimum width
+			},
+			minHeight: {
+				textarea: 'var(--h-textarea-min)',
+				content: 'var(--h-content-min)',
+				'content-tall': 'var(--h-content-tall)',
+			},
 			boxShadow: {
 				sm: 'var(--shadow-sm)',
 				DEFAULT: 'var(--shadow-md)',

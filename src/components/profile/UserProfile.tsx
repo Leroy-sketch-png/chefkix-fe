@@ -27,6 +27,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { triggerFriendConfetti } from '@/lib/confetti'
 import { motion } from 'framer-motion'
+import { SOCIAL_MESSAGES } from '@/constants/messages'
 
 type UserProfileProps = {
 	profile: Profile
@@ -250,7 +251,7 @@ export const UserProfile = ({
 					...response.data.statistics,
 				},
 			}))
-			toast.success('Friend request declined')
+			toast.success(SOCIAL_MESSAGES.FRIEND_REQUEST_DECLINED)
 		} else {
 			// Revert on error
 			setProfile(prev => ({

@@ -4,42 +4,58 @@ import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { AUTH_ROUTES, PATHS, PUBLIC_ROUTES } from '@/constants'
-import { introspect } from '@/services/auth'
+import { getMyProfile } from '@/services/profile'
 
 interface AuthProviderProps {
 	children: React.ReactNode
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-	const { isAuthenticated, isLoading, token, logout, setLoading } = useAuth()
+	const {
+		isAuthenticated,
+		isLoading,
+		accessToken,
+		user,
+		logout,
+		setLoading,
+		setUser,
+	} = useAuth()
 	const pathname = usePathname()
 	const router = useRouter()
 
 	// This effect runs once on app load to validate the session.
 	useEffect(() => {
 		const validateSession = async () => {
-			if (!token) {
-				// If there's no token, we're done loading.
+			// Ensure we show a loading state while we validate any persisted token.
+			// Persisted stores may contain `isLoading: false` from previous sessions,
+			// so explicitly set loading true here to avoid flash / premature redirects.
+			setLoading(true)
+
+			if (!accessToken) {
+				// If there's no accessToken, we're done loading.
 				setLoading(false)
 				return
 			}
 
-			// If a token exists, we must validate it with the backend.
-			const response = await introspect(token)
-
-			if (!response.success || !response.data?.valid) {
-				// If the token is invalid, log the user out.
-				logout()
-			} else {
-				// If the token is valid, we simply stop loading.
-				// The user data is already in the store from the last login.
-				setLoading(false)
+			// Token exists - Keycloak handles validation internally.
+			// We just need to ensure we have user data.
+			// If we don't have user data, fetch it.
+			if (!user) {
+				const profileResponse = await getMyProfile()
+				if (profileResponse.success && profileResponse.data) {
+					setUser(profileResponse.data)
+				} else {
+					// Failed to fetch profile, logout
+					logout()
+				}
 			}
+			// We're done loading
+			setLoading(false)
 		}
 
 		validateSession()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [token]) // We only want to re-validate if the token itself changes.
+	}, [accessToken]) // We only want to re-validate if the accessToken itself changes.
 
 	// This effect handles redirection logic AFTER the initial session validation.
 	useEffect(() => {

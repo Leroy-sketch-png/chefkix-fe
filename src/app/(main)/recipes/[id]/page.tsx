@@ -26,6 +26,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useUiStore } from '@/store/uiStore'
+import { RECIPE_MESSAGES } from '@/constants/messages'
 
 export default function RecipeDetailPage() {
 	const params = useParams()
@@ -88,7 +89,7 @@ export default function RecipeDetailPage() {
 		} catch (error) {
 			setIsLiked(previousLiked)
 			setLikeCount(previousCount)
-			toast.error('Failed to like recipe')
+			toast.error(RECIPE_MESSAGES.LIKE_FAILED)
 		} finally {
 			setIsLikeLoading(false)
 		}
@@ -115,7 +116,7 @@ export default function RecipeDetailPage() {
 		} catch (error) {
 			setIsSaved(previousSaved)
 			setSaveCount(previousCount)
-			toast.error('Failed to save recipe')
+			toast.error(RECIPE_MESSAGES.SAVE_FAILED)
 		} finally {
 			setIsSaveLoading(false)
 		}
@@ -135,7 +136,7 @@ export default function RecipeDetailPage() {
 		} else {
 			// Fallback: copy to clipboard
 			await navigator.clipboard.writeText(window.location.href)
-			toast.success('Link copied to clipboard!')
+			toast.success(RECIPE_MESSAGES.LINK_COPIED)
 		}
 	}
 

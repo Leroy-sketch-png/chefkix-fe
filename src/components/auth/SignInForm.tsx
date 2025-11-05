@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { signIn, googleSignIn } from '@/services/auth'
+import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
-import { AUTH_MESSAGES, PATHS } from '@/constants'
+import { PATHS } from '@/constants'
+import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 
 const formSchema = z.object({
@@ -32,7 +34,7 @@ const formSchema = z.object({
 
 export function SignInForm() {
 	const router = useRouter()
-	const { login, isAuthenticated } = useAuth()
+	const { login, setUser, isAuthenticated } = useAuth()
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -49,8 +51,30 @@ export function SignInForm() {
 		})
 
 		if (response.success && response.data) {
-			login(response.data.user, response.data.token)
-			router.push(PATHS.HOME)
+			// Backend returns only accessToken - validate it exists
+			if (!response.data.accessToken) {
+				form.setError('root.general' as any, {
+					type: 'manual',
+					message:
+						'Authentication failed: no access token received from server.',
+				})
+				return
+			}
+
+			// Set the token first (without user)
+			login(response.data.accessToken)
+
+			// Then fetch the user profile
+			const profileResponse = await getMyProfile()
+			if (profileResponse.success && profileResponse.data) {
+				setUser(profileResponse.data)
+				router.push(PATHS.HOME)
+			} else {
+				form.setError('root.general' as any, {
+					type: 'manual',
+					message: 'Failed to fetch user profile. Please try again.',
+				})
+			}
 		} else {
 			const errorMessage = response.message || 'An unknown error occurred.'
 			form.setError('root.general' as any, {
@@ -61,13 +85,9 @@ export function SignInForm() {
 	}
 
 	return (
-		<div className='w-full max-w-md space-y-8'>
-			<p>Authenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
-			<h2 className='mt-6 text-center text-3xl font-extrabold text-foreground'>
-				Sign in to your account
-			</h2>
+		<div className='w-full space-y-6'>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
 					{form.formState.errors.root?.general && (
 						<div
 							className='rounded-md bg-destructive/10 p-4 text-sm text-destructive'
@@ -111,16 +131,47 @@ export function SignInForm() {
 							</FormItem>
 						)}
 					/>
-					<Button type='submit' className='w-full'>
-						Sign In
+					<Button
+						type='submit'
+						className='w-full'
+						disabled={form.formState.isSubmitting}
+					>
+						{form.formState.isSubmitting ? 'Signing in...' : 'Sign In'}
 					</Button>
+					<div className='relative my-4 flex items-center'>
+						<span className='flex-1 border-t border-border'></span>
+						<span className='mx-4 text-xs text-muted-foreground'>or</span>
+						<span className='flex-1 border-t border-border'></span>
+					</div>
 					<GoogleSignInButton
 						text='Sign in with Google'
 						onSuccess={async code => {
 							const response = await googleSignIn({ code })
 							if (response.success && response.data) {
-								login(response.data.user, response.data.token)
-								router.push(PATHS.HOME)
+								// Backend returns only accessToken - validate it exists
+								if (!response.data.accessToken) {
+									form.setError('root.general' as any, {
+										type: 'manual',
+										message:
+											'Authentication failed: no access token received from server.',
+									})
+									return
+								}
+
+								// Set the token first (without user)
+								login(response.data.accessToken)
+
+								// Then fetch the user profile
+								const profileResponse = await getMyProfile()
+								if (profileResponse.success && profileResponse.data) {
+									setUser(profileResponse.data)
+									router.push(PATHS.HOME)
+								} else {
+									form.setError('root.general' as any, {
+										type: 'manual',
+										message: 'Failed to fetch user profile. Please try again.',
+									})
+								}
 							} else {
 								const errorMessage =
 									response.message || 'Google sign-in failed.'
@@ -140,12 +191,12 @@ export function SignInForm() {
 				</form>
 			</Form>
 			<div className='text-center text-sm text-muted-foreground'>
-				New here?{' '}
+				{SIGN_IN_MESSAGES.NO_ACCOUNT}{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_UP}
-					className='font-medium text-primary hover:text-primary-dark'
+					className='font-medium text-primary transition-colors hover:text-primary-dark'
 				>
-					Create an account
+					Create account
 				</Link>
 			</div>
 		</div>

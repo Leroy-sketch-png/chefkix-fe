@@ -1,12 +1,7 @@
 import { Profile } from './profile'
 
-export interface User extends Profile {
-	id: string
-	email: string
-	name: string
-	provider: string
-	emailVerified: boolean
-}
+// User is the authenticated user, which is essentially a Profile
+export type User = Profile
 
 export interface SignInDto {
 	emailOrUsername: string
@@ -19,17 +14,9 @@ export interface SignUpDto {
 	password: string
 }
 
-export interface IntrospectRequest {
-	token: string
-}
-
-export interface IntrospectResponse {
-	valid: boolean
-}
-
 export interface LoginSuccessResponse {
-	user: User
-	token: string
+	accessToken: string
+	refreshToken: null // Always null in response body; real refreshToken is in HttpOnly cookie
 }
 
 export interface VerifyOtpDto {

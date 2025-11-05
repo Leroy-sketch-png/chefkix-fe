@@ -1,6 +1,7 @@
 export * from './auth'
 export * from './common'
 export * from './post'
+export * from './comment'
 export * from './profile'
 export * from './recipe'
 export * from './social'

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Post } from '@/lib/types'
 import { toggleLike, deletePost, updatePost } from '@/services/post'
 import { toast } from 'sonner'
+import { POST_MESSAGES } from '@/constants/messages'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -79,7 +80,7 @@ export const PostCard = ({
 				isLiked: wasLiked,
 				likes: previousLikes,
 			}))
-			toast.error(response.message || 'Failed to like post')
+			toast.error(response.message || POST_MESSAGES.LIKE_FAILED)
 		}
 
 		setIsLiking(false)
@@ -87,25 +88,27 @@ export const PostCard = ({
 
 	const handleSave = () => {
 		setIsSaved(!isSaved)
-		toast.success(isSaved ? 'Removed from saved' : 'Saved successfully!')
+		toast.success(
+			isSaved ? POST_MESSAGES.REMOVE_SAVED : POST_MESSAGES.SAVE_SUCCESS,
+		)
 	}
 
 	const handleDelete = async () => {
-		if (!window.confirm('Are you sure you want to delete this post?')) return
+		if (!window.confirm(POST_MESSAGES.DELETE_CONFIRM)) return
 
 		const response = await deletePost(post.id)
 		if (response.success) {
-			toast.success('Post deleted successfully')
+			toast.success(POST_MESSAGES.DELETE_SUCCESS)
 			onDelete?.(post.id)
 		} else {
-			toast.error(response.message || 'Failed to delete post')
+			toast.error(response.message || POST_MESSAGES.DELETE_FAILED)
 		}
 		setShowMenu(false)
 	}
 
 	const handleEdit = async () => {
 		if (!editContent.trim()) {
-			toast.error('Content cannot be empty')
+			toast.error(POST_MESSAGES.CONTENT_EMPTY)
 			return
 		}
 
@@ -121,7 +124,7 @@ export const PostCard = ({
 
 		if (response.statusCode === 410) {
 			// Post edit window expired (backend)
-			toast.error('This post can no longer be edited (editing window expired)')
+			toast.error(POST_MESSAGES.EDIT_TIME_LIMIT)
 			return
 		}
 
@@ -129,9 +132,9 @@ export const PostCard = ({
 			setPost(response.data)
 			onUpdate?.(response.data)
 			setIsEditing(false)
-			toast.success('Post updated successfully')
+			toast.success(POST_MESSAGES.UPDATE_SUCCESS)
 		} else {
-			toast.error(response.message || 'Failed to update post')
+			toast.error(response.message || POST_MESSAGES.UPDATE_FAILED)
 		}
 	}
 
@@ -146,7 +149,7 @@ export const PostCard = ({
 			{/* Header */}
 			<div className='flex items-center justify-between p-4'>
 				<Link
-					href={`/${post.userId ?? ''}`}
+					href={post.userId ? `/${post.userId}` : '/dashboard'}
 					className='flex items-center gap-3 transition-opacity hover:opacity-80'
 				>
 					<div className='relative h-12 w-12'>
@@ -218,7 +221,7 @@ export const PostCard = ({
 					<textarea
 						value={editContent}
 						onChange={e => setEditContent(e.target.value)}
-						className='min-h-[100px] w-full resize-none rounded-lg border border-border p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='min-h-textarea w-full resize-none rounded-lg border border-border p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						placeholder='Edit your post...'
 					/>
 					<input
@@ -266,18 +269,19 @@ export const PostCard = ({
 						)}
 					</div>
 
-					{/* Media */}
-					{post.photoUrls && post.photoUrls.length > 0 && (
+					{/* Media - Support both photoUrl (legacy) and photoUrls (canonical) */}
+					{(post.photoUrl || (post.photoUrls && post.photoUrls.length > 0)) && (
 						<div className='relative aspect-video w-full overflow-hidden bg-muted'>
 							<Image
-								src={post.photoUrls[0]}
+								src={post.photoUrl || post.photoUrls?.[0] || ''}
 								alt='Post media'
 								fill
 								className='object-cover transition-transform duration-500 group-hover:scale-105'
 							/>
-							{post.photoUrls.length > 1 && (
-								<div className='absolute bottom-2 right-2 rounded-full bg-foreground/60 px-2 py-1 text-xs text-background'>
-									+{post.photoUrls.length - 1} more
+							{/* Show indicator if multiple photos (canonical array format) */}
+							{post.photoUrls && post.photoUrls.length > 1 && (
+								<div className='absolute right-2 top-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm'>
+									1/{post.photoUrls.length}
 								</div>
 							)}
 						</div>

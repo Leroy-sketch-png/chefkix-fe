@@ -1,6 +1,6 @@
 import { api } from '@/lib/axios'
 import { signIn, signUp, sendOtp, verifyOtp } from '@/services/auth'
-import { LoginSuccessResponse, User } from '@/lib/types'
+import { LoginSuccessResponse } from '@/lib/types'
 
 // Mock the entire axios module to avoid real network calls
 jest.mock('@/lib/axios')
@@ -21,40 +21,10 @@ describe('signIn', () => {
 			password: 'password123',
 		}
 
-		const mockUser: User = {
-			id: 'user-id-1',
-			email: 'test@example.com',
-			name: 'testuser',
-			provider: 'credentials',
-			emailVerified: true,
-			profileId: 'profile-id-1',
-			userId: 'user-id-1',
-			username: 'testuser',
-			firstName: 'Test',
-			lastName: 'User',
-			dob: '2000-01-01',
-			displayName: 'Test User',
-			phoneNumber: null,
-			avatarUrl: 'http://example.com/avatar.png',
-			bio: 'A test user',
-			accountType: 'user',
-			location: 'Test City',
-			preferences: [],
-			statistics: {
-				followerCount: 0,
-				followingCount: 0,
-				friendCount: 0,
-				friendRequestCount: 0,
-				currentLevel: 1,
-			},
-			friends: [],
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		}
-
+		// The current API returns tokens in the login response (accessToken & refreshToken)
 		const mockSuccessData: LoginSuccessResponse = {
-			user: mockUser,
-			token: 'fake-jwt-token',
+			accessToken: 'fake-jwt-token',
+			refreshToken: null,
 		}
 		const mockApiResponse = {
 			data: {
@@ -71,8 +41,9 @@ describe('signIn', () => {
 
 		// Assert
 		expect(response.success).toBe(true)
-		expect(response.data?.user.email).toBe('test@example.com')
-		expect(response.data?.token).toBe('fake-jwt-token')
+		// Response contains tokens according to current types
+		expect(response.data?.accessToken).toBe('fake-jwt-token')
+		expect(response.data?.refreshToken).toBeNull()
 		expect(mockedApi.post).toHaveBeenCalledWith(
 			'/api/v1/auth/login',
 			validCredentials,
@@ -254,7 +225,7 @@ describe('verifyOtp', () => {
 		expect(response.statusCode).toBe(200)
 		expect(response.message).toBe('Email verified successfully.')
 		expect(mockedApi.post).toHaveBeenCalledWith(
-			'/api/v1/auth/verify-otp',
+			'/api/v1/auth/verify-otp-user',
 			verificationData,
 		)
 	})

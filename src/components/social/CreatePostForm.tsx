@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { createPost } from '@/services/post'
 import { Post } from '@/lib/types'
-import { toast } from 'sonner'
+import { POST_MESSAGES } from '@/constants/messages'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Image as ImageIcon, Video, X, Tag, Send } from 'lucide-react'
 import Image from 'next/image'
+import { toast } from 'sonner'
 
 interface CreatePostFormProps {
 	onPostCreated?: (post: Post) => void
@@ -56,7 +57,7 @@ export const CreatePostForm = ({
 		e.preventDefault()
 
 		if (!content.trim()) {
-			toast.error('Please write something!')
+			toast.error(POST_MESSAGES.CREATE_EMPTY)
 			return
 		}
 
@@ -68,6 +69,7 @@ export const CreatePostForm = ({
 			.filter(t => t.length > 0)
 
 		const response = await createPost({
+			avatarUrl: currentUser?.avatarUrl || 'https://i.pravatar.cc/48',
 			content: content.trim(),
 			photoUrls: photoFiles,
 			videoUrl: videoUrl.trim() || undefined,
@@ -75,7 +77,7 @@ export const CreatePostForm = ({
 		})
 
 		if (response.success && response.data) {
-			toast.success('Post created successfully!')
+			toast.success(POST_MESSAGES.CREATE_SUCCESS)
 			setContent('')
 			setVideoUrl('')
 			setTags('')

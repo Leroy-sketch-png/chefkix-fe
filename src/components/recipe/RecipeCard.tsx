@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
+import { RECIPE_MESSAGES } from '@/constants/messages'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -54,7 +55,7 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikeCount(previousCount)
-			toast.error('Failed to like recipe')
+			toast.error(RECIPE_MESSAGES.LIKE_FAILED)
 		} finally {
 			setIsLikeLoading(false)
 		}
@@ -93,7 +94,7 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 			// Revert on error
 			setIsSaved(previousSaved)
 			setSaveCount(previousCount)
-			toast.error('Failed to save recipe')
+			toast.error(RECIPE_MESSAGES.SAVE_FAILED)
 		} finally {
 			setIsSaveLoading(false)
 		}
