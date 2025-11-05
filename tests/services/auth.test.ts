@@ -225,7 +225,7 @@ describe('verifyOtp', () => {
 		expect(response.statusCode).toBe(200)
 		expect(response.message).toBe('Email verified successfully.')
 		expect(mockedApi.post).toHaveBeenCalledWith(
-			'/api/v1/auth/verify-otp',
+			'/api/v1/auth/verify-otp-user',
 			verificationData,
 		)
 	})
