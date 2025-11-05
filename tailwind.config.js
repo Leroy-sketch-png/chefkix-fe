@@ -25,8 +25,16 @@ module.exports = {
 				foreground: 'var(--text)',
 				// Semantic color aliases for easier usage
 				bg: 'var(--bg)',
+				'bg-page': 'var(--bg-page)',
+				'bg-card': 'var(--bg-card)',
+				'bg-hover': 'var(--bg-hover)',
 				text: 'var(--text)',
+				'text-primary': 'var(--text-primary)',
+				'text-secondary': 'var(--text-secondary)',
+				'text-tertiary': 'var(--text-tertiary)',
 				'panel-bg': 'var(--panel-bg)',
+				'border-subtle': 'var(--border-subtle)',
+				'border-medium': 'var(--border-medium)',
 				primary: {
 					DEFAULT: 'var(--primary)',
 					dark: 'var(--primary-dark)',
@@ -102,6 +110,17 @@ module.exports = {
 				extrabold: 'var(--font-weight-extrabold)',
 			},
 			spacing: {
+				// Numeric scale (8px baseline)
+				1: 'var(--space-1)',
+				2: 'var(--space-2)',
+				3: 'var(--space-3)',
+				4: 'var(--space-4)',
+				5: 'var(--space-5)',
+				6: 'var(--space-6)',
+				8: 'var(--space-8)',
+				10: 'var(--space-10)',
+				12: 'var(--space-12)',
+				// Semantic aliases (backward compatibility)
 				xs: 'var(--space-xs)',
 				sm: 'var(--space-sm)',
 				md: 'var(--space-md)',
@@ -110,10 +129,22 @@ module.exports = {
 				'2xl': 'var(--space-2xl)',
 				'3xl': 'var(--space-3xl)',
 			},
+			lineHeight: {
+				tight: 'var(--line-height-tight)',
+				normal: 'var(--line-height-normal)',
+				relaxed: 'var(--line-height-relaxed)',
+			},
 			width: {
 				// Canonical layout sizes mapped to CSS variables defined in globals.css
 				nav: 'var(--nav-w)',
 				right: 'var(--right-w)',
+			},
+			maxWidth: {
+				// Container widths
+				'container-sm': 'var(--container-sm)',
+				'container-md': 'var(--container-md)',
+				'container-lg': 'var(--container-lg)',
+				'container-xl': 'var(--container-xl)',
 			},
 			minWidth: {
 				nav: 'var(--nav-w)',

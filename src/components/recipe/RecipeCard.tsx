@@ -103,12 +103,12 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 	return (
 		<Link
 			href={`/recipes/${recipe.id}`}
-			className='group block overflow-hidden rounded-radius bg-panel-bg shadow-md transition-all duration-300 hover:-translate-y-2 hover:rotate-x-[2deg] hover:shadow-glow [transform-style:preserve-3d]'
+			className='group block overflow-hidden rounded-radius bg-bg-card shadow-md transition-all duration-300 hover:-translate-y-2 hover:rotate-x-[2deg] hover:shadow-glow [transform-style:preserve-3d]'
 		>
 			{/* Gradient overlay on hover */}
 			<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
 
-			<div className='relative h-36 w-full overflow-hidden'>
+			<div className='relative aspect-[4/3] w-full overflow-hidden'>
 				<Image
 					src={recipe.imageUrl}
 					alt={recipe.title}
@@ -134,23 +134,25 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 					className={`absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 						isSaved
 							? 'bg-gold/10 text-gold'
-							: 'bg-bg text-muted-foreground hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
+							: 'bg-bg-card text-text-secondary hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
 					}`}
 				>
 					<Bookmark className={`h-5 w-5 ${isSaved ? 'fill-gold' : ''}`} />
 				</button>
 			</div>
-			<div className='p-4'>
-				<h3 className='mb-2 text-lg font-bold'>{recipe.title}</h3>
-				<p className='mb-3 line-clamp-2 text-sm text-muted-foreground'>
+			<div className='space-y-3 p-4 md:p-6'>
+				<h3 className='text-lg font-bold leading-tight text-text-primary line-clamp-2'>
+					{recipe.title}
+				</h3>
+				<p className='text-sm leading-normal text-text-secondary line-clamp-2'>
 					{recipe.description}
 				</p>
-				<div className='mb-4 flex items-center justify-between text-sm text-muted-foreground'>
+				<div className='flex items-center justify-between text-sm text-text-secondary'>
 					<span>By {recipe.author?.displayName || 'Unknown'}</span>
 					<span>⭐ {likeCount} likes</span>
 				</div>
-				<div className='flex gap-2'>
-					<button className='relative flex-1 overflow-hidden rounded-sm border-none bg-gradient-to-br from-accent to-accent-variant py-3 font-bold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+				<div className='flex gap-4'>
+					<button className='relative h-11 flex-1 overflow-hidden rounded-sm border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
 						Cook Recipe
 					</button>
 				</div>
