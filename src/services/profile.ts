@@ -33,10 +33,11 @@ export const getProfileByUsername = async (
 	username: string,
 ): Promise<ApiResponse<Profile>> => {
 	try {
-		// The API spec indicates that /api/profiles/{userId} accepts BOTH userId and username
-		// So we use the same endpoint for both lookups
+		// Per API contract the profiles endpoint accepts only userId.
+		// We intentionally call the GET_BY_USER_ID endpoint here so the
+		// backend will return an error if a non-id (username) is supplied.
 		const response = await api.get<ApiResponse<Profile>>(
-			API_ENDPOINTS.PROFILE.GET_BY_USERNAME(username),
+			API_ENDPOINTS.PROFILE.GET_BY_USER_ID(username),
 		)
 		return response.data
 	} catch (error) {
