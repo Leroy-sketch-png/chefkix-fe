@@ -18,7 +18,7 @@ const maxWidthClasses = {
 
 export const PageContainer = ({
 	children,
-	maxWidth = 'xl',
+	maxWidth = 'lg', // Default to 850px social-media-style center
 	className,
 }: PageContainerProps) => {
 	return (

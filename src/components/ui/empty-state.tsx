@@ -33,8 +33,10 @@ export const EmptyState = ({
 					</div>
 				</div>
 
-				<h3 className='mb-2 text-xl font-bold text-text'>{title}</h3>
-				<p className='mb-6 text-muted-foreground'>{description}</p>
+				<h3 className='mb-2 text-xl font-bold leading-tight text-text-primary'>
+					{title}
+				</h3>
+				<p className='mb-6 leading-normal text-text-secondary'>{description}</p>
 
 				{children ? (
 					children

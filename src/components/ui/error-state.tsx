@@ -26,18 +26,24 @@ export const ErrorState = ({
 					</div>
 				</div>
 
-				<h1 className='mb-2 text-2xl font-bold'>{title}</h1>
-				<p className='mb-8 text-muted-foreground'>{message}</p>
+				<h1 className='mb-2 text-2xl font-bold leading-tight text-text-primary'>
+					{title}
+				</h1>
+				<p className='mb-8 leading-normal text-text-secondary'>{message}</p>
 
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
 					{onRetry && (
-						<Button onClick={onRetry}>
+						<Button onClick={onRetry} className='h-11'>
 							<RefreshCw className='mr-2 h-4 w-4' />
 							Try Again
 						</Button>
 					)}
 					{showHomeButton && (
-						<Button variant={onRetry ? 'outline' : 'default'} asChild>
+						<Button
+							variant={onRetry ? 'outline' : 'default'}
+							asChild
+							className='h-11'
+						>
 							<Link href='/dashboard'>
 								<Home className='mr-2 h-4 w-4' />
 								Go to Dashboard

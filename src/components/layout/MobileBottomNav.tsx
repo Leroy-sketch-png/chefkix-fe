@@ -50,7 +50,7 @@ export const MobileBottomNav = () => {
 	}
 
 	return (
-		<nav className='fixed bottom-0 left-0 right-0 z-sticky hidden h-18 items-center justify-around border-t border-border bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'>
+		<nav className='fixed bottom-0 left-0 right-0 z-sticky hidden h-18 items-center justify-around border-t border-border-subtle bg-bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'>
 			{navItems.map((item, index) => {
 				const Icon = item.icon
 				const active = isActive(item.href)
@@ -61,7 +61,7 @@ export const MobileBottomNav = () => {
 						<Link
 							key={item.href}
 							href={item.href}
-							className='relative -mt-6 flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] transition-all active:bg-muted max-w-20'
+							className='relative -mt-6 flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] transition-all active:bg-bg-hover max-w-20'
 						>
 							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-lg transition-all active:scale-90'>
 								<Icon className='h-7 w-7' />
@@ -75,8 +75,8 @@ export const MobileBottomNav = () => {
 						key={item.href}
 						href={item.href}
 						className={cn(
-							'flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] px-3 py-2 transition-all active:bg-muted max-w-20',
-							active ? 'text-primary' : 'text-muted-foreground',
+							'flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] px-3 py-2 transition-all active:bg-bg-hover max-w-20',
+							active ? 'text-primary' : 'text-text-secondary',
 						)}
 					>
 						<div className='relative'>
@@ -141,7 +141,7 @@ export const MobileTabBar = ({
 								: 'text-muted-foreground hover:bg-muted',
 						)}
 					>
-						<Icon className='h-[18px] w-[18px]' />
+						<Icon className='size-4.5' />
 						<span>{tab.label}</span>
 					</button>
 				)

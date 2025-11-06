@@ -49,7 +49,7 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='sticky top-0 z-sticky flex h-18 w-full items-center gap-2 border-b border-border bg-panel-bg px-4 md:gap-4 md:px-6'
+			className='flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
 			role='banner'
 		>
 			{/* Logo */}
@@ -59,25 +59,25 @@ export const Topbar = () => {
 					Chefkix
 				</div>
 			</Link>{' '}
-			{/* Search Bar - flexible, min width to prevent collapse */}
-			<div className='group relative flex min-w-search flex-1 items-center gap-3 rounded-full border border-border bg-bg px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:bg-card focus-within:shadow-md md:px-4 md:py-2.5'>
-				<Search className='h-5 w-5 shrink-0 text-muted-foreground transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
+			{/* Search Bar - constrained max width for better proportions */}
+			<div className='group relative flex min-w-search max-w-2xl flex-1 items-center gap-3 rounded-full border border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-md md:px-4 md:py-2.5'>
+				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
 				<input
 					type='text'
 					placeholder='Search...'
 					value={searchQuery}
 					onChange={e => setSearchQuery(e.target.value)}
-					className='w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground md:text-base'
+					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-primary outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
 				/>
 			</div>
 			{/* Mode Toggle - Hidden on mobile and small tablets */}
-			<div className='hidden items-center gap-1 rounded-lg border border-border bg-bg p-1 lg:flex'>
+			<div className='hidden items-center gap-1 rounded-lg border border-border-subtle bg-bg p-1 lg:flex'>
 				<button
 					onClick={() => setMode('player')}
-					className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-all duration-300 ${
+					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 ${
 						mode === 'player'
 							? 'bg-primary text-primary-foreground shadow-md'
-							: 'text-muted-foreground hover:text-text'
+							: 'text-text-secondary hover:text-text-primary'
 					}`}
 				>
 					<Gamepad2 className='h-4 w-4' />
@@ -85,10 +85,10 @@ export const Topbar = () => {
 				</button>
 				<button
 					onClick={() => setMode('creator')}
-					className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-all duration-300 ${
+					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 ${
 						mode === 'creator'
 							? 'bg-primary text-primary-foreground shadow-md'
-							: 'text-muted-foreground hover:text-text'
+							: 'text-text-secondary hover:text-text-primary'
 					}`}
 				>
 					<PlusSquare className='h-4 w-4' />
@@ -99,7 +99,7 @@ export const Topbar = () => {
 			{user && (
 				<div className='hidden items-center gap-2 md:flex lg:gap-3'>
 					{/* Level Badge - only show on larger screens */}
-					<div className='relative hidden overflow-hidden rounded-lg bg-gradient-gold px-3 py-1.5 text-sm font-bold text-text shadow-md lg:block'>
+					<div className='relative hidden overflow-hidden rounded-lg bg-gradient-gold px-3 py-1.5 text-sm font-bold text-text-primary shadow-md lg:block'>
 						Lv. {user.statistics?.currentLevel ?? 1}
 						<div className='absolute inset-0 animate-shine bg-gradient-to-r from-transparent via-white/30 to-transparent' />
 					</div>
@@ -121,11 +121,11 @@ export const Topbar = () => {
 
 						{/* Dropdown Menu */}
 						{showUserMenu && (
-							<div className='absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-border bg-card shadow-lg'>
+							<div className='absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg'>
 								<Link
 									href={user.userId ? `/${user.userId}` : PATHS.DASHBOARD}
 									onClick={() => setShowUserMenu(false)}
-									className='flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted'
+									className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
 								>
 									<User className='h-4 w-4' />
 									<span>Profile</span>
@@ -133,14 +133,14 @@ export const Topbar = () => {
 								<Link
 									href={PATHS.SETTINGS}
 									onClick={() => setShowUserMenu(false)}
-									className='flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted'
+									className='flex h-11 items-center gap-3 px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
 								>
 									<Settings className='h-4 w-4' />
 									<span>Settings</span>
 								</Link>
 								<button
 									onClick={handleLogout}
-									className='flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+									className='flex h-11 w-full items-center gap-3 rounded-b-lg px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 								>
 									<LogOut className='h-4 w-4' />
 									<span>Sign Out</span>
@@ -154,20 +154,20 @@ export const Topbar = () => {
 			<div className='flex gap-3 md:gap-4'>
 				<button
 					onClick={toggleNotificationsPopup}
-					className='relative cursor-pointer text-muted-foreground transition-colors hover:text-primary'
+					className='relative h-11 w-11 cursor-pointer text-text-secondary transition-colors hover:text-primary'
 					aria-label='Notifications'
 				>
-					<Bell className='h-5 w-5' />
+					<Bell className='mx-auto h-5 w-5' />
 					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
 						3
 					</span>
 				</button>
 				<button
 					onClick={toggleMessagesDrawer}
-					className='relative cursor-pointer text-muted-foreground transition-colors hover:text-primary'
+					className='relative h-11 w-11 cursor-pointer text-text-secondary transition-colors hover:text-primary'
 					aria-label='Messages'
 				>
-					<MessageSquare className='h-5 w-5' />
+					<MessageSquare className='mx-auto h-5 w-5' />
 					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
 						2
 					</span>
