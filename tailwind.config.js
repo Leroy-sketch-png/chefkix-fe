@@ -17,49 +17,85 @@ module.exports = {
 		},
 		extend: {
 			colors: {
-				// Design system colors
+				// Core design system colors
 				border: 'var(--border-color)',
-				input: 'var(--border-color)',
+				input: 'var(--border-medium)',
 				ring: 'var(--focus)',
 				background: 'var(--bg)',
 				foreground: 'var(--text)',
-				// Semantic color aliases for easier usage
-				bg: 'var(--bg)',
-				text: 'var(--text)',
-				'panel-bg': 'var(--panel-bg)',
+
+				// Brand color system (NEW - consolidated)
+				brand: {
+					DEFAULT: 'var(--color-brand)',
+					hover: 'var(--color-brand-hover)',
+					subtle: 'var(--color-brand-subtle)',
+				},
+
+				// Semantic colors
+				success: 'var(--color-success)',
+				warning: 'var(--color-warning)',
+				error: 'var(--color-error)',
+				info: 'var(--color-info)',
+
+				// Background colors
+				bg: {
+					DEFAULT: 'var(--bg)',
+					page: 'var(--bg-page)',
+					card: 'var(--bg-card)',
+					elevated: 'var(--bg-elevated)',
+					hover: 'var(--bg-hover)',
+					input: 'var(--bg-input)',
+				},
+
+				// Text colors
+				text: {
+					DEFAULT: 'var(--text)',
+					primary: 'var(--text-primary)',
+					secondary: 'var(--text-secondary)',
+					tertiary: 'var(--text-tertiary)',
+					muted: 'var(--text-muted)',
+				},
+
+				// Border colors
+				'border-subtle': 'var(--border-subtle)',
+				'border-medium': 'var(--border-medium)',
+				'border-strong': 'var(--border-strong)',
+
+				// Legacy compatibility - mapped to new system
+				'panel-bg': 'var(--bg-card)',
 				primary: {
-					DEFAULT: 'var(--primary)',
-					dark: 'var(--primary-dark)',
-					light: 'var(--primary-light)',
+					DEFAULT: 'var(--color-brand)',
+					dark: 'var(--color-brand-hover)',
+					light: 'var(--color-brand)',
 					foreground: '#ffffff',
 				},
 				secondary: {
-					DEFAULT: 'var(--muted)',
-					foreground: 'var(--text)',
+					DEFAULT: 'var(--bg-elevated)',
+					foreground: 'var(--text-primary)',
 				},
 				destructive: {
-					DEFAULT: '#e74c3c',
+					DEFAULT: 'var(--color-error)',
 					foreground: '#ffffff',
 				},
 				muted: {
 					DEFAULT: 'var(--muted)',
 					strong: 'var(--muted-strong)',
-					foreground: 'var(--muted-strong)',
+					foreground: 'var(--muted-foreground)',
 				},
 				accent: {
-					DEFAULT: 'var(--accent)',
-					strong: 'var(--accent-strong)',
-					light: 'var(--accent-light)',
+					DEFAULT: 'var(--color-brand)',
+					strong: 'var(--color-brand-hover)',
+					light: 'var(--color-brand-subtle)',
 					foreground: 'var(--text)',
 				},
-				mint: 'var(--mint)',
-				gold: 'var(--gold)',
+				mint: 'var(--color-success)',
+				gold: 'var(--color-warning)',
 				popover: {
-					DEFAULT: 'var(--panel-bg)',
+					DEFAULT: 'var(--bg-elevated)',
 					foreground: 'var(--text)',
 				},
 				card: {
-					DEFAULT: 'var(--panel-bg)',
+					DEFAULT: 'var(--bg-card)',
 					foreground: 'var(--text)',
 				},
 			},
@@ -102,6 +138,17 @@ module.exports = {
 				extrabold: 'var(--font-weight-extrabold)',
 			},
 			spacing: {
+				// Numeric scale (8px baseline)
+				1: 'var(--space-1)',
+				2: 'var(--space-2)',
+				3: 'var(--space-3)',
+				4: 'var(--space-4)',
+				5: 'var(--space-5)',
+				6: 'var(--space-6)',
+				8: 'var(--space-8)',
+				10: 'var(--space-10)',
+				12: 'var(--space-12)',
+				// Semantic aliases (backward compatibility)
 				xs: 'var(--space-xs)',
 				sm: 'var(--space-sm)',
 				md: 'var(--space-md)',
@@ -110,10 +157,22 @@ module.exports = {
 				'2xl': 'var(--space-2xl)',
 				'3xl': 'var(--space-3xl)',
 			},
+			lineHeight: {
+				tight: 'var(--line-height-tight)',
+				normal: 'var(--line-height-normal)',
+				relaxed: 'var(--line-height-relaxed)',
+			},
 			width: {
 				// Canonical layout sizes mapped to CSS variables defined in globals.css
 				nav: 'var(--nav-w)',
 				right: 'var(--right-w)',
+			},
+			maxWidth: {
+				// Container widths
+				'container-sm': 'var(--container-sm)',
+				'container-md': 'var(--container-md)',
+				'container-lg': 'var(--container-lg)',
+				'container-xl': 'var(--container-xl)',
 			},
 			minWidth: {
 				nav: 'var(--nav-w)',
@@ -131,6 +190,14 @@ module.exports = {
 				lg: 'var(--shadow-lg)',
 				glow: 'var(--shadow-glow)',
 			},
+			backdropBlur: {
+				sm: 'var(--blur-sm)',
+				md: 'var(--blur-md)',
+				lg: 'var(--blur-lg)',
+			},
+			backdropSaturate: {
+				DEFAULT: 'var(--saturate)',
+			},
 			transitionTimingFunction: {
 				ease: 'var(--transition-ease)',
 				bounce: 'var(--transition-bounce)',
@@ -144,9 +211,10 @@ module.exports = {
 				tooltip: 'var(--z-tooltip)',
 			},
 			backgroundImage: {
-				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-brand': 'var(--gradient-brand)',
+				'gradient-primary': 'var(--gradient-brand)', // Legacy alias
 				'gradient-success': 'var(--gradient-success)',
-				'gradient-warm': 'var(--gradient-warm)',
+				'gradient-warm': 'var(--gradient-brand)', // Legacy alias
 				'gradient-cool': 'var(--gradient-cool)',
 				'gradient-gold': 'var(--gradient-gold)',
 			},

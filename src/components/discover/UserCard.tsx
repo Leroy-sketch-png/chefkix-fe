@@ -15,7 +15,7 @@ export const UserCard = ({ profile }: UserCardProps) => {
 		<motion.div variants={staggerItemVariants}>
 			<Link href={profile.userId ? `/${profile.userId}` : '/dashboard'}>
 				<motion.div
-					className='cursor-pointer rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md'
+					className='cursor-pointer rounded-lg border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md md:p-6'
 					whileHover={{ scale: 1.02, y: -4 }}
 					transition={{ duration: 0.2 }}
 				>
@@ -29,26 +29,26 @@ export const UserCard = ({ profile }: UserCardProps) => {
 							/>
 						</div>
 						<div className='overflow-hidden'>
-							<h3 className='truncate text-lg font-bold text-foreground'>
+							<h3 className='truncate text-lg font-bold leading-tight text-text-primary'>
 								{profile.displayName || 'Unknown User'}
 							</h3>
-							<p className='truncate text-sm text-muted-foreground'>
+							<p className='truncate text-sm leading-normal text-text-secondary'>
 								@{profile.username || 'user'}
 							</p>
 						</div>
 					</div>
 					<div className='mt-4 flex justify-around text-center text-sm'>
 						<div>
-							<span className='font-bold'>
+							<span className='font-bold text-text-primary'>
 								{profile.statistics?.followerCount ?? 0}
 							</span>
-							<span className='ml-1 text-muted-foreground'>Followers</span>
+							<span className='ml-1 text-text-secondary'>Followers</span>
 						</div>
 						<div>
-							<span className='font-bold'>
+							<span className='font-bold text-text-primary'>
 								{profile.statistics?.currentLevel ?? 1}
 							</span>
-							<span className='ml-1 text-muted-foreground'>Level</span>
+							<span className='ml-1 text-text-secondary'>Level</span>
 						</div>
 					</div>
 				</motion.div>

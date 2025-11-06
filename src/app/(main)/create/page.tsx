@@ -9,7 +9,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 
 export default function CreateRecipePage() {
 	return (
-		<PageContainer maxWidth='xl'>
+		<PageContainer maxWidth='lg'>
 			<h1 className='mb-6 text-3xl font-bold'>Create New Recipe</h1>
 			<div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
 				{/* Left Column: Form */}

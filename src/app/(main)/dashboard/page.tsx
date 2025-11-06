@@ -42,33 +42,41 @@ export default function DashboardPage() {
 	}, [])
 
 	const handlePostCreated = (newPost: Post) => {
-		setPosts(prev => [newPost, ...prev])
+		setPosts(prev => (Array.isArray(prev) ? [newPost, ...prev] : [newPost]))
 	}
 
 	const handlePostUpdate = (updatedPost: Post) => {
-		setPosts(prev => prev.map(p => (p.id === updatedPost.id ? updatedPost : p)))
+		setPosts(prev =>
+			Array.isArray(prev)
+				? prev.map(p => (p.id === updatedPost.id ? updatedPost : p))
+				: [],
+		)
 	}
 
 	const handlePostDelete = (postId: string) => {
-		setPosts(prev => prev.filter(p => p.id !== postId))
+		setPosts(prev =>
+			Array.isArray(prev) ? prev.filter(p => p.id !== postId) : [],
+		)
 	}
 
 	return (
-		<PageContainer maxWidth='xl'>
+		<PageContainer maxWidth='lg'>
 			{/* Stories Bar - Only show on mobile/tablet, hidden on desktop where RightSidebar shows it */}
-			<div className='mb-6 lg:hidden'>
+			<div className='mb-4 md:mb-6 lg:hidden'>
 				<Stories variant='horizontal' />
 			</div>
 
-			<div className='mb-6'>
-				<h1 className='mb-2 text-3xl font-bold'>Your Feed</h1>
-				<p className='text-muted-foreground'>
+			<div className='mb-4 md:mb-6'>
+				<h1 className='mb-2 text-3xl font-bold leading-tight text-text-primary'>
+					Your Feed
+				</h1>
+				<p className='leading-normal text-text-secondary'>
 					Share your culinary journey and see what your friends are cooking
 				</p>
 			</div>
 
 			{/* Create Post Form */}
-			<div className='mb-6'>
+			<div className='mb-4 md:mb-6'>
 				<CreatePostForm
 					onPostCreated={handlePostCreated}
 					currentUser={
@@ -85,7 +93,7 @@ export default function DashboardPage() {
 
 			{/* Content */}
 			{isLoading && (
-				<div className='space-y-6'>
+				<div className='space-y-4 md:space-y-6'>
 					{[1, 2, 3].map(i => (
 						<PostCardSkeleton key={i} />
 					))}
@@ -124,7 +132,7 @@ export default function DashboardPage() {
 			)}
 
 			{!isLoading && !error && posts.length > 0 && (
-				<StaggerContainer className='space-y-6'>
+				<StaggerContainer className='space-y-4 md:space-y-6'>
 					{posts.map(post => (
 						<PostCard
 							key={post.id}
@@ -142,24 +150,24 @@ export default function DashboardPage() {
 
 function PostCardSkeleton() {
 	return (
-		<div className='overflow-hidden rounded-lg border bg-card shadow-sm'>
-			<div className='flex items-center gap-3 p-4'>
+		<div className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-sm'>
+			<div className='flex items-center gap-3 p-4 md:p-6'>
 				<Skeleton className='h-12 w-12 rounded-full' />
 				<div className='flex-1'>
 					<Skeleton className='mb-2 h-4 w-32' />
 					<Skeleton className='h-3 w-24' />
 				</div>
 			</div>
-			<div className='p-4 pt-0'>
-				<Skeleton className='mb-2 h-4 w-full' />
-				<Skeleton className='mb-4 h-4 w-3/4' />
+			<div className='space-y-3 px-4 pb-3 md:px-6'>
+				<Skeleton className='h-4 w-full' />
+				<Skeleton className='h-4 w-3/4' />
 				<Skeleton className='h-48 w-full rounded-lg' />
 			</div>
-			<div className='flex justify-around border-t p-2'>
-				<Skeleton className='h-8 w-20' />
-				<Skeleton className='h-8 w-20' />
-				<Skeleton className='h-8 w-20' />
-				<Skeleton className='h-8 w-20' />
+			<div className='flex justify-around border-t border-border-subtle p-2'>
+				<Skeleton className='h-11 w-20' />
+				<Skeleton className='h-11 w-20' />
+				<Skeleton className='h-11 w-20' />
+				<Skeleton className='h-11 w-20' />
 			</div>
 		</div>
 	)

@@ -144,10 +144,10 @@ export const PostCard = ({
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.95 }}
-			className='group relative mb-6 overflow-hidden rounded-radius border-l-[3px] border-l-transparent bg-panel-bg shadow-md transition-all duration-[400ms] hover:-translate-y-1 hover:border-l-primary hover:shadow-lg'
+			className='group relative mb-6 overflow-hidden rounded-radius border-l-[3px] border-l-transparent bg-bg-card shadow-md transition-all duration-[400ms] hover:-translate-y-1 hover:border-l-primary hover:shadow-lg'
 		>
 			{/* Header */}
-			<div className='flex items-center justify-between p-4'>
+			<div className='flex items-center justify-between p-4 md:p-6'>
 				<Link
 					href={post.userId ? `/${post.userId}` : '/dashboard'}
 					className='flex items-center gap-3 transition-opacity hover:opacity-80'
@@ -161,10 +161,10 @@ export const PostCard = ({
 						/>
 					</div>
 					<div>
-						<div className='text-base font-bold text-text'>
+						<div className='text-base font-bold leading-tight text-text-primary'>
 							{post.displayName || 'Unknown User'}
 						</div>
-						<div className='text-sm text-muted-foreground'>
+						<div className='text-sm leading-normal text-text-secondary'>
 							{formatDistanceToNow(new Date(post.createdAt), {
 								addSuffix: true,
 							})}
@@ -176,9 +176,9 @@ export const PostCard = ({
 					<div className='relative'>
 						<button
 							onClick={() => setShowMenu(!showMenu)}
-							className='rounded-full p-2 transition-colors hover:bg-muted'
+							className='h-11 w-11 rounded-full transition-colors hover:bg-bg-hover'
 						>
-							<MoreVertical className='h-5 w-5 text-muted-foreground' />
+							<MoreVertical className='mx-auto h-5 w-5 text-text-secondary' />
 						</button>
 
 						<AnimatePresence>
@@ -187,7 +187,7 @@ export const PostCard = ({
 									initial={{ opacity: 0, scale: 0.95, y: -10 }}
 									animate={{ opacity: 1, scale: 1, y: 0 }}
 									exit={{ opacity: 0, scale: 0.95, y: -10 }}
-									className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-border bg-card py-1 shadow-lg'
+									className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
 								>
 									{canEdit && (
 										<button
@@ -195,7 +195,7 @@ export const PostCard = ({
 												setIsEditing(true)
 												setShowMenu(false)
 											}}
-											className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:bg-muted'
+											className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 										>
 											<Pencil className='h-4 w-4' />
 											Edit post
@@ -203,7 +203,7 @@ export const PostCard = ({
 									)}
 									<button
 										onClick={handleDelete}
-										className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+										className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 									>
 										<Trash2 className='h-4 w-4' />
 										Delete post
@@ -217,23 +217,23 @@ export const PostCard = ({
 
 			{/* Content */}
 			{isEditing ? (
-				<div className='space-y-3 border-t border-border p-4'>
+				<div className='space-y-3 border-t border-border-subtle p-4 md:p-6'>
 					<textarea
 						value={editContent}
 						onChange={e => setEditContent(e.target.value)}
-						className='min-h-textarea w-full resize-none rounded-lg border border-border p-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='min-h-textarea w-full resize-none rounded-lg border border-border-subtle bg-bg-card p-3 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						placeholder='Edit your post...'
 					/>
 					<input
 						value={editTags}
 						onChange={e => setEditTags(e.target.value)}
-						className='w-full rounded-lg border border-border px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='w-full rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						placeholder='Tags (comma-separated)'
 					/>
 					<div className='flex gap-2'>
 						<button
 							onClick={handleEdit}
-							className='flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+							className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
 						>
 							Save
 						</button>
@@ -243,7 +243,7 @@ export const PostCard = ({
 								setEditContent(post.content)
 								setEditTags(post.tags.join(', '))
 							}}
-							className='flex-1 rounded-lg border border-border px-4 py-2 font-medium text-foreground transition-colors hover:bg-muted'
+							className='h-11 flex-1 rounded-lg border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover'
 						>
 							Cancel
 						</button>
@@ -251,12 +251,12 @@ export const PostCard = ({
 				</div>
 			) : (
 				<>
-					<div className='px-4 pb-3'>
-						<p className='whitespace-pre-wrap text-foreground'>
+					<div className='space-y-3 px-4 pb-3 md:px-6'>
+						<p className='whitespace-pre-wrap leading-relaxed text-text-primary'>
 							{post.content}
 						</p>
 						{post.tags.length > 0 && (
-							<div className='mt-2 flex flex-wrap gap-2'>
+							<div className='flex flex-wrap gap-2'>
 								{post.tags.map(tag => (
 									<span
 										key={tag}
@@ -296,14 +296,14 @@ export const PostCard = ({
 			)}
 
 			{/* Actions */}
-			<div className='flex justify-around border-t border-border bg-card p-2'>
+			<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
 				<button
 					onClick={handleLike}
 					disabled={isLiking}
-					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
+					className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 						post.isLiked
 							? 'text-primary'
-							: 'text-muted-foreground hover:bg-bg hover:text-primary'
+							: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
 					}`}
 				>
 					<Heart
@@ -317,21 +317,21 @@ export const PostCard = ({
 				</button>{' '}
 				<button
 					onClick={() => setShowComments(!showComments)}
-					className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-all hover:bg-bg hover:text-primary'
+					className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 				>
 					<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
 					<span>{post.commentCount ?? 0}</span>
 				</button>
-				<button className='group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-all hover:bg-bg hover:text-primary'>
+				<button className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'>
 					<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
 					<span>Share</span>
 				</button>
 				<button
 					onClick={handleSave}
-					className={`group/btn flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
+					className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 						isSaved
 							? 'text-primary'
-							: 'text-muted-foreground hover:bg-bg hover:text-primary'
+							: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
 					}`}
 				>
 					<Bookmark
@@ -352,14 +352,14 @@ export const PostCard = ({
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}
-						className='overflow-hidden border-t border-border bg-card'
+						className='overflow-hidden border-t border-border-subtle bg-bg-card'
 					>
-						<div className='flex gap-2 p-4'>
+						<div className='flex gap-2 p-4 md:p-6'>
 							<input
-								className='flex-1 rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+								className='flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 								placeholder='Add a comment...'
 							/>
-							<button className='rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground transition-colors hover:bg-primary/90'>
+							<button className='h-11 rounded-lg bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90'>
 								Post
 							</button>
 						</div>

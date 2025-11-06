@@ -88,9 +88,11 @@ export const VerifyOtpForm = () => {
 	}
 
 	return (
-		<div className='rounded-lg bg-card p-8 shadow-md'>
-			<h2 className='text-center text-2xl font-bold'>Verify Your Email</h2>
-			<p className='mt-2 text-center text-sm text-muted-foreground'>
+		<div className='rounded-lg bg-bg-card p-8 shadow-md'>
+			<h2 className='text-center text-2xl font-bold leading-tight text-text-primary'>
+				Verify Your Email
+			</h2>
+			<p className='mt-2 text-center text-sm leading-normal text-text-secondary'>
 				An OTP has been sent to <strong>{email}</strong>. Please enter it below.
 			</p>
 			<Form {...form}>

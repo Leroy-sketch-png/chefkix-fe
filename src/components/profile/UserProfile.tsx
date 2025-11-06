@@ -387,46 +387,52 @@ export const UserProfile = ({
 					</div>
 
 					<div className='mt-4'>
-						<h1 className='text-2xl font-bold'>
+						<h1 className='text-2xl font-bold leading-tight text-text-primary'>
 							{profile.displayName || 'Unknown User'}
 						</h1>
-						<p className='text-muted-foreground'>
+						<p className='leading-normal text-text-secondary'>
 							@{profile.username || 'user'}
 						</p>
-						<p className='mt-2 text-sm text-muted-foreground'>
+						<p className='mt-2 text-sm leading-normal text-text-secondary'>
 							{profile.bio || 'No bio available'}
 						</p>
 					</div>
 
-					<div className='mt-6 flex justify-around border-t border-b py-4'>
+					<div className='mt-6 flex justify-around border-t border-b border-border-subtle py-4'>
 						<div className='text-center'>
-							<span className='block text-xl font-bold'>
+							<span className='block text-xl font-bold leading-tight text-text-primary'>
 								{(profile.statistics?.followerCount ?? 0).toLocaleString()}
 							</span>
-							<span className='text-sm text-muted-foreground'>Followers</span>
+							<span className='text-sm leading-normal text-text-secondary'>
+								Followers
+							</span>
 						</div>
 						<div className='text-center'>
-							<span className='block text-xl font-bold'>
+							<span className='block text-xl font-bold leading-tight text-text-primary'>
 								{(profile.statistics?.followingCount ?? 0).toLocaleString()}
 							</span>
-							<span className='text-sm text-muted-foreground'>Following</span>
+							<span className='text-sm leading-normal text-text-secondary'>
+								Following
+							</span>
 						</div>
 						<div className='text-center'>
-							<span className='block text-xl font-bold'>
+							<span className='block text-xl font-bold leading-tight text-text-primary'>
 								{(profile.statistics?.friendCount ?? 0).toLocaleString()}
 							</span>
-							<span className='text-sm text-muted-foreground'>Friends</span>
+							<span className='text-sm leading-normal text-text-secondary'>
+								Friends
+							</span>
 						</div>
 					</div>
 
 					<div className='mt-6 flex justify-around'>
-						<div className='cursor-pointer border-b-2 border-primary pb-2 font-semibold text-primary'>
+						<div className='cursor-pointer border-b-2 border-primary pb-2 font-semibold leading-tight text-primary'>
 							My Recipes
 						</div>
-						<div className='cursor-pointer pb-2 font-semibold text-muted-foreground hover:text-primary'>
+						<div className='cursor-pointer pb-2 font-semibold leading-tight text-text-secondary hover:text-primary'>
 							Saved
 						</div>
-						<div className='cursor-pointer pb-2 font-semibold text-muted-foreground hover:text-primary'>
+						<div className='cursor-pointer pb-2 font-semibold leading-tight text-text-secondary hover:text-primary'>
 							Badges
 						</div>
 					</div>
@@ -436,7 +442,7 @@ export const UserProfile = ({
 			{/* Profile Content Grid */}
 			<div className='mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
 				{/* Template: Recipe Card */}
-				<div className='overflow-hidden rounded-lg border bg-card shadow-sm'>
+				<div className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-sm'>
 					<div className='relative h-48 w-full'>
 						<Image
 							src='https://i.imgur.com/v8SjYfT.jpeg'
@@ -446,8 +452,10 @@ export const UserProfile = ({
 						/>
 					</div>
 					<div className='p-4'>
-						<h3 className='mb-2 text-lg font-semibold'>Spicy Tomato Ramen</h3>
-						<div className='mb-4 flex items-center gap-4 text-sm text-muted-foreground'>
+						<h3 className='mb-2 text-lg font-semibold leading-tight text-text-primary'>
+							Spicy Tomato Ramen
+						</h3>
+						<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
 							<span className='flex items-center gap-1'>
 								<Clock className='h-4 w-4' /> 25 min
 							</span>
@@ -455,7 +463,7 @@ export const UserProfile = ({
 								<Heart className='h-4 w-4' /> 1.2k
 							</span>
 						</div>
-						<Button className='w-full'>Cook Now</Button>
+						<Button className='h-11 w-full'>Cook Now</Button>
 					</div>
 				</div>
 			</div>

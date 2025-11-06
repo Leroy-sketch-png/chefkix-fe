@@ -8,43 +8,74 @@
    =================================== */
 
 :root {
-	/* ============ COLORS - WARM KITCHEN PALETTE ============ */
+	/* ============ BRAND COLORS - FUNCTIONAL NAMING ============ */
 
-	/* Backgrounds - Warm cream tones like fresh pastry */
-	--bg: #faf8f5;
-	--panel-bg: #ffffff;
+	/* Primary Brand Color - ONE consistent orange-red for all primary actions */
+	--color-brand: #ff6f3c; /* Main brand color - buttons, links, key actions */
+	--color-brand-hover: #e8562a; /* Hover states only */
+	--color-brand-subtle: #ffece0; /* Backgrounds, badges, low-emphasis */
 
-	/* Brand Colors - Appetizing warmth */
-	--accent-light: #fff4ed;
-	--accent: #ff8c42;
-	--accent-strong: #ff6b1a;
-	--primary: #ff6b35;
-	--primary-dark: #e85d2a;
-	--primary-light: #ff8456;
+	/* Semantic Colors - Purpose-driven colors */
+	--color-success: #52b788;
+	--color-warning: #f4a900;
+	--color-error: #dc3545;
+	--color-info: #4299e1;
 
-	/* Semantic Colors - Fresh ingredients */
-	--mint: #86d293;
-	--gold: #ffc145;
-	--text: #2d1810;
-	--muted: #f5f1ed;
-	--muted-foreground: #6b5845;
-	--muted-strong: #5c4a3a;
-	--border-color: #ede6dd;
-	--border: #ede6dd;
-	--destructive: #dc2626;
+	/* ============ LIGHT MODE COLORS ============ */
 
-	/* ============ GRADIENTS - CULINARY INSPIRED ============ */
-	--gradient-primary: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-	--gradient-success: linear-gradient(135deg, #86d293 0%, #52b788 100%);
-	--gradient-warm: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-	--gradient-cool: linear-gradient(135deg, #4facfe 0%, #00d4ff 100%);
-	--gradient-gold: linear-gradient(135deg, #ffc145 0%, #ff8c42 100%);
-	--gradient-sunset: linear-gradient(
+	/* Backgrounds - Clean white with subtle warmth */
+	--bg: #ffffff;
+	--bg-page: #ffffff;
+	--bg-card: #ffffff;
+	--bg-elevated: #fafafa; /* Slightly elevated surfaces */
+	--bg-hover: #f5f5f5; /* Interactive hover states */
+	--bg-input: #fafafa; /* Input field backgrounds */
+
+	/* Text - High contrast for readability */
+	--text: #1a1a1a;
+	--text-primary: #1a1a1a; /* Main text - WCAG AAA */
+	--text-secondary: #4a4a4a; /* Secondary text - WCAG AA */
+	--text-tertiary: #737373; /* Tertiary text - WCAG AA */
+	--text-muted: #9ca3af; /* Placeholder text */
+
+	/* Borders - Actually visible */
+	--border: #e5e5e5;
+	--border-color: #e5e5e5;
+	--border-subtle: #f0f0f0; /* Very subtle dividers */
+	--border-medium: #d4d4d4; /* Input borders, cards */
+	--border-strong: #a3a3a3; /* Focus states, emphasis */
+
+	/* Legacy semantic tokens (for compatibility) */
+	--muted: #f5f5f5;
+	--muted-foreground: #737373;
+	--muted-strong: #525252;
+
+	/* Backwards compatibility - map old tokens to new system */
+	--primary: var(--color-brand);
+	--primary-dark: var(--color-brand-hover);
+	--primary-light: var(--color-brand);
+	--accent: var(--color-brand);
+	--accent-strong: var(--color-brand-hover);
+	--accent-light: var(--color-brand-subtle);
+	--mint: var(--color-success);
+	--gold: var(--color-warning);
+	--destructive: var(--color-error);
+	--panel-bg: var(--bg-card);
+
+	/* ============ GRADIENTS - MINIMAL & PURPOSEFUL ============ */
+	--gradient-brand: linear-gradient(
 		135deg,
-		#ff6b35 0%,
-		#ff8c42 50%,
-		#ffc145 100%
+		var(--color-brand) 0%,
+		var(--color-brand-hover) 100%
 	);
+	--gradient-success: linear-gradient(135deg, #52b788 0%, #66d19e 100%);
+
+	/* Legacy gradient support */
+	--gradient-primary: var(--gradient-brand);
+	--gradient-warm: var(--gradient-brand);
+	--gradient-gold: linear-gradient(135deg, #f4a900 0%, #ffc947 100%);
+	--gradient-sunset: var(--gradient-brand);
+	--gradient-cool: linear-gradient(135deg, #4299e1 0%, #52b788 100%);
 
 	/* ============ LAYOUT ============ */
 	--nav-w: 80px;
@@ -69,22 +100,40 @@
 	--z-tooltip: 1200;
 
 	/* Elevated surface tokens */
-	--bg-elev: #ffffff;
-	--surface: #ffffff;
+	--bg-elev: var(--bg-elevated);
+	--surface: var(--bg-card);
 
-	/* ============ SHADOWS - WARM & ELEGANT ============ */
-	--shadow-sm: 0 2px 8px rgba(255, 107, 53, 0.06);
-	--shadow-md: 0 4px 16px rgba(255, 107, 53, 0.1);
-	--shadow-lg: 0 8px 32px rgba(255, 107, 53, 0.15);
-	--shadow-glow: 0 0 24px rgba(255, 107, 53, 0.3);
-	--shadow-warm: 0 4px 20px rgba(255, 140, 66, 0.25);
+	/* ============ SHADOWS - NEUTRAL GRAYS ============ */
+	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+	--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+	--shadow-glow: 0 0 28px rgba(255, 111, 60, 0.3); /* Brand glow for special cases */
+	--shadow-warm: 0 4px 22px rgba(0, 0, 0, 0.15); /* Renamed for consistency */
 
 	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
 	--transition-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 	--transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-	/* ============ SPACING SCALE ============ */
+	/* ============ EFFECTS ============ */
+	--blur-sm: 10px;
+	--blur-md: 16px;
+	--blur-lg: 24px;
+	--saturate: 180%;
+
+	/* ============ SPACING SCALE (8px baseline) ============ */
+	/* Numeric scale for precise control */
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 20px;
+	--space-6: 24px;
+	--space-8: 32px;
+	--space-10: 40px;
+	--space-12: 48px;
+
+	/* Semantic aliases (for backward compatibility) */
 	--space-xs: 4px;
 	--space-sm: 8px;
 	--space-md: 12px;
@@ -111,6 +160,17 @@
 	--font-weight-bold: 700;
 	--font-weight-extrabold: 800;
 
+	/* Line Heights */
+	--line-height-tight: 1.3;
+	--line-height-normal: 1.5;
+	--line-height-relaxed: 1.6;
+
+	/* ============ CONTAINER WIDTHS ============ */
+	--container-sm: 640px;
+	--container-md: 680px;
+	--container-lg: 850px;
+	--container-xl: 1200px;
+
 	/* Accessibility / focus */
 	--focus: rgba(102, 126, 234, 0.18);
 
@@ -136,46 +196,140 @@
 	--ring: oklch(0.705 0.015 286.067);
 }
 
+/* ============ DARK MODE ============ */
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* ============ DARK MODE SURFACES - PROPER ELEVATION ============ */
+		--bg: #121212; /* Base background - Material Design standard */
+		--bg-page: #121212;
+		--bg-card: #1e1e1e; /* Elevated cards and surfaces */
+		--bg-elevated: #2a2a2a; /* Higher elevation (modals, dropdowns) */
+		--bg-hover: #2a2a2a; /* Interactive hover states */
+		--bg-input: #2a2a2a; /* Input field backgrounds */
+		--panel-bg: #1e1e1e;
+
+		/* ============ DARK MODE TEXT - IMPROVED CONTRAST ============ */
+		--text: #fdfcfa;
+		--text-primary: #fdfcfa; /* Almost white - highest contrast */
+		--text-secondary: #e5ddd0; /* Lighter cream - still readable */
+		--text-tertiary: #c4b8a8; /* Medium - still meets WCAG AA */
+		--text-muted: #9ca3af; /* Placeholder text */
+
+		/* ============ DARK MODE BORDERS - VISIBLE ============ */
+		--border: #3a3a3a;
+		--border-color: #3a3a3a;
+		--border-subtle: #2a2a2a; /* Very subtle dividers */
+		--border-medium: #4a4a4a; /* Input borders, cards */
+		--border-strong: #5a5a5a; /* Focus states */
+
+		/* Legacy semantic tokens */
+		--muted: #2a2a2a;
+		--muted-foreground: #c4b8a8;
+		--muted-strong: #9ca3af;
+
+		/* ============ DARK MODE BRAND COLOR - VIBRANT ============ */
+		--color-brand: #ff6f3c; /* Vibrant orange pops on dark */
+		--color-brand-hover: #ff8855; /* Lighter on hover for dark mode */
+		--color-brand-subtle: #2a1810; /* Dark background tint */
+
+		/* Semantic colors adjusted for dark mode */
+		--color-success: #66d19e;
+		--color-warning: #ffb84d;
+		--color-error: #ff6b6b;
+
+		/* ============ DARK MODE SHADOWS - DEEPER ============ */
+		--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+		--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+		--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+		--shadow-glow: 0 0 28px rgba(255, 111, 60, 0.4);
+		--shadow-warm: 0 4px 22px rgba(0, 0, 0, 0.5);
+
+		/* ============ DARK MODE GRADIENTS ============ */
+		--gradient-brand: linear-gradient(135deg, #ff6f3c 0%, #ff8855 100%);
+		--gradient-primary: var(--gradient-brand);
+		--gradient-warm: var(--gradient-brand);
+	}
+
+	/* Dark Mode Image Filtering - Subtle adjustment */
+	img:not([class*='avatar']):not([class*='profile']),
+	video {
+		filter: brightness(0.95) contrast(1.05) saturate(1.05);
+	}
+}
+
 @theme inline {
-	/* Colors - Define all design system colors for Tailwind utilities */
+	/* ============ BRAND COLORS ============ */
+	--color-brand: var(--color-brand);
+	--color-brand-hover: var(--color-brand-hover);
+	--color-brand-subtle: var(--color-brand-subtle);
+
+	/* ============ SEMANTIC COLORS ============ */
+	--color-success: var(--color-success);
+	--color-warning: var(--color-warning);
+	--color-error: var(--color-error);
+	--color-info: var(--color-info);
+
+	/* ============ BACKGROUND COLORS ============ */
+	--color-bg: var(--bg);
+	--color-bg-page: var(--bg-page);
+	--color-bg-card: var(--bg-card);
+	--color-bg-elevated: var(--bg-elevated);
+	--color-bg-hover: var(--bg-hover);
+	--color-bg-input: var(--bg-input);
+
+	/* ============ TEXT COLORS ============ */
+	--color-text: var(--text);
+	--color-text-primary: var(--text-primary);
+	--color-text-secondary: var(--text-secondary);
+	--color-text-tertiary: var(--text-tertiary);
+	--color-text-muted: var(--text-muted);
+
+	/* ============ BORDER COLORS ============ */
+	--color-border: var(--border-color);
+	--color-border-subtle: var(--border-subtle);
+	--color-border-medium: var(--border-medium);
+	--color-border-strong: var(--border-strong);
+
+	/* ============ LEGACY COMPATIBILITY ============ */
 	--color-background: var(--bg);
 	--color-foreground: var(--text);
-	--color-border: var(--border-color);
 	--color-ring: var(--focus);
-
-	/* Custom semantic colors */
-	--color-bg: var(--bg);
-	--color-text: var(--text);
 	--color-panel-bg: var(--panel-bg);
 	--color-muted: var(--muted);
 	--color-muted-strong: var(--muted-strong);
 	--color-muted-foreground: var(--muted-foreground);
 
-	/* Brand colors */
-	--color-primary: var(--primary);
-	--color-primary-dark: var(--primary-dark);
-	--color-primary-light: var(--primary-light);
+	/* Brand colors (legacy) */
+	--color-primary: var(--color-brand);
+	--color-primary-dark: var(--color-brand-hover);
+	--color-primary-light: var(--color-brand);
 	--color-primary-foreground: #ffffff;
 
-	--color-accent: var(--accent);
-	--color-accent-light: var(--accent-light);
-	--color-accent-strong: var(--accent-strong);
+	--color-accent: var(--color-brand);
+	--color-accent-light: var(--color-brand-subtle);
+	--color-accent-strong: var(--color-brand-hover);
 	--color-accent-foreground: var(--text);
 
-	--color-mint: var(--mint);
-	--color-gold: var(--gold);
+	--color-mint: var(--color-success);
+	--color-gold: var(--color-warning);
 
 	/* Surface colors */
-	--color-card: var(--panel-bg);
+	--color-card: var(--bg-card);
 	--color-card-foreground: var(--text);
-	--color-popover: var(--panel-bg);
+	--color-popover: var(--bg-elevated);
 	--color-popover-foreground: var(--text);
 
-	/* Semantic colors */
-	--color-destructive: #e74c3c;
+	/* Semantic colors (legacy) */
+	--color-destructive: var(--color-error);
 	--color-destructive-foreground: #ffffff;
-	--color-secondary: #fff4ed;
-	--color-secondary-foreground: #2d1810;
+	--color-secondary: var(--bg-elevated);
+	--color-secondary-foreground: var(--text-primary);
+
+	/* Effects */
+	--blur-sm: var(--blur-sm);
+	--blur-md: var(--blur-md);
+	--blur-lg: var(--blur-lg);
+	--saturate: var(--saturate);
 
 	/* Typography */
 	--font-sans: var(--font-family);
@@ -248,7 +402,7 @@
 	/* Container sizes - For max-w-* utilities */
 	--container-sm: 24rem; /* 384px */
 	--container-md: 28rem; /* 448px */
-	--container-lg: 32rem; /* 512px */
+	--container-lg: 53.125rem; /* 850px */
 	--container-xl: 36rem; /* 576px */
 	--container-2xl: 42rem; /* 672px */
 	--container-3xl: 48rem; /* 768px */
@@ -256,6 +410,38 @@
 	--container-5xl: 64rem; /* 1024px */
 	--container-6xl: 72rem; /* 1152px */
 	--container-7xl: 80rem; /* 1280px */
+}
+
+/* ============ GRADIENT UTILITIES ============ */
+/* Explicit utility classes to ensure Tailwind generates bg-gradient-* properly */
+@layer utilities {
+	.bg-gradient-brand {
+		background-image: var(--gradient-brand);
+	}
+
+	.bg-gradient-primary {
+		background-image: var(--gradient-primary);
+	}
+
+	.bg-gradient-success {
+		background-image: var(--gradient-success);
+	}
+
+	.bg-gradient-warm {
+		background-image: var(--gradient-warm);
+	}
+
+	.bg-gradient-gold {
+		background-image: var(--gradient-gold);
+	}
+
+	.bg-gradient-sunset {
+		background-image: var(--gradient-sunset);
+	}
+
+	.bg-gradient-cool {
+		background-image: var(--gradient-cool);
+	}
 }
 
 /* ===================================
@@ -277,12 +463,8 @@ body {
 	margin: 0;
 	padding: 0;
 	font-family: var(--font-family);
-	background: var(--bg);
-	background-image:
-		radial-gradient(at 20% 30%, rgba(255, 107, 53, 0.03) 0px, transparent 50%),
-		radial-gradient(at 80% 70%, rgba(255, 140, 66, 0.04) 0px, transparent 50%),
-		radial-gradient(at 50% 50%, rgba(255, 193, 69, 0.02) 0px, transparent 50%);
-	background-attachment: fixed;
+	background: var(--bg-page);
+	/* Removed warm beige gradient overlay - clean white/dark background */
 	color: var(--text);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -312,10 +494,38 @@ html {
 	line-height: 1.2;
 }
 
-/* Focus styles - Let components handle their own focus */
+/* Focus styles - Clean and minimal */
 :focus-visible {
-	outline: 2px solid var(--ring, var(--primary));
-	outline-offset: 2px;
+	outline: none;
+}
+
+/* Remove autofill background colors */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+	-webkit-box-shadow: 0 0 0 30px var(--bg-card) inset !important;
+	-webkit-text-fill-color: var(--text-primary) !important;
+}
+
+/* Remove all default input styling */
+input[type='text'],
+input[type='search'],
+input[type='email'],
+input[type='password'],
+textarea {
+	border: none !important;
+	box-shadow: none !important;
+}
+
+input[type='text']:focus,
+input[type='search']:focus,
+input[type='email']:focus,
+input[type='password']:focus,
+textarea:focus {
+	border: none !important;
+	box-shadow: none !important;
+	outline: none !important;
 }
 
 a {
@@ -328,7 +538,7 @@ img {
 	display: block;
 }
 
-/* ============ CUSTOM SCROLLBAR - WARM THEME ============ */
+/* ============ CUSTOM SCROLLBAR - BRAND ACCENT ============ */
 ::-webkit-scrollbar {
 	width: 10px;
 	height: 10px;
@@ -340,13 +550,17 @@ img {
 }
 
 ::-webkit-scrollbar-thumb {
-	background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+	background: linear-gradient(
+		135deg,
+		var(--color-brand) 0%,
+		var(--color-brand-hover) 100%
+	);
 	border-radius: 8px;
 	border: 2px solid var(--bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(135deg, #ff8c42, #ffc145);
+	background: var(--color-brand-hover);
 	transform: scale(1.05);
 }
 
@@ -448,6 +662,51 @@ select {
 		transition-duration: 0.01ms !important;
 		scroll-behavior: auto !important;
 	}
+}
+
+/* ============ LAYOUT UTILITIES ============ */
+/* Force correct container width (browser cache buster) */
+.max-w-container-lg {
+	max-width: 850px !important;
+	max-width: 53.125rem !important;
+}
+
+/* Scrollbar styling for main content area */
+.scroll-smooth {
+	scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for better UX */
+.overflow-y-auto::-webkit-scrollbar {
+	width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+	background: var(--border-subtle);
+	border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+	background: var(--border-medium);
+}
+
+/* Firefox scrollbar */
+.overflow-y-auto {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-subtle) transparent;
+}
+
+/* Hide scrollbar for webkit browsers but keep functionality */
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}
+.scrollbar-hide {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
 }
 
 /* Removed @layer base - it was overriding component styles globally */

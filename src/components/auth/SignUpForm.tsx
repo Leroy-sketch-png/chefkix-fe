@@ -135,7 +135,7 @@ export function SignUpForm() {
 					/>
 					<Button
 						type='submit'
-						className='w-full'
+						className='h-11 w-full'
 						disabled={form.formState.isSubmitting}
 					>
 						{form.formState.isSubmitting
@@ -143,9 +143,11 @@ export function SignUpForm() {
 							: SIGN_UP_MESSAGES.FORM_TITLE}
 					</Button>
 					<div className='relative my-6 flex items-center'>
-						<span className='flex-1 border-t border-border'></span>
-						<span className='mx-4 text-xs text-muted-foreground'>or</span>
-						<span className='flex-1 border-t border-border'></span>
+						<span className='flex-1 border-t border-border-subtle'></span>
+						<span className='mx-4 text-xs leading-normal text-text-secondary'>
+							or
+						</span>
+						<span className='flex-1 border-t border-border-subtle'></span>
 					</div>
 					<div className='w-full'>
 						<GoogleSignInButton
@@ -162,7 +164,7 @@ export function SignUpForm() {
 					</div>
 				</form>
 			</Form>
-			<div className='text-center text-sm text-muted-foreground'>
+			<div className='text-center text-sm leading-normal text-text-secondary'>
 				{SIGN_UP_MESSAGES.ALREADY_HAVE_ACCOUNT}{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_IN}

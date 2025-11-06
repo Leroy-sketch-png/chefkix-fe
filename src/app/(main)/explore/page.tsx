@@ -53,7 +53,7 @@ export default function ExplorePage() {
 	}
 
 	return (
-		<PageContainer maxWidth='xl'>
+		<PageContainer maxWidth='lg'>
 			<div className='mb-6'>
 				<h1 className='mb-2 text-3xl font-bold'>Explore Recipes</h1>
 				<p className='text-muted-foreground'>
@@ -78,7 +78,7 @@ export default function ExplorePage() {
 						className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
 							viewMode === 'all'
 								? 'bg-primary text-primary-foreground'
-								: 'bg-secondary hover:bg-secondary/80'
+								: 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
 						}`}
 					>
 						All Recipes
@@ -88,7 +88,7 @@ export default function ExplorePage() {
 						className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
 							viewMode === 'trending'
 								? 'bg-primary text-primary-foreground'
-								: 'bg-secondary hover:bg-secondary/80'
+								: 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
 						}`}
 					>
 						<TrendingUp className='h-4 w-4' />
@@ -99,7 +99,7 @@ export default function ExplorePage() {
 
 			{/* Content */}
 			{isLoading && (
-				<div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+				<div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
 					{[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
 						<RecipeCardSkeleton key={i} />
 					))}
@@ -127,7 +127,7 @@ export default function ExplorePage() {
 			)}
 
 			{!isLoading && !error && recipes.length > 0 && (
-				<StaggerContainer className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+				<StaggerContainer className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
 					{recipes.map(recipe => (
 						<RecipeCard
 							key={recipe.id}
