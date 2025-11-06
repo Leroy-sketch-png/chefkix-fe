@@ -103,16 +103,18 @@ export const ModalHeader = ({
 	return (
 		<div
 			className={cn(
-				'flex items-center justify-between border-b border-border px-6 py-4',
+				'flex items-center justify-between border-b border-border-subtle px-6 py-4',
 				className,
 			)}
 		>
-			<h2 className='text-xl font-bold text-foreground'>{title}</h2>
+			<h2 className='text-xl font-bold leading-tight text-text-primary'>
+				{title}
+			</h2>
 			{children}
 			{showCloseButton && onClose && (
 				<button
 					onClick={onClose}
-					className='grid size-9 place-items-center rounded-full bg-muted text-muted-foreground transition-all hover:bg-muted/80 hover:text-foreground'
+					className='grid size-9 place-items-center rounded-full bg-bg-hover text-text-secondary transition-all hover:bg-bg-card hover:text-text-primary'
 					aria-label='Close modal'
 				>
 					<X className='size-5' />
@@ -203,15 +205,13 @@ export const ConfirmModal = ({
 		<Modal isOpen={isOpen} onClose={onClose} size='sm'>
 			<ModalHeader title={title} onClose={onClose} />
 			<ModalBody>
-				<p className='text-sm leading-relaxed text-muted-foreground'>
-					{message}
-				</p>
+				<p className='text-sm leading-relaxed text-text-secondary'>{message}</p>
 			</ModalBody>
 			<ModalFooter>
 				<button
 					onClick={onClose}
 					disabled={isLoading}
-					className='rounded-lg px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50'
+					className='h-11 rounded-lg px-4 text-sm font-semibold leading-normal text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50'
 				>
 					{cancelText}
 				</button>
@@ -219,7 +219,7 @@ export const ConfirmModal = ({
 					onClick={onConfirm}
 					disabled={isLoading}
 					className={cn(
-						'rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-50',
+						'h-11 rounded-lg px-4 text-sm font-semibold leading-normal transition-all hover:-translate-y-0.5 disabled:opacity-50',
 						variant === 'default' &&
 							'bg-primary text-primary-foreground hover:shadow-md',
 						variant === 'danger' &&
@@ -269,14 +269,12 @@ export const AlertModal = ({
 				className={typeColors[type]}
 			/>
 			<ModalBody>
-				<p className='text-sm leading-relaxed text-muted-foreground'>
-					{message}
-				</p>
+				<p className='text-sm leading-relaxed text-text-secondary'>{message}</p>
 			</ModalBody>
 			<ModalFooter>
 				<button
 					onClick={onClose}
-					className='rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-md'
+					className='h-11 rounded-lg bg-primary px-4 text-sm font-semibold leading-normal text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-md'
 				>
 					{buttonText}
 				</button>

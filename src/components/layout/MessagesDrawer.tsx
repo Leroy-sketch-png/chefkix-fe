@@ -1,17 +1,73 @@
 'use client'
 
-import { Send, X } from 'lucide-react'
+import { Send, X, GripVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useUiStore } from '@/store/uiStore'
+import { useState, useRef, useEffect } from 'react'
 
 export const MessagesDrawer = () => {
 	const { isMessagesDrawerOpen, toggleMessagesDrawer } = useUiStore()
+	const [width, setWidth] = useState(400)
+	const [height, setHeight] = useState(500)
+	const [isResizing, setIsResizing] = useState(false)
+	const drawerRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (!isResizing) return
+
+		const handleMouseMove = (e: MouseEvent) => {
+			if (!drawerRef.current) return
+			const rect = drawerRef.current.getBoundingClientRect()
+
+			// Calculate new width (from right edge)
+			const newWidth = window.innerWidth - e.clientX - 20 // 20px = right margin
+			// Calculate new height (from bottom edge)
+			const newHeight = window.innerHeight - e.clientY
+
+			if (newWidth > 300 && newWidth < 800) {
+				setWidth(newWidth)
+			}
+			if (newHeight > 300 && newHeight < 800) {
+				setHeight(newHeight)
+			}
+		}
+
+		const handleMouseUp = () => {
+			setIsResizing(false)
+		}
+
+		document.addEventListener('mousemove', handleMouseMove)
+		document.addEventListener('mouseup', handleMouseUp)
+
+		return () => {
+			document.removeEventListener('mousemove', handleMouseMove)
+			document.removeEventListener('mouseup', handleMouseUp)
+		}
+	}, [isResizing])
 
 	if (!isMessagesDrawerOpen) return null
 
 	return (
-		<div className='fixed bottom-0 right-5 z-50 flex h-[400px] w-[300px] flex-col rounded-t-lg border bg-card text-card-foreground shadow-lg'>
+		<div
+			ref={drawerRef}
+			className='fixed bottom-0 right-5 z-50 flex flex-col rounded-t-lg border bg-card text-card-foreground shadow-lg'
+			style={{ width: `${width}px`, height: `${height}px` }}
+		>
+			{/* Resize handle */}
+			<div
+				onMouseDown={() => setIsResizing(true)}
+				className='absolute left-0 top-0 flex h-full w-2 cursor-ew-resize items-center justify-center hover:bg-primary/10'
+			>
+				<div className='h-12 w-1 rounded-full bg-border' />
+			</div>
+			<div
+				onMouseDown={() => setIsResizing(true)}
+				className='absolute left-0 top-0 flex h-2 w-full cursor-ns-resize items-center justify-center hover:bg-primary/10'
+			>
+				<div className='h-1 w-12 rounded-full bg-border' />
+			</div>
+
 			<div className='flex items-center justify-between border-b p-3'>
 				<h3 className='font-semibold'>ChefAnna</h3>
 				<Button variant='ghost' size='icon' onClick={toggleMessagesDrawer}>

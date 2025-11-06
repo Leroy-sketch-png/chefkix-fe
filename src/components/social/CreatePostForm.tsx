@@ -96,11 +96,11 @@ export const CreatePostForm = ({
 		<motion.div
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='overflow-hidden rounded-lg border border-border bg-card shadow-md'
+			className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-md'
 		>
 			<form onSubmit={handleSubmit}>
 				{/* Header */}
-				<div className='flex items-center gap-3 border-b border-border p-4'>
+				<div className='flex items-center gap-3 border-b border-border-subtle p-4 md:p-6'>
 					<div className='relative h-12 w-12'>
 						<Image
 							src={currentUser?.avatarUrl || 'https://i.pravatar.cc/48'}
@@ -110,22 +110,22 @@ export const CreatePostForm = ({
 						/>
 					</div>
 					<div>
-						<div className='font-semibold text-foreground'>
+						<div className='font-semibold leading-tight text-text-primary'>
 							{currentUser?.displayName || 'You'}
 						</div>
-						<div className='text-sm text-muted-foreground'>
+						<div className='text-sm leading-normal text-text-secondary'>
 							Share what you&apos;re cooking!
 						</div>
 					</div>
 				</div>
 
 				{/* Content Input */}
-				<div className='p-4'>
+				<div className='p-4 md:p-6'>
 					<textarea
 						value={content}
 						onChange={e => setContent(e.target.value)}
 						placeholder="What's cooking? Share your culinary journey..."
-						className='w-full resize-none rounded-lg border border-border p-3 text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+						className='w-full resize-none rounded-lg border border-border-subtle bg-bg-card p-3 leading-relaxed text-text-primary placeholder-text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 						rows={4}
 					/>
 
@@ -155,9 +155,9 @@ export const CreatePostForm = ({
 										<button
 											type='button'
 											onClick={() => removePhoto(index)}
-											className='absolute right-1 top-1 rounded-full bg-foreground/60 p-1 text-background opacity-0 transition-opacity group-hover:opacity-100'
+											className='absolute right-1 top-1 h-8 w-8 rounded-full bg-text-primary/60 text-bg-card opacity-0 transition-opacity group-hover:opacity-100'
 										>
-											<X className='h-4 w-4' />
+											<X className='mx-auto h-4 w-4' />
 										</button>
 									</motion.div>
 								))}
@@ -175,7 +175,7 @@ export const CreatePostForm = ({
 								className='mt-3 space-y-3'
 							>
 								<div>
-									<label className='mb-1 block text-sm font-medium text-foreground'>
+									<label className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
 										Video URL (optional)
 									</label>
 									<input
@@ -183,11 +183,11 @@ export const CreatePostForm = ({
 										value={videoUrl}
 										onChange={e => setVideoUrl(e.target.value)}
 										placeholder='https://...'
-										className='w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+										className='h-11 w-full rounded-lg border border-border-subtle bg-bg-card px-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 									/>
 								</div>
 								<div>
-									<label className='mb-1 block text-sm font-medium text-foreground'>
+									<label className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
 										Tags (comma-separated)
 									</label>
 									<input
@@ -195,7 +195,7 @@ export const CreatePostForm = ({
 										value={tags}
 										onChange={e => setTags(e.target.value)}
 										placeholder='baking, bread, sourdough'
-										className='w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+										className='h-11 w-full rounded-lg border border-border-subtle bg-bg-card px-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 									/>
 								</div>
 							</motion.div>
@@ -204,10 +204,10 @@ export const CreatePostForm = ({
 				</div>
 
 				{/* Footer Actions */}
-				<div className='flex items-center justify-between border-t border-border bg-muted/30 p-3'>
+				<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
 					<div className='flex gap-2'>
-						<label className='group cursor-pointer rounded-lg p-2 transition-colors hover:bg-muted'>
-							<ImageIcon className='h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary' />
+						<label className='group h-11 w-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
+							<ImageIcon className='mx-auto mt-2.5 h-5 w-5 text-text-secondary transition-colors group-hover:text-primary' />
 							<input
 								type='file'
 								accept='image/*'
@@ -221,32 +221,32 @@ export const CreatePostForm = ({
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
-							className={`rounded-lg p-2 transition-colors hover:bg-muted ${
+							className={`h-11 w-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-primary/10 text-primary'
-									: 'text-muted-foreground'
+									: 'text-text-secondary'
 							}`}
 						>
-							<Video className='h-5 w-5' />
+							<Video className='mx-auto h-5 w-5' />
 						</button>
 
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
-							className={`rounded-lg p-2 transition-colors hover:bg-muted ${
+							className={`h-11 w-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-primary/10 text-primary'
-									: 'text-muted-foreground'
+									: 'text-text-secondary'
 							}`}
 						>
-							<Tag className='h-5 w-5' />
+							<Tag className='mx-auto h-5 w-5' />
 						</button>
 					</div>
 
 					<button
 						type='submit'
 						disabled={isSubmitting || !content.trim()}
-						className='flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex h-11 items-center gap-2 rounded-lg bg-primary px-4 font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isSubmitting ? (
 							<>

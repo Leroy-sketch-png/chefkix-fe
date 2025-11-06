@@ -133,15 +133,17 @@ export function SignInForm() {
 					/>
 					<Button
 						type='submit'
-						className='w-full'
+						className='h-11 w-full'
 						disabled={form.formState.isSubmitting}
 					>
 						{form.formState.isSubmitting ? 'Signing in...' : 'Sign In'}
 					</Button>
 					<div className='relative my-4 flex items-center'>
-						<span className='flex-1 border-t border-border'></span>
-						<span className='mx-4 text-xs text-muted-foreground'>or</span>
-						<span className='flex-1 border-t border-border'></span>
+						<span className='flex-1 border-t border-border-subtle'></span>
+						<span className='mx-4 text-xs leading-normal text-text-secondary'>
+							or
+						</span>
+						<span className='flex-1 border-t border-border-subtle'></span>
 					</div>
 					<GoogleSignInButton
 						text='Sign in with Google'
@@ -190,7 +192,7 @@ export function SignInForm() {
 					/>
 				</form>
 			</Form>
-			<div className='text-center text-sm text-muted-foreground'>
+			<div className='text-center text-sm leading-normal text-text-secondary'>
 				{SIGN_IN_MESSAGES.NO_ACCOUNT}{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_UP}

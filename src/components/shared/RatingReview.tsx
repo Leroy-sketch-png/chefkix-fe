@@ -56,7 +56,7 @@ export const StarRating = ({
 	return (
 		<div className={cn('flex flex-col items-center gap-3', className)}>
 			{!readonly && (
-				<div className='text-sm font-semibold text-foreground'>
+				<div className='text-sm font-semibold leading-tight text-text-primary'>
 					Rate this recipe
 				</div>
 			)}
@@ -70,7 +70,7 @@ export const StarRating = ({
 						onMouseLeave={handleMouseLeave}
 						disabled={readonly}
 						className={cn(
-							'cursor-pointer p-1 transition-all duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)]',
+							'h-11 w-11 cursor-pointer p-1 transition-all duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)]',
 							readonly && 'cursor-default',
 							!readonly && 'hover:scale-125 hover:rotate-[15deg]',
 						)}
@@ -82,14 +82,14 @@ export const StarRating = ({
 								'transition-colors',
 								star <= displayRating
 									? 'fill-[var(--gold)] text-[var(--gold)]'
-									: 'text-border',
+									: 'text-border-subtle',
 							)}
 						/>
 					</button>
 				))}
 			</div>
 			{showValue && (
-				<div className='text-xs text-muted-foreground'>
+				<div className='text-xs leading-normal text-text-secondary'>
 					{rating.toFixed(1)} out of 5
 				</div>
 			)}
@@ -127,7 +127,7 @@ export const RatingDisplay = ({
 
 		return (
 			<div key={index} className='relative'>
-				<Star className={cn(sizeClasses[size], 'text-border')} />
+				<Star className={cn(sizeClasses[size], 'text-border-subtle')} />
 				{fillPercentage > 0 && (
 					<div
 						className='absolute inset-0 overflow-hidden'
@@ -149,7 +149,7 @@ export const RatingDisplay = ({
 		<div className={cn('flex items-center gap-2', className)}>
 			<div className='flex gap-0.5'>{[0, 1, 2, 3, 4].map(renderStar)}</div>
 			{showCount && reviewCount !== undefined && (
-				<span className='text-sm font-semibold text-muted-foreground'>
+				<span className='text-sm font-semibold leading-normal text-text-secondary'>
 					{rating.toFixed(1)} ({reviewCount} reviews)
 				</span>
 			)}
@@ -192,7 +192,7 @@ export const ReviewCard = ({
 	onReport,
 }: ReviewCardProps) => {
 	return (
-		<div className='rounded-[var(--radius)] border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-md'>
+		<div className='rounded-[var(--radius)] border border-border-subtle bg-bg-card p-5 transition-shadow duration-200 hover:shadow-md'>
 			{/* Header */}
 			<div className='mb-4 flex items-start gap-3'>
 				<div className='relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full'>
@@ -204,15 +204,17 @@ export const ReviewCard = ({
 					/>
 				</div>
 				<div className='min-w-0 flex-1'>
-					<div className='mb-1 text-sm font-bold text-foreground'>
+					<div className='mb-1 text-sm font-bold leading-tight text-text-primary'>
 						{author.name}
 					</div>
 					<div className='flex items-center gap-2'>
 						<RatingDisplay rating={rating} showCount={false} size='sm' />
-						<span className='text-xs text-muted-foreground'>{date}</span>
+						<span className='text-xs leading-normal text-text-secondary'>
+							{date}
+						</span>
 					</div>
 				</div>
-				<button className='rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'>
+				<button className='h-11 w-11 rounded-md p-1 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'>
 					<MoreVertical className='h-5 w-5' />
 				</button>
 			</div>
@@ -220,9 +222,11 @@ export const ReviewCard = ({
 			{/* Content */}
 			<div className='mb-4'>
 				{title && (
-					<h4 className='mb-2 text-base font-bold text-foreground'>{title}</h4>
+					<h4 className='mb-2 text-base font-bold leading-tight text-text-primary'>
+						{title}
+					</h4>
 				)}
-				<p className='text-sm leading-relaxed text-foreground'>{content}</p>
+				<p className='text-sm leading-relaxed text-text-primary'>{content}</p>
 			</div>
 
 			{/* Images */}
@@ -245,14 +249,14 @@ export const ReviewCard = ({
 			)}
 
 			{/* Footer */}
-			<div className='flex gap-4 border-t border-border pt-4'>
+			<div className='flex gap-4 border-t border-border-subtle pt-4'>
 				<button
 					onClick={onHelpful}
 					className={cn(
-						'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-all',
+						'flex h-11 items-center gap-1.5 rounded-lg px-3 text-xs transition-all',
 						isHelpful
 							? 'bg-primary/10 text-primary'
-							: 'text-muted-foreground hover:bg-muted hover:text-primary',
+							: 'text-text-secondary hover:bg-bg-hover hover:text-primary',
 					)}
 				>
 					<ThumbsUp className={cn('h-4 w-4', isHelpful && 'fill-primary')} />
@@ -260,14 +264,14 @@ export const ReviewCard = ({
 				</button>
 				<button
 					onClick={onReply}
-					className='flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-all hover:bg-muted hover:text-primary'
+					className='flex h-11 items-center gap-1.5 rounded-lg px-3 text-xs text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 				>
 					<MessageCircle className='h-4 w-4' />
 					<span>Reply</span>
 				</button>
 				<button
 					onClick={onReport}
-					className='flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-all hover:bg-muted hover:text-primary'
+					className='flex h-11 items-center gap-1.5 rounded-lg px-3 text-xs text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 				>
 					<Flag className='h-4 w-4' />
 					<span>Report</span>

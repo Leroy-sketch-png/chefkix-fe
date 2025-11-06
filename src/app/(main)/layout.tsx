@@ -11,15 +11,17 @@ export default function MainAppLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<div className='flex min-h-screen w-full overflow-x-hidden bg-background'>
-			<LeftSidebar />
-			<div className='flex min-w-0 flex-1 flex-col'>
-				<Topbar />
-				<main className='flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6'>
+		<div className='flex h-screen w-full flex-col overflow-hidden bg-background'>
+			{/* Topbar fixed at top, spans full width */}
+			<Topbar />
+			{/* Main content area with sidebars - scrollable */}
+			<div className='flex flex-1 overflow-hidden'>
+				<LeftSidebar />
+				<main className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 lg:gap-6 lg:p-6'>
 					{children}
 				</main>
+				<RightSidebar />
 			</div>
-			<RightSidebar />
 			<MessagesDrawer />
 			<NotificationsPopup />
 			<CookingPlayer />
