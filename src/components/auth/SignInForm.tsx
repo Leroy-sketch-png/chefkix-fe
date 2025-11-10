@@ -44,37 +44,44 @@ export function SignInForm() {
 		},
 	})
 
+	async function handleSuccessfulLogin(
+		response: ApiResponse<LoginSuccessResponse>,
+	) {
+		// Correctly access the nested 'data' property from the standardized ApiResponse
+		const payload = response.data
+		if (!payload || !payload.accessToken) {
+			form.setError('root.general' as any, {
+				type: 'manual',
+				message: 'Authentication failed: no access token received from server.',
+			})
+			return
+		}
+
+		// Per the API spec, login returns a token. Set it, then fetch the user profile.
+		login(payload.accessToken)
+
+		const profileResponse = await getMyProfile()
+		if (profileResponse.success && profileResponse.data) {
+			setUser(profileResponse.data)
+			router.push(PATHS.HOME)
+		} else {
+			form.setError('root.general' as any, {
+				type: 'manual',
+				message:
+					profileResponse.message ||
+					'Login successful, but failed to fetch user profile. Please try again.',
+			})
+		}
+	}
+
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		const response = await signIn({
 			emailOrUsername: values.emailOrUsername,
 			password: values.password,
 		})
 
-		if (response.success && response.data) {
-			// Backend returns only accessToken - validate it exists
-			if (!response.data.accessToken) {
-				form.setError('root.general' as any, {
-					type: 'manual',
-					message:
-						'Authentication failed: no access token received from server.',
-				})
-				return
-			}
-
-			// Set the token first (without user)
-			login(response.data.accessToken)
-
-			// Then fetch the user profile
-			const profileResponse = await getMyProfile()
-			if (profileResponse.success && profileResponse.data) {
-				setUser(profileResponse.data)
-				router.push(PATHS.HOME)
-			} else {
-				form.setError('root.general' as any, {
-					type: 'manual',
-					message: 'Failed to fetch user profile. Please try again.',
-				})
-			}
+		if (response.success) {
+			await handleSuccessfulLogin(response)
 		} else {
 			const errorMessage = response.message || 'An unknown error occurred.'
 			form.setError('root.general' as any, {
@@ -149,31 +156,8 @@ export function SignInForm() {
 						text='Sign in with Google'
 						onSuccess={async code => {
 							const response = await googleSignIn({ code })
-							if (response.success && response.data) {
-								// Backend returns only accessToken - validate it exists
-								if (!response.data.accessToken) {
-									form.setError('root.general' as any, {
-										type: 'manual',
-										message:
-											'Authentication failed: no access token received from server.',
-									})
-									return
-								}
-
-								// Set the token first (without user)
-								login(response.data.accessToken)
-
-								// Then fetch the user profile
-								const profileResponse = await getMyProfile()
-								if (profileResponse.success && profileResponse.data) {
-									setUser(profileResponse.data)
-									router.push(PATHS.HOME)
-								} else {
-									form.setError('root.general' as any, {
-										type: 'manual',
-										message: 'Failed to fetch user profile. Please try again.',
-									})
-								}
+							if (response.success) {
+								await handleSuccessfulLogin(response)
 							} else {
 								const errorMessage =
 									response.message || 'Google sign-in failed.'

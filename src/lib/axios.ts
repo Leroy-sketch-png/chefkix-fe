@@ -31,28 +31,30 @@ const onTokenRefreshed = (token: string) => {
 	refreshSubscribers = []
 }
 
-// Request Interceptor: Add the auth token to every request if it exists.
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-	const accessToken = useAuthStore.getState().accessToken
-
-	// Skip auth header for public endpoints (refresh-token)
-	const isPublicEndpoint = config.url?.includes('/auth/refresh-token')
-
-	if (accessToken && !isPublicEndpoint) {
-		config.headers.Authorization = `Bearer ${accessToken}`
-	}
-	return config
-})
-
 // Response Interceptor: Standardize successful and error responses.
 api.interceptors.response.use(
 	(response: AxiosResponse) => {
 		const backendResponse = response.data
+
+		// Intelligently find the main data payload
+		// Handles structures like { result: data }, { data: data }, or just data
+		const data =
+			backendResponse.result !== undefined
+				? backendResponse.result
+				: backendResponse.data !== undefined
+					? backendResponse.data
+					: backendResponse
+
+		// Standardize the response format for the rest of the app
 		response.data = {
-			success: true,
-			statusCode: backendResponse.code,
-			message: backendResponse.message,
-			data: backendResponse.result,
+			success:
+				backendResponse.success !== undefined ? backendResponse.success : true,
+			statusCode:
+				backendResponse.code !== undefined
+					? backendResponse.code
+					: backendResponse.statusCode,
+			message: backendResponse.message || 'Request was successful.',
+			data: data,
 		}
 		return response
 	},
