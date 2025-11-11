@@ -1,6 +1,7 @@
 import { User } from '@/lib/types'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { api } from '@/lib/axios'
 
 interface AuthState {
 	isAuthenticated: boolean
@@ -50,6 +51,9 @@ export const useAuthStore = create<AuthState>()(
 					return
 				}
 
+				// Set auth header for all subsequent requests
+				api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+
 				set({
 					isAuthenticated: true,
 					user: user || null,
@@ -60,17 +64,27 @@ export const useAuthStore = create<AuthState>()(
 			setUser: (user: User) => {
 				set({ user })
 			},
-			logout: () =>
+			logout: () => {
+				// Clear auth header
+				delete api.defaults.headers.common['Authorization']
 				set({
 					isAuthenticated: false,
 					user: null,
 					accessToken: null,
 					isLoading: false,
-				}),
+				})
+			},
 			setLoading: (isLoading: boolean) => set({ isLoading }),
 		}),
 		{
 			name: 'auth-storage', // The key to use for storing the data in localStorage
+			onRehydrateStorage: state => {
+				if (state && state.accessToken) {
+					api.defaults.headers.common['Authorization'] =
+						`Bearer ${state.accessToken}`
+				}
+				state?.setLoading(false)
+			},
 		},
 	),
 )
