@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
 	Form,
 	FormControl,
@@ -139,13 +140,13 @@ export function SignInForm() {
 							</FormItem>
 						)}
 					/>
-					<Button
+					<LoadingButton
 						type='submit'
 						className='h-11 w-full'
-						disabled={form.formState.isSubmitting}
+						loading={form.formState.isSubmitting}
 					>
-						{form.formState.isSubmitting ? 'Signing in...' : 'Sign In'}
-					</Button>
+						Sign In
+					</LoadingButton>
 					<div className='relative my-4 flex items-center'>
 						<span className='flex-1 border-t border-border-subtle'></span>
 						<span className='mx-4 text-xs leading-normal text-text-secondary'>

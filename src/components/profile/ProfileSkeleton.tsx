@@ -1,10 +1,27 @@
 'use client'
 
 import { Skeleton } from '@/components/ui/skeleton'
+import dynamic from 'next/dynamic'
+import lottieLoading from '@/../../public/lottie/lottie-loading.json'
+
+const LottieAnimation = dynamic(
+	() => import('@/components/shared/LottieAnimation'),
+	{ ssr: false },
+)
 
 export const ProfileSkeleton = () => {
 	return (
 		<div className='mx-auto my-8 max-w-4xl'>
+			{/* Centered Lottie loading animation */}
+			<div className='mb-8 flex justify-center'>
+				<LottieAnimation
+					lottie={lottieLoading}
+					sizeOfIllustrator={(w, h) => Math.min(w * 0.4, h * 0.5, 200)}
+					loop
+					autoplay
+				/>
+			</div>
+
 			<div className='overflow-hidden rounded-lg border bg-card shadow-sm'>
 				{/* Cover Photo Skeleton */}
 				<Skeleton className='h-40 w-full rounded-none' />

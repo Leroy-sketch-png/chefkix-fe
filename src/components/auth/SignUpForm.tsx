@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
 	Form,
 	FormControl,
@@ -133,15 +134,14 @@ export function SignUpForm() {
 							</FormItem>
 						)}
 					/>
-					<Button
+					<LoadingButton
 						type='submit'
 						className='h-11 w-full'
-						disabled={form.formState.isSubmitting}
+						loading={form.formState.isSubmitting}
+						loadingText='Creating account...'
 					>
-						{form.formState.isSubmitting
-							? 'Creating account...'
-							: SIGN_UP_MESSAGES.FORM_TITLE}
-					</Button>
+						{SIGN_UP_MESSAGES.FORM_TITLE}
+					</LoadingButton>
 					<div className='relative my-6 flex items-center'>
 						<span className='flex-1 border-t border-border-subtle'></span>
 						<span className='mx-4 text-xs leading-normal text-text-secondary'>
