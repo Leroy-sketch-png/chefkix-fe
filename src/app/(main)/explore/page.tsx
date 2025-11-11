@@ -5,7 +5,7 @@ import { Recipe } from '@/lib/types/recipe'
 import { getAllRecipes, getTrendingRecipes } from '@/services/recipe'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { RecipeCard } from '@/components/recipe/RecipeCard'
-import { Skeleton } from '@/components/ui/skeleton'
+import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Search, TrendingUp } from 'lucide-react'
@@ -100,9 +100,7 @@ export default function ExplorePage() {
 			{/* Content */}
 			{isLoading && (
 				<div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-					{[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-						<RecipeCardSkeleton key={i} />
-					))}
+					<RecipeCardSkeleton count={6} />
 				</div>
 			)}
 
@@ -138,19 +136,5 @@ export default function ExplorePage() {
 				</StaggerContainer>
 			)}
 		</PageContainer>
-	)
-}
-
-function RecipeCardSkeleton() {
-	return (
-		<div className='overflow-hidden rounded-lg border bg-card shadow-sm'>
-			<Skeleton className='h-48 w-full' />
-			<div className='p-4'>
-				<Skeleton className='mb-2 h-6 w-3/4' />
-				<Skeleton className='mb-4 h-4 w-full' />
-				<Skeleton className='mb-4 h-4 w-1/2' />
-				<Skeleton className='h-10 w-full' />
-			</div>
-		</div>
 	)
 }
