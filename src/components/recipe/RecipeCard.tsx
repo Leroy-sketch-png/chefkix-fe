@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Heart, Clock, Bookmark } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
 import { RECIPE_MESSAGES } from '@/constants/messages'
@@ -15,7 +15,7 @@ interface RecipeCardProps {
 	onUpdate?: (recipe: Recipe) => void
 }
 
-export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
+const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const [isLiked, setIsLiked] = useState(recipe.isLiked ?? false)
 	const [isSaved, setIsSaved] = useState(recipe.isSaved ?? false)
 	const [likeCount, setLikeCount] = useState(recipe.likeCount)
@@ -160,3 +160,5 @@ export const RecipeCard = ({ recipe, onUpdate }: RecipeCardProps) => {
 		</Link>
 	)
 }
+
+export const RecipeCard = memo(RecipeCardComponent)

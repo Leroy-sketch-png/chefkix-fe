@@ -7,12 +7,13 @@ import { staggerItemVariants } from '@/components/ui/stagger-animation'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
+import { memo } from 'react'
 
 interface UserCardProps {
 	profile: Profile
 }
 
-export const UserCard = ({ profile }: UserCardProps) => {
+const UserCardComponent = ({ profile }: UserCardProps) => {
 	const { user } = useAuth()
 
 	return (
@@ -68,3 +69,5 @@ export const UserCard = ({ profile }: UserCardProps) => {
 		</motion.div>
 	)
 }
+
+export const UserCard = memo(UserCardComponent)

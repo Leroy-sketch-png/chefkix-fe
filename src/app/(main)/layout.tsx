@@ -5,6 +5,7 @@ import { MessagesDrawer } from '@/components/layout/MessagesDrawer'
 import { NotificationsPopup } from '@/components/layout/NotificationsPopup'
 import { CookingPlayer } from '@/components/cooking/CookingPlayer'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
+import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
 
 export default function MainAppLayout({
 	children,
@@ -32,6 +33,7 @@ export default function MainAppLayout({
 			<MessagesDrawer />
 			<NotificationsPopup />
 			<CookingPlayer />
+			<KeyboardShortcuts />
 		</div>
 	)
 }
