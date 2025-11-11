@@ -1,8 +1,12 @@
 'use client'
 
-import { Send, X, GripVertical } from 'lucide-react'
+import { Send, X, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from '@/components/ui/input-group'
 import { useUiStore } from '@/store/uiStore'
 import { useState, useRef, useEffect } from 'react'
 
@@ -11,6 +15,7 @@ export const MessagesDrawer = () => {
 	const [width, setWidth] = useState(400)
 	const [height, setHeight] = useState(500)
 	const [isResizing, setIsResizing] = useState(false)
+	const [searchTerm, setSearchTerm] = useState('')
 	const drawerRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -69,11 +74,26 @@ export const MessagesDrawer = () => {
 			</div>
 
 			<div className='flex items-center justify-between border-b p-3'>
-				<h3 className='font-semibold'>ChefAnna</h3>
+				<h3 className='font-semibold'>Messages</h3>
 				<Button variant='ghost' size='icon' onClick={toggleMessagesDrawer}>
 					<X className='h-4 w-4' />
 				</Button>
 			</div>
+
+			{/* Search conversations */}
+			<div className='border-b p-3'>
+				<InputGroup>
+					<InputGroupAddon align='inline-start'>
+						<Search className='h-4 w-4 text-text-muted' />
+					</InputGroupAddon>
+					<InputGroupInput
+						placeholder='Search conversations...'
+						value={searchTerm}
+						onChange={e => setSearchTerm(e.target.value)}
+					/>
+				</InputGroup>
+			</div>
+
 			<div className='flex-1 overflow-y-auto p-3'>
 				<div className='flex flex-col gap-3'>
 					{/* Them */}
@@ -93,7 +113,9 @@ export const MessagesDrawer = () => {
 				</div>
 			</div>
 			<div className='flex items-center gap-2 border-t p-3'>
-				<Input placeholder='Type a message...' className='flex-1' />
+				<InputGroup className='flex-1'>
+					<InputGroupInput placeholder='Type a message...' />
+				</InputGroup>
 				<Button size='icon'>
 					<Send className='h-4 w-4' />
 				</Button>

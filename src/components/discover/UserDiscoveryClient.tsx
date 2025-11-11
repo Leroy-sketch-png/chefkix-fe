@@ -3,7 +3,11 @@
 import { useMemo, useState } from 'react'
 import { Profile } from '@/lib/types'
 import { UserCard } from './UserCard'
-import { Input } from '@/components/ui/input'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from '@/components/ui/input-group'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Users, Search } from 'lucide-react'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
@@ -28,13 +32,18 @@ export const UserDiscoveryClient = ({ profiles }: Props) => {
 	return (
 		<div className='container mx-auto p-4'>
 			<div className='mb-8'>
-				<h1 className='text-3xl font-bold'>Discover Users</h1>
+				<h1 className='text-3xl font-bold text-text-primary'>Discover Users</h1>
 				<div className='mt-4 max-w-md'>
-					<Input
-						placeholder='Search by name or username...'
-						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
-					/>
+					<InputGroup>
+						<InputGroupAddon align='inline-start'>
+							<Search className='h-4 w-4 text-text-muted' />
+						</InputGroupAddon>
+						<InputGroupInput
+							placeholder='Search by name or username...'
+							value={searchTerm}
+							onChange={e => setSearchTerm(e.target.value)}
+						/>
+					</InputGroup>
 				</div>
 			</div>
 
