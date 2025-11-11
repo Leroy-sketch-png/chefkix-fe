@@ -1,7 +1,7 @@
 'use client'
 
 import { useUiStore } from '@/store/uiStore'
-import Image from 'next/image'
+import { useAuth } from '@/hooks/useAuth'
 import {
 	Heart,
 	MessageCircle,
@@ -11,12 +11,15 @@ import {
 	CheckCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { UserHoverCard } from '@/components/social/UserHoverCard'
 
 type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
 
 interface Notification {
 	id: number
 	type: NotificationType
+	userId: string
 	user: string
 	avatar: string
 	action: string
@@ -29,6 +32,7 @@ const notifications: Notification[] = [
 	{
 		id: 1,
 		type: 'like',
+		userId: 'user-1',
 		user: 'Chef Marco',
 		avatar: 'https://i.pravatar.cc/48?u=1',
 		action: 'liked your recipe',
@@ -39,6 +43,7 @@ const notifications: Notification[] = [
 	{
 		id: 2,
 		type: 'comment',
+		userId: 'user-2',
 		user: 'Lisa Chen',
 		avatar: 'https://i.pravatar.cc/48?u=2',
 		action: 'commented: "This looks amazing! 🤤"',
@@ -48,6 +53,7 @@ const notifications: Notification[] = [
 	{
 		id: 3,
 		type: 'follow',
+		userId: 'user-3',
 		user: 'RamenKing',
 		avatar: 'https://i.pravatar.cc/48?u=3',
 		action: 'started following you',
@@ -57,6 +63,7 @@ const notifications: Notification[] = [
 	{
 		id: 4,
 		type: 'cook',
+		userId: 'user-4',
 		user: 'PastryQueen',
 		avatar: 'https://i.pravatar.cc/48?u=4',
 		action: 'cooked your recipe',
@@ -91,6 +98,7 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 
 export const NotificationsPopup = () => {
 	const { isNotificationsPopupOpen, toggleNotificationsPopup } = useUiStore()
+	const { user } = useAuth()
 
 	if (!isNotificationsPopupOpen) return null
 
@@ -137,21 +145,33 @@ export const NotificationsPopup = () => {
 							)}
 						>
 							{/* Avatar with badge */}
-							<div className='relative flex-shrink-0'>
-								<div className='relative h-12 w-12 overflow-hidden rounded-full shadow-md'>
-									<Image
-										src={notif.avatar}
-										alt={notif.user}
-										fill
-										className='object-cover'
-									/>
+							<UserHoverCard userId={notif.userId} currentUserId={user?.userId}>
+								<div className='relative flex-shrink-0'>
+									<Avatar size='lg' className='shadow-md'>
+										<AvatarImage src={notif.avatar} alt={notif.user} />
+										<AvatarFallback>
+											{notif.user
+												.split(' ')
+												.map(n => n[0])
+												.join('')
+												.toUpperCase()
+												.slice(0, 2)}
+										</AvatarFallback>
+									</Avatar>
+									<NotificationBadge type={notif.type} />
 								</div>
-								<NotificationBadge type={notif.type} />
-							</div>
+							</UserHoverCard>
 							{/* Content */}
 							<div className='flex-1 min-w-0'>
 								<p className='text-sm leading-relaxed text-foreground'>
-									<span className='font-semibold'>{notif.user}</span>{' '}
+									<UserHoverCard
+										userId={notif.userId}
+										currentUserId={user?.userId}
+									>
+										<span className='font-semibold cursor-pointer hover:underline'>
+											{notif.user}
+										</span>
+									</UserHoverCard>{' '}
 									{notif.action}
 									{notif.target && (
 										<>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Post } from '@/lib/types'
 import { toggleLike, deletePost, updatePost } from '@/services/post'
-import { toast } from 'sonner'
+import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -18,7 +18,10 @@ import {
 	X,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
+import { UserHoverCard } from '@/components/social/UserHoverCard'
+import { CommentList } from '@/components/social/CommentList'
 
 interface PostCardProps {
 	post: Post
@@ -148,29 +151,40 @@ export const PostCard = ({
 		>
 			{/* Header */}
 			<div className='flex items-center justify-between p-4 md:p-6'>
-				<Link
-					href={post.userId ? `/${post.userId}` : '/dashboard'}
-					className='flex items-center gap-3 transition-opacity hover:opacity-80'
-				>
-					<div className='relative h-12 w-12'>
-						<Image
-							src={post.avatarUrl || 'https://i.pravatar.cc/48'}
-							alt={post.displayName || 'User'}
-							fill
-							className='rounded-full object-cover shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
-						/>
-					</div>
-					<div>
-						<div className='text-base font-bold leading-tight text-text-primary'>
-							{post.displayName || 'Unknown User'}
+				<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
+					<Link
+						href={post.userId ? `/${post.userId}` : '/dashboard'}
+						className='flex items-center gap-3 transition-opacity hover:opacity-80'
+					>
+						<Avatar
+							size='lg'
+							className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
+						>
+							<AvatarImage
+								src={post.avatarUrl || 'https://i.pravatar.cc/48'}
+								alt={post.displayName || 'User'}
+							/>
+							<AvatarFallback>
+								{post.displayName
+									?.split(' ')
+									.map(n => n[0])
+									.join('')
+									.toUpperCase()
+									.slice(0, 2) || 'U'}
+							</AvatarFallback>
+						</Avatar>
+						<div>
+							<div className='text-base font-bold leading-tight text-text-primary'>
+								{post.displayName || 'Unknown User'}
+							</div>
+							<div className='text-sm leading-normal text-text-secondary'>
+								{formatDistanceToNow(new Date(post.createdAt), {
+									addSuffix: true,
+								})}
+							</div>
 						</div>
-						<div className='text-sm leading-normal text-text-secondary'>
-							{formatDistanceToNow(new Date(post.createdAt), {
-								addSuffix: true,
-							})}
-						</div>
-					</div>
-				</Link>
+					</Link>
+				</UserHoverCard>
 
 				{isOwner && (
 					<div className='relative'>
@@ -354,7 +368,7 @@ export const PostCard = ({
 						exit={{ height: 0, opacity: 0 }}
 						className='overflow-hidden border-t border-border-subtle bg-bg-card'
 					>
-						<div className='flex gap-2 p-4 md:p-6'>
+						<div className='flex gap-2 border-b border-border-subtle p-4 md:p-6'>
 							<input
 								className='flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 								placeholder='Add a comment...'
@@ -363,6 +377,7 @@ export const PostCard = ({
 								Post
 							</button>
 						</div>
+						<CommentList postId={post.id} currentUserId={currentUserId} />
 					</motion.div>
 				)}
 			</AnimatePresence>

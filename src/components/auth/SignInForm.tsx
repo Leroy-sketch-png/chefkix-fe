@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
 	Form,
 	FormControl,
@@ -16,6 +17,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { ApiResponse, LoginSuccessResponse, User } from '@/lib/types'
 import { signIn, googleSignIn } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
@@ -23,6 +25,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
 import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
+import { toast } from '@/components/ui/toaster'
 
 const formSchema = z.object({
 	emailOrUsername: z
@@ -51,10 +54,13 @@ export function SignInForm() {
 		// Correctly access the nested 'data' property from the standardized ApiResponse
 		const payload = response.data
 		if (!payload || !payload.accessToken) {
+			const errorMsg =
+				'Authentication failed: no access token received from server.'
 			form.setError('root.general' as any, {
 				type: 'manual',
-				message: 'Authentication failed: no access token received from server.',
+				message: errorMsg,
 			})
+			toast.error(errorMsg)
 			return
 		}
 
@@ -64,14 +70,17 @@ export function SignInForm() {
 		const profileResponse = await getMyProfile()
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
+			toast.success('Welcome back! Signed in successfully.')
 			router.push(PATHS.HOME)
 		} else {
+			const errorMsg =
+				profileResponse.message ||
+				'Login successful, but failed to fetch user profile. Please try again.'
 			form.setError('root.general' as any, {
 				type: 'manual',
-				message:
-					profileResponse.message ||
-					'Login successful, but failed to fetch user profile. Please try again.',
+				message: errorMsg,
 			})
+			toast.error(errorMsg)
 		}
 	}
 
@@ -89,6 +98,7 @@ export function SignInForm() {
 				type: 'manual',
 				message: errorMessage,
 			})
+			toast.error(errorMessage)
 		}
 	}
 
@@ -128,8 +138,7 @@ export function SignInForm() {
 							<FormItem>
 								<FormLabel>Password</FormLabel>
 								<FormControl>
-									<Input
-										type='password'
+									<PasswordInput
 										placeholder='password'
 										{...field}
 										className='text-foreground'
@@ -139,13 +148,13 @@ export function SignInForm() {
 							</FormItem>
 						)}
 					/>
-					<Button
+					<LoadingButton
 						type='submit'
 						className='h-11 w-full'
-						disabled={form.formState.isSubmitting}
+						loading={form.formState.isSubmitting}
 					>
-						{form.formState.isSubmitting ? 'Signing in...' : 'Sign In'}
-					</Button>
+						Sign In
+					</LoadingButton>
 					<div className='relative my-4 flex items-center'>
 						<span className='flex-1 border-t border-border-subtle'></span>
 						<span className='mx-4 text-xs leading-normal text-text-secondary'>

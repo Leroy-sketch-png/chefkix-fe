@@ -13,11 +13,18 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import {
+	InputOTP,
+	InputOTPGroup,
+	InputOTPSlot,
+} from '@/components/ui/input-otp'
+import { ResendOtpButton } from '@/components/ui/resend-otp-button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { sendOtp, verifyOtp } from '@/services/auth'
 import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
 import { useState } from 'react'
+import { LoadingButton } from '@/components/ui/loading-button'
+import { toast } from '@/components/ui/toaster'
 
 const formSchema = z.object({
 	otp: z.string().min(6, { message: 'Your OTP must be 6 characters.' }),
@@ -37,36 +44,48 @@ export const VerifyOtpForm = () => {
 
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		if (!email) {
-			setError(VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND)
+			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND
+			setError(errorMsg)
+			toast.error(errorMsg)
 			return
 		}
 
 		const response = await verifyOtp({ email, otp: values.otp })
 
 		if (response.success) {
-			setSuccess(VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS)
+			const successMsg = VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS
+			setSuccess(successMsg)
 			setError(null)
+			toast.success(successMsg)
 			setTimeout(() => {
 				router.push(PATHS.AUTH.SIGN_IN)
 			}, 2000)
 		} else {
-			setError(response.message || VERIFY_OTP_MESSAGES.INVALID_OTP)
+			const errorMsg = response.message || VERIFY_OTP_MESSAGES.INVALID_OTP
+			setError(errorMsg)
 			setSuccess(null)
+			toast.error(errorMsg)
 		}
 	}
 
 	const handleResendOtp = async () => {
 		if (!email) {
-			setError(VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND_FOR_RESEND)
+			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND_FOR_RESEND
+			setError(errorMsg)
+			toast.error(errorMsg)
 			return
 		}
 		const response = await sendOtp({ email })
 		if (response.success) {
-			setSuccess(VERIFY_OTP_MESSAGES.RESEND_SUCCESS)
+			const successMsg = VERIFY_OTP_MESSAGES.RESEND_SUCCESS
+			setSuccess(successMsg)
 			setError(null)
+			toast.success(successMsg)
 		} else {
-			setError(response.message || VERIFY_OTP_MESSAGES.RESEND_FAILED)
+			const errorMsg = response.message || VERIFY_OTP_MESSAGES.RESEND_FAILED
+			setError(errorMsg)
 			setSuccess(null)
+			toast.error(errorMsg)
 		}
 	}
 
@@ -104,9 +123,22 @@ export const VerifyOtpForm = () => {
 							<FormItem>
 								<FormLabel>One-Time Password</FormLabel>
 								<FormControl>
-									<Input placeholder='123456' {...field} />
+									<div className='flex justify-center'>
+										<InputOTP maxLength={6} {...field}>
+											<InputOTPGroup>
+												<InputOTPSlot index={0} />
+												<InputOTPSlot index={1} />
+												<InputOTPSlot index={2} />
+												<InputOTPSlot index={3} />
+												<InputOTPSlot index={4} />
+												<InputOTPSlot index={5} />
+											</InputOTPGroup>
+										</InputOTP>
+									</div>
 								</FormControl>
-								<FormDescription>Enter the 6-digit code.</FormDescription>
+								<FormDescription className='text-center'>
+									Enter the 6-digit code.
+								</FormDescription>
 								<FormMessage />
 							</FormItem>
 						)}
@@ -117,15 +149,18 @@ export const VerifyOtpForm = () => {
 					{success && (
 						<p className='text-sm font-medium text-accent'>{success}</p>
 					)}
-					<Button type='submit' className='w-full'>
+					<LoadingButton
+						type='submit'
+						className='w-full'
+						loading={form.formState.isSubmitting}
+					>
 						Verify Email
-					</Button>
+					</LoadingButton>
 				</form>
 			</Form>
-			<div className='mt-4 text-center'>
-				<Button variant='link' onClick={handleResendOtp}>
-					Didn&apos;t receive the code? Resend OTP
-				</Button>
+			<div className='mt-4 flex items-center justify-center gap-2 text-sm text-text-secondary'>
+				<span>Didn&apos;t receive the code?</span>
+				<ResendOtpButton onResend={handleResendOtp} />
 			</div>
 		</div>
 	)

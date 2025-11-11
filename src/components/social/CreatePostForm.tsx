@@ -7,7 +7,8 @@ import { POST_MESSAGES } from '@/constants/messages'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Image as ImageIcon, Video, X, Tag, Send } from 'lucide-react'
 import Image from 'next/image'
-import { toast } from 'sonner'
+import { toast } from '@/components/ui/toaster'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 interface CreatePostFormProps {
 	onPostCreated?: (post: Post) => void
@@ -101,14 +102,20 @@ export const CreatePostForm = ({
 			<form onSubmit={handleSubmit}>
 				{/* Header */}
 				<div className='flex items-center gap-3 border-b border-border-subtle p-4 md:p-6'>
-					<div className='relative h-12 w-12'>
-						<Image
+					<Avatar size='lg' className='ring-2 ring-primary/10'>
+						<AvatarImage
 							src={currentUser?.avatarUrl || 'https://i.pravatar.cc/48'}
 							alt={currentUser?.displayName || 'You'}
-							fill
-							className='rounded-full object-cover ring-2 ring-primary/10'
 						/>
-					</div>
+						<AvatarFallback>
+							{currentUser?.displayName
+								?.split(' ')
+								.map(n => n[0])
+								.join('')
+								.toUpperCase()
+								.slice(0, 2) || 'YO'}
+						</AvatarFallback>
+					</Avatar>
 					<div>
 						<div className='font-semibold leading-tight text-text-primary'>
 							{currentUser?.displayName || 'You'}

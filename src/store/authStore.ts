@@ -78,12 +78,16 @@ export const useAuthStore = create<AuthState>()(
 		}),
 		{
 			name: 'auth-storage', // The key to use for storing the data in localStorage
-			onRehydrateStorage: state => {
-				if (state && state.accessToken) {
-					api.defaults.headers.common['Authorization'] =
-						`Bearer ${state.accessToken}`
+			onRehydrateStorage: () => {
+				return state => {
+					if (state && state.accessToken) {
+						api.defaults.headers.common['Authorization'] =
+							`Bearer ${state.accessToken}`
+					}
+					if (state) {
+						state.setLoading(false)
+					}
 				}
-				state?.setLoading(false)
 			},
 		},
 	),

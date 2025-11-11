@@ -12,6 +12,37 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { MultiSelect } from '@/components/ui/multi-select'
+
+// ============================================================================
+// Recipe Filter Constants
+// ============================================================================
+
+export const DIETARY_OPTIONS = [
+	{ label: 'Vegetarian', value: 'vegetarian' },
+	{ label: 'Vegan', value: 'vegan' },
+	{ label: 'Gluten-Free', value: 'gluten-free' },
+	{ label: 'Dairy-Free', value: 'dairy-free' },
+	{ label: 'Keto', value: 'keto' },
+	{ label: 'Paleo', value: 'paleo' },
+]
+
+export const CUISINE_OPTIONS = [
+	{ label: 'Italian', value: 'italian' },
+	{ label: 'Mexican', value: 'mexican' },
+	{ label: 'Asian', value: 'asian' },
+	{ label: 'American', value: 'american' },
+	{ label: 'French', value: 'french' },
+	{ label: 'Mediterranean', value: 'mediterranean' },
+	{ label: 'Indian', value: 'indian' },
+	{ label: 'Japanese', value: 'japanese' },
+]
+
+export const DIFFICULTY_OPTIONS = [
+	{ label: 'Easy', value: 'easy' },
+	{ label: 'Medium', value: 'medium' },
+	{ label: 'Hard', value: 'hard' },
+]
 
 // ============================================================================
 // Types
@@ -367,6 +398,38 @@ export const RatingFilter = ({
 }
 
 // ============================================================================
+// Multi-Select Filter Component
+// ============================================================================
+
+interface MultiSelectFilterProps {
+	label: string
+	options: Array<{ label: string; value: string }>
+	value: string[]
+	onChange: (values: string[]) => void
+	showOtherOption?: boolean
+}
+
+export const MultiSelectFilter = ({
+	label,
+	options,
+	value,
+	onChange,
+	showOtherOption = false,
+}: MultiSelectFilterProps) => {
+	return (
+		<div className='mb-4'>
+			<MultiSelect
+				label={label}
+				options={options}
+				value={value}
+				onChange={onChange}
+				showOtherOption={showOtherOption}
+			/>
+		</div>
+	)
+}
+
+// ============================================================================
 // Cuisine Pill Component
 // ============================================================================
 
@@ -399,44 +462,5 @@ export const CuisinePill = ({
 // ============================================================================
 // Range Slider Component
 // ============================================================================
-
-interface RangeSliderProps {
-	min: number
-	max: number
-	value: number
-	onChange?: (value: number) => void
-	label?: string
-	className?: string
-}
-
-export const RangeSlider = ({
-	min,
-	max,
-	value,
-	onChange,
-	label,
-	className,
-}: RangeSliderProps) => {
-	return (
-		<div className={cn('py-2', className)}>
-			<div className='mb-2 flex justify-between text-xs text-muted-foreground'>
-				<span>{min} min</span>
-				<span>{max} min</span>
-			</div>
-			<input
-				type='range'
-				min={min}
-				max={max}
-				value={value}
-				onChange={e => onChange?.(Number(e.target.value))}
-				className='h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted outline-none'
-				style={{
-					background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${((value - min) / (max - min)) * 100}%, var(--muted) ${((value - min) / (max - min)) * 100}%, var(--muted) 100%)`,
-				}}
-			/>
-			<div className='mt-3 text-center text-sm font-semibold text-primary'>
-				{label || `Up to ${value} minutes`}
-			</div>
-		</div>
-	)
-}
+// Re-export enhanced RangeSlider from ui components
+export { RangeSlider } from '@/components/ui/range-slider'

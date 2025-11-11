@@ -1,5 +1,6 @@
 import { getProfileByUserId, getMyProfile } from '@/services/profile'
 import { UserProfile } from '@/components/profile/UserProfile'
+import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 
 interface ProfilePageProps {
@@ -14,7 +15,7 @@ const ProfilePage = async ({ params }: ProfilePageProps) => {
 	const { data: currentUserProfile } = await getMyProfile()
 
 	if (!success || !profile) {
-		return <ProfileNotFound />
+		return <UserProfileSkeleton />
 	}
 
 	return (

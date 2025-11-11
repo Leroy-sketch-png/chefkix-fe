@@ -5,8 +5,8 @@ import { Post } from '@/lib/types'
 import { getFeedPosts } from '@/services/post'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PostCard } from '@/components/social/PostCard'
+import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
-import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Stories } from '@/components/social/Stories'
@@ -65,7 +65,6 @@ export default function DashboardPage() {
 			<div className='mb-4 md:mb-6 lg:hidden'>
 				<Stories variant='horizontal' />
 			</div>
-
 			<div className='mb-4 md:mb-6'>
 				<h1 className='mb-2 text-3xl font-bold leading-tight text-text-primary'>
 					Your Feed
@@ -74,7 +73,6 @@ export default function DashboardPage() {
 					Share your culinary journey and see what your friends are cooking
 				</p>
 			</div>
-
 			{/* Create Post Form */}
 			<div className='mb-4 md:mb-6'>
 				<CreatePostForm
@@ -90,16 +88,12 @@ export default function DashboardPage() {
 					}
 				/>
 			</div>
-
 			{/* Content */}
 			{isLoading && (
 				<div className='space-y-4 md:space-y-6'>
-					{[1, 2, 3].map(i => (
-						<PostCardSkeleton key={i} />
-					))}
+					<PostCardSkeleton count={3} showImages={false} />
 				</div>
-			)}
-
+			)}{' '}
 			{error && (
 				<ErrorState
 					title='Failed to load feed'
@@ -107,7 +101,6 @@ export default function DashboardPage() {
 					onRetry={() => window.location.reload()}
 				/>
 			)}
-
 			{!isLoading && !error && posts.length === 0 && (
 				<EmptyState
 					title='Your feed is empty'
@@ -130,7 +123,6 @@ export default function DashboardPage() {
 					</div>
 				</EmptyState>
 			)}
-
 			{!isLoading && !error && posts.length > 0 && (
 				<StaggerContainer className='space-y-4 md:space-y-6'>
 					{posts.map(post => (
@@ -145,30 +137,5 @@ export default function DashboardPage() {
 				</StaggerContainer>
 			)}
 		</PageContainer>
-	)
-}
-
-function PostCardSkeleton() {
-	return (
-		<div className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-sm'>
-			<div className='flex items-center gap-3 p-4 md:p-6'>
-				<Skeleton className='h-12 w-12 rounded-full' />
-				<div className='flex-1'>
-					<Skeleton className='mb-2 h-4 w-32' />
-					<Skeleton className='h-3 w-24' />
-				</div>
-			</div>
-			<div className='space-y-3 px-4 pb-3 md:px-6'>
-				<Skeleton className='h-4 w-full' />
-				<Skeleton className='h-4 w-3/4' />
-				<Skeleton className='h-48 w-full rounded-lg' />
-			</div>
-			<div className='flex justify-around border-t border-border-subtle p-2'>
-				<Skeleton className='h-11 w-20' />
-				<Skeleton className='h-11 w-20' />
-				<Skeleton className='h-11 w-20' />
-				<Skeleton className='h-11 w-20' />
-			</div>
-		</div>
 	)
 }
