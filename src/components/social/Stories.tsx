@@ -3,23 +3,27 @@
 import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { UserHoverCard } from '@/components/social/UserHoverCard'
 
 // Mock data - should come from API/store in production
 const stories = [
 	{
 		id: 1,
+		userId: 'user-1',
 		username: 'ChefAnna',
 		avatar: 'https://i.pravatar.cc/64?u=1',
 		viewed: false,
 	},
 	{
 		id: 2,
+		userId: 'user-2',
 		username: 'MarcoB',
 		avatar: 'https://i.pravatar.cc/64?u=2',
 		viewed: true,
 	},
 	{
 		id: 3,
+		userId: 'user-3',
 		username: 'Sofi_Cooks',
 		avatar: 'https://i.pravatar.cc/64?u=3',
 		viewed: false,
@@ -29,11 +33,13 @@ const stories = [
 interface StoriesProps {
 	variant?: 'horizontal' | 'compact'
 	showTitle?: boolean
+	currentUserId?: string
 }
 
 export const Stories = ({
 	variant = 'horizontal',
 	showTitle = false,
+	currentUserId,
 }: StoriesProps) => {
 	return (
 		<div
@@ -57,35 +63,40 @@ export const Stories = ({
 
 				{/* Story Items */}
 				{stories.map(story => (
-					<div
+					<UserHoverCard
 						key={story.id}
-						className={cn(
-							'group flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0',
-							story.viewed && 'opacity-60 hover:opacity-80',
-						)}
+						userId={story.userId}
+						currentUserId={currentUserId}
 					>
 						<div
 							className={cn(
-								'relative h-16 w-16 rounded-full p-[3px] transition-all duration-300',
-								!story.viewed &&
-									'bg-gradient-to-br from-primary to-accent animate-story-pulse',
-								story.viewed && 'bg-border',
-								'hover:scale-110 hover:rotate-[5deg]',
+								'group flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0',
+								story.viewed && 'opacity-60 hover:opacity-80',
 							)}
 						>
-							<div className='relative h-full w-full overflow-hidden rounded-full bg-background p-[2px]'>
-								<Avatar className='h-full w-full'>
-									<AvatarImage src={story.avatar} alt={story.username} />
-									<AvatarFallback>
-										{story.username.slice(0, 2).toUpperCase()}
-									</AvatarFallback>
-								</Avatar>
+							<div
+								className={cn(
+									'relative h-16 w-16 rounded-full p-[3px] transition-all duration-300',
+									!story.viewed &&
+										'bg-gradient-to-br from-primary to-accent animate-story-pulse',
+									story.viewed && 'bg-border',
+									'hover:scale-110 hover:rotate-[5deg]',
+								)}
+							>
+								<div className='relative h-full w-full overflow-hidden rounded-full bg-background p-[2px]'>
+									<Avatar className='h-full w-full'>
+										<AvatarImage src={story.avatar} alt={story.username} />
+										<AvatarFallback>
+											{story.username.slice(0, 2).toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+								</div>
 							</div>
+							<span className='text-xs font-medium text-foreground'>
+								{story.username}
+							</span>
 						</div>
-						<span className='text-xs font-medium text-foreground'>
-							{story.username}
-						</span>
-					</div>
+					</UserHoverCard>
 				))}
 			</div>
 		</div>

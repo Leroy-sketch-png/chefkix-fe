@@ -21,6 +21,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
+import { CommentList } from '@/components/social/CommentList'
 
 interface PostCardProps {
 	post: Post
@@ -367,7 +368,7 @@ export const PostCard = ({
 						exit={{ height: 0, opacity: 0 }}
 						className='overflow-hidden border-t border-border-subtle bg-bg-card'
 					>
-						<div className='flex gap-2 p-4 md:p-6'>
+						<div className='flex gap-2 border-b border-border-subtle p-4 md:p-6'>
 							<input
 								className='flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
 								placeholder='Add a comment...'
@@ -376,6 +377,7 @@ export const PostCard = ({
 								Post
 							</button>
 						</div>
+						<CommentList postId={post.id} currentUserId={currentUserId} />
 					</motion.div>
 				)}
 			</AnimatePresence>
