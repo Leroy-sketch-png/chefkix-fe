@@ -462,44 +462,5 @@ export const CuisinePill = ({
 // ============================================================================
 // Range Slider Component
 // ============================================================================
-
-interface RangeSliderProps {
-	min: number
-	max: number
-	value: number
-	onChange?: (value: number) => void
-	label?: string
-	className?: string
-}
-
-export const RangeSlider = ({
-	min,
-	max,
-	value,
-	onChange,
-	label,
-	className,
-}: RangeSliderProps) => {
-	return (
-		<div className={cn('py-2', className)}>
-			<div className='mb-2 flex justify-between text-xs text-muted-foreground'>
-				<span>{min} min</span>
-				<span>{max} min</span>
-			</div>
-			<input
-				type='range'
-				min={min}
-				max={max}
-				value={value}
-				onChange={e => onChange?.(Number(e.target.value))}
-				className='h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted outline-none'
-				style={{
-					background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${((value - min) / (max - min)) * 100}%, var(--muted) ${((value - min) / (max - min)) * 100}%, var(--muted) 100%)`,
-				}}
-			/>
-			<div className='mt-3 text-center text-sm font-semibold text-primary'>
-				{label || `Up to ${value} minutes`}
-			</div>
-		</div>
-	)
-}
+// Re-export enhanced RangeSlider from ui components
+export { RangeSlider } from '@/components/ui/range-slider'
