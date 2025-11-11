@@ -25,7 +25,7 @@ import {
 	declineFriendRequest,
 } from '@/services/social'
 import Link from 'next/link'
-import { toast } from 'sonner'
+import { toast } from '@/components/ui/toaster'
 import { triggerFriendConfetti } from '@/lib/confetti'
 import { motion } from 'framer-motion'
 import { SOCIAL_MESSAGES } from '@/constants/messages'

@@ -21,6 +21,7 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { signUp } from '@/services/auth'
 import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
+import { toast } from '@/components/ui/toaster'
 
 const formSchema = z.object({
 	username: z.string().min(2, {
@@ -48,6 +49,9 @@ export function SignUpForm() {
 		const response = await signUp(values)
 
 		if (response.success) {
+			toast.success(
+				'Account created! Please check your email for the verification code.',
+			)
 			router.push(
 				`${PATHS.AUTH.VERIFY_OTP}?email=${encodeURIComponent(values.email)}`,
 			)
@@ -62,11 +66,14 @@ export function SignUpForm() {
 						message: message,
 					})
 				})
+				toast.error('Please fix the errors in the form.')
 			} else {
+				const errorMsg = response.message || SIGN_UP_MESSAGES.FAILED
 				form.setError('root.general' as any, {
 					type: 'manual',
-					message: response.message || SIGN_UP_MESSAGES.FAILED,
+					message: errorMsg,
 				})
+				toast.error(errorMsg)
 			}
 		}
 	}
@@ -152,11 +159,11 @@ export function SignUpForm() {
 					<div className='w-full'>
 						<GoogleSignInButton
 							onSuccess={code => {
-								// TODO: Handle Google sign-up logic (call signUp with Google code)
+								toast.success('Signed in with Google successfully!')
 								router.push(PATHS.DASHBOARD)
 							}}
 							onFailure={error => {
-								// TODO: Show error toast
+								toast.error('Failed to sign in with Google. Please try again.')
 								console.error(error)
 							}}
 							text='Sign up with Google'

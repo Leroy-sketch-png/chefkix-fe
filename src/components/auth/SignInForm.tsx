@@ -25,6 +25,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
 import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
+import { toast } from '@/components/ui/toaster'
 
 const formSchema = z.object({
 	emailOrUsername: z
@@ -53,10 +54,13 @@ export function SignInForm() {
 		// Correctly access the nested 'data' property from the standardized ApiResponse
 		const payload = response.data
 		if (!payload || !payload.accessToken) {
+			const errorMsg =
+				'Authentication failed: no access token received from server.'
 			form.setError('root.general' as any, {
 				type: 'manual',
-				message: 'Authentication failed: no access token received from server.',
+				message: errorMsg,
 			})
+			toast.error(errorMsg)
 			return
 		}
 
@@ -66,14 +70,17 @@ export function SignInForm() {
 		const profileResponse = await getMyProfile()
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
+			toast.success('Welcome back! Signed in successfully.')
 			router.push(PATHS.HOME)
 		} else {
+			const errorMsg =
+				profileResponse.message ||
+				'Login successful, but failed to fetch user profile. Please try again.'
 			form.setError('root.general' as any, {
 				type: 'manual',
-				message:
-					profileResponse.message ||
-					'Login successful, but failed to fetch user profile. Please try again.',
+				message: errorMsg,
 			})
+			toast.error(errorMsg)
 		}
 	}
 
@@ -91,6 +98,7 @@ export function SignInForm() {
 				type: 'manual',
 				message: errorMessage,
 			})
+			toast.error(errorMessage)
 		}
 	}
 

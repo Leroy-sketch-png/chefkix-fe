@@ -24,6 +24,7 @@ import { sendOtp, verifyOtp } from '@/services/auth'
 import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
 import { useState } from 'react'
 import { LoadingButton } from '@/components/ui/loading-button'
+import { toast } from '@/components/ui/toaster'
 
 const formSchema = z.object({
 	otp: z.string().min(6, { message: 'Your OTP must be 6 characters.' }),
@@ -43,36 +44,48 @@ export const VerifyOtpForm = () => {
 
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		if (!email) {
-			setError(VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND)
+			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND
+			setError(errorMsg)
+			toast.error(errorMsg)
 			return
 		}
 
 		const response = await verifyOtp({ email, otp: values.otp })
 
 		if (response.success) {
-			setSuccess(VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS)
+			const successMsg = VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS
+			setSuccess(successMsg)
 			setError(null)
+			toast.success(successMsg)
 			setTimeout(() => {
 				router.push(PATHS.AUTH.SIGN_IN)
 			}, 2000)
 		} else {
-			setError(response.message || VERIFY_OTP_MESSAGES.INVALID_OTP)
+			const errorMsg = response.message || VERIFY_OTP_MESSAGES.INVALID_OTP
+			setError(errorMsg)
 			setSuccess(null)
+			toast.error(errorMsg)
 		}
 	}
 
 	const handleResendOtp = async () => {
 		if (!email) {
-			setError(VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND_FOR_RESEND)
+			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND_FOR_RESEND
+			setError(errorMsg)
+			toast.error(errorMsg)
 			return
 		}
 		const response = await sendOtp({ email })
 		if (response.success) {
-			setSuccess(VERIFY_OTP_MESSAGES.RESEND_SUCCESS)
+			const successMsg = VERIFY_OTP_MESSAGES.RESEND_SUCCESS
+			setSuccess(successMsg)
 			setError(null)
+			toast.success(successMsg)
 		} else {
-			setError(response.message || VERIFY_OTP_MESSAGES.RESEND_FAILED)
+			const errorMsg = response.message || VERIFY_OTP_MESSAGES.RESEND_FAILED
+			setError(errorMsg)
 			setSuccess(null)
+			toast.error(errorMsg)
 		}
 	}
 
