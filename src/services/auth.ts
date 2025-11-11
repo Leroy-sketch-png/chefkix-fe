@@ -123,18 +123,9 @@ export const verifyOtp = async (
 }
 
 // Google Sign-In function
-// TODO: Google OAuth endpoint is pending backend implementation
 export const googleSignIn = async (
 	data: GoogleSignInDto,
 ): Promise<ApiResponse<LoginSuccessResponse>> => {
-	// Placeholder implementation - endpoint not yet available
-	return {
-		success: false,
-		message: AUTH_MESSAGES.GOOGLE_UNAVAILABLE,
-		statusCode: 503,
-	}
-
-	/* Uncomment when backend implements Google OAuth:
 	try {
 		const response = await api.post<ApiResponse<LoginSuccessResponse>>(
 			API_ENDPOINTS.AUTH.GOOGLE,
@@ -152,5 +143,4 @@ export const googleSignIn = async (
 			statusCode: 500,
 		}
 	}
-	*/
 }
