@@ -8,10 +8,10 @@ export const API_ENDPOINTS = {
 		SEND_OTP: `${API_PREFIX}/auth/send-otp`,
 		// RESEND_OTP: `${API_PREFIX}/auth/resend-otp`, // TODO: Pending backend implementation
 		VERIFY_OTP: `${API_PREFIX}/auth/verify-otp-user`,
-		// GOOGLE: `${API_PREFIX}/auth/google`, // TODO: Pending backend implementation (OAuth flow may change)
+		GOOGLE: `${API_PREFIX}/auth/google`, // TODO: Pending backend implementation (OAuth flow may change)
 		REFRESH_TOKEN: `${API_PREFIX}/auth/refresh-token`, // Public endpoint, no auth header needed
 		ME: `${API_PREFIX}/auth/me`,
-	},
+	} as const,
 	PROFILE: {
 		GET_BY_USER_ID: (userId: string) => `${API_PREFIX}/auth/${userId}`,
 		GET_ALL: `${API_PREFIX}/auth/profiles`,
