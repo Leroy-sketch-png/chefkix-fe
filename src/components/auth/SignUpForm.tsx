@@ -16,6 +16,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { signUp } from '@/services/auth'
 import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
@@ -122,8 +123,7 @@ export function SignUpForm() {
 							<FormItem>
 								<FormLabel>Password</FormLabel>
 								<FormControl>
-									<Input
-										type='password'
+									<PasswordInput
 										placeholder='password'
 										{...field}
 										className='text-foreground'
