@@ -1,8 +1,10 @@
 'use client'
 
+import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { UserCardSkeleton } from './UserCardSkeleton'
 import dynamic from 'next/dynamic'
-import lottieLoading from '@/../../public/lottie/lottie-loading.json'
+import lottieLoading from '@/../public/lottie/lottie-loading.json'
 
 const LottieAnimation = dynamic(
 	() => import('@/components/shared/LottieAnimation'),

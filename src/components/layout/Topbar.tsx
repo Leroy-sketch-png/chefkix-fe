@@ -13,11 +13,11 @@ import {
 	Settings,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import Image from 'next/image'
 import { useUiStore } from '@/store/uiStore'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { logout as logoutService } from '@/services/auth'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 export const Topbar = () => {
 	const { user, logout } = useAuth()
@@ -108,14 +108,22 @@ export const Topbar = () => {
 					<div className='relative'>
 						<button
 							onClick={() => setShowUserMenu(!showUserMenu)}
-							className='group relative h-9 w-9 cursor-pointer rounded-full shadow-lg transition-all duration-300 hover:translate-y-[-3px] hover:scale-105 hover:shadow-glow md:h-11 md:w-11'
+							className='group relative cursor-pointer transition-all duration-300 hover:translate-y-[-3px] hover:scale-105'
 						>
-							<Image
-								src={user.avatarUrl || 'https://i.pravatar.cc/44'}
-								alt={user.displayName || 'User'}
-								fill
-								className='rounded-full object-cover'
-							/>
+							<Avatar size='lg' className='shadow-lg hover:shadow-glow'>
+								<AvatarImage
+									src={user.avatarUrl || 'https://i.pravatar.cc/44'}
+									alt={user.displayName || 'User'}
+								/>
+								<AvatarFallback>
+									{user.displayName
+										?.split(' ')
+										.map(n => n[0])
+										.join('')
+										.toUpperCase()
+										.slice(0, 2) || 'U'}
+								</AvatarFallback>
+							</Avatar>
 							<div className='absolute inset-[-3px] -z-10 animate-avatar-glow rounded-full bg-gradient-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
 						</button>
 

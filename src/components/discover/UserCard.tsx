@@ -1,10 +1,10 @@
 'use client'
 
 import { Profile } from '@/lib/types'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 interface UserCardProps {
 	profile: Profile
@@ -20,14 +20,20 @@ export const UserCard = ({ profile }: UserCardProps) => {
 					transition={{ duration: 0.2 }}
 				>
 					<div className='flex items-center gap-4'>
-						<div className='relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full'>
-							<Image
+						<Avatar size='xl' className='flex-shrink-0'>
+							<AvatarImage
 								src={profile.avatarUrl || 'https://i.pravatar.cc/150'}
 								alt={`${profile.displayName || 'User'}'s avatar`}
-								fill
-								className='object-cover'
 							/>
-						</div>
+							<AvatarFallback>
+								{profile.displayName
+									?.split(' ')
+									.map(n => n[0])
+									.join('')
+									.toUpperCase()
+									.slice(0, 2) || 'U'}
+							</AvatarFallback>
+						</Avatar>
 						<div className='overflow-hidden'>
 							<h3 className='truncate text-lg font-bold leading-tight text-text-primary'>
 								{profile.displayName || 'Unknown User'}

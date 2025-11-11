@@ -2,8 +2,9 @@
 
 import { Suspense } from 'react'
 import { VerifyOtpForm } from '@/components/auth/VerifyOtpForm'
+import { VERIFY_OTP_MESSAGES } from '@/constants/messages'
 import dynamic from 'next/dynamic'
-import lottieVerifyEmail from '@/../../public/lottie/lottie-verify-email.json'
+import lottieVerifyEmail from '@/../public/lottie/lottie-verify-email.json'
 
 const LottieAnimation = dynamic(
 	() => import('@/components/shared/LottieAnimation'),

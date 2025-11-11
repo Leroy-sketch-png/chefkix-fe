@@ -1,8 +1,8 @@
 'use client'
 
 import { Plus } from 'lucide-react'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 // Mock data - should come from API/store in production
 const stories = [
@@ -74,12 +74,12 @@ export const Stories = ({
 							)}
 						>
 							<div className='relative h-full w-full overflow-hidden rounded-full bg-background p-[2px]'>
-								<Image
-									src={story.avatar}
-									alt={story.username}
-									fill
-									className='rounded-full object-cover'
-								/>
+								<Avatar className='h-full w-full'>
+									<AvatarImage src={story.avatar} alt={story.username} />
+									<AvatarFallback>
+										{story.username.slice(0, 2).toUpperCase()}
+									</AvatarFallback>
+								</Avatar>
 							</div>
 						</div>
 						<span className='text-xs font-medium text-foreground'>

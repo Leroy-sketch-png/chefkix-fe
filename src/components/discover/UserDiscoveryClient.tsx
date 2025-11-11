@@ -11,6 +11,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Users, Search } from 'lucide-react'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
+import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 
 type Props = {
 	profiles: Profile[]
@@ -58,7 +59,8 @@ export const UserDiscoveryClient = ({ profiles }: Props) => {
 					/>
 				) : (
 					<EmptyState
-						icon={Users}
+						lottieAnimation={lottieNotFound}
+						lottieSize={(w, h) => Math.min(w * 0.4, h * 0.5, 300)}
 						title='No users yet'
 						description='Be the first to join the community!'
 					/>

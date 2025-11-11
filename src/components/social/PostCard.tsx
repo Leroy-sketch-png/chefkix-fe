@@ -18,6 +18,7 @@ import {
 	X,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 
 interface PostCardProps {
@@ -152,14 +153,23 @@ export const PostCard = ({
 					href={post.userId ? `/${post.userId}` : '/dashboard'}
 					className='flex items-center gap-3 transition-opacity hover:opacity-80'
 				>
-					<div className='relative h-12 w-12'>
-						<Image
+					<Avatar
+						size='lg'
+						className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
+					>
+						<AvatarImage
 							src={post.avatarUrl || 'https://i.pravatar.cc/48'}
 							alt={post.displayName || 'User'}
-							fill
-							className='rounded-full object-cover shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
 						/>
-					</div>
+						<AvatarFallback>
+							{post.displayName
+								?.split(' ')
+								.map(n => n[0])
+								.join('')
+								.toUpperCase()
+								.slice(0, 2) || 'U'}
+						</AvatarFallback>
+					</Avatar>
 					<div>
 						<div className='text-base font-bold leading-tight text-text-primary'>
 							{post.displayName || 'Unknown User'}

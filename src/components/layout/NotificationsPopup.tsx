@@ -1,7 +1,6 @@
 'use client'
 
 import { useUiStore } from '@/store/uiStore'
-import Image from 'next/image'
 import {
 	Heart,
 	MessageCircle,
@@ -11,6 +10,7 @@ import {
 	CheckCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
 
@@ -138,14 +138,17 @@ export const NotificationsPopup = () => {
 						>
 							{/* Avatar with badge */}
 							<div className='relative flex-shrink-0'>
-								<div className='relative h-12 w-12 overflow-hidden rounded-full shadow-md'>
-									<Image
-										src={notif.avatar}
-										alt={notif.user}
-										fill
-										className='object-cover'
-									/>
-								</div>
+								<Avatar size='lg' className='shadow-md'>
+									<AvatarImage src={notif.avatar} alt={notif.user} />
+									<AvatarFallback>
+										{notif.user
+											.split(' ')
+											.map(n => n[0])
+											.join('')
+											.toUpperCase()
+											.slice(0, 2)}
+									</AvatarFallback>
+								</Avatar>
 								<NotificationBadge type={notif.type} />
 							</div>
 							{/* Content */}

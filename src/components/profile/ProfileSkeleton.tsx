@@ -2,7 +2,7 @@
 
 import { Skeleton } from '@/components/ui/skeleton'
 import dynamic from 'next/dynamic'
-import lottieLoading from '@/../../public/lottie/lottie-loading.json'
+import lottieLoading from '@/../public/lottie/lottie-loading.json'
 
 const LottieAnimation = dynamic(
 	() => import('@/components/shared/LottieAnimation'),

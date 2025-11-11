@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
 	toggleFollow,
 	toggleFriendRequest,
@@ -356,14 +357,23 @@ export const UserProfile = ({
 				</div>
 				<div className='p-6'>
 					<div className='relative -mt-20 flex items-end justify-between'>
-						<div className='relative h-32 w-32 overflow-hidden rounded-full border-4 border-card bg-muted shadow-sm'>
-							<Image
+						<Avatar
+							size='2xl'
+							className='border-4 border-card bg-muted shadow-lg'
+						>
+							<AvatarImage
 								src={profile.avatarUrl || 'https://i.pravatar.cc/150'}
 								alt={`${profile.displayName}'s avatar`}
-								fill
-								className='object-cover'
 							/>
-						</div>
+							<AvatarFallback className='text-2xl'>
+								{profile.displayName
+									?.split(' ')
+									.map(n => n[0])
+									.join('')
+									.toUpperCase()
+									.slice(0, 2) || 'U'}
+							</AvatarFallback>
+						</Avatar>
 						<div className='flex gap-2'>
 							{isOwnProfile && (
 								<Button variant='outline' size='icon'>

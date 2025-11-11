@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { SignInForm } from '@/components/auth/SignInForm'
 import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import dynamic from 'next/dynamic'
-import lottieLogin from '@/../../public/lottie/lottie-login.json'
+import lottieLogin from '@/../public/lottie/lottie-login.json'
 
 const LottieAnimation = dynamic(
 	() => import('@/components/shared/LottieAnimation'),
