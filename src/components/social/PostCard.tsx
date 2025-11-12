@@ -6,6 +6,7 @@ import { toggleLike, deletePost, updatePost } from '@/services/post'
 import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
+import { staggerItemVariants } from '@/components/ui/stagger-animation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -155,9 +156,8 @@ export const PostCard = ({
 
 	return (
 		<motion.article
+			variants={staggerItemVariants}
 			layout
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.95 }}
 			className='group relative mb-6 overflow-hidden rounded-radius border-l-[3px] border-l-transparent bg-bg-card shadow-md transition-all duration-[400ms] hover:-translate-y-1 hover:border-l-primary hover:shadow-lg'
 		>
