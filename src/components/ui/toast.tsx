@@ -27,12 +27,13 @@ import { Button } from '@/components/ui/button'
  */
 
 const toastVariants = cva(
-	'group pointer-events-auto relative flex w-full items-start gap-sm overflow-hidden rounded-radius border bg-panel-bg p-4 shadow-lg transition-all',
+	'group pointer-events-auto relative flex w-full items-start gap-sm overflow-hidden rounded-radius border bg-panel-bg p-4 shadow-lg transition-all animate-slideInUp',
 	{
 		variants: {
 			variant: {
 				default: 'border-border',
-				success: 'border-success/30 bg-success/5 [&>svg]:text-success',
+				success:
+					'border-success/30 bg-success/5 [&>svg]:text-success animate-confetti-pop',
 				error: 'border-error/30 bg-error/5 [&>svg]:text-error',
 				warning: 'border-warning/30 bg-warning/5 [&>svg]:text-warning',
 				info: 'border-info/30 bg-info/5 [&>svg]:text-info',

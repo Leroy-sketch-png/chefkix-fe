@@ -63,7 +63,7 @@ export const MobileBottomNav = () => {
 							href={item.href}
 							className='relative -mt-6 flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] transition-all active:bg-bg-hover max-w-20'
 						>
-							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-lg transition-all active:scale-90'>
+							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-lg transition-all active:scale-90 hover:scale-105 animate-pulse'>
 								<Icon className='h-7 w-7' />
 							</div>
 						</Link>
@@ -75,19 +75,19 @@ export const MobileBottomNav = () => {
 						key={item.href}
 						href={item.href}
 						className={cn(
-							'flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] px-3 py-2 transition-all active:bg-bg-hover max-w-20',
+							'flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] px-3 py-2 transition-all active:bg-bg-hover active:scale-95 max-w-20',
 							active ? 'text-primary' : 'text-text-secondary',
 						)}
 					>
 						<div className='relative'>
 							<Icon
 								className={cn(
-									'h-6 w-6 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-									active && 'scale-110',
+									'h-6 w-6 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+									active && 'scale-110 drop-shadow-glow',
 								)}
 							/>
 							{item.badge && (
-								<span className='absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full border-2 border-card bg-destructive' />
+								<span className='absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full border-2 border-card bg-destructive shadow-glow' />
 							)}
 						</div>
 						<span className='text-xs font-semibold'>{item.label}</span>

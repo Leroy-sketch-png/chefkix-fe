@@ -54,7 +54,7 @@ export const AchievementBadge = ({
 			onClick={unlocked ? onClick : undefined}
 			className={cn(
 				'relative cursor-pointer overflow-hidden rounded-[var(--radius)] border-2 border-border bg-card p-5 text-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-				unlocked && 'hover:-translate-y-1 hover:shadow-md',
+				unlocked && 'animate-float hover:-translate-y-1 hover:shadow-md',
 				!unlocked && 'cursor-default opacity-50',
 				className,
 			)}
