@@ -10,6 +10,7 @@ import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Stories } from '@/components/social/Stories'
+import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { Users, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
@@ -106,6 +107,7 @@ export default function DashboardPage() {
 					title='Your feed is empty'
 					description='Follow chefs and add friends to see their latest posts here!'
 					icon={MessageSquare}
+					lottieAnimation={lottieNotFound}
 				>
 					<div className='flex flex-wrap justify-center gap-3'>
 						<Link href='/discover'>

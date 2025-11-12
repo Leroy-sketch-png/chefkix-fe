@@ -3,6 +3,7 @@ import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Users, UserPlus } from 'lucide-react'
+import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 
 const FriendsPage = async () => {
 	const { success, data: profile } = await getMyProfile()
@@ -46,6 +47,7 @@ const FriendsPage = async () => {
 						title='No friend requests'
 						description='When someone sends you a friend request, it will appear here.'
 						icon={UserPlus}
+						lottieAnimation={lottieNotFound}
 					/>
 				)}
 			</div>
@@ -66,6 +68,7 @@ const FriendsPage = async () => {
 						icon={Users}
 						actionLabel='Discover Chefs'
 						actionHref='/discover'
+						lottieAnimation={lottieNotFound}
 					/>
 				)}
 			</div>

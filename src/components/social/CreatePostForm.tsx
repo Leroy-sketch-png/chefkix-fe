@@ -9,6 +9,7 @@ import { Image as ImageIcon, Video, X, Tag, Send } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from '@/components/ui/toaster'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { AnimatedButton } from '@/components/ui/animated-button'
 
 interface CreatePostFormProps {
 	onPostCreated?: (post: Post) => void
@@ -250,23 +251,16 @@ export const CreatePostForm = ({
 						</button>
 					</div>
 
-					<button
+					<AnimatedButton
 						type='submit'
-						disabled={isSubmitting || !content.trim()}
-						className='flex h-11 items-center gap-2 rounded-lg bg-primary px-4 font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40 disabled:cursor-not-allowed disabled:opacity-50'
+						disabled={!content.trim()}
+						isLoading={isSubmitting}
+						loadingText='Posting...'
+						className='shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
 					>
-						{isSubmitting ? (
-							<>
-								<div className='h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent' />
-								<span>Posting...</span>
-							</>
-						) : (
-							<>
-								<Send className='h-4 w-4' />
-								<span>Post</span>
-							</>
-						)}
-					</button>
+						<Send className='mr-2 h-4 w-4' />
+						Post
+					</AnimatedButton>
 				</div>
 			</form>
 		</motion.div>

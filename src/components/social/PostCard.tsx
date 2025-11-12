@@ -5,6 +5,7 @@ import { Post } from '@/lib/types'
 import { toggleLike, deletePost, updatePost } from '@/services/post'
 import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
+import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -76,6 +77,11 @@ export const PostCard = ({
 				isLiked: !wasLiked,
 			}))
 			onUpdate?.({ ...post, likes: response.data.likes, isLiked: !wasLiked })
+
+			// Trigger confetti only on like (not unlike)
+			if (!wasLiked) {
+				triggerLikeConfetti()
+			}
 		} else {
 			// Revert on error
 			setPost(prev => ({
@@ -91,6 +97,12 @@ export const PostCard = ({
 
 	const handleSave = () => {
 		setIsSaved(!isSaved)
+
+		// Trigger confetti only on save (not unsave)
+		if (!isSaved) {
+			triggerSaveConfetti()
+		}
+
 		toast.success(
 			isSaved ? POST_MESSAGES.REMOVE_SAVED : POST_MESSAGES.SAVE_SUCCESS,
 		)

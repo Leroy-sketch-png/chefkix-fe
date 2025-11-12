@@ -9,6 +9,7 @@ import { useState, memo } from 'react'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
 import { RECIPE_MESSAGES } from '@/constants/messages'
+import { triggerSaveConfetti } from '@/lib/confetti'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -79,6 +80,12 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			if (response.success && response.data) {
 				setIsSaved(response.data.isSaved)
 				setSaveCount(response.data.saveCount)
+
+				// Trigger confetti only on save (not unsave)
+				if (response.data.isSaved) {
+					triggerSaveConfetti()
+				}
+
 				toast.success(
 					response.data.isSaved ? 'Recipe saved!' : 'Recipe unsaved',
 				)
