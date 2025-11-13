@@ -78,7 +78,7 @@ const FriendsPage = () => {
 
 	if (loading) {
 		return (
-			<PageContainer maxWidth='2xl'>
+			<PageContainer maxWidth='lg'>
 				{/* Centered Lottie loading animation */}
 				<div className='flex justify-center py-12'>
 					<LottieAnimation
@@ -105,7 +105,7 @@ const FriendsPage = () => {
 	}
 
 	return (
-		<PageContainer maxWidth='2xl'>
+		<PageContainer maxWidth='lg'>
 			<div className='mb-6 space-y-2'>
 				<h1 className='text-3xl font-bold text-text-primary'>Friends</h1>
 				<p className='text-text-secondary'>

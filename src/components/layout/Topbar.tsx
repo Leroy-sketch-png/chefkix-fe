@@ -54,7 +54,7 @@ export const Topbar = () => {
 		>
 			{/* Logo */}
 			{/* Brand / Logo */}
-			<Link href='/dashboard' className='flex items-center gap-2'>
+			<Link href='/dashboard' className='mr-4 flex items-center gap-2'>
 				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary md:text-2xl'>
 					Chefkix
 				</div>

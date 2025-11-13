@@ -168,7 +168,7 @@
 	/* ============ CONTAINER WIDTHS ============ */
 	--container-sm: 640px;
 	--container-md: 680px;
-	--container-lg: 850px;
+	--container-lg: 800px; /* Main content feed width - uniform across social pages */
 	--container-xl: 1200px;
 
 	/* Accessibility / focus */
@@ -402,7 +402,7 @@
 	/* Container sizes - For max-w-* utilities */
 	--container-sm: 24rem; /* 384px */
 	--container-md: 28rem; /* 448px */
-	--container-lg: 53.125rem; /* 850px */
+	--container-lg: 50rem; /* 800px - Main feed width */
 	--container-xl: 36rem; /* 576px */
 	--container-2xl: 42rem; /* 672px */
 	--container-3xl: 48rem; /* 768px */

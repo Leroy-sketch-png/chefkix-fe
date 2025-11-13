@@ -30,12 +30,16 @@ export const DIETARY_OPTIONS = [
 export const CUISINE_OPTIONS = [
 	{ label: 'Italian', value: 'italian' },
 	{ label: 'Mexican', value: 'mexican' },
-	{ label: 'Asian', value: 'asian' },
 	{ label: 'American', value: 'american' },
 	{ label: 'French', value: 'french' },
 	{ label: 'Mediterranean', value: 'mediterranean' },
 	{ label: 'Indian', value: 'indian' },
+	{ label: 'Asian', value: 'asian' },
+	{ label: 'Vietnamese', value: 'vietnamese' },
+	{ label: 'Thai', value: 'thai' },
+	{ label: 'Chinese', value: 'chinese' },
 	{ label: 'Japanese', value: 'japanese' },
+	{ label: 'Korean', value: 'korean' },
 ]
 
 export const DIFFICULTY_OPTIONS = [

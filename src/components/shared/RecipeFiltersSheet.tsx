@@ -53,7 +53,7 @@ export const RecipeFiltersSheet = ({
 			dietary: [],
 			cuisine: [],
 			difficulty: [],
-			cookingTimeMax: 120,
+			cookingTimeMax: 1440, // 24 hours in minutes
 			rating: null,
 		},
 	)
@@ -68,7 +68,7 @@ export const RecipeFiltersSheet = ({
 			dietary: [],
 			cuisine: [],
 			difficulty: [],
-			cookingTimeMax: 120,
+			cookingTimeMax: 1440, // 24 hours
 			rating: null,
 		}
 		setFilters(resetFilters)
@@ -79,7 +79,7 @@ export const RecipeFiltersSheet = ({
 		filters.cuisine.length +
 		filters.difficulty.length +
 		(filters.rating ? 1 : 0) +
-		(filters.cookingTimeMax < 120 ? 1 : 0)
+		(filters.cookingTimeMax < 1440 ? 1 : 0)
 
 	return (
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -105,7 +105,7 @@ export const RecipeFiltersSheet = ({
 						{activeFiltersCount > 0 && (
 							<button
 								onClick={handleReset}
-								className='text-sm font-normal text-text-secondary hover:text-text-primary'
+								className='mr-8 text-sm font-normal text-text-secondary hover:text-text-primary'
 							>
 								Reset all
 							</button>
@@ -155,17 +155,24 @@ export const RecipeFiltersSheet = ({
 					{/* Cooking Time */}
 					<div className='space-y-3'>
 						<label className='text-sm font-semibold text-text-primary'>
-							Max Cooking Time (minutes)
+							Max Cooking Time
 						</label>
 						<RangeSlider
 							min={0}
-							max={120}
-							step={5}
+							max={1440}
+							step={15}
 							value={filters.cookingTimeMax}
 							onChange={cookingTimeMax =>
 								setFilters(prev => ({ ...prev, cookingTimeMax }))
 							}
-							formatLabel={value => `${value} min`}
+							formatLabel={value => {
+								if (value >= 60) {
+									const hours = Math.floor(value / 60)
+									const mins = value % 60
+									return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+								}
+								return `${value}m`
+							}}
 						/>
 					</div>
 
