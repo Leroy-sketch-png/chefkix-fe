@@ -16,6 +16,7 @@ import { Users, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+import { AnimatePresence } from 'framer-motion'
 
 export default function DashboardPage() {
 	const { user } = useAuth()
@@ -127,15 +128,17 @@ export default function DashboardPage() {
 			)}
 			{!isLoading && !error && posts.length > 0 && (
 				<StaggerContainer className='space-y-4 md:space-y-6'>
-					{posts.map(post => (
-						<PostCard
-							key={post.id}
-							post={post}
-							onUpdate={handlePostUpdate}
-							onDelete={handlePostDelete}
-							currentUserId={user?.userId}
-						/>
-					))}
+					<AnimatePresence mode='popLayout'>
+						{posts.map(post => (
+							<PostCard
+								key={post.id}
+								post={post}
+								onUpdate={handlePostUpdate}
+								onDelete={handlePostDelete}
+								currentUserId={user?.userId}
+							/>
+						))}
+					</AnimatePresence>
 				</StaggerContainer>
 			)}
 		</PageContainer>

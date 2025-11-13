@@ -6,7 +6,6 @@ import { NotificationsPopup } from '@/components/layout/NotificationsPopup'
 import { CookingPlayer } from '@/components/cooking/CookingPlayer'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
-import { PageTransition } from '@/components/layout/PageTransition'
 
 export default function MainAppLayout({
 	children,
@@ -25,9 +24,7 @@ export default function MainAppLayout({
 					<LeftSidebar />
 				</ErrorBoundary>
 				<main className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 lg:gap-6 lg:p-6'>
-					<ErrorBoundary>
-						<PageTransition>{children}</PageTransition>
-					</ErrorBoundary>
+					<ErrorBoundary>{children}</ErrorBoundary>
 				</main>
 				<ErrorBoundary>
 					<RightSidebar />
