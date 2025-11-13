@@ -14,7 +14,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
 			data-slot='input-group'
 			role='group'
 			className={cn(
-				'group/input-group border-border-medium relative flex w-full items-center rounded-md border shadow-sm transition-[color,box-shadow] outline-none bg-bg-input',
+				'group/input-group relative flex w-full items-center rounded-md transition-[color,box-shadow] outline-none bg-bg-input',
 				'h-11 min-w-0 has-[>textarea]:h-auto',
 
 				// Variants based on alignment.
@@ -23,11 +23,11 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
 				'has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-start]]:[&>input]:pb-3',
 				'has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3',
 
-				// Focus state - Chefkix tokens
-				'has-[[data-slot=input-group-control]:focus-visible]:border-primary has-[[data-slot=input-group-control]:focus-visible]:ring-primary/20 has-[[data-slot=input-group-control]:focus-visible]:ring-2',
+				// Focus state - Chefkix tokens (subtle ring only, no border)
+				'has-[[data-slot=input-group-control]:focus-visible]:ring-primary/10 has-[[data-slot=input-group-control]:focus-visible]:ring-1',
 
 				// Error state - Chefkix tokens
-				'has-[[data-slot][aria-invalid=true]]:ring-error/20 has-[[data-slot][aria-invalid=true]]:border-error',
+				'has-[[data-slot][aria-invalid=true]]:ring-error/20 has-[[data-slot][aria-invalid=true]]:ring-1',
 
 				className,
 			)}

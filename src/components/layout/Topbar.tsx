@@ -49,12 +49,12 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
+			className='flex h-18 w-full flex-shrink-0 items-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
 			role='banner'
 		>
 			{/* Logo */}
 			{/* Brand / Logo */}
-			<Link href='/dashboard' className='mr-4 flex items-center gap-2'>
+			<Link href='/dashboard' className='mr-6 flex items-center gap-2'>
 				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary md:text-2xl'>
 					Chefkix
 				</div>

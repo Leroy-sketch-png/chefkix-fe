@@ -278,13 +278,13 @@ export const PostCard = ({
 						<textarea
 							value={editContent}
 							onChange={e => setEditContent(e.target.value)}
-							className='min-h-textarea w-full resize-none rounded-lg border border-border-subtle bg-bg-card p-3 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+							className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
 							placeholder='Edit your post...'
 						/>
 						<input
 							value={editTags}
 							onChange={e => setEditTags(e.target.value)}
-							className='w-full rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+							className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
 							placeholder='Tags (comma-separated)'
 						/>
 						<div className='flex gap-2'>
@@ -415,7 +415,7 @@ export const PostCard = ({
 						>
 							<div className='flex gap-2 border-b border-border-subtle p-4 md:p-6'>
 								<input
-									className='flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
+									className='flex-1 rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
 									placeholder='Add a comment...'
 								/>
 								<button className='h-11 rounded-lg bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90'>
