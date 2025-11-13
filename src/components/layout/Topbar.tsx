@@ -49,16 +49,18 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='flex h-18 w-full flex-shrink-0 items-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
+			className='relative flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
 			role='banner'
 		>
-			{/* Logo */}
-			{/* Brand / Logo */}
-			<Link href='/dashboard' className='mr-6 flex items-center gap-2'>
+			{/* Logo - Absolutely positioned to stay left while content centers */}
+			<Link
+				href='/dashboard'
+				className='absolute left-4 flex items-center gap-2 md:left-6'
+			>
 				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary md:text-2xl'>
 					Chefkix
 				</div>
-			</Link>{' '}
+			</Link>
 			{/* Search Bar - constrained max width for better proportions */}
 			<div className='group relative flex min-w-search max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:px-4 md:py-2.5'>
 				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:rotate-12 group-focus-within:text-primary' />

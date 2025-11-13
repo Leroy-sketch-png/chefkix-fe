@@ -5,8 +5,6 @@ import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 
 function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
 	return (
@@ -132,10 +130,10 @@ function InputGroupInput({
 	...props
 }: React.ComponentProps<'input'>) {
 	return (
-		<Input
+		<input
 			data-slot='input-group-control'
 			className={cn(
-				'flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 h-auto',
+				'flex-1 bg-transparent px-3 text-sm text-text-primary caret-primary placeholder:text-text-muted focus:outline-none',
 				className,
 			)}
 			{...props}
@@ -148,10 +146,10 @@ function InputGroupTextarea({
 	...props
 }: React.ComponentProps<'textarea'>) {
 	return (
-		<Textarea
+		<textarea
 			data-slot='input-group-control'
 			className={cn(
-				'flex-1 resize-none rounded-none border-0 bg-transparent py-3 shadow-none focus-visible:ring-0',
+				'flex-1 resize-none bg-transparent px-3 py-3 text-sm text-text-primary caret-primary placeholder:text-text-muted focus:outline-none',
 				className,
 			)}
 			{...props}
