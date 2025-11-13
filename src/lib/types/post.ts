@@ -23,6 +23,7 @@ export interface Post {
 	createdAt: string
 	updatedAt: string | null
 	isLiked?: boolean // Client-side flag for optimistic UI
+	isSaved?: boolean // Client-side flag for saved/bookmarked state
 }
 
 export interface CreatePostRequest {

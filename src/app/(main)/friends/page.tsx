@@ -1,28 +1,92 @@
-import { getMyProfile } from '@/services/profile'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { getFriends, getFriendRequests } from '@/services/social'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { Users, UserPlus } from 'lucide-react'
 import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
+import { Profile } from '@/lib/types'
+import { FriendRequestCard } from '@/components/social/FriendRequestCard'
+import { FriendCard } from '@/components/social/FriendCard'
+import { motion } from 'framer-motion'
+import { StaggerContainer } from '@/components/ui/stagger-animation'
 
-const FriendsPage = async () => {
-	const { success, data: profile } = await getMyProfile()
+const FriendsPage = () => {
+	const [friends, setFriends] = useState<Profile[]>([])
+	const [friendRequests, setFriendRequests] = useState<Profile[]>([])
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState(false)
 
-	if (!success || !profile) {
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const [friendsRes, requestsRes] = await Promise.all([
+					getFriends(),
+					getFriendRequests(),
+				])
+
+				if (friendsRes.success && friendsRes.data) {
+					setFriends(friendsRes.data)
+				}
+
+				if (requestsRes.success && requestsRes.data) {
+					setFriendRequests(requestsRes.data)
+				}
+
+				if (!friendsRes.success && !requestsRes.success) {
+					setError(true)
+				}
+			} catch {
+				setError(true)
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		fetchData()
+	}, [])
+
+	const handleRequestAccepted = (userId: string) => {
+		setFriendRequests(prev => prev.filter(req => req.userId !== userId))
+	}
+
+	const handleRequestDeclined = (userId: string) => {
+		setFriendRequests(prev => prev.filter(req => req.userId !== userId))
+	}
+
+	const handleUnfriend = (userId: string) => {
+		setFriends(prev => prev.filter(friend => friend.userId !== userId))
+	}
+
+	if (error) {
 		return (
 			<ErrorState
-				title='Failed to load profile'
-				message='We could not load your profile data. Please try again.'
+				title='Failed to load friends'
+				message='We could not load your friends data. Please try again.'
 			/>
 		)
 	}
 
-	// TODO: We need to get the full profiles of the friend requests, not just the IDs.
-	// The current API returns `friends: [{ userId: string, friendedAt: string }]`
-	// We will need a new endpoint or to modify the existing one to get more details.
-
-	const hasFriends = profile.statistics && profile.statistics.friendCount > 0
-	const hasFriendRequests = false // TODO: Get from actual API endpoint
+	if (loading) {
+		return (
+			<PageContainer maxWidth='2xl'>
+				<div className='mb-6 space-y-2'>
+					<div className='h-9 w-32 animate-pulse rounded-lg bg-bg-card' />
+					<div className='h-5 w-64 animate-pulse rounded-lg bg-bg-card' />
+				</div>
+				<div className='space-y-4'>
+					{[...Array(3)].map((_, i) => (
+						<div
+							key={i}
+							className='h-24 w-full animate-pulse rounded-lg bg-bg-card'
+						/>
+					))}
+				</div>
+			</PageContainer>
+		)
+	}
 
 	return (
 		<PageContainer maxWidth='2xl'>
@@ -37,11 +101,23 @@ const FriendsPage = async () => {
 			<div className='mb-8'>
 				<h2 className='mb-4 text-xl font-semibold text-text-primary'>
 					Friend Requests
+					{friendRequests.length > 0 && (
+						<span className='ml-2 text-sm text-text-secondary'>
+							({friendRequests.length})
+						</span>
+					)}
 				</h2>
-				{hasFriendRequests ? (
-					<div className='space-y-4'>
-						{/* TODO: Render actual friend requests */}
-					</div>
+				{friendRequests.length > 0 ? (
+					<StaggerContainer className='space-y-4'>
+						{friendRequests.map(request => (
+							<FriendRequestCard
+								key={request.userId}
+								profile={request}
+								onAccept={handleRequestAccepted}
+								onDecline={handleRequestDeclined}
+							/>
+						))}
+					</StaggerContainer>
 				) : (
 					<EmptyState
 						title='No friend requests'
@@ -55,12 +131,23 @@ const FriendsPage = async () => {
 			{/* Friends List Section */}
 			<div>
 				<h2 className='mb-4 text-xl font-semibold text-text-primary'>
-					My Friends ({profile.statistics?.friendCount ?? 0})
+					My Friends
+					{friends.length > 0 && (
+						<span className='ml-2 text-sm text-text-secondary'>
+							({friends.length})
+						</span>
+					)}
 				</h2>
-				{hasFriends ? (
-					<div className='space-y-4'>
-						{/* TODO: Render actual friends list */}
-					</div>
+				{friends.length > 0 ? (
+					<StaggerContainer className='space-y-4'>
+						{friends.map(friend => (
+							<FriendCard
+								key={friend.userId}
+								profile={friend}
+								onUnfriend={handleUnfriend}
+							/>
+						))}
+					</StaggerContainer>
 				) : (
 					<EmptyState
 						title='No friends yet'

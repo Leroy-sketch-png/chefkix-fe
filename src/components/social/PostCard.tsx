@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Post } from '@/lib/types'
-import { toggleLike, deletePost, updatePost } from '@/services/post'
+import { toggleLike, deletePost, updatePost, toggleSave } from '@/services/post'
 import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
@@ -45,7 +45,8 @@ export const PostCard = ({
 	const [isEditing, setIsEditing] = useState(false)
 	const [editContent, setEditContent] = useState(post.content)
 	const [editTags, setEditTags] = useState(post.tags.join(', '))
-	const [isSaved, setIsSaved] = useState(false)
+	const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
+	const [isSaving, setIsSaving] = useState(false)
 
 	const isOwner = currentUserId === post.userId
 	const createdAt = new Date(post.createdAt)
@@ -96,17 +97,42 @@ export const PostCard = ({
 		setIsLiking(false)
 	}
 
-	const handleSave = () => {
+	const handleSave = async () => {
+		if (isSaving) return
+
+		// Optimistic update
+		const previousSaved = isSaved
 		setIsSaved(!isSaved)
+		setIsSaving(true)
 
-		// Trigger confetti only on save (not unsave)
-		if (!isSaved) {
-			triggerSaveConfetti()
+		try {
+			const response = await toggleSave(post.id)
+
+			if (response.success && response.data) {
+				setIsSaved(response.data.isSaved)
+
+				// Trigger confetti only on save (not unsave)
+				if (response.data.isSaved) {
+					triggerSaveConfetti()
+				}
+
+				toast.success(
+					response.data.isSaved
+						? POST_MESSAGES.SAVE_SUCCESS
+						: POST_MESSAGES.REMOVE_SAVED,
+				)
+			} else {
+				// Revert on error
+				setIsSaved(previousSaved)
+				toast.error(response.message || 'Failed to save post')
+			}
+		} catch (error) {
+			// Revert on error
+			setIsSaved(previousSaved)
+			toast.error('Failed to save post')
+		} finally {
+			setIsSaving(false)
 		}
-
-		toast.success(
-			isSaved ? POST_MESSAGES.REMOVE_SAVED : POST_MESSAGES.SAVE_SUCCESS,
-		)
 	}
 
 	const handleDelete = async () => {
@@ -354,6 +380,7 @@ export const PostCard = ({
 				</button>
 				<button
 					onClick={handleSave}
+					disabled={isSaving}
 					className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 						isSaved
 							? 'text-primary'

@@ -60,7 +60,6 @@ export const RecipeFilterExample = () => {
 	const handleRemoveFilter = (filter: string) => {
 		// Logic to remove specific filter based on label
 		// This is simplified - in production you'd map back to the filter type
-		console.log('Remove filter:', filter)
 	}
 
 	const handleClearAll = () => {
@@ -72,14 +71,7 @@ export const RecipeFilterExample = () => {
 	}
 
 	const handleApply = () => {
-		// Apply filters and fetch results
-		console.log('Applying filters:', {
-			dietary: selectedDietary,
-			difficulty: selectedDifficulty,
-			cookingTime,
-			minRating,
-			cuisines: selectedCuisines,
-		})
+		// Apply filters and fetch results (implementation pending)
 		setShowFilterPanel(false)
 	}
 
