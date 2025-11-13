@@ -9,6 +9,7 @@ import { acceptFriendRequest, declineFriendRequest } from '@/services/social'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
+import { triggerLikeConfetti } from '@/lib/confetti'
 
 interface FriendRequestCardProps {
 	profile: Profile
@@ -31,6 +32,7 @@ export const FriendRequestCard = ({
 
 		if (response.success) {
 			toast.success(`You are now friends with ${profile.displayName}!`)
+			triggerLikeConfetti() // Celebrate new friendship! 🎉
 			onAccept?.(profile.userId)
 		} else {
 			toast.error(response.message || 'Failed to accept friend request')
@@ -57,6 +59,8 @@ export const FriendRequestCard = ({
 	return (
 		<motion.div
 			variants={staggerItemVariants}
+			whileHover={{ scale: 1.01, y: -2 }}
+			transition={{ duration: 0.2 }}
 			className='flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md'
 		>
 			<div className='flex items-center gap-3'>

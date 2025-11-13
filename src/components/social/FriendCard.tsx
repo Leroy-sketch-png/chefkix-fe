@@ -47,6 +47,8 @@ export const FriendCard = ({ profile, onUnfriend }: FriendCardProps) => {
 	return (
 		<motion.div
 			variants={staggerItemVariants}
+			whileHover={{ scale: 1.01, y: -2 }}
+			transition={{ duration: 0.2 }}
 			className='group relative flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md'
 		>
 			<Link

@@ -5,13 +5,20 @@ import { getFriends, getFriendRequests } from '@/services/social'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { PageTransition } from '@/components/layout/PageTransition'
 import { Users, UserPlus } from 'lucide-react'
 import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
+import lottieLoading from '@/../public/lottie/lottie-loading.json'
 import { Profile } from '@/lib/types'
 import { FriendRequestCard } from '@/components/social/FriendRequestCard'
 import { FriendCard } from '@/components/social/FriendCard'
-import { motion } from 'framer-motion'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
+import dynamic from 'next/dynamic'
+
+const LottieAnimation = dynamic(
+	() => import('@/components/shared/LottieAnimation'),
+	{ ssr: false },
+)
 
 const FriendsPage = () => {
 	const [friends, setFriends] = useState<Profile[]>([])
@@ -72,8 +79,17 @@ const FriendsPage = () => {
 	if (loading) {
 		return (
 			<PageContainer maxWidth='2xl'>
+				{/* Centered Lottie loading animation */}
+				<div className='flex justify-center py-12'>
+					<LottieAnimation
+						lottie={lottieLoading}
+						sizeOfIllustrator={(w, h) => Math.min(w * 0.4, h * 0.5, 200)}
+						loop
+						autoplay
+					/>
+				</div>
 				<div className='mb-6 space-y-2'>
-					<div className='h-9 w-32 animate-pulse rounded-lg bg-bg-card' />
+					<div className='h-9 w-48 animate-pulse rounded-lg bg-bg-card' />
 					<div className='h-5 w-64 animate-pulse rounded-lg bg-bg-card' />
 				</div>
 				<div className='space-y-4'>
@@ -89,77 +105,79 @@ const FriendsPage = () => {
 	}
 
 	return (
-		<PageContainer maxWidth='2xl'>
-			<div className='mb-6 space-y-2'>
-				<h1 className='text-3xl font-bold text-text-primary'>Friends</h1>
-				<p className='text-text-secondary'>
-					Connect with fellow cooking enthusiasts
-				</p>
-			</div>
+		<PageTransition>
+			<PageContainer maxWidth='2xl'>
+				<div className='mb-6 space-y-2'>
+					<h1 className='text-3xl font-bold text-text-primary'>Friends</h1>
+					<p className='text-text-secondary'>
+						Connect with fellow cooking enthusiasts
+					</p>
+				</div>
 
-			{/* Friend Requests Section */}
-			<div className='mb-8'>
-				<h2 className='mb-4 text-xl font-semibold text-text-primary'>
-					Friend Requests
-					{friendRequests.length > 0 && (
-						<span className='ml-2 text-sm text-text-secondary'>
-							({friendRequests.length})
-						</span>
+				{/* Friend Requests Section */}
+				<div className='mb-8'>
+					<h2 className='mb-4 text-xl font-semibold text-text-primary'>
+						Friend Requests
+						{friendRequests.length > 0 && (
+							<span className='ml-2 text-sm text-text-secondary'>
+								({friendRequests.length})
+							</span>
+						)}
+					</h2>
+					{friendRequests.length > 0 ? (
+						<StaggerContainer className='space-y-4'>
+							{friendRequests.map(request => (
+								<FriendRequestCard
+									key={request.userId}
+									profile={request}
+									onAccept={handleRequestAccepted}
+									onDecline={handleRequestDeclined}
+								/>
+							))}
+						</StaggerContainer>
+					) : (
+						<EmptyState
+							title='No friend requests'
+							description='When someone sends you a friend request, it will appear here.'
+							icon={UserPlus}
+							lottieAnimation={lottieNotFound}
+						/>
 					)}
-				</h2>
-				{friendRequests.length > 0 ? (
-					<StaggerContainer className='space-y-4'>
-						{friendRequests.map(request => (
-							<FriendRequestCard
-								key={request.userId}
-								profile={request}
-								onAccept={handleRequestAccepted}
-								onDecline={handleRequestDeclined}
-							/>
-						))}
-					</StaggerContainer>
-				) : (
-					<EmptyState
-						title='No friend requests'
-						description='When someone sends you a friend request, it will appear here.'
-						icon={UserPlus}
-						lottieAnimation={lottieNotFound}
-					/>
-				)}
-			</div>
+				</div>
 
-			{/* Friends List Section */}
-			<div>
-				<h2 className='mb-4 text-xl font-semibold text-text-primary'>
-					My Friends
-					{friends.length > 0 && (
-						<span className='ml-2 text-sm text-text-secondary'>
-							({friends.length})
-						</span>
+				{/* Friends List Section */}
+				<div>
+					<h2 className='mb-4 text-xl font-semibold text-text-primary'>
+						My Friends
+						{friends.length > 0 && (
+							<span className='ml-2 text-sm text-text-secondary'>
+								({friends.length})
+							</span>
+						)}
+					</h2>
+					{friends.length > 0 ? (
+						<StaggerContainer className='space-y-4'>
+							{friends.map(friend => (
+								<FriendCard
+									key={friend.userId}
+									profile={friend}
+									onUnfriend={handleUnfriend}
+								/>
+							))}
+						</StaggerContainer>
+					) : (
+						<EmptyState
+							title='No friends yet'
+							description='Start connecting with other chefs! Search for users in the discover page and send them friend requests.'
+							icon={Users}
+							actionLabel='Discover Chefs'
+							actionHref='/discover'
+							lottieAnimation={lottieNotFound}
+						/>
 					)}
-				</h2>
-				{friends.length > 0 ? (
-					<StaggerContainer className='space-y-4'>
-						{friends.map(friend => (
-							<FriendCard
-								key={friend.userId}
-								profile={friend}
-								onUnfriend={handleUnfriend}
-							/>
-						))}
-					</StaggerContainer>
-				) : (
-					<EmptyState
-						title='No friends yet'
-						description='Start connecting with other chefs! Search for users in the discover page and send them friend requests.'
-						icon={Users}
-						actionLabel='Discover Chefs'
-						actionHref='/discover'
-						lottieAnimation={lottieNotFound}
-					/>
-				)}
-			</div>
-		</PageContainer>
+				</div>
+			</PageContainer>
+		</PageTransition>
 	)
 }
 
