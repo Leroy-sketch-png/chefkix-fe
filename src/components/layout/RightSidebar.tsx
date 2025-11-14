@@ -53,11 +53,14 @@ export const RightSidebar = () => {
 						<strong>{currentXP}</strong> / {xpGoal} XP
 					</div>
 				</div>
-				<div className='h-2.5 overflow-hidden rounded-sm bg-bg-hover'>
+				<div className='h-2.5 overflow-hidden rounded-sm bg-bg-hover relative'>
 					<div
-						className='h-full rounded-sm bg-mint transition-all duration-500 ease-out'
+						className='h-full rounded-sm bg-mint transition-all duration-500 ease-out relative overflow-hidden'
 						style={{ width: `${Math.min(xpProgress, 100)}%` }}
-					/>
+					>
+						{/* Shimmer effect on progress bar */}
+						<div className='absolute inset-0 animate-xp-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent' />
+					</div>
 				</div>
 				<div className='mt-2 text-sm leading-normal text-text-secondary'>
 					{xpToNext} XP to next level!

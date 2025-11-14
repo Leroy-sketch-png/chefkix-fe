@@ -49,19 +49,21 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
+			className='relative flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
 			role='banner'
 		>
-			{/* Logo */}
-			{/* Brand / Logo */}
-			<Link href='/dashboard' className='flex items-center gap-2'>
+			{/* Logo - Absolutely positioned to stay left while content centers */}
+			<Link
+				href='/dashboard'
+				className='absolute left-4 flex items-center gap-2 md:left-6'
+			>
 				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary md:text-2xl'>
 					Chefkix
 				</div>
-			</Link>{' '}
+			</Link>
 			{/* Search Bar - constrained max width for better proportions */}
-			<div className='group relative flex min-w-search max-w-2xl flex-1 items-center gap-3 rounded-full border border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-md md:px-4 md:py-2.5'>
-				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
+			<div className='group relative flex min-w-search max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:px-4 md:py-2.5'>
+				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:rotate-12 group-focus-within:text-primary' />
 				<input
 					type='text'
 					placeholder='Search...'
@@ -74,10 +76,10 @@ export const Topbar = () => {
 			<div className='hidden items-center gap-1 rounded-lg border border-border-subtle bg-bg p-1 lg:flex'>
 				<button
 					onClick={() => setMode('player')}
-					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 ${
+					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 ${
 						mode === 'player'
 							? 'bg-primary text-primary-foreground shadow-md'
-							: 'text-text-secondary hover:text-text-primary'
+							: 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
 					}`}
 				>
 					<Gamepad2 className='h-4 w-4' />
@@ -85,10 +87,10 @@ export const Topbar = () => {
 				</button>
 				<button
 					onClick={() => setMode('creator')}
-					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 ${
+					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 ${
 						mode === 'creator'
 							? 'bg-primary text-primary-foreground shadow-md'
-							: 'text-text-secondary hover:text-text-primary'
+							: 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
 					}`}
 				>
 					<PlusSquare className='h-4 w-4' />

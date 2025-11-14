@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { motion } from 'framer-motion'
 import {
 	Home,
 	Compass,
@@ -44,14 +45,55 @@ export const LeftSidebar = () => {
 					<Link
 						key={item.href}
 						href={item.href}
-						className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-[0.6px] text-text-secondary transition-all duration-300 hover:bg-bg-hover hover:text-text-primary data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/10 data-[active=true]:to-transparent data-[active=true]:text-primary data-[active=true]:shadow-sm'
+						className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-[0.6px] text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-primary'
 						data-active={active}
 						title={item.label}
 					>
 						{/* Active indicator bar */}
-						<div className='absolute left-0 top-1/2 h-0 w-[3px] -translate-y-1/2 rounded-r-[3px] bg-gradient-primary transition-all duration-300 group-data-[active=true]:h-[70%]' />
+						<motion.div
+							className='absolute left-0 top-1/2 w-[3px] -translate-y-1/2 rounded-r-[3px] bg-gradient-primary'
+							initial={false}
+							animate={{
+								height: active ? '70%' : '0%',
+							}}
+							transition={{
+								type: 'spring',
+								stiffness: 500,
+								damping: 30,
+							}}
+						/>
 
-						<Icon className='h-6 w-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-[5deg] group-data-[active=true]:drop-shadow-glow' />
+						{/* Background glow on active */}
+						<motion.div
+							className='absolute inset-0 rounded-radius bg-gradient-to-r from-primary/10 to-transparent opacity-0'
+							initial={false}
+							animate={{
+								opacity: active ? 1 : 0,
+							}}
+							transition={{
+								duration: 0.3,
+							}}
+						/>
+
+						{/* Icon with hover animation */}
+						<motion.div
+							whileHover={{
+								scale: 1.15,
+								rotate: 5,
+							}}
+							whileTap={{
+								scale: 0.95,
+							}}
+							transition={{
+								type: 'spring',
+								stiffness: 400,
+								damping: 17,
+							}}
+							className='relative'
+						>
+							<Icon className='h-6 w-6 transition-all duration-300 group-data-[active=true]:drop-shadow-glow' />
+						</motion.div>
+
 						<div>{item.label}</div>
 					</Link>
 				)

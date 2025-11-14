@@ -180,6 +180,33 @@ export const getFeedPosts = async (params?: {
 	}
 }
 
+/**
+ * Toggle save/bookmark on a post
+ * Returns the new save state
+ */
+export const toggleSave = async (
+	postId: string,
+): Promise<ApiResponse<{ isSaved: boolean; saveCount: number }>> => {
+	try {
+		const response = await api.post<
+			ApiResponse<{ isSaved: boolean; saveCount: number }>
+		>(API_ENDPOINTS.POST.TOGGLE_SAVE(postId))
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<
+			ApiResponse<{ isSaved: boolean; saveCount: number }>
+		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
 export const getPostsByUser = async (
 	userId: string,
 	params?: { limit?: number; offset?: number; page?: number; size?: number },

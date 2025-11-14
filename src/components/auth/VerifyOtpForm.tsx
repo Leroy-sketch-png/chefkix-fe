@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { AnimatedButton } from '@/components/ui/animated-button'
 import {
 	Form,
 	FormControl,
@@ -23,8 +24,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { sendOtp, verifyOtp } from '@/services/auth'
 import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
 import { useState } from 'react'
-import { LoadingButton } from '@/components/ui/loading-button'
 import { toast } from '@/components/ui/toaster'
+import { triggerSuccessConfetti } from '@/lib/confetti'
+import dynamic from 'next/dynamic'
+import lottieEmailVerified from '@/../public/lottie/lottie-email-verified-success.json'
+
+const LottieAnimation = dynamic(
+	() => import('@/components/shared/LottieAnimation'),
+	{ ssr: false },
+)
 
 const formSchema = z.object({
 	otp: z.string().min(6, { message: 'Your OTP must be 6 characters.' }),
@@ -56,6 +64,7 @@ export const VerifyOtpForm = () => {
 			const successMsg = VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS
 			setSuccess(successMsg)
 			setError(null)
+			triggerSuccessConfetti()
 			toast.success(successMsg)
 			setTimeout(() => {
 				router.push(PATHS.AUTH.SIGN_IN)
@@ -147,15 +156,28 @@ export const VerifyOtpForm = () => {
 						<p className='text-sm font-medium text-destructive'>{error}</p>
 					)}
 					{success && (
-						<p className='text-sm font-medium text-accent'>{success}</p>
+						<div className='space-y-3'>
+							<div className='flex justify-center'>
+								<LottieAnimation
+									lottie={lottieEmailVerified}
+									sizeOfIllustrator={(w, h) => Math.min(w * 0.4, h * 0.4, 200)}
+									loop={false}
+									autoplay
+								/>
+							</div>
+							<p className='text-center text-sm font-medium text-accent'>
+								{success}
+							</p>
+						</div>
 					)}
-					<LoadingButton
+					<AnimatedButton
 						type='submit'
 						className='w-full'
-						loading={form.formState.isSubmitting}
+						isLoading={form.formState.isSubmitting}
+						loadingText='Verifying...'
 					>
 						Verify Email
-					</LoadingButton>
+					</AnimatedButton>
 				</form>
 			</Form>
 			<div className='mt-4 flex items-center justify-center gap-2 text-sm text-text-secondary'>

@@ -2,18 +2,37 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 export const PageTransition = ({ children }: { children: React.ReactNode }) => {
 	const pathname = usePathname()
+	const prefersReducedMotion = useReducedMotion()
+
+	const variants = prefersReducedMotion
+		? {
+				// No animation for reduced motion users
+				initial: {},
+				animate: {},
+				exit: {},
+			}
+		: {
+				initial: { opacity: 0, y: 20, scale: 0.98 },
+				animate: { opacity: 1, y: 0, scale: 1 },
+				exit: { opacity: 0, y: -20, scale: 0.98 },
+			}
 
 	return (
 		<AnimatePresence mode='wait'>
 			<motion.div
 				key={pathname}
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				exit={{ opacity: 0, y: -20 }}
-				transition={{ duration: 0.3, ease: 'easeInOut' }}
+				initial={variants.initial}
+				animate={variants.animate}
+				exit={variants.exit}
+				transition={{
+					duration: 0.4,
+					ease: [0.34, 1.56, 0.64, 1], // Spring easing
+					opacity: { duration: 0.3 },
+				}}
 			>
 				{children}
 			</motion.div>

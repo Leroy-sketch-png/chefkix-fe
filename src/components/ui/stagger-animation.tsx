@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ReactNode } from 'react'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface StaggerContainerProps {
 	children: ReactNode
@@ -14,12 +15,15 @@ export const StaggerContainer = ({
 	className,
 	staggerDelay = 0.1,
 }: StaggerContainerProps) => {
-	return (
-		<motion.div
-			className={className}
-			initial='hidden'
-			animate='visible'
-			variants={{
+	const prefersReducedMotion = useReducedMotion()
+
+	const variants = prefersReducedMotion
+		? {
+				// No animation for reduced motion users
+				hidden: {},
+				visible: {},
+			}
+		: {
 				hidden: { opacity: 0 },
 				visible: {
 					opacity: 1,
@@ -27,7 +31,14 @@ export const StaggerContainer = ({
 						staggerChildren: staggerDelay,
 					},
 				},
-			}}
+			}
+
+	return (
+		<motion.div
+			className={className}
+			initial='hidden'
+			animate='visible'
+			variants={variants}
 		>
 			{children}
 		</motion.div>

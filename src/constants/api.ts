@@ -26,14 +26,24 @@ export const API_ENDPOINTS = {
 		REJECT_FRIEND: (userId: string) =>
 			`${API_PREFIX}/social/reject-friend/${userId}`,
 		UNFRIEND: (userId: string) => `${API_PREFIX}/social/unfriend/${userId}`,
+		GET_FRIENDS: `${API_PREFIX}/social/friends`,
+		GET_FRIEND_REQUESTS: `${API_PREFIX}/social/friend-requests`,
 	},
 	POST: {
 		CREATE: `${API_PREFIX}/post/create`,
 		UPDATE: (postId: string) => `${API_PREFIX}/post/update?postId=${postId}`,
 		DELETE: (postId: string) => `${API_PREFIX}/post/delete?postId=${postId}`,
 		TOGGLE_LIKE: (postId: string) => `${API_PREFIX}/post/toggle-like/${postId}`,
+		TOGGLE_SAVE: (postId: string) => `${API_PREFIX}/post/toggle-save/${postId}`,
 		GET_ALL: `${API_PREFIX}/post/all`,
 		GET_FEED: (userId: string) => `${API_PREFIX}/post/feed?userId=${userId}`,
+		GET_COMMENTS: (postId: string) => `${API_PREFIX}/posts/${postId}/comments`,
+		CREATE_COMMENT: (postId: string) =>
+			`${API_PREFIX}/posts/${postId}/comments`,
+		DELETE_COMMENT: (postId: string, commentId: string) =>
+			`${API_PREFIX}/posts/${postId}/comments/${commentId}`,
+		TOGGLE_LIKE_COMMENT: (postId: string, commentId: string) =>
+			`${API_PREFIX}/posts/${postId}/comments/${commentId}/like`,
 	},
 	RECIPES: {
 		BASE: `${API_PREFIX}/recipes`,

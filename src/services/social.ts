@@ -6,6 +6,7 @@ import {
 	ToggleFollowResponse,
 	ToggleFriendRequestResponse,
 	UnfriendResponse,
+	Profile,
 } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
@@ -140,6 +141,50 @@ export const unfriendUser = async (
 		return {
 			success: false,
 			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get user's friends list
+ */
+export const getFriends = async (): Promise<ApiResponse<Profile[]>> => {
+	try {
+		const response = await api.get<ApiResponse<Profile[]>>(
+			API_ENDPOINTS.SOCIAL.GET_FRIENDS,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to fetch friends list',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get pending friend requests
+ */
+export const getFriendRequests = async (): Promise<ApiResponse<Profile[]>> => {
+	try {
+		const response = await api.get<ApiResponse<Profile[]>>(
+			API_ENDPOINTS.SOCIAL.GET_FRIEND_REQUESTS,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to fetch friend requests',
 			statusCode: 500,
 		}
 	}

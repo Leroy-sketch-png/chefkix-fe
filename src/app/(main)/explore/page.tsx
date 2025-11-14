@@ -10,6 +10,7 @@ import { RecipeFiltersSheet } from '@/components/shared/RecipeFiltersSheet'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Search, TrendingUp, Filter } from 'lucide-react'
+import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -199,6 +200,7 @@ export default function ExplorePage() {
 							: 'Be the first to share a recipe!'
 					}
 					icon={Search}
+					lottieAnimation={lottieNotFound}
 				/>
 			)}
 			{!isLoading && !error && recipes.length > 0 && (

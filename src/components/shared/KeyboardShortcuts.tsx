@@ -88,7 +88,6 @@ export const KeyboardShortcuts = () => {
 			if (e.key === 'n') {
 				e.preventDefault()
 				// TODO: Trigger create post modal
-				console.log('New post shortcut')
 			}
 		}
 
