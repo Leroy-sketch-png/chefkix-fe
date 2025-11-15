@@ -3,6 +3,7 @@ export const PATHS = {
 	DASHBOARD: '/dashboard',
 	EXPLORE: '/explore',
 	DISCOVER: '/discover',
+	COMMUNITY: '/community',
 	CREATE: '/create',
 	SETTINGS: '/settings',
 	AUTH: {
