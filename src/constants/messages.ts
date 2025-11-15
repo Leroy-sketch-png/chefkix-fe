@@ -29,6 +29,31 @@ export const SIGN_IN_MESSAGES = {
 	FORGOT_PASSWORD: 'Forgot your password?',
 } as const
 
+export const FORGOT_PASSWORD_MESSAGES = {
+	PAGE_TITLE: 'Reset your password',
+	PAGE_SUBTITLE:
+		"Enter the email associated with your account and we'll send a verification code.",
+	FORM_TITLE: 'Send reset code',
+	SUCCESS: 'Reset instructions sent! Check your inbox for the OTP.',
+	EMAIL_LABEL: 'Email address',
+	BACK_TO_SIGN_IN: 'Back to sign in',
+} as const
+
+export const RESET_PASSWORD_MESSAGES = {
+	PAGE_TITLE: 'Enter the reset code',
+	PAGE_SUBTITLE: 'Use the OTP from your email and choose a new password.',
+	OTP_LABEL: 'Verification code',
+	NEW_PASSWORD_LABEL: 'New password',
+	CONFIRM_PASSWORD_LABEL: 'Confirm password',
+	SUBMIT_TEXT: 'Update password',
+	SUCCESS: 'Password updated! Redirecting to sign-in...',
+	RESEND_SUCCESS: 'A new reset code has been sent to your email.',
+	MISSING_EMAIL:
+		'No email provided. Please start from the Forgot Password flow.',
+	RESEND_PROMPT: "Didn't receive the code?",
+	RESEND_BUTTON: 'Resend code',
+} as const
+
 export const VERIFY_OTP_MESSAGES = {
 	EMAIL_NOT_FOUND: 'Email not found. Please try signing up again.',
 	VERIFICATION_SUCCESS:

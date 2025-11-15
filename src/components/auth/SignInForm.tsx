@@ -148,6 +148,14 @@ export function SignInForm() {
 							</FormItem>
 						)}
 					/>
+					<div className='text-right text-sm'>
+						<Link
+							href={PATHS.AUTH.FORGOT_PASSWORD}
+							className='font-medium text-primary transition-colors hover:text-primary-dark'
+						>
+							{SIGN_IN_MESSAGES.FORGOT_PASSWORD}
+						</Link>
+					</div>
 					<AnimatedButton
 						type='submit'
 						className='h-11 w-full'

@@ -1,13 +1,19 @@
 export const API_PREFIX = '/api/v1'
 
+const POST_SERVICE_PREFIX = `${API_PREFIX}/post`
+const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}/api/v1/posts`
+
 export const API_ENDPOINTS = {
 	AUTH: {
 		LOGIN: `${API_PREFIX}/auth/login`,
 		REGISTER: `${API_PREFIX}/auth/register`,
 		LOGOUT: `${API_PREFIX}/auth/logout`, // No request body required
+		/** Legacy resend while backend finalizes canonical resend flow */
 		SEND_OTP: `${API_PREFIX}/auth/send-otp`,
-		// RESEND_OTP: `${API_PREFIX}/auth/resend-otp`, // TODO: Pending backend implementation
-		VERIFY_OTP: `${API_PREFIX}/auth/verify-otp-user`,
+		VERIFY_OTP_USER: `${API_PREFIX}/auth/verify-otp-user`,
+		VERIFY_OTP_PASSWORD: `${API_PREFIX}/auth/verify-otp-password`,
+		FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
+		CHANGE_PASSWORD: `${API_PREFIX}/auth/change-password`,
 		GOOGLE: `${API_PREFIX}/auth/google`, // TODO: Pending backend implementation (OAuth flow may change)
 		REFRESH_TOKEN: `${API_PREFIX}/auth/refresh-token`, // Public endpoint, no auth header needed
 		ME: `${API_PREFIX}/auth/me`,
@@ -30,20 +36,24 @@ export const API_ENDPOINTS = {
 		GET_FRIEND_REQUESTS: `${API_PREFIX}/social/friend-requests`,
 	},
 	POST: {
-		CREATE: `${API_PREFIX}/post/create`,
-		UPDATE: (postId: string) => `${API_PREFIX}/post/update?postId=${postId}`,
-		DELETE: (postId: string) => `${API_PREFIX}/post/delete?postId=${postId}`,
-		TOGGLE_LIKE: (postId: string) => `${API_PREFIX}/post/toggle-like/${postId}`,
-		TOGGLE_SAVE: (postId: string) => `${API_PREFIX}/post/toggle-save/${postId}`,
-		GET_ALL: `${API_PREFIX}/post/all`,
-		GET_FEED: (userId: string) => `${API_PREFIX}/post/feed?userId=${userId}`,
-		GET_COMMENTS: (postId: string) => `${API_PREFIX}/posts/${postId}/comments`,
+		CREATE: POST_SERVICE_PREFIX,
+		UPDATE: (postId: string) => `${POST_SERVICE_PREFIX}/${postId}`,
+		DELETE: (postId: string) => `${POST_SERVICE_PREFIX}/${postId}`,
+		TOGGLE_LIKE: (postId: string) =>
+			`${POST_SERVICE_PREFIX}/toggle-like/${postId}`,
+		TOGGLE_SAVE: (postId: string) =>
+			`${POST_SERVICE_PREFIX}/toggle-save/${postId}`,
+		GET_ALL: `${POST_SERVICE_PREFIX}/all`,
+		GET_FEED: (userId: string) =>
+			`${POST_SERVICE_PREFIX}/feed?userId=${userId}`,
+		GET_COMMENTS: (postId: string) =>
+			`${POST_COMMENTS_BASE}/${postId}/comments`,
 		CREATE_COMMENT: (postId: string) =>
-			`${API_PREFIX}/posts/${postId}/comments`,
+			`${POST_COMMENTS_BASE}/${postId}/comments`,
 		DELETE_COMMENT: (postId: string, commentId: string) =>
-			`${API_PREFIX}/posts/${postId}/comments/${commentId}`,
+			`${POST_COMMENTS_BASE}/${postId}/comments/${commentId}`,
 		TOGGLE_LIKE_COMMENT: (postId: string, commentId: string) =>
-			`${API_PREFIX}/posts/${postId}/comments/${commentId}/like`,
+			`${POST_COMMENTS_BASE}/${postId}/comments/${commentId}/like`,
 	},
 	RECIPES: {
 		BASE: `${API_PREFIX}/recipes`,
@@ -62,19 +72,7 @@ export const API_ENDPOINTS = {
 	STATISTICS: {
 		ADD_XP: `${API_PREFIX}/statistic/add_xp`,
 	},
-	COMMENT: {
-		CREATE: (postId: string) => `${API_PREFIX}/posts/${postId}/comments`,
-		GET_ALL: (postId: string) => `${API_PREFIX}/posts/${postId}/comments`,
-		TOGGLE_LIKE: (commentId: string) =>
-			`${API_PREFIX}/comments/${commentId}/like`,
-	},
-	REPLY: {
-		CREATE: (commentId: string) =>
-			`${API_PREFIX}/comments/${commentId}/replies`,
-		GET_ALL: (commentId: string) =>
-			`${API_PREFIX}/comments/${commentId}/replies`,
-	},
 	UPLOAD: {
-		FILE: `${API_PREFIX}/upload`, // Returns plain text URL, not JSON
+		FILE: `${POST_SERVICE_PREFIX}/api/upload`, // Returns plain text URL, not JSON
 	},
 } as const
