@@ -146,6 +146,7 @@ export function SignUpForm() {
 						className='h-11 w-full'
 						isLoading={form.formState.isSubmitting}
 						loadingText='Creating account...'
+						shine
 					>
 						{SIGN_UP_MESSAGES.FORM_TITLE}
 					</AnimatedButton>

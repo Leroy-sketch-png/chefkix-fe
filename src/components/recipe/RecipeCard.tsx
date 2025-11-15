@@ -117,7 +117,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 		>
 			<motion.div
 				whileHover={{ y: -8, scale: 1.02 }}
-				transition={{ duration: 0.3 }}
+				transition={{ type: 'spring', stiffness: 400, damping: 17 }}
 			>
 				<Link
 					href={`/recipes/${recipe.id}`}

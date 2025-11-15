@@ -257,6 +257,7 @@ export const CreatePostForm = ({
 						isLoading={isSubmitting}
 						loadingText='Posting...'
 						className='shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
+						shine
 					>
 						<Send className='mr-2 h-4 w-4' />
 						Post

@@ -166,6 +166,7 @@ export function SignInForm() {
 						className='h-11 w-full'
 						isLoading={form.formState.isSubmitting}
 						loadingText='Signing in...'
+						shine
 					>
 						Sign In
 					</AnimatedButton>

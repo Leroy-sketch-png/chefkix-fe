@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { PAGE_VARIANTS, DURATIONS, EASINGS } from '@/lib/motion'
 
 export const PageTransition = ({ children }: { children: React.ReactNode }) => {
 	const pathname = usePathname()
@@ -15,11 +16,7 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
 				animate: {},
 				exit: {},
 			}
-		: {
-				initial: { opacity: 0, y: 20, scale: 0.98 },
-				animate: { opacity: 1, y: 0, scale: 1 },
-				exit: { opacity: 0, y: -20, scale: 0.98 },
-			}
+		: PAGE_VARIANTS
 
 	return (
 		<AnimatePresence mode='wait'>
@@ -29,9 +26,9 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
 				animate={variants.animate}
 				exit={variants.exit}
 				transition={{
-					duration: 0.4,
-					ease: [0.34, 1.56, 0.64, 1], // Spring easing
-					opacity: { duration: 0.3 },
+					duration: DURATIONS.smooth / 1000,
+					ease: EASINGS.smooth,
+					opacity: { duration: DURATIONS.fast / 1000 },
 				}}
 			>
 				{children}
