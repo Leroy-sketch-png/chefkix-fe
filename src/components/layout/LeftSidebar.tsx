@@ -13,6 +13,7 @@ import {
 	Settings,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 const navItems = [
 	{ href: '/dashboard', icon: Home, label: 'Home' },
@@ -56,13 +57,8 @@ export const LeftSidebar = () => {
 							animate={{
 								height: active ? '70%' : '0%',
 							}}
-							transition={{
-								type: 'spring',
-								stiffness: 500,
-								damping: 30,
-							}}
-						/>
-
+							transition={TRANSITION_SPRING}
+						/>{' '}
 						{/* Background glow on active */}
 						<motion.div
 							className='absolute inset-0 rounded-radius bg-gradient-to-r from-primary/10 to-transparent opacity-0'
@@ -74,7 +70,6 @@ export const LeftSidebar = () => {
 								duration: 0.3,
 							}}
 						/>
-
 						{/* Icon with hover animation */}
 						<motion.div
 							whileHover={{
@@ -84,16 +79,11 @@ export const LeftSidebar = () => {
 							whileTap={{
 								scale: 0.95,
 							}}
-							transition={{
-								type: 'spring',
-								stiffness: 400,
-								damping: 17,
-							}}
+							transition={TRANSITION_SPRING}
 							className='relative'
 						>
 							<Icon className='h-6 w-6 transition-all duration-300 group-data-[active=true]:drop-shadow-glow' />
 						</motion.div>
-
 						<div>{item.label}</div>
 					</Link>
 				)

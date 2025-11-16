@@ -28,6 +28,21 @@ export interface SendOtpDto {
 	email: string
 }
 
+export interface ForgotPasswordDto {
+	email: string
+}
+
+export interface VerifyOtpPasswordDto {
+	email: string
+	otp: string
+	newPassword: string
+}
+
+export interface ChangePasswordDto {
+	oldPassword: string
+	newPassword: string
+}
+
 export interface GoogleSignInDto {
 	code: string
 }

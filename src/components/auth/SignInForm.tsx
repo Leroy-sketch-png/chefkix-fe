@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -25,6 +26,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
 import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
+import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
 import { toast } from '@/components/ui/toaster'
 
 const formSchema = z.object({
@@ -39,6 +41,7 @@ const formSchema = z.object({
 export function SignInForm() {
 	const router = useRouter()
 	const { login, setUser, isAuthenticated } = useAuth()
+	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -148,11 +151,22 @@ export function SignInForm() {
 							</FormItem>
 						)}
 					/>
+					<div className='text-right text-sm'>
+						<Button
+							variant='link'
+							type='button'
+							onClick={() => setForgotPasswordOpen(true)}
+							className='h-auto p-0 font-medium text-primary transition-colors hover:text-primary-dark'
+						>
+							{SIGN_IN_MESSAGES.FORGOT_PASSWORD}
+						</Button>
+					</div>
 					<AnimatedButton
 						type='submit'
 						className='h-11 w-full'
 						isLoading={form.formState.isSubmitting}
 						loadingText='Signing in...'
+						shine
 					>
 						Sign In
 					</AnimatedButton>
@@ -196,6 +210,10 @@ export function SignInForm() {
 					Create account
 				</Link>
 			</div>
+			<ForgotPasswordDialog
+				open={forgotPasswordOpen}
+				onOpenChange={setForgotPasswordOpen}
+			/>
 		</div>
 	)
 }

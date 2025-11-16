@@ -24,6 +24,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { CommentList } from '@/components/social/CommentList'
+import { TRANSITION_SPRING, EXIT_VARIANTS } from '@/lib/motion'
 
 interface PostCardProps {
 	post: Post
@@ -184,12 +185,12 @@ export const PostCard = ({
 		<motion.article
 			variants={staggerItemVariants}
 			layout
-			exit={{ opacity: 0, scale: 0.95 }}
+			exit={EXIT_VARIANTS.scaleOut}
 			className='mb-6'
 		>
 			<motion.div
 				whileHover={{ y: -4, scale: 1.005 }}
-				transition={{ duration: 0.2 }}
+				transition={TRANSITION_SPRING}
 				className='group relative overflow-hidden rounded-radius border-l-[3px] border-l-transparent bg-bg-card shadow-md transition-all duration-[400ms] hover:border-l-primary hover:shadow-lg'
 			>
 				{/* Header */}

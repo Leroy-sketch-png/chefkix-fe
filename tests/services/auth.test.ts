@@ -1,5 +1,13 @@
 import { api } from '@/lib/axios'
-import { signIn, signUp, sendOtp, verifyOtp } from '@/services/auth'
+import {
+	signIn,
+	signUp,
+	sendOtp,
+	verifyOtp,
+	forgotPassword,
+	verifyOtpPassword,
+	changePassword,
+} from '@/services/auth'
 import { LoginSuccessResponse } from '@/lib/types'
 
 // Mock the entire axios module to avoid real network calls
@@ -251,5 +259,154 @@ describe('verifyOtp', () => {
 		expect(response.success).toBe(false)
 		expect(response.statusCode).toBe(400)
 		expect(response.message).toBe('Invalid or expired OTP.')
+	})
+})
+
+describe('forgotPassword', () => {
+	beforeEach(() => {
+		jest.clearAllMocks()
+	})
+
+	it('should successfully request a password reset email', async () => {
+		const requestData = { email: 'reset@example.com' }
+		const mockApiResponse = {
+			data: {
+				success: true,
+				statusCode: 200,
+				message: 'Reset email sent',
+				data: 'Check your inbox',
+			},
+		}
+		mockedApi.post.mockResolvedValue(mockApiResponse)
+
+		const response = await forgotPassword(requestData)
+
+		expect(response.success).toBe(true)
+		expect(mockedApi.post).toHaveBeenCalledWith(
+			`/api/v1/auth/forgot-password?email=${encodeURIComponent(requestData.email)}`,
+		)
+	})
+
+	it('should surface backend error responses when reset fails', async () => {
+		const requestData = { email: 'missing@example.com' }
+		const mockErrorResponse = {
+			response: {
+				data: {
+					success: false,
+					statusCode: 404,
+					message: 'User not found',
+				},
+			},
+		}
+		mockedApi.post.mockRejectedValue(mockErrorResponse)
+
+		const response = await forgotPassword(requestData)
+
+		expect(response.success).toBe(false)
+		expect(response.statusCode).toBe(404)
+	})
+})
+
+describe('verifyOtpPassword', () => {
+	beforeEach(() => {
+		jest.clearAllMocks()
+	})
+
+	it('should verify OTP and accept new password', async () => {
+		const payload = {
+			email: 'reset@example.com',
+			otp: '123456',
+			newPassword: 'SecurePass123!',
+		}
+		const mockApiResponse = {
+			data: {
+				success: true,
+				statusCode: 200,
+				message: 'Password updated',
+			},
+		}
+		mockedApi.put.mockResolvedValue(mockApiResponse)
+
+		const response = await verifyOtpPassword(payload)
+
+		expect(response.success).toBe(true)
+		expect(mockedApi.put).toHaveBeenCalledWith(
+			'/api/v1/auth/verify-otp-password',
+			payload,
+		)
+	})
+
+	it('should return backend error when OTP verification fails', async () => {
+		const payload = {
+			email: 'reset@example.com',
+			otp: '000000',
+			newPassword: 'SecurePass123!',
+		}
+		const mockErrorResponse = {
+			response: {
+				data: {
+					success: false,
+					statusCode: 400,
+					message: 'Invalid or expired OTP',
+				},
+			},
+		}
+		mockedApi.put.mockRejectedValue(mockErrorResponse)
+
+		const response = await verifyOtpPassword(payload)
+
+		expect(response.success).toBe(false)
+		expect(response.message).toBe('Invalid or expired OTP')
+	})
+})
+
+describe('changePassword', () => {
+	beforeEach(() => {
+		jest.clearAllMocks()
+	})
+
+	it('should change password when current password is correct', async () => {
+		const payload = {
+			oldPassword: 'OldPass123!',
+			newPassword: 'NewPass456!',
+		}
+		const mockApiResponse = {
+			data: {
+				success: true,
+				statusCode: 200,
+				message: 'Password changed successfully',
+			},
+		}
+		mockedApi.put.mockResolvedValue(mockApiResponse)
+
+		const response = await changePassword(payload)
+
+		expect(response.success).toBe(true)
+		expect(mockedApi.put).toHaveBeenCalledWith(
+			'/api/v1/auth/change-password',
+			payload,
+		)
+	})
+
+	it('should surface backend validation errors for wrong current password', async () => {
+		const payload = {
+			oldPassword: 'WrongPass!',
+			newPassword: 'NewPass456!',
+		}
+		const mockErrorResponse = {
+			response: {
+				data: {
+					success: false,
+					statusCode: 400,
+					message: 'Current password incorrect',
+				},
+			},
+		}
+		mockedApi.put.mockRejectedValue(mockErrorResponse)
+
+		const response = await changePassword(payload)
+
+		expect(response.success).toBe(false)
+		expect(response.statusCode).toBe(400)
 	})
 })

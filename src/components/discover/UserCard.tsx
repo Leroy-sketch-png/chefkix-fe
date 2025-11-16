@@ -4,6 +4,7 @@ import { Profile } from '@/lib/types'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
+import { TRANSITION_SPRING } from '@/lib/motion'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
@@ -23,7 +24,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 					<motion.div
 						className='cursor-pointer rounded-lg border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md md:p-6'
 						whileHover={{ scale: 1.02, y: -4 }}
-						transition={{ duration: 0.2 }}
+						transition={TRANSITION_SPRING}
 					>
 						<div className='flex items-center gap-4'>
 							<Avatar size='xl' className='flex-shrink-0'>
