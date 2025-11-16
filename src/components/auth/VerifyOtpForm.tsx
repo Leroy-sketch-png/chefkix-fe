@@ -175,6 +175,7 @@ export const VerifyOtpForm = () => {
 						className='w-full'
 						isLoading={form.formState.isSubmitting}
 						loadingText='Verifying...'
+						shine
 					>
 						Verify Email
 					</AnimatedButton>

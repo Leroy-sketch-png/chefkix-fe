@@ -196,6 +196,7 @@ export const ForgotPasswordDialog = ({
 								className='w-full'
 								isLoading={emailForm.formState.isSubmitting}
 								loadingText='Sending...'
+								shine
 							>
 								{FORGOT_PASSWORD_MESSAGES.FORM_TITLE}
 							</AnimatedButton>
@@ -293,6 +294,7 @@ export const ForgotPasswordDialog = ({
 									className='w-full'
 									isLoading={resetForm.formState.isSubmitting}
 									loadingText='Updating...'
+									shine
 								>
 									{RESET_PASSWORD_MESSAGES.SUBMIT_TEXT}
 								</AnimatedButton>

@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 interface FriendCardProps {
 	profile: Profile
@@ -48,12 +49,12 @@ export const FriendCard = ({ profile, onUnfriend }: FriendCardProps) => {
 		<motion.div
 			variants={staggerItemVariants}
 			exit={{ opacity: 0, x: -100, scale: 0.9 }}
-			transition={{ duration: 0.3 }}
+			transition={TRANSITION_SPRING}
 			layout
 		>
 			<motion.div
 				whileHover={{ scale: 1.01, y: -2 }}
-				transition={{ duration: 0.2 }}
+				transition={TRANSITION_SPRING}
 				className='group relative flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md'
 			>
 				<Link

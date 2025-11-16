@@ -182,6 +182,7 @@ export const ResetPasswordForm = () => {
 						className='h-11 w-full'
 						isLoading={form.formState.isSubmitting}
 						loadingText='Updating password...'
+						shine
 					>
 						{RESET_PASSWORD_MESSAGES.SUBMIT_TEXT}
 					</AnimatedButton>

@@ -76,6 +76,7 @@ export const ForgotPasswordForm = () => {
 						className='h-11 w-full'
 						isLoading={form.formState.isSubmitting}
 						loadingText='Sending instructions...'
+						shine
 					>
 						{FORGOT_PASSWORD_MESSAGES.FORM_TITLE}
 					</AnimatedButton>
