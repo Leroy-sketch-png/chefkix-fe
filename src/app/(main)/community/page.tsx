@@ -9,14 +9,13 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
 import { FriendRequestCard } from '@/components/social/FriendRequestCard'
 import { FriendCard } from '@/components/social/FriendCard'
+import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { AnimatePresence } from 'framer-motion'
 import { getAllProfiles } from '@/services/profile'
 import { getFriends, getFriendRequests } from '@/services/social'
 import { Profile } from '@/lib/types'
 import { Users, UserPlus, Trophy, Search } from 'lucide-react'
-import dynamic from 'next/dynamic'
-import lottieLoading from '@/../public/lottie/lottie-loading.json'
 import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import {
 	InputGroup,
@@ -30,11 +29,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card'
-
-const LottieAnimation = dynamic(
-	() => import('@/components/shared/LottieAnimation'),
-	{ ssr: false },
-)
 
 export default function CommunityPage() {
 	const [allProfiles, setAllProfiles] = useState<Profile[]>([])
@@ -108,14 +102,7 @@ export default function CommunityPage() {
 	if (loading) {
 		return (
 			<PageContainer maxWidth='xl'>
-				<div className='flex h-96 items-center justify-center'>
-					<LottieAnimation
-						lottie={lottieLoading}
-						sizeOfIllustrator={() => 200}
-						loop
-						autoplay
-					/>
-				</div>
+				<CommunitySkeleton />
 			</PageContainer>
 		)
 	}

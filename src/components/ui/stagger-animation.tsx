@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { ReactNode } from 'react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { DURATIONS, EASINGS } from '@/lib/motion'
 
 interface StaggerContainerProps {
 	children: ReactNode
@@ -51,8 +52,8 @@ export const staggerItemVariants = {
 		opacity: 1,
 		y: 0,
 		transition: {
-			duration: 0.4,
-			ease: 'easeOut' as const,
+			duration: DURATIONS.slow / 1000,
+			ease: EASINGS.smooth,
 		},
 	},
 }
