@@ -83,6 +83,7 @@
 	--radius: 16px;
 	--radius-sm: 12px;
 	--radius-lg: 24px;
+	--radius-xl: 20px; /* Large modals, cards with extra rounding */
 
 	/* Heights */
 	--h-topbar: 72px;
@@ -90,6 +91,32 @@
 	--h-textarea-min: 100px; /* Minimum height for textareas */
 	--h-content-min: 50vh; /* Minimum content height (empty states) */
 	--h-content-tall: 60vh; /* Taller content height (error states) */
+
+	/* ============ ICON & ELEMENT SIZES ============ */
+	/* Icon sizes - used for lucide icons and inline graphics */
+	--icon-xs: 14px;
+	--icon-sm: 18px; /* Most common small icon size */
+	--icon-md: 22px; /* Badge indicators, verification icons */
+	--icon-lg: 28px; /* Featured icons, emoji displays */
+	--icon-xl: 32px; /* Large decorative icons */
+
+	/* Avatar sizes */
+	--avatar-xs: 32px;
+	--avatar-sm: 42px; /* Action buttons, small profile pics */
+	--avatar-md: 72px; /* Standard avatar, thumbnail images */
+	--avatar-lg: 100px; /* Featured elements, celebration icons */
+	--avatar-xl: 120px; /* Profile header avatars */
+
+	/* Modal & Card widths */
+	--modal-sm: 380px;
+	--modal-md: 420px;
+	--modal-lg: 480px;
+	--modal-xl: 600px;
+
+	/* Common component dimensions */
+	--thumbnail-sm: 52px; /* Challenge icons, small previews */
+	--thumbnail-md: 60px; /* Recipe thumbnails */
+	--card-image-height: 200px; /* Standard card image height */
 
 	/* Z-index scale */
 	--z-base: 1;

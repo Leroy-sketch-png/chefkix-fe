@@ -104,8 +104,9 @@ module.exports = {
 				radius: 'var(--radius)', // Alias for components using 'rounded-radius'
 				sm: 'var(--radius-sm)',
 				lg: 'var(--radius-lg)',
-				xl: 'var(--radius-lg)',
+				xl: 'var(--radius-xl)', // 20px - large modals, cards with extra rounding
 				'2xl': '24px',
+				'3xl': '28px',
 				full: '9999px',
 			},
 			fontFamily: {
@@ -166,6 +167,40 @@ module.exports = {
 				// Canonical layout sizes mapped to CSS variables defined in globals.css
 				nav: 'var(--nav-w)',
 				right: 'var(--right-w)',
+				// Icon sizes
+				'icon-xs': 'var(--icon-xs)',
+				'icon-sm': 'var(--icon-sm)',
+				'icon-md': 'var(--icon-md)',
+				'icon-lg': 'var(--icon-lg)',
+				'icon-xl': 'var(--icon-xl)',
+				// Avatar sizes
+				'avatar-xs': 'var(--avatar-xs)',
+				'avatar-sm': 'var(--avatar-sm)',
+				'avatar-md': 'var(--avatar-md)',
+				'avatar-lg': 'var(--avatar-lg)',
+				'avatar-xl': 'var(--avatar-xl)',
+				// Thumbnail sizes
+				'thumbnail-sm': 'var(--thumbnail-sm)',
+				'thumbnail-md': 'var(--thumbnail-md)',
+			},
+			height: {
+				// Icon sizes (matching width)
+				'icon-xs': 'var(--icon-xs)',
+				'icon-sm': 'var(--icon-sm)',
+				'icon-md': 'var(--icon-md)',
+				'icon-lg': 'var(--icon-lg)',
+				'icon-xl': 'var(--icon-xl)',
+				// Avatar sizes
+				'avatar-xs': 'var(--avatar-xs)',
+				'avatar-sm': 'var(--avatar-sm)',
+				'avatar-md': 'var(--avatar-md)',
+				'avatar-lg': 'var(--avatar-lg)',
+				'avatar-xl': 'var(--avatar-xl)',
+				// Thumbnail sizes
+				'thumbnail-sm': 'var(--thumbnail-sm)',
+				'thumbnail-md': 'var(--thumbnail-md)',
+				// Card image heights
+				'card-image': 'var(--card-image-height)',
 			},
 			maxWidth: {
 				// Container widths
@@ -173,6 +208,11 @@ module.exports = {
 				'container-md': 'var(--container-md)',
 				'container-lg': 'var(--container-lg)',
 				'container-xl': 'var(--container-xl)',
+				// Modal widths
+				'modal-sm': 'var(--modal-sm)',
+				'modal-md': 'var(--modal-md)',
+				'modal-lg': 'var(--modal-lg)',
+				'modal-xl': 'var(--modal-xl)',
 			},
 			minWidth: {
 				nav: 'var(--nav-w)',
