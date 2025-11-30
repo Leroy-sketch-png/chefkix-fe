@@ -233,7 +233,7 @@ export const Toaster = ({
 	return (
 		<div
 			className={cn(
-				'pointer-events-none fixed z-[100] flex max-h-screen w-full gap-2 p-4 md:max-w-modal-md',
+				'pointer-events-none fixed z-sticky flex max-h-screen w-full gap-2 p-4 md:max-w-modal-md',
 				positionClasses[position],
 			)}
 		>
