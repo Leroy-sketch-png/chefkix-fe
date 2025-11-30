@@ -138,6 +138,8 @@ const SinglePendingPost = ({
 				<Image
 					src={session.recipeImage}
 					alt={session.recipeName}
+					width={64}
+					height={64}
 					className='size-thumbnail-lg rounded-xl object-cover flex-shrink-0'
 				/>
 
@@ -252,6 +254,8 @@ const MultiplePendingPosts = ({
 						<Image
 							src={session.recipeImage}
 							alt={session.recipeName}
+							width={44}
+							height={44}
 							className='w-11 h-11 rounded-lg object-cover'
 						/>
 						<div className='flex-1 min-w-0'>
@@ -537,6 +541,8 @@ export const PendingExpandedModal = ({
 										<Image
 											src={session.recipeImage}
 											alt={session.recipeName}
+											width={64}
+											height={64}
 											className='w-16 h-16 rounded-xl object-cover'
 										/>
 										<div className='flex-1 min-w-0'>

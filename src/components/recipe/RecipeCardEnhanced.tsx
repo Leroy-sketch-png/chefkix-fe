@@ -267,6 +267,8 @@ const FeedCard = ({
 						<Image
 							src={author.avatarUrl}
 							alt={author.name}
+							width={24}
+							height={24}
 							className='h-6 w-6 rounded-full'
 						/>
 						{author.name}
@@ -367,6 +369,8 @@ const GridCard = ({
 					<Image
 						src={author.avatarUrl}
 						alt={author.name}
+						width={28}
+						height={28}
 						className='h-7 w-7 rounded-full'
 					/>
 					<span>{author.name}</span>
@@ -432,11 +436,7 @@ const FeaturedCard = ({
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			<div className='relative aspect-video min-h-panel-md'>
-				<Image
-					src={imageUrl}
-					alt={title}
-					className='h-full w-full object-cover'
-				/>
+				<Image src={imageUrl} alt={title} fill className='object-cover' />
 				{/* Gradient overlay */}
 				<div className='absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent' />
 
@@ -501,6 +501,8 @@ const FeaturedCard = ({
 						<Image
 							src={author.avatarUrl}
 							alt={author.name}
+							width={48}
+							height={48}
 							className='h-12 w-12 rounded-full border-2 border-white/30'
 						/>
 						<div className='flex flex-col'>
@@ -553,11 +555,7 @@ const CookedCard = ({
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}
 			<div className='relative aspect-video overflow-hidden'>
-				<Image
-					src={imageUrl}
-					alt={title}
-					className='h-full w-full object-cover'
-				/>
+				<Image src={imageUrl} alt={title} fill className='object-cover' />
 				<MasteryBadge level={mastery.masteryLevel} />
 				<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm'>
 					{mastery.personalCookCount}× cooked
@@ -660,6 +658,8 @@ const MiniCard = ({
 			<Image
 				src={imageUrl}
 				alt={title}
+				width={56}
+				height={56}
 				className='h-14 w-14 flex-shrink-0 rounded-lg object-cover'
 			/>
 			<div className='min-w-0 flex-1'>
