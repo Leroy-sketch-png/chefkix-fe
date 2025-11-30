@@ -91,14 +91,22 @@
 	--h-textarea-min: 100px; /* Minimum height for textareas */
 	--h-content-min: 50vh; /* Minimum content height (empty states) */
 	--h-content-tall: 60vh; /* Taller content height (error states) */
+	--h-panel-md: 400px; /* Medium panel height (recipe cards, error boundaries) */
+	--h-panel-lg: 500px; /* Large panel height (comment lists, messages) */
+	--h-panel-xl: 600px; /* Extra large panel height (AI assistant) */
 
 	/* ============ ICON & ELEMENT SIZES ============ */
 	/* Icon sizes - used for lucide icons and inline graphics */
+	--icon-2xs: 14px; /* Tiny inline icons */
 	--icon-xs: 14px;
 	--icon-sm: 18px; /* Most common small icon size */
 	--icon-md: 22px; /* Badge indicators, verification icons */
 	--icon-lg: 28px; /* Featured icons, emoji displays */
 	--icon-xl: 32px; /* Large decorative icons */
+	--icon-2xl: 40px; /* Large decorative icons */
+	--icon-emoji: 28px; /* Standard emoji display size */
+	--icon-emoji-lg: 32px; /* Large emoji size */
+	--icon-emoji-xl: 64px; /* Hero emoji size */
 
 	/* Avatar sizes */
 	--avatar-xs: 32px;
@@ -113,10 +121,20 @@
 	--modal-lg: 480px;
 	--modal-xl: 600px;
 
+	/* Container widths for page layouts */
+	--container-sm: 480px;
+	--container-md: 600px;
+	--container-lg: 800px;
+	--container-xl: 1000px;
+
 	/* Common component dimensions */
 	--thumbnail-sm: 52px; /* Challenge icons, small previews */
 	--thumbnail-md: 60px; /* Recipe thumbnails */
+	--thumbnail-lg: 72px; /* Larger thumbnails, badge displays */
+	--thumbnail-xl: 100px; /* Featured images */
+	--thumbnail-2xl: 120px; /* Hero images */
 	--card-image-height: 200px; /* Standard card image height */
+	--banner-min-height: 320px; /* Challenge/promo banners */
 
 	/* Z-index scale */
 	--z-base: 1;
@@ -174,12 +192,19 @@
 		'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
 		Arial;
 	--font-display: 'Pacifico', cursive;
+	--font-size-2xs: 10px; /* Very small labels, badges */
 	--font-size-xs: 12px;
 	--font-size-sm: 14px;
 	--font-size-base: 16px;
 	--font-size-lg: 20px;
 	--font-size-xl: 26px;
 	--font-size-2xl: 34px;
+	--font-size-icon-lg: 28px; /* Emoji/icon text size - matches icon-lg */
+	--font-size-icon-xl: 32px; /* Large emoji/icon text size - matches icon-xl */
+	--font-size-icon-2xl: 40px; /* Achievement emoji size */
+	--font-size-icon-3xl: 48px; /* Large achievement emoji size */
+	--font-size-icon-4xl: 60px; /* Extra large achievement emoji size */
+	--font-size-icon-emoji-xl: 64px; /* Hero emoji size - for empty states */
 
 	--font-weight-normal: 400;
 	--font-weight-medium: 500;

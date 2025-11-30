@@ -124,12 +124,19 @@ module.exports = {
 				mono: ['var(--font-geist-mono)'],
 			},
 			fontSize: {
+				'2xs': 'var(--font-size-2xs)',
 				xs: 'var(--font-size-xs)',
 				sm: 'var(--font-size-sm)',
 				base: 'var(--font-size-base)',
 				lg: 'var(--font-size-lg)',
 				xl: 'var(--font-size-xl)',
 				'2xl': 'var(--font-size-2xl)',
+				'icon-lg': 'var(--font-size-icon-lg)',
+				'icon-xl': 'var(--font-size-icon-xl)',
+				'icon-2xl': 'var(--font-size-icon-2xl)',
+				'icon-3xl': 'var(--font-size-icon-3xl)',
+				'icon-4xl': 'var(--font-size-icon-4xl)',
+				'icon-emoji-xl': 'var(--font-size-icon-emoji-xl)',
 			},
 			fontWeight: {
 				normal: 'var(--font-weight-normal)',
@@ -168,11 +175,16 @@ module.exports = {
 				nav: 'var(--nav-w)',
 				right: 'var(--right-w)',
 				// Icon sizes
+				'icon-2xs': 'var(--icon-2xs)',
 				'icon-xs': 'var(--icon-xs)',
 				'icon-sm': 'var(--icon-sm)',
 				'icon-md': 'var(--icon-md)',
 				'icon-lg': 'var(--icon-lg)',
 				'icon-xl': 'var(--icon-xl)',
+				'icon-2xl': 'var(--icon-2xl)',
+				'icon-emoji': 'var(--icon-emoji)',
+				'icon-emoji-lg': 'var(--icon-emoji-lg)',
+				'icon-emoji-xl': 'var(--icon-emoji-xl)',
 				// Avatar sizes
 				'avatar-xs': 'var(--avatar-xs)',
 				'avatar-sm': 'var(--avatar-sm)',
@@ -182,14 +194,22 @@ module.exports = {
 				// Thumbnail sizes
 				'thumbnail-sm': 'var(--thumbnail-sm)',
 				'thumbnail-md': 'var(--thumbnail-md)',
+				'thumbnail-lg': 'var(--thumbnail-lg)',
+				'thumbnail-xl': 'var(--thumbnail-xl)',
+				'thumbnail-2xl': 'var(--thumbnail-2xl)',
 			},
 			height: {
 				// Icon sizes (matching width)
+				'icon-2xs': 'var(--icon-2xs)',
 				'icon-xs': 'var(--icon-xs)',
 				'icon-sm': 'var(--icon-sm)',
 				'icon-md': 'var(--icon-md)',
 				'icon-lg': 'var(--icon-lg)',
 				'icon-xl': 'var(--icon-xl)',
+				'icon-2xl': 'var(--icon-2xl)',
+				'icon-emoji': 'var(--icon-emoji)',
+				'icon-emoji-lg': 'var(--icon-emoji-lg)',
+				'icon-emoji-xl': 'var(--icon-emoji-xl)',
 				// Avatar sizes
 				'avatar-xs': 'var(--avatar-xs)',
 				'avatar-sm': 'var(--avatar-sm)',
@@ -199,8 +219,38 @@ module.exports = {
 				// Thumbnail sizes
 				'thumbnail-sm': 'var(--thumbnail-sm)',
 				'thumbnail-md': 'var(--thumbnail-md)',
+				'thumbnail-lg': 'var(--thumbnail-lg)',
+				'thumbnail-xl': 'var(--thumbnail-xl)',
+				'thumbnail-2xl': 'var(--thumbnail-2xl)',
 				// Card image heights
 				'card-image': 'var(--card-image-height)',
+				// Panel heights
+				'panel-md': 'var(--h-panel-md)',
+				'panel-lg': 'var(--h-panel-lg)',
+				'panel-xl': 'var(--h-panel-xl)',
+			},
+			size: {
+				// Combined width/height tokens for square elements
+				'icon-2xs': 'var(--icon-2xs)',
+				'icon-xs': 'var(--icon-xs)',
+				'icon-sm': 'var(--icon-sm)',
+				'icon-md': 'var(--icon-md)',
+				'icon-lg': 'var(--icon-lg)',
+				'icon-xl': 'var(--icon-xl)',
+				'icon-2xl': 'var(--icon-2xl)',
+				'icon-emoji': 'var(--icon-emoji)',
+				'icon-emoji-lg': 'var(--icon-emoji-lg)',
+				'icon-emoji-xl': 'var(--icon-emoji-xl)',
+				'avatar-xs': 'var(--avatar-xs)',
+				'avatar-sm': 'var(--avatar-sm)',
+				'avatar-md': 'var(--avatar-md)',
+				'avatar-lg': 'var(--avatar-lg)',
+				'avatar-xl': 'var(--avatar-xl)',
+				'thumbnail-sm': 'var(--thumbnail-sm)',
+				'thumbnail-md': 'var(--thumbnail-md)',
+				'thumbnail-lg': 'var(--thumbnail-lg)',
+				'thumbnail-xl': 'var(--thumbnail-xl)',
+				'thumbnail-2xl': 'var(--thumbnail-2xl)',
 			},
 			maxWidth: {
 				// Container widths
@@ -214,6 +264,12 @@ module.exports = {
 				'modal-lg': 'var(--modal-lg)',
 				'modal-xl': 'var(--modal-xl)',
 			},
+			maxHeight: {
+				// Panel heights
+				'panel-md': 'var(--h-panel-md)',
+				'panel-lg': 'var(--h-panel-lg)',
+				'panel-xl': 'var(--h-panel-xl)',
+			},
 			minWidth: {
 				nav: 'var(--nav-w)',
 				search: '120px', // Search bar minimum width
@@ -222,6 +278,8 @@ module.exports = {
 				textarea: 'var(--h-textarea-min)',
 				content: 'var(--h-content-min)',
 				'content-tall': 'var(--h-content-tall)',
+				banner: 'var(--banner-min-height)',
+				'panel-md': 'var(--h-panel-md)',
 			},
 			boxShadow: {
 				sm: 'var(--shadow-sm)',
