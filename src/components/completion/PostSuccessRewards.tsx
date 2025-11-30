@@ -218,6 +218,8 @@ export const PostSuccessRewards = ({
 									<Image
 										src={recipeImageUrl}
 										alt={recipeName}
+										width={112}
+										height={112}
 										className='h-full w-full rounded-2xl object-cover shadow-xl'
 									/>
 									<motion.div
@@ -341,6 +343,8 @@ export const PostSuccessRewards = ({
 											<Image
 												src={postPreview.authorAvatar}
 												alt={postPreview.authorName}
+												width={28}
+												height={28}
 												className='h-7 w-7 rounded-full'
 											/>
 											<span className='flex-1 text-sm font-semibold'>
@@ -351,6 +355,8 @@ export const PostSuccessRewards = ({
 										<Image
 											src={postPreview.imageUrl}
 											alt='Your creation'
+											width={400}
+											height={300}
 											className='aspect-[4/3] w-full object-cover'
 										/>
 										<p className='p-3 text-sm'>{postPreview.caption}</p>

@@ -512,7 +512,8 @@ const OwnProfileHeader = ({
 						'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200'
 					}
 					alt='Cover'
-					className='h-full w-full object-cover'
+					fill
+					className='object-cover'
 				/>
 				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
 
@@ -534,6 +535,8 @@ const OwnProfileHeader = ({
 					<Image
 						src={user.avatarUrl}
 						alt={user.displayName}
+						width={96}
+						height={96}
 						className='size-avatar-xl rounded-full border-[5px] border-panel-bg object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
@@ -676,7 +679,8 @@ const OtherUserProfileHeader = ({
 						'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=1200'
 					}
 					alt='Cover'
-					className='h-full w-full object-cover'
+					fill
+					className='object-cover'
 				/>
 				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
 
@@ -698,6 +702,8 @@ const OtherUserProfileHeader = ({
 					<Image
 						src={user.avatarUrl}
 						alt={user.displayName}
+						width={96}
+						height={96}
 						className='h-avatar-xl w-avatar-xl rounded-full border-[5px] border-panel-bg object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
@@ -835,6 +841,8 @@ const MiniProfileHeader = ({
 				<Image
 					src={user.avatarUrl}
 					alt={user.displayName}
+					width={48}
+					height={48}
 					className='h-12 w-12 rounded-full object-cover'
 				/>
 				<span className='absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-panel-bg bg-success text-2xs font-extrabold text-white'>

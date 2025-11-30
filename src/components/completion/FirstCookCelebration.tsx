@@ -293,6 +293,8 @@ export const FirstCookCelebration = ({
 								<Image
 									src={recipeImageUrl || '/placeholder-recipe.jpg'}
 									alt={recipeName}
+									width={80}
+									height={80}
 									className='h-thumbnail-lg w-thumbnail-lg rounded-xl object-cover'
 								/>
 								<div className='pointer-events-none absolute -inset-1 rounded-2xl border-2 border-amber-400' />
