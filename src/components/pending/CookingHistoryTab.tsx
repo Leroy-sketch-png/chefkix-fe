@@ -208,7 +208,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					{/* XP Decay Indicator */}
 					{decayPercent > 0 && (
 						<div className='mt-2'>
-							<div className='h-1 bg-border rounded-full overflow-hidden max-w-[150px]'>
+							<div className='h-1 bg-border rounded-full overflow-hidden max-w-thumbnail-2xl'>
 								<motion.div
 									className='h-full bg-gradient-to-r from-error to-warning rounded-full'
 									initial={{ width: 0 }}
@@ -224,7 +224,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 				</div>
 
 				{/* XP Display */}
-				<div className='text-right flex-shrink-0 min-w-[70px]'>
+				<div className='text-right flex-shrink-0 min-w-thumbnail-lg'>
 					<span className='block text-xl font-extrabold text-success'>
 						+{session.currentXP}
 					</span>

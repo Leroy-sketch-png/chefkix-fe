@@ -18,7 +18,7 @@ export const CookingPlayer = () => {
 	if (!isCookingPlayerOpen) return null
 
 	return (
-		<div className='fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm animate-in fade-in'>
+		<div className='fixed inset-0 z-modal flex items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm animate-in fade-in'>
 			<div className='flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-card shadow-lg animate-in slide-in-from-bottom-12'>
 				{/* Header */}
 				<div className='relative bg-gradient-to-r from-destructive to-gold p-6 text-center text-primary-foreground'>

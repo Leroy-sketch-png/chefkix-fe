@@ -114,7 +114,7 @@ const StoryItem = ({ story, onClick }: StoryItemProps) => {
 						: undefined
 				}
 			>
-				<div className='relative h-full w-full overflow-hidden rounded-full bg-background p-[2px]'>
+				<div className='relative h-full w-full overflow-hidden rounded-full bg-background p-0.5'>
 					<Avatar className='h-full w-full'>
 						<AvatarImage src={story.avatar} alt={story.username} />
 						<AvatarFallback className='text-sm font-semibold'>
@@ -123,7 +123,7 @@ const StoryItem = ({ story, onClick }: StoryItemProps) => {
 					</Avatar>
 				</div>
 			</div>
-			<span className='text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors max-w-[64px] truncate'>
+			<span className='text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors max-w-thumbnail-md truncate'>
 				{story.username}
 			</span>
 		</motion.div>
@@ -150,7 +150,7 @@ const StoryViewer = ({
 
 	return (
 		<motion.div
-			className='fixed inset-0 z-50 bg-black/95 flex items-center justify-center'
+			className='fixed inset-0 z-modal bg-black/95 flex items-center justify-center'
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}

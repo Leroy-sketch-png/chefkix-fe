@@ -143,7 +143,7 @@ const ModalOverlay = ({ children, onClose }: ModalOverlayProps) => (
 		animate={{ opacity: 1 }}
 		exit={{ opacity: 0 }}
 		onClick={onClose}
-		className='fixed inset-0 z-[400] flex items-center justify-content-center bg-black/60 p-6 backdrop-blur-sm'
+		className='fixed inset-0 z-modal flex items-center justify-content-center bg-black/60 p-6 backdrop-blur-sm'
 	>
 		<div className='flex min-h-full w-full items-center justify-center'>
 			<motion.div
@@ -349,7 +349,7 @@ const PausedScreen = ({
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className='fixed inset-0 z-[350] flex items-center justify-center bg-panel-bg/98'
+			className='fixed inset-0 z-modal flex items-center justify-center bg-panel-bg/98'
 		>
 			<div className='max-w-lg px-6 py-10 text-center'>
 				{/* Floating icon */}
@@ -453,7 +453,7 @@ const ExpiredScreen = ({ recipe, onRestart, onGoHome }: ExpiredScreenProps) => (
 		initial={{ opacity: 0 }}
 		animate={{ opacity: 1 }}
 		exit={{ opacity: 0 }}
-		className='fixed inset-0 z-[350] flex items-center justify-center bg-panel-bg'
+		className='fixed inset-0 z-modal flex items-center justify-center bg-panel-bg'
 	>
 		<div className='max-w-md px-6 py-10 text-center'>
 			<div className='mb-5 text-6xl opacity-60'>⏰</div>

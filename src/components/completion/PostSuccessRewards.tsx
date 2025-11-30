@@ -181,7 +181,7 @@ export const PostSuccessRewards = ({
 			{isOpen && (
 				<>
 					{/* Sparkles */}
-					<div className='pointer-events-none fixed inset-0 z-[599] overflow-hidden'>
+					<div className='pointer-events-none fixed inset-0 z-modal overflow-hidden'>
 						<Sparkle x='20%' y='30%' delay={0} />
 						<Sparkle x='80%' y='25%' delay={0.1} />
 						<Sparkle x='15%' y='70%' delay={0.2} />
@@ -194,7 +194,7 @@ export const PostSuccessRewards = ({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className='fixed inset-0 z-[600] flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm'
 					>
 						{/* Card */}
 						<motion.div

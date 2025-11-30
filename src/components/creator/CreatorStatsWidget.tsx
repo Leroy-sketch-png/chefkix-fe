@@ -142,13 +142,13 @@ export function CreatorXPNotification({
 						width={32}
 						height={32}
 						className={cn(
-							'w-8 h-8 rounded-full border-[3px] border-panel-bg',
+							'w-8 h-8 rounded-full border-3 border-panel-bg',
 							index > 0 && '-ml-2.5',
 						)}
 					/>
 				))}
 				{remainingCount > 0 && (
-					<div className='w-8 h-8 flex items-center justify-center bg-indigo-500 rounded-full border-[3px] border-panel-bg -ml-2.5 text-xs font-bold text-white'>
+					<div className='w-8 h-8 flex items-center justify-center bg-indigo-500 rounded-full border-3 border-panel-bg -ml-2.5 text-xs font-bold text-white'>
 						+{remainingCount}
 					</div>
 				)}

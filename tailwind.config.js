@@ -263,11 +263,16 @@ module.exports = {
 				'modal-md': 'var(--modal-md)',
 				'modal-lg': 'var(--modal-lg)',
 				'modal-xl': 'var(--modal-xl)',
+				// Chat bubble widths
+				'bubble-sm': 'var(--bubble-sm)',
+				'bubble-md': 'var(--bubble-md)',
+				'bubble-lg': 'var(--bubble-lg)',
 				// Element max-widths
 				'thumbnail-sm': 'var(--thumbnail-sm)',
 				'thumbnail-md': 'var(--thumbnail-md)',
 				'thumbnail-lg': 'var(--thumbnail-lg)',
 				'thumbnail-xl': 'var(--thumbnail-xl)',
+				'thumbnail-2xl': 'var(--thumbnail-2xl)',
 			},
 			maxHeight: {
 				// Panel heights

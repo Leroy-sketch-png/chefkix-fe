@@ -384,7 +384,7 @@ export const LevelUpToast = ({
 		animate={{ opacity: 1, y: 0 }}
 		exit={{ opacity: 0, y: 20 }}
 		transition={TRANSITION_SPRING}
-		className='fixed bottom-24 left-1/2 z-[500] flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-amber-400 bg-panel-bg px-4 py-3 shadow-xl md:bottom-6'
+		className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-amber-400 bg-panel-bg px-4 py-3 shadow-xl md:bottom-6'
 	>
 		{/* Badge */}
 		<div className='flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500'>

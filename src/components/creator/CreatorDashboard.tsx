@@ -106,7 +106,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
 				'bg-gradient-to-r from-emerald-500/10 to-teal-500/5',
-				'border-2 border-emerald-500/20 rounded-[20px] p-5 mb-6',
+				'border-2 border-emerald-500/20 rounded-xl p-5 mb-6',
 			)}
 		>
 			{/* Header */}
@@ -182,7 +182,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 
 function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 	return (
-		<div className='bg-panel-bg rounded-[20px] p-6 mb-6'>
+		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
 			<h3 className='text-lg font-bold text-text mb-4'>Lifetime Stats</h3>
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
 				{/* Recipes Published - Large */}
@@ -275,7 +275,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 						</span>
 
 						{!badge.isEarned && (
-							<div className='absolute inset-0 flex items-center justify-center bg-black/40 rounded-[14px]'>
+							<div className='absolute inset-0 flex items-center justify-center bg-black/40 rounded-radius'>
 								<Lock className='w-6 h-6 text-white' />
 							</div>
 						)}
@@ -300,7 +300,7 @@ function TopRecipeSection({
 	onRecipeClick?: (id: string) => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-[20px] p-6 mb-6'>
+		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>🏆 Top Recipe</h3>
 				{onViewAllRecipes && (
@@ -378,7 +378,7 @@ function RecipePerformanceSection({
 	onRecipeClick?: (id: string) => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-[20px] p-6 mb-6'>
+		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Recipe Performance</h3>
 				<button className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border rounded-lg text-sm text-text'>
@@ -401,7 +401,7 @@ function RecipePerformanceSection({
 						onClick={() => onRecipeClick?.(recipe.id)}
 						className={cn(
 							'flex items-center gap-3.5 p-3.5 bg-bg rounded-xl cursor-pointer transition-colors',
-							recipe.needsAttention && 'border-l-[3px] border-l-amber-500',
+							recipe.needsAttention && 'border-l-3 border-l-amber-500',
 						)}
 					>
 						<span className='w-7 text-base font-extrabold text-muted text-center'>
@@ -484,7 +484,7 @@ function RecentCooksSection({
 	onViewAll?: () => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-[20px] p-6 mb-6'>
+		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Recent Cooks</h3>
 				{onViewAll && (
@@ -548,7 +548,7 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			className={cn(
 				'flex flex-col sm:flex-row items-center justify-between gap-4 p-5',
 				'bg-gradient-to-r from-indigo-500/10 to-purple-500/5',
-				'border-2 border-indigo-500/20 rounded-[20px]',
+				'border-2 border-indigo-500/20 rounded-xl',
 			)}
 		>
 			<div className='flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left'>

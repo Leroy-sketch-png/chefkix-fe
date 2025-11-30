@@ -141,6 +141,11 @@
 	--modal-lg: 480px;
 	--modal-xl: 600px;
 
+	/* Chat bubble widths */
+	--bubble-sm: 200px; /* Reply preview, truncated content */
+	--bubble-md: 280px; /* Mobile chat bubbles */
+	--bubble-lg: 400px; /* Desktop chat bubbles */
+
 	/* Container widths for page layouts */
 	--container-sm: 480px;
 	--container-md: 600px;

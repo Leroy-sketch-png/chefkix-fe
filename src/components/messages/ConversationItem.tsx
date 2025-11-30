@@ -147,7 +147,7 @@ export const ConversationItem = ({
 				{isPinned && <span className='text-xs'>📌</span>}
 				{isMuted && <span className='text-xs opacity-50'>🔇</span>}
 				{unreadCount > 0 && !isMuted && (
-					<span className='min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold'>
+					<span className='min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold'>
 						{unreadCount > 99 ? '99+' : unreadCount}
 					</span>
 				)}
