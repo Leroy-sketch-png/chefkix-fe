@@ -23,20 +23,20 @@ import {
 	InputGroupInput,
 } from '@/components/ui/input-group'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card'
+	FriendsLeaderboard,
+	type LeaderboardEntry,
+} from '@/components/leaderboard'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function CommunityPage() {
+	const { user } = useAuth()
+	const router = useRouter()
 	const [allProfiles, setAllProfiles] = useState<Profile[]>([])
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [friendRequests, setFriendRequests] = useState<Profile[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
-	const [searchTerm, setSearchTerm] = useState('')
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -86,6 +86,47 @@ export default function CommunityPage() {
 
 	const handleUnfriend = (userId: string) => {
 		setFriends(prev => prev.filter(friend => friend.userId !== userId))
+	}
+
+	// Transform friends to leaderboard entries (mock XP data for now)
+	const leaderboardEntries: LeaderboardEntry[] = friends
+		.map((friend, index) => ({
+			userId: friend.userId ?? `friend-${index}`,
+			username: friend.username || 'chef',
+			displayName: friend.displayName || friend.username || 'Chef',
+			avatarUrl: friend.avatarUrl || '/images/default-avatar.png',
+			rank: index + 2, // Current user is rank 1
+			level: Math.floor(Math.random() * 10) + 1,
+			xpThisWeek: Math.floor(Math.random() * 500) + 100,
+			recipesCooked: Math.floor(Math.random() * 10) + 1,
+			streak: Math.floor(Math.random() * 7),
+			isCurrentUser: false,
+		}))
+		.concat(
+			user
+				? [
+						{
+							userId: user.userId ?? 'me',
+							username: user.username || 'me',
+							displayName: user.displayName || user.username || 'You',
+							avatarUrl: user.avatarUrl || '/images/default-avatar.png',
+							rank: 1,
+							level: user.statistics?.currentLevel ?? 1,
+							xpThisWeek: user.statistics?.currentXP ?? 500,
+							recipesCooked: 5,
+							streak: user.statistics?.streakCount ?? 3,
+							isCurrentUser: true,
+						},
+					]
+				: [],
+		)
+		.sort((a, b) => b.xpThisWeek - a.xpThisWeek)
+		.map((entry, index) => ({ ...entry, rank: index + 1 }))
+
+	const handleLeaderboardUserClick = (entry: LeaderboardEntry) => {
+		if (!entry.isCurrentUser) {
+			router.push(`/${entry.userId}`)
+		}
 	}
 
 	if (error) {
@@ -214,37 +255,19 @@ export default function CommunityPage() {
 					</TabsContent>
 
 					<TabsContent value='leaderboard' className='mt-0 animate-fadeIn'>
-						<Card>
-							<CardHeader>
-								<CardTitle className='flex items-center gap-2'>
-									<Trophy className='h-5 w-5 text-primary' />
-									Community Leaderboard
-								</CardTitle>
-								<CardDescription>
-									Top chefs ranked by XP, level, and community engagement
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className='mb-6'>
-									<InputGroup>
-										<InputGroupAddon align='inline-start'>
-											<Search className='h-4 w-4 text-muted-foreground' />
-										</InputGroupAddon>
-										<InputGroupInput
-											placeholder='Search leaderboard...'
-											value={searchTerm}
-											onChange={e => setSearchTerm(e.target.value)}
-										/>
-									</InputGroup>
-								</div>
-								<EmptyState
-									lottieAnimation={lottieNotFound}
-									lottieSize={() => 200}
-									title='Leaderboard Coming Soon'
-									description='Real-time rankings and community stats will appear here once the backend integration is complete.'
-								/>
-							</CardContent>
-						</Card>
+						<FriendsLeaderboard
+							entries={leaderboardEntries}
+							totalFriends={friends.length}
+							onUserClick={handleLeaderboardUserClick}
+							onInviteFriends={() => {
+								// Switch to discover tab
+								const discoverTab = document.querySelector(
+									'[data-state="inactive"][value="discover"]',
+								) as HTMLButtonElement
+								discoverTab?.click()
+							}}
+							onCookToDefend={() => router.push('/explore')}
+						/>
 					</TabsContent>
 				</Tabs>
 			</PageContainer>

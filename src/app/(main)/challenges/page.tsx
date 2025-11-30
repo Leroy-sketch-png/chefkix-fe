@@ -1,66 +1,121 @@
 'use client'
 
-import { Trophy, Calendar, Users, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import {
+	ChallengeCard,
+	ChallengeCardGrid,
+	DailyChallengeBanner,
+} from '@/components/challenges'
+
+// Mock data - in production, fetch from API
+const mockChallenges = [
+	{
+		id: 'weekly-pasta',
+		type: 'weekly' as const,
+		title: 'The Ultimate Pasta-Off',
+		description:
+			'Create an original pasta dish using only 5 ingredients. Most creative recipe wins!',
+		icon: '🍝',
+		bonusXp: 150,
+		progress: { current: 0, total: 3 },
+		participants: 1204,
+		endsAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+		status: 'active' as const,
+		isJoined: false,
+	},
+	{
+		id: 'community-comfort',
+		type: 'community' as const,
+		title: 'Comfort Food Week',
+		description: 'Share your favorite comfort food recipe with the community.',
+		icon: '🥘',
+		bonusXp: 75,
+		participants: 3542,
+		endsAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
+		status: 'active' as const,
+		isJoined: true,
+	},
+	{
+		id: 'seasonal-spring',
+		type: 'seasonal' as const,
+		title: 'Spring Fresh',
+		description: 'Cook dishes featuring fresh spring vegetables and herbs.',
+		icon: '🌸',
+		bonusXp: 200,
+		progress: { current: 2, total: 5 },
+		participants: 892,
+		endsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+		status: 'active' as const,
+		isJoined: true,
+	},
+]
+
+// Mock daily challenge
+const dailyChallenge = {
+	id: 'daily-quick',
+	title: '15-Minute Meals',
+	description: 'Cook any dish in 15 minutes or less. Speed and flavor!',
+	icon: '⚡',
+	bonusXp: 25,
+	endsAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours from now
+}
 
 export default function ChallengesPage() {
+	const [challenges, setChallenges] = useState(mockChallenges)
+	const [loading] = useState(false)
+
+	const handleJoin = (challengeId: string) => {
+		setChallenges(prev =>
+			prev.map(c => (c.id === challengeId ? { ...c, isJoined: true } : c)),
+		)
+	}
+
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='md'>
+			<PageContainer maxWidth='lg'>
 				{/* Header */}
 				<div className='mb-8 animate-fadeIn'>
 					<h1 className='mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-3xl font-bold text-transparent'>
-						Weekly Challenges
+						Challenges
 					</h1>
 					<p className='text-muted-foreground'>
-						Test your skills and earn exclusive badges!
+						Test your skills, earn bonus XP, and unlock exclusive badges!
 					</p>
 				</div>
 
-				{/* Active Challenge Card */}
-				<div className='group animate-scaleIn rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-glow'>
-					{/* Badge */}
-					<div className='mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary'>
-						<Sparkles className='h-4 w-4' />
-						Weekly Challenge
-					</div>
-					{/* Title */}
-					<h2 className='mb-3 text-2xl font-bold'>The Ultimate Pasta-Off</h2>
-					{/* Description */}
-					<p className='mb-6 leading-relaxed text-muted-foreground'>
-						Create an original pasta dish using only 5 ingredients. Most
-						creative recipe wins!
+				{/* Daily Challenge Banner - Featured */}
+				<DailyChallengeBanner
+					variant='active'
+					challenge={dailyChallenge}
+					onFindRecipe={() => console.log('Find quick recipes')}
+				/>
+
+				{/* Active Challenges Section */}
+				<section className='mb-8'>
+					<h2 className='mb-4 text-lg font-bold text-text-primary'>
+						Active Challenges
+					</h2>
+					<ChallengeCardGrid
+						challenges={challenges.map(c => ({
+							...c,
+							onJoin: () => handleJoin(c.id),
+							onView: () => console.log('View challenge:', c.id),
+						}))}
+						loading={loading}
+					/>
+				</section>
+
+				{/* Completed Challenges (placeholder) */}
+				<section>
+					<h2 className='mb-4 text-lg font-bold text-text-secondary'>
+						Past Challenges
+					</h2>
+					<p className='text-sm text-muted-foreground'>
+						Your completed challenges will appear here.
 					</p>
-					{/* CTA Button */}
-					<Button
-						size='lg'
-						className='group/btn mb-6 w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 sm:w-auto'
-					>
-						<Trophy className='mr-2 h-5 w-5 transition-transform group-hover/btn:scale-110' />
-						Join Challenge
-					</Button>
-					{/* Progress Bar */}
-					<div className='mb-3 h-3 w-full overflow-hidden rounded-full bg-muted'>
-						<div
-							className='h-full rounded-full bg-gradient-to-r from-primary to-accent shadow-glow transition-all duration-500'
-							style={{ width: '40%' }}
-						></div>
-					</div>{' '}
-					{/* Stats */}
-					<div className='flex items-center gap-4 text-sm text-muted-foreground'>
-						<div className='flex items-center gap-1.5'>
-							<Calendar className='h-4 w-4' />
-							<span>3 days left</span>
-						</div>
-						<div className='h-1 w-1 rounded-full bg-muted-foreground/40'></div>
-						<div className='flex items-center gap-1.5'>
-							<Users className='h-4 w-4' />
-							<span>1,204 participants</span>
-						</div>
-					</div>
-				</div>
+				</section>
 			</PageContainer>
 		</PageTransition>
 	)

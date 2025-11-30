@@ -18,12 +18,22 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { AnimatePresence } from 'framer-motion'
+import { StreakRiskBanner } from '@/components/streak'
+import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
 	const { user } = useAuth()
+	const router = useRouter()
 	const [posts, setPosts] = useState<Post[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
+	const [showStreakBanner, setShowStreakBanner] = useState(true)
+
+	// Mock streak risk data - in production, derive from user.statistics
+	const hasStreakAtRisk =
+		user?.statistics?.streakCount && user.statistics.streakCount > 0
+	const hoursUntilMidnight = 24 - new Date().getHours()
+	const isUrgent = hoursUntilMidnight <= 2
 
 	useEffect(() => {
 		const fetchFeed = async () => {
@@ -46,6 +56,8 @@ export default function DashboardPage() {
 
 	const handlePostCreated = (newPost: Post) => {
 		setPosts(prev => (Array.isArray(prev) ? [newPost, ...prev] : [newPost]))
+		// Dismiss streak banner when user creates a post (cooking activity)
+		setShowStreakBanner(false)
 	}
 
 	const handlePostUpdate = (updatedPost: Post) => {
@@ -65,7 +77,17 @@ export default function DashboardPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Stories Bar - Only show on mobile/tablet, hidden on desktop where RightSidebar shows it */}
+				{/* Streak Risk Banner - Show when user has a streak but hasn't cooked today */}
+				{hasStreakAtRisk && showStreakBanner && (
+					<StreakRiskBanner
+						currentStreak={user.statistics?.streakCount ?? 0}
+						timeRemaining={{ hours: hoursUntilMidnight, minutes: 0 }}
+						isUrgent={isUrgent}
+						onQuickCook={() => router.push('/explore')}
+						onDismiss={() => setShowStreakBanner(false)}
+						className='mb-4'
+					/>
+				)}
 				<div className='mb-4 md:mb-6 lg:hidden'>
 					<Stories variant='horizontal' />
 				</div>

@@ -3,7 +3,9 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { Zap } from 'lucide-react'
+import { StreakWidget } from '@/components/streak'
+import { ExpandableDailyChallengeBanner } from '@/components/challenges'
+import { useRouter } from 'next/navigation'
 
 const suggestions = [
 	{
@@ -22,6 +24,7 @@ const suggestions = [
 
 export const RightSidebar = () => {
 	const { user } = useAuth()
+	const router = useRouter()
 	const [followedIds, setFollowedIds] = useState<number[]>([])
 
 	const handleFollow = (id: number) => {
@@ -30,46 +33,51 @@ export const RightSidebar = () => {
 		)
 	}
 
-	// Calculate XP progress if we have user statistics - with null safety
-	const xpProgress =
-		user?.statistics?.currentXP != null && user?.statistics?.currentXPGoal
-			? (user.statistics.currentXP / user.statistics.currentXPGoal) * 100
-			: 57 // Default value for display
+	// Mock streak data - in production, this comes from user stats
+	const streakData = {
+		currentStreak: user?.statistics?.streakCount ?? 5,
+		weekProgress: [
+			'cooked',
+			'cooked',
+			'cooked',
+			'cooked',
+			'today',
+			'future',
+			'future',
+		] as ('cooked' | 'today' | 'future')[],
+		isActiveToday: true,
+		status: 'active' as const,
+	}
 
-	const currentXP = user?.statistics?.currentXP ?? 20
-	const xpGoal = user?.statistics?.currentXPGoal ?? 35
-	const xpToNext = Math.max(0, xpGoal - currentXP)
+	// Mock daily challenge - in production, fetch from API
+	const dailyChallenge = {
+		id: 'daily-pasta',
+		title: 'Pasta Master',
+		description: 'Cook any pasta dish today to earn bonus XP!',
+		icon: '🍝',
+		bonusXp: 25,
+		endsAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours from now
+	}
 
 	return (
-		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-6 xl:flex xl:flex-col xl:gap-6'>
-			{/* Progress Card */}
-			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-lg backdrop-blur-sm backdrop-saturate'>
-				<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-[0.5px] text-text-primary'>
-					Your Progress
-				</div>
-				<div className='mb-2 flex items-center gap-3'>
-					<Zap className='h-7 w-7 fill-gold text-gold' />
-					<div className='text-lg leading-tight text-text-primary'>
-						<strong>{currentXP}</strong> / {xpGoal} XP
-					</div>
-				</div>
-				<div className='h-2.5 overflow-hidden rounded-sm bg-bg-hover relative'>
-					<div
-						className='h-full rounded-sm bg-mint transition-all duration-500 ease-out relative overflow-hidden'
-						style={{ width: `${Math.min(xpProgress, 100)}%` }}
-					>
-						{/* Shimmer effect on progress bar */}
-						<div className='absolute inset-0 animate-xp-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent' />
-					</div>
-				</div>
-				<div className='mt-2 text-sm leading-normal text-text-secondary'>
-					{xpToNext} XP to next level!
-				</div>
-			</div>
+		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-4 xl:flex xl:flex-col xl:gap-4'>
+			{/* Streak Widget */}
+			<StreakWidget
+				currentStreak={streakData.currentStreak}
+				weekProgress={streakData.weekProgress}
+				isActiveToday={streakData.isActiveToday}
+				status={streakData.status}
+			/>
+
+			{/* Daily Challenge Banner (Expandable) */}
+			<ExpandableDailyChallengeBanner
+				challenge={dailyChallenge}
+				onFindRecipe={() => router.push('/explore?challenge=pasta')}
+			/>
 
 			{/* Trending Creators Card */}
 			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-lg backdrop-blur-sm backdrop-saturate'>
-				<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-[0.5px] text-text-primary'>
+				<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
 					Trending Creators
 				</div>
 				<div className='flex flex-col gap-3'>
@@ -95,7 +103,7 @@ export const RightSidebar = () => {
 								</div>
 								<button
 									onClick={() => handleFollow(suggestion.id)}
-									className='relative h-11 overflow-hidden rounded-lg border-none bg-gradient-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
+									className='relative h-9 overflow-hidden rounded-lg border-none bg-gradient-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]'
 								>
 									{isFollowed ? 'Following' : 'Follow'}
 								</button>
