@@ -10,45 +10,105 @@ export default function CreatorRoute() {
 	const { user } = useAuth()
 	const router = useRouter()
 
-	// Mock creator stats - in production, fetch from backend
-	const creatorStats = {
-		totalRecipes: 12,
-		totalCooks: 847,
-		totalLikes: 2341,
-		avgRating: 4.7,
-		xpFromTips: 1250,
-		weeklyViews: 523,
-		weeklyChange: '+15%',
+	// Mock data matching CreatorDashboardProps interface
+	const weekHighlight = {
+		newCooks: 47,
+		newCooksChange: 12,
+		xpEarned: 235,
+		xpEarnedChange: 8,
+		dateRange: 'Nov 25 - Dec 1',
 	}
 
-	// Mock top recipes - in production, fetch from backend
-	const topRecipes = [
+	const lifetimeStats = {
+		recipesPublished: 12,
+		totalCooks: 847,
+		creatorXpEarned: 4250,
+		avgRating: 4.7,
+	}
+
+	const creatorBadges = [
+		{
+			id: 'badge-1',
+			icon: '🍝',
+			name: 'Pasta Master',
+			description: 'Created 5 pasta recipes',
+			isEarned: true,
+		},
+		{
+			id: 'badge-2',
+			icon: '🔥',
+			name: 'Trending Creator',
+			description: 'Recipe in top 10',
+			isEarned: true,
+		},
+		{
+			id: 'badge-3',
+			icon: '👨‍🍳',
+			name: '100 Cooks',
+			description: 'Recipes cooked 100+ times',
+			isEarned: false,
+		},
+	]
+
+	const topRecipe = {
+		id: 'recipe-1',
+		title: 'Spicy Tomato Ramen',
+		imageUrl: 'https://i.imgur.com/v8SjYfT.jpeg',
+		cookTime: 35,
+		difficulty: 'Medium' as const,
+		cookCount: 234,
+		xpGenerated: 1170,
+		rating: 4.8,
+	}
+
+	const recipePerformance = [
 		{
 			id: 'recipe-1',
-			name: 'Spicy Tomato Ramen',
+			rank: 1,
+			title: 'Spicy Tomato Ramen',
 			imageUrl: 'https://i.imgur.com/v8SjYfT.jpeg',
-			cooks: 234,
-			likes: 567,
-			rating: 4.8,
-			xpEarned: 450,
+			cookCount: 234,
+			xpGenerated: 1170,
+			badge: { type: 'milestone' as const, label: '200+ cooks' },
 		},
 		{
 			id: 'recipe-2',
-			name: 'Creamy Carbonara',
+			rank: 2,
+			title: 'Creamy Carbonara',
 			imageUrl: 'https://i.imgur.com/bBDxvxd.jpeg',
-			cooks: 189,
-			likes: 423,
-			rating: 4.6,
-			xpEarned: 380,
+			cookCount: 189,
+			xpGenerated: 945,
+			badge: { type: 'trending' as const, label: 'Trending' },
 		},
 		{
 			id: 'recipe-3',
-			name: 'Thai Green Curry',
+			rank: 3,
+			title: 'Thai Green Curry',
 			imageUrl: 'https://i.imgur.com/3VhVxqG.jpeg',
-			cooks: 156,
-			likes: 312,
-			rating: 4.5,
-			xpEarned: 290,
+			cookCount: 156,
+			xpGenerated: 780,
+			needsAttention: true,
+		},
+	]
+
+	const recentCooks = [
+		{
+			id: 'cook-1',
+			userId: 'user-1',
+			userName: 'ChefMaria',
+			userAvatar: 'https://i.pravatar.cc/40?u=1',
+			recipeTitle: 'Spicy Tomato Ramen',
+			xpEarned: 5,
+			timeAgo: '2h ago',
+		},
+		{
+			id: 'cook-2',
+			userId: 'user-2',
+			userName: 'PastaLover',
+			userAvatar: 'https://i.pravatar.cc/40?u=2',
+			recipeTitle: 'Creamy Carbonara',
+			xpEarned: 5,
+			timeAgo: '5h ago',
 		},
 	]
 
@@ -65,11 +125,15 @@ export default function CreatorRoute() {
 					</p>
 				</div>
 				<CreatorDashboard
-					stats={creatorStats}
-					topRecipes={topRecipes}
+					weekHighlight={weekHighlight}
+					lifetimeStats={lifetimeStats}
+					creatorBadges={creatorBadges}
+					topRecipe={topRecipe}
+					recipePerformance={recipePerformance}
+					recentCooks={recentCooks}
+					onBack={() => router.push('/dashboard')}
 					onCreateRecipe={() => router.push('/create')}
-					onViewRecipe={id => router.push(`/recipes/${id}`)}
-					onViewAnalytics={id => router.push(`/recipes/${id}?tab=analytics`)}
+					onRecipeClick={id => router.push(`/recipes/${id}`)}
 				/>
 			</PageContainer>
 		</PageTransition>
