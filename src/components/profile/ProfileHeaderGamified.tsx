@@ -391,7 +391,9 @@ const BadgesShowcase = ({
 					whileHover={{ y: -2 }}
 					className={cn(
 						'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated transition-shadow hover:shadow-md',
-						compact ? 'min-w-[80px] px-3 py-2.5' : 'min-w-[100px] px-4 py-3.5',
+						compact
+							? 'min-w-nav px-3 py-2.5'
+							: 'min-w-thumbnail-xl px-4 py-3.5',
 						index === 0 && !compact && 'border-purple-500/30 bg-purple-500/10',
 					)}
 				>
@@ -444,7 +446,7 @@ const ProfileTabs = ({
 				key={tab.id}
 				onClick={() => onTabChange?.(tab.id)}
 				className={cn(
-					'flex items-center gap-1.5 whitespace-nowrap border-b-[3px] px-4 py-4 text-sm font-semibold transition-colors',
+					'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-4 py-4 text-sm font-semibold transition-colors',
 					activeTab === tab.id
 						? 'border-brand text-brand'
 						: 'border-transparent text-text-muted hover:text-text',
@@ -537,7 +539,7 @@ const OwnProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='size-avatar-xl rounded-full border-[5px] border-panel-bg object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
@@ -704,7 +706,7 @@ const OtherUserProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='h-avatar-xl w-avatar-xl rounded-full border-[5px] border-panel-bg object-cover shadow-lg'
+						className='h-avatar-xl w-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>

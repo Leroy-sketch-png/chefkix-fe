@@ -231,7 +231,7 @@ export const LevelUpCelebration = ({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					className='fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]'
+					className='fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-gradient-celebration'
 				>
 					{/* Particle field */}
 					<div className='pointer-events-none absolute inset-0 overflow-hidden'>

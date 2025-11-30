@@ -76,6 +76,26 @@
 	--gradient-gold: linear-gradient(135deg, #f4a900 0%, #ffc947 100%);
 	--gradient-sunset: var(--gradient-brand);
 	--gradient-cool: linear-gradient(135deg, #4299e1 0%, #52b788 100%);
+	/* Dark celebration gradients */
+	--gradient-celebration: linear-gradient(
+		135deg,
+		#1a1a2e 0%,
+		#16213e 50%,
+		#0f3460 100%
+	);
+	--gradient-celebration-alt: linear-gradient(
+		135deg,
+		#0f172a 0%,
+		#1e1b4b 50%,
+		#312e81 100%
+	);
+
+	/* ============ BORDER WIDTHS ============ */
+	/* Emphasis borders for avatars, badges, indicators */
+	--border-2: 2px;
+	--border-3: 3px;
+	--border-4: 4px;
+	--border-5: 5px;
 
 	/* ============ LAYOUT ============ */
 	--nav-w: 80px;
@@ -226,13 +246,7 @@
 	/* Accessibility / focus */
 	--focus: rgba(102, 126, 234, 0.18);
 
-	/* ============ Z-INDEX SCALE ============ */
-	--z-base: 1;
-	--z-dropdown: 50;
-	--z-sticky: 100;
-	--z-modal: 200;
-	--z-notification: 300;
-	--z-tooltip: 400;
+	/* Note: Z-index scale is defined earlier in this file. Do not duplicate here. */
 
 	/* Legacy Tailwind variables (kept for compatibility) */
 	--background: oklch(1 0 0);

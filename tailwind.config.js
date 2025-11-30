@@ -263,6 +263,11 @@ module.exports = {
 				'modal-md': 'var(--modal-md)',
 				'modal-lg': 'var(--modal-lg)',
 				'modal-xl': 'var(--modal-xl)',
+				// Element max-widths
+				'thumbnail-sm': 'var(--thumbnail-sm)',
+				'thumbnail-md': 'var(--thumbnail-md)',
+				'thumbnail-lg': 'var(--thumbnail-lg)',
+				'thumbnail-xl': 'var(--thumbnail-xl)',
 			},
 			maxHeight: {
 				// Panel heights
@@ -273,6 +278,11 @@ module.exports = {
 			minWidth: {
 				nav: 'var(--nav-w)',
 				search: '120px', // Search bar minimum width
+				// Component min-widths
+				'thumbnail-sm': 'var(--thumbnail-sm)', // 52px - badges, small elements
+				'thumbnail-md': 'var(--thumbnail-md)', // 60px - leaderboard points
+				'thumbnail-lg': 'var(--thumbnail-lg)', // 72px - medium elements
+				'thumbnail-xl': 'var(--thumbnail-xl)', // 100px - badges showcase
 			},
 			minHeight: {
 				textarea: 'var(--h-textarea-min)',
@@ -315,6 +325,24 @@ module.exports = {
 				'gradient-warm': 'var(--gradient-brand)', // Legacy alias
 				'gradient-cool': 'var(--gradient-cool)',
 				'gradient-gold': 'var(--gradient-gold)',
+				'gradient-celebration': 'var(--gradient-celebration)',
+				'gradient-celebration-alt': 'var(--gradient-celebration-alt)',
+			},
+			borderWidth: {
+				DEFAULT: '1px',
+				0: '0',
+				2: 'var(--border-2)',
+				3: 'var(--border-3)',
+				4: 'var(--border-4)',
+				5: 'var(--border-5)',
+			},
+			ringWidth: {
+				DEFAULT: '3px',
+				0: '0',
+				1: '1px',
+				2: '2px',
+				3: 'var(--border-3)',
+				4: 'var(--border-4)',
 			},
 			keyframes: {
 				'accordion-down': {

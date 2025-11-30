@@ -96,7 +96,7 @@ export const ChallengeComplete = ({
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className='fixed inset-0 z-[1000] flex items-center justify-center'
+			className='fixed inset-0 z-modal flex items-center justify-center'
 		>
 			{/* Backdrop */}
 			<motion.div
@@ -212,7 +212,7 @@ export const ChallengeComplete = ({
 											: day.isMilestone
 												? 'bg-amber-500/20 text-amber-500'
 												: 'bg-border text-text-muted',
-										day.isToday && 'ring-[3px] ring-success/30',
+										day.isToday && 'ring-3 ring-success/30',
 									)}
 								>
 									{day.isCompleted ? '✓' : day.isMilestone ? '🏆' : ''}

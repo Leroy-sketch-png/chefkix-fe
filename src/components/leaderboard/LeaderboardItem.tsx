@@ -64,8 +64,8 @@ export function LeaderboardItem({
 					'bg-gradient-to-r from-indigo-500/15 to-purple-500/8 border-2 border-indigo-500/30',
 				isLeading &&
 					'bg-gradient-to-r from-emerald-500/10 to-teal-500/5 border-2 border-emerald-500/30',
-				isPromotion && 'border-l-[3px] border-l-emerald-500',
-				isDemotion && 'border-l-[3px] border-l-red-500',
+				isPromotion && 'border-l-3 border-l-emerald-500',
+				isDemotion && 'border-l-3 border-l-red-500',
 				className,
 			)}
 		>
@@ -142,7 +142,7 @@ export function LeaderboardItem({
 			)}
 
 			{/* XP */}
-			<div className='text-right min-w-[70px]'>
+			<div className='text-right min-w-thumbnail-md'>
 				<span className='block text-base font-extrabold text-text'>
 					{entry.xpThisWeek.toLocaleString()}
 				</span>

@@ -269,7 +269,7 @@ export function StreakMilestoneCard({
 			className={cn(
 				'flex flex-col sm:flex-row items-center gap-5 p-5 sm:p-6',
 				'bg-gradient-to-r from-orange-500/10 to-orange-600/5',
-				'border-2 border-orange-500/30 rounded-[20px] mb-4',
+				'border-2 border-orange-500/30 rounded-xl mb-4',
 				className,
 			)}
 		>
@@ -282,7 +282,7 @@ export function StreakMilestoneCard({
 					className='absolute -inset-2 bg-gradient-to-r from-orange-500/40 to-transparent rounded-full'
 				/>
 				<span className='text-icon-lg relative z-10'>{badgeEmoji}</span>
-				<div className='absolute -bottom-1 -right-1 w-7 h-7 flex items-center justify-center bg-panel-bg border-[3px] border-orange-500 rounded-full text-xs font-black text-orange-500'>
+				<div className='absolute -bottom-1 -right-1 w-7 h-7 flex items-center justify-center bg-panel-bg border-3 border-orange-500 rounded-full text-xs font-black text-orange-500'>
 					{days}
 				</div>
 			</div>

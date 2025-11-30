@@ -134,7 +134,7 @@ const ChallengeIcon = ({
 					: 'bg-gradient-to-br from-indigo-500 to-purple-500',
 				size === 'large'
 					? 'h-16 w-16 rounded-2xl'
-					: 'size-thumbnail-sm rounded-[14px]',
+					: 'size-thumbnail-sm rounded-radius',
 			)}
 		>
 			<span className={size === 'large' ? 'text-4xl' : 'text-icon-lg'}>
@@ -143,7 +143,7 @@ const ChallengeIcon = ({
 		</div>
 		{!isComplete && (
 			<motion.div
-				className='absolute -inset-1 rounded-[18px] border-2 border-dashed border-indigo-500/40'
+				className='absolute -inset-1 rounded-xl border-2 border-dashed border-indigo-500/40'
 				animate={{ rotate: 360 }}
 				transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
 			/>

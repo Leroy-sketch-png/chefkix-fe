@@ -115,7 +115,7 @@ function PodiumSpot({
 					className={cn(
 						'absolute -bottom-1 left-1/2 -translate-x-1/2',
 						'w-6 h-6 flex items-center justify-center rounded-full',
-						'text-xs font-extrabold text-white border-[3px] border-panel-bg',
+						'text-xs font-extrabold text-white border-3 border-panel-bg',
 						`bg-gradient-to-br ${config.badgeGradient}`,
 					)}
 				>
@@ -129,7 +129,7 @@ function PodiumSpot({
 			</div>
 
 			{/* Name */}
-			<span className='text-sm font-bold text-text mb-1 max-w-[80px] truncate'>
+			<span className='text-sm font-bold text-text mb-1 max-w-thumbnail-lg truncate'>
 				{entry.displayName}
 			</span>
 

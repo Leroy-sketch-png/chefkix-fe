@@ -124,7 +124,7 @@ const BurstRings = () => (
 					ease: 'easeOut',
 				}}
 				className={cn(
-					'absolute inset-0 rounded-full border-[3px]',
+					'absolute inset-0 rounded-full border-3',
 					i === 0 && 'border-amber-400',
 					i === 1 && 'border-orange-500',
 					i === 2 && 'border-red-500',
@@ -177,7 +177,7 @@ const JourneyNodeComponent = ({ node }: { node: JourneyNode }) => (
 		{/* Marker */}
 		<div
 			className={cn(
-				'flex h-11 w-11 items-center justify-center rounded-full border-[3px] text-lg font-extrabold',
+				'flex h-11 w-11 items-center justify-center rounded-full border-3 text-lg font-extrabold',
 				node.status === 'done' &&
 					'border-success bg-gradient-to-br from-success to-success/80 text-white shadow-lg shadow-success/40',
 				node.status === 'upcoming' &&
@@ -235,7 +235,7 @@ export const FirstCookCelebration = ({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					className='fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden p-5'
+					className='fixed inset-0 z-modal flex items-center justify-center overflow-hidden p-5'
 				>
 					{/* Animated background */}
 					<div className='absolute inset-0 overflow-hidden'>
@@ -244,7 +244,7 @@ export const FirstCookCelebration = ({
 								backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
 							}}
 							transition={{ duration: 10, repeat: Infinity }}
-							className='absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]'
+							className='absolute inset-0 bg-gradient-celebration'
 						/>
 						{/* Sparkles */}
 						<Sparkle x='10%' y='20%' delay={0} />
@@ -347,7 +347,7 @@ export const FirstCookCelebration = ({
 									<>
 										<JourneyNodeComponent key={node.id} node={node} />
 										{i < JOURNEY.length - 1 && (
-											<div className='mt-5 h-[3px] min-w-5 flex-1 bg-border' />
+											<div className='mt-5 h-0.5 min-w-5 flex-1 bg-border' />
 										)}
 									</>
 								))}

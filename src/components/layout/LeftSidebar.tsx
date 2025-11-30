@@ -52,7 +52,7 @@ export const LeftSidebar = () => {
 					>
 						{/* Active indicator bar */}
 						<motion.div
-							className='absolute left-0 top-1/2 w-[3px] -translate-y-1/2 rounded-r-[3px] bg-gradient-primary'
+							className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r-sm bg-gradient-primary'
 							initial={false}
 							animate={{
 								height: active ? '70%' : '0%',
