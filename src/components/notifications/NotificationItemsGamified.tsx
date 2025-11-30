@@ -202,7 +202,7 @@ const NotifHeader = ({
 	<div className='mb-1 flex items-center justify-between'>
 		<span
 			className={cn(
-				'text-[11px] font-bold uppercase tracking-wide text-text-muted',
+				'text-xs font-bold uppercase tracking-wide text-text-muted',
 				className,
 			)}
 		>
@@ -221,7 +221,7 @@ const MetaTag = ({
 }) => (
 	<span
 		className={cn(
-			'rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+			'rounded-full px-2.5 py-0.5 text-xs font-semibold',
 			className,
 		)}
 	>
@@ -243,7 +243,7 @@ const ActionButton = ({
 		whileHover={BUTTON_HOVER}
 		whileTap={BUTTON_TAP}
 		className={cn(
-			'flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors',
+			'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
 			className,
 		)}
 	>
@@ -371,7 +371,7 @@ const LevelUpItem = ({
 			<NotifHeader
 				type='Level Up!'
 				time={timestamp}
-				className='text-[13px] text-purple-500'
+				className='text-sm text-purple-500'
 			/>
 			<p className='text-sm'>
 				Congratulations! You&apos;ve reached{' '}
@@ -423,7 +423,7 @@ const BadgeUnlockedItem = ({
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
 			<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600'>
-				<span className='text-[28px]'>{badgeIcon}</span>
+				<span className='text-icon-lg'>{badgeIcon}</span>
 				<div className='absolute -inset-1.5 rounded-full bg-amber-500/20 blur-sm' />
 			</div>
 
@@ -471,7 +471,7 @@ const BadgeSurpriseItem = ({
 	>
 		{/* Icon */}
 		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500'>
-			<span className='text-[28px]'>{badgeIcon}</span>
+			<span className='text-icon-lg'>{badgeIcon}</span>
 			<motion.div
 				className='absolute -inset-2.5 rounded-full bg-purple-500/30 blur-md'
 				initial={{ scale: 0.5, opacity: 1 }}
@@ -523,7 +523,7 @@ const CreatorBonusItem = ({
 				alt={cookerName}
 				className='h-12 w-12 rounded-full object-cover'
 			/>
-			<div className='absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-panel-bg bg-blue-500 text-white'>
+			<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-panel-bg bg-blue-500 text-white'>
 				<ChefHat className='h-3 w-3' />
 			</div>
 		</div>
@@ -654,7 +654,7 @@ const PostDeadlineUrgentItem = ({
 			whileTap={BUTTON_TAP}
 			animate={{ scale: [1, 1.02, 1] }}
 			transition={{ duration: 1, repeat: Infinity }}
-			className='flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-error px-4 py-2 text-[13px] font-semibold text-white'
+			className='flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white'
 		>
 			Post Now!
 		</motion.button>

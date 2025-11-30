@@ -138,7 +138,7 @@ const SinglePendingPost = ({
 				<Image
 					src={session.recipeImage}
 					alt={session.recipeName}
-					className='w-[72px] h-[72px] rounded-xl object-cover flex-shrink-0'
+					className='size-thumbnail-lg rounded-xl object-cover flex-shrink-0'
 				/>
 
 				<div className='flex-1 min-w-0'>

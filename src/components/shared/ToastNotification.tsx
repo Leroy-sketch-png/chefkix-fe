@@ -195,7 +195,7 @@ export const Toast = (props: ToastProps) => {
 			animate='animate'
 			exit='exit'
 			className={cn(
-				'relative flex min-w-[320px] max-w-[420px] items-center gap-3 rounded-radius border-l-4 bg-panel-bg p-4 shadow-lg',
+				'relative flex min-w-80 max-w-modal-md items-center gap-3 rounded-radius border-l-4 bg-panel-bg p-4 shadow-lg',
 				borderColors[type],
 				isAchievement && 'bg-gradient-to-r from-gold/10 to-amber-500/10',
 			)}
@@ -213,7 +213,7 @@ export const Toast = (props: ToastProps) => {
 
 			{/* Content */}
 			<div className='min-w-0 flex-1'>
-				<div className='text-[15px] font-bold'>{title}</div>
+				<div className='text-sm font-bold'>{title}</div>
 				{message && (
 					<div className='mt-1 text-sm leading-relaxed text-text-muted'>
 						{message}
@@ -239,7 +239,7 @@ export const Toast = (props: ToastProps) => {
 					whileHover={{ y: -1 }}
 					whileTap={{ scale: 0.95 }}
 					onClick={(props as AchievementToastProps).onView}
-					className='flex-shrink-0 rounded-full bg-gradient-to-br from-gold to-amber-500 px-4 py-2 text-[13px] font-semibold text-white shadow-lg shadow-gold/40 transition-shadow hover:shadow-gold/60'
+					className='flex-shrink-0 rounded-full bg-gradient-to-br from-gold to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gold/40 transition-shadow hover:shadow-gold/60'
 				>
 					View
 				</motion.button>

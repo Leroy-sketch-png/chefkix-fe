@@ -77,7 +77,7 @@ export const AchievementBadge = ({
 						'border-gold bg-gradient-gold shadow-glow',
 				)}
 			>
-				<div className='relative z-[2] text-[40px]'>{emoji}</div>
+				<div className='relative z-[2] text-icon-2xl'>{emoji}</div>
 
 				{/* Shine Animation */}
 				{unlocked && (
@@ -212,7 +212,7 @@ export const AchievementModal = ({
 
 					{/* Badge Icon */}
 					<div className='relative mx-auto grid h-30 w-30 place-items-center rounded-full bg-card shadow-glow'>
-						<div className='relative z-[2] text-[60px]'>{emoji}</div>
+						<div className='relative z-[2] text-icon-4xl'>{emoji}</div>
 						<div className='absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
 					</div>
 				</div>
