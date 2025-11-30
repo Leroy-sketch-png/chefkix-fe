@@ -73,7 +73,7 @@ export function LeaderboardItem({
 			<span
 				className={cn(
 					'w-8 text-base font-extrabold text-center',
-					isCurrentUser ? 'text-indigo-500' : 'text-muted',
+					isCurrentUser ? 'text-indigo-500' : 'text-muted-foreground',
 				)}
 			>
 				{entry.rank}
@@ -111,7 +111,9 @@ export function LeaderboardItem({
 					<span className='text-base font-bold text-text'>
 						{isCurrentUser ? 'You' : entry.displayName}
 					</span>
-					<span className='text-xs text-muted'>Level {entry.level}</span>
+					<span className='text-xs text-muted-foreground'>
+						Level {entry.level}
+					</span>
 				</div>
 
 				{/* Badges */}
@@ -134,7 +136,7 @@ export function LeaderboardItem({
 						<Flame className='w-3.5 h-3.5' />
 						<span>{entry.streak}</span>
 					</div>
-					<div className='flex items-center gap-1 text-sm text-muted'>
+					<div className='flex items-center gap-1 text-sm text-muted-foreground'>
 						<Utensils className='w-3.5 h-3.5' />
 						<span>{entry.recipesCooked}</span>
 					</div>
@@ -146,7 +148,7 @@ export function LeaderboardItem({
 				<span className='block text-base font-extrabold text-text'>
 					{entry.xpThisWeek.toLocaleString()}
 				</span>
-				<span className='text-xs text-muted'>XP</span>
+				<span className='text-xs text-muted-foreground'>XP</span>
 				{xpDiff !== undefined && xpDiff < 0 && (
 					<span className='block text-xs text-red-500'>{xpDiff}</span>
 				)}
@@ -182,7 +184,12 @@ export function LeaderboardItemSkeleton({ className }: { className?: string }) {
 
 export function ListDivider({ className }: { className?: string }) {
 	return (
-		<div className={cn('text-center py-3 text-muted text-xs', className)}>
+		<div
+			className={cn(
+				'text-center py-3 text-muted-foreground text-xs',
+				className,
+			)}
+		>
 			<span>• • •</span>
 		</div>
 	)

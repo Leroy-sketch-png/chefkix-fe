@@ -36,7 +36,7 @@
 	--text-primary: #1a1a1a; /* Main text - WCAG AAA */
 	--text-secondary: #4a4a4a; /* Secondary text - WCAG AA */
 	--text-tertiary: #737373; /* Tertiary text - WCAG AA */
-	--text-muted: #9ca3af; /* Placeholder text */
+	--text-muted: #6b7280; /* Muted text - darker for WCAG AA (was #9ca3af) */
 
 	/* Borders - Actually visible */
 	--border: #e5e5e5;
@@ -46,8 +46,10 @@
 	--border-strong: #a3a3a3; /* Focus states, emphasis */
 
 	/* Legacy semantic tokens (for compatibility) */
-	--muted: #f5f5f5;
-	--muted-foreground: #737373;
+	--muted: #f5f5f5; /* Background color for bg-muted */
+	--muted-foreground: var(
+		--text-muted
+	); /* Text color - now uses the WCAG-compliant text-muted */
 	--muted-strong: #525252;
 
 	/* Backwards compatibility - map old tokens to new system */
@@ -284,7 +286,7 @@
 		--text-primary: #fdfcfa; /* Almost white - highest contrast */
 		--text-secondary: #e5ddd0; /* Lighter cream - still readable */
 		--text-tertiary: #c4b8a8; /* Medium - still meets WCAG AA */
-		--text-muted: #9ca3af; /* Placeholder text */
+		--text-muted: #a8a29e; /* Muted text - lighter for dark mode WCAG AA (was #9ca3af) */
 
 		/* ============ DARK MODE BORDERS - VISIBLE ============ */
 		--border: #3a3a3a;
@@ -294,8 +296,10 @@
 		--border-strong: #5a5a5a; /* Focus states */
 
 		/* Legacy semantic tokens */
-		--muted: #2a2a2a;
-		--muted-foreground: #c4b8a8;
+		--muted: #2a2a2a; /* Background color for bg-muted */
+		--muted-foreground: var(
+			--text-muted
+		); /* Text color - now uses the WCAG-compliant text-muted */
 		--muted-strong: #9ca3af;
 
 		/* ============ DARK MODE BRAND COLOR - VIBRANT ============ */

@@ -47,7 +47,7 @@ export function CreatorStatsWidget({
 				</span>
 				<Link
 					href={dashboardUrl}
-					className='w-7 h-7 flex items-center justify-center bg-bg rounded-lg text-muted hover:text-text transition-colors'
+					className='w-7 h-7 flex items-center justify-center bg-bg rounded-lg text-muted-foreground hover:text-text transition-colors'
 				>
 					<ArrowRight className='w-4 h-4' />
 				</Link>
@@ -59,19 +59,19 @@ export function CreatorStatsWidget({
 					<span className='text-lg font-extrabold text-text'>
 						{recipesCount}
 					</span>
-					<span className='text-2xs text-muted'>Recipes</span>
+					<span className='text-2xs text-muted-foreground'>Recipes</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
 					<span className='text-lg font-extrabold text-text'>
 						{totalCooks.toLocaleString()}
 					</span>
-					<span className='text-2xs text-muted'>Cooks</span>
+					<span className='text-2xs text-muted-foreground'>Cooks</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-gradient-to-b from-emerald-500/10 to-teal-500/5 rounded-lg'>
 					<span className='text-lg font-extrabold text-emerald-500'>
 						+{xpEarned.toLocaleString()}
 					</span>
-					<span className='text-2xs text-muted'>XP Earned</span>
+					<span className='text-2xs text-muted-foreground'>XP Earned</span>
 				</div>
 			</div>
 
@@ -86,7 +86,7 @@ export function CreatorStatsWidget({
 						className='w-10 h-10 rounded-lg object-cover'
 					/>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xs text-muted'>Top Recipe</span>
+						<span className='text-2xs text-muted-foreground'>Top Recipe</span>
 						<span className='text-sm font-bold text-text truncate'>
 							{topRecipe.title}
 						</span>

@@ -107,7 +107,7 @@ function ChefWaitingIllustration() {
 				{[0, 1, 2].map(i => (
 					<motion.span
 						key={i}
-						className='text-icon-xl text-muted'
+						className='text-icon-xl text-muted-foreground'
 						animate={{ opacity: [0.3, 1, 0.3] }}
 						transition={{ duration: 1.5, delay: i * 0.2, repeat: Infinity }}
 					>
@@ -122,7 +122,7 @@ function ChefWaitingIllustration() {
 function SearchIllustration() {
 	return (
 		<div className='relative inline-block'>
-			<Search className='w-14 h-14 text-muted' />
+			<Search className='w-14 h-14 text-muted-foreground' />
 			<motion.span
 				className='absolute -top-2 -right-2 text-2xl text-primary'
 				animate={{ y: [0, -5, 0] }}
@@ -147,7 +147,7 @@ function BookmarkIllustration() {
 						i === 2 && 'left-10 top-0 rotate-[5deg]',
 					)}
 				>
-					{i === 2 && <BookOpen className='w-6 h-6 text-muted' />}
+					{i === 2 && <BookOpen className='w-6 h-6 text-muted-foreground' />}
 				</div>
 			))}
 		</div>
@@ -186,9 +186,9 @@ function CheckmarkIllustration() {
 function BellIllustration() {
 	return (
 		<div className='relative inline-block'>
-			<Bell className='w-14 h-14 text-muted' />
+			<Bell className='w-14 h-14 text-muted-foreground' />
 			<motion.span
-				className='absolute -top-2.5 -right-5 text-base text-muted italic'
+				className='absolute -top-2.5 -right-5 text-base text-muted-foreground italic'
 				animate={{ y: [0, -5], opacity: [0.5, 1] }}
 				transition={{ duration: 2, repeat: Infinity }}
 			>
@@ -259,14 +259,14 @@ export function EmptyState({
 
 			{/* Title & Description */}
 			<h3 className='text-xl font-extrabold text-text mb-2'>{title}</h3>
-			<p className='text-base text-muted mb-6 max-w-xs mx-auto leading-relaxed'>
+			<p className='text-base text-muted-foreground mb-6 max-w-xs mx-auto leading-relaxed'>
 				{description}
 			</p>
 
 			{/* FOMO Stats */}
 			{fomoStats && fomoStats.length > 0 && (
 				<div className='inline-block bg-bg rounded-xl py-4 px-5 mb-6'>
-					<span className='block text-xs text-muted mb-3'>
+					<span className='block text-xs text-muted-foreground mb-3'>
 						People you might like are sharing:
 					</span>
 					<div className='flex gap-6 justify-center'>
@@ -275,7 +275,9 @@ export function EmptyState({
 								<span className='text-xl font-extrabold text-primary'>
 									{stat.value}
 								</span>
-								<span className='text-xs text-muted'>{stat.label}</span>
+								<span className='text-xs text-muted-foreground'>
+									{stat.label}
+								</span>
 							</div>
 						))}
 					</div>
@@ -285,7 +287,9 @@ export function EmptyState({
 			{/* Search Suggestions */}
 			{searchSuggestions && searchSuggestions.length > 0 && (
 				<div className='mb-5'>
-					<span className='block text-xs text-muted mb-2.5'>Did you mean:</span>
+					<span className='block text-xs text-muted-foreground mb-2.5'>
+						Did you mean:
+					</span>
 					<div className='flex gap-2 justify-center flex-wrap'>
 						{searchSuggestions.map((suggestion, index) => (
 							<button
@@ -362,7 +366,7 @@ export function EmptyState({
 			{/* Quick Actions */}
 			{quickActions && quickActions.length > 0 && (
 				<div className='flex items-center justify-center gap-2.5 mt-5 flex-wrap'>
-					<span className='text-xs text-muted'>Quick start:</span>
+					<span className='text-xs text-muted-foreground'>Quick start:</span>
 					{quickActions.map((action, index) => (
 						<Link
 							key={index}
@@ -463,7 +467,7 @@ export function EmptyCookingHistory({
 			{/* Beginner Pick */}
 			{beginnerRecipe && (
 				<div className='pt-6 border-t border-border'>
-					<span className='block text-xs text-muted mb-3'>
+					<span className='block text-xs text-muted-foreground mb-3'>
 						Great for beginners:
 					</span>
 					<Link
@@ -481,7 +485,7 @@ export function EmptyCookingHistory({
 							<span className='block text-sm font-semibold text-text'>
 								{beginnerRecipe.title}
 							</span>
-							<span className='text-xs text-muted'>
+							<span className='text-xs text-muted-foreground'>
 								{beginnerRecipe.time} • +{beginnerRecipe.xp} XP
 							</span>
 						</div>
@@ -525,7 +529,9 @@ export function EmptySaved({
 							</span>
 							<span className='text-sm text-text'>{step}</span>
 						</div>
-						{index < 2 && <span className='text-muted hidden sm:block'>→</span>}
+						{index < 2 && (
+							<span className='text-muted-foreground hidden sm:block'>→</span>
+						)}
 					</div>
 				))}
 			</div>
@@ -546,7 +552,7 @@ export function EmptyNotifications({ className }: { className?: string }) {
 					type => (
 						<span
 							key={type}
-							className='py-1.5 px-3 bg-bg rounded-full text-xs text-muted'
+							className='py-1.5 px-3 bg-bg rounded-full text-xs text-muted-foreground'
 						>
 							{type}
 						</span>
@@ -574,14 +580,16 @@ export function AllCaughtUp({
 		>
 			{/* Next Goal */}
 			<div className='mt-5 max-w-xs mx-auto text-left'>
-				<span className='block text-xs text-muted mb-2.5'>Next goal:</span>
+				<span className='block text-xs text-muted-foreground mb-2.5'>
+					Next goal:
+				</span>
 				<div className='flex items-center gap-3 p-3.5 bg-bg border border-border rounded-xl'>
 					<span className='text-icon-lg'>🍳</span>
 					<div className='flex-1'>
 						<span className='block text-sm font-semibold text-text'>
 							Cook something new
 						</span>
-						<span className='text-xs text-muted'>
+						<span className='text-xs text-muted-foreground'>
 							Earn more XP to level up!
 						</span>
 					</div>

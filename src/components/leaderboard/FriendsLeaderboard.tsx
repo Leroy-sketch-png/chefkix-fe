@@ -43,7 +43,7 @@ function FriendsSummary({
 }) {
 	return (
 		<div className='flex items-center justify-between py-4 px-5 bg-panel-bg rounded-2xl mb-5'>
-			<span className='text-sm text-muted'>
+			<span className='text-sm text-muted-foreground'>
 				Competing with{' '}
 				<strong className='text-text'>{totalFriends} friends</strong> this week
 			</span>
@@ -225,10 +225,10 @@ export function FriendsLeaderboard({
 			{entries.length === 0 && (
 				<div className='flex flex-col items-center justify-center py-16 text-center'>
 					<div className='w-16 h-16 mb-4 rounded-full bg-muted/10 flex items-center justify-center'>
-						<ChefHat className='w-8 h-8 text-muted' />
+						<ChefHat className='w-8 h-8 text-muted-foreground' />
 					</div>
 					<h3 className='text-lg font-bold text-text mb-2'>No Friends Yet</h3>
-					<p className='text-sm text-muted max-w-xs mb-4'>
+					<p className='text-sm text-muted-foreground max-w-xs mb-4'>
 						Invite your friends to compete and see who can cook the most!
 					</p>
 					{onInviteFriends && (

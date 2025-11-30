@@ -113,7 +113,7 @@ export function StreakRiskBanner({
 							<>Your {currentStreak}-day streak is at risk!</>
 						)}
 					</span>
-					<span className='text-sm text-muted'>
+					<span className='text-sm text-muted-foreground'>
 						{isUrgent
 							? `Don't lose ${currentStreak} days of progress!`
 							: 'Cook something today to keep it alive'}
@@ -162,7 +162,7 @@ export function StreakRiskBanner({
 			{onDismiss && !isUrgent && (
 				<button
 					onClick={onDismiss}
-					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-muted opacity-60 hover:opacity-100 transition-opacity'
+					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-muted-foreground opacity-60 hover:opacity-100 transition-opacity'
 				>
 					<X className='w-4 h-4' />
 				</button>
@@ -236,7 +236,7 @@ export function StreakSavedToast({
 					{/* Bonus XP */}
 					{!isNewStreak && bonusXp > 0 && (
 						<div className='flex flex-col items-center py-2.5 px-4 bg-emerald-500/10 rounded-lg'>
-							<span className='text-2xs text-muted uppercase tracking-wide'>
+							<span className='text-2xs text-muted-foreground uppercase tracking-wide'>
 								Streak Bonus
 							</span>
 							<span className='text-base font-extrabold text-emerald-500'>
@@ -292,7 +292,7 @@ export function StreakMilestoneCard({
 				<h3 className='text-lg font-extrabold text-text mb-1'>
 					{days}-Day Streak! 🎉
 				</h3>
-				<p className='text-sm text-muted mb-3'>
+				<p className='text-sm text-muted-foreground mb-3'>
 					You cooked every day for{' '}
 					{days === 7 ? 'a week' : days === 14 ? 'two weeks' : `${days} days`}!
 				</p>
@@ -302,13 +302,15 @@ export function StreakMilestoneCard({
 					<span className='text-2xl'>🎖️</span>
 					<div className='flex flex-col'>
 						<span className='text-sm font-bold text-text'>{badgeName}</span>
-						<span className='text-xs text-muted'>Added to your collection</span>
+						<span className='text-xs text-muted-foreground'>
+							Added to your collection
+						</span>
 					</div>
 				</div>
 
 				{/* Next Milestone */}
 				{nextMilestone && (
-					<div className='text-xs text-muted'>
+					<div className='text-xs text-muted-foreground'>
 						<span>Next milestone: </span>
 						<span className='text-orange-500 font-semibold'>
 							{nextMilestone.days}-day streak → {nextMilestone.badgeName}
@@ -415,12 +417,14 @@ export function StreakWidget({
 				<span className='text-5xl font-black text-orange-500 leading-none'>
 					{currentStreak}
 				</span>
-				<span className='text-base font-semibold text-muted'>days</span>
+				<span className='text-base font-semibold text-muted-foreground'>
+					days
+				</span>
 			</div>
 
 			{/* Week Progress */}
 			<div className='mb-4'>
-				<span className='block text-xs text-muted uppercase tracking-wide mb-2.5 text-center'>
+				<span className='block text-xs text-muted-foreground uppercase tracking-wide mb-2.5 text-center'>
 					This Week
 				</span>
 				<div className='flex justify-between gap-1.5'>
@@ -435,7 +439,8 @@ export function StreakWidget({
 									(isActiveToday
 										? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white'
 										: 'bg-panel-bg border-2 border-dashed border-emerald-500 text-emerald-500'),
-								day === 'future' && 'bg-bg border-2 border-border text-muted',
+								day === 'future' &&
+									'bg-bg border-2 border-border text-muted-foreground',
 							)}
 							title={`${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index]}${day === 'today' ? ' (Today)' : ''}`}
 						>

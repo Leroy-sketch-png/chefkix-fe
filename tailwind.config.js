@@ -78,9 +78,9 @@ module.exports = {
 					foreground: '#ffffff',
 				},
 				muted: {
-					DEFAULT: 'var(--muted)',
+					DEFAULT: 'var(--muted)', // Background color for muted surfaces
 					strong: 'var(--muted-strong)',
-					foreground: 'var(--muted-foreground)',
+					foreground: 'var(--text-muted)', // Fixed: text-muted-foreground now uses readable text color
 				},
 				accent: {
 					DEFAULT: 'var(--color-brand)',

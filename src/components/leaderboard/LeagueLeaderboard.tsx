@@ -112,7 +112,9 @@ function LeagueHeader({
 					>
 						{leagueInfo.tier} League
 					</span>
-					<span className='text-xs text-muted'>Week {leagueInfo.week}</span>
+					<span className='text-xs text-muted-foreground'>
+						Week {leagueInfo.week}
+					</span>
 				</div>
 			</motion.div>
 
@@ -121,7 +123,7 @@ function LeagueHeader({
 					whileHover={{ scale: 1.05 }}
 					whileTap={{ scale: 0.95 }}
 					onClick={onLeagueInfo}
-					className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-muted'
+					className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-muted-foreground'
 				>
 					<Info className='w-5 h-5' />
 				</motion.button>
@@ -322,7 +324,7 @@ export function LeagueLeaderboard({
 
 			{/* Abbreviated indicator for safe zone */}
 			{safeEntries.length > 3 && (
-				<div className='text-center py-3 text-xs text-muted'>
+				<div className='text-center py-3 text-xs text-muted-foreground'>
 					Ranks {promotionThreshold + 4}-{demotionThreshold} •{' '}
 					{safeEntries[3]?.xpThisWeek?.toLocaleString()}-
 					{safeEntries[safeEntries.length - 1]?.xpThisWeek?.toLocaleString()} XP

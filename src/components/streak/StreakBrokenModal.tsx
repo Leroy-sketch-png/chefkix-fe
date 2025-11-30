@@ -58,20 +58,22 @@ export function StreakBrokenModal({
 						<h2 className='text-2xl font-extrabold text-text mb-2'>
 							Your streak ended
 						</h2>
-						<p className='text-sm text-muted mb-6'>
+						<p className='text-sm text-muted-foreground mb-6'>
 							Your {lostStreak}-day cooking streak has reset to 0
 						</p>
 
 						{/* Stats Lost */}
 						<div className='flex justify-center gap-6 py-5 px-6 bg-bg rounded-xl mb-5'>
 							<div className='flex flex-col gap-1'>
-								<span className='text-xs text-muted'>Streak Length</span>
+								<span className='text-xs text-muted-foreground'>
+									Streak Length
+								</span>
 								<span className='text-lg font-bold text-text'>
 									{lostStreak} days
 								</span>
 							</div>
 							<div className='flex flex-col gap-1'>
-								<span className='text-xs text-muted'>
+								<span className='text-xs text-muted-foreground'>
 									Streak Bonuses Earned
 								</span>
 								<span className='text-lg font-bold text-text'>
@@ -81,7 +83,7 @@ export function StreakBrokenModal({
 						</div>
 
 						{/* Motivation */}
-						<div className='mb-5 space-y-2 text-sm text-muted'>
+						<div className='mb-5 space-y-2 text-sm text-muted-foreground'>
 							<p>Don&apos;t worry — every great chef has off days.</p>
 							<p>
 								Your skills and XP are still there. Let&apos;s start fresh! 💪
@@ -91,7 +93,9 @@ export function StreakBrokenModal({
 						{/* Best Streak */}
 						{bestStreak && bestStreak > lostStreak && (
 							<div className='flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500/10 rounded-lg mb-6'>
-								<span className='text-xs text-muted'>Your best streak:</span>
+								<span className='text-xs text-muted-foreground'>
+									Your best streak:
+								</span>
 								<span className='text-sm font-bold text-emerald-500'>
 									{bestStreak} days
 								</span>
@@ -118,7 +122,7 @@ export function StreakBrokenModal({
 							</motion.button>
 							<button
 								onClick={onDismiss}
-								className='py-3.5 text-sm text-muted hover:text-text transition-colors'
+								className='py-3.5 text-sm text-muted-foreground hover:text-text transition-colors'
 							>
 								Maybe Later
 							</button>

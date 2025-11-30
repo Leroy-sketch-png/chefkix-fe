@@ -138,7 +138,7 @@ function PodiumSpot({
 				<span className='text-lg font-extrabold text-text'>
 					{entry.xp.toLocaleString()}
 				</span>
-				<span className='text-xs text-muted'>XP</span>
+				<span className='text-xs text-muted-foreground'>XP</span>
 			</div>
 
 			{/* Podium Base */}
