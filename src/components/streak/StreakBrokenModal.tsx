@@ -44,11 +44,11 @@ export function StreakBrokenModal({
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{ opacity: 0, y: 30, scale: 0.95 }}
 						transition={TRANSITION_SPRING}
-						className='w-full max-w-[420px] bg-panel-bg rounded-3xl p-10 text-center'
+						className='w-full max-w-modal-md bg-panel-bg rounded-3xl p-10 text-center'
 					>
 						{/* Sad Icon */}
 						<div className='relative mb-6'>
-							<span className='text-[64px] block'>😢</span>
+							<span className='text-icon-emoji-xl block'>😢</span>
 							<div className='absolute top-[-10px] right-[30%]'>
 								<span className='text-2xl opacity-30 grayscale'>🔥</span>
 							</div>
@@ -58,20 +58,20 @@ export function StreakBrokenModal({
 						<h2 className='text-2xl font-extrabold text-text mb-2'>
 							Your streak ended
 						</h2>
-						<p className='text-[15px] text-muted mb-6'>
+						<p className='text-sm text-muted mb-6'>
 							Your {lostStreak}-day cooking streak has reset to 0
 						</p>
 
 						{/* Stats Lost */}
 						<div className='flex justify-center gap-6 py-5 px-6 bg-bg rounded-xl mb-5'>
 							<div className='flex flex-col gap-1'>
-								<span className='text-[11px] text-muted'>Streak Length</span>
+								<span className='text-xs text-muted'>Streak Length</span>
 								<span className='text-lg font-bold text-text'>
 									{lostStreak} days
 								</span>
 							</div>
 							<div className='flex flex-col gap-1'>
-								<span className='text-[11px] text-muted'>
+								<span className='text-xs text-muted'>
 									Streak Bonuses Earned
 								</span>
 								<span className='text-lg font-bold text-text'>

@@ -89,7 +89,7 @@ export function StreakRiskBanner({
 							repeat: Infinity,
 							ease: 'easeInOut',
 						}}
-						className='text-[32px] block'
+						className='text-icon-xl block'
 					>
 						🔥
 					</motion.span>
@@ -106,14 +106,14 @@ export function StreakRiskBanner({
 
 				{/* Info */}
 				<div className='flex flex-col text-center sm:text-left'>
-					<span className='text-[15px] font-bold text-text'>
+					<span className='text-base font-bold text-text'>
 						{isUrgent ? (
 							<>⚠️ LAST CHANCE! {currentStreak}-day streak ending soon</>
 						) : (
 							<>Your {currentStreak}-day streak is at risk!</>
 						)}
 					</span>
-					<span className='text-[13px] text-muted'>
+					<span className='text-sm text-muted'>
 						{isUrgent
 							? `Don't lose ${currentStreak} days of progress!`
 							: 'Cook something today to keep it alive'}
@@ -151,9 +151,9 @@ export function StreakRiskBanner({
 				)}
 			>
 				{isUrgent ? (
-					<Zap className='w-[18px] h-[18px]' />
+					<Zap className='size-icon-sm' />
 				) : (
-					<ChefHat className='w-[18px] h-[18px]' />
+					<ChefHat className='size-icon-sm' />
 				)}
 				{isUrgent ? 'Save Streak Now!' : 'Quick Cook'}
 			</motion.button>
@@ -236,7 +236,7 @@ export function StreakSavedToast({
 					{/* Bonus XP */}
 					{!isNewStreak && bonusXp > 0 && (
 						<div className='flex flex-col items-center py-2.5 px-4 bg-emerald-500/10 rounded-lg'>
-							<span className='text-[10px] text-muted uppercase tracking-wide'>
+							<span className='text-2xs text-muted uppercase tracking-wide'>
 								Streak Bonus
 							</span>
 							<span className='text-base font-extrabold text-emerald-500'>
@@ -274,14 +274,14 @@ export function StreakMilestoneCard({
 			)}
 		>
 			{/* Badge */}
-			<div className='relative w-[72px] h-[72px] flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex-shrink-0'>
+			<div className='relative size-thumbnail-lg flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex-shrink-0'>
 				{/* Glow */}
 				<motion.div
 					animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
 					transition={{ duration: 2, repeat: Infinity }}
 					className='absolute -inset-2 bg-gradient-to-r from-orange-500/40 to-transparent rounded-full'
 				/>
-				<span className='text-[28px] relative z-10'>{badgeEmoji}</span>
+				<span className='text-icon-lg relative z-10'>{badgeEmoji}</span>
 				<div className='absolute -bottom-1 -right-1 w-7 h-7 flex items-center justify-center bg-panel-bg border-[3px] border-orange-500 rounded-full text-xs font-black text-orange-500'>
 					{days}
 				</div>
@@ -292,7 +292,7 @@ export function StreakMilestoneCard({
 				<h3 className='text-lg font-extrabold text-text mb-1'>
 					{days}-Day Streak! 🎉
 				</h3>
-				<p className='text-[13px] text-muted mb-3'>
+				<p className='text-sm text-muted mb-3'>
 					You cooked every day for{' '}
 					{days === 7 ? 'a week' : days === 14 ? 'two weeks' : `${days} days`}!
 				</p>
@@ -301,10 +301,8 @@ export function StreakMilestoneCard({
 				<div className='flex items-center gap-2.5 p-2.5 bg-panel-bg rounded-xl mb-2.5 justify-center sm:justify-start'>
 					<span className='text-2xl'>🎖️</span>
 					<div className='flex flex-col'>
-						<span className='text-[13px] font-bold text-text'>{badgeName}</span>
-						<span className='text-[11px] text-muted'>
-							Added to your collection
-						</span>
+						<span className='text-sm font-bold text-text'>{badgeName}</span>
+						<span className='text-xs text-muted'>Added to your collection</span>
 					</div>
 				</div>
 
@@ -325,7 +323,7 @@ export function StreakMilestoneCard({
 					whileHover={{ scale: 1.02 }}
 					whileTap={{ scale: 0.98 }}
 					onClick={onShare}
-					className='flex items-center gap-1.5 py-2.5 px-4 bg-panel-bg border border-border rounded-lg text-[13px] font-semibold text-text flex-shrink-0'
+					className='flex items-center gap-1.5 py-2.5 px-4 bg-panel-bg border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0'
 				>
 					<Share2 className='w-4 h-4' />
 					Share
@@ -358,7 +356,7 @@ export function StreakMilestoneMini({
 				className,
 			)}
 		>
-			<span className='py-1.5 px-2.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg text-[13px] font-extrabold text-white'>
+			<span className='py-1.5 px-2.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg text-sm font-extrabold text-white'>
 				🔥 {days}
 			</span>
 			<span className='flex-1 text-sm font-semibold text-text'>
@@ -401,7 +399,7 @@ export function StreakWidget({
 				<span className='text-sm font-bold text-text'>Cooking Streak</span>
 				<span
 					className={cn(
-						'py-1 px-2.5 rounded-full text-[11px] font-bold uppercase tracking-wide',
+						'py-1 px-2.5 rounded-full text-xs font-bold uppercase tracking-wide',
 						status === 'active'
 							? 'bg-emerald-500/15 text-emerald-500'
 							: 'bg-orange-500/15 text-orange-500',
@@ -422,7 +420,7 @@ export function StreakWidget({
 
 			{/* Week Progress */}
 			<div className='mb-4'>
-				<span className='block text-[11px] text-muted uppercase tracking-wide mb-2.5 text-center'>
+				<span className='block text-xs text-muted uppercase tracking-wide mb-2.5 text-center'>
 					This Week
 				</span>
 				<div className='flex justify-between gap-1.5'>
@@ -430,7 +428,7 @@ export function StreakWidget({
 						<div
 							key={index}
 							className={cn(
-								'flex-1 aspect-square flex items-center justify-center rounded-lg text-[11px] font-bold transition-all',
+								'flex-1 aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all',
 								day === 'cooked' &&
 									'bg-gradient-to-br from-orange-500 to-orange-600 text-white',
 								day === 'today' &&
@@ -451,18 +449,18 @@ export function StreakWidget({
 			<div className='pt-4 border-t border-border'>
 				<div
 					className={cn(
-						'flex items-center justify-center gap-2 text-[13px] font-semibold',
+						'flex items-center justify-center gap-2 text-sm font-semibold',
 						isActiveToday ? 'text-emerald-500' : 'text-orange-500',
 					)}
 				>
 					{isActiveToday ? (
 						<>
-							<CheckCircle2 className='w-[18px] h-[18px]' />
+							<CheckCircle2 className='size-icon-sm' />
 							Cooked today ✓
 						</>
 					) : (
 						<>
-							<AlertCircle className='w-[18px] h-[18px]' />
+							<AlertCircle className='size-icon-sm' />
 							Cook today to extend streak
 						</>
 					)}
