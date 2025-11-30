@@ -201,7 +201,7 @@ const JourneyNodeComponent = ({ node }: { node: JourneyNode }) => (
 		{/* Status */}
 		<span
 			className={cn(
-				'rounded-md bg-bg-elevated px-2 py-0.5 text-[10px]',
+				'rounded-md bg-bg-elevated px-2 py-0.5 text-2xs',
 				node.status === 'done' && 'bg-success/15 text-success',
 				node.status === 'upcoming' && 'text-success',
 				node.status === 'locked' && 'text-text-muted',
@@ -293,12 +293,12 @@ export const FirstCookCelebration = ({
 								<Image
 									src={recipeImageUrl || '/placeholder-recipe.jpg'}
 									alt={recipeName}
-									className='h-[72px] w-[72px] rounded-xl object-cover'
+									className='h-thumbnail-lg w-thumbnail-lg rounded-xl object-cover'
 								/>
 								<div className='pointer-events-none absolute -inset-1 rounded-2xl border-2 border-amber-400' />
 							</div>
 							<div>
-								<span className='block text-[11px] uppercase tracking-wide text-text-muted'>
+								<span className='block text-xs uppercase tracking-wide text-text-muted'>
 									Your First Creation
 								</span>
 								<span className='block text-lg font-bold'>{recipeName}</span>

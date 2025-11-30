@@ -186,7 +186,7 @@ const StatCard = ({
 	<div className='flex items-center gap-2.5'>
 		<span className='text-2xl'>{emoji}</span>
 		<div className='flex flex-col text-left'>
-			<span className='text-[11px] text-white/60'>{label}</span>
+			<span className='text-xs text-white/60'>{label}</span>
 			<span className='font-bold text-white'>{value}</span>
 		</div>
 	</div>

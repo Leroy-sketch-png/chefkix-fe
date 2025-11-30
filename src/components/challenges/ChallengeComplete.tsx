@@ -54,7 +54,7 @@ const Confetti = () => {
 			{emojis.map((emoji, i) => (
 				<motion.span
 					key={i}
-					className='absolute text-[28px]'
+					className='absolute text-icon-lg'
 					style={{ left: `${10 + i * 20}%` }}
 					initial={{ y: -40, opacity: 0, rotate: 0, scale: 0 }}
 					animate={{
@@ -116,7 +116,7 @@ export const ChallengeComplete = ({
 				<Confetti />
 
 				{/* Challenge Badge */}
-				<div className='relative mx-auto mb-5 h-[100px] w-[100px]'>
+				<div className='relative mx-auto mb-5 size-thumbnail-xl'>
 					{/* Glow */}
 					<motion.div
 						className='absolute -inset-5 rounded-3xl bg-indigo-500/30 blur-xl'
@@ -134,7 +134,7 @@ export const ChallengeComplete = ({
 						transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
 						className='absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full border-4 border-panel-bg bg-success text-white'
 					>
-						<Check className='h-[18px] w-[18px]' />
+						<Check className='size-icon-sm' />
 					</motion.div>
 				</div>
 
@@ -143,14 +143,14 @@ export const ChallengeComplete = ({
 					<span className='mb-1 block text-xs font-bold uppercase tracking-wider text-indigo-500'>
 						Daily Challenge
 					</span>
-					<h2 className='text-[28px] font-extrabold'>Complete! 🎯</h2>
+					<h2 className='text-2xl font-extrabold'>Complete! 🎯</h2>
 				</div>
 
 				{/* Challenge Info */}
 				<div className='mb-6 flex flex-col items-center gap-1'>
 					<span className='text-lg font-bold'>{challengeTitle}</span>
-					<span className='text-[13px] text-text-muted'>completed with</span>
-					<span className='text-[15px] font-semibold text-brand'>
+					<span className='text-sm text-text-muted'>completed with</span>
+					<span className='text-base font-semibold text-brand'>
 						{recipeName}
 					</span>
 				</div>
@@ -186,7 +186,7 @@ export const ChallengeComplete = ({
 						))}
 					</div>
 					<div className='text-left'>
-						<span className='block text-[32px] font-black leading-none text-success'>
+						<span className='block text-3xl font-black leading-none text-success'>
 							+{bonusXp}
 						</span>
 						<span className='text-sm text-text-muted'>Bonus XP</span>
@@ -219,7 +219,7 @@ export const ChallengeComplete = ({
 								</div>
 								<span
 									className={cn(
-										'text-[10px] font-medium',
+										'text-2xs font-medium',
 										day.isCompleted ? 'text-success' : 'text-text-muted',
 									)}
 								>
@@ -230,7 +230,7 @@ export const ChallengeComplete = ({
 					</div>
 
 					{/* Milestone message */}
-					<p className='text-[13px] font-semibold text-amber-500'>
+					<p className='text-sm font-semibold text-amber-500'>
 						{daysToMilestone} more days for {milestoneReward}!
 					</p>
 				</div>
@@ -241,10 +241,10 @@ export const ChallengeComplete = ({
 						onClick={onContinue}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-[15px] font-bold text-white shadow-lg shadow-indigo-500/30'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-base font-bold text-white shadow-lg shadow-indigo-500/30'
 					>
 						Continue
-						<ArrowRight className='h-[18px] w-[18px]' />
+						<ArrowRight className='size-icon-sm' />
 					</motion.button>
 					<motion.button
 						onClick={onShare}
@@ -252,7 +252,7 @@ export const ChallengeComplete = ({
 						whileTap={{ scale: 0.95 }}
 						className='flex items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold text-text-muted transition-colors hover:bg-border hover:text-text'
 					>
-						<Share2 className='h-[18px] w-[18px]' />
+						<Share2 className='size-icon-sm' />
 						Share
 					</motion.button>
 				</div>
@@ -287,20 +287,18 @@ export const ChallengeCompleteInline = ({
 				<span className='text-sm font-bold text-indigo-500'>
 					Daily Challenge Complete!
 				</span>
-				<span className='block text-[13px] text-text-muted'>
-					{challengeTitle}
-				</span>
+				<span className='block text-sm text-text-muted'>{challengeTitle}</span>
 			</div>
 			<div className='text-right'>
 				<span className='block text-xl font-extrabold text-success'>
 					+{bonusXp} XP
 				</span>
-				<span className='text-[11px] text-text-muted'>bonus</span>
+				<span className='text-xs text-text-muted'>bonus</span>
 			</div>
 		</div>
 
 		{/* Streak Info */}
-		<div className='flex items-center gap-2 rounded-lg bg-orange-500/10 px-3.5 py-2.5 text-[13px]'>
+		<div className='flex items-center gap-2 rounded-lg bg-orange-500/10 px-3.5 py-2.5 text-sm'>
 			<span className='text-base'>🔥</span>
 			<span className='font-semibold text-orange-500'>
 				{streakCount} day streak

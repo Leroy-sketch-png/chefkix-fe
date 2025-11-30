@@ -374,7 +374,7 @@ export const PostSuccessRewards = ({
 											<span className='text-sm font-semibold'>
 												{action.label}
 											</span>
-											<span className='hidden text-[11px] text-text-muted md:block'>
+											<span className='hidden text-xs text-text-muted md:block'>
 												{action.sublabel}
 											</span>
 										</button>

@@ -59,19 +59,19 @@ export function CreatorStatsWidget({
 					<span className='text-lg font-extrabold text-text'>
 						{recipesCount}
 					</span>
-					<span className='text-[10px] text-muted'>Recipes</span>
+					<span className='text-2xs text-muted'>Recipes</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
 					<span className='text-lg font-extrabold text-text'>
 						{totalCooks.toLocaleString()}
 					</span>
-					<span className='text-[10px] text-muted'>Cooks</span>
+					<span className='text-2xs text-muted'>Cooks</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-gradient-to-b from-emerald-500/10 to-teal-500/5 rounded-lg'>
 					<span className='text-lg font-extrabold text-emerald-500'>
 						+{xpEarned.toLocaleString()}
 					</span>
-					<span className='text-[10px] text-muted'>XP Earned</span>
+					<span className='text-2xs text-muted'>XP Earned</span>
 				</div>
 			</div>
 
@@ -86,12 +86,12 @@ export function CreatorStatsWidget({
 						className='w-10 h-10 rounded-lg object-cover'
 					/>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-[10px] text-muted'>Top Recipe</span>
+						<span className='text-2xs text-muted'>Top Recipe</span>
 						<span className='text-sm font-bold text-text truncate'>
 							{topRecipe.title}
 						</span>
 					</div>
-					<span className='text-[13px] font-semibold text-primary'>
+					<span className='text-sm font-semibold text-primary'>
 						{topRecipe.cookCount} cooks
 					</span>
 				</div>
@@ -148,7 +148,7 @@ export function CreatorXPNotification({
 					/>
 				))}
 				{remainingCount > 0 && (
-					<div className='w-8 h-8 flex items-center justify-center bg-indigo-500 rounded-full border-[3px] border-panel-bg -ml-2.5 text-[11px] font-bold text-white'>
+					<div className='w-8 h-8 flex items-center justify-center bg-indigo-500 rounded-full border-[3px] border-panel-bg -ml-2.5 text-xs font-bold text-white'>
 						+{remainingCount}
 					</div>
 				)}
@@ -159,7 +159,7 @@ export function CreatorXPNotification({
 				<span className='text-sm font-semibold text-text'>
 					{cookersCount} people cooked your recipes today!
 				</span>
-				<span className='text-[13px] font-bold text-emerald-500'>
+				<span className='text-sm font-bold text-emerald-500'>
 					+{totalXpEarned} XP earned as creator
 				</span>
 			</div>
@@ -170,7 +170,7 @@ export function CreatorXPNotification({
 					whileHover={{ scale: 1.02 }}
 					whileTap={{ scale: 0.98 }}
 					onClick={onView}
-					className='py-2 px-3.5 bg-purple-500 rounded-lg text-[13px] font-semibold text-white'
+					className='py-2 px-3.5 bg-purple-500 rounded-lg text-sm font-semibold text-white'
 				>
 					View
 				</motion.button>

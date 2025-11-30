@@ -106,7 +106,7 @@ const XPBadge = ({
 	<div
 		className={cn(
 			'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 font-bold text-white shadow-lg shadow-success/40',
-			size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-[13px]',
+			size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-sm',
 		)}
 	>
 		<span className={size === 'large' ? 'text-lg' : 'text-sm'}>⚡</span>
@@ -164,7 +164,7 @@ const DifficultyRibbon = ({ difficulty }: { difficulty: Difficulty }) => {
 	return (
 		<div
 			className={cn(
-				'absolute -right-8 top-3 rotate-45 px-10 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white',
+				'absolute -right-8 top-3 rotate-45 px-10 py-1.5 text-2xs font-bold uppercase tracking-wide text-white',
 				config.bgColor,
 			)}
 		>
@@ -262,7 +262,7 @@ const FeedCard = ({
 			<div className='p-4'>
 				<h3 className='mb-2 text-lg font-bold'>{title}</h3>
 
-				<div className='mb-3 flex items-center gap-2.5 text-[13px] text-text-muted'>
+				<div className='mb-3 flex items-center gap-2.5 text-sm text-text-muted'>
 					<span className='flex items-center gap-1.5'>
 						<Image
 							src={author.avatarUrl}
@@ -279,14 +279,14 @@ const FeedCard = ({
 				</div>
 
 				<div className='flex gap-4'>
-					<span className='flex items-center gap-1.5 text-[13px] text-success'>
+					<span className='flex items-center gap-1.5 text-sm text-success'>
 						<ChefHat className='h-4 w-4' />
 						{cookCount >= 1000
 							? `${(cookCount / 1000).toFixed(1)}k`
 							: cookCount}{' '}
 						cooked
 					</span>
-					<span className='flex items-center gap-1.5 text-[13px] text-amber-500'>
+					<span className='flex items-center gap-1.5 text-sm text-amber-500'>
 						<Star className='h-4 w-4' />
 						{rating}
 					</span>
@@ -348,12 +348,12 @@ const GridCard = ({
 			<div className='p-4'>
 				<h3 className='mb-1.5 text-base font-bold'>{title}</h3>
 				{description && (
-					<p className='mb-3 line-clamp-2 text-[13px] leading-relaxed text-text-muted'>
+					<p className='mb-3 line-clamp-2 text-sm leading-relaxed text-text-muted'>
 						{description}
 					</p>
 				)}
 
-				<div className='mb-3 flex items-center justify-between text-[13px] text-text-muted'>
+				<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
 					<span className='flex items-center gap-1'>
 						<Clock className='h-3.5 w-3.5' />
 						{cookTimeMinutes} min
@@ -363,7 +363,7 @@ const GridCard = ({
 					</span>
 				</div>
 
-				<div className='mb-4 flex items-center gap-2 text-[13px]'>
+				<div className='mb-4 flex items-center gap-2 text-sm'>
 					<Image
 						src={author.avatarUrl}
 						alt={author.name}
@@ -371,7 +371,7 @@ const GridCard = ({
 					/>
 					<span>{author.name}</span>
 					{author.isVerified && (
-						<span className='rounded-full bg-success px-1.5 py-0.5 text-[10px] text-white'>
+						<span className='rounded-full bg-success px-1.5 py-0.5 text-2xs text-white'>
 							✓
 						</span>
 					)}
@@ -431,7 +431,7 @@ const FeaturedCard = ({
 		className='overflow-hidden rounded-3xl shadow-2xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
-			<div className='relative aspect-video min-h-[400px]'>
+			<div className='relative aspect-video min-h-panel-md'>
 				<Image
 					src={imageUrl}
 					alt={title}
@@ -506,9 +506,7 @@ const FeaturedCard = ({
 						<div className='flex flex-col'>
 							<span className='font-bold text-white'>{author.name}</span>
 							{author.title && (
-								<span className='text-[13px] text-white/70'>
-									{author.title}
-								</span>
+								<span className='text-sm text-white/70'>{author.title}</span>
 							)}
 						</div>
 					</div>
@@ -525,7 +523,7 @@ const FeaturedCard = ({
 					>
 						<Play className='h-5 w-5 md:h-6 md:w-6' />
 						Start Cooking
-						<span className='rounded-full bg-white/20 px-3 py-1 text-[13px] font-semibold max-md:hidden'>
+						<span className='rounded-full bg-white/20 px-3 py-1 text-sm font-semibold max-md:hidden'>
 							Earn {xpReward} XP
 						</span>
 					</motion.button>
@@ -586,7 +584,7 @@ const CookedCard = ({
 							className='h-full rounded-full bg-gradient-to-r from-purple-500 to-violet-500'
 						/>
 					</div>
-					<div className='flex justify-between text-[11px]'>
+					<div className='flex justify-between text-xs'>
 						{[1, 3, 7, 25].map(milestone => (
 							<span
 								key={milestone}
@@ -606,7 +604,7 @@ const CookedCard = ({
 				</div>
 
 				{/* XP summary */}
-				<div className='mb-4 flex items-center justify-between rounded-lg bg-success/10 px-3 py-2.5 text-[13px]'>
+				<div className='mb-4 flex items-center justify-between rounded-lg bg-success/10 px-3 py-2.5 text-sm'>
 					<span className='font-bold text-success'>
 						+{mastery.totalXpEarned} XP earned
 					</span>

@@ -134,10 +134,10 @@ const ChallengeIcon = ({
 					: 'bg-gradient-to-br from-indigo-500 to-purple-500',
 				size === 'large'
 					? 'h-16 w-16 rounded-2xl'
-					: 'h-[52px] w-[52px] rounded-[14px]',
+					: 'size-thumbnail-sm rounded-[14px]',
 			)}
 		>
-			<span className={size === 'large' ? 'text-4xl' : 'text-[28px]'}>
+			<span className={size === 'large' ? 'text-4xl' : 'text-icon-lg'}>
 				{icon}
 			</span>
 		</div>
@@ -180,7 +180,7 @@ const ActiveChallengeBanner = ({
 				<div className='mb-3 flex items-center gap-3.5'>
 					<ChallengeIcon icon={challenge.icon} />
 					<div className='flex-1'>
-						<span className='text-[11px] font-bold uppercase tracking-wide text-indigo-500'>
+						<span className='text-xs font-bold uppercase tracking-wide text-indigo-500'>
 							Daily Challenge
 						</span>
 						<h3 className='text-xl font-extrabold'>{challenge.title}</h3>
@@ -219,7 +219,7 @@ const ActiveChallengeBanner = ({
 								<Link
 									key={recipe.id}
 									href={`/recipes/${recipe.id}`}
-									className='flex flex-shrink-0 items-center gap-2 rounded-full border border-border bg-bg-elevated py-1.5 pl-1.5 pr-3 text-[13px] font-medium transition-colors hover:border-brand hover:bg-border'
+									className='flex flex-shrink-0 items-center gap-2 rounded-full border border-border bg-bg-elevated py-1.5 pl-1.5 pr-3 text-sm font-medium transition-colors hover:border-brand hover:bg-border'
 								>
 									<Image
 										src={recipe.imageUrl}
@@ -231,7 +231,7 @@ const ActiveChallengeBanner = ({
 							))}
 							<Link
 								href='/recipes?challenge=today'
-								className='flex flex-shrink-0 items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-2 text-[13px] font-medium text-indigo-500 transition-colors hover:bg-indigo-500/20'
+								className='flex flex-shrink-0 items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-2 text-sm font-medium text-indigo-500 transition-colors hover:bg-indigo-500/20'
 							>
 								+{challenge.matchingRecipes.length - 2} more
 							</Link>
@@ -246,7 +246,7 @@ const ActiveChallengeBanner = ({
 					onClick={onFindRecipe}
 					whileHover={{ y: -2 }}
 					whileTap={{ scale: 0.98 }}
-					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-[15px] font-bold text-white shadow-lg shadow-indigo-500/30'
+					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-base font-bold text-white shadow-lg shadow-indigo-500/30'
 				>
 					<ChefHat className='h-5 w-5' />
 					Find Recipe
@@ -302,7 +302,7 @@ const CompletedChallengeBanner = ({
 			<div className='mb-4 flex items-center gap-3.5'>
 				<ChallengeIcon icon='✅' isComplete />
 				<div className='flex-1'>
-					<span className='text-[11px] font-bold uppercase tracking-wide text-success'>
+					<span className='text-xs font-bold uppercase tracking-wide text-success'>
 						Challenge Complete!
 					</span>
 					<h3 className='text-xl font-extrabold'>{challenge.title}</h3>
@@ -318,7 +318,7 @@ const CompletedChallengeBanner = ({
 						className='h-12 w-12 rounded-lg object-cover'
 					/>
 					<div className='flex flex-col'>
-						<span className='text-[11px] text-text-muted'>Completed with</span>
+						<span className='text-xs text-text-muted'>Completed with</span>
 						<span className='text-sm font-semibold'>
 							{completedWith.recipeTitle}
 						</span>
@@ -328,7 +328,7 @@ const CompletedChallengeBanner = ({
 					<span className='block text-xl font-extrabold text-success'>
 						+{challenge.bonusXp} XP
 					</span>
-					<span className='text-[11px] text-text-muted'>bonus earned</span>
+					<span className='text-xs text-text-muted'>bonus earned</span>
 				</div>
 			</div>
 
@@ -346,7 +346,7 @@ const CompletedChallengeBanner = ({
 		{/* View History */}
 		<button
 			onClick={onViewHistory}
-			className='absolute right-4 top-4 flex items-center gap-1 rounded-lg border border-border px-3.5 py-2 text-[13px] font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+			className='absolute right-4 top-4 flex items-center gap-1 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 		>
 			View History
 			<ChevronRight className='h-4 w-4' />
@@ -382,7 +382,7 @@ const CompactChallengeBanner = ({
 				</div>
 			</div>
 			<div className='flex items-center gap-3'>
-				<span className='text-[13px] font-medium text-text-muted'>
+				<span className='text-sm font-medium text-text-muted'>
 					{timeRemaining}
 				</span>
 				<button
@@ -410,7 +410,7 @@ const FeaturedChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, scale: 0.98 }}
 			animate={{ opacity: 1, scale: 1 }}
-			className='relative mb-5 min-h-[320px] overflow-hidden rounded-3xl shadow-2xl'
+			className='relative mb-5 min-h-banner overflow-hidden rounded-3xl shadow-2xl'
 		>
 			{/* Background Image */}
 			<div className='absolute inset-0'>
@@ -437,19 +437,17 @@ const FeaturedChallengeBanner = ({
 						<span className='text-3xl'>{challenge.icon}</span>
 					</div>
 					<div>
-						<span className='text-[11px] font-bold uppercase tracking-wide text-white/70'>
+						<span className='text-xs font-bold uppercase tracking-wide text-white/70'>
 							Weekend Challenge
 						</span>
-						<h2 className='text-[28px] font-extrabold text-white'>
+						<h2 className='text-2xl font-extrabold text-white'>
 							{challenge.title}
 						</h2>
 					</div>
 				</div>
 
 				{/* Description */}
-				<p className='mb-5 text-[15px] text-white/80'>
-					{challenge.description}
-				</p>
+				<p className='mb-5 text-base text-white/80'>{challenge.description}</p>
 
 				{/* Meta Row */}
 				<div className='mb-5 flex gap-6'>
@@ -490,7 +488,7 @@ const FeaturedChallengeBanner = ({
 					onClick={onBrowseRecipes}
 					whileHover={{ scale: 1.02 }}
 					whileTap={{ scale: 0.98 }}
-					className='inline-flex w-fit items-center gap-2 rounded-xl bg-white px-7 py-4 text-[15px] font-bold text-indigo-500 shadow-xl'
+					className='inline-flex w-fit items-center gap-2 rounded-xl bg-white px-7 py-4 text-base font-bold text-indigo-500 shadow-xl'
 				>
 					<ChefHat className='h-5 w-5' />
 					Browse Italian Recipes

@@ -381,7 +381,7 @@ export const AiAssistant = ({
 						initial='hidden'
 						animate='visible'
 						exit='exit'
-						className='fixed inset-x-4 bottom-4 top-20 z-50 mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-[600px] md:max-h-[80vh]'
+						className='fixed inset-x-4 bottom-4 top-20 z-50 mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-[80vh]'
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border bg-gradient-to-r from-indigo-500 to-purple-500 p-4 text-white'>
