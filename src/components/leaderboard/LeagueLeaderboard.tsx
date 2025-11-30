@@ -140,19 +140,19 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 	return (
 		<div className='flex flex-col sm:flex-row gap-2 mb-5'>
 			{leagueInfo.nextTier && (
-				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-emerald-500/10 rounded-lg text-[11px] font-semibold text-emerald-500'>
+				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-emerald-500/10 rounded-lg text-xs font-semibold text-emerald-500'>
 					<ChevronUp className='w-3.5 h-3.5' />
 					<span>
 						Top {leagueInfo.promotionRanks} promote to {leagueInfo.nextTier}
 					</span>
 				</div>
 			)}
-			<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-indigo-500/10 rounded-lg text-[11px] font-semibold text-indigo-500'>
+			<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-indigo-500/10 rounded-lg text-xs font-semibold text-indigo-500'>
 				<Shield className='w-3.5 h-3.5' />
 				<span>Safe zone</span>
 			</div>
 			{leagueInfo.prevTier && (
-				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-red-500/10 rounded-lg text-[11px] font-semibold text-red-500'>
+				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-red-500/10 rounded-lg text-xs font-semibold text-red-500'>
 					<ChevronDown className='w-3.5 h-3.5' />
 					<span>
 						Bottom {leagueInfo.demotionRanks} demote to {leagueInfo.prevTier}
@@ -205,7 +205,7 @@ function ZoneSection({
 			{/* Zone Label */}
 			<div
 				className={cn(
-					'flex items-center gap-2 py-2 px-3 rounded-lg mb-3 text-[13px] font-bold',
+					'flex items-center gap-2 py-2 px-3 rounded-lg mb-3 text-sm font-bold',
 					style.bg,
 					style.text,
 				)}
@@ -249,7 +249,7 @@ function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='flex items-center justify-center gap-2 py-3 bg-red-500/10 rounded-lg text-[13px] text-red-500'
+			className='flex items-center justify-center gap-2 py-3 bg-red-500/10 rounded-lg text-sm text-red-500'
 		>
 			<AlertTriangle className='w-4 h-4' />
 			<span>+{xpNeeded} XP needed to leave demotion zone</span>
@@ -292,7 +292,7 @@ export function LeagueLeaderboard({
 		: 0
 
 	return (
-		<div className={cn('max-w-[600px] mx-auto p-4', className)}>
+		<div className={cn('max-w-modal-xl mx-auto p-4', className)}>
 			{/* League Header */}
 			<LeagueHeader leagueInfo={leagueInfo} onLeagueInfo={onLeagueInfo} />
 

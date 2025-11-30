@@ -92,7 +92,7 @@ function PodiumSpot({
 						repeat: Infinity,
 						ease: 'easeInOut',
 					}}
-					className='text-[28px] mb-2'
+					className='text-icon-lg mb-2'
 				>
 					👑
 				</motion.div>
@@ -123,7 +123,7 @@ function PodiumSpot({
 				</div>
 
 				{/* Level Badge */}
-				<div className='absolute top-0 -right-1 px-1.5 py-0.5 bg-indigo-500 rounded-lg text-[10px] font-bold text-white'>
+				<div className='absolute top-0 -right-1 px-1.5 py-0.5 bg-indigo-500 rounded-lg text-2xs font-bold text-white'>
 					{entry.level}
 				</div>
 			</div>
@@ -138,7 +138,7 @@ function PodiumSpot({
 				<span className='text-lg font-extrabold text-text'>
 					{entry.xp.toLocaleString()}
 				</span>
-				<span className='text-[11px] text-muted'>XP</span>
+				<span className='text-xs text-muted'>XP</span>
 			</div>
 
 			{/* Podium Base */}

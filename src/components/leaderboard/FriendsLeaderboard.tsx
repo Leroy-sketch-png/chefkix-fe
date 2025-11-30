@@ -55,7 +55,7 @@ function FriendsSummary({
 					className={cn(
 						'flex items-center gap-1.5 py-2 px-3.5',
 						'bg-gradient-to-r from-indigo-500 to-purple-500',
-						'rounded-lg text-[13px] font-semibold text-white',
+						'rounded-lg text-sm font-semibold text-white',
 					)}
 				>
 					<UserPlus className='w-4 h-4' />
@@ -96,7 +96,7 @@ function CatchingUpAlert({
 					height={32}
 					className='rounded-full'
 				/>
-				<span className='text-[13px] text-text'>
+				<span className='text-sm text-text'>
 					<strong className='text-orange-500'>{competitor.displayName}</strong>{' '}
 					is only {xpBehind} XP behind you!
 				</span>
@@ -106,7 +106,7 @@ function CatchingUpAlert({
 					whileHover={{ scale: 1.02 }}
 					whileTap={{ scale: 0.98 }}
 					onClick={onCookToDefend}
-					className='py-2 px-3.5 bg-orange-500 rounded-lg text-[13px] font-bold text-white whitespace-nowrap w-full sm:w-auto'
+					className='py-2 px-3.5 bg-orange-500 rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto'
 				>
 					Cook to defend 🍳
 				</motion.button>
@@ -149,7 +149,7 @@ export function FriendsLeaderboard({
 	const listEntries = entries.filter(e => e.rank > 3)
 
 	return (
-		<div className={cn('max-w-[600px] mx-auto p-4', className)}>
+		<div className={cn('max-w-modal-xl mx-auto p-4', className)}>
 			{/* Friends Summary */}
 			<FriendsSummary
 				totalFriends={totalFriends}
@@ -228,7 +228,7 @@ export function FriendsLeaderboard({
 						<ChefHat className='w-8 h-8 text-muted' />
 					</div>
 					<h3 className='text-lg font-bold text-text mb-2'>No Friends Yet</h3>
-					<p className='text-sm text-muted max-w-[280px] mb-4'>
+					<p className='text-sm text-muted max-w-xs mb-4'>
 						Invite your friends to compete and see who can cook the most!
 					</p>
 					{onInviteFriends && (

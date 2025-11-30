@@ -94,7 +94,7 @@ function LeaderboardTabs({
 							: 'text-muted hover:text-text',
 					)}
 				>
-					<Icon className='w-[18px] h-[18px]' />
+					<Icon className='size-icon-sm' />
 					<span className='hidden sm:inline'>{label}</span>
 				</motion.button>
 			))}
@@ -139,7 +139,7 @@ function TimeframeToggle({
 					key={value}
 					onClick={() => onTimeframeChange?.(value)}
 					className={cn(
-						'flex-1 py-2.5 text-[13px] font-semibold z-10 transition-colors',
+						'flex-1 py-2.5 text-sm font-semibold z-10 transition-colors',
 						activeTimeframe === value ? 'text-text' : 'text-muted',
 					)}
 				>
@@ -173,7 +173,7 @@ function MyRankBanner({
 		>
 			{/* Rank Position */}
 			<div className='flex flex-col items-center sm:pr-5 sm:border-r border-border pb-4 sm:pb-0 w-full sm:w-auto'>
-				<span className='text-[11px] font-semibold text-muted uppercase tracking-wide'>
+				<span className='text-xs font-semibold text-muted uppercase tracking-wide'>
 					Your Rank
 				</span>
 				<span className='text-3xl font-black text-indigo-500'>
@@ -187,13 +187,13 @@ function MyRankBanner({
 					<span className='text-xl font-extrabold text-text'>
 						{myRank.xpThisWeek}
 					</span>
-					<span className='text-[11px] text-muted'>XP this week</span>
+					<span className='text-xs text-muted'>XP this week</span>
 				</div>
 				<div className='flex flex-col'>
 					<span className='text-xl font-extrabold text-text'>
 						{myRank.recipesCooked}
 					</span>
-					<span className='text-[11px] text-muted'>Recipes cooked</span>
+					<span className='text-xs text-muted'>Recipes cooked</span>
 				</div>
 			</div>
 
@@ -207,7 +207,7 @@ function MyRankBanner({
 					whileTap={{ scale: 0.98 }}
 					onClick={onCookNow}
 					className={cn(
-						'py-2 px-4 rounded-lg text-[13px] font-bold text-white',
+						'py-2 px-4 rounded-lg text-sm font-bold text-white',
 						'bg-gradient-to-r from-indigo-500 to-purple-500',
 						'w-full sm:w-auto',
 					)}
@@ -226,7 +226,7 @@ function MyRankBanner({
 function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
 	return (
 		<div className='flex items-center justify-center gap-2 py-3.5 bg-panel-bg rounded-xl mt-4 text-sm text-muted'>
-			<Clock className='w-[18px] h-[18px]' />
+			<Clock className='size-icon-sm' />
 			<span>
 				Resets in{' '}
 				<strong className='text-text'>
@@ -273,7 +273,7 @@ export function LeaderboardPage({
 	const showMyRankBanner = myRank && (!userInList || myRank.rank > 50)
 
 	return (
-		<div className={cn('max-w-[600px] mx-auto p-4', className)}>
+		<div className={cn('max-w-container-md mx-auto p-4', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-4 mb-5'>
 				{onBack && (
@@ -382,7 +382,7 @@ export function LeaderboardPage({
 						<ChefHat className='w-8 h-8 text-muted' />
 					</div>
 					<h3 className='text-lg font-bold text-text mb-2'>No Rankings Yet</h3>
-					<p className='text-sm text-muted max-w-[280px]'>
+					<p className='text-sm text-muted max-w-xs'>
 						{type === 'friends'
 							? 'Invite friends to compete with you!'
 							: 'Be the first to cook and claim the top spot!'}

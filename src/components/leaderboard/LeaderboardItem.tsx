@@ -108,7 +108,7 @@ export function LeaderboardItem({
 					/>
 				</div>
 				<div className='flex flex-col'>
-					<span className='text-[15px] font-bold text-text'>
+					<span className='text-base font-bold text-text'>
 						{isCurrentUser ? 'You' : entry.displayName}
 					</span>
 					<span className='text-xs text-muted'>Level {entry.level}</span>
@@ -116,12 +116,12 @@ export function LeaderboardItem({
 
 				{/* Badges */}
 				{isCurrentUser && !isLeading && (
-					<span className='px-2 py-0.5 bg-indigo-500 rounded-lg text-[11px] font-bold text-white'>
+					<span className='px-2 py-0.5 bg-indigo-500 rounded-lg text-xs font-bold text-white'>
 						You
 					</span>
 				)}
 				{isLeading && (
-					<span className='px-2.5 py-1 bg-emerald-500 rounded-lg text-[11px] font-bold text-white'>
+					<span className='px-2.5 py-1 bg-emerald-500 rounded-lg text-xs font-bold text-white'>
 						🔥 Leading!
 					</span>
 				)}
@@ -130,11 +130,11 @@ export function LeaderboardItem({
 			{/* Stats (hidden on mobile) */}
 			{showStats && (
 				<div className='hidden sm:flex gap-3'>
-					<div className='flex items-center gap-1 text-[13px] text-orange-500'>
+					<div className='flex items-center gap-1 text-sm text-orange-500'>
 						<Flame className='w-3.5 h-3.5' />
 						<span>{entry.streak}</span>
 					</div>
-					<div className='flex items-center gap-1 text-[13px] text-muted'>
+					<div className='flex items-center gap-1 text-sm text-muted'>
 						<Utensils className='w-3.5 h-3.5' />
 						<span>{entry.recipesCooked}</span>
 					</div>
@@ -146,9 +146,9 @@ export function LeaderboardItem({
 				<span className='block text-base font-extrabold text-text'>
 					{entry.xpThisWeek.toLocaleString()}
 				</span>
-				<span className='text-[11px] text-muted'>XP</span>
+				<span className='text-xs text-muted'>XP</span>
 				{xpDiff !== undefined && xpDiff < 0 && (
-					<span className='block text-[11px] text-red-500'>{xpDiff}</span>
+					<span className='block text-xs text-red-500'>{xpDiff}</span>
 				)}
 			</div>
 		</motion.div>
