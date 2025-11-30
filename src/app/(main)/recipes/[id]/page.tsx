@@ -167,7 +167,7 @@ export default function RecipeDetailPage() {
 			<PageContainer maxWidth='2xl'>
 				{/* Hero Section */}
 				<div className='mb-8 overflow-hidden rounded-2xl border bg-card shadow-lg'>
-					<div className='relative h-[400px] w-full'>
+					<div className='relative h-panel-md w-full'>
 						<Image
 							src={recipe.imageUrl}
 							alt={recipe.title}
@@ -384,7 +384,7 @@ function RecipeDetailSkeleton() {
 	return (
 		<PageContainer maxWidth='2xl'>
 			<div className='mb-8 overflow-hidden rounded-2xl border bg-card shadow-lg'>
-				<Skeleton className='h-[400px] w-full' />
+				<Skeleton className='h-panel-md w-full' />
 				<div className='p-6 md:p-8'>
 					<Skeleton className='mb-3 h-10 w-3/4' />
 					<Skeleton className='mb-4 h-6 w-full' />
