@@ -12,6 +12,7 @@ import {
 	LevelUpToast,
 	PostSuccessRewards,
 	FirstCookCelebration,
+	ImmediateRewards,
 } from '@/components/completion'
 import type { Badge } from '@/lib/types/gamification'
 
@@ -75,6 +76,19 @@ interface FirstCookData {
 	badgeEarned?: Badge
 }
 
+interface ImmediateRewardsData {
+	recipeName: string
+	recipeImageUrl?: string
+	immediateXp: number
+	pendingXp: number
+	streakBonus?: number
+	streakDays?: number
+	creatorTipXp?: number
+	creatorHandle?: string
+	postDeadlineHours: number
+	unlockedAchievement?: Badge | null
+}
+
 interface CelebrationContextType {
 	// Level up
 	showLevelUp: (data: LevelUpData) => void
@@ -83,6 +97,8 @@ interface CelebrationContextType {
 	showPostSuccess: (data: PostSuccessData) => void
 	// First cook
 	showFirstCook: (data: FirstCookData) => void
+	// Immediate rewards (after cooking, before posting)
+	showImmediateRewards: (data: ImmediateRewardsData) => void
 }
 
 const CelebrationContext = createContext<CelebrationContextType | null>(null)
@@ -123,6 +139,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const [firstCookOpen, setFirstCookOpen] = useState(false)
 	const [firstCookData, setFirstCookData] = useState<FirstCookData | null>(null)
 
+	// Immediate Rewards state
+	const [immediateRewardsOpen, setImmediateRewardsOpen] = useState(false)
+	const [immediateRewardsData, setImmediateRewardsData] =
+		useState<ImmediateRewardsData | null>(null)
+
 	// ============================================
 	// ACTIONS
 	// ============================================
@@ -145,6 +166,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const showFirstCook = useCallback((data: FirstCookData) => {
 		setFirstCookData(data)
 		setFirstCookOpen(true)
+	}, [])
+
+	const showImmediateRewards = useCallback((data: ImmediateRewardsData) => {
+		setImmediateRewardsData(data)
+		setImmediateRewardsOpen(true)
 	}, [])
 
 	// ============================================
@@ -192,6 +218,22 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		setFirstCookData(null)
 	}
 
+	const handleImmediateRewardsClose = () => {
+		setImmediateRewardsOpen(false)
+		setImmediateRewardsData(null)
+	}
+
+	const handleImmediateRewardsPostNow = () => {
+		// Navigate to create post screen
+		handleImmediateRewardsClose()
+		window.location.href = '/create'
+	}
+
+	const handleImmediateRewardsPostLater = () => {
+		// Dismiss and show reminder toast
+		handleImmediateRewardsClose()
+	}
+
 	// ============================================
 	// RENDER
 	// ============================================
@@ -201,6 +243,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		showLevelUpToast,
 		showPostSuccess,
 		showFirstCook,
+		showImmediateRewards,
 	}
 
 	return (
@@ -289,14 +332,55 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 				/>
 			)}
 
-			{/* First Cook Modal - TODO: Implement FirstCookCelebration component */}
-			{/* {firstCookData && firstCookOpen && (
+			{/* First Cook Modal */}
+			{firstCookData && (
 				<FirstCookCelebration
 					isOpen={firstCookOpen}
 					onClose={handleFirstCookClose}
-					{...firstCookData}
+					recipeName={firstCookData.recipeName}
+					recipeImageUrl={firstCookData.recipeImageUrl}
+					immediateXp={firstCookData.xpEarned}
+					pendingXp={20} // Default pending XP for first cook
+					postDeadlineDays={2}
+					onPostNow={() => {
+						handleFirstCookClose()
+						window.location.href = '/create'
+					}}
+					onShareAchievement={() => {
+						if (navigator.share) {
+							navigator.share({
+								title: 'I just cooked my first recipe!',
+								text: `Just made ${firstCookData.recipeName} on Chefkix! 🎉`,
+								url: window.location.origin,
+							})
+						}
+					}}
+					onContinueCooking={() => {
+						handleFirstCookClose()
+						window.location.href = '/explore'
+					}}
 				/>
-			)} */}
+			)}
+
+			{/* Immediate Rewards Modal (after cooking, before posting) */}
+			{immediateRewardsData && (
+				<ImmediateRewards
+					isOpen={immediateRewardsOpen}
+					onClose={handleImmediateRewardsClose}
+					recipeName={immediateRewardsData.recipeName}
+					recipeImageUrl={immediateRewardsData.recipeImageUrl}
+					immediateXp={immediateRewardsData.immediateXp}
+					pendingXp={immediateRewardsData.pendingXp}
+					streakBonus={immediateRewardsData.streakBonus}
+					streakDays={immediateRewardsData.streakDays}
+					creatorTipXp={immediateRewardsData.creatorTipXp}
+					creatorHandle={immediateRewardsData.creatorHandle}
+					postDeadlineHours={immediateRewardsData.postDeadlineHours}
+					unlockedAchievement={immediateRewardsData.unlockedAchievement}
+					onPostNow={handleImmediateRewardsPostNow}
+					onPostLater={handleImmediateRewardsPostLater}
+				/>
+			)}
 		</CelebrationContext.Provider>
 	)
 }
