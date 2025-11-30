@@ -17,6 +17,7 @@ import { toast } from '@/components/ui/toaster'
 import { triggerFriendConfetti } from '@/lib/confetti'
 import { SOCIAL_MESSAGES } from '@/constants/messages'
 import { ProfileHeaderGamified } from './ProfileHeaderGamified'
+import { CookingHistoryTab, type PendingSession } from '@/components/pending'
 import type { Badge as GamificationBadge } from '@/lib/types/gamification'
 
 // ============================================
@@ -137,6 +138,47 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 type UserProfileProps = {
 	profile: Profile
 	currentUserId?: string // Make currentUserId optional
+}
+
+// Mock cooking history data - in production, fetch from backend
+const mockCookingSessions: PendingSession[] = [
+	{
+		id: 'session-1',
+		recipeId: 'recipe-1',
+		recipeName: 'Spicy Tomato Ramen',
+		recipeImage: 'https://i.imgur.com/v8SjYfT.jpeg',
+		cookedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+		duration: 35,
+		baseXP: 50,
+		currentXP: 50,
+		expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000),
+		status: 'normal',
+		postId: 'post-123',
+		rating: 4.5,
+		cookCount: 1,
+	},
+	{
+		id: 'session-2',
+		recipeId: 'recipe-2',
+		recipeName: 'Creamy Carbonara',
+		recipeImage: 'https://i.imgur.com/bBDxvxd.jpeg',
+		cookedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+		duration: 25,
+		baseXP: 40,
+		currentXP: 40,
+		expiresAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+		status: 'expired',
+		postId: 'post-456',
+		rating: 5,
+		cookCount: 3,
+	},
+]
+
+const mockCookingStats = {
+	totalSessions: 12,
+	uniqueRecipes: 8,
+	pendingPosts: 1,
+	totalXPEarned: 580,
 }
 
 export const UserProfile = ({
@@ -482,9 +524,23 @@ export const UserProfile = ({
 				)}
 
 				{activeTab === 'cooking' && (
-					<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
-						<p className='text-text-muted'>Cooking history coming soon...</p>
-					</div>
+					<CookingHistoryTab
+						sessions={mockCookingSessions}
+						stats={mockCookingStats}
+						onPost={sessionId => {
+							router.push(`/create?session=${sessionId}`)
+						}}
+						onViewPost={postId => {
+							router.push(`/posts/${postId}`)
+						}}
+						onRetry={sessionId => {
+							// Navigate to retry cooking this recipe
+							const session = mockCookingSessions.find(s => s.id === sessionId)
+							if (session) {
+								router.push(`/recipes/${session.recipeId}/cook`)
+							}
+						}}
+					/>
 				)}
 
 				{activeTab === 'saved' && (

@@ -9,9 +9,8 @@ import { RecipeCard } from '@/components/recipe/RecipeCard'
 import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
 import { RecipeFiltersSheet } from '@/components/shared/RecipeFiltersSheet'
 import { ErrorState } from '@/components/ui/error-state'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGamified } from '@/components/shared'
 import { Search, TrendingUp, Filter } from 'lucide-react'
-import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -194,15 +193,21 @@ export default function ExplorePage() {
 					/>
 				)}
 				{!isLoading && !error && recipes.length === 0 && (
-					<EmptyState
+					<EmptyStateGamified
+						variant='search'
 						title='No recipes found'
 						description={
 							searchQuery
 								? `No recipes match "${searchQuery}". Try a different search.`
 								: 'Be the first to share a recipe!'
 						}
-						icon={Search}
-						lottieAnimation={lottieNotFound}
+						searchSuggestions={
+							searchQuery ? ['Pasta', 'Curry', 'Salad', 'Dessert'] : undefined
+						}
+						primaryAction={{
+							label: 'Create Recipe',
+							href: '/create',
+						}}
 					/>
 				)}
 				{!isLoading && !error && recipes.length > 0 && (

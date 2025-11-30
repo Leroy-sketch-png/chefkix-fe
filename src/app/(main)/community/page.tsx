@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { ErrorState } from '@/components/ui/error-state'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGamified } from '@/components/shared'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
 import { FriendRequestCard } from '@/components/social/FriendRequestCard'
 import { FriendCard } from '@/components/social/FriendCard'
@@ -16,7 +16,6 @@ import { getAllProfiles } from '@/services/profile'
 import { getFriends, getFriendRequests } from '@/services/social'
 import { Profile } from '@/lib/types'
 import { Users, UserPlus, Trophy, Search } from 'lucide-react'
-import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -184,11 +183,14 @@ export default function CommunityPage() {
 
 					<TabsContent value='discover' className='mt-0 animate-fadeIn'>
 						{allProfiles.length === 0 ? (
-							<EmptyState
-								lottieAnimation={lottieNotFound}
-								lottieSize={() => 200}
+							<EmptyStateGamified
+								variant='feed'
 								title='No users found'
 								description='Start by inviting friends to join ChefKix!'
+								primaryAction={{
+									label: 'Invite Friends',
+									href: '/invite',
+								}}
 							/>
 						) : (
 							<UserDiscoveryClient profiles={allProfiles} />
@@ -232,11 +234,13 @@ export default function CommunityPage() {
 								</h2>
 							</div>
 							{friends.length === 0 ? (
-								<EmptyState
-									lottieAnimation={lottieNotFound}
-									lottieSize={() => 200}
+								<EmptyStateGamified
+									variant='feed'
 									title='No friends yet'
 									description='Start connecting by sending friend requests in the Discover tab!'
+									quickActions={[
+										{ label: 'Browse Discover', href: '#', emoji: '🔍' },
+									]}
 								/>
 							) : (
 								<StaggerContainer staggerDelay={0.05}>

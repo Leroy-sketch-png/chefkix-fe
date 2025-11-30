@@ -9,9 +9,8 @@ import { PostCard } from '@/components/social/PostCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { ErrorState } from '@/components/ui/error-state'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGamified } from '@/components/shared'
 import { Stories } from '@/components/social/Stories'
-import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { Users, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
@@ -19,7 +18,24 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
+import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { useRouter } from 'next/navigation'
+
+// Mock pending sessions - in production, fetch from backend
+const mockPendingSessions: PendingSession[] = [
+	{
+		id: 'pending-1',
+		recipeId: 'recipe-1',
+		recipeName: 'Spicy Tomato Ramen',
+		recipeImage: 'https://i.imgur.com/v8SjYfT.jpeg',
+		cookedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+		duration: 35,
+		baseXP: 50,
+		currentXP: 50,
+		expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000), // 22 hours left
+		status: 'normal',
+	},
+]
 
 export default function DashboardPage() {
 	const { user } = useAuth()
@@ -28,6 +44,8 @@ export default function DashboardPage() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [showStreakBanner, setShowStreakBanner] = useState(true)
+	const [pendingSessions, setPendingSessions] =
+		useState<PendingSession[]>(mockPendingSessions)
 
 	// Mock streak risk data - in production, derive from user.statistics
 	const hasStreakAtRisk =
@@ -60,6 +78,17 @@ export default function DashboardPage() {
 		setShowStreakBanner(false)
 	}
 
+	const handlePostFromPending = (sessionId: string) => {
+		// Navigate to composer with pre-filled session data
+		router.push(`/create?session=${sessionId}`)
+		// In production, remove from pending after successful post
+	}
+
+	const handleDismissPending = () => {
+		// Optionally hide pending section temporarily
+		setPendingSessions([])
+	}
+
 	const handlePostUpdate = (updatedPost: Post) => {
 		setPosts(prev =>
 			Array.isArray(prev)
@@ -85,6 +114,16 @@ export default function DashboardPage() {
 						isUrgent={isUrgent}
 						onQuickCook={() => router.push('/explore')}
 						onDismiss={() => setShowStreakBanner(false)}
+						className='mb-4'
+					/>
+				)}
+				{/* Pending Posts Section - Show when user has cooked but not posted */}
+				{pendingSessions.length > 0 && (
+					<PendingPostsSection
+						sessions={pendingSessions}
+						onPost={handlePostFromPending}
+						onDismiss={handleDismissPending}
+						onViewAll={() => router.push('/settings?tab=cooking-history')}
 						className='mb-4'
 					/>
 				)}
@@ -128,27 +167,27 @@ export default function DashboardPage() {
 					/>
 				)}
 				{!isLoading && !error && posts.length === 0 && (
-					<EmptyState
+					<EmptyStateGamified
+						variant='feed'
 						title='Your feed is empty'
 						description='Follow chefs and add friends to see their latest posts here!'
-						icon={MessageSquare}
-						lottieAnimation={lottieNotFound}
-					>
-						<div className='flex flex-wrap justify-center gap-3'>
-							<Link href='/discover'>
-								<Button>
-									<Users className='mr-2 h-4 w-4' />
-									Discover People
-								</Button>
-							</Link>
-							<Link href='/explore'>
-								<Button variant='outline'>
-									<MessageSquare className='mr-2 h-4 w-4' />
-									Explore Posts
-								</Button>
-							</Link>
-						</div>
-					</EmptyState>
+						primaryAction={{
+							label: 'Discover People',
+							href: '/discover',
+							icon: <Users className='h-4 w-4' />,
+						}}
+						secondaryActions={[
+							{
+								label: 'Explore Posts',
+								href: '/explore',
+								icon: <MessageSquare className='h-4 w-4' />,
+							},
+						]}
+						fomoStats={[
+							{ label: 'Recipes posted today', value: '1,234' },
+							{ label: 'Active chefs', value: '567' },
+						]}
+					/>
 				)}
 				{!isLoading && !error && posts.length > 0 && (
 					<StaggerContainer className='space-y-4 md:space-y-6'>

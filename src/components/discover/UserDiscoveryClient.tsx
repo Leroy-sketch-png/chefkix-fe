@@ -8,10 +8,9 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from '@/components/ui/input-group'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGamified } from '@/components/shared'
 import { Users, Search } from 'lucide-react'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 
 type Props = {
 	profiles: Profile[]
@@ -50,17 +49,18 @@ export const UserDiscoveryClient = ({ profiles }: Props) => {
 
 			{filteredProfiles.length === 0 ? (
 				searchTerm ? (
-					<EmptyState
-						icon={Search}
+					<EmptyStateGamified
+						variant='search'
 						title='No users found'
 						description={`No results for "${searchTerm}". Try a different search term.`}
-						actionLabel='Clear Search'
-						onAction={() => setSearchTerm('')}
+						primaryAction={{
+							label: 'Clear Search',
+							onClick: () => setSearchTerm(''),
+						}}
 					/>
 				) : (
-					<EmptyState
-						lottieAnimation={lottieNotFound}
-						lottieSize={(w, h) => Math.min(w * 0.4, h * 0.5, 300)}
+					<EmptyStateGamified
+						variant='feed'
 						title='No users yet'
 						description='Be the first to join the community!'
 					/>
