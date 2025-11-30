@@ -49,20 +49,20 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='relative flex h-18 w-full flex-shrink-0 items-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
+			className='relative flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
 			role='banner'
 		>
-			{/* Logo - Hidden between 768px-1100px to make room for search, shows on mobile and large screens */}
+			{/* Logo - Absolutely positioned to stay left while content centers */}
 			<Link
 				href='/dashboard'
-				className='flex flex-shrink-0 items-center gap-2 md:hidden xl:flex'
+				className='absolute left-4 flex items-center gap-2 md:left-6'
 			>
 				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary'>
 					Chefkix
 				</div>
 			</Link>
-			{/* Search Bar - takes priority in middle breakpoints, constrained on larger screens */}
-			<div className='group relative flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:px-4 md:py-2.5 xl:ml-0'>
+			{/* Search Bar - constrained max width, with left margin to avoid overlapping the absolute logo */}
+			<div className='group relative ml-20 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:ml-24 md:px-4 md:py-2.5'>
 				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:rotate-12 group-focus-within:text-primary' />
 				<input
 					type='text'
