@@ -183,7 +183,7 @@ export const ReportModal = ({
 								<motion.div
 									initial={{ scale: 0 }}
 									animate={{ scale: 1 }}
-									transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+									transition={TRANSITION_BOUNCY}
 									className='mx-auto mb-5 flex size-thumbnail-lg items-center justify-center rounded-full bg-success/10 text-success'
 								>
 									<CheckCircle className='h-9 w-9' />
