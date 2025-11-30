@@ -198,7 +198,7 @@ export const ComposerModal = ({
 						animate='visible'
 						exit='exit'
 						onClick={e => e.stopPropagation()}
-						className='flex max-h-[90vh] w-full max-w-[600px] flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-2xl'
+						className='flex max-h-[90vh] w-full max-w-modal-xl flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-2xl'
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border px-6 py-5'>
@@ -224,10 +224,8 @@ export const ComposerModal = ({
 								/>
 							</div>
 							<div>
-								<div className='text-[15px] font-semibold'>
-									{user.displayName}
-								</div>
-								<button className='mt-0.5 flex items-center gap-1 text-[13px] text-text-muted hover:text-text'>
+								<div className='text-sm font-semibold'>{user.displayName}</div>
+								<button className='mt-0.5 flex items-center gap-1 text-sm text-text-muted hover:text-text'>
 									<Globe className='h-3.5 w-3.5' />
 									<span>Public</span>
 								</button>
@@ -241,7 +239,7 @@ export const ComposerModal = ({
 								value={content}
 								onChange={e => setContent(e.target.value)}
 								placeholder="What's cooking? Share your food journey..."
-								className='min-h-[100px] w-full resize-none bg-transparent text-base leading-relaxed outline-none placeholder:text-text-muted'
+								className='min-h-textarea w-full resize-none bg-transparent text-base leading-relaxed outline-none placeholder:text-text-muted'
 								rows={4}
 							/>
 
@@ -258,7 +256,7 @@ export const ComposerModal = ({
 												alt={`Preview ${index + 1}`}
 												width={280}
 												height={200}
-												className='h-[200px] w-full object-cover'
+												className='h-48 w-full object-cover'
 											/>
 											<motion.button
 												whileHover={{ scale: 1.1 }}
