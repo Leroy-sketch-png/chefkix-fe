@@ -197,13 +197,13 @@ const LevelRing = ({
 				</span>
 			</div>
 			<div className='flex flex-col'>
-				<span className='text-[11px] uppercase tracking-wide text-white/70'>
+				<span className='text-xs uppercase tracking-wide text-white/70'>
 					Level
 				</span>
 				<span
 					className={cn(
 						'font-semibold text-white',
-						size === 'default' ? 'text-[13px]' : 'text-xs',
+						size === 'default' ? 'text-sm' : 'text-xs',
 					)}
 				>
 					{xpText}
@@ -237,7 +237,7 @@ const TitleBadge = ({ title }: { title: UserTitle }) => {
 	return (
 		<div
 			className={cn(
-				'absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white',
+				'absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white',
 				config.gradient,
 			)}
 		>
@@ -351,7 +351,7 @@ const XPProgressBar = ({
 				<div className='h-4 w-1 rounded-sm bg-text-muted' />
 			</div>
 		</div>
-		<div className='flex justify-between text-[13px]'>
+		<div className='flex justify-between text-sm'>
 			<span className='font-semibold text-success'>
 				{formatNumber(currentXP)} XP
 			</span>
@@ -378,7 +378,7 @@ const BadgesShowcase = ({
 				<h3 className='text-sm font-bold'>Badges</h3>
 				<Link
 					href='/profile/badges'
-					className='text-[13px] font-semibold text-brand hover:underline'
+					className='text-sm font-semibold text-brand hover:underline'
 				>
 					View all {totalBadges} →
 				</Link>
@@ -395,19 +395,19 @@ const BadgesShowcase = ({
 						index === 0 && !compact && 'border-purple-500/30 bg-purple-500/10',
 					)}
 				>
-					<span className={compact ? 'text-xl' : 'text-[28px]'}>
+					<span className={compact ? 'text-xl' : 'text-icon-lg'}>
 						{badge.icon}
 					</span>
 					<span
 						className={cn(
 							'text-center font-semibold',
-							compact ? 'text-[10px]' : 'text-[11px]',
+							compact ? 'text-2xs' : 'text-xs',
 						)}
 					>
 						{badge.name}
 					</span>
 					{!compact && badge.rarity === 'RARE' && (
-						<span className='rounded-full bg-purple-500 px-2 py-0.5 text-[10px] text-white'>
+						<span className='rounded-full bg-purple-500 px-2 py-0.5 text-2xs text-white'>
 							Rare
 						</span>
 					)}
@@ -453,7 +453,7 @@ const ProfileTabs = ({
 				{tab.icon}
 				{tab.label}
 				{tab.badge !== undefined && (
-					<span className='rounded-full bg-error px-2 py-0.5 text-[11px] font-bold text-white'>
+					<span className='rounded-full bg-error px-2 py-0.5 text-xs font-bold text-white'>
 						{tab.badge}
 					</span>
 				)}
@@ -534,7 +534,7 @@ const OwnProfileHeader = ({
 					<Image
 						src={user.avatarUrl}
 						alt={user.displayName}
-						className='h-[120px] w-[120px] rounded-full border-[5px] border-panel-bg object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-[5px] border-panel-bg object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
@@ -617,7 +617,7 @@ const OwnProfileHeader = ({
 						onClick={onPostPending}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='rounded-lg bg-error px-4 py-2.5 text-[13px] font-semibold text-white'
+						className='rounded-lg bg-error px-4 py-2.5 text-sm font-semibold text-white'
 					>
 						Post Now
 					</motion.button>
@@ -785,9 +785,9 @@ const OtherUserProfileHeader = ({
 					whileHover={{ backgroundColor: 'rgba(34, 197, 94, 0.15)' }}
 					className='mx-6 my-4 flex w-[calc(100%-48px)] items-center gap-3.5 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-left transition-colors'
 				>
-					<GitCompare className='h-[22px] w-[22px] text-success' />
+					<GitCompare className='size-icon-md text-success' />
 					<div className='flex flex-col gap-0.5'>
-						<span className='text-[13px] font-semibold'>
+						<span className='text-sm font-semibold'>
 							You&apos;ve cooked {recipesYouCooked} of their recipes
 						</span>
 						<span className='text-xs text-success'>
@@ -837,7 +837,7 @@ const MiniProfileHeader = ({
 					alt={user.displayName}
 					className='h-12 w-12 rounded-full object-cover'
 				/>
-				<span className='absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-panel-bg bg-success text-[10px] font-extrabold text-white'>
+				<span className='absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-panel-bg bg-success text-2xs font-extrabold text-white'>
 					{level}
 				</span>
 			</div>
@@ -851,7 +851,7 @@ const MiniProfileHeader = ({
 					)}
 					<span
 						className={cn(
-							'rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase text-white',
+							'rounded-lg px-2 py-0.5 text-2xs font-bold uppercase text-white',
 							config.gradient,
 						)}
 					>
@@ -875,7 +875,7 @@ const MiniProfileHeader = ({
 				whileHover={{ scale: 1.05 }}
 				whileTap={{ scale: 0.95 }}
 				className={cn(
-					'rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors',
+					'rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
 					isFollowing
 						? 'border border-border bg-bg-elevated hover:bg-border'
 						: 'bg-brand text-white',

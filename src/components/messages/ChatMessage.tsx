@@ -277,7 +277,7 @@ export const ChatMessage = ({
 			{/* Status & Time */}
 			<div
 				className={cn(
-					'flex items-center gap-1 mt-1 text-[11px] text-muted-foreground',
+					'flex items-center gap-1 mt-1 text-xs text-muted-foreground',
 					message.isOwn ? 'mr-2' : !showAvatar ? 'ml-0' : 'ml-10',
 				)}
 			>
