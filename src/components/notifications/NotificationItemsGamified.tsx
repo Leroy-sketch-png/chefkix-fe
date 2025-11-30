@@ -360,7 +360,7 @@ const LevelUpItem = ({
 				{newLevel}
 			</span>
 			<motion.div
-				className='absolute -inset-1.5 rounded-full border-[3px] border-purple-500/40'
+				className='absolute -inset-1.5 rounded-full border-3 border-purple-500/40'
 				animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
 				transition={{ duration: 2, repeat: Infinity }}
 			/>

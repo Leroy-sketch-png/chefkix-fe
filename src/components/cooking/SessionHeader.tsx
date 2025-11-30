@@ -102,7 +102,7 @@ const ActiveTimerBadge = ({ timer, isUrgent }: ActiveTimerBadgeProps) => {
 			<Clock className='h-3.5 w-3.5' />
 			<span>{timeDisplay}</span>
 			{timer.label && (
-				<span className='max-w-[80px] truncate text-xs opacity-70'>
+				<span className='max-w-nav truncate text-xs opacity-70'>
 					{timer.label}
 				</span>
 			)}

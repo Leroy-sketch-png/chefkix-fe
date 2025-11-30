@@ -53,7 +53,7 @@ export const AchievementBadge = ({
 		<div
 			onClick={unlocked ? onClick : undefined}
 			className={cn(
-				'relative cursor-pointer overflow-hidden rounded-[var(--radius)] border-2 border-border bg-card p-5 text-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+				'relative cursor-pointer overflow-hidden rounded-radius border-2 border-border bg-card p-5 text-center transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
 				unlocked && 'animate-float hover:-translate-y-1 hover:shadow-md',
 				!unlocked && 'cursor-default opacity-50',
 				className,
@@ -62,7 +62,7 @@ export const AchievementBadge = ({
 			{/* Badge Icon */}
 			<div
 				className={cn(
-					'relative mx-auto mb-3 grid h-20 w-20 place-items-center rounded-full border-[3px] bg-muted',
+					'relative mx-auto mb-3 grid h-20 w-20 place-items-center rounded-full border-3 bg-muted',
 					unlocked &&
 						!rarity &&
 						'border-primary bg-gradient-to-br from-primary to-primary/80',
@@ -77,7 +77,7 @@ export const AchievementBadge = ({
 						'border-gold bg-gradient-gold shadow-glow',
 				)}
 			>
-				<div className='relative z-[2] text-icon-2xl'>{emoji}</div>
+				<div className='relative z-10 text-icon-2xl'>{emoji}</div>
 
 				{/* Shine Animation */}
 				{unlocked && (
@@ -185,7 +185,7 @@ export const AchievementModal = ({
 			onClick={onClose}
 		>
 			<div
-				className='relative w-full max-w-lg animate-scaleIn overflow-hidden rounded-[var(--radius-lg)] bg-card'
+				className='relative w-full max-w-lg animate-scaleIn overflow-hidden rounded-lg bg-card'
 				onClick={e => e.stopPropagation()}
 			>
 				{/* Close Button */}
@@ -212,7 +212,7 @@ export const AchievementModal = ({
 
 					{/* Badge Icon */}
 					<div className='relative mx-auto grid h-30 w-30 place-items-center rounded-full bg-card shadow-glow'>
-						<div className='relative z-[2] text-icon-4xl'>{emoji}</div>
+						<div className='relative z-10 text-icon-4xl'>{emoji}</div>
 						<div className='absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
 					</div>
 				</div>
@@ -234,7 +234,7 @@ export const AchievementModal = ({
 						{description}
 					</p>{' '}
 					{/* Stats */}
-					<div className='mb-8 grid grid-cols-3 gap-5 rounded-[var(--radius)] bg-muted/20 p-6'>
+					<div className='mb-8 grid grid-cols-3 gap-5 rounded-radius bg-muted/20 p-6'>
 						<div className='text-center'>
 							<div className='mb-1 text-xs text-muted-foreground'>Unlocked</div>
 							<div className='text-sm font-bold text-foreground'>

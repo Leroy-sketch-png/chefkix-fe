@@ -136,12 +136,12 @@ function SearchIllustration() {
 
 function BookmarkIllustration() {
 	return (
-		<div className='relative w-[100px] h-[80px] mx-auto'>
+		<div className='relative w-thumbnail-xl h-20 mx-auto'>
 			{[0, 1, 2].map(i => (
 				<div
 					key={i}
 					className={cn(
-						'absolute w-[60px] h-[50px] bg-bg border-2 border-border rounded-lg flex items-center justify-center',
+						'absolute w-thumbnail-md h-12 bg-bg border-2 border-border rounded-lg flex items-center justify-center',
 						i === 0 && 'left-0 top-2.5 -rotate-[10deg] opacity-50',
 						i === 1 && 'left-5 top-1.5 -rotate-3 opacity-70',
 						i === 2 && 'left-10 top-0 rotate-[5deg]',
@@ -159,7 +159,7 @@ function TargetIllustration() {
 		<div className='relative inline-block'>
 			<span className='text-icon-emoji-xl block relative z-10'>🎯</span>
 			<motion.div
-				className='absolute -inset-5 border-[3px] border-primary rounded-full opacity-30'
+				className='absolute -inset-5 border-3 border-primary rounded-full opacity-30'
 				animate={{
 					scale: [0.8, 1.5],
 					opacity: [0.5, 0],
@@ -248,7 +248,7 @@ export function EmptyState({
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
-				'text-center py-12 px-6 bg-panel-bg rounded-[20px] border border-border my-6',
+				'text-center py-12 px-6 bg-panel-bg rounded-xl border border-border my-6',
 				isPositive &&
 					'bg-gradient-to-b from-emerald-500/5 to-teal-500/2 border-emerald-500/20',
 				className,
