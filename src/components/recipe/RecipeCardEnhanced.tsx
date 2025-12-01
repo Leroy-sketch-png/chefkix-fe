@@ -282,6 +282,28 @@ const SkillTagsRow = ({
 	)
 }
 
+// Badge emoji mapping (memoized outside component to avoid recomputation)
+const BADGE_EMOJI_PATTERNS: [string[], string][] = [
+	[['first'], '🌟'],
+	[['pasta', 'noodle'], '🍝'],
+	[['spice', 'hot', 'chili'], '🌶️'],
+	[['master', 'expert'], '👑'],
+	[['speed', 'quick', 'fast'], '⚡'],
+	[['healthy', 'green', 'salad'], '🥗'],
+	[['dessert', 'sweet', 'cake'], '🍰'],
+	[['grill', 'bbq', 'smoke'], '🔥'],
+	[['asian', 'wok', 'stir'], '🥢'],
+	[['baker', 'bread', 'bake'], '🥖'],
+]
+
+const getBadgeEmoji = (badge: string): string => {
+	const lower = badge.toLowerCase()
+	for (const [patterns, emoji] of BADGE_EMOJI_PATTERNS) {
+		if (patterns.some(p => lower.includes(p))) return emoji
+	}
+	return '🏆'
+}
+
 // Badge preview - shows badges you can unlock
 const BadgePreview = ({
 	badges,
@@ -295,25 +317,9 @@ const BadgePreview = ({
 	const visibleBadges = badges.slice(0, maxVisible)
 	const remaining = badges.length - maxVisible
 
-	// Badge emoji mapping (common patterns)
-	const getBadgeEmoji = (badge: string): string => {
-		const lower = badge.toLowerCase()
-		if (lower.includes('first')) return '🌟'
-		if (lower.includes('pasta')) return '🍝'
-		if (lower.includes('spice') || lower.includes('hot')) return '🌶️'
-		if (lower.includes('master')) return '👑'
-		if (lower.includes('speed') || lower.includes('quick')) return '⚡'
-		if (lower.includes('healthy') || lower.includes('green')) return '🥗'
-		if (lower.includes('dessert') || lower.includes('sweet')) return '🍰'
-		if (lower.includes('grill') || lower.includes('bbq')) return '🔥'
-		if (lower.includes('asian')) return '🥢'
-		if (lower.includes('baker') || lower.includes('bread')) return '🥖'
-		return '🏆'
-	}
-
 	return (
 		<div className='flex items-center gap-1'>
-			<span className='text-2xs font-medium text-text-muted'>Unlock:</span>
+			<span className='text-2xs'>🏆</span>
 			<div className='flex items-center gap-1'>
 				{visibleBadges.map(badge => (
 					<span
@@ -359,18 +365,22 @@ const FeedCard = ({
 		className='relative overflow-hidden rounded-2xl bg-panel-bg shadow-md hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
-			{/* Image */}
-			<div className='relative aspect-video overflow-hidden'>
-				<motion.img
+			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
+			<motion.div
+				className='relative aspect-video overflow-hidden'
+				whileHover={IMAGE_ZOOM_HOVER}
+				transition={TRANSITION_SPRING}
+			>
+				<Image
 					src={imageUrl}
 					alt={title}
-					className='h-full w-full object-cover'
-					whileHover={IMAGE_ZOOM_HOVER}
-					transition={TRANSITION_SPRING}
+					fill
+					className='object-cover'
+					sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 				/>
 				<XPBadge xp={xpReward} />
 				<DifficultyIndicator difficulty={difficulty} />
-			</div>
+			</motion.div>
 
 			{/* Content */}
 			<div className='p-4'>
@@ -449,6 +459,7 @@ const GridCard = ({
 	cookTimeMinutes,
 	difficulty,
 	xpReward,
+	cookCount,
 	rating,
 	skillTags,
 	badges,
@@ -462,18 +473,22 @@ const GridCard = ({
 		className='overflow-hidden rounded-2xl bg-panel-bg shadow-md hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
-			{/* Image */}
-			<div className='relative aspect-[4/3] overflow-hidden'>
-				<motion.img
+			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
+			<motion.div
+				className='relative aspect-[4/3] overflow-hidden'
+				whileHover={IMAGE_ZOOM_LARGE_HOVER}
+				transition={TRANSITION_SPRING}
+			>
+				<Image
 					src={imageUrl}
 					alt={title}
-					className='h-full w-full object-cover'
-					whileHover={IMAGE_ZOOM_LARGE_HOVER}
-					transition={TRANSITION_SPRING}
+					fill
+					className='object-cover'
+					sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 				/>
 				<XPBadge xp={xpReward} />
 				<DifficultyRibbon difficulty={difficulty} />
-			</div>
+			</motion.div>
 
 			{/* Content */}
 			<div className='p-4'>
@@ -484,25 +499,34 @@ const GridCard = ({
 					</p>
 				)}
 
-				{/* Skills you'll learn */}
-				{skillTags && skillTags.length > 0 && (
-					<div className='mb-2'>
-						<SkillTagsRow skills={skillTags} maxVisible={2} size='small' />
+				{/* Skills & Badges - compact row to reduce vertical space */}
+				{(skillTags?.length || badges?.length) && (
+					<div className='mb-2 flex flex-wrap items-center gap-x-3 gap-y-1'>
+						{skillTags && skillTags.length > 0 && (
+							<SkillTagsRow skills={skillTags} maxVisible={2} size='small' />
+						)}
+						{badges && badges.length > 0 && (
+							<BadgePreview badges={badges} maxVisible={1} />
+						)}
 					</div>
 				)}
 
-				{/* Badges you can unlock */}
-				{badges && badges.length > 0 && (
-					<div className='mb-3'>
-						<BadgePreview badges={badges} maxVisible={2} />
-					</div>
-				)}
-
+				{/* Stats row with cook count */}
 				<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
-					<span className='flex items-center gap-1'>
-						<Clock className='h-3.5 w-3.5' />
-						{cookTimeMinutes} min
-					</span>
+					<div className='flex items-center gap-3'>
+						<span className='flex items-center gap-1'>
+							<Clock className='h-3.5 w-3.5' />
+							{cookTimeMinutes} min
+						</span>
+						{cookCount > 0 && (
+							<span className='flex items-center gap-1 text-success'>
+								<ChefHat className='h-3.5 w-3.5' />
+								{cookCount >= 1000
+									? `${(cookCount / 1000).toFixed(1)}k`
+									: cookCount}
+							</span>
+						)}
+					</div>
 					<span className='flex items-center gap-1 text-amber-500'>
 						⭐ {rating}
 					</span>
@@ -638,9 +662,7 @@ const FeaturedCard = ({
 					{/* Badges you can unlock */}
 					{badges && badges.length > 0 && (
 						<div className='mb-4 flex items-center gap-2'>
-							<span className='text-xs font-medium text-white/70'>
-								🏆 Unlock:
-							</span>
+							<span className='text-sm'>🏆</span>
 							<div className='flex gap-1.5'>
 								{badges.slice(0, 2).map(badge => (
 									<span
