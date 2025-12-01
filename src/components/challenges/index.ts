@@ -22,3 +22,25 @@ export type {
 	ChallengeType,
 	ChallengeStatus,
 } from './ChallengeCard'
+
+export {
+	ChallengeHistorySection,
+	ChallengeHistoryPage,
+} from './ChallengeHistory'
+export type {
+	ChallengeDay,
+	ChallengeHistoryStats,
+	ChallengeHistorySectionProps,
+	ChallengeHistoryPageProps,
+	DayStatus,
+} from './ChallengeHistory'
+
+export { ChallengeRecipeGrid } from './ChallengeRecipeGrid'
+export type {
+	ChallengeRecipe,
+	TodayChallenge,
+	ChallengeRecipeGridProps,
+	Difficulty,
+	FilterOption,
+	SortOption,
+} from './ChallengeRecipeGrid'
