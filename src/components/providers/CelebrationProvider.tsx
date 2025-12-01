@@ -14,6 +14,11 @@ import {
 	FirstCookCelebration,
 	ImmediateRewards,
 } from '@/components/completion'
+import {
+	StreakSavedToast,
+	StreakMilestoneCard,
+	StreakBrokenModal,
+} from '@/components/streak'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -89,6 +94,25 @@ interface ImmediateRewardsData {
 	unlockedAchievement?: Badge | null
 }
 
+interface StreakSavedData {
+	newStreak: number
+	bonusXp: number
+	isNewStreak?: boolean
+}
+
+interface StreakMilestoneData {
+	days: number
+	badgeName: string
+	badgeEmoji: string
+	nextMilestone?: { days: number; badgeName: string }
+}
+
+interface StreakBrokenData {
+	lostStreak: number
+	totalBonusXpEarned: number
+	bestStreak?: number
+}
+
 interface CelebrationContextType {
 	// Level up
 	showLevelUp: (data: LevelUpData) => void
@@ -99,6 +123,10 @@ interface CelebrationContextType {
 	showFirstCook: (data: FirstCookData) => void
 	// Immediate rewards (after cooking, before posting)
 	showImmediateRewards: (data: ImmediateRewardsData) => void
+	// Streak celebrations
+	showStreakSaved: (data: StreakSavedData) => void
+	showStreakMilestone: (data: StreakMilestoneData) => void
+	showStreakBroken: (data: StreakBrokenData) => void
 }
 
 const CelebrationContext = createContext<CelebrationContextType | null>(null)
@@ -144,6 +172,21 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const [immediateRewardsData, setImmediateRewardsData] =
 		useState<ImmediateRewardsData | null>(null)
 
+	// Streak Saved state
+	const [streakSavedVisible, setStreakSavedVisible] = useState(false)
+	const [streakSavedData, setStreakSavedData] =
+		useState<StreakSavedData | null>(null)
+
+	// Streak Milestone state
+	const [streakMilestoneOpen, setStreakMilestoneOpen] = useState(false)
+	const [streakMilestoneData, setStreakMilestoneData] =
+		useState<StreakMilestoneData | null>(null)
+
+	// Streak Broken state
+	const [streakBrokenOpen, setStreakBrokenOpen] = useState(false)
+	const [streakBrokenData, setStreakBrokenData] =
+		useState<StreakBrokenData | null>(null)
+
 	// ============================================
 	// ACTIONS
 	// ============================================
@@ -171,6 +214,23 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const showImmediateRewards = useCallback((data: ImmediateRewardsData) => {
 		setImmediateRewardsData(data)
 		setImmediateRewardsOpen(true)
+	}, [])
+
+	const showStreakSaved = useCallback((data: StreakSavedData) => {
+		setStreakSavedData(data)
+		setStreakSavedVisible(true)
+		// Auto-hide after 4 seconds
+		setTimeout(() => setStreakSavedVisible(false), 4000)
+	}, [])
+
+	const showStreakMilestone = useCallback((data: StreakMilestoneData) => {
+		setStreakMilestoneData(data)
+		setStreakMilestoneOpen(true)
+	}, [])
+
+	const showStreakBroken = useCallback((data: StreakBrokenData) => {
+		setStreakBrokenData(data)
+		setStreakBrokenOpen(true)
 	}, [])
 
 	// ============================================
@@ -234,6 +294,35 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		handleImmediateRewardsClose()
 	}
 
+	const handleStreakSavedClose = () => {
+		setStreakSavedVisible(false)
+	}
+
+	const handleStreakMilestoneClose = () => {
+		setStreakMilestoneOpen(false)
+		setStreakMilestoneData(null)
+	}
+
+	const handleStreakMilestoneShare = () => {
+		if (navigator.share && streakMilestoneData) {
+			navigator.share({
+				title: `${streakMilestoneData.days}-Day Streak!`,
+				text: `I just hit a ${streakMilestoneData.days}-day cooking streak on Chefkix! 🔥`,
+				url: window.location.origin,
+			})
+		}
+	}
+
+	const handleStreakBrokenClose = () => {
+		setStreakBrokenOpen(false)
+		setStreakBrokenData(null)
+	}
+
+	const handleStartNewStreak = () => {
+		handleStreakBrokenClose()
+		window.location.href = '/explore'
+	}
+
 	// ============================================
 	// RENDER
 	// ============================================
@@ -244,6 +333,9 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		showPostSuccess,
 		showFirstCook,
 		showImmediateRewards,
+		showStreakSaved,
+		showStreakMilestone,
+		showStreakBroken,
 	}
 
 	return (
@@ -379,6 +471,50 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					unlockedAchievement={immediateRewardsData.unlockedAchievement}
 					onPostNow={handleImmediateRewardsPostNow}
 					onPostLater={handleImmediateRewardsPostLater}
+				/>
+			)}
+
+			{/* Streak Saved Toast */}
+			{streakSavedData && (
+				<StreakSavedToast
+					newStreak={streakSavedData.newStreak}
+					bonusXp={streakSavedData.bonusXp}
+					isNewStreak={streakSavedData.isNewStreak}
+					isVisible={streakSavedVisible}
+					onClose={handleStreakSavedClose}
+				/>
+			)}
+
+			{/* Streak Milestone Card (shown as modal overlay) */}
+			{streakMilestoneOpen && streakMilestoneData && (
+				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-6'>
+					<div className='w-full max-w-md'>
+						<StreakMilestoneCard
+							days={streakMilestoneData.days}
+							badgeName={streakMilestoneData.badgeName}
+							badgeEmoji={streakMilestoneData.badgeEmoji}
+							nextMilestone={streakMilestoneData.nextMilestone}
+							onShare={handleStreakMilestoneShare}
+						/>
+						<button
+							onClick={handleStreakMilestoneClose}
+							className='mt-4 w-full py-3 text-sm text-muted-foreground hover:text-text transition-colors'
+						>
+							Continue
+						</button>
+					</div>
+				</div>
+			)}
+
+			{/* Streak Broken Modal */}
+			{streakBrokenData && (
+				<StreakBrokenModal
+					isOpen={streakBrokenOpen}
+					lostStreak={streakBrokenData.lostStreak}
+					totalBonusXpEarned={streakBrokenData.totalBonusXpEarned}
+					bestStreak={streakBrokenData.bestStreak}
+					onStartNewStreak={handleStartNewStreak}
+					onDismiss={handleStreakBrokenClose}
 				/>
 			)}
 		</CelebrationContext.Provider>
