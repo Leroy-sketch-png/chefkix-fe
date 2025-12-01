@@ -34,8 +34,8 @@ const difficultyMap: Record<
 	EXPERT: 'expert',
 }
 
-// XP reward calculation (mock - in production, comes from backend)
-const calculateXpReward = (recipe: Recipe): number => {
+// XP reward calculation (fallback when backend doesn't provide xpReward)
+const calculateXpRewardFallback = (recipe: Recipe): number => {
 	const baseXp = 50
 	const difficultyBonus = { EASY: 0, MEDIUM: 25, HARD: 50, EXPERT: 100 }
 	const timeBonus = Math.floor((recipe.prepTime + recipe.cookTime) / 10) * 5
@@ -305,15 +305,17 @@ export default function ExplorePage() {
 								imageUrl={recipe.imageUrl}
 								cookTimeMinutes={recipe.prepTime + recipe.cookTime}
 								difficulty={difficultyMap[recipe.difficulty] || 'beginner'}
-								xpReward={calculateXpReward(recipe)}
-								rating={4.5} // Mock rating - in production from API
-								cookCount={recipe.likeCount || 0}
+								xpReward={recipe.xpReward ?? calculateXpRewardFallback(recipe)}
+								rating={4.5} // TODO: Add rating field to Recipe type when backend supports it
+								cookCount={recipe.cookCount ?? 0}
+								skillTags={recipe.skillTags}
+								badges={recipe.badges}
 								author={{
 									id: recipe.author?.userId || 'unknown',
 									name: recipe.author?.displayName || 'Unknown Chef',
 									avatarUrl:
 										recipe.author?.avatarUrl || 'https://i.pravatar.cc/40',
-									isVerified: false, // In production from API
+									isVerified: false, // TODO: Add isVerified to author when backend supports it
 								}}
 								isSaved={savedRecipes.has(recipe.id)}
 								onCook={() => handleCook(recipe.id)}

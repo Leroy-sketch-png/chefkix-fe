@@ -56,6 +56,9 @@ interface RecipeCardBase {
 	xpReward: number
 	cookCount: number
 	rating: number
+	// Gamification fields
+	skillTags?: string[] // Skills you'll learn (e.g., "Knife Skills", "Sauté")
+	badges?: string[] // Badges you can earn (e.g., "First Pasta", "Spice Master")
 }
 
 interface RecipeCardMastery {
@@ -237,6 +240,101 @@ const MasteryBadge = ({
 	)
 }
 
+// Skill tags row - shows skills you'll learn
+const SkillTagsRow = ({
+	skills,
+	maxVisible = 2,
+	size = 'default',
+}: {
+	skills?: string[]
+	maxVisible?: number
+	size?: 'default' | 'small'
+}) => {
+	if (!skills || skills.length === 0) return null
+
+	const visibleSkills = skills.slice(0, maxVisible)
+	const remaining = skills.length - maxVisible
+
+	return (
+		<div className='flex flex-wrap items-center gap-1.5'>
+			{visibleSkills.map(skill => (
+				<span
+					key={skill}
+					className={cn(
+						'rounded-full bg-info/15 font-medium text-info',
+						size === 'small' ? 'px-2 py-0.5 text-2xs' : 'px-2.5 py-1 text-xs',
+					)}
+				>
+					{skill}
+				</span>
+			))}
+			{remaining > 0 && (
+				<span
+					className={cn(
+						'rounded-full bg-border font-medium text-text-muted',
+						size === 'small' ? 'px-2 py-0.5 text-2xs' : 'px-2.5 py-1 text-xs',
+					)}
+				>
+					+{remaining} more
+				</span>
+			)}
+		</div>
+	)
+}
+
+// Badge preview - shows badges you can unlock
+const BadgePreview = ({
+	badges,
+	maxVisible = 2,
+}: {
+	badges?: string[]
+	maxVisible?: number
+}) => {
+	if (!badges || badges.length === 0) return null
+
+	const visibleBadges = badges.slice(0, maxVisible)
+	const remaining = badges.length - maxVisible
+
+	// Badge emoji mapping (common patterns)
+	const getBadgeEmoji = (badge: string): string => {
+		const lower = badge.toLowerCase()
+		if (lower.includes('first')) return '🌟'
+		if (lower.includes('pasta')) return '🍝'
+		if (lower.includes('spice') || lower.includes('hot')) return '🌶️'
+		if (lower.includes('master')) return '👑'
+		if (lower.includes('speed') || lower.includes('quick')) return '⚡'
+		if (lower.includes('healthy') || lower.includes('green')) return '🥗'
+		if (lower.includes('dessert') || lower.includes('sweet')) return '🍰'
+		if (lower.includes('grill') || lower.includes('bbq')) return '🔥'
+		if (lower.includes('asian')) return '🥢'
+		if (lower.includes('baker') || lower.includes('bread')) return '🥖'
+		return '🏆'
+	}
+
+	return (
+		<div className='flex items-center gap-1'>
+			<span className='text-2xs font-medium text-text-muted'>Unlock:</span>
+			<div className='flex items-center gap-1'>
+				{visibleBadges.map(badge => (
+					<span
+						key={badge}
+						className='flex items-center gap-1 rounded-full bg-gold/15 px-2 py-0.5 text-2xs font-medium text-gold'
+						title={badge}
+					>
+						<span>{getBadgeEmoji(badge)}</span>
+						<span className='max-w-16 truncate'>{badge}</span>
+					</span>
+				))}
+				{remaining > 0 && (
+					<span className='rounded-full bg-border px-1.5 py-0.5 text-2xs font-medium text-text-muted'>
+						+{remaining}
+					</span>
+				)}
+			</div>
+		</div>
+	)
+}
+
 // ============================================
 // VARIANT: FEED CARD
 // ============================================
@@ -251,6 +349,8 @@ const FeedCard = ({
 	xpReward,
 	cookCount,
 	rating,
+	skillTags,
+	badges,
 	onCookNow,
 }: FeedCardProps) => (
 	<motion.article
@@ -276,6 +376,13 @@ const FeedCard = ({
 			<div className='p-4'>
 				<h3 className='mb-2 text-lg font-bold'>{title}</h3>
 
+				{/* Skills you'll learn */}
+				{skillTags && skillTags.length > 0 && (
+					<div className='mb-2'>
+						<SkillTagsRow skills={skillTags} maxVisible={3} size='small' />
+					</div>
+				)}
+
 				<div className='mb-3 flex items-center gap-2.5 text-sm text-text-muted'>
 					<span className='flex items-center gap-1.5'>
 						<Image
@@ -294,18 +401,24 @@ const FeedCard = ({
 					</span>
 				</div>
 
-				<div className='flex gap-4'>
-					<span className='flex items-center gap-1.5 text-sm text-success'>
-						<ChefHat className='h-4 w-4' />
-						{cookCount >= 1000
-							? `${(cookCount / 1000).toFixed(1)}k`
-							: cookCount}{' '}
-						cooked
-					</span>
-					<span className='flex items-center gap-1.5 text-sm text-amber-500'>
-						<Star className='h-4 w-4' />
-						{rating}
-					</span>
+				<div className='flex items-center justify-between gap-4'>
+					<div className='flex gap-4'>
+						<span className='flex items-center gap-1.5 text-sm text-success'>
+							<ChefHat className='h-4 w-4' />
+							{cookCount >= 1000
+								? `${(cookCount / 1000).toFixed(1)}k`
+								: cookCount}{' '}
+							cooked
+						</span>
+						<span className='flex items-center gap-1.5 text-sm text-amber-500'>
+							<Star className='h-4 w-4' />
+							{rating}
+						</span>
+					</div>
+					{/* Badges you can unlock */}
+					{badges && badges.length > 0 && (
+						<BadgePreview badges={badges} maxVisible={1} />
+					)}
 				</div>
 			</div>
 		</Link>
@@ -337,6 +450,8 @@ const GridCard = ({
 	difficulty,
 	xpReward,
 	rating,
+	skillTags,
+	badges,
 	onCook,
 	onSave,
 	isSaved,
@@ -364,9 +479,23 @@ const GridCard = ({
 			<div className='p-4'>
 				<h3 className='mb-1.5 text-base font-bold'>{title}</h3>
 				{description && (
-					<p className='mb-3 line-clamp-2 text-sm leading-relaxed text-text-muted'>
+					<p className='mb-2 line-clamp-2 text-sm leading-relaxed text-text-muted'>
 						{description}
 					</p>
+				)}
+
+				{/* Skills you'll learn */}
+				{skillTags && skillTags.length > 0 && (
+					<div className='mb-2'>
+						<SkillTagsRow skills={skillTags} maxVisible={2} size='small' />
+					</div>
+				)}
+
+				{/* Badges you can unlock */}
+				{badges && badges.length > 0 && (
+					<div className='mb-3'>
+						<BadgePreview badges={badges} maxVisible={2} />
+					</div>
 				)}
 
 				<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
@@ -441,6 +570,8 @@ const FeaturedCard = ({
 	xpReward,
 	cookCount,
 	rating,
+	skillTags,
+	badges,
 	isTrending,
 	onCook,
 }: FeaturedCardProps) => (
@@ -485,9 +616,47 @@ const FeaturedCard = ({
 						{title}
 					</h3>
 					{description && (
-						<p className='mb-5 max-w-lg text-sm text-white/80 md:text-base'>
+						<p className='mb-4 max-w-lg text-sm text-white/80 md:text-base'>
 							{description}
 						</p>
+					)}
+
+					{/* Skills you'll learn */}
+					{skillTags && skillTags.length > 0 && (
+						<div className='mb-4 flex flex-wrap gap-2'>
+							{skillTags.slice(0, 4).map(skill => (
+								<span
+									key={skill}
+									className='rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm'
+								>
+									{skill}
+								</span>
+							))}
+						</div>
+					)}
+
+					{/* Badges you can unlock */}
+					{badges && badges.length > 0 && (
+						<div className='mb-4 flex items-center gap-2'>
+							<span className='text-xs font-medium text-white/70'>
+								🏆 Unlock:
+							</span>
+							<div className='flex gap-1.5'>
+								{badges.slice(0, 2).map(badge => (
+									<span
+										key={badge}
+										className='rounded-full bg-gold/30 px-2.5 py-1 text-xs font-medium text-gold backdrop-blur-sm'
+									>
+										{badge}
+									</span>
+								))}
+								{badges.length > 2 && (
+									<span className='rounded-full bg-white/20 px-2 py-1 text-xs font-medium text-white/70'>
+										+{badges.length - 2}
+									</span>
+								)}
+							</div>
+						</div>
 					)}
 
 					{/* Stats */}

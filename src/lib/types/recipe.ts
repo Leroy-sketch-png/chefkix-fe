@@ -14,6 +14,10 @@ export interface RecipeStep {
 	duration?: number // in minutes
 	imageUrl?: string
 	order: number
+	// AI-enriched fields (from backend)
+	action?: string // AI-detected action type (e.g., 'boil', 'chop', 'sauté')
+	timerSeconds?: number // Timer duration for this step
+	tips?: string // AI-generated tips for this step
 }
 
 export interface Recipe {
@@ -46,6 +50,12 @@ export interface Recipe {
 		displayName: string
 		avatarUrl: string
 	}
+	// Gamification fields (from AI service calculate_metas)
+	xpReward?: number
+	badges?: string[]
+	skillTags?: string[]
+	difficultyMultiplier?: number
+	cookCount?: number // How many users have cooked this
 }
 
 export interface RecipeCreateDto {

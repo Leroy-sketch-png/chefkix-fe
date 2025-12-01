@@ -341,7 +341,7 @@ export const RatingBreakdown = ({
 						</span>
 						<div className='h-2 flex-1 overflow-hidden rounded-full bg-muted/20'>
 							<div
-								className='h-full bg-gradient-to-r from-[var(--gold)] to-[#ffd24a] transition-all duration-500'
+								className='h-full bg-gradient-gold transition-all duration-500'
 								style={{
 									width: `${getPercentage(breakdown[star as keyof typeof breakdown])}%`,
 								}}
