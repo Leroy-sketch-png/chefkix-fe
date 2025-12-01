@@ -242,13 +242,11 @@ export const PostDeadlineCard = ({
 					>
 						{config.label}
 					</span>
-					<p className='truncate text-[15px] font-bold text-text'>
-						{recipeName}
-					</p>
+					<p className='truncate text-sm font-bold text-text'>{recipeName}</p>
 					{state !== 'expired' && (
 						<div
 							className={cn(
-								'flex items-center gap-1.5 text-[13px]',
+								'flex items-center gap-1.5 text-xs',
 								config.deadlineClass,
 							)}
 						>
@@ -259,7 +257,7 @@ export const PostDeadlineCard = ({
 						</div>
 					)}
 					{state === 'expired' && (
-						<span className='text-[13px] text-muted-foreground'>
+						<span className='text-xs text-muted-foreground'>
 							Deadline passed
 						</span>
 					)}
@@ -281,7 +279,7 @@ export const PostDeadlineCard = ({
 						{state === 'expired' ? '-' : '+'}
 						{pendingXp}
 					</span>
-					<span className={cn('text-[11px] font-semibold', config.xpTextClass)}>
+					<span className={cn('text-2xs font-semibold', config.xpTextClass)}>
 						{state === 'expired' ? 'XP lost' : 'XP'}
 					</span>
 				</div>
@@ -351,7 +349,7 @@ export const PostDeadlineStack = ({
 				className='flex w-full items-center gap-2.5 border-b border-border px-4 py-3.5 hover:bg-muted/30'
 			>
 				<span className='text-lg'>📸</span>
-				<span className='flex-1 text-left text-[15px] font-semibold'>
+				<span className='flex-1 text-left text-sm font-semibold'>
 					{pendingPosts.length} recipes waiting
 				</span>
 				<span className='text-sm font-bold text-success'>
@@ -410,7 +408,7 @@ export const PostDeadlineStack = ({
 										>
 											{formatTimeRemaining(post.deadlineAt)}
 										</span>
-										<span className='text-[13px] font-bold text-success'>
+										<span className='text-xs font-bold text-success'>
 											+{post.pendingXp} XP
 										</span>
 										<motion.button
@@ -448,7 +446,7 @@ export const PostDeadlineBadge = ({
 			whileHover={{ scale: 1.02 }}
 			whileTap={{ scale: 0.98 }}
 			className={cn(
-				'inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-2 text-[13px] transition-colors hover:bg-primary/15',
+				'inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs transition-colors hover:bg-primary/15',
 				className,
 			)}
 		>
@@ -499,13 +497,13 @@ export const PostDeadlineMobileStrip = ({
 			<span className='text-base'>
 				{state === 'urgent' ? '🚨' : state === 'warning' ? '⏰' : '📸'}
 			</span>
-			<span className='flex-1 truncate text-[13px] font-medium'>
+			<span className='flex-1 truncate text-xs font-medium'>
 				{recipeName}: {timeRemaining} to claim +{pendingXp} XP
 			</span>
 			<motion.button
 				onClick={onPost}
 				whileTap={{ scale: 0.95 }}
-				className='rounded-lg bg-primary px-3.5 py-1.5 text-[13px] font-semibold text-white'
+				className='rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-white'
 			>
 				Post
 			</motion.button>
