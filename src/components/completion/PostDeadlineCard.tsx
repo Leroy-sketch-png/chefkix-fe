@@ -14,7 +14,13 @@ import {
 import Image from 'next/image'
 import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -413,8 +419,9 @@ export const PostDeadlineStack = ({
 										</span>
 										<motion.button
 											onClick={() => onPost?.(post.id)}
-											whileHover={{ scale: 1.05 }}
-											whileTap={{ scale: 0.95 }}
+											whileHover={BUTTON_SUBTLE_HOVER}
+											whileTap={BUTTON_SUBTLE_TAP}
+											transition={TRANSITION_SPRING}
 											className='rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white'
 										>
 											Post
@@ -443,10 +450,11 @@ export const PostDeadlineBadge = ({
 	return (
 		<motion.button
 			onClick={onClick}
-			whileHover={{ scale: 1.02 }}
-			whileTap={{ scale: 0.98 }}
+			whileHover={BUTTON_SUBTLE_HOVER}
+			whileTap={BUTTON_SUBTLE_TAP}
+			transition={TRANSITION_SPRING}
 			className={cn(
-				'inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs transition-colors hover:bg-primary/15',
+				'inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs hover:bg-primary/15',
 				className,
 			)}
 		>
@@ -502,7 +510,8 @@ export const PostDeadlineMobileStrip = ({
 			</span>
 			<motion.button
 				onClick={onPost}
-				whileTap={{ scale: 0.95 }}
+				whileTap={BUTTON_SUBTLE_TAP}
+				transition={TRANSITION_SPRING}
 				className='rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-white'
 			>
 				Post

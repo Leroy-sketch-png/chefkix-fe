@@ -12,7 +12,14 @@ import {
 	AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, DURATIONS } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	DURATIONS,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -139,8 +146,9 @@ export function StreakRiskBanner({
 
 			{/* CTA Button */}
 			<motion.button
-				whileHover={{ scale: 1.02, y: -2 }}
-				whileTap={{ scale: 0.98 }}
+				whileHover={BUTTON_HOVER}
+				whileTap={BUTTON_TAP}
+				transition={TRANSITION_SPRING}
 				onClick={onQuickCook}
 				className={cn(
 					'flex items-center justify-center gap-2 py-3 px-5 rounded-xl',
@@ -322,8 +330,9 @@ export function StreakMilestoneCard({
 			{/* Share Button */}
 			{onShare && (
 				<motion.button
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={BUTTON_SUBTLE_TAP}
+					transition={TRANSITION_SPRING}
 					onClick={onShare}
 					className='flex items-center gap-1.5 py-2.5 px-4 bg-panel-bg border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0'
 				>

@@ -15,7 +15,21 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	CARD_FEED_HOVER,
+	CARD_GRID_HOVER,
+	CARD_FEATURED_HOVER,
+	CARD_HOVER,
+	IMAGE_ZOOM_HOVER,
+	IMAGE_ZOOM_LARGE_HOVER,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -240,9 +254,9 @@ const FeedCard = ({
 	onCookNow,
 }: FeedCardProps) => (
 	<motion.article
-		whileHover={{ y: -4 }}
+		whileHover={CARD_FEED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='relative overflow-hidden rounded-2xl bg-panel-bg shadow-md transition-shadow hover:shadow-xl'
+		className='relative overflow-hidden rounded-2xl bg-panel-bg shadow-md hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}
@@ -251,8 +265,8 @@ const FeedCard = ({
 					src={imageUrl}
 					alt={title}
 					className='h-full w-full object-cover'
-					whileHover={{ scale: 1.05 }}
-					transition={{ duration: 0.4 }}
+					whileHover={IMAGE_ZOOM_HOVER}
+					transition={TRANSITION_SPRING}
 				/>
 				<XPBadge xp={xpReward} />
 				<DifficultyIndicator difficulty={difficulty} />
@@ -328,9 +342,9 @@ const GridCard = ({
 	isSaved,
 }: GridCardProps) => (
 	<motion.article
-		whileHover={{ y: -6 }}
+		whileHover={CARD_GRID_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-2xl bg-panel-bg shadow-md transition-shadow hover:shadow-xl'
+		className='overflow-hidden rounded-2xl bg-panel-bg shadow-md hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}
@@ -339,8 +353,8 @@ const GridCard = ({
 					src={imageUrl}
 					alt={title}
 					className='h-full w-full object-cover'
-					whileHover={{ scale: 1.08 }}
-					transition={{ duration: 0.4 }}
+					whileHover={IMAGE_ZOOM_LARGE_HOVER}
+					transition={TRANSITION_SPRING}
 				/>
 				<XPBadge xp={xpReward} />
 				<DifficultyRibbon difficulty={difficulty} />
@@ -396,10 +410,11 @@ const GridCard = ({
 			</motion.button>
 			<motion.button
 				onClick={onSave}
-				whileHover={{ scale: 1.05 }}
-				whileTap={{ scale: 0.95 }}
+				whileHover={BUTTON_SUBTLE_HOVER}
+				whileTap={BUTTON_SUBTLE_TAP}
+				transition={TRANSITION_SPRING}
 				className={cn(
-					'flex h-11 w-11 items-center justify-center rounded-lg border transition-colors',
+					'flex h-11 w-11 items-center justify-center rounded-lg border',
 					isSaved
 						? 'border-brand bg-brand/10 text-brand'
 						: 'border-border bg-bg-elevated text-text-muted hover:border-brand hover:bg-brand/10 hover:text-brand',
@@ -430,7 +445,7 @@ const FeaturedCard = ({
 	onCook,
 }: FeaturedCardProps) => (
 	<motion.article
-		whileHover={{ scale: 1.01 }}
+		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
 		className='overflow-hidden rounded-3xl shadow-2xl'
 	>
@@ -519,8 +534,9 @@ const FeaturedCard = ({
 							e.preventDefault()
 							onCook?.()
 						}}
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.98 }}
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
+						transition={TRANSITION_SPRING}
 						className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-xl shadow-brand/40 md:px-8 md:text-lg'
 					>
 						<Play className='h-5 w-5 md:h-6 md:w-6' />
@@ -548,9 +564,9 @@ const CookedCard = ({
 	onViewHistory,
 }: CookedCardProps) => (
 	<motion.article
-		whileHover={{ scale: 1.01 }}
+		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-2xl border-2 border-purple-500/30 bg-panel-bg shadow-md transition-all hover:border-purple-500/50 hover:shadow-purple-500/15'
+		className='overflow-hidden rounded-2xl border-2 border-purple-500/30 bg-panel-bg shadow-md hover:border-purple-500/50 hover:shadow-purple-500/15'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}
@@ -626,9 +642,10 @@ const CookedCard = ({
 			</motion.button>
 			<motion.button
 				onClick={onViewHistory}
-				whileHover={{ scale: 1.05 }}
-				whileTap={{ scale: 0.95 }}
-				className='flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted transition-colors hover:border-purple-500/30 hover:bg-purple-500/10 hover:text-purple-500'
+				whileHover={BUTTON_SUBTLE_HOVER}
+				whileTap={BUTTON_SUBTLE_TAP}
+				transition={TRANSITION_SPRING}
+				className='flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-purple-500/30 hover:bg-purple-500/10 hover:text-purple-500'
 			>
 				<History className='h-5 w-5' />
 			</motion.button>
@@ -650,9 +667,9 @@ const MiniCard = ({
 	onCook,
 }: MiniCardProps) => (
 	<motion.article
-		whileHover={{ scale: 1.02 }}
+		whileHover={CARD_HOVER}
 		transition={TRANSITION_SPRING}
-		className='flex items-center gap-3.5 rounded-xl border border-border bg-panel-bg p-3 transition-colors hover:border-brand'
+		className='flex items-center gap-3.5 rounded-xl border border-border bg-panel-bg p-3 hover:border-brand'
 	>
 		<Link href={`/recipes/${id}`} className='flex flex-1 items-center gap-3.5'>
 			<Image
@@ -683,8 +700,9 @@ const MiniCard = ({
 		</Link>
 		<motion.button
 			onClick={onCook}
-			whileHover={{ scale: 1.1 }}
-			whileTap={{ scale: 0.95 }}
+			whileHover={ICON_BUTTON_HOVER}
+			whileTap={ICON_BUTTON_TAP}
+			transition={TRANSITION_SPRING}
 			className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white'
 		>
 			<Play className='h-4 w-4' />

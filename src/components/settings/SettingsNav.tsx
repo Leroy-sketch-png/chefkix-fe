@@ -12,7 +12,12 @@ import {
 	LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 
 // =============================================================================
 // TYPES
@@ -105,14 +110,13 @@ const SettingsNavItem = ({ item, isActive, onClick }: SettingsNavItemProps) => {
 		<motion.button
 			className={cn(
 				'flex items-center gap-3 w-full p-3 rounded-xl text-left',
-				'transition-colors duration-200',
 				isActive
 					? 'bg-primary/10 text-primary'
 					: 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
 			)}
 			onClick={onClick}
 			whileHover={{ x: isActive ? 0 : 4 }}
-			whileTap={{ scale: 0.98 }}
+			whileTap={{ scale: BUTTON_TAP.scale }}
 			transition={TRANSITION_SPRING}
 		>
 			<span
@@ -157,11 +161,11 @@ export const SettingsNav = ({
 				<motion.button
 					className={cn(
 						'flex items-center gap-3 w-full p-3 rounded-xl text-left',
-						'text-error hover:bg-error/10 transition-colors duration-200',
+						'text-error hover:bg-error/10',
 					)}
 					onClick={onLogout}
 					whileHover={{ x: 4 }}
-					whileTap={{ scale: 0.98 }}
+					whileTap={{ scale: BUTTON_TAP.scale }}
 					transition={TRANSITION_SPRING}
 				>
 					<LogOut className='h-5 w-5 flex-shrink-0' />
@@ -199,14 +203,15 @@ export const SettingsNavCompact = ({
 					key={item.id}
 					className={cn(
 						'flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap',
-						'text-sm font-medium transition-colors duration-200',
+						'text-sm font-medium',
 						activeSection === item.id
 							? 'bg-primary text-primary-foreground'
 							: 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
 					)}
 					onClick={() => onSectionChange(item.id)}
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={{ scale: BUTTON_TAP.scale }}
+					transition={TRANSITION_SPRING}
 				>
 					{item.icon}
 					<span className='hidden sm:inline'>{item.label}</span>

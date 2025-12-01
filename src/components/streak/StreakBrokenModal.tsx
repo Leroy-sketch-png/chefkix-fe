@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -108,8 +108,9 @@ export function StreakBrokenModal({
 						{/* Actions */}
 						<div className='flex flex-col gap-2.5'>
 							<motion.button
-								whileHover={{ scale: 1.02, y: -2 }}
-								whileTap={{ scale: 0.98 }}
+								whileHover={BUTTON_HOVER}
+								whileTap={BUTTON_TAP}
+								transition={TRANSITION_SPRING}
 								onClick={onStartNewStreak}
 								className={cn(
 									'flex items-center justify-center gap-2 py-4 px-6 rounded-xl',

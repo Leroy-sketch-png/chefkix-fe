@@ -74,14 +74,55 @@ export const BUTTON_TAP = {
 	y: 0,
 } as const
 
+// Subtle hover for secondary buttons (save, bookmark, etc.)
+export const BUTTON_SUBTLE_HOVER = {
+	scale: 1.05,
+} as const
+
+export const BUTTON_SUBTLE_TAP = {
+	scale: 0.95,
+} as const
+
 export const CARD_HOVER = {
 	scale: 1.02,
 	y: -4,
 } as const
 
+// For cards in feed/grid layout
+export const CARD_FEED_HOVER = {
+	y: -4,
+} as const
+
+export const CARD_GRID_HOVER = {
+	y: -6,
+} as const
+
+// For featured/hero cards
+export const CARD_FEATURED_HOVER = {
+	scale: 1.01,
+} as const
+
+// For images inside cards (zoom on hover)
+export const IMAGE_ZOOM_HOVER = {
+	scale: 1.05,
+} as const
+
+export const IMAGE_ZOOM_LARGE_HOVER = {
+	scale: 1.08,
+} as const
+
 export const ICON_HOVER = {
 	scale: 1.1,
 	rotate: 5,
+} as const
+
+// For icon buttons (small scale)
+export const ICON_BUTTON_HOVER = {
+	scale: 1.1,
+} as const
+
+export const ICON_BUTTON_TAP = {
+	scale: 0.95,
 } as const
 
 // Transition presets
