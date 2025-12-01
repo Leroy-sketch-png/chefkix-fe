@@ -20,6 +20,8 @@ import {
 	TRANSITION_SMOOTH,
 	EXIT_VARIANTS,
 	CELEBRATION_MODAL,
+	STAT_ITEM_HOVER,
+	LIST_ITEM_TAP,
 } from '@/lib/motion'
 
 // ============================================
@@ -399,6 +401,8 @@ const PausedScreen = ({
 					<Image
 						src={recipe.imageUrl || '/placeholder-recipe.jpg'}
 						alt={recipe.title}
+						width={80}
+						height={80}
 						className='h-20 w-20 rounded-xl object-cover'
 					/>
 					<div className='flex-1'>
@@ -419,8 +423,8 @@ const PausedScreen = ({
 				<div className='space-y-3'>
 					<motion.button
 						onClick={onResume}
-						whileHover={{ y: -2 }}
-						whileTap={{ scale: 0.98 }}
+						whileHover={STAT_ITEM_HOVER}
+						whileTap={LIST_ITEM_TAP}
 						className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-success to-success/90 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-success/30'
 					>
 						<Play className='h-6 w-6' />
@@ -470,6 +474,8 @@ const ExpiredScreen = ({ recipe, onRestart, onGoHome }: ExpiredScreenProps) => (
 				<Image
 					src={recipe.imageUrl || '/placeholder-recipe.jpg'}
 					alt={recipe.title}
+					width={64}
+					height={64}
 					className='h-16 w-16 rounded-lg object-cover opacity-70'
 				/>
 				<div>

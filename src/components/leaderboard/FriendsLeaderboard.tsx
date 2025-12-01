@@ -4,7 +4,13 @@ import { motion } from 'framer-motion'
 import { UserPlus, ChefHat } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 import {
 	LeaderboardItem,
 	ListDivider,
@@ -49,8 +55,8 @@ function FriendsSummary({
 			</span>
 			{onInviteFriends && (
 				<motion.button
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={LIST_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					onClick={onInviteFriends}
 					className={cn(
 						'flex items-center gap-1.5 py-2 px-3.5',
@@ -103,8 +109,8 @@ function CatchingUpAlert({
 			</div>
 			{onCookToDefend && (
 				<motion.button
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={LIST_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					onClick={onCookToDefend}
 					className='py-2 px-3.5 bg-orange-500 rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto'
 				>
@@ -233,8 +239,8 @@ export function FriendsLeaderboard({
 					</p>
 					{onInviteFriends && (
 						<motion.button
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
+							whileHover={LIST_ITEM_HOVER}
+							whileTap={LIST_ITEM_TAP}
 							onClick={onInviteFriends}
 							className={cn(
 								'flex items-center gap-2 py-2.5 px-5',

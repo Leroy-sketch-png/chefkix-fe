@@ -15,7 +15,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	CARD_FEED_HOVER,
+} from '@/lib/motion'
 import {
 	StaggerContainer,
 	staggerItemVariants,
@@ -122,7 +127,7 @@ const ChallengeRecipeCard = ({
 	return (
 		<motion.article
 			variants={staggerItemVariants}
-			whileHover={{ y: -4 }}
+			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
 			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-panel-bg shadow-md transition-all hover:border-primary/30 hover:shadow-xl'
 		>

@@ -20,6 +20,8 @@ import {
 	TRANSITION_BOUNCY,
 	TIMER_URGENT,
 	GLOW_PULSE,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 import type { Timer } from '@/lib/types'
 
@@ -166,8 +168,8 @@ const TimerItem = ({
 					<div className='flex items-center gap-1'>
 						{state !== 'COMPLETE' && (
 							<motion.button
-								whileHover={{ scale: 1.1 }}
-								whileTap={{ scale: 0.9 }}
+								whileHover={ICON_BUTTON_HOVER}
+								whileTap={ICON_BUTTON_TAP}
 								onClick={timer.isRunning ? onPause : onStart}
 								className={cn(
 									'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
@@ -187,16 +189,16 @@ const TimerItem = ({
 						{isExpanded && (
 							<>
 								<motion.button
-									whileHover={{ scale: 1.1 }}
-									whileTap={{ scale: 0.9 }}
+									whileHover={ICON_BUTTON_HOVER}
+									whileTap={ICON_BUTTON_TAP}
 									onClick={onReset}
 									className='flex h-8 w-8 items-center justify-center rounded-full text-text-tertiary hover:bg-bg-hover hover:text-text'
 								>
 									<RotateCcw className='h-4 w-4' />
 								</motion.button>
 								<motion.button
-									whileHover={{ scale: 1.1 }}
-									whileTap={{ scale: 0.9 }}
+									whileHover={ICON_BUTTON_HOVER}
+									whileTap={ICON_BUTTON_TAP}
 									onClick={onDelete}
 									className='flex h-8 w-8 items-center justify-center rounded-full text-text-tertiary hover:bg-error/10 hover:text-error'
 								>
@@ -382,8 +384,8 @@ export const ConcurrentTimers = ({
 					<div className='flex items-center gap-2'>
 						{/* Mute toggle */}
 						<motion.button
-							whileHover={{ scale: 1.1 }}
-							whileTap={{ scale: 0.9 }}
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
 							onClick={e => {
 								e.stopPropagation()
 								setIsMuted(!isMuted)

@@ -17,6 +17,10 @@ import {
 	STEP_DOT,
 	GLOW_PULSE,
 	TIMER_URGENT,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
 } from '@/lib/motion'
 import type { CookingSession, Timer } from '@/lib/types'
 
@@ -194,8 +198,8 @@ export const SessionHeader = ({
 					<div className='flex items-center gap-2'>
 						{/* AI Assist Button */}
 						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
+							whileHover={BUTTON_SUBTLE_HOVER}
+							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onAiAssist}
 							className='flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30'
 						>
@@ -205,8 +209,8 @@ export const SessionHeader = ({
 
 						{/* Pause/Resume Button */}
 						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
+							whileHover={BUTTON_SUBTLE_HOVER}
+							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={isPaused ? onResume : onPause}
 							disabled={hasActiveTimers && !isPaused}
 							className={cn(
@@ -234,8 +238,8 @@ export const SessionHeader = ({
 
 						{/* Close Button */}
 						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
+							whileHover={BUTTON_SUBTLE_HOVER}
+							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onClose}
 							className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30'
 						>
@@ -362,8 +366,8 @@ export const SessionHeaderCompact = ({
 	return (
 		<motion.button
 			onClick={onExpand}
-			whileHover={{ scale: 1.02 }}
-			whileTap={{ scale: 0.98 }}
+			whileHover={LIST_ITEM_HOVER}
+			whileTap={LIST_ITEM_TAP}
 			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-lg'
 		>
 			{/* Mini progress ring */}

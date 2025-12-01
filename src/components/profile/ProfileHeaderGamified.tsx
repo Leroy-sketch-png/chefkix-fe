@@ -19,7 +19,14 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	STAT_ITEM_HOVER,
+} from '@/lib/motion'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -260,7 +267,8 @@ const StatsRow = ({
 		{/* Social Stats */}
 		<div className='flex gap-8'>
 			<motion.div
-				whileHover={{ y: -2 }}
+				whileHover={STAT_ITEM_HOVER}
+				transition={TRANSITION_SPRING}
 				className='flex cursor-pointer flex-col'
 			>
 				<span className='text-xl font-extrabold'>
@@ -269,7 +277,8 @@ const StatsRow = ({
 				<span className='text-xs text-text-muted'>Followers</span>
 			</motion.div>
 			<motion.div
-				whileHover={{ y: -2 }}
+				whileHover={STAT_ITEM_HOVER}
+				transition={TRANSITION_SPRING}
 				className='flex cursor-pointer flex-col'
 			>
 				<span className='text-xl font-extrabold'>
@@ -279,7 +288,8 @@ const StatsRow = ({
 			</motion.div>
 			{showFriends && social.friends !== undefined && (
 				<motion.div
-					whileHover={{ y: -2 }}
+					whileHover={STAT_ITEM_HOVER}
+					transition={TRANSITION_SPRING}
 					className='flex cursor-pointer flex-col'
 				>
 					<span className='text-xl font-extrabold'>
@@ -296,7 +306,8 @@ const StatsRow = ({
 		{/* Cooking Stats */}
 		<div className='flex gap-8'>
 			<motion.div
-				whileHover={{ y: -2 }}
+				whileHover={STAT_ITEM_HOVER}
+				transition={TRANSITION_SPRING}
 				className='flex cursor-pointer flex-col'
 			>
 				<span className='text-xl font-extrabold text-success'>
@@ -307,7 +318,8 @@ const StatsRow = ({
 				</span>
 			</motion.div>
 			<motion.div
-				whileHover={{ y: -2 }}
+				whileHover={STAT_ITEM_HOVER}
+				transition={TRANSITION_SPRING}
 				className='flex cursor-pointer flex-col'
 			>
 				<span className='text-xl font-extrabold'>{cooking.recipesCreated}</span>
@@ -315,7 +327,8 @@ const StatsRow = ({
 			</motion.div>
 			{cooking.mastered !== undefined && (
 				<motion.div
-					whileHover={{ y: -2 }}
+					whileHover={STAT_ITEM_HOVER}
+					transition={TRANSITION_SPRING}
 					className='flex cursor-pointer flex-col'
 				>
 					<span className='text-xl font-extrabold'>{cooking.mastered}</span>
@@ -388,9 +401,10 @@ const BadgesShowcase = ({
 			{badges.slice(0, compact ? 3 : 5).map((badge, index) => (
 				<motion.div
 					key={badge.id}
-					whileHover={{ y: -2 }}
+					whileHover={STAT_ITEM_HOVER}
+					transition={TRANSITION_SPRING}
 					className={cn(
-						'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated transition-shadow hover:shadow-md',
+						'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-md',
 						compact
 							? 'min-w-nav px-3 py-2.5'
 							: 'min-w-thumbnail-xl px-4 py-3.5',
@@ -566,9 +580,10 @@ const OwnProfileHeader = ({
 					</motion.button>
 					<motion.button
 						onClick={onShareProfile}
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted transition-colors hover:bg-border hover:text-text'
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
+						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
 					>
 						<Share2 className='h-4 w-4' />
 					</motion.button>
@@ -763,9 +778,10 @@ const OtherUserProfileHeader = ({
 					</motion.button>
 					<motion.button
 						onClick={onMessage}
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted transition-colors hover:bg-border hover:text-text'
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
+						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
 					>
 						<MessageCircle className='h-4 w-4' />
 					</motion.button>
@@ -882,10 +898,11 @@ const MiniProfileHeader = ({
 			{/* Follow Button */}
 			<motion.button
 				onClick={onFollow}
-				whileHover={{ scale: 1.05 }}
-				whileTap={{ scale: 0.95 }}
+				whileHover={BUTTON_SUBTLE_HOVER}
+				whileTap={BUTTON_SUBTLE_TAP}
+				transition={TRANSITION_SPRING}
 				className={cn(
-					'rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
+					'rounded-lg px-4 py-2 text-sm font-semibold',
 					isFollowing
 						? 'border border-border bg-bg-elevated hover:bg-border'
 						: 'bg-brand text-white',

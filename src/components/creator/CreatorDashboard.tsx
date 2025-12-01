@@ -15,7 +15,16 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+	STAT_ITEM_HOVER,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -263,7 +272,11 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 				{badges.map(badge => (
 					<motion.div
 						key={badge.id}
-						whileHover={badge.isEarned ? { scale: 1.02, y: -2 } : undefined}
+						whileHover={
+							badge.isEarned
+								? { ...LIST_ITEM_HOVER, ...STAT_ITEM_HOVER }
+								: undefined
+						}
 						transition={TRANSITION_SPRING}
 						className={cn(
 							'flex-shrink-0 flex flex-col items-center gap-2 w-thumbnail-2xl p-5 rounded-2xl text-center relative',
@@ -318,7 +331,7 @@ function TopRecipeSection({
 			</div>
 
 			<motion.div
-				whileHover={{ scale: 1.01 }}
+				whileHover={{ ...LIST_ITEM_HOVER, scale: 1.01 }}
 				transition={TRANSITION_SPRING}
 				onClick={() => onRecipeClick?.(recipe.id)}
 				className='flex flex-col sm:flex-row gap-5 cursor-pointer'
@@ -456,8 +469,8 @@ function RecipePerformanceSection({
 						</div>
 						{recipe.needsAttention && onImproveRecipe && (
 							<motion.button
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
+								whileHover={BUTTON_SUBTLE_HOVER}
+								whileTap={BUTTON_SUBTLE_TAP}
 								onClick={e => {
 									e.stopPropagation()
 									onImproveRecipe(recipe.id)
@@ -568,8 +581,8 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			</div>
 
 			<motion.button
-				whileHover={{ scale: 1.02, y: -2 }}
-				whileTap={{ scale: 0.98 }}
+				whileHover={{ ...LIST_ITEM_HOVER, ...STAT_ITEM_HOVER }}
+				whileTap={LIST_ITEM_TAP}
 				onClick={onCreateRecipe}
 				className={cn(
 					'flex items-center justify-center gap-2 py-3 px-5',
@@ -610,8 +623,8 @@ export function CreatorDashboard({
 			<div className='flex items-center gap-4 mb-6'>
 				{onBack && (
 					<motion.button
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
 						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-text'
 					>

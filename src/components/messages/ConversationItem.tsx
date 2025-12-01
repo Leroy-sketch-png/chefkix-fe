@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { TRANSITION_SPRING, fadeInUp } from '@/lib/motion'
+import { TRANSITION_SPRING, fadeInUp, LIST_ITEM_TAP } from '@/lib/motion'
 
 // =============================================================================
 // TYPES
@@ -91,7 +91,7 @@ export const ConversationItem = ({
 			)}
 			onClick={onClick}
 			whileHover={{ x: isActive ? 0 : 2 }}
-			whileTap={{ scale: 0.99 }}
+			whileTap={LIST_ITEM_TAP}
 			transition={TRANSITION_SPRING}
 		>
 			{/* Avatar with Online Indicator */}

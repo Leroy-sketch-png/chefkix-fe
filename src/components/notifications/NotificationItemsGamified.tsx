@@ -521,6 +521,8 @@ const CreatorBonusItem = ({
 			<Image
 				src={cookerAvatarUrl}
 				alt={cookerName}
+				width={48}
+				height={48}
 				className='h-12 w-12 rounded-full object-cover'
 			/>
 			<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-panel-bg bg-blue-500 text-white'>

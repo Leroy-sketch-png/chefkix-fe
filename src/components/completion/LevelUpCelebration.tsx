@@ -9,6 +9,8 @@ import {
 	TRANSITION_BOUNCY,
 	CELEBRATION_MODAL,
 	LEVEL_UP_VARIANTS,
+	STAT_ITEM_HOVER,
+	LIST_ITEM_TAP,
 } from '@/lib/motion'
 
 // ============================================
@@ -350,8 +352,8 @@ export const LevelUpCelebration = ({
 							</button>
 							<motion.button
 								onClick={onContinue}
-								whileHover={{ y: -2 }}
-								whileTap={{ scale: 0.98 }}
+								whileHover={STAT_ITEM_HOVER}
+								whileTap={LIST_ITEM_TAP}
 								className='rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 px-8 py-3.5 font-bold text-white shadow-lg shadow-amber-400/40 transition-shadow hover:shadow-xl hover:shadow-amber-400/50'
 							>
 								Continue

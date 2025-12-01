@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Flame, Utensils, TrendingUp, TrendingDown } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, LIST_ITEM_TAP } from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -54,7 +54,7 @@ export function LeaderboardItem({
 	return (
 		<motion.div
 			whileHover={{ backgroundColor: 'var(--bg)' }}
-			whileTap={{ scale: 0.99 }}
+			whileTap={LIST_ITEM_TAP}
 			transition={TRANSITION_SPRING}
 			onClick={() => onClick?.(entry)}
 			className={cn(

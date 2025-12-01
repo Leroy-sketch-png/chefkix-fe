@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, DURATIONS } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATIONS, BUTTON_SUBTLE_HOVER } from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -100,7 +100,10 @@ function PodiumSpot({
 
 			{/* Avatar Container */}
 			<div className='relative mb-2.5'>
-				<motion.div whileHover={{ scale: 1.05 }} transition={TRANSITION_SPRING}>
+				<motion.div
+					whileHover={BUTTON_SUBTLE_HOVER}
+					transition={TRANSITION_SPRING}
+				>
 					<Image
 						src={entry.avatarUrl || '/images/default-avatar.png'}
 						alt={entry.displayName}

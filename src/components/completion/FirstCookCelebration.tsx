@@ -10,6 +10,8 @@ import {
 	TRANSITION_BOUNCY,
 	CELEBRATION_MODAL,
 	BADGE_REVEAL_VARIANTS,
+	STAT_ITEM_HOVER,
+	LIST_ITEM_TAP,
 } from '@/lib/motion'
 
 // ============================================
@@ -358,8 +360,8 @@ export const FirstCookCelebration = ({
 						<div className='mb-5'>
 							<motion.button
 								onClick={onPostNow}
-								whileHover={{ y: -3 }}
-								whileTap={{ scale: 0.98 }}
+								whileHover={STAT_ITEM_HOVER}
+								whileTap={LIST_ITEM_TAP}
 								className='mb-3.5 flex w-full items-center justify-center gap-3.5 rounded-2xl bg-gradient-to-r from-brand to-brand/85 px-7 py-5 text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
 							>
 								<Camera className='h-7 w-7' />
@@ -369,8 +371,7 @@ export const FirstCookCelebration = ({
 										Unlock +{pendingXp} XP
 									</span>
 								</div>
-							</motion.button>
-
+							</motion.button>{' '}
 							<div className='flex gap-2.5'>
 								<button
 									onClick={onShareAchievement}

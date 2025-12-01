@@ -102,6 +102,15 @@ export const CARD_FEATURED_HOVER = {
 	scale: 1.01,
 } as const
 
+// For list items (subtle scale)
+export const LIST_ITEM_HOVER = {
+	scale: 1.02,
+} as const
+
+export const LIST_ITEM_TAP = {
+	scale: 0.98,
+} as const
+
 // For images inside cards (zoom on hover)
 export const IMAGE_ZOOM_HOVER = {
 	scale: 1.05,
@@ -123,6 +132,11 @@ export const ICON_BUTTON_HOVER = {
 
 export const ICON_BUTTON_TAP = {
 	scale: 0.95,
+} as const
+
+// For subtle lift on stat items or cards
+export const STAT_ITEM_HOVER = {
+	y: -2,
 } as const
 
 // Transition presets

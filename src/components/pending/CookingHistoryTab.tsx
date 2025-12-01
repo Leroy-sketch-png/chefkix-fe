@@ -19,6 +19,10 @@ import {
 	fadeInUp,
 	staggerContainer,
 	scaleIn,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
 import type { PendingSession } from './PendingPostsSection'
 
@@ -192,6 +196,8 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 				<Image
 					src={session.recipeImage}
 					alt={session.recipeName}
+					width={64}
+					height={64}
 					className='w-16 h-16 rounded-xl object-cover flex-shrink-0'
 				/>
 
@@ -244,8 +250,9 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 							: 'bg-primary text-primary-foreground shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
-					whileHover={{ scale: 1.02, y: -1 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
+					transition={TRANSITION_SPRING}
 					style={
 						isUrgent
 							? { animation: 'urgentPulse 1.5s ease-in-out infinite' }
@@ -349,10 +356,11 @@ const CompletedItem = ({ session, onViewPost }: CompletedItemProps) => {
 				{/* View Post Button */}
 				{session.postId && onViewPost && (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-muted transition-colors'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-muted'
 						onClick={() => onViewPost(session.postId!)}
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
 					>
 						<ExternalLink className='h-3.5 w-3.5' />
 						View Post
@@ -430,10 +438,11 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				{/* Action */}
 				{isAbandoned && onRetry ? (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-muted transition-colors'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-muted'
 						onClick={() => onRetry(session.id)}
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
 					>
 						<RefreshCw className='h-3.5 w-3.5' />
 						Try Again

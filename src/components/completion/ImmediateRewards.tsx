@@ -11,6 +11,8 @@ import {
 	XP_COUNTER_VARIANTS,
 	BADGE_REVEAL_VARIANTS,
 	CONFETTI_BURST_VARIANTS,
+	STAT_ITEM_HOVER,
+	LIST_ITEM_TAP,
 } from '@/lib/motion'
 import type { XPReward, Badge } from '@/lib/types/gamification'
 
@@ -380,8 +382,8 @@ export const ImmediateRewards = ({
 							<div className='space-y-2.5'>
 								<motion.button
 									onClick={onPostNow}
-									whileHover={{ y: -2 }}
-									whileTap={{ scale: 0.98 }}
+									whileHover={STAT_ITEM_HOVER}
+									whileTap={LIST_ITEM_TAP}
 									className='relative flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
 								>
 									<Camera className='h-5 w-5' />

@@ -23,7 +23,14 @@ import {
 	staggerItemVariants,
 } from '@/components/ui/stagger-animation'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	CARD_FEED_HOVER,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -176,7 +183,7 @@ const RecipeResultCard = ({
 	return (
 		<motion.div
 			variants={staggerItemVariants}
-			whileHover={{ y: -4 }}
+			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
 		>
 			<Link
@@ -198,8 +205,8 @@ const RecipeResultCard = ({
 						</h4>
 						<motion.button
 							onClick={handleSave}
-							whileHover={{ scale: 1.1 }}
-							whileTap={{ scale: 0.9 }}
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
 							className={cn(
 								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
 								saved

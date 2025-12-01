@@ -13,7 +13,14 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	STAT_ITEM_HOVER,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -224,6 +231,8 @@ const ActiveChallengeBanner = ({
 									<Image
 										src={recipe.imageUrl}
 										alt={recipe.title}
+										width={28}
+										height={28}
 										className='h-7 w-7 rounded-full object-cover'
 									/>
 									<span>{recipe.title}</span>
@@ -244,8 +253,8 @@ const ActiveChallengeBanner = ({
 			<div className='px-5 pb-5'>
 				<motion.button
 					onClick={onFindRecipe}
-					whileHover={{ y: -2 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={STAT_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-base font-bold text-white shadow-lg shadow-indigo-500/30'
 				>
 					<ChefHat className='h-5 w-5' />
@@ -315,6 +324,8 @@ const CompletedChallengeBanner = ({
 					<Image
 						src={completedWith.recipeImageUrl}
 						alt={completedWith.recipeTitle}
+						width={48}
+						height={48}
 						className='h-12 w-12 rounded-lg object-cover'
 					/>
 					<div className='flex flex-col'>
@@ -486,8 +497,8 @@ const FeaturedChallengeBanner = ({
 				{/* CTA */}
 				<motion.button
 					onClick={onBrowseRecipes}
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={LIST_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					className='inline-flex w-fit items-center gap-2 rounded-xl bg-white px-7 py-4 text-base font-bold text-indigo-500 shadow-xl'
 				>
 					<ChefHat className='h-5 w-5' />

@@ -21,6 +21,8 @@ import {
 	TRANSITION_SMOOTH,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 
 // ============================================
@@ -204,8 +206,8 @@ export const ComposerModal = ({
 						<div className='flex items-center justify-between border-b border-border px-6 py-5'>
 							<h2 className='text-xl font-bold'>Create Post</h2>
 							<motion.button
-								whileHover={{ scale: 1.1, rotate: 90 }}
-								whileTap={{ scale: 0.9 }}
+								whileHover={{ ...ICON_BUTTON_HOVER, rotate: 90 }}
+								whileTap={ICON_BUTTON_TAP}
 								onClick={handleClose}
 								className='flex h-9 w-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-border hover:text-text'
 							>
@@ -259,8 +261,8 @@ export const ComposerModal = ({
 												className='h-48 w-full object-cover'
 											/>
 											<motion.button
-												whileHover={{ scale: 1.1 }}
-												whileTap={{ scale: 0.9 }}
+												whileHover={ICON_BUTTON_HOVER}
+												whileTap={ICON_BUTTON_TAP}
 												onClick={() => removeImage(index)}
 												className='absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-black/80'
 											>
@@ -282,8 +284,8 @@ export const ComposerModal = ({
 										<BookOpen className='h-4 w-4' />
 										<span>Recipe Attached</span>
 										<motion.button
-											whileHover={{ scale: 1.1 }}
-											whileTap={{ scale: 0.9 }}
+											whileHover={ICON_BUTTON_HOVER}
+											whileTap={ICON_BUTTON_TAP}
 											onClick={() => setRecipe(null)}
 											className='ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-purple-500 hover:bg-purple-500/30'
 										>
@@ -372,8 +374,11 @@ export const ComposerModal = ({
 									className='hidden'
 								/>
 								<motion.button
-									whileHover={{ scale: 1.1, color: 'var(--color-brand)' }}
-									whileTap={{ scale: 0.9 }}
+									whileHover={{
+										...ICON_BUTTON_HOVER,
+										color: 'var(--color-brand)',
+									}}
+									whileTap={ICON_BUTTON_TAP}
 									onClick={() => fileInputRef.current?.click()}
 									className='flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated'
 									title='Add photo/video'
@@ -381,24 +386,33 @@ export const ComposerModal = ({
 									<ImageIcon className='h-5 w-5' />
 								</motion.button>
 								<motion.button
-									whileHover={{ scale: 1.1, color: 'var(--color-brand)' }}
-									whileTap={{ scale: 0.9 }}
+									whileHover={{
+										...ICON_BUTTON_HOVER,
+										color: 'var(--color-brand)',
+									}}
+									whileTap={ICON_BUTTON_TAP}
 									className='flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated'
 									title='Add emoji'
 								>
 									<Smile className='h-5 w-5' />
 								</motion.button>
 								<motion.button
-									whileHover={{ scale: 1.1, color: 'var(--color-brand)' }}
-									whileTap={{ scale: 0.9 }}
+									whileHover={{
+										...ICON_BUTTON_HOVER,
+										color: 'var(--color-brand)',
+									}}
+									whileTap={ICON_BUTTON_TAP}
 									className='flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated'
 									title='Tag people'
 								>
 									<AtSign className='h-5 w-5' />
 								</motion.button>
 								<motion.button
-									whileHover={{ scale: 1.1, color: 'var(--color-brand)' }}
-									whileTap={{ scale: 0.9 }}
+									whileHover={{
+										...ICON_BUTTON_HOVER,
+										color: 'var(--color-brand)',
+									}}
+									whileTap={ICON_BUTTON_TAP}
 									className='flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated'
 									title='Add location'
 								>

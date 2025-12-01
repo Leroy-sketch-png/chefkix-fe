@@ -9,7 +9,13 @@ import {
 	AlertTriangle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 import { LeaderboardItem, type LeaderboardEntry } from './LeaderboardItem'
 
 // ============================================================================
@@ -120,8 +126,8 @@ function LeagueHeader({
 
 			{onLeagueInfo && (
 				<motion.button
-					whileHover={{ scale: 1.05 }}
-					whileTap={{ scale: 0.95 }}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={BUTTON_SUBTLE_TAP}
 					onClick={onLeagueInfo}
 					className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-muted-foreground'
 				>

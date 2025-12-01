@@ -28,6 +28,8 @@ import {
 	TRANSITION_BOUNCY,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 
 // ============================================
@@ -218,15 +220,14 @@ export const ReportModal = ({
 								<div className='flex items-center justify-between border-b border-border p-7'>
 									<h2 className='text-xl font-extrabold'>Report Content</h2>
 									<motion.button
-										whileHover={{ scale: 1.1 }}
-										whileTap={{ scale: 0.9 }}
+										whileHover={ICON_BUTTON_HOVER}
+										whileTap={ICON_BUTTON_TAP}
 										onClick={handleClose}
 										className='flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
 									>
 										<X className='h-5 w-5' />
 									</motion.button>
-								</div>
-
+								</div>{' '}
 								<div className='p-7'>
 									{/* Content Preview */}
 									<div className='mb-6 flex items-center gap-3.5 rounded-xl bg-bg-elevated px-4 py-3.5'>
@@ -684,15 +685,14 @@ export const AppealModal = ({
 								<div className='flex items-center justify-between border-b border-border p-7'>
 									<h2 className='text-xl font-extrabold'>Appeal Decision</h2>
 									<motion.button
-										whileHover={{ scale: 1.1 }}
-										whileTap={{ scale: 0.9 }}
+										whileHover={ICON_BUTTON_HOVER}
+										whileTap={ICON_BUTTON_TAP}
 										onClick={handleClose}
 										className='flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
 									>
 										<X className='h-5 w-5' />
 									</motion.button>
-								</div>
-
+								</div>{' '}
 								<div className='p-7'>
 									{/* Context */}
 									<div className='mb-5 rounded-xl bg-bg-elevated p-4'>

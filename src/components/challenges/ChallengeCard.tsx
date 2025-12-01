@@ -3,7 +3,14 @@
 import { motion } from 'framer-motion'
 import { Clock, Users, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	CARD_FEED_HOVER,
+	STAT_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -105,7 +112,10 @@ export const ChallengeCard = ({
 
 	return (
 		<motion.div
-			whileHover={{ y: -4, boxShadow: '0 12px 48px rgba(0, 0, 0, 0.2)' }}
+			whileHover={{
+				...CARD_FEED_HOVER,
+				boxShadow: '0 12px 48px rgba(0, 0, 0, 0.2)',
+			}}
 			transition={TRANSITION_SPRING}
 			onClick={onView}
 			className={cn(
@@ -207,8 +217,8 @@ export const ChallengeCard = ({
 							e.stopPropagation()
 							onJoin?.()
 						}}
-						whileHover={{ y: -2 }}
-						whileTap={{ scale: 0.98 }}
+						whileHover={STAT_ITEM_HOVER}
+						whileTap={LIST_ITEM_TAP}
 						className={cn(
 							'w-full rounded-full py-2.5 text-sm font-bold transition-all',
 							isJoined

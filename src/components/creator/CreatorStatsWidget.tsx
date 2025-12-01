@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -167,8 +167,8 @@ export function CreatorXPNotification({
 			{/* View Button */}
 			{onView && (
 				<motion.button
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={LIST_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					onClick={onView}
 					className='py-2 px-3.5 bg-purple-500 rounded-lg text-sm font-semibold text-white'
 				>

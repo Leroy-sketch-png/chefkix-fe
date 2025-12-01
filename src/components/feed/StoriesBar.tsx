@@ -11,6 +11,10 @@ import {
 	TRANSITION_BOUNCY,
 	fadeInUp,
 	scaleIn,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 
 // =============================================================================
@@ -58,8 +62,8 @@ const AddStoryButton = ({ onClick }: { onClick?: () => void }) => {
 	return (
 		<motion.div
 			className='group flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0'
-			whileHover={{ scale: 1.05 }}
-			whileTap={{ scale: 0.95 }}
+			whileHover={BUTTON_SUBTLE_HOVER}
+			whileTap={BUTTON_SUBTLE_TAP}
 			onClick={onClick}
 		>
 			<motion.div
@@ -94,8 +98,8 @@ const StoryItem = ({ story, onClick }: StoryItemProps) => {
 				'group flex cursor-pointer flex-col items-center gap-2 text-center flex-shrink-0',
 				isViewed && 'opacity-60 hover:opacity-80',
 			)}
-			whileHover={{ scale: 1.1, rotate: 5 }}
-			whileTap={{ scale: 0.95 }}
+			whileHover={{ ...ICON_BUTTON_HOVER, rotate: 5 }}
+			whileTap={BUTTON_SUBTLE_TAP}
 			transition={TRANSITION_BOUNCY}
 			onClick={onClick}
 		>
@@ -159,8 +163,8 @@ const StoryViewer = ({
 			<motion.button
 				className='absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
 				onClick={onClose}
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.9 }}
+				whileHover={ICON_BUTTON_HOVER}
+				whileTap={ICON_BUTTON_TAP}
 			>
 				<X className='h-6 w-6 text-white' />
 			</motion.button>
@@ -170,8 +174,8 @@ const StoryViewer = ({
 				<motion.button
 					className='absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
 					onClick={() => onNavigate('prev')}
-					whileHover={{ scale: 1.1, x: -2 }}
-					whileTap={{ scale: 0.9 }}
+					whileHover={{ ...ICON_BUTTON_HOVER, x: -2 }}
+					whileTap={ICON_BUTTON_TAP}
 				>
 					<ChevronLeft className='h-6 w-6 text-white' />
 				</motion.button>
@@ -180,8 +184,8 @@ const StoryViewer = ({
 				<motion.button
 					className='absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
 					onClick={() => onNavigate('next')}
-					whileHover={{ scale: 1.1, x: 2 }}
-					whileTap={{ scale: 0.9 }}
+					whileHover={{ ...ICON_BUTTON_HOVER, x: 2 }}
+					whileTap={ICON_BUTTON_TAP}
 				>
 					<ChevronRight className='h-6 w-6 text-white' />
 				</motion.button>

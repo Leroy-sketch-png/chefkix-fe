@@ -12,7 +12,12 @@ import {
 	Flame,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, DURATIONS } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	DURATIONS,
+	STAT_ITEM_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -236,8 +241,8 @@ export const Toast = (props: ToastProps) => {
 			{/* Close Button / Action Button */}
 			{isAchievement && (props as AchievementToastProps).onView ? (
 				<motion.button
-					whileHover={{ y: -1 }}
-					whileTap={{ scale: 0.95 }}
+					whileHover={STAT_ITEM_HOVER}
+					whileTap={BUTTON_SUBTLE_TAP}
 					onClick={(props as AchievementToastProps).onView}
 					className='flex-shrink-0 rounded-full bg-gradient-to-br from-gold to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gold/40 transition-shadow hover:shadow-gold/60'
 				>

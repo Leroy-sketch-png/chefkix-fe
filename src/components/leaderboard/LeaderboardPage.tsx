@@ -12,7 +12,15 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 import {
 	LeaderboardItem,
 	LeaderboardItemSkeleton,
@@ -84,7 +92,7 @@ function LeaderboardTabs({
 			{tabs.map(({ type, label, icon: Icon }) => (
 				<motion.button
 					key={type}
-					whileTap={{ scale: 0.98 }}
+					whileTap={LIST_ITEM_TAP}
 					onClick={() => onTypeChange?.(type)}
 					className={cn(
 						'flex-1 flex items-center justify-center gap-2 py-3 px-4',
@@ -203,8 +211,8 @@ function MyRankBanner({
 					+{myRank.xpToNextRank} XP to reach #{myRank.nextRankPosition}
 				</span>
 				<motion.button
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={LIST_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					onClick={onCookNow}
 					className={cn(
 						'py-2 px-4 rounded-lg text-sm font-bold text-white',
@@ -278,8 +286,8 @@ export function LeaderboardPage({
 			<div className='flex items-center gap-4 mb-5'>
 				{onBack && (
 					<motion.button
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
 						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-text'
 					>
@@ -291,8 +299,8 @@ export function LeaderboardPage({
 				</h1>
 				{onShare && (
 					<motion.button
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onShare}
 						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-muted-foreground'
 					>

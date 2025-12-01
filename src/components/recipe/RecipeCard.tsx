@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
-import { TRANSITION_SPRING, EXIT_VARIANTS } from '@/lib/motion'
+import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -117,7 +117,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			layout
 		>
 			<motion.div
-				whileHover={{ y: -8, scale: 1.02 }}
+				whileHover={{ ...CARD_GRID_HOVER, scale: 1.02 }}
 				transition={TRANSITION_SPRING}
 			>
 				<Link

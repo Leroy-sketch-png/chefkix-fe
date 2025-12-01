@@ -23,6 +23,8 @@ import {
 	TRANSITION_BOUNCY,
 	AI_BUTTON_PULSE,
 	CELEBRATION_MODAL,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 
 // ============================================
@@ -241,8 +243,8 @@ interface AiButtonProps {
 export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => (
 	<motion.button
 		onClick={onClick}
-		whileHover={{ scale: 1.1 }}
-		whileTap={{ scale: 0.9 }}
+		whileHover={ICON_BUTTON_HOVER}
+		whileTap={ICON_BUTTON_TAP}
 		animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
 		className={cn(
 			'fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-6',

@@ -9,6 +9,8 @@ import {
 	BUTTON_HOVER,
 	BUTTON_TAP,
 	CONFETTI_BURST,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
 
 // ============================================
@@ -248,8 +250,8 @@ export const ChallengeComplete = ({
 					</motion.button>
 					<motion.button
 						onClick={onShare}
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
 						className='flex items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold text-text-muted transition-colors hover:bg-border hover:text-text'
 					>
 						<Share2 className='size-icon-sm' />

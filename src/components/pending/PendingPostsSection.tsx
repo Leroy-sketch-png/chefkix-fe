@@ -14,7 +14,18 @@ import {
 	ArrowRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, fadeInUp, staggerContainer } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	fadeInUp,
+	staggerContainer,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	CARD_FEATURED_HOVER,
+} from '@/lib/motion'
 
 // =============================================================================
 // TYPES
@@ -123,10 +134,11 @@ const SinglePendingPost = ({
 				</div>
 				{onDismiss && (
 					<motion.button
-						className='p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors'
+						className='p-2 rounded-full bg-muted/50 hover:bg-muted'
 						onClick={onDismiss}
-						whileHover={{ scale: 1.1 }}
-						whileTap={{ scale: 0.9 }}
+						whileHover={ICON_BUTTON_HOVER}
+						whileTap={ICON_BUTTON_TAP}
+						transition={TRANSITION_SPRING}
 					>
 						<X className='h-4 w-4 text-muted-foreground' />
 					</motion.button>
@@ -168,8 +180,9 @@ const SinglePendingPost = ({
 						'shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
-					whileHover={{ scale: 1.02, y: -2 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
+					transition={TRANSITION_SPRING}
 				>
 					<Camera className='h-4 w-4' />
 					Post Now
@@ -228,10 +241,11 @@ const MultiplePendingPosts = ({
 					</span>
 				</div>
 				<motion.button
-					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted rounded-lg text-sm font-semibold transition-colors'
+					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted rounded-lg text-sm font-semibold'
 					onClick={onViewAll}
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={BUTTON_SUBTLE_TAP}
+					transition={TRANSITION_SPRING}
 				>
 					View All
 					<ChevronDown className='h-4 w-4' />
@@ -284,8 +298,8 @@ const MultiplePendingPosts = ({
 									: 'bg-primary text-primary-foreground',
 							)}
 							onClick={() => onPost(session.id)}
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
+							whileHover={BUTTON_SUBTLE_HOVER}
+							whileTap={BUTTON_SUBTLE_TAP}
 						>
 							Post
 						</motion.button>
@@ -358,8 +372,9 @@ const ManyPendingPosts = ({
 				<motion.button
 					className='flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold'
 					onClick={onViewAll}
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={BUTTON_SUBTLE_TAP}
+					transition={TRANSITION_SPRING}
 				>
 					View All
 					<ArrowRight className='h-4 w-4' />
@@ -485,8 +500,9 @@ export const PendingExpandedModal = ({
 							<motion.button
 								className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-muted'
 								onClick={onClose}
-								whileHover={{ scale: 1.1 }}
-								whileTap={{ scale: 0.9 }}
+								whileHover={ICON_BUTTON_HOVER}
+								whileTap={ICON_BUTTON_TAP}
+								transition={TRANSITION_SPRING}
 							>
 								<X className='h-5 w-5 text-muted-foreground' />
 							</motion.button>
@@ -594,8 +610,9 @@ export const PendingExpandedModal = ({
 													: 'bg-primary text-primary-foreground',
 											)}
 											onClick={() => onPost(session.id)}
-											whileHover={{ scale: 1.02 }}
-											whileTap={{ scale: 0.98 }}
+											whileHover={BUTTON_SUBTLE_HOVER}
+											whileTap={BUTTON_SUBTLE_TAP}
+											transition={TRANSITION_SPRING}
 										>
 											{session.status === 'urgent' ? 'POST NOW' : 'Post'}
 										</motion.button>
@@ -612,8 +629,9 @@ export const PendingExpandedModal = ({
 							<motion.button
 								className='w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold'
 								onClick={onClose}
-								whileHover={{ scale: 1.01 }}
-								whileTap={{ scale: 0.99 }}
+								whileHover={CARD_FEATURED_HOVER}
+								whileTap={BUTTON_TAP}
+								transition={TRANSITION_SPRING}
 							>
 								Done
 							</motion.button>

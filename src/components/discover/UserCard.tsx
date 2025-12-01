@@ -4,7 +4,11 @@ import { Profile } from '@/lib/types'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	LIST_ITEM_HOVER,
+	CARD_FEED_HOVER,
+} from '@/lib/motion'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
@@ -23,7 +27,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 				<Link href={profile.userId ? `/${profile.userId}` : '/dashboard'}>
 					<motion.div
 						className='cursor-pointer rounded-lg border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md md:p-6'
-						whileHover={{ scale: 1.02, y: -4 }}
+						whileHover={{ ...LIST_ITEM_HOVER, ...CARD_FEED_HOVER }}
 						transition={TRANSITION_SPRING}
 					>
 						<div className='flex items-center gap-4'>
