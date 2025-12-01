@@ -19,6 +19,7 @@ import {
 	StreakMilestoneCard,
 	StreakBrokenModal,
 } from '@/components/streak'
+import { ChallengeComplete } from '@/components/challenges'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -113,6 +114,23 @@ interface StreakBrokenData {
 	bestStreak?: number
 }
 
+interface StreakDay {
+	label: string
+	isCompleted: boolean
+	isToday?: boolean
+	isMilestone?: boolean
+}
+
+interface ChallengeCompleteData {
+	challengeTitle: string
+	challengeIcon: string
+	recipeName: string
+	bonusXp: number
+	streakDays: StreakDay[]
+	daysToMilestone: number
+	milestoneReward: string
+}
+
 interface CelebrationContextType {
 	// Level up
 	showLevelUp: (data: LevelUpData) => void
@@ -127,6 +145,8 @@ interface CelebrationContextType {
 	showStreakSaved: (data: StreakSavedData) => void
 	showStreakMilestone: (data: StreakMilestoneData) => void
 	showStreakBroken: (data: StreakBrokenData) => void
+	// Challenge celebrations
+	showChallengeComplete: (data: ChallengeCompleteData) => void
 }
 
 const CelebrationContext = createContext<CelebrationContextType | null>(null)
@@ -187,6 +207,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const [streakBrokenData, setStreakBrokenData] =
 		useState<StreakBrokenData | null>(null)
 
+	// Challenge Complete state
+	const [challengeCompleteOpen, setChallengeCompleteOpen] = useState(false)
+	const [challengeCompleteData, setChallengeCompleteData] =
+		useState<ChallengeCompleteData | null>(null)
+
 	// ============================================
 	// ACTIONS
 	// ============================================
@@ -231,6 +256,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const showStreakBroken = useCallback((data: StreakBrokenData) => {
 		setStreakBrokenData(data)
 		setStreakBrokenOpen(true)
+	}, [])
+
+	const showChallengeComplete = useCallback((data: ChallengeCompleteData) => {
+		setChallengeCompleteData(data)
+		setChallengeCompleteOpen(true)
 	}, [])
 
 	// ============================================
@@ -323,6 +353,21 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		window.location.href = '/explore'
 	}
 
+	const handleChallengeCompleteClose = () => {
+		setChallengeCompleteOpen(false)
+		setChallengeCompleteData(null)
+	}
+
+	const handleChallengeCompleteShare = () => {
+		if (navigator.share && challengeCompleteData) {
+			navigator.share({
+				title: `Challenge Complete: ${challengeCompleteData.challengeTitle}!`,
+				text: `I just completed "${challengeCompleteData.challengeTitle}" on Chefkix and earned ${challengeCompleteData.bonusXp} bonus XP! 🎯`,
+				url: window.location.origin,
+			})
+		}
+	}
+
 	// ============================================
 	// RENDER
 	// ============================================
@@ -336,6 +381,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		showStreakSaved,
 		showStreakMilestone,
 		showStreakBroken,
+		showChallengeComplete,
 	}
 
 	return (
@@ -515,6 +561,21 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					bestStreak={streakBrokenData.bestStreak}
 					onStartNewStreak={handleStartNewStreak}
 					onDismiss={handleStreakBrokenClose}
+				/>
+			)}
+
+			{/* Challenge Complete Modal */}
+			{challengeCompleteOpen && challengeCompleteData && (
+				<ChallengeComplete
+					challengeTitle={challengeCompleteData.challengeTitle}
+					challengeIcon={challengeCompleteData.challengeIcon}
+					recipeName={challengeCompleteData.recipeName}
+					bonusXp={challengeCompleteData.bonusXp}
+					streakDays={challengeCompleteData.streakDays}
+					daysToMilestone={challengeCompleteData.daysToMilestone}
+					milestoneReward={challengeCompleteData.milestoneReward}
+					onContinue={handleChallengeCompleteClose}
+					onShare={handleChallengeCompleteShare}
 				/>
 			)}
 		</CelebrationContext.Provider>
