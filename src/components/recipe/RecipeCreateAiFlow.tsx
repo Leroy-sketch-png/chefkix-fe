@@ -28,6 +28,7 @@ import Image from 'next/image'
 import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
 
 // ============================================
 // TYPES
@@ -734,6 +735,46 @@ export const RecipeCreateAiFlow = ({
 								Parse Recipe
 							</motion.button>
 						</div>
+					)}
+
+					{/* Manual Entry Form */}
+					{method === 'manual' && (
+						<RecipeFormDetailed
+							onSubmit={data => {
+								// Convert RecipeFormData to ParsedRecipe format
+								const parsed: ParsedRecipe = {
+									title: data.title,
+									description: data.description,
+									coverImageUrl: data.coverImageUrl,
+									cookTime: `${data.cookTimeMinutes} min`,
+									difficulty:
+										data.difficulty === 'easy'
+											? 'Easy'
+											: data.difficulty === 'medium'
+												? 'Medium'
+												: 'Hard',
+									servings: data.servings,
+									cuisine: data.category || 'General',
+									ingredients: data.ingredients.map(i => ({
+										id: i.id,
+										quantity: `${i.amount} ${i.unit}`,
+										name: i.name,
+									})),
+									steps: data.steps.map(s => ({
+										id: s.id,
+										instruction: s.instruction,
+										timerMinutes: s.timerMinutes,
+									})),
+									detectedBadges: [],
+								}
+								onPublish?.(parsed)
+							}}
+							onSaveDraft={data => {
+								console.log('Draft saved:', data)
+							}}
+							onCancel={onBack}
+							className='-mx-5 -mb-5'
+						/>
 					)}
 				</>
 			)}

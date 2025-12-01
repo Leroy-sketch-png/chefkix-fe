@@ -10,3 +10,12 @@ export {
 	type Ingredient,
 	type RecipeStep,
 } from './RecipeCreateAiFlow'
+export {
+	RecipeFormDetailed,
+	type RecipeFormData,
+	type RecipeFormDetailedProps,
+	type RecipeIngredient,
+	type RecipeFormStep,
+	type Difficulty,
+	type MeasurementUnit,
+} from './RecipeFormDetailed'
