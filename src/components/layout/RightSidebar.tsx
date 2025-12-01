@@ -7,20 +7,21 @@ import { StreakWidget } from '@/components/streak'
 import { ExpandableDailyChallengeBanner } from '@/components/challenges'
 import { useRouter } from 'next/navigation'
 
-const suggestions = [
-	{
-		id: 1,
-		name: 'RamenKing',
-		description: 'Makes amazing noodles',
-		avatar: 'https://i.pravatar.cc/40?u=follow1',
-	},
-	{
-		id: 2,
-		name: 'PastryQueen',
-		description: 'Desserts and pastries',
-		avatar: 'https://i.pravatar.cc/40?u=follow2',
-	},
-]
+// ============================================
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// ============================================
+
+// Empty array for MSW preparation - will be replaced with API call
+const suggestions: Array<{
+	id: number
+	name: string
+	description: string
+	avatar: string
+}> = []
+
+// ============================================
+// COMPONENT
+// ============================================
 
 export const RightSidebar = () => {
 	const { user } = useAuth()
@@ -33,31 +34,31 @@ export const RightSidebar = () => {
 		)
 	}
 
-	// Mock streak data - in production, this comes from user stats
+	// TODO: Fetch streak data from user stats API
 	const streakData = {
-		currentStreak: user?.statistics?.streakCount ?? 5,
+		currentStreak: user?.statistics?.streakCount ?? 0,
 		weekProgress: [
-			'cooked',
-			'cooked',
-			'cooked',
-			'cooked',
+			'future',
+			'future',
+			'future',
+			'future',
 			'today',
 			'future',
 			'future',
 		] as ('cooked' | 'today' | 'future')[],
-		isActiveToday: true,
-		status: 'active' as const,
+		isActiveToday: false,
+		status: 'active' as const, // Default to active, will be computed from API
 	}
 
-	// Mock daily challenge - in production, fetch from API
-	const dailyChallenge = {
-		id: 'daily-pasta',
-		title: 'Pasta Master',
-		description: 'Cook any pasta dish today to earn bonus XP!',
-		icon: '🍝',
-		bonusXp: 25,
-		endsAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours from now
-	}
+	// TODO: Fetch daily challenge from API - /api/v1/challenges/daily
+	const dailyChallenge: {
+		id: string
+		title: string
+		description: string
+		icon: string
+		bonusXp: number
+		endsAt: Date
+	} | null = null
 
 	return (
 		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-4 xl:flex xl:flex-col xl:gap-4'>
@@ -70,48 +71,52 @@ export const RightSidebar = () => {
 			/>
 
 			{/* Daily Challenge Banner (Expandable) */}
-			<ExpandableDailyChallengeBanner
-				challenge={dailyChallenge}
-				onFindRecipe={() => router.push('/explore?challenge=pasta')}
-			/>
+			{dailyChallenge && (
+				<ExpandableDailyChallengeBanner
+					challenge={dailyChallenge}
+					onFindRecipe={() => router.push('/explore?challenge=pasta')}
+				/>
+			)}
 
 			{/* Trending Creators Card */}
-			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-lg backdrop-blur-sm backdrop-saturate'>
-				<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
-					Trending Creators
-				</div>
-				<div className='flex flex-col gap-3'>
-					{suggestions.map(suggestion => {
-						const isFollowed = followedIds.includes(suggestion.id)
-						return (
-							<div key={suggestion.id} className='flex items-center gap-3'>
-								<div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg'>
-									<Image
-										src={suggestion.avatar}
-										alt={suggestion.name}
-										fill
-										className='object-cover'
-									/>
+			{suggestions.length > 0 && (
+				<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-lg backdrop-blur-sm backdrop-saturate'>
+					<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
+						Trending Creators
+					</div>
+					<div className='flex flex-col gap-3'>
+						{suggestions.map(suggestion => {
+							const isFollowed = followedIds.includes(suggestion.id)
+							return (
+								<div key={suggestion.id} className='flex items-center gap-3'>
+									<div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg'>
+										<Image
+											src={suggestion.avatar}
+											alt={suggestion.name}
+											fill
+											className='object-cover'
+										/>
+									</div>
+									<div className='min-w-0 flex-1'>
+										<strong className='block text-sm leading-tight text-text-primary'>
+											{suggestion.name}
+										</strong>
+										<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-text-secondary'>
+											{suggestion.description}
+										</span>
+									</div>
+									<button
+										onClick={() => handleFollow(suggestion.id)}
+										className='relative h-9 overflow-hidden rounded-lg border-none bg-gradient-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]'
+									>
+										{isFollowed ? 'Following' : 'Follow'}
+									</button>
 								</div>
-								<div className='min-w-0 flex-1'>
-									<strong className='block text-sm leading-tight text-text-primary'>
-										{suggestion.name}
-									</strong>
-									<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-text-secondary'>
-										{suggestion.description}
-									</span>
-								</div>
-								<button
-									onClick={() => handleFollow(suggestion.id)}
-									className='relative h-9 overflow-hidden rounded-lg border-none bg-gradient-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]'
-								>
-									{isFollowed ? 'Following' : 'Follow'}
-								</button>
-							</div>
-						)
-					})}
+							)
+						})}
+					</div>
 				</div>
-			</div>
+			)}
 		</aside>
 	)
 }

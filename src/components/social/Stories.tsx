@@ -5,30 +5,22 @@ import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 
-// Mock data - should come from API/store in production
-const stories = [
-	{
-		id: 1,
-		userId: 'user-1',
-		username: 'ChefAnna',
-		avatar: 'https://i.pravatar.cc/64?u=1',
-		viewed: false,
-	},
-	{
-		id: 2,
-		userId: 'user-2',
-		username: 'MarcoB',
-		avatar: 'https://i.pravatar.cc/64?u=2',
-		viewed: true,
-	},
-	{
-		id: 3,
-		userId: 'user-3',
-		username: 'Sofi_Cooks',
-		avatar: 'https://i.pravatar.cc/64?u=3',
-		viewed: false,
-	},
-]
+// ============================================
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// ============================================
+
+// Empty array for MSW preparation - will be replaced with API call
+const stories: Array<{
+	id: number
+	userId: string
+	username: string
+	avatar: string
+	viewed: boolean
+}> = []
+
+// ============================================
+// COMPONENT
+// ============================================
 
 interface StoriesProps {
 	variant?: 'horizontal' | 'compact'

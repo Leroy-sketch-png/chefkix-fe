@@ -67,39 +67,8 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		statistics.currentXPGoal - statistics.currentXP,
 	)
 
-	// Mock badges for now - TODO: fetch real badges from backend
-	const mockBadges: GamificationBadge[] = [
-		{
-			id: '1',
-			name: 'First Cook',
-			description: 'Cooked your first recipe',
-			icon: '🍳',
-			rarity: 'COMMON',
-			category: 'COOKING',
-			isHidden: false,
-			unlockCriteria: 'Cook your first recipe',
-		},
-		{
-			id: '2',
-			name: 'Streak Master',
-			description: '7-day cooking streak',
-			icon: '🔥',
-			rarity: 'RARE',
-			category: 'STREAK',
-			isHidden: false,
-			unlockCriteria: 'Maintain a 7-day cooking streak',
-		},
-		{
-			id: '3',
-			name: 'Recipe Creator',
-			description: 'Created your first recipe',
-			icon: '📝',
-			rarity: 'COMMON',
-			category: 'CREATOR',
-			isHidden: false,
-			unlockCriteria: 'Create and publish a recipe',
-		},
-	]
+	// TODO: Fetch real badges from API - /api/v1/badges/user/{userId}
+	const badges: GamificationBadge[] = []
 
 	return {
 		id: profile.userId,
@@ -130,8 +99,8 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 			streakCount: statistics.streakCount,
 			title: statistics.title,
 		},
-		badges: mockBadges,
-		totalBadges: mockBadges.length,
+		badges,
+		totalBadges: badges.length,
 	}
 }
 
@@ -140,46 +109,23 @@ type UserProfileProps = {
 	currentUserId?: string // Make currentUserId optional
 }
 
-// Mock cooking history data - in production, fetch from backend
-const mockCookingSessions: PendingSession[] = [
-	{
-		id: 'session-1',
-		recipeId: 'recipe-1',
-		recipeName: 'Spicy Tomato Ramen',
-		recipeImage: 'https://i.imgur.com/v8SjYfT.jpeg',
-		cookedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-		duration: 35,
-		baseXP: 50,
-		currentXP: 50,
-		expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000),
-		status: 'normal',
-		postId: 'post-123',
-		rating: 4.5,
-		cookCount: 1,
-	},
-	{
-		id: 'session-2',
-		recipeId: 'recipe-2',
-		recipeName: 'Creamy Carbonara',
-		recipeImage: 'https://i.imgur.com/bBDxvxd.jpeg',
-		cookedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-		duration: 25,
-		baseXP: 40,
-		currentXP: 40,
-		expiresAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-		status: 'expired',
-		postId: 'post-456',
-		rating: 5,
-		cookCount: 3,
-	},
-]
+// ============================================
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// ============================================
+
+// Empty array for MSW preparation - will be replaced with API call
+const mockCookingSessions: PendingSession[] = []
 
 const mockCookingStats = {
-	totalSessions: 12,
-	uniqueRecipes: 8,
-	pendingPosts: 1,
-	totalXPEarned: 580,
+	totalSessions: 0,
+	uniqueRecipes: 0,
+	pendingPosts: 0,
+	totalXPEarned: 0,
 }
+
+// ============================================
+// COMPONENT
+// ============================================
 
 export const UserProfile = ({
 	profile: initialProfile,

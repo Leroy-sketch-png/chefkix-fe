@@ -21,21 +21,16 @@ import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { useRouter } from 'next/navigation'
 
-// Mock pending sessions - in production, fetch from backend
-const mockPendingSessions: PendingSession[] = [
-	{
-		id: 'pending-1',
-		recipeId: 'recipe-1',
-		recipeName: 'Spicy Tomato Ramen',
-		recipeImage: 'https://i.imgur.com/v8SjYfT.jpeg',
-		cookedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-		duration: 35,
-		baseXP: 50,
-		currentXP: 50,
-		expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000), // 22 hours left
-		status: 'normal',
-	},
-]
+// ============================================
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// ============================================
+
+// Empty array for MSW preparation - will be replaced with API call
+const mockPendingSessions: PendingSession[] = []
+
+// ============================================
+// PAGE
+// ============================================
 
 export default function DashboardPage() {
 	const { user } = useAuth()
@@ -47,7 +42,7 @@ export default function DashboardPage() {
 	const [pendingSessions, setPendingSessions] =
 		useState<PendingSession[]>(mockPendingSessions)
 
-	// Mock streak risk data - in production, derive from user.statistics
+	// TODO: Fetch streak status from API - check if user has cooked today
 	const hasStreakAtRisk =
 		user?.statistics?.streakCount && user.statistics.streakCount > 0
 	const hoursUntilMidnight = 24 - new Date().getHours()

@@ -82,64 +82,32 @@ interface RecipeCreateAiFlowProps {
 }
 
 // ============================================
-// MOCK DATA GENERATOR
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
 // ============================================
 
+// These functions will be replaced with actual API calls to the recipe parsing service
+// For now they return empty/placeholder data to prepare for MSW
+
 const generateMockParsedRecipe = (rawText: string): ParsedRecipe => ({
-	title: 'Spicy Garlic Noodles',
-	description:
-		"A quick and flavorful Asian-inspired noodle dish that's ready in 20 minutes.",
-	cookTime: '20 min',
-	difficulty: 'Easy',
+	title: 'Parsed Recipe',
+	description: 'Recipe description will be parsed by AI',
+	cookTime: '-- min',
+	difficulty: 'Medium',
 	servings: 4,
-	cuisine: 'Asian',
-	ingredients: [
-		{ id: '1', quantity: '8 oz', name: 'rice noodles' },
-		{ id: '2', quantity: '4 cloves', name: 'garlic, minced' },
-		{ id: '3', quantity: '2 tbsp', name: 'soy sauce' },
-		{ id: '4', quantity: '1 tbsp', name: 'sesame oil' },
-		{ id: '5', quantity: '2', name: 'green onions, sliced' },
-	],
-	steps: [
-		{
-			id: '1',
-			instruction:
-				'Cook rice noodles according to package directions. Drain and set aside.',
-		},
-		{
-			id: '2',
-			instruction:
-				'Heat sesame oil in a large pan over medium heat. Add minced garlic and sauté until fragrant, about 1 minute.',
-			timerMinutes: 1,
-			technique: 'Sautéing',
-		},
-		{
-			id: '3',
-			instruction:
-				'Add noodles and soy sauce to the pan. Toss to combine and cook for 2-3 minutes.',
-			timerMinutes: 3,
-		},
-		{
-			id: '4',
-			instruction: 'Serve hot, garnished with green onions.',
-		},
-	],
-	detectedBadges: [
-		{ emoji: '🍜', name: 'Noodle Novice' },
-		{ emoji: '🌶️', name: 'Spice Seeker' },
-	],
+	cuisine: 'International',
+	ingredients: [],
+	steps: [],
+	detectedBadges: [],
 })
 
 const generateMockXpBreakdown = (recipe: ParsedRecipe): XpBreakdown => ({
-	base: 50,
-	steps: recipe.steps.length * 10,
-	time: 40,
-	techniques: recipe.steps
-		.filter(s => s.technique)
-		.map(s => ({ name: s.technique!, xp: 15 })),
-	total: 145,
-	isValidated: true,
-	confidence: 95,
+	base: 0,
+	steps: 0,
+	time: 0,
+	techniques: [],
+	total: 0,
+	isValidated: false,
+	confidence: 0,
 })
 
 // ============================================

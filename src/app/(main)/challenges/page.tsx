@@ -8,59 +8,40 @@ import {
 	ChallengeCardGrid,
 	DailyChallengeBanner,
 } from '@/components/challenges'
+import { EmptyStateGamified } from '@/components/shared'
 
-// Mock data - in production, fetch from API
-const mockChallenges = [
-	{
-		id: 'weekly-pasta',
-		type: 'weekly' as const,
-		title: 'The Ultimate Pasta-Off',
-		description:
-			'Create an original pasta dish using only 5 ingredients. Most creative recipe wins!',
-		icon: '🍝',
-		bonusXp: 150,
-		progress: { current: 0, total: 3 },
-		participants: 1204,
-		endsAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
-		status: 'active' as const,
-		isJoined: false,
-	},
-	{
-		id: 'community-comfort',
-		type: 'community' as const,
-		title: 'Comfort Food Week',
-		description: 'Share your favorite comfort food recipe with the community.',
-		icon: '🥘',
-		bonusXp: 75,
-		participants: 3542,
-		endsAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
-		status: 'active' as const,
-		isJoined: true,
-	},
-	{
-		id: 'seasonal-spring',
-		type: 'seasonal' as const,
-		title: 'Spring Fresh',
-		description: 'Cook dishes featuring fresh spring vegetables and herbs.',
-		icon: '🌸',
-		bonusXp: 200,
-		progress: { current: 2, total: 5 },
-		participants: 892,
-		endsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
-		status: 'active' as const,
-		isJoined: true,
-	},
-]
+// ============================================
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// ============================================
 
-// Mock daily challenge
-const dailyChallenge = {
-	id: 'daily-quick',
-	title: '15-Minute Meals',
-	description: 'Cook any dish in 15 minutes or less. Speed and flavor!',
-	icon: '⚡',
-	bonusXp: 25,
-	endsAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 hours from now
-}
+// Empty arrays for MSW preparation - will be replaced with API calls
+const mockChallenges: Array<{
+	id: string
+	type: 'weekly' | 'community' | 'seasonal'
+	title: string
+	description: string
+	icon: string
+	bonusXp: number
+	progress?: { current: number; total: number }
+	participants: number
+	endsAt: Date
+	status: 'active' | 'completed' | 'expired'
+	isJoined: boolean
+}> = []
+
+// Null daily challenge for MSW preparation
+const dailyChallenge: {
+	id: string
+	title: string
+	description: string
+	icon: string
+	bonusXp: number
+	endsAt: Date
+} | null = null
+
+// ============================================
+// PAGE
+// ============================================
 
 export default function ChallengesPage() {
 	const [challenges, setChallenges] = useState(mockChallenges)
@@ -71,6 +52,8 @@ export default function ChallengesPage() {
 			prev.map(c => (c.id === challengeId ? { ...c, isJoined: true } : c)),
 		)
 	}
+
+	const hasNoChallenges = challenges.length === 0 && !dailyChallenge
 
 	return (
 		<PageTransition>
@@ -85,37 +68,59 @@ export default function ChallengesPage() {
 					</p>
 				</div>
 
-				{/* Daily Challenge Banner - Featured */}
-				<DailyChallengeBanner
-					variant='active'
-					challenge={dailyChallenge}
-					onFindRecipe={() => console.log('Find quick recipes')}
-				/>
-
-				{/* Active Challenges Section */}
-				<section className='mb-8'>
-					<h2 className='mb-4 text-lg font-bold text-text-primary'>
-						Active Challenges
-					</h2>
-					<ChallengeCardGrid
-						challenges={challenges.map(c => ({
-							...c,
-							onJoin: () => handleJoin(c.id),
-							onView: () => console.log('View challenge:', c.id),
-						}))}
-						loading={loading}
+				{hasNoChallenges ? (
+					<EmptyStateGamified
+						variant='challenges'
+						title='No Active Challenges'
+						description='Check back soon for new cooking challenges!'
+						primaryAction={{
+							label: 'Explore Recipes',
+							href: '/explore',
+						}}
 					/>
-				</section>
+				) : (
+					<>
+						{/* Daily Challenge Banner - Featured */}
+						{dailyChallenge && (
+							<DailyChallengeBanner
+								variant='active'
+								challenge={dailyChallenge}
+								onFindRecipe={() => console.log('Find quick recipes')}
+							/>
+						)}
 
-				{/* Completed Challenges (placeholder) */}
-				<section>
-					<h2 className='mb-4 text-lg font-bold text-text-secondary'>
-						Past Challenges
-					</h2>
-					<p className='text-sm text-muted-foreground'>
-						Your completed challenges will appear here.
-					</p>
-				</section>
+						{/* Active Challenges Section */}
+						<section className='mb-8'>
+							<h2 className='mb-4 text-lg font-bold text-text-primary'>
+								Active Challenges
+							</h2>
+							{challenges.length > 0 ? (
+								<ChallengeCardGrid
+									challenges={challenges.map(c => ({
+										...c,
+										onJoin: () => handleJoin(c.id),
+										onView: () => console.log('View challenge:', c.id),
+									}))}
+									loading={loading}
+								/>
+							) : (
+								<p className='text-sm text-muted-foreground'>
+									No active challenges at the moment.
+								</p>
+							)}
+						</section>
+
+						{/* Completed Challenges (placeholder) */}
+						<section>
+							<h2 className='mb-4 text-lg font-bold text-text-secondary'>
+								Past Challenges
+							</h2>
+							<p className='text-sm text-muted-foreground'>
+								Your completed challenges will appear here.
+							</p>
+						</section>
+					</>
+				)}
 			</PageContainer>
 		</PageTransition>
 	)

@@ -10,66 +10,21 @@ import {
 } from '@/components/challenges'
 
 // ============================================
-// MOCK DATA
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
 // ============================================
 
-const generateMockDays = (): ChallengeDay[] => {
-	const today = new Date()
-	const days: ChallengeDay[] = []
+// Empty array for MSW preparation - will be replaced with API call
+const mockDays: ChallengeDay[] = []
 
-	const challenges = [
-		{ title: 'Spice Master', emoji: '🌶️', xp: 75 },
-		{ title: 'Seafood Splash', emoji: '🍣', xp: 50 },
-		{ title: 'Italian Night', emoji: '🇮🇹', xp: 50 },
-		{ title: 'Plant Power', emoji: '🥬', xp: 75 },
-		{ title: 'Quick Bite', emoji: '⏱️', xp: 25 },
-		{ title: 'Noodle Day', emoji: '🍜', xp: 50 },
-		{ title: 'Sweet Treat', emoji: '🍰', xp: 50 },
-		{ title: 'Comfort Food', emoji: '🍲', xp: 50 },
-		{ title: 'Grill Master', emoji: '🥩', xp: 75 },
-		{ title: 'Breakfast Club', emoji: '🥞', xp: 50 },
-	]
-
-	for (let i = 0; i < 14; i++) {
-		const date = new Date(today)
-		date.setDate(date.getDate() - i)
-
-		const challenge = challenges[i % challenges.length]
-
-		let status: ChallengeDay['status']
-		if (i === 0) {
-			status = 'today'
-		} else if (i === 3 || i === 8) {
-			status = 'missed'
-		} else {
-			status = 'completed'
-		}
-
-		days.push({
-			date,
-			status,
-			challenge,
-			recipeCooked:
-				status !== 'missed'
-					? {
-							id: `recipe-${i}`,
-							title: `${challenge.title} Recipe`,
-							imageUrl: `https://i.imgur.com/v8SjYfT.jpeg`,
-						}
-					: undefined,
-		})
-	}
-
-	// Add a future day
-	const tomorrow = new Date(today)
-	tomorrow.setDate(tomorrow.getDate() + 1)
-	days.unshift({
-		date: tomorrow,
-		status: 'upcoming',
-		challenge: { title: 'Sweet Treat', emoji: '🍰', xp: 50 },
-	})
-
-	return days
+// Default stats for empty state
+const defaultStats = {
+	currentStreak: 0,
+	completedThisWeek: 0,
+	totalDays: 7,
+	bonusXpEarned: 0,
+	bestStreak: 0,
+	totalCompleted: 0,
+	totalBonusXp: 0,
 }
 
 // ============================================
@@ -81,17 +36,9 @@ export default function ChallengeHistoryPageRoute() {
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-	const mockDays = generateMockDays()
-
-	const stats = {
-		currentStreak: 5,
-		completedThisWeek: 5,
-		totalDays: 7,
-		bonusXpEarned: 275,
-		bestStreak: 12,
-		totalCompleted: 47,
-		totalBonusXp: 2450,
-	}
+	// TODO: Fetch from API - /api/v1/challenges/history
+	const days = mockDays
+	const stats = defaultStats
 
 	const handleMonthChange = (direction: 'prev' | 'next') => {
 		const newMonth = new Date(currentMonth)
@@ -101,7 +48,7 @@ export default function ChallengeHistoryPageRoute() {
 
 	const handleLoadMore = () => {
 		setIsLoadingMore(true)
-		// Simulate loading
+		// TODO: Fetch next page from API
 		setTimeout(() => setIsLoadingMore(false), 1000)
 	}
 
@@ -109,7 +56,7 @@ export default function ChallengeHistoryPageRoute() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<ChallengeHistoryPage
-					days={mockDays}
+					days={days}
 					stats={stats}
 					currentMonth={currentMonth}
 					onMonthChange={handleMonthChange}

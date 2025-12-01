@@ -6,111 +6,67 @@ import { CreatorDashboard } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 
+// ============================================
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// ============================================
+
+// Default empty state data for MSW preparation
+const defaultWeekHighlight = {
+	newCooks: 0,
+	newCooksChange: 0,
+	xpEarned: 0,
+	xpEarnedChange: 0,
+	dateRange: new Date().toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric',
+	}),
+}
+
+const defaultLifetimeStats = {
+	recipesPublished: 0,
+	totalCooks: 0,
+	creatorXpEarned: 0,
+	avgRating: 0,
+}
+
+// ============================================
+// PAGE
+// ============================================
+
 export default function CreatorRoute() {
 	const { user } = useAuth()
 	const router = useRouter()
 
-	// Mock data matching CreatorDashboardProps interface
-	const weekHighlight = {
-		newCooks: 47,
-		newCooksChange: 12,
-		xpEarned: 235,
-		xpEarnedChange: 8,
-		dateRange: 'Nov 25 - Dec 1',
-	}
-
-	const lifetimeStats = {
-		recipesPublished: 12,
-		totalCooks: 847,
-		creatorXpEarned: 4250,
-		avgRating: 4.7,
-	}
-
-	const creatorBadges = [
-		{
-			id: 'badge-1',
-			icon: '🍝',
-			name: 'Pasta Master',
-			description: 'Created 5 pasta recipes',
-			isEarned: true,
-		},
-		{
-			id: 'badge-2',
-			icon: '🔥',
-			name: 'Trending Creator',
-			description: 'Recipe in top 10',
-			isEarned: true,
-		},
-		{
-			id: 'badge-3',
-			icon: '👨‍🍳',
-			name: '100 Cooks',
-			description: 'Recipes cooked 100+ times',
-			isEarned: false,
-		},
-	]
-
-	const topRecipe = {
-		id: 'recipe-1',
-		title: 'Spicy Tomato Ramen',
-		imageUrl: 'https://i.imgur.com/v8SjYfT.jpeg',
-		cookTime: 35,
-		difficulty: 'Medium' as const,
-		cookCount: 234,
-		xpGenerated: 1170,
-		rating: 4.8,
-	}
-
-	const recipePerformance = [
-		{
-			id: 'recipe-1',
-			rank: 1,
-			title: 'Spicy Tomato Ramen',
-			imageUrl: 'https://i.imgur.com/v8SjYfT.jpeg',
-			cookCount: 234,
-			xpGenerated: 1170,
-			badge: { type: 'milestone' as const, label: '200+ cooks' },
-		},
-		{
-			id: 'recipe-2',
-			rank: 2,
-			title: 'Creamy Carbonara',
-			imageUrl: 'https://i.imgur.com/bBDxvxd.jpeg',
-			cookCount: 189,
-			xpGenerated: 945,
-			badge: { type: 'trending' as const, label: 'Trending' },
-		},
-		{
-			id: 'recipe-3',
-			rank: 3,
-			title: 'Thai Green Curry',
-			imageUrl: 'https://i.imgur.com/3VhVxqG.jpeg',
-			cookCount: 156,
-			xpGenerated: 780,
-			needsAttention: true,
-		},
-	]
-
-	const recentCooks = [
-		{
-			id: 'cook-1',
-			userId: 'user-1',
-			userName: 'ChefMaria',
-			userAvatar: 'https://i.pravatar.cc/40?u=1',
-			recipeTitle: 'Spicy Tomato Ramen',
-			xpEarned: 5,
-			timeAgo: '2h ago',
-		},
-		{
-			id: 'cook-2',
-			userId: 'user-2',
-			userName: 'PastaLover',
-			userAvatar: 'https://i.pravatar.cc/40?u=2',
-			recipeTitle: 'Creamy Carbonara',
-			xpEarned: 5,
-			timeAgo: '5h ago',
-		},
-	]
+	// TODO: Fetch from API - /api/v1/creator/stats
+	const weekHighlight = defaultWeekHighlight
+	const lifetimeStats = defaultLifetimeStats
+	const creatorBadges: Array<{
+		id: string
+		icon: string
+		name: string
+		description: string
+		isEarned: boolean
+	}> = []
+	const topRecipe = null
+	const recipePerformance: Array<{
+		id: string
+		rank: number
+		title: string
+		imageUrl: string
+		cookCount: number
+		xpGenerated: number
+		badge?: { type: 'milestone' | 'trending'; label: string }
+		needsAttention?: boolean
+	}> = []
+	const recentCooks: Array<{
+		id: string
+		userId: string
+		userName: string
+		userAvatar: string
+		recipeTitle: string
+		xpEarned: number
+		timeAgo: string
+	}> = []
 
 	return (
 		<PageTransition>

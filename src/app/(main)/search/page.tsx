@@ -75,90 +75,13 @@ interface PostResult {
 }
 
 // ============================================
-// MOCK DATA
+// MOCK DATA - TODO: Replace with API integration (MSW ready)
 // ============================================
 
-const mockRecipeResults: RecipeResult[] = [
-	{
-		id: '1',
-		title: 'Classic Roman Carbonara',
-		imageUrl:
-			'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400',
-		rating: 4.8,
-		cookTime: '25 min',
-		difficulty: 'Medium',
-		author: {
-			username: 'italianfoodie',
-			avatarUrl: 'https://i.pravatar.cc/32?u=chef1',
-		},
-		cookCount: 2400,
-		isSaved: false,
-	},
-	{
-		id: '2',
-		title: 'Creamy Carbonara Twist',
-		imageUrl:
-			'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400',
-		rating: 4.6,
-		cookTime: '20 min',
-		difficulty: 'Easy',
-		author: {
-			username: 'pastaqueen',
-			avatarUrl: 'https://i.pravatar.cc/32?u=chef2',
-		},
-		cookCount: 1800,
-		isSaved: true,
-	},
-	{
-		id: '3',
-		title: 'Spicy Carbonara Fusion',
-		imageUrl:
-			'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400',
-		rating: 4.5,
-		cookTime: '30 min',
-		difficulty: 'Medium',
-		author: {
-			username: 'fusionchef',
-			avatarUrl: 'https://i.pravatar.cc/32?u=chef3',
-		},
-		cookCount: 950,
-		isSaved: false,
-	},
-]
-
-const mockPeopleResults: PersonResult[] = [
-	{
-		id: '1',
-		displayName: 'Maria Romano',
-		username: 'italianfoodie',
-		avatarUrl: 'https://i.pravatar.cc/56?u=user1',
-		bio: 'Italian cuisine enthusiast 🇮🇹 | 200+ recipes',
-		isFollowing: false,
-	},
-	{
-		id: '2',
-		displayName: 'Chef Antonio',
-		username: 'chefantonio',
-		avatarUrl: 'https://i.pravatar.cc/56?u=user2',
-		bio: 'Professional chef | Traditional recipes',
-		isFollowing: true,
-	},
-]
-
-const mockPostResults: PostResult[] = [
-	{
-		id: '1',
-		imageUrl:
-			'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400',
-		caption: 'Made the best carbonara today! 🍝',
-		author: {
-			username: 'homecook',
-			avatarUrl: 'https://i.pravatar.cc/32?u=p1',
-		},
-		likeCount: 124,
-		recipeId: '1',
-	},
-]
+// Empty arrays for MSW preparation - will be replaced with API calls
+const mockRecipeResults: RecipeResult[] = []
+const mockPeopleResults: PersonResult[] = []
+const mockPostResults: PostResult[] = []
 
 // ============================================
 // COMPONENTS

@@ -554,24 +554,8 @@ function determineMessageType(text: string): MessageType {
 	return 'text'
 }
 
+// TODO: Replace with actual API call to /api/v1/cooking_assistant
+// This is a placeholder that will be handled by MSW in development
 function generateMockResponse(prompt: string, currentStep: string): string {
-	const lower = prompt.toLowerCase()
-
-	if (lower.includes('substitute') || lower.includes('missing')) {
-		return 'Great question! For most recipes, you can substitute butter with olive oil at a 3:4 ratio (3/4 cup olive oil per 1 cup butter). The texture will be slightly different but the dish will still be delicious!'
-	}
-
-	if (lower.includes('technique')) {
-		return `For this step, make sure you're using medium-high heat. The key is to keep everything moving in the pan - stir frequently to prevent burning. You'll know it's ready when you see a light golden color and smell that aromatic fragrance.`
-	}
-
-	if (lower.includes('done') || lower.includes('ready')) {
-		return `Look for these signs: the edges should be slightly crispy, the center should be set but still slightly jiggly, and the color should be golden brown. A good test is to gently shake the pan - if it moves as one piece, you're done!`
-	}
-
-	if (lower.includes('wrong')) {
-		return `Don't worry, let's fix this! First, remove it from heat immediately. If it's slightly overcooked, you can often save it by adding a splash of liquid (water, broth, or cream) and stirring gently. What specifically happened?`
-	}
-
-	return `I understand your question about this step. Based on the recipe, ${currentStep.slice(0, 50)}... The best approach is to go slowly and trust your senses - look, smell, and taste as you go!`
+	return 'AI cooking assistant response will be provided by the backend API. Please connect to the cooking assistant service.'
 }
