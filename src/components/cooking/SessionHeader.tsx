@@ -127,7 +127,8 @@ export const SessionHeader = ({
 	onAiAssist,
 	className,
 }: SessionHeaderProps) => {
-	const isPaused = session.status === 'PAUSED'
+	// API status uses lowercase per spec 08-cooking-sessions.txt
+	const isPaused = session.status === 'paused'
 	const isIdleWarning = session.idleWarningShown
 	const hasActiveTimers = activeTimers.some(t => t.isRunning)
 	const urgentTimer = activeTimers.find(t => t.isRunning && t.remaining < 30)

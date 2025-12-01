@@ -57,7 +57,8 @@ export interface XPReward {
 // DIFFICULTY
 // ============================================
 
-export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD'
+// Canonical difficulty levels per spec 07-recipes.txt
+export type Difficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT'
 
 // ============================================
 // BADGES
@@ -92,11 +93,14 @@ export interface Badge {
 // COOKING SESSIONS
 // ============================================
 
+// Per spec 08-cooking-sessions.txt
 export type CookingSessionStatus =
-	| 'IN_PROGRESS'
-	| 'PAUSED'
-	| 'COMPLETED'
-	| 'ABANDONED'
+	| 'in_progress' // actively cooking
+	| 'paused' // explicitly paused, can resume within 3h
+	| 'completed' // finished cooking, awaiting optional post (14 days)
+	| 'abandoned' // 3h idle timeout with no active timers
+	| 'posted' // post linked, full XP awarded
+	| 'expired' // 14 days passed without posting (locked at base XP)
 
 export type PendingPostStatus =
 	| 'FRESH' // Day 1-3, full XP available
@@ -114,6 +118,22 @@ export interface Timer {
 	stepNumber?: number
 }
 
+// Timer event for audit trail (per spec 08-cooking-sessions.txt)
+export interface TimerEvent {
+	stepNumber: number
+	event: 'start' | 'complete' | 'skip'
+	clientTimestamp: string
+	serverTimestamp?: string
+}
+
+// Active timer state from backend
+export interface ActiveTimer {
+	stepNumber: number
+	totalSeconds: number
+	startedAt: string
+	remainingSeconds: number
+}
+
 export interface CookingSession {
 	id: string
 	userId: string
@@ -121,9 +141,9 @@ export interface CookingSession {
 	recipe: {
 		id: string
 		title: string
-		imageUrl: string
+		imageUrl?: string
 		totalSteps: number
-		estimatedTime: number // minutes
+		estimatedTime?: number // minutes (cookTimeMinutes)
 		xpReward: number
 	}
 	status: CookingSessionStatus
@@ -132,18 +152,31 @@ export interface CookingSession {
 	startedAt: string
 	pausedAt?: string
 	completedAt?: string
-	timers: Timer[]
+	// Timer tracking (per spec)
+	timers: Timer[] // frontend-managed timers
+	timerEvents?: TimerEvent[] // audit trail
+	activeTimers?: ActiveTimer[] // from backend
 	// XP breakdown
-	baseXP: number
-	bonusXP: number // streak bonus, challenge bonus, etc.
-	instantXP: number // 30% unlocked immediately
-	pendingXP: number // 70% locked until post
+	baseXP?: number
+	bonusXP?: number // streak bonus, challenge bonus, etc.
+	instantXP?: number // 30% unlocked immediately (baseXpAwarded in spec)
+	pendingXP?: number // 70% locked until post
+	remainingXpAwarded?: number // actual XP claimed on post (after decay)
+	// Post linkage (per spec)
+	postId?: string // linked post ID
+	postDeadline?: string // 14 days from completion
 	// Session flags
-	isFirstCook: boolean // first time cooking anything
-	isFirstCookOfRecipe: boolean // first time cooking THIS recipe
+	isFirstCook?: boolean // first time cooking anything
+	isFirstCookOfRecipe?: boolean // first time cooking THIS recipe
 	challengeId?: string // if cooking for a challenge
-	pauseCount: number
-	idleWarningShown: boolean
+	pauseCount?: number
+	idleWarningShown?: boolean
+	// Validation flags (per spec)
+	flagged?: boolean
+	flagReason?: string
+	// Rating from user
+	rating?: number // 1-5 stars
+	notes?: string
 }
 
 export interface PendingPost {
@@ -213,7 +246,7 @@ export interface Challenge {
 	completedWithRecipeId?: string
 	// Matching criteria
 	cuisineFilter?: string[]
-	difficultyFilter?: ('EASY' | 'MEDIUM' | 'HARD')[]
+	difficultyFilter?: Difficulty[]
 	tagFilter?: string[]
 	matchingRecipeCount: number
 }

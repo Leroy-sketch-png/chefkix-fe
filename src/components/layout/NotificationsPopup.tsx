@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useUiStore } from '@/store/uiStore'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
@@ -18,10 +19,15 @@ import {
 	NotificationItemGamified,
 	type GamifiedNotification,
 } from '@/components/notifications/NotificationItemsGamified'
+import {
+	getNotifications,
+	markAllNotificationsRead,
+	type Notification as APINotification,
+} from '@/services/notification'
 
 type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
 
-interface Notification {
+interface SocialNotification {
 	id: number
 	type: NotificationType
 	userId: string
@@ -33,73 +39,142 @@ interface Notification {
 	read: boolean
 }
 
-// Social notifications (non-gamified)
-const socialNotifications: Notification[] = [
-	{
-		id: 1,
-		type: 'like',
-		userId: 'user-1',
-		user: 'Chef Marco',
-		avatar: 'https://i.pravatar.cc/48?u=1',
-		action: 'liked your recipe',
-		target: 'Spicy Carbonara',
-		time: '2 minutes ago',
-		read: false,
-	},
-	{
-		id: 2,
-		type: 'comment',
-		userId: 'user-2',
-		user: 'Lisa Chen',
-		avatar: 'https://i.pravatar.cc/48?u=2',
-		action: 'commented: "This looks amazing! 🤤"',
-		time: '15 minutes ago',
-		read: false,
-	},
-	{
-		id: 3,
-		type: 'follow',
-		userId: 'user-3',
-		user: 'RamenKing',
-		avatar: 'https://i.pravatar.cc/48?u=3',
-		action: 'started following you',
-		time: '1 hour ago',
-		read: true,
-	},
-]
+// Helper to transform API notification to gamified notification format
+const transformToGamifiedNotification = (
+	notif: APINotification,
+): GamifiedNotification | null => {
+	const data = notif.data as Record<string, unknown>
+	const timestamp = new Date(notif.createdAt)
 
-// Gamified notifications (XP, levels, badges, streaks)
-const gamifiedNotifications: GamifiedNotification[] = [
-	{
-		id: 'gam-1',
-		type: 'xp_awarded',
-		recipeName: 'Creamy Carbonara',
-		xpAmount: 15,
-		pendingXp: 35,
-		timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 min ago
-		isRead: false,
-	},
-	{
-		id: 'gam-2',
-		type: 'streak_warning',
-		streakCount: 7,
-		hoursRemaining: 6,
-		timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2h ago
-		isRead: false,
-	},
-	{
-		id: 'gam-3',
-		type: 'creator_bonus',
-		cookerName: 'PastryQueen',
-		cookerUsername: 'pastryqueen',
-		cookerAvatarUrl: 'https://i.pravatar.cc/48?u=4',
-		recipeName: 'Fluffy Pancakes',
-		xpBonus: 5,
-		totalCookRewards: 12,
-		timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3h ago
-		isRead: true,
-	},
-]
+	switch (notif.type) {
+		case 'xp_awarded':
+			return {
+				id: notif.id,
+				type: 'xp_awarded',
+				recipeName: (data.recipeName as string) || 'Recipe',
+				xpAmount: (data.xpAmount as number) || 0,
+				pendingXp: (data.pendingXp as number) || 0,
+				timestamp,
+				isRead: notif.read,
+			}
+		case 'level_up':
+			return {
+				id: notif.id,
+				type: 'level_up',
+				newLevel: (data.newLevel as number) || 1,
+				newGoalXp: (data.newGoalXp as number) || 1000,
+				recipesToNextLevel: (data.recipesToNextLevel as number) || 5,
+				timestamp,
+				isRead: notif.read,
+			}
+		case 'badge_unlocked':
+			return {
+				id: notif.id,
+				type: 'badge_unlocked',
+				badgeIcon: (data.badgeIcon as string) || '🏆',
+				badgeName: (data.badgeName as string) || 'Badge',
+				badgeRarity:
+					(data.badgeRarity as 'common' | 'rare' | 'epic' | 'legendary') ||
+					'common',
+				requirement: (data.requirement as string) || '',
+				timestamp,
+				isRead: notif.read,
+			}
+		case 'creator_bonus':
+			return {
+				id: notif.id,
+				type: 'creator_bonus',
+				cookerName: (data.cookerName as string) || 'User',
+				cookerUsername: (data.cookerUsername as string) || 'user',
+				cookerAvatarUrl:
+					(data.cookerAvatarUrl as string) || '/placeholder-avatar.png',
+				recipeName: (data.recipeName as string) || 'Recipe',
+				xpBonus: (data.xpBonus as number) || 0,
+				totalCookRewards: (data.totalCookRewards as number) || 1,
+				timestamp,
+				isRead: notif.read,
+			}
+		case 'post_deadline':
+			return {
+				id: notif.id,
+				type: 'post_deadline',
+				recipeName: (data.recipeName as string) || 'Recipe',
+				daysRemaining: (data.daysRemaining as number) || 14,
+				pendingXp: (data.pendingXp as number) || 0,
+				timestamp,
+				isRead: notif.read,
+			}
+		case 'streak_warning':
+			return {
+				id: notif.id,
+				type: 'streak_warning',
+				streakCount: (data.streakCount as number) || 0,
+				hoursRemaining: (data.hoursRemaining as number) || 24,
+				timestamp,
+				isRead: notif.read,
+			}
+		case 'challenge_reminder':
+			return {
+				id: notif.id,
+				type: 'challenge_reminder',
+				challengeTitle: (data.challengeTitle as string) || 'Daily Challenge',
+				challengeDescription: (data.challengeDescription as string) || '',
+				xpBonusPercent: (data.xpBonusPercent as number) || 25,
+				hoursRemaining: (data.hoursRemaining as number) || 24,
+				timestamp,
+				isRead: notif.read,
+			}
+		default:
+			return null
+	}
+}
+
+// Helper to format time ago
+const formatTimeAgo = (date: Date): string => {
+	const now = new Date()
+	const diffMs = now.getTime() - date.getTime()
+	const diffMins = Math.floor(diffMs / 60000)
+	const diffHours = Math.floor(diffMs / 3600000)
+	const diffDays = Math.floor(diffMs / 86400000)
+
+	if (diffMins < 1) return 'Just now'
+	if (diffMins < 60) return `${diffMins} min ago`
+	if (diffHours < 24) return `${diffHours}h ago`
+	if (diffDays === 1) return 'Yesterday'
+	return `${diffDays}d ago`
+}
+
+// Helper to transform API notification to social notification format
+const transformToSocialNotification = (
+	notif: APINotification,
+	index: number,
+): SocialNotification | null => {
+	const data = notif.data as Record<string, unknown>
+	const timestamp = new Date(notif.createdAt)
+
+	const typeMap: Record<string, NotificationType> = {
+		new_follower: 'follow',
+		post_liked: 'like',
+		recipe_liked: 'like',
+		comment: 'comment',
+		reply: 'comment',
+	}
+
+	const type = typeMap[notif.type]
+	if (!type) return null
+
+	return {
+		id: index,
+		type,
+		userId: (data.userId as string) || '',
+		user: (data.userName as string) || (data.displayName as string) || 'User',
+		avatar: (data.avatarUrl as string) || '/placeholder-avatar.png',
+		action: notif.body,
+		target: (data.targetTitle as string) || undefined,
+		time: formatTimeAgo(timestamp),
+		read: notif.read,
+	}
+}
 
 const NotificationBadge = ({ type }: { type: NotificationType }) => {
 	const iconMap = {
@@ -128,22 +203,76 @@ export const NotificationsPopup = () => {
 	const { isNotificationsPopupOpen, toggleNotificationsPopup } = useUiStore()
 	const { user } = useAuth()
 	const router = useRouter()
+	const [gamifiedNotifications, setGamifiedNotifications] = useState<
+		GamifiedNotification[]
+	>([])
+	const [socialNotifications, setSocialNotifications] = useState<
+		SocialNotification[]
+	>([])
+	const [unreadCount, setUnreadCount] = useState(0)
+	const [isLoading, setIsLoading] = useState(false)
+
+	// Fetch notifications when popup opens
+	useEffect(() => {
+		if (!isNotificationsPopupOpen) return
+
+		const fetchNotifications = async () => {
+			setIsLoading(true)
+			try {
+				const response = await getNotifications({ size: 20 })
+				if (response.success && response.data) {
+					const { notifications, unreadCount: count } = response.data
+					setUnreadCount(count)
+
+					// Split notifications into gamified and social
+					const gamified: GamifiedNotification[] = []
+					const social: SocialNotification[] = []
+
+					notifications.forEach((notif, idx) => {
+						const gamifiedNotif = transformToGamifiedNotification(notif)
+						if (gamifiedNotif) {
+							gamified.push(gamifiedNotif)
+						} else {
+							const socialNotif = transformToSocialNotification(notif, idx)
+							if (socialNotif) {
+								social.push(socialNotif)
+							}
+						}
+					})
+
+					setGamifiedNotifications(gamified)
+					setSocialNotifications(social)
+				}
+			} catch (err) {
+				console.error('Failed to fetch notifications:', err)
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchNotifications()
+	}, [isNotificationsPopupOpen])
 
 	if (!isNotificationsPopupOpen) return null
 
-	const handleMarkAllRead = () => {
-		// TODO: Implement mark all as read API call
-		// toast.info('Mark all as read feature coming soon')
+	const handleMarkAllRead = async () => {
+		try {
+			const response = await markAllNotificationsRead()
+			if (response.success) {
+				setUnreadCount(0)
+				setGamifiedNotifications(prev =>
+					prev.map(n => ({ ...n, isRead: true })),
+				)
+				setSocialNotifications(prev => prev.map(n => ({ ...n, read: true })))
+			}
+		} catch (err) {
+			console.error('Failed to mark all as read:', err)
+		}
 	}
 
 	const handleClose = () => {
 		toggleNotificationsPopup()
 	}
-
-	// Count unread notifications
-	const unreadCount =
-		gamifiedNotifications.filter(n => !n.isRead).length +
-		socialNotifications.filter(n => !n.read).length
 
 	return (
 		<>

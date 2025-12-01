@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import {
@@ -9,13 +9,13 @@ import {
 	DailyChallengeBanner,
 } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
+import { getTodaysChallenge, DailyChallenge } from '@/services/challenge'
 
 // ============================================
-// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// TYPES
 // ============================================
 
-// Empty arrays for MSW preparation - will be replaced with API calls
-const mockChallenges: Array<{
+interface ChallengeUIItem {
 	id: string
 	type: 'weekly' | 'community' | 'seasonal'
 	title: string
@@ -27,25 +27,50 @@ const mockChallenges: Array<{
 	endsAt: Date
 	status: 'active' | 'completed' | 'expired'
 	isJoined: boolean
-}> = []
-
-// Null daily challenge for MSW preparation
-const dailyChallenge: {
-	id: string
-	title: string
-	description: string
-	icon: string
-	bonusXp: number
-	endsAt: Date
-} | null = null
+}
 
 // ============================================
 // PAGE
 // ============================================
 
 export default function ChallengesPage() {
-	const [challenges, setChallenges] = useState(mockChallenges)
-	const [loading] = useState(false)
+	const [challenges, setChallenges] = useState<ChallengeUIItem[]>([])
+	const [dailyChallenge, setDailyChallenge] = useState<{
+		id: string
+		title: string
+		description: string
+		icon: string
+		bonusXp: number
+		endsAt: Date
+	} | null>(null)
+	const [loading, setLoading] = useState(true)
+
+	useEffect(() => {
+		const fetchChallenges = async () => {
+			setLoading(true)
+			try {
+				const response = await getTodaysChallenge()
+				if (response.success && response.data) {
+					const data = response.data
+					setDailyChallenge({
+						id: data.id,
+						title: data.title,
+						description: data.description,
+						icon: data.icon,
+						bonusXp: data.bonusXp,
+						endsAt: new Date(data.endsAt),
+					})
+				}
+				// TODO: Fetch weekly/community challenges when endpoint is available
+			} catch (err) {
+				console.error('Failed to fetch challenges:', err)
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		fetchChallenges()
+	}, [])
 
 	const handleJoin = (challengeId: string) => {
 		setChallenges(prev =>
@@ -53,7 +78,7 @@ export default function ChallengesPage() {
 		)
 	}
 
-	const hasNoChallenges = challenges.length === 0 && !dailyChallenge
+	const hasNoChallenges = challenges.length === 0 && !dailyChallenge && !loading
 
 	return (
 		<PageTransition>

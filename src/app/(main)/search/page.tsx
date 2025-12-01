@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -31,6 +31,11 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
+import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
+import { getAllRecipes } from '@/services/recipe'
+import { getAllProfiles } from '@/services/profile'
+import { getFeedPosts } from '@/services/post'
+import { Recipe, Profile, Post } from '@/lib/types'
 
 // ============================================
 // TYPES
@@ -44,7 +49,7 @@ interface RecipeResult {
 	imageUrl: string
 	rating: number
 	cookTime: string
-	difficulty: 'Easy' | 'Medium' | 'Hard'
+	difficulty: DifficultyDisplay
 	author: {
 		username: string
 		avatarUrl: string
@@ -73,15 +78,6 @@ interface PostResult {
 	likeCount: number
 	recipeId?: string
 }
-
-// ============================================
-// MOCK DATA - TODO: Replace with API integration (MSW ready)
-// ============================================
-
-// Empty arrays for MSW preparation - will be replaced with API calls
-const mockRecipeResults: RecipeResult[] = []
-const mockPeopleResults: PersonResult[] = []
-const mockPostResults: PostResult[] = []
 
 // ============================================
 // COMPONENTS
@@ -272,6 +268,46 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 }
 
 // ============================================
+// HELPERS
+// ============================================
+
+const transformRecipe = (recipe: Recipe): RecipeResult => ({
+	id: recipe.id,
+	title: recipe.title,
+	imageUrl: recipe.imageUrl || '/placeholder-recipe.jpg',
+	rating: 4.5, // TODO: Add rating to Recipe type when backend supports
+	cookTime: `${recipe.prepTime + recipe.cookTime} min`,
+	difficulty: difficultyToDisplay(recipe.difficulty),
+	author: {
+		username: recipe.author?.username || 'chef',
+		avatarUrl: recipe.author?.avatarUrl || '/placeholder-avatar.png',
+	},
+	cookCount: recipe.cookCount || 0,
+	isSaved: recipe.isSaved,
+})
+
+const transformProfile = (profile: Profile): PersonResult => ({
+	id: profile.userId,
+	displayName: profile.displayName || profile.username,
+	username: profile.username,
+	avatarUrl: profile.avatarUrl || '/placeholder-avatar.png',
+	bio: profile.bio || '',
+	isFollowing: profile.isFollowing,
+})
+
+const transformPost = (post: Post): PostResult => ({
+	id: post.id,
+	imageUrl: post.photoUrls?.[0] || post.photoUrl || '/placeholder-post.jpg',
+	caption: post.content || '',
+	author: {
+		username: post.displayName || 'user',
+		avatarUrl: post.avatarUrl || '/placeholder-avatar.png',
+	},
+	likeCount: post.likes || 0,
+	recipeId: undefined, // Post type doesn't have recipeId field
+})
+
+// ============================================
 // PAGE
 // ============================================
 
@@ -279,16 +315,70 @@ export default function SearchPage() {
 	const searchParams = useSearchParams()
 	const query = searchParams.get('q') || ''
 	const [activeTab, setActiveTab] = useState<SearchTab>('recipes')
+	const [isLoading, setIsLoading] = useState(false)
+	const [results, setResults] = useState<{
+		recipes: RecipeResult[]
+		people: PersonResult[]
+		posts: PostResult[]
+	}>({
+		recipes: [],
+		people: [],
+		posts: [],
+	})
 
-	// In production, fetch results based on query
-	const results = useMemo(
-		() => ({
-			recipes: mockRecipeResults,
-			people: mockPeopleResults,
-			posts: mockPostResults,
-		}),
-		[],
-	)
+	// Fetch search results when query changes
+	useEffect(() => {
+		const fetchResults = async () => {
+			if (!query) return
+
+			setIsLoading(true)
+			try {
+				// Fetch all result types in parallel
+				// TODO: Replace with actual search endpoints when available
+				const [recipesRes, profilesRes, postsRes] = await Promise.all([
+					getAllRecipes(), // TODO: Add search param when endpoint supports
+					getAllProfiles(),
+					getFeedPosts({ limit: 20 }),
+				])
+
+				// Filter results client-side for now (until search endpoint exists)
+				const queryLower = query.toLowerCase()
+
+				const recipes =
+					recipesRes.success && recipesRes.data
+						? recipesRes.data
+								.filter(r => r.title.toLowerCase().includes(queryLower))
+								.map(transformRecipe)
+						: []
+
+				const people =
+					profilesRes.success && profilesRes.data
+						? profilesRes.data
+								.filter(
+									p =>
+										p.username.toLowerCase().includes(queryLower) ||
+										p.displayName?.toLowerCase().includes(queryLower),
+								)
+								.map(transformProfile)
+						: []
+
+				const posts =
+					postsRes.success && postsRes.data
+						? postsRes.data
+								.filter(p => p.content?.toLowerCase().includes(queryLower))
+								.map(transformPost)
+						: []
+
+				setResults({ recipes, people, posts })
+			} catch (err) {
+				console.error('Search failed:', err)
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchResults()
+	}, [query])
 
 	const totalResults =
 		results.recipes.length + results.people.length + results.posts.length

@@ -5,6 +5,7 @@ import {
 	CreatePostRequest,
 	UpdatePostRequest,
 	ToggleLikeResponse,
+	PostWithXpResponse,
 } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
@@ -17,7 +18,10 @@ import { AxiosError } from 'axios'
  *
  * 1. createPost:
  *    - Sends multipart/form-data with content, photoUrls (files), videoUrl, tags
+ *    - Optional: sessionId to link post to cooking session for XP unlock
+ *    - Optional: isPrivateRecipe for private recipe attempts
  *    - Returns full Post object with uploaded image URLs from Cloudinary
+ *    - If sessionId provided: returns XP awarded, badges earned
  *    - Emits Kafka event "post-delivery"
  *
  * 2. updatePost:
@@ -38,7 +42,7 @@ import { AxiosError } from 'axios'
 
 export const createPost = async (
 	data: CreatePostRequest,
-): Promise<ApiResponse<Post>> => {
+): Promise<ApiResponse<Post | PostWithXpResponse>> => {
 	try {
 		const formData = new FormData()
 		formData.append('content', data.content)
@@ -64,7 +68,16 @@ export const createPost = async (
 			formData.append('avatarUrl', data.avatarUrl)
 		}
 
-		const response = await api.post<ApiResponse<Post>>(
+		// Session linking for XP unlock (per spec 05-posts.txt)
+		if (data.sessionId) {
+			formData.append('sessionId', data.sessionId)
+		}
+
+		if (data.isPrivateRecipe !== undefined) {
+			formData.append('isPrivateRecipe', String(data.isPrivateRecipe))
+		}
+
+		const response = await api.post<ApiResponse<Post | PostWithXpResponse>>(
 			API_ENDPOINTS.POST.CREATE,
 			formData,
 			{

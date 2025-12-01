@@ -1,3 +1,5 @@
+import { RecipeDifficulty } from './types/recipe'
+
 export interface PaginationInput {
 	limit?: number
 	offset?: number
@@ -35,4 +37,49 @@ export function toBackendPagination(params?: PaginationInput) {
 
 	// If nothing mapped, return undefined to avoid sending empty params
 	return Object.keys(out).length > 0 ? out : undefined
+}
+
+// ============================================
+// DIFFICULTY MAPPING UTILITIES
+// ============================================
+
+/**
+ * Display value type for UI components (user-friendly)
+ */
+export type DifficultyDisplay = 'Easy' | 'Medium' | 'Hard' | 'Expert'
+
+/**
+ * Map API difficulty value to display value
+ * API: 'BEGINNER' → Display: 'Easy'
+ */
+export function difficultyToDisplay(
+	apiValue: RecipeDifficulty | string,
+): DifficultyDisplay {
+	const map: Record<string, DifficultyDisplay> = {
+		BEGINNER: 'Easy',
+		INTERMEDIATE: 'Medium',
+		ADVANCED: 'Hard',
+		EXPERT: 'Expert',
+	}
+	return map[apiValue.toUpperCase()] || 'Medium'
+}
+
+/**
+ * Map display difficulty value to API value
+ * Display: 'Easy' → API: 'BEGINNER'
+ */
+export function difficultyToApi(
+	displayValue: DifficultyDisplay | string,
+): RecipeDifficulty {
+	const map: Record<string, RecipeDifficulty> = {
+		Easy: 'BEGINNER',
+		easy: 'BEGINNER',
+		Medium: 'INTERMEDIATE',
+		medium: 'INTERMEDIATE',
+		Hard: 'ADVANCED',
+		hard: 'ADVANCED',
+		Expert: 'EXPERT',
+		expert: 'EXPERT',
+	}
+	return map[displayValue] || 'INTERMEDIATE'
 }

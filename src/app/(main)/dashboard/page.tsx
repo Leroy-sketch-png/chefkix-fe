@@ -3,6 +3,10 @@
 import { useEffect, useState } from 'react'
 import { Post } from '@/lib/types'
 import { getFeedPosts } from '@/services/post'
+import {
+	getPendingSessions,
+	SessionHistoryItem,
+} from '@/services/cookingSession'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PostCard } from '@/components/social/PostCard'
@@ -22,11 +26,48 @@ import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { useRouter } from 'next/navigation'
 
 // ============================================
-// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// HELPERS
 // ============================================
 
-// Empty array for MSW preparation - will be replaced with API call
-const mockPendingSessions: PendingSession[] = []
+/**
+ * Calculate pending status based on days remaining
+ */
+const getPendingStatus = (
+	daysRemaining: number,
+): 'urgent' | 'warning' | 'normal' | 'expired' => {
+	if (daysRemaining <= 0) return 'expired'
+	if (daysRemaining <= 2) return 'urgent'
+	if (daysRemaining <= 5) return 'warning'
+	return 'normal'
+}
+
+/**
+ * Transform SessionHistoryItem to PendingSession format for UI component
+ */
+const transformToPendingSession = (
+	session: SessionHistoryItem,
+): PendingSession => {
+	const daysRemaining = session.daysRemaining ?? 14
+	const cookedAt = new Date(session.completedAt || session.startedAt)
+	// Calculate expiresAt: postDeadline from API or 14 days from completion
+	const expiresAt = session.postDeadline
+		? new Date(session.postDeadline)
+		: new Date(cookedAt.getTime() + 14 * 24 * 60 * 60 * 1000)
+
+	return {
+		id: session.sessionId,
+		recipeId: session.recipeId,
+		recipeName: session.recipeTitle,
+		recipeImage: session.coverImageUrl || '/placeholder-recipe.jpg',
+		cookedAt,
+		duration: 0, // API doesn't provide cook duration
+		baseXP: session.baseXpAwarded || 0,
+		currentXP: session.pendingXp || 0,
+		expiresAt,
+		status: getPendingStatus(daysRemaining),
+		postId: session.postId || undefined,
+	}
+}
 
 // ============================================
 // PAGE
@@ -39,8 +80,7 @@ export default function DashboardPage() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [showStreakBanner, setShowStreakBanner] = useState(true)
-	const [pendingSessions, setPendingSessions] =
-		useState<PendingSession[]>(mockPendingSessions)
+	const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([])
 
 	// TODO: Fetch streak status from API - check if user has cooked today
 	const hasStreakAtRisk =
@@ -49,13 +89,25 @@ export default function DashboardPage() {
 	const isUrgent = hoursUntilMidnight <= 2
 
 	useEffect(() => {
-		const fetchFeed = async () => {
+		const fetchData = async () => {
 			setIsLoading(true)
 			setError(null)
+
 			try {
-				const response = await getFeedPosts({ limit: 20 })
-				if (response.success && response.data) {
-					setPosts(response.data)
+				// Fetch feed posts and pending sessions in parallel
+				const [feedResponse, pendingResponse] = await Promise.all([
+					getFeedPosts({ limit: 20 }),
+					getPendingSessions(),
+				])
+
+				if (feedResponse.success && feedResponse.data) {
+					setPosts(feedResponse.data)
+				}
+
+				if (pendingResponse.success && pendingResponse.data) {
+					setPendingSessions(
+						pendingResponse.data.map(transformToPendingSession),
+					)
 				}
 			} catch (err) {
 				setError('Failed to load feed')
@@ -64,7 +116,7 @@ export default function DashboardPage() {
 			}
 		}
 
-		fetchFeed()
+		fetchData()
 	}, [])
 
 	const handlePostCreated = (newPost: Post) => {

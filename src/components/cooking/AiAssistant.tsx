@@ -26,6 +26,7 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
+import { askCookingAssistant } from '@/services/ai'
 
 // ============================================
 // TYPES
@@ -323,27 +324,56 @@ export const AiAssistant = ({
 		setInputValue('')
 		setIsTyping(true)
 
-		// Simulate API call - in production, call /api/v1/cooking_assistant
-		setTimeout(() => {
+		try {
+			// Build context string with step info
+			const context = `Step ${currentStep}: ${currentStepInstruction}`
+			const response = await askCookingAssistant(text, context)
+
 			const aiResponse: Message = {
 				id: `ai-${Date.now()}`,
 				role: 'assistant',
 				type: determineMessageType(text),
-				content: generateMockResponse(text, currentStepInstruction),
+				content:
+					response.success && response.data
+						? response.data.answer
+						: "Sorry, I couldn't process your question. Please try again.",
 				timestamp: new Date(),
 				metadata: text.toLowerCase().includes('substitute')
 					? {
 							substitution: {
-								original: 'butter',
-								replacement: 'olive oil',
-								ratio: '3/4 cup olive oil per 1 cup butter',
+								original: 'ingredient',
+								replacement: response.data?.tips?.[0] || 'alternative',
+								ratio: 'See tips for details',
 							},
 						}
 					: undefined,
 			}
 			setMessages(prev => [...prev, aiResponse])
+
+			// Add tips as follow-up if available
+			if (response.data?.tips && response.data.tips.length > 0) {
+				const tipMessage: Message = {
+					id: `tip-${Date.now()}`,
+					role: 'assistant',
+					type: 'tip',
+					content: response.data.tips.join('\n• '),
+					timestamp: new Date(),
+				}
+				setMessages(prev => [...prev, tipMessage])
+			}
+		} catch (error) {
+			const errorResponse: Message = {
+				id: `error-${Date.now()}`,
+				role: 'assistant',
+				type: 'warning',
+				content:
+					'Unable to reach the AI assistant. Please check your connection and try again.',
+				timestamp: new Date(),
+			}
+			setMessages(prev => [...prev, errorResponse])
+		} finally {
 			setIsTyping(false)
-		}, 1500)
+		}
 	}
 
 	const handleQuickAction = (action: QuickAction) => {
@@ -552,10 +582,4 @@ function determineMessageType(text: string): MessageType {
 	)
 		return 'warning'
 	return 'text'
-}
-
-// TODO: Replace with actual API call to /api/v1/cooking_assistant
-// This is a placeholder that will be handled by MSW in development
-function generateMockResponse(prompt: string, currentStep: string): string {
-	return 'AI cooking assistant response will be provided by the backend API. Please connect to the cooking assistant service.'
 }

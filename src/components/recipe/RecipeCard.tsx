@@ -137,11 +137,13 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						{/* Difficulty badge */}
 						<div
 							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.3px] text-primary-foreground ${
-								recipe.difficulty === 'EASY'
+								recipe.difficulty === 'BEGINNER'
 									? 'bg-gradient-to-br from-success to-success/80'
-									: recipe.difficulty === 'MEDIUM'
+									: recipe.difficulty === 'INTERMEDIATE'
 										? 'bg-gradient-to-br from-accent to-accent-variant'
-										: 'bg-gradient-to-br from-destructive to-gold'
+										: recipe.difficulty === 'ADVANCED'
+											? 'bg-gradient-to-br from-warning to-gold'
+											: 'bg-gradient-to-br from-destructive to-gold'
 							}`}
 						>
 							{recipe.difficulty}

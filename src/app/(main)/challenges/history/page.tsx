@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -8,24 +8,35 @@ import {
 	ChallengeHistoryPage,
 	type ChallengeDay,
 } from '@/components/challenges'
+import {
+	getChallengeHistory,
+	ChallengeHistoryItem,
+	ChallengeStats,
+} from '@/services/challenge'
 
 // ============================================
-// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// HELPERS
 // ============================================
 
-// Empty array for MSW preparation - will be replaced with API call
-const mockDays: ChallengeDay[] = []
-
-// Default stats for empty state
-const defaultStats = {
-	currentStreak: 0,
-	completedThisWeek: 0,
-	totalDays: 7,
-	bonusXpEarned: 0,
-	bestStreak: 0,
-	totalCompleted: 0,
-	totalBonusXp: 0,
-}
+/**
+ * Transform API response to UI format
+ */
+const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
+	date: new Date(item.date),
+	status: item.completed ? 'completed' : 'missed',
+	challenge: {
+		title: item.title,
+		emoji: '🎯', // Default emoji, API should provide this
+		xp: item.bonusXpEarned,
+	},
+	recipeCooked: item.recipeCooked
+		? {
+				id: item.recipeCooked.id,
+				title: item.recipeCooked.title,
+				imageUrl: '/placeholder-recipe.jpg', // API doesn't provide imageUrl in history
+			}
+		: undefined,
+})
 
 // ============================================
 // PAGE
@@ -35,10 +46,45 @@ export default function ChallengeHistoryPageRoute() {
 	const router = useRouter()
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
+	const [days, setDays] = useState<ChallengeDay[]>([])
+	const [stats, setStats] = useState({
+		currentStreak: 0,
+		completedThisWeek: 0,
+		totalDays: 7,
+		bonusXpEarned: 0,
+		bestStreak: 0,
+		totalCompleted: 0,
+		totalBonusXp: 0,
+	})
 
-	// TODO: Fetch from API - /api/v1/challenges/history
-	const days = mockDays
-	const stats = defaultStats
+	useEffect(() => {
+		const fetchHistory = async () => {
+			setIsLoading(true)
+			try {
+				const response = await getChallengeHistory(30) // Get last 30 days
+				if (response.success && response.data) {
+					const { challenges, stats: apiStats } = response.data
+					setDays(challenges.map(transformToChallengeDay))
+					setStats({
+						currentStreak: apiStats.currentStreak,
+						completedThisWeek: 0, // Calculate from challenges
+						totalDays: 7,
+						bonusXpEarned: apiStats.totalBonusXp,
+						bestStreak: apiStats.longestStreak,
+						totalCompleted: apiStats.totalCompleted,
+						totalBonusXp: apiStats.totalBonusXp,
+					})
+				}
+			} catch (err) {
+				console.error('Failed to fetch challenge history:', err)
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchHistory()
+	}, [currentMonth])
 
 	const handleMonthChange = (direction: 'prev' | 'next') => {
 		const newMonth = new Date(currentMonth)
@@ -48,7 +94,7 @@ export default function ChallengeHistoryPageRoute() {
 
 	const handleLoadMore = () => {
 		setIsLoadingMore(true)
-		// TODO: Fetch next page from API
+		// TODO: Fetch next page from API with pagination
 		setTimeout(() => setIsLoadingMore(false), 1000)
 	}
 

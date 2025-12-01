@@ -1,32 +1,25 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { CreatorDashboard } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
+import { getCreatorStats, CreatorStats } from '@/services/creator'
 
 // ============================================
-// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// HELPERS
 // ============================================
 
-// Default empty state data for MSW preparation
-const defaultWeekHighlight = {
-	newCooks: 0,
-	newCooksChange: 0,
-	xpEarned: 0,
-	xpEarnedChange: 0,
-	dateRange: new Date().toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric',
-	}),
-}
+const getDateRangeThisWeek = (): string => {
+	const now = new Date()
+	const startOfWeek = new Date(now)
+	startOfWeek.setDate(now.getDate() - now.getDay())
+	const endOfWeek = new Date(startOfWeek)
+	endOfWeek.setDate(startOfWeek.getDate() + 6)
 
-const defaultLifetimeStats = {
-	recipesPublished: 0,
-	totalCooks: 0,
-	creatorXpEarned: 0,
-	avgRating: 0,
+	return `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
 }
 
 // ============================================
@@ -36,18 +29,65 @@ const defaultLifetimeStats = {
 export default function CreatorRoute() {
 	const { user } = useAuth()
 	const router = useRouter()
+	const [isLoading, setIsLoading] = useState(true)
+	const [stats, setStats] = useState<CreatorStats | null>(null)
 
-	// TODO: Fetch from API - /api/v1/creator/stats
-	const weekHighlight = defaultWeekHighlight
-	const lifetimeStats = defaultLifetimeStats
-	const creatorBadges: Array<{
-		id: string
-		icon: string
-		name: string
-		description: string
-		isEarned: boolean
-	}> = []
-	const topRecipe = null
+	useEffect(() => {
+		const fetchStats = async () => {
+			setIsLoading(true)
+			try {
+				const response = await getCreatorStats()
+				if (response.success && response.data) {
+					setStats(response.data)
+				}
+			} catch (err) {
+				console.error('Failed to fetch creator stats:', err)
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchStats()
+	}, [])
+
+	// Transform API data to component format
+	const weekHighlight = {
+		newCooks: stats?.thisWeek.newCooks ?? 0,
+		newCooksChange: 0, // API doesn't provide change percentage
+		xpEarned: stats?.thisWeek.xpEarned ?? 0,
+		xpEarnedChange: 0,
+		dateRange: getDateRangeThisWeek(),
+	}
+
+	const lifetimeStats = {
+		recipesPublished: stats?.totalRecipesPublished ?? 0,
+		totalCooks: stats?.totalCooksOfYourRecipes ?? 0,
+		creatorXpEarned: stats?.xpEarnedAsCreator ?? 0,
+		avgRating: 0, // API doesn't provide this yet
+	}
+
+	const creatorBadges = (stats?.creatorBadges ?? []).map((badge, idx) => ({
+		id: `badge-${idx}`,
+		icon: badge.icon,
+		name: badge.name,
+		description: `Earned from ${badge.recipeTitle}`,
+		isEarned: true,
+	}))
+
+	const topRecipe = stats?.topRecipe
+		? {
+				id: stats.topRecipe.id,
+				title: stats.topRecipe.title,
+				imageUrl: '/placeholder-recipe.jpg', // API doesn't provide image
+				cookTime: 30, // Default - API doesn't provide this
+				difficulty: 'Medium' as const,
+				cookCount: stats.topRecipe.cookCount,
+				xpGenerated: stats.topRecipe.xpGenerated,
+				rating: 4.5, // Default - API doesn't provide this
+			}
+		: null
+
+	// These need additional API endpoints - leaving empty for now
 	const recipePerformance: Array<{
 		id: string
 		rank: number
@@ -58,6 +98,7 @@ export default function CreatorRoute() {
 		badge?: { type: 'milestone' | 'trending'; label: string }
 		needsAttention?: boolean
 	}> = []
+
 	const recentCooks: Array<{
 		id: string
 		userId: string
