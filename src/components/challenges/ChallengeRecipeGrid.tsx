@@ -95,7 +95,7 @@ const FilterChip = ({
 	<button
 		onClick={onClick}
 		className={cn(
-			'rounded-full border px-4 py-2 text-[13px] font-medium transition-all',
+			'rounded-full border px-4 py-2 text-xs font-medium transition-all',
 			isActive
 				? 'border-primary bg-primary text-white'
 				: 'border-border bg-bg text-muted-foreground hover:bg-muted/30 hover:text-text',
@@ -144,17 +144,17 @@ const ChallengeRecipeCard = ({
 
 					{/* XP Badge */}
 					<div className='absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1.5 backdrop-blur-sm'>
-						<span className='text-[13px] font-bold text-white'>
+						<span className='text-xs font-bold text-white'>
 							{recipe.baseXp} XP
 						</span>
-						<span className='rounded-lg bg-success/20 px-1.5 py-0.5 text-[11px] font-bold text-success'>
+						<span className='rounded-lg bg-success/20 px-1.5 py-0.5 text-2xs font-bold text-success'>
 							+{recipe.bonusXp}
 						</span>
 					</div>
 
 					{/* Quick Pick Ribbon */}
 					{recipe.isQuickPick && (
-						<div className='absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-1.5 text-[11px] font-bold text-white'>
+						<div className='absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-1.5 text-2xs font-bold text-white'>
 							<Zap className='size-3' />
 							Quick Pick
 						</div>
@@ -163,7 +163,7 @@ const ChallengeRecipeCard = ({
 					{/* Difficulty */}
 					<div
 						className={cn(
-							'absolute bottom-3 right-3 rounded-full px-3 py-1.5 text-[11px] font-semibold',
+							'absolute bottom-3 right-3 rounded-full px-3 py-1.5 text-2xs font-semibold',
 							difficulty.bg,
 							difficulty.text,
 						)}
@@ -174,10 +174,10 @@ const ChallengeRecipeCard = ({
 
 				{/* Content */}
 				<div className='p-4'>
-					<h3 className='mb-1.5 text-[17px] font-bold text-text'>
+					<h3 className='mb-1.5 text-base font-bold text-text'>
 						{recipe.title}
 					</h3>
-					<p className='mb-3 line-clamp-1 text-[13px] leading-relaxed text-muted-foreground'>
+					<p className='mb-3 line-clamp-1 text-xs leading-relaxed text-muted-foreground'>
 						{recipe.description}
 					</p>
 
@@ -216,9 +216,7 @@ const ChallengeRecipeCard = ({
 								height={28}
 								className='rounded-full'
 							/>
-							<span className='text-[13px] text-text'>
-								{recipe.author.name}
-							</span>
+							<span className='text-xs text-text'>{recipe.author.name}</span>
 						</div>
 						<motion.button
 							onClick={e => {
@@ -227,7 +225,7 @@ const ChallengeRecipeCard = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md transition-shadow hover:shadow-lg'
+							className='flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition-shadow hover:shadow-lg'
 						>
 							<Play className='size-4' />
 							Cook
@@ -292,7 +290,7 @@ export const ChallengeRecipeGrid = ({
 				{onBack && (
 					<button
 						onClick={onBack}
-						className='mb-4 flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-text'
+						className='mb-4 flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-text'
 					>
 						<ArrowLeft className='size-4' />
 						Back to Feed
@@ -304,7 +302,7 @@ export const ChallengeRecipeGrid = ({
 					<div className='flex items-start gap-4'>
 						<span className='text-5xl'>{challenge.emoji}</span>
 						<div>
-							<span className='text-[11px] font-bold uppercase tracking-wide text-primary'>
+							<span className='text-2xs font-bold uppercase tracking-wide text-primary'>
 								{challenge.type}
 							</span>
 							<h1 className='my-1 text-2xl font-extrabold text-text md:text-3xl'>
@@ -325,7 +323,7 @@ export const ChallengeRecipeGrid = ({
 							</span>
 							<span className='text-xs text-muted-foreground'>bonus</span>
 						</div>
-						<div className='flex items-center justify-end gap-1.5 text-[13px] text-muted-foreground'>
+						<div className='flex items-center justify-end gap-1.5 text-xs text-muted-foreground'>
 							<Clock className='size-3.5' />
 							{challenge.timeRemaining.hours}h {challenge.timeRemaining.minutes}
 							m left
@@ -364,7 +362,7 @@ export const ChallengeRecipeGrid = ({
 								prev === 'xp' ? 'time' : prev === 'time' ? 'rating' : 'xp',
 							)
 						}
-						className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-bg hover:text-text'
+						className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-bg hover:text-text'
 					>
 						<ArrowUpDown className='size-3.5' />
 						Sort:{' '}

@@ -525,7 +525,7 @@ export const RecipeFormDetailed = ({
 
 					{/* Title */}
 					<div className='mb-6'>
-						<label className='mb-2 block text-[15px] font-semibold text-text'>
+						<label className='mb-2 block text-sm font-semibold text-text'>
 							Recipe Title <span className='text-red-500'>*</span>
 						</label>
 						<input
@@ -534,7 +534,7 @@ export const RecipeFormDetailed = ({
 							onChange={e => updateField('title', e.target.value)}
 							placeholder='e.g., Classic Italian Carbonara'
 							maxLength={100}
-							className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-[15px] text-text focus:border-primary focus:outline-none'
+							className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 						/>
 						<p className='mt-1.5 text-sm text-muted-foreground'>
 							Give your recipe a catchy, descriptive name
@@ -543,7 +543,7 @@ export const RecipeFormDetailed = ({
 
 					{/* Description */}
 					<div className='mb-6'>
-						<label className='mb-2 block text-[15px] font-semibold text-text'>
+						<label className='mb-2 block text-sm font-semibold text-text'>
 							Description <span className='text-red-500'>*</span>
 						</label>
 						<textarea
@@ -552,7 +552,7 @@ export const RecipeFormDetailed = ({
 							placeholder='Tell us about your recipe. What makes it special?'
 							rows={4}
 							maxLength={500}
-							className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-[15px] text-text focus:border-primary focus:outline-none'
+							className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 						/>
 						<p className='mt-1.5 text-sm text-muted-foreground'>
 							{formData.description.length} / 500 characters
@@ -561,7 +561,7 @@ export const RecipeFormDetailed = ({
 
 					{/* Cover Image */}
 					<div className='mb-6'>
-						<label className='mb-2 block text-[15px] font-semibold text-text'>
+						<label className='mb-2 block text-sm font-semibold text-text'>
 							Cover Image <span className='text-red-500'>*</span>
 						</label>
 						<ImageUpload
@@ -574,7 +574,7 @@ export const RecipeFormDetailed = ({
 					{/* Time & Servings Grid */}
 					<div className='mb-6 grid grid-cols-1 gap-5 sm:grid-cols-3'>
 						<div>
-							<label className='mb-2 block text-[15px] font-semibold text-text'>
+							<label className='mb-2 block text-sm font-semibold text-text'>
 								Prep Time
 							</label>
 							<div className='relative'>
@@ -589,7 +589,7 @@ export const RecipeFormDetailed = ({
 									}
 									placeholder='15'
 									min={0}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-[15px] text-text focus:border-primary focus:outline-none'
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-primary focus:outline-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground'>
 									min
@@ -597,7 +597,7 @@ export const RecipeFormDetailed = ({
 							</div>
 						</div>
 						<div>
-							<label className='mb-2 block text-[15px] font-semibold text-text'>
+							<label className='mb-2 block text-sm font-semibold text-text'>
 								Cook Time
 							</label>
 							<div className='relative'>
@@ -612,7 +612,7 @@ export const RecipeFormDetailed = ({
 									}
 									placeholder='30'
 									min={0}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-[15px] text-text focus:border-primary focus:outline-none'
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-primary focus:outline-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground'>
 									min
@@ -620,7 +620,7 @@ export const RecipeFormDetailed = ({
 							</div>
 						</div>
 						<div>
-							<label className='mb-2 block text-[15px] font-semibold text-text'>
+							<label className='mb-2 block text-sm font-semibold text-text'>
 								Servings
 							</label>
 							<input
@@ -631,7 +631,7 @@ export const RecipeFormDetailed = ({
 								}
 								placeholder='4'
 								min={1}
-								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-[15px] text-text focus:border-primary focus:outline-none'
+								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 							/>
 						</div>
 					</div>
@@ -639,7 +639,7 @@ export const RecipeFormDetailed = ({
 					{/* Difficulty & Category */}
 					<div className='grid grid-cols-1 gap-5 sm:grid-cols-2'>
 						<div>
-							<label className='mb-2 block text-[15px] font-semibold text-text'>
+							<label className='mb-2 block text-sm font-semibold text-text'>
 								Difficulty
 							</label>
 							<select
@@ -647,7 +647,7 @@ export const RecipeFormDetailed = ({
 								onChange={e =>
 									updateField('difficulty', e.target.value as Difficulty)
 								}
-								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-[15px] text-text focus:border-primary focus:outline-none'
+								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 							>
 								<option value='easy'>Easy</option>
 								<option value='medium'>Medium</option>
@@ -655,13 +655,13 @@ export const RecipeFormDetailed = ({
 							</select>
 						</div>
 						<div>
-							<label className='mb-2 block text-[15px] font-semibold text-text'>
+							<label className='mb-2 block text-sm font-semibold text-text'>
 								Category
 							</label>
 							<select
 								value={formData.category}
 								onChange={e => updateField('category', e.target.value)}
-								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-[15px] text-text focus:border-primary focus:outline-none'
+								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 							>
 								<option value=''>Select category</option>
 								{CATEGORIES.map(cat => (
@@ -735,7 +735,7 @@ export const RecipeFormDetailed = ({
 						onChange={e => updateField('tips', e.target.value)}
 						placeholder='Share any helpful tips, substitutions, or notes about your recipe...'
 						rows={4}
-						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-[15px] text-text focus:border-primary focus:outline-none'
+						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 					/>
 				</section>
 

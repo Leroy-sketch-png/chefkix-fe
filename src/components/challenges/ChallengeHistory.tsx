@@ -106,7 +106,7 @@ const StatCard = ({
 			<span className={cn('text-lg font-extrabold text-text', colorClass)}>
 				{value}
 			</span>
-			<span className='text-[11px] text-muted-foreground'>{label}</span>
+			<span className='text-2xs text-muted-foreground'>{label}</span>
 		</div>
 	</div>
 )
@@ -162,14 +162,14 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			)}
 		>
 			{isCurrentDay && (
-				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-primary px-2 py-0.5 text-[10px] font-bold text-white'>
+				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-primary px-2 py-0.5 text-2xs font-bold text-white'>
 					Today
 				</span>
 			)}
 			<span className='text-xs font-semibold text-muted-foreground'>
 				{getDayName(day.date)}
 			</span>
-			<span className='text-[10px] text-muted-foreground'>
+			<span className='text-2xs text-muted-foreground'>
 				{formatDate(day.date)}
 			</span>
 
@@ -197,16 +197,16 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 					</div>
 				)}
 				{day.status === 'upcoming' && (
-					<span className='absolute -bottom-2 whitespace-nowrap text-[9px] font-semibold text-muted-foreground'>
+					<span className='absolute -bottom-2 whitespace-nowrap text-2xs font-semibold text-muted-foreground'>
 						Tomorrow
 					</span>
 				)}
 			</div>
 
-			<span className='max-w-full truncate text-[10px] font-semibold text-text'>
+			<span className='max-w-full truncate text-2xs font-semibold text-text'>
 				{day.challenge?.title ?? '—'}
 			</span>
-			<span className={cn('text-[11px] font-bold', config.xpClass)}>
+			<span className={cn('text-2xs font-bold', config.xpClass)}>
 				{day.status === 'missed'
 					? 'Missed'
 					: day.status === 'upcoming' || day.status === 'future'
@@ -241,14 +241,14 @@ export const ChallengeHistorySection = ({
 						<CalendarCheck className='size-5 text-primary' />
 						Challenge History
 					</h3>
-					<span className='rounded-xl bg-bg px-2.5 py-1 text-[13px] text-muted-foreground'>
+					<span className='rounded-xl bg-bg px-2.5 py-1 text-xs text-muted-foreground'>
 						Last 7 Days
 					</span>
 				</div>
 				{onViewAll && (
 					<button
 						onClick={onViewAll}
-						className='flex items-center gap-1 text-[13px] font-semibold text-primary hover:underline'
+						className='flex items-center gap-1 text-xs font-semibold text-primary hover:underline'
 					>
 						View All
 						<ChevronRight className='size-4' />
@@ -311,7 +311,7 @@ export const ChallengeHistorySection = ({
 							onClick={onPreviewTomorrow}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2.5 text-[13px] font-semibold text-white'
+							className='flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2.5 text-xs font-semibold text-white'
 						>
 							Preview Tomorrow
 							<ArrowRight className='size-4' />
@@ -347,7 +347,7 @@ const HistoryItem = ({
 					{day.date.toLocaleDateString('en-US', { month: 'short' })}
 				</span>
 				{showTodayBadge && (
-					<span className='mt-1 rounded-md bg-primary px-1.5 py-0.5 text-[9px] font-bold text-white'>
+					<span className='mt-1 rounded-md bg-primary px-1.5 py-0.5 text-2xs font-bold text-white'>
 						Today
 					</span>
 				)}
@@ -369,10 +369,10 @@ const HistoryItem = ({
 				</div>
 
 				<div className='flex flex-1 flex-col gap-1'>
-					<span className='text-[15px] font-bold text-text'>
+					<span className='text-sm font-bold text-text'>
 						{day.challenge?.title ?? 'No Challenge'}
 					</span>
-					<span className='text-[13px] text-muted-foreground'>
+					<span className='text-xs text-muted-foreground'>
 						{day.challenge?.title
 							? `Complete the ${day.challenge.title.toLowerCase()} challenge`
 							: '—'}
@@ -493,7 +493,7 @@ export const ChallengeHistoryPage = ({
 				{/* Completion Rate */}
 				<div className='border-t border-border pt-4'>
 					<div className='mb-2.5 flex justify-between'>
-						<span className='text-[13px] text-muted-foreground'>
+						<span className='text-xs text-muted-foreground'>
 							This Week&apos;s Completion
 						</span>
 						<span className='text-sm font-bold text-success'>

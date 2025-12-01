@@ -185,12 +185,12 @@ const MethodCard = ({
 		</div>
 		<div className='flex-1'>
 			<span className='text-base font-bold text-text'>{title}</span>
-			<span className='mt-0.5 block text-[13px] text-muted-foreground'>
+			<span className='mt-0.5 block text-xs text-muted-foreground'>
 				{description}
 			</span>
 		</div>
 		{badge && (
-			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-2.5 py-1 text-[11px] font-bold text-white'>
+			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-2.5 py-1 text-2xs font-bold text-white'>
 				{badge}
 			</span>
 		)}
@@ -235,7 +235,7 @@ Instructions:
 		<div className='flex items-center justify-between border-t border-border bg-panel-bg px-5 py-3'>
 			<button
 				onClick={onPaste}
-				className='flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:bg-bg'
+				className='flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-bg'
 			>
 				<Clipboard className='size-4' />
 				Paste from Clipboard
@@ -364,7 +364,7 @@ const StepItem = ({
 		<div className='flex-1'>
 			<textarea
 				defaultValue={step.instruction}
-				className='min-h-[60px] w-full resize-none rounded-lg border border-border bg-panel-bg p-3 text-sm text-text focus:border-primary focus:outline-none'
+				className='min-h-16 w-full resize-none rounded-lg border border-border bg-panel-bg p-3 text-sm text-text focus:border-primary focus:outline-none'
 			/>
 			<div className='mt-2.5 flex flex-wrap gap-2.5'>
 				{step.timerMinutes ? (
@@ -450,7 +450,7 @@ const XpPreviewModal = ({
 				)}
 				<div className='flex-1'>
 					<h3 className='text-lg font-bold text-text'>{recipe.title}</h3>
-					<p className='text-[13px] text-muted-foreground'>
+					<p className='text-xs text-muted-foreground'>
 						{recipe.cookTime} • {recipe.difficulty} • {recipe.servings} servings
 					</p>
 				</div>
@@ -510,7 +510,7 @@ const XpPreviewModal = ({
 							Recipe passes anti-cheat checks
 						</span>
 					</div>
-					<span className='text-[13px] font-semibold text-muted-foreground'>
+					<span className='text-xs font-semibold text-muted-foreground'>
 						{xpBreakdown.confidence}% confident
 					</span>
 				</div>
@@ -518,7 +518,7 @@ const XpPreviewModal = ({
 
 			{/* Badges Preview */}
 			<div className='mb-4'>
-				<span className='mb-2.5 block text-[13px] text-muted-foreground'>
+				<span className='mb-2.5 block text-xs text-muted-foreground'>
 					Cooks can earn:
 				</span>
 				<div className='flex gap-2.5'>
@@ -528,7 +528,7 @@ const XpPreviewModal = ({
 							className='flex items-center gap-2 rounded-xl bg-bg px-4 py-2.5'
 						>
 							<span className='text-xl'>{badge.emoji}</span>
-							<span className='text-[13px] font-semibold text-text'>
+							<span className='text-xs font-semibold text-text'>
 								{badge.name}
 							</span>
 						</div>
@@ -565,7 +565,7 @@ const XpPreviewModal = ({
 					onClick={onPublish}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-purple-500 py-3.5 text-[15px] font-bold text-white shadow-lg'
+					className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-purple-500 py-3.5 text-sm font-bold text-white shadow-lg'
 				>
 					<Send className='size-4' />
 					Publish Recipe
@@ -668,7 +668,7 @@ export const RecipeCreateAiFlow = ({
 					{step === 'preview' ? 'Review Recipe' : 'Create Recipe'}
 				</h1>
 				{step === 'preview' && (
-					<button className='rounded-lg border border-border px-4 py-2.5 text-[13px] font-semibold text-muted-foreground'>
+					<button className='rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-muted-foreground'>
 						Save Draft
 					</button>
 				)}
@@ -791,10 +791,10 @@ export const RecipeCreateAiFlow = ({
 					<div className='flex items-center gap-3.5 rounded-2xl border border-success/20 bg-gradient-to-r from-success/10 to-emerald-500/5 px-5 py-4'>
 						<span className='text-3xl'>✨</span>
 						<div>
-							<strong className='text-[15px] text-success'>
+							<strong className='text-sm text-success'>
 								Recipe parsed successfully!
 							</strong>
-							<span className='block text-[13px] text-muted-foreground'>
+							<span className='block text-xs text-muted-foreground'>
 								Review and edit below, then preview XP
 							</span>
 						</div>
@@ -829,25 +829,25 @@ export const RecipeCreateAiFlow = ({
 							</label>
 							<textarea
 								defaultValue={recipe.description}
-								className='min-h-[80px] w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-[15px] text-text focus:border-primary focus:outline-none'
+								className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 							/>
 						</div>
 
 						{/* Meta Row */}
 						<div className='mb-4 flex flex-wrap gap-2.5'>
-							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-[13px] font-semibold text-text'>
+							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-xs font-semibold text-text'>
 								<Clock className='size-4 text-muted-foreground' />
 								{recipe.cookTime}
 							</div>
-							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-[13px] font-semibold text-text'>
+							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-xs font-semibold text-text'>
 								<Signal className='size-4 text-muted-foreground' />
 								{recipe.difficulty}
 							</div>
-							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-[13px] font-semibold text-text'>
+							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-xs font-semibold text-text'>
 								<Utensils className='size-4 text-muted-foreground' />
 								{recipe.servings} servings
 							</div>
-							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-[13px] font-semibold text-text'>
+							<div className='flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 text-xs font-semibold text-text'>
 								<span>🌏</span>
 								{recipe.cuisine}
 							</div>
@@ -855,7 +855,7 @@ export const RecipeCreateAiFlow = ({
 
 						{/* Detected Badges */}
 						<div className='flex flex-wrap items-center gap-3'>
-							<span className='text-[13px] text-muted-foreground'>
+							<span className='text-xs text-muted-foreground'>
 								Potential Badges:
 							</span>
 							{recipe.detectedBadges.map((badge, i) => (
@@ -876,7 +876,7 @@ export const RecipeCreateAiFlow = ({
 								<ShoppingBasket className='size-5 text-primary' />
 								Ingredients
 							</h3>
-							<button className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-[13px] font-semibold text-muted-foreground'>
+							<button className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-muted-foreground'>
 								<Plus className='size-4' />
 								Add
 							</button>
@@ -899,7 +899,7 @@ export const RecipeCreateAiFlow = ({
 								<ListOrdered className='size-5 text-primary' />
 								Instructions
 							</h3>
-							<button className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-[13px] font-semibold text-muted-foreground'>
+							<button className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-muted-foreground'>
 								<Plus className='size-4' />
 								Add Step
 							</button>
