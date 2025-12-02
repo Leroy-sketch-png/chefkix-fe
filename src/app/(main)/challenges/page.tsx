@@ -1,66 +1,151 @@
 'use client'
 
-import { Trophy, Calendar, Users, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import {
+	ChallengeCard,
+	ChallengeCardGrid,
+	DailyChallengeBanner,
+} from '@/components/challenges'
+import { EmptyStateGamified } from '@/components/shared'
+import { getTodaysChallenge, DailyChallenge } from '@/services/challenge'
+
+// ============================================
+// TYPES
+// ============================================
+
+interface ChallengeUIItem {
+	id: string
+	type: 'weekly' | 'community' | 'seasonal'
+	title: string
+	description: string
+	icon: string
+	bonusXp: number
+	progress?: { current: number; total: number }
+	participants: number
+	endsAt: Date
+	status: 'active' | 'completed' | 'expired'
+	isJoined: boolean
+}
+
+// ============================================
+// PAGE
+// ============================================
 
 export default function ChallengesPage() {
+	const [challenges, setChallenges] = useState<ChallengeUIItem[]>([])
+	const [dailyChallenge, setDailyChallenge] = useState<{
+		id: string
+		title: string
+		description: string
+		icon: string
+		bonusXp: number
+		endsAt: Date
+	} | null>(null)
+	const [loading, setLoading] = useState(true)
+
+	useEffect(() => {
+		const fetchChallenges = async () => {
+			setLoading(true)
+			try {
+				const response = await getTodaysChallenge()
+				if (response.success && response.data) {
+					const data = response.data
+					setDailyChallenge({
+						id: data.id,
+						title: data.title,
+						description: data.description,
+						icon: data.icon,
+						bonusXp: data.bonusXp,
+						endsAt: new Date(data.endsAt),
+					})
+				}
+				// TODO: Fetch weekly/community challenges when endpoint is available
+			} catch (err) {
+				console.error('Failed to fetch challenges:', err)
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		fetchChallenges()
+	}, [])
+
+	const handleJoin = (challengeId: string) => {
+		setChallenges(prev =>
+			prev.map(c => (c.id === challengeId ? { ...c, isJoined: true } : c)),
+		)
+	}
+
+	const hasNoChallenges = challenges.length === 0 && !dailyChallenge && !loading
+
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='md'>
+			<PageContainer maxWidth='lg'>
 				{/* Header */}
 				<div className='mb-8 animate-fadeIn'>
 					<h1 className='mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-3xl font-bold text-transparent'>
-						Weekly Challenges
+						Challenges
 					</h1>
 					<p className='text-muted-foreground'>
-						Test your skills and earn exclusive badges!
+						Test your skills, earn bonus XP, and unlock exclusive badges!
 					</p>
 				</div>
 
-				{/* Active Challenge Card */}
-				<div className='group animate-scaleIn rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-glow'>
-					{/* Badge */}
-					<div className='mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary'>
-						<Sparkles className='h-4 w-4' />
-						Weekly Challenge
-					</div>
-					{/* Title */}
-					<h2 className='mb-3 text-2xl font-bold'>The Ultimate Pasta-Off</h2>
-					{/* Description */}
-					<p className='mb-6 leading-relaxed text-muted-foreground'>
-						Create an original pasta dish using only 5 ingredients. Most
-						creative recipe wins!
-					</p>
-					{/* CTA Button */}
-					<Button
-						size='lg'
-						className='group/btn mb-6 w-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 sm:w-auto'
-					>
-						<Trophy className='mr-2 h-5 w-5 transition-transform group-hover/btn:scale-110' />
-						Join Challenge
-					</Button>
-					{/* Progress Bar */}
-					<div className='mb-3 h-3 w-full overflow-hidden rounded-full bg-muted'>
-						<div
-							className='h-full rounded-full bg-gradient-to-r from-primary to-accent shadow-glow transition-all duration-500'
-							style={{ width: '40%' }}
-						></div>
-					</div>{' '}
-					{/* Stats */}
-					<div className='flex items-center gap-4 text-sm text-muted-foreground'>
-						<div className='flex items-center gap-1.5'>
-							<Calendar className='h-4 w-4' />
-							<span>3 days left</span>
-						</div>
-						<div className='h-1 w-1 rounded-full bg-muted-foreground/40'></div>
-						<div className='flex items-center gap-1.5'>
-							<Users className='h-4 w-4' />
-							<span>1,204 participants</span>
-						</div>
-					</div>
-				</div>
+				{hasNoChallenges ? (
+					<EmptyStateGamified
+						variant='challenges'
+						title='No Active Challenges'
+						description='Check back soon for new cooking challenges!'
+						primaryAction={{
+							label: 'Explore Recipes',
+							href: '/explore',
+						}}
+					/>
+				) : (
+					<>
+						{/* Daily Challenge Banner - Featured */}
+						{dailyChallenge && (
+							<DailyChallengeBanner
+								variant='active'
+								challenge={dailyChallenge}
+								onFindRecipe={() => console.log('Find quick recipes')}
+							/>
+						)}
+
+						{/* Active Challenges Section */}
+						<section className='mb-8'>
+							<h2 className='mb-4 text-lg font-bold text-text-primary'>
+								Active Challenges
+							</h2>
+							{challenges.length > 0 ? (
+								<ChallengeCardGrid
+									challenges={challenges.map(c => ({
+										...c,
+										onJoin: () => handleJoin(c.id),
+										onView: () => console.log('View challenge:', c.id),
+									}))}
+									loading={loading}
+								/>
+							) : (
+								<p className='text-sm text-muted-foreground'>
+									No active challenges at the moment.
+								</p>
+							)}
+						</section>
+
+						{/* Completed Challenges (placeholder) */}
+						<section>
+							<h2 className='mb-4 text-lg font-bold text-text-secondary'>
+								Past Challenges
+							</h2>
+							<p className='text-sm text-muted-foreground'>
+								Your completed challenges will appear here.
+							</p>
+						</section>
+					</>
+				)}
 			</PageContainer>
 		</PageTransition>
 	)

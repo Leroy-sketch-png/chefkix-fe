@@ -69,7 +69,7 @@ export const Modal = ({
 		>
 			<div
 				className={cn(
-					'relative flex max-h-[90vh] w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-glow',
+					'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-glow',
 					sizeClasses[size],
 					className,
 				)}

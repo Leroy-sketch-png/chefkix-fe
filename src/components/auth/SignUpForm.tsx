@@ -18,10 +18,12 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
-import { signUp } from '@/services/auth'
+import { signUp, googleSignIn } from '@/services/auth'
+import { getMyProfile } from '@/services/profile'
 import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from '@/components/ui/toaster'
+import { useAuth } from '@/hooks/useAuth'
 
 const formSchema = z.object({
 	username: z.string().min(2, {
@@ -35,6 +37,7 @@ const formSchema = z.object({
 
 export function SignUpForm() {
 	const router = useRouter()
+	const { login, setUser } = useAuth()
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -159,9 +162,27 @@ export function SignUpForm() {
 					</div>
 					<div className='w-full'>
 						<GoogleSignInButton
-							onSuccess={code => {
-								toast.success('Signed in with Google successfully!')
-								router.push(PATHS.DASHBOARD)
+							onSuccess={async code => {
+								const response = await googleSignIn({ code })
+								if (response.success && response.data?.accessToken) {
+									login(response.data.accessToken)
+									const profileResponse = await getMyProfile()
+									if (profileResponse.success && profileResponse.data) {
+										setUser(profileResponse.data)
+										toast.success('Signed in with Google successfully!')
+										router.push(PATHS.DASHBOARD)
+									} else {
+										toast.error('Failed to fetch profile. Please try again.')
+									}
+								} else {
+									const errorMsg =
+										response.message || 'Failed to sign in with Google.'
+									form.setError('root.general' as any, {
+										type: 'manual',
+										message: errorMsg,
+									})
+									toast.error(errorMsg)
+								}
 							}}
 							onFailure={error => {
 								toast.error('Failed to sign in with Google. Please try again.')

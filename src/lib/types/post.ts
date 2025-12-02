@@ -24,6 +24,12 @@ export interface Post {
 	updatedAt: string | null
 	isLiked?: boolean // Client-side flag for optimistic UI
 	isSaved?: boolean // Client-side flag for saved/bookmarked state
+	// Session linking (per spec 05-posts.txt)
+	sessionId?: string // Cooking session this post is linked to
+	recipeId?: string // Recipe that was cooked
+	recipeTitle?: string // For display: "Cooked: Spicy Ramen"
+	isPrivateRecipe?: boolean // True = recipe details hidden, only title shown
+	xpEarned?: number // XP user earned from this post
 }
 
 export interface CreatePostRequest {
@@ -32,6 +38,9 @@ export interface CreatePostRequest {
 	photoUrls?: File[] // For multipart upload (canonical)
 	videoUrl?: string
 	tags?: string[]
+	// Session linking for XP unlock (per spec 05-posts.txt)
+	sessionId?: string // Links post to a cooking session
+	isPrivateRecipe?: boolean // For private recipe attempts (default: false)
 }
 
 export interface UpdatePostRequest {
@@ -48,4 +57,11 @@ export interface ToggleLikeResponse {
 	userId: string
 	displayName: string
 	tags: string[]
+}
+
+// Post creation response when sessionId is provided
+export interface PostWithXpResponse extends Post {
+	xpAwarded: number
+	totalXp: number
+	badgesEarned: string[]
 }

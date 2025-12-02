@@ -76,7 +76,7 @@ export const Comment = ({ comment, currentUserId, onReply }: CommentProps) => {
 							aria-label='Reply to comment'
 						>
 							<MessageSquare className='h-3 w-3' />
-							{comment.comments > 0 && <span>{comment.comments}</span>}
+							{comment.replyCount > 0 && <span>{comment.replyCount}</span>}
 						</button>
 					)}
 				</div>

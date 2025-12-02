@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Toaster } from '@/components/ui/toaster'
 
@@ -70,7 +71,9 @@ export default function RootLayout({
 				<GoogleOAuthProvider
 					clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
 				>
-					<AuthProvider>{children}</AuthProvider>
+					<AuthProvider>
+						<CelebrationProvider>{children}</CelebrationProvider>
+					</AuthProvider>
 				</GoogleOAuthProvider>
 				<Toaster position='top-right' maxToasts={5} />
 			</body>

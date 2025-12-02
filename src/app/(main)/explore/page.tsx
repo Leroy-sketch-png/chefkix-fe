@@ -1,21 +1,50 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Recipe } from '@/lib/types/recipe'
-import { getAllRecipes, getTrendingRecipes } from '@/services/recipe'
+import {
+	getAllRecipes,
+	getTrendingRecipes,
+	toggleSaveRecipe,
+} from '@/services/recipe'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { RecipeCard } from '@/components/recipe/RecipeCard'
+import { RecipeCardEnhanced } from '@/components/recipe'
 import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
 import { RecipeFiltersSheet } from '@/components/shared/RecipeFiltersSheet'
 import { ErrorState } from '@/components/ui/error-state'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGamified } from '@/components/shared'
 import { Search, TrendingUp, Filter } from 'lucide-react'
-import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
+import { triggerSaveConfetti } from '@/lib/confetti'
+import { toast } from 'sonner'
+
+// Difficulty mapping: API → Enhanced Card
+const difficultyMap: Record<
+	string,
+	'beginner' | 'intermediate' | 'advanced' | 'expert'
+> = {
+	EASY: 'beginner',
+	MEDIUM: 'intermediate',
+	HARD: 'advanced',
+	EXPERT: 'expert',
+}
+
+// XP reward calculation (fallback when backend doesn't provide xpReward)
+const calculateXpRewardFallback = (recipe: Recipe): number => {
+	const baseXp = 50
+	const difficultyBonus = { EASY: 0, MEDIUM: 25, HARD: 50, EXPERT: 100 }
+	const timeBonus = Math.floor((recipe.prepTime + recipe.cookTime) / 10) * 5
+	return (
+		baseXp +
+		(difficultyBonus[recipe.difficulty as keyof typeof difficultyBonus] || 0) +
+		timeBonus
+	)
+}
 
 interface RecipeFilters {
 	dietary: string[]
@@ -26,11 +55,13 @@ interface RecipeFilters {
 }
 
 export default function ExplorePage() {
+	const router = useRouter()
 	const [recipes, setRecipes] = useState<Recipe[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [viewMode, setViewMode] = useState<'all' | 'trending'>('all')
+	const [savedRecipes, setSavedRecipes] = useState<Set<string>>(new Set())
 	const [filters, setFilters] = useState<RecipeFilters>({
 		dietary: [],
 		cuisine: [],
@@ -52,6 +83,13 @@ export default function ExplorePage() {
 				if (response.success && response.data) {
 					// Apply client-side filters
 					let filtered = response.data
+
+					// Initialize saved recipes set
+					const saved = new Set<string>()
+					response.data.forEach(recipe => {
+						if (recipe.isSaved) saved.add(recipe.id)
+					})
+					setSavedRecipes(saved)
 
 					// Filter by dietary restrictions
 					if (filters.dietary.length > 0) {
@@ -116,6 +154,50 @@ export default function ExplorePage() {
 		setRecipes(prev =>
 			prev.map(r => (r.id === updatedRecipe.id ? updatedRecipe : r)),
 		)
+	}
+
+	const handleCook = (recipeId: string) => {
+		// Navigate to recipe detail page with cooking intent
+		router.push(`/recipes/${recipeId}?cook=true`)
+	}
+
+	const handleSave = async (recipeId: string) => {
+		const wasSaved = savedRecipes.has(recipeId)
+
+		// Optimistic update
+		setSavedRecipes(prev => {
+			const newSet = new Set(prev)
+			if (wasSaved) {
+				newSet.delete(recipeId)
+			} else {
+				newSet.add(recipeId)
+			}
+			return newSet
+		})
+
+		try {
+			const response = await toggleSaveRecipe(recipeId)
+			if (response.success && response.data) {
+				if (response.data.isSaved) {
+					triggerSaveConfetti()
+					toast.success('Recipe saved!')
+				} else {
+					toast.success('Recipe unsaved')
+				}
+			}
+		} catch (error) {
+			// Revert on error
+			setSavedRecipes(prev => {
+				const newSet = new Set(prev)
+				if (wasSaved) {
+					newSet.add(recipeId)
+				} else {
+					newSet.delete(recipeId)
+				}
+				return newSet
+			})
+			toast.error('Failed to save recipe')
+		}
 	}
 
 	const handleFiltersApply = (newFilters: RecipeFilters) => {
@@ -194,24 +276,50 @@ export default function ExplorePage() {
 					/>
 				)}
 				{!isLoading && !error && recipes.length === 0 && (
-					<EmptyState
+					<EmptyStateGamified
+						variant='search'
 						title='No recipes found'
 						description={
 							searchQuery
 								? `No recipes match "${searchQuery}". Try a different search.`
 								: 'Be the first to share a recipe!'
 						}
-						icon={Search}
-						lottieAnimation={lottieNotFound}
+						searchSuggestions={
+							searchQuery ? ['Pasta', 'Curry', 'Salad', 'Dessert'] : undefined
+						}
+						primaryAction={{
+							label: 'Create Recipe',
+							href: '/create',
+						}}
 					/>
 				)}
 				{!isLoading && !error && recipes.length > 0 && (
 					<StaggerContainer className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
 						{recipes.map(recipe => (
-							<RecipeCard
+							<RecipeCardEnhanced
 								key={recipe.id}
-								recipe={recipe}
-								onUpdate={handleRecipeUpdate}
+								variant='grid'
+								id={recipe.id}
+								title={recipe.title}
+								description={recipe.description}
+								imageUrl={recipe.imageUrl}
+								cookTimeMinutes={recipe.prepTime + recipe.cookTime}
+								difficulty={difficultyMap[recipe.difficulty] || 'beginner'}
+								xpReward={recipe.xpReward ?? calculateXpRewardFallback(recipe)}
+								rating={4.5} // TODO: Add rating field to Recipe type when backend supports it
+								cookCount={recipe.cookCount ?? 0}
+								skillTags={recipe.skillTags}
+								badges={recipe.badges}
+								author={{
+									id: recipe.author?.userId || 'unknown',
+									name: recipe.author?.displayName || 'Unknown Chef',
+									avatarUrl:
+										recipe.author?.avatarUrl || 'https://i.pravatar.cc/40',
+									isVerified: false, // TODO: Add isVerified to author when backend supports it
+								}}
+								isSaved={savedRecipes.has(recipe.id)}
+								onCook={() => handleCook(recipe.id)}
+								onSave={() => handleSave(recipe.id)}
 							/>
 						))}
 					</StaggerContainer>

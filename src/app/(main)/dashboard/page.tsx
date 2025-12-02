@@ -3,36 +3,111 @@
 import { useEffect, useState } from 'react'
 import { Post } from '@/lib/types'
 import { getFeedPosts } from '@/services/post'
+import {
+	getPendingSessions,
+	SessionHistoryItem,
+} from '@/services/cookingSession'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PostCard } from '@/components/social/PostCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { ErrorState } from '@/components/ui/error-state'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGamified } from '@/components/shared'
 import { Stories } from '@/components/social/Stories'
-import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { Users, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { AnimatePresence } from 'framer-motion'
+import { StreakRiskBanner } from '@/components/streak'
+import { PendingPostsSection, type PendingSession } from '@/components/pending'
+import { useRouter } from 'next/navigation'
+
+// ============================================
+// HELPERS
+// ============================================
+
+/**
+ * Calculate pending status based on days remaining
+ */
+const getPendingStatus = (
+	daysRemaining: number,
+): 'urgent' | 'warning' | 'normal' | 'expired' => {
+	if (daysRemaining <= 0) return 'expired'
+	if (daysRemaining <= 2) return 'urgent'
+	if (daysRemaining <= 5) return 'warning'
+	return 'normal'
+}
+
+/**
+ * Transform SessionHistoryItem to PendingSession format for UI component
+ */
+const transformToPendingSession = (
+	session: SessionHistoryItem,
+): PendingSession => {
+	const daysRemaining = session.daysRemaining ?? 14
+	const cookedAt = new Date(session.completedAt || session.startedAt)
+	// Calculate expiresAt: postDeadline from API or 14 days from completion
+	const expiresAt = session.postDeadline
+		? new Date(session.postDeadline)
+		: new Date(cookedAt.getTime() + 14 * 24 * 60 * 60 * 1000)
+
+	return {
+		id: session.sessionId,
+		recipeId: session.recipeId,
+		recipeName: session.recipeTitle,
+		recipeImage: session.coverImageUrl || '/placeholder-recipe.jpg',
+		cookedAt,
+		duration: 0, // API doesn't provide cook duration
+		baseXP: session.baseXpAwarded || 0,
+		currentXP: session.pendingXp || 0,
+		expiresAt,
+		status: getPendingStatus(daysRemaining),
+		postId: session.postId || undefined,
+	}
+}
+
+// ============================================
+// PAGE
+// ============================================
 
 export default function DashboardPage() {
 	const { user } = useAuth()
+	const router = useRouter()
 	const [posts, setPosts] = useState<Post[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
+	const [showStreakBanner, setShowStreakBanner] = useState(true)
+	const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([])
+
+	// TODO: Fetch streak status from API - check if user has cooked today
+	const hasStreakAtRisk =
+		user?.statistics?.streakCount && user.statistics.streakCount > 0
+	const hoursUntilMidnight = 24 - new Date().getHours()
+	const isUrgent = hoursUntilMidnight <= 2
 
 	useEffect(() => {
-		const fetchFeed = async () => {
+		const fetchData = async () => {
 			setIsLoading(true)
 			setError(null)
+
 			try {
-				const response = await getFeedPosts({ limit: 20 })
-				if (response.success && response.data) {
-					setPosts(response.data)
+				// Fetch feed posts and pending sessions in parallel
+				const [feedResponse, pendingResponse] = await Promise.all([
+					getFeedPosts({ limit: 20 }),
+					getPendingSessions(),
+				])
+
+				if (feedResponse.success && feedResponse.data) {
+					setPosts(feedResponse.data)
+				}
+
+				if (pendingResponse.success && pendingResponse.data) {
+					setPendingSessions(
+						pendingResponse.data.map(transformToPendingSession),
+					)
 				}
 			} catch (err) {
 				setError('Failed to load feed')
@@ -41,11 +116,24 @@ export default function DashboardPage() {
 			}
 		}
 
-		fetchFeed()
+		fetchData()
 	}, [])
 
 	const handlePostCreated = (newPost: Post) => {
 		setPosts(prev => (Array.isArray(prev) ? [newPost, ...prev] : [newPost]))
+		// Dismiss streak banner when user creates a post (cooking activity)
+		setShowStreakBanner(false)
+	}
+
+	const handlePostFromPending = (sessionId: string) => {
+		// Navigate to composer with pre-filled session data
+		router.push(`/create?session=${sessionId}`)
+		// In production, remove from pending after successful post
+	}
+
+	const handleDismissPending = () => {
+		// Optionally hide pending section temporarily
+		setPendingSessions([])
 	}
 
 	const handlePostUpdate = (updatedPost: Post) => {
@@ -65,7 +153,27 @@ export default function DashboardPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Stories Bar - Only show on mobile/tablet, hidden on desktop where RightSidebar shows it */}
+				{/* Streak Risk Banner - Show when user has a streak but hasn't cooked today */}
+				{hasStreakAtRisk && showStreakBanner && (
+					<StreakRiskBanner
+						currentStreak={user.statistics?.streakCount ?? 0}
+						timeRemaining={{ hours: hoursUntilMidnight, minutes: 0 }}
+						isUrgent={isUrgent}
+						onQuickCook={() => router.push('/explore')}
+						onDismiss={() => setShowStreakBanner(false)}
+						className='mb-4'
+					/>
+				)}
+				{/* Pending Posts Section - Show when user has cooked but not posted */}
+				{pendingSessions.length > 0 && (
+					<PendingPostsSection
+						sessions={pendingSessions}
+						onPost={handlePostFromPending}
+						onDismiss={handleDismissPending}
+						onViewAll={() => router.push('/settings?tab=cooking-history')}
+						className='mb-4'
+					/>
+				)}
 				<div className='mb-4 md:mb-6 lg:hidden'>
 					<Stories variant='horizontal' />
 				</div>
@@ -106,27 +214,27 @@ export default function DashboardPage() {
 					/>
 				)}
 				{!isLoading && !error && posts.length === 0 && (
-					<EmptyState
+					<EmptyStateGamified
+						variant='feed'
 						title='Your feed is empty'
 						description='Follow chefs and add friends to see their latest posts here!'
-						icon={MessageSquare}
-						lottieAnimation={lottieNotFound}
-					>
-						<div className='flex flex-wrap justify-center gap-3'>
-							<Link href='/discover'>
-								<Button>
-									<Users className='mr-2 h-4 w-4' />
-									Discover People
-								</Button>
-							</Link>
-							<Link href='/explore'>
-								<Button variant='outline'>
-									<MessageSquare className='mr-2 h-4 w-4' />
-									Explore Posts
-								</Button>
-							</Link>
-						</div>
-					</EmptyState>
+						primaryAction={{
+							label: 'Discover People',
+							href: '/discover',
+							icon: <Users className='h-4 w-4' />,
+						}}
+						secondaryActions={[
+							{
+								label: 'Explore Posts',
+								href: '/explore',
+								icon: <MessageSquare className='h-4 w-4' />,
+							},
+						]}
+						fomoStats={[
+							{ label: 'Recipes posted today', value: '1,234' },
+							{ label: 'Active chefs', value: '567' },
+						]}
+					/>
 				)}
 				{!isLoading && !error && posts.length > 0 && (
 					<StaggerContainer className='space-y-4 md:space-y-6'>

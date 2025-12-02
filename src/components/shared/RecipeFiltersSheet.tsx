@@ -97,7 +97,7 @@ export const RecipeFiltersSheet = ({
 
 			<SheetContent
 				side='bottom'
-				className='h-[85vh] md:h-auto md:max-w-lg md:rounded-t-lg'
+				className='h-sheet-mobile md:h-auto md:max-w-lg md:rounded-t-lg'
 			>
 				<SheetHeader>
 					<SheetTitle className='flex items-center justify-between'>

@@ -9,7 +9,7 @@ import { acceptFriendRequest, declineFriendRequest } from '@/services/social'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import { triggerLikeConfetti } from '@/lib/confetti'
 
 interface FriendRequestCardProps {
@@ -65,9 +65,9 @@ export const FriendRequestCard = ({
 			layout
 		>
 			<motion.div
-				whileHover={{ scale: 1.01, y: -2 }}
+				whileHover={CARD_HOVER}
 				transition={TRANSITION_SPRING}
-				className='flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md'
+				className='flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-sm hover:shadow-md'
 			>
 				<div className='flex items-center gap-3'>
 					<Avatar size='lg' className='shadow-sm'>

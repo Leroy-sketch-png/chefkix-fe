@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { ErrorState } from '@/components/ui/error-state'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyStateGamified } from '@/components/shared'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
 import { FriendRequestCard } from '@/components/social/FriendRequestCard'
 import { FriendCard } from '@/components/social/FriendCard'
@@ -14,38 +14,46 @@ import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { AnimatePresence } from 'framer-motion'
 import { getAllProfiles } from '@/services/profile'
 import { getFriends, getFriendRequests } from '@/services/social'
+import {
+	getLeaderboard,
+	type LeaderboardEntry as LeaderboardServiceEntry,
+} from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
 import { Users, UserPlus, Trophy, Search } from 'lucide-react'
-import lottieNotFound from '@/../public/lottie/lottie-not-found.json'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput,
 } from '@/components/ui/input-group'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card'
+	FriendsLeaderboard,
+	type LeaderboardEntry,
+} from '@/components/leaderboard'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function CommunityPage() {
+	const { user } = useAuth()
+	const router = useRouter()
 	const [allProfiles, setAllProfiles] = useState<Profile[]>([])
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [friendRequests, setFriendRequests] = useState<Profile[]>([])
+	const [leaderboardEntries, setLeaderboardEntries] = useState<
+		LeaderboardEntry[]
+	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
-	const [searchTerm, setSearchTerm] = useState('')
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const [profilesRes, friendsRes, requestsRes] = await Promise.all([
-					getAllProfiles(),
-					getFriends(),
-					getFriendRequests(),
-				])
+				const [profilesRes, friendsRes, requestsRes, leaderboardRes] =
+					await Promise.all([
+						getAllProfiles(),
+						getFriends(),
+						getFriendRequests(),
+						getLeaderboard({ type: 'friends', timeframe: 'weekly' }),
+					])
 
 				if (profilesRes.success && profilesRes.data) {
 					setAllProfiles(profilesRes.data)
@@ -57,6 +65,17 @@ export default function CommunityPage() {
 
 				if (requestsRes.success && requestsRes.data) {
 					setFriendRequests(requestsRes.data)
+				}
+
+				// Use real leaderboard data
+				if (leaderboardRes.success && leaderboardRes.data?.entries) {
+					const entries: LeaderboardEntry[] = leaderboardRes.data.entries.map(
+						entry => ({
+							...entry,
+							isCurrentUser: entry.userId === user?.userId,
+						}),
+					)
+					setLeaderboardEntries(entries)
 				}
 
 				if (
@@ -74,7 +93,7 @@ export default function CommunityPage() {
 		}
 
 		fetchData()
-	}, [])
+	}, [user?.userId])
 
 	const handleRequestAccepted = (userId: string) => {
 		setFriendRequests(prev => prev.filter(req => req.userId !== userId))
@@ -86,6 +105,12 @@ export default function CommunityPage() {
 
 	const handleUnfriend = (userId: string) => {
 		setFriends(prev => prev.filter(friend => friend.userId !== userId))
+	}
+
+	const handleLeaderboardUserClick = (entry: LeaderboardEntry) => {
+		if (!entry.isCurrentUser) {
+			router.push(`/${entry.userId}`)
+		}
 	}
 
 	if (error) {
@@ -143,11 +168,14 @@ export default function CommunityPage() {
 
 					<TabsContent value='discover' className='mt-0 animate-fadeIn'>
 						{allProfiles.length === 0 ? (
-							<EmptyState
-								lottieAnimation={lottieNotFound}
-								lottieSize={() => 200}
+							<EmptyStateGamified
+								variant='feed'
 								title='No users found'
 								description='Start by inviting friends to join ChefKix!'
+								primaryAction={{
+									label: 'Invite Friends',
+									href: '/invite',
+								}}
 							/>
 						) : (
 							<UserDiscoveryClient profiles={allProfiles} />
@@ -191,11 +219,13 @@ export default function CommunityPage() {
 								</h2>
 							</div>
 							{friends.length === 0 ? (
-								<EmptyState
-									lottieAnimation={lottieNotFound}
-									lottieSize={() => 200}
+								<EmptyStateGamified
+									variant='feed'
 									title='No friends yet'
 									description='Start connecting by sending friend requests in the Discover tab!'
+									quickActions={[
+										{ label: 'Browse Discover', href: '#', emoji: '🔍' },
+									]}
 								/>
 							) : (
 								<StaggerContainer staggerDelay={0.05}>
@@ -214,37 +244,19 @@ export default function CommunityPage() {
 					</TabsContent>
 
 					<TabsContent value='leaderboard' className='mt-0 animate-fadeIn'>
-						<Card>
-							<CardHeader>
-								<CardTitle className='flex items-center gap-2'>
-									<Trophy className='h-5 w-5 text-primary' />
-									Community Leaderboard
-								</CardTitle>
-								<CardDescription>
-									Top chefs ranked by XP, level, and community engagement
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className='mb-6'>
-									<InputGroup>
-										<InputGroupAddon align='inline-start'>
-											<Search className='h-4 w-4 text-muted-foreground' />
-										</InputGroupAddon>
-										<InputGroupInput
-											placeholder='Search leaderboard...'
-											value={searchTerm}
-											onChange={e => setSearchTerm(e.target.value)}
-										/>
-									</InputGroup>
-								</div>
-								<EmptyState
-									lottieAnimation={lottieNotFound}
-									lottieSize={() => 200}
-									title='Leaderboard Coming Soon'
-									description='Real-time rankings and community stats will appear here once the backend integration is complete.'
-								/>
-							</CardContent>
-						</Card>
+						<FriendsLeaderboard
+							entries={leaderboardEntries}
+							totalFriends={friends.length}
+							onUserClick={handleLeaderboardUserClick}
+							onInviteFriends={() => {
+								// Switch to discover tab
+								const discoverTab = document.querySelector(
+									'[data-state="inactive"][value="discover"]',
+								) as HTMLButtonElement
+								discoverTab?.click()
+							}}
+							onCookToDefend={() => router.push('/explore')}
+						/>
 					</TabsContent>
 				</Tabs>
 			</PageContainer>

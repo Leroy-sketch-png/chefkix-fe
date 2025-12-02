@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
 			}
 
 			return (
-				<div className='flex min-h-[400px] items-center justify-center p-6'>
+				<div className='flex min-h-panel-md items-center justify-center p-6'>
 					<ErrorState
 						title='Something went wrong'
 						message={

@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
-import { TRANSITION_SPRING, EXIT_VARIANTS } from '@/lib/motion'
+import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -117,7 +117,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			layout
 		>
 			<motion.div
-				whileHover={{ y: -8, scale: 1.02 }}
+				whileHover={{ ...CARD_GRID_HOVER, scale: 1.02 }}
 				transition={TRANSITION_SPRING}
 			>
 				<Link
@@ -137,11 +137,13 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						{/* Difficulty badge */}
 						<div
 							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.3px] text-primary-foreground ${
-								recipe.difficulty === 'EASY'
+								recipe.difficulty === 'BEGINNER'
 									? 'bg-gradient-to-br from-success to-success/80'
-									: recipe.difficulty === 'MEDIUM'
+									: recipe.difficulty === 'INTERMEDIATE'
 										? 'bg-gradient-to-br from-accent to-accent-variant'
-										: 'bg-gradient-to-br from-destructive to-gold'
+										: recipe.difficulty === 'ADVANCED'
+											? 'bg-gradient-to-br from-warning to-gold'
+											: 'bg-gradient-to-br from-destructive to-gold'
 							}`}
 						>
 							{recipe.difficulty}

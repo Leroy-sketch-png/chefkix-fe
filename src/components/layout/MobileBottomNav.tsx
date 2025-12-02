@@ -124,7 +124,7 @@ export const MobileTabBar = ({
 	return (
 		<div
 			className={cn(
-				'sticky top-[60px] z-[calc(var(--z-sticky)-1)] hidden flex-nowrap gap-2 overflow-x-auto border-b border-border bg-card/95 p-2 backdrop-blur-xl scrollbar-hide md:hidden',
+				'sticky top-mobile-header z-[calc(var(--z-sticky)-1)] hidden flex-nowrap gap-2 overflow-x-auto border-b border-border bg-card/95 p-2 backdrop-blur-xl scrollbar-hide md:hidden',
 				className,
 			)}
 		>

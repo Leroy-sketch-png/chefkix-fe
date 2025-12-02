@@ -1,22 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Profile, RelationshipStatus } from '@/lib/types'
-import {
-	Award,
-	UserPlus,
-	UserCheck,
-	MessageCircle,
-	Clock,
-	UserX,
-	Settings,
-	Share2,
-	Heart,
-} from 'lucide-react'
+import { Clock, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
 	toggleFollow,
 	toggleFriendRequest,
@@ -24,16 +12,163 @@ import {
 	acceptFriendRequest,
 	declineFriendRequest,
 } from '@/services/social'
-import Link from 'next/link'
+import {
+	getSessionHistory,
+	SessionHistoryItem,
+} from '@/services/cookingSession'
+import { getRecipesByUserId } from '@/services/recipe'
+import { Recipe } from '@/lib/types/recipe'
+import { useRouter } from 'next/navigation'
 import { toast } from '@/components/ui/toaster'
 import { triggerFriendConfetti } from '@/lib/confetti'
-import { motion } from 'framer-motion'
 import { SOCIAL_MESSAGES } from '@/constants/messages'
+import { ProfileHeaderGamified } from './ProfileHeaderGamified'
+import { CookingHistoryTab, type PendingSession } from '@/components/pending'
+import type { Badge as GamificationBadge } from '@/lib/types/gamification'
+
+// ============================================
+// ADAPTER: Profile → ProfileUser
+// ============================================
+
+interface ProfileUser {
+	id: string
+	displayName: string
+	username: string
+	avatarUrl: string
+	coverUrl?: string
+	bio?: string
+	isVerified?: boolean
+	stats: {
+		followers: number
+		following: number
+		friends?: number
+		recipesCooked: number
+		recipesCreated: number
+		mastered?: number
+	}
+	gamification: {
+		currentLevel: number
+		currentXP: number
+		currentXPGoal: number
+		xpToNextLevel: number
+		progressPercent: number
+		streakCount: number
+		title: 'BEGINNER' | 'AMATEUR' | 'SEMIPRO' | 'PRO'
+	}
+	badges: GamificationBadge[]
+	totalBadges: number
+}
+
+const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
+	const { statistics } = profile
+	const progressPercent =
+		statistics.currentXPGoal > 0
+			? Math.min(
+					100,
+					Math.round((statistics.currentXP / statistics.currentXPGoal) * 100),
+				)
+			: 0
+	const xpToNextLevel = Math.max(
+		0,
+		statistics.currentXPGoal - statistics.currentXP,
+	)
+
+	// TODO: Fetch real badges from API - /api/v1/badges/user/{userId}
+	const badges: GamificationBadge[] = []
+
+	return {
+		id: profile.userId,
+		displayName:
+			profile.displayName ||
+			`${profile.firstName} ${profile.lastName}`.trim() ||
+			'Unknown User',
+		username: profile.username || 'user',
+		avatarUrl: profile.avatarUrl || 'https://i.pravatar.cc/150',
+		coverUrl: undefined, // TODO: Add cover photo support
+		bio: profile.bio,
+		isVerified:
+			profile.accountType === 'chef' || profile.accountType === 'admin',
+		stats: {
+			followers: statistics.followerCount,
+			following: statistics.followingCount,
+			friends: statistics.friendCount,
+			recipesCooked: statistics.postCount, // Approximate: posts = cooked recipes
+			recipesCreated: statistics.recipeCount,
+			mastered: 0, // TODO: Add mastered recipes count
+		},
+		gamification: {
+			currentLevel: statistics.currentLevel,
+			currentXP: statistics.currentXP,
+			currentXPGoal: statistics.currentXPGoal,
+			xpToNextLevel,
+			progressPercent,
+			streakCount: statistics.streakCount,
+			title: statistics.title,
+		},
+		badges,
+		totalBadges: badges.length,
+	}
+}
 
 type UserProfileProps = {
 	profile: Profile
 	currentUserId?: string // Make currentUserId optional
 }
+
+// ============================================
+// HELPER: Transform session history to pending sessions
+// ============================================
+
+function transformToPendingSession(item: SessionHistoryItem): PendingSession {
+	// Calculate status based on deadline
+	let status: PendingSession['status'] = 'normal'
+	let expiresAt = new Date()
+
+	if (item.postDeadline) {
+		expiresAt = new Date(item.postDeadline)
+		const now = new Date()
+		const hoursLeft = (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)
+
+		if (hoursLeft <= 0) {
+			status = 'expired'
+		} else if (hoursLeft <= 24) {
+			status = 'urgent'
+		} else if (hoursLeft <= 48) {
+			status = 'warning'
+		}
+	}
+
+	if (item.status === 'abandoned') {
+		status = 'abandoned'
+	} else if (item.status === 'expired') {
+		status = 'expired'
+	}
+
+	// Posted sessions should be filtered out upstream, but handle gracefully
+	if (item.postId) {
+		status = 'normal' // Already posted
+	}
+
+	return {
+		id: item.sessionId,
+		recipeId: item.recipeId,
+		recipeName: item.recipeTitle,
+		recipeImage: item.coverImageUrl || '/placeholder-recipe.jpg',
+		cookedAt: item.completedAt
+			? new Date(item.completedAt)
+			: new Date(item.startedAt),
+		duration: 0, // Not available from history API
+		baseXP: item.baseXpAwarded || 0,
+		currentXP: item.xpEarned ?? item.baseXpAwarded ?? 0,
+		expiresAt,
+		status,
+		postId: item.postId ?? undefined,
+	}
+}
+
+// ============================================
+// COMPONENT
+// ============================================
 
 export const UserProfile = ({
 	profile: initialProfile,
@@ -41,7 +176,81 @@ export const UserProfile = ({
 }: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
 	const [isLoading, setIsLoading] = useState(false)
+	const [activeTab, setActiveTab] = useState('recipes')
+	const [userRecipes, setUserRecipes] = useState<Recipe[]>([])
+	const [isLoadingRecipes, setIsLoadingRecipes] = useState(false)
+	const [cookingSessions, setCookingSessions] = useState<PendingSession[]>([])
+	const [cookingStats, setCookingStats] = useState({
+		totalSessions: 0,
+		uniqueRecipes: 0,
+		pendingPosts: 0,
+		totalXPEarned: 0,
+	})
+	const router = useRouter()
 	const isOwnProfile = profile.userId === currentUserId
+
+	// Fetch user's recipes when recipes tab is active
+	useEffect(() => {
+		if (activeTab !== 'recipes') return
+
+		const fetchRecipes = async () => {
+			setIsLoadingRecipes(true)
+			try {
+				const response = await getRecipesByUserId(profile.userId, { limit: 20 })
+				if (response.success && response.data) {
+					setUserRecipes(response.data)
+				}
+			} catch (err) {
+				console.error('Failed to fetch user recipes:', err)
+			} finally {
+				setIsLoadingRecipes(false)
+			}
+		}
+
+		fetchRecipes()
+	}, [profile.userId, activeTab])
+
+	// Fetch cooking session history when tab is active (for own profile only)
+	useEffect(() => {
+		if (!isOwnProfile || activeTab !== 'cooking') return
+
+		const fetchCookingSessions = async () => {
+			try {
+				const response = await getSessionHistory({ status: 'all', size: 50 })
+				if (response.success && response.data?.sessions) {
+					const sessions = response.data.sessions.map(transformToPendingSession)
+					setCookingSessions(sessions)
+
+					// Compute stats
+					const uniqueRecipeIds = new Set(
+						response.data.sessions.map(s => s.recipeId),
+					)
+					const pendingPosts = response.data.sessions.filter(
+						s =>
+							(s.status === 'completed' || s.status === 'posted') && !s.postId,
+					).length
+					const totalXP = response.data.sessions.reduce(
+						(sum, s) => sum + (s.xpEarned ?? s.baseXpAwarded ?? 0),
+						0,
+					)
+
+					setCookingStats({
+						totalSessions: sessions.length,
+						uniqueRecipes: uniqueRecipeIds.size,
+						pendingPosts,
+						totalXPEarned: totalXP,
+					})
+				}
+			} catch (err) {
+				console.error('Failed to fetch cooking sessions:', err)
+			}
+		}
+
+		fetchCookingSessions()
+	}, [isOwnProfile, activeTab])
+
+	// Transform Profile to ProfileUser for gamified header
+	const profileUser = transformProfileToProfileUser(profile)
 
 	const handleFollow = async () => {
 		setIsLoading(true)
@@ -269,213 +478,181 @@ export const UserProfile = ({
 		setIsLoading(false)
 	}
 
-	const renderFollowButton = () => {
-		if (isOwnProfile) return null
+	// ============================================
+	// ACTION HANDLERS FOR GAMIFIED HEADER
+	// ============================================
 
-		if (profile.isFollowing) {
-			return (
-				<Button onClick={handleFollow} variant='secondary' disabled={isLoading}>
-					<UserCheck className='mr-2 h-4 w-4' />
-					Following
-				</Button>
-			)
-		}
-		return (
-			<Button onClick={handleFollow} disabled={isLoading}>
-				<UserPlus className='mr-2 h-4 w-4' />
-				Follow
-			</Button>
-		)
+	const handleEditProfile = () => {
+		router.push('/settings')
 	}
 
-	const renderFriendButton = () => {
-		if (isOwnProfile) return null
-
-		switch (profile.relationshipStatus) {
-			case 'FRIENDS':
-				return (
-					<Button
-						onClick={handleUnfriend}
-						variant='destructive'
-						disabled={isLoading}
-					>
-						<UserX className='mr-2 h-4 w-4' />
-						Unfriend
-					</Button>
-				)
-			case 'PENDING_SENT':
-				return (
-					<Button
-						onClick={handleFriendRequest}
-						variant='secondary'
-						disabled={isLoading}
-					>
-						<Clock className='mr-2 h-4 w-4' />
-						Pending
-					</Button>
-				)
-			case 'PENDING_RECEIVED':
-				return (
-					<div className='flex gap-2'>
-						<Button
-							onClick={handleAcceptFriend}
-							variant='default'
-							disabled={isLoading}
-						>
-							<UserCheck className='mr-2 h-4 w-4' />
-							Accept
-						</Button>
-						<Button
-							onClick={handleDeclineFriend}
-							variant='outline'
-							disabled={isLoading}
-						>
-							Decline
-						</Button>
-					</div>
-				)
-			default:
-				return (
-					<Button
-						onClick={handleFriendRequest}
-						variant='secondary'
-						disabled={isLoading}
-					>
-						<UserPlus className='mr-2 h-4 w-4' />
-						Add Friend
-					</Button>
-				)
+	const handleShareProfile = () => {
+		if (navigator.share) {
+			navigator.share({
+				title: `${profile.displayName}'s Profile`,
+				url: window.location.href,
+			})
+		} else {
+			navigator.clipboard.writeText(window.location.href)
+			toast.success('Profile link copied to clipboard!')
 		}
+	}
+
+	const handleMessage = () => {
+		router.push(`/messages?userId=${profile.userId}`)
+	}
+
+	const handleCompare = () => {
+		// TODO: Implement comparison feature
+		toast.info('Coming soon: Compare your cooking history!')
 	}
 
 	return (
 		<div className='mx-auto my-8 max-w-4xl'>
-			<div className='overflow-hidden rounded-lg border bg-card shadow-sm'>
-				{/* Profile Header Card */}
-				<div className='relative h-40 w-full bg-gradient-to-r from-purple-500 to-indigo-500'>
-					{/* Cover Photo Placeholder */}
-				</div>
-				<div className='p-6'>
-					<div className='relative -mt-20 flex items-end justify-between'>
-						<Avatar
-							size='2xl'
-							className='border-4 border-card bg-muted shadow-lg'
-						>
-							<AvatarImage
-								src={profile.avatarUrl || 'https://i.pravatar.cc/150'}
-								alt={`${profile.displayName}'s avatar`}
-							/>
-							<AvatarFallback className='text-2xl'>
-								{profile.displayName
-									?.split(' ')
-									.map(n => n[0])
-									.join('')
-									.toUpperCase()
-									.slice(0, 2) || 'U'}
-							</AvatarFallback>
-						</Avatar>
-						<div className='flex gap-2'>
-							{isOwnProfile && (
-								<Button variant='outline' size='icon'>
-									<Share2 className='h-4 w-4' />
-								</Button>
-							)}
-							{isOwnProfile ? (
-								<Button>
-									<Settings className='mr-2 h-4 w-4' /> Edit Profile
-								</Button>
-							) : (
-								<div className='flex gap-2'>
-									{renderFollowButton()}
-									{renderFriendButton()}
-									<Button variant='secondary'>
-										<MessageCircle className='mr-2 h-4 w-4' /> Message
-									</Button>
-								</div>
-							)}
-						</div>
-					</div>
+			{/* Gamified Profile Header */}
+			{isOwnProfile ? (
+				<ProfileHeaderGamified
+					variant='own'
+					user={profileUser}
+					onEditProfile={handleEditProfile}
+					onShareProfile={handleShareProfile}
+					activeTab={activeTab}
+					onTabChange={setActiveTab}
+				/>
+			) : (
+				<ProfileHeaderGamified
+					variant='other'
+					user={profileUser}
+					isFollowing={profile.isFollowing}
+					isFriend={profile.relationshipStatus === 'FRIENDS'}
+					onFollow={handleFollow}
+					onAddFriend={
+						profile.relationshipStatus === 'FRIENDS'
+							? handleUnfriend
+							: profile.relationshipStatus === 'PENDING_SENT'
+								? handleFriendRequest
+								: profile.relationshipStatus === 'PENDING_RECEIVED'
+									? handleAcceptFriend
+									: handleFriendRequest
+					}
+					onMessage={handleMessage}
+					onCompare={handleCompare}
+					recipesYouCooked={0} // TODO: Fetch actual count
+					activeTab={activeTab}
+					onTabChange={setActiveTab}
+				/>
+			)}
 
-					<div className='mt-4'>
-						<h1 className='text-2xl font-bold leading-tight text-text-primary'>
-							{profile.displayName || 'Unknown User'}
-						</h1>
-						<p className='leading-normal text-text-secondary'>
-							@{profile.username || 'user'}
-						</p>
-						<p className='mt-2 text-sm leading-normal text-text-secondary'>
-							{profile.bio || 'No bio available'}
-						</p>
-					</div>
+			{/* Profile Content Grid - Tab Content */}
+			<div className='mt-8'>
+				{activeTab === 'recipes' && (
+					<>
+						{isLoadingRecipes ? (
+							<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+								{[1, 2, 3].map(i => (
+									<div
+										key={i}
+										className='animate-pulse overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
+									>
+										<div className='h-48 w-full bg-muted' />
+										<div className='space-y-3 p-4'>
+											<div className='h-5 w-3/4 rounded bg-muted' />
+											<div className='h-4 w-1/2 rounded bg-muted' />
+											<div className='h-11 w-full rounded bg-muted' />
+										</div>
+									</div>
+								))}
+							</div>
+						) : userRecipes.length === 0 ? (
+							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
+								<p className='text-text-muted'>
+									{isOwnProfile
+										? "You haven't created any recipes yet"
+										: 'No recipes created yet'}
+								</p>
+							</div>
+						) : (
+							<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+								{userRecipes.map(recipe => (
+									<div
+										key={recipe.id}
+										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-sm transition-shadow hover:shadow-md'
+									>
+										<div className='relative h-48 w-full'>
+											<Image
+												src={recipe.imageUrl || '/placeholder-recipe.jpg'}
+												alt={recipe.title}
+												fill
+												className='object-cover'
+											/>
+										</div>
+										<div className='p-4'>
+											<h3 className='mb-2 line-clamp-1 text-lg font-semibold leading-tight text-text-primary'>
+												{recipe.title}
+											</h3>
+											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
+												<span className='flex items-center gap-1'>
+													<Clock className='h-4 w-4' />{' '}
+													{(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+												</span>
+												<span className='flex items-center gap-1'>
+													<Heart className='h-4 w-4' />{' '}
+													{recipe.likeCount >= 1000
+														? `${(recipe.likeCount / 1000).toFixed(1)}k`
+														: recipe.likeCount}
+												</span>
+											</div>
+											<Button
+												className='h-11 w-full'
+												onClick={() => router.push(`/recipes/${recipe.id}`)}
+											>
+												Cook Now
+											</Button>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</>
+				)}
 
-					<div className='mt-6 flex justify-around border-t border-b border-border-subtle py-4'>
-						<div className='text-center'>
-							<span className='block text-xl font-bold leading-tight text-text-primary'>
-								{(profile.statistics?.followerCount ?? 0).toLocaleString()}
-							</span>
-							<span className='text-sm leading-normal text-text-secondary'>
-								Followers
-							</span>
-						</div>
-						<div className='text-center'>
-							<span className='block text-xl font-bold leading-tight text-text-primary'>
-								{(profile.statistics?.followingCount ?? 0).toLocaleString()}
-							</span>
-							<span className='text-sm leading-normal text-text-secondary'>
-								Following
-							</span>
-						</div>
-						<div className='text-center'>
-							<span className='block text-xl font-bold leading-tight text-text-primary'>
-								{(profile.statistics?.friendCount ?? 0).toLocaleString()}
-							</span>
-							<span className='text-sm leading-normal text-text-secondary'>
-								Friends
-							</span>
-						</div>
+				{activeTab === 'posts' && (
+					<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
+						<p className='text-text-muted'>Posts coming soon...</p>
 					</div>
+				)}
 
-					<div className='mt-6 flex justify-around'>
-						<div className='cursor-pointer border-b-2 border-primary pb-2 font-semibold leading-tight text-primary'>
-							My Recipes
-						</div>
-						<div className='cursor-pointer pb-2 font-semibold leading-tight text-text-secondary hover:text-primary'>
-							Saved
-						</div>
-						<div className='cursor-pointer pb-2 font-semibold leading-tight text-text-secondary hover:text-primary'>
-							Badges
-						</div>
-					</div>
-				</div>
-			</div>
+				{activeTab === 'cooking' && (
+					<CookingHistoryTab
+						sessions={cookingSessions}
+						stats={cookingStats}
+						onPost={sessionId => {
+							router.push(`/create?session=${sessionId}`)
+						}}
+						onViewPost={postId => {
+							router.push(`/posts/${postId}`)
+						}}
+						onRetry={sessionId => {
+							// Navigate to retry cooking this recipe
+							const session = cookingSessions.find(s => s.id === sessionId)
+							if (session) {
+								router.push(`/recipes/${session.recipeId}/cook`)
+							}
+						}}
+					/>
+				)}
 
-			{/* Profile Content Grid */}
-			<div className='mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-				{/* Template: Recipe Card */}
-				<div className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-sm'>
-					<div className='relative h-48 w-full'>
-						<Image
-							src='https://i.imgur.com/v8SjYfT.jpeg'
-							alt='Spicy Ramen'
-							fill
-							className='object-cover'
-						/>
+				{activeTab === 'saved' && (
+					<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
+						<p className='text-text-muted'>Saved recipes coming soon...</p>
 					</div>
-					<div className='p-4'>
-						<h3 className='mb-2 text-lg font-semibold leading-tight text-text-primary'>
-							Spicy Tomato Ramen
-						</h3>
-						<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
-							<span className='flex items-center gap-1'>
-								<Clock className='h-4 w-4' /> 25 min
-							</span>
-							<span className='flex items-center gap-1'>
-								<Heart className='h-4 w-4' /> 1.2k
-							</span>
-						</div>
-						<Button className='h-11 w-full'>Cook Now</Button>
+				)}
+
+				{activeTab === 'achievements' && (
+					<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
+						<p className='text-text-muted'>Achievements coming soon...</p>
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	)

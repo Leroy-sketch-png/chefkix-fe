@@ -14,18 +14,55 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/store/uiStore'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { getNotifications } from '@/services/notification'
+import { getMyConversations } from '@/services/chat'
 
 export const Topbar = () => {
-	const { user, logout } = useAuth()
+	const { user } = useAuth()
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [mode, setMode] = useState<'player' | 'creator'>('player')
 	const [showUserMenu, setShowUserMenu] = useState(false)
+	const [unreadNotifications, setUnreadNotifications] = useState(0)
+	const [unreadMessages, setUnreadMessages] = useState(0)
 	const router = useRouter()
+	const { logout } = useAuth()
+
+	// Fetch unread counts on mount and periodically
+	useEffect(() => {
+		const fetchCounts = async () => {
+			try {
+				const [notifResponse, convResponse] = await Promise.all([
+					getNotifications({ size: 1 }), // Just need unreadCount
+					getMyConversations(),
+				])
+
+				if (notifResponse.success && notifResponse.data) {
+					setUnreadNotifications(notifResponse.data.unreadCount)
+				}
+
+				if (convResponse.success && convResponse.data) {
+					// Sum up unread counts from all conversations
+					const totalUnread = convResponse.data.reduce(
+						(sum, conv) => sum + (conv.unreadCount || 0),
+						0,
+					)
+					setUnreadMessages(totalUnread)
+				}
+			} catch (err) {
+				console.error('Failed to fetch unread counts:', err)
+			}
+		}
+
+		fetchCounts()
+		// Refresh every 30 seconds
+		const interval = setInterval(fetchCounts, 30000)
+		return () => clearInterval(interval)
+	}, [])
 
 	const handleLogout = async () => {
 		try {
@@ -57,12 +94,12 @@ export const Topbar = () => {
 				href='/dashboard'
 				className='absolute left-4 flex items-center gap-2 md:left-6'
 			>
-				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary md:text-2xl'>
+				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary'>
 					Chefkix
 				</div>
 			</Link>
-			{/* Search Bar - constrained max width for better proportions */}
-			<div className='group relative flex min-w-search max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:px-4 md:py-2.5'>
+			{/* Search Bar - constrained max width, with left margin to avoid overlapping the absolute logo */}
+			<div className='group relative ml-20 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:ml-24 md:px-4 md:py-2.5'>
 				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:rotate-12 group-focus-within:text-primary' />
 				<input
 					type='text'
@@ -168,9 +205,11 @@ export const Topbar = () => {
 					aria-label='Notifications'
 				>
 					<Bell className='mx-auto h-5 w-5' />
-					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
-						3
-					</span>
+					{unreadNotifications > 0 && (
+						<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
+							{unreadNotifications > 99 ? '99+' : unreadNotifications}
+						</span>
+					)}
 				</button>
 				<button
 					onClick={toggleMessagesDrawer}
@@ -178,9 +217,11 @@ export const Topbar = () => {
 					aria-label='Messages'
 				>
 					<MessageSquare className='mx-auto h-5 w-5' />
-					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
-						2
-					</span>
+					{unreadMessages > 0 && (
+						<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
+							{unreadMessages > 99 ? '99+' : unreadMessages}
+						</span>
+					)}
 				</button>
 			</div>
 		</header>

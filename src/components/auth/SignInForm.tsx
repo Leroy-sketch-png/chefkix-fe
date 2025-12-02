@@ -74,7 +74,7 @@ export function SignInForm() {
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
 			toast.success('Welcome back! Signed in successfully.')
-			router.push(PATHS.HOME)
+			router.push(PATHS.DASHBOARD)
 		} else {
 			const errorMsg =
 				profileResponse.message ||

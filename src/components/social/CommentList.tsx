@@ -74,7 +74,7 @@ export const CommentList = ({
 	}
 
 	return (
-		<div className='max-h-[500px] space-y-2 overflow-y-auto p-4 md:p-6'>
+		<div className='max-h-panel-lg space-y-2 overflow-y-auto p-4 md:p-6'>
 			{comments.map(comment => (
 				<Comment
 					key={`${comment.userId}-${comment.createdAt}`}
