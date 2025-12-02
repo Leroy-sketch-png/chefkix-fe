@@ -422,7 +422,7 @@ export function StreakWidget({
 			{/* Streak Display */}
 			<div className='flex items-baseline justify-center gap-2 mb-5'>
 				<span className='text-4xl'>🔥</span>
-				<span className='text-icon-emoji-xl font-black bg-gradient-streak bg-clip-text text-transparent leading-none'>
+				<span className='text-5xl font-black text-orange-500 leading-none'>
 					{currentStreak}
 				</span>
 				<span className='text-base font-semibold text-muted-foreground'>

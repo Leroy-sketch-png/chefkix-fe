@@ -164,7 +164,7 @@ const MethodCard = ({
 			className={cn(
 				'flex size-12 items-center justify-center rounded-xl',
 				method === 'ai'
-					? 'bg-gradient-xp text-white'
+					? 'bg-gradient-hero text-white'
 					: 'bg-bg text-muted-foreground',
 			)}
 		>
@@ -177,7 +177,7 @@ const MethodCard = ({
 			</span>
 		</div>
 		{badge && (
-			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-brand px-2.5 py-1 text-2xs font-bold text-white'>
+			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-hero px-2.5 py-1 text-2xs font-bold text-white'>
 				{badge}
 			</span>
 		)}
@@ -260,7 +260,7 @@ const ParsingOverlay = ({ currentStep }: { currentStep: number }) => {
 					<motion.div
 						animate={{ scale: [1, 1.1, 1] }}
 						transition={{ repeat: Infinity, duration: 1.5 }}
-						className='flex size-20 items-center justify-center rounded-2xl bg-gradient-xp text-white'
+						className='flex size-20 items-center justify-center rounded-2xl bg-gradient-hero text-white shadow-lg'
 					>
 						<Wand2 className='size-9' />
 					</motion.div>
@@ -345,7 +345,7 @@ const StepItem = ({
 	onRemove: () => void
 }) => (
 	<div className='group flex gap-3.5 rounded-2xl bg-bg p-4'>
-		<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-xp text-sm font-extrabold text-white'>
+		<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-extrabold text-white shadow-md'>
 			{index + 1}
 		</div>
 		<div className='flex-1'>
@@ -552,7 +552,7 @@ const XpPreviewModal = ({
 					onClick={onPublish}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3.5 text-sm font-bold text-white shadow-lg'
+					className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg'
 				>
 					<Send className='size-4' />
 					Publish Recipe
@@ -797,7 +797,7 @@ export const RecipeCreateAiFlow = ({
 								className={cn(
 									'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white transition-all',
 									rawText.trim()
-										? 'bg-gradient-brand shadow-lg hover:shadow-xl'
+										? 'bg-gradient-hero shadow-lg hover:shadow-xl'
 										: 'cursor-not-allowed bg-muted/50',
 								)}
 							>
@@ -992,7 +992,7 @@ export const RecipeCreateAiFlow = ({
 							onClick={handlePreviewXp}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-brand py-4.5 shadow-xl'
+							className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-xl'
 						>
 							<span className='text-base font-bold text-white'>
 								Preview XP & Publish

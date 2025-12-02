@@ -224,7 +224,7 @@ const MasteryBadge = ({
 		novice: { emoji: '🥉', gradient: 'from-slate-500 to-slate-600' },
 		apprentice: { emoji: '🥈', gradient: 'from-blue-500 to-blue-600' },
 		expert: { emoji: '🥇', gradient: 'from-gold to-level' },
-		master: { emoji: '👑', gradient: 'from-xp to-xp-bonus' },
+		master: { emoji: '👑', gradient: 'from-xp to-bonus' },
 	}
 
 	return (

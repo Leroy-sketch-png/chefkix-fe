@@ -255,7 +255,7 @@ const ActiveChallengeBanner = ({
 					onClick={onFindRecipe}
 					whileHover={STAT_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
-					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-xp via-cyan-400 to-rare py-3.5 text-base font-bold text-white shadow-lg shadow-xp/40'
+					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-base font-bold text-white shadow-lg shadow-xp/40'
 				>
 					<ChefHat className='h-5 w-5' />
 					Find Recipe
