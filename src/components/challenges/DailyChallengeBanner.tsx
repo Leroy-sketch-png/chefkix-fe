@@ -115,7 +115,7 @@ const GlowBar = ({ isComplete = false }: { isComplete?: boolean }) => (
 			'absolute left-0 right-0 top-0 h-0.5',
 			isComplete
 				? 'bg-gradient-to-r from-success via-emerald-500 to-success'
-				: 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500',
+				: 'bg-gradient-party',
 		)}
 		style={{ backgroundSize: '200% 100%' }}
 		animate={{ backgroundPosition: ['0% 0', '200% 0'] }}
@@ -138,7 +138,7 @@ const ChallengeIcon = ({
 				'flex items-center justify-center',
 				isComplete
 					? 'bg-gradient-to-br from-success to-emerald-500'
-					: 'bg-gradient-to-br from-indigo-500 to-purple-500',
+					: 'bg-gradient-xp',
 				size === 'large'
 					? 'h-16 w-16 rounded-2xl'
 					: 'size-thumbnail-sm rounded-radius',
@@ -150,7 +150,7 @@ const ChallengeIcon = ({
 		</div>
 		{!isComplete && (
 			<motion.div
-				className='absolute -inset-1 rounded-xl border-2 border-dashed border-indigo-500/40'
+				className='absolute -inset-1 rounded-xl border-2 border-dashed border-xp/40'
 				animate={{ rotate: 360 }}
 				transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
 			/>
@@ -435,7 +435,7 @@ const FeaturedChallengeBanner = ({
 
 			{/* Event Badge */}
 			{challenge.eventLabel && (
-				<div className='absolute left-4 top-4 z-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 px-3.5 py-2 text-xs font-bold text-white'>
+				<div className='absolute left-4 top-4 z-10 rounded-full bg-gradient-gold px-3.5 py-2 text-xs font-bold text-white'>
 					🌟 {challenge.eventLabel}
 				</div>
 			)}

@@ -125,7 +125,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 		</svg>
 
 		{/* Inner badge */}
-		<div className='absolute inset-5 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-bonus via-legendary to-orange-600 shadow-lg shadow-bonus/50'>
+		<div className='absolute inset-5 flex items-center justify-center overflow-hidden rounded-full bg-gradient-celebration shadow-lg shadow-bonus/50'>
 			{/* Old level (exits) */}
 			<motion.span
 				initial={{ y: 0, scale: 1, opacity: 1 }}
@@ -271,7 +271,7 @@ export const LevelUpCelebration = ({
 									],
 								}}
 								transition={{ duration: 1.5, repeat: Infinity }}
-								className='mb-3 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-4xl font-black text-transparent max-md:text-3xl'
+								className='mb-3 bg-gradient-gold bg-clip-text text-4xl font-black text-transparent max-md:text-3xl'
 							>
 								Level Up!
 							</motion.h1>
@@ -354,7 +354,7 @@ export const LevelUpCelebration = ({
 								onClick={onContinue}
 								whileHover={STAT_ITEM_HOVER}
 								whileTap={LIST_ITEM_TAP}
-								className='rounded-2xl bg-gradient-to-r from-bonus via-legendary to-orange-500 px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60'
+								className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60'
 							>
 								Continue
 							</motion.button>
@@ -389,7 +389,7 @@ export const LevelUpToast = ({
 		className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-panel-bg px-4 py-3 shadow-xl shadow-bonus/20 md:bottom-6'
 	>
 		{/* Badge */}
-		<div className='flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-bonus via-legendary to-orange-500'>
+		<div className='flex h-11 w-11 items-center justify-center rounded-full bg-gradient-celebration'>
 			<span className='text-lg font-black text-white'>{level}</span>
 		</div>
 
@@ -404,7 +404,7 @@ export const LevelUpToast = ({
 		{/* Actions */}
 		<button
 			onClick={onView}
-			className='rounded-lg bg-gradient-to-r from-bonus via-legendary to-orange-500 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
+			className='rounded-lg bg-gradient-celebration px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
 		>
 			View
 		</button>

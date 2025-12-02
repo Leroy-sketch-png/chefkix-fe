@@ -219,7 +219,7 @@ export function StreakSavedToast({
 								initial={{ scale: 0.5, opacity: 1 }}
 								animate={{ scale: 2, opacity: 0 }}
 								transition={{ duration: 0.8 }}
-								className='absolute -inset-2.5 bg-gradient-to-r from-orange-500/30 to-transparent rounded-full'
+								className='absolute -inset-2.5 bg-streak/30 rounded-full'
 							/>
 						)}
 					</div>

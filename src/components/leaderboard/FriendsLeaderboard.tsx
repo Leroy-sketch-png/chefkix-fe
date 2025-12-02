@@ -60,7 +60,7 @@ function FriendsSummary({
 					onClick={onInviteFriends}
 					className={cn(
 						'flex items-center gap-1.5 py-2 px-3.5',
-						'bg-gradient-to-r from-indigo-500 to-purple-500',
+						'bg-gradient-xp',
 						'rounded-lg text-sm font-semibold text-white',
 					)}
 				>
@@ -244,7 +244,7 @@ export function FriendsLeaderboard({
 							onClick={onInviteFriends}
 							className={cn(
 								'flex items-center gap-2 py-2.5 px-5',
-								'bg-gradient-to-r from-indigo-500 to-purple-500',
+								'bg-gradient-xp',
 								'rounded-xl text-sm font-semibold text-white',
 							)}
 						>

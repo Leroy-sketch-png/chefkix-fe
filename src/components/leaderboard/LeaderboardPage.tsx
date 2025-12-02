@@ -98,7 +98,7 @@ function LeaderboardTabs({
 						'flex-1 flex items-center justify-center gap-2 py-3 px-4',
 						'rounded-xl text-sm font-semibold transition-all',
 						activeType === type
-							? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white'
+							? 'bg-gradient-xp text-white'
 							: 'text-muted-foreground hover:text-text',
 					)}
 				>
@@ -175,8 +175,8 @@ function MyRankBanner({
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
 				'flex flex-col sm:flex-row items-center gap-5 p-4 sm:p-5',
-				'bg-gradient-to-r from-indigo-500/10 to-purple-500/5',
-				'border-2 border-indigo-500/20 rounded-2xl mb-6',
+				'bg-accent-purple-subtle',
+				'border-2 border-accent-purple/20 rounded-2xl mb-6',
 			)}
 		>
 			{/* Rank Position */}
@@ -216,7 +216,7 @@ function MyRankBanner({
 					onClick={onCookNow}
 					className={cn(
 						'py-2 px-4 rounded-lg text-sm font-bold text-white',
-						'bg-gradient-to-r from-indigo-500 to-purple-500',
+						'bg-gradient-xp',
 						'w-full sm:w-auto',
 					)}
 				>

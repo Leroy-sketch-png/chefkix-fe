@@ -51,7 +51,7 @@ const podiumConfig = {
 		avatarSize: 64,
 		baseHeight: 40,
 		baseGradient: 'from-legendary/30 to-legendary/10',
-		badgeGradient: 'from-legendary to-orange-600',
+		badgeGradient: 'from-legendary to-bonus',
 		showCrown: false,
 	},
 } as const

@@ -270,7 +270,7 @@ export const FirstCookCelebration = ({
 								initial={{ scale: 0, rotate: -180 }}
 								animate={{ scale: 1, rotate: 0 }}
 								transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
-								className='absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-400/40'
+								className='absolute inset-0 flex items-center justify-center rounded-full bg-gradient-gold shadow-lg shadow-gold/40'
 							>
 								<span className='text-5xl max-md:text-4xl'>👨‍🍳</span>
 							</motion.div>
@@ -278,7 +278,7 @@ export const FirstCookCelebration = ({
 
 						{/* Title */}
 						<div className='mb-7 text-center'>
-							<h1 className='mb-2 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-3xl font-extrabold text-transparent max-md:text-2xl'>
+							<h1 className='mb-2 bg-gradient-gold bg-clip-text text-3xl font-extrabold text-transparent max-md:text-2xl'>
 								You&apos;re a Chef Now!
 							</h1>
 							<p className='text-text-muted'>
@@ -296,7 +296,7 @@ export const FirstCookCelebration = ({
 									height={80}
 									className='h-thumbnail-lg w-thumbnail-lg rounded-xl object-cover'
 								/>
-								<div className='pointer-events-none absolute -inset-1 rounded-2xl border-2 border-amber-400' />
+								<div className='pointer-events-none absolute -inset-1 rounded-2xl border-2 border-gold' />
 							</div>
 							<div>
 								<span className='block text-xs uppercase tracking-wide text-text-muted'>

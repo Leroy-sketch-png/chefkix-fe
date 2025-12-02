@@ -131,7 +131,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			xpClass: 'text-muted-foreground',
 		},
 		today: {
-			badgeBg: 'bg-gradient-to-br from-primary to-purple-500',
+			badgeBg: 'bg-gradient-brand',
 			indicator: <Check className='size-3' />,
 			indicatorBg: 'bg-success',
 			xpClass: 'text-success',
@@ -156,8 +156,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 		<div
 			className={cn(
 				'relative flex flex-col items-center gap-1.5 rounded-xl p-3 text-center',
-				isCurrentDay &&
-					'border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-purple-500/5',
+				isCurrentDay && 'border-2 border-primary/30 bg-primary/10',
 				!isCurrentDay && 'bg-bg',
 			)}
 		>
@@ -451,7 +450,7 @@ export const ChallengeHistoryPage = ({
 			<div className='rounded-2xl bg-panel-bg p-6'>
 				<div className='mb-5 grid gap-5 md:grid-cols-[1fr_2fr]'>
 					{/* Big Stat */}
-					<div className='flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/5 p-6'>
+					<div className='flex flex-col items-center justify-center rounded-2xl bg-primary/10 p-6'>
 						<span className='text-6xl font-black leading-none text-primary'>
 							{stats.totalCompleted}
 						</span>

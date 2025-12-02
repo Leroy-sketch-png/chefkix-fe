@@ -67,8 +67,8 @@ export function CreatorStatsWidget({
 					</span>
 					<span className='text-2xs text-muted-foreground'>Cooks</span>
 				</div>
-				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-gradient-to-b from-emerald-500/10 to-teal-500/5 rounded-lg'>
-					<span className='text-lg font-extrabold text-emerald-500'>
+				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-success/10 rounded-lg'>
+					<span className='text-lg font-extrabold text-success'>
 						+{xpEarned.toLocaleString()}
 					</span>
 					<span className='text-2xs text-muted-foreground'>XP Earned</span>
@@ -127,8 +127,8 @@ export function CreatorXPNotification({
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
 				'flex items-center gap-3.5 py-3.5 px-4',
-				'bg-gradient-to-r from-purple-500/10 to-indigo-500/5',
-				'border border-purple-500/20 rounded-2xl',
+				'bg-gradient-to-r from-xp/10 to-xp/5',
+				'border border-xp/20 rounded-2xl',
 				className,
 			)}
 		>
@@ -148,7 +148,7 @@ export function CreatorXPNotification({
 					/>
 				))}
 				{remainingCount > 0 && (
-					<div className='w-8 h-8 flex items-center justify-center bg-indigo-500 rounded-full border-3 border-panel-bg -ml-2.5 text-xs font-bold text-white'>
+					<div className='w-8 h-8 flex items-center justify-center bg-xp rounded-full border-3 border-panel-bg -ml-2.5 text-xs font-bold text-white'>
 						+{remainingCount}
 					</div>
 				)}
@@ -159,7 +159,7 @@ export function CreatorXPNotification({
 				<span className='text-sm font-semibold text-text'>
 					{cookersCount} people cooked your recipes today!
 				</span>
-				<span className='text-sm font-bold text-emerald-500'>
+				<span className='text-sm font-bold text-success'>
 					+{totalXpEarned} XP earned as creator
 				</span>
 			</div>
@@ -170,7 +170,7 @@ export function CreatorXPNotification({
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onView}
-					className='py-2 px-3.5 bg-purple-500 rounded-lg text-sm font-semibold text-white'
+					className='py-2 px-3.5 bg-xp rounded-lg text-sm font-semibold text-white'
 				>
 					View
 				</motion.button>

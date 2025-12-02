@@ -147,13 +147,13 @@ export const PostDeadlineCard = ({
 		warning: {
 			icon: '⏰',
 			label: 'Time running out!',
-			borderClass: 'border-amber-500/40',
-			bgClass: 'bg-gradient-to-r from-amber-500/5 to-transparent',
-			labelClass: 'text-amber-500',
-			deadlineClass: 'text-amber-500',
+			borderClass: 'border-gold/40',
+			bgClass: 'bg-gold/5',
+			labelClass: 'text-gold',
+			deadlineClass: 'text-gold',
 			xpBgClass: 'bg-success/10',
 			xpTextClass: 'text-success',
-			buttonClass: 'bg-amber-500 hover:bg-amber-600',
+			buttonClass: 'bg-gold hover:bg-gold/90',
 			ClockIcon: AlertCircle,
 		},
 		urgent: {
@@ -494,8 +494,7 @@ export const PostDeadlineMobileStrip = ({
 		<div
 			className={cn(
 				'flex items-center gap-2.5 border-b px-4 py-2.5',
-				state === 'warning' &&
-					'border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-transparent',
+				state === 'warning' && 'border-gold/30 bg-gold/10',
 				state === 'urgent' &&
 					'border-red-500/30 bg-gradient-to-r from-red-500/10 to-transparent',
 				state === 'normal' && 'border-border bg-panel-bg',

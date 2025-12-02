@@ -161,7 +161,7 @@ export const SessionHeader = ({
 				className={cn(
 					'absolute inset-0 transition-colors duration-300',
 					state === 'IN_PROGRESS' && 'bg-gradient-brand',
-					state === 'PAUSED' && 'bg-gradient-to-r from-amber-500 to-orange-500',
+					state === 'PAUSED' && 'bg-gradient-streak',
 					state === 'IDLE_WARNING' &&
 						'bg-gradient-to-r from-red-500 to-orange-500',
 				)}

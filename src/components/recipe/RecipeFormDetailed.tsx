@@ -260,7 +260,7 @@ const StepRow = ({
 
 	return (
 		<div className='group flex gap-4'>
-			<div className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-500 text-sm font-bold text-white'>
+			<div className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-xp text-sm font-bold text-white'>
 				{index + 1}
 			</div>
 			<div className='flex-1 space-y-3'>
@@ -777,7 +777,7 @@ export const RecipeFormDetailed = ({
 							type='submit'
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-purple-500 px-6 py-3 font-bold text-white shadow-lg sm:flex-none'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-brand px-6 py-3 font-bold text-white shadow-lg sm:flex-none'
 						>
 							<Send className='size-4' />
 							Publish Recipe

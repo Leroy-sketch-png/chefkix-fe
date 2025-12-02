@@ -209,7 +209,7 @@ export const ReportModal = ({
 									onClick={handleClose}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='w-full rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 py-3.5 font-bold text-white'
+									className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
 								>
 									Done
 								</motion.button>
@@ -261,7 +261,7 @@ export const ReportModal = ({
 													className={cn(
 														'flex cursor-pointer items-start gap-3.5 rounded-xl border-2 border-transparent bg-bg-elevated p-4 transition-all',
 														selectedReason === reason.value
-															? 'border-purple-500 bg-purple-500/10'
+															? 'border-xp bg-xp/10'
 															: 'hover:border-border',
 													)}
 												>
@@ -277,12 +277,12 @@ export const ReportModal = ({
 														className={cn(
 															'mt-0.5 flex size-icon-md flex-shrink-0 items-center justify-center rounded-full border-2',
 															selectedReason === reason.value
-																? 'border-purple-500'
+																? 'border-xp'
 																: 'border-border',
 														)}
 													>
 														{selectedReason === reason.value && (
-															<div className='h-2.5 w-2.5 rounded-full bg-purple-500' />
+															<div className='h-2.5 w-2.5 rounded-full bg-xp' />
 														)}
 													</div>
 													<div className='flex flex-col gap-1'>
@@ -312,8 +312,8 @@ export const ReportModal = ({
 									</div>
 
 									{/* Trust Signal */}
-									<div className='mb-5 flex items-start gap-2.5 rounded-xl bg-purple-500/10 p-4'>
-										<Shield className='mt-0.5 size-icon-sm flex-shrink-0 text-purple-500' />
+									<div className='mb-5 flex items-start gap-2.5 rounded-xl bg-xp/10 p-4'>
+										<Shield className='mt-0.5 size-icon-sm flex-shrink-0 text-xp' />
 										<span className='text-sm leading-relaxed text-text-muted'>
 											Reports are reviewed within 24 hours. False reports may
 											affect your account.
@@ -406,7 +406,7 @@ export const ReportLimitModal = ({
 							onClick={onClose}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='w-full rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 py-3.5 font-bold text-white'
+							className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
 						>
 							Okay
 						</motion.button>
@@ -674,7 +674,7 @@ export const AppealModal = ({
 									onClick={handleClose}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='w-full rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 py-3.5 font-bold text-white'
+									className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
 								>
 									Got It
 								</motion.button>
@@ -765,7 +765,7 @@ export const AppealModal = ({
 													? { scale: 0.98 }
 													: {}
 											}
-											className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 py-3.5 text-sm font-bold text-white disabled:opacity-50'
+											className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-sm font-bold text-white disabled:opacity-50'
 										>
 											{isSubmitting ? (
 												<Loader2 className='size-icon-sm animate-spin' />

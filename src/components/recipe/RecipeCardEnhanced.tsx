@@ -143,7 +143,7 @@ const difficultyConfig: Record<
 		filledDots: 2,
 	},
 	advanced: { color: 'text-error', bgColor: 'bg-error', filledDots: 3 },
-	expert: { color: 'text-purple-500', bgColor: 'bg-purple-500', filledDots: 4 },
+	expert: { color: 'text-xp', bgColor: 'bg-xp', filledDots: 4 },
 }
 
 // Difficulty indicator with dots
@@ -223,8 +223,8 @@ const MasteryBadge = ({
 	const config = {
 		novice: { emoji: '🥉', gradient: 'from-slate-500 to-slate-600' },
 		apprentice: { emoji: '🥈', gradient: 'from-blue-500 to-blue-600' },
-		expert: { emoji: '🥇', gradient: 'from-amber-500 to-amber-600' },
-		master: { emoji: '👑', gradient: 'from-purple-500 to-violet-600' },
+		expert: { emoji: '🥇', gradient: 'from-gold to-level' },
+		master: { emoji: '👑', gradient: 'from-xp to-xp-bonus' },
 	}
 
 	return (
@@ -757,7 +757,7 @@ const CookedCard = ({
 	<motion.article
 		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-2xl border-2 border-purple-500/30 bg-panel-bg shadow-md hover:border-purple-500/50 hover:shadow-purple-500/15'
+		className='overflow-hidden rounded-2xl border-2 border-xp/30 bg-panel-bg shadow-md hover:border-xp/50 hover:shadow-xp/15'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}
@@ -776,7 +776,7 @@ const CookedCard = ({
 				{/* Mastery progress */}
 				<div className='mb-4'>
 					<div className='mb-2 flex items-center justify-between text-xs'>
-						<span className='font-semibold text-purple-500'>Mastery</span>
+						<span className='font-semibold text-xp'>Mastery</span>
 						<span className='text-text-muted'>
 							{mastery.cooksToNextMilestone} more to next milestone
 						</span>
@@ -786,7 +786,7 @@ const CookedCard = ({
 							initial={{ width: 0 }}
 							animate={{ width: `${mastery.masteryPercent}%` }}
 							transition={{ duration: 0.5 }}
-							className='h-full rounded-full bg-gradient-to-r from-purple-500 to-violet-500'
+							className='h-full rounded-full bg-gradient-xp'
 						/>
 					</div>
 					<div className='flex justify-between text-xs'>
@@ -796,9 +796,9 @@ const CookedCard = ({
 								className={cn(
 									'rounded-full px-2 py-0.5',
 									mastery.personalCookCount >= milestone
-										? 'bg-purple-500/20 text-purple-500'
+										? 'bg-xp/20 text-xp'
 										: mastery.personalCookCount === milestone - 1
-											? 'bg-purple-500 text-white'
+											? 'bg-xp text-white'
 											: 'bg-border text-text-muted',
 								)}
 							>
@@ -826,7 +826,7 @@ const CookedCard = ({
 				onClick={onCookAgain}
 				whileHover={BUTTON_HOVER}
 				whileTap={BUTTON_TAP}
-				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-br from-purple-500 to-violet-500 py-3 text-sm font-semibold text-white'
+				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-xp py-3 text-sm font-semibold text-white'
 			>
 				<RefreshCw className='h-4 w-4' />
 				Cook Again
@@ -836,7 +836,7 @@ const CookedCard = ({
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
-				className='flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-purple-500/30 hover:bg-purple-500/10 hover:text-purple-500'
+				className='flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp'
 			>
 				<History className='h-5 w-5' />
 			</motion.button>
@@ -881,7 +881,7 @@ const MiniCard = ({
 							difficulty === 'beginner' && 'bg-success/10 text-success',
 							difficulty === 'intermediate' && 'bg-amber-500/10 text-amber-500',
 							difficulty === 'advanced' && 'bg-error/10 text-error',
-							difficulty === 'expert' && 'bg-purple-500/10 text-purple-500',
+							difficulty === 'expert' && 'bg-xp/10 text-xp',
 						)}
 					>
 						{difficulty === 'beginner' ? 'Easy' : difficulty}

@@ -281,7 +281,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 						className={cn(
 							'flex-shrink-0 flex flex-col items-center gap-2 w-thumbnail-2xl p-5 rounded-2xl text-center relative',
 							badge.isEarned
-								? 'bg-gradient-to-b from-indigo-500/10 to-purple-500/5 border-2 border-indigo-500/20'
+								? 'bg-xp/10 border-2 border-xp/20'
 								: 'bg-panel-bg opacity-60',
 						)}
 					>
@@ -564,8 +564,8 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
 				'flex flex-col sm:flex-row items-center justify-between gap-4 p-5',
-				'bg-gradient-to-r from-indigo-500/10 to-purple-500/5',
-				'border-2 border-indigo-500/20 rounded-xl',
+				'bg-xp/10',
+				'border-2 border-xp/20 rounded-xl',
 			)}
 		>
 			<div className='flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left'>
@@ -586,9 +586,9 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 				onClick={onCreateRecipe}
 				className={cn(
 					'flex items-center justify-center gap-2 py-3 px-5',
-					'bg-gradient-to-r from-indigo-500 to-purple-500',
+					'bg-gradient-xp',
 					'rounded-xl text-sm font-bold text-white w-full sm:w-auto',
-					'shadow-lg shadow-indigo-500/20',
+					'shadow-lg shadow-xp/20',
 				)}
 			>
 				<Plus className='size-icon-sm' />
@@ -635,7 +635,7 @@ export function CreatorDashboard({
 					<h1 className='text-2xl font-extrabold text-text'>
 						Creator Dashboard
 					</h1>
-					<span className='py-1 px-2.5 bg-gradient-to-r from-purple-500/20 to-indigo-500/10 border border-purple-500/30 rounded-xl text-xs font-semibold text-purple-500'>
+					<span className='py-1 px-2.5 bg-xp/20 border border-xp/30 rounded-xl text-xs font-semibold text-xp'>
 						📝 Recipe Creator
 					</span>
 				</div>

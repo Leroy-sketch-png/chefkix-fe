@@ -159,7 +159,7 @@ const ChallengeRecipeCard = ({
 
 					{/* Quick Pick Ribbon */}
 					{recipe.isQuickPick && (
-						<div className='absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-1.5 text-2xs font-bold text-white'>
+						<div className='absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-gold px-3 py-1.5 text-2xs font-bold text-white'>
 							<Zap className='size-3' />
 							Quick Pick
 						</div>
@@ -230,7 +230,7 @@ const ChallengeRecipeCard = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition-shadow hover:shadow-lg'
+							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-md transition-shadow hover:shadow-lg'
 						>
 							<Play className='size-4' />
 							Cook

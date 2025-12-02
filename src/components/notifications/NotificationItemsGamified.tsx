@@ -158,7 +158,7 @@ const rarityConfig = {
 	rare: { bg: 'bg-rare/15', text: 'text-rare', label: 'Rare' },
 	epic: { bg: 'bg-combo/15', text: 'text-combo', label: 'Epic' },
 	legendary: {
-		bg: 'bg-gradient-to-r from-bonus via-legendary to-orange-500',
+		bg: 'bg-gradient-celebration',
 		text: 'text-white',
 		label: 'Legendary',
 	},

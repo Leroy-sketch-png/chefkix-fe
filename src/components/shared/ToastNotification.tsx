@@ -137,14 +137,14 @@ const ToastIcon = ({
 				<motion.div
 					animate={achievementPulse}
 					transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-					className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold to-amber-500 text-white shadow-lg'
+					className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-gold text-white shadow-lg'
 				>
 					<span className='text-2xl'>{badge || '🏆'}</span>
 				</motion.div>
 			)
 		case 'streak':
 			return (
-				<div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/40'>
+				<div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-streak text-white shadow-lg shadow-streak/40'>
 					<span className='text-2xl'>🔥</span>
 				</div>
 			)
@@ -185,7 +185,7 @@ export const Toast = (props: ToastProps) => {
 		info: 'border-l-brand',
 		xp: 'border-l-gold',
 		achievement: 'border-l-gold',
-		streak: 'border-l-orange-500',
+		streak: 'border-l-streak',
 	}
 
 	const isXP = type === 'xp' && 'xpAmount' in props
@@ -202,7 +202,7 @@ export const Toast = (props: ToastProps) => {
 			className={cn(
 				'relative flex min-w-80 max-w-modal-md items-center gap-3 rounded-radius border-l-4 bg-panel-bg p-4 shadow-lg',
 				borderColors[type],
-				isAchievement && 'bg-gradient-to-r from-gold/10 to-amber-500/10',
+				isAchievement && 'bg-gold/10',
 			)}
 		>
 			{/* Icon */}
@@ -244,7 +244,7 @@ export const Toast = (props: ToastProps) => {
 					whileHover={STAT_ITEM_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					onClick={(props as AchievementToastProps).onView}
-					className='flex-shrink-0 rounded-full bg-gradient-to-br from-gold to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gold/40 transition-shadow hover:shadow-gold/60'
+					className='flex-shrink-0 rounded-full bg-gradient-gold px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gold/40 transition-shadow hover:shadow-gold/60'
 				>
 					View
 				</motion.button>

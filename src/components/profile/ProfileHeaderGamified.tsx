@@ -131,7 +131,7 @@ const titleConfig: Record<UserTitle, { gradient: string; label: string }> = {
 	AMATEUR: { gradient: 'bg-blue-500', label: 'Amateur' },
 	SEMIPRO: { gradient: 'bg-amber-500', label: 'Semi-Pro' },
 	PRO: {
-		gradient: 'bg-gradient-to-r from-purple-500 to-violet-500',
+		gradient: 'bg-gradient-xp',
 		label: 'Pro',
 	},
 }
@@ -408,7 +408,7 @@ const BadgesShowcase = ({
 						compact
 							? 'min-w-nav px-3 py-2.5'
 							: 'min-w-thumbnail-xl px-4 py-3.5',
-						index === 0 && !compact && 'border-purple-500/30 bg-purple-500/10',
+						index === 0 && !compact && 'border-xp/30 bg-xp/10',
 					)}
 				>
 					<span className={compact ? 'text-xl' : 'text-icon-lg'}>
@@ -423,7 +423,7 @@ const BadgesShowcase = ({
 						{badge.name}
 					</span>
 					{!compact && badge.rarity === 'RARE' && (
-						<span className='rounded-full bg-purple-500 px-2 py-0.5 text-2xs text-white'>
+						<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
 							Rare
 						</span>
 					)}

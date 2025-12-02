@@ -65,9 +65,9 @@ const leagueConfig: Record<
 	},
 	gold: {
 		icon: '🏆',
-		gradient: 'from-amber-400/15 to-amber-500/8',
-		borderColor: 'border-amber-400/40',
-		textColor: 'text-amber-500',
+		gradient: 'from-gold/15 to-level/8',
+		borderColor: 'border-gold/40',
+		textColor: 'text-gold',
 	},
 	diamond: {
 		icon: '💎',
@@ -77,9 +77,9 @@ const leagueConfig: Record<
 	},
 	legendary: {
 		icon: '👑',
-		gradient: 'from-purple-500/15 to-pink-500/8',
-		borderColor: 'border-purple-500/40',
-		textColor: 'text-purple-500',
+		gradient: 'from-accent-purple/15 to-pink-500/8',
+		borderColor: 'border-accent-purple/40',
+		textColor: 'text-accent-purple',
 	},
 }
 

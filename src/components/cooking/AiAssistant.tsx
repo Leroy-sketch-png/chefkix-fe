@@ -121,9 +121,7 @@ const ChatMessage = ({ message, onFeedback }: ChatMessageProps) => {
 			<div
 				className={cn(
 					'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm',
-					isUser
-						? 'bg-brand text-white'
-						: 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white',
+					isUser ? 'bg-brand text-white' : 'bg-gradient-xp text-white',
 				)}
 			>
 				{isUser ? '👤' : '✨'}
@@ -212,7 +210,7 @@ const TypingIndicator = () => (
 		exit={{ opacity: 0, scale: 0.8 }}
 		className='flex gap-2'
 	>
-		<div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white'>
+		<div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-xp text-white'>
 			✨
 		</div>
 		<div className='flex items-center gap-1.5 rounded-2xl bg-bg-elevated px-4 py-3'>
@@ -249,7 +247,7 @@ export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => (
 		animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
 		className={cn(
 			'fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-6',
-			'bg-gradient-to-br from-indigo-500 to-purple-500 text-white',
+			'bg-gradient-xp text-white',
 		)}
 	>
 		<Sparkles className='h-6 w-6' />
@@ -416,7 +414,7 @@ export const AiAssistant = ({
 						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
 					>
 						{/* Header */}
-						<div className='flex items-center justify-between border-b border-border bg-gradient-to-r from-indigo-500 to-purple-500 p-4 text-white'>
+						<div className='flex items-center justify-between border-b border-border bg-gradient-xp p-4 text-white'>
 							<div className='flex items-center gap-3'>
 								<div className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20'>
 									<Sparkles className='h-5 w-5' />
@@ -434,7 +432,7 @@ export const AiAssistant = ({
 									className={cn(
 										'rounded-full p-2 transition-colors',
 										isVoiceEnabled
-											? 'bg-white text-indigo-500'
+											? 'bg-white text-xp'
 											: 'bg-white/20 text-white hover:bg-white/30',
 									)}
 								>

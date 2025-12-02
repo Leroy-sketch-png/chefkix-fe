@@ -114,8 +114,8 @@ export function StreakBrokenModal({
 								onClick={onStartNewStreak}
 								className={cn(
 									'flex items-center justify-center gap-2 py-4 px-6 rounded-xl',
-									'bg-gradient-to-r from-orange-500 to-orange-600 text-white',
-									'text-base font-bold shadow-lg shadow-orange-500/30',
+									'bg-gradient-streak text-white',
+									'text-base font-bold shadow-lg shadow-streak/30',
 								)}
 							>
 								<Flame className='w-5 h-5' />

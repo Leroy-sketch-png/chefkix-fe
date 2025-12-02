@@ -278,16 +278,16 @@ export const ComposerModal = ({
 								<motion.div
 									initial={{ opacity: 0, y: 10 }}
 									animate={{ opacity: 1, y: 0 }}
-									className='relative mt-4 rounded-xl border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-violet-500/10 p-4'
+									className='relative mt-4 rounded-xl border-2 border-xp/30 bg-xp/10 p-4'
 								>
-									<div className='mb-2 flex items-center gap-2 font-semibold text-purple-500'>
+									<div className='mb-2 flex items-center gap-2 font-semibold text-xp'>
 										<BookOpen className='h-4 w-4' />
 										<span>Recipe Attached</span>
 										<motion.button
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={() => setRecipe(null)}
-											className='ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-purple-500 hover:bg-purple-500/30'
+											className='ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-xp/20 text-xp hover:bg-xp/30'
 										>
 											<X className='h-4 w-4' />
 										</motion.button>
@@ -309,7 +309,7 @@ export const ComposerModal = ({
 								onClick={() => setShowAIForm(!showAIForm)}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='flex w-full items-center gap-2 rounded-xl border-2 border-dashed border-purple-500/40 bg-gradient-to-br from-purple-500/10 to-violet-500/10 px-4 py-3 font-semibold text-purple-500 transition-colors hover:border-purple-500'
+								className='flex w-full items-center gap-2 rounded-xl border-2 border-dashed border-xp/40 bg-xp/10 px-4 py-3 font-semibold text-xp transition-colors hover:border-xp'
 							>
 								<Sparkles className='h-4 w-4' />
 								<span>Attach Recipe (AI-Assisted)</span>
@@ -331,7 +331,7 @@ export const ComposerModal = ({
 											value={aiDescription}
 											onChange={e => setAIDescription(e.target.value)}
 											placeholder='Example: Quick pasta with garlic, olive oil, cherry tomatoes. Boil pasta 10 mins, sauté garlic 2 mins, toss together...'
-											className='w-full resize-y rounded-xl border-2 border-border bg-panel-bg p-3 text-sm leading-relaxed outline-none transition-colors focus:border-purple-500'
+											className='w-full resize-y rounded-xl border-2 border-border bg-panel-bg p-3 text-sm leading-relaxed outline-none transition-colors focus:border-xp'
 											rows={3}
 										/>
 										<motion.button
@@ -339,7 +339,7 @@ export const ComposerModal = ({
 											disabled={isGenerating || !aiDescription.trim()}
 											whileHover={!isGenerating ? { y: -2 } : {}}
 											whileTap={!isGenerating ? { scale: 0.98 } : {}}
-											className='mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 py-3 font-semibold text-white shadow-lg shadow-purple-500/30 transition-shadow hover:shadow-purple-500/50 disabled:opacity-50'
+											className='mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3 font-semibold text-white shadow-lg shadow-xp/30 transition-shadow hover:shadow-xp/50 disabled:opacity-50'
 										>
 											{isGenerating ? (
 												<>

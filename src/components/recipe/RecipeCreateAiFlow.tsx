@@ -156,7 +156,7 @@ const MethodCard = ({
 		className={cn(
 			'relative flex items-center gap-3.5 rounded-2xl border-2 p-5 text-left transition-all',
 			isActive
-				? 'border-primary bg-gradient-to-br from-primary/10 to-purple-500/5'
+				? 'border-primary bg-primary/10'
 				: 'border-border bg-panel-bg hover:border-muted-foreground',
 		)}
 	>
@@ -164,7 +164,7 @@ const MethodCard = ({
 			className={cn(
 				'flex size-12 items-center justify-center rounded-xl',
 				method === 'ai'
-					? 'bg-gradient-to-br from-primary to-purple-500 text-white'
+					? 'bg-gradient-xp text-white'
 					: 'bg-bg text-muted-foreground',
 			)}
 		>
@@ -177,7 +177,7 @@ const MethodCard = ({
 			</span>
 		</div>
 		{badge && (
-			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-to-r from-primary to-purple-500 px-2.5 py-1 text-2xs font-bold text-white'>
+			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-brand px-2.5 py-1 text-2xs font-bold text-white'>
 				{badge}
 			</span>
 		)}
@@ -260,7 +260,7 @@ const ParsingOverlay = ({ currentStep }: { currentStep: number }) => {
 					<motion.div
 						animate={{ scale: [1, 1.1, 1] }}
 						transition={{ repeat: Infinity, duration: 1.5 }}
-						className='flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-purple-500 text-white'
+						className='flex size-20 items-center justify-center rounded-2xl bg-gradient-xp text-white'
 					>
 						<Wand2 className='size-9' />
 					</motion.div>
@@ -345,7 +345,7 @@ const StepItem = ({
 	onRemove: () => void
 }) => (
 	<div className='group flex gap-3.5 rounded-2xl bg-bg p-4'>
-		<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-500 text-sm font-extrabold text-white'>
+		<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-xp text-sm font-extrabold text-white'>
 			{index + 1}
 		</div>
 		<div className='flex-1'>
@@ -524,10 +524,10 @@ const XpPreviewModal = ({
 			</div>
 
 			{/* Creator Incentive */}
-			<div className='mb-5 flex items-center gap-3.5 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-primary/5 px-5 py-4'>
+			<div className='mb-5 flex items-center gap-3.5 rounded-2xl border border-xp/20 bg-xp/10 px-5 py-4'>
 				<span className='text-3xl'>✨</span>
 				<div>
-					<strong className='text-sm text-purple-500'>You earn 4% XP</strong>{' '}
+					<strong className='text-sm text-xp'>You earn 4% XP</strong>{' '}
 					<span className='text-sm text-text'>
 						when others cook this recipe
 					</span>
@@ -552,7 +552,7 @@ const XpPreviewModal = ({
 					onClick={onPublish}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-purple-500 py-3.5 text-sm font-bold text-white shadow-lg'
+					className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3.5 text-sm font-bold text-white shadow-lg'
 				>
 					<Send className='size-4' />
 					Publish Recipe
@@ -797,7 +797,7 @@ export const RecipeCreateAiFlow = ({
 								className={cn(
 									'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white transition-all',
 									rawText.trim()
-										? 'bg-gradient-to-r from-primary to-purple-500 shadow-lg hover:shadow-xl'
+										? 'bg-gradient-brand shadow-lg hover:shadow-xl'
 										: 'cursor-not-allowed bg-muted/50',
 								)}
 							>
@@ -992,7 +992,7 @@ export const RecipeCreateAiFlow = ({
 							onClick={handlePreviewXp}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-purple-500 py-4.5 shadow-xl'
+							className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-brand py-4.5 shadow-xl'
 						>
 							<span className='text-base font-bold text-white'>
 								Preview XP & Publish

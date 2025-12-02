@@ -121,12 +121,12 @@ export const ChallengeComplete = ({
 				<div className='relative mx-auto mb-5 size-thumbnail-xl'>
 					{/* Glow */}
 					<motion.div
-						className='absolute -inset-5 rounded-3xl bg-indigo-500/30 blur-xl'
+						className='absolute -inset-5 rounded-3xl bg-xp/30 blur-xl'
 						animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.1, 1] }}
 						transition={{ duration: 1.5, repeat: Infinity }}
 					/>
 					{/* Badge */}
-					<div className='relative flex h-full w-full items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/40'>
+					<div className='relative flex h-full w-full items-center justify-center rounded-3xl bg-gradient-xp shadow-lg shadow-xp/40'>
 						<span className='text-5xl'>{challengeIcon}</span>
 					</div>
 					{/* Checkmark */}
@@ -142,7 +142,7 @@ export const ChallengeComplete = ({
 
 				{/* Title */}
 				<div className='mb-4'>
-					<span className='mb-1 block text-xs font-bold uppercase tracking-wider text-indigo-500'>
+					<span className='mb-1 block text-xs font-bold uppercase tracking-wider text-xp'>
 						Daily Challenge
 					</span>
 					<h2 className='text-2xl font-extrabold'>Complete! 🎯</h2>
@@ -243,7 +243,7 @@ export const ChallengeComplete = ({
 						onClick={onContinue}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-base font-bold text-white shadow-lg shadow-indigo-500/30'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-base font-bold text-white shadow-lg shadow-xp/30'
 					>
 						Continue
 						<ArrowRight className='size-icon-sm' />
@@ -278,15 +278,15 @@ export const ChallengeCompleteInline = ({
 	<motion.div
 		initial={{ opacity: 0, y: 10 }}
 		animate={{ opacity: 1, y: 0 }}
-		className='my-4 rounded-2xl border-2 border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 to-purple-500/5 p-4 px-5'
+		className='my-4 rounded-2xl border-2 border-xp/30 bg-xp/10 p-4 px-5'
 	>
 		{/* Header */}
 		<div className='mb-3 flex items-center gap-3.5'>
-			<div className='flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500'>
+			<div className='flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-xp'>
 				<span className='text-2xl'>{challengeIcon}</span>
 			</div>
 			<div className='flex-1'>
-				<span className='text-sm font-bold text-indigo-500'>
+				<span className='text-sm font-bold text-xp'>
 					Daily Challenge Complete!
 				</span>
 				<span className='block text-sm text-text-muted'>{challengeTitle}</span>
