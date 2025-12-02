@@ -122,7 +122,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			>
 				<Link
 					href={`/recipes/${recipe.id}`}
-					className='group block overflow-hidden rounded-radius bg-bg-card shadow-md transition-all duration-300 hover:rotate-x-[2deg] hover:shadow-glow [transform-style:preserve-3d]'
+					className='group block overflow-hidden rounded-radius bg-bg-card shadow-card transition-all duration-300 hover:rotate-x-[2deg] hover:shadow-warm [transform-style:preserve-3d]'
 				>
 					{/* Gradient overlay on hover */}
 					<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />

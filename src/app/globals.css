@@ -53,32 +53,32 @@
 
 	/* ============ LIGHT MODE COLORS ============ */
 
-	/* Backgrounds - Warm creamy whites with soul */
-	--bg: #faf7f4; /* Warmer cream - main background */
-	--bg-page: #faf7f4;
-	--bg-card: #fffdfb; /* Just barely off-white for cards */
-	--bg-elevated: #f5f2ef; /* Warm elevated surfaces */
-	--bg-hover: #f0ece8; /* Interactive hover - visible warmth */
-	--bg-input: #faf8f6;
+	/* Backgrounds - Warm parchment/kitchen palette (think: fresh bread, warm wood) */
+	--bg: #f8f4ef; /* Warm parchment base - like a recipe book page */
+	--bg-page: #f8f4ef;
+	--bg-card: #fdfbf8; /* Soft cream cards - NOT stark white */
+	--bg-elevated: #f3ede6; /* Warm elevated - like light wood */
+	--bg-hover: #ede7df; /* Honey-touched hover */
+	--bg-input: #faf8f5; /* Slightly warmer input fields */
 
-	/* Text - High contrast, warm undertones */
-	--text: #1c1917; /* Warm black */
-	--text-primary: #1c1917;
-	--text-secondary: #44403c; /* Warm dark gray */
-	--text-tertiary: #78716c; /* Warm medium gray */
-	--text-muted: #a8a29e; /* Warm muted */
+	/* Text - Chocolate/Espresso tones (rich, appetizing) */
+	--text: #2c2420; /* Espresso - rich warm black */
+	--text-primary: #2c2420;
+	--text-secondary: #524840; /* Dark chocolate - readable warmth */
+	--text-tertiary: #7a6f65; /* Cocoa - medium emphasis */
+	--text-muted: #a89f94; /* Latte - soft muted */
 
-	/* Borders - Visible but not harsh */
-	--border: #e7e5e4;
-	--border-color: #e7e5e4;
-	--border-subtle: #f5f5f4;
-	--border-medium: #d6d3d1;
-	--border-strong: #a8a29e;
+	/* Borders - Warm stone/terracotta undertones */
+	--border: #e5ddd5; /* Warm sand border */
+	--border-color: #e5ddd5;
+	--border-subtle: #f0ebe5; /* Barely there cream */
+	--border-medium: #d4cac0; /* Warm taupe */
+	--border-strong: #a89f94; /* Strong stone */
 
 	/* Legacy semantic tokens (for compatibility) */
-	--muted: #f5f5f4; /* Warm muted background */
+	--muted: #f3ede6; /* Warm muted background - matches elevated */
 	--muted-foreground: var(--text-muted);
-	--muted-strong: #57534e; /* Warm dark muted */
+	--muted-strong: #5c534a; /* Warm dark muted - like dark wood */
 
 	/* Backwards compatibility - map old tokens to new system */
 	--primary: var(--color-brand);
@@ -292,12 +292,18 @@
 	--bg-elev: var(--bg-elevated);
 	--surface: var(--bg-card);
 
-	/* ============ SHADOWS - NEUTRAL GRAYS ============ */
-	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-	--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
-	--shadow-glow: 0 0 28px rgba(255, 111, 60, 0.3); /* Brand glow for special cases */
-	--shadow-warm: 0 4px 22px rgba(0, 0, 0, 0.15); /* Renamed for consistency */
+	/* ============ SHADOWS - WARM & INVITING ============ */
+	/* Shadows with warm brown undertones, not cold gray */
+	--shadow-sm:
+		0 2px 8px rgba(44, 36, 32, 0.06), 0 1px 2px rgba(44, 36, 32, 0.04);
+	--shadow-md:
+		0 4px 16px rgba(44, 36, 32, 0.08), 0 2px 4px rgba(44, 36, 32, 0.04);
+	--shadow-lg:
+		0 8px 32px rgba(44, 36, 32, 0.12), 0 4px 8px rgba(44, 36, 32, 0.06);
+	--shadow-glow: 0 0 28px rgba(255, 90, 54, 0.25); /* Brand coral glow */
+	--shadow-warm: 0 4px 22px rgba(44, 36, 32, 0.1); /* Cozy card shadow */
+	--shadow-card:
+		0 2px 12px rgba(44, 36, 32, 0.06), 0 1px 3px rgba(44, 36, 32, 0.03); /* Subtle card lift */
 
 	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -369,8 +375,8 @@
 	--container-lg: 800px; /* Main content feed width - uniform across social pages */
 	--container-xl: 1200px;
 
-	/* Accessibility / focus */
-	--focus: rgba(102, 126, 234, 0.18);
+	/* Accessibility / focus - warm brand glow */
+	--focus: rgba(255, 90, 54, 0.15); /* Brand coral focus ring */
 
 	/* Note: Z-index scale is defined earlier in this file. Do not duplicate here. */
 
@@ -465,6 +471,8 @@
 		--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
 		--shadow-glow: 0 0 32px rgba(255, 107, 74, 0.5); /* Brand glow */
 		--shadow-warm: 0 4px 24px rgba(255, 107, 74, 0.3);
+		--shadow-card:
+			0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
 		--shadow-xp: 0 0 24px rgba(168, 85, 247, 0.4); /* Purple glow */
 		--shadow-success: 0 0 20px rgba(52, 211, 153, 0.4); /* Green glow */
 
