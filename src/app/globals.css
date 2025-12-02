@@ -987,6 +987,16 @@ select {
 	);
 }
 
+/* Alias for bg-gradient-brand - widely used as primary action gradient */
+@utility bg-gradient-primary {
+	background-image: linear-gradient(
+		135deg,
+		#ff5a36 0%,
+		#ff7849 50%,
+		#e64a2e 100%
+	);
+}
+
 @utility bg-gradient-hero {
 	background-image: linear-gradient(
 		135deg,
