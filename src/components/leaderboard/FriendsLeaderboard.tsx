@@ -91,7 +91,7 @@ function CatchingUpAlert({
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
 				'flex flex-col sm:flex-row items-center justify-between gap-3 p-4',
-				'bg-orange-500/10 border border-orange-500/20 rounded-xl mt-3',
+				'bg-streak/10 border border-streak/20 rounded-xl mt-3',
 			)}
 		>
 			<div className='flex items-center gap-2.5'>
@@ -103,8 +103,8 @@ function CatchingUpAlert({
 					className='rounded-full'
 				/>
 				<span className='text-sm text-text'>
-					<strong className='text-orange-500'>{competitor.displayName}</strong>{' '}
-					is only {xpBehind} XP behind you!
+					<strong className='text-streak'>{competitor.displayName}</strong> is
+					only {xpBehind} XP behind you!
 				</span>
 			</div>
 			{onCookToDefend && (
@@ -112,7 +112,7 @@ function CatchingUpAlert({
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onCookToDefend}
-					className='py-2 px-3.5 bg-orange-500 rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto'
+					className='py-2 px-3.5 bg-streak rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto'
 				>
 					Cook to defend 🍳
 				</motion.button>

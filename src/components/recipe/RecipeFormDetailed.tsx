@@ -386,7 +386,7 @@ const TagInput = ({
 					onChange={e => setInput(e.target.value)}
 					onKeyDown={handleKeyDown}
 					placeholder={tags.length === 0 ? 'Type and press Enter' : ''}
-					className='min-w-[120px] flex-1 bg-transparent py-1.5 text-sm text-text focus:outline-none'
+					className='min-w-search flex-1 bg-transparent py-1.5 text-sm text-text focus:outline-none'
 				/>
 			</div>
 			<div className='flex flex-wrap gap-2'>
@@ -502,7 +502,7 @@ export const RecipeFormDetailed = ({
 	}
 
 	return (
-		<div className={cn('mx-auto max-w-[900px] p-6 md:p-10', className)}>
+		<div className={cn('mx-auto max-w-container-form p-6 md:p-10', className)}>
 			{/* Header */}
 			<div className='mb-10'>
 				<h1 className='text-3xl font-extrabold text-text md:text-4xl'>

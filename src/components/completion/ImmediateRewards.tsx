@@ -149,7 +149,7 @@ const RewardRowComponent = ({
 			animate='visible'
 			className={cn(
 				'whitespace-nowrap text-xl font-bold',
-				reward.isLocked ? 'text-text-muted' : 'text-success',
+				reward.isLocked ? 'text-text-muted' : 'text-xp',
 			)}
 		>
 			+{reward.xpAmount} <span className='text-sm font-semibold'>XP</span>
@@ -166,16 +166,16 @@ const AchievementBanner = ({ achievement }: AchievementBannerProps) => (
 		variants={BADGE_REVEAL_VARIANTS}
 		initial='hidden'
 		animate='visible'
-		className='mb-5 flex items-center gap-3.5 rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-500/10 to-purple-400/10 p-3.5'
+		className='mb-5 flex items-center gap-3.5 rounded-2xl border border-accent-purple/30 bg-gradient-to-r from-accent-purple/10 to-accent-purple/5 p-3.5'
 	>
 		{/* Badge icon */}
-		<div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-2xl shadow-lg shadow-purple-500/30'>
+		<div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
 			{achievement.iconEmoji}
 		</div>
 
 		{/* Info */}
 		<div className='flex-1'>
-			<span className='block text-xs font-semibold uppercase tracking-wide text-purple-400'>
+			<span className='block text-xs font-semibold uppercase tracking-wide text-accent-purple'>
 				Achievement Unlocked!
 			</span>
 			<span className='block text-base font-bold'>{achievement.name}</span>
@@ -282,7 +282,7 @@ export const ImmediateRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative w-full max-w-md overflow-hidden rounded-3xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[90vh] max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
+							className='relative w-full max-w-md overflow-hidden rounded-3xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-modal max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close button */}
 							<button

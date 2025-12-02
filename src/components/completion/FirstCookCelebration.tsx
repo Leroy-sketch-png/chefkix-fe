@@ -56,28 +56,28 @@ const UNLOCKS: UnlockItem[] = [
 		emoji: '🎖️',
 		name: 'First Dish Badge',
 		description: 'Your first of many!',
-		glowColor: 'rgba(251, 191, 36, 0.2)',
+		glowColor: 'rgba(255, 215, 0, 0.3)', // bonus gold
 	},
 	{
 		id: 'xp',
 		emoji: '⚡',
 		name: '+30 XP',
 		description: 'Your first XP ever!',
-		glowColor: 'rgba(34, 197, 94, 0.2)',
+		glowColor: 'rgba(0, 212, 255, 0.3)', // xp cyan
 	},
 	{
 		id: 'level',
 		emoji: '📈',
 		name: 'Level 1 Started',
 		description: '70 more XP to Level 2',
-		glowColor: 'rgba(99, 102, 241, 0.2)',
+		glowColor: 'rgba(52, 211, 153, 0.3)', // level emerald
 	},
 	{
 		id: 'challenges',
 		emoji: '🎯',
 		name: 'Daily Challenges',
 		description: 'New challenge every day!',
-		glowColor: 'rgba(168, 85, 247, 0.2)',
+		glowColor: 'rgba(168, 85, 247, 0.3)', // rare purple
 	},
 ]
 
@@ -128,8 +128,8 @@ const BurstRings = () => (
 				className={cn(
 					'absolute inset-0 rounded-full border-3',
 					i === 0 && 'border-amber-400',
-					i === 1 && 'border-orange-500',
-					i === 2 && 'border-red-500',
+					i === 1 && 'border-streak',
+					i === 2 && 'border-streak-urgent',
 				)}
 			/>
 		))}
@@ -161,10 +161,7 @@ const UnlockCard = ({ item, index }: { item: UnlockItem; index: number }) => (
 		{/* Info */}
 		<div className='min-w-0 flex-1'>
 			<span
-				className={cn(
-					'block text-sm font-bold',
-					item.id === 'xp' && 'text-success',
-				)}
+				className={cn('block text-sm font-bold', item.id === 'xp' && 'text-xp')}
 			>
 				{item.name}
 			</span>
@@ -264,7 +261,7 @@ export const FirstCookCelebration = ({
 						initial='hidden'
 						animate='visible'
 						exit='exit'
-						className='relative z-10 w-full max-w-xl overflow-y-auto rounded-3xl bg-panel-bg p-10 shadow-2xl max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[95vh] max-md:rounded-b-none max-md:p-6'
+						className='relative z-10 w-full max-w-xl overflow-y-auto rounded-3xl bg-panel-bg p-10 shadow-2xl max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-full max-md:rounded-b-none max-md:p-6'
 					>
 						{/* Burst animation + badge */}
 						<div className='relative mx-auto mb-6 h-28 w-28 max-md:h-24 max-md:w-24'>
@@ -322,12 +319,12 @@ export const FirstCookCelebration = ({
 						</div>
 
 						{/* Pending XP teaser */}
-						<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-dashed border-success/40 bg-gradient-to-r from-success/10 to-success/5 p-4'>
-							<div className='flex h-10 w-10 items-center justify-center rounded-lg bg-panel-bg text-success'>
+						<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-dashed border-xp/40 bg-gradient-to-r from-xp/10 to-bonus/10 p-4'>
+							<div className='flex h-10 w-10 items-center justify-center rounded-lg bg-panel-bg text-xp'>
 								<Lock className='h-5 w-5' />
 							</div>
 							<div className='flex-1'>
-								<span className='block text-sm font-bold text-success'>
+								<span className='block text-sm font-bold text-xp'>
 									+{pendingXp} XP waiting
 								</span>
 								<span className='block text-xs text-text-muted'>

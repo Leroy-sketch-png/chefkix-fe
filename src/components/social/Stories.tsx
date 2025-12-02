@@ -6,10 +6,11 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 
 // ============================================
-// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// STORIES DATA - Pending backend implementation
 // ============================================
 
-// Empty array for MSW preparation - will be replaced with API call
+// Empty array until backend Stories API is available
+// Will be replaced with: GET /api/v1/stories endpoint
 const stories: Array<{
 	id: number
 	userId: string

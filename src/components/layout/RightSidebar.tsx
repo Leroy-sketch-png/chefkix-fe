@@ -1,14 +1,69 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakWidget } from '@/components/streak'
 import { ExpandableDailyChallengeBanner } from '@/components/challenges'
 import { useRouter } from 'next/navigation'
-import { getTodaysChallenge, DailyChallenge } from '@/services/challenge'
+import { getTodaysChallenge } from '@/services/challenge'
 import { getAllProfiles } from '@/services/profile'
+import { getSessionHistory } from '@/services/cookingSession'
 import { Profile } from '@/lib/types'
+
+// ============================================
+// HELPER: Compute week progress from cooking session history
+// ============================================
+
+type DayStatus = 'cooked' | 'today' | 'future'
+
+function computeWeekProgress(
+	cookDates: Date[],
+	lastCookDate?: string,
+): { weekProgress: DayStatus[]; isActiveToday: boolean } {
+	const today = new Date()
+	today.setHours(0, 0, 0, 0)
+
+	// Get start of week (Monday)
+	const dayOfWeek = today.getDay()
+	const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+	const monday = new Date(today)
+	monday.setDate(today.getDate() + mondayOffset)
+
+	// Create set of cooked dates (as date strings for comparison)
+	const cookedDateSet = new Set(
+		cookDates.map(d => {
+			const normalized = new Date(d)
+			normalized.setHours(0, 0, 0, 0)
+			return normalized.toDateString()
+		}),
+	)
+
+	// Check if last cook was today
+	const isActiveToday = lastCookDate
+		? new Date(lastCookDate).toDateString() === today.toDateString()
+		: cookedDateSet.has(today.toDateString())
+
+	// Build week progress array (Mon-Sun)
+	const weekProgress: DayStatus[] = []
+	for (let i = 0; i < 7; i++) {
+		const date = new Date(monday)
+		date.setDate(monday.getDate() + i)
+		date.setHours(0, 0, 0, 0)
+
+		if (date.toDateString() === today.toDateString()) {
+			weekProgress.push('today')
+		} else if (date > today) {
+			weekProgress.push('future')
+		} else if (cookedDateSet.has(date.toDateString())) {
+			weekProgress.push('cooked')
+		} else {
+			weekProgress.push('future') // Missed days show as future (no special state)
+		}
+	}
+
+	return { weekProgress, isActiveToday }
+}
 
 // ============================================
 // COMPONENT
@@ -19,6 +74,7 @@ export const RightSidebar = () => {
 	const router = useRouter()
 	const [followedIds, setFollowedIds] = useState<string[]>([])
 	const [suggestions, setSuggestions] = useState<Profile[]>([])
+	const [cookDates, setCookDates] = useState<Date[]>([])
 	const [dailyChallenge, setDailyChallenge] = useState<{
 		id: string
 		title: string
@@ -31,11 +87,13 @@ export const RightSidebar = () => {
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				// Fetch daily challenge and profile suggestions in parallel
-				const [challengeResponse, profilesResponse] = await Promise.all([
-					getTodaysChallenge(),
-					getAllProfiles(),
-				])
+				// Fetch daily challenge, profile suggestions, and session history in parallel
+				const [challengeResponse, profilesResponse, sessionResponse] =
+					await Promise.all([
+						getTodaysChallenge(),
+						getAllProfiles(),
+						getSessionHistory({ status: 'all', size: 100 }),
+					])
 
 				if (challengeResponse.success && challengeResponse.data) {
 					const data = challengeResponse.data
@@ -56,6 +114,14 @@ export const RightSidebar = () => {
 						.slice(0, 5)
 					setSuggestions(filtered)
 				}
+
+				// Extract completed session dates for streak calculation
+				if (sessionResponse.success && sessionResponse.data?.sessions) {
+					const completedDates = sessionResponse.data.sessions
+						.filter(s => s.status === 'completed' || s.status === 'posted')
+						.map(s => new Date(s.completedAt || s.startedAt))
+					setCookDates(completedDates)
+				}
 			} catch (err) {
 				console.error('Failed to fetch sidebar data:', err)
 			}
@@ -72,21 +138,27 @@ export const RightSidebar = () => {
 		)
 	}
 
-	// TODO: Fetch streak data from user stats API
-	const streakData = {
-		currentStreak: user?.statistics?.streakCount ?? 0,
-		weekProgress: [
-			'future',
-			'future',
-			'future',
-			'future',
-			'today',
-			'future',
-			'future',
-		] as ('cooked' | 'today' | 'future')[],
-		isActiveToday: false,
-		status: 'active' as const, // Default to active, will be computed from API
-	}
+	// Compute streak data from user stats + cooking session history
+	const streakData = useMemo(() => {
+		const { weekProgress, isActiveToday } = computeWeekProgress(
+			cookDates,
+			user?.lastCookDate,
+		)
+		const currentStreak = user?.statistics?.streakCount ?? 0
+
+		// Determine streak status (must match StreakWidget props: 'active' | 'at-risk')
+		let status: 'active' | 'at-risk' = 'active'
+		if (currentStreak > 0 && !isActiveToday) {
+			status = 'at-risk' // Has streak but hasn't cooked today
+		}
+
+		return {
+			currentStreak,
+			weekProgress,
+			isActiveToday,
+			status,
+		}
+	}, [cookDates, user?.statistics?.streakCount, user?.lastCookDate])
 
 	return (
 		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-4 xl:flex xl:flex-col xl:gap-4'>

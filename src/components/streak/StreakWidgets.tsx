@@ -79,8 +79,8 @@ export function StreakRiskBanner({
 			className={cn(
 				'relative flex flex-col sm:flex-row items-center gap-4 p-3.5 sm:p-5 rounded-2xl mb-4',
 				isUrgent
-					? 'bg-gradient-to-r from-red-500/15 to-red-600/10 border border-red-500/40'
-					: 'bg-gradient-to-r from-orange-500/10 to-orange-600/5 border border-orange-500/30',
+					? 'bg-gradient-to-r from-streak-urgent/15 to-streak-urgent/10 border border-streak-urgent/40'
+					: 'bg-gradient-to-r from-streak/10 to-streak/5 border border-streak/30',
 				isUrgent && 'animate-pulse',
 				className,
 			)}
@@ -104,10 +104,9 @@ export function StreakRiskBanner({
 						className={cn(
 							'absolute -inset-2 border-2 border-dashed rounded-full opacity-50',
 							isUrgent
-								? 'border-red-500 animate-ping'
-								: 'border-orange-500 animate-spin-slow',
+								? 'border-streak-urgent animate-ping'
+								: 'border-streak animate-spin-slow',
 						)}
-						style={{ animationDuration: isUrgent ? '1s' : '4s' }}
 					/>
 				</div>
 
@@ -132,8 +131,8 @@ export function StreakRiskBanner({
 					className={cn(
 						'flex items-center gap-1.5 py-2 px-3.5 rounded-lg text-sm',
 						isUrgent
-							? 'bg-red-500/15 text-red-500'
-							: 'bg-orange-500/15 text-orange-500',
+							? 'bg-streak-urgent/15 text-streak-urgent'
+							: 'bg-streak/15 text-streak',
 					)}
 				>
 					<Clock className='w-4 h-4' />
@@ -154,8 +153,8 @@ export function StreakRiskBanner({
 					'flex items-center justify-center gap-2 py-3 px-5 rounded-xl',
 					'text-sm font-bold text-white flex-shrink-0 w-full sm:w-auto',
 					isUrgent
-						? 'bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/30'
-						: 'bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30',
+						? 'bg-gradient-to-r from-streak-urgent to-streak-urgent/90 shadow-lg shadow-streak-urgent/30'
+						: 'bg-gradient-to-r from-streak to-streak/90 shadow-lg shadow-streak/30',
 				)}
 			>
 				{isUrgent ? (
@@ -276,21 +275,21 @@ export function StreakMilestoneCard({
 			animate={{ opacity: 1, scale: 1 }}
 			className={cn(
 				'flex flex-col sm:flex-row items-center gap-5 p-5 sm:p-6',
-				'bg-gradient-to-r from-orange-500/10 to-orange-600/5',
-				'border-2 border-orange-500/30 rounded-xl mb-4',
+				'bg-gradient-to-r from-streak/10 to-streak/5',
+				'border-2 border-streak/30 rounded-xl mb-4',
 				className,
 			)}
 		>
 			{/* Badge */}
-			<div className='relative size-thumbnail-lg flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex-shrink-0'>
+			<div className='relative size-thumbnail-lg flex items-center justify-center bg-gradient-to-br from-streak to-streak/90 rounded-full flex-shrink-0'>
 				{/* Glow */}
 				<motion.div
 					animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
 					transition={{ duration: 2, repeat: Infinity }}
-					className='absolute -inset-2 bg-gradient-to-r from-orange-500/40 to-transparent rounded-full'
+					className='absolute -inset-2 bg-gradient-to-r from-streak/40 to-transparent rounded-full'
 				/>
 				<span className='text-icon-lg relative z-10'>{badgeEmoji}</span>
-				<div className='absolute -bottom-1 -right-1 w-7 h-7 flex items-center justify-center bg-panel-bg border-3 border-orange-500 rounded-full text-xs font-black text-orange-500'>
+				<div className='absolute -bottom-1 -right-1 w-7 h-7 flex items-center justify-center bg-panel-bg border-3 border-streak rounded-full text-xs font-black text-streak'>
 					{days}
 				</div>
 			</div>
@@ -320,7 +319,7 @@ export function StreakMilestoneCard({
 				{nextMilestone && (
 					<div className='text-xs text-muted-foreground'>
 						<span>Next milestone: </span>
-						<span className='text-orange-500 font-semibold'>
+						<span className='text-streak font-semibold'>
 							{nextMilestone.days}-day streak → {nextMilestone.badgeName}
 						</span>
 					</div>
@@ -363,11 +362,11 @@ export function StreakMilestoneMini({
 			animate={{ opacity: 1, x: 0 }}
 			className={cn(
 				'flex items-center gap-3 py-3 px-4',
-				'bg-gradient-to-r from-orange-500/15 to-orange-600/10 rounded-xl mb-3',
+				'bg-gradient-to-r from-streak/15 to-streak/10 rounded-xl mb-3',
 				className,
 			)}
 		>
-			<span className='py-1.5 px-2.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg text-sm font-extrabold text-white'>
+			<span className='py-1.5 px-2.5 bg-gradient-to-r from-streak to-streak/90 rounded-lg text-sm font-extrabold text-white'>
 				🔥 {days}
 			</span>
 			<span className='flex-1 text-sm font-semibold text-text'>
@@ -412,8 +411,8 @@ export function StreakWidget({
 					className={cn(
 						'py-1 px-2.5 rounded-full text-xs font-bold uppercase tracking-wide',
 						status === 'active'
-							? 'bg-emerald-500/15 text-emerald-500'
-							: 'bg-orange-500/15 text-orange-500',
+							? 'bg-success/15 text-success'
+							: 'bg-streak/15 text-streak',
 					)}
 				>
 					{status === 'active' ? 'Active' : 'At Risk'}
@@ -423,7 +422,7 @@ export function StreakWidget({
 			{/* Streak Display */}
 			<div className='flex items-baseline justify-center gap-2 mb-5'>
 				<span className='text-4xl'>🔥</span>
-				<span className='text-5xl font-black text-orange-500 leading-none'>
+				<span className='text-icon-emoji-xl font-black bg-gradient-streak bg-clip-text text-transparent leading-none'>
 					{currentStreak}
 				</span>
 				<span className='text-base font-semibold text-muted-foreground'>
@@ -443,11 +442,11 @@ export function StreakWidget({
 							className={cn(
 								'flex-1 aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all',
 								day === 'cooked' &&
-									'bg-gradient-to-br from-orange-500 to-orange-600 text-white',
+									'bg-gradient-streak text-white shadow-sm shadow-streak/30',
 								day === 'today' &&
 									(isActiveToday
-										? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white'
-										: 'bg-panel-bg border-2 border-dashed border-emerald-500 text-emerald-500'),
+										? 'bg-gradient-success text-white shadow-sm shadow-success/30'
+										: 'bg-panel-bg border-2 border-dashed border-success text-success'),
 								day === 'future' &&
 									'bg-bg border-2 border-border text-muted-foreground',
 							)}
@@ -464,7 +463,7 @@ export function StreakWidget({
 				<div
 					className={cn(
 						'flex items-center justify-center gap-2 text-sm font-semibold',
-						isActiveToday ? 'text-emerald-500' : 'text-orange-500',
+						isActiveToday ? 'text-success' : 'text-streak',
 					)}
 				>
 					{isActiveToday ? (

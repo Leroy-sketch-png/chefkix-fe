@@ -29,6 +29,7 @@ import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
+import { processRecipe, calculateMetas } from '@/services/ai'
 
 // ============================================
 // TYPES
@@ -82,33 +83,51 @@ interface RecipeCreateAiFlowProps {
 }
 
 // ============================================
-// MOCK DATA - TODO: Replace with API integration (MSW ready)
+// HELPER: Transform API response to local types
 // ============================================
 
-// These functions will be replaced with actual API calls to the recipe parsing service
-// For now they return empty/placeholder data to prepare for MSW
+const transformProcessedRecipe = (
+	data: Awaited<ReturnType<typeof processRecipe>>['data'],
+): ParsedRecipe | null => {
+	if (!data) return null
 
-const generateMockParsedRecipe = (rawText: string): ParsedRecipe => ({
-	title: 'Parsed Recipe',
-	description: 'Recipe description will be parsed by AI',
-	cookTime: '-- min',
-	difficulty: 'Medium',
-	servings: 4,
-	cuisine: 'International',
-	ingredients: [],
-	steps: [],
-	detectedBadges: [],
-})
+	// Map difficulty
+	const difficultyMap: Record<string, Difficulty> = {
+		BEGINNER: 'Easy',
+		INTERMEDIATE: 'Medium',
+		ADVANCED: 'Hard',
+		EXPERT: 'Expert',
+	}
 
-const generateMockXpBreakdown = (recipe: ParsedRecipe): XpBreakdown => ({
-	base: 0,
-	steps: 0,
-	time: 0,
-	techniques: [],
-	total: 0,
-	isValidated: false,
-	confidence: 0,
-})
+	return {
+		title: data.title,
+		description: data.description,
+		cookTime: `${data.cook_time_minutes} min`,
+		difficulty:
+			difficultyMap[data.difficulty?.toUpperCase() || 'INTERMEDIATE'] ||
+			'Medium',
+		servings: data.servings,
+		cuisine: data.cuisine_type || 'International',
+		ingredients: data.ingredients.map((ing, i) => ({
+			id: `ing-${i}`,
+			quantity: `${ing.quantity} ${ing.unit}`.trim(),
+			name: ing.name,
+		})),
+		steps: data.steps.map(step => ({
+			id: `step-${step.step_number}`,
+			instruction: step.description,
+			timerMinutes: step.timer_seconds
+				? Math.ceil(step.timer_seconds / 60)
+				: undefined,
+			technique: step.action,
+		})),
+		detectedBadges:
+			data.badges?.map(badge => ({
+				emoji: '🏆',
+				name: badge,
+			})) || [],
+	}
+}
 
 // ============================================
 // COMPONENTS
@@ -198,7 +217,7 @@ Instructions:
 1. Cook noodles according to package
 2. Sauté garlic until fragrant
 ...`}
-			className='min-h-[200px] w-full resize-y bg-transparent p-5 text-sm leading-relaxed text-text placeholder:text-muted-foreground focus:outline-none'
+			className='min-h-textarea-lg w-full resize-y bg-transparent p-5 text-sm leading-relaxed text-text placeholder:text-muted-foreground focus:outline-none'
 		/>
 		<div className='flex items-center justify-between border-t border-border bg-panel-bg px-5 py-3'>
 			<button
@@ -302,7 +321,7 @@ const IngredientItem = ({
 	onRemove: () => void
 }) => (
 	<div className='group flex items-center gap-3 rounded-xl bg-bg px-4 py-3'>
-		<span className='min-w-[60px] text-sm font-bold text-primary'>
+		<span className='min-w-thumbnail-md text-sm font-bold text-primary'>
 			{ingredient.quantity}
 		</span>
 		<span className='flex-1 text-sm text-text'>{ingredient.name}</span>
@@ -347,7 +366,7 @@ const StepItem = ({
 					</button>
 				)}
 				{step.technique && (
-					<span className='rounded-lg bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-500'>
+					<span className='rounded-lg bg-streak/10 px-3 py-1.5 text-xs font-semibold text-streak'>
 						🔥 {step.technique}
 					</span>
 				)}
@@ -388,7 +407,7 @@ const XpPreviewModal = ({
 		<motion.div
 			initial={{ scale: 0.9, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
-			className='w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-panel-bg p-7'
+			className='w-full max-w-md max-h-modal overflow-y-auto rounded-3xl bg-panel-bg p-7'
 		>
 			{/* Header */}
 			<div className='mb-5 flex items-center justify-between'>
@@ -458,7 +477,7 @@ const XpPreviewModal = ({
 					{xpBreakdown.techniques.map((t, i) => (
 						<div
 							key={i}
-							className='flex items-center justify-between rounded-lg bg-orange-500/10 px-3.5 py-2.5'
+							className='flex items-center justify-between rounded-lg bg-streak/10 px-3.5 py-2.5'
 						>
 							<div className='flex items-center gap-2.5 text-sm text-text'>
 								<span className='text-lg'>🔥</span>
@@ -568,34 +587,117 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [])
 
-	const handleParse = useCallback(() => {
+	const handleParse = useCallback(async () => {
 		if (!rawText.trim()) return
 
 		setStep('parsing')
 		setParsingStep(0)
 
-		// Simulate parsing steps
-		const stepDurations = [500, 800, 600, 500]
-		let currentStep = 0
+		// Progress animation
+		const progressInterval = setInterval(() => {
+			setParsingStep(prev => Math.min(prev + 1, 3))
+		}, 600)
 
-		const interval = setInterval(() => {
-			currentStep++
-			setParsingStep(currentStep)
+		try {
+			// Call real AI service
+			const response = await processRecipe(rawText)
 
-			if (currentStep >= stepDurations.length) {
-				clearInterval(interval)
-				const parsed = generateMockParsedRecipe(rawText)
-				setRecipe(parsed)
-				setStep('preview')
+			clearInterval(progressInterval)
+			setParsingStep(4)
+
+			if (response.success && response.data) {
+				const parsed = transformProcessedRecipe(response.data)
+				if (parsed) {
+					setRecipe(parsed)
+					setStep('preview')
+				} else {
+					console.error('Failed to transform recipe')
+					setStep('input')
+				}
+			} else {
+				console.error('Recipe parse failed:', response.message)
+				setStep('input')
 			}
-		}, stepDurations[currentStep] || 500)
+		} catch (err) {
+			clearInterval(progressInterval)
+			console.error('Recipe parse error:', err)
+			setStep('input')
+		}
 	}, [rawText])
 
-	const handlePreviewXp = useCallback(() => {
+	const handlePreviewXp = useCallback(async () => {
 		if (!recipe) return
-		const breakdown = generateMockXpBreakdown(recipe)
-		setXpBreakdown(breakdown)
-		setStep('xp-preview')
+
+		// Build request for calculate-metas API
+		const metasRequest = {
+			title: recipe.title,
+			description: recipe.description,
+			difficulty: recipe.difficulty.toUpperCase(),
+			prep_time_minutes: 10, // Default since not captured
+			cook_time_minutes: parseInt(recipe.cookTime) || 30,
+			servings: recipe.servings,
+			cuisine_type: recipe.cuisine,
+			dietary_tags: [],
+			full_ingredient_list: recipe.ingredients.map(i => ({
+				name: i.name,
+				quantity: i.quantity.split(' ')[0] || '1',
+				unit: i.quantity.split(' ').slice(1).join(' ') || '',
+			})),
+			steps: recipe.steps.map((s, i) => ({
+				step_number: i + 1,
+				description: s.instruction,
+				action: s.technique,
+				timer_seconds: s.timerMinutes ? s.timerMinutes * 60 : undefined,
+			})),
+			include_enrichment: true,
+		}
+
+		try {
+			const response = await calculateMetas(metasRequest)
+
+			if (response.success && response.data) {
+				const data = response.data
+				setXpBreakdown({
+					base: data.xpBreakdown.base,
+					steps: data.xpBreakdown.steps,
+					time: data.xpBreakdown.time,
+					techniques:
+						data.skillTags?.map(tag => ({
+							name: tag,
+							xp: data.xpBreakdown.techniques || 0,
+						})) || [],
+					total: data.xpBreakdown.total,
+					isValidated: data.xpValidated,
+					confidence: data.validationConfidence,
+				})
+				setStep('xp-preview')
+			} else {
+				// Fallback: still show XP preview with empty values
+				setXpBreakdown({
+					base: 0,
+					steps: 0,
+					time: 0,
+					techniques: [],
+					total: 0,
+					isValidated: false,
+					confidence: 0,
+				})
+				setStep('xp-preview')
+			}
+		} catch (err) {
+			console.error('XP calculation error:', err)
+			// Fallback
+			setXpBreakdown({
+				base: 0,
+				steps: 0,
+				time: 0,
+				techniques: [],
+				total: 0,
+				isValidated: false,
+				confidence: 0,
+			})
+			setStep('xp-preview')
+		}
 	}, [recipe])
 
 	const handlePublish = useCallback(() => {

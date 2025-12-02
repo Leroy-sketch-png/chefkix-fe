@@ -14,18 +14,55 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/store/uiStore'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { getNotifications } from '@/services/notification'
+import { getMyConversations } from '@/services/chat'
 
 export const Topbar = () => {
-	const { user, logout } = useAuth()
+	const { user } = useAuth()
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [mode, setMode] = useState<'player' | 'creator'>('player')
 	const [showUserMenu, setShowUserMenu] = useState(false)
+	const [unreadNotifications, setUnreadNotifications] = useState(0)
+	const [unreadMessages, setUnreadMessages] = useState(0)
 	const router = useRouter()
+	const { logout } = useAuth()
+
+	// Fetch unread counts on mount and periodically
+	useEffect(() => {
+		const fetchCounts = async () => {
+			try {
+				const [notifResponse, convResponse] = await Promise.all([
+					getNotifications({ size: 1 }), // Just need unreadCount
+					getMyConversations(),
+				])
+
+				if (notifResponse.success && notifResponse.data) {
+					setUnreadNotifications(notifResponse.data.unreadCount)
+				}
+
+				if (convResponse.success && convResponse.data) {
+					// Sum up unread counts from all conversations
+					const totalUnread = convResponse.data.reduce(
+						(sum, conv) => sum + (conv.unreadCount || 0),
+						0,
+					)
+					setUnreadMessages(totalUnread)
+				}
+			} catch (err) {
+				console.error('Failed to fetch unread counts:', err)
+			}
+		}
+
+		fetchCounts()
+		// Refresh every 30 seconds
+		const interval = setInterval(fetchCounts, 30000)
+		return () => clearInterval(interval)
+	}, [])
 
 	const handleLogout = async () => {
 		try {
@@ -168,9 +205,11 @@ export const Topbar = () => {
 					aria-label='Notifications'
 				>
 					<Bell className='mx-auto h-5 w-5' />
-					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
-						3
-					</span>
+					{unreadNotifications > 0 && (
+						<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
+							{unreadNotifications > 99 ? '99+' : unreadNotifications}
+						</span>
+					)}
 				</button>
 				<button
 					onClick={toggleMessagesDrawer}
@@ -178,9 +217,11 @@ export const Topbar = () => {
 					aria-label='Messages'
 				>
 					<MessageSquare className='mx-auto h-5 w-5' />
-					<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
-						2
-					</span>
+					{unreadMessages > 0 && (
+						<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
+							{unreadMessages > 99 ? '99+' : unreadMessages}
+						</span>
+					)}
 				</button>
 			</div>
 		</header>

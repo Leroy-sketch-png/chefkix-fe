@@ -185,7 +185,7 @@ const LevelRing = ({
 						cy='50'
 						r='45'
 						fill='none'
-						stroke='#22c55e'
+						className='stroke-xp' /* Purple XP color */
 						strokeWidth='6'
 						strokeLinecap='round'
 						strokeDasharray={circumference}
@@ -228,7 +228,7 @@ const StreakBadge = ({ count }: { count: number }) => {
 		<motion.div
 			initial={{ scale: 0.8, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
-			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 px-4 py-2.5 font-bold text-white shadow-lg shadow-orange-500/40'
+			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-streak px-4 py-2.5 font-bold text-white shadow-lg shadow-streak/40'
 		>
 			<span className='text-xl'>🔥</span>
 			<span className='text-xl'>{count}</span>

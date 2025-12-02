@@ -201,12 +201,12 @@ const ActiveChallengeBanner = ({
 
 				{/* Meta Row */}
 				<div className='mb-4 flex gap-6'>
-					<div className='flex items-center gap-1.5 rounded-full bg-success/10 px-3.5 py-2'>
+					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/20 to-xp/20 px-3.5 py-2 shadow-sm shadow-bonus/20'>
 						<span>⚡</span>
-						<span className='text-base font-extrabold text-success'>
+						<span className='text-base font-extrabold text-xp'>
 							+{challenge.bonusXp} XP
 						</span>
-						<span className='text-xs text-text-muted'>bonus</span>
+						<span className='text-xs text-bonus'>bonus</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-text-muted'>
 						<Clock className='h-4 w-4' />
@@ -255,7 +255,7 @@ const ActiveChallengeBanner = ({
 					onClick={onFindRecipe}
 					whileHover={STAT_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
-					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-base font-bold text-white shadow-lg shadow-indigo-500/30'
+					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-xp via-cyan-400 to-rare py-3.5 text-base font-bold text-white shadow-lg shadow-xp/40'
 				>
 					<ChefHat className='h-5 w-5' />
 					Find Recipe
@@ -336,7 +336,7 @@ const CompletedChallengeBanner = ({
 					</div>
 				</div>
 				<div className='text-right'>
-					<span className='block text-xl font-extrabold text-success'>
+					<span className='block text-xl font-extrabold text-xp'>
 						+{challenge.bonusXp} XP
 					</span>
 					<span className='text-xs text-text-muted'>bonus earned</span>
@@ -345,9 +345,9 @@ const CompletedChallengeBanner = ({
 
 			{/* Streak Teaser */}
 			{streakCount > 0 && (
-				<div className='flex items-center justify-center gap-2 rounded-lg bg-orange-500/10 px-3 py-2.5'>
+				<div className='flex items-center justify-center gap-2 rounded-lg bg-streak/10 px-3 py-2.5'>
 					<span className='text-lg'>🔥</span>
-					<span className='text-sm font-semibold text-orange-500'>
+					<span className='text-sm font-semibold text-streak'>
 						{streakCount} day challenge streak!
 					</span>
 				</div>
@@ -387,7 +387,7 @@ const CompactChallengeBanner = ({
 					<span className='text-sm font-semibold'>
 						Daily: {challenge.title}
 					</span>
-					<span className='text-xs font-semibold text-success'>
+					<span className='text-xs font-semibold text-xp'>
 						+{challenge.bonusXp} XP bonus
 					</span>
 				</div>
@@ -462,12 +462,12 @@ const FeaturedChallengeBanner = ({
 
 				{/* Meta Row */}
 				<div className='mb-5 flex gap-6'>
-					<div className='flex items-center gap-1.5 rounded-full bg-success/20 px-4 py-2.5'>
+					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/30 to-xp/30 px-4 py-2.5 shadow-sm shadow-bonus/30'>
 						<span>⚡</span>
-						<span className='text-xl font-extrabold text-success'>
+						<span className='text-xl font-extrabold text-xp drop-shadow-glow'>
 							+{challenge.bonusXp} XP
 						</span>
-						<span className='text-xs text-white/70'>bonus</span>
+						<span className='text-xs text-bonus'>bonus</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-white/70'>
 						<Calendar className='h-4 w-4' />

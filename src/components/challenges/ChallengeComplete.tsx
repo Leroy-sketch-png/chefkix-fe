@@ -300,9 +300,9 @@ export const ChallengeCompleteInline = ({
 		</div>
 
 		{/* Streak Info */}
-		<div className='flex items-center gap-2 rounded-lg bg-orange-500/10 px-3.5 py-2.5 text-sm'>
+		<div className='flex items-center gap-2 rounded-lg bg-streak/10 px-3.5 py-2.5 text-sm'>
 			<span className='text-base'>🔥</span>
-			<span className='font-semibold text-orange-500'>
+			<span className='font-semibold text-streak'>
 				{streakCount} day streak
 			</span>
 			<span className='text-text-muted'>

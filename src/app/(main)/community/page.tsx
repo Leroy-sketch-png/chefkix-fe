@@ -14,6 +14,10 @@ import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { AnimatePresence } from 'framer-motion'
 import { getAllProfiles } from '@/services/profile'
 import { getFriends, getFriendRequests } from '@/services/social'
+import {
+	getLeaderboard,
+	type LeaderboardEntry as LeaderboardServiceEntry,
+} from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
 import { Users, UserPlus, Trophy, Search } from 'lucide-react'
 import {
@@ -34,17 +38,22 @@ export default function CommunityPage() {
 	const [allProfiles, setAllProfiles] = useState<Profile[]>([])
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [friendRequests, setFriendRequests] = useState<Profile[]>([])
+	const [leaderboardEntries, setLeaderboardEntries] = useState<
+		LeaderboardEntry[]
+	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const [profilesRes, friendsRes, requestsRes] = await Promise.all([
-					getAllProfiles(),
-					getFriends(),
-					getFriendRequests(),
-				])
+				const [profilesRes, friendsRes, requestsRes, leaderboardRes] =
+					await Promise.all([
+						getAllProfiles(),
+						getFriends(),
+						getFriendRequests(),
+						getLeaderboard({ type: 'friends', timeframe: 'weekly' }),
+					])
 
 				if (profilesRes.success && profilesRes.data) {
 					setAllProfiles(profilesRes.data)
@@ -56,6 +65,17 @@ export default function CommunityPage() {
 
 				if (requestsRes.success && requestsRes.data) {
 					setFriendRequests(requestsRes.data)
+				}
+
+				// Use real leaderboard data
+				if (leaderboardRes.success && leaderboardRes.data?.entries) {
+					const entries: LeaderboardEntry[] = leaderboardRes.data.entries.map(
+						entry => ({
+							...entry,
+							isCurrentUser: entry.userId === user?.userId,
+						}),
+					)
+					setLeaderboardEntries(entries)
 				}
 
 				if (
@@ -73,7 +93,7 @@ export default function CommunityPage() {
 		}
 
 		fetchData()
-	}, [])
+	}, [user?.userId])
 
 	const handleRequestAccepted = (userId: string) => {
 		setFriendRequests(prev => prev.filter(req => req.userId !== userId))
@@ -86,41 +106,6 @@ export default function CommunityPage() {
 	const handleUnfriend = (userId: string) => {
 		setFriends(prev => prev.filter(friend => friend.userId !== userId))
 	}
-
-	// Transform friends to leaderboard entries (mock XP data for now)
-	const leaderboardEntries: LeaderboardEntry[] = friends
-		.map((friend, index) => ({
-			userId: friend.userId ?? `friend-${index}`,
-			username: friend.username || 'chef',
-			displayName: friend.displayName || friend.username || 'Chef',
-			avatarUrl: friend.avatarUrl || '/images/default-avatar.png',
-			rank: index + 2, // Current user is rank 1
-			level: Math.floor(Math.random() * 10) + 1,
-			xpThisWeek: Math.floor(Math.random() * 500) + 100,
-			recipesCooked: Math.floor(Math.random() * 10) + 1,
-			streak: Math.floor(Math.random() * 7),
-			isCurrentUser: false,
-		}))
-		.concat(
-			user
-				? [
-						{
-							userId: user.userId ?? 'me',
-							username: user.username || 'me',
-							displayName: user.displayName || user.username || 'You',
-							avatarUrl: user.avatarUrl || '/images/default-avatar.png',
-							rank: 1,
-							level: user.statistics?.currentLevel ?? 1,
-							xpThisWeek: user.statistics?.currentXP ?? 500,
-							recipesCooked: 5,
-							streak: user.statistics?.streakCount ?? 3,
-							isCurrentUser: true,
-						},
-					]
-				: [],
-		)
-		.sort((a, b) => b.xpThisWeek - a.xpThisWeek)
-		.map((entry, index) => ({ ...entry, rank: index + 1 }))
 
 	const handleLeaderboardUserClick = (entry: LeaderboardEntry) => {
 		if (!entry.isCurrentUser) {

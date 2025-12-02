@@ -7,8 +7,18 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function SettingsPage() {
+	const { user } = useAuth()
+
+	// Get display name, falling back to firstName lastName or username
+	const displayName =
+		user?.displayName ||
+		`${user?.firstName || ''} ${user?.lastName || ''}`.trim() ||
+		user?.username ||
+		''
+
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='md'>
@@ -48,21 +58,28 @@ export default function SettingsPage() {
 						<div className='space-y-4'>
 							<div className='grid gap-2'>
 								<Label htmlFor='name'>Full Name</Label>
-								<Input id='name' type='text' defaultValue='Your Name Here' />
+								<Input
+									id='name'
+									type='text'
+									defaultValue={displayName}
+									placeholder='Enter your name'
+								/>
 							</div>
 							<div className='grid gap-2'>
 								<Label htmlFor='email'>Email</Label>
 								<Input
 									id='email'
 									type='email'
-									defaultValue='yourname@example.com'
+									defaultValue={user?.email || ''}
+									placeholder='Enter your email'
 								/>
 							</div>
 							<div className='grid gap-2'>
 								<Label htmlFor='bio'>Bio</Label>
 								<Textarea
 									id='bio'
-									defaultValue="Passionate home cook exploring global cuisines. Co-founder of the 'Spicy Club'. 🌶️🌮🍣"
+									defaultValue={user?.bio || ''}
+									placeholder='Tell us about yourself...'
 								/>
 							</div>
 							<Button className='mt-4'>

@@ -262,7 +262,7 @@ export const ChallengeHistorySection = ({
 					icon='🔥'
 					value={String(stats.currentStreak)}
 					label='Current Streak'
-					colorClass='text-orange-500'
+					colorClass='text-streak'
 				/>
 				<StatCard
 					icon='✅'
@@ -293,11 +293,11 @@ export const ChallengeHistorySection = ({
 
 			{/* Streak Motivation */}
 			{stats.currentStreak > 0 && daysToNextBadge > 0 && (
-				<div className='flex items-center justify-between rounded-xl border border-orange-500/20 bg-gradient-to-r from-orange-500/10 to-transparent px-5 py-4'>
+				<div className='flex items-center justify-between rounded-xl border border-streak/20 bg-gradient-to-r from-streak/10 to-transparent px-5 py-4'>
 					<div className='flex items-center gap-3.5'>
 						<span className='text-3xl'>🎯</span>
 						<div className='text-sm text-text'>
-							<strong className='text-orange-500'>
+							<strong className='text-streak'>
 								{daysToNextBadge} more day{daysToNextBadge > 1 ? 's' : ''}
 							</strong>{' '}
 							to unlock &quot;Weekly Champion&quot; badge!
@@ -311,7 +311,7 @@ export const ChallengeHistorySection = ({
 							onClick={onPreviewTomorrow}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2.5 text-xs font-semibold text-white'
+							className='flex items-center gap-1.5 rounded-lg bg-streak px-4 py-2.5 text-xs font-semibold text-white'
 						>
 							Preview Tomorrow
 							<ArrowRight className='size-4' />
@@ -339,7 +339,7 @@ const HistoryItem = ({
 	return (
 		<div className='flex gap-4 border-b border-border py-4 last:border-b-0'>
 			{/* Date */}
-			<div className='flex min-w-[50px] flex-col items-center'>
+			<div className='flex min-w-thumbnail-sm flex-col items-center'>
 				<span className='text-xl font-extrabold leading-none text-text'>
 					{day.date.getDate()}
 				</span>

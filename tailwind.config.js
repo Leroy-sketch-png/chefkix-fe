@@ -24,18 +24,59 @@ module.exports = {
 				background: 'var(--bg)',
 				foreground: 'var(--text)',
 
-				// Brand color system (NEW - consolidated)
+				// Brand color system
 				brand: {
 					DEFAULT: 'var(--color-brand)',
 					hover: 'var(--color-brand-hover)',
 					subtle: 'var(--color-brand-subtle)',
 				},
 
-				// Semantic colors
-				success: 'var(--color-success)',
-				warning: 'var(--color-warning)',
-				error: 'var(--color-error)',
-				info: 'var(--color-info)',
+				// Accent colors - Purple (gaming, XP, achievements)
+				'accent-purple': {
+					DEFAULT: 'var(--color-accent-purple)',
+					hover: 'var(--color-accent-purple-hover)',
+					subtle: 'var(--color-accent-purple-subtle)',
+				},
+
+				// Accent colors - Teal (discovery, explore)
+				'accent-teal': {
+					DEFAULT: 'var(--color-accent-teal)',
+					hover: 'var(--color-accent-teal-hover)',
+					subtle: 'var(--color-accent-teal-subtle)',
+				},
+
+				// Semantic colors - with vivid variants
+				success: {
+					DEFAULT: 'var(--color-success)',
+					vivid: 'var(--color-success-vivid)',
+				},
+				warning: {
+					DEFAULT: 'var(--color-warning)',
+					vivid: 'var(--color-warning-vivid)',
+				},
+				error: {
+					DEFAULT: 'var(--color-error)',
+					vivid: 'var(--color-error-vivid)',
+				},
+				info: {
+					DEFAULT: 'var(--color-info)',
+					vivid: 'var(--color-info-vivid)',
+				},
+
+				// Gaming colors
+				streak: {
+					DEFAULT: 'var(--color-streak)',
+					urgent: 'var(--color-streak-urgent)',
+				},
+				xp: {
+					DEFAULT: 'var(--color-xp)',
+					bonus: 'var(--color-xp-bonus)',
+				},
+				level: {
+					DEFAULT: 'var(--color-level)',
+					glow: 'var(--color-level-glow)',
+				},
+				badge: 'var(--color-badge)',
 
 				// Background colors
 				bg: {
@@ -78,13 +119,13 @@ module.exports = {
 					foreground: '#ffffff',
 				},
 				muted: {
-					DEFAULT: 'var(--muted)', // Background color for muted surfaces
+					DEFAULT: 'var(--muted)',
 					strong: 'var(--muted-strong)',
-					foreground: 'var(--text-muted)', // Fixed: text-muted-foreground now uses readable text color
+					foreground: 'var(--text-muted)',
 				},
 				accent: {
-					DEFAULT: 'var(--color-brand)',
-					strong: 'var(--color-brand-hover)',
+					DEFAULT: 'var(--color-accent-purple)', // Purple for gaming feel!
+					strong: 'var(--color-accent-purple-hover)',
 					light: 'var(--color-brand-subtle)',
 					foreground: 'var(--text)',
 				},
@@ -127,6 +168,8 @@ module.exports = {
 				'2xs': 'var(--font-size-2xs)',
 				xs: 'var(--font-size-xs)',
 				sm: 'var(--font-size-sm)',
+				caption: 'var(--font-size-caption)', // 13px - metadata, small captions
+				label: 'var(--font-size-label)', // 15px - tab labels, semi-prominent
 				base: 'var(--font-size-base)',
 				lg: 'var(--font-size-lg)',
 				xl: 'var(--font-size-xl)',
@@ -174,6 +217,7 @@ module.exports = {
 				// Canonical layout sizes mapped to CSS variables defined in globals.css
 				nav: 'var(--nav-w)',
 				right: 'var(--right-w)',
+				drawer: 'var(--drawer-w)',
 				// Icon sizes
 				'icon-2xs': 'var(--icon-2xs)',
 				'icon-xs': 'var(--icon-xs)',
@@ -224,6 +268,8 @@ module.exports = {
 				'thumbnail-2xl': 'var(--thumbnail-2xl)',
 				// Card image heights
 				'card-image': 'var(--card-image-height)',
+				// Drawer height
+				drawer: 'var(--drawer-h)',
 				// Panel heights
 				'panel-md': 'var(--h-panel-md)',
 				'panel-lg': 'var(--h-panel-lg)',
@@ -258,6 +304,7 @@ module.exports = {
 				'container-md': 'var(--container-md)',
 				'container-lg': 'var(--container-lg)',
 				'container-xl': 'var(--container-xl)',
+				'container-form': 'var(--container-form)', // 900px - wide forms
 				// Modal widths
 				'modal-sm': 'var(--modal-sm)',
 				'modal-md': 'var(--modal-md)',
@@ -279,6 +326,16 @@ module.exports = {
 				'panel-md': 'var(--h-panel-md)',
 				'panel-lg': 'var(--h-panel-lg)',
 				'panel-xl': 'var(--h-panel-xl)',
+				// Modal/Sheet viewport heights
+				modal: 'var(--h-modal-max)', // 90vh - standard modal max
+				'sheet-mobile': 'var(--h-sheet-mobile)', // 85vh - mobile sheets
+				'sheet-full': 'var(--h-sheet-full)', // 95vh - near fullscreen
+				'modal-constrained': 'var(--h-modal-constrained)', // 80vh - with header visible
+				'content-max': 'var(--h-content-max)', // 70vh - content areas
+			},
+			height: {
+				// Sheet specific heights
+				'sheet-mobile': 'var(--h-sheet-mobile)', // 85vh - mobile sheets
 			},
 			minWidth: {
 				nav: 'var(--nav-w)',
@@ -291,6 +348,7 @@ module.exports = {
 			},
 			minHeight: {
 				textarea: 'var(--h-textarea-min)',
+				'textarea-lg': 'var(--h-textarea-lg)', // 200px - large textarea
 				content: 'var(--h-content-min)',
 				'content-tall': 'var(--h-content-tall)',
 				banner: 'var(--banner-min-height)',
@@ -311,6 +369,9 @@ module.exports = {
 			backdropSaturate: {
 				DEFAULT: 'var(--saturate)',
 			},
+			inset: {
+				'mobile-header': 'var(--h-mobile-header)', // 60px offset for mobile sticky bars
+			},
 			transitionTimingFunction: {
 				ease: 'var(--transition-ease)',
 				bounce: 'var(--transition-bounce)',
@@ -324,12 +385,26 @@ module.exports = {
 				tooltip: 'var(--z-tooltip)',
 			},
 			backgroundImage: {
+				// Primary gradients
 				'gradient-brand': 'var(--gradient-brand)',
-				'gradient-primary': 'var(--gradient-brand)', // Legacy alias
+				'gradient-primary': 'var(--gradient-brand)',
+
+				// Semantic gradients
 				'gradient-success': 'var(--gradient-success)',
-				'gradient-warm': 'var(--gradient-brand)', // Legacy alias
-				'gradient-cool': 'var(--gradient-cool)',
 				'gradient-gold': 'var(--gradient-gold)',
+
+				// Gaming gradients
+				'gradient-xp': 'var(--gradient-xp)',
+				'gradient-streak': 'var(--gradient-streak)',
+
+				// Thematic gradients
+				'gradient-warm': 'var(--gradient-warm)',
+				'gradient-cool': 'var(--gradient-cool)',
+				'gradient-ocean': 'var(--gradient-ocean)',
+				'gradient-party': 'var(--gradient-party)',
+				'gradient-sunset': 'var(--gradient-warm)',
+
+				// Celebration gradients
 				'gradient-celebration': 'var(--gradient-celebration)',
 				'gradient-celebration-alt': 'var(--gradient-celebration-alt)',
 			},
@@ -485,6 +560,7 @@ module.exports = {
 				'like-pop': 'like-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
 				pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				spin: 'spin 1s linear infinite',
+				'spin-slow': 'spin 4s linear infinite',
 				'challenge-rotate': 'challenge-rotate 20s linear infinite',
 				'achievement-in':
 					'achievement-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',

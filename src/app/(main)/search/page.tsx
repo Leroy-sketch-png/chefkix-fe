@@ -140,15 +140,17 @@ const RecipeResultCard = ({
 					<div className='mb-3 flex items-center gap-4 border-b border-border pb-3'>
 						<div className='flex items-center gap-1 text-amber-500'>
 							<Star className='size-3.5 fill-current' />
-							<span className='text-[13px] font-semibold'>{recipe.rating}</span>
+							<span className='text-caption font-semibold'>
+								{recipe.rating}
+							</span>
 						</div>
 						<div className='flex items-center gap-1 text-muted-foreground'>
 							<Clock className='size-3.5' />
-							<span className='text-[13px]'>{recipe.cookTime}</span>
+							<span className='text-caption'>{recipe.cookTime}</span>
 						</div>
 						<div className='flex items-center gap-1 text-muted-foreground'>
 							<Flame className='size-3.5' />
-							<span className='text-[13px]'>{recipe.difficulty}</span>
+							<span className='text-caption'>{recipe.difficulty}</span>
 						</div>
 					</div>
 
@@ -161,7 +163,7 @@ const RecipeResultCard = ({
 								height={24}
 								className='rounded-full'
 							/>
-							<span className='text-[13px] text-muted-foreground'>
+							<span className='text-caption text-muted-foreground'>
 								@{recipe.author.username}
 							</span>
 						</div>
@@ -206,7 +208,7 @@ const PersonResultCard = ({
 			<div className='min-w-0 flex-1'>
 				<p className='text-base font-bold text-text'>{person.displayName}</p>
 				<p className='text-sm text-muted-foreground'>@{person.username}</p>
-				<p className='mt-1 truncate text-[13px] text-muted-foreground'>
+				<p className='mt-1 truncate text-caption text-muted-foreground'>
 					{person.bio}
 				</p>
 			</div>
@@ -255,7 +257,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 							@{post.author.username}
 						</span>
 					</div>
-					<p className='line-clamp-2 text-[13px] text-muted-foreground'>
+					<p className='line-clamp-2 text-caption text-muted-foreground'>
 						{post.caption}
 					</p>
 					<p className='mt-1 text-xs text-muted-foreground'>
@@ -444,7 +446,7 @@ export default function SearchPage() {
 							key={tab.id}
 							onClick={() => setActiveTab(tab.id)}
 							className={cn(
-								'-mb-[2px] flex items-center gap-2 whitespace-nowrap border-b-[3px] px-5 py-3 text-[15px] font-semibold transition-colors',
+								'-mb-[2px] flex items-center gap-2 whitespace-nowrap border-b-[3px] px-5 py-3 text-label font-semibold transition-colors',
 								activeTab === tab.id
 									? 'border-primary text-primary'
 									: 'border-transparent text-muted-foreground hover:bg-muted/30 hover:text-text',

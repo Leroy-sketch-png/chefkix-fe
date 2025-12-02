@@ -19,7 +19,7 @@ export const CookingPlayer = () => {
 
 	return (
 		<div className='fixed inset-0 z-modal flex items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm animate-in fade-in'>
-			<div className='flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-card shadow-lg animate-in slide-in-from-bottom-12'>
+			<div className='flex h-full max-h-modal w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-card shadow-lg animate-in slide-in-from-bottom-12'>
 				{/* Header */}
 				<div className='relative bg-gradient-to-r from-destructive to-gold p-6 text-center text-primary-foreground'>
 					<button className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-card/20 px-3 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-card/30'>
@@ -73,9 +73,9 @@ export const CookingPlayer = () => {
 					</p>
 
 					{/* Timer */}
-					<div className='mx-auto mb-6 inline-block rounded-lg bg-orange-100 p-3'>
+					<div className='mx-auto mb-6 inline-block rounded-lg bg-streak/10 p-3'>
 						<span className='text-sm'>Timer:</span>
-						<div className='text-3xl font-bold text-orange-500'>02:00</div>
+						<div className='text-3xl font-bold text-streak'>02:00</div>
 					</div>
 
 					{/* Ingredients Checklist */}

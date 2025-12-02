@@ -200,7 +200,7 @@ export const ComposerModal = ({
 						animate='visible'
 						exit='exit'
 						onClick={e => e.stopPropagation()}
-						className='flex max-h-[90vh] w-full max-w-modal-xl flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-2xl'
+						className='flex max-h-modal w-full max-w-modal-xl flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-2xl'
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border px-6 py-5'>

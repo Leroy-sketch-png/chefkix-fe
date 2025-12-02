@@ -96,7 +96,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 		<motion.div
 			animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
 			transition={{ duration: 2, repeat: Infinity }}
-			className='absolute -inset-5 rounded-full bg-gradient-radial from-amber-400/40 to-transparent'
+			className='absolute -inset-5 rounded-full bg-gradient-radial from-bonus/50 to-transparent'
 		/>
 
 		{/* Ring SVG */}
@@ -114,7 +114,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 				cy='60'
 				r='54'
 				fill='none'
-				stroke='#fbbf24'
+				stroke='#ffd700'
 				strokeWidth='8'
 				strokeLinecap='round'
 				strokeDasharray='339'
@@ -125,7 +125,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 		</svg>
 
 		{/* Inner badge */}
-		<div className='absolute inset-5 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-400/40'>
+		<div className='absolute inset-5 flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-bonus via-legendary to-orange-600 shadow-lg shadow-bonus/50'>
 			{/* Old level (exits) */}
 			<motion.span
 				initial={{ y: 0, scale: 1, opacity: 1 }}
@@ -334,7 +334,7 @@ export const LevelUpCelebration = ({
 									<span className='text-xs text-white/50'>
 										At Level {newLevel + 1}:
 									</span>
-									<span className='text-sm font-semibold text-amber-400'>
+									<span className='text-sm font-semibold text-bonus'>
 										{nextLevelPerk}
 									</span>
 								</div>
@@ -354,7 +354,7 @@ export const LevelUpCelebration = ({
 								onClick={onContinue}
 								whileHover={STAT_ITEM_HOVER}
 								whileTap={LIST_ITEM_TAP}
-								className='rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 px-8 py-3.5 font-bold text-white shadow-lg shadow-amber-400/40 transition-shadow hover:shadow-xl hover:shadow-amber-400/50'
+								className='rounded-2xl bg-gradient-to-r from-bonus via-legendary to-orange-500 px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60'
 							>
 								Continue
 							</motion.button>
@@ -386,10 +386,10 @@ export const LevelUpToast = ({
 		animate={{ opacity: 1, y: 0 }}
 		exit={{ opacity: 0, y: 20 }}
 		transition={TRANSITION_SPRING}
-		className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-amber-400 bg-panel-bg px-4 py-3 shadow-xl md:bottom-6'
+		className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-panel-bg px-4 py-3 shadow-xl shadow-bonus/20 md:bottom-6'
 	>
 		{/* Badge */}
-		<div className='flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500'>
+		<div className='flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-bonus via-legendary to-orange-500'>
 			<span className='text-lg font-black text-white'>{level}</span>
 		</div>
 
@@ -404,7 +404,7 @@ export const LevelUpToast = ({
 		{/* Actions */}
 		<button
 			onClick={onView}
-			className='rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
+			className='rounded-lg bg-gradient-to-r from-bonus via-legendary to-orange-500 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
 		>
 			View
 		</button>

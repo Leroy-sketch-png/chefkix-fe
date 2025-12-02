@@ -61,10 +61,10 @@ export function LeaderboardItem({
 				'flex items-center gap-3 p-3.5 rounded-xl transition-colors cursor-pointer',
 				isCurrentUser &&
 					!isLeading &&
-					'bg-gradient-to-r from-indigo-500/15 to-purple-500/8 border-2 border-indigo-500/30',
+					'bg-gradient-to-r from-xp/15 to-rare/8 border-2 border-xp/30',
 				isLeading &&
-					'bg-gradient-to-r from-emerald-500/10 to-teal-500/5 border-2 border-emerald-500/30',
-				isPromotion && 'border-l-3 border-l-emerald-500',
+					'bg-gradient-to-r from-level/10 to-teal-500/5 border-2 border-level/30',
+				isPromotion && 'border-l-3 border-l-level',
 				isDemotion && 'border-l-3 border-l-red-500',
 				className,
 			)}
@@ -73,7 +73,7 @@ export function LeaderboardItem({
 			<span
 				className={cn(
 					'w-8 text-base font-extrabold text-center',
-					isCurrentUser ? 'text-indigo-500' : 'text-muted-foreground',
+					isCurrentUser ? 'text-xp' : 'text-muted-foreground',
 				)}
 			>
 				{entry.rank}
@@ -84,7 +84,7 @@ export function LeaderboardItem({
 				<div
 					className={cn(
 						'w-6 h-6 flex items-center justify-center rounded-full',
-						isPromotion && 'bg-emerald-500/20 text-emerald-500',
+						isPromotion && 'bg-level/20 text-level',
 						isDemotion && 'bg-red-500/20 text-red-500',
 					)}
 				>
@@ -118,12 +118,12 @@ export function LeaderboardItem({
 
 				{/* Badges */}
 				{isCurrentUser && !isLeading && (
-					<span className='px-2 py-0.5 bg-indigo-500 rounded-lg text-xs font-bold text-white'>
+					<span className='px-2 py-0.5 bg-xp rounded-lg text-xs font-bold text-white shadow-sm shadow-xp/30'>
 						You
 					</span>
 				)}
 				{isLeading && (
-					<span className='px-2.5 py-1 bg-emerald-500 rounded-lg text-xs font-bold text-white'>
+					<span className='px-2.5 py-1 bg-gradient-to-r from-level to-emerald-400 rounded-lg text-xs font-bold text-white shadow-sm shadow-level/30'>
 						🔥 Leading!
 					</span>
 				)}
@@ -132,7 +132,7 @@ export function LeaderboardItem({
 			{/* Stats (hidden on mobile) */}
 			{showStats && (
 				<div className='hidden sm:flex gap-3'>
-					<div className='flex items-center gap-1 text-sm text-orange-500'>
+					<div className='flex items-center gap-1 text-sm text-streak'>
 						<Flame className='w-3.5 h-3.5' />
 						<span>{entry.streak}</span>
 					</div>

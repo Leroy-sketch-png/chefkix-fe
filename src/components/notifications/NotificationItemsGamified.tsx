@@ -155,10 +155,10 @@ const formatTimeAgo = (date: Date): string => {
 
 const rarityConfig = {
 	common: { bg: 'bg-slate-500/15', text: 'text-slate-600', label: 'Common' },
-	rare: { bg: 'bg-amber-500/15', text: 'text-amber-600', label: 'Rare' },
-	epic: { bg: 'bg-purple-500/15', text: 'text-purple-600', label: 'Epic' },
+	rare: { bg: 'bg-rare/15', text: 'text-rare', label: 'Rare' },
+	epic: { bg: 'bg-combo/15', text: 'text-combo', label: 'Epic' },
 	legendary: {
-		bg: 'bg-gradient-to-r from-purple-500 to-pink-500',
+		bg: 'bg-gradient-to-r from-bonus via-legendary to-orange-500',
 		text: 'text-white',
 		label: 'Legendary',
 	},
@@ -266,22 +266,21 @@ const XPAwardedItem = ({
 }: XPAwardedNotification) => (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-success to-success/80'>
+		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-cyan-400'>
 			<span className='relative z-10 text-2xl'>⚡</span>
-			<div className='absolute -inset-1 rounded-full border-2 border-success/30' />
+			<div className='absolute -inset-1 rounded-full border-2 border-xp/30' />
 		</div>
 
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader type='XP Earned' time={timestamp} />
 			<p className='text-sm'>
-				You earned{' '}
-				<strong className='font-bold text-success'>+{xpAmount} XP</strong> for
-				completing{' '}
+				You earned <strong className='font-bold text-xp'>+{xpAmount} XP</strong>{' '}
+				for completing{' '}
 				<span className='font-semibold text-brand'>{recipeName}</span>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-success/15 text-success'>30% instant</MetaTag>
+				<MetaTag className='bg-xp/15 text-xp'>30% instant</MetaTag>
 				<span className='text-xs text-text-muted'>
 					{pendingXp} XP pending • Post to unlock
 				</span>
@@ -291,7 +290,7 @@ const XPAwardedItem = ({
 		{/* Action */}
 		<ActionButton
 			onClick={onPost}
-			className='flex-shrink-0 bg-success text-white'
+			className='flex-shrink-0 bg-xp text-white shadow-sm shadow-xp/30'
 		>
 			<Upload className='h-4 w-4' />
 			Post
@@ -309,10 +308,10 @@ const XPAwardedFullItem = ({
 }: XPAwardedFullNotification) => (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600'>
+		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
 			<span className='relative z-10 text-2xl'>✨</span>
 			<motion.div
-				className='absolute -inset-1 rounded-full border-2 border-amber-500/30'
+				className='absolute -inset-1 rounded-full border-2 border-bonus/30'
 				animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
 				transition={{ duration: 1.5, repeat: Infinity }}
 			/>
@@ -323,16 +322,14 @@ const XPAwardedFullItem = ({
 			<NotifHeader
 				type='Full XP Unlocked!'
 				time={timestamp}
-				className='text-amber-600'
+				className='text-bonus'
 			/>
 			<p className='text-sm'>
-				<strong className='text-lg font-bold text-success'>
-					+{xpAmount} XP
-				</strong>{' '}
+				<strong className='text-lg font-bold text-xp'>+{xpAmount} XP</strong>{' '}
 				from <span className='font-semibold text-brand'>{recipeName}</span>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-success/15 text-success'>100% earned</MetaTag>
+				<MetaTag className='bg-level/15 text-level'>100% earned</MetaTag>
 				<span className='text-xs text-text-muted'>
 					Posted with {photoCount} photos
 				</span>
@@ -351,16 +348,16 @@ const LevelUpItem = ({
 }: LevelUpNotification) => (
 	<NotifWrapper
 		isRead={isRead}
-		className='bg-gradient-to-r from-purple-500/10 to-violet-500/5'
+		className='bg-gradient-to-r from-rare/10 to-combo/5'
 	>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-violet-500'>
+		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
 			<span className='absolute -right-2 -top-2 z-10 text-lg'>🎉</span>
 			<span className='text-lg font-extrabold text-white drop-shadow-sm'>
 				{newLevel}
 			</span>
 			<motion.div
-				className='absolute -inset-1.5 rounded-full border-3 border-purple-500/40'
+				className='absolute -inset-1.5 rounded-full border-3 border-rare/40'
 				animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
 				transition={{ duration: 2, repeat: Infinity }}
 			/>
@@ -371,14 +368,14 @@ const LevelUpItem = ({
 			<NotifHeader
 				type='Level Up!'
 				time={timestamp}
-				className='text-sm text-purple-500'
+				className='text-sm text-rare'
 			/>
 			<p className='text-sm'>
 				Congratulations! You&apos;ve reached{' '}
 				<strong className='font-bold'>Level {newLevel}</strong>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-purple-500/15 text-purple-500'>
+				<MetaTag className='bg-rare/15 text-rare'>
 					New goal: {newGoalXp.toLocaleString()} XP
 				</MetaTag>
 				<span className='text-xs text-text-muted'>
@@ -394,9 +391,9 @@ const LevelUpItem = ({
 					key={i}
 					className={cn(
 						'absolute h-1.5 w-1.5 rounded-full',
-						i === 0 && 'bg-purple-500',
-						i === 1 && 'bg-amber-500',
-						i === 2 && 'bg-success',
+						i === 0 && 'bg-rare',
+						i === 1 && 'bg-bonus',
+						i === 2 && 'bg-xp',
 					)}
 					style={{ left: i * 15 }}
 					animate={{ y: [0, -20], opacity: [1, 0], scale: [1, 0] }}
@@ -422,9 +419,9 @@ const BadgeUnlockedItem = ({
 	return (
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
-			<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600'>
+			<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
 				<span className='text-icon-lg'>{badgeIcon}</span>
-				<div className='absolute -inset-1.5 rounded-full bg-amber-500/20 blur-sm' />
+				<div className='absolute -inset-1.5 rounded-full bg-bonus/20 blur-sm' />
 			</div>
 
 			{/* Content */}
@@ -432,7 +429,7 @@ const BadgeUnlockedItem = ({
 				<NotifHeader
 					type='New Badge!'
 					time={timestamp}
-					className='text-amber-500'
+					className='text-bonus'
 				/>
 				<p className='text-sm'>
 					You earned{' '}
@@ -449,7 +446,7 @@ const BadgeUnlockedItem = ({
 			{/* Action */}
 			<ActionButton
 				onClick={onViewBadge}
-				className='flex-shrink-0 border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
+				className='flex-shrink-0 border border-bonus/30 bg-bonus/10 text-legendary hover:bg-bonus/20'
 			>
 				View Badge
 			</ActionButton>
@@ -467,13 +464,13 @@ const BadgeSurpriseItem = ({
 }: BadgeSurpriseNotification) => (
 	<NotifWrapper
 		isRead={isRead}
-		className='bg-gradient-to-r from-purple-500/10 to-pink-500/5'
+		className='bg-gradient-to-r from-rare/10 to-combo/5'
 	>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500'>
+		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
 			<span className='text-icon-lg'>{badgeIcon}</span>
 			<motion.div
-				className='absolute -inset-2.5 rounded-full bg-purple-500/30 blur-md'
+				className='absolute -inset-2.5 rounded-full bg-rare/30 blur-md'
 				initial={{ scale: 0.5, opacity: 1 }}
 				animate={{ scale: 1.5, opacity: 0 }}
 				transition={{ duration: 1 }}
@@ -485,14 +482,14 @@ const BadgeSurpriseItem = ({
 			<NotifHeader
 				type='Surprise Badge!'
 				time={timestamp}
-				className='text-purple-500'
+				className='text-rare'
 			/>
 			<p className='text-sm'>
 				You unlocked a hidden badge:{' '}
 				<strong className='font-bold'>&quot;{badgeName}&quot;</strong>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-gradient-to-r from-purple-500 to-pink-500 text-white'>
+				<MetaTag className='bg-gradient-to-r from-rare to-combo text-white'>
 					Ultra Rare
 				</MetaTag>
 				<span className='text-xs text-text-muted'>
@@ -542,9 +539,7 @@ const CreatorBonusItem = ({
 				<span className='font-semibold text-brand'>{recipeName}</span>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-success/15 text-success'>
-					+{xpBonus} XP bonus
-				</MetaTag>
+				<MetaTag className='bg-xp/15 text-xp'>+{xpBonus} XP bonus</MetaTag>
 				<span className='text-xs text-text-muted'>
 					Your {totalCookRewards}th cook reward
 				</span>
@@ -673,13 +668,13 @@ const StreakWarningItem = ({
 }: StreakWarningNotification) => (
 	<NotifWrapper
 		isRead={isRead}
-		className='border-l-4 border-l-orange-500 bg-orange-500/10'
+		className='border-l-4 border-l-streak bg-streak/10'
 	>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-orange-600'>
+		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-streak to-streak/90'>
 			<span className='relative z-10 text-2xl'>🔥</span>
 			<motion.div
-				className='absolute -inset-1.5 rounded-full bg-orange-500/30 blur-sm'
+				className='absolute -inset-1.5 rounded-full bg-streak/30 blur-sm'
 				animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
 				transition={{ duration: 1.5, repeat: Infinity }}
 			/>
@@ -690,14 +685,14 @@ const StreakWarningItem = ({
 			<NotifHeader
 				type='Streak at Risk!'
 				time={timestamp}
-				className='text-orange-500'
+				className='text-streak'
 			/>
 			<p className='text-sm'>
 				Cook something today to keep your{' '}
 				<strong className='font-bold'>{streakCount}-day streak</strong> alive!
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-orange-500/15 text-orange-600'>
+				<MetaTag className='bg-streak/15 text-streak'>
 					{hoursRemaining} hours left
 				</MetaTag>
 				<span className='text-xs text-text-muted'>Quick recipes available</span>
@@ -707,7 +702,7 @@ const StreakWarningItem = ({
 		{/* Action */}
 		<ActionButton
 			onClick={onFindRecipe}
-			className='flex-shrink-0 bg-orange-500 text-white'
+			className='flex-shrink-0 bg-streak text-white'
 		>
 			<Search className='h-4 w-4' />
 			Find Recipe
@@ -753,7 +748,7 @@ const StreakLostItem = ({
 		{/* Action */}
 		<ActionButton
 			onClick={onStartNewStreak}
-			className='flex-shrink-0 border border-orange-500/30 bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white'
+			className='flex-shrink-0 border border-streak/30 bg-streak/10 text-streak hover:bg-streak hover:text-white'
 		>
 			Start New Streak
 		</ActionButton>
@@ -770,12 +765,12 @@ const ChallengeReminderItem = ({
 	isRead,
 	onSeeRecipes,
 }: ChallengeReminderNotification) => (
-	<NotifWrapper isRead={isRead} className='bg-indigo-500/10'>
+	<NotifWrapper isRead={isRead} className='bg-xp/10'>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500'>
+		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-rare'>
 			<span className='relative z-10 text-2xl'>🎯</span>
 			<motion.div
-				className='absolute -inset-1 rounded-full border-2 border-dashed border-indigo-500/40'
+				className='absolute -inset-1 rounded-full border-2 border-dashed border-xp/40'
 				animate={{ rotate: 360 }}
 				transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
 			/>
@@ -786,16 +781,14 @@ const ChallengeReminderItem = ({
 			<NotifHeader
 				type='Daily Challenge'
 				time={timestamp}
-				className='text-indigo-500'
+				className='text-xp'
 			/>
 			<p className='text-sm'>
 				<strong className='font-bold'>{challengeTitle}</strong>{' '}
 				{challengeDescription}
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-indigo-500/15 text-indigo-600'>
-					+{xpBonusPercent}% XP
-				</MetaTag>
+				<MetaTag className='bg-xp/15 text-xp'>+{xpBonusPercent}% XP</MetaTag>
 				<span className='text-xs text-text-muted'>
 					Ends in {hoursRemaining} hours
 				</span>
@@ -805,7 +798,7 @@ const ChallengeReminderItem = ({
 		{/* Action */}
 		<ActionButton
 			onClick={onSeeRecipes}
-			className='flex-shrink-0 bg-indigo-500 text-white'
+			className='flex-shrink-0 bg-xp text-white shadow-sm shadow-xp/30'
 		>
 			See Recipes
 		</ActionButton>

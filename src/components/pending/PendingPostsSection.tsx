@@ -483,7 +483,7 @@ export const PendingExpandedModal = ({
 					exit={{ opacity: 0 }}
 				>
 					<motion.div
-						className='bg-panel-bg rounded-t-3xl w-full max-w-lg max-h-[85vh] flex flex-col'
+						className='bg-panel-bg rounded-t-3xl w-full max-w-lg max-h-sheet-mobile flex flex-col'
 						initial={{ y: '100%' }}
 						animate={{ y: 0 }}
 						exit={{ y: '100%' }}

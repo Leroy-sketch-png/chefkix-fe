@@ -5,91 +5,167 @@
 
 /* ===================================
    DESIGN TOKENS & CSS VARIABLES
+   Chefkix: Gamified Social Cooking Platform
    =================================== */
 
 :root {
-	/* ============ BRAND COLORS - FUNCTIONAL NAMING ============ */
+	/* ============ BRAND COLORS - VIBRANT & PLAYFUL ============ */
 
-	/* Primary Brand Color - ONE consistent orange-red for all primary actions */
-	--color-brand: #ff6f3c; /* Main brand color - buttons, links, key actions */
-	--color-brand-hover: #e8562a; /* Hover states only */
-	--color-brand-subtle: #ffece0; /* Backgrounds, badges, low-emphasis */
+	/* Primary Brand - Energetic Coral/Orange-Red */
+	--color-brand: #ff5a36; /* More vibrant coral - CTAs, primary actions */
+	--color-brand-hover: #e64a2e; /* Darker for hover */
+	--color-brand-subtle: #fff0eb; /* Soft background tint */
 
-	/* Semantic Colors - Purpose-driven colors */
-	--color-success: #52b788;
-	--color-warning: #f4a900;
-	--color-error: #dc3545;
-	--color-info: #4299e1;
+	/* Secondary Brand - Electric Purple (for variety & gaming feel) */
+	--color-accent-purple: #8b5cf6; /* Achievements, XP, special actions */
+	--color-accent-purple-hover: #7c3aed;
+	--color-accent-purple-subtle: #f3f0ff;
+
+	/* Tertiary - Teal/Cyan (freshness, discovery) */
+	--color-accent-teal: #14b8a6; /* Discovery, explore, new content */
+	--color-accent-teal-hover: #0d9488;
+	--color-accent-teal-subtle: #e6fffa;
+
+	/* Semantic Colors - VIBRANT & Expressive */
+	--color-success: #10b981; /* Brighter emerald - completed, achievements */
+	--color-success-vivid: #34d399; /* Extra pop for celebrations */
+	--color-warning: #f59e0b; /* Richer amber - caution, timers */
+	--color-warning-vivid: #fbbf24; /* Urgent warnings */
+	--color-error: #ef4444; /* Vibrant red - errors, destructive */
+	--color-error-vivid: #f87171; /* Urgent errors */
+	--color-info: #3b82f6; /* Brighter blue - tips, info */
+	--color-info-vivid: #60a5fa; /* Highlighted info */
+
+	/* Gaming Colors - XP, Streaks, Levels */
+	--color-streak: #f97316; /* Fire orange - streaks */
+	--color-streak-urgent: #dc2626; /* Deep red - about to lose streak */
+	--color-xp: #a855f7; /* Purple - XP gains */
+	--color-xp-bonus: #c084fc; /* Lighter purple - bonus XP */
+	--color-level: #eab308; /* Gold - level ups */
+	--color-level-glow: #fde047; /* Bright gold glow */
+	--color-badge: #06b6d4; /* Cyan - badges earned */
 
 	/* ============ LIGHT MODE COLORS ============ */
 
-	/* Backgrounds - Clean white with subtle warmth */
-	--bg: #ffffff;
-	--bg-page: #ffffff;
+	/* Backgrounds - Warm whites with personality */
+	--bg: #fffcfa; /* Slightly warm white */
+	--bg-page: #fffcfa;
 	--bg-card: #ffffff;
-	--bg-elevated: #fafafa; /* Slightly elevated surfaces */
-	--bg-hover: #f5f5f5; /* Interactive hover states */
-	--bg-input: #fafafa; /* Input field backgrounds */
+	--bg-elevated: #faf8f6; /* Warm elevated surfaces */
+	--bg-hover: #f5f3f0; /* Interactive hover */
+	--bg-input: #faf8f6;
 
-	/* Text - High contrast for readability */
-	--text: #1a1a1a;
-	--text-primary: #1a1a1a; /* Main text - WCAG AAA */
-	--text-secondary: #4a4a4a; /* Secondary text - WCAG AA */
-	--text-tertiary: #737373; /* Tertiary text - WCAG AA */
-	--text-muted: #6b7280; /* Muted text - darker for WCAG AA (was #9ca3af) */
+	/* Text - High contrast, warm undertones */
+	--text: #1c1917; /* Warm black */
+	--text-primary: #1c1917;
+	--text-secondary: #44403c; /* Warm dark gray */
+	--text-tertiary: #78716c; /* Warm medium gray */
+	--text-muted: #a8a29e; /* Warm muted */
 
-	/* Borders - Actually visible */
-	--border: #e5e5e5;
-	--border-color: #e5e5e5;
-	--border-subtle: #f0f0f0; /* Very subtle dividers */
-	--border-medium: #d4d4d4; /* Input borders, cards */
-	--border-strong: #a3a3a3; /* Focus states, emphasis */
+	/* Borders - Visible but not harsh */
+	--border: #e7e5e4;
+	--border-color: #e7e5e4;
+	--border-subtle: #f5f5f4;
+	--border-medium: #d6d3d1;
+	--border-strong: #a8a29e;
 
 	/* Legacy semantic tokens (for compatibility) */
-	--muted: #f5f5f5; /* Background color for bg-muted */
-	--muted-foreground: var(
-		--text-muted
-	); /* Text color - now uses the WCAG-compliant text-muted */
-	--muted-strong: #525252;
+	--muted: #f5f5f4; /* Warm muted background */
+	--muted-foreground: var(--text-muted);
+	--muted-strong: #57534e; /* Warm dark muted */
 
 	/* Backwards compatibility - map old tokens to new system */
 	--primary: var(--color-brand);
 	--primary-dark: var(--color-brand-hover);
 	--primary-light: var(--color-brand);
-	--accent: var(--color-brand);
-	--accent-strong: var(--color-brand-hover);
-	--accent-light: var(--color-brand-subtle);
+	--accent: var(--color-accent-purple); /* Purple for accents now! */
+	--accent-strong: var(--color-accent-purple-hover);
+	--accent-light: var(--color-accent-purple-subtle);
 	--mint: var(--color-success);
-	--gold: var(--color-warning);
+	--gold: var(--color-level); /* Gaming gold */
 	--destructive: var(--color-error);
 	--panel-bg: var(--bg-card);
 
-	/* ============ GRADIENTS - MINIMAL & PURPOSEFUL ============ */
+	/* ============ GRADIENTS - EXPRESSIVE & PLAYFUL ============ */
+
+	/* Primary Action Gradient */
 	--gradient-brand: linear-gradient(
 		135deg,
-		var(--color-brand) 0%,
-		var(--color-brand-hover) 100%
+		#ff5a36 0%,
+		#ff7849 50%,
+		#e64a2e 100%
 	);
-	--gradient-success: linear-gradient(135deg, #52b788 0%, #66d19e 100%);
 
-	/* Legacy gradient support */
+	/* Success/Achievement Gradient */
+	--gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+
+	/* XP/Gaming Gradient */
+	--gradient-xp: linear-gradient(135deg, #a855f7 0%, #c084fc 50%, #8b5cf6 100%);
+
+	/* Level Up / Gold Gradient */
+	--gradient-gold: linear-gradient(
+		135deg,
+		#f59e0b 0%,
+		#fbbf24 50%,
+		#eab308 100%
+	);
+
+	/* Streak Fire Gradient */
+	--gradient-streak: linear-gradient(
+		135deg,
+		#f97316 0%,
+		#fb923c 50%,
+		#ea580c 100%
+	);
+
+	/* Discovery/Explore Gradient */
+	--gradient-cool: linear-gradient(
+		135deg,
+		#14b8a6 0%,
+		#2dd4bf 50%,
+		#06b6d4 100%
+	);
+
+	/* Sunset/Warm Gradient (for cards, banners) */
+	--gradient-warm: linear-gradient(
+		135deg,
+		#ff5a36 0%,
+		#f97316 50%,
+		#f59e0b 100%
+	);
+
+	/* Ocean/Calm Gradient */
+	--gradient-ocean: linear-gradient(
+		135deg,
+		#3b82f6 0%,
+		#60a5fa 50%,
+		#14b8a6 100%
+	);
+
+	/* Party/Celebration Gradient */
+	--gradient-party: linear-gradient(
+		135deg,
+		#ec4899 0%,
+		#a855f7 50%,
+		#6366f1 100%
+	);
+
+	/* Legacy aliases */
 	--gradient-primary: var(--gradient-brand);
-	--gradient-warm: var(--gradient-brand);
-	--gradient-gold: linear-gradient(135deg, #f4a900 0%, #ffc947 100%);
-	--gradient-sunset: var(--gradient-brand);
-	--gradient-cool: linear-gradient(135deg, #4299e1 0%, #52b788 100%);
-	/* Dark celebration gradients */
+	--gradient-sunset: var(--gradient-warm);
+
+	/* Celebration backgrounds (dark, festive) */
 	--gradient-celebration: linear-gradient(
 		135deg,
-		#1a1a2e 0%,
-		#16213e 50%,
-		#0f3460 100%
+		#1e1b4b 0%,
+		#312e81 50%,
+		#4c1d95 100%
 	);
 	--gradient-celebration-alt: linear-gradient(
 		135deg,
 		#0f172a 0%,
 		#1e1b4b 50%,
-		#312e81 100%
+		#581c87 100%
 	);
 
 	/* ============ BORDER WIDTHS ============ */
@@ -110,12 +186,21 @@
 	/* Heights */
 	--h-topbar: 72px;
 	--h-mobile-nav: 72px;
+	--h-mobile-header: 60px; /* Mobile sticky header offset */
 	--h-textarea-min: 100px; /* Minimum height for textareas */
+	--h-textarea-lg: 200px; /* Larger textarea for recipe content */
 	--h-content-min: 50vh; /* Minimum content height (empty states) */
 	--h-content-tall: 60vh; /* Taller content height (error states) */
+	--h-content-max: 70vh; /* Max content height (profile not found) */
 	--h-panel-md: 400px; /* Medium panel height (recipe cards, error boundaries) */
 	--h-panel-lg: 500px; /* Large panel height (comment lists, messages) */
 	--h-panel-xl: 600px; /* Extra large panel height (AI assistant) */
+
+	/* Modal/Sheet viewport heights */
+	--h-modal-max: 90vh; /* Standard modal max height */
+	--h-sheet-mobile: 85vh; /* Mobile sheet height */
+	--h-sheet-full: 95vh; /* Near-fullscreen sheet */
+	--h-modal-constrained: 80vh; /* Constrained modal (with header visible) */
 
 	/* ============ ICON & ELEMENT SIZES ============ */
 	/* Icon sizes - used for lucide icons and inline graphics */
@@ -143,6 +228,14 @@
 	--modal-lg: 480px;
 	--modal-xl: 600px;
 
+	/* Drawer dimensions */
+	--drawer-w: 400px;
+	--drawer-h: 500px;
+	--drawer-min-w: 300px;
+	--drawer-max-w: 800px;
+	--drawer-min-h: 300px;
+	--drawer-max-h: 800px;
+
 	/* Chat bubble widths */
 	--bubble-sm: 200px; /* Reply preview, truncated content */
 	--bubble-md: 280px; /* Mobile chat bubbles */
@@ -153,6 +246,7 @@
 	--container-md: 600px;
 	--container-lg: 800px;
 	--container-xl: 1000px;
+	--container-form: 900px; /* Recipe/settings form max-width */
 
 	/* Common component dimensions */
 	--thumbnail-sm: 52px; /* Challenge icons, small previews */
@@ -232,6 +326,8 @@
 	--font-size-icon-3xl: 48px; /* Large achievement emoji size */
 	--font-size-icon-4xl: 60px; /* Extra large achievement emoji size */
 	--font-size-icon-emoji-xl: 64px; /* Hero emoji size - for empty states */
+	--font-size-caption: 13px; /* Small captions, metadata */
+	--font-size-label: 15px; /* Tab labels, semi-prominent text */
 
 	--font-weight-normal: 400;
 	--font-weight-medium: 500;
@@ -272,63 +368,143 @@
 /* ============ DARK MODE ============ */
 @media (prefers-color-scheme: dark) {
 	:root {
-		/* ============ DARK MODE SURFACES - PROPER ELEVATION ============ */
-		--bg: #121212; /* Base background - Material Design standard */
-		--bg-page: #121212;
-		--bg-card: #1e1e1e; /* Elevated cards and surfaces */
-		--bg-elevated: #2a2a2a; /* Higher elevation (modals, dropdowns) */
-		--bg-hover: #2a2a2a; /* Interactive hover states */
-		--bg-input: #2a2a2a; /* Input field backgrounds */
-		--panel-bg: #1e1e1e;
+		/* ============ DARK MODE SURFACES - RICH DEPTH ============ */
+		--bg: #0f0d0c; /* Warm dark base */
+		--bg-page: #0f0d0c;
+		--bg-card: #1a1817; /* Warm elevated cards */
+		--bg-elevated: #262220; /* Higher elevation */
+		--bg-hover: #2e2a27; /* Interactive hover */
+		--bg-input: #1a1817;
+		--panel-bg: #1a1817;
 
-		/* ============ DARK MODE TEXT - IMPROVED CONTRAST ============ */
-		--text: #fdfcfa;
-		--text-primary: #fdfcfa; /* Almost white - highest contrast */
-		--text-secondary: #e5ddd0; /* Lighter cream - still readable */
-		--text-tertiary: #c4b8a8; /* Medium - still meets WCAG AA */
-		--text-muted: #a8a29e; /* Muted text - lighter for dark mode WCAG AA (was #9ca3af) */
+		/* ============ DARK MODE TEXT - WARM & READABLE ============ */
+		--text: #faf8f6;
+		--text-primary: #faf8f6;
+		--text-secondary: #e7e5e4;
+		--text-tertiary: #a8a29e;
+		--text-muted: #78716c;
 
-		/* ============ DARK MODE BORDERS - VISIBLE ============ */
-		--border: #3a3a3a;
-		--border-color: #3a3a3a;
-		--border-subtle: #2a2a2a; /* Very subtle dividers */
-		--border-medium: #4a4a4a; /* Input borders, cards */
-		--border-strong: #5a5a5a; /* Focus states */
+		/* ============ DARK MODE BORDERS ============ */
+		--border: #2e2a27;
+		--border-color: #2e2a27;
+		--border-subtle: #1f1c1a;
+		--border-medium: #3d3835;
+		--border-strong: #57534e;
 
 		/* Legacy semantic tokens */
-		--muted: #2a2a2a; /* Background color for bg-muted */
-		--muted-foreground: var(
-			--text-muted
-		); /* Text color - now uses the WCAG-compliant text-muted */
-		--muted-strong: #9ca3af;
+		--muted: #262220;
+		--muted-foreground: var(--text-muted);
+		--muted-strong: #a8a29e;
 
-		/* ============ DARK MODE BRAND COLOR - VIBRANT ============ */
-		--color-brand: #ff6f3c; /* Vibrant orange pops on dark */
-		--color-brand-hover: #ff8855; /* Lighter on hover for dark mode */
-		--color-brand-subtle: #2a1810; /* Dark background tint */
+		/* ============ DARK MODE BRAND - EXTRA VIBRANT ============ */
+		--color-brand: #ff6b4a; /* Brighter on dark */
+		--color-brand-hover: #ff8566;
+		--color-brand-subtle: #2d1810;
 
-		/* Semantic colors adjusted for dark mode */
-		--color-success: #66d19e;
-		--color-warning: #ffb84d;
-		--color-error: #ff6b6b;
+		/* Secondary Accent - Purple glows on dark */
+		--color-accent-purple: #a78bfa;
+		--color-accent-purple-hover: #c4b5fd;
+		--color-accent-purple-subtle: #1e1535;
 
-		/* ============ DARK MODE SHADOWS - DEEPER ============ */
-		--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-		--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-		--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
-		--shadow-glow: 0 0 28px rgba(255, 111, 60, 0.4);
-		--shadow-warm: 0 4px 22px rgba(0, 0, 0, 0.5);
+		/* Tertiary - Teal pops on dark */
+		--color-accent-teal: #2dd4bf;
+		--color-accent-teal-hover: #5eead4;
+		--color-accent-teal-subtle: #0d2926;
 
-		/* ============ DARK MODE GRADIENTS ============ */
-		--gradient-brand: linear-gradient(135deg, #ff6f3c 0%, #ff8855 100%);
+		/* Semantic colors - VIVID on dark */
+		--color-success: #34d399;
+		--color-success-vivid: #6ee7b7;
+		--color-warning: #fbbf24;
+		--color-warning-vivid: #fcd34d;
+		--color-error: #f87171;
+		--color-error-vivid: #fca5a5;
+		--color-info: #60a5fa;
+		--color-info-vivid: #93c5fd;
+
+		/* Gaming colors - GLOW on dark */
+		--color-streak: #fb923c;
+		--color-streak-urgent: #ef4444;
+		--color-xp: #c084fc;
+		--color-xp-bonus: #d8b4fe;
+		--color-level: #fbbf24;
+		--color-level-glow: #fef08a;
+		--color-badge: #22d3ee;
+
+		/* ============ DARK MODE SHADOWS - GLOWY ============ */
+		--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+		--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+		--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+		--shadow-glow: 0 0 32px rgba(255, 107, 74, 0.5); /* Brand glow */
+		--shadow-warm: 0 4px 24px rgba(255, 107, 74, 0.3);
+		--shadow-xp: 0 0 24px rgba(168, 85, 247, 0.4); /* Purple glow */
+		--shadow-success: 0 0 20px rgba(52, 211, 153, 0.4); /* Green glow */
+
+		/* ============ DARK MODE GRADIENTS - RICH ============ */
+		--gradient-brand: linear-gradient(
+			135deg,
+			#ff6b4a 0%,
+			#ff8566 50%,
+			#ff5a36 100%
+		);
+		--gradient-xp: linear-gradient(
+			135deg,
+			#a78bfa 0%,
+			#c4b5fd 50%,
+			#8b5cf6 100%
+		);
+		--gradient-gold: linear-gradient(
+			135deg,
+			#fbbf24 0%,
+			#fcd34d 50%,
+			#f59e0b 100%
+		);
+		--gradient-streak: linear-gradient(
+			135deg,
+			#fb923c 0%,
+			#fdba74 50%,
+			#f97316 100%
+		);
+		--gradient-success: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%);
+		--gradient-cool: linear-gradient(
+			135deg,
+			#2dd4bf 0%,
+			#5eead4 50%,
+			#22d3ee 100%
+		);
+		--gradient-warm: linear-gradient(
+			135deg,
+			#ff6b4a 0%,
+			#fb923c 50%,
+			#fbbf24 100%
+		);
+		--gradient-party: linear-gradient(
+			135deg,
+			#f472b6 0%,
+			#c084fc 50%,
+			#818cf8 100%
+		);
 		--gradient-primary: var(--gradient-brand);
-		--gradient-warm: var(--gradient-brand);
+		--gradient-sunset: var(--gradient-warm);
+
+		/* Celebration - Deep & Festive */
+		--gradient-celebration: linear-gradient(
+			135deg,
+			#1e1b4b 0%,
+			#4c1d95 50%,
+			#7c3aed 100%
+		);
+		--gradient-celebration-alt: linear-gradient(
+			135deg,
+			#0f172a 0%,
+			#581c87 50%,
+			#a855f7 100%
+		);
 	}
 
-	/* Dark Mode Image Filtering - Subtle adjustment */
+	/* Dark Mode Image Filtering - Enhance vibrancy */
 	img:not([class*='avatar']):not([class*='profile']),
 	video {
-		filter: brightness(0.95) contrast(1.05) saturate(1.05);
+		filter: brightness(0.98) contrast(1.08) saturate(1.1);
 	}
 }
 
@@ -343,6 +519,8 @@
 	--color-warning: var(--color-warning);
 	--color-error: var(--color-error);
 	--color-info: var(--color-info);
+	--color-streak: var(--color-streak);
+	--color-streak-urgent: var(--color-streak-urgent);
 
 	/* ============ BACKGROUND COLORS ============ */
 	--color-bg: var(--bg);

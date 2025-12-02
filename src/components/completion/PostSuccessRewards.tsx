@@ -112,7 +112,7 @@ const XPRowComponent = ({ row, index }: { row: XPRow; index: number }) => (
 			variants={XP_COUNTER_VARIANTS}
 			initial='hidden'
 			animate='visible'
-			className={cn('font-bold text-success', row.isHighlight && 'text-lg')}
+			className={cn('font-bold text-xp', row.isHighlight && 'text-lg')}
 		>
 			+{row.amount} XP
 		</motion.span>
@@ -202,7 +202,7 @@ export const PostSuccessRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[85vh] max-md:rounded-b-none max-md:p-6'
+							className='relative max-h-modal w-full max-w-md overflow-y-auto rounded-3xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-mobile max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close */}
 							<button
@@ -226,7 +226,7 @@ export const PostSuccessRewards = ({
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
 										transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
-										className='absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-success to-success/80 shadow-lg shadow-success/40'
+										className='absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-level shadow-lg shadow-level/40'
 									>
 										<Check className='h-5 w-5 text-white' />
 									</motion.div>
@@ -236,7 +236,7 @@ export const PostSuccessRewards = ({
 							</div>
 
 							{/* XP unlocked section */}
-							<div className='mb-5 rounded-2xl border border-success/20 bg-gradient-to-br from-success/10 to-success/5 p-5'>
+							<div className='mb-5 rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/10 via-bonus/5 to-xp/5 p-5'>
 								{/* Unlock animation icon */}
 								<div className='relative mb-4 flex justify-center'>
 									<motion.div
@@ -253,7 +253,7 @@ export const PostSuccessRewards = ({
 										transition={{ ...TRANSITION_BOUNCY, delay: 0.5 }}
 										className='absolute flex h-12 w-12 items-center justify-center rounded-full bg-panel-bg'
 									>
-										<Unlock className='h-5 w-5 text-success' />
+										<Unlock className='h-5 w-5 text-xp' />
 									</motion.div>
 								</div>
 
@@ -270,7 +270,7 @@ export const PostSuccessRewards = ({
 											initial={{ scale: 0.5, opacity: 0 }}
 											animate={{ scale: 1, opacity: 1 }}
 											transition={{ ...TRANSITION_BOUNCY, delay: 0.8 }}
-											className='text-2xl font-extrabold text-success'
+											className='text-2xl font-extrabold text-xp'
 										>
 											+{totalXp} XP
 										</motion.span>
@@ -307,10 +307,10 @@ export const PostSuccessRewards = ({
 											<ProgressBar
 												fillPercent={mastery.percentComplete}
 												gainedPercent={mastery.percentGained}
-												color='bg-purple-500'
+												color='bg-rare'
 											/>
 										</div>
-										<span className='font-bold text-purple-500'>
+										<span className='font-bold text-rare'>
 											{mastery.percentComplete}%
 										</span>
 									</div>

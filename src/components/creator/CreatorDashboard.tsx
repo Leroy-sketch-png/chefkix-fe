@@ -444,7 +444,7 @@ function RecipePerformanceSection({
 										recipe.badge.type === 'milestone' &&
 											'bg-indigo-500/10 text-indigo-500',
 										recipe.badge.type === 'trending' &&
-											'bg-orange-500/10 text-orange-500',
+											'bg-streak/10 text-streak',
 										recipe.badge.type === 'attention' &&
 											'bg-amber-500/10 text-amber-500',
 									)}

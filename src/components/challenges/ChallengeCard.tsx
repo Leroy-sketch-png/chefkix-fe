@@ -64,24 +64,24 @@ const typeConfig: Record<
 	{ gradient: string; label: string; labelColor: string }
 > = {
 	daily: {
-		gradient: 'from-indigo-500 to-purple-500',
+		gradient: 'from-xp via-cyan-400 to-blue-500',
 		label: '🎯 Daily Challenge',
-		labelColor: 'text-indigo-400',
+		labelColor: 'text-xp',
 	},
 	weekly: {
-		gradient: 'from-violet-500 to-purple-600',
+		gradient: 'from-rare via-purple-500 to-pink-500',
 		label: '📅 Weekly Challenge',
-		labelColor: 'text-violet-400',
+		labelColor: 'text-rare',
 	},
 	community: {
-		gradient: 'from-pink-500 to-rose-500',
+		gradient: 'from-combo via-pink-400 to-rose-500',
 		label: '👥 Community Challenge',
-		labelColor: 'text-pink-400',
+		labelColor: 'text-combo',
 	},
 	seasonal: {
-		gradient: 'from-amber-500 to-orange-500',
+		gradient: 'from-legendary via-amber-400 to-bonus',
 		label: '🌟 Seasonal Event',
-		labelColor: 'text-amber-400',
+		labelColor: 'text-legendary',
 	},
 }
 
@@ -175,9 +175,9 @@ export const ChallengeCard = ({
 				{/* Meta Row */}
 				<div className='mb-4 flex items-center gap-4 text-xs'>
 					{/* Bonus XP */}
-					<div className='flex items-center gap-1 rounded-full bg-white/20 px-3 py-1.5'>
+					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-sm shadow-bonus/20'>
 						<span>⚡</span>
-						<span className='font-bold'>+{bonusXp} XP</span>
+						<span className='font-bold text-bonus'>+{bonusXp} XP</span>
 					</div>
 
 					{/* Time Remaining */}

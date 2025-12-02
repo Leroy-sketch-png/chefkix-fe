@@ -5,8 +5,17 @@ import { usePathname } from 'next/navigation'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { PAGE_VARIANTS, DURATIONS, EASINGS } from '@/lib/motion'
 import { useRef, useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
-export const PageTransition = ({ children }: { children: React.ReactNode }) => {
+interface PageTransitionProps {
+	children: React.ReactNode
+	className?: string
+}
+
+export const PageTransition = ({
+	children,
+	className,
+}: PageTransitionProps) => {
 	const pathname = usePathname()
 	const prefersReducedMotion = useReducedMotion()
 	const isFirstMount = useRef(true)
@@ -36,6 +45,7 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
 		<AnimatePresence mode='wait'>
 			<motion.div
 				key={pathname}
+				className={cn(className)}
 				initial={variants.initial}
 				animate={variants.animate}
 				exit={variants.exit}

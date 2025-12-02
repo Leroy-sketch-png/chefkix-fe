@@ -4,6 +4,7 @@ export const PATHS = {
 	EXPLORE: '/explore',
 	DISCOVER: '/discover',
 	COMMUNITY: '/community',
+	MESSAGES: '/messages',
 	CREATE: '/create',
 	SETTINGS: '/settings',
 	AUTH: {

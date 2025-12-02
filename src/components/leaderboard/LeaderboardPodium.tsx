@@ -34,8 +34,8 @@ const podiumConfig = {
 		order: 2,
 		avatarSize: 80,
 		baseHeight: 80,
-		baseGradient: 'from-amber-400/30 to-amber-400/10',
-		badgeGradient: 'from-amber-400 to-amber-500',
+		baseGradient: 'from-bonus/30 to-bonus/10',
+		badgeGradient: 'from-bonus to-legendary',
 		showCrown: true,
 	},
 	2: {
@@ -50,8 +50,8 @@ const podiumConfig = {
 		order: 3,
 		avatarSize: 64,
 		baseHeight: 40,
-		baseGradient: 'from-amber-600/30 to-amber-600/10',
-		badgeGradient: 'from-amber-600 to-amber-700',
+		baseGradient: 'from-legendary/30 to-legendary/10',
+		badgeGradient: 'from-legendary to-orange-600',
 		showCrown: false,
 	},
 } as const
@@ -126,7 +126,7 @@ function PodiumSpot({
 				</div>
 
 				{/* Level Badge */}
-				<div className='absolute top-0 -right-1 px-1.5 py-0.5 bg-indigo-500 rounded-lg text-2xs font-bold text-white'>
+				<div className='absolute top-0 -right-1 px-1.5 py-0.5 bg-rare rounded-lg text-2xs font-bold text-white shadow-sm shadow-rare/30'>
 					{entry.level}
 				</div>
 			</div>

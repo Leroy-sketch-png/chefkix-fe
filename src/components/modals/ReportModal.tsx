@@ -177,7 +177,7 @@ export const ReportModal = ({
 						animate='visible'
 						exit='exit'
 						onClick={e => e.stopPropagation()}
-						className='max-h-[90vh] w-full max-w-modal-lg overflow-y-auto rounded-3xl bg-panel-bg'
+						className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-3xl bg-panel-bg'
 					>
 						{submitted ? (
 							// Confirmation View
@@ -630,7 +630,7 @@ export const AppealModal = ({
 						animate='visible'
 						exit='exit'
 						onClick={e => e.stopPropagation()}
-						className='max-h-[90vh] w-full max-w-modal-lg overflow-y-auto rounded-3xl bg-panel-bg'
+						className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-3xl bg-panel-bg'
 					>
 						{submitted ? (
 							// Submitted View
