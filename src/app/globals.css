@@ -36,43 +36,49 @@
 	--color-info: #3b82f6; /* Brighter blue - tips, info */
 	--color-info-vivid: #60a5fa; /* Highlighted info */
 
-	/* Gaming Colors - XP, Streaks, Levels */
+	/* Gaming Colors - XP, Streaks, Levels, Rarity */
 	--color-streak: #f97316; /* Fire orange - streaks */
 	--color-streak-urgent: #dc2626; /* Deep red - about to lose streak */
 	--color-xp: #a855f7; /* Purple - XP gains */
-	--color-xp-bonus: #c084fc; /* Lighter purple - bonus XP */
+	--color-bonus: #c084fc; /* Lighter purple - bonus XP, rewards */
 	--color-level: #eab308; /* Gold - level ups */
 	--color-level-glow: #fde047; /* Bright gold glow */
 	--color-badge: #06b6d4; /* Cyan - badges earned */
 
+	/* Rarity Colors - Gaming RPG style */
+	--color-rare: #3b82f6; /* Blue - rare items/achievements */
+	--color-combo: #ec4899; /* Pink - combos, multipliers */
+	--color-legendary: #f59e0b; /* Amber - legendary, premium */
+	--color-gold: #eab308; /* Gold - coins, premium currency */
+
 	/* ============ LIGHT MODE COLORS ============ */
 
-	/* Backgrounds - Warm whites with personality */
-	--bg: #fffcfa; /* Slightly warm white */
-	--bg-page: #fffcfa;
-	--bg-card: #ffffff;
-	--bg-elevated: #faf8f6; /* Warm elevated surfaces */
-	--bg-hover: #f5f3f0; /* Interactive hover */
-	--bg-input: #faf8f6;
+	/* Backgrounds - Warm parchment/kitchen palette (think: fresh bread, warm wood) */
+	--bg: #f8f4ef; /* Warm parchment base - like a recipe book page */
+	--bg-page: #f8f4ef;
+	--bg-card: #fdfbf8; /* Soft cream cards - NOT stark white */
+	--bg-elevated: #f3ede6; /* Warm elevated - like light wood */
+	--bg-hover: #ede7df; /* Honey-touched hover */
+	--bg-input: #faf8f5; /* Slightly warmer input fields */
 
-	/* Text - High contrast, warm undertones */
-	--text: #1c1917; /* Warm black */
-	--text-primary: #1c1917;
-	--text-secondary: #44403c; /* Warm dark gray */
-	--text-tertiary: #78716c; /* Warm medium gray */
-	--text-muted: #a8a29e; /* Warm muted */
+	/* Text - Chocolate/Espresso tones (rich, appetizing) */
+	--text: #2c2420; /* Espresso - rich warm black */
+	--text-primary: #2c2420;
+	--text-secondary: #524840; /* Dark chocolate - readable warmth */
+	--text-tertiary: #7a6f65; /* Cocoa - medium emphasis */
+	--text-muted: #a89f94; /* Latte - soft muted */
 
-	/* Borders - Visible but not harsh */
-	--border: #e7e5e4;
-	--border-color: #e7e5e4;
-	--border-subtle: #f5f5f4;
-	--border-medium: #d6d3d1;
-	--border-strong: #a8a29e;
+	/* Borders - Warm stone/terracotta undertones */
+	--border: #e5ddd5; /* Warm sand border */
+	--border-color: #e5ddd5;
+	--border-subtle: #f0ebe5; /* Barely there cream */
+	--border-medium: #d4cac0; /* Warm taupe */
+	--border-strong: #a89f94; /* Strong stone */
 
 	/* Legacy semantic tokens (for compatibility) */
-	--muted: #f5f5f4; /* Warm muted background */
+	--muted: #f3ede6; /* Warm muted background - matches elevated */
 	--muted-foreground: var(--text-muted);
-	--muted-strong: #57534e; /* Warm dark muted */
+	--muted-strong: #5c534a; /* Warm dark muted - like dark wood */
 
 	/* Backwards compatibility - map old tokens to new system */
 	--primary: var(--color-brand);
@@ -148,6 +154,23 @@
 		#ec4899 0%,
 		#a855f7 50%,
 		#6366f1 100%
+	);
+
+	/* ✨ SIGNATURE GRADIENT - Coral to Purple (THE hero gradient) */
+	/* Used for: Step badges, CTAs, submit buttons, key actions */
+	--gradient-hero: linear-gradient(
+		135deg,
+		#ff5a36 0%,
+		#c084fc 50%,
+		#a855f7 100%
+	);
+
+	/* Indigo-Purple (challenges, achievements) */
+	--gradient-indigo: linear-gradient(
+		135deg,
+		#6366f1 0%,
+		#8b5cf6 50%,
+		#a855f7 100%
 	);
 
 	/* Legacy aliases */
@@ -269,12 +292,18 @@
 	--bg-elev: var(--bg-elevated);
 	--surface: var(--bg-card);
 
-	/* ============ SHADOWS - NEUTRAL GRAYS ============ */
-	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-	--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
-	--shadow-glow: 0 0 28px rgba(255, 111, 60, 0.3); /* Brand glow for special cases */
-	--shadow-warm: 0 4px 22px rgba(0, 0, 0, 0.15); /* Renamed for consistency */
+	/* ============ SHADOWS - WARM & INVITING ============ */
+	/* Shadows with warm brown undertones, not cold gray */
+	--shadow-sm:
+		0 2px 8px rgba(44, 36, 32, 0.06), 0 1px 2px rgba(44, 36, 32, 0.04);
+	--shadow-md:
+		0 4px 16px rgba(44, 36, 32, 0.08), 0 2px 4px rgba(44, 36, 32, 0.04);
+	--shadow-lg:
+		0 8px 32px rgba(44, 36, 32, 0.12), 0 4px 8px rgba(44, 36, 32, 0.06);
+	--shadow-glow: 0 0 28px rgba(255, 90, 54, 0.25); /* Brand coral glow */
+	--shadow-warm: 0 4px 22px rgba(44, 36, 32, 0.1); /* Cozy card shadow */
+	--shadow-card:
+		0 2px 12px rgba(44, 36, 32, 0.06), 0 1px 3px rgba(44, 36, 32, 0.03); /* Subtle card lift */
 
 	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -346,8 +375,8 @@
 	--container-lg: 800px; /* Main content feed width - uniform across social pages */
 	--container-xl: 1200px;
 
-	/* Accessibility / focus */
-	--focus: rgba(102, 126, 234, 0.18);
+	/* Accessibility / focus - warm brand glow */
+	--focus: rgba(255, 90, 54, 0.15); /* Brand coral focus ring */
 
 	/* Note: Z-index scale is defined earlier in this file. Do not duplicate here. */
 
@@ -425,10 +454,16 @@
 		--color-streak: #fb923c;
 		--color-streak-urgent: #ef4444;
 		--color-xp: #c084fc;
-		--color-xp-bonus: #d8b4fe;
+		--color-bonus: #d8b4fe;
 		--color-level: #fbbf24;
 		--color-level-glow: #fef08a;
 		--color-badge: #22d3ee;
+
+		/* Rarity Colors - Glow on dark */
+		--color-rare: #60a5fa; /* Brighter blue */
+		--color-combo: #f472b6; /* Brighter pink */
+		--color-legendary: #fbbf24; /* Brighter amber */
+		--color-gold: #fde047; /* Brighter gold */
 
 		/* ============ DARK MODE SHADOWS - GLOWY ============ */
 		--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -436,6 +471,8 @@
 		--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
 		--shadow-glow: 0 0 32px rgba(255, 107, 74, 0.5); /* Brand glow */
 		--shadow-warm: 0 4px 24px rgba(255, 107, 74, 0.3);
+		--shadow-card:
+			0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
 		--shadow-xp: 0 0 24px rgba(168, 85, 247, 0.4); /* Purple glow */
 		--shadow-success: 0 0 20px rgba(52, 211, 153, 0.4); /* Green glow */
 
@@ -665,37 +702,8 @@
 	--container-7xl: 80rem; /* 1280px */
 }
 
-/* ============ GRADIENT UTILITIES ============ */
-/* Explicit utility classes to ensure Tailwind generates bg-gradient-* properly */
-@layer utilities {
-	.bg-gradient-brand {
-		background-image: var(--gradient-brand);
-	}
-
-	.bg-gradient-primary {
-		background-image: var(--gradient-primary);
-	}
-
-	.bg-gradient-success {
-		background-image: var(--gradient-success);
-	}
-
-	.bg-gradient-warm {
-		background-image: var(--gradient-warm);
-	}
-
-	.bg-gradient-gold {
-		background-image: var(--gradient-gold);
-	}
-
-	.bg-gradient-sunset {
-		background-image: var(--gradient-sunset);
-	}
-
-	.bg-gradient-cool {
-		background-image: var(--gradient-cool);
-	}
-}
+/* Note: Gradient utilities are defined via @utility directives at the end of this file */
+/* This ensures proper Tailwind v4 CSS-first compilation */
 
 /* ===================================
    GLOBAL RESETS & BASE STYLES
@@ -964,3 +972,130 @@ select {
 
 /* Removed @layer base - it was overriding component styles globally */
 /* Let components handle their own borders and outlines */
+
+/* ============================================
+   CUSTOM GRADIENT UTILITIES
+   Direct CSS utilities for Tailwind v4
+   ============================================ */
+
+@utility bg-gradient-brand {
+	background-image: linear-gradient(
+		135deg,
+		#ff5a36 0%,
+		#ff7849 50%,
+		#e64a2e 100%
+	);
+}
+
+/* Alias for bg-gradient-brand - widely used as primary action gradient */
+@utility bg-gradient-primary {
+	background-image: linear-gradient(
+		135deg,
+		#ff5a36 0%,
+		#ff7849 50%,
+		#e64a2e 100%
+	);
+}
+
+@utility bg-gradient-hero {
+	background-image: linear-gradient(
+		135deg,
+		#ff5a36 0%,
+		#c084fc 50%,
+		#a855f7 100%
+	);
+}
+
+@utility bg-gradient-indigo {
+	background-image: linear-gradient(
+		135deg,
+		#6366f1 0%,
+		#8b5cf6 50%,
+		#a855f7 100%
+	);
+}
+
+@utility bg-gradient-xp {
+	background-image: linear-gradient(
+		135deg,
+		#a855f7 0%,
+		#c084fc 50%,
+		#8b5cf6 100%
+	);
+}
+
+@utility bg-gradient-streak {
+	background-image: linear-gradient(
+		135deg,
+		#f97316 0%,
+		#fb923c 50%,
+		#ea580c 100%
+	);
+}
+
+@utility bg-gradient-gold {
+	background-image: linear-gradient(
+		135deg,
+		#f59e0b 0%,
+		#fbbf24 50%,
+		#eab308 100%
+	);
+}
+
+@utility bg-gradient-success {
+	background-image: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+@utility bg-gradient-warm {
+	background-image: linear-gradient(
+		135deg,
+		#ff5a36 0%,
+		#f97316 50%,
+		#f59e0b 100%
+	);
+}
+
+@utility bg-gradient-cool {
+	background-image: linear-gradient(
+		135deg,
+		#14b8a6 0%,
+		#2dd4bf 50%,
+		#06b6d4 100%
+	);
+}
+
+@utility bg-gradient-ocean {
+	background-image: linear-gradient(
+		135deg,
+		#3b82f6 0%,
+		#60a5fa 50%,
+		#14b8a6 100%
+	);
+}
+
+@utility bg-gradient-party {
+	background-image: linear-gradient(
+		135deg,
+		#ec4899 0%,
+		#a855f7 50%,
+		#6366f1 100%
+	);
+}
+
+@utility bg-gradient-celebration {
+	background-image: linear-gradient(
+		135deg,
+		#1e1b4b 0%,
+		#312e81 50%,
+		#4c1d95 100%
+	);
+}
+
+@utility bg-gradient-celebration-alt {
+	background-image: linear-gradient(
+		135deg,
+		#0f172a 0%,
+		#1e1b4b 50%,
+		#581c87 100%
+	);
+}

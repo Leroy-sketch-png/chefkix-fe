@@ -191,7 +191,7 @@ export const PostCard = ({
 			<motion.div
 				whileHover={{ ...CARD_FEED_HOVER, scale: 1.005 }}
 				transition={TRANSITION_SPRING}
-				className='group relative overflow-hidden rounded-radius border-l-3 border-l-transparent bg-bg-card shadow-md transition-all duration-300 hover:border-l-primary hover:shadow-lg'
+				className='group relative overflow-hidden rounded-radius border-l-3 border-l-transparent bg-bg-card shadow-card transition-all duration-300 hover:border-l-primary hover:shadow-warm'
 			>
 				{/* Header */}
 				<div className='flex items-center justify-between p-4 md:p-6'>

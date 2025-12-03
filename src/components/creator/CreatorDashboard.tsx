@@ -586,9 +586,9 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 				onClick={onCreateRecipe}
 				className={cn(
 					'flex items-center justify-center gap-2 py-3 px-5',
-					'bg-gradient-xp',
+					'bg-gradient-hero',
 					'rounded-xl text-sm font-bold text-white w-full sm:w-auto',
-					'shadow-lg shadow-xp/20',
+					'shadow-lg shadow-primary/20',
 				)}
 			>
 				<Plus className='size-icon-sm' />

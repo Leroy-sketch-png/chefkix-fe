@@ -96,7 +96,11 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 		<motion.div
 			animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
 			transition={{ duration: 2, repeat: Infinity }}
-			className='absolute -inset-5 rounded-full bg-gradient-radial from-bonus/50 to-transparent'
+			className='absolute -inset-5 rounded-full'
+			style={{
+				background:
+					'radial-gradient(circle, rgba(192, 132, 252, 0.5) 0%, transparent 70%)',
+			}}
 		/>
 
 		{/* Ring SVG */}

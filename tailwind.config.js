@@ -360,6 +360,8 @@ module.exports = {
 				md: 'var(--shadow-md)',
 				lg: 'var(--shadow-lg)',
 				glow: 'var(--shadow-glow)',
+				card: 'var(--shadow-card)' /* Subtle lift for cards */,
+				warm: 'var(--shadow-warm)' /* Cozy warm shadow */,
 			},
 			backdropBlur: {
 				sm: 'var(--blur-sm)',
