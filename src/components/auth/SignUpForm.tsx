@@ -26,6 +26,12 @@ import { toast } from '@/components/ui/toaster'
 import { useAuth } from '@/hooks/useAuth'
 
 const formSchema = z.object({
+	firstName: z.string().min(1, {
+		message: 'First name is required.',
+	}),
+	lastName: z.string().min(1, {
+		message: 'Last name is required.',
+	}),
 	username: z.string().min(2, {
 		message: 'Username must be at least 2 characters.',
 	}),
@@ -42,6 +48,8 @@ export function SignUpForm() {
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
+			firstName: '',
+			lastName: '',
 			username: '',
 			email: '',
 			password: '',
@@ -93,6 +101,42 @@ export function SignUpForm() {
 							{(form.formState.errors.root.general as any).message}
 						</div>
 					)}
+					<div className='grid grid-cols-2 gap-4'>
+						<FormField
+							control={form.control}
+							name='firstName'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>First Name</FormLabel>
+									<FormControl>
+										<Input
+											placeholder='John'
+											{...field}
+											className='text-foreground'
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name='lastName'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Last Name</FormLabel>
+									<FormControl>
+										<Input
+											placeholder='Doe'
+											{...field}
+											className='text-foreground'
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 					<FormField
 						control={form.control}
 						name='username'

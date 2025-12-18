@@ -9,6 +9,12 @@ const LottieAnimation = dynamic(
 	{ ssr: false },
 )
 
+/**
+ * @deprecated Use `UserProfileSkeleton` instead.
+ * This component uses an off-brand blue Lottie animation that doesn't match
+ * the design system. `UserProfileSkeleton` provides proper content-aware
+ * skeleton loading that respects the user's mental model.
+ */
 export const ProfileSkeleton = () => {
 	return (
 		<div className='mx-auto my-8 max-w-4xl'>

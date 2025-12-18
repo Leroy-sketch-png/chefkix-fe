@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { AUTH_ROUTES, PATHS, PUBLIC_ROUTES } from '@/constants'
 import { getMyProfile } from '@/services/profile'
+import { AuthLoader } from '@/components/auth/AuthLoader'
 
 interface AuthProviderProps {
 	children: React.ReactNode
@@ -74,9 +75,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		}
 	}, [isAuthenticated, isLoading, pathname, router])
 
-	// While validating the session, show nothing to prevent content flashing.
+	// While validating the session, show a warm, on-brand loading screen.
 	if (isLoading) {
-		return null // Or a full-page loading spinner
+		return <AuthLoader />
 	}
 
 	// Once loading is complete, render the children.

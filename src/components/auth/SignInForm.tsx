@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -19,7 +18,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
-import { ApiResponse, LoginSuccessResponse, User } from '@/lib/types'
+import { ApiResponse, LoginSuccessResponse } from '@/lib/types'
 import { signIn, googleSignIn } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
@@ -39,8 +38,7 @@ const formSchema = z.object({
 })
 
 export function SignInForm() {
-	const router = useRouter()
-	const { login, setUser, isAuthenticated } = useAuth()
+	const { login, setUser, isAuthenticated, setLoading } = useAuth()
 	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 
 	const form = useForm<z.infer<typeof formSchema>>({
@@ -67,6 +65,10 @@ export function SignInForm() {
 			return
 		}
 
+		// Set loading to true so AuthProvider shows loading screen during profile fetch
+		// This prevents the race condition where AuthProvider redirects before profile is loaded
+		setLoading(true)
+
 		// Per the API spec, login returns a token. Set it, then fetch the user profile.
 		login(payload.accessToken)
 
@@ -74,11 +76,16 @@ export function SignInForm() {
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
 			toast.success('Welcome back! Signed in successfully.')
-			router.push(PATHS.DASHBOARD)
+			// AuthProvider will handle the redirect since isAuthenticated is now true
+			// and we're on an auth route. Just set loading to false.
+			setLoading(false)
 		} else {
+			// Profile fetch failed - logout and show error
 			const errorMsg =
 				profileResponse.message ||
 				'Login successful, but failed to fetch user profile. Please try again.'
+			// Reset auth state since we couldn't complete the login
+			setLoading(false)
 			form.setError('root.general' as any, {
 				type: 'manual',
 				message: errorMsg,
