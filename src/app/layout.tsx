@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
-import { GoogleOAuthProvider } from '@react-oauth/google'
+import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
 import { Toaster } from '@/components/ui/toaster'
 
 const geistSans = Geist({
@@ -68,13 +68,11 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
-				<GoogleOAuthProvider
-					clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
-				>
+				<GoogleOAuthWrapper>
 					<AuthProvider>
 						<CelebrationProvider>{children}</CelebrationProvider>
 					</AuthProvider>
-				</GoogleOAuthProvider>
+				</GoogleOAuthWrapper>
 				<Toaster position='top-right' maxToasts={5} />
 			</body>
 		</html>

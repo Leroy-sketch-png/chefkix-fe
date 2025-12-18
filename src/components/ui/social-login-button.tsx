@@ -8,6 +8,7 @@ type SocialLoginButtonProps = {
 	onClick?: () => void
 	className?: string
 	variant?: 'default' | 'outline'
+	disabled?: boolean
 }
 
 export const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
@@ -16,15 +17,18 @@ export const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
 	onClick,
 	className = '',
 	variant = 'outline',
+	disabled = false,
 }) => {
 	return (
 		<Button
 			onClick={onClick}
 			variant={variant}
+			disabled={disabled}
 			className={cn(
 				'flex h-11 w-full items-center justify-center gap-2 text-sm font-medium',
 				variant === 'outline' &&
 					'border-border-medium bg-bg-card hover:bg-bg-hover',
+				disabled && 'cursor-not-allowed opacity-50',
 				className,
 			)}
 		>
