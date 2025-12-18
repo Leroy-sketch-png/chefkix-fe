@@ -12,6 +12,8 @@ export interface SignUpDto {
 	username: string
 	email: string
 	password: string
+	firstName: string
+	lastName: string
 }
 
 export interface LoginSuccessResponse {

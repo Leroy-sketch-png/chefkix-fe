@@ -95,6 +95,8 @@ describe('signUp', () => {
 	it('should successfully sign up and return a success message', async () => {
 		// Arrange
 		const newUserData = {
+			firstName: 'New',
+			lastName: 'User',
 			username: 'newUser',
 			email: 'newuser@example.com',
 			password: 'newPassword123',
@@ -125,6 +127,8 @@ describe('signUp', () => {
 	it('should return a transformed error if the email already exists', async () => {
 		// Arrange
 		const existingUserData = {
+			firstName: 'Existing',
+			lastName: 'User',
 			username: 'existingUser',
 			email: 'test@example.com',
 			password: 'anyPassword',

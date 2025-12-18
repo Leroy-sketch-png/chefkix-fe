@@ -31,7 +31,6 @@ export const useAuthStore = create<AuthState>()(
 						isAuthenticated: false,
 						user: null,
 						accessToken: null,
-						isLoading: false,
 					})
 					return
 				}
@@ -46,7 +45,6 @@ export const useAuthStore = create<AuthState>()(
 						isAuthenticated: false,
 						user: null,
 						accessToken: null,
-						isLoading: false,
 					})
 					return
 				}
@@ -54,11 +52,13 @@ export const useAuthStore = create<AuthState>()(
 				// Set auth header for all subsequent requests
 				api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
 
+				// Note: We don't set isLoading here - the caller is responsible for
+				// managing loading state. This prevents race conditions where the
+				// AuthProvider redirects before profile data is loaded.
 				set({
 					isAuthenticated: true,
 					user: user || null,
 					accessToken,
-					isLoading: false,
 				})
 			},
 			setUser: (user: User) => {
