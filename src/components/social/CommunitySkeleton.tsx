@@ -38,7 +38,7 @@ export const CommunitySkeleton = () => {
 }
 
 /**
- * FriendCardSkeleton - Matches FriendRequestCard/FriendCard dimensions
+ * FriendCardSkeleton - Matches FollowSuggestionCard/FriendCard dimensions
  *
  * Structure:
  * - Avatar (left)

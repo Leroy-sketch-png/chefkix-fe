@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { UserMinus, MessageCircle, Loader2, Trophy, Book } from 'lucide-react'
 import { useState } from 'react'
-import { unfriendUser } from '@/services/social'
+import { toggleFollow } from '@/services/social'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -13,36 +13,43 @@ import { staggerItemVariants } from '@/components/ui/stagger-animation'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 
 interface FriendCardProps {
+	/** Profile of the mutual follow (friend) */
 	profile: Profile
-	onUnfriend?: (userId: string) => void
+	/** Called when user unfollows - receives userId */
+	onUnfollow?: (userId: string) => void
 }
 
-export const FriendCard = ({ profile, onUnfriend }: FriendCardProps) => {
-	const [isUnfriending, setIsUnfriending] = useState(false)
-	const [showMenu, setShowMenu] = useState(false)
+/**
+ * Card for displaying a friend (mutual follow) in the Instagram-style social model.
+ *
+ * Friends = users where both parties follow each other (mutual follows).
+ * "Unfriend" = unfollow them (breaks the mutual connection).
+ */
+export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
+	const [isUnfollowing, setIsUnfollowing] = useState(false)
 
-	const handleUnfriend = async () => {
+	const handleUnfollow = async () => {
 		if (
 			!window.confirm(
-				`Are you sure you want to unfriend ${profile.displayName}?`,
+				`Are you sure you want to unfollow ${profile.displayName}? This will remove them from your friends list.`,
 			)
 		) {
 			return
 		}
 
-		setIsUnfriending(true)
+		setIsUnfollowing(true)
 
-		const response = await unfriendUser(profile.userId)
+		// In Instagram model, "unfriend" = unfollow (toggleFollow when already following)
+		const response = await toggleFollow(profile.userId)
 
 		if (response.success) {
-			toast.success(`You are no longer friends with ${profile.displayName}`)
-			onUnfriend?.(profile.userId)
+			toast.success(`You unfollowed ${profile.displayName}`)
+			onUnfollow?.(profile.userId)
 		} else {
-			toast.error(response.message || 'Failed to unfriend user')
+			toast.error(response.message || 'Failed to unfollow user')
 		}
 
-		setIsUnfriending(false)
-		setShowMenu(false)
+		setIsUnfollowing(false)
 	}
 
 	return (
@@ -55,15 +62,15 @@ export const FriendCard = ({ profile, onUnfriend }: FriendCardProps) => {
 			<motion.div
 				whileHover={CARD_HOVER}
 				transition={TRANSITION_SPRING}
-				className='group relative flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-sm hover:shadow-md'
+				className='group relative flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card transition-all duration-300 hover:shadow-warm md:p-6'
 			>
 				<Link
 					href={`/${profile.userId}`}
-					className='flex flex-1 items-center gap-3'
+					className='flex flex-1 items-center gap-md'
 				>
 					<Avatar
 						size='lg'
-						className='shadow-sm transition-all group-hover:scale-105'
+						className='shadow-sm transition-transform group-hover:scale-105'
 					>
 						<AvatarImage
 							src={profile.avatarUrl || 'https://i.pravatar.cc/96'}
@@ -84,14 +91,14 @@ export const FriendCard = ({ profile, onUnfriend }: FriendCardProps) => {
 						</h3>
 						<p className='text-sm text-text-secondary'>@{profile.username}</p>
 						{profile.statistics && (
-							<div className='mt-1 flex gap-3 text-xs text-text-secondary'>
-								<span className='flex items-center gap-1'>
-									<Book className='h-3 w-3' />
+							<div className='mt-1 flex gap-md text-xs text-text-secondary'>
+								<span className='flex items-center gap-xs'>
+									<Book className='size-3' />
 									{profile.statistics.recipeCount} recipes
 								</span>
 								{profile.statistics.currentXP !== undefined && (
-									<span className='flex items-center gap-1'>
-										<Trophy className='h-3 w-3' />
+									<span className='flex items-center gap-xs'>
+										<Trophy className='size-3' />
 										{profile.statistics.currentXP} XP
 									</span>
 								)}
@@ -100,7 +107,7 @@ export const FriendCard = ({ profile, onUnfriend }: FriendCardProps) => {
 					</div>
 				</Link>
 
-				<div className='flex gap-2'>
+				<div className='flex gap-sm'>
 					<Button
 						variant='ghost'
 						size='sm'
@@ -108,20 +115,21 @@ export const FriendCard = ({ profile, onUnfriend }: FriendCardProps) => {
 						className='hover:bg-primary/10 hover:text-primary'
 					>
 						<Link href={`/messages?user=${profile.userId}`}>
-							<MessageCircle className='h-4 w-4' />
+							<MessageCircle className='size-4' />
 						</Link>
 					</Button>
 					<Button
 						variant='ghost'
 						size='sm'
-						onClick={handleUnfriend}
-						disabled={isUnfriending}
+						onClick={handleUnfollow}
+						disabled={isUnfollowing}
 						className='hover:bg-destructive/10 hover:text-destructive'
+						aria-label='Unfollow user'
 					>
-						{isUnfriending ? (
-							<Loader2 className='h-4 w-4 animate-spin' />
+						{isUnfollowing ? (
+							<Loader2 className='size-4 animate-spin' />
 						) : (
-							<UserMinus className='h-4 w-4' />
+							<UserMinus className='size-4' />
 						)}
 					</Button>
 				</div>

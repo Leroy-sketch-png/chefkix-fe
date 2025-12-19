@@ -5,6 +5,7 @@ export const useAuth = () => {
 	const user = useAuthStore(state => state.user)
 	const accessToken = useAuthStore(state => state.accessToken)
 	const isLoading = useAuthStore(state => state.isLoading)
+	const isHydrated = useAuthStore(state => state.isHydrated)
 	const login = useAuthStore(state => state.login)
 	const setUser = useAuthStore(state => state.setUser)
 	const logout = useAuthStore(state => state.logout)
@@ -16,6 +17,7 @@ export const useAuth = () => {
 		accessToken,
 		token: accessToken, // Alias for backwards compatibility
 		isLoading,
+		isHydrated,
 		login,
 		setUser,
 		logout,

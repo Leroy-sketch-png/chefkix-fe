@@ -79,14 +79,16 @@ export const logout = async (): Promise<ApiResponse<string>> => {
 	}
 }
 
-// Send OTP function
-export const sendOtp = async (
+/**
+ * Resend OTP for email verification during signup.
+ * Backend expects email as query parameter, not request body.
+ */
+export const resendOtp = async (
 	data: SendOtpDto,
 ): Promise<ApiResponse<string>> => {
 	try {
 		const response = await api.post<ApiResponse<string>>(
-			API_ENDPOINTS.AUTH.SEND_OTP,
-			data,
+			`${API_ENDPOINTS.AUTH.RESEND_OTP}?email=${encodeURIComponent(data.email)}`,
 		)
 		return response.data
 	} catch (error) {
@@ -101,6 +103,11 @@ export const sendOtp = async (
 		}
 	}
 }
+
+/**
+ * @deprecated Use resendOtp instead. This alias exists for backward compatibility.
+ */
+export const sendOtp = resendOtp
 
 // Verify OTP function
 export const verifyOtp = async (

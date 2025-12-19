@@ -74,3 +74,27 @@ export const getLeaderboard = async (
 		}
 	}
 }
+
+/**
+ * Get current user's rank only (lightweight endpoint for header display)
+ * @param timeframe - weekly | monthly | all_time
+ */
+export const getMyRank = async (
+	timeframe: LeaderboardTimeframe = 'weekly',
+): Promise<ApiResponse<MyRank>> => {
+	try {
+		const response = await api.get<ApiResponse<MyRank>>(
+			API_ENDPOINTS.LEADERBOARD.MY_RANK,
+			{ params: { timeframe } },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<MyRank>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch your rank',
+			statusCode: 500,
+		}
+	}
+}

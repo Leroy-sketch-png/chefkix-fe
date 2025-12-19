@@ -10,8 +10,11 @@ export interface Statistics {
 	currentXP: number
 	currentXPGoal: number // Formula: 25 * level * level (per spec)
 	title: 'BEGINNER' | 'AMATEUR' | 'SEMIPRO' | 'PRO'
-	streakCount: number
+	streakCount: number // 72-hour cooking streak
+	challengeStreak: number // Daily challenge streak
+	completionCount: number // Total cooking completions
 	reputation: number
+	badges?: string[] // Earned badge IDs
 	// Additional fields per spec 02-profile.txt
 	recipesCooked?: number // Distinct recipes user has cooked
 	longestStreak?: number // Historical best streak

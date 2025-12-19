@@ -11,10 +11,23 @@ interface AuthProviderProps {
 	children: React.ReactNode
 }
 
+/**
+ * AuthProvider handles:
+ * 1. Session validation on app load (checking persisted tokens)
+ * 2. Route protection (redirecting unauthenticated users)
+ * 3. Auth route redirection (redirecting authenticated users away from login/signup)
+ *
+ * Flow:
+ * - Wait for Zustand hydration to complete
+ * - If we have a token, validate the session by fetching the profile
+ * - Show AuthLoader while validating
+ * - Redirect based on auth state and current route
+ */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const {
 		isAuthenticated,
 		isLoading,
+		isHydrated,
 		accessToken,
 		user,
 		logout,
@@ -24,43 +37,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const pathname = usePathname()
 	const router = useRouter()
 
-	// This effect runs once on app load to validate the session.
+	// This effect runs once hydration is complete to validate the session.
 	useEffect(() => {
-		const validateSession = async () => {
-			// Ensure we show a loading state while we validate any persisted token.
-			// Persisted stores may contain `isLoading: false` from previous sessions,
-			// so explicitly set loading true here to avoid flash / premature redirects.
-			setLoading(true)
+		// Wait for Zustand to rehydrate from localStorage
+		if (!isHydrated) {
+			return
+		}
 
+		const validateSession = async () => {
+			// If there's no accessToken, we're done loading.
 			if (!accessToken) {
-				// If there's no accessToken, we're done loading.
 				setLoading(false)
 				return
 			}
 
-			// Token exists - Keycloak handles validation internally.
-			// We just need to ensure we have user data.
-			// If we don't have user data, fetch it.
+			// Token exists - if we don't have user data, fetch it.
 			if (!user) {
 				const profileResponse = await getMyProfile()
 				if (profileResponse.success && profileResponse.data) {
 					setUser(profileResponse.data)
 				} else {
-					// Failed to fetch profile, logout
+					// Failed to fetch profile (token invalid/expired), logout
 					logout()
 				}
 			}
+
 			// We're done loading
 			setLoading(false)
 		}
 
 		validateSession()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [accessToken]) // We only want to re-validate if the accessToken itself changes.
+	}, [isHydrated, accessToken, user, logout, setLoading, setUser])
 
 	// This effect handles redirection logic AFTER the initial session validation.
 	useEffect(() => {
-		// Don't run redirect logic until the initial loading is complete.
+		// Don't run redirect logic until loading is complete
 		if (isLoading) return
 
 		const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
