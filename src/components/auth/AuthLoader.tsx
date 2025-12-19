@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import lottieLoadingCoral from '@/../public/lottie/lottie-loading-coral.json'
 
@@ -17,6 +18,12 @@ const LOADING_MESSAGES = [
 	'Almost ready to cook...',
 ] as const
 
+// Type for loading messages
+type LoadingMessage = (typeof LOADING_MESSAGES)[number]
+
+// Default message used for SSR to ensure hydration match
+const DEFAULT_MESSAGE: LoadingMessage = LOADING_MESSAGES[0]
+
 /**
  * AuthLoader - A warm, on-brand loading screen for authentication states
  *
@@ -30,11 +37,19 @@ const LOADING_MESSAGES = [
  * - Cooking-themed messaging
  * - Subtle, confident presence
  * - Quick to appear, quick to dismiss
+ *
+ * NOTE: Random message selection happens client-side only to prevent
+ * React hydration mismatch errors. SSR always uses the default message.
  */
 export const AuthLoader = () => {
-	// Pick a random message for delight (but consistent per render)
-	const message =
-		LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]
+	// Start with default message for SSR, randomize on client mount
+	const [message, setMessage] = useState<LoadingMessage>(DEFAULT_MESSAGE)
+
+	useEffect(() => {
+		// Client-only: pick a random message after hydration
+		const randomIndex = Math.floor(Math.random() * LOADING_MESSAGES.length)
+		setMessage(LOADING_MESSAGES[randomIndex])
+	}, [])
 
 	return (
 		<div className='flex min-h-screen items-center justify-center bg-background'>

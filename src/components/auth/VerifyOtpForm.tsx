@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/input-otp'
 import { ResendOtpButton } from '@/components/ui/resend-otp-button'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { sendOtp, verifyOtp } from '@/services/auth'
+import { resendOtp, verifyOtp } from '@/services/auth'
 import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
 import { useState } from 'react'
 import { toast } from '@/components/ui/toaster'
@@ -84,7 +84,7 @@ export const VerifyOtpForm = () => {
 			toast.error(errorMsg)
 			return
 		}
-		const response = await sendOtp({ email })
+		const response = await resendOtp({ email })
 		if (response.success) {
 			const successMsg = VERIFY_OTP_MESSAGES.RESEND_SUCCESS
 			setSuccess(successMsg)

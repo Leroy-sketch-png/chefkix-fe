@@ -315,6 +315,46 @@ export const navigateStep = async (
 }
 
 /**
+ * Complete Step Response type
+ */
+export interface CompleteStepResponse {
+	sessionId: string
+	completedStep: number
+	completedSteps: number[]
+	totalSteps: number
+	allStepsComplete: boolean
+	alreadyCompleted: boolean
+}
+
+/**
+ * Mark a step as completed.
+ * Separate from navigation - users can complete steps in any order (non-linear cooking).
+ * Idempotent: completing an already-completed step returns success without duplicating.
+ */
+export const completeStep = async (
+	sessionId: string,
+	stepNumber: number,
+): Promise<ApiResponse<CompleteStepResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<CompleteStepResponse>>(
+			`${API_BASE}/${sessionId}/complete-step`,
+			{ stepNumber },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<CompleteStepResponse>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to complete step',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
  * Log a timer event (start, complete, skip).
  * Used for anti-cheat validation.
  */

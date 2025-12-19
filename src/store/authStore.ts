@@ -8,10 +8,12 @@ interface AuthState {
 	user: User | null
 	accessToken: string | null
 	isLoading: boolean
+	isHydrated: boolean // Track hydration state explicitly
 	login: (accessToken: string, user?: User) => void
 	setUser: (user: User) => void
 	logout: () => void
 	setLoading: (isLoading: boolean) => void
+	setHydrated: (isHydrated: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,7 +22,8 @@ export const useAuthStore = create<AuthState>()(
 			isAuthenticated: false,
 			user: null,
 			accessToken: null,
-			isLoading: true,
+			isLoading: true, // Start as loading until hydration + validation complete
+			isHydrated: false, // Not hydrated until persist rehydrates
 			login: (accessToken: string, user?: User) => {
 				// Critical: reject login without a valid access token
 				if (!accessToken || accessToken.trim() === '') {
@@ -75,17 +78,27 @@ export const useAuthStore = create<AuthState>()(
 				})
 			},
 			setLoading: (isLoading: boolean) => set({ isLoading }),
+			setHydrated: (isHydrated: boolean) => set({ isHydrated }),
 		}),
 		{
 			name: 'auth-storage', // The key to use for storing the data in localStorage
+			// Only persist these specific fields - NOT isLoading or isHydrated
+			partialize: state => ({
+				isAuthenticated: state.isAuthenticated,
+				user: state.user,
+				accessToken: state.accessToken,
+			}),
 			onRehydrateStorage: () => {
 				return state => {
-					if (state && state.accessToken) {
-						api.defaults.headers.common['Authorization'] =
-							`Bearer ${state.accessToken}`
-					}
 					if (state) {
-						state.setLoading(false)
+						// Restore auth header if we have a token
+						if (state.accessToken) {
+							api.defaults.headers.common['Authorization'] =
+								`Bearer ${state.accessToken}`
+						}
+						// Mark as hydrated - AuthProvider will handle loading state
+						state.setHydrated(true)
+						// DO NOT set isLoading here - AuthProvider controls this
 					}
 				}
 			},

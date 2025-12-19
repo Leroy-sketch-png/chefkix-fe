@@ -1,10 +1,11 @@
 export const API_PREFIX = '/api/v1'
 
+const AUTH_PREFIX = `${API_PREFIX}/auth`
 const POST_SERVICE_PREFIX = `${API_PREFIX}/post`
 const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}/api/v1/posts`
 const POST_REPLIES_BASE = `${POST_SERVICE_PREFIX}/api/v1/comments`
-// Recipe service uses singular 'recipe' per spec (07-recipes.txt)
-const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipe`
+// Recipe service uses plural 'recipes' to match gateway (StripPrefix=3)
+const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
 // Social endpoints go through auth gateway per spec (03-social.txt)
 const SOCIAL_PREFIX = `${API_PREFIX}/auth/api/social`
 
@@ -13,9 +14,11 @@ export const API_ENDPOINTS = {
 		LOGIN: `${API_PREFIX}/auth/login`,
 		REGISTER: `${API_PREFIX}/auth/register`,
 		LOGOUT: `${API_PREFIX}/auth/logout`, // No request body required
-		/** Legacy resend while backend finalizes canonical resend flow */
-		SEND_OTP: `${API_PREFIX}/auth/send-otp`,
+		/** Resend OTP for email verification during signup */
+		RESEND_OTP: `${API_PREFIX}/auth/resend-otp`,
+		/** Verify OTP and create user account */
 		VERIFY_OTP_USER: `${API_PREFIX}/auth/verify-otp-user`,
+		/** Verify OTP for password reset (with new password) */
 		VERIFY_OTP_PASSWORD: `${API_PREFIX}/auth/verify-otp-password`,
 		FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
 		CHANGE_PASSWORD: `${API_PREFIX}/auth/change-password`,
@@ -26,20 +29,33 @@ export const API_ENDPOINTS = {
 	PROFILE: {
 		GET_BY_USER_ID: (userId: string) => `${API_PREFIX}/auth/${userId}`,
 		GET_ALL: `${API_PREFIX}/auth/profiles`,
+		UPDATE: `${AUTH_PREFIX}/update`,
+		GET_PROFILE_ONLY: (userId: string) =>
+			`${AUTH_PREFIX}/profile-only/${userId}`,
 	},
 	// Social endpoints per spec (03-social.txt): /api/v1/auth/api/social/*
+	// Instagram Model: Follow-only system, mutual follows = friends
 	SOCIAL: {
+		// Core: Follow system
 		TOGGLE_FOLLOW: (userId: string) =>
 			`${SOCIAL_PREFIX}/toggle-follow/${userId}`,
+		GET_FOLLOWING: `${SOCIAL_PREFIX}/following`,
+		GET_FOLLOWERS: `${SOCIAL_PREFIX}/followers`,
+		// Friends = Mutual follows
+		GET_FRIENDS: `${SOCIAL_PREFIX}/friends`,
+		IS_MUTUAL: (userId: string) => `${SOCIAL_PREFIX}/is-mutual/${userId}`,
+		// DEPRECATED: Friend request system (kept for backwards compatibility)
+		/** @deprecated Use follow system instead. Mutual follows = friends. */
 		TOGGLE_FRIEND_REQUEST: (userId: string) =>
 			`${SOCIAL_PREFIX}/toggle-friend-request/${userId}`,
+		/** @deprecated Use follow system instead. */
 		ACCEPT_FRIEND: (userId: string) =>
 			`${SOCIAL_PREFIX}/accept-friend/${userId}`,
+		/** @deprecated Use follow system instead. */
 		REJECT_FRIEND: (userId: string) =>
 			`${SOCIAL_PREFIX}/reject-friend/${userId}`,
+		/** @deprecated Use unfollow instead. */
 		UNFRIEND: (userId: string) => `${SOCIAL_PREFIX}/unfriend/${userId}`,
-		GET_FRIENDS: `${SOCIAL_PREFIX}/friends`,
-		GET_FRIEND_REQUESTS: `${SOCIAL_PREFIX}/friend-requests`,
 	},
 	POST: {
 		CREATE: POST_SERVICE_PREFIX,
@@ -106,6 +122,8 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-sessions/${sessionId}`,
 		NAVIGATE: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/navigate`,
+		COMPLETE_STEP: (sessionId: string) =>
+			`${API_PREFIX}/cooking-sessions/${sessionId}/complete-step`,
 		TIMER_EVENT: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/timer-event`,
 		PAUSE: (sessionId: string) =>
@@ -128,6 +146,7 @@ export const API_ENDPOINTS = {
 		MY_CONVERSATIONS: `${API_PREFIX}/chat/conversations/my-conversations`,
 		CREATE_MESSAGE: `${API_PREFIX}/chat/messages/create`,
 		GET_MESSAGES: `${API_PREFIX}/chat/messages`,
+		GET_MESSAGES_PAGINATED: `${API_PREFIX}/chat/messages/paginated`,
 	},
 	// AI Integration per spec (14-ai-integration.txt)
 	AI: {
@@ -138,20 +157,35 @@ export const API_ENDPOINTS = {
 		MODERATE: `${API_PREFIX}/moderate`,
 	},
 	// Leaderboard per spec (03-social.txt)
+	// Gateway route: /api/v1/auth/** → identity service
 	LEADERBOARD: {
-		GET: `${API_PREFIX}/leaderboard`,
+		GET: `${AUTH_PREFIX}/leaderboard`,
+		MY_RANK: `${AUTH_PREFIX}/leaderboard/my-rank`,
 	},
 	// Creator stats per spec (03-social.txt)
 	CREATOR: {
 		STATS: `${API_PREFIX}/users/me/creator-stats`,
 	},
 	// Notifications per spec (10-notifications.txt)
+	// Gateway route: /api/v1/notification/** (singular)
 	NOTIFICATIONS: {
-		GET: `${API_PREFIX}/notifications`,
-		MARK_READ: (id: string) => `${API_PREFIX}/notifications/${id}/read`,
-		MARK_ALL_READ: `${API_PREFIX}/notifications/read-all`,
-		REGISTER_DEVICE: `${API_PREFIX}/notifications/devices`,
+		GET: `${API_PREFIX}/notification`,
+		UNREAD_COUNT: `${API_PREFIX}/notification/unread-count`,
+		// PUT /notification with body { notificationIds: [], read: true }
+		UPDATE_READ_STATUS: `${API_PREFIX}/notification`,
+		MARK_READ: (id: string) => `${API_PREFIX}/notification/${id}/read`,
+		MARK_ALL_READ: `${API_PREFIX}/notification/read-all`,
+		REGISTER_DEVICE: `${API_PREFIX}/notification/devices`,
 		UNREGISTER_DEVICE: (token: string) =>
-			`${API_PREFIX}/notifications/devices/${token}`,
+			`${API_PREFIX}/notification/devices/${token}`,
+	},
+	// User Settings per spec (16-settings-preferences.txt)
+	// Gateway route: /api/v1/auth/** → identity service
+	SETTINGS: {
+		GET_ALL: `${AUTH_PREFIX}/settings`,
+		PRIVACY: `${AUTH_PREFIX}/settings/privacy`,
+		NOTIFICATIONS: `${AUTH_PREFIX}/settings/notifications`,
+		COOKING: `${AUTH_PREFIX}/settings/cooking`,
+		APP: `${AUTH_PREFIX}/settings/app`,
 	},
 } as const

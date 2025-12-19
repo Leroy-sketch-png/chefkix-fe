@@ -7,13 +7,13 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
-import { FriendRequestCard } from '@/components/social/FriendRequestCard'
+import { FollowSuggestionCard } from '@/components/social/FollowSuggestionCard'
 import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { AnimatePresence } from 'framer-motion'
 import { getAllProfiles } from '@/services/profile'
-import { getFriends, getFriendRequests } from '@/services/social'
+import { getFriends, getFollowers } from '@/services/social'
 import {
 	getLeaderboard,
 	type LeaderboardEntry as LeaderboardServiceEntry,
@@ -37,7 +37,7 @@ export default function CommunityPage() {
 	const router = useRouter()
 	const [allProfiles, setAllProfiles] = useState<Profile[]>([])
 	const [friends, setFriends] = useState<Profile[]>([])
-	const [friendRequests, setFriendRequests] = useState<Profile[]>([])
+	const [followers, setFollowers] = useState<Profile[]>([])
 	const [leaderboardEntries, setLeaderboardEntries] = useState<
 		LeaderboardEntry[]
 	>([])
@@ -47,11 +47,11 @@ export default function CommunityPage() {
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const [profilesRes, friendsRes, requestsRes, leaderboardRes] =
+				const [profilesRes, friendsRes, followersRes, leaderboardRes] =
 					await Promise.all([
 						getAllProfiles(),
 						getFriends(),
-						getFriendRequests(),
+						getFollowers(),
 						getLeaderboard({ type: 'friends', timeframe: 'weekly' }),
 					])
 
@@ -63,8 +63,14 @@ export default function CommunityPage() {
 					setFriends(friendsRes.data)
 				}
 
-				if (requestsRes.success && requestsRes.data) {
-					setFriendRequests(requestsRes.data)
+				if (followersRes.success && followersRes.data) {
+					// Filter to show only followers who we don't follow back (not yet mutual)
+					// In Instagram model: followers who aren't in friends list = follow back suggestions
+					const friendIds = new Set((friendsRes.data || []).map(f => f.userId))
+					const followBackSuggestions = followersRes.data.filter(
+						f => !friendIds.has(f.userId),
+					)
+					setFollowers(followBackSuggestions)
 				}
 
 				// Use real leaderboard data
@@ -81,7 +87,7 @@ export default function CommunityPage() {
 				if (
 					!profilesRes.success &&
 					!friendsRes.success &&
-					!requestsRes.success
+					!followersRes.success
 				) {
 					setError(true)
 				}
@@ -95,15 +101,22 @@ export default function CommunityPage() {
 		fetchData()
 	}, [user?.userId])
 
-	const handleRequestAccepted = (userId: string) => {
-		setFriendRequests(prev => prev.filter(req => req.userId !== userId))
+	const handleFollowBack = (userId: string) => {
+		// User followed back, move them from followers to friends
+		const follower = followers.find(f => f.userId === userId)
+		if (follower) {
+			setFollowers(prev => prev.filter(f => f.userId !== userId))
+			setFriends(prev => [...prev, follower])
+		}
 	}
 
-	const handleRequestDeclined = (userId: string) => {
-		setFriendRequests(prev => prev.filter(req => req.userId !== userId))
+	const handleDismiss = (userId: string) => {
+		// Just remove from suggestions list (don't follow back)
+		setFollowers(prev => prev.filter(f => f.userId !== userId))
 	}
 
-	const handleUnfriend = (userId: string) => {
+	const handleUnfollow = (userId: string) => {
+		// Unfollowing removes them from friends list
 		setFriends(prev => prev.filter(friend => friend.userId !== userId))
 	}
 
@@ -186,23 +199,23 @@ export default function CommunityPage() {
 						value='friends'
 						className='mt-0 space-y-8 animate-fadeIn'
 					>
-						{friendRequests.length > 0 && (
+						{followers.length > 0 && (
 							<section>
 								<div className='mb-4 flex items-center gap-2'>
 									<UserPlus className='h-5 w-5 text-primary' />
 									<h2 className='text-xl font-semibold'>
-										Friend Requests ({friendRequests.length})
+										Follow Back Suggestions ({followers.length})
 									</h2>
 								</div>
 								<StaggerContainer staggerDelay={0.05}>
 									<AnimatePresence mode='popLayout'>
 										<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-											{friendRequests.map(request => (
-												<FriendRequestCard
-													key={request.userId}
-													profile={request}
-													onAccept={handleRequestAccepted}
-													onDecline={handleRequestDeclined}
+											{followers.map(follower => (
+												<FollowSuggestionCard
+													key={follower.userId}
+													profile={follower}
+													onFollowBack={handleFollowBack}
+													onDismiss={handleDismiss}
 												/>
 											))}
 										</div>
@@ -222,7 +235,7 @@ export default function CommunityPage() {
 								<EmptyStateGamified
 									variant='feed'
 									title='No friends yet'
-									description='Start connecting by sending friend requests in the Discover tab!'
+									description='Start connecting by following people in the Discover tab!'
 									quickActions={[
 										{ label: 'Browse Discover', href: '#', emoji: '🔍' },
 									]}
@@ -234,7 +247,7 @@ export default function CommunityPage() {
 											<FriendCard
 												key={friend.userId}
 												profile={friend}
-												onUnfriend={handleUnfriend}
+												onUnfollow={handleUnfollow}
 											/>
 										))}
 									</div>
