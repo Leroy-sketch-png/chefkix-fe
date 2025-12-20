@@ -299,6 +299,7 @@ export const PopoverContent = React.forwardRef<
 			}
 
 			setPosition({ top, left })
+			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [open, side, align, sideOffset])
 
 		const handleMouseEnter = () => {

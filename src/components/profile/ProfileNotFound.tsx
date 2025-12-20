@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export const ProfileNotFound = () => {
 	return (
-		<div className='flex min-h-[70vh] flex-col items-center justify-center px-4'>
+		<div className='flex min-h-content-max flex-col items-center justify-center px-4'>
 			<div className='mx-auto max-w-md text-center'>
 				<div className='mb-6 flex justify-center'>
 					<div className='rounded-full bg-muted p-6'>

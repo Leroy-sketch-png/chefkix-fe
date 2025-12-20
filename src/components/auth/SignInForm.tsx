@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 import { Button } from '@/components/ui/button'
 import { AnimatedButton } from '@/components/ui/animated-button'
@@ -27,6 +28,13 @@ import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
 import { toast } from '@/components/ui/toaster'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	staggerContainer,
+	staggerItem,
+} from '@/lib/motion'
 
 const formSchema = z.object({
 	emailOrUsername: z
@@ -113,114 +121,137 @@ export function SignInForm() {
 	}
 
 	return (
-		<div className='w-full space-y-6'>
+		<motion.div
+			variants={staggerContainer}
+			initial='hidden'
+			animate='visible'
+			className='w-full space-y-6'
+		>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
 					{form.formState.errors.root?.general && (
-						<div
-							className='rounded-md bg-destructive/10 p-4 text-sm text-destructive'
+						<motion.div
+							initial={{ opacity: 0, height: 0 }}
+							animate={{ opacity: 1, height: 'auto' }}
+							className='rounded-xl bg-error/10 p-4 text-sm text-error'
 							role='alert'
 						>
 							{(form.formState.errors.root.general as any).message}
-						</div>
+						</motion.div>
 					)}
-					<FormField
-						control={form.control}
-						name='emailOrUsername'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Email or Username</FormLabel>
-								<FormControl>
-									<Input
-										placeholder='yourname or test@example.com'
-										{...field}
-										className='text-foreground'
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name='password'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Password</FormLabel>
-								<FormControl>
-									<PasswordInput
-										placeholder='password'
-										{...field}
-										className='text-foreground'
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<div className='text-right text-sm'>
+					<motion.div variants={staggerItem}>
+						<FormField
+							control={form.control}
+							name='emailOrUsername'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel className='text-text'>Email or Username</FormLabel>
+									<FormControl>
+										<Input
+											placeholder='yourname or test@example.com'
+											{...field}
+											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</motion.div>
+					<motion.div variants={staggerItem}>
+						<FormField
+							control={form.control}
+							name='password'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel className='text-text'>Password</FormLabel>
+									<FormControl>
+										<PasswordInput
+											placeholder='password'
+											{...field}
+											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</motion.div>
+					<motion.div variants={staggerItem} className='text-right text-sm'>
 						<Button
 							variant='link'
 							type='button'
 							onClick={() => setForgotPasswordOpen(true)}
-							className='h-auto p-0 font-medium text-primary transition-colors hover:text-primary-dark'
+							className='h-auto p-0 font-medium text-brand transition-colors hover:text-brand/80'
 						>
 							{SIGN_IN_MESSAGES.FORGOT_PASSWORD}
 						</Button>
-					</div>
-					<AnimatedButton
-						type='submit'
-						className='h-11 w-full'
-						isLoading={form.formState.isSubmitting}
-						loadingText='Signing in...'
-						shine
+					</motion.div>
+					<motion.div variants={staggerItem}>
+						<motion.div whileHover={BUTTON_HOVER} whileTap={BUTTON_TAP}>
+							<AnimatedButton
+								type='submit'
+								className='h-12 w-full rounded-xl bg-gradient-hero text-base font-bold shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
+								isLoading={form.formState.isSubmitting}
+								loadingText='Signing in...'
+								shine
+							>
+								Sign In
+							</AnimatedButton>
+						</motion.div>
+					</motion.div>
+					<motion.div
+						variants={staggerItem}
+						className='relative my-4 flex items-center'
 					>
-						Sign In
-					</AnimatedButton>
-					<div className='relative my-4 flex items-center'>
 						<span className='flex-1 border-t border-border-subtle'></span>
-						<span className='mx-4 text-xs leading-normal text-text-secondary'>
+						<span className='mx-4 text-xs leading-normal text-text-muted'>
 							or
 						</span>
 						<span className='flex-1 border-t border-border-subtle'></span>
-					</div>
-					<GoogleSignInButton
-						text='Sign in with Google'
-						onSuccess={async code => {
-							const response = await googleSignIn({ code })
-							if (response.success) {
-								await handleSuccessfulLogin(response)
-							} else {
-								const errorMessage =
-									response.message || 'Google sign-in failed.'
+					</motion.div>
+					<motion.div variants={staggerItem}>
+						<GoogleSignInButton
+							text='Sign in with Google'
+							onSuccess={async code => {
+								const response = await googleSignIn({ code })
+								if (response.success) {
+									await handleSuccessfulLogin(response)
+								} else {
+									const errorMessage =
+										response.message || 'Google sign-in failed.'
+									form.setError('root.general' as any, {
+										type: 'manual',
+										message: errorMessage,
+									})
+								}
+							}}
+							onFailure={error => {
 								form.setError('root.general' as any, {
 									type: 'manual',
-									message: errorMessage,
+									message: error.message || 'Google sign-in failed.',
 								})
-							}
-						}}
-						onFailure={error => {
-							form.setError('root.general' as any, {
-								type: 'manual',
-								message: error.message || 'Google sign-in failed.',
-							})
-						}}
-					/>
+							}}
+						/>
+					</motion.div>
 				</form>
 			</Form>
-			<div className='text-center text-sm leading-normal text-text-secondary'>
+			<motion.div
+				variants={staggerItem}
+				className='text-center text-sm leading-normal text-text-secondary'
+			>
 				{SIGN_IN_MESSAGES.NO_ACCOUNT}{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_UP}
-					className='font-medium text-primary transition-colors hover:text-primary-dark'
+					className='font-semibold text-brand transition-colors hover:text-brand/80'
 				>
 					Create account
 				</Link>
-			</div>
+			</motion.div>
 			<ForgotPasswordDialog
 				open={forgotPasswordOpen}
 				onOpenChange={setForgotPasswordOpen}
 			/>
-		</div>
+		</motion.div>
 	)
 }

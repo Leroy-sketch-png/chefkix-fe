@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 import { Button } from '@/components/ui/button'
 import { AnimatedButton } from '@/components/ui/animated-button'
@@ -24,6 +25,13 @@ import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from '@/components/ui/toaster'
 import { useAuth } from '@/hooks/useAuth'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	staggerContainer,
+	staggerItem,
+} from '@/lib/motion'
 
 const formSchema = z.object({
 	firstName: z.string().min(1, {
@@ -90,29 +98,36 @@ export function SignUpForm() {
 	}
 
 	return (
-		<div className='w-full space-y-6'>
+		<motion.div
+			variants={staggerContainer}
+			initial='hidden'
+			animate='visible'
+			className='w-full space-y-6'
+		>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
+				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
 					{form.formState.errors.root?.general && (
-						<div
-							className='rounded-md bg-destructive/10 p-4 text-sm text-destructive'
+						<motion.div
+							initial={{ opacity: 0, height: 0 }}
+							animate={{ opacity: 1, height: 'auto' }}
+							className='rounded-xl bg-error/10 p-4 text-sm text-error'
 							role='alert'
 						>
 							{(form.formState.errors.root.general as any).message}
-						</div>
+						</motion.div>
 					)}
-					<div className='grid grid-cols-2 gap-4'>
+					<motion.div variants={staggerItem} className='grid grid-cols-2 gap-3'>
 						<FormField
 							control={form.control}
 							name='firstName'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>First Name</FormLabel>
+									<FormLabel className='text-text'>First Name</FormLabel>
 									<FormControl>
 										<Input
 											placeholder='John'
 											{...field}
-											className='text-foreground'
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
@@ -124,87 +139,100 @@ export function SignUpForm() {
 							name='lastName'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Last Name</FormLabel>
+									<FormLabel className='text-text'>Last Name</FormLabel>
 									<FormControl>
 										<Input
 											placeholder='Doe'
 											{...field}
-											className='text-foreground'
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
-					</div>
-					<FormField
-						control={form.control}
-						name='username'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Username</FormLabel>
-								<FormControl>
-									<Input
-										placeholder='your_username'
-										{...field}
-										className='text-foreground'
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name='email'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Email</FormLabel>
-								<FormControl>
-									<Input
-										placeholder='test@example.com'
-										{...field}
-										className='text-foreground'
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name='password'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Password</FormLabel>
-								<FormControl>
-									<PasswordInput
-										placeholder='password'
-										{...field}
-										className='text-foreground'
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<AnimatedButton
-						type='submit'
-						className='h-11 w-full'
-						isLoading={form.formState.isSubmitting}
-						loadingText='Creating account...'
-						shine
+					</motion.div>
+					<motion.div variants={staggerItem}>
+						<FormField
+							control={form.control}
+							name='username'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel className='text-text'>Username</FormLabel>
+									<FormControl>
+										<Input
+											placeholder='your_username'
+											{...field}
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</motion.div>
+					<motion.div variants={staggerItem}>
+						<FormField
+							control={form.control}
+							name='email'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel className='text-text'>Email</FormLabel>
+									<FormControl>
+										<Input
+											placeholder='test@example.com'
+											{...field}
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</motion.div>
+					<motion.div variants={staggerItem}>
+						<FormField
+							control={form.control}
+							name='password'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel className='text-text'>Password</FormLabel>
+									<FormControl>
+										<PasswordInput
+											placeholder='password'
+											{...field}
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</motion.div>
+					<motion.div variants={staggerItem}>
+						<motion.div whileHover={BUTTON_HOVER} whileTap={BUTTON_TAP}>
+							<AnimatedButton
+								type='submit'
+								className='h-12 w-full rounded-xl bg-gradient-xp text-base font-bold shadow-lg shadow-xp/30 transition-shadow hover:shadow-xl hover:shadow-xp/40'
+								isLoading={form.formState.isSubmitting}
+								loadingText='Creating account...'
+								shine
+							>
+								{SIGN_UP_MESSAGES.FORM_TITLE}
+							</AnimatedButton>
+						</motion.div>
+					</motion.div>
+					<motion.div
+						variants={staggerItem}
+						className='relative my-5 flex items-center'
 					>
-						{SIGN_UP_MESSAGES.FORM_TITLE}
-					</AnimatedButton>
-					<div className='relative my-6 flex items-center'>
 						<span className='flex-1 border-t border-border-subtle'></span>
-						<span className='mx-4 text-xs leading-normal text-text-secondary'>
+						<span className='mx-4 text-xs leading-normal text-text-muted'>
 							or
 						</span>
 						<span className='flex-1 border-t border-border-subtle'></span>
-					</div>
-					<div className='w-full'>
+					</motion.div>
+					<motion.div variants={staggerItem} className='w-full'>
 						<GoogleSignInButton
 							onSuccess={async code => {
 								const response = await googleSignIn({ code })
@@ -234,18 +262,21 @@ export function SignUpForm() {
 							}}
 							text='Sign up with Google'
 						/>
-					</div>
+					</motion.div>
 				</form>
 			</Form>
-			<div className='text-center text-sm leading-normal text-text-secondary'>
+			<motion.div
+				variants={staggerItem}
+				className='text-center text-sm leading-normal text-text-secondary'
+			>
 				{SIGN_UP_MESSAGES.ALREADY_HAVE_ACCOUNT}{' '}
 				<Link
 					href={PATHS.AUTH.SIGN_IN}
-					className='font-medium text-primary transition-colors hover:text-primary-dark'
+					className='font-semibold text-brand transition-colors hover:text-brand/80'
 				>
 					Sign In
 				</Link>
-			</div>
-		</div>
+			</motion.div>
+		</motion.div>
 	)
 }

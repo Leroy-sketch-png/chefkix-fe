@@ -63,8 +63,9 @@ export const MessagesDrawer = () => {
 	}, [isMessagesDrawerOpen])
 
 	// Fetch messages when conversation is selected
+	const selectedConversationId = selectedConversation?.id
 	useEffect(() => {
-		if (!selectedConversation) {
+		if (!selectedConversationId) {
 			setMessages([])
 			return
 		}
@@ -72,7 +73,7 @@ export const MessagesDrawer = () => {
 		const fetchMessages = async () => {
 			setIsLoadingMessages(true)
 			try {
-				const response = await getMessages(selectedConversation.id)
+				const response = await getMessages(selectedConversationId)
 				if (response.success && response.data) {
 					setMessages(response.data)
 				}
@@ -84,7 +85,7 @@ export const MessagesDrawer = () => {
 		}
 
 		fetchMessages()
-	}, [selectedConversation?.id])
+	}, [selectedConversationId])
 
 	// Scroll to bottom when messages change
 	useEffect(() => {

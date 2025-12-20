@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { PATHS } from '@/constants'
 import {
 	Bell,
@@ -11,6 +12,7 @@ import {
 	LogOut,
 	User,
 	Settings,
+	ChefHat,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/store/uiStore'
@@ -20,6 +22,8 @@ import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getNotifications } from '@/services/notification'
 import { getMyConversations } from '@/services/chat'
+import { CookingIndicator } from '@/components/cooking/CookingIndicator'
+import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 
 export const Topbar = () => {
 	const { user } = useAuth()
@@ -89,14 +93,30 @@ export const Topbar = () => {
 			className='relative flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
 			role='banner'
 		>
-			{/* Logo - Absolutely positioned to stay left while content centers */}
+			{/* Animated Logo */}
 			<Link
 				href='/dashboard'
 				className='absolute left-4 flex items-center gap-2 md:left-6'
 			>
-				<div className='font-display text-2xl font-extrabold leading-none tracking-tight text-primary'>
-					Chefkix
-				</div>
+				<motion.div
+					className='flex items-center gap-2.5'
+					whileHover={{ scale: 1.03 }}
+					transition={TRANSITION_SPRING}
+				>
+					<motion.div
+						className='flex size-9 items-center justify-center rounded-xl bg-gradient-hero shadow-md shadow-brand/25'
+						whileHover={{ rotate: 10 }}
+						transition={TRANSITION_SPRING}
+					>
+						<ChefHat className='size-5 text-white' />
+					</motion.div>
+					<div className='font-display text-2xl font-extrabold leading-none tracking-tight'>
+						<span className='bg-gradient-to-r from-brand to-brand/80 bg-clip-text text-transparent'>
+							Chef
+						</span>
+						<span className='text-text'>kix</span>
+					</div>
+				</motion.div>
 			</Link>
 			{/* Search Bar - constrained max width, with left margin to avoid overlapping the absolute logo */}
 			<div className='group relative ml-20 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:ml-24 md:px-4 md:py-2.5'>
@@ -134,22 +154,86 @@ export const Topbar = () => {
 					<span className='hidden xl:inline'>Creator</span>
 				</button>
 			</div>
+
+			{/* Cooking Indicator - Shows when actively cooking */}
+			<CookingIndicator />
+
 			{/* User Profile - Hidden on mobile, shows level badge only on larger screens */}
 			{user && (
 				<div className='hidden items-center gap-2 md:flex lg:gap-3'>
-					{/* Level Badge - only show on larger screens */}
-					<div className='relative hidden overflow-hidden rounded-lg bg-gradient-gold px-3 py-1.5 text-sm font-bold text-text-primary shadow-md lg:block'>
-						Lv. {user.statistics?.currentLevel ?? 1}
+					{/* Level Badge with XP - only show on larger screens */}
+					<motion.div
+						whileHover={{ scale: 1.05 }}
+						className='relative hidden overflow-hidden rounded-xl bg-gradient-gold px-4 py-2 text-sm font-bold text-amber-950 shadow-md lg:flex lg:items-center lg:gap-2'
+					>
+						<span className='relative z-10'>
+							Lv. {user.statistics?.currentLevel ?? 1}
+						</span>
+						{/* XP Progress bar inside */}
+						<div className='relative z-10 hidden h-1.5 w-16 overflow-hidden rounded-full bg-amber-950/20 xl:block'>
+							<motion.div
+								className='h-full rounded-full bg-amber-950/40'
+								initial={{ width: 0 }}
+								animate={{ width: `${xpProgress}%` }}
+								transition={{ duration: 1, ease: 'easeOut' }}
+							/>
+						</div>
 						<div className='absolute inset-0 animate-shine bg-gradient-to-r from-transparent via-white/30 to-transparent' />
-					</div>
+					</motion.div>
 
-					{/* Avatar with Dropdown */}
+					{/* Avatar with XP Ring */}
 					<div className='relative'>
-						<button
+						<motion.button
 							onClick={() => setShowUserMenu(!showUserMenu)}
-							className='group relative cursor-pointer transition-all duration-300 hover:translate-y-[-3px] hover:scale-105'
+							whileHover={{ scale: 1.05, y: -2 }}
+							whileTap={{ scale: 0.98 }}
+							transition={TRANSITION_SPRING}
+							className='group relative cursor-pointer'
 						>
-							<Avatar size='lg' className='shadow-lg hover:shadow-glow'>
+							{/* XP Progress Ring */}
+							<svg className='absolute -inset-1 size-14' viewBox='0 0 56 56'>
+								<circle
+									cx='28'
+									cy='28'
+									r='26'
+									fill='none'
+									stroke='currentColor'
+									strokeWidth='3'
+									className='text-border-subtle'
+								/>
+								<motion.circle
+									cx='28'
+									cy='28'
+									r='26'
+									fill='none'
+									stroke='url(#xpGradient)'
+									strokeWidth='3'
+									strokeLinecap='round'
+									strokeDasharray={`${2 * Math.PI * 26}`}
+									initial={{ strokeDashoffset: 2 * Math.PI * 26 }}
+									animate={{
+										strokeDashoffset: 2 * Math.PI * 26 * (1 - xpProgress / 100),
+									}}
+									transition={{ duration: 1.5, ease: 'easeOut' }}
+									style={{
+										transform: 'rotate(-90deg)',
+										transformOrigin: 'center',
+									}}
+								/>
+								<defs>
+									<linearGradient
+										id='xpGradient'
+										x1='0%'
+										y1='0%'
+										x2='100%'
+										y2='100%'
+									>
+										<stop offset='0%' stopColor='#8b5cf6' />
+										<stop offset='100%' stopColor='#a855f7' />
+									</linearGradient>
+								</defs>
+							</svg>
+							<Avatar size='lg' className='shadow-lg'>
 								<AvatarImage
 									src={user.avatarUrl || 'https://i.pravatar.cc/44'}
 									alt={user.displayName || 'User'}
@@ -163,8 +247,7 @@ export const Topbar = () => {
 										.slice(0, 2) || 'U'}
 								</AvatarFallback>
 							</Avatar>
-							<div className='absolute inset-[-3px] -z-10 animate-avatar-glow rounded-full bg-gradient-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
-						</button>
+						</motion.button>
 
 						{/* Dropdown Menu */}
 						{showUserMenu && (
@@ -198,31 +281,45 @@ export const Topbar = () => {
 				</div>
 			)}
 			{/* Communication Icons */}
-			<div className='flex gap-3 md:gap-4'>
-				<button
+			<div className='flex gap-2 md:gap-3'>
+				<motion.button
 					onClick={toggleNotificationsPopup}
-					className='relative h-11 w-11 cursor-pointer text-text-secondary transition-colors hover:text-primary'
+					whileHover={{ scale: 1.1 }}
+					whileTap={{ scale: 0.95 }}
+					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand'
 					aria-label='Notifications'
 				>
-					<Bell className='mx-auto h-5 w-5' />
+					<Bell className='size-5' />
 					{unreadNotifications > 0 && (
-						<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
+						<motion.span
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={TRANSITION_SPRING}
+							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-sm'
+						>
 							{unreadNotifications > 99 ? '99+' : unreadNotifications}
-						</span>
+						</motion.span>
 					)}
-				</button>
-				<button
+				</motion.button>
+				<motion.button
 					onClick={toggleMessagesDrawer}
-					className='relative h-11 w-11 cursor-pointer text-text-secondary transition-colors hover:text-primary'
+					whileHover={{ scale: 1.1 }}
+					whileTap={{ scale: 0.95 }}
+					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp'
 					aria-label='Messages'
 				>
-					<MessageSquare className='mx-auto h-5 w-5' />
+					<MessageSquare className='size-5' />
 					{unreadMessages > 0 && (
-						<span className='absolute -right-2 -top-1.5 rounded-full bg-accent-strong px-1.5 py-0.5 text-xs font-bold text-accent-foreground'>
+						<motion.span
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={TRANSITION_SPRING}
+							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-sm'
+						>
 							{unreadMessages > 99 ? '99+' : unreadMessages}
-						</span>
+						</motion.span>
 					)}
-				</button>
+				</motion.button>
 			</div>
 		</header>
 	)

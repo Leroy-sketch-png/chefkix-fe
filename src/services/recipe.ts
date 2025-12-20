@@ -2,8 +2,8 @@ import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types/common'
 import {
 	Recipe,
-	RecipeCreateDto,
-	RecipeUpdateDto,
+	RecipeCreateRequest,
+	RecipeUpdateRequest,
 	RecipeQueryParams,
 } from '@/lib/types/recipe'
 import { API_ENDPOINTS } from '@/constants'
@@ -171,7 +171,7 @@ export const getDraftRecipes = async (): Promise<ApiResponse<Recipe[]>> => {
  * Create a new recipe
  */
 export const createRecipe = async (
-	data: RecipeCreateDto,
+	data: RecipeCreateRequest,
 ): Promise<ApiResponse<Recipe>> => {
 	const response = await api.post(API_ENDPOINTS.RECIPES.CREATE, data)
 	return response.data
@@ -182,7 +182,7 @@ export const createRecipe = async (
  */
 export const updateRecipe = async (
 	recipeId: string,
-	data: RecipeUpdateDto,
+	data: RecipeUpdateRequest,
 ): Promise<ApiResponse<Recipe>> => {
 	const response = await api.put(API_ENDPOINTS.RECIPES.UPDATE(recipeId), data)
 	return response.data

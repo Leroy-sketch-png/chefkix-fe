@@ -18,6 +18,8 @@ import {
 	Pencil,
 	Trash2,
 	X,
+	ChefHat,
+	Zap,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -324,6 +326,28 @@ export const PostCard = ({
 										</span>
 									))}
 								</div>
+							)}
+
+							{/* Recipe Link Badge - Shows when post is linked to a cooking session */}
+							{post.recipeId && post.recipeTitle && (
+								<Link
+									href={`/recipes/${post.recipeId}`}
+									aria-label={`View recipe: ${post.recipeTitle}${post.xpEarned ? `, earned ${post.xpEarned} XP` : ''}`}
+									className='inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/10 to-bonus/10 px-3 py-2 text-sm font-medium text-text transition-all hover:from-brand/20 hover:to-bonus/20'
+								>
+									<ChefHat className='size-4 text-brand' />
+									<span>
+										Cooked:{' '}
+										<span className='font-bold text-text-primary'>
+											{post.recipeTitle}
+										</span>
+									</span>
+									{post.xpEarned && (
+										<span className='ml-1 inline-flex items-center gap-1 rounded-full bg-xp/20 px-2 py-0.5 text-xs font-bold text-xp'>
+											<Zap className='size-3' />+{post.xpEarned} XP
+										</span>
+									)}
+								</Link>
 							)}
 						</div>
 
