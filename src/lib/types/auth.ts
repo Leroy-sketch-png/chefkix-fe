@@ -16,9 +16,20 @@ export interface SignUpDto {
 	lastName: string
 }
 
+/**
+ * Login response from BE AuthenticationResponse.java
+ * RefreshToken is set as HttpOnly cookie, so only accessToken is needed in body.
+ * Other fields (idToken, scope, authenticated, lastLogin, user) exist in BE
+ * but are optional for FE consumption.
+ */
 export interface LoginSuccessResponse {
 	accessToken: string
-	refreshToken: null // Always null in response body; real refreshToken is in HttpOnly cookie
+	refreshToken?: string | null // Usually null in body; real refreshToken is in HttpOnly cookie
+	idToken?: string
+	scope?: string
+	authenticated?: boolean
+	lastLogin?: string // ISO timestamp
+	user?: Profile
 }
 
 export interface VerifyOtpDto {

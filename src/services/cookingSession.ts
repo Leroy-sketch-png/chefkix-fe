@@ -34,7 +34,7 @@ export interface CookingSessionRecipe {
 	xpReward: number
 	cookTimeMinutes: number
 	totalSteps: number
-	coverImageUrl?: string
+	coverImageUrl?: string[] // BE returns array - FE should use [0] for thumbnail
 }
 
 export interface CookingSession {
@@ -69,7 +69,7 @@ export interface SessionHistoryItem {
 	sessionId: string
 	recipeId: string
 	recipeTitle: string
-	coverImageUrl?: string
+	coverImageUrl?: string[] // BE returns array - FE should use [0] for thumbnail
 	status: SessionStatus
 	startedAt: string
 	completedAt?: string

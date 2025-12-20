@@ -35,7 +35,8 @@ import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
 import { getAllRecipes } from '@/services/recipe'
 import { getAllProfiles } from '@/services/profile'
 import { getFeedPosts } from '@/services/post'
-import { Recipe, Profile, Post } from '@/lib/types'
+import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
+import { Profile, Post } from '@/lib/types'
 
 // ============================================
 // TYPES
@@ -276,9 +277,9 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 const transformRecipe = (recipe: Recipe): RecipeResult => ({
 	id: recipe.id,
 	title: recipe.title,
-	imageUrl: recipe.imageUrl || '/placeholder-recipe.jpg',
+	imageUrl: getRecipeImage(recipe) || '/placeholder-recipe.jpg',
 	rating: 4.5, // TODO: Add rating to Recipe type when backend supports
-	cookTime: `${recipe.prepTime + recipe.cookTime} min`,
+	cookTime: `${getTotalTime(recipe)} min`,
 	difficulty: difficultyToDisplay(recipe.difficulty),
 	author: {
 		username: recipe.author?.username || 'chef',

@@ -17,7 +17,7 @@ import {
 	SessionHistoryItem,
 } from '@/services/cookingSession'
 import { getRecipesByUserId } from '@/services/recipe'
-import { Recipe } from '@/lib/types/recipe'
+import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/components/ui/toaster'
 import { triggerFriendConfetti } from '@/lib/confetti'
@@ -153,7 +153,10 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 		id: item.sessionId,
 		recipeId: item.recipeId,
 		recipeName: item.recipeTitle,
-		recipeImage: item.coverImageUrl || '/placeholder-recipe.jpg',
+		recipeImage:
+			(Array.isArray(item.coverImageUrl)
+				? item.coverImageUrl[0]
+				: item.coverImageUrl) || '/placeholder-recipe.jpg',
 		cookedAt: item.completedAt
 			? new Date(item.completedAt)
 			: new Date(item.startedAt),
@@ -580,7 +583,9 @@ export const UserProfile = ({
 									>
 										<div className='relative h-48 w-full'>
 											<Image
-												src={recipe.imageUrl || '/placeholder-recipe.jpg'}
+												src={
+													getRecipeImage(recipe) || '/placeholder-recipe.jpg'
+												}
 												alt={recipe.title}
 												fill
 												className='object-cover'
@@ -592,8 +597,8 @@ export const UserProfile = ({
 											</h3>
 											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
 												<span className='flex items-center gap-1'>
-													<Clock className='h-4 w-4' />{' '}
-													{(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
+													<Clock className='h-4 w-4' /> {getTotalTime(recipe)}{' '}
+													min
 												</span>
 												<span className='flex items-center gap-1'>
 													<Heart className='h-4 w-4' />{' '}

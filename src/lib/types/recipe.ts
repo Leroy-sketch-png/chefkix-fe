@@ -1,136 +1,359 @@
-export interface RecipeIngredient {
-	id: string
+/**
+ * Recipe Types - Aligned with vision_and_spec/07-recipes.txt
+ * Last synced: 2025-12-20
+ *
+ * CANONICAL SOURCE: BE RecipeDetailResponse.java + vision spec
+ * DO NOT add legacy aliases - fix components to use correct field names
+ */
+
+import type { Difficulty } from './gamification'
+
+// Re-export Difficulty for convenience
+export type { Difficulty }
+
+// ============================================
+// ENUMS - Match BE enums with @JsonValue serialization
+// ============================================
+
+/**
+ * Recipe status - BE sends SCREAMING_SNAKE_CASE
+ */
+export type RecipeStatus = 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'ARCHIVED'
+
+/**
+ * Recipe visibility
+ */
+export type RecipeVisibility = 'PUBLIC' | 'PRIVATE' | 'PENDING' | 'FRIENDS_ONLY'
+
+// ============================================
+// SUB-TYPES - Match BE inner DTOs exactly
+// ============================================
+
+/**
+ * Ingredient - matches BE IngredientResponse
+ * Note: BE does NOT have 'id' or 'order' fields
+ */
+export interface Ingredient {
 	name: string
 	quantity: string
 	unit: string
-	order: number
 }
 
-export interface RecipeStep {
-	id: string
+/**
+ * Step - matches BE StepResponse
+ * Note: BE uses 'description', not 'instruction'
+ */
+export interface Step {
 	stepNumber: number
 	title: string
-	instruction: string
-	duration?: number // in minutes
+	description: string // BE field name (not 'instruction')
+	action?: string
+	ingredients?: Ingredient[] // Steps can have their own ingredients
+	timerSeconds?: number
 	imageUrl?: string
-	order: number
-	// AI-enriched fields (from backend)
-	action?: string // AI-detected action type (e.g., 'boil', 'chop', 'sauté')
-	timerSeconds?: number // Timer duration for this step
-	tips?: string // AI-generated tips for this step
+	tips?: string
 }
 
-// Difficulty levels per spec 07-recipes.txt
-export type RecipeDifficulty =
-	| 'BEGINNER'
-	| 'INTERMEDIATE'
-	| 'ADVANCED'
-	| 'EXPERT'
+/**
+ * Author - matches BE AuthorResponse
+ */
+export interface Author {
+	userId: string
+	username: string
+	displayName: string
+	avatarUrl?: string
+}
 
-// XP Breakdown for transparency (from calculate_metas AI service)
+/**
+ * XP Breakdown - from AI calculate_metas
+ */
 export interface XpBreakdown {
 	base: number
-	baseReason: string // "Intermediate difficulty"
+	baseReason: string
 	steps: number
-	stepsReason: string // "5 steps × 10 XP (capped at 100)"
+	stepsReason: string
 	time: number
-	timeReason: string // "45 minutes × 2 XP (capped at 150)"
+	timeReason: string
 	techniques?: number
-	techniquesReason?: string // "flambe detected (+25 XP)"
+	techniquesReason?: string
 	total: number
 }
 
-// Cultural context enrichment
+/**
+ * Validation metadata from AI
+ */
+export interface ValidationMetadata {
+	xpValidated: boolean
+	validationConfidence: number
+	validationIssues: string[]
+	xpAdjusted: boolean
+}
+
+/**
+ * Cultural context enrichment
+ */
 export interface CulturalContext {
 	region: string
 	background: string
 	significance: string
 }
 
-export interface Recipe {
-	id: string
-	userId: string
-	title: string
-	description: string
-	imageUrl: string
-	videoUrl?: string
-	difficulty: RecipeDifficulty
-	prepTime: number // in minutes
-	cookTime: number // in minutes
-	servings: number
-	cuisine?: string
-	dietaryTags: string[] // e.g., ['vegan', 'gluten-free']
-	caloriesPerServing?: number
-	ingredients: RecipeIngredient[]
-	steps: RecipeStep[]
-	isPublished: boolean
-	likeCount: number
-	saveCount: number
-	viewCount: number
-	createdAt: string
-	updatedAt: string
-	// Dynamic fields
-	isLiked?: boolean
-	isSaved?: boolean
-	author?: {
-		userId: string
-		username: string
-		displayName: string
-		avatarUrl: string
-	}
-	// Gamification fields (from AI service calculate_metas)
-	xpReward?: number
-	xpBreakdown?: XpBreakdown // Transparency for users
-	badges?: string[]
-	skillTags?: string[]
-	difficultyMultiplier?: number
-	// Backend-tracked metrics
-	cookCount?: number // How many users have cooked this
-	masteredByCount?: number // Users who mastered (25+ cooks)
-	averageRating?: number // 1-5 stars from completions
-	creatorXpEarned?: number // Total XP earned from others cooking (author only)
-	// AI Enrichment fields (from calculate_metas)
+/**
+ * Enrichment metadata from AI
+ */
+export interface EnrichmentMetadata {
 	equipmentNeeded?: string[]
 	techniqueGuides?: string[]
 	seasonalTags?: string[]
 	ingredientSubstitutions?: Record<string, string[]>
 	culturalContext?: CulturalContext
-	recipeStory?: string // AI-generated narrative
-	chefNotes?: string // AI tips for success
-	aiEnriched?: boolean
-	// Anti-cheat validation
-	xpValidated?: boolean
-	validationConfidence?: number // 0.0-1.0
-	validationIssues?: string[]
-	xpAdjusted?: boolean
+	recipeStory?: string
+	chefNotes?: string
+	aiEnriched: boolean
 }
 
-export interface RecipeCreateDto {
+/**
+ * User interaction with recipe (for currentUserInteraction field)
+ */
+export interface UserInteraction {
+	cookCount: number
+	rating?: number
+	lastCookedAt?: string
+	masteryLevel?: string
+	xpEarnedTotal: number
+}
+
+// ============================================
+// MAIN RECIPE TYPE - Matches RecipeDetailResponse exactly
+// ============================================
+
+/**
+ * Recipe - matches BE RecipeDetailResponse.java
+ * Source: vision_and_spec/07-recipes.txt
+ */
+export interface Recipe {
+	// === Core Fields ===
+	id: string
+	createdAt: string // ISO8601
+	updatedAt: string // ISO8601
+	recipeStatus: RecipeStatus // BE field name (not 'status')
+
+	// === Content ===
 	title: string
 	description: string
-	imageUrl: string
-	videoUrl?: string
-	difficulty: RecipeDifficulty
-	prepTime: number
-	cookTime: number
+	coverImageUrl: string[] // Array, use [0] for thumbnail
+	videoUrl: string[] // Array
+	difficulty: Difficulty
+	prepTimeMinutes: number
+	cookTimeMinutes: number
+	totalTimeMinutes: number
 	servings: number
-	cuisine?: string
+	cuisineType: string // BE field name (not 'cuisine')
 	dietaryTags: string[]
-	ingredients: Omit<RecipeIngredient, 'id'>[]
-	steps: Omit<RecipeStep, 'id'>[]
+	caloriesPerServing?: number
+
+	// === Recipe Structure ===
+	fullIngredientList: Ingredient[] // BE field name (not 'ingredients')
+	steps: Step[]
+
+	// === Gamification (from AI calculate_metas) ===
+	xpReward: number
+	difficultyMultiplier: number
+	rewardBadges: string[] // BE field name (not 'badges')
+	skillTags: string[]
+
+	// === Engagement Metrics ===
+	likeCount: number
+	saveCount: number
+	viewCount: number
+	cookCount: number
+	masteredByCount?: number
+	trendingScore?: number
+	averageRating?: number
+	creatorXpEarned?: number
+
+	// === Author Info ===
+	author: Author
+
+	// === User-Specific State ===
+	isLiked: boolean
+	isSaved: boolean
+	currentUserInteraction?: UserInteraction
+
+	// === AI Metadata (optional, from enriched responses) ===
+	xpBreakdown?: XpBreakdown
+	validation?: ValidationMetadata
+	enrichment?: EnrichmentMetadata
 }
 
-export interface RecipeUpdateDto extends Partial<RecipeCreateDto> {
-	isPublished?: boolean
+// ============================================
+// SUMMARY RESPONSE - Lighter version for lists
+// ============================================
+
+/**
+ * RecipeSummary - matches BE RecipeSummaryResponse.java
+ * Used in lists, feeds, search results
+ */
+export interface RecipeSummary {
+	id: string
+	createdAt: string
+	title: string
+	description: string
+	coverImageUrl: string[]
+	difficulty: Difficulty
+	totalTimeMinutes: number
+	servings: number
+	cuisineType?: string
+	xpReward: number
+	badges?: string[]
+	likeCount: number
+	saveCount: number
+	viewCount: number
+	author: Author
+	isLiked?: boolean
+	isSaved?: boolean
 }
 
-export interface RecipeQueryParams {
-	page?: number
-	limit?: number
-	search?: string
-	difficulty?: RecipeDifficulty
-	cuisine?: string
+// ============================================
+// REQUEST DTOs - For create/update operations
+// ============================================
+
+/**
+ * Create recipe request - matches BE RecipeRequest
+ */
+export interface RecipeCreateRequest {
+	title: string
+	description: string
+	coverImageUrl?: string[]
+	videoUrl?: string[]
+	difficulty: Difficulty
+	prepTimeMinutes: number
+	cookTimeMinutes: number
+	totalTimeMinutes?: number
+	servings: number
+	cuisineType?: string
 	dietaryTags?: string[]
-	userId?: string
-	sortBy?: 'recent' | 'popular' | 'trending'
+	caloriesPerServing?: number
+	fullIngredientList: Ingredient[]
+	steps: Omit<Step, 'stepNumber'>[] // stepNumber auto-assigned
+	xpReward?: number
+	difficultyMultiplier?: number
+	rewardBadges?: string[]
+	skillTags?: string[]
+}
+
+/**
+ * Update recipe request
+ */
+export interface RecipeUpdateRequest extends Partial<RecipeCreateRequest> {}
+
+/**
+ * Recipe completion request - matches BE RecipeCompletionRequest
+ */
+export interface RecipeCompleteRequest {
+	proofImageUrls?: string[]
+	timerLogs?: Array<{
+		stepNumber: number
+		elapsedSeconds: number
+	}>
+	rating?: number
+	notes?: string
+}
+
+/**
+ * Recipe completion response
+ */
+export interface RecipeCompleteResponse {
+	completionId: string
+	recipeId: string
+	xpEarned: number
+	newBadges: string[]
+	userProfile: {
+		userId: string
+		currentXP: number
+		currentXPGoal: number
+		currentLevel: number
+		completionCount: number
+	}
+}
+
+// ============================================
+// QUERY PARAMS
+// ============================================
+
+export interface RecipeSearchParams {
+	query?: string
+	difficulty?: Difficulty
+	cuisineType?: string
+	dietaryTags?: string[]
+	maxTimeMinutes?: number
+	sortBy?: 'newest' | 'trending' | 'xpReward'
+	page?: number
+	size?: number
+}
+
+// ============================================
+// TOGGLE RESPONSES
+// ============================================
+
+export interface RecipeLikeResponse {
+	id: string
+	likeCount: number
+	isLiked: boolean
+}
+
+export interface RecipeSaveResponse {
+	id: string
+	saveCount: number
+	isSaved: boolean
+}
+
+// ============================================
+// CREATOR INSIGHTS
+// ============================================
+
+export interface CreatorInsights {
+	recipeCount: number
+	totalCookCount: number
+	averageXpReward: number
+}
+
+// RecipeMastery is defined in gamification.ts - import from there
+// Re-export for convenience from recipe context
+export type { RecipeMastery } from './gamification'
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Get primary image URL from recipe.
+ * coverImageUrl is an array - returns first element or placeholder.
+ */
+export function getRecipeImage(
+	recipe: { coverImageUrl?: string[] } | null | undefined,
+): string {
+	if (!recipe?.coverImageUrl?.length) return '/placeholder-recipe.jpg'
+	return recipe.coverImageUrl[0]
+}
+
+/**
+ * Get total time, preferring computed totalTimeMinutes
+ */
+export function getTotalTime(recipe: {
+	totalTimeMinutes?: number
+	prepTimeMinutes?: number
+	cookTimeMinutes?: number
+}): number {
+	return (
+		recipe.totalTimeMinutes ??
+		(recipe.prepTimeMinutes ?? 0) + (recipe.cookTimeMinutes ?? 0)
+	)
+}
+
+/**
+ * Check if recipe is published
+ */
+export function isPublished(recipe: { recipeStatus: RecipeStatus }): boolean {
+	return recipe.recipeStatus === 'PUBLISHED'
 }

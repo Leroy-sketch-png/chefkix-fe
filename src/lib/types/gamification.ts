@@ -57,8 +57,9 @@ export interface XPReward {
 // DIFFICULTY
 // ============================================
 
-// Canonical difficulty levels per spec 07-recipes.txt
-export type Difficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT'
+// Difficulty levels - matches BE Difficulty enum @JsonValue serialization
+// BE sends PascalCase: "Beginner", "Intermediate", "Advanced", "Expert"
+export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'
 
 // ============================================
 // BADGES
@@ -270,8 +271,9 @@ export interface ChallengeStreak {
 // LEADERBOARD
 // ============================================
 
-export type LeaderboardType = 'GLOBAL' | 'FRIENDS' | 'LEAGUE'
-export type LeaderboardTimeframe = 'WEEKLY' | 'MONTHLY' | 'ALL_TIME'
+// BE uses lowercase strings for leaderboard type/timeframe
+export type LeaderboardType = 'global' | 'friends' | 'league'
+export type LeaderboardTimeframe = 'weekly' | 'monthly' | 'all-time'
 
 export interface LeaderboardEntry {
 	rank: number
@@ -284,8 +286,8 @@ export interface LeaderboardEntry {
 	recipesCooked: number
 	streak: number
 	// League-specific
-	zone?: 'PROMOTION' | 'SAFE' | 'DEMOTION'
-	trend?: 'UP' | 'DOWN' | 'STABLE'
+	zone?: 'promotion' | 'safe' | 'demotion'
+	trend?: 'up' | 'down' | 'stable'
 }
 
 export interface LeaderboardData {

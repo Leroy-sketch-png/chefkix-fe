@@ -40,6 +40,7 @@ interface SocialNotification {
 }
 
 // Helper to transform API notification to gamified notification format
+// Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
 const transformToGamifiedNotification = (
 	notif: APINotification,
 ): GamifiedNotification | null => {
@@ -47,7 +48,7 @@ const transformToGamifiedNotification = (
 	const timestamp = new Date(notif.createdAt)
 
 	switch (notif.type) {
-		case 'xp_awarded':
+		case 'XP_AWARDED':
 			return {
 				id: notif.id,
 				type: 'xp_awarded',
@@ -55,9 +56,9 @@ const transformToGamifiedNotification = (
 				xpAmount: (data.xpAmount as number) || 0,
 				pendingXp: (data.pendingXp as number) || 0,
 				timestamp,
-				isRead: notif.read,
+				isRead: notif.isRead,
 			}
-		case 'level_up':
+		case 'LEVEL_UP':
 			return {
 				id: notif.id,
 				type: 'level_up',
@@ -65,9 +66,9 @@ const transformToGamifiedNotification = (
 				newGoalXp: (data.newGoalXp as number) || 1000,
 				recipesToNextLevel: (data.recipesToNextLevel as number) || 5,
 				timestamp,
-				isRead: notif.read,
+				isRead: notif.isRead,
 			}
-		case 'badge_unlocked':
+		case 'BADGE_EARNED':
 			return {
 				id: notif.id,
 				type: 'badge_unlocked',
@@ -78,9 +79,9 @@ const transformToGamifiedNotification = (
 					'common',
 				requirement: (data.requirement as string) || '',
 				timestamp,
-				isRead: notif.read,
+				isRead: notif.isRead,
 			}
-		case 'creator_bonus':
+		case 'CREATOR_BONUS':
 			return {
 				id: notif.id,
 				type: 'creator_bonus',
@@ -92,37 +93,7 @@ const transformToGamifiedNotification = (
 				xpBonus: (data.xpBonus as number) || 0,
 				totalCookRewards: (data.totalCookRewards as number) || 1,
 				timestamp,
-				isRead: notif.read,
-			}
-		case 'post_deadline':
-			return {
-				id: notif.id,
-				type: 'post_deadline',
-				recipeName: (data.recipeName as string) || 'Recipe',
-				daysRemaining: (data.daysRemaining as number) || 14,
-				pendingXp: (data.pendingXp as number) || 0,
-				timestamp,
-				isRead: notif.read,
-			}
-		case 'streak_warning':
-			return {
-				id: notif.id,
-				type: 'streak_warning',
-				streakCount: (data.streakCount as number) || 0,
-				hoursRemaining: (data.hoursRemaining as number) || 24,
-				timestamp,
-				isRead: notif.read,
-			}
-		case 'challenge_reminder':
-			return {
-				id: notif.id,
-				type: 'challenge_reminder',
-				challengeTitle: (data.challengeTitle as string) || 'Daily Challenge',
-				challengeDescription: (data.challengeDescription as string) || '',
-				xpBonusPercent: (data.xpBonusPercent as number) || 25,
-				hoursRemaining: (data.hoursRemaining as number) || 24,
-				timestamp,
-				isRead: notif.read,
+				isRead: notif.isRead,
 			}
 		default:
 			return null
@@ -145,6 +116,7 @@ const formatTimeAgo = (date: Date): string => {
 }
 
 // Helper to transform API notification to social notification format
+// Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
 const transformToSocialNotification = (
 	notif: APINotification,
 	index: number,
@@ -153,11 +125,10 @@ const transformToSocialNotification = (
 	const timestamp = new Date(notif.createdAt)
 
 	const typeMap: Record<string, NotificationType> = {
-		new_follower: 'follow',
-		post_liked: 'like',
-		recipe_liked: 'like',
-		comment: 'comment',
-		reply: 'comment',
+		NEW_FOLLOWER: 'follow',
+		FOLLOW: 'follow',
+		POST_LIKE: 'like',
+		POST_COMMENT: 'comment',
 	}
 
 	const type = typeMap[notif.type]
@@ -169,10 +140,10 @@ const transformToSocialNotification = (
 		userId: (data.userId as string) || '',
 		user: (data.userName as string) || (data.displayName as string) || 'User',
 		avatar: (data.avatarUrl as string) || '/placeholder-avatar.png',
-		action: notif.body,
+		action: notif.content || notif.body || '',
 		target: (data.targetTitle as string) || undefined,
 		time: formatTimeAgo(timestamp),
-		read: notif.read,
+		read: notif.isRead,
 	}
 }
 

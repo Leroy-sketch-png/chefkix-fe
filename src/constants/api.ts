@@ -6,8 +6,8 @@ const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}/api/v1/posts`
 const POST_REPLIES_BASE = `${POST_SERVICE_PREFIX}/api/v1/comments`
 // Recipe service uses plural 'recipes' to match gateway (StripPrefix=3)
 const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
-// Social endpoints go through auth gateway per spec (03-social.txt)
-const SOCIAL_PREFIX = `${API_PREFIX}/auth/api/social`
+// Social endpoints have dedicated gateway route: /api/v1/social/**
+const SOCIAL_PREFIX = `${API_PREFIX}/social`
 
 export const API_ENDPOINTS = {
 	AUTH: {
@@ -33,7 +33,7 @@ export const API_ENDPOINTS = {
 		GET_PROFILE_ONLY: (userId: string) =>
 			`${AUTH_PREFIX}/profile-only/${userId}`,
 	},
-	// Social endpoints per spec (03-social.txt): /api/v1/auth/api/social/*
+	// Social endpoints per spec (03-social.txt): /api/v1/social/*
 	// Instagram Model: Follow-only system, mutual follows = friends
 	SOCIAL: {
 		// Core: Follow system
