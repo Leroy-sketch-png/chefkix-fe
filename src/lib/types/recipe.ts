@@ -357,3 +357,18 @@ export function getTotalTime(recipe: {
 export function isPublished(recipe: { recipeStatus: RecipeStatus }): boolean {
 	return recipe.recipeStatus === 'PUBLISHED'
 }
+
+/**
+ * Query params for recipe filtering/pagination
+ */
+export interface RecipeQueryParams {
+	page?: number
+	size?: number
+	limit?: number
+	difficulty?: Difficulty
+	cuisineType?: string
+	dietaryTags?: string[]
+	minTime?: number
+	maxTime?: number
+	search?: string
+}

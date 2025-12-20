@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Post } from '@/lib/types'
 import { getFeedPosts } from '@/services/post'
 import {
@@ -16,7 +17,7 @@ import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { Stories } from '@/components/social/Stories'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import { Users, MessageSquare } from 'lucide-react'
+import { Users, MessageSquare, Home, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
@@ -24,6 +25,7 @@ import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { useRouter } from 'next/navigation'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
 // HELPERS
@@ -58,7 +60,7 @@ const transformToPendingSession = (
 		id: session.sessionId,
 		recipeId: session.recipeId,
 		recipeName: session.recipeTitle,
-		recipeImage: session.coverImageUrl || '/placeholder-recipe.jpg',
+		recipeImage: session.coverImageUrl?.[0] || '/placeholder-recipe.jpg',
 		cookedAt,
 		duration: 0, // API doesn't provide cook duration
 		baseXP: session.baseXpAwarded || 0,
@@ -177,14 +179,30 @@ export default function DashboardPage() {
 				<div className='mb-4 md:mb-6 lg:hidden'>
 					<Stories variant='horizontal' />
 				</div>
-				<div className='mb-4 md:mb-6'>
-					<h1 className='mb-2 text-3xl font-bold leading-tight text-text-primary'>
-						Your Feed
-					</h1>
-					<p className='leading-normal text-text-secondary'>
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-6'
+				>
+					<div className='mb-2 flex items-center gap-3'>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+						>
+							<Home className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold leading-tight text-text'>
+							Your Feed
+						</h1>
+					</div>
+					<p className='flex items-center gap-2 leading-normal text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />
 						Share your culinary journey and see what your friends are cooking
 					</p>
-				</div>
+				</motion.div>
 				{/* Create Post Form */}
 				<div className='mb-4 md:mb-6'>
 					<CreatePostForm

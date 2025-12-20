@@ -51,8 +51,9 @@ export default function MessagesPage() {
 	}, [])
 
 	// Fetch messages when conversation changes
+	const selectedConversationId = selectedConversation?.id
 	useEffect(() => {
-		if (!selectedConversation) {
+		if (!selectedConversationId) {
 			setMessages([])
 			return
 		}
@@ -60,7 +61,7 @@ export default function MessagesPage() {
 		const fetchMessages = async () => {
 			setIsLoadingMessages(true)
 			try {
-				const response = await getMessages(selectedConversation.id)
+				const response = await getMessages(selectedConversationId)
 				if (response.success && response.data) {
 					setMessages(response.data)
 				}
@@ -72,7 +73,7 @@ export default function MessagesPage() {
 		}
 
 		fetchMessages()
-	}, [selectedConversation?.id])
+	}, [selectedConversationId])
 
 	// Scroll to bottom when messages change
 	useEffect(() => {

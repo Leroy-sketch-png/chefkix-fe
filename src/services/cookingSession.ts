@@ -523,3 +523,31 @@ export const linkPostToSession = async (
 		}
 	}
 }
+
+/**
+ * Abandon a cooking session.
+ * Sets status to 'abandoned'. Cannot be resumed.
+ */
+export const abandonSession = async (
+	sessionId: string,
+): Promise<ApiResponse<{ abandoned: boolean }>> => {
+	try {
+		const response = await api.post<ApiResponse<{ abandoned: boolean }>>(
+			`${API_BASE}/${sessionId}/abandon`,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<{ abandoned: boolean }>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to abandon session',
+			statusCode: 500,
+		}
+	}
+}
+
+// Alias for logTimerEvent for consistency
+export const recordTimerEvent = logTimerEvent

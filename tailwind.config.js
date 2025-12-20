@@ -310,6 +310,7 @@ module.exports = {
 				'modal-md': 'var(--modal-md)',
 				'modal-lg': 'var(--modal-lg)',
 				'modal-xl': 'var(--modal-xl)',
+				'modal-2xl': 'var(--modal-2xl)', // Near-fullscreen modals (768px)
 				// Chat bubble widths
 				'bubble-sm': 'var(--bubble-sm)',
 				'bubble-md': 'var(--bubble-md)',

@@ -132,6 +132,8 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-sessions/${sessionId}/resume`,
 		COMPLETE: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/complete`,
+		ABANDON: (sessionId: string) =>
+			`${API_PREFIX}/cooking-sessions/${sessionId}/abandon`,
 		LINK_POST: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/link-post`,
 	},
@@ -163,8 +165,9 @@ export const API_ENDPOINTS = {
 		MY_RANK: `${AUTH_PREFIX}/leaderboard/my-rank`,
 	},
 	// Creator stats per spec (03-social.txt)
+	// BE: StatisticController.java -> /auth/me/creator-stats
 	CREATOR: {
-		STATS: `${API_PREFIX}/users/me/creator-stats`,
+		STATS: `${AUTH_PREFIX}/me/creator-stats`,
 	},
 	// Notifications per spec (10-notifications.txt)
 	// Gateway route: /api/v1/notification/** (singular)

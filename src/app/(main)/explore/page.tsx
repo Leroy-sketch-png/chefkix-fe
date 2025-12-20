@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getAllRecipes,
@@ -15,13 +16,20 @@ import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
 import { RecipeFiltersSheet } from '@/components/shared/RecipeFiltersSheet'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
-import { Search, TrendingUp, Filter } from 'lucide-react'
+import { Search, TrendingUp, Filter, Compass, Sparkles } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	staggerContainer,
+	staggerItem,
+} from '@/lib/motion'
 
 // Difficulty mapping: API (PascalCase) → Enhanced Card (lowercase)
 const difficultyMap: Record<
@@ -219,21 +227,44 @@ export default function ExplorePage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				<div className='mb-6'>
-					<h1 className='mb-2 text-3xl font-bold'>Explore Recipes</h1>
-					<p className='text-muted-foreground'>
+				{/* Header with animation */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-8'
+				>
+					<div className='mb-2 flex items-center gap-3'>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+						>
+							<Compass className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold text-text'>Explore Recipes</h1>
+					</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />
 						Discover new dishes and flavors from around the world.
 					</p>
-				</div>
+				</motion.div>
+
 				{/* Search & Filter Bar */}
-				<div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-center'>
-					<div className='relative flex-1'>
-						<Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+				<motion.div
+					initial={{ opacity: 0, y: 10 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+					className='mb-8 flex flex-col gap-4 sm:flex-row sm:items-center'
+				>
+					<div className='group relative flex-1'>
+						<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
 						<Input
 							placeholder='Search recipes...'
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
-							className='pl-10'
+							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 text-text shadow-sm transition-all focus:border-brand focus:shadow-md focus:ring-2 focus:ring-brand/20'
 						/>
 					</div>
 					<div className='flex gap-2'>
@@ -244,29 +275,34 @@ export default function ExplorePage() {
 						/>
 
 						{/* View Mode Buttons */}
-						<button
+						<motion.button
 							onClick={() => setViewMode('all')}
-							className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+							whileHover={BUTTON_HOVER}
+							whileTap={BUTTON_TAP}
+							className={`rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
 								viewMode === 'all'
-									? 'bg-primary text-primary-foreground'
-									: 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+									? 'bg-gradient-hero text-white shadow-md shadow-brand/30'
+									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 							}`}
 						>
 							All Recipes
-						</button>
-						<button
+						</motion.button>
+						<motion.button
 							onClick={() => setViewMode('trending')}
-							className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+							whileHover={BUTTON_HOVER}
+							whileTap={BUTTON_TAP}
+							className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
 								viewMode === 'trending'
-									? 'bg-primary text-primary-foreground'
-									: 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+									? 'bg-gradient-xp text-white shadow-md shadow-xp/30'
+									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
 							}`}
 						>
-							<TrendingUp className='h-4 w-4' />
+							<TrendingUp className='size-4' />
 							Trending
-						</button>
+						</motion.button>
 					</div>
-				</div>{' '}
+				</motion.div>
+
 				{/* Content */}
 				{isLoading && (
 					<div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
@@ -314,7 +350,7 @@ export default function ExplorePage() {
 								rating={4.5} // TODO: Add rating field to Recipe type when backend supports it
 								cookCount={recipe.cookCount ?? 0}
 								skillTags={recipe.skillTags}
-								badges={recipe.badges}
+								badges={recipe.rewardBadges}
 								author={{
 									id: recipe.author?.userId || 'unknown',
 									name: recipe.author?.displayName || 'Unknown Chef',

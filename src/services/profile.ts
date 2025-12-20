@@ -62,3 +62,31 @@ export const getAllProfiles = async (): Promise<ApiResponse<Profile[]>> => {
 		}
 	}
 }
+
+export interface UpdateProfileDto {
+	displayName?: string
+	bio?: string
+	avatarUrl?: string
+}
+
+export const updateProfile = async (
+	data: UpdateProfileDto,
+): Promise<ApiResponse<Profile>> => {
+	try {
+		const response = await api.put<ApiResponse<Profile>>(
+			API_ENDPOINTS.PROFILE.UPDATE,
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Profile>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}

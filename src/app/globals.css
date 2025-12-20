@@ -250,6 +250,7 @@
 	--modal-md: 420px;
 	--modal-lg: 480px;
 	--modal-xl: 600px;
+	--modal-2xl: 768px; /* Near-fullscreen modals (CookingPlayer) */
 
 	/* Drawer dimensions */
 	--drawer-w: 400px;

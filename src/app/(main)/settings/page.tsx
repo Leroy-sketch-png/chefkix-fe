@@ -1,92 +1,1162 @@
 'use client'
 
-import { User, Shield, Bell, Eye, Save } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+	User,
+	Shield,
+	Bell,
+	ChefHat,
+	Palette,
+	Settings,
+	Save,
+	Check,
+	AlertTriangle,
+	Loader2,
+	Globe,
+	EyeOff,
+	Users,
+	MessageSquare,
+	Trophy,
+	Mail,
+	Smartphone,
+	Volume2,
+	Timer,
+	Sparkles,
+	Moon,
+	Sun,
+	Monitor,
+	Clock,
+	Eye,
+} from 'lucide-react'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PageTransition } from '@/components/layout/PageTransition'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { PageContainer } from '@/components/layout/PageContainer'
-import { PageTransition } from '@/components/layout/PageTransition'
-import { useAuth } from '@/hooks/useAuth'
+import { Switch } from '@/components/ui/switch'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	staggerContainer,
+} from '@/lib/motion'
+import {
+	getAllSettings,
+	updatePrivacySettings,
+	updateNotificationSettings,
+	updateCookingPreferences,
+	updateAppPreferences,
+} from '@/services/settings'
+import { updateProfile } from '@/services/profile'
+import { playTimerChime } from '@/hooks/useTimerNotifications'
+import {
+	UserSettings,
+	PrivacySettings,
+	NotificationSettings,
+	CookingPreferences,
+	AppPreferences,
+	DEFAULT_USER_SETTINGS,
+	ProfileVisibility,
+	AllowMessagesFrom,
+	SkillLevel,
+	MeasurementUnits,
+	Theme,
+} from '@/lib/types/settings'
+
+// ============================================
+// TYPES
+// ============================================
+
+type SettingsTab =
+	| 'account'
+	| 'privacy'
+	| 'notifications'
+	| 'cooking'
+	| 'appearance'
+
+interface TabConfig {
+	id: SettingsTab
+	label: string
+	icon: typeof User
+	description: string
+}
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+const TABS: TabConfig[] = [
+	{
+		id: 'account',
+		label: 'Account',
+		icon: User,
+		description: 'Profile and account info',
+	},
+	{
+		id: 'privacy',
+		label: 'Privacy',
+		icon: Shield,
+		description: 'Control who sees your content',
+	},
+	{
+		id: 'notifications',
+		label: 'Notifications',
+		icon: Bell,
+		description: 'Email, in-app, and push alerts',
+	},
+	{
+		id: 'cooking',
+		label: 'Cooking',
+		icon: ChefHat,
+		description: 'Dietary and cooking preferences',
+	},
+	{
+		id: 'appearance',
+		label: 'Appearance',
+		icon: Palette,
+		description: 'Theme, sounds, and accessibility',
+	},
+]
+
+const VISIBILITY_OPTIONS: {
+	value: ProfileVisibility
+	label: string
+	icon: typeof Globe
+}[] = [
+	{ value: 'public', label: 'Public', icon: Globe },
+	{ value: 'friends_only', label: 'Friends Only', icon: Users },
+	{ value: 'private', label: 'Private', icon: EyeOff },
+]
+
+const MESSAGE_OPTIONS: { value: AllowMessagesFrom; label: string }[] = [
+	{ value: 'everyone', label: 'Everyone' },
+	{ value: 'friends', label: 'Friends only' },
+	{ value: 'nobody', label: 'Nobody' },
+]
+
+const SKILL_LEVELS: { value: SkillLevel; label: string; emoji: string }[] = [
+	{ value: 'beginner', label: 'Beginner', emoji: '🥄' },
+	{ value: 'intermediate', label: 'Intermediate', emoji: '🍳' },
+	{ value: 'advanced', label: 'Advanced', emoji: '👨‍🍳' },
+	{ value: 'expert', label: 'Expert', emoji: '⭐' },
+]
+
+const DIETARY_OPTIONS = [
+	'vegetarian',
+	'vegan',
+	'gluten-free',
+	'dairy-free',
+	'keto',
+	'paleo',
+	'halal',
+	'kosher',
+]
+
+const ALLERGY_OPTIONS = [
+	'nuts',
+	'peanuts',
+	'dairy',
+	'eggs',
+	'shellfish',
+	'fish',
+	'soy',
+	'wheat',
+	'sesame',
+]
+
+const CUISINE_OPTIONS = [
+	'Italian',
+	'Japanese',
+	'Mexican',
+	'Chinese',
+	'Indian',
+	'Thai',
+	'Vietnamese',
+	'French',
+	'Korean',
+	'Mediterranean',
+	'American',
+	'Middle Eastern',
+]
+
+const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+	{ value: 'light', label: 'Light', icon: Sun },
+	{ value: 'dark', label: 'Dark', icon: Moon },
+	{ value: 'system', label: 'System', icon: Monitor },
+]
+
+// ============================================
+// ANIMATION VARIANTS
+// ============================================
+
+const tabContentVariants = {
+	hidden: { opacity: 0, x: 20 },
+	visible: {
+		opacity: 1,
+		x: 0,
+		transition: { type: 'spring' as const, stiffness: 300, damping: 30 },
+	},
+	exit: { opacity: 0, x: -20, transition: { duration: 0.15 } },
+}
+
+const cardVariants = {
+	hidden: { opacity: 0, y: 20 },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: { type: 'spring' as const, stiffness: 300, damping: 25 },
+	},
+}
+
+// ============================================
+// COMPONENTS
+// ============================================
+
+const SettingsCard = ({
+	title,
+	description,
+	children,
+	className,
+}: {
+	title: string
+	description?: string
+	children: React.ReactNode
+	className?: string
+}) => (
+	<motion.div
+		variants={cardVariants}
+		className={cn(
+			'rounded-xl border border-border bg-card p-4 shadow-sm md:p-6',
+			className,
+		)}
+	>
+		<div className='mb-4'>
+			<h3 className='text-lg font-semibold text-foreground'>{title}</h3>
+			{description && (
+				<p className='mt-1 text-sm text-muted-foreground'>{description}</p>
+			)}
+		</div>
+		{children}
+	</motion.div>
+)
+
+const ToggleRow = ({
+	label,
+	description,
+	checked,
+	onCheckedChange,
+	icon: Icon,
+}: {
+	label: string
+	description?: string
+	checked: boolean
+	onCheckedChange: (checked: boolean) => void
+	icon?: typeof Bell
+}) => (
+	<div className='flex items-center justify-between py-3 border-b border-border last:border-0'>
+		<div className='flex items-center gap-3'>
+			{Icon && <Icon className='size-4 text-muted-foreground' />}
+			<div>
+				<p className='text-sm font-medium text-foreground'>{label}</p>
+				{description && (
+					<p className='text-xs text-muted-foreground'>{description}</p>
+				)}
+			</div>
+		</div>
+		<Switch checked={checked} onCheckedChange={onCheckedChange} />
+	</div>
+)
+
+const ChipSelect = ({
+	options,
+	selected,
+	onToggle,
+	className,
+}: {
+	options: string[]
+	selected: string[]
+	onToggle: (option: string) => void
+	className?: string
+}) => (
+	<div className={cn('flex flex-wrap gap-2', className)}>
+		{options.map(option => {
+			const isSelected = selected.includes(option)
+			return (
+				<motion.button
+					key={option}
+					whileHover={{ scale: 1.02 }}
+					whileTap={{ scale: 0.98 }}
+					onClick={() => onToggle(option)}
+					className={cn(
+						'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
+						isSelected
+							? 'bg-primary text-primary-foreground shadow-md'
+							: 'bg-muted text-muted-foreground hover:bg-muted/80',
+					)}
+				>
+					{isSelected && <Check className='mr-1 inline size-3' />}
+					{option}
+				</motion.button>
+			)
+		})}
+	</div>
+)
+
+const ButtonGroup = <T extends string>({
+	options,
+	value,
+	onChange,
+}: {
+	options: { value: T; label: string; icon?: typeof Sun; emoji?: string }[]
+	value: T
+	onChange: (value: T) => void
+}) => (
+	<div className='flex gap-2 flex-wrap'>
+		{options.map(option => {
+			const Icon = option.icon
+			return (
+				<motion.button
+					key={option.value}
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
+					onClick={() => onChange(option.value)}
+					className={cn(
+						'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
+						value === option.value
+							? 'bg-primary text-primary-foreground shadow-md'
+							: 'bg-muted text-muted-foreground hover:bg-muted/80',
+					)}
+				>
+					{Icon && <Icon className='size-4' />}
+					{option.emoji && <span>{option.emoji}</span>}
+					{option.label}
+				</motion.button>
+			)
+		})}
+	</div>
+)
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export default function SettingsPage() {
 	const { user } = useAuth()
+	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
+	const [isLoading, setIsLoading] = useState(true)
+	const [isSaving, setIsSaving] = useState(false)
+	const [settings, setSettings] = useState<UserSettings | null>(null)
 
-	// Get display name, falling back to firstName lastName or username
-	const displayName =
-		user?.displayName ||
-		`${user?.firstName || ''} ${user?.lastName || ''}`.trim() ||
-		user?.username ||
-		''
+	const [displayName, setDisplayName] = useState('')
+	const [bio, setBio] = useState('')
+
+	useEffect(() => {
+		const loadSettings = async () => {
+			try {
+				const response = await getAllSettings()
+				if (response.success && response.data) {
+					setSettings(response.data)
+				} else {
+					setSettings({
+						userId: user?.userId || '',
+						...DEFAULT_USER_SETTINGS,
+					} as UserSettings)
+				}
+			} catch (error) {
+				console.error('Failed to load settings:', error)
+				toast.error('Failed to load settings')
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		if (user) {
+			setDisplayName(user.displayName || '')
+			setBio(user.bio || '')
+			loadSettings()
+		}
+	}, [user])
+
+	const handleSaveProfile = async () => {
+		setIsSaving(true)
+		try {
+			const response = await updateProfile({ displayName, bio })
+			if (response.success) {
+				toast.success('Profile updated!')
+			} else {
+				toast.error(response.message || 'Failed to update profile')
+			}
+		} catch (error) {
+			toast.error('Failed to update profile')
+		} finally {
+			setIsSaving(false)
+		}
+	}
+
+	const handleUpdatePrivacy = useCallback(
+		async (updates: Partial<PrivacySettings>) => {
+			if (!settings) return
+			const newPrivacy = { ...settings.privacy, ...updates }
+			setSettings({ ...settings, privacy: newPrivacy })
+
+			try {
+				const response = await updatePrivacySettings(updates)
+				if (response.success) {
+					toast.success('Privacy settings updated')
+				}
+			} catch (error) {
+				toast.error('Failed to update privacy settings')
+			}
+		},
+		[settings],
+	)
+
+	const handleUpdateNotifications = useCallback(
+		async (updates: Partial<NotificationSettings>) => {
+			if (!settings) return
+			const newNotifications = {
+				...settings.notifications,
+				email: { ...settings.notifications.email, ...updates.email },
+				inApp: { ...settings.notifications.inApp, ...updates.inApp },
+				push: { ...settings.notifications.push, ...updates.push },
+			}
+			setSettings({ ...settings, notifications: newNotifications })
+
+			try {
+				const response = await updateNotificationSettings(updates)
+				if (response.success) {
+					toast.success('Notification settings updated')
+				}
+			} catch (error) {
+				toast.error('Failed to update notification settings')
+			}
+		},
+		[settings],
+	)
+
+	const handleUpdateCooking = useCallback(
+		async (updates: Partial<CookingPreferences>) => {
+			if (!settings) return
+			const newCooking = { ...settings.cooking, ...updates }
+			setSettings({ ...settings, cooking: newCooking })
+
+			try {
+				const response = await updateCookingPreferences(updates)
+				if (response.success) {
+					toast.success('Cooking preferences updated')
+				}
+			} catch (error) {
+				toast.error('Failed to update cooking preferences')
+			}
+		},
+		[settings],
+	)
+
+	const handleUpdateApp = useCallback(
+		async (updates: Partial<AppPreferences>) => {
+			if (!settings) return
+			const newApp = { ...settings.app, ...updates }
+			setSettings({ ...settings, app: newApp })
+
+			try {
+				const response = await updateAppPreferences(updates)
+				if (response.success) {
+					toast.success('App preferences updated')
+				}
+			} catch (error) {
+				toast.error('Failed to update app preferences')
+			}
+		},
+		[settings],
+	)
+
+	const toggleArrayItem = (arr: string[], item: string): string[] =>
+		arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item]
+
+	if (isLoading) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<div className='flex min-h-content-tall items-center justify-center'>
+						<Loader2 className='size-8 animate-spin text-primary' />
+					</div>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='md'>
-				<h1 className='mb-6 text-3xl font-bold'>Settings</h1>
-				<div className='grid grid-cols-1 gap-6 lg:grid-cols-[200px_1fr]'>
-					{/* Settings Navigation */}
-					<nav className='flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm'>
-						<a
-							href='#'
-							className='flex items-center gap-3 rounded-md bg-muted px-3 py-2 text-primary transition-colors hover:text-primary'
+			<PageContainer maxWidth='lg'>
+				{/* Header */}
+				<motion.div
+					initial={{ opacity: 0, y: -20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-8'
+				>
+					<div className='flex items-center gap-3'>
+						<motion.div
+							whileHover={{ rotate: 45 }}
+							transition={TRANSITION_SPRING}
 						>
-							<User className='h-4 w-4' /> Account
-						</a>
-						<a
-							href='#'
-							className='flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary'
-						>
-							<Shield className='h-4 w-4' /> Security
-						</a>
-						<a
-							href='#'
-							className='flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary'
-						>
-							<Bell className='h-4 w-4' /> Notifications
-						</a>
-						<a
-							href='#'
-							className='flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary'
-						>
-							<Eye className='h-4 w-4' /> Appearance
-						</a>
-					</nav>
-
-					{/* Settings Content */}
-					<div className='rounded-lg border bg-card p-6 shadow-sm'>
-						<h2 className='mb-4 text-2xl font-bold'>Account Information</h2>
-						<div className='space-y-4'>
-							<div className='grid gap-2'>
-								<Label htmlFor='name'>Full Name</Label>
-								<Input
-									id='name'
-									type='text'
-									defaultValue={displayName}
-									placeholder='Enter your name'
-								/>
-							</div>
-							<div className='grid gap-2'>
-								<Label htmlFor='email'>Email</Label>
-								<Input
-									id='email'
-									type='email'
-									defaultValue={user?.email || ''}
-									placeholder='Enter your email'
-								/>
-							</div>
-							<div className='grid gap-2'>
-								<Label htmlFor='bio'>Bio</Label>
-								<Textarea
-									id='bio'
-									defaultValue={user?.bio || ''}
-									placeholder='Tell us about yourself...'
-								/>
-							</div>
-							<Button className='mt-4'>
-								<Save className='mr-2 h-4 w-4' /> Save Changes
-							</Button>
+							<Settings className='size-8 text-primary' />
+						</motion.div>
+						<div>
+							<h1 className='text-3xl font-bold text-foreground'>Settings</h1>
+							<p className='text-muted-foreground'>
+								Customize your ChefKix experience
+							</p>
 						</div>
 					</div>
+				</motion.div>
+
+				<div className='grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]'>
+					{/* Sidebar Tabs */}
+					<motion.nav
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={TRANSITION_SPRING}
+						className='flex flex-col gap-1 rounded-xl border border-border bg-card p-2 shadow-sm h-fit lg:sticky lg:top-24'
+					>
+						{TABS.map(tab => {
+							const Icon = tab.icon
+							const isActive = activeTab === tab.id
+							return (
+								<motion.button
+									key={tab.id}
+									whileHover={{ x: 4 }}
+									whileTap={{ scale: 0.98 }}
+									onClick={() => setActiveTab(tab.id)}
+									className={cn(
+										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all',
+										isActive
+											? 'bg-primary/10 text-primary font-semibold'
+											: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+									)}
+								>
+									<Icon
+										className={cn(
+											'size-5',
+											isActive ? 'text-primary' : 'text-muted-foreground',
+										)}
+									/>
+									<div className='hidden lg:block'>
+										<p className='text-sm'>{tab.label}</p>
+									</div>
+								</motion.button>
+							)
+						})}
+					</motion.nav>
+
+					{/* Content Area */}
+					<AnimatePresence mode='wait'>
+						<motion.div
+							key={activeTab}
+							variants={tabContentVariants}
+							initial='hidden'
+							animate='visible'
+							exit='exit'
+							className='space-y-6'
+						>
+							{/* Account Tab */}
+							{activeTab === 'account' && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									className='space-y-6'
+								>
+									<SettingsCard
+										title='Profile Information'
+										description='This is how others see you on ChefKix'
+									>
+										<div className='space-y-4'>
+											<div className='grid gap-2'>
+												<Label htmlFor='displayName'>Display Name</Label>
+												<Input
+													id='displayName'
+													value={displayName}
+													onChange={e => setDisplayName(e.target.value)}
+													placeholder='Your display name'
+												/>
+											</div>
+											<div className='grid gap-2'>
+												<Label htmlFor='email'>Email</Label>
+												<Input
+													id='email'
+													value={user?.email || ''}
+													disabled
+													className='bg-muted'
+												/>
+												<p className='text-xs text-muted-foreground'>
+													Email cannot be changed
+												</p>
+											</div>
+											<div className='grid gap-2'>
+												<Label htmlFor='bio'>Bio</Label>
+												<Textarea
+													id='bio'
+													value={bio}
+													onChange={e => setBio(e.target.value)}
+													placeholder='Tell us about yourself...'
+													maxLength={160}
+												/>
+												<p className='text-xs text-muted-foreground text-right'>
+													{bio.length}/160
+												</p>
+											</div>
+											<Button onClick={handleSaveProfile} disabled={isSaving}>
+												{isSaving ? (
+													<Loader2 className='mr-2 size-4 animate-spin' />
+												) : (
+													<Save className='mr-2 size-4' />
+												)}
+												Save Profile
+											</Button>
+										</div>
+									</SettingsCard>
+
+									<SettingsCard
+										title='Account Security'
+										description='Manage your password and security settings'
+									>
+										<div className='space-y-4'>
+											<Button variant='outline' className='w-full sm:w-auto'>
+												<Shield className='mr-2 size-4' />
+												Change Password
+											</Button>
+										</div>
+									</SettingsCard>
+								</motion.div>
+							)}
+
+							{/* Privacy Tab */}
+							{activeTab === 'privacy' && settings && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									className='space-y-6'
+								>
+									<SettingsCard
+										title='Profile Visibility'
+										description='Control who can see your profile and content'
+									>
+										<div className='space-y-4'>
+											<div>
+												<Label className='mb-3 block'>
+													Who can see your profile?
+												</Label>
+												<ButtonGroup
+													options={VISIBILITY_OPTIONS}
+													value={settings.privacy.profileVisibility}
+													onChange={v =>
+														handleUpdatePrivacy({ profileVisibility: v })
+													}
+												/>
+											</div>
+											<div>
+												<Label className='mb-3 block'>
+													Who can message you?
+												</Label>
+												<ButtonGroup
+													options={MESSAGE_OPTIONS}
+													value={settings.privacy.allowMessagesFrom}
+													onChange={v =>
+														handleUpdatePrivacy({ allowMessagesFrom: v })
+													}
+												/>
+											</div>
+										</div>
+									</SettingsCard>
+
+									<SettingsCard title='Privacy Toggles'>
+										<div>
+											<ToggleRow
+												label='Show on Leaderboard'
+												description='Appear in global rankings'
+												icon={Trophy}
+												checked={settings.privacy.showOnLeaderboard}
+												onCheckedChange={checked =>
+													handleUpdatePrivacy({ showOnLeaderboard: checked })
+												}
+											/>
+											<ToggleRow
+												label='Allow Followers'
+												description='Let others follow your cooking journey'
+												icon={Users}
+												checked={settings.privacy.allowFollowers}
+												onCheckedChange={checked =>
+													handleUpdatePrivacy({ allowFollowers: checked })
+												}
+											/>
+											<ToggleRow
+												label='Show Cooking Activity'
+												description='Show when you are cooking to friends'
+												icon={ChefHat}
+												checked={settings.privacy.showCookingActivity}
+												onCheckedChange={checked =>
+													handleUpdatePrivacy({ showCookingActivity: checked })
+												}
+											/>
+										</div>
+									</SettingsCard>
+								</motion.div>
+							)}
+
+							{/* Notifications Tab */}
+							{activeTab === 'notifications' && settings && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									className='space-y-6'
+								>
+									<SettingsCard
+										title='Email Notifications'
+										description='Choose what emails you receive'
+									>
+										<div>
+											<ToggleRow
+												label='Weekly Digest'
+												description='Summary of your activity'
+												icon={Mail}
+												checked={settings.notifications.email.weeklyDigest}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														email: {
+															...settings.notifications.email,
+															weeklyDigest: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='New Follower'
+												description='When someone follows you'
+												icon={Users}
+												checked={settings.notifications.email.newFollower}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														email: {
+															...settings.notifications.email,
+															newFollower: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='Recipe Milestones'
+												description='When your recipe hits 10/50/100 cooks'
+												icon={Trophy}
+												checked={settings.notifications.email.recipeMilestone}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														email: {
+															...settings.notifications.email,
+															recipeMilestone: checked,
+														},
+													})
+												}
+											/>
+										</div>
+									</SettingsCard>
+
+									<SettingsCard
+										title='In-App Notifications'
+										description='Bell notifications within ChefKix'
+									>
+										<div>
+											<ToggleRow
+												label='XP & Level Ups'
+												description='Progress notifications'
+												icon={Sparkles}
+												checked={settings.notifications.inApp.xpAndLevelUps}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														inApp: {
+															...settings.notifications.inApp,
+															xpAndLevelUps: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='Badges'
+												description='Badge unlock notifications'
+												icon={Trophy}
+												checked={settings.notifications.inApp.badges}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														inApp: {
+															...settings.notifications.inApp,
+															badges: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='Social Activity'
+												description='Likes and comments'
+												icon={MessageSquare}
+												checked={settings.notifications.inApp.social}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														inApp: {
+															...settings.notifications.inApp,
+															social: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='New Followers'
+												description='When someone follows you'
+												icon={Users}
+												checked={settings.notifications.inApp.followers}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														inApp: {
+															...settings.notifications.inApp,
+															followers: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='Post Reminders'
+												description='Remind to post cooking attempts'
+												icon={Clock}
+												checked={settings.notifications.inApp.postDeadline}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														inApp: {
+															...settings.notifications.inApp,
+															postDeadline: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='Streak Warnings'
+												description='Before your streak expires'
+												icon={AlertTriangle}
+												checked={settings.notifications.inApp.streakWarning}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														inApp: {
+															...settings.notifications.inApp,
+															streakWarning: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='Daily Challenge'
+												description='Todays challenge notification'
+												icon={ChefHat}
+												checked={settings.notifications.inApp.dailyChallenge}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														inApp: {
+															...settings.notifications.inApp,
+															dailyChallenge: checked,
+														},
+													})
+												}
+											/>
+										</div>
+									</SettingsCard>
+
+									<SettingsCard
+										title='Push Notifications'
+										description='Mobile and browser notifications'
+									>
+										<div>
+											<ToggleRow
+												label='Enable Push Notifications'
+												description='Receive notifications even when not using ChefKix'
+												icon={Smartphone}
+												checked={settings.notifications.push.enabled}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														push: {
+															...settings.notifications.push,
+															enabled: checked,
+														},
+													})
+												}
+											/>
+											<ToggleRow
+												label='Timer Alerts'
+												description='When cooking timers complete'
+												icon={Timer}
+												checked={settings.notifications.push.timerAlerts}
+												onCheckedChange={checked =>
+													handleUpdateNotifications({
+														push: {
+															...settings.notifications.push,
+															timerAlerts: checked,
+														},
+													})
+												}
+											/>
+										</div>
+									</SettingsCard>
+								</motion.div>
+							)}
+
+							{/* Cooking Tab */}
+							{activeTab === 'cooking' && settings && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									className='space-y-6'
+								>
+									<SettingsCard
+										title='Skill Level'
+										description='This helps us recommend appropriate recipes'
+									>
+										<ButtonGroup
+											options={SKILL_LEVELS}
+											value={settings.cooking.skillLevel}
+											onChange={v => handleUpdateCooking({ skillLevel: v })}
+										/>
+									</SettingsCard>
+
+									<SettingsCard
+										title='Dietary Restrictions'
+										description='We will filter recipes based on your diet'
+									>
+										<ChipSelect
+											options={DIETARY_OPTIONS}
+											selected={settings.cooking.dietaryRestrictions}
+											onToggle={opt =>
+												handleUpdateCooking({
+													dietaryRestrictions: toggleArrayItem(
+														settings.cooking.dietaryRestrictions,
+														opt,
+													),
+												})
+											}
+										/>
+									</SettingsCard>
+
+									<SettingsCard
+										title='Allergies'
+										description='We will warn you about recipes containing these'
+									>
+										<ChipSelect
+											options={ALLERGY_OPTIONS}
+											selected={settings.cooking.allergies}
+											onToggle={opt =>
+												handleUpdateCooking({
+													allergies: toggleArrayItem(
+														settings.cooking.allergies,
+														opt,
+													),
+												})
+											}
+										/>
+										{settings.cooking.allergies.length > 0 && (
+											<div className='mt-3 flex items-center gap-2 text-amber-600 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3'>
+												<AlertTriangle className='size-4' />
+												<span className='text-sm'>
+													You will see warnings on recipes containing:{' '}
+													{settings.cooking.allergies.join(', ')}
+												</span>
+											</div>
+										)}
+									</SettingsCard>
+
+									<SettingsCard
+										title='Preferred Cuisines'
+										description='We will prioritize these in your feed'
+									>
+										<ChipSelect
+											options={CUISINE_OPTIONS}
+											selected={settings.cooking.preferredCuisines}
+											onToggle={opt =>
+												handleUpdateCooking({
+													preferredCuisines: toggleArrayItem(
+														settings.cooking.preferredCuisines,
+														opt,
+													),
+												})
+											}
+										/>
+									</SettingsCard>
+
+									<SettingsCard title='Cooking Preferences'>
+										<div className='space-y-6'>
+											<div>
+												<Label className='mb-3 block'>Default Servings</Label>
+												<div className='flex items-center gap-4'>
+													<Input
+														type='number'
+														min={1}
+														max={20}
+														value={settings.cooking.defaultServings}
+														onChange={e =>
+															handleUpdateCooking({
+																defaultServings: parseInt(e.target.value) || 2,
+															})
+														}
+														className='w-24'
+													/>
+													<span className='text-sm text-muted-foreground'>
+														servings
+													</span>
+												</div>
+											</div>
+											<div>
+												<Label className='mb-3 block'>Max Cooking Time</Label>
+												<div className='flex items-center gap-4'>
+													<Input
+														type='number'
+														min={0}
+														max={480}
+														value={settings.cooking.maxCookingTimeMinutes || ''}
+														onChange={e =>
+															handleUpdateCooking({
+																maxCookingTimeMinutes: e.target.value
+																	? parseInt(e.target.value)
+																	: null,
+															})
+														}
+														placeholder='No limit'
+														className='w-24'
+													/>
+													<span className='text-sm text-muted-foreground'>
+														minutes (leave empty for no limit)
+													</span>
+												</div>
+											</div>
+											<div>
+												<Label className='mb-3 block'>Measurement Units</Label>
+												<ButtonGroup
+													options={[
+														{
+															value: 'metric' as MeasurementUnits,
+															label: 'Metric (g, ml)',
+														},
+														{
+															value: 'imperial' as MeasurementUnits,
+															label: 'Imperial (oz, cups)',
+														},
+													]}
+													value={settings.cooking.measurementUnits}
+													onChange={v =>
+														handleUpdateCooking({ measurementUnits: v })
+													}
+												/>
+											</div>
+										</div>
+									</SettingsCard>
+								</motion.div>
+							)}
+
+							{/* Appearance Tab */}
+							{activeTab === 'appearance' && settings && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									className='space-y-6'
+								>
+									<SettingsCard
+										title='Theme'
+										description='Choose your preferred appearance'
+									>
+										<ButtonGroup
+											options={THEME_OPTIONS}
+											value={settings.app.theme}
+											onChange={v => handleUpdateApp({ theme: v })}
+										/>
+									</SettingsCard>
+
+									<SettingsCard title='Sound & Motion'>
+										<div>
+											<ToggleRow
+												label='Sound Effects'
+												description='Timer dings, XP sounds, celebrations'
+												icon={Volume2}
+												checked={settings.app.soundEffects}
+												onCheckedChange={checked =>
+													handleUpdateApp({ soundEffects: checked })
+												}
+											/>
+											{/* Test Timer Sound Button */}
+											<div className='flex items-center justify-between border-b border-border py-3'>
+												<div className='flex items-center gap-3'>
+													<Timer className='size-4 text-muted-foreground' />
+													<div>
+														<p className='text-sm font-medium text-foreground'>
+															Timer Notification Sound
+														</p>
+														<p className='text-xs text-muted-foreground'>
+															Preview the sound that plays when timers complete
+														</p>
+													</div>
+												</div>
+												<Button
+													variant='outline'
+													size='sm'
+													onClick={() => {
+														playTimerChime()
+														toast.success('🔔 Timer sound played!')
+													}}
+													className='shrink-0'
+												>
+													<Volume2 className='mr-2 size-4' />
+													Test Sound
+												</Button>
+											</div>
+											<ToggleRow
+												label='Reduced Motion'
+												description='Disable animations for accessibility'
+												icon={Eye}
+												checked={settings.app.reducedMotion}
+												onCheckedChange={checked =>
+													handleUpdateApp({ reducedMotion: checked })
+												}
+											/>
+											<ToggleRow
+												label='Auto-play Videos'
+												description='Automatically play recipe step videos'
+												icon={Smartphone}
+												checked={settings.app.autoPlayVideos}
+												onCheckedChange={checked =>
+													handleUpdateApp({ autoPlayVideos: checked })
+												}
+											/>
+										</div>
+									</SettingsCard>
+
+									<SettingsCard title='Cooking Session'>
+										<div>
+											<ToggleRow
+												label='Keep Screen On'
+												description='Prevent screen sleep during cooking'
+												icon={Smartphone}
+												checked={settings.app.keepScreenOn}
+												onCheckedChange={checked =>
+													handleUpdateApp({ keepScreenOn: checked })
+												}
+											/>
+										</div>
+									</SettingsCard>
+								</motion.div>
+							)}
+						</motion.div>
+					</AnimatePresence>
 				</div>
 			</PageContainer>
 		</PageTransition>

@@ -1,4 +1,4 @@
-import { RecipeDifficulty } from './types/recipe'
+import { Difficulty } from './types/recipe'
 
 export interface PaginationInput {
 	limit?: number
@@ -54,7 +54,7 @@ export type DifficultyDisplay = 'Easy' | 'Medium' | 'Hard' | 'Expert'
  * BE sends PascalCase: "Beginner", "Intermediate", "Advanced", "Expert"
  */
 export function difficultyToDisplay(
-	apiValue: RecipeDifficulty | string,
+	apiValue: Difficulty | string,
 ): DifficultyDisplay {
 	const map: Record<string, DifficultyDisplay> = {
 		Beginner: 'Easy',
@@ -77,8 +77,8 @@ export function difficultyToDisplay(
  */
 export function difficultyToApi(
 	displayValue: DifficultyDisplay | string,
-): RecipeDifficulty {
-	const map: Record<string, RecipeDifficulty> = {
+): Difficulty {
+	const map: Record<string, Difficulty> = {
 		Easy: 'Beginner',
 		easy: 'Beginner',
 		Medium: 'Intermediate',
