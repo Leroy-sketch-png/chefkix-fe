@@ -1,6 +1,6 @@
 'use client'
 
-import { Recipe } from '@/lib/types/recipe'
+import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { Button } from '@/components/ui/button'
 import { Heart, Clock, Bookmark } from 'lucide-react'
 import Image from 'next/image'
@@ -27,7 +27,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 	const [isSaveLoading, setIsSaveLoading] = useState(false)
 
-	const totalTime = recipe.prepTime + recipe.cookTime
+	const totalTime = getTotalTime(recipe)
 
 	const handleLikeClick = async (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -129,7 +129,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 
 					<div className='relative aspect-[4/3] w-full overflow-hidden'>
 						<Image
-							src={recipe.imageUrl}
+							src={getRecipeImage(recipe)}
 							alt={recipe.title}
 							fill
 							className='object-cover brightness-95 transition-all duration-500 group-hover:scale-105 group-hover:brightness-105 group-hover:saturate-110'
@@ -137,11 +137,11 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						{/* Difficulty badge */}
 						<div
 							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.3px] text-primary-foreground ${
-								recipe.difficulty === 'BEGINNER'
+								recipe.difficulty === 'Beginner'
 									? 'bg-gradient-to-br from-success to-success/80'
-									: recipe.difficulty === 'INTERMEDIATE'
+									: recipe.difficulty === 'Intermediate'
 										? 'bg-gradient-to-br from-accent to-accent-variant'
-										: recipe.difficulty === 'ADVANCED'
+										: recipe.difficulty === 'Advanced'
 											? 'bg-gradient-to-br from-warning to-gold'
 											: 'bg-gradient-to-br from-destructive to-gold'
 							}`}

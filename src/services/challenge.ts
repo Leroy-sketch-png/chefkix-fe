@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import { ApiResponse } from '@/lib/types'
+import { ApiResponse, Difficulty } from '@/lib/types'
 import { AxiosError } from 'axios'
 
 // ============================================
@@ -10,7 +10,7 @@ export interface ChallengeCriteria {
 	cuisineType?: string[]
 	ingredientContains?: string[]
 	maxTimeMinutes?: number
-	difficulty?: ('BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT')[]
+	difficulty?: Difficulty[]
 	skillTags?: string[]
 }
 
@@ -18,16 +18,18 @@ export interface ChallengeMatchingRecipe {
 	id: string
 	title: string
 	xpReward: number
-	coverImageUrl: string
+	coverImageUrl: string[] // BE returns array - use [0] for thumbnail
+	totalTime?: number // BE includes this (minutes)
+	difficulty?: Difficulty // BE includes this
 }
 
 export interface DailyChallenge {
 	id: string
 	title: string
 	description: string
-	icon: string
+	icon?: string // NOTE: BE doesn't send this - may need BE addition or FE default
 	bonusXp: number
-	criteria: ChallengeCriteria
+	criteria: ChallengeCriteria | Record<string, unknown> // BE uses Map<String, Object>
 	endsAt: string // ISO8601
 	completed: boolean
 	completedAt?: string

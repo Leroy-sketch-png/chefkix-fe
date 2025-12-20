@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Recipe } from '@/lib/types/recipe'
+import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getRecipeById,
 	toggleLikeRecipe,
@@ -160,7 +160,7 @@ export default function RecipeDetailPage() {
 		)
 	}
 
-	const totalTime = recipe.prepTime + recipe.cookTime
+	const totalTime = getTotalTime(recipe)
 
 	return (
 		<PageTransition>
@@ -169,7 +169,7 @@ export default function RecipeDetailPage() {
 				<div className='mb-8 overflow-hidden rounded-2xl border bg-card shadow-lg'>
 					<div className='relative h-panel-md w-full'>
 						<Image
-							src={recipe.imageUrl}
+							src={getRecipeImage(recipe)}
 							alt={recipe.title}
 							fill
 							className='object-cover'
@@ -281,11 +281,11 @@ export default function RecipeDetailPage() {
 						</div>
 
 						{/* Tags */}
-						{(recipe.cuisine || recipe.dietaryTags.length > 0) && (
+						{(recipe.cuisineType || recipe.dietaryTags.length > 0) && (
 							<div className='mt-6 flex flex-wrap gap-2'>
-								{recipe.cuisine && (
+								{recipe.cuisineType && (
 									<span className='rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary'>
-										{recipe.cuisine}
+										{recipe.cuisineType}
 									</span>
 								)}
 								{recipe.dietaryTags.map(tag => (
@@ -311,22 +311,20 @@ export default function RecipeDetailPage() {
 								For {recipe.servings} servings
 							</p>
 							<ul className='space-y-3'>
-								{recipe.ingredients
-									.sort((a, b) => a.order - b.order)
-									.map(ingredient => (
-										<li
-											key={ingredient.id}
-											className='flex items-start gap-3 rounded-lg p-2 hover:bg-muted'
-										>
-											<div className='mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary' />
-											<span className='flex-1'>
-												<span className='font-semibold'>
-													{ingredient.quantity} {ingredient.unit}
-												</span>{' '}
-												{ingredient.name}
-											</span>
-										</li>
-									))}
+								{recipe.fullIngredientList.map((ingredient, index) => (
+									<li
+										key={`ingredient-${index}`}
+										className='flex items-start gap-3 rounded-lg p-2 hover:bg-muted'
+									>
+										<div className='mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary' />
+										<span className='flex-1'>
+											<span className='font-semibold'>
+												{ingredient.quantity} {ingredient.unit}
+											</span>{' '}
+											{ingredient.name}
+										</span>
+									</li>
+								))}
 							</ul>
 						</div>
 					</div>
@@ -336,10 +334,10 @@ export default function RecipeDetailPage() {
 						<h2 className='mb-6 text-2xl font-bold'>Instructions</h2>
 						<div className='space-y-6'>
 							{recipe.steps
-								.sort((a, b) => a.order - b.order)
+								.sort((a, b) => a.stepNumber - b.stepNumber)
 								.map((step, index) => (
 									<div
-										key={step.id}
+										key={`step-${step.stepNumber}`}
 										className='rounded-xl border bg-card p-6 shadow-sm'
 									>
 										<div className='mb-3 flex items-center gap-3'>
@@ -348,10 +346,10 @@ export default function RecipeDetailPage() {
 											</div>
 											<div className='flex-1'>
 												<h3 className='text-lg font-semibold'>{step.title}</h3>
-												{step.duration && (
+												{step.timerSeconds && (
 													<p className='text-sm text-muted-foreground'>
 														<Clock className='mr-1 inline h-3 w-3' />
-														{step.duration} min
+														{Math.ceil(step.timerSeconds / 60)} min
 													</p>
 												)}
 											</div>
@@ -367,7 +365,7 @@ export default function RecipeDetailPage() {
 											</div>
 										)}
 										<p className='leading-relaxed text-muted-foreground'>
-											{step.instruction}
+											{step.description}
 										</p>
 									</div>
 								))}

@@ -50,36 +50,43 @@ export type DifficultyDisplay = 'Easy' | 'Medium' | 'Hard' | 'Expert'
 
 /**
  * Map API difficulty value to display value
- * API: 'BEGINNER' → Display: 'Easy'
+ * API: 'Beginner' → Display: 'Easy'
+ * BE sends PascalCase: "Beginner", "Intermediate", "Advanced", "Expert"
  */
 export function difficultyToDisplay(
 	apiValue: RecipeDifficulty | string,
 ): DifficultyDisplay {
 	const map: Record<string, DifficultyDisplay> = {
+		Beginner: 'Easy',
+		Intermediate: 'Medium',
+		Advanced: 'Hard',
+		Expert: 'Expert',
+		// Backwards compat for any legacy data
 		BEGINNER: 'Easy',
 		INTERMEDIATE: 'Medium',
 		ADVANCED: 'Hard',
 		EXPERT: 'Expert',
 	}
-	return map[apiValue.toUpperCase()] || 'Medium'
+	return map[apiValue] || 'Medium'
 }
 
 /**
  * Map display difficulty value to API value
- * Display: 'Easy' → API: 'BEGINNER'
+ * Display: 'Easy' → API: 'Beginner'
+ * BE expects PascalCase: "Beginner", "Intermediate", "Advanced", "Expert"
  */
 export function difficultyToApi(
 	displayValue: DifficultyDisplay | string,
 ): RecipeDifficulty {
 	const map: Record<string, RecipeDifficulty> = {
-		Easy: 'BEGINNER',
-		easy: 'BEGINNER',
-		Medium: 'INTERMEDIATE',
-		medium: 'INTERMEDIATE',
-		Hard: 'ADVANCED',
-		hard: 'ADVANCED',
-		Expert: 'EXPERT',
-		expert: 'EXPERT',
+		Easy: 'Beginner',
+		easy: 'Beginner',
+		Medium: 'Intermediate',
+		medium: 'Intermediate',
+		Hard: 'Advanced',
+		hard: 'Advanced',
+		Expert: 'Expert',
+		expert: 'Expert',
 	}
-	return map[displayValue] || 'INTERMEDIATE'
+	return map[displayValue] || 'Intermediate'
 }

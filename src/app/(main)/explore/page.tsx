@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Recipe } from '@/lib/types/recipe'
+import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getAllRecipes,
 	getTrendingRecipes,
@@ -23,22 +23,27 @@ import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 
-// Difficulty mapping: API → Enhanced Card
+// Difficulty mapping: API (PascalCase) → Enhanced Card (lowercase)
 const difficultyMap: Record<
 	string,
 	'beginner' | 'intermediate' | 'advanced' | 'expert'
 > = {
-	EASY: 'beginner',
-	MEDIUM: 'intermediate',
-	HARD: 'advanced',
-	EXPERT: 'expert',
+	Beginner: 'beginner',
+	Intermediate: 'intermediate',
+	Advanced: 'advanced',
+	Expert: 'expert',
 }
 
 // XP reward calculation (fallback when backend doesn't provide xpReward)
 const calculateXpRewardFallback = (recipe: Recipe): number => {
 	const baseXp = 50
-	const difficultyBonus = { EASY: 0, MEDIUM: 25, HARD: 50, EXPERT: 100 }
-	const timeBonus = Math.floor((recipe.prepTime + recipe.cookTime) / 10) * 5
+	const difficultyBonus = {
+		Beginner: 0,
+		Intermediate: 25,
+		Advanced: 50,
+		Expert: 100,
+	}
+	const timeBonus = Math.floor(getTotalTime(recipe) / 10) * 5
 	return (
 		baseXp +
 		(difficultyBonus[recipe.difficulty as keyof typeof difficultyBonus] || 0) +
@@ -106,7 +111,9 @@ export default function ExplorePage() {
 					if (filters.cuisine.length > 0) {
 						filtered = filtered.filter(recipe =>
 							filters.cuisine.some(cuisine =>
-								recipe.cuisine?.toLowerCase().includes(cuisine.toLowerCase()),
+								recipe.cuisineType
+									?.toLowerCase()
+									.includes(cuisine.toLowerCase()),
 							),
 						)
 					}
@@ -121,10 +128,8 @@ export default function ExplorePage() {
 					}
 
 					// Filter by cooking time
-					const totalTime = (recipe: Recipe) =>
-						recipe.prepTime + recipe.cookTime
 					filtered = filtered.filter(
-						recipe => totalTime(recipe) <= filters.cookingTimeMax,
+						recipe => getTotalTime(recipe) <= filters.cookingTimeMax,
 					)
 
 					// Filter by rating (future: when rating field exists)
@@ -302,8 +307,8 @@ export default function ExplorePage() {
 								id={recipe.id}
 								title={recipe.title}
 								description={recipe.description}
-								imageUrl={recipe.imageUrl}
-								cookTimeMinutes={recipe.prepTime + recipe.cookTime}
+								imageUrl={getRecipeImage(recipe)}
+								cookTimeMinutes={getTotalTime(recipe)}
 								difficulty={difficultyMap[recipe.difficulty] || 'beginner'}
 								xpReward={recipe.xpReward ?? calculateXpRewardFallback(recipe)}
 								rating={4.5} // TODO: Add rating field to Recipe type when backend supports it

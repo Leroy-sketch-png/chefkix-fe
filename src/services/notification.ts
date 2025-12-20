@@ -9,31 +9,45 @@ import { API_ENDPOINTS } from '@/constants/api'
 import type { AxiosError } from 'axios'
 
 // ============================================
-// TYPES
+// TYPES - Must match BE NotificationType enum exactly
 // ============================================
 
 export type NotificationType =
-	| 'xp_awarded'
-	| 'level_up'
-	| 'badge_unlocked'
-	| 'creator_bonus'
-	| 'new_follower'
-	| 'post_liked'
-	| 'recipe_liked'
-	| 'comment'
-	| 'reply'
-	| 'challenge_reminder'
-	| 'post_deadline'
-	| 'streak_warning'
+	| 'FOLLOW'
+	| 'NEW_FOLLOWER'
+	| 'FRIEND_REQUEST'
+	| 'FRIEND_ACCEPT'
+	| 'POST_LIKE'
+	| 'POST_COMMENT'
+	| 'XP_AWARDED'
+	| 'LEVEL_UP'
+	| 'BADGE_EARNED'
+	| 'CREATOR_BONUS'
 
+/**
+ * Notification interface matching BE NotificationResponse
+ */
 export interface Notification {
 	id: string
 	type: NotificationType
-	title: string
-	body: string
-	data: Record<string, unknown>
-	read: boolean
+	isRead: boolean
+	content: string
+	targetEntityId?: string
+	targetEntityUrl?: string
 	createdAt: string
+	count: number
+	latestActorId?: string
+	latestActorName?: string
+	isSummary?: boolean
+	actorInfo?: {
+		actorId: string
+		actorName: string
+	}
+	// Legacy fields for backwards compatibility with UI
+	title?: string
+	body?: string
+	data?: Record<string, unknown>
+	read?: boolean // alias for isRead
 }
 
 export interface NotificationPagination {
