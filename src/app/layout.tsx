@@ -1,4 +1,8 @@
-import { Geist, Geist_Mono } from 'next/font/google'
+import {
+	Plus_Jakarta_Sans,
+	Space_Grotesk,
+	Playfair_Display,
+} from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
@@ -6,14 +10,31 @@ import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
 import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
 import { Toaster } from '@/components/ui/toaster'
 
-const geistSans = Geist({
-	variable: '--font-geist-sans',
+// Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
+// Perfect for a social cooking app - warm but professional
+const plusJakarta = Plus_Jakarta_Sans({
+	variable: '--font-sans',
 	subsets: ['latin'],
+	display: 'swap',
+	weight: ['400', '500', '600', '700', '800'],
 })
 
-const geistMono = Geist_Mono({
-	variable: '--font-geist-mono',
+// Display font: Space Grotesk - Bold, geometric, gaming vibes
+// For headings, stats, XP numbers - gives that Duolingo energy
+const spaceGrotesk = Space_Grotesk({
+	variable: '--font-display',
 	subsets: ['latin'],
+	display: 'swap',
+	weight: ['400', '500', '600', '700'],
+})
+
+// Accent font: Playfair Display - Elegant serif for recipe titles
+// Adds sophistication, like a cookbook or food magazine
+const playfair = Playfair_Display({
+	variable: '--font-serif',
+	subsets: ['latin'],
+	display: 'swap',
+	weight: ['400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -67,7 +88,7 @@ export default function RootLayout({
 	return (
 		<html lang='en'>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${playfair.variable} font-sans antialiased`}
 			>
 				<GoogleOAuthWrapper>
 					<AuthProvider>

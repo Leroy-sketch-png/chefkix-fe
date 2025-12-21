@@ -16,6 +16,8 @@ import {
 	Bookmark,
 	Trophy,
 	BadgeCheck,
+	ShieldBan,
+	MoreHorizontal,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -89,11 +91,13 @@ interface OtherUserProfileProps {
 	user: ProfileUser
 	isFollowing?: boolean
 	isFriend?: boolean
+	isBlocked?: boolean
 	recipesYouCooked?: number
 	onFollow?: () => void
 	onAddFriend?: () => void
 	onMessage?: () => void
 	onCompare?: () => void
+	onBlock?: () => void
 	activeTab?: string
 	onTabChange?: (tab: string) => void
 }
@@ -662,11 +666,13 @@ const OtherUserProfileHeader = ({
 	user,
 	isFollowing,
 	isFriend,
+	isBlocked,
 	recipesYouCooked,
 	onFollow,
 	onAddFriend,
 	onMessage,
 	onCompare,
+	onBlock,
 	activeTab,
 	onTabChange,
 }: OtherUserProfileProps) => {
@@ -784,6 +790,22 @@ const OtherUserProfileHeader = ({
 						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
 					>
 						<MessageCircle className='h-4 w-4' />
+					</motion.button>
+					{/* Block/Unblock Button */}
+					<motion.button
+						onClick={onBlock}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
+						className={cn(
+							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors',
+							isBlocked
+								? 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
+								: 'border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-destructive',
+						)}
+						title={isBlocked ? 'Unblock user' : 'Block user'}
+					>
+						<ShieldBan className='h-4 w-4' />
 					</motion.button>
 				</div>
 			</div>

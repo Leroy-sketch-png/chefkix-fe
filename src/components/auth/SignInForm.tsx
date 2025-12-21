@@ -45,9 +45,37 @@ const formSchema = z.object({
 	}),
 })
 
+// User-friendly error messages for common authentication failures
+const AUTH_ERROR_MAP: Record<string, string> = {
+	'Invalid credentials':
+		'Incorrect email/username or password. Please try again.',
+	'User not found': 'No account found with that email or username.',
+	'Account locked': 'Your account has been locked. Please contact support.',
+	'Account disabled': 'Your account has been disabled. Please contact support.',
+	'Email not verified': 'Please verify your email before signing in.',
+	'Too many attempts': 'Too many failed attempts. Please try again later.',
+	'Network Error': 'Unable to connect to server. Please check your connection.',
+}
+
+function getReadableErrorMessage(message: string): string {
+	// Check if we have a mapped error
+	for (const [key, value] of Object.entries(AUTH_ERROR_MAP)) {
+		if (message.toLowerCase().includes(key.toLowerCase())) {
+			return value
+		}
+	}
+	// If no mapping found, return original or a generic message
+	if (!message || message === 'An unknown error occurred.') {
+		return 'Sign in failed. Please check your credentials and try again.'
+	}
+	return message
+}
+
 export function SignInForm() {
-	const { login, setUser, isAuthenticated, setLoading } = useAuth()
+	const { login, setUser, logout, setLoading } = useAuth()
 	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+	// Separate loading state for the button - form.isSubmitting doesn't track async properly
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -59,7 +87,7 @@ export function SignInForm() {
 
 	async function handleSuccessfulLogin(
 		response: ApiResponse<LoginSuccessResponse>,
-	) {
+	): Promise<boolean> {
 		// Correctly access the nested 'data' property from the standardized ApiResponse
 		const payload = response.data
 		if (!payload || !payload.accessToken) {
@@ -70,12 +98,8 @@ export function SignInForm() {
 				message: errorMsg,
 			})
 			toast.error(errorMsg)
-			return
+			return false
 		}
-
-		// Set loading to true so AuthProvider shows loading screen during profile fetch
-		// This prevents the race condition where AuthProvider redirects before profile is loaded
-		setLoading(true)
 
 		// Per the API spec, login returns a token. Set it, then fetch the user profile.
 		login(payload.accessToken)
@@ -84,39 +108,61 @@ export function SignInForm() {
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
 			toast.success('Welcome back! Signed in successfully.')
-			// AuthProvider will handle the redirect since isAuthenticated is now true
-			// and we're on an auth route. Just set loading to false.
-			setLoading(false)
+			// Set loading AFTER everything is ready - AuthProvider will handle redirect
+			setLoading(true)
+			return true
 		} else {
-			// Profile fetch failed - logout and show error
+			// Profile fetch failed - logout completely and show error
+			logout()
 			const errorMsg =
 				profileResponse.message ||
-				'Login successful, but failed to fetch user profile. Please try again.'
-			// Reset auth state since we couldn't complete the login
-			setLoading(false)
+				'Login successful, but failed to fetch your profile. Please try again.'
 			form.setError('root.general' as any, {
 				type: 'manual',
 				message: errorMsg,
 			})
 			toast.error(errorMsg)
+			return false
 		}
 	}
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
-		const response = await signIn({
-			emailOrUsername: values.emailOrUsername,
-			password: values.password,
-		})
+		// Clear previous errors
+		form.clearErrors()
+		setIsSubmitting(true)
 
-		if (response.success) {
-			await handleSuccessfulLogin(response)
-		} else {
-			const errorMessage = response.message || 'An unknown error occurred.'
+		try {
+			const response = await signIn({
+				emailOrUsername: values.emailOrUsername,
+				password: values.password,
+			})
+
+			if (response.success) {
+				const success = await handleSuccessfulLogin(response)
+				if (!success) {
+					// Login failed after initial success - button should stop spinning
+					setIsSubmitting(false)
+				}
+				// If success, keep spinner going until redirect happens
+			} else {
+				// Login failed - show user-friendly error
+				const readableError = getReadableErrorMessage(response.message || '')
+				form.setError('root.general' as any, {
+					type: 'manual',
+					message: readableError,
+				})
+				toast.error(readableError)
+				setIsSubmitting(false)
+			}
+		} catch (error) {
+			// Unexpected error
+			const errorMsg = 'An unexpected error occurred. Please try again.'
 			form.setError('root.general' as any, {
 				type: 'manual',
-				message: errorMessage,
+				message: errorMsg,
 			})
-			toast.error(errorMessage)
+			toast.error(errorMsg)
+			setIsSubmitting(false)
 		}
 	}
 
@@ -188,11 +234,14 @@ export function SignInForm() {
 						</Button>
 					</motion.div>
 					<motion.div variants={staggerItem}>
-						<motion.div whileHover={BUTTON_HOVER} whileTap={BUTTON_TAP}>
+						<motion.div
+							whileHover={isSubmitting ? undefined : BUTTON_HOVER}
+							whileTap={isSubmitting ? undefined : BUTTON_TAP}
+						>
 							<AnimatedButton
 								type='submit'
 								className='h-12 w-full rounded-xl bg-gradient-hero text-base font-bold shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
-								isLoading={form.formState.isSubmitting}
+								isLoading={isSubmitting}
 								loadingText='Signing in...'
 								shine
 							>

@@ -25,12 +25,21 @@ import {
 	Eye,
 	Zap,
 	Check,
+	Edit3,
+	MoreHorizontal,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
+import { useAuthStore } from '@/store/authStore'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { cn } from '@/lib/utils'
 import {
@@ -50,6 +59,7 @@ export default function RecipeDetailPage() {
 	const shouldAutoStartCooking = searchParams?.get('cook') === 'true'
 	const { openCookingPanel, expandCookingPanel } = useUiStore()
 	const { startCooking, isLoading: isCookingLoading } = useCookingStore()
+	const { user } = useAuthStore()
 	const autoStartAttempted = useRef(false)
 
 	const [recipe, setRecipe] = useState<Recipe | null>(null)
@@ -61,6 +71,9 @@ export default function RecipeDetailPage() {
 	const [saveCount, setSaveCount] = useState(0)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 	const [isSaveLoading, setIsSaveLoading] = useState(false)
+
+	// Check if current user is the recipe owner
+	const isOwner = user?.userId === recipe?.author?.userId
 
 	useEffect(() => {
 		const fetchRecipe = async () => {
@@ -457,6 +470,20 @@ export default function RecipeDetailPage() {
 							>
 								<Share2 className='size-5' />
 							</motion.button>
+							{/* Owner Controls */}
+							{isOwner && (
+								<>
+									<motion.button
+										onClick={() => router.push(`/recipes/${recipeId}/edit`)}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-xp hover:bg-xp/10'
+										title='Edit Recipe'
+									>
+										<Edit3 className='size-5' />
+									</motion.button>
+								</>
+							)}
 						</motion.div>
 
 						{/* Tags */}

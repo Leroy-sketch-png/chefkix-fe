@@ -3,48 +3,69 @@
 import { Comment as CommentType } from '@/lib/types'
 import { Comment } from './Comment'
 import { CommentSkeleton } from '@/components/ui/skeleton'
-import { useState, useEffect } from 'react'
-import { getCommentsByPostId } from '@/services/comment'
+import { useState, useEffect, useCallback } from 'react'
+import { getCommentsByPostId, createComment } from '@/services/comment'
 import { toast } from 'sonner'
+import { Send, Loader2 } from 'lucide-react'
 
 interface CommentListProps {
 	postId: string
 	currentUserId?: string
 	isLoading?: boolean
+	onCommentCreated?: () => void
 }
 
 export const CommentList = ({
 	postId,
 	currentUserId,
 	isLoading = false,
+	onCommentCreated,
 }: CommentListProps) => {
 	const [comments, setComments] = useState<CommentType[]>([])
 	const [loading, setLoading] = useState(isLoading)
 	const [error, setError] = useState(false)
+	const [newComment, setNewComment] = useState('')
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	useEffect(() => {
-		const fetchComments = async () => {
-			setLoading(true)
-			setError(false)
+	const fetchComments = useCallback(async () => {
+		setLoading(true)
+		setError(false)
 
-			const response = await getCommentsByPostId(postId)
+		const response = await getCommentsByPostId(postId)
 
-			if (response.success && response.data) {
-				setComments(response.data)
-			} else {
-				setError(true)
-				toast.error(response.message || 'Failed to load comments')
-			}
-
-			setLoading(false)
+		if (response.success && response.data) {
+			setComments(response.data)
+		} else {
+			setError(true)
+			toast.error(response.message || 'Failed to load comments')
 		}
 
-		fetchComments()
+		setLoading(false)
 	}, [postId])
 
-	const handleReply = (commentId: string) => {
-		// TODO: Implement reply functionality when backend supports it
-		toast.info('Reply feature coming soon!')
+	useEffect(() => {
+		fetchComments()
+	}, [fetchComments])
+
+	const handleSubmitComment = async () => {
+		if (!newComment.trim() || isSubmitting) return
+
+		setIsSubmitting(true)
+
+		const response = await createComment(postId, {
+			content: newComment.trim(),
+		})
+
+		if (response.success && response.data) {
+			setComments(prev => [response.data!, ...prev])
+			setNewComment('')
+			toast.success('Comment posted!')
+			onCommentCreated?.()
+		} else {
+			toast.error(response.message || 'Failed to post comment')
+		}
+
+		setIsSubmitting(false)
 	}
 
 	if (loading) {
@@ -65,24 +86,52 @@ export const CommentList = ({
 		)
 	}
 
-	if (comments.length === 0) {
-		return (
-			<div className='p-6 text-center text-sm text-text-secondary'>
-				No comments yet. Be the first to comment!
-			</div>
-		)
-	}
-
 	return (
-		<div className='max-h-panel-lg space-y-2 overflow-y-auto p-4 md:p-6'>
-			{comments.map(comment => (
-				<Comment
-					key={`${comment.userId}-${comment.createdAt}`}
-					comment={comment}
-					currentUserId={currentUserId}
-					onReply={handleReply}
+		<div className='border-t border-border-subtle'>
+			{/* Comment Input */}
+			<div className='flex gap-2 border-b border-border-subtle p-4 md:p-6'>
+				<input
+					type='text'
+					value={newComment}
+					onChange={e => setNewComment(e.target.value)}
+					onKeyDown={e => e.key === 'Enter' && handleSubmitComment()}
+					placeholder='Add a comment...'
+					className='flex-1 rounded-lg bg-bg-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted caret-primary focus:outline-none focus:ring-1 focus:ring-primary/30'
+					disabled={isSubmitting}
 				/>
-			))}
+				<button
+					onClick={handleSubmitComment}
+					disabled={!newComment.trim() || isSubmitting}
+					className='grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50'
+				>
+					{isSubmitting ? (
+						<Loader2 className='size-4 animate-spin' />
+					) : (
+						<Send className='size-4' />
+					)}
+				</button>
+			</div>
+
+			{/* Comments List */}
+			{comments.length === 0 ? (
+				<div className='p-6 text-center text-sm text-text-secondary'>
+					No comments yet. Be the first to comment!
+				</div>
+			) : (
+				<div className='max-h-panel-lg space-y-2 overflow-y-auto p-4 md:p-6'>
+					{comments.map(comment => (
+						<Comment
+							key={comment.id || `${comment.userId}-${comment.createdAt}`}
+							comment={comment}
+							postId={postId}
+							currentUserId={currentUserId}
+							onDelete={commentId => {
+								setComments(prev => prev.filter(c => c.id !== commentId))
+							}}
+						/>
+					))}
+				</div>
+			)}
 		</div>
 	)
 }

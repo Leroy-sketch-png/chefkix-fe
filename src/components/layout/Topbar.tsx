@@ -7,8 +7,6 @@ import {
 	Bell,
 	MessageSquare,
 	Search,
-	Gamepad2,
-	PlusSquare,
 	LogOut,
 	User,
 	Settings,
@@ -23,13 +21,12 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getNotifications } from '@/services/notification'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 export const Topbar = () => {
 	const { user } = useAuth()
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const [searchQuery, setSearchQuery] = useState('')
-	const [mode, setMode] = useState<'player' | 'creator'>('player')
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const [unreadNotifications, setUnreadNotifications] = useState(0)
 	const [unreadMessages, setUnreadMessages] = useState(0)
@@ -129,31 +126,16 @@ export const Topbar = () => {
 					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-primary outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
 				/>
 			</div>
-			{/* Mode Toggle - Hidden on mobile and small tablets */}
-			<div className='hidden items-center gap-1 rounded-lg border border-border-subtle bg-bg p-1 lg:flex'>
-				<button
-					onClick={() => setMode('player')}
-					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 ${
-						mode === 'player'
-							? 'bg-primary text-primary-foreground shadow-md'
-							: 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-					}`}
-				>
-					<Gamepad2 className='h-4 w-4' />
-					<span className='hidden xl:inline'>Player</span>
-				</button>
-				<button
-					onClick={() => setMode('creator')}
-					className={`flex h-11 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 ${
-						mode === 'creator'
-							? 'bg-primary text-primary-foreground shadow-md'
-							: 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-					}`}
-				>
-					<PlusSquare className='h-4 w-4' />
-					<span className='hidden xl:inline'>Creator</span>
-				</button>
-			</div>
+
+			{/* 
+				Mode Toggle REMOVED (Steve Jobs Audit 2024-12-20)
+				
+				The player/creator toggle was purely cosmetic - local state that 
+				affected nothing. "A switch that switches nothing is a lie."
+				
+				If ChefKix needs player vs creator modes in the future, implement
+				it properly with different dashboard views and stored preference.
+			*/}
 
 			{/* Cooking Indicator - Shows when actively cooking */}
 			<CookingIndicator />

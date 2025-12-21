@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import {
@@ -34,6 +35,7 @@ interface ChallengeUIItem {
 // ============================================
 
 export default function ChallengesPage() {
+	const router = useRouter()
 	const [challenges, setChallenges] = useState<ChallengeUIItem[]>([])
 	const [dailyChallenge, setDailyChallenge] = useState<{
 		id: string
@@ -110,7 +112,7 @@ export default function ChallengesPage() {
 							<DailyChallengeBanner
 								variant='active'
 								challenge={dailyChallenge}
-								onFindRecipe={() => console.log('Find quick recipes')}
+								onFindRecipe={() => router.push('/discover?quick=true')}
 							/>
 						)}
 
@@ -124,7 +126,7 @@ export default function ChallengesPage() {
 									challenges={challenges.map(c => ({
 										...c,
 										onJoin: () => handleJoin(c.id),
-										onView: () => console.log('View challenge:', c.id),
+										onView: () => router.push(`/challenges/${c.id}`),
 									}))}
 									loading={loading}
 								/>

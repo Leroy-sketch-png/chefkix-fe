@@ -131,6 +131,7 @@ export default function CreatorRoute() {
 					onBack={() => router.push('/dashboard')}
 					onCreateRecipe={() => router.push('/create')}
 					onRecipeClick={id => router.push(`/recipes/${id}`)}
+					onViewAllRecipes={() => router.push('/creator/recipes')}
 				/>
 			</PageContainer>
 		</PageTransition>

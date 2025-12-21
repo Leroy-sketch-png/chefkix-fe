@@ -558,3 +558,95 @@ export const LEVEL_UP_VARIANTS = {
 		transition: { duration: 0.3 },
 	},
 }
+
+// ============================================
+// HAPTIC FEEDBACK ANIMATIONS
+// Premium micro-interactions with tactile feel
+// ============================================
+
+// Heart "pop" for like buttons (Instagram-style)
+export const HEART_POP = {
+	initial: { scale: 1 },
+	liked: {
+		scale: [1, 1.3, 0.9, 1.1, 1],
+		transition: {
+			duration: 0.4,
+			times: [0, 0.2, 0.4, 0.7, 1],
+			ease: 'easeOut',
+		},
+	},
+	unliked: {
+		scale: [1, 0.8, 1],
+		transition: {
+			duration: 0.2,
+		},
+	},
+}
+
+// Bookmark slide animation
+export const BOOKMARK_SLIDE = {
+	saved: {
+		y: [0, -3, 0],
+		scale: [1, 1.1, 1],
+		transition: { duration: 0.3 },
+	},
+	unsaved: {
+		y: [0, 2, 0],
+		scale: [1, 0.95, 1],
+		transition: { duration: 0.2 },
+	},
+}
+
+// Send button whoosh
+export const SEND_WHOOSH = {
+	initial: { x: 0, opacity: 1 },
+	sending: {
+		x: [0, 10, -5, 0],
+		opacity: [1, 0.5, 0.5, 1],
+		transition: {
+			duration: 0.3,
+			times: [0, 0.3, 0.6, 1],
+		},
+	},
+}
+
+// Follow button pulse
+export const FOLLOW_PULSE = {
+	followed: {
+		scale: [1, 1.1, 1],
+		backgroundColor: ['var(--primary)', 'var(--success)', 'var(--success)'],
+		transition: { duration: 0.3 },
+	},
+}
+
+// Notification bell shake
+export const BELL_SHAKE = {
+	animate: {
+		rotate: [0, 15, -15, 10, -10, 5, 0],
+		transition: {
+			duration: 0.5,
+			ease: 'easeInOut',
+		},
+	},
+}
+
+// Cooking timer tick
+export const TIMER_TICK = {
+	tick: {
+		scale: [1, 1.02, 1],
+		transition: { duration: 0.1 },
+	},
+}
+
+// Step complete checkmark
+export const CHECKMARK_DRAW = {
+	hidden: { pathLength: 0, opacity: 0 },
+	visible: {
+		pathLength: 1,
+		opacity: 1,
+		transition: {
+			pathLength: { type: 'spring', duration: 0.5, bounce: 0 },
+			opacity: { duration: 0.1 },
+		},
+	},
+}

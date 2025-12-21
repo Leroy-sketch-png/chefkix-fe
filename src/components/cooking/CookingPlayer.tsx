@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
+import { useCelebration } from '@/components/providers/CelebrationProvider'
 import {
 	Sparkles,
 	User,
@@ -113,7 +114,7 @@ const StepDots = ({
 	onStepClick?: (stepNumber: number) => void
 }) => (
 	<div
-		className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide max-w-[280px] md:max-w-[400px] px-1'
+		className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide max-w-step-dots md:max-w-step-dots-lg px-1'
 		role='tablist'
 		aria-label='Recipe steps'
 	>
@@ -336,6 +337,7 @@ export const CookingPlayer = () => {
 	const { cookingMode, closeCookingPanel } = useUiStore()
 	const prefersReducedMotion = useReducedMotion()
 	const isOpen = cookingMode === 'expanded'
+	const { showImmediateRewards } = useCelebration()
 
 	// Cooking store state
 	const {
@@ -472,13 +474,27 @@ export const CookingPlayer = () => {
 			setIsCompletingSession(true)
 			try {
 				await completeCooking(rating, notes)
+
+				// Trigger celebration with immediate rewards data
+				// Session state is updated by completeCooking, use current values
+				const baseXp = session?.baseXpAwarded ?? recipe?.xpReward ?? 0
+				const pendingXp = session?.pendingXp ?? Math.floor((baseXp * 0.7) / 0.3)
+
+				showImmediateRewards({
+					recipeName: recipe?.title ?? 'Recipe',
+					recipeImageUrl: recipe?.coverImageUrl?.[0],
+					immediateXp: baseXp,
+					pendingXp: pendingXp,
+					postDeadlineHours: 336, // 14 days in hours
+				})
+
 				setShowCompletion(false)
 				closeCookingPanel()
 			} finally {
 				setIsCompletingSession(false)
 			}
 		},
-		[completeCooking, closeCookingPanel],
+		[completeCooking, closeCookingPanel, showImmediateRewards, session, recipe],
 	)
 
 	const handleAbandon = useCallback(async () => {

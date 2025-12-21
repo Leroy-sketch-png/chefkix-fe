@@ -159,6 +159,117 @@ export const isMutualFollow = async (
 }
 
 // ============================================================
+// BLOCK SYSTEM - Safety Features
+// ============================================================
+
+export interface BlockedUser {
+	id: string
+	blockedUserId: string
+	blockedUsername: string
+	blockedDisplayName: string
+	blockedAvatarUrl: string | null
+	blockedAt: string
+}
+
+/**
+ * Block a user. This will:
+ * - Remove any follow relationships (both directions)
+ * - Hide content between both users (mutual invisibility)
+ */
+export const blockUser = async (
+	userId: string,
+): Promise<ApiResponse<BlockedUser>> => {
+	try {
+		const response = await api.post<ApiResponse<BlockedUser>>(
+			`/api/v1/social/block/${userId}`,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<BlockedUser>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to block user',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Unblock a user.
+ */
+export const unblockUser = async (
+	userId: string,
+): Promise<ApiResponse<void>> => {
+	try {
+		const response = await api.delete<ApiResponse<void>>(
+			`/api/v1/social/block/${userId}`,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<void>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to unblock user',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get list of users the current user has blocked.
+ */
+export const getBlockedUsers = async (): Promise<
+	ApiResponse<BlockedUser[]>
+> => {
+	try {
+		const response = await api.get<ApiResponse<BlockedUser[]>>(
+			`/api/v1/social/blocked-users`,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<BlockedUser[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to get blocked users',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Check if the current user has blocked a specific user.
+ */
+export const isUserBlocked = async (
+	userId: string,
+): Promise<ApiResponse<boolean>> => {
+	try {
+		const response = await api.get<ApiResponse<boolean>>(
+			`/api/v1/social/is-blocked/${userId}`,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<boolean>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to check block status',
+			statusCode: 500,
+		}
+	}
+}
+
+// ============================================================
 // DEPRECATED - Legacy Friend Request APIs
 // These are kept for backwards compatibility with backend
 // but should NOT be used in new code. Use toggleFollow instead.

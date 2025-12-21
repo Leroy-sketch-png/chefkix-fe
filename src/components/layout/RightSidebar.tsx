@@ -5,7 +5,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakWidget } from '@/components/streak'
 import { ExpandableDailyChallengeBanner } from '@/components/challenges'
-import { FriendsCookingWidget } from '@/components/social/FriendsCookingWidget'
 import { useRouter } from 'next/navigation'
 import { getTodaysChallenge } from '@/services/challenge'
 import { getAllProfiles } from '@/services/profile'
@@ -163,8 +162,13 @@ export const RightSidebar = () => {
 
 	return (
 		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-4 xl:flex xl:flex-col xl:gap-4'>
-			{/* Friends Cooking Widget - Social cooking activity */}
-			<FriendsCookingWidget />
+			{/* 
+				FriendsCookingWidget REMOVED (Steve Jobs Audit 2024-12-20)
+				
+				The widget displayed "Coming Soon" — advertising a feature that
+				doesn't exist. WebSocket real-time cooking status is a P2 feature.
+				When implemented, add back: <FriendsCookingWidget />
+			*/}
 
 			{/* Streak Widget */}
 			<StreakWidget

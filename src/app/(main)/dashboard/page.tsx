@@ -128,9 +128,8 @@ export default function DashboardPage() {
 	}
 
 	const handlePostFromPending = (sessionId: string) => {
-		// Navigate to composer with pre-filled session data
-		router.push(`/create?session=${sessionId}`)
-		// In production, remove from pending after successful post
+		// Navigate to dedicated post composer with session context for XP unlock
+		router.push(`/post/new?session=${sessionId}`)
 	}
 
 	const handleDismissPending = () => {

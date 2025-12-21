@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { AUTH_ROUTES, PATHS, PUBLIC_ROUTES } from '@/constants'
@@ -22,6 +22,9 @@ interface AuthProviderProps {
  * - If we have a token, validate the session by fetching the profile
  * - Show AuthLoader while validating
  * - Redirect based on auth state and current route
+ *
+ * CRITICAL: We use isRedirecting state to prevent the flicker where the
+ * previous page renders briefly before the redirect completes.
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const {
@@ -37,6 +40,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const pathname = usePathname()
 	const router = useRouter()
 
+	// Track if we're in the middle of a redirect to prevent render flicker
+	const [isRedirecting, setIsRedirecting] = useState(false)
+	// Track if initial session validation is complete
+	const [isSessionValidated, setIsSessionValidated] = useState(false)
+	// Ref to track if redirect has been triggered for this auth state
+	const redirectTriggeredRef = useRef(false)
+
 	// This effect runs once hydration is complete to validate the session.
 	useEffect(() => {
 		// Wait for Zustand to rehydrate from localStorage
@@ -48,6 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 			// If there's no accessToken, we're done loading.
 			if (!accessToken) {
 				setLoading(false)
+				setIsSessionValidated(true)
 				return
 			}
 
@@ -64,6 +75,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 			// We're done loading
 			setLoading(false)
+			setIsSessionValidated(true)
 		}
 
 		validateSession()
@@ -71,26 +83,48 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 	// This effect handles redirection logic AFTER the initial session validation.
 	useEffect(() => {
-		// Don't run redirect logic until loading is complete
-		if (isLoading) return
+		// Don't run redirect logic until loading is complete AND session is validated
+		if (isLoading || !isSessionValidated) return
 
 		const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
 		const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
+		// Protected route access without auth - redirect to sign in
 		if (!isAuthenticated && !isPublicRoute) {
-			router.push(PATHS.AUTH.SIGN_IN)
+			if (!redirectTriggeredRef.current) {
+				redirectTriggeredRef.current = true
+				setIsRedirecting(true)
+				router.push(PATHS.AUTH.SIGN_IN)
+			}
+			return
 		}
 
+		// Authenticated user on auth route (sign-in, sign-up) - redirect to dashboard
 		if (isAuthenticated && isAuthRoute) {
-			router.push(PATHS.DASHBOARD)
+			if (!redirectTriggeredRef.current) {
+				redirectTriggeredRef.current = true
+				setIsRedirecting(true)
+				router.push(PATHS.DASHBOARD)
+			}
+			return
 		}
-	}, [isAuthenticated, isLoading, pathname, router])
 
-	// While validating the session, show a warm, on-brand loading screen.
-	if (isLoading) {
+		// We're on the correct page, no redirect needed
+		redirectTriggeredRef.current = false
+		setIsRedirecting(false)
+	}, [isAuthenticated, isLoading, isSessionValidated, pathname, router])
+
+	// Reset redirect tracking when auth state changes (logout, new login)
+	useEffect(() => {
+		redirectTriggeredRef.current = false
+	}, [isAuthenticated])
+
+	// While validating the session OR redirecting, show a warm, on-brand loading screen.
+	// This prevents the flicker where the old page renders briefly before redirect.
+	if (isLoading || isRedirecting) {
 		return <AuthLoader />
 	}
 
-	// Once loading is complete, render the children.
+	// Once loading is complete and we're not redirecting, render the children.
 	return <>{children}</>
 }
