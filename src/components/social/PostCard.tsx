@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 import { Post } from '@/lib/types'
-import { toggleLike, deletePost, updatePost, toggleSave } from '@/services/post'
+import {
+	toggleLike,
+	deletePost,
+	updatePost,
+	toggleSave,
+	reportPost,
+} from '@/services/post'
 import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
@@ -20,6 +26,7 @@ import {
 	X,
 	ChefHat,
 	Zap,
+	Flag,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -27,6 +34,10 @@ import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { CommentList } from '@/components/social/CommentList'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_FEED_HOVER } from '@/lib/motion'
+import {
+	ReportModal,
+	type ReportedContent,
+} from '@/components/modals/ReportModal'
 
 interface PostCardProps {
 	post: Post
@@ -50,8 +61,10 @@ export const PostCard = ({
 	const [editTags, setEditTags] = useState(post.tags.join(', '))
 	const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
 	const [isSaving, setIsSaving] = useState(false)
+	const [showReportModal, setShowReportModal] = useState(false)
 
 	const isOwner = currentUserId === post.userId
+	const isLoggedIn = !!currentUserId
 	const createdAt = new Date(post.createdAt)
 	const canEdit =
 		isOwner &&
@@ -183,6 +196,62 @@ export const PostCard = ({
 		}
 	}
 
+	// Handle report submission
+	const handleReportSubmit = async (reason: string, details?: string) => {
+		try {
+			const response = await reportPost(post.id, { reason, details })
+			if (response.success) {
+				toast.success(
+					response.data?.reviewTriggered
+						? 'Report submitted - content is under review'
+						: 'Report submitted - thank you for keeping ChefKix safe',
+				)
+			} else {
+				toast.error(response.message || 'Failed to submit report')
+			}
+		} catch {
+			toast.error('Failed to submit report')
+		}
+	}
+
+	// Handle share post
+	const handleShare = async () => {
+		const postUrl = `${window.location.origin}/post/${post.id}`
+		const shareData = {
+			title: `Post by ${post.displayName || 'ChefKix User'}`,
+			text:
+				post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
+			url: postUrl,
+		}
+
+		if (navigator.share) {
+			try {
+				await navigator.share(shareData)
+			} catch (err) {
+				// User cancelled or share failed - fallback to clipboard
+				if ((err as Error).name !== 'AbortError') {
+					await navigator.clipboard.writeText(postUrl)
+					toast.success('Link copied to clipboard!')
+				}
+			}
+		} else {
+			// Fallback: copy to clipboard
+			await navigator.clipboard.writeText(postUrl)
+			toast.success('Link copied to clipboard!')
+		}
+	}
+
+	// Report content metadata for the modal
+	const reportContent: ReportedContent = {
+		type: 'post',
+		preview:
+			post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
+		author: {
+			username: post.displayName || 'Unknown User',
+			avatarUrl: post.avatarUrl || '/placeholder-avatar.png',
+		},
+	}
+
 	return (
 		<motion.article
 			variants={staggerItemVariants}
@@ -232,7 +301,8 @@ export const PostCard = ({
 						</Link>
 					</UserHoverCard>
 
-					{isOwner && (
+					{/* Menu - Show for all logged in users */}
+					{isLoggedIn && (
 						<div className='relative'>
 							<button
 								onClick={() => setShowMenu(!showMenu)}
@@ -249,25 +319,43 @@ export const PostCard = ({
 										exit={{ opacity: 0, scale: 0.95, y: -10 }}
 										className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
 									>
-										{canEdit && (
+										{/* Owner actions */}
+										{isOwner && (
+											<>
+												{canEdit && (
+													<button
+														onClick={() => {
+															setIsEditing(true)
+															setShowMenu(false)
+														}}
+														className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
+													>
+														<Pencil className='h-4 w-4' />
+														Edit post
+													</button>
+												)}
+												<button
+													onClick={handleDelete}
+													className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+												>
+													<Trash2 className='h-4 w-4' />
+													Delete post
+												</button>
+											</>
+										)}
+										{/* Non-owner actions */}
+										{!isOwner && (
 											<button
 												onClick={() => {
-													setIsEditing(true)
+													setShowReportModal(true)
 													setShowMenu(false)
 												}}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
-												<Pencil className='h-4 w-4' />
-												Edit post
+												<Flag className='h-4 w-4' />
+												Report post
 											</button>
 										)}
-										<button
-											onClick={handleDelete}
-											className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
-										>
-											<Trash2 className='h-4 w-4' />
-											Delete post
-										</button>
 									</motion.div>
 								)}
 							</AnimatePresence>
@@ -405,7 +493,10 @@ export const PostCard = ({
 						<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
 						<span>{post.commentCount ?? 0}</span>
 					</button>
-					<button className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'>
+					<button
+						onClick={handleShare}
+						className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
+					>
 						<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
 						<span>Share</span>
 					</button>
@@ -436,22 +527,30 @@ export const PostCard = ({
 							initial={{ height: 0, opacity: 0 }}
 							animate={{ height: 'auto', opacity: 1 }}
 							exit={{ height: 0, opacity: 0 }}
-							className='overflow-hidden border-t border-border-subtle bg-bg-card'
+							className='overflow-hidden bg-bg-card'
 						>
-							<div className='flex gap-2 border-b border-border-subtle p-4 md:p-6'>
-								<input
-									className='flex-1 rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
-									placeholder='Add a comment...'
-								/>
-								<button className='h-11 rounded-lg bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90'>
-									Post
-								</button>
-							</div>
-							<CommentList postId={post.id} currentUserId={currentUserId} />
+							<CommentList
+								postId={post.id}
+								currentUserId={currentUserId}
+								onCommentCreated={() => {
+									// Update local comment count
+									setPost(prev => ({
+										...prev,
+										commentCount: (prev.commentCount ?? 0) + 1,
+									}))
+								}}
+							/>
 						</motion.div>
 					)}
 				</AnimatePresence>
 			</motion.div>
+			{/* Report Modal */}
+			<ReportModal
+				isOpen={showReportModal}
+				onClose={() => setShowReportModal(false)}
+				onSubmit={handleReportSubmit}
+				content={reportContent}
+			/>{' '}
 		</motion.article>
 	)
 }

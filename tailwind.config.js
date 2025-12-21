@@ -151,18 +151,30 @@ module.exports = {
 				full: '9999px',
 			},
 			fontFamily: {
+				// Primary: Plus Jakarta Sans - Modern, friendly, slightly rounded
+				// Perfect for body text, buttons, navigation
 				sans: [
-					'Inter',
+					'var(--font-sans)',
+					'Plus Jakarta Sans',
 					'system-ui',
 					'-apple-system',
 					'Segoe UI',
 					'Roboto',
-					'Helvetica Neue',
-					'Arial',
 					'sans-serif',
 				],
-				display: ['Pacifico', 'cursive'],
-				mono: ['var(--font-geist-mono)'],
+				// Display: Space Grotesk - Bold, geometric, gaming vibes
+				// For XP numbers, level badges, stats, headings with punch
+				display: [
+					'var(--font-display)',
+					'Space Grotesk',
+					'system-ui',
+					'sans-serif',
+				],
+				// Serif: Playfair Display - Elegant, cookbook aesthetic
+				// For recipe titles, quotes, editorial moments
+				serif: ['var(--font-serif)', 'Playfair Display', 'Georgia', 'serif'],
+				// Mono: System mono stack for code/technical
+				mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
 			},
 			fontSize: {
 				'2xs': 'var(--font-size-2xs)',
@@ -315,6 +327,9 @@ module.exports = {
 				'bubble-sm': 'var(--bubble-sm)',
 				'bubble-md': 'var(--bubble-md)',
 				'bubble-lg': 'var(--bubble-lg)',
+				// Cooking player
+				'step-dots': 'var(--step-dots-max-w)', // 280px - mobile
+				'step-dots-lg': 'var(--step-dots-max-w-lg)', // 400px - desktop
 				// Element max-widths
 				'thumbnail-sm': 'var(--thumbnail-sm)',
 				'thumbnail-md': 'var(--thumbnail-md)',
@@ -340,7 +355,7 @@ module.exports = {
 			},
 			minWidth: {
 				nav: 'var(--nav-w)',
-				search: '120px', // Search bar minimum width
+				search: 'var(--input-search-min-w)', // 200px - Search input minimum width
 				// Component min-widths
 				'thumbnail-sm': 'var(--thumbnail-sm)', // 52px - badges, small elements
 				'thumbnail-md': 'var(--thumbnail-md)', // 60px - leaderboard points
@@ -349,6 +364,7 @@ module.exports = {
 			},
 			minHeight: {
 				textarea: 'var(--h-textarea-min)',
+				'textarea-sm': 'var(--h-textarea-sm)', // 120px - compact textarea
 				'textarea-lg': 'var(--h-textarea-lg)', // 200px - large textarea
 				content: 'var(--h-content-min)',
 				'content-tall': 'var(--h-content-tall)',

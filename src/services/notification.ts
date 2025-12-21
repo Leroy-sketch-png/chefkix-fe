@@ -74,16 +74,33 @@ export interface NotificationParams {
 
 /**
  * Get notifications for current user
+ * Note: BE returns List<NotificationResponse> directly (no wrapper)
  */
 export const getNotifications = async (
 	params?: NotificationParams,
 ): Promise<ApiResponse<NotificationsResponse>> => {
 	try {
-		const response = await api.get<ApiResponse<NotificationsResponse>>(
+		// BE returns array directly, we transform it to match our interface
+		const response = await api.get<Notification[]>(
 			API_ENDPOINTS.NOTIFICATIONS.GET,
-			{ params },
+			{ params: { limit: params?.size ?? 20 } },
 		)
-		return response.data
+
+		// Transform array response to our expected format
+		const notifications = response.data || []
+		return {
+			success: true,
+			statusCode: 200,
+			data: {
+				notifications,
+				unreadCount: notifications.filter(n => !n.isRead).length,
+				pagination: {
+					page: params?.page ?? 0,
+					size: params?.size ?? 20,
+					total: notifications.length,
+				},
+			},
+		}
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<NotificationsResponse>>
 		if (axiosError.response) return axiosError.response.data

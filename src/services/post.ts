@@ -245,3 +245,50 @@ export const getPostsByUser = async (
 		}
 	}
 }
+
+/**
+ * Report response type
+ */
+export interface ReportResponse {
+	reportId: string
+	targetType: string
+	targetId: string
+	reason: string
+	reportCount: number
+	reviewTriggered: boolean
+	createdAt: string
+}
+
+/**
+ * Report a post for content moderation.
+ * Per spec 13-moderation.txt:
+ * - Max 3 reports per day per user
+ * - 3 unique reports on same content triggers admin review
+ */
+export const reportPost = async (
+	postId: string,
+	data: { reason: string; details?: string },
+): Promise<ApiResponse<ReportResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<ReportResponse>>(
+			API_ENDPOINTS.POST.REPORT,
+			{
+				targetType: 'post',
+				targetId: postId,
+				reason: data.reason,
+				details: data.details,
+			},
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<ReportResponse>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}

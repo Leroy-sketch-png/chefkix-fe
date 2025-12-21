@@ -46,7 +46,7 @@ type ReportReason =
 
 type RestrictionLevel = '3d' | '7d' | '14d' | 'permanent'
 
-interface ReportedContent {
+export interface ReportedContent {
 	type: 'post' | 'comment' | 'recipe' | 'user'
 	author: {
 		username: string

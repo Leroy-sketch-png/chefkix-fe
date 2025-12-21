@@ -51,7 +51,7 @@ const formSchema = z.object({
 
 export function SignUpForm() {
 	const router = useRouter()
-	const { login, setUser } = useAuth()
+	const { login, setUser, setLoading, logout } = useAuth()
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -242,8 +242,11 @@ export function SignUpForm() {
 									if (profileResponse.success && profileResponse.data) {
 										setUser(profileResponse.data)
 										toast.success('Signed in with Google successfully!')
-										router.push(PATHS.DASHBOARD)
+										// Let AuthProvider handle redirect - prevents race condition
+										setLoading(true)
 									} else {
+										// Profile fetch failed - clean up auth state
+										logout()
 										toast.error('Failed to fetch profile. Please try again.')
 									}
 								} else {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useUiStore } from '@/store/uiStore'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
@@ -397,12 +398,12 @@ export const NotificationsPopup = () => {
 
 				{/* Footer */}
 				<div className='border-t border-border p-3 text-center'>
-					<a
-						href='#'
+					<Link
+						href='/notifications'
 						className='text-sm font-semibold text-primary transition-colors hover:text-primary/80'
 					>
 						View All Notifications
-					</a>
+					</Link>
 				</div>
 			</div>
 		</>

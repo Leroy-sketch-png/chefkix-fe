@@ -65,7 +65,7 @@ export const EmptyState = ({
 				{children ? (
 					children
 				) : (actionLabel && actionHref) || onAction ? (
-					<Button asChild={!!actionHref} onClick={onAction} variant='gradient'>
+					<Button asChild={!!actionHref} onClick={onAction}>
 						{actionHref ? (
 							<Link href={actionHref}>{actionLabel}</Link>
 						) : (

@@ -82,6 +82,8 @@ export const API_ENDPOINTS = {
 			`${POST_REPLIES_BASE}/${commentId}/replies`,
 		CREATE_REPLY: (commentId: string) =>
 			`${POST_REPLIES_BASE}/${commentId}/replies`,
+		// Reports per spec (13-moderation.txt)
+		REPORT: `${POST_SERVICE_PREFIX}/report`,
 	},
 	// Recipe endpoints per spec (07-recipes.txt): /api/v1/recipe/* (singular)
 	RECIPES: {
@@ -108,8 +110,9 @@ export const API_ENDPOINTS = {
 		LIKED: `${RECIPE_SERVICE_PREFIX}/liked`,
 	},
 	// Statistics per spec (04-statistics.txt)
+	// Note: add_xp is admin/testing only, requires userId in path
 	STATISTICS: {
-		ADD_XP: `${API_PREFIX}/auth/statistic/add_xp`,
+		ADD_XP: (userId: string) => `${API_PREFIX}/auth/${userId}/add_xp`,
 	},
 	UPLOAD: {
 		FILE: `${POST_SERVICE_PREFIX}/api/upload`, // Returns plain text URL, not JSON

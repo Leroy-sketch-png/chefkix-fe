@@ -210,6 +210,7 @@
 	--h-topbar: 72px;
 	--h-mobile-nav: 72px;
 	--h-mobile-header: 60px; /* Mobile sticky header offset */
+	--h-textarea-sm: 120px; /* Compact textarea (post content) */
 	--h-textarea-min: 100px; /* Minimum height for textareas */
 	--h-textarea-lg: 200px; /* Larger textarea for recipe content */
 	--h-content-min: 50vh; /* Minimum content height (empty states) */
@@ -264,6 +265,13 @@
 	--bubble-sm: 200px; /* Reply preview, truncated content */
 	--bubble-md: 280px; /* Mobile chat bubbles */
 	--bubble-lg: 400px; /* Desktop chat bubbles */
+
+	/* Cooking player dimensions */
+	--step-dots-max-w: 280px; /* Mobile step dots container */
+	--step-dots-max-w-lg: 400px; /* Desktop step dots container */
+
+	/* Input dimensions */
+	--input-search-min-w: 200px; /* Search input minimum width */
 
 	/* Container widths for page layouts */
 	--container-sm: 480px;
@@ -339,10 +347,11 @@
 	--space-3xl: 48px;
 
 	/* ============ TYPOGRAPHY ============ */
-	--font-family:
-		'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
-		Arial;
-	--font-display: 'Pacifico', cursive;
+	/* Font families are set via Next.js font loader in layout.tsx */
+	/* --font-sans: Plus Jakarta Sans (primary - friendly, modern) */
+	/* --font-display: Space Grotesk (gaming stats, XP, bold numbers) */
+	/* --font-serif: Playfair Display (recipe titles, editorial elegance) */
+
 	--font-size-2xs: 10px; /* Very small labels, badges */
 	--font-size-xs: 12px;
 	--font-size-sm: 14px;
@@ -350,6 +359,8 @@
 	--font-size-lg: 20px;
 	--font-size-xl: 26px;
 	--font-size-2xl: 34px;
+	--font-size-3xl: 42px; /* Hero headings */
+	--font-size-4xl: 52px; /* Display headings */
 	--font-size-icon-lg: 28px; /* Emoji/icon text size - matches icon-lg */
 	--font-size-icon-xl: 32px; /* Large emoji/icon text size - matches icon-xl */
 	--font-size-icon-2xl: 40px; /* Achievement emoji size */
@@ -365,10 +376,18 @@
 	--font-weight-bold: 700;
 	--font-weight-extrabold: 800;
 
+	/* Letter Spacing - for that premium feel */
+	--tracking-tighter: -0.03em; /* Display headings */
+	--tracking-tight: -0.015em; /* Subheadings */
+	--tracking-normal: 0;
+	--tracking-wide: 0.025em; /* Labels, small caps */
+	--tracking-wider: 0.05em; /* XP/stat labels */
+
 	/* Line Heights */
-	--line-height-tight: 1.3;
+	--line-height-tight: 1.2; /* Tighter for big headings */
+	--line-height-snug: 1.35; /* Subheadings */
 	--line-height-normal: 1.5;
-	--line-height-relaxed: 1.6;
+	--line-height-relaxed: 1.65; /* Body text for readability */
 
 	/* ============ CONTAINER WIDTHS ============ */
 	--container-sm: 640px;

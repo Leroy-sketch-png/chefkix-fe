@@ -1,16 +1,17 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { MoreHorizontal, Send, Loader2 } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { MoreHorizontal, Send, Loader2, Wifi, WifiOff } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { useAuth } from '@/hooks/useAuth'
+import { useChatWebSocket } from '@/hooks/useChatWebSocket'
 import {
 	getMyConversations,
 	getMessages,
-	sendMessage,
+	sendMessage as sendMessageRest,
 	Conversation,
 	ChatMessage,
 } from '@/services/chat'
@@ -26,6 +27,28 @@ export default function MessagesPage() {
 	const [isLoadingMessages, setIsLoadingMessages] = useState(false)
 	const [isSending, setIsSending] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
+
+	// Handle incoming WebSocket messages
+	const handleIncomingMessage = useCallback((message: ChatMessage) => {
+		setMessages(prev => {
+			// Avoid duplicates (message might already be added optimistically)
+			if (prev.some(m => m.id === message.id)) {
+				return prev
+			}
+			return [...prev, message]
+		})
+	}, [])
+
+	// WebSocket connection for real-time messaging
+	const {
+		sendMessage: sendMessageWs,
+		isConnected,
+		error: wsError,
+	} = useChatWebSocket({
+		conversationId: selectedConversation?.id ?? null,
+		onMessage: handleIncomingMessage,
+		enabled: true,
+	})
 
 	// Fetch conversations on mount
 	useEffect(() => {
@@ -83,21 +106,34 @@ export default function MessagesPage() {
 	const handleSendMessage = async () => {
 		if (!newMessage.trim() || !selectedConversation || isSending) return
 
-		setIsSending(true)
-		try {
-			const response = await sendMessage({
-				conversationId: selectedConversation.id,
-				message: newMessage.trim(),
-			})
+		const messageText = newMessage.trim()
+		setNewMessage('') // Clear input immediately for better UX
 
-			if (response.success && response.data) {
-				setMessages(prev => [...prev, response.data!])
-				setNewMessage('')
+		// Try WebSocket first (real-time)
+		if (isConnected) {
+			sendMessageWs(messageText)
+			// Message will appear via WebSocket subscription
+		} else {
+			// Fallback to REST API
+			setIsSending(true)
+			try {
+				const response = await sendMessageRest({
+					conversationId: selectedConversation.id,
+					message: messageText,
+				})
+
+				if (response.success && response.data) {
+					setMessages(prev => [...prev, response.data!])
+				} else {
+					// Restore message on failure
+					setNewMessage(messageText)
+				}
+			} catch (err) {
+				console.error('Failed to send message:', err)
+				setNewMessage(messageText)
+			} finally {
+				setIsSending(false)
 			}
-		} catch (err) {
-			console.error('Failed to send message:', err)
-		} finally {
-			setIsSending(false)
 		}
 	}
 
@@ -214,9 +250,27 @@ export default function MessagesPage() {
 											className='object-cover'
 										/>
 									</div>
-									<h3 className='text-lg font-semibold'>
-										{getConversationName(selectedConversation)}
-									</h3>
+									<div>
+										<h3 className='text-lg font-semibold'>
+											{getConversationName(selectedConversation)}
+										</h3>
+										{/* WebSocket connection status */}
+										<div className='flex items-center gap-1 text-xs'>
+											{isConnected ? (
+												<>
+													<Wifi className='size-3 text-green-500' />
+													<span className='text-green-600'>Live</span>
+												</>
+											) : (
+												<>
+													<WifiOff className='size-3 text-muted-foreground' />
+													<span className='text-muted-foreground'>
+														{wsError || 'Connecting...'}
+													</span>
+												</>
+											)}
+										</div>
+									</div>
 								</div>
 								<Button variant='ghost' size='icon'>
 									<MoreHorizontal className='h-5 w-5' />
