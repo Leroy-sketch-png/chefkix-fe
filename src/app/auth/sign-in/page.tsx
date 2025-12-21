@@ -4,17 +4,16 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { SignInForm } from '@/components/auth/SignInForm'
 import { SIGN_IN_MESSAGES } from '@/constants/messages'
-import dynamic from 'next/dynamic'
-import lottieLogin from '@/../public/lottie/lottie-login.json'
 import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
 import { ChefHat, Sparkles } from 'lucide-react'
+import { LazyLottie } from '@/components/shared/LazyLottie'
+import { cn } from '@/lib/utils'
 
-const LottieAnimation = dynamic(
-	() => import('@/components/shared/LottieAnimation'),
-	{ ssr: false },
-)
-
-// Floating gradient orbs for visual delight
+/**
+ * Floating gradient orbs - purely decorative ambient effects
+ * Uses CSS animations (GPU-accelerated, zero JS overhead) instead of Framer Motion
+ * Animation is subtle and stops after 3 cycles to save CPU
+ */
 const FloatingOrb = ({
 	className,
 	delay,
@@ -22,20 +21,9 @@ const FloatingOrb = ({
 	className: string
 	delay: number
 }) => (
-	<motion.div
-		initial={{ opacity: 0, scale: 0.5 }}
-		animate={{
-			opacity: [0.3, 0.6, 0.3],
-			scale: [1, 1.2, 1],
-			y: [0, -20, 0],
-		}}
-		transition={{
-			duration: 8,
-			delay,
-			repeat: Infinity,
-			ease: 'easeInOut',
-		}}
-		className={className}
+	<div
+		className={cn('animate-float-orb opacity-30', className)}
+		style={{ animationDelay: `${delay}s` }}
 	/>
 )
 
@@ -59,11 +47,12 @@ const SignInPage = () => {
 				delay={4}
 			/>
 
-			{/* Background Lottie Animation */}
+			{/* Background Lottie Animation - lazy loaded with theatrical entrance */}
 			<div className='pointer-events-none absolute inset-0 flex items-center justify-center opacity-10'>
-				<LottieAnimation
-					lottie={lottieLogin}
+				<LazyLottie
+					src='/lottie/lottie-login.json'
 					sizeOfIllustrator={(w, h) => Math.min(w * 0.5, h * 0.6, 400)}
+					entrance='fade'
 					loop
 					autoplay
 				/>

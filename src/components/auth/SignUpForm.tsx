@@ -25,13 +25,7 @@ import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from '@/components/ui/toaster'
 import { useAuth } from '@/hooks/useAuth'
-import {
-	TRANSITION_SPRING,
-	BUTTON_HOVER,
-	BUTTON_TAP,
-	staggerContainer,
-	staggerItem,
-} from '@/lib/motion'
+import { staggerContainer, staggerItem } from '@/lib/motion'
 
 const formSchema = z.object({
 	firstName: z.string().min(1, {
@@ -210,17 +204,15 @@ export function SignUpForm() {
 						/>
 					</motion.div>
 					<motion.div variants={staggerItem}>
-						<motion.div whileHover={BUTTON_HOVER} whileTap={BUTTON_TAP}>
-							<AnimatedButton
-								type='submit'
-								className='h-12 w-full rounded-xl bg-gradient-xp text-base font-bold shadow-lg shadow-xp/30 transition-shadow hover:shadow-xl hover:shadow-xp/40'
-								isLoading={form.formState.isSubmitting}
-								loadingText='Creating account...'
-								shine
-							>
-								{SIGN_UP_MESSAGES.FORM_TITLE}
-							</AnimatedButton>
-						</motion.div>
+						<AnimatedButton
+							type='submit'
+							className='h-12 w-full rounded-xl bg-gradient-xp text-base font-bold shadow-lg shadow-xp/30 transition-shadow hover:shadow-xl hover:shadow-xp/40'
+							isLoading={form.formState.isSubmitting}
+							loadingText='Creating account...'
+							shine
+						>
+							{SIGN_UP_MESSAGES.FORM_TITLE}
+						</AnimatedButton>
 					</motion.div>
 					<motion.div
 						variants={staggerItem}

@@ -69,18 +69,10 @@ api.interceptors.response.use(
 			originalRequest &&
 			!originalRequest._retry
 		) {
-			// Skip refresh attempt if we're already on the refresh endpoint or logout endpoint
-			if (
-				originalRequest.url?.includes('/auth/refresh-token') ||
-				originalRequest.url?.includes('/auth/logout')
-			) {
-				// Refresh failed or logout - clear auth state
-				const { logout } = useAuthStore.getState()
-				logout()
-
-				if (typeof window !== 'undefined') {
-					window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.SESSION_EXPIRED)}`
-				}
+			// Skip refresh for ALL auth endpoints - 401 here means bad credentials, not expired token
+			if (originalRequest.url?.includes('/auth/')) {
+				// Auth endpoint 401 = wrong credentials, NOT expired token
+				// Just let the error propagate normally - don't logout, don't redirect
 				return Promise.reject(error)
 			}
 
@@ -134,11 +126,43 @@ api.interceptors.response.use(
 		// Handle other errors
 		if (error.response) {
 			const backendError = error.response.data as any
-			error.response.data = {
-				success: false,
-				statusCode: backendError.code,
-				message: backendError.message,
-				error: backendError.result,
+
+			// Handle empty response body (common when Spring Security intercepts 401)
+			const hasBody =
+				backendError &&
+				(backendError.message || backendError.code || backendError.statusCode)
+
+			if (!hasBody) {
+				// Map HTTP status codes to user-friendly messages when body is empty
+				const statusMessages: Record<number, string> = {
+					400: 'Invalid request. Please check your input.',
+					401: 'Invalid credentials. Please check your email/username and password.',
+					403: 'Access denied. You do not have permission for this action.',
+					404: 'Resource not found.',
+					429: 'Too many requests. Please try again later.',
+					500: 'Server error. Please try again later.',
+					502: 'Service temporarily unavailable. Please try again.',
+					503: 'Service temporarily unavailable. Please try again.',
+				}
+				const statusCode = error.response.status
+				error.response.data = {
+					success: false,
+					statusCode: statusCode,
+					message:
+						statusMessages[statusCode] ||
+						`Request failed with status ${statusCode}`,
+					error: null,
+				}
+			} else {
+				error.response.data = {
+					success: false,
+					statusCode:
+						backendError.code ||
+						backendError.statusCode ||
+						error.response.status,
+					message: backendError.message || 'An error occurred.',
+					error: backendError.result,
+				}
 			}
 		}
 		return Promise.reject(error)

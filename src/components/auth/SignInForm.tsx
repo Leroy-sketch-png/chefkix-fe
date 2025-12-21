@@ -28,13 +28,7 @@ import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
 import { toast } from '@/components/ui/toaster'
-import {
-	TRANSITION_SPRING,
-	BUTTON_HOVER,
-	BUTTON_TAP,
-	staggerContainer,
-	staggerItem,
-} from '@/lib/motion'
+import { staggerContainer, staggerItem } from '@/lib/motion'
 
 const formSchema = z.object({
 	emailOrUsername: z
@@ -234,20 +228,15 @@ export function SignInForm() {
 						</Button>
 					</motion.div>
 					<motion.div variants={staggerItem}>
-						<motion.div
-							whileHover={isSubmitting ? undefined : BUTTON_HOVER}
-							whileTap={isSubmitting ? undefined : BUTTON_TAP}
+						<AnimatedButton
+							type='submit'
+							className='h-12 w-full rounded-xl bg-gradient-hero text-base font-bold shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
+							isLoading={isSubmitting}
+							loadingText='Signing in...'
+							shine
 						>
-							<AnimatedButton
-								type='submit'
-								className='h-12 w-full rounded-xl bg-gradient-hero text-base font-bold shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
-								isLoading={isSubmitting}
-								loadingText='Signing in...'
-								shine
-							>
-								Sign In
-							</AnimatedButton>
-						</motion.div>
+							Sign In
+						</AnimatedButton>
 					</motion.div>
 					<motion.div
 						variants={staggerItem}
