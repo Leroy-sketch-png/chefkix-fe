@@ -2,16 +2,34 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Compass, Plus, Bell, User } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Home, Compass, PlusSquare, Bell, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+	TRANSITION_SPRING,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 
 interface NavItem {
 	href: string
 	icon: React.ComponentType<{ className?: string }>
 	label: string
 	badge?: boolean
+	isCreate?: boolean
 }
 
+/**
+ * MobileBottomNav - 5 core items for quick access
+ *
+ * DESIGN DECISION: Mobile nav has 5 items (iOS/Android standard).
+ * Missing items (Challenges, Community, Messages, Settings) are accessible via:
+ * - Hamburger menu (to be added) OR
+ * - Topbar icons (Messages, Notifications)
+ * - Settings via Profile page
+ *
+ * Icon: PlusSquare (matches LeftSidebar, not bare Plus)
+ */
 const navItems: NavItem[] = [
 	{
 		href: '/dashboard',
@@ -19,14 +37,15 @@ const navItems: NavItem[] = [
 		label: 'Home',
 	},
 	{
-		href: '/discover',
+		href: '/explore',
 		icon: Compass,
 		label: 'Explore',
 	},
 	{
 		href: '/create',
-		icon: Plus,
+		icon: PlusSquare,
 		label: 'Create',
+		isCreate: true,
 	},
 	{
 		href: '/notifications',
@@ -50,22 +69,30 @@ export const MobileBottomNav = () => {
 	}
 
 	return (
-		<nav className='fixed bottom-0 left-0 right-0 z-sticky hidden h-18 items-center justify-around border-t border-border-subtle bg-bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'>
-			{navItems.map((item, index) => {
+		<nav
+			className='fixed bottom-0 left-0 right-0 z-sticky flex h-18 items-center justify-around border-t border-border-subtle bg-bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'
+			aria-label='Mobile navigation'
+		>
+			{navItems.map(item => {
 				const Icon = item.icon
 				const active = isActive(item.href)
 
 				// Special handling for the Create button (center elevated button)
-				if (item.href === '/create') {
+				if (item.isCreate) {
 					return (
 						<Link
 							key={item.href}
 							href={item.href}
-							className='relative -mt-6 flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] transition-all active:bg-bg-hover max-w-20'
+							className='relative -mt-6 flex flex-1 max-w-20 flex-col items-center justify-center gap-1'
 						>
-							<div className='grid h-14 w-14 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-lg transition-all active:scale-90 hover:scale-105 animate-pulse'>
-								<Icon className='h-7 w-7' />
-							</div>
+							<motion.div
+								whileHover={ICON_BUTTON_HOVER}
+								whileTap={ICON_BUTTON_TAP}
+								transition={TRANSITION_SPRING}
+								className='grid size-14 place-items-center rounded-full bg-gradient-primary text-white shadow-lg shadow-brand/30'
+							>
+								<Icon className='size-7' />
+							</motion.div>
 						</Link>
 					)
 				}
@@ -75,21 +102,38 @@ export const MobileBottomNav = () => {
 						key={item.href}
 						href={item.href}
 						className={cn(
-							'flex flex-1 flex-col items-center justify-center gap-1 rounded-[var(--radius)] px-3 py-2 transition-all active:bg-bg-hover active:scale-95 max-w-20',
+							'group relative flex flex-1 max-w-20 flex-col items-center justify-center gap-1 rounded-radius px-3 py-2',
 							active ? 'text-primary' : 'text-text-secondary',
 						)}
 					>
-						<div className='relative'>
+						{/* Active indicator dot */}
+						<motion.div
+							className='absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary'
+							initial={false}
+							animate={{ scale: active ? 1 : 0, opacity: active ? 1 : 0 }}
+							transition={TRANSITION_SPRING}
+						/>
+
+						<motion.div
+							className='relative'
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+						>
 							<Icon
 								className={cn(
-									'h-6 w-6 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-									active && 'scale-110 drop-shadow-glow',
+									'size-6 transition-all duration-300',
+									active && 'drop-shadow-glow',
 								)}
 							/>
 							{item.badge && (
-								<span className='absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full border-2 border-card bg-destructive shadow-glow' />
+								<motion.span
+									initial={{ scale: 0 }}
+									animate={{ scale: 1 }}
+									className='absolute -right-0.5 -top-0.5 size-2 rounded-full border-2 border-bg-card bg-brand shadow-sm'
+								/>
 							)}
-						</div>
+						</motion.div>
 						<span className='text-xs font-semibold'>{item.label}</span>
 					</Link>
 				)
@@ -124,26 +168,28 @@ export const MobileTabBar = ({
 	return (
 		<div
 			className={cn(
-				'sticky top-mobile-header z-[calc(var(--z-sticky)-1)] hidden flex-nowrap gap-2 overflow-x-auto border-b border-border bg-card/95 p-2 backdrop-blur-xl scrollbar-hide md:hidden',
+				'sticky top-mobile-header z-sticky flex flex-nowrap gap-2 overflow-x-auto border-b border-border-subtle bg-bg-card/95 p-2 backdrop-blur-xl scrollbar-hide md:hidden',
 				className,
 			)}
 		>
 			{tabs.map(tab => {
 				const Icon = tab.icon
 				return (
-					<button
+					<motion.button
 						key={tab.id}
 						onClick={() => onTabChange(tab.id)}
+						whileTap={{ scale: 0.95 }}
+						transition={TRANSITION_SPRING}
 						className={cn(
-							'flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-all active:scale-95',
+							'flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-colors',
 							activeTab === tab.id
-								? 'bg-primary text-primary-foreground'
-								: 'text-muted-foreground hover:bg-muted',
+								? 'bg-primary text-white'
+								: 'text-text-secondary hover:bg-bg-elevated',
 						)}
 					>
-						<Icon className='size-4.5' />
+						<Icon className='size-4' />
 						<span>{tab.label}</span>
-					</button>
+					</motion.button>
 				)
 			})}
 		</div>

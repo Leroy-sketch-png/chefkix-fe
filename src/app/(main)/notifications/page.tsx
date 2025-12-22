@@ -17,6 +17,7 @@ import {
 	Trophy,
 	Flame,
 	Star,
+	ArrowLeft,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -485,32 +486,55 @@ export default function NotificationsPage() {
 
 	return (
 		<PageTransition>
-			<PageContainer className='max-w-2xl'>
-				{/* Header */}
-				<div className='mb-6 flex items-center justify-between'>
-					<div>
-						<h1 className='text-2xl font-bold text-text'>Notifications</h1>
-						<p className='mt-1 text-sm text-text-muted'>
-							Stay updated with your cooking journey
-						</p>
+			<PageContainer maxWidth='lg'>
+				{/* Header - Secondary page pattern with back button */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-6'
+				>
+					<div className='mb-2 flex items-center justify-between'>
+						<div className='flex items-center gap-3'>
+							{/* Back button - Notifications is accessed via Topbar, not primary nav */}
+							<button
+								onClick={() => router.back()}
+								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+							>
+								<ArrowLeft className='size-5' />
+							</button>
+							<motion.div
+								initial={{ scale: 0 }}
+								animate={{ scale: 1 }}
+								transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+							>
+								<Bell className='size-6 text-white' />
+							</motion.div>
+							<h1 className='text-3xl font-bold text-text'>Notifications</h1>
+						</div>
+						{counts.unread > 0 && (
+							<Button
+								variant='ghost'
+								size='sm'
+								onClick={handleMarkAllRead}
+								disabled={isMarkingAllRead}
+								className='gap-2'
+							>
+								{isMarkingAllRead ? (
+									<Loader2 className='size-4 animate-spin' />
+								) : (
+									<CheckCheck className='size-4' />
+								)}
+								Mark all read
+							</Button>
+						)}
 					</div>
-					{counts.unread > 0 && (
-						<Button
-							variant='ghost'
-							size='sm'
-							onClick={handleMarkAllRead}
-							disabled={isMarkingAllRead}
-							className='gap-2'
-						>
-							{isMarkingAllRead ? (
-								<Loader2 className='size-4 animate-spin' />
-							) : (
-								<CheckCheck className='size-4' />
-							)}
-							Mark all read
-						</Button>
-					)}
-				</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />
+						Stay updated with your cooking journey
+					</p>
+				</motion.div>
 
 				{/* Filter Tabs */}
 				<div className='mb-6'>

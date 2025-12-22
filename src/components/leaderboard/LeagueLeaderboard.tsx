@@ -53,33 +53,33 @@ const leagueConfig: Record<
 > = {
 	bronze: {
 		icon: '🥉',
-		gradient: 'from-amber-700/15 to-amber-600/8',
-		borderColor: 'border-amber-700/40',
-		textColor: 'text-amber-700',
+		gradient: 'from-medal-bronze/20 to-medal-bronze/8',
+		borderColor: 'border-medal-bronze/40',
+		textColor: 'text-medal-bronze',
 	},
 	silver: {
 		icon: '🥈',
-		gradient: 'from-gray-400/15 to-gray-300/8',
-		borderColor: 'border-gray-400/40',
-		textColor: 'text-gray-400',
+		gradient: 'from-medal-silver/25 to-medal-silver/10',
+		borderColor: 'border-medal-silver/50',
+		textColor: 'text-medal-silver',
 	},
 	gold: {
 		icon: '🏆',
-		gradient: 'from-gold/15 to-level/8',
-		borderColor: 'border-gold/40',
-		textColor: 'text-gold',
+		gradient: 'from-medal-gold/20 to-medal-gold/8',
+		borderColor: 'border-medal-gold/40',
+		textColor: 'text-medal-gold',
 	},
 	diamond: {
 		icon: '💎',
-		gradient: 'from-cyan-400/15 to-blue-400/8',
-		borderColor: 'border-cyan-400/40',
-		textColor: 'text-cyan-400',
+		gradient: 'from-rare/20 to-rare/8',
+		borderColor: 'border-rare/40',
+		textColor: 'text-rare',
 	},
 	legendary: {
 		icon: '👑',
-		gradient: 'from-accent-purple/15 to-pink-500/8',
-		borderColor: 'border-accent-purple/40',
-		textColor: 'text-accent-purple',
+		gradient: 'from-xp/20 to-xp/8',
+		borderColor: 'border-xp/40',
+		textColor: 'text-xp',
 	},
 }
 
@@ -118,7 +118,7 @@ function LeagueHeader({
 					>
 						{leagueInfo.tier} League
 					</span>
-					<span className='text-xs text-muted-foreground'>
+					<span className='text-xs text-text-tertiary'>
 						Week {leagueInfo.week}
 					</span>
 				</div>
@@ -129,9 +129,9 @@ function LeagueHeader({
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					onClick={onLeagueInfo}
-					className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-muted-foreground'
+					className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-tertiary'
 				>
-					<Info className='w-5 h-5' />
+					<Info className='size-5' />
 				</motion.button>
 			)}
 		</div>
@@ -148,20 +148,20 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 	return (
 		<div className='flex flex-col sm:flex-row gap-2 mb-5'>
 			{leagueInfo.nextTier && (
-				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-emerald-500/10 rounded-lg text-xs font-semibold text-emerald-500'>
-					<ChevronUp className='w-3.5 h-3.5' />
+				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-success/10 rounded-lg text-xs font-semibold text-success'>
+					<ChevronUp className='size-3.5' />
 					<span>
 						Top {leagueInfo.promotionRanks} promote to {leagueInfo.nextTier}
 					</span>
 				</div>
 			)}
-			<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-indigo-500/10 rounded-lg text-xs font-semibold text-indigo-500'>
-				<Shield className='w-3.5 h-3.5' />
+			<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-info/10 rounded-lg text-xs font-semibold text-info'>
+				<Shield className='size-3.5' />
 				<span>Safe zone</span>
 			</div>
 			{leagueInfo.prevTier && (
-				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-red-500/10 rounded-lg text-xs font-semibold text-red-500'>
-					<ChevronDown className='w-3.5 h-3.5' />
+				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-error/10 rounded-lg text-xs font-semibold text-error'>
+					<ChevronDown className='size-3.5' />
 					<span>
 						Bottom {leagueInfo.demotionRanks} demote to {leagueInfo.prevTier}
 					</span>
@@ -190,26 +190,26 @@ function ZoneSection({
 }) {
 	const zoneStyles = {
 		promotion: {
-			bg: 'bg-emerald-500/10',
-			text: 'text-emerald-500',
-			icon: <ChevronUp className='w-4 h-4' />,
+			bg: 'bg-success/10',
+			text: 'text-success',
+			icon: <ChevronUp className='size-4' />,
 		},
 		safe: {
-			bg: 'bg-indigo-500/10',
-			text: 'text-indigo-500',
-			icon: <Shield className='w-4 h-4' />,
+			bg: 'bg-info/10',
+			text: 'text-info',
+			icon: <Shield className='size-4' />,
 		},
 		demotion: {
-			bg: 'bg-red-500/10',
-			text: 'text-red-500',
-			icon: <ChevronDown className='w-4 h-4' />,
+			bg: 'bg-error/10',
+			text: 'text-error',
+			icon: <ChevronDown className='size-4' />,
 		},
 	}
 
 	const style = zoneStyles[type]
 
 	return (
-		<div className='bg-panel-bg rounded-2xl p-4 mb-3'>
+		<div className='bg-bg-card rounded-2xl p-4 mb-3'>
 			{/* Zone Label */}
 			<div
 				className={cn(
@@ -257,9 +257,9 @@ function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='flex items-center justify-center gap-2 py-3 bg-red-500/10 rounded-lg text-sm text-red-500'
+			className='flex items-center justify-center gap-2 py-3 bg-error/10 rounded-lg text-sm text-error'
 		>
-			<AlertTriangle className='w-4 h-4' />
+			<AlertTriangle className='size-4' />
 			<span>+{xpNeeded} XP needed to leave demotion zone</span>
 		</motion.div>
 	)
@@ -330,7 +330,7 @@ export function LeagueLeaderboard({
 
 			{/* Abbreviated indicator for safe zone */}
 			{safeEntries.length > 3 && (
-				<div className='text-center py-3 text-xs text-muted-foreground'>
+				<div className='text-center py-3 text-xs text-text-muted'>
 					Ranks {promotionThreshold + 4}-{demotionThreshold} •{' '}
 					{safeEntries[3]?.xpThisWeek?.toLocaleString()}-
 					{safeEntries[safeEntries.length - 1]?.xpThisWeek?.toLocaleString()} XP

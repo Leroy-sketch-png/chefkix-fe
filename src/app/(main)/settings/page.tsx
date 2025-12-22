@@ -493,27 +493,27 @@ export default function SettingsPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Header */}
+				{/* Header - Unified icon-box pattern */}
 				<motion.div
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
 					className='mb-8'
 				>
-					<div className='flex items-center gap-3'>
+					<div className='mb-2 flex items-center gap-3'>
 						<motion.div
 							whileHover={{ rotate: 45 }}
 							transition={TRANSITION_SPRING}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-text-secondary to-text-tertiary shadow-md'
 						>
-							<Settings className='size-8 text-primary' />
+							<Settings className='size-6 text-white' />
 						</motion.div>
-						<div>
-							<h1 className='text-3xl font-bold text-foreground'>Settings</h1>
-							<p className='text-muted-foreground'>
-								Customize your ChefKix experience
-							</p>
-						</div>
+						<h1 className='text-3xl font-bold text-text'>Settings</h1>
 					</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />
+						Customize your ChefKix experience
+					</p>
 				</motion.div>
 
 				<div className='grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]'>

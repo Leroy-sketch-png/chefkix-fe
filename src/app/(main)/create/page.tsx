@@ -52,13 +52,17 @@ function transformToRequest(recipe: ParsedRecipe): RecipeCreateRequest {
 	}
 }
 
+/**
+ * Create Recipe Page
+ *
+ * DESIGN DECISION: No back button.
+ * Create is a PRIMARY navigation destination (appears in LeftSidebar).
+ * Primary destinations don't have back buttons - user navigates away via nav.
+ * Secondary pages (recipe edit, post new) have back buttons - they're tasks.
+ */
 export default function CreateRecipePage() {
 	const router = useRouter()
 	const [isPublishing, setIsPublishing] = useState(false)
-
-	const handleBack = () => {
-		router.back()
-	}
 
 	const handlePublish = async (recipe: ParsedRecipe) => {
 		if (isPublishing) return
@@ -93,7 +97,8 @@ export default function CreateRecipePage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				<RecipeCreateAiFlow onBack={handleBack} onPublish={handlePublish} />
+				{/* No onBack = no back button. Primary nav destinations use nav to leave. */}
+				<RecipeCreateAiFlow onPublish={handlePublish} />
 			</PageContainer>
 		</PageTransition>
 	)

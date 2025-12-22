@@ -5,10 +5,9 @@ import { motion } from 'framer-motion'
 import { PATHS } from '@/constants'
 import {
 	Bell,
-	MessageSquare,
+	MessageCircle,
 	Search,
 	LogOut,
-	User,
 	Settings,
 	ChefHat,
 } from 'lucide-react'
@@ -231,30 +230,22 @@ export const Topbar = () => {
 							</Avatar>
 						</motion.button>
 
-						{/* Dropdown Menu */}
+						{/* Dropdown Menu - Profile is in LeftSidebar, not duplicated here (Twitter model) */}
 						{showUserMenu && (
-							<div className='absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg'>
-								<Link
-									href={user.userId ? `/${user.userId}` : PATHS.DASHBOARD}
-									onClick={() => setShowUserMenu(false)}
-									className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
-								>
-									<User className='h-4 w-4' />
-									<span>Profile</span>
-								</Link>
+							<div className='absolute right-0 top-full z-dropdown mt-2 w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg'>
 								<Link
 									href={PATHS.SETTINGS}
 									onClick={() => setShowUserMenu(false)}
-									className='flex h-11 items-center gap-3 px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
+									className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
 								>
-									<Settings className='h-4 w-4' />
+									<Settings className='size-4' />
 									<span>Settings</span>
 								</Link>
 								<button
 									onClick={handleLogout}
 									className='flex h-11 w-full items-center gap-3 rounded-b-lg px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 								>
-									<LogOut className='h-4 w-4' />
+									<LogOut className='size-4' />
 									<span>Sign Out</span>
 								</button>
 							</div>
@@ -290,7 +281,7 @@ export const Topbar = () => {
 					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp'
 					aria-label='Messages'
 				>
-					<MessageSquare className='size-5' />
+					<MessageCircle className='size-5' />
 					{unreadMessages > 0 && (
 						<motion.span
 							initial={{ scale: 0 }}

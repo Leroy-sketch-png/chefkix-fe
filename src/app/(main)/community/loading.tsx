@@ -1,18 +1,9 @@
-'use client'
-
+import { PageContainer } from '@/components/layout/PageContainer'
 import { Skeleton } from '@/components/ui/skeleton'
 
-/**
- * CommunitySkeleton - Loading state for Community Hub
- *
- * Matches the structure of the Community page with:
- * - Header (icon box + title + description) - matches Design System pattern
- * - Tab navigation skeleton
- * - Friend request/friend card skeletons in responsive grid
- */
-export const CommunitySkeleton = () => {
+export default function Loading() {
 	return (
-		<div className='space-y-6'>
+		<PageContainer maxWidth='xl'>
 			{/* Header skeleton - matches page header pattern */}
 			<div className='mb-6'>
 				<div className='mb-2 flex items-center gap-3'>
@@ -21,7 +12,7 @@ export const CommunitySkeleton = () => {
 				</div>
 				<div className='flex items-center gap-2'>
 					<Skeleton className='size-4 rounded' />
-					<Skeleton className='h-5 w-80 rounded' />
+					<Skeleton className='h-5 w-64 rounded' />
 				</div>
 			</div>
 
@@ -37,24 +28,17 @@ export const CommunitySkeleton = () => {
 				<Skeleton className='h-10 w-full rounded-radius' />
 			</div>
 
-			{/* Content grid skeleton - matches friend request/friend cards */}
+			{/* User grid skeleton */}
 			<div className='grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
 				{Array.from({ length: 8 }).map((_, i) => (
 					<UserCardSkeleton key={i} />
 				))}
 			</div>
-		</div>
+		</PageContainer>
 	)
 }
 
-/**
- * UserCardSkeleton - Matches UserCard dimensions in Discover tab
- *
- * Structure:
- * - Avatar + Name + Username (top)
- * - Stats (bottom)
- */
-const UserCardSkeleton = () => {
+function UserCardSkeleton() {
 	return (
 		<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6'>
 			<div className='flex items-center gap-4'>
@@ -72,37 +56,6 @@ const UserCardSkeleton = () => {
 				<div className='space-y-1 text-center'>
 					<Skeleton className='mx-auto h-5 w-6' />
 					<Skeleton className='mx-auto h-3 w-12' />
-				</div>
-			</div>
-		</div>
-	)
-}
-
-/**
- * FriendCardSkeleton - Matches FollowSuggestionCard/FriendCard dimensions
- *
- * Structure:
- * - Avatar (left)
- * - Name + username (center)
- * - Action buttons (right)
- */
-export const FriendCardSkeleton = () => {
-	return (
-		<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6'>
-			<div className='flex items-center justify-between gap-3'>
-				{/* Left: Avatar + Info */}
-				<div className='flex items-center gap-md'>
-					<Skeleton className='size-12 flex-shrink-0 rounded-full' />
-					<div className='space-y-2'>
-						<Skeleton className='h-4 w-32' /> {/* Name */}
-						<Skeleton className='h-3 w-24' /> {/* Username */}
-					</div>
-				</div>
-
-				{/* Right: Action buttons */}
-				<div className='flex gap-2'>
-					<Skeleton className='h-9 w-20 rounded-radius' />
-					<Skeleton className='h-9 w-9 rounded-radius' />
 				</div>
 			</div>
 		</div>

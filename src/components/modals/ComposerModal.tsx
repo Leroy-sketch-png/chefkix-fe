@@ -343,7 +343,7 @@ export const ComposerModal = ({
 										>
 											{isGenerating ? (
 												<>
-													<Loader2 className='h-4 w-4 animate-spin' />
+													<Loader2 className='size-4 animate-spin' />
 													<span>Generating...</span>
 												</>
 											) : (
@@ -433,7 +433,7 @@ export const ComposerModal = ({
 								)}
 							>
 								{isPosting ? (
-									<Loader2 className='h-5 w-5 animate-spin' />
+									<Loader2 className='size-5 animate-spin' />
 								) : (
 									'Post'
 								)}

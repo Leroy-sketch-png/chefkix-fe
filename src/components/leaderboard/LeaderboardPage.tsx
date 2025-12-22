@@ -88,7 +88,7 @@ function LeaderboardTabs({
 	]
 
 	return (
-		<div className='flex gap-2 p-1.5 bg-panel-bg rounded-2xl mb-4'>
+		<div className='flex gap-2 p-1.5 bg-bg-card rounded-2xl mb-4'>
 			{tabs.map(({ type, label, icon: Icon }) => (
 				<motion.button
 					key={type}
@@ -99,7 +99,7 @@ function LeaderboardTabs({
 						'rounded-xl text-sm font-semibold transition-all',
 						activeType === type
 							? 'bg-gradient-xp text-white'
-							: 'text-muted-foreground hover:text-text',
+							: 'text-text-muted hover:text-text',
 					)}
 				>
 					<Icon className='size-icon-sm' />
@@ -130,7 +130,7 @@ function TimeframeToggle({
 	const activeIndex = timeframes.findIndex(t => t.value === activeTimeframe)
 
 	return (
-		<div className='relative flex p-1 bg-panel-bg rounded-xl mb-5'>
+		<div className='relative flex p-1 bg-bg-card rounded-xl mb-5'>
 			{/* Sliding indicator */}
 			<motion.div
 				className='absolute top-1 h-[calc(100%-8px)] bg-bg rounded-lg'
@@ -148,7 +148,7 @@ function TimeframeToggle({
 					onClick={() => onTimeframeChange?.(value)}
 					className={cn(
 						'flex-1 py-2.5 text-sm font-semibold z-10 transition-colors',
-						activeTimeframe === value ? 'text-text' : 'text-muted-foreground',
+						activeTimeframe === value ? 'text-text' : 'text-text-muted',
 					)}
 				>
 					{label}
@@ -179,14 +179,11 @@ function MyRankBanner({
 				'border-2 border-accent-purple/20 rounded-2xl mb-6',
 			)}
 		>
-			{/* Rank Position */}
 			<div className='flex flex-col items-center sm:pr-5 sm:border-r border-border pb-4 sm:pb-0 w-full sm:w-auto'>
-				<span className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+				<span className='text-xs font-semibold text-text-muted uppercase tracking-wide'>
 					Your Rank
 				</span>
-				<span className='text-3xl font-black text-indigo-500'>
-					#{myRank.rank}
-				</span>
+				<span className='text-3xl font-black text-xp'>#{myRank.rank}</span>
 			</div>
 
 			{/* Stats */}
@@ -195,19 +192,19 @@ function MyRankBanner({
 					<span className='text-xl font-extrabold text-text'>
 						{myRank.xpThisWeek}
 					</span>
-					<span className='text-xs text-muted-foreground'>XP this week</span>
+					<span className='text-xs text-text-muted'>XP this week</span>
 				</div>
 				<div className='flex flex-col'>
 					<span className='text-xl font-extrabold text-text'>
 						{myRank.recipesCooked}
 					</span>
-					<span className='text-xs text-muted-foreground'>Recipes cooked</span>
+					<span className='text-xs text-text-muted'>Recipes cooked</span>
 				</div>
 			</div>
 
 			{/* Goal & CTA */}
 			<div className='flex-1 flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto'>
-				<span className='text-xs text-muted-foreground'>
+				<span className='text-xs text-text-muted'>
 					+{myRank.xpToNextRank} XP to reach #{myRank.nextRankPosition}
 				</span>
 				<motion.button
@@ -233,7 +230,7 @@ function MyRankBanner({
 
 function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
 	return (
-		<div className='flex items-center justify-center gap-2 py-3.5 bg-panel-bg rounded-xl mt-4 text-sm text-muted-foreground'>
+		<div className='flex items-center justify-center gap-2 py-3.5 bg-bg-card rounded-xl mt-4 text-sm text-text-muted'>
 			<Clock className='size-icon-sm' />
 			<span>
 				Resets in{' '}
@@ -289,9 +286,9 @@ export function LeaderboardPage({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-text'
+						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text'
 					>
-						<ArrowLeft className='w-5 h-5' />
+						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
 				<h1 className='flex-1 text-2xl font-extrabold text-text'>
@@ -302,9 +299,9 @@ export function LeaderboardPage({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onShare}
-						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-muted-foreground'
+						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-muted'
 					>
-						<Share2 className='w-5 h-5' />
+						<Share2 className='size-5' />
 					</motion.button>
 				)}
 			</div>
@@ -327,7 +324,7 @@ export function LeaderboardPage({
 			{isLoading ? (
 				<>
 					<LeaderboardPodiumSkeleton />
-					<div className='bg-panel-bg rounded-2xl p-2'>
+					<div className='bg-bg-card rounded-2xl p-2'>
 						{[1, 2, 3, 4, 5].map(i => (
 							<LeaderboardItemSkeleton key={i} />
 						))}
@@ -355,7 +352,7 @@ export function LeaderboardPage({
 						variants={staggerContainer}
 						initial='hidden'
 						animate='visible'
-						className='bg-panel-bg rounded-2xl p-2'
+						className='bg-bg-card rounded-2xl p-2'
 					>
 						{listEntries.map((entry, index) => (
 							<motion.div key={entry.userId} variants={staggerItem}>
@@ -383,19 +380,32 @@ export function LeaderboardPage({
 				<ResetTimer resetInfo={resetInfo} />
 			)}
 
-			{/* Empty State */}
+			{/* Empty State - Encouraging, not depressing */}
 			{!isLoading && entries.length === 0 && (
-				<div className='flex flex-col items-center justify-center py-16 text-center'>
-					<div className='w-16 h-16 mb-4 rounded-full bg-muted/10 flex items-center justify-center'>
-						<ChefHat className='w-8 h-8 text-muted-foreground' />
-					</div>
-					<h3 className='text-lg font-bold text-text mb-2'>No Rankings Yet</h3>
-					<p className='text-sm text-muted-foreground max-w-xs'>
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					className='flex flex-col items-center justify-center py-16 text-center'
+				>
+					<motion.div
+						initial={{ scale: 0 }}
+						animate={{ scale: 1 }}
+						transition={TRANSITION_SPRING}
+						className='size-16 mb-4 rounded-2xl bg-gradient-xp shadow-lg flex items-center justify-center'
+					>
+						<ChefHat className='size-8 text-white' />
+					</motion.div>
+					<h3 className='text-lg font-bold text-text mb-2'>
 						{type === 'friends'
-							? 'Invite friends to compete with you!'
-							: 'Be the first to cook and claim the top spot!'}
+							? 'Start the Rivalry! 🔥'
+							: 'Claim Your Throne! 👑'}
+					</h3>
+					<p className='text-sm text-text-secondary max-w-xs'>
+						{type === 'friends'
+							? 'Invite friends and battle it out for cooking supremacy!'
+							: 'Cook your first recipe and become the top chef!'}
 					</p>
-				</div>
+				</motion.div>
 			)}
 		</div>
 	)

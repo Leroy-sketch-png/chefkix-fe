@@ -7,6 +7,9 @@ import { CreatorDashboard } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { getCreatorStats, CreatorStats } from '@/services/creator'
+import { motion } from 'framer-motion'
+import { ArrowLeft, ChefHat, Sparkles } from 'lucide-react'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
 // HELPERS
@@ -112,15 +115,35 @@ export default function CreatorRoute() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				<div className='mb-6 space-y-2'>
-					<h1 className='text-3xl font-bold text-text-primary'>
-						Creator Dashboard
-					</h1>
-					<p className='text-muted-foreground'>
-						Track your recipe performance and see how your creations are
-						inspiring others.
+				{/* Header - Secondary page pattern with back button */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-6'
+				>
+					<div className='mb-2 flex items-center gap-3'>
+						<button
+							onClick={() => router.push('/dashboard')}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						>
+							<ArrowLeft className='size-5' />
+						</button>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-md shadow-xp/25'
+						>
+							<ChefHat className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold text-text'>Creator Dashboard</h1>
+					</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />
+						Track your recipe performance and inspire others
 					</p>
-				</div>
+				</motion.div>
 				<CreatorDashboard
 					weekHighlight={weekHighlight}
 					lifetimeStats={lifetimeStats}

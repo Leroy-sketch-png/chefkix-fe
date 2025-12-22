@@ -3,12 +3,7 @@
 import { Profile } from '@/lib/types'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { staggerItemVariants } from '@/components/ui/stagger-animation'
-import {
-	TRANSITION_SPRING,
-	LIST_ITEM_HOVER,
-	CARD_FEED_HOVER,
-} from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_FEED_HOVER, staggerItem } from '@/lib/motion'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
@@ -22,12 +17,18 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 	const { user } = useAuth()
 
 	return (
-		<motion.div variants={staggerItemVariants}>
+		<motion.div
+			variants={staggerItem}
+			initial='hidden'
+			animate='visible'
+			exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+			layout
+		>
 			<UserHoverCard userId={profile.userId} currentUserId={user?.userId}>
 				<Link href={profile.userId ? `/${profile.userId}` : '/dashboard'}>
 					<motion.div
-						className='cursor-pointer rounded-lg border border-border-subtle bg-bg-card p-4 shadow-sm transition-all hover:shadow-md md:p-6'
-						whileHover={{ ...LIST_ITEM_HOVER, ...CARD_FEED_HOVER }}
+						className='cursor-pointer rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm md:p-6'
+						whileHover={CARD_FEED_HOVER}
 						transition={TRANSITION_SPRING}
 					>
 						<div className='flex items-center gap-4'>
@@ -46,7 +47,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 								</AvatarFallback>
 							</Avatar>
 							<div className='overflow-hidden'>
-								<h3 className='truncate text-lg font-bold leading-tight text-text-primary'>
+								<h3 className='truncate text-lg font-bold leading-tight text-text'>
 									{profile.displayName || 'Unknown User'}
 								</h3>
 								<p className='truncate text-sm leading-normal text-text-secondary'>
@@ -56,13 +57,13 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 						</div>
 						<div className='mt-4 flex justify-around text-center text-sm'>
 							<div>
-								<span className='font-bold text-text-primary'>
+								<span className='font-bold text-text'>
 									{profile.statistics?.followerCount ?? 0}
 								</span>
 								<span className='ml-1 text-text-secondary'>Followers</span>
 							</div>
 							<div>
-								<span className='font-bold text-text-primary'>
+								<span className='font-bold text-text'>
 									{profile.statistics?.currentLevel ?? 1}
 								</span>
 								<span className='ml-1 text-text-secondary'>Level</span>

@@ -11,6 +11,7 @@ import {
 	Users,
 	MessageCircle,
 	Settings,
+	User,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -25,8 +26,9 @@ const navItems = [
 	{ href: '/challenges', icon: Target, label: 'Challenges' },
 	{ href: '/community', icon: Users, label: 'Community' },
 	{ href: '/create', icon: PlusSquare, label: 'Create' },
-	{ href: '/settings', icon: Settings, label: 'Settings' },
 	{ href: '/messages', icon: MessageCircle, label: 'Messages' },
+	{ href: '/profile', icon: User, label: 'Profile' },
+	{ href: '/settings', icon: Settings, label: 'Settings' },
 ]
 
 export const LeftSidebar = () => {
@@ -85,7 +87,7 @@ export const LeftSidebar = () => {
 							transition={TRANSITION_SPRING}
 							className='relative'
 						>
-							<Icon className='h-6 w-6 transition-all duration-300 group-data-[active=true]:drop-shadow-glow' />
+							<Icon className='size-6 transition-all duration-300 group-data-[active=true]:drop-shadow-glow' />
 						</motion.div>
 						<div>{item.label}</div>
 					</Link>

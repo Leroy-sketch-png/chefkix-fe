@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -11,7 +12,6 @@ import { FollowSuggestionCard } from '@/components/social/FollowSuggestionCard'
 import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import { AnimatePresence } from 'framer-motion'
 import { getAllProfiles } from '@/services/profile'
 import { getFriends, getFollowers } from '@/services/social'
 import {
@@ -19,7 +19,7 @@ import {
 	type LeaderboardEntry as LeaderboardServiceEntry,
 } from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
-import { Users, UserPlus, Trophy, Search } from 'lucide-react'
+import { Users, UserPlus, Trophy, Search, Sparkles } from 'lucide-react'
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -31,10 +31,12 @@ import {
 } from '@/components/leaderboard'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 export default function CommunityPage() {
 	const { user } = useAuth()
 	const router = useRouter()
+	const [activeTab, setActiveTab] = useState('discover')
 	const [allProfiles, setAllProfiles] = useState<Profile[]>([])
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [followers, setFollowers] = useState<Profile[]>([])
@@ -148,33 +150,47 @@ export default function CommunityPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				<div className='mb-6 space-y-2'>
-					<h1 className='bg-gradient-to-r from-primary to-accent bg-clip-text text-3xl font-bold text-transparent'>
-						Community Hub
-					</h1>
-					<p className='text-muted-foreground'>
-						Connect with fellow chefs, manage friendships, and discover new
-						culinary talent.
+				{/* Header - Unified with Dashboard/Explore/Challenges pattern */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-6'
+				>
+					<div className='mb-2 flex items-center gap-3'>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-md shadow-xp/25'
+						>
+							<Users className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold text-text'>Community Hub</h1>
+					</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-xp' />
+						Connect with fellow chefs, discover talent, and climb the ranks.
 					</p>
-				</div>
+				</motion.div>
 
-				<Tabs defaultValue='discover' className='w-full'>
+				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
 					<TabsList className='mb-6 grid w-full grid-cols-3 lg:w-auto'>
 						<TabsTrigger value='discover' className='gap-2'>
-							<Search className='h-4 w-4' />
+							<Search className='size-4' />
 							<span className='hidden sm:inline'>Discover</span>
 						</TabsTrigger>
 						<TabsTrigger value='friends' className='gap-2'>
-							<Users className='h-4 w-4' />
+							<Users className='size-4' />
 							<span className='hidden sm:inline'>Friends</span>
 							{friends.length > 0 && (
-								<span className='ml-1 rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary'>
+								<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium text-brand'>
 									{friends.length}
 								</span>
 							)}
 						</TabsTrigger>
 						<TabsTrigger value='leaderboard' className='gap-2'>
-							<Trophy className='h-4 w-4' />
+							<Trophy className='size-4' />
 							<span className='hidden sm:inline'>Leaderboard</span>
 						</TabsTrigger>
 					</TabsList>
@@ -202,7 +218,7 @@ export default function CommunityPage() {
 						{followers.length > 0 && (
 							<section>
 								<div className='mb-4 flex items-center gap-2'>
-									<UserPlus className='h-5 w-5 text-primary' />
+									<UserPlus className='size-5 text-xp' />
 									<h2 className='text-xl font-semibold'>
 										Follow Back Suggestions ({followers.length})
 									</h2>
@@ -226,7 +242,7 @@ export default function CommunityPage() {
 
 						<section>
 							<div className='mb-4 flex items-center gap-2'>
-								<Users className='h-5 w-5 text-primary' />
+								<Users className='size-5 text-xp' />
 								<h2 className='text-xl font-semibold'>
 									My Friends {friends.length > 0 && `(${friends.length})`}
 								</h2>
@@ -237,7 +253,11 @@ export default function CommunityPage() {
 									title='No friends yet'
 									description='Start connecting by following people in the Discover tab!'
 									quickActions={[
-										{ label: 'Browse Discover', href: '#', emoji: '🔍' },
+										{
+											label: 'Browse Discover',
+											emoji: '🔍',
+											onClick: () => setActiveTab('discover'),
+										},
 									]}
 								/>
 							) : (
@@ -261,13 +281,7 @@ export default function CommunityPage() {
 							entries={leaderboardEntries}
 							totalFriends={friends.length}
 							onUserClick={handleLeaderboardUserClick}
-							onInviteFriends={() => {
-								// Switch to discover tab
-								const discoverTab = document.querySelector(
-									'[data-state="inactive"][value="discover"]',
-								) as HTMLButtonElement
-								discoverTab?.click()
-							}}
+							onInviteFriends={() => setActiveTab('discover')}
 							onCookToDefend={() => router.push('/explore')}
 						/>
 					</TabsContent>

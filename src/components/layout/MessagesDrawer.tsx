@@ -264,7 +264,7 @@ export const MessagesDrawer = () => {
 						<div className='flex-1 overflow-y-auto p-3'>
 							{isLoadingMessages ? (
 								<div className='flex h-full items-center justify-center'>
-									<Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
+									<Loader2 className='size-5 animate-spin text-muted-foreground' />
 								</div>
 							) : messages.length === 0 ? (
 								<div className='flex h-full items-center justify-center text-sm text-muted-foreground'>
@@ -298,7 +298,7 @@ export const MessagesDrawer = () => {
 					<div className='p-2'>
 						{isLoadingConversations ? (
 							<div className='flex items-center justify-center py-8'>
-								<Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
+								<Loader2 className='size-5 animate-spin text-muted-foreground' />
 							</div>
 						) : filteredConversations.length === 0 ? (
 							<div className='flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground'>
@@ -372,7 +372,7 @@ export const MessagesDrawer = () => {
 							disabled={!newMessage.trim() || isSending}
 						>
 							{isSending ? (
-								<Loader2 className='h-4 w-4 animate-spin' />
+								<Loader2 className='size-4 animate-spin' />
 							) : (
 								<Send className='h-4 w-4' />
 							)}

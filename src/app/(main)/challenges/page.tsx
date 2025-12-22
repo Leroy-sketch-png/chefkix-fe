@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { Trophy, Sparkles } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import {
@@ -11,6 +13,7 @@ import {
 } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import { getTodaysChallenge, DailyChallenge } from '@/services/challenge'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -85,15 +88,29 @@ export default function ChallengesPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Header */}
-				<div className='mb-8 animate-fadeIn'>
-					<h1 className='mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-3xl font-bold text-transparent'>
-						Challenges
-					</h1>
-					<p className='text-muted-foreground'>
+				{/* Header - Unified with Dashboard/Explore pattern */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-8'
+				>
+					<div className='mb-2 flex items-center gap-3'>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-streak to-streak-urgent shadow-md shadow-streak/25'
+						>
+							<Trophy className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold text-text'>Challenges</h1>
+					</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-xp' />
 						Test your skills, earn bonus XP, and unlock exclusive badges!
 					</p>
-				</div>
+				</motion.div>
 
 				{hasNoChallenges ? (
 					<EmptyStateGamified

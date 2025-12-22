@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { UserPlus, ChefHat } from 'lucide-react'
 import Image from 'next/image'
@@ -37,6 +38,49 @@ export interface FriendsLeaderboardProps {
 }
 
 // ============================================================================
+// AVATAR WITH FALLBACK
+// ============================================================================
+
+function AvatarWithFallback({
+	src,
+	alt,
+	size = 32,
+}: {
+	src?: string
+	alt: string
+	size?: number
+}) {
+	const [imgError, setImgError] = useState(false)
+	const hasValidAvatar = src && !imgError
+
+	if (!hasValidAvatar) {
+		return (
+			<div
+				className='flex items-center justify-center rounded-full bg-gradient-to-br from-bg-elevated to-bg-hover'
+				style={{ width: size, height: size }}
+			>
+				<ChefHat
+					className='text-text-muted'
+					style={{ width: size * 0.5, height: size * 0.5 }}
+				/>
+			</div>
+		)
+	}
+
+	return (
+		<Image
+			src={src}
+			alt={alt}
+			width={size}
+			height={size}
+			className='rounded-full object-cover'
+			style={{ width: size, height: size }}
+			onError={() => setImgError(true)}
+		/>
+	)
+}
+
+// ============================================================================
 // FRIENDS SUMMARY
 // ============================================================================
 
@@ -47,12 +91,30 @@ function FriendsSummary({
 	totalFriends: number
 	onInviteFriends?: () => void
 }) {
-	return (
-		<div className='flex items-center justify-between py-4 px-5 bg-panel-bg rounded-2xl mb-5'>
-			<span className='text-sm text-muted-foreground'>
+	// Actionable copy based on friend count
+	const getMessage = () => {
+		if (totalFriends === 0) {
+			return (
+				<>
+					<span className='text-streak font-semibold'>No rivals yet!</span>{' '}
+					Start the competition
+				</>
+			)
+		}
+		return (
+			<>
 				Competing with{' '}
-				<strong className='text-text'>{totalFriends} friends</strong> this week
-			</span>
+				<strong className='text-text'>
+					{totalFriends} {totalFriends === 1 ? 'friend' : 'friends'}
+				</strong>{' '}
+				this week
+			</>
+		)
+	}
+
+	return (
+		<div className='flex items-center justify-between py-4 px-5 bg-bg-card rounded-2xl border border-border-subtle mb-5'>
+			<span className='text-sm text-text-secondary'>{getMessage()}</span>
 			{onInviteFriends && (
 				<motion.button
 					whileHover={LIST_ITEM_HOVER}
@@ -64,8 +126,8 @@ function FriendsSummary({
 						'rounded-lg text-sm font-semibold text-white',
 					)}
 				>
-					<UserPlus className='w-4 h-4' />
-					Invite
+					<UserPlus className='size-4' />
+					{totalFriends === 0 ? 'Invite Rivals' : 'Invite'}
 				</motion.button>
 			)}
 		</div>
@@ -95,13 +157,13 @@ function CatchingUpAlert({
 			)}
 		>
 			<div className='flex items-center gap-2.5'>
-				<Image
-					src={competitor.avatarUrl || '/images/default-avatar.png'}
-					alt={competitor.displayName}
-					width={32}
-					height={32}
-					className='rounded-full'
-				/>
+				<div className='size-8 flex-shrink-0 overflow-hidden rounded-full'>
+					<AvatarWithFallback
+						src={competitor.avatarUrl}
+						alt={competitor.displayName}
+						size={32}
+					/>
+				</div>
 				<span className='text-sm text-text'>
 					<strong className='text-streak'>{competitor.displayName}</strong> is
 					only {xpBehind} XP behind you!
@@ -182,7 +244,7 @@ export function FriendsLeaderboard({
 				variants={staggerContainer}
 				initial='hidden'
 				animate='visible'
-				className='bg-panel-bg rounded-2xl p-4'
+				className='bg-bg-card rounded-2xl p-4'
 			>
 				{/* Show current user first if leading */}
 				{isLeading && currentUser && (
@@ -227,15 +289,23 @@ export function FriendsLeaderboard({
 				)}
 			</motion.div>
 
-			{/* Empty State - No Friends */}
+			{/* Empty State - No Friends - ENCOURAGING, not depressing */}
 			{entries.length === 0 && (
 				<div className='flex flex-col items-center justify-center py-16 text-center'>
-					<div className='w-16 h-16 mb-4 rounded-full bg-muted/10 flex items-center justify-center'>
-						<ChefHat className='w-8 h-8 text-muted-foreground' />
-					</div>
-					<h3 className='text-lg font-bold text-text mb-2'>No Friends Yet</h3>
-					<p className='text-sm text-muted-foreground max-w-xs mb-4'>
-						Invite your friends to compete and see who can cook the most!
+					<motion.div
+						initial={{ scale: 0 }}
+						animate={{ scale: 1 }}
+						transition={TRANSITION_SPRING}
+						className='mb-4 flex size-16 items-center justify-center rounded-2xl bg-gradient-xp shadow-lg'
+					>
+						<ChefHat className='size-8 text-white' />
+					</motion.div>
+					<h3 className='mb-2 text-lg font-bold text-text'>
+						Ready to Compete? 🔥
+					</h3>
+					<p className='mb-4 max-w-xs text-sm text-text-secondary'>
+						Invite friends to start the ultimate cooking showdown. Who will earn
+						the most XP?
 					</p>
 					{onInviteFriends && (
 						<motion.button
@@ -248,7 +318,7 @@ export function FriendsLeaderboard({
 								'rounded-xl text-sm font-semibold text-white',
 							)}
 						>
-							<UserPlus className='w-4 h-4' />
+							<UserPlus className='size-4' />
 							Invite Friends
 						</motion.button>
 					)}

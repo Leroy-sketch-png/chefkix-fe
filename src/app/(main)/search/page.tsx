@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	BookOpen,
@@ -12,6 +12,8 @@ import {
 	Flame,
 	Bookmark,
 	Search,
+	ArrowLeft,
+	Sparkles,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -315,6 +317,7 @@ const transformPost = (post: Post): PostResult => ({
 // ============================================
 
 export default function SearchPage() {
+	const router = useRouter()
 	const searchParams = useSearchParams()
 	const query = searchParams.get('q') || ''
 	const [activeTab, setActiveTab] = useState<SearchTab>('recipes')
@@ -430,13 +433,31 @@ export default function SearchPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Header */}
+				{/* Header - Secondary page pattern with back button */}
 				<div className='mb-6'>
-					<h1 className='mb-2 text-2xl font-extrabold text-text md:text-3xl'>
-						Results for &quot;{query}&quot;
-					</h1>
-					<p className='text-sm text-muted-foreground'>
-						{totalResults} results
+					<div className='mb-2 flex items-center gap-3'>
+						{/* Back button - Search is accessed via Topbar, not primary nav */}
+						<button
+							onClick={() => router.back()}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						>
+							<ArrowLeft className='size-5' />
+						</button>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={TRANSITION_SPRING}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-text-secondary to-text-tertiary shadow-md'
+						>
+							<Search className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold text-text'>
+							Results for &quot;{query}&quot;
+						</h1>
+					</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />
+						{totalResults} results found
 					</p>
 				</div>
 

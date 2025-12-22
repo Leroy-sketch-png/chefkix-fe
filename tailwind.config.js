@@ -77,6 +77,25 @@ module.exports = {
 					glow: 'var(--color-level-glow)',
 				},
 				badge: 'var(--color-badge)',
+				rare: 'var(--color-rare)',
+				combo: 'var(--color-combo)',
+				legendary: 'var(--color-legendary)',
+
+				// Medal colors for leaderboards
+				medal: {
+					gold: {
+						DEFAULT: 'var(--color-medal-gold)',
+						glow: 'var(--color-medal-gold-glow)',
+					},
+					silver: {
+						DEFAULT: 'var(--color-medal-silver)',
+						glow: 'var(--color-medal-silver-glow)',
+					},
+					bronze: {
+						DEFAULT: 'var(--color-medal-bronze)',
+						glow: 'var(--color-medal-bronze-glow)',
+					},
+				},
 
 				// Background colors
 				bg: {

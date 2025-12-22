@@ -312,27 +312,32 @@ export default function MyRecipesPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='2xl'>
-				{/* Header */}
+				{/* Header - Secondary page pattern with back button and icon-box */}
 				<motion.div
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
 					className='mb-8'
 				>
 					<div className='flex items-center justify-between'>
-						<div className='flex items-center gap-4'>
-							<motion.button
+						<div className='flex items-center gap-3'>
+							<button
 								onClick={() => router.back()}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className='grid size-10 place-items-center rounded-full bg-bg-card shadow-card transition-colors hover:bg-bg-elevated'
+								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 							>
 								<ArrowLeft className='size-5' />
-							</motion.button>
+							</button>
+							<motion.div
+								initial={{ scale: 0 }}
+								animate={{ scale: 1 }}
+								transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-md shadow-xp/25'
+							>
+								<ChefHat className='size-6 text-white' />
+							</motion.div>
 							<div>
-								<h1 className='text-2xl font-bold text-text md:text-3xl'>
-									My Recipes
-								</h1>
-								<p className='text-text-muted'>
+								<h1 className='text-3xl font-bold text-text'>My Recipes</h1>
+								<p className='text-text-secondary'>
 									{recipes.length} recipe{recipes.length !== 1 ? 's' : ''}{' '}
 									published
 								</p>

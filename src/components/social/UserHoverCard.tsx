@@ -62,7 +62,7 @@ export const UserHoverCard = ({
 			<PopoverContent className='w-80 p-0' align='start'>
 				{isLoading ? (
 					<div className='flex items-center justify-center p-8'>
-						<Loader2 className='h-6 w-6 animate-spin text-primary' />
+						<Loader2 className='size-6 animate-spin text-primary' />
 					</div>
 				) : hasError ? (
 					<div className='p-6 text-center text-sm text-text-secondary'>
@@ -129,19 +129,19 @@ export const UserHoverCard = ({
 						<div className='flex items-center gap-4 text-sm'>
 							<div>
 								<span className='font-semibold text-text-primary'>
-									{profile.statistics.followerCount}
+									{profile.statistics?.followerCount ?? 0}
 								</span>
 								<span className='ml-1 text-text-secondary'>Followers</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
-									{profile.statistics.followingCount}
+									{profile.statistics?.followingCount ?? 0}
 								</span>
 								<span className='ml-1 text-text-secondary'>Following</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
-									{profile.statistics.recipeCount}
+									{profile.statistics?.recipeCount ?? 0}
 								</span>
 								<span className='ml-1 text-text-secondary'>Recipes</span>
 							</div>

@@ -51,6 +51,50 @@
 	--color-legendary: #f59e0b; /* Amber - legendary, premium */
 	--color-gold: #eab308; /* Gold - coins, premium currency */
 
+	/* Medal Colors - Podium/Leaderboard */
+	--color-medal-gold: #eab308; /* Rich gold - 1st place */
+	--color-medal-gold-glow: #fde047; /* Bright gold highlight */
+	--color-medal-gold-deep: #ca8a04; /* Deep gold shadow */
+	--color-medal-silver: #94a3b8; /* Warm silver (slate) - 2nd place */
+	--color-medal-silver-glow: #e2e8f0; /* Bright silver highlight */
+	--color-medal-silver-deep: #64748b; /* Deep silver shadow */
+	--color-medal-bronze: #d97706; /* Warm bronze/copper - 3rd place */
+	--color-medal-bronze-glow: #fbbf24; /* Bronze highlight */
+	--color-medal-bronze-deep: #b45309; /* Deep bronze shadow */
+
+	/* ============ PREMIUM METALLIC PODIUM GRADIENTS ============ */
+	/* These gradients create a 3D metallic shimmer effect */
+
+	/* Gold Podium - Shimmering treasure */
+	--gradient-medal-gold: linear-gradient(
+		165deg,
+		#fef3c7 0%,
+		/* Bright highlight at top */ #fde047 15%,
+		/* Gold glow */ #eab308 40%,
+		/* Rich gold */ #ca8a04 70%,
+		/* Deep gold */ #a16207 100% /* Shadow at bottom */
+	);
+
+	/* Silver Podium - Polished metal */
+	--gradient-medal-silver: linear-gradient(
+		165deg,
+		#f1f5f9 0%,
+		/* Bright highlight */ #e2e8f0 15%,
+		/* Silver glow */ #94a3b8 40%,
+		/* Silver mid */ #64748b 70%,
+		/* Slate */ #475569 100% /* Deep shadow */
+	);
+
+	/* Bronze Podium - Burnished copper */
+	--gradient-medal-bronze: linear-gradient(
+		165deg,
+		#fef3c7 0%,
+		/* Warm highlight */ #fbbf24 15%,
+		/* Amber glow */ #d97706 40%,
+		/* Bronze */ #b45309 70%,
+		/* Deep bronze */ #92400e 100% /* Rich shadow */
+	);
+
 	/* ============ LIGHT MODE COLORS ============ */
 
 	/* Backgrounds - Warm parchment/kitchen palette (think: fresh bread, warm wood) */
@@ -1047,6 +1091,16 @@ select {
 		#a855f7 0%,
 		#c084fc 50%,
 		#8b5cf6 100%
+	);
+}
+
+/* Social/Community gradient - vibrant purple-to-pink for high visibility */
+@utility bg-gradient-social {
+	background-image: linear-gradient(
+		135deg,
+		#8b5cf6 0%,
+		#a855f7 50%,
+		#d946ef 100%
 	);
 }
 
