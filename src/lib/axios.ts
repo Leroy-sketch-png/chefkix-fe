@@ -31,6 +31,37 @@ const onTokenRefreshed = (token: string) => {
 	refreshSubscribers = []
 }
 
+// Request Interceptor: Attach JWT token to all requests
+api.interceptors.request.use(
+	config => {
+		// Get token from Zustand store (persisted to localStorage)
+		const state = useAuthStore.getState()
+		const accessToken = state.accessToken
+
+		// Debug: log token status for troubleshooting
+		if (process.env.NODE_ENV === 'development') {
+			const url = config.url || ''
+			const hasToken = !!accessToken
+			// Only log for non-auth endpoints to reduce noise
+			if (!url.includes('/auth/')) {
+				console.debug(
+					`[axios] ${config.method?.toUpperCase()} ${url} | token: ${hasToken ? 'yes' : 'NO'}`,
+				)
+			}
+		}
+
+		// Attach token if available - use .set() for proper AxiosHeaders API
+		if (accessToken) {
+			config.headers.set('Authorization', `Bearer ${accessToken}`)
+		}
+
+		return config
+	},
+	error => {
+		return Promise.reject(error)
+	},
+)
+
 // Response Interceptor: Standardize successful and error responses.
 api.interceptors.response.use(
 	(response: AxiosResponse) => {
@@ -88,9 +119,9 @@ api.interceptors.response.use(
 					const newAccessToken = refreshResponse.data.data.accessToken
 
 					if (newAccessToken) {
-						// Update store with new access token
-						const { login, user } = useAuthStore.getState()
-						login(newAccessToken, user || undefined)
+						// Update the token in store - request interceptor will pick it up
+						// No need to set api.defaults.headers as the interceptor handles it
+						useAuthStore.setState({ accessToken: newAccessToken })
 
 						// Notify all queued requests
 						onTokenRefreshed(newAccessToken)

@@ -93,7 +93,11 @@ export const API_ENDPOINTS = {
 		FEED: `${RECIPE_SERVICE_PREFIX}/feed`,
 		TRENDING: `${RECIPE_SERVICE_PREFIX}/trending`,
 		SEARCH: `${RECIPE_SERVICE_PREFIX}/search`,
+		// Draft management (spec 07-recipes.txt)
 		DRAFTS: `${RECIPE_SERVICE_PREFIX}/drafts`,
+		CREATE_DRAFT: `${RECIPE_SERVICE_PREFIX}/draft`,
+		SAVE_DRAFT: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}`,
+		DISCARD_DRAFT: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}`,
 		CREATE: RECIPE_SERVICE_PREFIX,
 		UPDATE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}`,
 		DELETE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}`,

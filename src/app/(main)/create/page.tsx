@@ -46,7 +46,8 @@ function transformToRequest(recipe: ParsedRecipe): RecipeCreateRequest {
 			title: step.technique || 'Step',
 			description: step.instruction,
 			action: step.technique,
-			timerSeconds: step.timerMinutes ? step.timerMinutes * 60 : undefined,
+			// Use timerSeconds directly (already stored in seconds)
+			timerSeconds: step.timerSeconds,
 		})),
 		rewardBadges: recipe.detectedBadges.map(b => b.name),
 	}

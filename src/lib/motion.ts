@@ -175,6 +175,38 @@ export const PAGE_TRANSITION = {
 }
 
 /**
+ * Step/wizard transition variants
+ * For multi-step flows (create recipe, onboarding, etc.)
+ * Forward motion = slide left, backward = slide right
+ */
+export const STEP_VARIANTS = {
+	initial: { opacity: 0, x: 20 },
+	animate: { opacity: 1, x: 0 },
+	exit: { opacity: 0, x: -20 },
+}
+
+export const STEP_TRANSITION = {
+	duration: DURATIONS.normal / 1000,
+	ease: EASINGS.smooth,
+}
+
+/**
+ * Content switch variants (tabs, method toggles)
+ * Subtle fade + scale for in-place content swaps
+ * More organic than hard cut, less dramatic than slide
+ */
+export const CONTENT_SWITCH_VARIANTS = {
+	initial: { opacity: 0, y: 8, scale: 0.98 },
+	animate: { opacity: 1, y: 0, scale: 1 },
+	exit: { opacity: 0, y: -8, scale: 0.98 },
+}
+
+export const CONTENT_SWITCH_TRANSITION = {
+	duration: DURATIONS.fast / 1000,
+	ease: EASINGS.smooth,
+}
+
+/**
  * Generate stagger transition for list items
  * @param index - Item index in list
  * @param stagger - Delay between items (use STAGGER_CONFIG)

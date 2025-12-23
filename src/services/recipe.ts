@@ -167,6 +167,105 @@ export const getDraftRecipes = async (): Promise<ApiResponse<Recipe[]>> => {
 	}
 }
 
+// ============================================
+// DRAFT MANAGEMENT (spec 07-recipes.txt)
+// ============================================
+
+export interface DraftSaveRequest {
+	title?: string
+	description?: string
+	coverImageUrl?: string[]
+	difficulty?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT'
+	prepTimeMinutes?: number
+	cookTimeMinutes?: number
+	servings?: number
+	cuisineType?: string
+	dietaryTags?: string[]
+	caloriesPerServing?: number
+	fullIngredientList?: Array<{
+		name: string
+		quantity: string
+		unit: string
+	}>
+	steps?: Array<{
+		stepNumber: number
+		title?: string
+		description: string
+		action?: string
+		ingredients?: Array<{ name: string; quantity: string; unit: string }>
+		timerSeconds?: number
+		imageUrl?: string
+		tips?: string
+	}>
+	xpReward?: number
+	rewardBadges?: string[]
+	skillTags?: string[]
+}
+
+/**
+ * Create a new empty draft (call when user starts creating a recipe)
+ */
+export const createDraft = async (): Promise<ApiResponse<Recipe>> => {
+	try {
+		const response = await api.post(API_ENDPOINTS.RECIPES.CREATE_DRAFT)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to create draft',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Save/auto-save a draft (PATCH - partial update)
+ */
+export const saveDraft = async (
+	draftId: string,
+	data: DraftSaveRequest,
+): Promise<ApiResponse<Recipe>> => {
+	try {
+		const response = await api.patch(
+			API_ENDPOINTS.RECIPES.SAVE_DRAFT(draftId),
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to save draft',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Discard a draft
+ */
+export const discardDraft = async (
+	draftId: string,
+): Promise<ApiResponse<void>> => {
+	try {
+		const response = await api.delete(
+			API_ENDPOINTS.RECIPES.DISCARD_DRAFT(draftId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<void>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to discard draft',
+			statusCode: 500,
+		}
+	}
+}
+
 /**
  * Create a new recipe
  */

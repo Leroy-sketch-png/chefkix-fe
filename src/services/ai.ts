@@ -18,16 +18,22 @@ export interface ProcessRecipeRequest {
 	raw_text: string
 }
 
+/**
+ * Response from AI service /api/v1/process_recipe
+ * Uses camelCase to match AI service Pydantic serialization_alias
+ */
 export interface ProcessedRecipe {
 	title: string
 	description: string
 	difficulty: string
-	prep_time_minutes: number
-	cook_time_minutes: number
+	prepTimeMinutes: number
+	cookTimeMinutes: number
+	totalTimeMinutes?: number
 	servings: number
-	cuisine_type?: string
-	dietary_tags: string[]
-	ingredients: ProcessedIngredient[]
+	cuisineType?: string
+	dietaryTags: string[]
+	caloriesPerServing?: number
+	fullIngredientList: ProcessedIngredient[]
 	steps: ProcessedStep[]
 	// Metas from AI
 	xpReward: number
@@ -36,13 +42,10 @@ export interface ProcessedRecipe {
 	difficultyMultiplier: number
 	// Enrichment
 	equipmentNeeded?: string[]
-	techniqueGuides?: string[]
+	techniqueGuides?: Record<string, string>
 	ingredientSubstitutions?: Record<string, string[]>
-	culturalContext?: {
-		region: string
-		background: string
-		significance: string
-	}
+	seasonalTags?: string[]
+	regionalOrigin?: string
 	recipeStory?: string
 	chefNotes?: string
 }
@@ -53,11 +56,25 @@ export interface ProcessedIngredient {
 	unit: string
 }
 
+/**
+ * Step in ProcessedRecipe response
+ * Uses camelCase to match AI service
+ */
 export interface ProcessedStep {
-	step_number: number
+	stepNumber: number
+	title?: string
 	description: string
 	action?: string
-	timer_seconds?: number
+	ingredients?: ProcessedIngredient[]
+	timerSeconds?: number
+	imageUrl?: string
+	tips?: string
+	chefTip?: string
+	techniqueExplanation?: string
+	commonMistake?: string
+	estimatedHandsOnTime?: number
+	equipmentNeeded?: string[]
+	visualCues?: string
 }
 
 // Calculate Metas - Recalculate XP, badges, enrichment for edited recipes
@@ -185,6 +202,7 @@ export interface ModerateResponse {
 /**
  * Process raw recipe text into structured format
  * Use when user pastes recipe text for AI parsing
+ * Requires authentication - user must be logged in
  */
 export const processRecipe = async (
 	rawText: string,
@@ -194,14 +212,49 @@ export const processRecipe = async (
 			API_ENDPOINTS.AI.PROCESS_RECIPE,
 			{ raw_text: rawText },
 		)
+		console.debug('[ai.processRecipe] Response:', {
+			success: response.data?.success,
+			hasData: !!response.data?.data,
+			title: response.data?.data?.title,
+		})
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<ProcessedRecipe>>
-		if (axiosError.response) return axiosError.response.data
+
+		// Extract meaningful error info
+		const status = axiosError.response?.status
+		const errorMessage = axiosError.message || 'Unknown error'
+		const responseData = axiosError.response?.data
+
+		console.error(
+			'[ai.processRecipe] Error:',
+			`Status: ${status || 'N/A'}`,
+			`Message: ${errorMessage}`,
+			responseData ? JSON.stringify(responseData) : 'No response data',
+		)
+
+		// Handle specific HTTP status codes with user-friendly messages
+		if (status === 401) {
+			return {
+				success: false,
+				message: 'Please log in to use AI recipe parsing.',
+				statusCode: 401,
+			}
+		}
+
+		if (status === 503 || status === 502) {
+			return {
+				success: false,
+				message: 'AI service is temporarily unavailable. Please try again.',
+				statusCode: status,
+			}
+		}
+
+		if (axiosError.response?.data) return axiosError.response.data
 		return {
 			success: false,
-			message: 'Failed to process recipe',
-			statusCode: 500,
+			message: `Failed to process recipe: ${errorMessage}`,
+			statusCode: status || 500,
 		}
 	}
 }
