@@ -103,7 +103,9 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 			`${profile.firstName} ${profile.lastName}`.trim() ||
 			'Unknown User',
 		username: profile.username || 'user',
-		avatarUrl: profile.avatarUrl || 'https://i.pravatar.cc/150',
+		avatarUrl:
+			profile.avatarUrl ||
+			`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || profile.userId}`,
 		coverUrl: undefined, // TODO: Add cover photo support
 		bio: profile.bio,
 		isVerified:
@@ -117,7 +119,7 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 			mastered: 0, // TODO: Add mastered recipes count
 		},
 		gamification: {
-			currentLevel: statistics.currentLevel,
+			currentLevel: Math.max(1, statistics.currentLevel), // Min level 1
 			currentXP: statistics.currentXP,
 			currentXPGoal: statistics.currentXPGoal,
 			xpToNextLevel,
@@ -619,7 +621,7 @@ export const UserProfile = ({
 	}
 
 	return (
-		<div className='mx-auto my-8 max-w-4xl'>
+		<div className='mx-auto w-full max-w-container-xl'>
 			{/* Gamified Profile Header */}
 			{isOwnProfile ? (
 				<ProfileHeaderGamified

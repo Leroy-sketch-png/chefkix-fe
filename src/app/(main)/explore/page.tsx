@@ -30,17 +30,7 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-
-// Difficulty mapping: API (PascalCase) → Enhanced Card (lowercase)
-const difficultyMap: Record<
-	string,
-	'beginner' | 'intermediate' | 'advanced' | 'expert'
-> = {
-	Beginner: 'beginner',
-	Intermediate: 'intermediate',
-	Advanced: 'advanced',
-	Expert: 'expert',
-}
+import type { Difficulty } from '@/lib/types/gamification'
 
 // XP reward calculation (fallback when backend doesn't provide xpReward)
 const calculateXpRewardFallback = (recipe: Recipe): number => {
@@ -345,7 +335,7 @@ export default function ExplorePage() {
 								description={recipe.description}
 								imageUrl={getRecipeImage(recipe)}
 								cookTimeMinutes={getTotalTime(recipe)}
-								difficulty={difficultyMap[recipe.difficulty] || 'beginner'}
+								difficulty={(recipe.difficulty as Difficulty) || 'Beginner'}
 								xpReward={recipe.xpReward ?? calculateXpRewardFallback(recipe)}
 								rating={4.5} // TODO: Add rating field to Recipe type when backend supports it
 								cookCount={recipe.cookCount ?? 0}

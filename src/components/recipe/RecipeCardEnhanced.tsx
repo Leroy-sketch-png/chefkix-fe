@@ -170,7 +170,7 @@ const DifficultyIndicator = ({
 	difficulty: Difficulty
 	showLabel?: boolean
 }) => {
-	const config = difficultyConfig[difficulty]
+	const config = difficultyConfig[difficulty] ?? difficultyConfig.Beginner
 
 	return (
 		<div className='absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm'>
@@ -185,14 +185,16 @@ const DifficultyIndicator = ({
 					/>
 				))}
 			</div>
-			{showLabel && <span className='capitalize'>{difficulty}</span>}
+			{showLabel && (
+				<span className='capitalize'>{difficulty || 'Beginner'}</span>
+			)}
 		</div>
 	)
 }
 
 // Difficulty ribbon (for grid card)
 const DifficultyRibbon = ({ difficulty }: { difficulty: Difficulty }) => {
-	const config = difficultyConfig[difficulty]
+	const config = difficultyConfig[difficulty] ?? difficultyConfig.Beginner
 
 	return (
 		<div
@@ -201,7 +203,7 @@ const DifficultyRibbon = ({ difficulty }: { difficulty: Difficulty }) => {
 				config.bgColor,
 			)}
 		>
-			{difficulty}
+			{difficulty || 'Beginner'}
 		</div>
 	)
 }
@@ -643,10 +645,11 @@ const FeaturedCard = ({
 					<div
 						className={cn(
 							'rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-white',
-							difficultyConfig[difficulty].bgColor,
+							(difficultyConfig[difficulty] ?? difficultyConfig.Beginner)
+								.bgColor,
 						)}
 					>
-						{difficulty} Challenge
+						{difficulty || 'Beginner'} Challenge
 					</div>
 				</div>
 
@@ -900,7 +903,7 @@ const MiniCard = ({
 							difficulty === 'Expert' && 'bg-xp/10 text-xp',
 						)}
 					>
-						{difficultyConfig[difficulty].label}
+						{(difficultyConfig[difficulty] ?? difficultyConfig.Beginner).label}
 					</span>
 				</div>
 			</div>
