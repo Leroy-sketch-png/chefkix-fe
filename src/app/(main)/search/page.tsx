@@ -50,7 +50,7 @@ interface RecipeResult {
 	id: string
 	title: string
 	imageUrl: string
-	rating: number
+	rating?: number // Optional until BE rating system is implemented
 	cookTime: string
 	difficulty: DifficultyDisplay
 	author: {
@@ -141,12 +141,14 @@ const RecipeResultCard = ({
 					</div>
 
 					<div className='mb-3 flex items-center gap-4 border-b border-border pb-3'>
-						<div className='flex items-center gap-1 text-amber-500'>
-							<Star className='size-3.5 fill-current' />
-							<span className='text-caption font-semibold'>
-								{recipe.rating}
-							</span>
-						</div>
+						{recipe.rating !== undefined && (
+							<div className='flex items-center gap-1 text-amber-500'>
+								<Star className='size-3.5 fill-current' />
+								<span className='text-caption font-semibold'>
+									{recipe.rating.toFixed(1)}
+								</span>
+							</div>
+						)}
 						<div className='flex items-center gap-1 text-muted-foreground'>
 							<Clock className='size-3.5' />
 							<span className='text-caption'>{recipe.cookTime}</span>
@@ -280,7 +282,7 @@ const transformRecipe = (recipe: Recipe): RecipeResult => ({
 	id: recipe.id,
 	title: recipe.title,
 	imageUrl: getRecipeImage(recipe) || '/placeholder-recipe.jpg',
-	rating: 4.5, // TODO: Add rating to Recipe type when backend supports
+	rating: recipe.rating, // Only show if BE provides real rating
 	cookTime: `${getTotalTime(recipe)} min`,
 	difficulty: difficultyToDisplay(recipe.difficulty),
 	author: {

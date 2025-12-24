@@ -15,49 +15,6 @@ export const triggerConfetti = (options?: confetti.Options) => {
 	})
 }
 
-export const triggerFriendConfetti = () => {
-	// Fire two bursts for friend acceptance
-	const count = 200
-	const defaults = {
-		origin: { y: 0.7 },
-	}
-
-	function fire(particleRatio: number, opts: confetti.Options) {
-		confetti({
-			...defaults,
-			...opts,
-			particleCount: Math.floor(count * particleRatio),
-		})
-	}
-
-	fire(0.25, {
-		spread: 26,
-		startVelocity: 55,
-	})
-
-	fire(0.2, {
-		spread: 60,
-	})
-
-	fire(0.35, {
-		spread: 100,
-		decay: 0.91,
-		scalar: 0.8,
-	})
-
-	fire(0.1, {
-		spread: 120,
-		startVelocity: 25,
-		decay: 0.92,
-		scalar: 1.2,
-	})
-
-	fire(0.1, {
-		spread: 120,
-		startVelocity: 45,
-	})
-}
-
 export const triggerSuccessConfetti = () => {
 	confetti({
 		particleCount: 50,
@@ -73,6 +30,38 @@ export const triggerSuccessConfetti = () => {
 		spread: 55,
 		origin: { x: 1 },
 		colors: ['#10b981', '#34d399', '#6ee7b7'],
+	})
+}
+
+/** Celebration for mutual follow (Instagram model: mutual = friends) */
+export const triggerMutualFollowConfetti = () => {
+	const count = 150
+	const defaults = { origin: { y: 0.7 } }
+
+	function fire(particleRatio: number, opts: confetti.Options) {
+		confetti({
+			...defaults,
+			...opts,
+			particleCount: Math.floor(count * particleRatio),
+		})
+	}
+
+	fire(0.25, {
+		spread: 26,
+		startVelocity: 55,
+		colors: ['#ff5a36', '#ff7a56', '#ffb399'], // Brand coral colors
+	})
+
+	fire(0.2, {
+		spread: 60,
+		colors: ['#ff5a36', '#ff7a56', '#ffb399'],
+	})
+
+	fire(0.35, {
+		spread: 100,
+		decay: 0.91,
+		scalar: 0.8,
+		colors: ['#ff5a36', '#ff7a56', '#ffb399'],
 	})
 }
 
@@ -129,7 +118,7 @@ export const triggerRecipeCompleteConfetti = () => {
 		return Math.random() * (max - min) + min
 	}
 
-	const interval: any = setInterval(() => {
+	const interval: ReturnType<typeof setInterval> = setInterval(() => {
 		const timeLeft = animationEnd - Date.now()
 
 		if (timeLeft <= 0) {

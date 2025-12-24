@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	User,
@@ -28,6 +28,8 @@ import {
 	Monitor,
 	Clock,
 	Eye,
+	ImagePlus,
+	Camera,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -53,6 +55,7 @@ import {
 	updateAppPreferences,
 } from '@/services/settings'
 import { updateProfile } from '@/services/profile'
+import { uploadRecipeImages } from '@/services/recipe'
 import { playTimerChime } from '@/hooks/useTimerNotifications'
 import {
 	UserSettings,
@@ -354,6 +357,9 @@ export default function SettingsPage() {
 
 	const [displayName, setDisplayName] = useState('')
 	const [bio, setBio] = useState('')
+	const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>()
+	const [isUploadingCover, setIsUploadingCover] = useState(false)
+	const coverInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
 		const loadSettings = async () => {
@@ -378,9 +384,63 @@ export default function SettingsPage() {
 		if (user) {
 			setDisplayName(user.displayName || '')
 			setBio(user.bio || '')
+			setCoverImageUrl(user.coverImageUrl)
 			loadSettings()
 		}
 	}, [user])
+
+	const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0]
+		if (!file) return
+
+		// Validate file type
+		if (!file.type.startsWith('image/')) {
+			toast.error('Please select an image file')
+			return
+		}
+
+		// Validate file size (max 5MB)
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error('Image must be less than 5MB')
+			return
+		}
+
+		setIsUploadingCover(true)
+		try {
+			// Show local preview immediately
+			const localPreviewUrl = URL.createObjectURL(file)
+			setCoverImageUrl(localPreviewUrl)
+
+			// Upload to server
+			const response = await uploadRecipeImages([file])
+			if (response.success && response.data?.[0]) {
+				const uploadedUrl = response.data[0]
+				setCoverImageUrl(uploadedUrl)
+
+				// Save to profile
+				const updateResponse = await updateProfile({
+					coverImageUrl: uploadedUrl,
+				})
+				if (updateResponse.success) {
+					toast.success('Cover photo updated!')
+				} else {
+					toast.error('Failed to save cover photo')
+				}
+			} else {
+				toast.error('Failed to upload image')
+				setCoverImageUrl(user?.coverImageUrl) // Revert
+			}
+		} catch (error) {
+			console.error('Cover upload error:', error)
+			toast.error('Failed to upload cover photo')
+			setCoverImageUrl(user?.coverImageUrl) // Revert
+		} finally {
+			setIsUploadingCover(false)
+			if (coverInputRef.current) {
+				coverInputRef.current.value = ''
+			}
+		}
+	}
 
 	const handleSaveProfile = async () => {
 		setIsSaving(true)
@@ -577,6 +637,57 @@ export default function SettingsPage() {
 										description='This is how others see you on ChefKix'
 									>
 										<div className='space-y-4'>
+											{/* Cover Photo Upload */}
+											<div className='grid gap-2'>
+												<Label>Cover Photo</Label>
+												<div className='relative'>
+													<div
+														className={cn(
+															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border bg-gradient-to-br from-brand/20 via-amber-100/30 to-orange-50/40 transition-all',
+															isUploadingCover && 'opacity-60',
+														)}
+													>
+														{coverImageUrl ? (
+															<img
+																src={coverImageUrl}
+																alt='Cover'
+																className='h-full w-full object-cover'
+															/>
+														) : (
+															<div className='flex h-full items-center justify-center'>
+																<ImagePlus className='size-8 text-muted-foreground' />
+															</div>
+														)}
+														{isUploadingCover && (
+															<div className='absolute inset-0 flex items-center justify-center bg-background/50'>
+																<Loader2 className='size-6 animate-spin text-primary' />
+															</div>
+														)}
+													</div>
+													<Button
+														type='button'
+														variant='outline'
+														size='sm'
+														className='absolute bottom-2 right-2 gap-1.5'
+														onClick={() => coverInputRef.current?.click()}
+														disabled={isUploadingCover}
+													>
+														<Camera className='size-4' />
+														{coverImageUrl ? 'Change' : 'Upload'}
+													</Button>
+													<input
+														ref={coverInputRef}
+														type='file'
+														accept='image/*'
+														className='hidden'
+														onChange={handleCoverUpload}
+													/>
+												</div>
+												<p className='text-xs text-muted-foreground'>
+													Recommended: 1200×300px, max 5MB
+												</p>
+											</div>
+
 											<div className='grid gap-2'>
 												<Label htmlFor='displayName'>Display Name</Label>
 												<Input

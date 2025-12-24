@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Profile, RelationshipStatus, Post } from '@/lib/types'
+import { Profile, Post } from '@/lib/types'
 import {
 	Clock,
 	Heart,
@@ -14,15 +14,7 @@ import {
 	Award,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-	toggleFollow,
-	toggleFriendRequest,
-	unfriendUser,
-	acceptFriendRequest,
-	declineFriendRequest,
-	blockUser,
-	unblockUser,
-} from '@/services/social'
+import { toggleFollow, blockUser, unblockUser } from '@/services/social'
 import {
 	getSessionHistory,
 	SessionHistoryItem,
@@ -32,8 +24,6 @@ import { getPostsByUser } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/components/ui/toaster'
-import { triggerFriendConfetti } from '@/lib/confetti'
-import { SOCIAL_MESSAGES } from '@/constants/messages'
 import { ProfileHeaderGamified } from './ProfileHeaderGamified'
 import { CookingHistoryTab, type PendingSession } from '@/components/pending'
 import type { Badge as GamificationBadge } from '@/lib/types/gamification'
@@ -44,6 +34,7 @@ import {
 import { PostCard } from '@/components/social/PostCard'
 import { RecipeCard } from '@/components/recipe/RecipeCard'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 
 // ============================================
 // ADAPTER: Profile → ProfileUser
@@ -60,7 +51,6 @@ interface ProfileUser {
 	stats: {
 		followers: number
 		following: number
-		friends?: number
 		recipesCooked: number
 		recipesCreated: number
 		mastered?: number
@@ -106,17 +96,16 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		avatarUrl:
 			profile.avatarUrl ||
 			`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || profile.userId}`,
-		coverUrl: undefined, // TODO: Add cover photo support
+		coverUrl: profile.coverImageUrl, // Cover photo from profile
 		bio: profile.bio,
 		isVerified:
 			profile.accountType === 'chef' || profile.accountType === 'admin',
 		stats: {
 			followers: statistics.followerCount,
 			following: statistics.followingCount,
-			friends: statistics.friendCount,
-			recipesCooked: statistics.postCount, // Approximate: posts = cooked recipes
+			recipesCooked: statistics.recipesCooked ?? statistics.postCount, // Prefer actual count, fallback to posts
 			recipesCreated: statistics.recipeCount,
-			mastered: 0, // TODO: Add mastered recipes count
+			mastered: statistics.recipesMastered ?? 0, // From BE when user cooks recipe 5+ times
 		},
 		gamification: {
 			currentLevel: Math.max(1, statistics.currentLevel), // Min level 1
@@ -215,6 +204,9 @@ export const UserProfile = ({
 		pendingPosts: 0,
 		totalXPEarned: 0,
 	})
+	// Block confirmation dialog state
+	const [showBlockConfirm, setShowBlockConfirm] = useState(false)
+
 	const router = useRouter()
 	const isOwnProfile = profile.userId === currentUserId
 
@@ -366,189 +358,6 @@ export const UserProfile = ({
 		setIsLoading(false)
 	}
 
-	const handleFriendRequest = async () => {
-		setIsLoading(true)
-		const previousStatus = profile.relationshipStatus
-		const previousRequestCount = profile.statistics.friendRequestCount
-
-		// Optimistic UI update
-		const newStatus: RelationshipStatus =
-			previousStatus === 'PENDING_SENT' ? 'NOT_FRIENDS' : 'PENDING_SENT'
-
-		// Update relationshipStatus AND friendRequestCount according to API spec
-		setProfile(prev => ({
-			...prev,
-			relationshipStatus: newStatus,
-			statistics: {
-				...prev.statistics,
-				// Increment if sending request, decrement if cancelling
-				friendRequestCount:
-					newStatus === 'PENDING_SENT'
-						? prev.statistics.friendRequestCount + 1
-						: prev.statistics.friendRequestCount - 1,
-			},
-		}))
-
-		const response = await toggleFriendRequest(profile.userId)
-
-		if (response.success && response.data) {
-			// Server returns the full profile with updated statistics
-			setProfile(response.data)
-			toast.success(
-				previousStatus === 'PENDING_SENT'
-					? 'Friend request cancelled'
-					: 'Friend request sent!',
-			)
-		} else {
-			// Revert on error
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: previousStatus,
-				statistics: {
-					...prev.statistics,
-					friendRequestCount: previousRequestCount,
-				},
-			}))
-			toast.error(response.message || 'Failed to send friend request')
-		}
-
-		setIsLoading(false)
-	}
-
-	const handleUnfriend = async () => {
-		setIsLoading(true)
-		const previousFriendCount = profile.statistics.friendCount
-
-		// Optimistic UI update
-		setProfile(prev => ({
-			...prev,
-			relationshipStatus: 'NOT_FRIENDS' as RelationshipStatus,
-			statistics: {
-				...prev.statistics,
-				friendCount: prev.statistics.friendCount - 1,
-			},
-		}))
-
-		const response = await unfriendUser(profile.userId)
-
-		if (response.success && response.data) {
-			// The unfriend response is smaller, so we merge it manually
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: response.data.relationshipStatus,
-				statistics: {
-					...prev.statistics,
-					friendCount: response.data.statistics.friendCount,
-				},
-			}))
-			toast.success(`Removed ${profile.displayName} from friends`)
-		} else {
-			// Revert on error
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: 'FRIENDS' as RelationshipStatus,
-				statistics: {
-					...prev.statistics,
-					friendCount: previousFriendCount,
-				},
-			}))
-			toast.error(response.message || 'Failed to unfriend user')
-		}
-
-		setIsLoading(false)
-	}
-
-	const handleAcceptFriend = async () => {
-		setIsLoading(true)
-		const previousStatus = profile.relationshipStatus
-		const previousFriendCount = profile.statistics.friendCount
-		const previousRequestCount = profile.statistics.friendRequestCount
-
-		// Optimistic UI update
-		// According to API spec: accepting increments friendCount for both users
-		setProfile(prev => ({
-			...prev,
-			relationshipStatus: 'FRIENDS' as RelationshipStatus,
-			statistics: {
-				...prev.statistics,
-				friendCount: prev.statistics.friendCount + 1,
-				// The request is consumed, so decrement friendRequestCount
-				friendRequestCount: Math.max(0, prev.statistics.friendRequestCount - 1),
-			},
-		}))
-
-		const response = await acceptFriendRequest(profile.userId)
-
-		if (response.success && response.data) {
-			// Server returns full profile with updated statistics
-			setProfile(response.data)
-			toast.success(`You and ${profile.displayName} are now friends!`)
-			// Celebrate with confetti! 🎉
-			triggerFriendConfetti()
-		} else {
-			// Revert on error
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: previousStatus,
-				statistics: {
-					...prev.statistics,
-					friendCount: previousFriendCount,
-					friendRequestCount: previousRequestCount,
-				},
-			}))
-			toast.error(response.message || 'Failed to accept friend request')
-		}
-
-		setIsLoading(false)
-	}
-
-	const handleDeclineFriend = async () => {
-		setIsLoading(true)
-		const previousStatus = profile.relationshipStatus
-		const previousRequestCount = profile.statistics.friendRequestCount
-
-		// Optimistic UI update
-		// According to API spec: declining decrements friendRequestCount
-		setProfile(prev => ({
-			...prev,
-			relationshipStatus: 'NOT_FRIENDS' as RelationshipStatus,
-			statistics: {
-				...prev.statistics,
-				// The request is consumed, so decrement friendRequestCount
-				friendRequestCount: Math.max(0, prev.statistics.friendRequestCount - 1),
-			},
-		}))
-
-		const response = await declineFriendRequest(profile.userId)
-
-		if (response.success && response.data) {
-			// Decline response is smaller, merge manually
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: response.data.relationshipStatus,
-				isFollowing: response.data.isFollowing,
-				statistics: {
-					...prev.statistics,
-					...response.data.statistics,
-				},
-			}))
-			toast.success(SOCIAL_MESSAGES.FRIEND_REQUEST_DECLINED)
-		} else {
-			// Revert on error
-			setProfile(prev => ({
-				...prev,
-				relationshipStatus: previousStatus,
-				statistics: {
-					...prev.statistics,
-					friendRequestCount: previousRequestCount,
-				},
-			}))
-			toast.error(response.message || 'Failed to decline friend request')
-		}
-
-		setIsLoading(false)
-	}
-
 	// ============================================
 	// ACTION HANDLERS FOR GAMIFIED HEADER
 	// ============================================
@@ -573,12 +382,8 @@ export const UserProfile = ({
 		router.push(`/messages?userId=${profile.userId}`)
 	}
 
-	const handleCompare = () => {
-		// TODO: Implement comparison feature
-		toast.info('Coming soon: Compare your cooking history!')
-	}
-
-	const [isBlocked, setIsBlocked] = useState(false)
+	// Initialize isBlocked from profile API response
+	const [isBlocked, setIsBlocked] = useState(profile.isBlocked ?? false)
 
 	const handleBlock = async () => {
 		const wasBlocked = isBlocked
@@ -594,34 +399,41 @@ export const UserProfile = ({
 				toast.error(response.message || 'Failed to unblock user')
 			}
 		} else {
-			// Block - with confirmation
-			const confirmed = window.confirm(
-				`Are you sure you want to block ${profile.displayName}? This will:\n\n` +
-					`• Remove any follow relationships between you\n` +
-					`• Hide their content from you\n` +
-					`• Hide your content from them\n\n` +
-					`You can unblock them later from Settings.`,
-			)
-			if (!confirmed) return
+			// Block - show confirmation dialog
+			setShowBlockConfirm(true)
+		}
+	}
 
-			setIsBlocked(true)
-			const response = await blockUser(profile.userId)
-			if (response.success) {
-				toast.success(`Blocked ${profile.displayName}`)
-				// Update profile state to reflect the unfollow
-				setProfile(prev => ({
-					...prev,
-					isFollowing: false,
-				}))
-			} else {
-				setIsBlocked(false)
-				toast.error(response.message || 'Failed to block user')
-			}
+	const handleConfirmBlock = async () => {
+		setIsBlocked(true)
+		const response = await blockUser(profile.userId)
+		if (response.success) {
+			toast.success(`Blocked ${profile.displayName}`)
+			// Update profile state to reflect the unfollow
+			setProfile(prev => ({
+				...prev,
+				isFollowing: false,
+			}))
+		} else {
+			setIsBlocked(false)
+			toast.error(response.message || 'Failed to block user')
 		}
 	}
 
 	return (
 		<div className='mx-auto w-full max-w-container-xl'>
+			{/* Block confirmation dialog */}
+			<ConfirmDialog
+				open={showBlockConfirm}
+				onOpenChange={setShowBlockConfirm}
+				title={`Block ${profile.displayName}?`}
+				description='This will remove any follow relationships between you, hide their content from you, and hide your content from them. You can unblock them later from Settings.'
+				confirmLabel='Block'
+				cancelLabel='Cancel'
+				variant='destructive'
+				onConfirm={handleConfirmBlock}
+			/>
+
 			{/* Gamified Profile Header */}
 			{isOwnProfile ? (
 				<ProfileHeaderGamified
@@ -637,22 +449,11 @@ export const UserProfile = ({
 					variant='other'
 					user={profileUser}
 					isFollowing={profile.isFollowing}
-					isFriend={profile.relationshipStatus === 'FRIENDS'}
+					isMutualFollow={profile.relationshipStatus === 'FRIENDS'}
 					isBlocked={isBlocked}
 					onFollow={handleFollow}
-					onAddFriend={
-						profile.relationshipStatus === 'FRIENDS'
-							? handleUnfriend
-							: profile.relationshipStatus === 'PENDING_SENT'
-								? handleFriendRequest
-								: profile.relationshipStatus === 'PENDING_RECEIVED'
-									? handleAcceptFriend
-									: handleFriendRequest
-					}
 					onMessage={handleMessage}
-					onCompare={handleCompare}
 					onBlock={handleBlock}
-					recipesYouCooked={0} // TODO: Fetch actual count
 					activeTab={activeTab}
 					onTabChange={setActiveTab}
 				/>

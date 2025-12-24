@@ -38,6 +38,7 @@ import {
 	ReportModal,
 	type ReportedContent,
 } from '@/components/modals/ReportModal'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 
 interface PostCardProps {
 	post: Post
@@ -62,6 +63,7 @@ export const PostCard = ({
 	const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [showReportModal, setShowReportModal] = useState(false)
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
 	const isOwner = currentUserId === post.userId
 	const isLoggedIn = !!currentUserId
@@ -152,8 +154,10 @@ export const PostCard = ({
 	}
 
 	const handleDelete = async () => {
-		if (!window.confirm(POST_MESSAGES.DELETE_CONFIRM)) return
+		setShowDeleteConfirm(true)
+	}
 
+	const handleConfirmDelete = async () => {
 		const response = await deletePost(post.id)
 		if (response.success) {
 			toast.success(POST_MESSAGES.DELETE_SUCCESS)
@@ -253,304 +257,322 @@ export const PostCard = ({
 	}
 
 	return (
-		<motion.article
-			variants={staggerItemVariants}
-			layout
-			exit={EXIT_VARIANTS.scaleOut}
-			className='mb-6'
-		>
-			<motion.div
-				whileHover={{ ...CARD_FEED_HOVER, scale: 1.005 }}
-				transition={TRANSITION_SPRING}
-				className='group relative overflow-hidden rounded-radius border-l-3 border-l-transparent bg-bg-card shadow-card transition-all duration-300 hover:border-l-primary hover:shadow-warm'
+		<>
+			{/* Delete confirmation dialog */}
+			<ConfirmDialog
+				open={showDeleteConfirm}
+				onOpenChange={setShowDeleteConfirm}
+				title='Delete post?'
+				description={POST_MESSAGES.DELETE_CONFIRM}
+				confirmLabel='Delete'
+				cancelLabel='Cancel'
+				variant='destructive'
+				onConfirm={handleConfirmDelete}
+			/>
+
+			<motion.article
+				variants={staggerItemVariants}
+				layout
+				exit={EXIT_VARIANTS.scaleOut}
+				className='mb-6'
 			>
-				{/* Header */}
-				<div className='flex items-center justify-between p-4 md:p-6'>
-					<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
-						<Link
-							href={post.userId ? `/${post.userId}` : '/dashboard'}
-							className='flex items-center gap-3 transition-opacity hover:opacity-80'
-						>
-							<Avatar
-								size='lg'
-								className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
+				<motion.div
+					whileHover={{ ...CARD_FEED_HOVER, scale: 1.005 }}
+					transition={TRANSITION_SPRING}
+					className='group relative overflow-hidden rounded-radius border-l-3 border-l-transparent bg-bg-card shadow-card transition-all duration-300 hover:border-l-primary hover:shadow-warm'
+				>
+					{/* Header */}
+					<div className='flex items-center justify-between p-4 md:p-6'>
+						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
+							<Link
+								href={post.userId ? `/${post.userId}` : '/dashboard'}
+								className='flex items-center gap-3 transition-opacity hover:opacity-80'
 							>
-								<AvatarImage
-									src={post.avatarUrl || 'https://i.pravatar.cc/48'}
-									alt={post.displayName || 'User'}
-								/>
-								<AvatarFallback>
-									{post.displayName
-										?.split(' ')
-										.map(n => n[0])
-										.join('')
-										.toUpperCase()
-										.slice(0, 2) || 'U'}
-								</AvatarFallback>
-							</Avatar>
-							<div>
-								<div className='text-base font-bold leading-tight text-text-primary'>
-									{post.displayName || 'Unknown User'}
-								</div>
-								<div className='text-sm leading-normal text-text-secondary'>
-									{formatDistanceToNow(new Date(post.createdAt), {
-										addSuffix: true,
-									})}
-								</div>
-							</div>
-						</Link>
-					</UserHoverCard>
-
-					{/* Menu - Show for all logged in users */}
-					{isLoggedIn && (
-						<div className='relative'>
-							<button
-								onClick={() => setShowMenu(!showMenu)}
-								className='h-11 w-11 rounded-full transition-colors hover:bg-bg-hover'
-							>
-								<MoreVertical className='mx-auto h-5 w-5 text-text-secondary' />
-							</button>
-
-							<AnimatePresence>
-								{showMenu && (
-									<motion.div
-										initial={{ opacity: 0, scale: 0.95, y: -10 }}
-										animate={{ opacity: 1, scale: 1, y: 0 }}
-										exit={{ opacity: 0, scale: 0.95, y: -10 }}
-										className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
-									>
-										{/* Owner actions */}
-										{isOwner && (
-											<>
-												{canEdit && (
-													<button
-														onClick={() => {
-															setIsEditing(true)
-															setShowMenu(false)
-														}}
-														className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
-													>
-														<Pencil className='h-4 w-4' />
-														Edit post
-													</button>
-												)}
-												<button
-													onClick={handleDelete}
-													className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
-												>
-													<Trash2 className='h-4 w-4' />
-													Delete post
-												</button>
-											</>
-										)}
-										{/* Non-owner actions */}
-										{!isOwner && (
-											<button
-												onClick={() => {
-													setShowReportModal(true)
-													setShowMenu(false)
-												}}
-												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
-											>
-												<Flag className='h-4 w-4' />
-												Report post
-											</button>
-										)}
-									</motion.div>
-								)}
-							</AnimatePresence>
-						</div>
-					)}
-				</div>
-
-				{/* Content */}
-				{isEditing ? (
-					<div className='space-y-3 border-t border-border-subtle p-4 md:p-6'>
-						<textarea
-							value={editContent}
-							onChange={e => setEditContent(e.target.value)}
-							className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
-							placeholder='Edit your post...'
-						/>
-						<input
-							value={editTags}
-							onChange={e => setEditTags(e.target.value)}
-							className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
-							placeholder='Tags (comma-separated)'
-						/>
-						<div className='flex gap-2'>
-							<button
-								onClick={handleEdit}
-								className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
-							>
-								Save
-							</button>
-							<button
-								onClick={() => {
-									setIsEditing(false)
-									setEditContent(post.content)
-									setEditTags(post.tags.join(', '))
-								}}
-								className='h-11 flex-1 rounded-lg border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover'
-							>
-								Cancel
-							</button>
-						</div>
-					</div>
-				) : (
-					<>
-						<div className='space-y-3 px-4 pb-3 md:px-6'>
-							<p className='whitespace-pre-wrap leading-relaxed text-text-primary'>
-								{post.content}
-							</p>
-							{post.tags.length > 0 && (
-								<div className='flex flex-wrap gap-2'>
-									{post.tags.map(tag => (
-										<span
-											key={tag}
-											className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'
-										>
-											#{tag}
-										</span>
-									))}
-								</div>
-							)}
-
-							{/* Recipe Link Badge - Shows when post is linked to a cooking session */}
-							{post.recipeId && post.recipeTitle && (
-								<Link
-									href={`/recipes/${post.recipeId}`}
-									aria-label={`View recipe: ${post.recipeTitle}${post.xpEarned ? `, earned ${post.xpEarned} XP` : ''}`}
-									className='inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/10 to-bonus/10 px-3 py-2 text-sm font-medium text-text transition-all hover:from-brand/20 hover:to-bonus/20'
+								<Avatar
+									size='lg'
+									className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
 								>
-									<ChefHat className='size-4 text-brand' />
-									<span>
-										Cooked:{' '}
-										<span className='font-bold text-text-primary'>
-											{post.recipeTitle}
-										</span>
-									</span>
-									{post.xpEarned && (
-										<span className='ml-1 inline-flex items-center gap-1 rounded-full bg-xp/20 px-2 py-0.5 text-xs font-bold text-xp'>
-											<Zap className='size-3' />+{post.xpEarned} XP
-										</span>
-									)}
-								</Link>
-							)}
-						</div>
+									<AvatarImage
+										src={post.avatarUrl || 'https://i.pravatar.cc/48'}
+										alt={post.displayName || 'User'}
+									/>
+									<AvatarFallback>
+										{post.displayName
+											?.split(' ')
+											.map(n => n[0])
+											.join('')
+											.toUpperCase()
+											.slice(0, 2) || 'U'}
+									</AvatarFallback>
+								</Avatar>
+								<div>
+									<div className='text-base font-bold leading-tight text-text-primary'>
+										{post.displayName || 'Unknown User'}
+									</div>
+									<div className='text-sm leading-normal text-text-secondary'>
+										{formatDistanceToNow(new Date(post.createdAt), {
+											addSuffix: true,
+										})}
+									</div>
+								</div>
+							</Link>
+						</UserHoverCard>
 
-						{/* Media - Support both photoUrl (legacy) and photoUrls (canonical) */}
-						{(post.photoUrl ||
-							(post.photoUrls && post.photoUrls.length > 0)) && (
-							<div className='relative aspect-video w-full overflow-hidden bg-muted'>
-								<Image
-									src={post.photoUrl || post.photoUrls?.[0] || ''}
-									alt='Post media'
-									fill
-									className='object-cover transition-transform duration-500 group-hover:scale-105'
-								/>
-								{/* Show indicator if multiple photos (canonical array format) */}
-								{post.photoUrls && post.photoUrls.length > 1 && (
-									<div className='absolute right-2 top-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm'>
-										1/{post.photoUrls.length}
+						{/* Menu - Show for all logged in users */}
+						{isLoggedIn && (
+							<div className='relative'>
+								<button
+									onClick={() => setShowMenu(!showMenu)}
+									className='h-11 w-11 rounded-full transition-colors hover:bg-bg-hover'
+								>
+									<MoreVertical className='mx-auto h-5 w-5 text-text-secondary' />
+								</button>
+
+								<AnimatePresence>
+									{showMenu && (
+										<motion.div
+											initial={{ opacity: 0, scale: 0.95, y: -10 }}
+											animate={{ opacity: 1, scale: 1, y: 0 }}
+											exit={{ opacity: 0, scale: 0.95, y: -10 }}
+											className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
+										>
+											{/* Owner actions */}
+											{isOwner && (
+												<>
+													{canEdit && (
+														<button
+															onClick={() => {
+																setIsEditing(true)
+																setShowMenu(false)
+															}}
+															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
+														>
+															<Pencil className='h-4 w-4' />
+															Edit post
+														</button>
+													)}
+													<button
+														onClick={handleDelete}
+														className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+													>
+														<Trash2 className='h-4 w-4' />
+														Delete post
+													</button>
+												</>
+											)}
+											{/* Non-owner actions */}
+											{!isOwner && (
+												<button
+													onClick={() => {
+														setShowReportModal(true)
+														setShowMenu(false)
+													}}
+													className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
+												>
+													<Flag className='h-4 w-4' />
+													Report post
+												</button>
+											)}
+										</motion.div>
+									)}
+								</AnimatePresence>
+							</div>
+						)}
+					</div>
+
+					{/* Content */}
+					{isEditing ? (
+						<div className='space-y-3 border-t border-border-subtle p-4 md:p-6'>
+							<textarea
+								value={editContent}
+								onChange={e => setEditContent(e.target.value)}
+								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
+								placeholder='Edit your post...'
+							/>
+							<input
+								value={editTags}
+								onChange={e => setEditTags(e.target.value)}
+								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
+								placeholder='Tags (comma-separated)'
+							/>
+							<div className='flex gap-2'>
+								<button
+									onClick={handleEdit}
+									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+								>
+									Save
+								</button>
+								<button
+									onClick={() => {
+										setIsEditing(false)
+										setEditContent(post.content)
+										setEditTags(post.tags.join(', '))
+									}}
+									className='h-11 flex-1 rounded-lg border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover'
+								>
+									Cancel
+								</button>
+							</div>
+						</div>
+					) : (
+						<>
+							<div className='space-y-3 px-4 pb-3 md:px-6'>
+								<p className='whitespace-pre-wrap leading-relaxed text-text-primary'>
+									{post.content}
+								</p>
+								{post.tags.length > 0 && (
+									<div className='flex flex-wrap gap-2'>
+										{post.tags.map(tag => (
+											<span
+												key={tag}
+												className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'
+											>
+												#{tag}
+											</span>
+										))}
 									</div>
 								)}
+
+								{/* Recipe Link Badge - Shows when post is linked to a cooking session */}
+								{post.recipeId && post.recipeTitle && (
+									<Link
+										href={`/recipes/${post.recipeId}`}
+										aria-label={`View recipe: ${post.recipeTitle}${post.xpEarned ? `, earned ${post.xpEarned} XP` : ''}`}
+										className='inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/10 to-bonus/10 px-3 py-2 text-sm font-medium text-text transition-all hover:from-brand/20 hover:to-bonus/20'
+									>
+										<ChefHat className='size-4 text-brand' />
+										<span>
+											Cooked:{' '}
+											<span className='font-bold text-text-primary'>
+												{post.recipeTitle}
+											</span>
+										</span>
+										{post.xpEarned && (
+											<span className='ml-1 inline-flex items-center gap-1 rounded-full bg-xp/20 px-2 py-0.5 text-xs font-bold text-xp'>
+												<Zap className='size-3' />+{post.xpEarned} XP
+											</span>
+										)}
+									</Link>
+								)}
 							</div>
-						)}
 
-						{post.videoUrl && (
-							<div className='relative aspect-video w-full overflow-hidden bg-muted'>
-								<video src={post.videoUrl} controls className='h-full w-full' />
-							</div>
-						)}
-					</>
-				)}
+							{/* Media - Support both photoUrl (legacy) and photoUrls (canonical) */}
+							{(post.photoUrl ||
+								(post.photoUrls && post.photoUrls.length > 0)) && (
+								<div className='relative aspect-video w-full overflow-hidden bg-muted'>
+									<Image
+										src={post.photoUrl || post.photoUrls?.[0] || ''}
+										alt='Post media'
+										fill
+										className='object-cover transition-transform duration-500 group-hover:scale-105'
+									/>
+									{/* Show indicator if multiple photos (canonical array format) */}
+									{post.photoUrls && post.photoUrls.length > 1 && (
+										<div className='absolute right-2 top-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm'>
+											1/{post.photoUrls.length}
+										</div>
+									)}
+								</div>
+							)}
 
-				{/* Actions */}
-				<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
-					<button
-						onClick={handleLike}
-						disabled={isLiking}
-						className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
-							post.isLiked
-								? 'text-primary'
-								: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
-						}`}
-					>
-						<Heart
-							className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
-								post.isLiked
-									? 'animate-heart-beat fill-destructive stroke-destructive'
-									: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
-							}`}
-						/>
-						<span>{post.likes ?? 0}</span>
-					</button>{' '}
-					<button
-						onClick={() => setShowComments(!showComments)}
-						className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
-					>
-						<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
-						<span>{post.commentCount ?? 0}</span>
-					</button>
-					<button
-						onClick={handleShare}
-						className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
-					>
-						<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
-						<span>Share</span>
-					</button>
-					<button
-						onClick={handleSave}
-						disabled={isSaving}
-						className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
-							isSaved
-								? 'text-primary'
-								: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
-						}`}
-					>
-						<Bookmark
-							className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
-								isSaved
-									? 'fill-gold stroke-gold'
-									: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
-							}`}
-						/>
-						<span>Save</span>
-					</button>
-				</div>
-
-				{/* Comments Section */}
-				<AnimatePresence>
-					{showComments && (
-						<motion.div
-							initial={{ height: 0, opacity: 0 }}
-							animate={{ height: 'auto', opacity: 1 }}
-							exit={{ height: 0, opacity: 0 }}
-							className='overflow-hidden bg-bg-card'
-						>
-							<CommentList
-								postId={post.id}
-								currentUserId={currentUserId}
-								onCommentCreated={() => {
-									// Update local comment count
-									setPost(prev => ({
-										...prev,
-										commentCount: (prev.commentCount ?? 0) + 1,
-									}))
-								}}
-							/>
-						</motion.div>
+							{post.videoUrl && (
+								<div className='relative aspect-video w-full overflow-hidden bg-muted'>
+									<video
+										src={post.videoUrl}
+										controls
+										className='h-full w-full'
+									/>
+								</div>
+							)}
+						</>
 					)}
-				</AnimatePresence>
-			</motion.div>
-			{/* Report Modal */}
-			<ReportModal
-				isOpen={showReportModal}
-				onClose={() => setShowReportModal(false)}
-				onSubmit={handleReportSubmit}
-				content={reportContent}
-			/>{' '}
-		</motion.article>
+
+					{/* Actions */}
+					<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
+						<button
+							onClick={handleLike}
+							disabled={isLiking}
+							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
+								post.isLiked
+									? 'text-primary'
+									: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
+							}`}
+						>
+							<Heart
+								className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
+									post.isLiked
+										? 'animate-heart-beat fill-destructive stroke-destructive'
+										: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
+								}`}
+							/>
+							<span>{post.likes ?? 0}</span>
+						</button>{' '}
+						<button
+							onClick={() => setShowComments(!showComments)}
+							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
+						>
+							<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
+							<span>{post.commentCount ?? 0}</span>
+						</button>
+						<button
+							onClick={handleShare}
+							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
+						>
+							<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
+							<span>Share</span>
+						</button>
+						<button
+							onClick={handleSave}
+							disabled={isSaving}
+							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
+								isSaved
+									? 'text-primary'
+									: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
+							}`}
+						>
+							<Bookmark
+								className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
+									isSaved
+										? 'fill-gold stroke-gold'
+										: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
+								}`}
+							/>
+							<span>Save</span>
+						</button>
+					</div>
+
+					{/* Comments Section */}
+					<AnimatePresence>
+						{showComments && (
+							<motion.div
+								initial={{ height: 0, opacity: 0 }}
+								animate={{ height: 'auto', opacity: 1 }}
+								exit={{ height: 0, opacity: 0 }}
+								className='overflow-hidden bg-bg-card'
+							>
+								<CommentList
+									postId={post.id}
+									currentUserId={currentUserId}
+									onCommentCreated={() => {
+										// Update local comment count
+										setPost(prev => ({
+											...prev,
+											commentCount: (prev.commentCount ?? 0) + 1,
+										}))
+									}}
+								/>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</motion.div>
+				{/* Report Modal */}
+				<ReportModal
+					isOpen={showReportModal}
+					onClose={() => setShowReportModal(false)}
+					onSubmit={handleReportSubmit}
+					content={reportContent}
+				/>
+			</motion.article>
+		</>
 	)
 }

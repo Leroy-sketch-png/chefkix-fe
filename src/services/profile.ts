@@ -127,6 +127,7 @@ export interface UpdateProfileDto {
 	displayName?: string
 	bio?: string
 	avatarUrl?: string
+	coverImageUrl?: string
 }
 
 export const updateProfile = async (

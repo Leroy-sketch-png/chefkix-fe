@@ -1,8 +1,7 @@
 export interface Statistics {
 	followerCount: number
 	followingCount: number
-	friendCount: number
-	friendRequestCount: number
+	// Instagram model: mutual follows = friends (computed, not stored separately)
 	recipeCount: number // Recipes created (recipesCreated)
 	postCount: number
 	favouriteCount: number
@@ -17,23 +16,20 @@ export interface Statistics {
 	badges?: string[] // Earned badge IDs
 	// Additional fields per spec 02-profile.txt
 	recipesCooked?: number // Distinct recipes user has cooked
+	recipesMastered?: number // Recipes cooked 5+ times (mastery threshold)
 	longestStreak?: number // Historical best streak
 }
 
-export interface Friend {
-	friendId: string
-	friendedAt: string
-}
-
+// Instagram model: Follow only, mutual follow = implicit friends
 export type RelationshipStatus =
-	| 'SELF'
-	| 'FRIENDS'
-	| 'REQUEST_SENT'
-	| 'REQUEST_RECEIVED'
-	| 'NOT_FRIENDS'
-	// Legacy names for backward compatibility
-	| 'PENDING_SENT'
-	| 'PENDING_RECEIVED'
+	| 'SELF' // Viewing own profile
+	| 'FOLLOWING' // I follow them
+	| 'FOLLOWED_BY' // They follow me
+	| 'MUTUAL' // We follow each other (= "friends")
+	| 'NONE' // No relationship
+	// Legacy alias for backward compat during migration
+	| 'FRIENDS' // Alias for MUTUAL
+	| 'NOT_FRIENDS' // Alias for NONE
 
 import type { Badge } from './gamification'
 
@@ -48,17 +44,19 @@ export interface Profile {
 	displayName: string
 	phoneNumber: string | null
 	avatarUrl: string
+	coverImageUrl?: string
 	bio: string
 	accountType: 'normal' | 'chef' | 'admin'
 	location: string
 	preferences: string[]
 	statistics: Statistics
-	friends: Friend[]
 	createdAt: string
 	updatedAt: string
 	// Dynamic fields
 	isFollowing?: boolean
+	isFollowedBy?: boolean // They follow me (for mutual detection)
 	relationshipStatus?: RelationshipStatus
+	isBlocked?: boolean // Block status from API
 	// Gamification fields per spec 02-profile.txt
 	badges?: Badge[] // Earned badges
 	recipesCooked?: number // Distinct recipes completed

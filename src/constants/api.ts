@@ -41,21 +41,14 @@ export const API_ENDPOINTS = {
 			`${SOCIAL_PREFIX}/toggle-follow/${userId}`,
 		GET_FOLLOWING: `${SOCIAL_PREFIX}/following`,
 		GET_FOLLOWERS: `${SOCIAL_PREFIX}/followers`,
-		// Friends = Mutual follows
+		// Friends = Mutual follows (no explicit friend requests)
 		GET_FRIENDS: `${SOCIAL_PREFIX}/friends`,
 		IS_MUTUAL: (userId: string) => `${SOCIAL_PREFIX}/is-mutual/${userId}`,
-		// DEPRECATED: Friend request system (kept for backwards compatibility)
-		/** @deprecated Use follow system instead. Mutual follows = friends. */
-		TOGGLE_FRIEND_REQUEST: (userId: string) =>
-			`${SOCIAL_PREFIX}/toggle-friend-request/${userId}`,
-		/** @deprecated Use follow system instead. */
-		ACCEPT_FRIEND: (userId: string) =>
-			`${SOCIAL_PREFIX}/accept-friend/${userId}`,
-		/** @deprecated Use follow system instead. */
-		REJECT_FRIEND: (userId: string) =>
-			`${SOCIAL_PREFIX}/reject-friend/${userId}`,
-		/** @deprecated Use unfollow instead. */
-		UNFRIEND: (userId: string) => `${SOCIAL_PREFIX}/unfriend/${userId}`,
+		// Block system
+		BLOCK: (userId: string) => `${SOCIAL_PREFIX}/block/${userId}`,
+		UNBLOCK: (userId: string) => `${SOCIAL_PREFIX}/block/${userId}`, // DELETE method
+		GET_BLOCKED: `${SOCIAL_PREFIX}/blocked-users`,
+		IS_BLOCKED: (userId: string) => `${SOCIAL_PREFIX}/is-blocked/${userId}`,
 	},
 	POST: {
 		CREATE: POST_SERVICE_PREFIX,

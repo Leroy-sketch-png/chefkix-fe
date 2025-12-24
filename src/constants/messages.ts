@@ -104,7 +104,11 @@ export const RECIPE_MESSAGES = {
 
 // ============ SOCIAL MESSAGES ============
 export const SOCIAL_MESSAGES = {
-	FRIEND_REQUEST_DECLINED: 'Friend request declined',
+	FOLLOW_SUCCESS: 'Now following!',
+	UNFOLLOW_SUCCESS: 'Unfollowed',
+	MUTUAL_FOLLOW: "You're now friends!", // Instagram model: mutual follow
+	BLOCK_SUCCESS: 'User blocked',
+	UNBLOCK_SUCCESS: 'User unblocked',
 } as const
 
 // ============ COMMON MESSAGES ============

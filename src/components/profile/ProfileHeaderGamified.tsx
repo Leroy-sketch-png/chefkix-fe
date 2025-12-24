@@ -1,15 +1,15 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import {
 	Settings,
 	Share2,
 	Check,
-	UserPlus,
+	Users,
 	MessageCircle,
 	AlertTriangle,
-	GitCompare,
 	Utensils,
 	Grid3X3,
 	ChefHat,
@@ -40,7 +40,6 @@ type UserTitle = 'BEGINNER' | 'AMATEUR' | 'SEMIPRO' | 'PRO'
 interface ProfileStats {
 	followers: number
 	following: number
-	friends?: number
 	recipesCooked: number
 	recipesCreated: number
 	mastered?: number
@@ -90,13 +89,10 @@ interface OtherUserProfileProps {
 	variant: 'other'
 	user: ProfileUser
 	isFollowing?: boolean
-	isFriend?: boolean
+	isMutualFollow?: boolean // They follow each other = implicit friends
 	isBlocked?: boolean
-	recipesYouCooked?: number
 	onFollow?: () => void
-	onAddFriend?: () => void
 	onMessage?: () => void
-	onCompare?: () => void
 	onBlock?: () => void
 	activeTab?: string
 	onTabChange?: (tab: string) => void
@@ -261,11 +257,9 @@ const TitleBadge = ({ title }: { title: UserTitle }) => {
 const StatsRow = ({
 	social,
 	cooking,
-	showFriends = false,
 }: {
-	social: { followers: number; following: number; friends?: number }
+	social: { followers: number; following: number }
 	cooking: { recipesCooked: number; recipesCreated: number; mastered?: number }
-	showFriends?: boolean
 }) => (
 	<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
 		{/* Social Stats */}
@@ -290,18 +284,6 @@ const StatsRow = ({
 				</span>
 				<span className='text-xs text-text-muted'>Following</span>
 			</motion.div>
-			{showFriends && social.friends !== undefined && (
-				<motion.div
-					whileHover={STAT_ITEM_HOVER}
-					transition={TRANSITION_SPRING}
-					className='flex cursor-pointer flex-col'
-				>
-					<span className='text-xl font-extrabold'>
-						{formatNumber(social.friends)}
-					</span>
-					<span className='text-xs text-text-muted'>Friends</span>
-				</motion.div>
-			)}
 		</div>
 
 		{/* Divider */}
@@ -384,21 +366,31 @@ const BadgesShowcase = ({
 	badges,
 	totalBadges,
 	compact = false,
+	userId,
+	isOwnProfile = false,
 }: {
 	badges: Badge[]
 	totalBadges: number
 	compact?: boolean
+	userId?: string // For linking to other user's badge pages (future feature)
+	isOwnProfile?: boolean // Only show "View all" link for own profile
 }) => (
 	<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
 		{!compact && (
 			<div className='mb-4 flex items-center justify-between'>
 				<h3 className='text-sm font-bold'>Badges</h3>
-				<Link
-					href='/profile/badges'
-					className='text-sm font-semibold text-brand hover:underline'
-				>
-					View all {totalBadges} →
-				</Link>
+				{isOwnProfile ? (
+					<Link
+						href='/profile/badges'
+						className='text-sm font-semibold text-brand hover:underline'
+					>
+						View all {totalBadges} →
+					</Link>
+				) : (
+					<span className='text-sm text-text-muted'>
+						{totalBadges} badges earned
+					</span>
+				)}
 			</div>
 		)}
 		<div className='flex gap-3 overflow-x-auto pb-2'>
@@ -505,6 +497,23 @@ const OwnProfileHeader = ({
 	activeTab,
 	onTabChange,
 }: OwnProfileProps) => {
+	// Platform detection for keyboard shortcuts
+	const isMac =
+		typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
+	const modKey = isMac ? '⌘' : 'Ctrl'
+
+	// Keyboard shortcut: Ctrl/Cmd+E to edit profile
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
+				e.preventDefault()
+				onEditProfile?.()
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [onEditProfile])
+
 	const tabs = [
 		{ id: 'recipes', label: 'Recipes', icon: <Utensils className='h-4 w-4' /> },
 		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='h-4 w-4' /> },
@@ -577,10 +586,14 @@ const OwnProfileHeader = ({
 						onClick={onEditProfile}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border'
+						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border'
+						title={`Edit Profile (${modKey}+E)`}
 					>
 						<Settings className='h-4 w-4' />
 						Edit Profile
+						<kbd className='ml-1.5 hidden rounded bg-bg px-1.5 py-0.5 font-mono text-[10px] text-text-muted group-hover:inline'>
+							{modKey}+E
+						</kbd>
 					</motion.button>
 					<motion.button
 						onClick={onShareProfile}
@@ -600,14 +613,12 @@ const OwnProfileHeader = ({
 					social={{
 						followers: user.stats.followers,
 						following: user.stats.following,
-						friends: user.stats.friends,
 					}}
 					cooking={{
 						recipesCooked: user.stats.recipesCooked,
 						recipesCreated: user.stats.recipesCreated,
 						mastered: user.stats.mastered,
 					}}
-					showFriends
 				/>
 			</div>
 
@@ -620,7 +631,11 @@ const OwnProfileHeader = ({
 			/>
 
 			{/* Badges */}
-			<BadgesShowcase badges={user.badges} totalBadges={user.totalBadges} />
+			<BadgesShowcase
+				badges={user.badges}
+				totalBadges={user.totalBadges}
+				isOwnProfile
+			/>
 
 			{/* Pending Posts Banner */}
 			{pendingPosts && pendingPosts.count > 0 && (
@@ -665,13 +680,10 @@ const OwnProfileHeader = ({
 const OtherUserProfileHeader = ({
 	user,
 	isFollowing,
-	isFriend,
+	isMutualFollow,
 	isBlocked,
-	recipesYouCooked,
 	onFollow,
-	onAddFriend,
 	onMessage,
-	onCompare,
 	onBlock,
 	activeTab,
 	onTabChange,
@@ -768,20 +780,13 @@ const OtherUserProfileHeader = ({
 							'Follow'
 						)}
 					</motion.button>
-					<motion.button
-						onClick={onAddFriend}
-						whileHover={BUTTON_HOVER}
-						whileTap={BUTTON_TAP}
-						className={cn(
-							'flex items-center gap-1.5 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors',
-							isFriend
-								? 'border-success/30 bg-success/10 text-success'
-								: 'border-blue-500/30 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20',
-						)}
-					>
-						<UserPlus className='h-4 w-4' />
-						{isFriend ? 'Friends' : 'Add Friend'}
-					</motion.button>
+					{/* Mutual Follow Badge (Instagram model: mutual follow = friends) */}
+					{isMutualFollow && (
+						<div className='flex items-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm font-semibold text-success'>
+							<Users className='h-4 w-4' />
+							Friends
+						</div>
+					)}
 					<motion.button
 						onClick={onMessage}
 						whileHover={BUTTON_SUBTLE_HOVER}
@@ -824,30 +829,12 @@ const OtherUserProfileHeader = ({
 				/>
 			</div>
 
-			{/* Comparison Teaser */}
-			{recipesYouCooked !== undefined && recipesYouCooked > 0 && (
-				<motion.button
-					onClick={onCompare}
-					whileHover={{ backgroundColor: 'rgba(34, 197, 94, 0.15)' }}
-					className='mx-6 my-4 flex w-[calc(100%-48px)] items-center gap-3.5 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-left transition-colors'
-				>
-					<GitCompare className='size-icon-md text-success' />
-					<div className='flex flex-col gap-0.5'>
-						<span className='text-sm font-semibold'>
-							You&apos;ve cooked {recipesYouCooked} of their recipes
-						</span>
-						<span className='text-xs text-success'>
-							Compare your attempts →
-						</span>
-					</div>
-				</motion.button>
-			)}
-
 			{/* Badges */}
 			<BadgesShowcase
 				badges={user.badges}
 				totalBadges={user.totalBadges}
 				compact
+				userId={user.id}
 			/>
 
 			{/* Tabs */}

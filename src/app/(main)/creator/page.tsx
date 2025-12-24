@@ -86,7 +86,7 @@ export default function CreatorRoute() {
 				difficulty: 'Medium' as const,
 				cookCount: stats.topRecipe.cookCount,
 				xpGenerated: stats.topRecipe.xpGenerated,
-				rating: 4.5, // Default - API doesn't provide this
+				// rating: omitted until BE provides real rating data
 			}
 		: null
 
