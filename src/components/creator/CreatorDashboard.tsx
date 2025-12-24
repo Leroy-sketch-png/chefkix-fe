@@ -32,9 +32,9 @@ import {
 
 export interface WeekHighlight {
 	newCooks: number
-	newCooksChange: number // percentage change
+	newCooksChange?: number // Phase 2: percentage change vs last week
 	xpEarned: number
-	xpEarnedChange: number
+	xpEarnedChange?: number // Phase 2: percentage change vs last week
 	dateRange: string // e.g., "Jan 6 - 12"
 }
 
@@ -42,7 +42,7 @@ export interface LifetimeStats {
 	recipesPublished: number
 	totalCooks: number
 	creatorXpEarned: number
-	avgRating: number
+	avgRating: number | null
 }
 
 export interface CreatorBadge {
@@ -58,7 +58,7 @@ export interface TopRecipe {
 	title: string
 	imageUrl: string
 	cookTime: number
-	difficulty: 'Easy' | 'Medium' | 'Hard'
+	difficulty: 'Easy' | 'Medium' | 'Hard' | 'Expert'
 	cookCount: number
 	xpGenerated: number
 	rating: number
@@ -109,6 +109,9 @@ export interface CreatorDashboardProps {
 // ============================================================================
 
 function WeekHighlightSection({ data }: { data: WeekHighlight }) {
+	const hasNewCooksChange = data.newCooksChange !== undefined
+	const hasXpEarnedChange = data.xpEarnedChange !== undefined
+
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -130,30 +133,27 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 				<div className='flex items-center gap-3 p-3.5 bg-white/50 rounded-xl'>
 					<span className='text-icon-lg'>👨‍🍳</span>
 					<div className='flex-1 flex flex-col'>
-						<span
-							className={cn(
-								'text-2xl font-extrabold',
-								data.newCooksChange >= 0 ? 'text-emerald-500' : 'text-text',
-							)}
-						>
+						<span className='text-2xl font-extrabold text-emerald-500'>
 							+{data.newCooks}
 						</span>
 						<span className='text-xs text-muted-foreground'>New Cooks</span>
 					</div>
-					<div
-						className={cn(
-							'flex items-center gap-1 text-xs font-semibold',
-							data.newCooksChange >= 0 ? 'text-emerald-500' : 'text-red-500',
-						)}
-					>
-						{data.newCooksChange >= 0 ? (
-							<TrendingUp className='w-3.5 h-3.5' />
-						) : (
-							<TrendingDown className='w-3.5 h-3.5' />
-						)}
-						{data.newCooksChange >= 0 ? '+' : ''}
-						{data.newCooksChange}%
-					</div>
+					{hasNewCooksChange && (
+						<div
+							className={cn(
+								'flex items-center gap-1 text-xs font-semibold',
+								data.newCooksChange! >= 0 ? 'text-emerald-500' : 'text-red-500',
+							)}
+						>
+							{data.newCooksChange! >= 0 ? (
+								<TrendingUp className='w-3.5 h-3.5' />
+							) : (
+								<TrendingDown className='w-3.5 h-3.5' />
+							)}
+							{data.newCooksChange! >= 0 ? '+' : ''}
+							{data.newCooksChange}%
+						</div>
+					)}
 				</div>
 
 				{/* XP Earned */}
@@ -165,20 +165,22 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 						</span>
 						<span className='text-xs text-muted-foreground'>XP Earned</span>
 					</div>
-					<div
-						className={cn(
-							'flex items-center gap-1 text-xs font-semibold',
-							data.xpEarnedChange >= 0 ? 'text-emerald-500' : 'text-red-500',
-						)}
-					>
-						{data.xpEarnedChange >= 0 ? (
-							<TrendingUp className='w-3.5 h-3.5' />
-						) : (
-							<TrendingDown className='w-3.5 h-3.5' />
-						)}
-						{data.xpEarnedChange >= 0 ? '+' : ''}
-						{data.xpEarnedChange}%
-					</div>
+					{hasXpEarnedChange && (
+						<div
+							className={cn(
+								'flex items-center gap-1 text-xs font-semibold',
+								data.xpEarnedChange! >= 0 ? 'text-emerald-500' : 'text-red-500',
+							)}
+						>
+							{data.xpEarnedChange! >= 0 ? (
+								<TrendingUp className='w-3.5 h-3.5' />
+							) : (
+								<TrendingDown className='w-3.5 h-3.5' />
+							)}
+							{data.xpEarnedChange! >= 0 ? '+' : ''}
+							{data.xpEarnedChange}%
+						</div>
+					)}
 				</div>
 			</div>
 		</motion.div>
@@ -224,7 +226,7 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 				{/* Avg Rating */}
 				<StatCard
 					icon='⭐'
-					value={stats.avgRating.toFixed(1)}
+					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : '—'}
 					label='Avg Rating'
 				/>
 			</div>

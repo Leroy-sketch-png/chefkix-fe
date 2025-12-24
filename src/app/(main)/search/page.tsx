@@ -282,7 +282,7 @@ const transformRecipe = (recipe: Recipe): RecipeResult => ({
 	id: recipe.id,
 	title: recipe.title,
 	imageUrl: getRecipeImage(recipe) || '/placeholder-recipe.jpg',
-	rating: recipe.rating, // Only show if BE provides real rating
+	rating: recipe.averageRating ?? recipe.currentUserInteraction?.rating,
 	cookTime: `${getTotalTime(recipe)} min`,
 	difficulty: difficultyToDisplay(recipe.difficulty),
 	author: {

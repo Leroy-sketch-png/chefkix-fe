@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { AUTH_ROUTES, PATHS, PUBLIC_ROUTES } from '@/constants'
 import { getMyProfile } from '@/services/profile'
 import { AuthLoader } from '@/components/auth/AuthLoader'
+import { waitForVisibilityRefresh } from './TokenRefreshProvider'
 
 interface AuthProviderProps {
 	children: React.ReactNode
@@ -25,6 +26,11 @@ interface AuthProviderProps {
  *
  * CRITICAL: We use isRedirecting state to prevent the flicker where the
  * previous page renders briefly before the redirect completes.
+ *
+ * COORDINATION WITH TokenRefreshProvider:
+ * When tab becomes visible after being hidden, TokenRefreshProvider may be
+ * refreshing the token. We MUST wait for that to complete before making
+ * any API calls to avoid 401 race conditions.
  */
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const {
@@ -61,6 +67,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				setIsSessionValidated(true)
 				return
 			}
+
+			// CRITICAL: Wait for any visibility-triggered token refresh to complete
+			// This prevents race conditions where we call getMyProfile() with an expired token
+			// while TokenRefreshProvider is already refreshing it
+			await waitForVisibilityRefresh()
 
 			// Token exists - if we don't have user data, fetch it.
 			if (!user) {

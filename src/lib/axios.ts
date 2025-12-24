@@ -132,16 +132,44 @@ api.interceptors.response.use(
 						originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
 						return api(originalRequest)
 					}
-				} catch (refreshError) {
-					// Refresh token failed - logout user
+				} catch (refreshError: unknown) {
+					// IMPROVED: Don't logout immediately on refresh failure
+					// Could be a transient network issue. Let the user continue with cached data
+					// and try again on the next request.
 					isRefreshing = false
-					const { logout } = useAuthStore.getState()
-					logout()
+					refreshSubscribers = [] // Clear queue
 
-					if (typeof window !== 'undefined') {
-						window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.SESSION_EXPIRED)}`
+					// Check if it's a real session expiry (401/403 from refresh endpoint)
+					// vs a network/transient error
+					const isHardFailure =
+						refreshError instanceof Error &&
+						'response' in refreshError &&
+						typeof (refreshError as { response?: { status?: number } }).response
+							?.status === 'number' &&
+						[401, 403].includes(
+							(refreshError as { response: { status: number } }).response
+								.status,
+						)
+
+					if (isHardFailure) {
+						// Real session expiry - logout user
+						console.warn('[axios] Session expired, logging out')
+						const { logout } = useAuthStore.getState()
+						logout()
+
+						if (typeof window !== 'undefined') {
+							window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.SESSION_EXPIRED)}`
+						}
+						return Promise.reject(refreshError)
+					} else {
+						// Transient error (network, timeout) - don't logout
+						// Just let this request fail, user can retry manually
+						console.warn(
+							'[axios] Refresh failed (transient), not logging out:',
+							refreshError,
+						)
+						return Promise.reject(error) // Return original error
 					}
-					return Promise.reject(refreshError)
 				}
 			}
 

@@ -17,16 +17,35 @@ import { api } from '@/lib/axios'
  * Token refresh ONLY updates the accessToken. It does NOT touch the user object.
  * The user is already authenticated and their profile is already loaded.
  * Mixing token refresh with user validation creates unnecessary complexity and bugs.
+ *
+ * VISIBILITY CHANGE HANDLING:
+ * When user returns to a tab after being away, we MUST refresh the token
+ * BEFORE any other API calls happen. We expose a global promise that
+ * AuthProvider can await to coordinate timing.
  */
 
-// Token lifetime in milliseconds (15 minutes = 900 seconds)
-const ACCESS_TOKEN_LIFETIME_MS = 15 * 60 * 1000
+// Token lifetime in milliseconds (30 minutes = 1800 seconds)
+// SYNC: Must match Keycloak realm accessTokenLifespan in realm-export.json
+const ACCESS_TOKEN_LIFETIME_MS = 30 * 60 * 1000
 
-// Refresh at 80% of lifetime (12 minutes)
+// Refresh at 80% of lifetime (24 minutes)
 const REFRESH_THRESHOLD_MS = ACCESS_TOKEN_LIFETIME_MS * 0.8
 
 // Minimum time between refresh attempts (prevent rapid fire)
-const MIN_REFRESH_INTERVAL_MS = 60 * 1000 // 1 minute
+const MIN_REFRESH_INTERVAL_MS = 30 * 1000 // 30 seconds (reduced from 1 min for better UX)
+
+// Global promise for coordinating visibility-triggered refresh with AuthProvider
+let visibilityRefreshPromise: Promise<boolean> | null = null
+
+/**
+ * Wait for any ongoing visibility-triggered refresh to complete.
+ * Call this from AuthProvider BEFORE making API calls.
+ */
+export const waitForVisibilityRefresh = async (): Promise<void> => {
+	if (visibilityRefreshPromise) {
+		await visibilityRefreshPromise
+	}
+}
 
 interface TokenRefreshProviderProps {
 	children: React.ReactNode
@@ -135,25 +154,45 @@ export const TokenRefreshProvider = ({
 	}, [isAuthenticated, accessToken, refreshToken])
 
 	// Also refresh when the tab becomes visible (user returns after being away)
+	// CRITICAL: We set a global promise so AuthProvider can wait for this to complete
 	useEffect(() => {
 		if (!isAuthenticated) return
 
-		const handleVisibilityChange = () => {
+		const handleVisibilityChange = async () => {
 			if (document.visibilityState === 'visible') {
 				const timeSinceLastRefresh = Date.now() - lastRefreshTimeRef.current
 
-				// If significant time has passed while tab was hidden, refresh
-				if (timeSinceLastRefresh >= REFRESH_THRESHOLD_MS) {
-					console.debug('[TokenRefresh] Tab became visible, refreshing token')
-					refreshToken()
+				// If significant time has passed while tab was hidden, refresh IMMEDIATELY
+				// Also refresh even if close to threshold to be safe
+				if (timeSinceLastRefresh >= REFRESH_THRESHOLD_MS * 0.8) {
+					console.debug(
+						'[TokenRefresh] Tab became visible, refreshing token proactively',
+					)
+					// Set global promise so AuthProvider can await this
+					visibilityRefreshPromise = refreshToken()
+					await visibilityRefreshPromise
+					visibilityRefreshPromise = null
 				}
 			}
 		}
 
+		// Handle both visibility change AND focus (belt + suspenders)
+		const handleFocus = async () => {
+			const timeSinceLastRefresh = Date.now() - lastRefreshTimeRef.current
+			if (timeSinceLastRefresh >= REFRESH_THRESHOLD_MS * 0.8) {
+				console.debug('[TokenRefresh] Window focused, checking token freshness')
+				visibilityRefreshPromise = refreshToken()
+				await visibilityRefreshPromise
+				visibilityRefreshPromise = null
+			}
+		}
+
 		document.addEventListener('visibilitychange', handleVisibilityChange)
+		window.addEventListener('focus', handleFocus)
 
 		return () => {
 			document.removeEventListener('visibilitychange', handleVisibilityChange)
+			window.removeEventListener('focus', handleFocus)
 		}
 	}, [isAuthenticated, refreshToken])
 

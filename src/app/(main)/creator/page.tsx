@@ -54,11 +54,11 @@ export default function CreatorRoute() {
 	}, [])
 
 	// Transform API data to component format
+	// Per vision_and_spec/03-social.txt - using real data from BE
 	const weekHighlight = {
 		newCooks: stats?.thisWeek.newCooks ?? 0,
-		newCooksChange: 0, // API doesn't provide change percentage
+		// Phase 2: newCooksChange, xpEarnedChange (requires historical data storage)
 		xpEarned: stats?.thisWeek.xpEarned ?? 0,
-		xpEarnedChange: 0,
 		dateRange: getDateRangeThisWeek(),
 	}
 
@@ -66,27 +66,47 @@ export default function CreatorRoute() {
 		recipesPublished: stats?.totalRecipesPublished ?? 0,
 		totalCooks: stats?.totalCooksOfYourRecipes ?? 0,
 		creatorXpEarned: stats?.xpEarnedAsCreator ?? 0,
-		avgRating: 0, // API doesn't provide this yet
+		avgRating: stats?.avgRating ?? null,
 	}
 
 	const creatorBadges = (stats?.creatorBadges ?? []).map((badge, idx) => ({
 		id: `badge-${idx}`,
 		icon: badge.icon,
 		name: badge.name,
-		description: `Earned from ${badge.recipeTitle}`,
+		description: badge.recipeTitle
+			? `Earned from ${badge.recipeTitle}`
+			: 'Creator achievement',
 		isEarned: true,
 	}))
+
+	// Map difficulty from BE format to component format
+	const mapDifficulty = (
+		difficulty: string | null,
+	): 'Easy' | 'Medium' | 'Hard' | 'Expert' => {
+		switch (difficulty) {
+			case 'Beginner':
+				return 'Easy'
+			case 'Intermediate':
+				return 'Medium'
+			case 'Advanced':
+				return 'Hard'
+			case 'Expert':
+				return 'Expert'
+			default:
+				return 'Medium'
+		}
+	}
 
 	const topRecipe = stats?.topRecipe
 		? {
 				id: stats.topRecipe.id,
 				title: stats.topRecipe.title,
-				imageUrl: '/placeholder-recipe.jpg', // API doesn't provide image
-				cookTime: 30, // Default - API doesn't provide this
-				difficulty: 'Medium' as const,
+				imageUrl: stats.topRecipe.coverImageUrl ?? '/placeholder-recipe.jpg',
+				cookTime: stats.topRecipe.cookTimeMinutes ?? 0,
+				difficulty: mapDifficulty(stats.topRecipe.difficulty),
 				cookCount: stats.topRecipe.cookCount,
 				xpGenerated: stats.topRecipe.xpGenerated,
-				// rating: omitted until BE provides real rating data
+				rating: stats.topRecipe.averageRating ?? 0,
 			}
 		: null
 

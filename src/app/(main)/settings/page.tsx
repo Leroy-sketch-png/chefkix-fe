@@ -358,8 +358,16 @@ export default function SettingsPage() {
 	const [displayName, setDisplayName] = useState('')
 	const [bio, setBio] = useState('')
 	const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>()
+	const [avatarUrl, setAvatarUrl] = useState<string | undefined>()
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
+	const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+	const [showPasswordModal, setShowPasswordModal] = useState(false)
+	const [currentPassword, setCurrentPassword] = useState('')
+	const [newPassword, setNewPassword] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
+	const [isChangingPassword, setIsChangingPassword] = useState(false)
 	const coverInputRef = useRef<HTMLInputElement>(null)
+	const avatarInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
 		const loadSettings = async () => {
@@ -385,6 +393,7 @@ export default function SettingsPage() {
 			setDisplayName(user.displayName || '')
 			setBio(user.bio || '')
 			setCoverImageUrl(user.coverImageUrl)
+			setAvatarUrl(user.avatarUrl)
 			loadSettings()
 		}
 	}, [user])
@@ -455,6 +464,82 @@ export default function SettingsPage() {
 			toast.error('Failed to update profile')
 		} finally {
 			setIsSaving(false)
+		}
+	}
+
+	const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0]
+		if (!file) return
+
+		if (!file.type.startsWith('image/')) {
+			toast.error('Please select an image file')
+			return
+		}
+
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error('Image must be less than 5MB')
+			return
+		}
+
+		setIsUploadingAvatar(true)
+		try {
+			const localPreviewUrl = URL.createObjectURL(file)
+			setAvatarUrl(localPreviewUrl)
+
+			const response = await uploadRecipeImages([file])
+			if (response.success && response.data?.[0]) {
+				const uploadedUrl = response.data[0]
+				setAvatarUrl(uploadedUrl)
+
+				const updateResponse = await updateProfile({ avatarUrl: uploadedUrl })
+				if (updateResponse.success) {
+					toast.success('Avatar updated!')
+				} else {
+					toast.error('Failed to save avatar')
+				}
+			} else {
+				toast.error('Failed to upload image')
+				setAvatarUrl(user?.avatarUrl)
+			}
+		} catch (error) {
+			console.error('Avatar upload error:', error)
+			toast.error('Failed to upload avatar')
+			setAvatarUrl(user?.avatarUrl)
+		} finally {
+			setIsUploadingAvatar(false)
+			if (avatarInputRef.current) {
+				avatarInputRef.current.value = ''
+			}
+		}
+	}
+
+	const handleChangePassword = async () => {
+		if (!currentPassword || !newPassword || !confirmPassword) {
+			toast.error('Please fill in all fields')
+			return
+		}
+		if (newPassword !== confirmPassword) {
+			toast.error('New passwords do not match')
+			return
+		}
+		if (newPassword.length < 8) {
+			toast.error('Password must be at least 8 characters')
+			return
+		}
+
+		setIsChangingPassword(true)
+		try {
+			// Note: This would call a password change API when implemented
+			// For now, show a message that this is handled by Keycloak
+			toast.info('Password changes are managed through your account provider')
+			setShowPasswordModal(false)
+			setCurrentPassword('')
+			setNewPassword('')
+			setConfirmPassword('')
+		} catch (error) {
+			toast.error('Failed to change password')
+		} finally {
+			setIsChangingPassword(false)
 		}
 	}
 
@@ -688,6 +773,59 @@ export default function SettingsPage() {
 												</p>
 											</div>
 
+											{/* Avatar Upload */}
+											<div className='grid gap-2'>
+												<Label>Profile Photo</Label>
+												<div className='flex items-center gap-4'>
+													<div
+														className={cn(
+															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-all',
+															isUploadingAvatar && 'opacity-60',
+														)}
+													>
+														{avatarUrl ? (
+															<img
+																src={avatarUrl}
+																alt='Avatar'
+																className='size-full object-cover'
+															/>
+														) : (
+															<div className='flex size-full items-center justify-center'>
+																<User className='size-8 text-muted-foreground' />
+															</div>
+														)}
+														{isUploadingAvatar && (
+															<div className='absolute inset-0 flex items-center justify-center bg-background/50'>
+																<Loader2 className='size-5 animate-spin text-primary' />
+															</div>
+														)}
+													</div>
+													<div className='flex flex-col gap-2'>
+														<Button
+															type='button'
+															variant='outline'
+															size='sm'
+															className='gap-1.5'
+															onClick={() => avatarInputRef.current?.click()}
+															disabled={isUploadingAvatar}
+														>
+															<Camera className='size-4' />
+															{avatarUrl ? 'Change Photo' : 'Upload Photo'}
+														</Button>
+														<p className='text-xs text-muted-foreground'>
+															Square image, max 5MB
+														</p>
+													</div>
+													<input
+														ref={avatarInputRef}
+														type='file'
+														accept='image/*'
+														className='hidden'
+														onChange={handleAvatarUpload}
+													/>
+												</div>
+											</div>
+
 											<div className='grid gap-2'>
 												<Label htmlFor='displayName'>Display Name</Label>
 												<Input
@@ -738,7 +876,11 @@ export default function SettingsPage() {
 										description='Manage your password and security settings'
 									>
 										<div className='space-y-4'>
-											<Button variant='outline' className='w-full sm:w-auto'>
+											<Button
+												variant='outline'
+												className='w-full sm:w-auto'
+												onClick={() => setShowPasswordModal(true)}
+											>
 												<Shield className='mr-2 size-4' />
 												Change Password
 											</Button>
@@ -1269,6 +1411,90 @@ export default function SettingsPage() {
 						</motion.div>
 					</AnimatePresence>
 				</div>
+
+				{/* Change Password Modal */}
+				<AnimatePresence>
+					{showPasswordModal && (
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'
+							onClick={() => setShowPasswordModal(false)}
+						>
+							<motion.div
+								initial={{ scale: 0.95, opacity: 0 }}
+								animate={{ scale: 1, opacity: 1 }}
+								exit={{ scale: 0.95, opacity: 0 }}
+								transition={TRANSITION_SPRING}
+								onClick={e => e.stopPropagation()}
+								className='w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl'
+							>
+								<h2 className='mb-4 text-xl font-bold'>Change Password</h2>
+								<div className='space-y-4'>
+									<div className='grid gap-2'>
+										<Label htmlFor='currentPassword'>Current Password</Label>
+										<Input
+											id='currentPassword'
+											type='password'
+											value={currentPassword}
+											onChange={e => setCurrentPassword(e.target.value)}
+											placeholder='Enter current password'
+										/>
+									</div>
+									<div className='grid gap-2'>
+										<Label htmlFor='newPassword'>New Password</Label>
+										<Input
+											id='newPassword'
+											type='password'
+											value={newPassword}
+											onChange={e => setNewPassword(e.target.value)}
+											placeholder='Enter new password'
+										/>
+									</div>
+									<div className='grid gap-2'>
+										<Label htmlFor='confirmPassword'>
+											Confirm New Password
+										</Label>
+										<Input
+											id='confirmPassword'
+											type='password'
+											value={confirmPassword}
+											onChange={e => setConfirmPassword(e.target.value)}
+											placeholder='Confirm new password'
+										/>
+									</div>
+									<div className='flex gap-3 pt-2'>
+										<Button
+											variant='outline'
+											className='flex-1'
+											onClick={() => {
+												setShowPasswordModal(false)
+												setCurrentPassword('')
+												setNewPassword('')
+												setConfirmPassword('')
+											}}
+										>
+											Cancel
+										</Button>
+										<Button
+											className='flex-1'
+											onClick={handleChangePassword}
+											disabled={isChangingPassword}
+										>
+											{isChangingPassword ? (
+												<Loader2 className='mr-2 size-4 animate-spin' />
+											) : (
+												<Shield className='mr-2 size-4' />
+											)}
+											Change Password
+										</Button>
+									</div>
+								</div>
+							</motion.div>
+						</motion.div>
+					)}
+				</AnimatePresence>
 			</PageContainer>
 		</PageTransition>
 	)

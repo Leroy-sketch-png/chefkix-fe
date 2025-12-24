@@ -12,11 +12,20 @@ import type { AxiosError } from 'axios'
 // TYPES
 // ============================================
 
+/**
+ * Top recipe info for creator stats
+ * Per vision_and_spec/03-social.txt - Phase 1 (MVP) fields
+ */
 export interface TopRecipe {
 	id: string
 	title: string
 	cookCount: number
 	xpGenerated: number
+	// New fields from BE (Phase 1)
+	coverImageUrl: string | null
+	cookTimeMinutes: number | null
+	difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | null
+	averageRating: number | null
 }
 
 export interface CreatorBadge {
@@ -28,12 +37,18 @@ export interface CreatorBadge {
 export interface WeekStats {
 	newCooks: number
 	xpEarned: number
+	// Phase 2: newCooksChange, xpEarnedChange (requires historical data)
 }
 
+/**
+ * Creator stats response
+ * Per vision_and_spec/03-social.txt
+ */
 export interface CreatorStats {
 	totalRecipesPublished: number
 	totalCooksOfYourRecipes: number
 	xpEarnedAsCreator: number
+	avgRating: number | null // Average across all recipes
 	topRecipe: TopRecipe | null
 	thisWeek: WeekStats
 	creatorBadges: CreatorBadge[]

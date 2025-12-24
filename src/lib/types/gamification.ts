@@ -306,33 +306,36 @@ export interface LeaderboardData {
 // CREATOR STATS
 // ============================================
 
+/**
+ * Creator stats - per vision_and_spec/03-social.txt
+ * Note: The main type used is in services/creator.ts
+ * This is kept for reference/consistency
+ */
 export interface CreatorStats {
 	totalRecipesPublished: number
 	totalCooksOfYourRecipes: number
 	xpEarnedAsCreator: number
+	avgRating: number | null // Average across all recipes
 	topRecipe?: {
 		id: string
 		title: string
-		imageUrl: string
+		coverImageUrl: string | null
+		cookTimeMinutes: number | null
+		difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | null
 		cookCount: number
 		xpGenerated: number
-		rating: number
+		averageRating: number | null
 	}
 	thisWeek: {
 		newCooks: number
 		xpEarned: number
-		trend: number // percentage change
+		// Phase 2: newCooksChange, xpEarnedChange (requires historical data)
 	}
-	recentCooks: {
-		userId: string
-		username: string
-		avatarUrl: string
-		recipeId: string
-		recipeTitle: string
-		xpEarned: number
-		cookedAt: string
-	}[]
-	creatorBadges: Badge[]
+	creatorBadges: Array<{
+		name: string
+		icon: string
+		recipeTitle: string | null
+	}>
 }
 
 // ============================================

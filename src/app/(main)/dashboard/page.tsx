@@ -199,7 +199,8 @@ export default function DashboardPage() {
 					</div>
 					<p className='flex items-center gap-2 leading-normal text-text-secondary'>
 						<Sparkles className='size-4 text-streak' />
-						Share your culinary journey and see what your friends are cooking
+						Share your culinary journey and see what people you follow are
+						cooking
 					</p>
 				</motion.div>
 				{/* Create Post Form */}
@@ -234,7 +235,7 @@ export default function DashboardPage() {
 					<EmptyStateGamified
 						variant='feed'
 						title='Your feed is empty'
-						description='Follow chefs and add friends to see their latest posts here!'
+						description='Follow chefs to see their latest posts here!'
 						primaryAction={{
 							label: 'Discover People',
 							href: '/discover',

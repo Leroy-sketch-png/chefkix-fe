@@ -117,11 +117,20 @@ export default function ExplorePage() {
 					}
 
 					// Filter by difficulty
+					// Map display values to API values for comparison
+					// Filter uses 'easy'|'medium'|'hard', API uses 'Beginner'|'Intermediate'|'Advanced'|'Expert'
 					if (filters.difficulty.length > 0) {
+						const difficultyMap: Record<string, string> = {
+							easy: 'Beginner',
+							medium: 'Intermediate',
+							hard: 'Advanced',
+							expert: 'Expert',
+						}
+						const apiDifficulties = filters.difficulty.map(
+							d => difficultyMap[d.toLowerCase()] || d,
+						)
 						filtered = filtered.filter(recipe =>
-							filters.difficulty
-								.map(d => d.toUpperCase())
-								.includes(recipe.difficulty),
+							apiDifficulties.includes(recipe.difficulty),
 						)
 					}
 

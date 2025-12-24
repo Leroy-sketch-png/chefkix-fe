@@ -242,16 +242,16 @@ export const ToastExamples = () => {
 					</Button>
 					<Button
 						onClick={() => {
-							toast.info('Friend request', 'ChefMaster wants to connect.', {
+							toast.info('New follower', 'ChefMaster is now following you!', {
 								action: {
-									label: 'Accept',
-									onClick: () => toast.success('Friend added!'),
+									label: 'Follow back',
+									onClick: () => toast.success('Following ChefMaster!'),
 								},
 							})
 						}}
 						variant='outline'
 					>
-						Friend Request
+						New Follower
 					</Button>
 				</div>
 			</Card>

@@ -264,26 +264,19 @@ const StatsRow = ({
 	<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
 		{/* Social Stats */}
 		<div className='flex gap-8'>
-			<motion.div
-				whileHover={STAT_ITEM_HOVER}
-				transition={TRANSITION_SPRING}
-				className='flex cursor-pointer flex-col'
-			>
+			{/* TODO: Make clickable when /profile/[id]/followers page exists */}
+			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold'>
 					{formatNumber(social.followers)}
 				</span>
 				<span className='text-xs text-text-muted'>Followers</span>
-			</motion.div>
-			<motion.div
-				whileHover={STAT_ITEM_HOVER}
-				transition={TRANSITION_SPRING}
-				className='flex cursor-pointer flex-col'
-			>
+			</div>
+			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold'>
 					{formatNumber(social.following)}
 				</span>
 				<span className='text-xs text-text-muted'>Following</span>
-			</motion.div>
+			</div>
 		</div>
 
 		{/* Divider */}
@@ -291,35 +284,23 @@ const StatsRow = ({
 
 		{/* Cooking Stats */}
 		<div className='flex gap-8'>
-			<motion.div
-				whileHover={STAT_ITEM_HOVER}
-				transition={TRANSITION_SPRING}
-				className='flex cursor-pointer flex-col'
-			>
+			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold text-success'>
 					{cooking.recipesCooked}
 				</span>
 				<span className='text-xs font-semibold text-success'>
 					Recipes Cooked
 				</span>
-			</motion.div>
-			<motion.div
-				whileHover={STAT_ITEM_HOVER}
-				transition={TRANSITION_SPRING}
-				className='flex cursor-pointer flex-col'
-			>
+			</div>
+			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold'>{cooking.recipesCreated}</span>
 				<span className='text-xs text-text-muted'>Recipes Created</span>
-			</motion.div>
+			</div>
 			{cooking.mastered !== undefined && (
-				<motion.div
-					whileHover={STAT_ITEM_HOVER}
-					transition={TRANSITION_SPRING}
-					className='flex cursor-pointer flex-col'
-				>
+				<div className='flex flex-col'>
 					<span className='text-xl font-extrabold'>{cooking.mastered}</span>
 					<span className='text-xs text-text-muted'>Mastered</span>
-				</motion.div>
+				</div>
 			)}
 		</div>
 	</div>

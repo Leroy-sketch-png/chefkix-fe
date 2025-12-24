@@ -125,7 +125,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 							asChild
 							className='hover:bg-primary/10 hover:text-primary'
 						>
-							<Link href={`/messages?user=${profile.userId}`}>
+							<Link href={`/messages?userId=${profile.userId}`}>
 								<MessageCircle className='size-4' />
 							</Link>
 						</Button>

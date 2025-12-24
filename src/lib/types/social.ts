@@ -24,15 +24,13 @@ export type AcceptFriendResponse = Profile
 
 /**
  * @deprecated Legacy type for declined friend request response.
+ * In Instagram model, there are no friend requests - just follow/unfollow.
  */
 export interface DeclineFriendResponse {
 	profileId: string
 	userId: string
 	displayName: string
-	statistics: Pick<
-		Statistics,
-		'followerCount' | 'friendCount' | 'friendRequestCount'
-	>
+	statistics: Pick<Statistics, 'followerCount' | 'followingCount'>
 	relationshipStatus: 'NOT_FRIENDS'
 	isFollowing: boolean
 }
@@ -45,10 +43,7 @@ export interface UnfriendResponse {
 	profileId: string
 	userId: string
 	displayName: string
-	statistics: Pick<
-		Statistics,
-		'followerCount' | 'friendCount' | 'friendRequestCount'
-	>
+	statistics: Pick<Statistics, 'followerCount' | 'followingCount'>
 	relationshipStatus: 'NOT_FRIENDS'
 	isFollowing: boolean
 }

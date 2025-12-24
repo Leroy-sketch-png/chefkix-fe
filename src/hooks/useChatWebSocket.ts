@@ -3,11 +3,13 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
-import { ChatMessage } from '@/services/chat'
+import { ChatMessage, Conversation } from '@/services/chat'
 
 interface UseChatWebSocketOptions {
 	conversationId: string | null
 	onMessage: (message: ChatMessage) => void
+	onNewConversation?: (conversation: Conversation) => void
+	userId?: string // Current user ID for subscribing to personal topics
 	enabled?: boolean
 }
 
@@ -24,19 +26,26 @@ interface UseChatWebSocketReturn {
 export function useChatWebSocket({
 	conversationId,
 	onMessage,
+	onNewConversation,
+	userId,
 	enabled = true,
 }: UseChatWebSocketOptions): UseChatWebSocketReturn {
 	const { accessToken } = useAuthStore()
 	const clientRef = useRef<Client | null>(null)
 	const subscriptionRef = useRef<StompSubscription | null>(null)
+	const userSubscriptionRef = useRef<StompSubscription | null>(null)
 	const [isConnected, setIsConnected] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	// Store onMessage in ref to avoid reconnection on callback change
+	// Store callbacks in refs to avoid reconnection on callback change
 	const onMessageRef = useRef(onMessage)
+	const onNewConversationRef = useRef(onNewConversation)
 	useEffect(() => {
 		onMessageRef.current = onMessage
 	}, [onMessage])
+	useEffect(() => {
+		onNewConversationRef.current = onNewConversation
+	}, [onNewConversation])
 
 	// Connect to WebSocket
 	useEffect(() => {
@@ -96,6 +105,10 @@ export function useChatWebSocket({
 				subscriptionRef.current.unsubscribe()
 				subscriptionRef.current = null
 			}
+			if (userSubscriptionRef.current) {
+				userSubscriptionRef.current.unsubscribe()
+				userSubscriptionRef.current = null
+			}
 			if (clientRef.current) {
 				clientRef.current.deactivate()
 				clientRef.current = null
@@ -103,6 +116,47 @@ export function useChatWebSocket({
 			setIsConnected(false)
 		}
 	}, [enabled, accessToken])
+
+	// Subscribe to user-specific topic for new conversations
+	useEffect(() => {
+		if (
+			!userId ||
+			!clientRef.current?.connected ||
+			!onNewConversationRef.current
+		) {
+			return
+		}
+
+		// Unsubscribe from previous user subscription
+		if (userSubscriptionRef.current) {
+			userSubscriptionRef.current.unsubscribe()
+			userSubscriptionRef.current = null
+		}
+
+		// Subscribe to new conversation notifications for this user
+		const subscription = clientRef.current.subscribe(
+			`/topic/user/${userId}/conversations`,
+			(message: IMessage) => {
+				try {
+					const conversation: Conversation = JSON.parse(message.body)
+					console.log('[WebSocket] New conversation received:', conversation)
+					onNewConversationRef.current?.(conversation)
+				} catch (err) {
+					console.error('[WebSocket] Failed to parse new conversation:', err)
+				}
+			},
+		)
+
+		userSubscriptionRef.current = subscription
+		console.log(`[WebSocket] Subscribed to /topic/user/${userId}/conversations`)
+
+		return () => {
+			if (userSubscriptionRef.current) {
+				userSubscriptionRef.current.unsubscribe()
+				userSubscriptionRef.current = null
+			}
+		}
+	}, [userId, isConnected])
 
 	// Subscribe to conversation topic when conversationId changes
 	useEffect(() => {

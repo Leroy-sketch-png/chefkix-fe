@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
  * Matches the structure of the Community page with:
  * - Header (icon box + title + description) - matches Design System pattern
  * - Tab navigation skeleton
- * - Friend request/friend card skeletons in responsive grid
+ * - User/follow card skeletons in responsive grid
  */
 export const CommunitySkeleton = () => {
 	return (
@@ -37,7 +37,7 @@ export const CommunitySkeleton = () => {
 				<Skeleton className='h-10 w-full rounded-radius' />
 			</div>
 
-			{/* Content grid skeleton - matches friend request/friend cards */}
+			{/* Content grid skeleton - matches user/follow cards */}
 			<div className='grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
 				{Array.from({ length: 8 }).map((_, i) => (
 					<UserCardSkeleton key={i} />
@@ -79,7 +79,7 @@ const UserCardSkeleton = () => {
 }
 
 /**
- * FriendCardSkeleton - Matches FollowSuggestionCard/FriendCard dimensions
+ * FriendCardSkeleton - Matches FollowSuggestionCard/MutualFollowCard dimensions
  *
  * Structure:
  * - Avatar (left)
