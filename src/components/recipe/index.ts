@@ -2,6 +2,7 @@
 export { RecipeCard } from './RecipeCard'
 export { RecipeCardEnhanced } from './RecipeCardEnhanced'
 export { RecipeCardSkeleton } from './RecipeCardSkeleton'
+export { DraftsList } from './DraftsList'
 export {
 	RecipeCreateAiFlow,
 	type ParsedRecipe,

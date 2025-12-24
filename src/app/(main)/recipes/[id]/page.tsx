@@ -512,6 +512,61 @@ export default function RecipeDetailPage() {
 					</div>
 				</motion.div>
 
+				{/* XP Breakdown - Transparency for gamification */}
+				{recipe.xpBreakdown && (
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5 }}
+						className='rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
+					>
+						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text'>
+							<Zap className='size-5 text-xp' />
+							XP Breakdown
+						</h2>
+						<div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
+							<div className='rounded-xl bg-bg-card p-4 text-center'>
+								<div className='text-2xl font-bold text-success'>
+									+{recipe.xpBreakdown.base}
+								</div>
+								<div className='text-xs text-text-muted'>
+									Base ({recipe.difficulty})
+								</div>
+							</div>
+							<div className='rounded-xl bg-bg-card p-4 text-center'>
+								<div className='text-2xl font-bold text-success'>
+									+{recipe.xpBreakdown.steps}
+								</div>
+								<div className='text-xs text-text-muted'>
+									Steps ({recipe.steps.length})
+								</div>
+							</div>
+							<div className='rounded-xl bg-bg-card p-4 text-center'>
+								<div className='text-2xl font-bold text-success'>
+									+{recipe.xpBreakdown.time}
+								</div>
+								<div className='text-xs text-text-muted'>
+									Time ({totalTime}min)
+								</div>
+							</div>
+							{recipe.xpBreakdown.techniques ? (
+								<div className='rounded-xl bg-bg-card p-4 text-center'>
+									<div className='text-2xl font-bold text-success'>
+										+{recipe.xpBreakdown.techniques}
+									</div>
+									<div className='text-xs text-text-muted'>Techniques</div>
+								</div>
+							) : null}
+						</div>
+						<div className='mt-4 flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
+							<span className='font-semibold text-white'>Total XP Reward</span>
+							<span className='text-2xl font-black text-white'>
+								+{recipe.xpBreakdown.total}
+							</span>
+						</div>
+					</motion.div>
+				)}
+
 				{/* Ingredients & Steps */}
 				<div className='grid gap-8 lg:grid-cols-3'>
 					{/* Ingredients */}

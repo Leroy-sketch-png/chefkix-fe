@@ -171,11 +171,23 @@ export const getDraftRecipes = async (): Promise<ApiResponse<Recipe[]>> => {
 // DRAFT MANAGEMENT (spec 07-recipes.txt)
 // ============================================
 
+export interface XpBreakdownDto {
+	base: number
+	baseReason?: string
+	steps: number
+	stepsReason?: string
+	time: number
+	timeReason?: string
+	techniques?: number
+	techniquesReason?: string
+	total: number
+}
+
 export interface DraftSaveRequest {
 	title?: string
 	description?: string
 	coverImageUrl?: string[]
-	difficulty?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT'
+	difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'
 	prepTimeMinutes?: number
 	cookTimeMinutes?: number
 	servings?: number
@@ -197,7 +209,10 @@ export interface DraftSaveRequest {
 		imageUrl?: string
 		tips?: string
 	}>
+	// Gamification (from AI service)
 	xpReward?: number
+	xpBreakdown?: XpBreakdownDto
+	difficultyMultiplier?: number
 	rewardBadges?: string[]
 	skillTags?: string[]
 }
@@ -211,11 +226,23 @@ export const createDraft = async (): Promise<ApiResponse<Recipe>> => {
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
-		if (axiosError.response) return axiosError.response.data
+		console.error('[createDraft] Error details:', {
+			status: axiosError.response?.status,
+			statusText: axiosError.response?.statusText,
+			data: axiosError.response?.data,
+			message: axiosError.message,
+		})
+		if (axiosError.response?.data) {
+			return {
+				...axiosError.response.data,
+				success: false,
+				statusCode: axiosError.response.status || 500,
+			}
+		}
 		return {
 			success: false,
-			message: 'Failed to create draft',
-			statusCode: 500,
+			message: axiosError.message || 'Failed to create draft',
+			statusCode: axiosError.response?.status || 500,
 		}
 	}
 }
@@ -235,11 +262,24 @@ export const saveDraft = async (
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
-		if (axiosError.response) return axiosError.response.data
+		console.error('[saveDraft] Error details:', {
+			status: axiosError.response?.status,
+			statusText: axiosError.response?.statusText,
+			data: axiosError.response?.data,
+			message: axiosError.message,
+		})
+		if (axiosError.response?.data) {
+			// Ensure the response has success: false
+			return {
+				...axiosError.response.data,
+				success: false,
+				statusCode: axiosError.response.status || 500,
+			}
+		}
 		return {
 			success: false,
-			message: 'Failed to save draft',
-			statusCode: 500,
+			message: axiosError.message || 'Failed to save draft',
+			statusCode: axiosError.response?.status || 500,
 		}
 	}
 }

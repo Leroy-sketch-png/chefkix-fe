@@ -35,7 +35,7 @@ import {
 // TYPES
 // ============================================
 
-type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert'
+import type { Difficulty } from '@/lib/types/gamification'
 
 interface RecipeAuthor {
 	id: string
@@ -131,19 +131,35 @@ const XPBadge = ({
 	</div>
 )
 
-// Difficulty colors
+// Difficulty colors (using backend Title Case keys)
 const difficultyConfig: Record<
 	Difficulty,
-	{ color: string; bgColor: string; filledDots: number }
+	{ color: string; bgColor: string; filledDots: number; label: string }
 > = {
-	beginner: { color: 'text-success', bgColor: 'bg-success', filledDots: 1 },
-	intermediate: {
+	Beginner: {
+		color: 'text-success',
+		bgColor: 'bg-success',
+		filledDots: 1,
+		label: 'Easy',
+	},
+	Intermediate: {
 		color: 'text-amber-500',
 		bgColor: 'bg-amber-500',
 		filledDots: 2,
+		label: 'Medium',
 	},
-	advanced: { color: 'text-error', bgColor: 'bg-error', filledDots: 3 },
-	expert: { color: 'text-xp', bgColor: 'bg-xp', filledDots: 4 },
+	Advanced: {
+		color: 'text-error',
+		bgColor: 'bg-error',
+		filledDots: 3,
+		label: 'Hard',
+	},
+	Expert: {
+		color: 'text-xp',
+		bgColor: 'bg-xp',
+		filledDots: 4,
+		label: 'Expert',
+	},
 }
 
 // Difficulty indicator with dots
@@ -877,14 +893,14 @@ const MiniCard = ({
 					<span className='text-text-muted'>{cookTimeMinutes} min</span>
 					<span
 						className={cn(
-							'rounded-lg px-2 py-0.5 font-semibold capitalize',
-							difficulty === 'beginner' && 'bg-success/10 text-success',
-							difficulty === 'intermediate' && 'bg-amber-500/10 text-amber-500',
-							difficulty === 'advanced' && 'bg-error/10 text-error',
-							difficulty === 'expert' && 'bg-xp/10 text-xp',
+							'rounded-lg px-2 py-0.5 font-semibold',
+							difficulty === 'Beginner' && 'bg-success/10 text-success',
+							difficulty === 'Intermediate' && 'bg-amber-500/10 text-amber-500',
+							difficulty === 'Advanced' && 'bg-error/10 text-error',
+							difficulty === 'Expert' && 'bg-xp/10 text-xp',
 						)}
 					>
-						{difficulty === 'beginner' ? 'Easy' : difficulty}
+						{difficultyConfig[difficulty].label}
 					</span>
 				</div>
 			</div>

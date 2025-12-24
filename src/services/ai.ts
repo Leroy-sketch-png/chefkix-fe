@@ -35,8 +35,9 @@ export interface ProcessedRecipe {
 	caloriesPerServing?: number
 	fullIngredientList: ProcessedIngredient[]
 	steps: ProcessedStep[]
-	// Metas from AI
+	// Metas from AI - includes breakdown for transparency
 	xpReward: number
+	xpBreakdown: XPBreakdownFromAI
 	badges: string[]
 	skillTags: string[]
 	difficultyMultiplier: number
@@ -48,6 +49,22 @@ export interface ProcessedRecipe {
 	regionalOrigin?: string
 	recipeStory?: string
 	chefNotes?: string
+}
+
+/**
+ * XP calculation breakdown from AI service
+ * Shows exactly how XP is calculated for transparency
+ */
+export interface XPBreakdownFromAI {
+	base: number
+	baseReason: string
+	steps: number
+	stepsReason: string
+	time: number
+	timeReason: string
+	techniques?: number
+	techniquesReason?: string
+	total: number
 }
 
 export interface ProcessedIngredient {
