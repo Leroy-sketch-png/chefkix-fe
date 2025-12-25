@@ -73,6 +73,51 @@ export const useCookingStore = create<CookingState>()(
 				try {
 					// Start session on backend
 					const sessionResponse = await apiStartSession(recipeId)
+
+					// Handle "session already active" error (409 Conflict)
+					// Try to resume the existing session instead of failing
+					if (!sessionResponse.success && sessionResponse.statusCode === 409) {
+						// User already has an active session - try to resume it
+						const currentResponse = await apiGetCurrentSession()
+						if (currentResponse.success && currentResponse.data) {
+							const existingSession = currentResponse.data
+
+							// If existing session is for the SAME recipe, resume it
+							if (existingSession.recipeId === recipeId) {
+								const recipeResponse = await getRecipeById(recipeId)
+								if (recipeResponse.success && recipeResponse.data) {
+									// Restore local timers from active timers
+									const localTimers = new Map<
+										number,
+										{ remaining: number; startedAt: number }
+									>()
+									existingSession.activeTimers?.forEach(timer => {
+										localTimers.set(timer.stepNumber, {
+											remaining: timer.remainingSeconds,
+											startedAt: Date.now(),
+										})
+									})
+
+									set({
+										session: existingSession,
+										recipe: recipeResponse.data,
+										isLoading: false,
+										localTimers,
+									})
+									return true // Successfully resumed!
+								}
+							}
+
+							// If existing session is for a DIFFERENT recipe,
+							// we need to inform the user (they must abandon first)
+							set({
+								error: `You're already cooking "${existingSession.recipe?.title || 'another recipe'}". Please finish or abandon that session first.`,
+								isLoading: false,
+							})
+							return false
+						}
+					}
+
 					if (!sessionResponse.success || !sessionResponse.data) {
 						set({
 							error: sessionResponse.message || 'Failed to start session',

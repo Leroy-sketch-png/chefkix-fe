@@ -50,7 +50,7 @@ interface RecipeCardBase {
 	title: string
 	description?: string
 	imageUrl: string
-	author: RecipeAuthor
+	author?: RecipeAuthor // Optional - hide if data is unavailable
 	cookTimeMinutes: number
 	difficulty: Difficulty
 	xpReward: number
@@ -412,17 +412,21 @@ const FeedCard = ({
 				)}
 
 				<div className='mb-3 flex items-center gap-2.5 text-sm text-text-muted'>
-					<span className='flex items-center gap-1.5'>
-						<Image
-							src={author.avatarUrl}
-							alt={author.name}
-							width={24}
-							height={24}
-							className='h-6 w-6 rounded-full'
-						/>
-						{author.name}
-					</span>
-					<span className='text-border'>•</span>
+					{author && (
+						<>
+							<span className='flex items-center gap-1.5'>
+								<Image
+									src={author.avatarUrl}
+									alt={author.name}
+									width={24}
+									height={24}
+									className='h-6 w-6 rounded-full'
+								/>
+								{author.name}
+							</span>
+							<span className='text-border'>•</span>
+						</>
+					)}
 					<span className='flex items-center gap-1'>
 						<Clock className='h-3.5 w-3.5' />
 						{cookTimeMinutes} min
@@ -438,10 +442,12 @@ const FeedCard = ({
 								: cookCount}{' '}
 							cooked
 						</span>
-						<span className='flex items-center gap-1.5 text-sm text-amber-500'>
-							<Star className='h-4 w-4' />
-							{rating}
-						</span>
+						{rating > 0 && (
+							<span className='flex items-center gap-1.5 text-sm text-amber-500'>
+								<Star className='h-4 w-4' />
+								{rating.toFixed(1)}
+							</span>
+						)}
 					</div>
 					{/* Badges you can unlock */}
 					{badges && badges.length > 0 && (
@@ -505,7 +511,8 @@ const GridCard = ({
 					sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 				/>
 				<XPBadge xp={xpReward} />
-				<DifficultyRibbon difficulty={difficulty} />
+				{/* Difficulty indicator - subtle pill instead of ribbon per design feedback */}
+				<DifficultyIndicator difficulty={difficulty} showLabel />
 			</motion.div>
 
 			{/* Content */}
@@ -545,47 +552,61 @@ const GridCard = ({
 							</span>
 						)}
 					</div>
-					<span className='flex items-center gap-1 text-amber-500'>
-						⭐ {rating}
-					</span>
-				</div>
-
-				<div className='mb-4 flex items-center gap-2 text-sm'>
-					<Image
-						src={author.avatarUrl}
-						alt={author.name}
-						width={28}
-						height={28}
-						className='h-7 w-7 rounded-full'
-					/>
-					<span>{author.name}</span>
-					{author.isVerified && (
-						<span className='rounded-full bg-success px-1.5 py-0.5 text-2xs text-white'>
-							✓
+					{/* Only show rating if it exists and > 0 */}
+					{rating > 0 && (
+						<span className='flex items-center gap-1 text-amber-500'>
+							⭐ {rating.toFixed(1)}
 						</span>
 					)}
 				</div>
+
+				{/* Author - only show if valid author data exists */}
+				{author && (
+					<div className='mb-4 flex items-center gap-2 text-sm'>
+						<Image
+							src={author.avatarUrl}
+							alt={author.name}
+							width={28}
+							height={28}
+							className='h-7 w-7 rounded-full'
+						/>
+						<span>{author.name}</span>
+						{author.isVerified && (
+							<span className='rounded-full bg-success px-1.5 py-0.5 text-2xs text-white'>
+								✓
+							</span>
+						)}
+					</div>
+				)}
 			</div>
 		</Link>
 
-		{/* Actions */}
+		{/* Actions - more subtle, card is already clickable */}
 		<div className='flex gap-2 px-4 pb-4'>
 			<motion.button
-				onClick={onCook}
+				onClick={e => {
+					e.preventDefault()
+					e.stopPropagation()
+					onCook?.()
+				}}
 				whileHover={BUTTON_HOVER}
 				whileTap={BUTTON_TAP}
-				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-3 text-sm font-semibold text-white'
+				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white'
 			>
 				<Play className='h-4 w-4' />
-				Cook
+				Start Cooking
 			</motion.button>
 			<motion.button
-				onClick={onSave}
+				onClick={e => {
+					e.preventDefault()
+					e.stopPropagation()
+					onSave?.()
+				}}
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
 				className={cn(
-					'flex h-11 w-11 items-center justify-center rounded-lg border',
+					'flex h-10 w-10 items-center justify-center rounded-lg border',
 					isSaved
 						? 'border-brand bg-brand/10 text-brand'
 						: 'border-border bg-bg-elevated text-text-muted hover:border-brand hover:bg-brand/10 hover:text-brand',
@@ -709,10 +730,12 @@ const FeaturedCard = ({
 								: cookCount}{' '}
 							cooked
 						</span>
-						<span className='flex items-center gap-1.5 text-sm text-white/90'>
-							<Star className='h-4 w-4' />
-							{rating}
-						</span>
+						{rating > 0 && (
+							<span className='flex items-center gap-1.5 text-sm text-white/90'>
+								<Star className='h-4 w-4' />
+								{rating.toFixed(1)}
+							</span>
+						)}
 						<span className='flex items-center gap-1.5 text-sm text-white/90'>
 							<Clock className='h-4 w-4' />
 							{cookTimeMinutes >= 60
@@ -721,22 +744,24 @@ const FeaturedCard = ({
 						</span>
 					</div>
 
-					{/* Author */}
-					<div className='mb-6 flex items-center gap-3.5'>
-						<Image
-							src={author.avatarUrl}
-							alt={author.name}
-							width={48}
-							height={48}
-							className='h-12 w-12 rounded-full border-2 border-white/30'
-						/>
-						<div className='flex flex-col'>
-							<span className='font-bold text-white'>{author.name}</span>
-							{author.title && (
-								<span className='text-sm text-white/70'>{author.title}</span>
-							)}
+					{/* Author - only show if valid author data */}
+					{author && (
+						<div className='mb-6 flex items-center gap-3.5'>
+							<Image
+								src={author.avatarUrl}
+								alt={author.name}
+								width={48}
+								height={48}
+								className='h-12 w-12 rounded-full border-2 border-white/30'
+							/>
+							<div className='flex flex-col'>
+								<span className='font-bold text-white'>{author.name}</span>
+								{author.title && (
+									<span className='text-sm text-white/70'>{author.title}</span>
+								)}
+							</div>
 						</div>
-					</div>
+					)}
 
 					{/* CTA */}
 					<motion.button

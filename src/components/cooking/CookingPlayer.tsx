@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
+import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
 import {
 	Sparkles,
 	User,
@@ -155,7 +156,7 @@ const StepDots = ({
 	</div>
 )
 
-// Animated Timer
+// Animated Timer with Audio Notifications
 const StepTimer = ({
 	seconds,
 	isRunning,
@@ -167,32 +168,60 @@ const StepTimer = ({
 	onToggle: () => void
 	onComplete: () => void
 }) => {
-	const [remaining, setRemaining] = useState(seconds)
-	const isUrgent = remaining <= 30 && remaining > 0
-	const isComplete = remaining === 0
+	// StepTimer is now a DISPLAY component
+	// Timer ticking is handled by CookingTimerProvider (centralized)
+	// Completion sounds are handled by useTimerNotifications
+	// We only handle the 30-second URGENT warning sound here
 
+	const [audioEnabled, setAudioEnabledState] = useState(true)
+	const hasPlayedUrgentRef = useRef(false)
+	const previousSecondsRef = useRef(seconds)
+
+	const isUrgent = seconds <= 30 && seconds > 0
+	const isComplete = seconds === 0
+
+	// Initialize audio preference from localStorage
 	useEffect(() => {
-		setRemaining(seconds)
+		setAudioEnabledState(isAudioEnabled())
+	}, [])
+
+	// Reset urgent flag when timer restarts
+	useEffect(() => {
+		if (seconds > previousSecondsRef.current) {
+			// Timer was reset/restarted
+			hasPlayedUrgentRef.current = false
+		}
+		previousSecondsRef.current = seconds
 	}, [seconds])
 
+	// Play urgent sound exactly when crossing the 30-second threshold
 	useEffect(() => {
-		if (!isRunning || remaining <= 0) return
+		if (
+			isRunning &&
+			seconds === 30 &&
+			audioEnabled &&
+			!hasPlayedUrgentRef.current
+		) {
+			hasPlayedUrgentRef.current = true
+			notifyTimerUrgent()
+		}
+	}, [seconds, isRunning, audioEnabled])
 
-		const interval = setInterval(() => {
-			setRemaining(prev => {
-				if (prev <= 1) {
-					onComplete()
-					return 0
-				}
-				return prev - 1
-			})
-		}, 1000)
+	// Call onComplete when timer hits 0
+	useEffect(() => {
+		if (seconds === 0 && isRunning) {
+			onComplete()
+		}
+	}, [seconds, isRunning, onComplete])
 
-		return () => clearInterval(interval)
-	}, [isRunning, remaining, onComplete])
+	const toggleAudio = useCallback(() => {
+		const newState = !audioEnabled
+		setAudioEnabledState(newState)
+		setAudioEnabled(newState)
+	}, [audioEnabled])
 
-	const minutes = Math.floor(remaining / 60)
-	const secs = remaining % 60
+	const minutes = Math.floor(seconds / 60)
+	const secs = seconds % 60
 	const display = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 
 	return (
@@ -248,13 +277,28 @@ const StepTimer = ({
 				</motion.button>
 
 				<motion.span
-					key={remaining}
+					key={seconds}
 					initial={{ scale: 1.1, opacity: 0.5 }}
 					animate={{ scale: 1, opacity: 1 }}
 					className='relative z-10 font-mono text-4xl font-bold tabular-nums'
 				>
 					{display}
 				</motion.span>
+
+				{/* Audio toggle button */}
+				<motion.button
+					onClick={toggleAudio}
+					whileHover={ICON_BUTTON_HOVER}
+					whileTap={ICON_BUTTON_TAP}
+					title={audioEnabled ? 'Mute timer sounds' : 'Unmute timer sounds'}
+					className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-colors hover:bg-bg-hover'
+				>
+					{audioEnabled ? (
+						<Volume2 className='size-5' />
+					) : (
+						<VolumeX className='size-5' />
+					)}
+				</motion.button>
 			</div>
 		</motion.div>
 	)
@@ -328,6 +372,75 @@ const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 		<span>+{xp} XP</span>
 	</motion.div>
 )
+
+// Active Timers Badge - Shows all running timers from all steps
+const ActiveTimersBadge = ({
+	localTimers,
+	currentStepNumber,
+	onJumpToStep,
+}: {
+	localTimers: Map<number, { remaining: number; startedAt: number }>
+	currentStepNumber: number
+	onJumpToStep: (stepNumber: number) => void
+}) => {
+	// Filter out the current step's timer (already shown in main UI)
+	const otherTimers = Array.from(localTimers.entries()).filter(
+		([stepNum]) => stepNum !== currentStepNumber,
+	)
+
+	if (otherTimers.length === 0) return null
+
+	const formatTime = (seconds: number) => {
+		const mins = Math.floor(seconds / 60)
+		const secs = seconds % 60
+		return `${mins}:${secs.toString().padStart(2, '0')}`
+	}
+
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: -10 }}
+			animate={{ opacity: 1, y: 0 }}
+			className='absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-2'
+		>
+			{otherTimers.map(([stepNum, timer]) => {
+				const isUrgent = timer.remaining <= 30
+				return (
+					<motion.button
+						key={stepNum}
+						onClick={() => onJumpToStep(stepNum)}
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+						animate={
+							isUrgent
+								? {
+										backgroundColor: [
+											'rgba(239,68,68,0.2)',
+											'rgba(239,68,68,0.4)',
+											'rgba(239,68,68,0.2)',
+										],
+									}
+								: undefined
+						}
+						transition={
+							isUrgent ? { duration: 0.8, repeat: Infinity } : undefined
+						}
+						className={cn(
+							'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-colors',
+							isUrgent
+								? 'bg-error/20 text-error hover:bg-error/30'
+								: 'bg-white/20 text-white hover:bg-white/30',
+						)}
+						title={`Jump to Step ${stepNum}`}
+					>
+						<Clock className='size-3' />
+						<span>Step {stepNum}</span>
+						<span className='font-mono'>{formatTime(timer.remaining)}</span>
+					</motion.button>
+				)
+			})}
+		</motion.div>
+	)
+}
 
 // ============================================
 // MAIN COMPONENT
@@ -597,11 +710,30 @@ export const CookingPlayer = () => {
 								transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
 							/>
 
-							{/* AI Remix Button */}
+							{/* Active Timers from other steps */}
+							<ActiveTimersBadge
+								localTimers={localTimers}
+								currentStepNumber={currentStepNumber}
+								onJumpToStep={handleStepClick}
+							/>
+
+							{/* AI Assist Button - Prominent with pulsing glow */}
 							<motion.button
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/30'
+								animate={{
+									boxShadow: [
+										'0 0 0 0 rgba(255, 90, 54, 0)',
+										'0 0 20px 4px rgba(255, 90, 54, 0.4)',
+										'0 0 0 0 rgba(255, 90, 54, 0)',
+									],
+								}}
+								transition={{
+									duration: 2,
+									repeat: Infinity,
+									ease: 'easeInOut',
+								}}
+								className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
 							>
 								<Sparkles className='size-4' /> AI Assist
 							</motion.button>
@@ -610,6 +742,7 @@ export const CookingPlayer = () => {
 							<motion.button
 								onClick={closeCookingPanel}
 								className='absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
+								title='Minimize to mini-bar (Esc)'
 							>
 								<X className='size-5' />
 							</motion.button>
@@ -711,12 +844,12 @@ export const CookingPlayer = () => {
 											Step {step.stepNumber}: {step.title ?? 'Cook'}
 										</motion.h3>
 
-										{/* Step Description */}
+										{/* Step Description - Large for kitchen readability */}
 										<motion.p
 											initial={{ opacity: 0 }}
 											animate={{ opacity: 1 }}
 											transition={{ delay: 0.2 }}
-											className='mx-auto mb-6 max-w-lg text-center leading-relaxed text-text-secondary'
+											className='mx-auto mb-6 max-w-lg text-center text-lg leading-relaxed text-text-secondary md:text-xl'
 										>
 											{step.description}
 										</motion.p>
@@ -801,8 +934,12 @@ export const CookingPlayer = () => {
 										? 'cursor-not-allowed bg-border/50 text-text-muted'
 										: 'bg-border text-text hover:bg-border-medium',
 								)}
+								title='Previous step (←)'
 							>
 								<ChevronLeft className='size-5' /> Back
+								<kbd className='ml-1 hidden rounded bg-black/10 px-1.5 py-0.5 text-xs font-normal md:inline'>
+									←
+								</kbd>
 							</motion.button>
 
 							<motion.button
@@ -810,6 +947,11 @@ export const CookingPlayer = () => {
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								className='flex items-center gap-2 rounded-full bg-gradient-hero px-8 py-3 font-bold text-white shadow-lg shadow-brand/30'
+								title={
+									currentStepNumber === totalSteps
+										? 'Complete recipe'
+										: 'Next step (→ or Space)'
+								}
 							>
 								{currentStepNumber === totalSteps ? (
 									<>
@@ -817,7 +959,11 @@ export const CookingPlayer = () => {
 									</>
 								) : (
 									<>
-										Next Step <ChevronRight className='size-5' />
+										Next Step
+										<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
+											→
+										</kbd>
+										<ChevronRight className='size-5' />
 									</>
 								)}
 							</motion.button>

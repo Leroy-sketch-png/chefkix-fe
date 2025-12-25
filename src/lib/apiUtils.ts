@@ -90,3 +90,47 @@ export function difficultyToApi(
 	}
 	return map[displayValue] || 'Intermediate'
 }
+
+// ============================================
+// RECIPE QUERY PARAM MAPPING
+// ============================================
+
+/**
+ * Map frontend recipe query params to backend param names.
+ *
+ * FE → BE mappings:
+ * - search → query (text search)
+ * - maxTime → maxTimeMinutes (time filter)
+ * - limit → size (pagination)
+ *
+ * @see RecipeSearchQuery.java in recipe-service
+ */
+export function toBackendRecipeParams(params?: Record<string, unknown>) {
+	if (!params) return undefined
+
+	const mapped: Record<string, unknown> = {}
+
+	for (const [key, value] of Object.entries(params)) {
+		if (value === undefined || value === null || value === '') continue
+
+		switch (key) {
+			// Text search: FE uses 'search', BE expects 'query'
+			case 'search':
+				mapped['query'] = value
+				break
+			// Time filter: FE may use 'maxTime', BE expects 'maxTimeMinutes'
+			case 'maxTime':
+				mapped['maxTimeMinutes'] = value
+				break
+			// Pagination: FE may use 'limit', BE expects 'size'
+			case 'limit':
+				mapped['size'] = value
+				break
+			// Pass through other params unchanged
+			default:
+				mapped[key] = value
+		}
+	}
+
+	return Object.keys(mapped).length > 0 ? mapped : undefined
+}

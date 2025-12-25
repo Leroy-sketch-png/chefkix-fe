@@ -360,6 +360,9 @@ export function isPublished(recipe: { recipeStatus: RecipeStatus }): boolean {
 
 /**
  * Query params for recipe filtering/pagination
+ * NOTE: Maps to BE RecipeSearchQuery.java
+ * - `query` = text search (title/description) - BE field name
+ * - `search` = alias for `query` (will be mapped in toBackendParams)
  */
 export interface RecipeQueryParams {
 	page?: number
@@ -370,5 +373,8 @@ export interface RecipeQueryParams {
 	dietaryTags?: string[]
 	minTime?: number
 	maxTime?: number
-	search?: string
+	maxTimeMinutes?: number // BE field name for time filter
+	query?: string // BE field name for text search
+	search?: string // FE alias (mapped to query)
+	sortBy?: string // newest, trending, popular
 }

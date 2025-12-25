@@ -8,8 +8,8 @@ import { api } from '@/lib/axios'
  * TokenRefreshProvider handles proactive token refresh before expiry.
  *
  * Strategy:
- * - Access tokens expire in 15 minutes (900 seconds) per spec
- * - We refresh proactively at 80% of lifetime (12 minutes)
+ * - Access tokens expire in 30 minutes (1800 seconds) per Keycloak config
+ * - We refresh proactively at 80% of lifetime (24 minutes)
  * - This prevents users from ever seeing 401 errors in normal usage
  * - Falls back to reactive refresh (axios interceptor) if proactive fails
  *
@@ -71,15 +71,23 @@ export const TokenRefreshProvider = ({
 	const refreshToken = useCallback(async (): Promise<boolean> => {
 		// Prevent concurrent refreshes
 		if (isRefreshingRef.current) {
+			console.debug('[TokenRefresh] Already refreshing, skipping')
 			return false
 		}
 
 		// Prevent refreshing too frequently
 		const now = Date.now()
-		if (now - lastRefreshTimeRef.current < MIN_REFRESH_INTERVAL_MS) {
+		const timeSinceLastRefresh = now - lastRefreshTimeRef.current
+		if (timeSinceLastRefresh < MIN_REFRESH_INTERVAL_MS) {
+			console.debug(
+				`[TokenRefresh] Too soon since last refresh (${Math.round(timeSinceLastRefresh / 1000)}s ago), skipping`,
+			)
 			return false
 		}
 
+		console.log(
+			`[TokenRefresh] 🔄 Starting proactive refresh (${Math.round(timeSinceLastRefresh / 1000)}s since last refresh)`,
+		)
 		isRefreshingRef.current = true
 
 		try {
@@ -93,14 +101,14 @@ export const TokenRefreshProvider = ({
 				useAuthStore.setState({ accessToken: newAccessToken })
 
 				lastRefreshTimeRef.current = now
-				console.debug('[TokenRefresh] Proactive refresh successful')
+				console.log('[TokenRefresh] ✅ Proactive refresh successful')
 				return true
 			}
 
-			console.warn('[TokenRefresh] No access token in refresh response')
+			console.error('[TokenRefresh] ❌ No access token in refresh response')
 			return false
 		} catch (error) {
-			console.warn('[TokenRefresh] Proactive refresh failed:', error)
+			console.error('[TokenRefresh] ❌ Proactive refresh failed:', error)
 			// Don't logout here - let the reactive refresh (axios interceptor) handle it
 			// The proactive refresh might fail due to network issues, but the token might still be valid
 			return false
@@ -131,16 +139,49 @@ export const TokenRefreshProvider = ({
 		// Set up interval to check and refresh proactively
 		intervalRef.current = setInterval(async () => {
 			const timeSinceLastRefresh = Date.now() - lastRefreshTimeRef.current
+			const minutesSinceRefresh = Math.round(timeSinceLastRefresh / 60000)
+
+			// DEBUG: Check if we actually have a token and if it's expired
+			if (accessToken) {
+				try {
+					const parts = accessToken.split('.')
+					if (parts.length === 3) {
+						const payload = JSON.parse(atob(parts[1]))
+						const exp = payload.exp
+						const now = Math.floor(Date.now() / 1000)
+						const minutesUntilExpiry = Math.round((exp - now) / 60)
+
+						if (minutesUntilExpiry <= 0) {
+							console.error(
+								`[TokenRefresh] ❌ Token ALREADY EXPIRED ${Math.abs(minutesUntilExpiry)} minutes ago!`,
+							)
+						} else if (minutesUntilExpiry < 5) {
+							console.warn(
+								`[TokenRefresh] ⚠️ Token expiring SOON (${minutesUntilExpiry} min left)`,
+							)
+						}
+					}
+				} catch (e) {
+					// Ignore decode errors
+				}
+			}
 
 			// If we're past the threshold, refresh
 			if (timeSinceLastRefresh >= REFRESH_THRESHOLD_MS) {
+				console.log(
+					`[TokenRefresh] ⏰ Refresh threshold reached (${minutesSinceRefresh} min), triggering refresh`,
+				)
 				const success = await refreshToken()
 				if (!success) {
 					// Proactive refresh failed - the reactive handler will catch 401s
-					console.debug(
-						'[TokenRefresh] Proactive refresh failed, relying on reactive handler',
+					console.warn(
+						'[TokenRefresh] ⚠️ Proactive refresh failed, relying on reactive handler',
 					)
 				}
+			} else {
+				console.debug(
+					`[TokenRefresh] Token still fresh (${minutesSinceRefresh}/${Math.round(REFRESH_THRESHOLD_MS / 60000)} min)`,
+				)
 			}
 		}, 60 * 1000) // Check every minute
 
@@ -161,17 +202,22 @@ export const TokenRefreshProvider = ({
 		const handleVisibilityChange = async () => {
 			if (document.visibilityState === 'visible') {
 				const timeSinceLastRefresh = Date.now() - lastRefreshTimeRef.current
+				const minutesSinceRefresh = Math.round(timeSinceLastRefresh / 60000)
 
 				// If significant time has passed while tab was hidden, refresh IMMEDIATELY
 				// Also refresh even if close to threshold to be safe
 				if (timeSinceLastRefresh >= REFRESH_THRESHOLD_MS * 0.8) {
-					console.debug(
-						'[TokenRefresh] Tab became visible, refreshing token proactively',
+					console.log(
+						`[TokenRefresh] 👁️ Tab became visible after ${minutesSinceRefresh} min, refreshing token`,
 					)
 					// Set global promise so AuthProvider can await this
 					visibilityRefreshPromise = refreshToken()
 					await visibilityRefreshPromise
 					visibilityRefreshPromise = null
+				} else {
+					console.debug(
+						`[TokenRefresh] Tab visible but token still fresh (${minutesSinceRefresh} min)`,
+					)
 				}
 			}
 		}
@@ -179,11 +225,18 @@ export const TokenRefreshProvider = ({
 		// Handle both visibility change AND focus (belt + suspenders)
 		const handleFocus = async () => {
 			const timeSinceLastRefresh = Date.now() - lastRefreshTimeRef.current
+			const minutesSinceRefresh = Math.round(timeSinceLastRefresh / 60000)
 			if (timeSinceLastRefresh >= REFRESH_THRESHOLD_MS * 0.8) {
-				console.debug('[TokenRefresh] Window focused, checking token freshness')
+				console.log(
+					`[TokenRefresh] 🎯 Window focused after ${minutesSinceRefresh} min, refreshing`,
+				)
 				visibilityRefreshPromise = refreshToken()
 				await visibilityRefreshPromise
 				visibilityRefreshPromise = null
+			} else {
+				console.debug(
+					`[TokenRefresh] Window focused but token fresh (${minutesSinceRefresh} min)`,
+				)
 			}
 		}
 

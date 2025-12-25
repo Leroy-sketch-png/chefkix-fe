@@ -58,6 +58,23 @@ export const useAuthStore = create<AuthState>()(
 					return
 				}
 
+				// DEBUG: Try to decode JWT to see actual expiry
+				try {
+					const parts = accessToken.split('.')
+					if (parts.length === 3) {
+						const payload = JSON.parse(atob(parts[1]))
+						const exp = payload.exp
+						const now = Math.floor(Date.now() / 1000)
+						const minutesUntilExpiry = Math.round((exp - now) / 60)
+						console.log(
+							`[authStore] 🔑 Access token set | expires in ${minutesUntilExpiry} minutes | exp=${new Date(exp * 1000).toLocaleTimeString()}`,
+						)
+					}
+				} catch (e) {
+					// Ignore decode errors, just log without expiry info
+					console.log('[authStore] 🔑 Access token set (could not decode)')
+				}
+
 				set({
 					isAuthenticated: true,
 					accessToken,
@@ -84,6 +101,7 @@ export const useAuthStore = create<AuthState>()(
 			 * checks for accessToken on every request and won't attach if null.
 			 */
 			logout: () => {
+				console.log('[authStore] 🚪 Logging out, clearing all auth state')
 				set({
 					isAuthenticated: false,
 					user: null,

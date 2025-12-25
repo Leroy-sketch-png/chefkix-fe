@@ -96,6 +96,7 @@ export const MiniCookingBar = () => {
 						{/* Play/Pause */}
 						<button
 							onClick={handlePlayPause}
+							title={isPaused ? 'Resume cooking' : 'Pause cooking'}
 							className={cn(
 								'grid size-10 place-items-center rounded-full transition-all',
 								isPaused
@@ -113,6 +114,7 @@ export const MiniCookingBar = () => {
 						{/* Expand */}
 						<button
 							onClick={handleExpand}
+							title='Expand to full screen'
 							className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-bg-hover'
 						>
 							<ChevronUp className='size-5' />
@@ -121,6 +123,7 @@ export const MiniCookingBar = () => {
 						{/* Close */}
 						<button
 							onClick={closeCookingPanel}
+							title='End cooking session'
 							className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-error/20 hover:text-error'
 						>
 							<X className='size-5' />

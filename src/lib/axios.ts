@@ -102,10 +102,17 @@ api.interceptors.response.use(
 		) {
 			// Skip refresh for ALL auth endpoints - 401 here means bad credentials, not expired token
 			if (originalRequest.url?.includes('/auth/')) {
+				console.debug(
+					`[axios] 401 on auth endpoint (${originalRequest.url}), NOT refreshing`,
+				)
 				// Auth endpoint 401 = wrong credentials, NOT expired token
 				// Just let the error propagate normally - don't logout, don't redirect
 				return Promise.reject(error)
 			}
+
+			console.warn(
+				`[axios] ⚠️ 401 on ${originalRequest.url}, attempting reactive token refresh`,
+			)
 
 			// Mark request as retried to prevent infinite loops
 			originalRequest._retry = true
@@ -114,11 +121,29 @@ api.interceptors.response.use(
 				isRefreshing = true
 
 				try {
+					console.log('[axios] 🔄 Calling refresh-token endpoint...')
+
+					// DEBUG: Check if cookie exists before making request
+					if (typeof document !== 'undefined') {
+						const cookies = document.cookie
+						const hasRefreshToken = cookies.includes('refresh_token=')
+						console.log(
+							`[axios] 🍪 Cookie check: hasRefreshToken=${hasRefreshToken}`,
+						)
+						if (!hasRefreshToken) {
+							console.error(
+								'[axios] ❌ CRITICAL: refresh_token cookie is MISSING from browser!',
+							)
+							console.log('[axios] All cookies:', cookies)
+						}
+					}
+
 					// Call refresh token endpoint (public, uses HttpOnly cookie automatically)
 					const refreshResponse = await api.post('/api/v1/auth/refresh-token')
 					const newAccessToken = refreshResponse.data.data.accessToken
 
 					if (newAccessToken) {
+						console.log('[axios] ✅ Reactive refresh successful')
 						// Update the token in store - request interceptor will pick it up
 						// No need to set api.defaults.headers as the interceptor handles it
 						useAuthStore.setState({ accessToken: newAccessToken })
@@ -131,6 +156,8 @@ api.interceptors.response.use(
 						// Retry original request with new token
 						originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
 						return api(originalRequest)
+					} else {
+						console.error('[axios] ❌ No access token in refresh response')
 					}
 				} catch (refreshError: unknown) {
 					// IMPROVED: Don't logout immediately on refresh failure
@@ -153,7 +180,10 @@ api.interceptors.response.use(
 
 					if (isHardFailure) {
 						// Real session expiry - logout user
-						console.warn('[axios] Session expired, logging out')
+						console.error(
+							'[axios] ❌ HARD FAILURE: Refresh returned 401/403, logging out',
+							refreshError,
+						)
 						const { logout } = useAuthStore.getState()
 						logout()
 
@@ -165,7 +195,7 @@ api.interceptors.response.use(
 						// Transient error (network, timeout) - don't logout
 						// Just let this request fail, user can retry manually
 						console.warn(
-							'[axios] Refresh failed (transient), not logging out:',
+							'[axios] ⚠️ TRANSIENT FAILURE: Refresh failed (network/timeout), not logging out',
 							refreshError,
 						)
 						return Promise.reject(error) // Return original error

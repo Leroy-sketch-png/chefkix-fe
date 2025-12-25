@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
@@ -15,6 +15,12 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
 	Heart,
 	Bookmark,
 	Clock,
@@ -27,6 +33,9 @@ import {
 	Check,
 	Edit3,
 	MoreHorizontal,
+	Info,
+	Timer,
+	UtensilsCrossed,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -50,6 +59,33 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
+
+// Difficulty explanations for tooltip
+const DIFFICULTY_EXPLANATIONS: Record<
+	string,
+	{ label: string; description: string; techniques: string }
+> = {
+	Beginner: {
+		label: 'Beginner',
+		description: 'Perfect for first-time cooks',
+		techniques: 'Basic techniques like chopping, stirring, boiling',
+	},
+	Intermediate: {
+		label: 'Intermediate',
+		description: 'Some cooking experience helpful',
+		techniques: 'Sautéing, reduction, timing multiple components',
+	},
+	Advanced: {
+		label: 'Advanced',
+		description: 'Experienced cooks will thrive',
+		techniques: 'Emulsification, tempering, precision timing',
+	},
+	Expert: {
+		label: 'Expert',
+		description: 'Professional-level challenge',
+		techniques: 'Complex techniques, multi-day prep, precise execution',
+	},
+}
 
 export default function RecipeDetailPage() {
 	const params = useParams()
@@ -122,7 +158,9 @@ export default function RecipeDetailPage() {
 					const isDesktop = window.innerWidth >= 1280
 					isDesktop ? openCookingPanel() : expandCookingPanel()
 				} else {
-					toast.error('Failed to start cooking session')
+					// Get the error message from the store for better context
+					const errorMsg = useCookingStore.getState().error
+					toast.error(errorMsg || 'Failed to start cooking session')
 				}
 			}
 			initCooking()
@@ -143,15 +181,23 @@ export default function RecipeDetailPage() {
 
 		const previousLiked = isLiked
 		const previousCount = likeCount
-		setIsLiked(!isLiked)
+		const newLikedState = !isLiked
+		setIsLiked(newLikedState)
 		setLikeCount(prev => (isLiked ? prev - 1 : prev + 1))
 		setIsLikeLoading(true)
 
 		try {
 			const response = await toggleLikeRecipe(recipeId)
 			if (response.success && response.data) {
-				setIsLiked(response.data.isLiked)
-				setLikeCount(response.data.likeCount)
+				// Defensive: handle both 'isLiked' and 'liked' (Jackson serialization quirk)
+				const serverLiked =
+					response.data.isLiked ??
+					(response.data as { liked?: boolean }).liked ??
+					newLikedState
+				setIsLiked(serverLiked)
+				setLikeCount(
+					response.data.likeCount ?? previousCount + (serverLiked ? 1 : -1),
+				)
 			}
 		} catch (error) {
 			setIsLiked(previousLiked)
@@ -167,18 +213,24 @@ export default function RecipeDetailPage() {
 
 		const previousSaved = isSaved
 		const previousCount = saveCount
-		setIsSaved(!isSaved)
+		const newSavedState = !isSaved
+		setIsSaved(newSavedState)
 		setSaveCount(prev => (isSaved ? prev - 1 : prev + 1))
 		setIsSaveLoading(true)
 
 		try {
 			const response = await toggleSaveRecipe(recipeId)
 			if (response.success && response.data) {
-				setIsSaved(response.data.isSaved)
-				setSaveCount(response.data.saveCount)
-				toast.success(
-					response.data.isSaved ? 'Recipe saved!' : 'Recipe unsaved',
+				// Defensive: handle both 'isSaved' and 'saved' (Jackson serialization quirk)
+				const serverSaved =
+					response.data.isSaved ??
+					(response.data as { saved?: boolean }).saved ??
+					newSavedState
+				setIsSaved(serverSaved)
+				setSaveCount(
+					response.data.saveCount ?? previousCount + (serverSaved ? 1 : -1),
 				)
+				toast.success(serverSaved ? 'Recipe saved!' : 'Recipe unsaved')
 			}
 		} catch (error) {
 			setIsSaved(previousSaved)
@@ -216,9 +268,59 @@ export default function RecipeDetailPage() {
 			const isDesktop = window.innerWidth >= 1280
 			isDesktop ? openCookingPanel() : expandCookingPanel()
 		} else {
-			toast.error('Failed to start cooking session')
+			// Get the error message from the store for better context
+			const errorMsg = useCookingStore.getState().error
+			toast.error(errorMsg || 'Failed to start cooking session')
 		}
 	}
+
+	// Keyboard shortcuts: Enter=cook, S=save, L=like, Esc=back
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			// Ignore if typing in an input/textarea
+			if (
+				e.target instanceof HTMLInputElement ||
+				e.target instanceof HTMLTextAreaElement
+			) {
+				return
+			}
+
+			// Ignore if any modifier keys are pressed (except shift)
+			if (e.ctrlKey || e.metaKey || e.altKey) {
+				return
+			}
+
+			switch (e.key) {
+				case 'Enter':
+					e.preventDefault()
+					if (!isCookingLoading && recipe) {
+						handleStartCooking()
+					}
+					break
+				case 's':
+				case 'S':
+					e.preventDefault()
+					if (!isSaveLoading && recipe) {
+						handleSave()
+					}
+					break
+				case 'l':
+				case 'L':
+					e.preventDefault()
+					if (!isLikeLoading && recipe) {
+						handleLike()
+					}
+					break
+				case 'Escape':
+					e.preventDefault()
+					router.back()
+					break
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [recipe, isCookingLoading, isSaveLoading, isLikeLoading, router])
 
 	if (isLoading) {
 		return <RecipeDetailSkeleton />
@@ -316,18 +418,42 @@ export default function RecipeDetailPage() {
 							{recipe.difficulty}
 						</motion.div>
 
-						{/* Video play button overlay */}
-						{recipe.videoUrl && (
-							<motion.button
-								onClick={() => expandCookingPanel()}
-								whileHover={{ scale: 1.1 }}
-								whileTap={{ scale: 0.95 }}
-								className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
-							>
-								<div className='grid size-20 place-items-center rounded-full bg-white/90 shadow-2xl transition-all hover:bg-white'>
-									<Play className='ml-1 size-8 fill-brand text-brand' />
-								</div>
-							</motion.button>
+						{/* Video play button overlay - opens video or starts cooking */}
+						{recipe.videoUrl && recipe.videoUrl.length > 0 && (
+							<TooltipProvider delayDuration={100}>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<motion.button
+											onClick={() => {
+												// Get the first video URL from the array
+												const firstVideoUrl = recipe.videoUrl?.[0]
+												// If it's a valid URL, open it; otherwise start cooking
+												if (firstVideoUrl?.startsWith('http')) {
+													window.open(
+														firstVideoUrl,
+														'_blank',
+														'noopener,noreferrer',
+													)
+												} else {
+													// Video is embedded in cooking mode
+													handleStartCooking()
+													toast.info('Watch video in cooking mode')
+												}
+											}}
+											whileHover={{ scale: 1.1 }}
+											whileTap={{ scale: 0.95 }}
+											className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+										>
+											<div className='grid size-20 place-items-center rounded-full bg-white/90 shadow-2xl transition-all hover:bg-white'>
+												<Play className='ml-1 size-8 fill-brand text-brand' />
+											</div>
+										</motion.button>
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Watch recipe video</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 						)}
 					</div>
 
@@ -390,29 +516,97 @@ export default function RecipeDetailPage() {
 							animate='visible'
 							className='mb-6 flex flex-wrap items-center gap-6 border-y border-border-subtle py-5'
 						>
-							{[
-								{ icon: Clock, label: `${totalTime} min`, key: 'time' },
-								{
-									icon: Users,
-									label: `${recipe.servings} servings`,
-									key: 'servings',
-								},
-								{ icon: ChefHat, label: recipe.difficulty, key: 'difficulty' },
-								{
-									icon: Eye,
-									label: `${recipe.viewCount || 0} views`,
-									key: 'views',
-								},
-							].map(stat => (
-								<motion.span
-									key={stat.key}
-									variants={staggerItem}
-									className='flex items-center gap-2 text-text-secondary'
-								>
-									<stat.icon className='size-5 text-brand' />
-									<span className='font-medium'>{stat.label}</span>
-								</motion.span>
-							))}
+							{/* Time with prep + cook breakdown */}
+							<motion.span
+								variants={staggerItem}
+								className='flex items-center gap-2 text-text-secondary'
+							>
+								<Clock className='size-5 text-brand' />
+								<TooltipProvider delayDuration={100}>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
+												{totalTime} min
+											</span>
+										</TooltipTrigger>
+										<TooltipContent className='p-3'>
+											<div className='space-y-1 text-sm'>
+												<div className='flex items-center gap-2'>
+													<Timer className='size-4 text-text-muted' />
+													<span>Prep: {recipe.prepTimeMinutes || 0} min</span>
+												</div>
+												<div className='flex items-center gap-2'>
+													<UtensilsCrossed className='size-4 text-brand' />
+													<span>Cook: {recipe.cookTimeMinutes || 0} min</span>
+												</div>
+											</div>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</motion.span>
+
+							{/* Servings */}
+							<motion.span
+								variants={staggerItem}
+								className='flex items-center gap-2 text-text-secondary'
+							>
+								<Users className='size-5 text-brand' />
+								<span className='font-medium'>{recipe.servings} servings</span>
+							</motion.span>
+
+							{/* Difficulty with explanation tooltip */}
+							<motion.span
+								variants={staggerItem}
+								className='flex items-center gap-2 text-text-secondary'
+							>
+								<ChefHat className='size-5 text-brand' />
+								<TooltipProvider delayDuration={100}>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
+												{recipe.difficulty}
+											</span>
+										</TooltipTrigger>
+										<TooltipContent className='max-w-xs p-3'>
+											{DIFFICULTY_EXPLANATIONS[recipe.difficulty] ? (
+												<div className='space-y-2 text-sm'>
+													<p className='font-semibold text-text'>
+														{DIFFICULTY_EXPLANATIONS[recipe.difficulty].label}
+													</p>
+													<p className='text-text-secondary'>
+														{
+															DIFFICULTY_EXPLANATIONS[recipe.difficulty]
+																.description
+														}
+													</p>
+													<p className='text-xs text-text-muted'>
+														<strong>Techniques:</strong>{' '}
+														{
+															DIFFICULTY_EXPLANATIONS[recipe.difficulty]
+																.techniques
+														}
+													</p>
+												</div>
+											) : (
+												<p className='text-sm text-text-secondary'>
+													{recipe.difficulty} level recipe
+												</p>
+											)}
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</motion.span>
+
+							{/* Views */}
+							<motion.span
+								variants={staggerItem}
+								className='flex items-center gap-2 text-text-secondary'
+							>
+								<Eye className='size-5 text-brand' />
+								<span className='font-medium'>
+									{recipe.viewCount || 0} views
+								</span>
+							</motion.span>
 						</motion.div>
 
 						{/* Action Buttons */}
@@ -513,16 +707,31 @@ export default function RecipeDetailPage() {
 				</motion.div>
 
 				{/* XP Breakdown - Transparency for gamification */}
-				{recipe.xpBreakdown && (
+				{recipe.xpBreakdown ? (
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.5 }}
-						className='rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
+						className='mb-8 rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
 					>
 						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text'>
 							<Zap className='size-5 text-xp' />
 							XP Breakdown
+							<TooltipProvider delayDuration={100}>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Info className='size-4 cursor-help text-text-muted' />
+									</TooltipTrigger>
+									<TooltipContent className='max-w-xs p-3'>
+										<p className='text-sm text-text-secondary'>
+											Earn XP by completing cooking sessions.{' '}
+											<strong>30% is yours to keep</strong>, and{' '}
+											<strong>70% is shared when you post</strong> your
+											creation!
+										</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 						</h2>
 						<div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
 							<div className='rounded-xl bg-bg-card p-4 text-center'>
@@ -561,7 +770,59 @@ export default function RecipeDetailPage() {
 						<div className='mt-4 flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
 							<span className='font-semibold text-white'>Total XP Reward</span>
 							<span className='text-2xl font-black text-white'>
-								+{recipe.xpBreakdown.total}
+								+
+								{(() => {
+									const computed =
+										recipe.xpBreakdown.base +
+										recipe.xpBreakdown.steps +
+										recipe.xpBreakdown.time +
+										(recipe.xpBreakdown.techniques ?? 0)
+									// Use total if positive, otherwise fall back to computed value
+									return recipe.xpBreakdown.total > 0
+										? recipe.xpBreakdown.total
+										: computed
+								})()}
+							</span>
+						</div>
+					</motion.div>
+				) : (
+					// Fallback when xpBreakdown is not available - compute estimate
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5 }}
+						className='mb-8 rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
+					>
+						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text'>
+							<Zap className='size-5 text-xp' />
+							XP Reward
+							<TooltipProvider delayDuration={100}>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Info className='size-4 cursor-help text-text-muted' />
+									</TooltipTrigger>
+									<TooltipContent className='max-w-xs p-3'>
+										<p className='text-sm text-text-secondary'>
+											Earn XP by completing cooking sessions.{' '}
+											<strong>30% is yours to keep</strong>, and{' '}
+											<strong>70% is shared when you post</strong> your
+											creation!
+										</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						</h2>
+						<div className='flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
+							<div>
+								<span className='font-semibold text-white'>
+									Estimated XP Reward
+								</span>
+								<p className='text-xs text-white/70'>
+									Based on difficulty, steps, and time
+								</p>
+							</div>
+							<span className='text-2xl font-black text-white'>
+								+{recipe.xpReward || 100}
 							</span>
 						</div>
 					</motion.div>

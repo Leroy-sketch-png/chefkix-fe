@@ -7,7 +7,7 @@ import {
 	RecipeQueryParams,
 } from '@/lib/types/recipe'
 import { API_ENDPOINTS } from '@/constants'
-import { toBackendPagination } from '@/lib/apiUtils'
+import { toBackendPagination, toBackendRecipeParams } from '@/lib/apiUtils'
 import type { AxiosError } from 'axios'
 
 // ============================================
@@ -74,11 +74,12 @@ const API_BASE = API_ENDPOINTS.RECIPES.BASE
 
 /**
  * Get all recipes with optional filters
+ * Maps FE params to BE params (e.g., search → query)
  */
 export const getAllRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<ApiResponse<Recipe[]>> => {
-	const backendParams = toBackendPagination(params as any) ?? params
+	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
 	const response = await api.get(API_BASE, { params: backendParams })
 	return response.data
 }
@@ -95,12 +96,13 @@ export const getRecipeById = async (
 
 /**
  * Get recipes by user ID
+ * Maps FE params to BE params (e.g., search → query)
  */
 export const getRecipesByUserId = async (
 	userId: string,
 	params?: RecipeQueryParams,
 ): Promise<ApiResponse<Recipe[]>> => {
-	const backendParams = toBackendPagination(params as any) ?? params
+	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
 	const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_USER(userId), {
 		params: backendParams,
 	})
@@ -109,11 +111,12 @@ export const getRecipesByUserId = async (
 
 /**
  * Get feed recipes (from friends and followed users)
+ * Maps FE params to BE params (e.g., search → query)
  */
 export const getFeedRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<ApiResponse<Recipe[]>> => {
-	const backendParams = toBackendPagination(params as any) ?? params
+	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
 	const response = await api.get(API_ENDPOINTS.RECIPES.FEED, {
 		params: backendParams,
 	})
