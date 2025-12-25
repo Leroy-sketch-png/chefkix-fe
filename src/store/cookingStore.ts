@@ -30,7 +30,12 @@ interface CookingState {
 	error: string | null
 
 	// Local timer state (UI-managed, synced on events)
-	localTimers: Map<number, { remaining: number; startedAt: number }>
+	// startedAt: original start time, initialDuration: total seconds
+	// remaining is calculated as: initialDuration - elapsed
+	localTimers: Map<
+		number,
+		{ initialDuration: number; startedAt: number; remaining: number }
+	>
 
 	// Actions
 	startCooking: (recipeId: string) => Promise<boolean>
@@ -45,7 +50,7 @@ interface CookingState {
 	skipTimer: (stepNumber: number) => Promise<void>
 	pauseCooking: () => Promise<void>
 	resumeCooking: () => Promise<void>
-	completeCooking: (rating: number, notes?: string) => Promise<void>
+	completeCooking: (rating: number, notes?: string) => Promise<boolean>
 	abandonCooking: () => Promise<void>
 	clearSession: () => void
 
@@ -89,12 +94,17 @@ export const useCookingStore = create<CookingState>()(
 									// Restore local timers from active timers
 									const localTimers = new Map<
 										number,
-										{ remaining: number; startedAt: number }
+										{
+											initialDuration: number
+											startedAt: number
+											remaining: number
+										}
 									>()
 									existingSession.activeTimers?.forEach(timer => {
 										localTimers.set(timer.stepNumber, {
-											remaining: timer.remainingSeconds,
+											initialDuration: timer.remainingSeconds,
 											startedAt: Date.now(),
+											remaining: timer.remainingSeconds,
 										})
 									})
 
@@ -189,14 +199,16 @@ export const useCookingStore = create<CookingState>()(
 					}
 
 					// Restore local timers from active timers
+					// When restoring, remainingSeconds IS the initial duration from this point
 					const localTimers = new Map<
 						number,
-						{ remaining: number; startedAt: number }
+						{ initialDuration: number; startedAt: number; remaining: number }
 					>()
 					session.activeTimers?.forEach(timer => {
 						localTimers.set(timer.stepNumber, {
-							remaining: timer.remainingSeconds,
+							initialDuration: timer.remainingSeconds, // Backend synced remaining becomes our new initial
 							startedAt: Date.now(),
+							remaining: timer.remainingSeconds,
 						})
 					})
 
@@ -302,11 +314,12 @@ export const useCookingStore = create<CookingState>()(
 				try {
 					await apiLogTimerEvent(session.sessionId, stepNumber, 'start')
 
-					// Start local timer
+					// Start local timer with initialDuration for accurate elapsed calculation
 					const newTimers = new Map(localTimers)
 					newTimers.set(stepNumber, {
-						remaining: timerSeconds,
+						initialDuration: timerSeconds,
 						startedAt: Date.now(),
+						remaining: timerSeconds,
 					})
 					set({ localTimers: newTimers })
 				} catch (error) {
@@ -372,7 +385,7 @@ export const useCookingStore = create<CookingState>()(
 
 			completeCooking: async (rating: number, notes?: string) => {
 				const { session } = get()
-				if (!session) return
+				if (!session) return false
 
 				try {
 					const response = await apiCompleteSession(session.sessionId, {
@@ -380,6 +393,7 @@ export const useCookingStore = create<CookingState>()(
 						notes,
 					})
 					if (response.success && response.data) {
+						// Clear all timers — session is done, no more ticking!
 						set({
 							session: {
 								...session,
@@ -389,10 +403,23 @@ export const useCookingStore = create<CookingState>()(
 								pendingXp: response.data.pendingXp,
 								postDeadline: response.data.postDeadline,
 							},
+							localTimers: new Map(), // Kill zombie timers
+							error: null,
 						})
+						return true
 					}
+
+					// API returned failure
+					set({
+						error: response.message || 'Failed to complete cooking session',
+					})
+					return false
 				} catch (error) {
 					console.error('Failed to complete session:', error)
+					set({
+						error: 'Network error while completing session. Please try again.',
+					})
+					return false
 				}
 			},
 
@@ -425,11 +452,10 @@ export const useCookingStore = create<CookingState>()(
 				let changed = false
 
 				newTimers.forEach((timer, stepNumber) => {
+					// Calculate elapsed since ORIGINAL start (not since last tick)
+					// This prevents drift from slow JS intervals
 					const elapsed = Math.floor((Date.now() - timer.startedAt) / 1000)
-					const newRemaining = Math.max(
-						0,
-						timer.remaining - (elapsed > 0 ? 1 : 0),
-					)
+					const newRemaining = Math.max(0, timer.initialDuration - elapsed)
 
 					if (newRemaining !== timer.remaining) {
 						changed = true
@@ -438,9 +464,10 @@ export const useCookingStore = create<CookingState>()(
 							apiLogTimerEvent(session.sessionId, stepNumber, 'complete')
 							newTimers.delete(stepNumber)
 						} else {
+							// Update only remaining, keep startedAt and initialDuration unchanged
 							newTimers.set(stepNumber, {
+								...timer,
 								remaining: newRemaining,
-								startedAt: Date.now(),
 							})
 						}
 					}

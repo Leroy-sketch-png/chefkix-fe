@@ -1,10 +1,20 @@
 'use client'
 
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { ChevronUp, Pause, Play, X, Timer, ChefHat } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // MINI COOKING BAR (Mobile/Tablet)
@@ -14,15 +24,26 @@ import { cn } from '@/lib/utils'
 
 export const MiniCookingBar = () => {
 	const { cookingMode, setCookingMode, closeCookingPanel } = useUiStore()
-	const { session, recipe, localTimers, pauseCooking, resumeCooking } =
-		useCookingStore()
+	const {
+		session,
+		recipe,
+		localTimers,
+		pauseCooking,
+		resumeCooking,
+		abandonCooking,
+	} = useCookingStore()
+	const [showExitConfirm, setShowExitConfirm] = useState(false)
 
 	// Show on non-xl screens when cooking (mini or docked mode)
 	// On xl+ screens, docked mode uses CookingPanel instead
-	// CSS handles the xl:hidden, so we show whenever there's a cooking session
-	// and the user hasn't explicitly hidden or expanded it
+	// CSS handles the xl:hidden, so we show whenever there's an ACTIVE cooking session
+	// (not completed/abandoned) and the user hasn't explicitly hidden or expanded it
+	const isActiveSession =
+		session && session.status !== 'completed' && session.status !== 'abandoned'
 	const isVisible =
-		(cookingMode === 'mini' || cookingMode === 'docked') && session && recipe
+		(cookingMode === 'mini' || cookingMode === 'docked') &&
+		isActiveSession &&
+		recipe
 
 	// Timer ticking is now centralized in CookingTimerProvider
 
@@ -120,9 +141,9 @@ export const MiniCookingBar = () => {
 							<ChevronUp className='size-5' />
 						</button>
 
-						{/* Close */}
+						{/* Close - Shows confirmation dialog */}
 						<button
-							onClick={closeCookingPanel}
+							onClick={() => setShowExitConfirm(true)}
 							title='End cooking session'
 							className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-error/20 hover:text-error'
 						>
@@ -146,6 +167,42 @@ export const MiniCookingBar = () => {
 					/>
 				</div>
 			</motion.div>
+
+			{/* Exit Confirmation Dialog */}
+			<Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+				<DialogContent className='sm:max-w-md'>
+					<DialogHeader>
+						<DialogTitle>Leave cooking session?</DialogTitle>
+						<DialogDescription>
+							You have an active cooking session for &quot;{recipe?.title}
+							&quot;. What would you like to do?
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className='flex flex-col gap-2 sm:flex-row'>
+						<Button
+							variant='outline'
+							onClick={() => {
+								closeCookingPanel()
+								setShowExitConfirm(false)
+							}}
+							className='w-full sm:w-auto'
+						>
+							Minimize (Keep Session)
+						</Button>
+						<Button
+							variant='destructive'
+							onClick={async () => {
+								await abandonCooking()
+								closeCookingPanel()
+								setShowExitConfirm(false)
+							}}
+							className='w-full sm:w-auto'
+						>
+							Abandon Session
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</AnimatePresence>
 	)
 }

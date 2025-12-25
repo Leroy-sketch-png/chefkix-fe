@@ -6,6 +6,7 @@ import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
 import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
+import { toast } from 'sonner'
 import {
 	Sparkles,
 	User,
@@ -23,6 +24,7 @@ import {
 	VolumeX,
 	Loader2,
 	AlertCircle,
+	LogOut,
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -465,7 +467,6 @@ export const CookingPlayer = () => {
 		completeCooking,
 		abandonCooking,
 		localTimers,
-		tickTimers,
 		getTimerRemaining,
 	} = useCookingStore()
 
@@ -475,6 +476,7 @@ export const CookingPlayer = () => {
 		new Set(),
 	)
 	const [showCompletion, setShowCompletion] = useState(false)
+	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
 
 	// Derive current step data from session and recipe
 	const currentStepNumber = session?.currentStep ?? 1
@@ -493,11 +495,28 @@ export const CookingPlayer = () => {
 		if (currentStepNumber < totalSteps) {
 			setDirection(1)
 			await navigateToStep('next')
+
+			// Auto-start timer for the NEXT step if it has one
+			const nextStepNumber = currentStepNumber + 1
+			const nextStep = recipe.steps?.[nextStepNumber - 1]
+			if (nextStep?.timerSeconds && nextStep.timerSeconds > 0) {
+				// Small delay to ensure state is updated before starting timer
+				setTimeout(() => {
+					startTimer(nextStepNumber)
+				}, 100)
+			}
 		} else {
 			// Session complete!
 			setShowCompletion(true)
 		}
-	}, [currentStepNumber, totalSteps, completeStep, navigateToStep, recipe])
+	}, [
+		currentStepNumber,
+		totalSteps,
+		completeStep,
+		navigateToStep,
+		recipe,
+		startTimer,
+	])
 
 	const handlePrevStep = useCallback(async () => {
 		if (currentStepNumber > 1) {
@@ -515,16 +534,8 @@ export const CookingPlayer = () => {
 		[currentStepNumber, navigateToStep],
 	)
 
-	// Timer ticking
-	useEffect(() => {
-		if (!isOpen || localTimers.size === 0) return
-
-		const interval = setInterval(() => {
-			tickTimers()
-		}, 1000)
-
-		return () => clearInterval(interval)
-	}, [isOpen, localTimers.size, tickTimers])
+	// Timer ticking is handled by CookingTimerProvider (centralized)
+	// NO setInterval here — we removed the duplicate to prevent 2x speed ticking
 
 	// Keyboard navigation
 	useEffect(() => {
@@ -586,7 +597,16 @@ export const CookingPlayer = () => {
 		async (rating: number, notes?: string) => {
 			setIsCompletingSession(true)
 			try {
-				await completeCooking(rating, notes)
+				const success = await completeCooking(rating, notes)
+
+				if (!success) {
+					// Get error from store and show toast
+					const errorMsg = useCookingStore.getState().error
+					toast.error(
+						errorMsg || 'Failed to complete cooking session. Please try again.',
+					)
+					return
+				}
 
 				// Trigger celebration with immediate rewards data
 				// Session state is updated by completeCooking, use current values
@@ -611,6 +631,7 @@ export const CookingPlayer = () => {
 	)
 
 	const handleAbandon = useCallback(async () => {
+		setShowAbandonConfirm(false)
 		await abandonCooking()
 		closeCookingPanel()
 	}, [abandonCooking, closeCookingPanel])
@@ -738,14 +759,30 @@ export const CookingPlayer = () => {
 								<Sparkles className='size-4' /> AI Assist
 							</motion.button>
 
-							{/* Close Button */}
-							<motion.button
-								onClick={closeCookingPanel}
-								className='absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
-								title='Minimize to mini-bar (Esc)'
-							>
-								<X className='size-5' />
-							</motion.button>
+							{/* Header buttons group */}
+							<div className='absolute right-4 top-4 flex items-center gap-2'>
+								{/* Exit Session Button */}
+								<motion.button
+									onClick={() => setShowAbandonConfirm(true)}
+									whileHover={ICON_BUTTON_HOVER}
+									whileTap={ICON_BUTTON_TAP}
+									className='grid size-10 place-items-center rounded-full bg-red-500/20 backdrop-blur-sm transition-colors hover:bg-red-500/40'
+									title='Exit and abandon session'
+								>
+									<LogOut className='size-5' />
+								</motion.button>
+
+								{/* Minimize Button */}
+								<motion.button
+									onClick={closeCookingPanel}
+									whileHover={ICON_BUTTON_HOVER}
+									whileTap={ICON_BUTTON_TAP}
+									className='grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
+									title='Minimize to mini-bar (Esc)'
+								>
+									<X className='size-5' />
+								</motion.button>
+							</div>
 
 							{/* XP Badge */}
 							<XpPreview
@@ -992,6 +1029,54 @@ export const CookingPlayer = () => {
 										onSubmit={handleComplete}
 										isSubmitting={isCompletingSession}
 									/>
+								</motion.div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+
+					{/* Abandon Confirmation Modal */}
+					<AnimatePresence>
+						{showAbandonConfirm && (
+							<motion.div
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='absolute inset-0 z-10 flex items-center justify-center bg-black/80 backdrop-blur-md'
+							>
+								<motion.div
+									initial={{ scale: 0.9, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.9, opacity: 0 }}
+									className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
+								>
+									<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-red-100 dark:bg-red-900/30'>
+										<LogOut className='size-8 text-red-500' />
+									</div>
+									<h3 className='mb-2 text-xl font-bold text-text'>
+										Abandon Session?
+									</h3>
+									<p className='mb-6 text-text-secondary'>
+										You&apos;ll lose all progress on this cooking session. This
+										action cannot be undone.
+									</p>
+									<div className='flex gap-3'>
+										<motion.button
+											whileHover={BUTTON_HOVER}
+											whileTap={BUTTON_TAP}
+											onClick={() => setShowAbandonConfirm(false)}
+											className='flex-1 rounded-full border border-border bg-bg-card px-6 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated'
+										>
+											Keep Cooking
+										</motion.button>
+										<motion.button
+											whileHover={BUTTON_HOVER}
+											whileTap={BUTTON_TAP}
+											onClick={handleAbandon}
+											className='flex-1 rounded-full bg-red-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-600'
+										>
+											Abandon
+										</motion.button>
+									</div>
 								</motion.div>
 							</motion.div>
 						)}

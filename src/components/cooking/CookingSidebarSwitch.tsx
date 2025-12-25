@@ -21,8 +21,10 @@ export const CookingSidebarSwitch = () => {
 
 	// Show CookingPanel when:
 	// 1. Cooking mode is 'docked'
-	// 2. There's an active session
-	const showCookingPanel = cookingMode === 'docked' && session
+	// 2. There's an active session that is IN PROGRESS (not completed/abandoned)
+	const isActiveSession =
+		session && session.status !== 'completed' && session.status !== 'abandoned'
+	const showCookingPanel = cookingMode === 'docked' && isActiveSession
 
 	if (showCookingPanel) {
 		return <CookingPanel />

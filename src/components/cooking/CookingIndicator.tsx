@@ -16,8 +16,10 @@ export const CookingIndicator = () => {
 	const { cookingMode, setCookingMode, openCookingPanel } = useUiStore()
 	const { session, recipe, localTimers } = useCookingStore()
 
-	// Only show when session exists and not in expanded mode
-	const isVisible = session && recipe && cookingMode !== 'expanded'
+	// Only show when ACTIVE session exists (not completed/abandoned) and not in expanded mode
+	const isActiveSession =
+		session && session.status !== 'completed' && session.status !== 'abandoned'
+	const isVisible = isActiveSession && recipe && cookingMode !== 'expanded'
 
 	// Timer ticking is now centralized in CookingTimerProvider
 

@@ -146,8 +146,25 @@ export const CookingPanel = () => {
 		await completeStep(currentStepNumber)
 		if (currentStepNumber < totalSteps) {
 			await navigateToStep('next')
+
+			// Auto-start timer for the NEXT step if it has one
+			const nextStepNumber = currentStepNumber + 1
+			const nextStep = recipe.steps?.[nextStepNumber - 1]
+			if (nextStep?.timerSeconds && nextStep.timerSeconds > 0) {
+				// Small delay to ensure state is updated before starting timer
+				setTimeout(() => {
+					startTimer(nextStepNumber)
+				}, 100)
+			}
 		}
-	}, [currentStepNumber, totalSteps, completeStep, navigateToStep, recipe])
+	}, [
+		currentStepNumber,
+		totalSteps,
+		completeStep,
+		navigateToStep,
+		recipe,
+		startTimer,
+	])
 
 	const handlePrevStep = useCallback(async () => {
 		if (currentStepNumber > 1) {

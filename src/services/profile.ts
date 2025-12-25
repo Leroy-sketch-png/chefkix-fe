@@ -4,31 +4,29 @@ import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
 
 /**
- * Backend profile endpoints return: { profile: Profile, posts: Page<Post> }
- * We extract just the profile for most use cases.
+ * Profile API Service
+ *
+ * IMPORTANT: Profile endpoints should NEVER depend on post-service.
+ * We use /profile-only/{userId} which returns ProfileResponse directly
+ * without Feign calls to post-service. This prevents cascading failures.
+ * Posts are fetched separately via getPostsByUser() which handles errors gracefully.
  */
-interface ProfileWithPostsResponse {
-	profile: Profile
-	posts?: unknown
-}
 
 export const getProfileByUserId = async (
 	userId: string,
 ): Promise<ApiResponse<Profile>> => {
 	try {
-		const response = await api.get<ApiResponse<ProfileWithPostsResponse>>(
-			API_ENDPOINTS.PROFILE.GET_BY_USER_ID(userId),
+		// Use profile-only endpoint - NO dependency on post-service
+		const response = await api.get<ApiResponse<Profile>>(
+			API_ENDPOINTS.PROFILE.GET_PROFILE_ONLY(userId),
 		)
 
-		// Extract the profile from the nested structure
-		const profile = response.data?.data?.profile
-
-		if (profile) {
+		if (response.data?.data) {
 			return {
 				success: true,
 				statusCode: response.data.statusCode,
 				message: response.data.message,
-				data: profile,
+				data: response.data.data,
 			}
 		}
 
@@ -38,9 +36,7 @@ export const getProfileByUserId = async (
 			message: 'Profile not found',
 		}
 	} catch (error) {
-		const axiosError = error as AxiosError<
-			ApiResponse<ProfileWithPostsResponse>
-		>
+		const axiosError = error as AxiosError<ApiResponse<Profile>>
 		if (axiosError.response) {
 			return {
 				success: false,
@@ -62,19 +58,16 @@ export const getProfileByUserId = async (
 
 export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 	try {
-		const response = await api.get<ApiResponse<ProfileWithPostsResponse>>(
-			API_ENDPOINTS.AUTH.ME,
-		)
+		// BE now returns ProfileResponse directly (no nested structure)
+		// This endpoint has NO dependency on post-service - prevents cascading failures
+		const response = await api.get<ApiResponse<Profile>>(API_ENDPOINTS.AUTH.ME)
 
-		// Extract the profile from the nested structure
-		const profile = response.data?.data?.profile
-
-		if (profile) {
+		if (response.data?.data) {
 			return {
 				success: true,
 				statusCode: response.data.statusCode,
 				message: response.data.message,
-				data: profile,
+				data: response.data.data,
 			}
 		}
 
@@ -85,9 +78,7 @@ export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 			message: 'Profile not found in response',
 		}
 	} catch (error) {
-		const axiosError = error as AxiosError<
-			ApiResponse<ProfileWithPostsResponse>
-		>
+		const axiosError = error as AxiosError<ApiResponse<Profile>>
 		if (axiosError.response) {
 			return {
 				success: false,

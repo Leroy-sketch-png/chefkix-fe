@@ -1,9 +1,9 @@
 export const API_PREFIX = '/api/v1'
 
 const AUTH_PREFIX = `${API_PREFIX}/auth`
-const POST_SERVICE_PREFIX = `${API_PREFIX}/post`
-const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}/api/v1/posts`
-const POST_REPLIES_BASE = `${POST_SERVICE_PREFIX}/api/v1/comments`
+const POST_SERVICE_PREFIX = `${API_PREFIX}/posts` // ← FIXED: Changed from /post to /posts to match Gateway route
+const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}` // No extra prefix, comments are under /posts/{postId}/comments
+const POST_REPLIES_BASE = `${API_PREFIX}/posts` // Replies are under /posts/comments/{commentId}/replies
 // Recipe service uses plural 'recipes' to match gateway (StripPrefix=3)
 const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
 // Social endpoints have dedicated gateway route: /api/v1/social/**
@@ -72,9 +72,9 @@ export const API_ENDPOINTS = {
 			`${POST_COMMENTS_BASE}/${postId}/comments/${commentId}/like`,
 		// Replies per spec (06-comments.txt)
 		GET_REPLIES: (commentId: string) =>
-			`${POST_REPLIES_BASE}/${commentId}/replies`,
+			`${POST_REPLIES_BASE}/comments/${commentId}/replies`,
 		CREATE_REPLY: (commentId: string) =>
-			`${POST_REPLIES_BASE}/${commentId}/replies`,
+			`${POST_REPLIES_BASE}/comments/${commentId}/replies`,
 		// Reports per spec (13-moderation.txt)
 		REPORT: `${POST_SERVICE_PREFIX}/report`,
 	},

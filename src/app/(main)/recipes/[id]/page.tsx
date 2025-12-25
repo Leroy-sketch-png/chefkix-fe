@@ -36,6 +36,8 @@ import {
 	Info,
 	Timer,
 	UtensilsCrossed,
+	Loader2,
+	AlertCircle,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -94,9 +96,26 @@ export default function RecipeDetailPage() {
 	const recipeId = params?.id as string
 	const shouldAutoStartCooking = searchParams?.get('cook') === 'true'
 	const { openCookingPanel, expandCookingPanel } = useUiStore()
-	const { startCooking, isLoading: isCookingLoading } = useCookingStore()
+	const {
+		startCooking,
+		isLoading: isCookingLoading,
+		session: activeSession,
+	} = useCookingStore()
 	const { user } = useAuthStore()
 	const autoStartAttempted = useRef(false)
+
+	// Determine cooking button state — only count COMPLETE & ACTIVE sessions
+	// A partial session (from localStorage) has sessionId/recipeId but no status
+	// We need the full session data to properly show Continue Cooking
+	const isCompleteSession = activeSession && activeSession.status !== undefined
+	const isSessionActive =
+		isCompleteSession &&
+		activeSession.status !== 'completed' &&
+		activeSession.status !== 'abandoned'
+	const isCurrentlyCooked =
+		isSessionActive && activeSession?.recipeId === recipeId
+	const hasOtherSession =
+		isSessionActive && activeSession?.recipeId !== recipeId
 
 	const [recipe, setRecipe] = useState<Recipe | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
@@ -261,6 +280,13 @@ export default function RecipeDetailPage() {
 
 	const handleStartCooking = async () => {
 		if (isCookingLoading || !recipeId) return
+
+		// If already cooking THIS recipe, just open the panel
+		if (isCurrentlyCooked) {
+			const isDesktop = window.innerWidth >= 1280
+			isDesktop ? openCookingPanel() : expandCookingPanel()
+			return
+		}
 
 		const success = await startCooking(recipeId)
 		if (success) {
@@ -618,13 +644,44 @@ export default function RecipeDetailPage() {
 						>
 							<motion.button
 								onClick={handleStartCooking}
-								disabled={isCookingLoading}
+								disabled={isCookingLoading || hasOtherSession}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40 disabled:opacity-50'
+								title={
+									hasOtherSession
+										? `Already cooking: ${activeSession?.recipe?.title || 'another recipe'}`
+										: undefined
+								}
+								className={cn(
+									'flex flex-1 items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-lg transition-shadow disabled:opacity-50',
+									isCurrentlyCooked
+										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
+										: hasOtherSession
+											? 'cursor-not-allowed bg-gray-400 text-white shadow-none'
+											: 'bg-gradient-hero text-white shadow-brand/30 hover:shadow-xl hover:shadow-brand/40',
+								)}
 							>
-								<Play className='size-6 fill-white' />
-								{isCookingLoading ? 'Starting...' : 'Start Cooking'}
+								{isCookingLoading ? (
+									<>
+										<Loader2 className='size-6 animate-spin' />
+										Starting...
+									</>
+								) : isCurrentlyCooked ? (
+									<>
+										<Play className='size-6 fill-white' />
+										Continue Cooking
+									</>
+								) : hasOtherSession ? (
+									<>
+										<AlertCircle className='size-6' />
+										Already Cooking
+									</>
+								) : (
+									<>
+										<Play className='size-6 fill-white' />
+										Start Cooking
+									</>
+								)}
 							</motion.button>
 							<motion.button
 								onClick={handleLike}

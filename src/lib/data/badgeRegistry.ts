@@ -818,15 +818,16 @@ export function createFallbackBadge(badgeId: string, earnedAt?: string): Badge {
 
 /**
  * Resolve badges with fallback for unknown ones
- * Always returns a Badge for each ID
+ * Always returns a Badge for each valid ID
+ * Filters out empty/falsy badge IDs to prevent React key collisions
  */
 export function resolveBadgesWithFallback(
 	badgeIds: string[],
 	earnedAt?: string,
 ): Badge[] {
-	return badgeIds.map(
-		id => resolveBadge(id, earnedAt) ?? createFallbackBadge(id, earnedAt),
-	)
+	return badgeIds
+		.filter(id => id && id.trim()) // Filter out empty/whitespace-only IDs
+		.map(id => resolveBadge(id, earnedAt) ?? createFallbackBadge(id, earnedAt))
 }
 
 /**
