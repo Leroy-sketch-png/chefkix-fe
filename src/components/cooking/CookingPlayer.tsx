@@ -452,7 +452,7 @@ export const CookingPlayer = () => {
 	const { cookingMode, closeCookingPanel } = useUiStore()
 	const prefersReducedMotion = useReducedMotion()
 	const isOpen = cookingMode === 'expanded'
-	const { showImmediateRewards } = useCelebration()
+	const { showImmediateRewards, showLevelUp } = useCelebration()
 
 	// Cooking store state
 	const {
@@ -597,9 +597,9 @@ export const CookingPlayer = () => {
 		async (rating: number, notes?: string) => {
 			setIsCompletingSession(true)
 			try {
-				const success = await completeCooking(rating, notes)
+				const completionResult = await completeCooking(rating, notes)
 
-				if (!success) {
+				if (!completionResult) {
 					// Get error from store and show toast
 					const errorMsg = useCookingStore.getState().error
 					toast.error(
@@ -608,16 +608,27 @@ export const CookingPlayer = () => {
 					return
 				}
 
-				// Trigger celebration with immediate rewards data
-				// Session state is updated by completeCooking, use current values
-				const baseXp = session?.baseXpAwarded ?? recipe?.xpReward ?? 0
-				const pendingXp = session?.pendingXp ?? Math.floor((baseXp * 0.7) / 0.3)
+				// Check for level-up and celebrate FIRST (before rewards modal)
+				if (
+					completionResult.leveledUp &&
+					completionResult.oldLevel &&
+					completionResult.newLevel
+				) {
+					showLevelUp({
+						oldLevel: completionResult.oldLevel,
+						newLevel: completionResult.newLevel,
+					})
+					// Small delay so level-up celebration shows first
+					await new Promise(resolve => setTimeout(resolve, 2500))
+				}
 
+				// Trigger celebration with immediate rewards data
 				showImmediateRewards({
+					sessionId: session?.sessionId ?? '',
 					recipeName: recipe?.title ?? 'Recipe',
 					recipeImageUrl: recipe?.coverImageUrl?.[0],
-					immediateXp: baseXp,
-					pendingXp: pendingXp,
+					immediateXp: completionResult.baseXpAwarded,
+					pendingXp: completionResult.pendingXp,
 					postDeadlineHours: 336, // 14 days in hours
 				})
 
@@ -627,7 +638,14 @@ export const CookingPlayer = () => {
 				setIsCompletingSession(false)
 			}
 		},
-		[completeCooking, closeCookingPanel, showImmediateRewards, session, recipe],
+		[
+			completeCooking,
+			closeCookingPanel,
+			showImmediateRewards,
+			showLevelUp,
+			recipe,
+			session,
+		],
 	)
 
 	const handleAbandon = useCallback(async () => {

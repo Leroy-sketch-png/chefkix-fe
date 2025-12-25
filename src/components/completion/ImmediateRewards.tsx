@@ -1,9 +1,27 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Lock, Gift, Clock, Camera, Zap, Flame } from 'lucide-react'
+import Image from 'next/image'
+import {
+	X,
+	Lock,
+	Gift,
+	Clock,
+	Camera,
+	Zap,
+	Flame,
+	Info,
+	Plus,
+	Trash2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -46,8 +64,8 @@ interface ImmediateRewardsProps {
 	postDeadlineHours: number
 	// Achievement (if unlocked)
 	unlockedAchievement?: Badge | null
-	// Actions
-	onPostNow: () => void
+	// Actions - onPostNow now receives captured photos
+	onPostNow: (capturedPhotos?: File[]) => void
 	onPostLater: () => void
 }
 
@@ -204,15 +222,59 @@ export const ImmediateRewards = ({
 	onPostLater,
 }: ImmediateRewardsProps) => {
 	const [showConfetti, setShowConfetti] = useState(false)
+	const [capturedPhotos, setCapturedPhotos] = useState<File[]>([])
+	const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
+	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	// Trigger confetti on mount
 	useEffect(() => {
 		if (isOpen) {
 			setShowConfetti(true)
 			const timer = setTimeout(() => setShowConfetti(false), 3000)
-			return () => clearTimeout(timer)
+		}
+		// Reset photos when modal opens/closes
+		if (!isOpen) {
+			setCapturedPhotos([])
+			setPhotoPreviewUrls([])
 		}
 	}, [isOpen])
+
+	// Handle photo selection/capture
+	const handlePhotoCapture = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const files = Array.from(e.target.files || [])
+			if (files.length === 0) return
+
+			// Limit to 3 photos in modal (can add more on post page)
+			const newFiles = files.slice(0, 3 - capturedPhotos.length)
+			setCapturedPhotos(prev => [...prev, ...newFiles])
+
+			// Generate preview URLs
+			newFiles.forEach(file => {
+				const reader = new FileReader()
+				reader.onloadend = () => {
+					setPhotoPreviewUrls(prev => [...prev, reader.result as string])
+				}
+				reader.readAsDataURL(file)
+			})
+
+			// Reset input for re-selection
+			if (fileInputRef.current) {
+				fileInputRef.current.value = ''
+			}
+		},
+		[capturedPhotos.length],
+	)
+
+	const removePhoto = useCallback((index: number) => {
+		setCapturedPhotos(prev => prev.filter((_, i) => i !== index))
+		setPhotoPreviewUrls(prev => prev.filter((_, i) => i !== index))
+	}, [])
+
+	const handlePostNowClick = useCallback(() => {
+		// Pass captured photos to the callback
+		onPostNow(capturedPhotos.length > 0 ? capturedPhotos : undefined)
+	}, [onPostNow, capturedPhotos])
 
 	// Calculate totals
 	const earnedNow = immediateXp + streakBonus
@@ -323,12 +385,31 @@ export const ImmediateRewards = ({
 										/>
 									))}
 
-								{/* Divider */}
+								{/* Divider with XP split explainer */}
 								<div className='flex items-center gap-3 px-3.5 py-2'>
 									<div className='h-px flex-1 bg-border' />
-									<span className='text-xs uppercase tracking-wide text-text-muted'>
-										Post to unlock more
-									</span>
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className='flex cursor-help items-center gap-1 text-xs uppercase tracking-wide text-text-muted'>
+													Post to unlock more
+													<Info className='size-3' />
+												</span>
+											</TooltipTrigger>
+											<TooltipContent
+												side='bottom'
+												className='max-w-xs text-center'
+											>
+												<p className='text-sm'>
+													<strong>Why 70% is locked?</strong>
+													<br />
+													ChefKix rewards sharing! Post your creation within 14
+													days to unlock the full XP reward and inspire the
+													community.
+												</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
 									<div className='h-px flex-1 bg-border' />
 								</div>
 
@@ -368,8 +449,13 @@ export const ImmediateRewards = ({
 							<div className='mb-4 flex items-center justify-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning'>
 								<Clock className='h-4 w-4' />
 								<span>
-									Post within <strong>{postDeadlineHours} hours</strong> to
-									unlock pending XP
+									Post within{' '}
+									<strong>
+										{postDeadlineHours >= 24
+											? `${Math.floor(postDeadlineHours / 24)} days`
+											: `${postDeadlineHours} hours`}
+									</strong>{' '}
+									to unlock pending XP
 								</span>
 							</div>
 
@@ -378,16 +464,91 @@ export const ImmediateRewards = ({
 								<AchievementBanner achievement={unlockedAchievement} />
 							)}
 
+							{/* Photo Capture Section */}
+							<div className='mb-4'>
+								<div className='mb-2 flex items-center justify-between'>
+									<span className='text-sm font-medium text-text'>
+										📸 Capture your dish
+									</span>
+									<span className='text-xs text-text-muted'>
+										{capturedPhotos.length}/3 photos
+									</span>
+								</div>
+
+								{/* Photo previews + add button */}
+								<div className='flex gap-2'>
+									{/* Existing photo previews */}
+									{photoPreviewUrls.map((url, index) => (
+										<motion.div
+											key={index}
+											initial={{ opacity: 0, scale: 0.8 }}
+											animate={{ opacity: 1, scale: 1 }}
+											className='group relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl'
+										>
+											<Image
+												src={url}
+												alt={`Photo ${index + 1}`}
+												fill
+												className='object-cover'
+											/>
+											<button
+												onClick={() => removePhoto(index)}
+												className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'
+											>
+												<Trash2 className='h-5 w-5 text-white' />
+											</button>
+										</motion.div>
+									))}
+
+									{/* Add photo button */}
+									{capturedPhotos.length < 3 && (
+										<label className='flex h-20 w-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-primary hover:bg-bg-hover'>
+											<div className='flex flex-col items-center gap-1'>
+												<Camera className='h-5 w-5 text-text-muted' />
+												<span className='text-xs text-text-muted'>Add</span>
+											</div>
+											<input
+												ref={fileInputRef}
+												type='file'
+												accept='image/*'
+												capture='environment'
+												multiple
+												onChange={handlePhotoCapture}
+												className='hidden'
+											/>
+										</label>
+									)}
+								</div>
+
+								{capturedPhotos.length === 0 && (
+									<p className='mt-2 text-xs text-text-muted'>
+										Snap a photo now! 2+ photos = 100% bonus XP 📷
+									</p>
+								)}
+								{capturedPhotos.length === 1 && (
+									<p className='mt-2 text-xs text-warning'>
+										Add 1 more photo for full XP bonus!
+									</p>
+								)}
+								{capturedPhotos.length >= 2 && (
+									<p className='mt-2 text-xs text-success'>
+										✓ Full photo bonus unlocked!
+									</p>
+								)}
+							</div>
+
 							{/* Actions */}
 							<div className='space-y-2.5'>
 								<motion.button
-									onClick={onPostNow}
+									onClick={handlePostNowClick}
 									whileHover={STAT_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
 									className='relative flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
 								>
 									<Camera className='h-5 w-5' />
-									Share Your Creation
+									{capturedPhotos.length > 0
+										? `Share ${capturedPhotos.length} Photo${capturedPhotos.length > 1 ? 's' : ''}`
+										: 'Share Your Creation'}
 									<span className='absolute right-4 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
 										Unlock +{pendingTotal} XP
 									</span>

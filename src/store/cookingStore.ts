@@ -4,6 +4,7 @@ import {
 	CookingSession,
 	SessionHistoryItem,
 	ActiveTimer,
+	CompleteSessionResponse,
 	startSession as apiStartSession,
 	getCurrentSession as apiGetCurrentSession,
 	getSessionById as apiGetSessionById,
@@ -50,7 +51,10 @@ interface CookingState {
 	skipTimer: (stepNumber: number) => Promise<void>
 	pauseCooking: () => Promise<void>
 	resumeCooking: () => Promise<void>
-	completeCooking: (rating: number, notes?: string) => Promise<boolean>
+	completeCooking: (
+		rating: number,
+		notes?: string,
+	) => Promise<CompleteSessionResponse | null>
 	abandonCooking: () => Promise<void>
 	clearSession: () => void
 
@@ -385,7 +389,7 @@ export const useCookingStore = create<CookingState>()(
 
 			completeCooking: async (rating: number, notes?: string) => {
 				const { session } = get()
-				if (!session) return false
+				if (!session) return null
 
 				try {
 					const response = await apiCompleteSession(session.sessionId, {
@@ -406,20 +410,20 @@ export const useCookingStore = create<CookingState>()(
 							localTimers: new Map(), // Kill zombie timers
 							error: null,
 						})
-						return true
+						return response.data
 					}
 
 					// API returned failure
 					set({
 						error: response.message || 'Failed to complete cooking session',
 					})
-					return false
+					return null
 				} catch (error) {
 					console.error('Failed to complete session:', error)
 					set({
 						error: 'Network error while completing session. Please try again.',
 					})
-					return false
+					return null
 				}
 			},
 

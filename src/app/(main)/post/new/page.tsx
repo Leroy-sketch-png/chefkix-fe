@@ -58,6 +58,48 @@ function CreatePostContent() {
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
+	// Load pending photos from sessionStorage (passed from completion modal)
+	useEffect(() => {
+		const pendingPhotosJson = sessionStorage.getItem('pendingPostPhotos')
+		if (!pendingPhotosJson) return
+
+		try {
+			const photoData = JSON.parse(pendingPhotosJson) as Array<{
+				name: string
+				type: string
+				data: string
+			}>
+
+			// Convert base64 back to File objects
+			const files: File[] = []
+			const urls: string[] = []
+
+			photoData.forEach(photo => {
+				// Extract base64 data and convert to blob
+				const byteString = atob(photo.data.split(',')[1])
+				const mimeString = photo.data.split(',')[0].split(':')[1].split(';')[0]
+				const ab = new ArrayBuffer(byteString.length)
+				const ia = new Uint8Array(ab)
+				for (let i = 0; i < byteString.length; i++) {
+					ia[i] = byteString.charCodeAt(i)
+				}
+				const blob = new Blob([ab], { type: mimeString })
+				const file = new File([blob], photo.name, { type: photo.type })
+				files.push(file)
+				urls.push(photo.data)
+			})
+
+			setPhotoFiles(files)
+			setPreviewUrls(urls)
+
+			// Clear from sessionStorage
+			sessionStorage.removeItem('pendingPostPhotos')
+		} catch (error) {
+			console.error('Failed to load pending photos:', error)
+			sessionStorage.removeItem('pendingPostPhotos')
+		}
+	}, [])
+
 	// Load session info if sessionId is provided
 	useEffect(() => {
 		if (!sessionId) return

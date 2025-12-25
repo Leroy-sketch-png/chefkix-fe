@@ -7,6 +7,7 @@ import {
 	useCallback,
 	ReactNode,
 } from 'react'
+import { toast } from 'sonner'
 import {
 	LevelUpCelebration,
 	LevelUpToast,
@@ -15,12 +16,50 @@ import {
 	ImmediateRewards,
 } from '@/components/completion'
 import {
+	playCelebrationSound,
+	playLevelUpSound,
+	playXpSound,
+	playAchievementSound,
+} from '@/lib/audio'
+import {
 	StreakSavedToast,
 	StreakMilestoneCard,
 	StreakBrokenModal,
 } from '@/components/streak'
 import { ChallengeComplete } from '@/components/challenges'
 import type { Badge } from '@/lib/types/gamification'
+
+// ============================================
+// SHARE HELPER
+// ============================================
+
+/**
+ * Cross-browser share with clipboard fallback
+ */
+async function shareWithFallback(data: {
+	title: string
+	text: string
+	url: string
+}) {
+	// Try native share API first
+	if (navigator.share) {
+		try {
+			await navigator.share(data)
+			return
+		} catch {
+			// User cancelled or share failed, fall through to clipboard
+		}
+	}
+
+	// Fallback: copy to clipboard
+	const shareText = `${data.text} ${data.url}`
+	try {
+		await navigator.clipboard.writeText(shareText)
+		toast.success('Link copied to clipboard!')
+	} catch {
+		toast.error('Could not share. Try copying the link manually.')
+	}
+}
 
 // ============================================
 // TYPES
@@ -37,18 +76,18 @@ interface XPRow {
 interface LevelUpData {
 	oldLevel: number
 	newLevel: number
-	stats: {
+	stats?: {
 		totalXp: number
 		recipesCooked: number
 		postsShared: number
 	}
-	unlocks: {
+	unlocks?: {
 		id: string
 		emoji: string
 		title: string
 		description: string
 	}[]
-	xpToNextLevel: number
+	xpToNextLevel?: number
 	nextLevelPerk?: string
 }
 
@@ -83,6 +122,7 @@ interface FirstCookData {
 }
 
 interface ImmediateRewardsData {
+	sessionId: string
 	recipeName: string
 	recipeImageUrl?: string
 	immediateXp: number
@@ -219,31 +259,47 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const showLevelUp = useCallback((data: LevelUpData) => {
 		setLevelUpData(data)
 		setLevelUpOpen(true)
+		// Play majestic fanfare for level up
+		playLevelUpSound()
 	}, [])
 
 	const showLevelUpToast = useCallback((level: number) => {
 		setLevelUpToastLevel(level)
 		setLevelUpToastOpen(true)
+		// Play fanfare for toast variant too
+		playLevelUpSound()
 	}, [])
 
 	const showPostSuccess = useCallback((data: PostSuccessData) => {
 		setPostSuccessData(data)
 		setPostSuccessOpen(true)
+		// Play XP sound for post success (XP-focused modal)
+		playXpSound()
 	}, [])
 
 	const showFirstCook = useCallback((data: FirstCookData) => {
 		setFirstCookData(data)
 		setFirstCookOpen(true)
+		// Play achievement sound for first cook milestone
+		playAchievementSound()
 	}, [])
 
 	const showImmediateRewards = useCallback((data: ImmediateRewardsData) => {
 		setImmediateRewardsData(data)
 		setImmediateRewardsOpen(true)
+		// Play celebration sound for cooking completion
+		playCelebrationSound()
+		// If there's an unlocked achievement, play achievement sound after a delay
+		if (data.unlockedAchievement) {
+			setTimeout(() => playAchievementSound(), 800)
+		}
 	}, [])
 
 	const showStreakSaved = useCallback((data: StreakSavedData) => {
 		setStreakSavedData(data)
 		setStreakSavedVisible(true)
+		// Play XP sound for streak bonus
+		playXpSound()
 		// Auto-hide after 4 seconds
 		setTimeout(() => setStreakSavedVisible(false), 4000)
 	}, [])
@@ -251,16 +307,21 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const showStreakMilestone = useCallback((data: StreakMilestoneData) => {
 		setStreakMilestoneData(data)
 		setStreakMilestoneOpen(true)
+		// Play achievement sound for streak milestone
+		playAchievementSound()
 	}, [])
 
 	const showStreakBroken = useCallback((data: StreakBrokenData) => {
 		setStreakBrokenData(data)
 		setStreakBrokenOpen(true)
+		// No sound for streak broken - it's a sad moment
 	}, [])
 
 	const showChallengeComplete = useCallback((data: ChallengeCompleteData) => {
 		setChallengeCompleteData(data)
 		setChallengeCompleteOpen(true)
+		// Play celebration sound for challenge completion
+		playCelebrationSound()
 	}, [])
 
 	// ============================================
@@ -273,14 +334,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	}
 
 	const handleLevelUpShare = () => {
-		// TODO: Implement share functionality
-		if (navigator.share) {
-			navigator.share({
-				title: `I reached Level ${levelUpData?.newLevel}!`,
-				text: `Just leveled up to Level ${levelUpData?.newLevel} on Chefkix! 🎉`,
-				url: window.location.origin,
-			})
-		}
+		shareWithFallback({
+			title: `I reached Level ${levelUpData?.newLevel}!`,
+			text: `Just leveled up to Level ${levelUpData?.newLevel} on ChefKix! 🎉`,
+			url: window.location.origin,
+		})
 	}
 
 	const handleLevelUpToastDismiss = () => {
@@ -313,10 +371,40 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		setImmediateRewardsData(null)
 	}
 
-	const handleImmediateRewardsPostNow = () => {
-		// Navigate to create post screen
+	const handleImmediateRewardsPostNow = async (capturedPhotos?: File[]) => {
+		// Navigate to create post screen with session data for XP linking
+		const sessionId = immediateRewardsData?.sessionId
+
+		// Store captured photos in sessionStorage as base64 for post page to retrieve
+		if (capturedPhotos && capturedPhotos.length > 0) {
+			try {
+				const photoData = await Promise.all(
+					capturedPhotos.map(async file => {
+						return new Promise<{ name: string; type: string; data: string }>(
+							resolve => {
+								const reader = new FileReader()
+								reader.onloadend = () => {
+									resolve({
+										name: file.name,
+										type: file.type,
+										data: reader.result as string,
+									})
+								}
+								reader.readAsDataURL(file)
+							},
+						)
+					}),
+				)
+				sessionStorage.setItem('pendingPostPhotos', JSON.stringify(photoData))
+			} catch (e) {
+				console.error('Failed to store photos:', e)
+			}
+		}
+
 		handleImmediateRewardsClose()
-		window.location.href = '/create'
+		window.location.href = sessionId
+			? `/post/new?session=${sessionId}`
+			: '/post/new'
 	}
 
 	const handleImmediateRewardsPostLater = () => {
@@ -334,10 +422,10 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	}
 
 	const handleStreakMilestoneShare = () => {
-		if (navigator.share && streakMilestoneData) {
-			navigator.share({
+		if (streakMilestoneData) {
+			shareWithFallback({
 				title: `${streakMilestoneData.days}-Day Streak!`,
-				text: `I just hit a ${streakMilestoneData.days}-day cooking streak on Chefkix! 🔥`,
+				text: `I just hit a ${streakMilestoneData.days}-day cooking streak on ChefKix! 🔥`,
 				url: window.location.origin,
 			})
 		}
@@ -359,10 +447,10 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	}
 
 	const handleChallengeCompleteShare = () => {
-		if (navigator.share && challengeCompleteData) {
-			navigator.share({
+		if (challengeCompleteData) {
+			shareWithFallback({
 				title: `Challenge Complete: ${challengeCompleteData.challengeTitle}!`,
-				text: `I just completed "${challengeCompleteData.challengeTitle}" on Chefkix and earned ${challengeCompleteData.bonusXp} bonus XP! 🎯`,
+				text: `I just completed "${challengeCompleteData.challengeTitle}" on ChefKix and earned ${challengeCompleteData.bonusXp} bonus XP! 🎯`,
 				url: window.location.origin,
 			})
 		}
@@ -395,9 +483,15 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					onClose={handleLevelUpClose}
 					oldLevel={levelUpData.oldLevel}
 					newLevel={levelUpData.newLevel}
-					stats={levelUpData.stats}
-					unlocks={levelUpData.unlocks}
-					xpToNextLevel={levelUpData.xpToNextLevel}
+					stats={
+						levelUpData.stats ?? {
+							totalXp: 0,
+							recipesCooked: 0,
+							postsShared: 0,
+						}
+					}
+					unlocks={levelUpData.unlocks ?? []}
+					xpToNextLevel={levelUpData.xpToNextLevel ?? 0}
 					nextLevelPerk={levelUpData.nextLevelPerk}
 					onShare={handleLevelUpShare}
 					onContinue={handleLevelUpClose}
@@ -457,13 +551,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 							label: 'Share',
 							sublabel: 'Tell friends',
 							onClick: () => {
-								if (navigator.share) {
-									navigator.share({
-										title: 'Check out my creation!',
-										text: `I just made ${postSuccessData.recipeName} on Chefkix!`,
-										url: window.location.origin,
-									})
-								}
+								shareWithFallback({
+									title: 'Check out my creation!',
+									text: `I just made ${postSuccessData.recipeName} on ChefKix!`,
+									url: window.location.origin,
+								})
 							},
 						},
 					]}
@@ -485,13 +577,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 						window.location.href = '/create'
 					}}
 					onShareAchievement={() => {
-						if (navigator.share) {
-							navigator.share({
-								title: 'I just cooked my first recipe!',
-								text: `Just made ${firstCookData.recipeName} on Chefkix! 🎉`,
-								url: window.location.origin,
-							})
-						}
+						shareWithFallback({
+							title: 'I just cooked my first recipe!',
+							text: `Just made ${firstCookData.recipeName} on ChefKix! 🎉`,
+							url: window.location.origin,
+						})
 					}}
 					onContinueCooking={() => {
 						handleFirstCookClose()

@@ -100,6 +100,12 @@ export interface CompleteSessionResponse {
 	pendingXp: number
 	postDeadline: string
 	message: string
+	// Level-up tracking for celebration
+	leveledUp?: boolean
+	oldLevel?: number
+	newLevel?: number
+	currentXp?: number
+	xpToNextLevel?: number
 }
 
 export interface LinkPostResponse {

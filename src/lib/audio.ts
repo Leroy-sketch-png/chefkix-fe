@@ -140,3 +140,173 @@ export function setAudioEnabled(enabled: boolean): void {
 		localStorage.setItem('chefkix-audio-enabled', String(enabled))
 	}
 }
+
+// ============================================
+// CELEBRATION SOUNDS
+// ============================================
+
+/**
+ * Play a triumphant celebration sound for cooking completion
+ * Ascending major chord arpeggio with a flourish - sounds like "achievement unlocked"
+ */
+export function playCelebrationSound(): void {
+	if (!isAudioEnabled()) return
+	const ctx = getAudioContext()
+	if (!ctx) return
+
+	const now = ctx.currentTime
+
+	// C major chord arpeggio ascending (C4 → E4 → G4 → C5)
+	// Then a final sustained high C5 with vibrato
+	const notes = [
+		{ freq: 261.63, time: 0, duration: 0.12 }, // C4
+		{ freq: 329.63, time: 0.1, duration: 0.12 }, // E4
+		{ freq: 392.0, time: 0.2, duration: 0.12 }, // G4
+		{ freq: 523.25, time: 0.3, duration: 0.4 }, // C5 (sustained)
+	]
+
+	notes.forEach(({ freq, time, duration }) => {
+		const oscillator = ctx.createOscillator()
+		const gainNode = ctx.createGain()
+
+		oscillator.connect(gainNode)
+		gainNode.connect(ctx.destination)
+
+		oscillator.type = 'sine'
+		oscillator.frequency.setValueAtTime(freq, now + time)
+
+		// Envelope
+		const startTime = now + time
+		gainNode.gain.setValueAtTime(0, startTime)
+		gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.02)
+		gainNode.gain.setValueAtTime(0.2, startTime + duration * 0.8)
+		gainNode.gain.linearRampToValueAtTime(0, startTime + duration)
+
+		oscillator.start(startTime)
+		oscillator.stop(startTime + duration)
+	})
+}
+
+/**
+ * Play a majestic level-up fanfare
+ * Triumphant brass-like sound with harmonic overtones
+ */
+export function playLevelUpSound(): void {
+	if (!isAudioEnabled()) return
+	const ctx = getAudioContext()
+	if (!ctx) return
+
+	const now = ctx.currentTime
+
+	// Fanfare: G4 → C5 → E5 → G5 with harmonics
+	const fanfare = [
+		{ freq: 392.0, time: 0, duration: 0.2 }, // G4
+		{ freq: 523.25, time: 0.18, duration: 0.2 }, // C5
+		{ freq: 659.25, time: 0.36, duration: 0.25 }, // E5
+		{ freq: 783.99, time: 0.56, duration: 0.5 }, // G5 (sustained)
+	]
+
+	fanfare.forEach(({ freq, time, duration }) => {
+		// Main tone
+		const osc1 = ctx.createOscillator()
+		const gain1 = ctx.createGain()
+		osc1.connect(gain1)
+		gain1.connect(ctx.destination)
+		osc1.type = 'triangle' // Warmer, brass-like
+		osc1.frequency.setValueAtTime(freq, now + time)
+
+		// Add harmonic overtone for richness
+		const osc2 = ctx.createOscillator()
+		const gain2 = ctx.createGain()
+		osc2.connect(gain2)
+		gain2.connect(ctx.destination)
+		osc2.type = 'sine'
+		osc2.frequency.setValueAtTime(freq * 2, now + time) // Octave up
+
+		const startTime = now + time
+
+		// Main tone envelope
+		gain1.gain.setValueAtTime(0, startTime)
+		gain1.gain.linearRampToValueAtTime(0.3, startTime + 0.03)
+		gain1.gain.setValueAtTime(0.25, startTime + duration * 0.7)
+		gain1.gain.linearRampToValueAtTime(0, startTime + duration)
+
+		// Harmonic envelope (quieter)
+		gain2.gain.setValueAtTime(0, startTime)
+		gain2.gain.linearRampToValueAtTime(0.1, startTime + 0.03)
+		gain2.gain.linearRampToValueAtTime(0, startTime + duration)
+
+		osc1.start(startTime)
+		osc1.stop(startTime + duration)
+		osc2.start(startTime)
+		osc2.stop(startTime + duration)
+	})
+}
+
+/**
+ * Play a quick XP reward sound
+ * Short, satisfying "ping" for immediate feedback
+ */
+export function playXpSound(): void {
+	if (!isAudioEnabled()) return
+	const ctx = getAudioContext()
+	if (!ctx) return
+
+	const now = ctx.currentTime
+	const oscillator = ctx.createOscillator()
+	const gainNode = ctx.createGain()
+
+	oscillator.connect(gainNode)
+	gainNode.connect(ctx.destination)
+
+	// Quick ascending glissando
+	oscillator.type = 'sine'
+	oscillator.frequency.setValueAtTime(600, now)
+	oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.1)
+
+	gainNode.gain.setValueAtTime(0, now)
+	gainNode.gain.linearRampToValueAtTime(0.2, now + 0.02)
+	gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15)
+
+	oscillator.start(now)
+	oscillator.stop(now + 0.15)
+}
+
+/**
+ * Play a badge/achievement unlock sound
+ * Magical "sparkle" sound with harmonics
+ */
+export function playAchievementSound(): void {
+	if (!isAudioEnabled()) return
+	const ctx = getAudioContext()
+	if (!ctx) return
+
+	const now = ctx.currentTime
+
+	// Create a sparkle effect with multiple quick notes
+	const sparkles = [
+		{ freq: 1047, time: 0, duration: 0.08 }, // C6
+		{ freq: 1319, time: 0.05, duration: 0.08 }, // E6
+		{ freq: 1568, time: 0.1, duration: 0.08 }, // G6
+		{ freq: 2093, time: 0.15, duration: 0.2 }, // C7
+	]
+
+	sparkles.forEach(({ freq, time, duration }) => {
+		const osc = ctx.createOscillator()
+		const gain = ctx.createGain()
+
+		osc.connect(gain)
+		gain.connect(ctx.destination)
+
+		osc.type = 'sine'
+		osc.frequency.setValueAtTime(freq, now + time)
+
+		const startTime = now + time
+		gain.gain.setValueAtTime(0, startTime)
+		gain.gain.linearRampToValueAtTime(0.15, startTime + 0.01)
+		gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+
+		osc.start(startTime)
+		osc.stop(startTime + duration)
+	})
+}

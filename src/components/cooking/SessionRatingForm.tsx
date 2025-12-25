@@ -280,7 +280,7 @@ export function SessionRatingForm({
 						Saving...
 					</span>
 				) : rating > 0 ? (
-					'Share Your Cook! 📸'
+					'Complete Cooking 🎉'
 				) : (
 					'Tap a star to rate ⭐'
 				)}
