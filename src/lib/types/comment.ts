@@ -24,6 +24,7 @@ export interface Comment {
 
 export interface CreateCommentRequest {
 	content: string
+	taggedUserIds?: string[] // Users @mentioned in the comment
 }
 
 export interface Reply {

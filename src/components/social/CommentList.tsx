@@ -3,10 +3,11 @@
 import { Comment as CommentType } from '@/lib/types'
 import { Comment } from './Comment'
 import { CommentSkeleton } from '@/components/ui/skeleton'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getCommentsByPostId, createComment } from '@/services/comment'
 import { toast } from 'sonner'
 import { Send, Loader2 } from 'lucide-react'
+import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 
 interface CommentListProps {
 	postId: string
@@ -25,7 +26,9 @@ export const CommentList = ({
 	const [loading, setLoading] = useState(isLoading)
 	const [error, setError] = useState(false)
 	const [newComment, setNewComment] = useState('')
+	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const mentionInputRef = useRef<MentionInputRef>(null)
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true)
@@ -54,11 +57,14 @@ export const CommentList = ({
 
 		const response = await createComment(postId, {
 			content: newComment.trim(),
+			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
 		})
 
 		if (response.success && response.data) {
 			setComments(prev => [response.data!, ...prev])
 			setNewComment('')
+			setTaggedUserIds([])
+			mentionInputRef.current?.clear()
 			toast.success('Comment posted!')
 			onCommentCreated?.()
 		} else {
@@ -88,15 +94,15 @@ export const CommentList = ({
 
 	return (
 		<div className='border-t border-border-subtle'>
-			{/* Comment Input */}
+			{/* Comment Input with @mention support */}
 			<div className='flex gap-2 border-b border-border-subtle p-4 md:p-6'>
-				<input
-					type='text'
+				<MentionInput
+					ref={mentionInputRef}
 					value={newComment}
-					onChange={e => setNewComment(e.target.value)}
-					onKeyDown={e => e.key === 'Enter' && handleSubmitComment()}
-					placeholder='Add a comment...'
-					className='flex-1 rounded-lg bg-bg-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted caret-primary focus:outline-none focus:ring-1 focus:ring-primary/30'
+					onChange={setNewComment}
+					onTaggedUsersChange={setTaggedUserIds}
+					onSubmit={handleSubmitComment}
+					placeholder='Add a comment... (use @ to mention)'
 					disabled={isSubmitting}
 				/>
 				<button

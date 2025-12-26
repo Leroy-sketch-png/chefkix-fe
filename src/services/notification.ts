@@ -19,10 +19,16 @@ export type NotificationType =
 	| 'FRIEND_ACCEPT'
 	| 'POST_LIKE'
 	| 'POST_COMMENT'
+	| 'RECIPE_LIKED'
+	| 'USER_MENTION'
 	| 'XP_AWARDED'
 	| 'LEVEL_UP'
 	| 'BADGE_EARNED'
 	| 'CREATOR_BONUS'
+	| 'STREAK_WARNING'
+	| 'POST_DEADLINE'
+	| 'CHALLENGE_AVAILABLE'
+	| 'CHALLENGE_REMINDER'
 
 /**
  * Notification interface matching BE NotificationResponse

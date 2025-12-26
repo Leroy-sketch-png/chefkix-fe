@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { Comment as CommentType, Reply } from '@/lib/types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
+import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { formatDistanceToNow } from 'date-fns'
 import {
 	Heart,
@@ -36,6 +37,66 @@ interface CommentProps {
 	currentUserId?: string
 	onReply?: (commentId: string) => void
 	onDelete?: (commentId: string) => void
+}
+
+// ============================================
+// HELPER: Render @mentions as styled links
+// ============================================
+
+const renderContentWithMentions = (
+	content: string,
+	taggedUsers?: { userId: string; displayName: string }[],
+) => {
+	if (!taggedUsers || taggedUsers.length === 0) {
+		return content
+	}
+
+	// Build a map of displayName -> userId
+	const mentionMap = new Map(
+		taggedUsers.map(u => [u.displayName.toLowerCase(), u.userId]),
+	)
+
+	// Split content by @mentions
+	const mentionRegex = /@(\w+(?:\s\w+)?)/g
+	const parts: (string | JSX.Element)[] = []
+	let lastIndex = 0
+	let match
+
+	while ((match = mentionRegex.exec(content)) !== null) {
+		// Add text before mention
+		if (match.index > lastIndex) {
+			parts.push(content.slice(lastIndex, match.index))
+		}
+
+		const mentionName = match[1]
+		const userId = mentionMap.get(mentionName.toLowerCase())
+
+		if (userId) {
+			// Styled mention link
+			parts.push(
+				<a
+					key={match.index}
+					href={`/profile/${userId}`}
+					className='font-medium text-primary hover:underline'
+					onClick={e => e.stopPropagation()}
+				>
+					@{mentionName}
+				</a>,
+			)
+		} else {
+			// No matching user, keep as plain text
+			parts.push(`@${mentionName}`)
+		}
+
+		lastIndex = match.index + match[0].length
+	}
+
+	// Add remaining text
+	if (lastIndex < content.length) {
+		parts.push(content.slice(lastIndex))
+	}
+
+	return parts.length > 0 ? parts : content
 }
 
 // ============================================
@@ -90,7 +151,7 @@ const ReplyItem = ({
 						</span>
 					</UserHoverCard>
 					<p className='mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-text-primary'>
-						{reply.content}
+						{renderContentWithMentions(reply.content, reply.taggedUsers)}
 					</p>
 				</div>
 
@@ -129,11 +190,13 @@ export const Comment = ({
 	const [showReplies, setShowReplies] = useState(false)
 	const [showReplyInput, setShowReplyInput] = useState(false)
 	const [replyContent, setReplyContent] = useState('')
+	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 	const [isLoadingReplies, setIsLoadingReplies] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [replies, setReplies] = useState<Reply[]>([])
 	const [replyCount, setReplyCount] = useState(comment.replyCount)
+	const mentionInputRef = useRef<MentionInputRef>(null)
 
 	const isOwnComment = currentUserId === comment.userId
 
@@ -217,12 +280,15 @@ export const Comment = ({
 		const response = await createReply(comment.id, {
 			content: replyContent.trim(),
 			parentCommentId: comment.id,
+			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
 		})
 
 		if (response.success && response.data) {
 			setReplies(prev => [...prev, response.data!])
 			setReplyCount(prev => prev + 1)
 			setReplyContent('')
+			setTaggedUserIds([])
+			mentionInputRef.current?.clear()
 			setShowReplyInput(false)
 			setShowReplies(true)
 			toast.success('Reply posted!')
@@ -267,7 +333,10 @@ export const Comment = ({
 								</span>
 							</UserHoverCard>
 							<p className='mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-primary'>
-								{comment.content}
+								{renderContentWithMentions(
+									comment.content,
+									comment.taggedUsers,
+								)}
 							</p>
 						</div>
 						{/* Delete Menu (own comments only) */}
@@ -323,23 +392,23 @@ export const Comment = ({
 					</button>
 				</div>
 
-				{/* Reply Input */}
+				{/* Reply Input with @mention support */}
 				<AnimatePresence>
 					{showReplyInput && (
 						<motion.div
 							initial={{ height: 0, opacity: 0 }}
 							animate={{ height: 'auto', opacity: 1 }}
 							exit={{ height: 0, opacity: 0 }}
-							className='mt-2 overflow-hidden'
+							className='mt-2 overflow-visible'
 						>
 							<div className='flex gap-2'>
-								<input
-									type='text'
+								<MentionInput
+									ref={mentionInputRef}
 									value={replyContent}
-									onChange={e => setReplyContent(e.target.value)}
-									onKeyDown={e => e.key === 'Enter' && handleSubmitReply()}
-									placeholder='Write a reply...'
-									className='flex-1 rounded-lg bg-bg-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30'
+									onChange={setReplyContent}
+									onTaggedUsersChange={setTaggedUserIds}
+									onSubmit={handleSubmitReply}
+									placeholder='Write a reply... (use @ to mention)'
 									disabled={isSubmittingReply}
 								/>
 								<button

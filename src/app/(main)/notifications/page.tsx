@@ -51,6 +51,7 @@ type SocialNotificationType =
 	| 'follow'
 	| 'cook'
 	| 'achievement'
+	| 'mention'
 
 interface SocialNotification {
 	id: string
@@ -148,7 +149,7 @@ const transformToGamifiedNotification = (
 const transformToSocialNotification = (
 	notif: APINotification,
 ): SocialNotification | null => {
-	const data = notif.data as Record<string, unknown>
+	const data = (notif.data || {}) as Record<string, unknown>
 	const timestamp = new Date(notif.createdAt)
 
 	const typeMap: Record<string, SocialNotificationType> = {
@@ -156,6 +157,7 @@ const transformToSocialNotification = (
 		FOLLOW: 'follow',
 		POST_LIKE: 'like',
 		POST_COMMENT: 'comment',
+		USER_MENTION: 'mention',
 	}
 
 	const type = typeMap[notif.type]
@@ -164,8 +166,13 @@ const transformToSocialNotification = (
 	return {
 		id: notif.id,
 		type,
-		userId: (data.userId as string) || '',
-		user: (data.userName as string) || (data.displayName as string) || 'User',
+		// Use top-level fields first, fallback to data object for backwards compat
+		userId: notif.latestActorId || (data.userId as string) || '',
+		user:
+			notif.latestActorName ||
+			(data.userName as string) ||
+			(data.displayName as string) ||
+			'User',
 		avatar: (data.avatarUrl as string) || '/placeholder-avatar.png',
 		action: notif.content || notif.body || '',
 		target: (data.targetTitle as string) || undefined,
@@ -188,6 +195,12 @@ const getNotificationIcon = (type: SocialNotificationType) => {
 			}
 		case 'follow':
 			return { icon: UserPlus, color: 'text-green-500', bg: 'bg-green-500/10' }
+		case 'mention':
+			return {
+				icon: MessageCircle,
+				color: 'text-purple-500',
+				bg: 'bg-purple-500/10',
+			}
 		case 'cook':
 			return { icon: ChefHat, color: 'text-brand', bg: 'bg-brand/10' }
 		case 'achievement':
