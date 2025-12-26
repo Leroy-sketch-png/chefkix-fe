@@ -64,7 +64,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 							</div>
 							<div>
 								<span className='font-bold text-text'>
-									{profile.statistics?.currentLevel ?? 1}
+									{profile.statistics?.currentLevel || 1}
 								</span>
 								<span className='ml-1 text-text-secondary'>Level</span>
 							</div>

@@ -189,7 +189,7 @@ export const MessagesDrawer = () => {
 	return (
 		<div
 			ref={drawerRef}
-			className='fixed bottom-0 right-6 z-50 flex w-drawer h-drawer flex-col rounded-t-lg border bg-card text-card-foreground shadow-lg'
+			className='fixed bottom-0 right-6 z-popover flex w-drawer h-drawer flex-col rounded-t-lg border bg-card text-card-foreground shadow-lg'
 			style={
 				width || height
 					? {

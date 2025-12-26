@@ -123,20 +123,9 @@ api.interceptors.response.use(
 				try {
 					console.log('[axios] 🔄 Calling refresh-token endpoint...')
 
-					// DEBUG: Check if cookie exists before making request
-					if (typeof document !== 'undefined') {
-						const cookies = document.cookie
-						const hasRefreshToken = cookies.includes('refresh_token=')
-						console.log(
-							`[axios] 🍪 Cookie check: hasRefreshToken=${hasRefreshToken}`,
-						)
-						if (!hasRefreshToken) {
-							console.error(
-								'[axios] ❌ CRITICAL: refresh_token cookie is MISSING from browser!',
-							)
-							console.log('[axios] All cookies:', cookies)
-						}
-					}
+					// NOTE: refresh_token is an HttpOnly cookie - JavaScript CANNOT see it.
+					// The browser sends it automatically with withCredentials: true.
+					// If refresh fails with 401, the cookie is expired/missing.
 
 					// Call refresh token endpoint (public, uses HttpOnly cookie automatically)
 					const refreshResponse = await api.post('/api/v1/auth/refresh-token')

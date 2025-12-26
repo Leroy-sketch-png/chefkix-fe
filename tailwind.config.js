@@ -418,6 +418,7 @@ module.exports = {
 				base: 'var(--z-base)',
 				dropdown: 'var(--z-dropdown)',
 				sticky: 'var(--z-sticky)',
+				popover: 'var(--z-popover)',
 				modal: 'var(--z-modal)',
 				notification: 'var(--z-notification)',
 				tooltip: 'var(--z-tooltip)',

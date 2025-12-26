@@ -31,7 +31,8 @@ export type NotificationType =
 	| 'CHALLENGE_REMINDER'
 
 /**
- * Notification interface matching BE NotificationResponse
+ * Notification interface matching BE NotificationResponse exactly
+ * BE uses @JsonProperty("isRead") and @JsonProperty("isSummary") for correct serialization
  */
 export interface Notification {
 	id: string
@@ -49,11 +50,10 @@ export interface Notification {
 		actorId: string
 		actorName: string
 	}
-	// Legacy fields for backwards compatibility with UI
+	// Legacy fields for UI that may expect different shapes
 	title?: string
 	body?: string
 	data?: Record<string, unknown>
-	read?: boolean // alias for isRead
 }
 
 export interface NotificationPagination {
@@ -86,17 +86,23 @@ export const getNotifications = async (
 	params?: NotificationParams,
 ): Promise<ApiResponse<NotificationsResponse>> => {
 	try {
-		// BE returns array directly, we transform it to match our interface
+		// NOTE: Our axios instance wraps ALL responses into { success, statusCode, message, data }
+		// so the actual payload is always in `response.data.data`.
+		// BE returns an array directly here, so `response.data.data` will be Notification[].
 		const response = await api.get<Notification[]>(
 			API_ENDPOINTS.NOTIFICATIONS.GET,
 			{ params: { limit: params?.size ?? 20 } },
 		)
 
-		// Transform array response to our expected format
-		const notifications = response.data || []
+		const wrapped = response.data as unknown as ApiResponse<unknown>
+		const raw = wrapped.data
+		const notifications: Notification[] = Array.isArray(raw)
+			? (raw as Notification[])
+			: []
+
 		return {
 			success: true,
-			statusCode: 200,
+			statusCode: wrapped.statusCode ?? 200,
 			data: {
 				notifications,
 				unreadCount: notifications.filter(n => !n.isRead).length,
@@ -217,10 +223,13 @@ export const getUnreadCount = async (): Promise<ApiResponse<number>> => {
 		const response = await api.get<number>(
 			API_ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT,
 		)
+		const wrapped = response.data as unknown as ApiResponse<unknown>
+		const raw = wrapped.data
+		const count = typeof raw === 'number' ? raw : 0
 		return {
 			success: true,
-			statusCode: 200,
-			data: response.data,
+			statusCode: wrapped.statusCode ?? 200,
+			data: count,
 		}
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<number>>

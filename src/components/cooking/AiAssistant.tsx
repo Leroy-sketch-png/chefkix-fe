@@ -248,7 +248,7 @@ export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => (
 		whileTap={ICON_BUTTON_TAP}
 		animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
 		className={cn(
-			'fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-6',
+			'fixed bottom-24 right-4 z-popover flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-6',
 			'bg-gradient-indigo text-white',
 		)}
 	>

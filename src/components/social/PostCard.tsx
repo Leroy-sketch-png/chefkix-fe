@@ -359,7 +359,7 @@ export const PostCard = ({
 											initial={{ opacity: 0, scale: 0.95, y: -10 }}
 											animate={{ opacity: 1, scale: 1, y: 0 }}
 											exit={{ opacity: 0, scale: 0.95, y: -10 }}
-											className='absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
+											className='absolute right-0 top-full z-dropdown mt-1 w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
 										>
 											{/* Owner actions */}
 											{isOwner && (

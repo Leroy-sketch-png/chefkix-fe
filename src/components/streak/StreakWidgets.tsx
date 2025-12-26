@@ -198,7 +198,7 @@ export function StreakSavedToast({
 					exit={{ opacity: 0, y: 30, scale: 0.9 }}
 					transition={TRANSITION_SPRING}
 					className={cn(
-						'fixed bottom-24 left-1/2 -translate-x-1/2 z-50',
+						'fixed bottom-24 left-1/2 -translate-x-1/2 z-notification',
 						'flex items-center gap-4 py-4 px-6',
 						'bg-panel-bg border-2 border-emerald-500 rounded-2xl',
 						'shadow-2xl shadow-black/30',

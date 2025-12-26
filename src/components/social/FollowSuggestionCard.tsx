@@ -1,6 +1,6 @@
 'use client'
 
-import { Profile } from '@/lib/types'
+import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { UserPlus, X, Loader2 } from 'lucide-react'
@@ -35,6 +35,7 @@ export const FollowSuggestionCard = ({
 }: FollowSuggestionCardProps) => {
 	const [isFollowing, setIsFollowing] = useState(false)
 	const [isDismissing, setIsDismissing] = useState(false)
+	const displayName = getProfileDisplayName(profile)
 
 	const handleFollowBack = async () => {
 		setIsFollowing(true)
@@ -42,7 +43,7 @@ export const FollowSuggestionCard = ({
 		const response = await toggleFollow(profile.userId)
 
 		if (response.success) {
-			toast.success(`You are now following ${profile.displayName}!`)
+			toast.success(`You are now following ${displayName}!`)
 			triggerLikeConfetti() // Celebrate new mutual connection! 🎉
 			onFollowBack?.(profile.userId)
 		} else {
@@ -82,10 +83,10 @@ export const FollowSuggestionCard = ({
 					>
 						<AvatarImage
 							src={profile.avatarUrl || 'https://i.pravatar.cc/96'}
-							alt={profile.displayName}
+							alt={displayName}
 						/>
 						<AvatarFallback>
-							{profile.displayName
+							{displayName
 								.split(' ')
 								.map(n => n[0])
 								.join('')
@@ -95,7 +96,7 @@ export const FollowSuggestionCard = ({
 					</Avatar>
 					<div>
 						<h3 className='font-semibold text-text-primary transition-colors group-hover:text-primary'>
-							{profile.displayName}
+							{displayName}
 						</h3>
 						<p className='text-sm text-text-secondary'>@{profile.username}</p>
 						<p className='text-xs text-text-tertiary'>Follows you</p>

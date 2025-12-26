@@ -118,11 +118,11 @@ const formatTimeAgo = (date: Date): string => {
 
 // Helper to transform API notification to social notification format
 // Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
+// BE sends: latestActorId, latestActorName, actorInfo (NOT nested in data)
 const transformToSocialNotification = (
 	notif: APINotification,
 	index: number,
 ): SocialNotification | null => {
-	const data = notif.data as Record<string, unknown>
 	const timestamp = new Date(notif.createdAt)
 
 	const typeMap: Record<string, NotificationType> = {
@@ -135,14 +135,18 @@ const transformToSocialNotification = (
 	const type = typeMap[notif.type]
 	if (!type) return null
 
+	// BE sends actor info directly on notification, not in 'data' object
+	const userId = notif.latestActorId || notif.actorInfo?.actorId || ''
+	const userName = notif.latestActorName || notif.actorInfo?.actorName || 'User'
+
 	return {
 		id: index,
 		type,
-		userId: (data.userId as string) || '',
-		user: (data.userName as string) || (data.displayName as string) || 'User',
-		avatar: (data.avatarUrl as string) || '/placeholder-avatar.png',
+		userId,
+		user: userName,
+		avatar: '/placeholder-avatar.png', // TODO: BE should send avatarUrl
 		action: notif.content || notif.body || '',
-		target: (data.targetTitle as string) || undefined,
+		target: undefined,
 		time: formatTimeAgo(timestamp),
 		read: notif.isRead,
 	}
@@ -250,13 +254,13 @@ export const NotificationsPopup = () => {
 		<>
 			{/* Backdrop */}
 			<div
-				className='fixed inset-0 z-40'
+				className='fixed inset-0 z-popover'
 				onClick={handleClose}
 				aria-hidden='true'
 			/>
 
 			{/* Dropdown */}
-			<div className='fixed right-2 top-16 z-50 w-[calc(100vw-16px)] max-w-md animate-slideInDown overflow-hidden rounded-radius border border-border bg-card text-card-foreground shadow-glow md:absolute md:right-6 md:w-96'>
+			<div className='fixed right-2 top-16 z-popover w-[calc(100vw-16px)] max-w-md animate-slideInDown overflow-hidden rounded-radius border border-border bg-card text-card-foreground shadow-glow md:absolute md:right-6 md:w-96'>
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border p-4'>
 					<div className='flex items-center gap-2'>

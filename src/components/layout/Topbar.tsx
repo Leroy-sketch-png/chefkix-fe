@@ -148,7 +148,7 @@ export const Topbar = () => {
 						className='relative hidden overflow-hidden rounded-xl bg-gradient-gold px-4 py-2 text-sm font-bold text-amber-950 shadow-md lg:flex lg:items-center lg:gap-2'
 					>
 						<span className='relative z-10'>
-							Lv. {user.statistics?.currentLevel ?? 1}
+							Lv. {user.statistics?.currentLevel || 1}
 						</span>
 						{/* XP Progress bar inside */}
 						<div className='relative z-10 hidden h-1.5 w-16 overflow-hidden rounded-full bg-amber-950/20 xl:block'>

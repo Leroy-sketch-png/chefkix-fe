@@ -1,6 +1,6 @@
 'use client'
 
-import { Profile } from '@/lib/types'
+import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { UserMinus, MessageCircle, Loader2, Trophy, Book } from 'lucide-react'
@@ -29,6 +29,7 @@ interface FriendCardProps {
 export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 	const [isUnfollowing, setIsUnfollowing] = useState(false)
 	const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false)
+	const displayName = getProfileDisplayName(profile)
 
 	const handleUnfollow = async () => {
 		setShowUnfollowConfirm(true)
@@ -41,7 +42,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 		const response = await toggleFollow(profile.userId)
 
 		if (response.success) {
-			toast.success(`You unfollowed ${profile.displayName}`)
+			toast.success(`You unfollowed ${displayName}`)
 			onUnfollow?.(profile.userId)
 		} else {
 			toast.error(response.message || 'Failed to unfollow user')
@@ -56,7 +57,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 			<ConfirmDialog
 				open={showUnfollowConfirm}
 				onOpenChange={setShowUnfollowConfirm}
-				title={`Unfollow ${profile.displayName}?`}
+				title={`Unfollow ${displayName}?`}
 				description='This will remove them from your friends list.'
 				confirmLabel='Unfollow'
 				cancelLabel='Cancel'
@@ -85,10 +86,10 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 						>
 							<AvatarImage
 								src={profile.avatarUrl || 'https://i.pravatar.cc/96'}
-								alt={profile.displayName}
+								alt={displayName}
 							/>
 							<AvatarFallback>
-								{profile.displayName
+								{displayName
 									.split(' ')
 									.map(n => n[0])
 									.join('')
@@ -98,7 +99,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 						</Avatar>
 						<div className='flex-1'>
 							<h3 className='font-semibold text-text-primary transition-colors group-hover:text-primary'>
-								{profile.displayName}
+								{displayName}
 							</h3>
 							<p className='text-sm text-text-secondary'>@{profile.username}</p>
 							{profile.statistics && (

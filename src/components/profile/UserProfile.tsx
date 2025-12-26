@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Profile, Post } from '@/lib/types'
+import { Profile, Post, getProfileDisplayName } from '@/lib/types'
 import {
 	Clock,
 	Heart,
@@ -88,10 +88,7 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 
 	return {
 		id: profile.userId,
-		displayName:
-			profile.displayName ||
-			`${profile.firstName} ${profile.lastName}`.trim() ||
-			'Unknown User',
+		displayName: getProfileDisplayName(profile),
 		username: profile.username || 'user',
 		avatarUrl:
 			profile.avatarUrl ||
@@ -337,10 +334,11 @@ export const UserProfile = ({
 
 		if (response.success && response.data) {
 			setProfile(response.data)
+			const displayName = getProfileDisplayName(profile)
 			toast.success(
 				wasFollowing
-					? `Unfollowed ${profile.displayName}`
-					: `Now following ${profile.displayName}`,
+					? `Unfollowed ${displayName}`
+					: `Now following ${displayName}`,
 			)
 		} else {
 			// Revert optimistic update on error
@@ -369,9 +367,10 @@ export const UserProfile = ({
 	}
 
 	const handleShareProfile = () => {
+		const displayName = getProfileDisplayName(profile)
 		if (navigator.share) {
 			navigator.share({
-				title: `${profile.displayName}'s Profile`,
+				title: `${displayName}'s Profile`,
 				url: window.location.href,
 			})
 		} else {
@@ -389,13 +388,14 @@ export const UserProfile = ({
 
 	const handleBlock = async () => {
 		const wasBlocked = isBlocked
+		const displayName = getProfileDisplayName(profile)
 
 		if (wasBlocked) {
 			// Unblock
 			setIsBlocked(false)
 			const response = await unblockUser(profile.userId)
 			if (response.success) {
-				toast.success(`Unblocked ${profile.displayName}`)
+				toast.success(`Unblocked ${displayName}`)
 			} else {
 				setIsBlocked(true)
 				toast.error(response.message || 'Failed to unblock user')
@@ -408,9 +408,10 @@ export const UserProfile = ({
 
 	const handleConfirmBlock = async () => {
 		setIsBlocked(true)
+		const displayName = getProfileDisplayName(profile)
 		const response = await blockUser(profile.userId)
 		if (response.success) {
-			toast.success(`Blocked ${profile.displayName}`)
+			toast.success(`Blocked ${displayName}`)
 			// Update profile state to reflect the unfollow
 			setProfile(prev => ({
 				...prev,
@@ -428,7 +429,7 @@ export const UserProfile = ({
 			<ConfirmDialog
 				open={showBlockConfirm}
 				onOpenChange={setShowBlockConfirm}
-				title={`Block ${profile.displayName}?`}
+				title={`Block ${getProfileDisplayName(profile)}?`}
 				description='This will remove any follow relationships between you, hide their content from you, and hide your content from them. You can unblock them later from Settings.'
 				confirmLabel='Block'
 				cancelLabel='Cancel'

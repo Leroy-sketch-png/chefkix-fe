@@ -85,6 +85,9 @@ export const RightSidebar = () => {
 	} | null>(null)
 
 	useEffect(() => {
+		// Don't fetch until user is authenticated
+		if (!user) return
+
 		const fetchData = async () => {
 			try {
 				// Fetch daily challenge, profile suggestions, and session history in parallel
@@ -128,7 +131,7 @@ export const RightSidebar = () => {
 		}
 
 		fetchData()
-	}, [user?.userId])
+	}, [user]) // Re-fetch when user changes (login/logout)
 
 	const handleFollow = (userId: string) => {
 		setFollowedIds(prev =>

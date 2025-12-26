@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getFollowing } from '@/services/social'
-import { Profile } from '@/lib/types'
+import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Loader2, AtSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -92,12 +92,15 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 				const response = await getFollowing()
 				if (response.success && response.data) {
 					setSuggestions(
-						response.data.map((profile: Profile) => ({
-							userId: profile.userId,
-							displayName: profile.displayName,
-							avatarUrl: profile.avatarUrl,
-							username: profile.displayName?.toLowerCase().replace(/\s+/g, ''),
-						})),
+						response.data.map((profile: Profile) => {
+							const displayName = getProfileDisplayName(profile)
+							return {
+								userId: profile.userId,
+								displayName,
+								avatarUrl: profile.avatarUrl,
+								username: displayName.toLowerCase().replace(/\s+/g, ''),
+							}
+						}),
 					)
 				}
 			} catch {

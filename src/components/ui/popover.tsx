@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils'
  */
 
 const popoverVariants = cva(
-	'z-50 rounded-radius border border-border bg-panel-bg shadow-lg outline-none animate-in fade-in-0 zoom-in-95',
+	'z-popover rounded-radius border border-border bg-panel-bg shadow-lg outline-none animate-in fade-in-0 zoom-in-95',
 	{
 		variants: {
 			side: {

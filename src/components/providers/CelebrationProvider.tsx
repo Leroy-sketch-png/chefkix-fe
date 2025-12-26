@@ -623,7 +623,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 
 			{/* Streak Milestone Card (shown as modal overlay) */}
 			{streakMilestoneOpen && streakMilestoneData && (
-				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-6'>
+				<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm p-6'>
 					<div className='w-full max-w-md'>
 						<StreakMilestoneCard
 							days={streakMilestoneData.days}

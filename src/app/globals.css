@@ -333,13 +333,26 @@
 	--card-image-height: 200px; /* Standard card image height */
 	--banner-min-height: 320px; /* Challenge/promo banners */
 
-	/* Z-index scale */
+	/* Z-index scale - HIERARCHY (lower = behind, higher = in front)
+	 * CRITICAL: Modals must use HIGH values (9000+) because CSS properties
+	 * like backdrop-blur, transform, filter create new stacking contexts.
+	 * Even z-1000 can appear BEHIND content with these properties.
+	 *
+	 * Content: 1-49 (cards, images, overlays within cards)
+	 * Dropdowns: 100 (menus, selects - above content)
+	 * Sticky: 200 (headers, nav bars - above dropdowns on scroll)
+	 * Popover: 500 (hover cards, context menus)
+	 * Modal backdrop + content: 9000 (MUST be high - above ALL stacking contexts)
+	 * Notification: 9500 (toasts - above modals)
+	 * Tooltip: 9900 (highest - always visible above everything)
+	 */
 	--z-base: 1;
-	--z-dropdown: 50;
-	--z-sticky: 100;
-	--z-modal: 1000;
-	--z-notification: 1100;
-	--z-tooltip: 1200;
+	--z-dropdown: 100;
+	--z-sticky: 200;
+	--z-popover: 500;
+	--z-modal: 9000;
+	--z-notification: 9500;
+	--z-tooltip: 9900;
 
 	/* Elevated surface tokens */
 	--bg-elev: var(--bg-elevated);

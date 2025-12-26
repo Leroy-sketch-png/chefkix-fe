@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Profile } from '@/lib/types'
+import { Profile, getProfileDisplayName } from '@/lib/types'
 import { getProfileByUserId } from '@/services/profile'
 import {
 	Popover,
@@ -55,6 +55,7 @@ export const UserHoverCard = ({
 	}
 
 	const isOwnProfile = userId === currentUserId
+	const displayName = getProfileDisplayName(profile)
 
 	return (
 		<Popover onOpenChange={handleOpenChange}>
@@ -79,15 +80,15 @@ export const UserHoverCard = ({
 								>
 									<AvatarImage
 										src={profile.avatarUrl || 'https://i.pravatar.cc/96'}
-										alt={profile.displayName || 'User'}
+										alt={displayName}
 									/>
 									<AvatarFallback className='text-lg'>
-										{profile.displayName
-											?.split(' ')
+										{displayName
+											.split(' ')
 											.map(n => n[0])
 											.join('')
 											.toUpperCase()
-											.slice(0, 2) || 'U'}
+											.slice(0, 2)}
 									</AvatarFallback>
 								</Avatar>
 							</Link>
@@ -111,7 +112,7 @@ export const UserHoverCard = ({
 								href={`/${profile.userId}`}
 								className='block font-bold text-text-primary hover:underline'
 							>
-								{profile.displayName || 'Unknown User'}
+								{displayName}
 							</Link>
 							<div className='text-sm text-text-secondary'>
 								@{profile.username}

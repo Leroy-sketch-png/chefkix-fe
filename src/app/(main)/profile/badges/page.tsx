@@ -355,7 +355,7 @@ export default function BadgeCatalogPage() {
 	return (
 		<div className='min-h-screen bg-bg pb-20'>
 			{/* Header */}
-			<div className='sticky top-0 z-30 border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
+			<div className='sticky top-0 z-sticky border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
 				<div className='mx-auto max-w-6xl px-4 py-4'>
 					{/* Back + Title */}
 					<div className='flex items-center gap-3'>

@@ -231,7 +231,7 @@ const TimerCompleteAlert = ({
 			animate={{ opacity: 1, scale: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.9, y: 20 }}
 			transition={TRANSITION_BOUNCY}
-			className='fixed inset-x-4 bottom-24 z-50 mx-auto max-w-sm overflow-hidden rounded-2xl bg-panel-bg shadow-lg ring-2 ring-success/50 md:inset-x-auto md:right-4 md:bottom-4'
+			className='fixed inset-x-4 bottom-24 z-notification mx-auto max-w-sm overflow-hidden rounded-2xl bg-panel-bg shadow-lg ring-2 ring-success/50 md:inset-x-auto md:right-4 md:bottom-4'
 		>
 			{/* Animated background glow */}
 			<motion.div
@@ -518,7 +518,7 @@ export const MiniTimerBar = ({ timers, onClick }: MiniTimerBarProps) => {
 			exit={{ y: 100 }}
 			onClick={onClick}
 			className={cn(
-				'fixed inset-x-4 bottom-20 z-40 mx-auto flex max-w-sm items-center justify-between rounded-full px-4 py-3 shadow-lg md:inset-x-auto md:right-4 md:bottom-4',
+				'fixed inset-x-4 bottom-20 z-sticky mx-auto flex max-w-sm items-center justify-between rounded-full px-4 py-3 shadow-lg md:inset-x-auto md:right-4 md:bottom-4',
 				urgent ? 'bg-error text-white' : 'bg-brand text-white',
 			)}
 		>

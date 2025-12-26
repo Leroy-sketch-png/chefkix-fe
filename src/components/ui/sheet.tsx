@@ -46,7 +46,7 @@ import { Button } from '@/components/ui/button'
  */
 
 const sheetVariants = cva(
-	'fixed z-50 bg-panel-bg shadow-lg transition-transform duration-300 ease-in-out',
+	'fixed z-modal bg-panel-bg shadow-lg transition-transform duration-300 ease-in-out',
 	{
 		variants: {
 			side: {
@@ -181,7 +181,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 			<>
 				{/* Backdrop */}
 				<div
-					className='fixed inset-0 z-40 bg-black/50 transition-opacity duration-300'
+					className='fixed inset-0 z-modal bg-black/50 transition-opacity duration-300'
 					onClick={() => onOpenChange(false)}
 					aria-hidden='true'
 				/>

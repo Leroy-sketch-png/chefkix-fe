@@ -6,6 +6,7 @@ import {
 	UpdatePostRequest,
 	ToggleLikeResponse,
 	PostWithXpResponse,
+	Page,
 } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
@@ -238,13 +239,32 @@ export const getPostsByUser = async (
 ): Promise<ApiResponse<Post[]>> => {
 	try {
 		const backendParams = toBackendPagination(params) ?? params
-		const response = await api.get<ApiResponse<Post[]>>(
+		// Backend returns Page<Post>, not Post[]
+		const response = await api.get<ApiResponse<Page<Post> | Post[]>>(
 			API_ENDPOINTS.POST.GET_FEED(userId),
 			{
 				params: backendParams,
 			},
 		)
-		return response.data
+
+		// Handle both Page<Post> (with .content) and Post[] (direct array) responses
+		const data = response.data.data
+		let posts: Post[] = []
+
+		if (data) {
+			if (Array.isArray(data)) {
+				// Already an array
+				posts = data
+			} else if ('content' in data && Array.isArray(data.content)) {
+				// Page response - extract content array
+				posts = data.content
+			}
+		}
+
+		return {
+			...response.data,
+			data: posts,
+		}
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) {

@@ -71,3 +71,35 @@ export interface Profile {
 	aiGenerationsRemaining?: number // Resets daily, default 30
 	aiQuotaResetAt?: string // ISO8601, next reset timestamp
 }
+
+/**
+ * Get a human-readable display name for a profile.
+ * Uses displayName, falls back to firstName + lastName, then username, then "Unknown User".
+ *
+ * CRITICAL: Per signup flow, users have firstName, lastName, username, email.
+ * displayName is OPTIONAL and often empty. Always use this helper in toasts/messages.
+ */
+export const getProfileDisplayName = (
+	profile: Profile | null | undefined,
+): string => {
+	if (!profile) return 'Unknown User'
+
+	// 1. Try displayName if it exists and is non-empty
+	if (profile.displayName?.trim()) {
+		return profile.displayName.trim()
+	}
+
+	// 2. Try firstName + lastName
+	const fullName = `${profile.firstName ?? ''} ${profile.lastName ?? ''}`.trim()
+	if (fullName) {
+		return fullName
+	}
+
+	// 3. Fall back to username
+	if (profile.username?.trim()) {
+		return profile.username.trim()
+	}
+
+	// 4. Last resort
+	return 'Unknown User'
+}

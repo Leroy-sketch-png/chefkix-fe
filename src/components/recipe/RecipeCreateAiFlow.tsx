@@ -58,6 +58,7 @@ import { toast } from 'sonner'
 import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
 import { Recipe } from '@/lib/types/recipe'
 import type { Difficulty } from '@/lib/types/gamification'
+import { resolveBadge } from '@/lib/data/badgeRegistry'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -234,6 +235,111 @@ const mapBackendErrorToEnglish = (message: string): string => {
 }
 
 // ============================================
+// HELPER: Smart Recalculation Detection (30% threshold)
+// ============================================
+
+/**
+ * Calculates the percentage of change between original and current recipe.
+ * Only considers XP-affecting content: ingredients and steps.
+ * Typo fixes (small text changes) don't count.
+ *
+ * @returns A number 0-100 representing the % of change
+ */
+const calculateRecipeChangePercent = (
+	original: ParsedRecipe | null,
+	current: ParsedRecipe | null,
+): number => {
+	if (!original || !current) return 0
+
+	let totalWeight = 0
+	let changedWeight = 0
+
+	// --- INGREDIENTS COMPARISON (40% of total weight) ---
+	const origIngredients = original.ingredients || []
+	const currIngredients = current.ingredients || []
+	const ingredientWeight = 40
+	totalWeight += ingredientWeight
+
+	// Calculate ingredient change: additions, deletions, and name changes
+	const origIngNames = new Set(
+		origIngredients.map(i => i.name.toLowerCase().trim()),
+	)
+	const currIngNames = new Set(
+		currIngredients.map(i => i.name.toLowerCase().trim()),
+	)
+
+	// Count added and removed
+	const addedIngs = [...currIngNames].filter(n => !origIngNames.has(n)).length
+	const removedIngs = [...origIngNames].filter(n => !currIngNames.has(n)).length
+	const totalIngChanges = addedIngs + removedIngs
+
+	// If all ingredients changed or completely different, full weight
+	const maxIngChanges = Math.max(
+		origIngredients.length,
+		currIngredients.length,
+		1,
+	)
+	const ingChangeRatio = Math.min(totalIngChanges / maxIngChanges, 1)
+	changedWeight += ingredientWeight * ingChangeRatio
+
+	// --- STEPS COMPARISON (60% of total weight) ---
+	const origSteps = original.steps || []
+	const currSteps = current.steps || []
+	const stepWeight = 60
+	totalWeight += stepWeight
+
+	// Step count change (adding/removing steps is significant)
+	const stepCountDiff = Math.abs(currSteps.length - origSteps.length)
+	const stepCountWeight = stepWeight * 0.4 // 40% of step weight is for count changes
+	const maxStepCount = Math.max(origSteps.length, currSteps.length, 1)
+	changedWeight += stepCountWeight * Math.min(stepCountDiff / maxStepCount, 1)
+
+	// Step content change (reordering or changing instructions)
+	// Only count substantial instruction changes, not typo fixes
+	const stepContentWeight = stepWeight * 0.6 // 60% of step weight is for content
+	let substantialStepChanges = 0
+
+	// Compare step by step (using Jaccard similarity on words)
+	const minSteps = Math.min(origSteps.length, currSteps.length)
+	for (let i = 0; i < minSteps; i++) {
+		const origWords = new Set(
+			origSteps[i].instruction
+				.toLowerCase()
+				.split(/\s+/)
+				.filter(w => w.length > 2),
+		)
+		const currWords = new Set(
+			currSteps[i].instruction
+				.toLowerCase()
+				.split(/\s+/)
+				.filter(w => w.length > 2),
+		)
+
+		// Jaccard similarity
+		const intersection = [...origWords].filter(w => currWords.has(w)).length
+		const union = new Set([...origWords, ...currWords]).size
+		const similarity = union > 0 ? intersection / union : 1
+
+		// Consider it a substantial change if less than 50% similar
+		if (similarity < 0.5) {
+			substantialStepChanges++
+		}
+	}
+
+	// Add weight for steps that don't exist in one version (already counted in stepCountDiff)
+	changedWeight +=
+		stepContentWeight * Math.min(substantialStepChanges / maxStepCount, 1)
+
+	return Math.round((changedWeight / totalWeight) * 100)
+}
+
+/**
+ * Threshold for triggering recalculation.
+ * Typo fixes = ~5-10% change, substantial edits = 30%+
+ */
+const RECALCULATION_THRESHOLD = 30
+
+// ============================================
 // HELPER: Transform API response to local types
 // ============================================
 
@@ -393,7 +499,7 @@ const ParsingOverlay = ({ currentStep }: { currentStep: number }) => {
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm'
+			className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm'
 		>
 			<motion.div
 				initial={{ scale: 0.9, opacity: 0 }}
@@ -838,7 +944,7 @@ const XpPreviewModal = ({
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'
+			className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'
 		>
 			<motion.div
 				initial={{ scale: 0.9, opacity: 0 }}
@@ -1093,13 +1199,24 @@ export const RecipeCreateAiFlow = ({
 	const [isSaving, setIsSaving] = useState(false)
 	const [isPublishing, setIsPublishing] = useState(false)
 	const [isCalculatingXp, setIsCalculatingXp] = useState(false)
-	// Track if user has edited the recipe (to know if we need to recalculate XP)
-	const [hasEdited, setHasEdited] = useState(false)
+	// Original recipe state for smart recalculation detection (30% threshold)
+	const [originalRecipe, setOriginalRecipe] = useState<ParsedRecipe | null>(
+		null,
+	)
+	// Track if user manually triggered need for recalculation (for manual entry mode)
+	const [forceRecalculate, setForceRecalculate] = useState(false)
 	// Track previous step order to detect no-op reorders
 	const [prevStepIds, setPrevStepIds] = useState<string[]>([])
 	// Cover image upload
 	const coverImageRef = React.useRef<HTMLInputElement>(null)
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
+
+	// Compute if recalculation is needed based on 30% change threshold
+	const changePercent = calculateRecipeChangePercent(originalRecipe, recipe)
+	const needsRecalculation =
+		forceRecalculate || changePercent >= RECALCULATION_THRESHOLD
+	// For backwards compatibility, hasEdited is now computed
+	const hasEdited = needsRecalculation
 
 	// Load initialDraft when provided (from draft listing)
 	useEffect(() => {
@@ -1129,15 +1246,21 @@ export const RecipeCreateAiFlow = ({
 					imageUrl: step.imageUrl,
 				})),
 				skillTags: initialDraft.skillTags || [],
-				detectedBadges: (initialDraft.rewardBadges || []).map(b => ({
-					emoji: '🏆',
-					name: b,
-				})),
+				detectedBadges: (initialDraft.rewardBadges || []).map(b => {
+					// Look up badge in registry to get proper emoji
+					const resolved = resolveBadge(b)
+					return {
+						emoji: resolved?.icon || '🏆',
+						name: b,
+					}
+				}),
 				xpReward: initialDraft.xpReward,
 				difficultyMultiplier: initialDraft.difficultyMultiplier,
 			}
 
 			setRecipe(parsedRecipe)
+			// Store original for smart recalculation detection (30% threshold)
+			setOriginalRecipe(structuredClone(parsedRecipe))
 			setDraftId(initialDraft.id)
 			setStep('preview')
 
@@ -1366,6 +1489,8 @@ export const RecipeCreateAiFlow = ({
 				if (parsed) {
 					console.debug('[RecipeCreateAiFlow] Transform success:', parsed.title)
 					setRecipe(parsed)
+					// Store original for smart recalculation detection (30% threshold)
+					setOriginalRecipe(structuredClone(parsed))
 					// Save initial step order for smart reorder detection
 					setPrevStepIds(parsed.steps.map(s => s.id))
 					setStep('preview')
@@ -1744,7 +1869,6 @@ export const RecipeCreateAiFlow = ({
 
 	const removeIngredient = (id: string) => {
 		if (!recipe) return
-		setHasEdited(true)
 		setRecipe({
 			...recipe,
 			ingredients: (recipe.ingredients || []).filter(i => i.id !== id),
@@ -1753,7 +1877,6 @@ export const RecipeCreateAiFlow = ({
 
 	const addIngredient = () => {
 		if (!recipe) return
-		setHasEdited(true)
 		const newId = `ing-${Date.now()}`
 		setRecipe({
 			...recipe,
@@ -1766,7 +1889,6 @@ export const RecipeCreateAiFlow = ({
 
 	const updateIngredient = (id: string, updates: Partial<Ingredient>) => {
 		if (!recipe) return
-		setHasEdited(true)
 		setRecipe({
 			...recipe,
 			ingredients: (recipe.ingredients || []).map(i =>
@@ -1777,7 +1899,6 @@ export const RecipeCreateAiFlow = ({
 
 	const removeStep = (id: string) => {
 		if (!recipe) return
-		setHasEdited(true)
 		setRecipe({
 			...recipe,
 			steps: (recipe.steps || []).filter(s => s.id !== id),
@@ -1786,7 +1907,6 @@ export const RecipeCreateAiFlow = ({
 
 	const addStep = () => {
 		if (!recipe) return
-		setHasEdited(true)
 		const newId = `step-${Date.now()}`
 		setRecipe({
 			...recipe,
@@ -1796,7 +1916,6 @@ export const RecipeCreateAiFlow = ({
 
 	const updateStep = (id: string, updates: Partial<RecipeStep>) => {
 		if (!recipe) return
-		setHasEdited(true)
 		setRecipe({
 			...recipe,
 			steps: (recipe.steps || []).map(s =>
@@ -1968,7 +2087,8 @@ export const RecipeCreateAiFlow = ({
 											setRecipe(parsed)
 											// Save initial step order for smart reorder detection
 											setPrevStepIds((parsed.steps || []).map(s => s.id))
-											setHasEdited(true) // Manual = needs XP calculation
+											// Manual entry always needs XP calculation (no AI baseline)
+											setForceRecalculate(true)
 											setStep('preview')
 											toast.success('Recipe ready for review!', {
 												description: 'Preview XP calculation before publishing',
@@ -2045,14 +2165,16 @@ export const RecipeCreateAiFlow = ({
 										Recipe parsed successfully!
 									</strong>
 									<span className='block text-xs text-muted-foreground'>
-										{hasEdited
-											? 'You made edits — click Preview XP to recalculate'
-											: 'Review and edit below, then publish'}
+										{needsRecalculation
+											? `Significant changes detected (${changePercent}%) — recalculate XP`
+											: changePercent > 0
+												? `Minor edits (${changePercent}%) — no recalculation needed`
+												: 'Review and edit below, then publish'}
 									</span>
 								</div>
 							</div>
 							{/* Show XP badge immediately if we have it from AI */}
-							{recipe.xpReward && !hasEdited && (
+							{recipe.xpReward && !needsRecalculation && (
 								<motion.div
 									initial={{ opacity: 0, scale: 0.8 }}
 									animate={{ opacity: 1, scale: 1 }}
@@ -2157,7 +2279,6 @@ export const RecipeCreateAiFlow = ({
 									type='text'
 									value={recipe.title}
 									onChange={e => {
-										setHasEdited(true)
 										setRecipe({ ...recipe, title: e.target.value })
 									}}
 									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text focus:border-primary focus:outline-none'
@@ -2172,7 +2293,6 @@ export const RecipeCreateAiFlow = ({
 								<textarea
 									value={recipe.description}
 									onChange={e => {
-										setHasEdited(true)
 										setRecipe({ ...recipe, description: e.target.value })
 									}}
 									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
@@ -2188,7 +2308,6 @@ export const RecipeCreateAiFlow = ({
 										type='text'
 										value={recipe.cookTime}
 										onChange={e => {
-											setHasEdited(true)
 											setRecipe({ ...recipe, cookTime: e.target.value })
 										}}
 										className='w-20 border-none bg-transparent text-xs font-semibold text-text focus:outline-none'
@@ -2215,7 +2334,6 @@ export const RecipeCreateAiFlow = ({
 										max={50}
 										value={recipe.servings}
 										onChange={e => {
-											setHasEdited(true)
 											setRecipe({
 												...recipe,
 												servings: parseInt(e.target.value) || 1,
@@ -2234,7 +2352,6 @@ export const RecipeCreateAiFlow = ({
 										type='text'
 										value={recipe.cuisine}
 										onChange={e => {
-											setHasEdited(true)
 											setRecipe({ ...recipe, cuisine: e.target.value })
 										}}
 										className='w-24 border-none bg-transparent text-xs font-semibold text-text focus:outline-none'
@@ -2322,12 +2439,7 @@ export const RecipeCreateAiFlow = ({
 								axis='y'
 								values={recipe.steps || []}
 								onReorder={newSteps => {
-									// Smart reorder detection: only mark as edited if order actually changed from original
-									const newStepIds = newSteps.map(s => s.id).join(',')
-									const originalStepIds = prevStepIds.join(',')
-									if (newStepIds !== originalStepIds) {
-										setHasEdited(true)
-									}
+									// Simply update the step order - smart recalculation handles detection
 									setRecipe({
 										...recipe,
 										steps: newSteps,

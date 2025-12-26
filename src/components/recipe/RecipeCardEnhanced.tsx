@@ -36,6 +36,7 @@ import {
 // ============================================
 
 import type { Difficulty } from '@/lib/types/gamification'
+import { resolveBadgesWithFallback } from '@/lib/data/badgeRegistry'
 
 interface RecipeAuthor {
 	id: string
@@ -300,29 +301,16 @@ const SkillTagsRow = ({
 	)
 }
 
-// Badge emoji mapping (memoized outside component to avoid recomputation)
-const BADGE_EMOJI_PATTERNS: [string[], string][] = [
-	[['first'], '🌟'],
-	[['pasta', 'noodle'], '🍝'],
-	[['spice', 'hot', 'chili'], '🌶️'],
-	[['master', 'expert'], '👑'],
-	[['speed', 'quick', 'fast'], '⚡'],
-	[['healthy', 'green', 'salad'], '🥗'],
-	[['dessert', 'sweet', 'cake'], '🍰'],
-	[['grill', 'bbq', 'smoke'], '🔥'],
-	[['asian', 'wok', 'stir'], '🥢'],
-	[['baker', 'bread', 'bake'], '🥖'],
-]
-
-const getBadgeEmoji = (badge: string): string => {
-	const lower = badge.toLowerCase()
-	for (const [patterns, emoji] of BADGE_EMOJI_PATTERNS) {
-		if (patterns.some(p => lower.includes(p))) return emoji
-	}
-	return '🏆'
+// Rarity-based badge styling (matches design system)
+const RARITY_STYLES: Record<string, string> = {
+	COMMON: 'bg-border/50 text-text-secondary',
+	UNCOMMON: 'bg-success/15 text-success',
+	RARE: 'bg-info/15 text-info',
+	EPIC: 'bg-purple-500/15 text-purple-500',
+	LEGENDARY: 'bg-gold/20 text-gold',
 }
 
-// Badge preview - shows badges you can unlock
+// Badge preview - shows badges you can unlock (uses proper badge registry)
 const BadgePreview = ({
 	badges,
 	maxVisible = 2,
@@ -332,8 +320,10 @@ const BadgePreview = ({
 }) => {
 	if (!badges || badges.length === 0) return null
 
-	const visibleBadges = badges.slice(0, maxVisible)
-	const remaining = badges.length - maxVisible
+	// Resolve badge names to full badge objects with metadata
+	const resolvedBadges = resolveBadgesWithFallback(badges)
+	const visibleBadges = resolvedBadges.slice(0, maxVisible)
+	const remaining = resolvedBadges.length - maxVisible
 
 	return (
 		<div className='flex items-center gap-1'>
@@ -341,12 +331,15 @@ const BadgePreview = ({
 			<div className='flex items-center gap-1'>
 				{visibleBadges.map(badge => (
 					<span
-						key={badge}
-						className='flex items-center gap-1 rounded-full bg-gold/15 px-2 py-0.5 text-2xs font-medium text-gold'
-						title={badge}
+						key={badge.id}
+						className={cn(
+							'flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-medium',
+							RARITY_STYLES[badge.rarity] || RARITY_STYLES.COMMON,
+						)}
+						title={`${badge.name} (${badge.rarity})`}
 					>
-						<span>{getBadgeEmoji(badge)}</span>
-						<span className='max-w-16 truncate'>{badge}</span>
+						<span>{badge.icon}</span>
+						<span className='max-w-16 truncate'>{badge.name}</span>
 					</span>
 				))}
 				{remaining > 0 && (
