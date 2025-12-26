@@ -17,15 +17,31 @@ import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { Stories } from '@/components/social/Stories'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import { Users, MessageSquare, Home, Sparkles } from 'lucide-react'
-import Link from 'next/link'
+import {
+	Users,
+	MessageSquare,
+	Home,
+	Sparkles,
+	TrendingUp,
+	Clock,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
 import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
+import { ResumeCookingBanner } from '@/components/cooking'
+import { SinceLastVisitCard } from '@/components/dashboard'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+
+// ============================================
+// TYPES
+// ============================================
+
+type FeedMode = 'latest' | 'trending'
 
 // ============================================
 // HELPERS
@@ -83,12 +99,19 @@ export default function DashboardPage() {
 	const [error, setError] = useState<string | null>(null)
 	const [showStreakBanner, setShowStreakBanner] = useState(true)
 	const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([])
+	const [feedMode, setFeedMode] = useState<FeedMode>('latest')
 
-	// TODO: Fetch streak status from API - check if user has cooked today
-	const hasStreakAtRisk =
-		user?.statistics?.streakCount && user.statistics.streakCount > 0
-	const hoursUntilMidnight = 24 - new Date().getHours()
-	const isUrgent = hoursUntilMidnight <= 2
+	// Filter out posts from blocked users
+	const filteredPosts = useFilterBlockedContent(posts)
+
+	// Streak at risk = has active streak AND hasn't cooked within window
+	// Backend computes cookedToday (within 72h window) and hoursUntilStreakBreaks
+	const stats = user?.statistics
+	const hasActiveStreak = (stats?.streakCount ?? 0) > 0
+	const hasStreakAtRisk = hasActiveStreak && !stats?.cookedToday
+	const hoursUntilBreak = stats?.hoursUntilStreakBreaks ?? 0
+	const isUrgent =
+		hasStreakAtRisk && hoursUntilBreak > 0 && hoursUntilBreak <= 2
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -98,7 +121,7 @@ export default function DashboardPage() {
 			try {
 				// Fetch feed posts and pending sessions in parallel
 				const [feedResponse, pendingResponse] = await Promise.all([
-					getFeedPosts({ limit: 20 }),
+					getFeedPosts({ limit: 20, mode: feedMode }),
 					getPendingSessions(),
 				])
 
@@ -119,7 +142,7 @@ export default function DashboardPage() {
 		}
 
 		fetchData()
-	}, [])
+	}, [feedMode])
 
 	const handlePostCreated = (newPost: Post) => {
 		setPosts(prev => (Array.isArray(prev) ? [newPost, ...prev] : [newPost]))
@@ -154,11 +177,15 @@ export default function DashboardPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Streak Risk Banner - Show when user has a streak but hasn't cooked today */}
+				{/* Since Last Visit Summary - Welcome back card with activity summary */}
+				<SinceLastVisitCard className='mb-4' />
+				{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
+				<ResumeCookingBanner className='mb-4' />
+				{/* Streak Risk Banner - Show when user has a streak but hasn't cooked within window */}
 				{hasStreakAtRisk && showStreakBanner && (
 					<StreakRiskBanner
-						currentStreak={user.statistics?.streakCount ?? 0}
-						timeRemaining={{ hours: hoursUntilMidnight, minutes: 0 }}
+						currentStreak={stats?.streakCount ?? 0}
+						timeRemaining={{ hours: hoursUntilBreak, minutes: 0 }}
 						isUrgent={isUrgent}
 						onQuickCook={() => router.push('/explore')}
 						onDismiss={() => setShowStreakBanner(false)}
@@ -171,7 +198,7 @@ export default function DashboardPage() {
 						sessions={pendingSessions}
 						onPost={handlePostFromPending}
 						onDismiss={handleDismissPending}
-						onViewAll={() => router.push('/settings?tab=cooking-history')}
+						onViewAll={() => router.push(`/${user?.userId}?tab=cooking`)}
 						className='mb-4'
 					/>
 				)}
@@ -203,6 +230,33 @@ export default function DashboardPage() {
 						cooking
 					</p>
 				</motion.div>
+				{/* Feed Mode Tabs */}
+				<div className='mb-4 flex gap-2'>
+					<button
+						onClick={() => setFeedMode('latest')}
+						className={cn(
+							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+							feedMode === 'latest'
+								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+						)}
+					>
+						<Clock className='size-4' />
+						Latest
+					</button>
+					<button
+						onClick={() => setFeedMode('trending')}
+						className={cn(
+							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+							feedMode === 'trending'
+								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+						)}
+					>
+						<TrendingUp className='size-4' />
+						Trending
+					</button>
+				</div>
 				{/* Create Post Form */}
 				<div className='mb-4 md:mb-6'>
 					<CreatePostForm
@@ -231,7 +285,7 @@ export default function DashboardPage() {
 						onRetry={() => window.location.reload()}
 					/>
 				)}
-				{!isLoading && !error && posts.length === 0 && (
+				{!isLoading && !error && filteredPosts.length === 0 && (
 					<EmptyStateGamified
 						variant='feed'
 						title='Your feed is empty'
@@ -254,10 +308,10 @@ export default function DashboardPage() {
 						]}
 					/>
 				)}
-				{!isLoading && !error && posts.length > 0 && (
+				{!isLoading && !error && filteredPosts.length > 0 && (
 					<StaggerContainer className='space-y-4 md:space-y-6'>
 						<AnimatePresence mode='popLayout'>
-							{posts.map(post => (
+							{filteredPosts.map(post => (
 								<PostCard
 									key={post.id}
 									post={post}

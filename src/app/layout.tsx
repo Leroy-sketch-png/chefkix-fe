@@ -9,6 +9,8 @@ import { AuthProvider } from '@/components/providers/AuthProvider'
 import { TokenRefreshProvider } from '@/components/providers/TokenRefreshProvider'
 import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
 import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
+import { NetworkStatusProvider } from '@/components/providers/NetworkStatusProvider'
+import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvider'
 import { Toaster } from '@/components/ui/toaster'
 
 // Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
@@ -94,10 +96,13 @@ export default function RootLayout({
 				<GoogleOAuthWrapper>
 					<AuthProvider>
 						<TokenRefreshProvider>
-							<CelebrationProvider>{children}</CelebrationProvider>
+							<BlockedUsersProvider>
+								<CelebrationProvider>{children}</CelebrationProvider>
+							</BlockedUsersProvider>
 						</TokenRefreshProvider>
 					</AuthProvider>
 				</GoogleOAuthWrapper>
+				<NetworkStatusProvider />
 				<Toaster position='top-right' maxToasts={5} />
 			</body>
 		</html>

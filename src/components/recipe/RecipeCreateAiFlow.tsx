@@ -645,9 +645,11 @@ const StepItem = ({
 				{/* Step Image */}
 				{step.imageUrl ? (
 					<div className='relative'>
-						<img
+						<Image
 							src={step.imageUrl}
 							alt={`Step ${index + 1}`}
+							width={400}
+							height={128}
 							className={cn(
 								'h-32 w-full rounded-lg object-cover',
 								isUploadingImage && 'opacity-60',

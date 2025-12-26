@@ -17,7 +17,6 @@ import {
 	Trophy,
 	Flame,
 	Star,
-	ArrowLeft,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -34,6 +33,7 @@ import {
 	markNotificationRead,
 	type Notification as APINotification,
 } from '@/services/notification'
+import { useNotificationStore } from '@/store/notificationStore'
 import {
 	NotificationItemGamified,
 	type GamifiedNotification,
@@ -366,6 +366,7 @@ const SocialNotificationItem = ({
 export default function NotificationsPage() {
 	const { user } = useAuth()
 	const router = useRouter()
+	const { setUnreadCount, fetchUnreadCount } = useNotificationStore()
 
 	const [gamifiedNotifications, setGamifiedNotifications] = useState<
 		GamifiedNotification[]
@@ -377,7 +378,7 @@ export default function NotificationsPage() {
 	const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
 	const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all')
 
-	// Fetch notifications
+	// Fetch notifications and sync unread count
 	useEffect(() => {
 		const fetchNotifications = async () => {
 			setIsLoading(true)
@@ -434,6 +435,8 @@ export default function NotificationsPage() {
 					prev.map(n => ({ ...n, isRead: true })),
 				)
 				setSocialNotifications(prev => prev.map(n => ({ ...n, read: true })))
+				// Update the notification badge count
+				setUnreadCount(0)
 			}
 		} catch (err) {
 			console.error('Failed to mark all as read:', err)
@@ -444,6 +447,13 @@ export default function NotificationsPage() {
 
 	// Mark single notification as read
 	const handleMarkRead = async (id: string) => {
+		// Check if notification is already read before marking
+		const isGamifiedUnread = gamifiedNotifications.find(
+			n => n.id === id && !n.isRead,
+		)
+		const isSocialUnread = socialNotifications.find(n => n.id === id && !n.read)
+		const wasUnread = isGamifiedUnread || isSocialUnread
+
 		try {
 			await markNotificationRead(id)
 			setGamifiedNotifications(prev =>
@@ -452,6 +462,10 @@ export default function NotificationsPage() {
 			setSocialNotifications(prev =>
 				prev.map(n => (n.id === id ? { ...n, read: true } : n)),
 			)
+			// Decrement badge count if it was unread
+			if (wasUnread) {
+				fetchUnreadCount() // Re-fetch to get accurate count
+			}
 		} catch (err) {
 			console.error('Failed to mark notification as read:', err)
 		}
@@ -487,7 +501,7 @@ export default function NotificationsPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Header - Secondary page pattern with back button */}
+				{/* Header - PRIMARY page (in LeftSidebar), no back button */}
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
@@ -496,13 +510,6 @@ export default function NotificationsPage() {
 				>
 					<div className='mb-2 flex items-center justify-between'>
 						<div className='flex items-center gap-3'>
-							{/* Back button - Notifications is accessed via Topbar, not primary nav */}
-							<button
-								onClick={() => router.back()}
-								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-							>
-								<ArrowLeft className='size-5' />
-							</button>
 							<motion.div
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}

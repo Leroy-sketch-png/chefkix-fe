@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
+import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -125,6 +126,14 @@ export const CookingPanel = () => {
 
 	// Exit confirmation dialog state
 	const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+	// Warn before browser exit during active cooking
+	const hasActiveSession =
+		session?.status === 'in_progress' && cookingMode !== 'hidden'
+	useBeforeUnloadWarning(
+		hasActiveSession,
+		'You have an active cooking session. Progress will be saved but timers will reset.',
+	)
 
 	// Derive state (always compute, even if we won't render)
 	const currentStepNumber = session?.currentStep ?? 1

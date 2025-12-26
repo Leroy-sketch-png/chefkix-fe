@@ -124,6 +124,7 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 type UserProfileProps = {
 	profile: Profile
 	currentUserId?: string // Make currentUserId optional
+	initialTab?: string // Support deep linking via ?tab= query param
 }
 
 // ============================================
@@ -187,10 +188,11 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 export const UserProfile = ({
 	profile: initialProfile,
 	currentUserId,
+	initialTab,
 }: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
 	const [isLoading, setIsLoading] = useState(false)
-	const [activeTab, setActiveTab] = useState('recipes')
+	const [activeTab, setActiveTab] = useState(initialTab || 'recipes')
 	const [userRecipes, setUserRecipes] = useState<Recipe[]>([])
 	const [isLoadingRecipes, setIsLoadingRecipes] = useState(false)
 	const [userPosts, setUserPosts] = useState<Post[]>([])
@@ -603,6 +605,10 @@ export const UserProfile = ({
 								router.push(`/recipes/${session.recipeId}/cook`)
 							}
 						}}
+						onCookAgain={recipeId => {
+							// Navigate to recipe with auto-start cooking
+							router.push(`/recipes/${recipeId}?cook=true`)
+						}}
 					/>
 				)}
 
@@ -698,9 +704,9 @@ export const UserProfile = ({
 								</div>
 							) : (
 								<div className='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'>
-									{profileUser.badges.map(badge => (
+									{profileUser.badges.map((badge, index) => (
 										<div
-											key={badge.id}
+											key={badge.id || `badge-${index}`}
 											className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-md'
 										>
 											<span className='text-3xl'>{badge.icon}</span>

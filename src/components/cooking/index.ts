@@ -11,3 +11,4 @@ export {
 	type ActiveTimer,
 	type RecipeSummary,
 } from './PauseFlow'
+export { ResumeCookingBanner } from './ResumeCookingBanner'

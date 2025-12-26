@@ -271,9 +271,9 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 			</div>
 
 			<div className='flex gap-3 overflow-x-auto pb-1 scrollbar-hide'>
-				{badges.map(badge => (
+				{badges.map((badge, index) => (
 					<motion.div
-						key={badge.id}
+						key={badge.id || `creator-badge-${index}`}
 						whileHover={
 							badge.isEarned
 								? { ...LIST_ITEM_HOVER, ...STAT_ITEM_HOVER }

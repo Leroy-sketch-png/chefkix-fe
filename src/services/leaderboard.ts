@@ -32,6 +32,7 @@ export interface MyRank {
 	xpThisWeek: number
 	xpToNextRank?: number
 	nextRankPosition?: number
+	recipesCooked?: number // User's total completed cooking sessions
 }
 
 export interface LeaderboardResponse {

@@ -481,7 +481,7 @@ export default function BadgeCatalogPage() {
 									earnedBadgeIds.has(badge.name.toLowerCase())
 								return (
 									<motion.div
-										key={badge.id}
+										key={badge.id || `badge-${index}`}
 										layout
 										initial={{ opacity: 0, y: 20 }}
 										animate={{ opacity: 1, y: 0 }}

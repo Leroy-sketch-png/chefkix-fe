@@ -81,12 +81,12 @@ export const AchievementBadge = ({
 
 				{/* Shine Animation */}
 				{unlocked && (
-					<div className='absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
+					<div className='pointer-events-none absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
 				)}
 
 				{/* Legendary Glow */}
 				{unlocked && rarity === 'legendary' && (
-					<div className='absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_2s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,210,74,0.4),transparent_70%)]' />
+					<div className='pointer-events-none absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_2s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,210,74,0.4),transparent_70%)]' />
 				)}
 			</div>
 			{/* Badge Info */}
@@ -208,12 +208,12 @@ export const AchievementModal = ({
 					)}
 				>
 					{/* Background Glow */}
-					<div className='absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,255,255,0.3),transparent_70%)]' />
+					<div className='pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,255,255,0.3),transparent_70%)]' />
 
 					{/* Badge Icon */}
 					<div className='relative mx-auto grid h-30 w-30 place-items-center rounded-full bg-card shadow-glow'>
 						<div className='relative z-10 text-icon-4xl'>{emoji}</div>
-						<div className='absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
+						<div className='pointer-events-none absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
 					</div>
 				</div>
 

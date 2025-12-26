@@ -12,6 +12,7 @@ import {
 	Star,
 	Award,
 	Filter,
+	Play,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -36,6 +37,7 @@ interface CookingHistoryTabProps {
 	onPost: (sessionId: string) => void
 	onViewPost?: (postId: string) => void
 	onRetry?: (sessionId: string) => void
+	onCookAgain?: (recipeId: string) => void
 	onFilterChange?: (filter: HistoryFilter) => void
 	className?: string
 }
@@ -273,9 +275,14 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 interface CompletedItemProps {
 	session: PendingSession
 	onViewPost?: (postId: string) => void
+	onCookAgain?: (recipeId: string) => void
 }
 
-const CompletedItem = ({ session, onViewPost }: CompletedItemProps) => {
+const CompletedItem = ({
+	session,
+	onViewPost,
+	onCookAgain,
+}: CompletedItemProps) => {
 	const isMastered = session.cookCount && session.cookCount >= 5
 	const isReduced = session.cookCount && session.cookCount > 2
 
@@ -364,6 +371,20 @@ const CompletedItem = ({ session, onViewPost }: CompletedItemProps) => {
 					>
 						<ExternalLink className='h-3.5 w-3.5' />
 						View Post
+					</motion.button>
+				)}
+
+				{/* Cook Again Button */}
+				{onCookAgain && session.recipeId && (
+					<motion.button
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-brand/10 border border-brand/30 rounded-xl text-sm font-semibold text-brand hover:bg-brand/20'
+						onClick={() => onCookAgain(session.recipeId!)}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
+					>
+						<Play className='h-3.5 w-3.5 fill-current' />
+						Cook Again
 					</motion.button>
 				)}
 			</div>
@@ -467,6 +488,7 @@ export const CookingHistoryTab = ({
 	onPost,
 	onViewPost,
 	onRetry,
+	onCookAgain,
 	onFilterChange,
 	className,
 }: CookingHistoryTabProps) => {
@@ -609,6 +631,7 @@ export const CookingHistoryTab = ({
 							key={session.id}
 							session={session}
 							onViewPost={onViewPost}
+							onCookAgain={onCookAgain}
 						/>
 					))}
 

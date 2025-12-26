@@ -10,6 +10,7 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
+import { useNotificationStore } from '@/store/notificationStore'
 
 interface NavItem {
 	href: string
@@ -62,6 +63,7 @@ const navItems: NavItem[] = [
 
 export const MobileBottomNav = () => {
 	const pathname = usePathname()
+	const { unreadCount } = useNotificationStore()
 
 	const isActive = (href: string) => {
 		if (href === '/dashboard') return pathname === '/dashboard'
@@ -126,12 +128,14 @@ export const MobileBottomNav = () => {
 									active && 'drop-shadow-glow',
 								)}
 							/>
-							{item.badge && (
+							{item.badge && unreadCount > 0 && (
 								<motion.span
 									initial={{ scale: 0 }}
 									animate={{ scale: 1 }}
-									className='absolute -right-0.5 -top-0.5 size-2 rounded-full border-2 border-bg-card bg-brand shadow-sm'
-								/>
+									className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white'
+								>
+									{unreadCount > 9 ? '9+' : unreadCount}
+								</motion.span>
 							)}
 						</motion.div>
 						<span className='text-xs font-semibold'>{item.label}</span>

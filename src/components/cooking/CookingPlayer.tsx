@@ -6,6 +6,7 @@ import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
 import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
+import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { toast } from 'sonner'
 import {
 	Sparkles,
@@ -470,6 +471,13 @@ export const CookingPlayer = () => {
 		getTimerRemaining,
 	} = useCookingStore()
 
+	// Warn users before leaving page during active cooking session
+	const hasActiveSession = session?.status === 'in_progress' && isOpen
+	useBeforeUnloadWarning(
+		hasActiveSession,
+		'You have an active cooking session. Progress will be saved but timers will reset.',
+	)
+
 	// Local UI state
 	const [direction, setDirection] = useState(0) // -1 = back, 1 = forward
 	const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(
@@ -742,9 +750,9 @@ export const CookingPlayer = () => {
 					>
 						{/* Header */}
 						<div className='relative overflow-hidden bg-gradient-hero p-6 text-white'>
-							{/* Animated background shimmer */}
+							{/* Animated background shimmer - pointer-events-none to not block buttons */}
 							<motion.div
-								className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent'
+								className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent'
 								animate={{ x: ['-100%', '100%'] }}
 								transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
 							/>

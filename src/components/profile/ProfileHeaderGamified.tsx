@@ -377,7 +377,7 @@ const BadgesShowcase = ({
 		<div className='flex gap-3 overflow-x-auto pb-2'>
 			{badges.slice(0, compact ? 3 : 5).map((badge, index) => (
 				<motion.div
-					key={badge.id}
+					key={badge.id || `badge-${index}`}
 					whileHover={STAT_ITEM_HOVER}
 					transition={TRANSITION_SPRING}
 					className={cn(

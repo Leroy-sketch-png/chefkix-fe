@@ -71,11 +71,13 @@ const ReplyItem = ({
 					/>
 					<AvatarFallback className='text-2xs'>
 						{reply.displayName
-							.split(' ')
-							.map(n => n[0])
-							.join('')
-							.toUpperCase()
-							.slice(0, 2)}
+							? reply.displayName
+									.split(' ')
+									.map(n => n[0])
+									.join('')
+									.toUpperCase()
+									.slice(0, 2)
+							: '??'}
 					</AvatarFallback>
 				</Avatar>
 			</UserHoverCard>
@@ -241,11 +243,13 @@ export const Comment = ({
 					/>
 					<AvatarFallback>
 						{comment.displayName
-							.split(' ')
-							.map(n => n[0])
-							.join('')
-							.toUpperCase()
-							.slice(0, 2)}
+							? comment.displayName
+									.split(' ')
+									.map(n => n[0])
+									.join('')
+									.toUpperCase()
+									.slice(0, 2)
+							: '??'}
 					</AvatarFallback>
 				</Avatar>
 			</UserHoverCard>

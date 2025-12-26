@@ -170,16 +170,28 @@ export const getFeedPosts = async (params?: {
 	offset?: number
 	page?: number
 	size?: number
+	mode?: 'latest' | 'trending' // 0 = latest (default), 1 = trending (hotScore)
 }): Promise<ApiResponse<Post[]>> => {
 	try {
 		const backendParams = toBackendPagination(params) ?? params
-		const response = await api.get<ApiResponse<Post[]>>(
+		// Backend returns Page<PostResponse>, extract content array
+		const response = await api.get<ApiResponse<{ content: Post[] }>>(
 			API_ENDPOINTS.POST.GET_ALL,
 			{
-				params: backendParams,
+				params: {
+					...backendParams,
+					mode: params?.mode === 'trending' ? 1 : 0, // Convert to backend mode int
+				},
 			},
 		)
-		return response.data
+		// Extract posts from Page.content
+		if (response.data.success && response.data.data?.content) {
+			return {
+				...response.data,
+				data: response.data.data.content,
+			}
+		}
+		return response.data as any
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) {

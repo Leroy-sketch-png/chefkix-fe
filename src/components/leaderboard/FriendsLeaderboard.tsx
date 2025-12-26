@@ -232,8 +232,8 @@ export function FriendsLeaderboard({
 						onUserClick?.({
 							...e,
 							xpThisWeek: e.xp,
-							recipesCooked: 0,
-							streak: 0,
+							recipesCooked: e.recipesCooked ?? 0,
+							streak: e.streak ?? 0,
 						})
 					}
 				/>

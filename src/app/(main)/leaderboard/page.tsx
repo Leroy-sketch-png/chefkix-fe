@@ -69,7 +69,7 @@ export default function LeaderboardRoute() {
 						setMyRank({
 							rank: response.data.myRank.rank,
 							xpThisWeek: response.data.myRank.xpThisWeek,
-							recipesCooked: 0, // Not in myRank response
+							recipesCooked: response.data.myRank.recipesCooked ?? 0,
 							xpToNextRank: response.data.myRank.xpToNextRank ?? 0,
 							nextRankPosition: response.data.myRank.nextRankPosition ?? 0,
 						})

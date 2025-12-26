@@ -201,3 +201,29 @@ export const unregisterDevice = async (
 		}
 	}
 }
+
+/**
+ * Get unread notification count
+ * Lightweight endpoint for badge display without fetching all notifications
+ */
+export const getUnreadCount = async (): Promise<ApiResponse<number>> => {
+	try {
+		const response = await api.get<number>(
+			API_ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT,
+		)
+		return {
+			success: true,
+			statusCode: 200,
+			data: response.data,
+		}
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<number>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch unread count',
+			statusCode: 500,
+			data: 0,
+		}
+	}
+}

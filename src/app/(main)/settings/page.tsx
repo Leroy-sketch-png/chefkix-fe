@@ -31,6 +31,7 @@ import {
 	ImagePlus,
 	Camera,
 } from 'lucide-react'
+import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { useAuth } from '@/hooks/useAuth'
@@ -733,10 +734,11 @@ export default function SettingsPage() {
 														)}
 													>
 														{coverImageUrl ? (
-															<img
+															<Image
 																src={coverImageUrl}
 																alt='Cover'
-																className='h-full w-full object-cover'
+																fill
+																className='object-cover'
 															/>
 														) : (
 															<div className='flex h-full items-center justify-center'>
@@ -784,10 +786,11 @@ export default function SettingsPage() {
 														)}
 													>
 														{avatarUrl ? (
-															<img
+															<Image
 																src={avatarUrl}
 																alt='Avatar'
-																className='size-full object-cover'
+																fill
+																className='object-cover'
 															/>
 														) : (
 															<div className='flex size-full items-center justify-center'>

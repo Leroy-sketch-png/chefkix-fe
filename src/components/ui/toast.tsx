@@ -1,42 +1,39 @@
 'use client'
 
 import * as React from 'react'
-import { X, CheckCircle2, XCircle, AlertCircle, Info } from 'lucide-react'
+import { X } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 
 /**
  * Toast Component
  *
- * A notification toast with multiple variants (success, error, warning, info)
- * Supports action buttons, auto-dismiss, and manual close.
+ * A whisper, not a shout. Subtle feedback that enhances without demanding.
+ * If users miss it, the experience is no less satisfactory.
  *
- * Design Token Compliant:
- * - Uses semantic colors: success, error, warning, info
- * - Spacing: gap-sm, gap-md
- * - Radius: rounded-radius
- * - Shadows: shadow-lg
+ * Design Philosophy:
+ * - Compact single-line format
+ * - Tiny colored dot instead of icons
+ * - Close button hidden until hover
+ * - Semi-transparent backdrop blur
+ * - Feels like a status hint, not a notification
  *
  * @example
  * ```tsx
- * <Toast variant="success" title="Recipe saved!" onClose={() => {}}>
- *   Your recipe has been successfully saved to your collection.
- * </Toast>
+ * <Toast variant="success" title="Saved" onClose={() => {}} />
  * ```
  */
 
 const toastVariants = cva(
-	'group pointer-events-auto relative flex w-full items-start gap-sm overflow-hidden rounded-radius border bg-panel-bg p-4 shadow-lg transition-all animate-slideInUp',
+	'group pointer-events-auto relative flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs shadow-sm transition-all duration-200 animate-slideInUp bg-bg-card/95 backdrop-blur-sm border border-border-subtle',
 	{
 		variants: {
 			variant: {
-				default: 'border-border',
-				success:
-					'border-success/30 bg-success/5 [&>svg]:text-success animate-confetti-pop',
-				error: 'border-error/30 bg-error/5 [&>svg]:text-error',
-				warning: 'border-warning/30 bg-warning/5 [&>svg]:text-warning',
-				info: 'border-info/30 bg-info/5 [&>svg]:text-info',
+				default: 'text-text-secondary',
+				success: 'text-text-secondary [&>.toast-dot]:bg-success',
+				error: 'text-text-secondary [&>.toast-dot]:bg-brand',
+				warning: 'text-text-secondary [&>.toast-dot]:bg-warning',
+				info: 'text-text-secondary [&>.toast-dot]:bg-info',
 			},
 		},
 		defaultVariants: {
@@ -44,14 +41,6 @@ const toastVariants = cva(
 		},
 	},
 )
-
-const iconMap = {
-	success: CheckCircle2,
-	error: XCircle,
-	warning: AlertCircle,
-	info: Info,
-	default: Info,
-}
 
 export interface ToastProps
 	extends React.HTMLAttributes<HTMLDivElement>,
@@ -69,8 +58,6 @@ export interface ToastProps
 	onClose?: () => void
 	/** Duration in milliseconds before auto-dismiss (0 = no auto-dismiss) */
 	duration?: number
-	/** Show/hide icon */
-	showIcon?: boolean
 }
 
 const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
@@ -84,7 +71,6 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 			action,
 			onClose,
 			duration = 5000,
-			showIcon = true,
 			...props
 		},
 		ref,
@@ -96,7 +82,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 			if (duration > 0) {
 				timerRef.current = setTimeout(() => {
 					setIsVisible(false)
-					setTimeout(() => onClose?.(), 300) // Wait for exit animation
+					setTimeout(() => onClose?.(), 200) // Wait for exit animation
 				}, duration)
 			}
 
@@ -109,59 +95,54 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 
 		const handleClose = () => {
 			setIsVisible(false)
-			setTimeout(() => onClose?.(), 300)
+			setTimeout(() => onClose?.(), 200)
 		}
 
-		const Icon = iconMap[variant || 'default']
+		// Minimal design: just a dot indicator, no heavy icons
+		const showDot = variant !== 'default'
 
 		return (
 			<div
 				ref={ref}
 				className={cn(
 					toastVariants({ variant }),
-					!isVisible && 'translate-x-[120%] opacity-0',
-					'transition-all duration-300',
+					!isVisible && 'translate-y-2 opacity-0',
 					className,
 				)}
 				{...props}
 			>
-				{/* Icon */}
-				{showIcon && <Icon className='mt-0.5 h-5 w-5 flex-shrink-0' />}
+				{/* Tiny status dot */}
+				{showDot && (
+					<span className='toast-dot size-1.5 flex-shrink-0 rounded-full' />
+				)}
 
-				{/* Content */}
-				<div className='flex-1 space-y-1'>
-					{title && (
-						<div className='text-sm font-semibold text-text-primary'>
-							{title}
-						</div>
+				{/* Content - single line, compact */}
+				<span className='flex-1 truncate'>
+					{title}
+					{description && (
+						<span className='ml-1 opacity-70'>{description}</span>
 					)}
-					{(description || children) && (
-						<div className='text-sm text-text-secondary'>
-							{description || children}
-						</div>
-					)}
-					{action && (
-						<div className='mt-2'>
-							<Button
-								variant='outline'
-								size='sm'
-								onClick={action.onClick}
-								className='h-8 text-xs'
-							>
-								{action.label}
-							</Button>
-						</div>
-					)}
-				</div>
+					{children}
+				</span>
 
-				{/* Close button */}
+				{/* Action - inline, subtle */}
+				{action && (
+					<button
+						onClick={action.onClick}
+						className='flex-shrink-0 font-medium text-brand hover:underline'
+					>
+						{action.label}
+					</button>
+				)}
+
+				{/* Close - tiny, appears on hover */}
 				{onClose && (
 					<button
 						onClick={handleClose}
-						className='flex-shrink-0 rounded-sm opacity-70 ring-offset-bg transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+						className='flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100'
 						aria-label='Close'
 					>
-						<X className='h-4 w-4' />
+						<X className='size-3' />
 					</button>
 				)}
 			</div>

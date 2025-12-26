@@ -18,6 +18,10 @@ export interface Statistics {
 	recipesCooked?: number // Distinct recipes user has cooked
 	recipesMastered?: number // Recipes cooked 5+ times (mastery threshold)
 	longestStreak?: number // Historical best streak
+	// Streak status fields (computed from lastCookAt by backend)
+	cookedToday?: boolean // Whether user has cooked within streak window (72h)
+	lastCookAt?: string // ISO timestamp of last cooking session completion
+	hoursUntilStreakBreaks?: number // Hours remaining until streak breaks (0 if broken)
 }
 
 // Instagram model: Follow only, mutual follow = implicit friends

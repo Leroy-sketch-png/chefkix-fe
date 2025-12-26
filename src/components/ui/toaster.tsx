@@ -7,21 +7,13 @@ import { cn } from '@/lib/utils'
 /**
  * Toaster Component
  *
- * Container for managing multiple toast notifications.
- * Handles stacking, positioning, and queue management.
- *
- * Position options:
- * - top-right (default)
- * - top-left
- * - bottom-right
- * - bottom-left
- * - top-center
- * - bottom-center
+ * A whisper-quiet container for toast notifications.
+ * Bottom-right by default — unobtrusive, peripheral vision territory.
  *
  * @example
  * ```tsx
  * // In app/layout.tsx
- * <Toaster position="top-right" />
+ * <Toaster />
  * ```
  */
 
@@ -203,8 +195,8 @@ export const toast = {
 }
 
 export const Toaster = ({
-	position = 'top-right',
-	maxToasts = 5,
+	position = 'bottom-right',
+	maxToasts = 3,
 }: ToasterProps) => {
 	const [currentToasts, setCurrentToasts] = React.useState<ToastConfig[]>([])
 
@@ -233,7 +225,7 @@ export const Toaster = ({
 	return (
 		<div
 			className={cn(
-				'pointer-events-none fixed z-sticky flex max-h-screen w-full gap-2 p-4 md:max-w-modal-md',
+				'pointer-events-none fixed z-notification flex max-h-screen w-full gap-3 p-4 md:max-w-sm',
 				positionClasses[position],
 			)}
 		>

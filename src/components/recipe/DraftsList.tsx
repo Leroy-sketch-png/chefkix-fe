@@ -15,6 +15,7 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
+import Image from 'next/image'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -153,9 +154,11 @@ export function DraftsList({
 									{/* Thumbnail */}
 									<div className='flex size-16 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-2xl'>
 										{draft.coverImageUrl?.[0] ? (
-											<img
+											<Image
 												src={draft.coverImageUrl[0]}
 												alt={draft.title}
+												width={64}
+												height={64}
 												className='size-full rounded-xl object-cover'
 											/>
 										) : (

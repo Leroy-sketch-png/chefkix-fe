@@ -65,15 +65,29 @@ export const triggerMutualFollowConfetti = () => {
 	})
 }
 
-/** Subtle confetti for like actions - not overwhelming */
-export const triggerLikeConfetti = () => {
-	confetti({
-		particleCount: 30,
-		spread: 40,
-		origin: { y: 0.6 },
-		colors: ['#ef4444', '#f87171', '#fca5a5'],
-		ticks: 100,
-	})
+/** Subtle confetti for like actions - positioned at button location */
+export const triggerLikeConfetti = (element?: HTMLElement) => {
+	if (element) {
+		const rect = element.getBoundingClientRect()
+		const x = (rect.left + rect.width / 2) / window.innerWidth
+		const y = (rect.top + rect.height / 2) / window.innerHeight
+		confetti({
+			particleCount: 30,
+			spread: 40,
+			origin: { x, y },
+			colors: ['#ef4444', '#f87171', '#fca5a5'],
+			ticks: 100,
+		})
+	} else {
+		// Fallback to center if no element provided
+		confetti({
+			particleCount: 30,
+			spread: 40,
+			origin: { y: 0.6 },
+			colors: ['#ef4444', '#f87171', '#fca5a5'],
+			ticks: 100,
+		})
+	}
 }
 
 /** Celebration for earning badges/achievements */

@@ -159,7 +159,7 @@ export const Topbar = () => {
 								transition={{ duration: 1, ease: 'easeOut' }}
 							/>
 						</div>
-						<div className='absolute inset-0 animate-shine bg-gradient-to-r from-transparent via-white/30 to-transparent' />
+						<div className='pointer-events-none absolute inset-0 animate-shine bg-gradient-to-r from-transparent via-white/30 to-transparent' />
 					</motion.div>
 
 					{/* Avatar with XP Ring */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Post } from '@/lib/types'
 import {
 	toggleLike,
@@ -64,6 +64,12 @@ export const PostCard = ({
 	const [isSaving, setIsSaving] = useState(false)
 	const [showReportModal, setShowReportModal] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false)
+
+	// Refs
+	const likeButtonRef = useRef<HTMLButtonElement>(null)
+	const lastTapRef = useRef<number>(0)
+	const DOUBLE_TAP_DELAY = 300 // ms
 
 	const isOwner = currentUserId === post.userId
 	const isLoggedIn = !!currentUserId
@@ -90,17 +96,20 @@ export const PostCard = ({
 		const response = await toggleLike(post.id)
 
 		if (response.success && response.data) {
-			// Update with server response
+			// Update with server response - only update likes, keep rest of post
+			const newLikes =
+				response.data.likes ??
+				(wasLiked ? previousLikes - 1 : previousLikes + 1)
 			setPost(prev => ({
 				...prev,
-				likes: response.data.likes,
+				likes: newLikes,
 				isLiked: !wasLiked,
 			}))
-			onUpdate?.({ ...post, likes: response.data.likes, isLiked: !wasLiked })
+			onUpdate?.({ ...post, likes: newLikes, isLiked: !wasLiked })
 
 			// Trigger confetti only on like (not unlike)
 			if (!wasLiked) {
-				triggerLikeConfetti()
+				triggerLikeConfetti(likeButtonRef.current || undefined)
 			}
 		} else {
 			// Revert on error
@@ -244,6 +253,22 @@ export const PostCard = ({
 			toast.success('Link copied to clipboard!')
 		}
 	}
+
+	// Handle double-tap to like on images (Instagram pattern)
+	const handleDoubleTap = useCallback(() => {
+		const now = Date.now()
+		if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+			// Double tap detected!
+			if (!post.isLiked) {
+				// Only trigger like if not already liked
+				handleLike()
+			}
+			// Always show the heart animation
+			setShowDoubleTapHeart(true)
+			setTimeout(() => setShowDoubleTapHeart(false), 1000)
+		}
+		lastTapRef.current = now
+	}, [post.isLiked])
 
 	// Report content metadata for the modal
 	const reportContent: ReportedContent = {
@@ -457,14 +482,20 @@ export const PostCard = ({
 							</div>
 
 							{/* Media - Support both photoUrl (legacy) and photoUrls (canonical) */}
+							{/* Double-tap to like (Instagram pattern) */}
 							{(post.photoUrl ||
 								(post.photoUrls && post.photoUrls.length > 0)) && (
-								<div className='relative aspect-video w-full overflow-hidden bg-muted'>
+								<div
+									className='relative aspect-video w-full cursor-pointer overflow-hidden bg-muted select-none'
+									onClick={handleDoubleTap}
+									onTouchEnd={handleDoubleTap}
+								>
 									<Image
 										src={post.photoUrl || post.photoUrls?.[0] || ''}
 										alt='Post media'
 										fill
 										className='object-cover transition-transform duration-500 group-hover:scale-105'
+										draggable={false}
 									/>
 									{/* Show indicator if multiple photos (canonical array format) */}
 									{post.photoUrls && post.photoUrls.length > 1 && (
@@ -472,6 +503,21 @@ export const PostCard = ({
 											1/{post.photoUrls.length}
 										</div>
 									)}
+
+									{/* Double-tap heart animation overlay */}
+									<AnimatePresence>
+										{showDoubleTapHeart && (
+											<motion.div
+												initial={{ scale: 0, opacity: 0 }}
+												animate={{ scale: 1, opacity: 1 }}
+												exit={{ scale: 1.5, opacity: 0 }}
+												transition={{ duration: 0.4, ease: 'easeOut' }}
+												className='absolute inset-0 flex items-center justify-center pointer-events-none'
+											>
+												<Heart className='size-24 fill-white stroke-white drop-shadow-lg' />
+											</motion.div>
+										)}
+									</AnimatePresence>
 								</div>
 							)}
 
@@ -490,6 +536,7 @@ export const PostCard = ({
 					{/* Actions */}
 					<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
 						<button
+							ref={likeButtonRef}
 							onClick={handleLike}
 							disabled={isLiking}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${

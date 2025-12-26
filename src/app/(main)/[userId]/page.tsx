@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { getProfileByUserId } from '@/services/profile'
 import { useAuthStore } from '@/store/authStore'
 import { UserProfile } from '@/components/profile/UserProfile'
@@ -11,11 +11,14 @@ import { Profile } from '@/lib/types'
 
 /**
  * Dynamic profile page at /{userId}
+ * Supports ?tab= query param to navigate directly to a tab (recipes, posts, cooking, saved)
  * Must be a client component to access auth store for token in API calls.
  */
 const ProfilePage = () => {
 	const params = useParams()
+	const searchParams = useSearchParams()
 	const userId = params.userId as string
+	const initialTab = searchParams.get('tab') || undefined
 	const { user: currentUser, isLoading: isAuthLoading } = useAuthStore()
 
 	const [profile, setProfile] = useState<Profile | null>(null)
@@ -54,7 +57,13 @@ const ProfilePage = () => {
 		return <ProfileNotFound />
 	}
 
-	return <UserProfile profile={profile} currentUserId={currentUser?.userId} />
+	return (
+		<UserProfile
+			profile={profile}
+			currentUserId={currentUser?.userId}
+			initialTab={initialTab}
+		/>
+	)
 }
 
 export default ProfilePage
