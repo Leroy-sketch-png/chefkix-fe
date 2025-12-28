@@ -12,6 +12,7 @@ import {
 	AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import {
 	TRANSITION_SPRING,
 	DURATIONS,
@@ -192,66 +193,68 @@ export function StreakSavedToast({
 	return (
 		<AnimatePresence>
 			{isVisible && (
-				<motion.div
-					initial={{ opacity: 0, y: 30, scale: 0.9 }}
-					animate={{ opacity: 1, y: 0, scale: 1 }}
-					exit={{ opacity: 0, y: 30, scale: 0.9 }}
-					transition={TRANSITION_SPRING}
-					className={cn(
-						'fixed bottom-24 left-1/2 -translate-x-1/2 z-notification',
-						'flex items-center gap-4 py-4 px-6',
-						'bg-panel-bg border-2 border-emerald-500 rounded-2xl',
-						'shadow-2xl shadow-black/30',
-					)}
-				>
-					{/* Celebration */}
-					<div className='relative'>
-						<motion.span
-							initial={{ scale: 0, rotate: -30 }}
-							animate={{ scale: 1, rotate: 0 }}
-							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='text-4xl block'
-						>
-							{isNewStreak ? '🌱' : '🔥'}
-						</motion.span>
-						{!isNewStreak && (
-							<motion.div
-								initial={{ scale: 0.5, opacity: 1 }}
-								animate={{ scale: 2, opacity: 0 }}
-								transition={{ duration: 0.8 }}
-								className='absolute -inset-2.5 bg-streak/30 rounded-full'
-							/>
+				<Portal>
+					<motion.div
+						initial={{ opacity: 0, y: 30, scale: 0.9 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						exit={{ opacity: 0, y: 30, scale: 0.9 }}
+						transition={TRANSITION_SPRING}
+						className={cn(
+							'fixed bottom-24 left-1/2 -translate-x-1/2 z-notification',
+							'flex items-center gap-4 py-4 px-6',
+							'bg-panel-bg border-2 border-emerald-500 rounded-2xl',
+							'shadow-2xl shadow-black/30',
 						)}
-					</div>
-
-					{/* Content */}
-					<div className='flex flex-col'>
-						<span className='text-base font-extrabold text-emerald-500'>
-							{isNewStreak ? 'New Streak Started!' : 'Streak Saved!'}
-						</span>
-						<span className='text-sm text-text'>
-							{isNewStreak ? (
-								<>Day 1 — Let&apos;s go!</>
-							) : (
-								<>
-									<strong>{newStreak} days</strong> and counting
-								</>
+					>
+						{/* Celebration */}
+						<div className='relative'>
+							<motion.span
+								initial={{ scale: 0, rotate: -30 }}
+								animate={{ scale: 1, rotate: 0 }}
+								transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+								className='text-4xl block'
+							>
+								{isNewStreak ? '🌱' : '🔥'}
+							</motion.span>
+							{!isNewStreak && (
+								<motion.div
+									initial={{ scale: 0.5, opacity: 1 }}
+									animate={{ scale: 2, opacity: 0 }}
+									transition={{ duration: 0.8 }}
+									className='absolute -inset-2.5 bg-streak/30 rounded-full'
+								/>
 							)}
-						</span>
-					</div>
+						</div>
 
-					{/* Bonus XP */}
-					{!isNewStreak && bonusXp > 0 && (
-						<div className='flex flex-col items-center py-2.5 px-4 bg-emerald-500/10 rounded-lg'>
-							<span className='text-2xs text-muted-foreground uppercase tracking-wide'>
-								Streak Bonus
-							</span>
+						{/* Content */}
+						<div className='flex flex-col'>
 							<span className='text-base font-extrabold text-emerald-500'>
-								+{bonusXp} XP
+								{isNewStreak ? 'New Streak Started!' : 'Streak Saved!'}
+							</span>
+							<span className='text-sm text-text'>
+								{isNewStreak ? (
+									<>Day 1 — Let&apos;s go!</>
+								) : (
+									<>
+										<strong>{newStreak} days</strong> and counting
+									</>
+								)}
 							</span>
 						</div>
-					)}
-				</motion.div>
+
+						{/* Bonus XP */}
+						{!isNewStreak && bonusXp > 0 && (
+							<div className='flex flex-col items-center py-2.5 px-4 bg-emerald-500/10 rounded-lg'>
+								<span className='text-2xs text-muted-foreground uppercase tracking-wide'>
+									Streak Bonus
+								</span>
+								<span className='text-base font-extrabold text-emerald-500'>
+									+{bonusXp} XP
+								</span>
+							</div>
+						)}
+					</motion.div>
+				</Portal>
 			)}
 		</AnimatePresence>
 	)

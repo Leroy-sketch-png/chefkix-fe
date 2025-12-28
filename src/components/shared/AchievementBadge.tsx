@@ -2,6 +2,7 @@
 
 import { X, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 
 // ============================================================================
 // Types
@@ -179,94 +180,99 @@ export const AchievementModal = ({
 
 	if (!isOpen) return null
 
+	// Portal to document.body to escape any parent stacking contexts
 	return (
-		<div
-			className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/70 p-5 backdrop-blur-sm'
-			onClick={onClose}
-		>
+		<Portal>
 			<div
-				className='relative w-full max-w-lg animate-scaleIn overflow-hidden rounded-lg bg-card'
-				onClick={e => e.stopPropagation()}
+				className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/70 p-5 backdrop-blur-sm'
+				onClick={onClose}
 			>
-				{/* Close Button */}
-				<button
-					onClick={onClose}
-					className='absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-foreground/30 text-background transition-all hover:bg-foreground/50 hover:rotate-90'
-				>
-					<X className='h-5 w-5' />
-				</button>
-
-				{/* Hero Section */}
 				<div
-					className={cn(
-						'relative overflow-hidden p-12 text-center',
-						!rarity && 'bg-gradient-to-br from-primary to-primary/80',
-						rarity === 'rare' && 'bg-gradient-to-br from-accent to-accent/80',
-						rarity === 'epic' &&
-							'bg-gradient-to-br from-[#667eea] to-[#764ba2]',
-						rarity === 'legendary' && 'bg-gradient-gold',
-					)}
+					className='relative w-full max-w-lg animate-scaleIn overflow-hidden rounded-lg bg-card'
+					onClick={e => e.stopPropagation()}
 				>
-					{/* Background Glow */}
-					<div className='pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,255,255,0.3),transparent_70%)]' />
-
-					{/* Badge Icon */}
-					<div className='relative mx-auto grid h-30 w-30 place-items-center rounded-full bg-card shadow-glow'>
-						<div className='relative z-10 text-icon-4xl'>{emoji}</div>
-						<div className='pointer-events-none absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
-					</div>
-				</div>
-
-				{/* Info Section */}
-				<div className='p-8 text-center'>
-					{/* Rarity */}
-					{rarity && rarity !== 'common' && (
-						<div className='mb-2 text-xs font-extrabold uppercase tracking-[1.5px] text-gold'>
-							{rarity}
-						</div>
-					)}
-					{/* Title */}
-					<h2 className='mb-3 text-2xl font-extrabold text-foreground'>
-						{name}
-					</h2>
-					{/* Description */}
-					<p className='mb-8 text-base leading-relaxed text-muted-foreground'>
-						{description}
-					</p>{' '}
-					{/* Stats */}
-					<div className='mb-8 grid grid-cols-3 gap-5 rounded-radius bg-muted/20 p-6'>
-						<div className='text-center'>
-							<div className='mb-1 text-xs text-muted-foreground'>Unlocked</div>
-							<div className='text-sm font-bold text-foreground'>
-								{unlockedDate || 'Nov 4, 2024'}
-							</div>
-						</div>
-						<div className='text-center'>
-							<div className='mb-1 text-xs text-muted-foreground'>Rarity</div>
-							<div className='text-sm font-bold text-foreground'>
-								{rarityPercentage || '2.3%'}
-							</div>
-						</div>
-						<div className='text-center'>
-							<div className='mb-1 text-xs text-muted-foreground'>
-								XP Reward
-							</div>
-							<div className='text-sm font-bold text-foreground'>
-								+{xpReward || 100} XP
-							</div>
-						</div>
-					</div>
-					{/* Share Button */}
+					{/* Close Button */}
 					<button
-						onClick={onShare}
-						className='flex w-full items-center justify-center gap-2 rounded-radius bg-gradient-primary px-4 py-3.5 text-base font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg'
+						onClick={onClose}
+						className='absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-foreground/30 text-background transition-all hover:bg-foreground/50 hover:rotate-90'
 					>
-						<Share2 className='h-5 w-5' />
-						<span>Share Achievement</span>
+						<X className='h-5 w-5' />
 					</button>
+
+					{/* Hero Section */}
+					<div
+						className={cn(
+							'relative overflow-hidden p-12 text-center',
+							!rarity && 'bg-gradient-to-br from-primary to-primary/80',
+							rarity === 'rare' && 'bg-gradient-to-br from-accent to-accent/80',
+							rarity === 'epic' &&
+								'bg-gradient-to-br from-[#667eea] to-[#764ba2]',
+							rarity === 'legendary' && 'bg-gradient-gold',
+						)}
+					>
+						{/* Background Glow */}
+						<div className='pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 animate-[badge-glow-pulse_3s_ease-in-out_infinite] bg-[radial-gradient(circle,rgba(255,255,255,0.3),transparent_70%)]' />
+
+						{/* Badge Icon */}
+						<div className='relative mx-auto grid h-30 w-30 place-items-center rounded-full bg-card shadow-glow'>
+							<div className='relative z-10 text-icon-4xl'>{emoji}</div>
+							<div className='pointer-events-none absolute inset-0 animate-[badge-shine_3s_ease-in-out_infinite] bg-gradient-to-br from-transparent via-white/30 to-transparent' />
+						</div>
+					</div>
+
+					{/* Info Section */}
+					<div className='p-8 text-center'>
+						{/* Rarity */}
+						{rarity && rarity !== 'common' && (
+							<div className='mb-2 text-xs font-extrabold uppercase tracking-[1.5px] text-gold'>
+								{rarity}
+							</div>
+						)}
+						{/* Title */}
+						<h2 className='mb-3 text-2xl font-extrabold text-foreground'>
+							{name}
+						</h2>
+						{/* Description */}
+						<p className='mb-8 text-base leading-relaxed text-muted-foreground'>
+							{description}
+						</p>{' '}
+						{/* Stats */}
+						<div className='mb-8 grid grid-cols-3 gap-5 rounded-radius bg-muted/20 p-6'>
+							<div className='text-center'>
+								<div className='mb-1 text-xs text-muted-foreground'>
+									Unlocked
+								</div>
+								<div className='text-sm font-bold text-foreground'>
+									{unlockedDate || 'Nov 4, 2024'}
+								</div>
+							</div>
+							<div className='text-center'>
+								<div className='mb-1 text-xs text-muted-foreground'>Rarity</div>
+								<div className='text-sm font-bold text-foreground'>
+									{rarityPercentage || '2.3%'}
+								</div>
+							</div>
+							<div className='text-center'>
+								<div className='mb-1 text-xs text-muted-foreground'>
+									XP Reward
+								</div>
+								<div className='text-sm font-bold text-foreground'>
+									+{xpReward || 100} XP
+								</div>
+							</div>
+						</div>
+						{/* Share Button */}
+						<button
+							onClick={onShare}
+							className='flex w-full items-center justify-center gap-2 rounded-radius bg-gradient-primary px-4 py-3.5 text-base font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg'
+						>
+							<Share2 className='h-5 w-5' />
+							<span>Share Achievement</span>
+						</button>
+					</div>
 				</div>
 			</div>
-		</div>
+		</Portal>
 	)
 }
 

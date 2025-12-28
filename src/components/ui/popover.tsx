@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 
 /**
  * Popover Component
@@ -317,25 +318,27 @@ export const PopoverContent = React.forwardRef<
 		if (!open) return null
 
 		return (
-			<div
-				ref={node => {
-					;(
-						contentRef as React.MutableRefObject<HTMLDivElement | null>
-					).current = node
-					if (typeof ref === 'function') ref(node)
-					else if (ref) (ref as React.MutableRefObject<any>).current = node
-				}}
-				className={cn(popoverVariants({ side }), 'fixed p-4', className)}
-				style={{
-					top: `${position.top}px`,
-					left: `${position.left}px`,
-				}}
-				onMouseEnter={handleMouseEnter}
-				onMouseLeave={handleMouseLeave}
-				{...props}
-			>
-				{children}
-			</div>
+			<Portal>
+				<div
+					ref={node => {
+						;(
+							contentRef as React.MutableRefObject<HTMLDivElement | null>
+						).current = node
+						if (typeof ref === 'function') ref(node)
+						else if (ref) (ref as React.MutableRefObject<any>).current = node
+					}}
+					className={cn(popoverVariants({ side }), 'fixed p-4', className)}
+					style={{
+						top: `${position.top}px`,
+						left: `${position.left}px`,
+					}}
+					onMouseEnter={handleMouseEnter}
+					onMouseLeave={handleMouseLeave}
+					{...props}
+				>
+					{children}
+				</div>
+			</Portal>
 		)
 	},
 )

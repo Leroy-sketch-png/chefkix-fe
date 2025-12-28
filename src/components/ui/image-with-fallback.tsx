@@ -128,6 +128,13 @@ export const ImageWithFallback = ({
 		)
 	}
 
+	// Check if URL is external (needs unoptimized)
+	const isExternalUrl =
+		typeof src === 'string' &&
+		(src.includes('unsplash.com') ||
+			src.includes('cloudinary.com') ||
+			src.includes('images.pexels.com'))
+
 	return (
 		<Image
 			src={src}
@@ -138,6 +145,7 @@ export const ImageWithFallback = ({
 			className={cn(isLoading && 'animate-pulse bg-bg-elevated', className)}
 			onError={handleError}
 			onLoad={handleLoad}
+			unoptimized={isExternalUrl}
 			{...props}
 		/>
 	)

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 
 // ============================================================================
 // Modal Overlay Component
@@ -62,22 +63,25 @@ export const Modal = ({
 		full: 'max-w-full mx-4',
 	}
 
+	// Portal to document.body to escape any parent stacking contexts
 	return (
-		<div
-			className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm'
-			onClick={closeOnOverlayClick ? onClose : undefined}
-		>
+		<Portal>
 			<div
-				className={cn(
-					'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-glow',
-					sizeClasses[size],
-					className,
-				)}
-				onClick={e => e.stopPropagation()}
+				className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm'
+				onClick={closeOnOverlayClick ? onClose : undefined}
 			>
-				{children}
+				<div
+					className={cn(
+						'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-glow',
+						sizeClasses[size],
+						className,
+					)}
+					onClick={e => e.stopPropagation()}
+				>
+					{children}
+				</div>
 			</div>
-		</div>
+		</Portal>
 	)
 }
 

@@ -25,17 +25,21 @@ import {
 	markAllNotificationsRead,
 	type Notification as APINotification,
 } from '@/services/notification'
+import { toggleFollow } from '@/services/social'
+import { toast } from '@/components/ui/toaster'
 
 type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
 
 interface SocialNotification {
 	id: number
+	notificationId: string // For marking as read
 	type: NotificationType
 	userId: string
 	user: string
 	avatar: string
 	action: string
 	target?: string
+	targetEntityId?: string // Post ID for likes/comments, User ID for follows
 	time: string
 	read: boolean
 }
@@ -141,12 +145,14 @@ const transformToSocialNotification = (
 
 	return {
 		id: index,
+		notificationId: notif.id,
 		type,
 		userId,
 		user: userName,
 		avatar: '/placeholder-avatar.png', // TODO: BE should send avatarUrl
 		action: notif.content || notif.body || '',
 		target: undefined,
+		targetEntityId: notif.targetEntityId, // Post ID for likes/comments, userId for follows
 		time: formatTimeAgo(timestamp),
 		read: notif.isRead,
 	}
@@ -331,71 +337,125 @@ export const NotificationsPopup = () => {
 							<div className='border-b border-border bg-muted/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-muted-foreground'>
 								Social
 							</div>
-							{socialNotifications.map(notif => (
-								<div
-									key={notif.id}
-									className={cn(
-										'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-muted/50',
-										!notif.read && 'bg-primary/5',
-									)}
-								>
-									{/* Avatar with badge */}
-									<UserHoverCard
-										userId={notif.userId}
-										currentUserId={user?.userId}
+							{socialNotifications.map(notif => {
+								// Determine navigation target based on notification type
+								const getNavigationPath = () => {
+									if (notif.type === 'follow') {
+										// For follow notifications, navigate to the follower's profile
+										return `/${notif.userId}`
+									}
+									if (
+										(notif.type === 'like' || notif.type === 'comment') &&
+										notif.targetEntityId
+									) {
+										// For likes/comments, navigate to the post
+										return `/post/${notif.targetEntityId}`
+									}
+									return null
+								}
+
+								const handleClick = () => {
+									const path = getNavigationPath()
+									if (path) {
+										handleClose()
+										router.push(path)
+									}
+								}
+
+								const handleFollowBack = async (e: React.MouseEvent) => {
+									e.stopPropagation() // Prevent triggering the parent onClick
+									if (!notif.userId) {
+										toast.error('Cannot follow back: user not found')
+										return
+									}
+									try {
+										const response = await toggleFollow(notif.userId)
+										if (response.success) {
+											toast.success(`Following ${notif.user}!`)
+											// Mark this notification as read locally
+											setSocialNotifications(prev =>
+												prev.map(n =>
+													n.id === notif.id ? { ...n, read: true } : n,
+												),
+											)
+										} else {
+											toast.error(response.message || 'Failed to follow')
+										}
+									} catch {
+										toast.error('Failed to follow. Please try again.')
+									}
+								}
+
+								return (
+									<div
+										key={notif.id}
+										onClick={handleClick}
+										className={cn(
+											'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-muted/50',
+											!notif.read && 'bg-primary/5',
+										)}
 									>
-										<div className='relative flex-shrink-0'>
-											<Avatar size='lg' className='shadow-md'>
-												<AvatarImage src={notif.avatar} alt={notif.user} />
-												<AvatarFallback>
-													{notif.user
-														.split(' ')
-														.map(n => n[0])
-														.join('')
-														.toUpperCase()
-														.slice(0, 2)}
-												</AvatarFallback>
-											</Avatar>
-											<NotificationBadge type={notif.type} />
-										</div>
-									</UserHoverCard>
-									{/* Content */}
-									<div className='min-w-0 flex-1'>
-										<p className='text-sm leading-relaxed text-foreground'>
-											<UserHoverCard
-												userId={notif.userId}
-												currentUserId={user?.userId}
-											>
-												<span className='cursor-pointer font-semibold hover:underline'>
-													{notif.user}
-												</span>
-											</UserHoverCard>{' '}
-											{notif.action}
-											{notif.target && (
-												<>
-													{' '}
-													<span className='font-medium text-primary'>
-														&ldquo;{notif.target}&rdquo;
+										{/* Avatar with badge */}
+										<UserHoverCard
+											userId={notif.userId}
+											currentUserId={user?.userId}
+										>
+											<div className='relative flex-shrink-0'>
+												<Avatar size='lg' className='shadow-md'>
+													<AvatarImage src={notif.avatar} alt={notif.user} />
+													<AvatarFallback>
+														{notif.user
+															.split(' ')
+															.map(n => n[0])
+															.join('')
+															.toUpperCase()
+															.slice(0, 2)}
+													</AvatarFallback>
+												</Avatar>
+												<NotificationBadge type={notif.type} />
+											</div>
+										</UserHoverCard>
+										{/* Content */}
+										<div className='min-w-0 flex-1'>
+											<p className='text-sm leading-relaxed text-foreground'>
+												<UserHoverCard
+													userId={notif.userId}
+													currentUserId={user?.userId}
+												>
+													<span className='cursor-pointer font-semibold hover:underline'>
+														{notif.user}
 													</span>
-												</>
-											)}
-										</p>
-										<span className='text-xs text-muted-foreground'>
-											{notif.time}
-										</span>
+												</UserHoverCard>{' '}
+												{notif.action}
+												{notif.target && (
+													<>
+														{' '}
+														<span className='font-medium text-primary'>
+															&ldquo;{notif.target}&rdquo;
+														</span>
+													</>
+												)}
+											</p>
+											<span className='text-xs text-muted-foreground'>
+												{notif.time}
+											</span>
+										</div>
+										{/* Unread dot */}
+										{!notif.read && (
+											<div className='absolute right-4 top-5 h-2 w-2 rounded-full bg-primary shadow-glow' />
+										)}{' '}
+										{/* Follow back button - functional */}
+										{notif.type === 'follow' && !notif.read && (
+											<button
+												onClick={handleFollowBack}
+												className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary/90'
+											>
+												Follow Back
+											</button>
+										)}
 									</div>
-									{/* Unread dot */}
-									{!notif.read && (
-										<div className='absolute right-4 top-5 h-2 w-2 rounded-full bg-primary shadow-glow' />
-									)}{' '}
-									{/* Follow back button */}
-									{notif.type === 'follow' && !notif.read && (
-										<button className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary/90'>
-											Follow Back
-										</button>
-									)}
-								</div>
-							))}
+								)
+							})}
 						</>
 					)}
 				</div>

@@ -186,3 +186,55 @@ export const createReply = async (
 		}
 	}
 }
+
+/**
+ * Delete a reply
+ */
+export const deleteReply = async (
+	commentId: string,
+	replyId: string,
+): Promise<ApiResponse<void>> => {
+	try {
+		const response = await api.delete<ApiResponse<void>>(
+			API_ENDPOINTS.POST.DELETE_REPLY(commentId, replyId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<void>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to delete reply',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Toggle like on a reply
+ */
+export const toggleLikeReply = async (
+	commentId: string,
+	replyId: string,
+): Promise<ApiResponse<{ likeCount: number; isLiked: boolean }>> => {
+	try {
+		const response = await api.post<
+			ApiResponse<{ likeCount: number; isLiked: boolean }>
+		>(API_ENDPOINTS.POST.TOGGLE_LIKE_REPLY(commentId, replyId))
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<
+			ApiResponse<{ likeCount: number; isLiked: boolean }>
+		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to toggle like on reply',
+			statusCode: 500,
+		}
+	}
+}

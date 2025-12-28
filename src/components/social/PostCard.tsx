@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Post } from '@/lib/types'
 import {
 	toggleLike,
@@ -34,11 +34,13 @@ import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { CommentList } from '@/components/social/CommentList'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_FEED_HOVER } from '@/lib/motion'
+import { ImageCarousel } from '@/components/ui/image-carousel'
 import {
 	ReportModal,
 	type ReportedContent,
 } from '@/components/modals/ReportModal'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { Portal } from '@/components/ui/portal'
 
 interface PostCardProps {
 	post: Post
@@ -56,10 +58,11 @@ export const PostCard = ({
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isLiking, setIsLiking] = useState(false)
 	const [showMenu, setShowMenu] = useState(false)
+	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
 	const [showComments, setShowComments] = useState(false)
 	const [isEditing, setIsEditing] = useState(false)
 	const [editContent, setEditContent] = useState(post.content)
-	const [editTags, setEditTags] = useState(post.tags.join(', '))
+	const [editTags, setEditTags] = useState((post.tags ?? []).join(', '))
 	const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [showReportModal, setShowReportModal] = useState(false)
@@ -68,16 +71,34 @@ export const PostCard = ({
 
 	// Refs
 	const likeButtonRef = useRef<HTMLButtonElement>(null)
+	const menuButtonRef = useRef<HTMLButtonElement>(null)
 	const lastTapRef = useRef<number>(0)
 	const DOUBLE_TAP_DELAY = 300 // ms
 
 	const isOwner = currentUserId === post.userId
 	const isLoggedIn = !!currentUserId
 	const createdAt = new Date(post.createdAt)
+
+	// Sync local state when parent updates the post prop
+	useEffect(() => {
+		setPost(initialPost)
+		setIsSaved(initialPost.isSaved ?? false)
+	}, [initialPost])
 	const canEdit =
 		isOwner &&
 		Date.now() - createdAt.getTime() < 60 * 60 * 1000 && // Within 1 hour
 		!post.updatedAt
+
+	const handleMenuToggle = useCallback(() => {
+		if (!showMenu && menuButtonRef.current) {
+			const rect = menuButtonRef.current.getBoundingClientRect()
+			setMenuPosition({
+				top: rect.bottom + 4,
+				right: window.innerWidth - rect.right,
+			})
+		}
+		setShowMenu(!showMenu)
+	}, [showMenu])
 
 	const handleLike = async () => {
 		if (isLiking) return
@@ -96,16 +117,17 @@ export const PostCard = ({
 		const response = await toggleLike(post.id)
 
 		if (response.success && response.data) {
-			// Update with server response - only update likes, keep rest of post
+			// Update with server response - use likeCount (BE field name)
 			const newLikes =
-				response.data.likes ??
+				response.data.likeCount ??
 				(wasLiked ? previousLikes - 1 : previousLikes + 1)
+			const newIsLiked = response.data.isLiked ?? !wasLiked
 			setPost(prev => ({
 				...prev,
 				likes: newLikes,
-				isLiked: !wasLiked,
+				isLiked: newIsLiked,
 			}))
-			onUpdate?.({ ...post, likes: newLikes, isLiked: !wasLiked })
+			onUpdate?.({ ...post, likes: newLikes, isLiked: newIsLiked })
 
 			// Trigger confetti only on like (not unlike)
 			if (!wasLiked) {
@@ -347,58 +369,71 @@ export const PostCard = ({
 						{isLoggedIn && (
 							<div className='relative'>
 								<button
-									onClick={() => setShowMenu(!showMenu)}
+									ref={menuButtonRef}
+									onClick={handleMenuToggle}
 									className='h-11 w-11 rounded-full transition-colors hover:bg-bg-hover'
 								>
 									<MoreVertical className='mx-auto h-5 w-5 text-text-secondary' />
 								</button>
 
+								{/* Portaled dropdown to escape overflow:hidden clipping */}
 								<AnimatePresence>
 									{showMenu && (
-										<motion.div
-											initial={{ opacity: 0, scale: 0.95, y: -10 }}
-											animate={{ opacity: 1, scale: 1, y: 0 }}
-											exit={{ opacity: 0, scale: 0.95, y: -10 }}
-											className='absolute right-0 top-full z-dropdown mt-1 w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
-										>
-											{/* Owner actions */}
-											{isOwner && (
-												<>
-													{canEdit && (
+										<Portal>
+											{/* Click outside to close */}
+											<div
+												className='fixed inset-0 z-dropdown'
+												onClick={() => setShowMenu(false)}
+											/>
+											<motion.div
+												initial={{ opacity: 0, scale: 0.95, y: -10 }}
+												animate={{ opacity: 1, scale: 1, y: 0 }}
+												exit={{ opacity: 0, scale: 0.95, y: -10 }}
+												className='fixed z-dropdown w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
+												style={{
+													top: `${menuPosition.top}px`,
+													right: `${menuPosition.right}px`,
+												}}
+											>
+												{/* Owner actions */}
+												{isOwner && (
+													<>
+														{canEdit && (
+															<button
+																onClick={() => {
+																	setIsEditing(true)
+																	setShowMenu(false)
+																}}
+																className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
+															>
+																<Pencil className='h-4 w-4' />
+																Edit post
+															</button>
+														)}
 														<button
-															onClick={() => {
-																setIsEditing(true)
-																setShowMenu(false)
-															}}
-															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
+															onClick={handleDelete}
+															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 														>
-															<Pencil className='h-4 w-4' />
-															Edit post
+															<Trash2 className='h-4 w-4' />
+															Delete post
 														</button>
-													)}
+													</>
+												)}
+												{/* Non-owner actions */}
+												{!isOwner && (
 													<button
-														onClick={handleDelete}
-														className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+														onClick={() => {
+															setShowReportModal(true)
+															setShowMenu(false)
+														}}
+														className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 													>
-														<Trash2 className='h-4 w-4' />
-														Delete post
+														<Flag className='h-4 w-4' />
+														Report post
 													</button>
-												</>
-											)}
-											{/* Non-owner actions */}
-											{!isOwner && (
-												<button
-													onClick={() => {
-														setShowReportModal(true)
-														setShowMenu(false)
-													}}
-													className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
-												>
-													<Flag className='h-4 w-4' />
-													Report post
-												</button>
-											)}
-										</motion.div>
+												)}
+											</motion.div>
+										</Portal>
 									)}
 								</AnimatePresence>
 							</div>
@@ -431,7 +466,7 @@ export const PostCard = ({
 									onClick={() => {
 										setIsEditing(false)
 										setEditContent(post.content)
-										setEditTags(post.tags.join(', '))
+										setEditTags((post.tags ?? []).join(', '))
 									}}
 									className='h-11 flex-1 rounded-lg border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover'
 								>
@@ -445,7 +480,7 @@ export const PostCard = ({
 								<p className='whitespace-pre-wrap leading-relaxed text-text-primary'>
 									{post.content}
 								</p>
-								{post.tags.length > 0 && (
+								{(post.tags ?? []).length > 0 && (
 									<div className='flex flex-wrap gap-2'>
 										{post.tags.map(tag => (
 											<span
@@ -486,23 +521,26 @@ export const PostCard = ({
 							{(post.photoUrl ||
 								(post.photoUrls && post.photoUrls.length > 0)) && (
 								<div
-									className='relative aspect-video w-full cursor-pointer overflow-hidden bg-muted select-none'
+									className='relative w-full cursor-pointer select-none'
 									onClick={handleDoubleTap}
 									onTouchEnd={handleDoubleTap}
 								>
-									<Image
-										src={post.photoUrl || post.photoUrls?.[0] || ''}
-										alt='Post media'
-										fill
-										className='object-cover transition-transform duration-500 group-hover:scale-105'
-										draggable={false}
+									{/* Use ImageCarousel for multi-image support */}
+									<ImageCarousel
+										images={
+											post.photoUrls && post.photoUrls.length > 0
+												? post.photoUrls
+												: post.photoUrl
+													? [post.photoUrl]
+													: []
+										}
+										alt={`Post by ${post.displayName}`}
+										aspectRatio='video'
+										showControls={true}
+										showIndicators={true}
+										enableSwipe={true}
+										enableKeyboard={true}
 									/>
-									{/* Show indicator if multiple photos (canonical array format) */}
-									{post.photoUrls && post.photoUrls.length > 1 && (
-										<div className='absolute right-2 top-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm'>
-											1/{post.photoUrls.length}
-										</div>
-									)}
 
 									{/* Double-tap heart animation overlay */}
 									<AnimatePresence>

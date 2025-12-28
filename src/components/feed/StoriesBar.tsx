@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Play, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
 	TRANSITION_SPRING,
@@ -329,12 +330,14 @@ export const StoriesBar = ({
 			{/* Story Viewer Modal */}
 			<AnimatePresence>
 				{viewingStory && (
-					<StoryViewer
-						story={viewingStory}
-						stories={stories}
-						onClose={() => setViewingStory(null)}
-						onNavigate={handleNavigate}
-					/>
+					<Portal>
+						<StoryViewer
+							story={viewingStory}
+							stories={stories}
+							onClose={() => setViewingStory(null)}
+							onNavigate={handleNavigate}
+						/>
+					</Portal>
 				)}
 			</AnimatePresence>
 		</>

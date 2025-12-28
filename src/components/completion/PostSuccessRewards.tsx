@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Lock, Unlock, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -179,7 +180,7 @@ export const PostSuccessRewards = ({
 	return (
 		<AnimatePresence>
 			{isOpen && (
-				<>
+				<Portal>
 					{/* Sparkles */}
 					<div className='pointer-events-none fixed inset-0 z-modal overflow-hidden'>
 						<Sparkle x='20%' y='30%' delay={0} />
@@ -397,7 +398,7 @@ export const PostSuccessRewards = ({
 							</button>
 						</motion.div>
 					</motion.div>
-				</>
+				</Portal>
 			)}
 		</AnimatePresence>
 	)

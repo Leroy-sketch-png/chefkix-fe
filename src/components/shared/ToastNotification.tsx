@@ -12,6 +12,7 @@ import {
 	Flame,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import {
 	TRANSITION_SPRING,
 	DURATIONS,
@@ -293,20 +294,22 @@ export const ToastContainer = ({
 	}
 
 	return (
-		<div
-			className={cn(
-				'fixed z-notification flex flex-col gap-3 pointer-events-none',
-				positionClasses[position],
-			)}
-		>
-			<AnimatePresence mode='popLayout'>
-				{toasts.map(toast => (
-					<div key={toast.id} className='pointer-events-auto'>
-						<Toast {...toast} onDismiss={onDismiss} />
-					</div>
-				))}
-			</AnimatePresence>
-		</div>
+		<Portal>
+			<div
+				className={cn(
+					'fixed z-notification flex flex-col gap-3 pointer-events-none',
+					positionClasses[position],
+				)}
+			>
+				<AnimatePresence mode='popLayout'>
+					{toasts.map(toast => (
+						<div key={toast.id} className='pointer-events-auto'>
+							<Toast {...toast} onDismiss={onDismiss} />
+						</div>
+					))}
+				</AnimatePresence>
+			</div>
+		</Portal>
 	)
 }
 

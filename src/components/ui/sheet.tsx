@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Portal } from '@/components/ui/portal'
 
 /**
  * Sheet Component
@@ -177,8 +178,9 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 
 		if (!open) return null
 
+		// Portal to document.body to escape any parent stacking contexts
 		return (
-			<>
+			<Portal>
 				{/* Backdrop */}
 				<div
 					className='fixed inset-0 z-modal bg-black/50 transition-opacity duration-300'
@@ -209,7 +211,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 						<div className='flex-1 overflow-y-auto'>{children}</div>
 					</div>
 				</div>
-			</>
+			</Portal>
 		)
 	},
 )

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/store/uiStore'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -21,6 +21,7 @@ import { getNotifications } from '@/services/notification'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { Portal } from '@/components/ui/portal'
 
 export const Topbar = () => {
 	const { user } = useAuth()
@@ -28,6 +29,8 @@ export const Topbar = () => {
 	const [searchQuery, setSearchQuery] = useState('')
 	const [showUserMenu, setShowUserMenu] = useState(false)
 	const [unreadNotifications, setUnreadNotifications] = useState(0)
+	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
+	const avatarButtonRef = useRef<HTMLButtonElement>(null)
 	const [unreadMessages, setUnreadMessages] = useState(0)
 	const router = useRouter()
 	const { logout } = useAuth()
@@ -165,7 +168,17 @@ export const Topbar = () => {
 					{/* Avatar with XP Ring */}
 					<div className='relative'>
 						<motion.button
-							onClick={() => setShowUserMenu(!showUserMenu)}
+							ref={avatarButtonRef}
+							onClick={() => {
+								if (!showUserMenu && avatarButtonRef.current) {
+									const rect = avatarButtonRef.current.getBoundingClientRect()
+									setMenuPosition({
+										top: rect.bottom + 8,
+										right: window.innerWidth - rect.right,
+									})
+								}
+								setShowUserMenu(!showUserMenu)
+							}}
 							whileHover={{ scale: 1.05, y: -2 }}
 							whileTap={{ scale: 0.98 }}
 							transition={TRANSITION_SPRING}
@@ -230,25 +243,38 @@ export const Topbar = () => {
 							</Avatar>
 						</motion.button>
 
-						{/* Dropdown Menu - Profile is in LeftSidebar, not duplicated here (Twitter model) */}
+						{/* Dropdown Menu - Portaled to escape overflow:hidden clipping */}
 						{showUserMenu && (
-							<div className='absolute right-0 top-full z-dropdown mt-2 w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg'>
-								<Link
-									href={PATHS.SETTINGS}
+							<Portal>
+								{/* Click outside to close */}
+								<div
+									className='fixed inset-0 z-dropdown'
 									onClick={() => setShowUserMenu(false)}
-									className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
+								/>
+								<div
+									className='fixed z-dropdown w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg animate-in fade-in-0 zoom-in-95'
+									style={{
+										top: `${menuPosition.top}px`,
+										right: `${menuPosition.right}px`,
+									}}
 								>
-									<Settings className='size-4' />
-									<span>Settings</span>
-								</Link>
-								<button
-									onClick={handleLogout}
-									className='flex h-11 w-full items-center gap-3 rounded-b-lg px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
-								>
-									<LogOut className='size-4' />
-									<span>Sign Out</span>
-								</button>
-							</div>
+									<Link
+										href={PATHS.SETTINGS}
+										onClick={() => setShowUserMenu(false)}
+										className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
+									>
+										<Settings className='size-4' />
+										<span>Settings</span>
+									</Link>
+									<button
+										onClick={handleLogout}
+										className='flex h-11 w-full items-center gap-3 rounded-b-lg px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+									>
+										<LogOut className='size-4' />
+										<span>Sign Out</span>
+									</button>
+								</div>
+							</Portal>
 						)}
 					</div>
 				</div>

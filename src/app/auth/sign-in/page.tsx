@@ -58,12 +58,12 @@ const SignInPage = () => {
 				/>
 			</div>
 
-			{/* Main Content */}
+			{/* Main Content - No z-index manipulation to avoid stacking context issues */}
 			<motion.div
 				variants={staggerContainer}
 				initial='hidden'
 				animate='visible'
-				className='relative z-10 w-full max-w-md'
+				className='relative w-full max-w-md'
 			>
 				{/* Logo & Branding */}
 				<motion.div
@@ -96,10 +96,10 @@ const SignInPage = () => {
 					</motion.p>
 				</motion.div>
 
-				{/* Sign In Card */}
+				{/* Sign In Card - NOTE: No backdrop-blur to avoid stacking context issues with modals */}
 				<motion.div
 					variants={staggerItem}
-					className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card/95 p-8 shadow-xl shadow-black/5 backdrop-blur-md'
+					className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card p-8 shadow-xl shadow-black/5'
 				>
 					<motion.h2
 						initial={{ opacity: 0, y: 10 }}

@@ -52,6 +52,7 @@ export const API_ENDPOINTS = {
 	},
 	POST: {
 		CREATE: POST_SERVICE_PREFIX,
+		GET_BY_ID: (postId: string) => `${POST_SERVICE_PREFIX}/${postId}`,
 		UPDATE: (postId: string) => `${POST_SERVICE_PREFIX}/${postId}`,
 		DELETE: (postId: string) => `${POST_SERVICE_PREFIX}/${postId}`,
 		TOGGLE_LIKE: (postId: string) =>
@@ -61,6 +62,7 @@ export const API_ENDPOINTS = {
 		GET_ALL: `${POST_SERVICE_PREFIX}/all`,
 		GET_FEED: (userId: string) =>
 			`${POST_SERVICE_PREFIX}/feed?userId=${userId}`,
+		GET_SAVED: `${POST_SERVICE_PREFIX}/saved`,
 		// Comments per spec (06-comments.txt)
 		GET_COMMENTS: (postId: string) =>
 			`${POST_COMMENTS_BASE}/${postId}/comments`,
@@ -75,6 +77,10 @@ export const API_ENDPOINTS = {
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies`,
 		CREATE_REPLY: (commentId: string) =>
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies`,
+		DELETE_REPLY: (commentId: string, replyId: string) =>
+			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}`,
+		TOGGLE_LIKE_REPLY: (commentId: string, replyId: string) =>
+			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}/like`,
 		// Reports per spec (13-moderation.txt)
 		REPORT: `${POST_SERVICE_PREFIX}/report`,
 	},

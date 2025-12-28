@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
@@ -667,61 +668,65 @@ export const CookingPlayer = () => {
 	// Loading state - no session yet
 	if (isLoading) {
 		return (
-			<AnimatePresence mode='wait'>
-				<motion.div
-					key='cooking-player-loading'
-					variants={OVERLAY_BACKDROP}
-					initial='hidden'
-					animate='visible'
-					exit='exit'
-					className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4 backdrop-blur-md'
-				>
-					<div className='flex flex-col items-center gap-4 text-white'>
-						<Loader2 className='size-12 animate-spin' />
-						<p className='text-lg font-medium'>Starting cooking session...</p>
-					</div>
-				</motion.div>
-			</AnimatePresence>
+			<Portal>
+				<AnimatePresence mode='wait'>
+					<motion.div
+						key='cooking-player-loading'
+						variants={OVERLAY_BACKDROP}
+						initial='hidden'
+						animate='visible'
+						exit='exit'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4 backdrop-blur-md'
+					>
+						<div className='flex flex-col items-center gap-4 text-white'>
+							<Loader2 className='size-12 animate-spin' />
+							<p className='text-lg font-medium'>Starting cooking session...</p>
+						</div>
+					</motion.div>
+				</AnimatePresence>
+			</Portal>
 		)
 	}
 
 	// Error state or no session
 	if (error || !session || !recipe) {
 		return (
-			<AnimatePresence mode='wait'>
-				<motion.div
-					key='cooking-player-error'
-					variants={OVERLAY_BACKDROP}
-					initial='hidden'
-					animate='visible'
-					exit='exit'
-					className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4 backdrop-blur-md'
-				>
+			<Portal>
+				<AnimatePresence mode='wait'>
 					<motion.div
-						variants={prefersReducedMotion ? undefined : modalVariants}
+						key='cooking-player-error'
+						variants={OVERLAY_BACKDROP}
 						initial='hidden'
 						animate='visible'
 						exit='exit'
-						className='max-w-md rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4 backdrop-blur-md'
 					>
-						<AlertCircle className='mx-auto mb-4 size-12 text-error' />
-						<h2 className='mb-2 text-xl font-bold text-text'>
-							{error || 'No active cooking session'}
-						</h2>
-						<p className='mb-6 text-text-secondary'>
-							Please start cooking from a recipe page.
-						</p>
-						<motion.button
-							onClick={closeCookingPanel}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							className='rounded-full bg-gradient-hero px-8 py-3 font-bold text-white'
+						<motion.div
+							variants={prefersReducedMotion ? undefined : modalVariants}
+							initial='hidden'
+							animate='visible'
+							exit='exit'
+							className='max-w-md rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
 						>
-							Close
-						</motion.button>
+							<AlertCircle className='mx-auto mb-4 size-12 text-error' />
+							<h2 className='mb-2 text-xl font-bold text-text'>
+								{error || 'No active cooking session'}
+							</h2>
+							<p className='mb-6 text-text-secondary'>
+								Please start cooking from a recipe page.
+							</p>
+							<motion.button
+								onClick={closeCookingPanel}
+								whileHover={BUTTON_HOVER}
+								whileTap={BUTTON_TAP}
+								className='rounded-full bg-gradient-hero px-8 py-3 font-bold text-white'
+							>
+								Close
+							</motion.button>
+						</motion.div>
 					</motion.div>
-				</motion.div>
-			</AnimatePresence>
+				</AnimatePresence>
+			</Portal>
 		)
 	}
 
@@ -731,384 +736,390 @@ export const CookingPlayer = () => {
 	const timerRemaining = activeTimer?.remaining ?? step?.timerSeconds ?? 0
 
 	return (
-		<AnimatePresence mode='wait'>
-			{isOpen && (
-				<motion.div
-					key='cooking-player-overlay'
-					variants={OVERLAY_BACKDROP}
-					initial='hidden'
-					animate='visible'
-					exit='exit'
-					className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4 backdrop-blur-md md:p-6'
-				>
+		<Portal>
+			<AnimatePresence mode='wait'>
+				{isOpen && (
 					<motion.div
-						variants={prefersReducedMotion ? undefined : modalVariants}
+						key='cooking-player-overlay'
+						variants={OVERLAY_BACKDROP}
 						initial='hidden'
 						animate='visible'
 						exit='exit'
-						className='flex h-full max-h-modal w-full max-w-modal-2xl flex-col overflow-hidden rounded-3xl bg-bg-card shadow-2xl'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4 backdrop-blur-md md:p-6'
 					>
-						{/* Header */}
-						<div className='relative overflow-hidden bg-gradient-hero p-6 text-white'>
-							{/* Animated background shimmer - pointer-events-none to not block buttons */}
-							<motion.div
-								className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent'
-								animate={{ x: ['-100%', '100%'] }}
-								transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-							/>
+						<motion.div
+							variants={prefersReducedMotion ? undefined : modalVariants}
+							initial='hidden'
+							animate='visible'
+							exit='exit'
+							className='flex h-full max-h-modal w-full max-w-modal-2xl flex-col overflow-hidden rounded-3xl bg-bg-card shadow-2xl'
+						>
+							{/* Header */}
+							<div className='relative overflow-hidden bg-gradient-hero p-6 text-white'>
+								{/* Animated background shimmer - pointer-events-none to not block buttons */}
+								<motion.div
+									className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent'
+									animate={{ x: ['-100%', '100%'] }}
+									transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+								/>
 
-							{/* Active Timers from other steps */}
-							<ActiveTimersBadge
-								localTimers={localTimers}
-								currentStepNumber={currentStepNumber}
-								onJumpToStep={handleStepClick}
-							/>
+								{/* Active Timers from other steps */}
+								<ActiveTimersBadge
+									localTimers={localTimers}
+									currentStepNumber={currentStepNumber}
+									onJumpToStep={handleStepClick}
+								/>
 
-							{/* AI Assist Button - Prominent with pulsing glow */}
-							<motion.button
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								animate={{
-									boxShadow: [
-										'0 0 0 0 rgba(255, 90, 54, 0)',
-										'0 0 20px 4px rgba(255, 90, 54, 0.4)',
-										'0 0 0 0 rgba(255, 90, 54, 0)',
-									],
-								}}
-								transition={{
-									duration: 2,
-									repeat: Infinity,
-									ease: 'easeInOut',
-								}}
-								className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
-							>
-								<Sparkles className='size-4' /> AI Assist
-							</motion.button>
-
-							{/* Header buttons group */}
-							<div className='absolute right-4 top-4 flex items-center gap-2'>
-								{/* Exit Session Button */}
+								{/* AI Assist Button - Prominent with pulsing glow */}
 								<motion.button
-									onClick={() => setShowAbandonConfirm(true)}
-									whileHover={ICON_BUTTON_HOVER}
-									whileTap={ICON_BUTTON_TAP}
-									className='grid size-10 place-items-center rounded-full bg-red-500/20 backdrop-blur-sm transition-colors hover:bg-red-500/40'
-									title='Exit and abandon session'
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									animate={{
+										boxShadow: [
+											'0 0 0 0 rgba(255, 90, 54, 0)',
+											'0 0 20px 4px rgba(255, 90, 54, 0.4)',
+											'0 0 0 0 rgba(255, 90, 54, 0)',
+										],
+									}}
+									transition={{
+										duration: 2,
+										repeat: Infinity,
+										ease: 'easeInOut',
+									}}
+									className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
 								>
-									<LogOut className='size-5' />
+									<Sparkles className='size-4' /> AI Assist
 								</motion.button>
 
-								{/* Minimize Button */}
-								<motion.button
-									onClick={closeCookingPanel}
-									whileHover={ICON_BUTTON_HOVER}
-									whileTap={ICON_BUTTON_TAP}
-									className='grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
-									title='Minimize to mini-bar (Esc)'
-								>
-									<X className='size-5' />
-								</motion.button>
-							</div>
+								{/* Header buttons group */}
+								<div className='absolute right-4 top-4 flex items-center gap-2'>
+									{/* Exit Session Button */}
+									<motion.button
+										onClick={() => setShowAbandonConfirm(true)}
+										whileHover={ICON_BUTTON_HOVER}
+										whileTap={ICON_BUTTON_TAP}
+										className='grid size-10 place-items-center rounded-full bg-red-500/20 backdrop-blur-sm transition-colors hover:bg-red-500/40'
+										title='Exit and abandon session'
+									>
+										<LogOut className='size-5' />
+									</motion.button>
 
-							{/* XP Badge */}
-							<XpPreview
-								xp={recipe.xpReward ?? 0}
-								className='absolute right-4 bottom-4'
-							/>
+									{/* Minimize Button */}
+									<motion.button
+										onClick={closeCookingPanel}
+										whileHover={ICON_BUTTON_HOVER}
+										whileTap={ICON_BUTTON_TAP}
+										className='grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
+										title='Minimize to mini-bar (Esc)'
+									>
+										<X className='size-5' />
+									</motion.button>
+								</div>
 
-							{/* Recipe Info */}
-							<div className='relative z-10 pt-8 text-center'>
-								<motion.h2
-									initial={{ opacity: 0, y: -10 }}
-									animate={{ opacity: 1, y: 0 }}
-									className='text-2xl font-bold md:text-3xl'
-								>
-									{recipe.title}
-								</motion.h2>
-								<div className='mt-3 flex flex-wrap items-center justify-center gap-4 text-sm opacity-90 md:gap-6'>
-									<span className='flex items-center gap-1.5'>
-										<User className='size-4' />{' '}
-										{recipe.author?.displayName ?? 'Chef'}
-									</span>
-									<span className='flex items-center gap-1.5'>
-										<Clock className='size-4' /> {recipe.totalTimeMinutes ?? 0}{' '}
-										min
-									</span>
-									<span className='flex items-center gap-1.5'>
-										<BarChart2 className='size-4' /> {recipe.difficulty}
-									</span>
+								{/* XP Badge */}
+								<XpPreview
+									xp={recipe.xpReward ?? 0}
+									className='absolute right-4 bottom-4'
+								/>
+
+								{/* Recipe Info */}
+								<div className='relative z-10 pt-8 text-center'>
+									<motion.h2
+										initial={{ opacity: 0, y: -10 }}
+										animate={{ opacity: 1, y: 0 }}
+										className='text-2xl font-bold md:text-3xl'
+									>
+										{recipe.title}
+									</motion.h2>
+									<div className='mt-3 flex flex-wrap items-center justify-center gap-4 text-sm opacity-90 md:gap-6'>
+										<span className='flex items-center gap-1.5'>
+											<User className='size-4' />{' '}
+											{recipe.author?.displayName ?? 'Chef'}
+										</span>
+										<span className='flex items-center gap-1.5'>
+											<Clock className='size-4' />{' '}
+											{recipe.totalTimeMinutes ?? 0} min
+										</span>
+										<span className='flex items-center gap-1.5'>
+											<BarChart2 className='size-4' /> {recipe.difficulty}
+										</span>
+									</div>
 								</div>
 							</div>
-						</div>
 
-						{/* Progress Section */}
-						<div className='border-b border-border-subtle bg-bg-elevated px-6 py-4'>
-							<div className='mb-3 flex items-center justify-between'>
-								<span className='text-sm font-medium text-text-secondary'>
-									Step {currentStepNumber} of {totalSteps}
-								</span>
-								<StepDots
-									totalSteps={totalSteps}
-									currentStep={currentStepNumber}
-									completedSteps={completedSteps}
-									onStepClick={handleStepClick}
-								/>
-							</div>
+							{/* Progress Section */}
+							<div className='border-b border-border-subtle bg-bg-elevated px-6 py-4'>
+								<div className='mb-3 flex items-center justify-between'>
+									<span className='text-sm font-medium text-text-secondary'>
+										Step {currentStepNumber} of {totalSteps}
+									</span>
+									<StepDots
+										totalSteps={totalSteps}
+										currentStep={currentStepNumber}
+										completedSteps={completedSteps}
+										onStepClick={handleStepClick}
+									/>
+								</div>
 
-							{/* Animated Progress Bar */}
-							<div className='h-2 w-full overflow-hidden rounded-full bg-border'>
-								<motion.div
-									className='h-full rounded-full bg-gradient-hero'
-									initial={{ scaleX: 0, originX: 0 }}
-									animate={{ scaleX: progress / 100 }}
-									transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-									style={{ transformOrigin: 'left' }}
-								/>
-							</div>
-						</div>
-
-						{/* Step Content - Animated */}
-						<div className='relative flex-1 overflow-hidden'>
-							<AnimatePresence initial={false} custom={direction} mode='wait'>
-								{step && (
+								{/* Animated Progress Bar */}
+								<div className='h-2 w-full overflow-hidden rounded-full bg-border'>
 									<motion.div
-										key={currentStepNumber}
-										custom={direction}
-										variants={prefersReducedMotion ? undefined : stepVariants}
-										initial='enter'
-										animate='center'
-										exit='exit'
-										className='absolute inset-0 flex flex-col overflow-y-auto p-6'
-									>
-										{/* Step Image */}
-										{step.imageUrl && (
-											<motion.div
-												initial={{ opacity: 0, scale: 0.95 }}
-												animate={{ opacity: 1, scale: 1 }}
-												transition={{ delay: 0.1 }}
-												className='relative mx-auto mb-6 aspect-video w-full max-w-md overflow-hidden rounded-2xl shadow-lg'
-											>
-												<Image
-													src={step.imageUrl}
-													alt={step.title ?? `Step ${step.stepNumber}`}
-													fill
-													className='object-cover'
-												/>
-											</motion.div>
-										)}
+										className='h-full rounded-full bg-gradient-hero'
+										initial={{ scaleX: 0, originX: 0 }}
+										animate={{ scaleX: progress / 100 }}
+										transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+										style={{ transformOrigin: 'left' }}
+									/>
+								</div>
+							</div>
 
-										{/* Step Title */}
-										<motion.h3
-											initial={{ opacity: 0, y: 10 }}
-											animate={{ opacity: 1, y: 0 }}
-											transition={{ delay: 0.15 }}
-											className='mb-3 text-center text-xl font-bold text-text md:text-2xl'
+							{/* Step Content - Animated */}
+							<div className='relative flex-1 overflow-hidden'>
+								<AnimatePresence initial={false} custom={direction} mode='wait'>
+									{step && (
+										<motion.div
+											key={currentStepNumber}
+											custom={direction}
+											variants={prefersReducedMotion ? undefined : stepVariants}
+											initial='enter'
+											animate='center'
+											exit='exit'
+											className='absolute inset-0 flex flex-col overflow-y-auto p-6'
 										>
-											Step {step.stepNumber}: {step.title ?? 'Cook'}
-										</motion.h3>
+											{/* Step Image */}
+											{step.imageUrl && (
+												<motion.div
+													initial={{ opacity: 0, scale: 0.95 }}
+													animate={{ opacity: 1, scale: 1 }}
+													transition={{ delay: 0.1 }}
+													className='relative mx-auto mb-6 aspect-video w-full max-w-md overflow-hidden rounded-2xl shadow-lg'
+												>
+													<Image
+														src={step.imageUrl}
+														alt={step.title ?? `Step ${step.stepNumber}`}
+														fill
+														className='object-cover'
+													/>
+												</motion.div>
+											)}
 
-										{/* Step Description - Large for kitchen readability */}
-										<motion.p
-											initial={{ opacity: 0 }}
-											animate={{ opacity: 1 }}
-											transition={{ delay: 0.2 }}
-											className='mx-auto mb-6 max-w-lg text-center text-lg leading-relaxed text-text-secondary md:text-xl'
-										>
-											{step.description}
-										</motion.p>
-
-										{/* Tips */}
-										{step.tips && (
-											<motion.div
+											{/* Step Title */}
+											<motion.h3
 												initial={{ opacity: 0, y: 10 }}
 												animate={{ opacity: 1, y: 0 }}
-												transition={{ delay: 0.25 }}
-												className='mx-auto mb-6 flex max-w-md items-start gap-3 rounded-xl bg-bonus/10 p-4 text-sm'
+												transition={{ delay: 0.15 }}
+												className='mb-3 text-center text-xl font-bold text-text md:text-2xl'
 											>
-												<span className='text-lg'>💡</span>
-												<p className='text-bonus'>{step.tips}</p>
-											</motion.div>
-										)}
+												Step {step.stepNumber}: {step.title ?? 'Cook'}
+											</motion.h3>
 
-										{/* Timer */}
-										{step.timerSeconds && step.timerSeconds > 0 && (
-											<motion.div
-												initial={{ opacity: 0, scale: 0.9 }}
-												animate={{ opacity: 1, scale: 1 }}
-												transition={{ delay: 0.3 }}
-												className='mb-6'
+											{/* Step Description - Large for kitchen readability */}
+											<motion.p
+												initial={{ opacity: 0 }}
+												animate={{ opacity: 1 }}
+												transition={{ delay: 0.2 }}
+												className='mx-auto mb-6 max-w-lg text-center text-lg leading-relaxed text-text-secondary md:text-xl'
 											>
-												<StepTimer
-													seconds={timerRemaining}
-													isRunning={timerRunning}
-													onToggle={handleTimerToggle}
-													onComplete={handleTimerComplete}
-												/>
-											</motion.div>
-										)}
+												{step.description}
+											</motion.p>
 
-										{/* Ingredients Checklist */}
-										{step.ingredients && step.ingredients.length > 0 && (
-											<motion.div
-												initial={{ opacity: 0, y: 20 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{ delay: 0.35 }}
-												className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle bg-bg-card p-4'
-											>
-												<h4 className='mb-3 flex items-center gap-2 font-semibold text-text'>
-													<span className='text-lg'>🧾</span> Ingredients for
-													this step
-												</h4>
-												<div className='flex flex-col gap-2'>
-													{step.ingredients.map((ing, idx) => {
-														const id = `${currentStepNumber}-${ing.name}`
-														return (
-															<IngredientCheck
-																key={id}
-																ingredient={{
-																	name: ing.name,
-																	quantity: ing.quantity ?? '',
-																	unit: ing.unit ?? '',
-																}}
-																isChecked={checkedIngredients.has(id)}
-																onToggle={() => toggleIngredient(id)}
-																index={idx}
-															/>
-														)
-													})}
-												</div>
-											</motion.div>
-										)}
-									</motion.div>
-								)}
-							</AnimatePresence>
-						</div>
+											{/* Tips */}
+											{step.tips && (
+												<motion.div
+													initial={{ opacity: 0, y: 10 }}
+													animate={{ opacity: 1, y: 0 }}
+													transition={{ delay: 0.25 }}
+													className='mx-auto mb-6 flex max-w-md items-start gap-3 rounded-xl bg-bonus/10 p-4 text-sm'
+												>
+													<span className='text-lg'>💡</span>
+													<p className='text-bonus'>{step.tips}</p>
+												</motion.div>
+											)}
 
-						{/* Navigation */}
-						<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated p-4'>
-							<motion.button
-								onClick={handlePrevStep}
-								disabled={currentStepNumber === 1}
-								whileHover={currentStepNumber > 1 ? BUTTON_HOVER : undefined}
-								whileTap={currentStepNumber > 1 ? BUTTON_TAP : undefined}
-								className={cn(
-									'flex items-center gap-2 rounded-full px-6 py-3 font-bold transition-all',
-									currentStepNumber === 1
-										? 'cursor-not-allowed bg-border/50 text-text-muted'
-										: 'bg-border text-text hover:bg-border-medium',
-								)}
-								title='Previous step (←)'
-							>
-								<ChevronLeft className='size-5' /> Back
-								<kbd className='ml-1 hidden rounded bg-black/10 px-1.5 py-0.5 text-xs font-normal md:inline'>
-									←
-								</kbd>
-							</motion.button>
+											{/* Timer */}
+											{step.timerSeconds && step.timerSeconds > 0 && (
+												<motion.div
+													initial={{ opacity: 0, scale: 0.9 }}
+													animate={{ opacity: 1, scale: 1 }}
+													transition={{ delay: 0.3 }}
+													className='mb-6'
+												>
+													<StepTimer
+														seconds={timerRemaining}
+														isRunning={timerRunning}
+														onToggle={handleTimerToggle}
+														onComplete={handleTimerComplete}
+													/>
+												</motion.div>
+											)}
 
-							<motion.button
-								onClick={handleNextStep}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className='flex items-center gap-2 rounded-full bg-gradient-hero px-8 py-3 font-bold text-white shadow-lg shadow-brand/30'
-								title={
-									currentStepNumber === totalSteps
-										? 'Complete recipe'
-										: 'Next step (→ or Space)'
-								}
-							>
-								{currentStepNumber === totalSteps ? (
-									<>
-										<Trophy className='size-5' /> Complete!
-									</>
-								) : (
-									<>
-										Next Step
-										<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
-											→
-										</kbd>
-										<ChevronRight className='size-5' />
-									</>
-								)}
-							</motion.button>
-						</div>
+											{/* Ingredients Checklist */}
+											{step.ingredients && step.ingredients.length > 0 && (
+												<motion.div
+													initial={{ opacity: 0, y: 20 }}
+													animate={{ opacity: 1, y: 0 }}
+													transition={{ delay: 0.35 }}
+													className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle bg-bg-card p-4'
+												>
+													<h4 className='mb-3 flex items-center gap-2 font-semibold text-text'>
+														<span className='text-lg'>🧾</span> Ingredients for
+														this step
+													</h4>
+													<div className='flex flex-col gap-2'>
+														{step.ingredients.map((ing, idx) => {
+															const id = `${currentStepNumber}-${ing.name}`
+															return (
+																<IngredientCheck
+																	key={id}
+																	ingredient={{
+																		name: ing.name,
+																		quantity: ing.quantity ?? '',
+																		unit: ing.unit ?? '',
+																	}}
+																	isChecked={checkedIngredients.has(id)}
+																	onToggle={() => toggleIngredient(id)}
+																	index={idx}
+																/>
+															)
+														})}
+													</div>
+												</motion.div>
+											)}
+										</motion.div>
+									)}
+								</AnimatePresence>
+							</div>
+
+							{/* Navigation */}
+							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated p-4'>
+								<motion.button
+									onClick={handlePrevStep}
+									disabled={currentStepNumber === 1}
+									whileHover={currentStepNumber > 1 ? BUTTON_HOVER : undefined}
+									whileTap={currentStepNumber > 1 ? BUTTON_TAP : undefined}
+									className={cn(
+										'flex items-center gap-2 rounded-full px-6 py-3 font-bold transition-all',
+										currentStepNumber === 1
+											? 'cursor-not-allowed bg-border/50 text-text-muted'
+											: 'bg-border text-text hover:bg-border-medium',
+									)}
+									title='Previous step (←)'
+								>
+									<ChevronLeft className='size-5' /> Back
+									<kbd className='ml-1 hidden rounded bg-black/10 px-1.5 py-0.5 text-xs font-normal md:inline'>
+										←
+									</kbd>
+								</motion.button>
+
+								<motion.button
+									onClick={handleNextStep}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className='flex items-center gap-2 rounded-full bg-gradient-hero px-8 py-3 font-bold text-white shadow-lg shadow-brand/30'
+									title={
+										currentStepNumber === totalSteps
+											? 'Complete recipe'
+											: 'Next step (→ or Space)'
+									}
+								>
+									{currentStepNumber === totalSteps ? (
+										<>
+											<Trophy className='size-5' /> Complete!
+										</>
+									) : (
+										<>
+											Next Step
+											<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
+												→
+											</kbd>
+											<ChevronRight className='size-5' />
+										</>
+									)}
+								</motion.button>
+							</div>
+						</motion.div>
 					</motion.div>
+				)}
+			</AnimatePresence>
 
-					{/* Completion Modal with Rating Form */}
-					<AnimatePresence>
-						{showCompletion && (
+			{/* Completion Modal - Separate Portal (outside main modal container to be truly full-screen) */}
+			<AnimatePresence>
+				{showCompletion && (
+					<Portal>
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-md'
+						>
 							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className='absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-md'
+								variants={CELEBRATION_MODAL}
+								initial='hidden'
+								animate='visible'
+								exit='exit'
+								className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 shadow-2xl'
 							>
-								<motion.div
-									variants={CELEBRATION_MODAL}
-									initial='hidden'
-									animate='visible'
-									exit='exit'
-									className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 shadow-2xl'
-								>
-									<SessionRatingForm
-										xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
-										recipeTitle={recipe.title}
-										onSubmit={handleComplete}
-										isSubmitting={isCompletingSession}
-									/>
-								</motion.div>
+								<SessionRatingForm
+									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
+									recipeTitle={recipe.title}
+									onSubmit={handleComplete}
+									isSubmitting={isCompletingSession}
+								/>
 							</motion.div>
-						)}
-					</AnimatePresence>
+						</motion.div>
+					</Portal>
+				)}
+			</AnimatePresence>
 
-					{/* Abandon Confirmation Modal */}
-					<AnimatePresence>
-						{showAbandonConfirm && (
+			{/* Abandon Confirmation Modal - Separate Portal (outside main modal container) */}
+			<AnimatePresence>
+				{showAbandonConfirm && (
+					<Portal>
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-md'
+						>
 							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className='absolute inset-0 z-10 flex items-center justify-center bg-black/80 backdrop-blur-md'
+								initial={{ scale: 0.9, opacity: 0 }}
+								animate={{ scale: 1, opacity: 1 }}
+								exit={{ scale: 0.9, opacity: 0 }}
+								className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
 							>
-								<motion.div
-									initial={{ scale: 0.9, opacity: 0 }}
-									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0.9, opacity: 0 }}
-									className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
-								>
-									<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-red-100 dark:bg-red-900/30'>
-										<LogOut className='size-8 text-red-500' />
-									</div>
-									<h3 className='mb-2 text-xl font-bold text-text'>
-										Abandon Session?
-									</h3>
-									<p className='mb-6 text-text-secondary'>
-										You&apos;ll lose all progress on this cooking session. This
-										action cannot be undone.
-									</p>
-									<div className='flex gap-3'>
-										<motion.button
-											whileHover={BUTTON_HOVER}
-											whileTap={BUTTON_TAP}
-											onClick={() => setShowAbandonConfirm(false)}
-											className='flex-1 rounded-full border border-border bg-bg-card px-6 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated'
-										>
-											Keep Cooking
-										</motion.button>
-										<motion.button
-											whileHover={BUTTON_HOVER}
-											whileTap={BUTTON_TAP}
-											onClick={handleAbandon}
-											className='flex-1 rounded-full bg-red-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-600'
-										>
-											Abandon
-										</motion.button>
-									</div>
-								</motion.div>
+								<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-red-100 dark:bg-red-900/30'>
+									<LogOut className='size-8 text-red-500' />
+								</div>
+								<h3 className='mb-2 text-xl font-bold text-text'>
+									Abandon Session?
+								</h3>
+								<p className='mb-6 text-text-secondary'>
+									You&apos;ll lose all progress on this cooking session. This
+									action cannot be undone.
+								</p>
+								<div className='flex gap-3'>
+									<motion.button
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										onClick={() => setShowAbandonConfirm(false)}
+										className='flex-1 rounded-full border border-border bg-bg-card px-6 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated'
+									>
+										Keep Cooking
+									</motion.button>
+									<motion.button
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										onClick={handleAbandon}
+										className='flex-1 rounded-full bg-red-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-600'
+									>
+										Abandon
+									</motion.button>
+								</div>
 							</motion.div>
-						)}
-					</AnimatePresence>
-				</motion.div>
-			)}
-		</AnimatePresence>
+						</motion.div>
+					</Portal>
+				)}
+			</AnimatePresence>
+		</Portal>
 	)
 }

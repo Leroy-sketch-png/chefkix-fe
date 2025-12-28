@@ -34,6 +34,7 @@ import {
 import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Portal } from '@/components/ui/portal'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -1418,84 +1419,86 @@ export default function SettingsPage() {
 				{/* Change Password Modal */}
 				<AnimatePresence>
 					{showPasswordModal && (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
-							onClick={() => setShowPasswordModal(false)}
-						>
+						<Portal>
 							<motion.div
-								initial={{ scale: 0.95, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								exit={{ scale: 0.95, opacity: 0 }}
-								transition={TRANSITION_SPRING}
-								onClick={e => e.stopPropagation()}
-								className='w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl'
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
+								onClick={() => setShowPasswordModal(false)}
 							>
-								<h2 className='mb-4 text-xl font-bold'>Change Password</h2>
-								<div className='space-y-4'>
-									<div className='grid gap-2'>
-										<Label htmlFor='currentPassword'>Current Password</Label>
-										<Input
-											id='currentPassword'
-											type='password'
-											value={currentPassword}
-											onChange={e => setCurrentPassword(e.target.value)}
-											placeholder='Enter current password'
-										/>
+								<motion.div
+									initial={{ scale: 0.95, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.95, opacity: 0 }}
+									transition={TRANSITION_SPRING}
+									onClick={e => e.stopPropagation()}
+									className='w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl'
+								>
+									<h2 className='mb-4 text-xl font-bold'>Change Password</h2>
+									<div className='space-y-4'>
+										<div className='grid gap-2'>
+											<Label htmlFor='currentPassword'>Current Password</Label>
+											<Input
+												id='currentPassword'
+												type='password'
+												value={currentPassword}
+												onChange={e => setCurrentPassword(e.target.value)}
+												placeholder='Enter current password'
+											/>
+										</div>
+										<div className='grid gap-2'>
+											<Label htmlFor='newPassword'>New Password</Label>
+											<Input
+												id='newPassword'
+												type='password'
+												value={newPassword}
+												onChange={e => setNewPassword(e.target.value)}
+												placeholder='Enter new password'
+											/>
+										</div>
+										<div className='grid gap-2'>
+											<Label htmlFor='confirmPassword'>
+												Confirm New Password
+											</Label>
+											<Input
+												id='confirmPassword'
+												type='password'
+												value={confirmPassword}
+												onChange={e => setConfirmPassword(e.target.value)}
+												placeholder='Confirm new password'
+											/>
+										</div>
+										<div className='flex gap-3 pt-2'>
+											<Button
+												variant='outline'
+												className='flex-1'
+												onClick={() => {
+													setShowPasswordModal(false)
+													setCurrentPassword('')
+													setNewPassword('')
+													setConfirmPassword('')
+												}}
+											>
+												Cancel
+											</Button>
+											<Button
+												className='flex-1'
+												onClick={handleChangePassword}
+												disabled={isChangingPassword}
+											>
+												{isChangingPassword ? (
+													<Loader2 className='mr-2 size-4 animate-spin' />
+												) : (
+													<Shield className='mr-2 size-4' />
+												)}
+												Change Password
+											</Button>
+										</div>
 									</div>
-									<div className='grid gap-2'>
-										<Label htmlFor='newPassword'>New Password</Label>
-										<Input
-											id='newPassword'
-											type='password'
-											value={newPassword}
-											onChange={e => setNewPassword(e.target.value)}
-											placeholder='Enter new password'
-										/>
-									</div>
-									<div className='grid gap-2'>
-										<Label htmlFor='confirmPassword'>
-											Confirm New Password
-										</Label>
-										<Input
-											id='confirmPassword'
-											type='password'
-											value={confirmPassword}
-											onChange={e => setConfirmPassword(e.target.value)}
-											placeholder='Confirm new password'
-										/>
-									</div>
-									<div className='flex gap-3 pt-2'>
-										<Button
-											variant='outline'
-											className='flex-1'
-											onClick={() => {
-												setShowPasswordModal(false)
-												setCurrentPassword('')
-												setNewPassword('')
-												setConfirmPassword('')
-											}}
-										>
-											Cancel
-										</Button>
-										<Button
-											className='flex-1'
-											onClick={handleChangePassword}
-											disabled={isChangingPassword}
-										>
-											{isChangingPassword ? (
-												<Loader2 className='mr-2 size-4 animate-spin' />
-											) : (
-												<Shield className='mr-2 size-4' />
-											)}
-											Change Password
-										</Button>
-									</div>
-								</div>
+								</motion.div>
 							</motion.div>
-						</motion.div>
+						</Portal>
 					)}
 				</AnimatePresence>
 			</PageContainer>

@@ -50,13 +50,22 @@ export interface UpdatePostRequest {
 
 export interface PostResponse extends Post {}
 
+/**
+ * Response from POST /toggle-like/{postId}
+ * Matches PostLikeResponse.java exactly
+ */
 export interface ToggleLikeResponse {
-	id: string
-	likes: number
-	content: string
-	userId: string
-	displayName: string
-	tags: string[]
+	isLiked: boolean
+	likeCount: number
+}
+
+/**
+ * Response from POST /toggle-save/{postId}
+ * Matches PostSaveResponse.java exactly
+ */
+export interface ToggleSaveResponse {
+	isSaved: boolean
+	saveCount: number
 }
 
 // Post creation response when sessionId is provided

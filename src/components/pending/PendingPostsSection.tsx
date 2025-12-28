@@ -26,6 +26,7 @@ import {
 	BUTTON_SUBTLE_TAP,
 	CARD_FEATURED_HOVER,
 } from '@/lib/motion'
+import { Portal } from '@/components/ui/portal'
 
 // =============================================================================
 // TYPES
@@ -476,168 +477,171 @@ export const PendingExpandedModal = ({
 	return (
 		<AnimatePresence>
 			{isOpen && (
-				<motion.div
-					className='fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-end justify-center'
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-				>
+				<Portal>
 					<motion.div
-						className='bg-panel-bg rounded-t-3xl w-full max-w-lg max-h-sheet-mobile flex flex-col'
-						initial={{ y: '100%' }}
-						animate={{ y: 0 }}
-						exit={{ y: '100%' }}
-						transition={TRANSITION_SPRING}
+						className='fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-end justify-center'
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
 					>
-						{/* Header */}
-						<div className='flex items-center gap-3 px-6 py-5 border-b border-border'>
-							<h2 className='text-xl font-bold text-foreground'>
-								Pending Posts
-							</h2>
-							<span className='text-sm text-muted-foreground'>
-								{pendingSessions.length} recipes • +{totalXP} XP available
-							</span>
-							<motion.button
-								className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-muted'
-								onClick={onClose}
-								whileHover={ICON_BUTTON_HOVER}
-								whileTap={ICON_BUTTON_TAP}
-								transition={TRANSITION_SPRING}
-							>
-								<X className='h-5 w-5 text-muted-foreground' />
-							</motion.button>
-						</div>
-
-						{/* Urgency Banner */}
-						{urgentSessions.length > 0 && (
-							<div className='flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-error to-error/80 text-white text-sm font-semibold'>
-								<AlertTriangle className='h-4 w-4' />
-								{urgentSessions.length} recipe
-								{urgentSessions.length > 1 ? 's' : ''} expire within 24 hours.
-								Post now to claim XP!
-							</div>
-						)}
-
-						{/* List */}
 						<motion.div
-							className='flex-1 overflow-y-auto p-4 space-y-3'
-							variants={staggerContainer}
-							initial='hidden'
-							animate='visible'
+							className='bg-panel-bg rounded-t-3xl w-full max-w-lg max-h-sheet-mobile flex flex-col'
+							initial={{ y: '100%' }}
+							animate={{ y: 0 }}
+							exit={{ y: '100%' }}
+							transition={TRANSITION_SPRING}
 						>
-							{pendingSessions.map(session => (
-								<motion.div
-									key={session.id}
-									className={cn(
-										'bg-muted/30 rounded-2xl overflow-hidden',
-										session.status === 'urgent' && 'border border-error/30',
-										session.status === 'warning' && 'border border-warning/30',
-									)}
-									variants={fadeInUp}
+							{/* Header */}
+							<div className='flex items-center gap-3 px-6 py-5 border-b border-border'>
+								<h2 className='text-xl font-bold text-foreground'>
+									Pending Posts
+								</h2>
+								<span className='text-sm text-muted-foreground'>
+									{pendingSessions.length} recipes • +{totalXP} XP available
+								</span>
+								<motion.button
+									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-muted'
+									onClick={onClose}
+									whileHover={ICON_BUTTON_HOVER}
+									whileTap={ICON_BUTTON_TAP}
+									transition={TRANSITION_SPRING}
 								>
-									{/* Urgency Tag */}
-									{(session.status === 'urgent' ||
-										session.status === 'warning') && (
-										<div
-											className={cn(
-												'px-4 py-2 text-xs font-bold uppercase tracking-wide text-white',
-												session.status === 'urgent'
-													? 'bg-gradient-to-r from-error to-error/80'
-													: 'bg-gradient-to-r from-warning to-warning/80',
-											)}
-										>
-											{session.status === 'urgent'
-												? `Expires in ${getTimeLeft(session.expiresAt)}`
-												: getTimeLeft(session.expiresAt)}
-										</div>
-									)}
+									<X className='h-5 w-5 text-muted-foreground' />
+								</motion.button>
+							</div>
 
-									{/* Content */}
-									<div className='flex items-center gap-4 p-4'>
-										<Image
-											src={session.recipeImage}
-											alt={session.recipeName}
-											width={64}
-											height={64}
-											className='w-16 h-16 rounded-xl object-cover'
-										/>
-										<div className='flex-1 min-w-0'>
-											<span className='block text-base font-bold text-foreground'>
-												{session.recipeName}
-											</span>
-											<span className='block text-sm text-muted-foreground'>
-												{getTimeSinceCook(session.cookedAt)}
-											</span>
-											{session.status === 'urgent' &&
-												session.currentXP < session.baseXP && (
-													<div className='mt-2'>
-														<div className='h-1 bg-border rounded-full overflow-hidden w-32'>
-															<div
-																className='h-full bg-gradient-to-r from-error to-warning rounded-full'
-																style={{
-																	width: `${((session.baseXP - session.currentXP) / session.baseXP) * 100}%`,
-																}}
-															/>
-														</div>
-														<span className='text-xs text-error font-semibold'>
-															XP decaying
-														</span>
-													</div>
-												)}
-										</div>
-										<div className='text-right'>
-											<span
+							{/* Urgency Banner */}
+							{urgentSessions.length > 0 && (
+								<div className='flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-error to-error/80 text-white text-sm font-semibold'>
+									<AlertTriangle className='h-4 w-4' />
+									{urgentSessions.length} recipe
+									{urgentSessions.length > 1 ? 's' : ''} expire within 24 hours.
+									Post now to claim XP!
+								</div>
+							)}
+
+							{/* List */}
+							<motion.div
+								className='flex-1 overflow-y-auto p-4 space-y-3'
+								variants={staggerContainer}
+								initial='hidden'
+								animate='visible'
+							>
+								{pendingSessions.map(session => (
+									<motion.div
+										key={session.id}
+										className={cn(
+											'bg-muted/30 rounded-2xl overflow-hidden',
+											session.status === 'urgent' && 'border border-error/30',
+											session.status === 'warning' &&
+												'border border-warning/30',
+										)}
+										variants={fadeInUp}
+									>
+										{/* Urgency Tag */}
+										{(session.status === 'urgent' ||
+											session.status === 'warning') && (
+											<div
 												className={cn(
-													'block text-lg font-bold',
+													'px-4 py-2 text-xs font-bold uppercase tracking-wide text-white',
 													session.status === 'urgent'
-														? 'text-error'
-														: 'text-success',
+														? 'bg-gradient-to-r from-error to-error/80'
+														: 'bg-gradient-to-r from-warning to-warning/80',
 												)}
 											>
-												+{session.currentXP} XP
-											</span>
-											{session.currentXP < session.baseXP && (
-												<span className='text-xs text-muted-foreground line-through'>
-													was +{session.baseXP}
-												</span>
-											)}
-										</div>
-										<motion.button
-											className={cn(
-												'px-4 py-2.5 rounded-xl text-sm font-semibold',
-												session.status === 'urgent'
-													? 'bg-error text-white'
-													: 'bg-primary text-primary-foreground',
-											)}
-											onClick={() => onPost(session.id)}
-											whileHover={BUTTON_SUBTLE_HOVER}
-											whileTap={BUTTON_SUBTLE_TAP}
-											transition={TRANSITION_SPRING}
-										>
-											{session.status === 'urgent' ? 'POST NOW' : 'Post'}
-										</motion.button>
-									</div>
-								</motion.div>
-							))}
-						</motion.div>
+												{session.status === 'urgent'
+													? `Expires in ${getTimeLeft(session.expiresAt)}`
+													: getTimeLeft(session.expiresAt)}
+											</div>
+										)}
 
-						{/* Footer */}
-						<div className='p-5 border-t border-border bg-muted/30'>
-							<p className='text-sm text-muted-foreground text-center mb-4'>
-								💡 Post photos of your creations to unlock XP and badges!
-							</p>
-							<motion.button
-								className='w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold'
-								onClick={onClose}
-								whileHover={CARD_FEATURED_HOVER}
-								whileTap={BUTTON_TAP}
-								transition={TRANSITION_SPRING}
-							>
-								Done
-							</motion.button>
-						</div>
+										{/* Content */}
+										<div className='flex items-center gap-4 p-4'>
+											<Image
+												src={session.recipeImage}
+												alt={session.recipeName}
+												width={64}
+												height={64}
+												className='w-16 h-16 rounded-xl object-cover'
+											/>
+											<div className='flex-1 min-w-0'>
+												<span className='block text-base font-bold text-foreground'>
+													{session.recipeName}
+												</span>
+												<span className='block text-sm text-muted-foreground'>
+													{getTimeSinceCook(session.cookedAt)}
+												</span>
+												{session.status === 'urgent' &&
+													session.currentXP < session.baseXP && (
+														<div className='mt-2'>
+															<div className='h-1 bg-border rounded-full overflow-hidden w-32'>
+																<div
+																	className='h-full bg-gradient-to-r from-error to-warning rounded-full'
+																	style={{
+																		width: `${((session.baseXP - session.currentXP) / session.baseXP) * 100}%`,
+																	}}
+																/>
+															</div>
+															<span className='text-xs text-error font-semibold'>
+																XP decaying
+															</span>
+														</div>
+													)}
+											</div>
+											<div className='text-right'>
+												<span
+													className={cn(
+														'block text-lg font-bold',
+														session.status === 'urgent'
+															? 'text-error'
+															: 'text-success',
+													)}
+												>
+													+{session.currentXP} XP
+												</span>
+												{session.currentXP < session.baseXP && (
+													<span className='text-xs text-muted-foreground line-through'>
+														was +{session.baseXP}
+													</span>
+												)}
+											</div>
+											<motion.button
+												className={cn(
+													'px-4 py-2.5 rounded-xl text-sm font-semibold',
+													session.status === 'urgent'
+														? 'bg-error text-white'
+														: 'bg-primary text-primary-foreground',
+												)}
+												onClick={() => onPost(session.id)}
+												whileHover={BUTTON_SUBTLE_HOVER}
+												whileTap={BUTTON_SUBTLE_TAP}
+												transition={TRANSITION_SPRING}
+											>
+												{session.status === 'urgent' ? 'POST NOW' : 'Post'}
+											</motion.button>
+										</div>
+									</motion.div>
+								))}
+							</motion.div>
+
+							{/* Footer */}
+							<div className='p-5 border-t border-border bg-muted/30'>
+								<p className='text-sm text-muted-foreground text-center mb-4'>
+									💡 Post photos of your creations to unlock XP and badges!
+								</p>
+								<motion.button
+									className='w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold'
+									onClick={onClose}
+									whileHover={CARD_FEATURED_HOVER}
+									whileTap={BUTTON_TAP}
+									transition={TRANSITION_SPRING}
+								>
+									Done
+								</motion.button>
+							</div>
+						</motion.div>
 					</motion.div>
-				</motion.div>
+				</Portal>
 			)}
 		</AnimatePresence>
 	)

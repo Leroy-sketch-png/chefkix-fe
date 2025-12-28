@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Portal } from '@/components/ui/portal'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { ChevronUp, Pause, Play, X, Timer, ChefHat } from 'lucide-react'
@@ -78,96 +79,98 @@ export const MiniCookingBar = () => {
 		<>
 			<AnimatePresence>
 				{isVisible && (
-					<motion.div
-						key='mini-cooking-bar'
-						initial={{ y: 100, opacity: 0 }}
-						animate={{ y: 0, opacity: 1 }}
-						exit={{ y: 100, opacity: 0 }}
-						transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-						className='fixed inset-x-0 bottom-0 z-sticky border-t border-border-subtle bg-bg-card/95 backdrop-blur-md xl:hidden'
-					>
-						<div className='flex items-center gap-3 px-4 py-3'>
-							{/* Recipe Info */}
-							<button
-								onClick={handleExpand}
-								className='flex min-w-0 flex-1 items-center gap-3'
-							>
-								<div className='grid size-10 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-white shadow-md'>
-									<ChefHat className='size-5' />
-								</div>
-								<div className='min-w-0 flex-1 text-left'>
-									<h4 className='truncate text-sm font-bold text-text'>
-										{recipe.title}
-									</h4>
-									<p className='text-xs text-text-secondary'>
-										Step {currentStep} of {totalSteps}
-										{hasActiveTimer && (
-											<>
-												{' '}
-												• <Timer className='inline size-3' />{' '}
-												{String(timerMinutes).padStart(2, '0')}:
-												{String(timerSecs).padStart(2, '0')}
-											</>
-										)}
-									</p>
-								</div>
-							</button>
-
-							{/* Controls */}
-							<div className='flex items-center gap-2'>
-								{/* Play/Pause */}
-								<button
-									onClick={handlePlayPause}
-									title={isPaused ? 'Resume cooking' : 'Pause cooking'}
-									className={cn(
-										'grid size-10 place-items-center rounded-full transition-all',
-										isPaused
-											? 'bg-brand text-white'
-											: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
-									)}
-								>
-									{isPaused ? (
-										<Play className='size-5' />
-									) : (
-										<Pause className='size-5' />
-									)}
-								</button>
-
-								{/* Expand */}
+					<Portal>
+						<motion.div
+							key='mini-cooking-bar'
+							initial={{ y: 100, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							exit={{ y: 100, opacity: 0 }}
+							transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+							className='fixed inset-x-0 bottom-0 z-sticky border-t border-border-subtle bg-bg-card/95 backdrop-blur-md xl:hidden'
+						>
+							<div className='flex items-center gap-3 px-4 py-3'>
+								{/* Recipe Info */}
 								<button
 									onClick={handleExpand}
-									title='Expand to full screen'
-									className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-bg-hover'
+									className='flex min-w-0 flex-1 items-center gap-3'
 								>
-									<ChevronUp className='size-5' />
+									<div className='grid size-10 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-white shadow-md'>
+										<ChefHat className='size-5' />
+									</div>
+									<div className='min-w-0 flex-1 text-left'>
+										<h4 className='truncate text-sm font-bold text-text'>
+											{recipe.title}
+										</h4>
+										<p className='text-xs text-text-secondary'>
+											Step {currentStep} of {totalSteps}
+											{hasActiveTimer && (
+												<>
+													{' '}
+													• <Timer className='inline size-3' />{' '}
+													{String(timerMinutes).padStart(2, '0')}:
+													{String(timerSecs).padStart(2, '0')}
+												</>
+											)}
+										</p>
+									</div>
 								</button>
 
-								{/* Close - Shows confirmation dialog */}
-								<button
-									onClick={() => setShowExitConfirm(true)}
-									title='End cooking session'
-									className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-error/20 hover:text-error'
-								>
-									<X className='size-5' />
-								</button>
+								{/* Controls */}
+								<div className='flex items-center gap-2'>
+									{/* Play/Pause */}
+									<button
+										onClick={handlePlayPause}
+										title={isPaused ? 'Resume cooking' : 'Pause cooking'}
+										className={cn(
+											'grid size-10 place-items-center rounded-full transition-all',
+											isPaused
+												? 'bg-brand text-white'
+												: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
+										)}
+									>
+										{isPaused ? (
+											<Play className='size-5' />
+										) : (
+											<Pause className='size-5' />
+										)}
+									</button>
+
+									{/* Expand */}
+									<button
+										onClick={handleExpand}
+										title='Expand to full screen'
+										className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-bg-hover'
+									>
+										<ChevronUp className='size-5' />
+									</button>
+
+									{/* Close - Shows confirmation dialog */}
+									<button
+										onClick={() => setShowExitConfirm(true)}
+										title='End cooking session'
+										className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-error/20 hover:text-error'
+									>
+										<X className='size-5' />
+									</button>
+								</div>
 							</div>
-						</div>
 
-						{/* Progress Bar */}
-						<div className='h-1 bg-border'>
-							<motion.div
-								className='h-full bg-gradient-hero'
-								initial={{ scaleX: 0 }}
-								animate={{
-									scaleX:
-										totalSteps > 0
-											? (session.completedSteps?.length ?? 0) / totalSteps
-											: 0,
-								}}
-								style={{ transformOrigin: 'left' }}
-							/>
-						</div>
-					</motion.div>
+							{/* Progress Bar */}
+							<div className='h-1 bg-border'>
+								<motion.div
+									className='h-full bg-gradient-hero'
+									initial={{ scaleX: 0 }}
+									animate={{
+										scaleX:
+											totalSteps > 0
+												? (session.completedSteps?.length ?? 0) / totalSteps
+												: 0,
+									}}
+									style={{ transformOrigin: 'left' }}
+								/>
+							</div>
+						</motion.div>
+					</Portal>
 				)}
 			</AnimatePresence>
 

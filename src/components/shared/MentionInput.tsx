@@ -15,6 +15,7 @@ import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Loader2, AtSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Portal } from '@/components/ui/portal'
 
 export interface MentionInputProps {
 	value: string
@@ -63,6 +64,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		ref,
 	) => {
 		const inputRef = useRef<HTMLInputElement>(null)
+		const containerRef = useRef<HTMLDivElement>(null)
 		const [showSuggestions, setShowSuggestions] = useState(false)
 		const [suggestions, setSuggestions] = useState<MentionSuggestion[]>([])
 		const [filteredSuggestions, setFilteredSuggestions] = useState<
@@ -73,6 +75,23 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		const [mentionQuery, setMentionQuery] = useState('')
 		const [mentionStartIndex, setMentionStartIndex] = useState(-1)
 		const [taggedUserIds, setTaggedUserIds] = useState<Set<string>>(new Set())
+		const [dropdownPosition, setDropdownPosition] = useState({
+			top: 0,
+			left: 0,
+			width: 0,
+		})
+
+		// Update dropdown position when showing suggestions
+		useEffect(() => {
+			if (showSuggestions && containerRef.current) {
+				const rect = containerRef.current.getBoundingClientRect()
+				setDropdownPosition({
+					top: rect.top, // Position above the input
+					left: rect.left,
+					width: rect.width,
+				})
+			}
+		}, [showSuggestions])
 
 		// Expose methods to parent
 		useImperativeHandle(ref, () => ({
@@ -240,7 +259,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		}
 
 		return (
-			<div className='relative flex-1'>
+			<div ref={containerRef} className='relative flex-1'>
 				<div className='relative'>
 					<input
 						ref={inputRef}
@@ -262,76 +281,83 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 					</div>
 				</div>
 
-				{/* Suggestions dropdown */}
+				{/* Suggestions dropdown - Portaled to escape overflow:hidden clipping */}
 				<AnimatePresence>
 					{showSuggestions && (
-						<motion.div
-							initial={{ opacity: 0, y: -4 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -4 }}
-							transition={{ duration: 0.15 }}
-							className='absolute bottom-full left-0 z-dropdown mb-1 w-full overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
-						>
-							{isLoading ? (
-								<div className='flex items-center justify-center gap-2 p-3 text-sm text-text-secondary'>
-									<Loader2 className='size-4 animate-spin' />
-									<span>Loading suggestions...</span>
+						<Portal>
+							<motion.div
+								initial={{ opacity: 0, y: 4 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: 4 }}
+								transition={{ duration: 0.15 }}
+								className='fixed z-dropdown overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
+								style={{
+									bottom: `calc(100vh - ${dropdownPosition.top}px + 4px)`,
+									left: `${dropdownPosition.left}px`,
+									width: `${dropdownPosition.width}px`,
+								}}
+							>
+								{isLoading ? (
+									<div className='flex items-center justify-center gap-2 p-3 text-sm text-text-secondary'>
+										<Loader2 className='size-4 animate-spin' />
+										<span>Loading suggestions...</span>
+									</div>
+								) : filteredSuggestions.length === 0 ? (
+									<div className='p-3 text-center text-sm text-text-muted'>
+										No users found
+									</div>
+								) : (
+									<ul className='max-h-48 overflow-y-auto py-1'>
+										{filteredSuggestions.map((user, index) => (
+											<li key={user.userId}>
+												<button
+													type='button'
+													onClick={() => selectUser(user)}
+													onMouseEnter={() => setSelectedIndex(index)}
+													className={cn(
+														'flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors',
+														index === selectedIndex
+															? 'bg-primary/10 text-primary'
+															: 'text-text-primary hover:bg-bg-hover',
+													)}
+												>
+													<Avatar size='xs'>
+														<AvatarImage
+															src={user.avatarUrl || ''}
+															alt={user.displayName}
+														/>
+														<AvatarFallback className='text-2xs'>
+															{user.displayName
+																?.split(' ')
+																.map(n => n[0])
+																.join('')
+																.toUpperCase()
+																.slice(0, 2) || '??'}
+														</AvatarFallback>
+													</Avatar>
+													<div className='min-w-0 flex-1'>
+														<span className='text-sm font-medium'>
+															{user.displayName}
+														</span>
+													</div>
+												</button>
+											</li>
+										))}
+									</ul>
+								)}
+								{/* Hint footer */}
+								<div className='border-t border-border-subtle bg-bg-subtle px-3 py-1.5 text-2xs text-text-muted'>
+									<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
+										↑↓
+									</kbd>{' '}
+									to navigate,{' '}
+									<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
+										Enter
+									</kbd>{' '}
+									to select
 								</div>
-							) : filteredSuggestions.length === 0 ? (
-								<div className='p-3 text-center text-sm text-text-muted'>
-									No users found
-								</div>
-							) : (
-								<ul className='max-h-48 overflow-y-auto py-1'>
-									{filteredSuggestions.map((user, index) => (
-										<li key={user.userId}>
-											<button
-												type='button'
-												onClick={() => selectUser(user)}
-												onMouseEnter={() => setSelectedIndex(index)}
-												className={cn(
-													'flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors',
-													index === selectedIndex
-														? 'bg-primary/10 text-primary'
-														: 'text-text-primary hover:bg-bg-hover',
-												)}
-											>
-												<Avatar size='xs'>
-													<AvatarImage
-														src={user.avatarUrl || ''}
-														alt={user.displayName}
-													/>
-													<AvatarFallback className='text-2xs'>
-														{user.displayName
-															?.split(' ')
-															.map(n => n[0])
-															.join('')
-															.toUpperCase()
-															.slice(0, 2) || '??'}
-													</AvatarFallback>
-												</Avatar>
-												<div className='min-w-0 flex-1'>
-													<span className='text-sm font-medium'>
-														{user.displayName}
-													</span>
-												</div>
-											</button>
-										</li>
-									))}
-								</ul>
-							)}
-							{/* Hint footer */}
-							<div className='border-t border-border-subtle bg-bg-subtle px-3 py-1.5 text-2xs text-text-muted'>
-								<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
-									↑↓
-								</kbd>{' '}
-								to navigate,{' '}
-								<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
-									Enter
-								</kbd>{' '}
-								to select
-							</div>
-						</motion.div>
+							</motion.div>
+						</Portal>
 					)}
 				</AnimatePresence>
 			</div>

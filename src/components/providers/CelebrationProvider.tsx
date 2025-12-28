@@ -27,6 +27,7 @@ import {
 	StreakBrokenModal,
 } from '@/components/streak'
 import { ChallengeComplete } from '@/components/challenges'
+import { Portal } from '@/components/ui/portal'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -623,23 +624,25 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 
 			{/* Streak Milestone Card (shown as modal overlay) */}
 			{streakMilestoneOpen && streakMilestoneData && (
-				<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm p-6'>
-					<div className='w-full max-w-md'>
-						<StreakMilestoneCard
-							days={streakMilestoneData.days}
-							badgeName={streakMilestoneData.badgeName}
-							badgeEmoji={streakMilestoneData.badgeEmoji}
-							nextMilestone={streakMilestoneData.nextMilestone}
-							onShare={handleStreakMilestoneShare}
-						/>
-						<button
-							onClick={handleStreakMilestoneClose}
-							className='mt-4 w-full py-3 text-sm text-muted-foreground hover:text-text transition-colors'
-						>
-							Continue
-						</button>
+				<Portal>
+					<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm p-6'>
+						<div className='w-full max-w-md'>
+							<StreakMilestoneCard
+								days={streakMilestoneData.days}
+								badgeName={streakMilestoneData.badgeName}
+								badgeEmoji={streakMilestoneData.badgeEmoji}
+								nextMilestone={streakMilestoneData.nextMilestone}
+								onShare={handleStreakMilestoneShare}
+							/>
+							<button
+								onClick={handleStreakMilestoneClose}
+								className='mt-4 w-full py-3 text-sm text-muted-foreground hover:text-text transition-colors'
+							>
+								Continue
+							</button>
+						</div>
 					</div>
-				</div>
+				</Portal>
 			)}
 
 			{/* Streak Broken Modal */}

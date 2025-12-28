@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_SMOOTH,
@@ -140,25 +141,27 @@ interface ModalOverlayProps {
 }
 
 const ModalOverlay = ({ children, onClose }: ModalOverlayProps) => (
-	<motion.div
-		initial={{ opacity: 0 }}
-		animate={{ opacity: 1 }}
-		exit={{ opacity: 0 }}
-		onClick={onClose}
-		className='fixed inset-0 z-modal flex items-center justify-content-center bg-black/60 p-6 backdrop-blur-sm'
-	>
-		<div className='flex min-h-full w-full items-center justify-center'>
-			<motion.div
-				variants={CELEBRATION_MODAL}
-				initial='hidden'
-				animate='visible'
-				exit='exit'
-				onClick={e => e.stopPropagation()}
-			>
-				{children}
-			</motion.div>
-		</div>
-	</motion.div>
+	<Portal>
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			onClick={onClose}
+			className='fixed inset-0 z-modal flex items-center justify-content-center bg-black/60 p-6 backdrop-blur-sm'
+		>
+			<div className='flex min-h-full w-full items-center justify-center'>
+				<motion.div
+					variants={CELEBRATION_MODAL}
+					initial='hidden'
+					animate='visible'
+					exit='exit'
+					onClick={e => e.stopPropagation()}
+				>
+					{children}
+				</motion.div>
+			</div>
+		</motion.div>
+	</Portal>
 )
 
 // Pause Confirmation Modal
@@ -347,98 +350,102 @@ const PausedScreen = ({
 	const progressPercent = (recipe.currentStep / recipe.totalSteps) * 100
 
 	return (
-		<motion.div
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			exit={{ opacity: 0 }}
-			className='fixed inset-0 z-modal flex items-center justify-center bg-panel-bg/98'
-		>
-			<div className='max-w-lg px-6 py-10 text-center'>
-				{/* Floating icon */}
-				<motion.div
-					animate={{ y: [0, -10, 0] }}
-					transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-					className='mb-6 text-7xl'
-				>
-					⏸️
-				</motion.div>
+		<Portal>
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				exit={{ opacity: 0 }}
+				className='fixed inset-0 z-modal flex items-center justify-center bg-panel-bg/98'
+			>
+				<div className='max-w-lg px-6 py-10 text-center'>
+					{/* Floating icon */}
+					<motion.div
+						animate={{ y: [0, -10, 0] }}
+						transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+						className='mb-6 text-7xl'
+					>
+						⏸️
+					</motion.div>
 
-				<h1 className='mb-3 text-4xl font-extrabold'>Session Paused</h1>
-				<p className='mb-8 text-lg text-text-muted'>
-					Your progress is saved. Resume when you&apos;re ready!
-				</p>
-
-				{/* Countdown */}
-				<div className='mb-8 rounded-2xl border border-warning/30 bg-gradient-to-br from-warning/10 to-warning/5 p-6'>
-					<p className='mb-3 text-sm font-semibold uppercase tracking-wider text-warning'>
-						Resume before
+					<h1 className='mb-3 text-4xl font-extrabold'>Session Paused</h1>
+					<p className='mb-8 text-lg text-text-muted'>
+						Your progress is saved. Resume when you&apos;re ready!
 					</p>
-					<div className='flex items-center justify-center gap-2'>
-						{[
-							{ value: hours, unit: 'hours' },
-							{ value: minutes, unit: 'mins' },
-							{ value: seconds, unit: 'secs' },
-						].map((item, i) => (
-							<div key={item.unit} className='flex items-center'>
-								{i > 0 && (
-									<span className='mx-1 mb-4 text-3xl text-text-muted'>:</span>
-								)}
-								<div className='text-center'>
-									<div className='font-mono text-4xl font-extrabold'>
-										{item.value.toString().padStart(2, '0')}
-									</div>
-									<div className='mt-1 text-xs uppercase tracking-wide text-text-muted'>
-										{item.unit}
+
+					{/* Countdown */}
+					<div className='mb-8 rounded-2xl border border-warning/30 bg-gradient-to-br from-warning/10 to-warning/5 p-6'>
+						<p className='mb-3 text-sm font-semibold uppercase tracking-wider text-warning'>
+							Resume before
+						</p>
+						<div className='flex items-center justify-center gap-2'>
+							{[
+								{ value: hours, unit: 'hours' },
+								{ value: minutes, unit: 'mins' },
+								{ value: seconds, unit: 'secs' },
+							].map((item, i) => (
+								<div key={item.unit} className='flex items-center'>
+									{i > 0 && (
+										<span className='mx-1 mb-4 text-3xl text-text-muted'>
+											:
+										</span>
+									)}
+									<div className='text-center'>
+										<div className='font-mono text-4xl font-extrabold'>
+											{item.value.toString().padStart(2, '0')}
+										</div>
+										<div className='mt-1 text-xs uppercase tracking-wide text-text-muted'>
+											{item.unit}
+										</div>
 									</div>
 								</div>
-							</div>
-						))}
-					</div>
-				</div>
-
-				{/* Recipe card */}
-				<div className='mb-8 flex items-center gap-4 rounded-2xl bg-bg-elevated p-4 text-left'>
-					<Image
-						src={recipe.imageUrl || '/placeholder-recipe.jpg'}
-						alt={recipe.title}
-						width={80}
-						height={80}
-						className='h-20 w-20 rounded-xl object-cover'
-					/>
-					<div className='flex-1'>
-						<h3 className='text-lg font-bold'>{recipe.title}</h3>
-						<p className='mb-2 text-sm text-text-muted'>
-							Step {recipe.currentStep} of {recipe.totalSteps}
-						</p>
-						<div className='h-1.5 w-32 overflow-hidden rounded-full bg-border'>
-							<div
-								className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
-								style={{ width: `${progressPercent}%` }}
-							/>
+							))}
 						</div>
 					</div>
-				</div>
 
-				{/* Actions */}
-				<div className='space-y-3'>
-					<motion.button
-						onClick={onResume}
-						whileHover={STAT_ITEM_HOVER}
-						whileTap={LIST_ITEM_TAP}
-						className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-success to-success/90 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-success/30'
-					>
-						<Play className='h-6 w-6' />
-						Resume Cooking
-					</motion.button>
-					<button
-						onClick={onAbandon}
-						className='w-full py-3 text-text-muted transition-colors hover:text-error'
-					>
-						Abandon Session
-					</button>
+					{/* Recipe card */}
+					<div className='mb-8 flex items-center gap-4 rounded-2xl bg-bg-elevated p-4 text-left'>
+						<Image
+							src={recipe.imageUrl || '/placeholder-recipe.jpg'}
+							alt={recipe.title}
+							width={80}
+							height={80}
+							className='h-20 w-20 rounded-xl object-cover'
+						/>
+						<div className='flex-1'>
+							<h3 className='text-lg font-bold'>{recipe.title}</h3>
+							<p className='mb-2 text-sm text-text-muted'>
+								Step {recipe.currentStep} of {recipe.totalSteps}
+							</p>
+							<div className='h-1.5 w-32 overflow-hidden rounded-full bg-border'>
+								<div
+									className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
+									style={{ width: `${progressPercent}%` }}
+								/>
+							</div>
+						</div>
+					</div>
+
+					{/* Actions */}
+					<div className='space-y-3'>
+						<motion.button
+							onClick={onResume}
+							whileHover={STAT_ITEM_HOVER}
+							whileTap={LIST_ITEM_TAP}
+							className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-success to-success/90 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-success/30'
+						>
+							<Play className='h-6 w-6' />
+							Resume Cooking
+						</motion.button>
+						<button
+							onClick={onAbandon}
+							className='w-full py-3 text-text-muted transition-colors hover:text-error'
+						>
+							Abandon Session
+						</button>
+					</div>
 				</div>
-			</div>
-		</motion.div>
+			</motion.div>
+		</Portal>
 	)
 }
 
@@ -453,57 +460,59 @@ interface ExpiredScreenProps {
 }
 
 const ExpiredScreen = ({ recipe, onRestart, onGoHome }: ExpiredScreenProps) => (
-	<motion.div
-		initial={{ opacity: 0 }}
-		animate={{ opacity: 1 }}
-		exit={{ opacity: 0 }}
-		className='fixed inset-0 z-modal flex items-center justify-center bg-panel-bg'
-	>
-		<div className='max-w-md px-6 py-10 text-center'>
-			<div className='mb-5 text-6xl opacity-60'>⏰</div>
-			<h1 className='mb-3 text-3xl font-bold text-text-muted'>
-				Session Expired
-			</h1>
-			<p className='mb-6 text-text-secondary'>
-				The {PAUSE_LIMIT_HOURS}-hour pause limit was exceeded. Your session has
-				been abandoned.
-			</p>
+	<Portal>
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			className='fixed inset-0 z-modal flex items-center justify-center bg-panel-bg'
+		>
+			<div className='max-w-md px-6 py-10 text-center'>
+				<div className='mb-5 text-6xl opacity-60'>⏰</div>
+				<h1 className='mb-3 text-3xl font-bold text-text-muted'>
+					Session Expired
+				</h1>
+				<p className='mb-6 text-text-secondary'>
+					The {PAUSE_LIMIT_HOURS}-hour pause limit was exceeded. Your session
+					has been abandoned.
+				</p>
 
-			{/* Recipe card */}
-			<div className='mb-8 flex items-center gap-4 rounded-xl bg-bg-elevated p-4 text-left'>
-				<Image
-					src={recipe.imageUrl || '/placeholder-recipe.jpg'}
-					alt={recipe.title}
-					width={64}
-					height={64}
-					className='h-16 w-16 rounded-lg object-cover opacity-70'
-				/>
-				<div>
-					<h3 className='font-semibold'>{recipe.title}</h3>
-					<span className='text-sm text-text-muted'>
-						Was at Step {recipe.currentStep} of {recipe.totalSteps}
-					</span>
+				{/* Recipe card */}
+				<div className='mb-8 flex items-center gap-4 rounded-xl bg-bg-elevated p-4 text-left'>
+					<Image
+						src={recipe.imageUrl || '/placeholder-recipe.jpg'}
+						alt={recipe.title}
+						width={64}
+						height={64}
+						className='h-16 w-16 rounded-lg object-cover opacity-70'
+					/>
+					<div>
+						<h3 className='font-semibold'>{recipe.title}</h3>
+						<span className='text-sm text-text-muted'>
+							Was at Step {recipe.currentStep} of {recipe.totalSteps}
+						</span>
+					</div>
+				</div>
+
+				{/* Actions */}
+				<div className='space-y-3'>
+					<button
+						onClick={onRestart}
+						className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 font-semibold text-white transition-opacity hover:opacity-90'
+					>
+						<RefreshCw className='h-5 w-5' />
+						Start Fresh
+					</button>
+					<button
+						onClick={onGoHome}
+						className='w-full rounded-xl border border-border px-6 py-3.5 font-semibold transition-colors hover:bg-bg-elevated'
+					>
+						Back to Home
+					</button>
 				</div>
 			</div>
-
-			{/* Actions */}
-			<div className='space-y-3'>
-				<button
-					onClick={onRestart}
-					className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 font-semibold text-white transition-opacity hover:opacity-90'
-				>
-					<RefreshCw className='h-5 w-5' />
-					Start Fresh
-				</button>
-				<button
-					onClick={onGoHome}
-					className='w-full rounded-xl border border-border px-6 py-3.5 font-semibold transition-colors hover:bg-bg-elevated'
-				>
-					Back to Home
-				</button>
-			</div>
-		</div>
-	</motion.div>
+		</motion.div>
+	</Portal>
 )
 
 // ============================================

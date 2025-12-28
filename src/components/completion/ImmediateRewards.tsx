@@ -16,6 +16,7 @@ import {
 	Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import {
 	Tooltip,
 	TooltipContent,
@@ -327,7 +328,7 @@ export const ImmediateRewards = ({
 	return (
 		<AnimatePresence>
 			{isOpen && (
-				<>
+				<Portal>
 					{/* Confetti */}
 					{showConfetti && <ConfettiContainer />}
 
@@ -543,13 +544,17 @@ export const ImmediateRewards = ({
 									onClick={handlePostNowClick}
 									whileHover={STAT_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
-									className='relative flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
+									className='flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
 								>
-									<Camera className='h-5 w-5' />
-									{capturedPhotos.length > 0
-										? `Share ${capturedPhotos.length} Photo${capturedPhotos.length > 1 ? 's' : ''}`
-										: 'Share Your Creation'}
-									<span className='absolute right-4 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
+									<div className='flex items-center gap-2.5'>
+										<Camera className='h-5 w-5 shrink-0' />
+										<span className='text-lg font-bold'>
+											{capturedPhotos.length > 0
+												? `Share ${capturedPhotos.length} Photo${capturedPhotos.length > 1 ? 's' : ''}`
+												: 'Share Your Creation'}
+										</span>
+									</div>
+									<span className='shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
 										Unlock +{pendingTotal} XP
 									</span>
 								</motion.button>
@@ -562,7 +567,7 @@ export const ImmediateRewards = ({
 							</div>
 						</motion.div>
 					</motion.div>
-				</>
+				</Portal>
 			)}
 		</AnimatePresence>
 	)

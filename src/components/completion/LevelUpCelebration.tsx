@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Share2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -233,138 +234,140 @@ export const LevelUpCelebration = ({
 	return (
 		<AnimatePresence>
 			{isOpen && (
-				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					className='fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-gradient-celebration'
-				>
-					{/* Particle field */}
-					<div className='pointer-events-none absolute inset-0 overflow-hidden'>
-						<Particle x='5%' y='20%' size={8} delay={0} />
-						<Particle x='15%' y='80%' size={6} delay={0.2} />
-						<Particle x='25%' y='40%' size={10} delay={0.1} />
-						<Particle x='35%' y='70%' size={5} delay={0.3} />
-						<Particle x='45%' y='15%' size={7} delay={0.15} />
-						<Particle x='55%' y='85%' size={9} delay={0.25} />
-						<Particle x='65%' y='30%' size={6} delay={0.05} />
-						<Particle x='75%' y='60%' size={8} delay={0.35} />
-						<Particle x='85%' y='25%' size={5} delay={0.4} />
-						<Particle x='95%' y='75%' size={7} delay={0.12} />
-					</div>
-
-					{/* Content */}
+				<Portal>
 					<motion.div
-						variants={CELEBRATION_MODAL}
-						initial='hidden'
-						animate='visible'
-						exit='exit'
-						className='relative z-10 max-w-lg px-10 py-10 text-center max-md:px-6'
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed inset-0 z-modal flex items-center justify-center overflow-hidden bg-gradient-celebration'
 					>
-						{/* Level badge */}
-						<LevelBadge oldLevel={oldLevel} newLevel={newLevel} />
-
-						{/* Title */}
-						<div className='mb-8'>
-							<motion.h1
-								animate={{
-									filter: [
-										'drop-shadow(0 0 10px rgba(251,191,36,0.5))',
-										'drop-shadow(0 0 25px rgba(251,191,36,0.8))',
-										'drop-shadow(0 0 10px rgba(251,191,36,0.5))',
-									],
-								}}
-								transition={{ duration: 1.5, repeat: Infinity }}
-								className='mb-3 bg-gradient-gold bg-clip-text text-4xl font-black text-transparent max-md:text-3xl'
-							>
-								Level Up!
-							</motion.h1>
-							<p className='text-lg text-white/80'>
-								You&apos;re now{' '}
-								<strong className='text-white'>Level {newLevel}</strong>
-							</p>
+						{/* Particle field */}
+						<div className='pointer-events-none absolute inset-0 overflow-hidden'>
+							<Particle x='5%' y='20%' size={8} delay={0} />
+							<Particle x='15%' y='80%' size={6} delay={0.2} />
+							<Particle x='25%' y='40%' size={10} delay={0.1} />
+							<Particle x='35%' y='70%' size={5} delay={0.3} />
+							<Particle x='45%' y='15%' size={7} delay={0.15} />
+							<Particle x='55%' y='85%' size={9} delay={0.25} />
+							<Particle x='65%' y='30%' size={6} delay={0.05} />
+							<Particle x='75%' y='60%' size={8} delay={0.35} />
+							<Particle x='85%' y='25%' size={5} delay={0.4} />
+							<Particle x='95%' y='75%' size={7} delay={0.12} />
 						</div>
 
-						{/* Stats */}
-						<div className='mb-6 flex justify-center gap-5 rounded-2xl bg-white/5 px-5 py-5 backdrop-blur-sm max-md:flex-col max-md:items-start max-md:gap-3'>
-							<StatCard
-								emoji='📊'
-								label='Total XP'
-								value={stats.totalXp.toLocaleString()}
-							/>
-							<StatCard
-								emoji='🍳'
-								label='Recipes Cooked'
-								value={stats.recipesCooked.toString()}
-							/>
-							<StatCard
-								emoji='📸'
-								label='Posts Shared'
-								value={stats.postsShared.toString()}
-							/>
-						</div>
+						{/* Content */}
+						<motion.div
+							variants={CELEBRATION_MODAL}
+							initial='hidden'
+							animate='visible'
+							exit='exit'
+							className='relative z-10 max-w-lg px-10 py-10 text-center max-md:px-6'
+						>
+							{/* Level badge */}
+							<LevelBadge oldLevel={oldLevel} newLevel={newLevel} />
 
-						{/* Unlocks */}
-						{unlocks.length > 0 && (
-							<div className='mb-6'>
-								<h3 className='mb-4 text-xs font-bold uppercase tracking-widest text-white/60'>
-									New Unlocks
-								</h3>
-								<div className='flex flex-wrap justify-center gap-3 max-md:flex-col'>
-									{unlocks.map((item, i) => (
-										<UnlockCard key={item.id} item={item} index={i} />
-									))}
-								</div>
+							{/* Title */}
+							<div className='mb-8'>
+								<motion.h1
+									animate={{
+										filter: [
+											'drop-shadow(0 0 10px rgba(251,191,36,0.5))',
+											'drop-shadow(0 0 25px rgba(251,191,36,0.8))',
+											'drop-shadow(0 0 10px rgba(251,191,36,0.5))',
+										],
+									}}
+									transition={{ duration: 1.5, repeat: Infinity }}
+									className='mb-3 bg-gradient-gold bg-clip-text text-4xl font-black text-transparent max-md:text-3xl'
+								>
+									Level Up!
+								</motion.h1>
+								<p className='text-lg text-white/80'>
+									You&apos;re now{' '}
+									<strong className='text-white'>Level {newLevel}</strong>
+								</p>
 							</div>
-						)}
 
-						{/* Next level preview */}
-						<div className='mb-7 rounded-2xl bg-white/5 px-5 py-5'>
-							<div className='mb-3'>
-								<div className='mb-2 h-2 overflow-hidden rounded-full bg-white/10'>
-									<motion.div
-										initial={{ width: 0 }}
-										animate={{ width: '0%' }}
-										transition={{ duration: 1, delay: 1.5 }}
-										className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
-									/>
-								</div>
-								<span className='text-sm text-white/60'>
-									{xpToNextLevel.toLocaleString()} XP to Level {newLevel + 1}
-								</span>
+							{/* Stats */}
+							<div className='mb-6 flex justify-center gap-5 rounded-2xl bg-white/5 px-5 py-5 backdrop-blur-sm max-md:flex-col max-md:items-start max-md:gap-3'>
+								<StatCard
+									emoji='📊'
+									label='Total XP'
+									value={stats.totalXp.toLocaleString()}
+								/>
+								<StatCard
+									emoji='🍳'
+									label='Recipes Cooked'
+									value={stats.recipesCooked.toString()}
+								/>
+								<StatCard
+									emoji='📸'
+									label='Posts Shared'
+									value={stats.postsShared.toString()}
+								/>
 							</div>
-							{nextLevelPerk && (
-								<div className='flex items-center justify-center gap-2'>
-									<span className='text-xs text-white/50'>
-										At Level {newLevel + 1}:
-									</span>
-									<span className='text-sm font-semibold text-bonus'>
-										{nextLevelPerk}
-									</span>
+
+							{/* Unlocks */}
+							{unlocks.length > 0 && (
+								<div className='mb-6'>
+									<h3 className='mb-4 text-xs font-bold uppercase tracking-widest text-white/60'>
+										New Unlocks
+									</h3>
+									<div className='flex flex-wrap justify-center gap-3 max-md:flex-col'>
+										{unlocks.map((item, i) => (
+											<UnlockCard key={item.id} item={item} index={i} />
+										))}
+									</div>
 								</div>
 							)}
-						</div>
 
-						{/* Actions */}
-						<div className='flex justify-center gap-3 max-md:flex-col'>
-							<button
-								onClick={onShare}
-								className='flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-white/15'
-							>
-								<Share2 className='h-5 w-5' />
-								Share Achievement
-							</button>
-							<motion.button
-								onClick={onContinue}
-								whileHover={STAT_ITEM_HOVER}
-								whileTap={LIST_ITEM_TAP}
-								className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60'
-							>
-								Continue
-							</motion.button>
-						</div>
+							{/* Next level preview */}
+							<div className='mb-7 rounded-2xl bg-white/5 px-5 py-5'>
+								<div className='mb-3'>
+									<div className='mb-2 h-2 overflow-hidden rounded-full bg-white/10'>
+										<motion.div
+											initial={{ width: 0 }}
+											animate={{ width: '0%' }}
+											transition={{ duration: 1, delay: 1.5 }}
+											className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
+										/>
+									</div>
+									<span className='text-sm text-white/60'>
+										{xpToNextLevel.toLocaleString()} XP to Level {newLevel + 1}
+									</span>
+								</div>
+								{nextLevelPerk && (
+									<div className='flex items-center justify-center gap-2'>
+										<span className='text-xs text-white/50'>
+											At Level {newLevel + 1}:
+										</span>
+										<span className='text-sm font-semibold text-bonus'>
+											{nextLevelPerk}
+										</span>
+									</div>
+								)}
+							</div>
+
+							{/* Actions */}
+							<div className='flex justify-center gap-3 max-md:flex-col'>
+								<button
+									onClick={onShare}
+									className='flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-white/15'
+								>
+									<Share2 className='h-5 w-5' />
+									Share Achievement
+								</button>
+								<motion.button
+									onClick={onContinue}
+									whileHover={STAT_ITEM_HOVER}
+									whileTap={LIST_ITEM_TAP}
+									className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60'
+								>
+									Continue
+								</motion.button>
+							</div>
+						</motion.div>
 					</motion.div>
-				</motion.div>
+				</Portal>
 			)}
 		</AnimatePresence>
 	)

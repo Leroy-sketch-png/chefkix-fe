@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Portal } from '@/components/ui/portal'
 import {
 	Clock,
 	Play,
@@ -231,7 +232,7 @@ const TimerCompleteAlert = ({
 			animate={{ opacity: 1, scale: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.9, y: 20 }}
 			transition={TRANSITION_BOUNCY}
-			className='fixed inset-x-4 bottom-24 z-notification mx-auto max-w-sm overflow-hidden rounded-2xl bg-panel-bg shadow-lg ring-2 ring-success/50 md:inset-x-auto md:right-4 md:bottom-4'
+			className='fixed inset-x-4 bottom-24 z-sticky mx-auto max-w-sm overflow-hidden rounded-2xl bg-panel-bg shadow-lg ring-2 ring-success/50 md:inset-x-auto md:right-4 md:bottom-4'
 		>
 			{/* Animated background glow */}
 			<motion.div
@@ -482,14 +483,16 @@ export const ConcurrentTimers = ({
 				</AnimatePresence>
 			</motion.div>
 
-			{/* Timer Complete Alert */}
+			{/* Timer Complete Alert - Portal to escape stacking contexts */}
 			<AnimatePresence>
 				{completedTimer && (
-					<TimerCompleteAlert
-						timer={completedTimer}
-						onDismiss={handleDismissAlert}
-						onSnooze={handleSnooze}
-					/>
+					<Portal>
+						<TimerCompleteAlert
+							timer={completedTimer}
+							onDismiss={handleDismissAlert}
+							onSnooze={handleSnooze}
+						/>
+					</Portal>
 				)}
 			</AnimatePresence>
 		</>
@@ -512,29 +515,31 @@ export const MiniTimerBar = ({ timers, onClick }: MiniTimerBarProps) => {
 	if (running.length === 0) return null
 
 	return (
-		<motion.button
-			initial={{ y: 100 }}
-			animate={{ y: 0 }}
-			exit={{ y: 100 }}
-			onClick={onClick}
-			className={cn(
-				'fixed inset-x-4 bottom-20 z-sticky mx-auto flex max-w-sm items-center justify-between rounded-full px-4 py-3 shadow-lg md:inset-x-auto md:right-4 md:bottom-4',
-				urgent ? 'bg-error text-white' : 'bg-brand text-white',
-			)}
-		>
-			<div className='flex items-center gap-2'>
-				<motion.div animate={urgent ? TIMER_URGENT.animate : undefined}>
-					<Clock className='h-5 w-5' />
-				</motion.div>
-				<span className='font-semibold'>
-					{running.length} Timer{running.length > 1 ? 's' : ''} Running
-				</span>
-			</div>
-			{urgent && (
-				<span className='font-bold tabular-nums'>
-					{formatTime(urgent.remaining)}
-				</span>
-			)}
-		</motion.button>
+		<Portal>
+			<motion.button
+				initial={{ y: 100 }}
+				animate={{ y: 0 }}
+				exit={{ y: 100 }}
+				onClick={onClick}
+				className={cn(
+					'fixed inset-x-4 bottom-20 z-sticky mx-auto flex max-w-sm items-center justify-between rounded-full px-4 py-3 shadow-lg md:inset-x-auto md:right-4 md:bottom-4',
+					urgent ? 'bg-error text-white' : 'bg-brand text-white',
+				)}
+			>
+				<div className='flex items-center gap-2'>
+					<motion.div animate={urgent ? TIMER_URGENT.animate : undefined}>
+						<Clock className='h-5 w-5' />
+					</motion.div>
+					<span className='font-semibold'>
+						{running.length} Timer{running.length > 1 ? 's' : ''} Running
+					</span>
+				</div>
+				{urgent && (
+					<span className='font-bold tabular-nums'>
+						{formatTime(urgent.remaining)}
+					</span>
+				)}
+			</motion.button>
+		</Portal>
 	)
 }

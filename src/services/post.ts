@@ -101,6 +101,58 @@ export const createPost = async (
 	}
 }
 
+/**
+ * Get a single post by ID.
+ * Useful for post detail pages and notifications that link to a specific post.
+ */
+export const getPostById = async (
+	postId: string,
+): Promise<ApiResponse<Post>> => {
+	try {
+		const response = await api.get<ApiResponse<Post>>(
+			API_ENDPOINTS.POST.GET_BY_ID(postId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Post>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Post not found or an error occurred.',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get posts saved/bookmarked by the current user.
+ */
+export const getSavedPosts = async (
+	page: number = 0,
+	size: number = 20,
+): Promise<ApiResponse<Page<Post>>> => {
+	try {
+		const params = toBackendPagination({ page, size })
+		const response = await api.get<ApiResponse<Page<Post>>>(
+			API_ENDPOINTS.POST.GET_SAVED,
+			{ params },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Page<Post>>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to load saved posts.',
+			statusCode: 500,
+		}
+	}
+}
+
 export const updatePost = async (
 	postId: string,
 	data: UpdatePostRequest,

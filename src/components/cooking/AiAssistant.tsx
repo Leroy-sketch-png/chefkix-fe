@@ -18,6 +18,7 @@ import {
 	Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Portal } from '@/components/ui/portal'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -397,7 +398,7 @@ export const AiAssistant = ({
 	return (
 		<AnimatePresence>
 			{isOpen && (
-				<>
+				<Portal>
 					{/* Backdrop */}
 					<motion.div
 						initial={{ opacity: 0 }}
@@ -551,7 +552,7 @@ export const AiAssistant = ({
 							</div>
 						</div>
 					</motion.div>
-				</>
+				</Portal>
 			)}
 		</AnimatePresence>
 	)

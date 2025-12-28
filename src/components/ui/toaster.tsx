@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { Toast, type ToastProps } from '@/components/ui/toast'
+import { Portal } from '@/components/ui/portal'
 import { cn } from '@/lib/utils'
 
 /**
@@ -223,19 +224,21 @@ export const Toaster = ({
 	if (visibleToasts.length === 0) return null
 
 	return (
-		<div
-			className={cn(
-				'pointer-events-none fixed z-notification flex max-h-screen w-full gap-3 p-4 md:max-w-sm',
-				positionClasses[position],
-			)}
-		>
-			{visibleToasts.map(toastConfig => (
-				<Toast
-					key={toastConfig.id}
-					{...toastConfig}
-					onClose={() => toast.dismiss(toastConfig.id)}
-				/>
-			))}
-		</div>
+		<Portal>
+			<div
+				className={cn(
+					'pointer-events-none fixed z-notification flex max-h-screen w-full gap-3 p-4 md:max-w-sm',
+					positionClasses[position],
+				)}
+			>
+				{visibleToasts.map(toastConfig => (
+					<Toast
+						key={toastConfig.id}
+						{...toastConfig}
+						onClose={() => toast.dismiss(toastConfig.id)}
+					/>
+				))}
+			</div>
+		</Portal>
 	)
 }
