@@ -173,7 +173,11 @@ const transformToSocialNotification = (
 			(data.userName as string) ||
 			(data.displayName as string) ||
 			'User',
-		avatar: (data.avatarUrl as string) || '/placeholder-avatar.png',
+		avatar:
+			notif.latestActorAvatarUrl ||
+			notif.actorInfo?.avatarUrl ||
+			(data.avatarUrl as string) ||
+			'/placeholder-avatar.png',
 		action: notif.content || notif.body || '',
 		target: (data.targetTitle as string) || undefined,
 		time: formatTimeAgo(timestamp),

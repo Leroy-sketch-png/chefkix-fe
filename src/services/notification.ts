@@ -45,10 +45,12 @@ export interface Notification {
 	count: number
 	latestActorId?: string
 	latestActorName?: string
+	latestActorAvatarUrl?: string
 	isSummary?: boolean
 	actorInfo?: {
 		actorId: string
 		actorName: string
+		avatarUrl?: string
 	}
 	// Legacy fields for UI that may expect different shapes
 	title?: string

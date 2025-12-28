@@ -10,6 +10,13 @@ import Image from 'next/image'
 import { toast } from '@/components/ui/toaster'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { moderateContent } from '@/services/ai'
 
 interface CreatePostFormProps {
 	onPostCreated?: (post: Post) => void
@@ -64,6 +71,28 @@ export const CreatePostForm = ({
 		}
 
 		setIsSubmitting(true)
+
+		// AI content moderation before posting
+		const moderationResult = await moderateContent(
+			content.trim(),
+			'post_caption',
+		)
+		if (moderationResult.success && moderationResult.data) {
+			if (moderationResult.data.action === 'block') {
+				toast.error(
+					moderationResult.data.reason ||
+						'Your post contains content that violates our community guidelines.',
+				)
+				setIsSubmitting(false)
+				return
+			}
+			if (moderationResult.data.action === 'flag') {
+				toast.warning(
+					moderationResult.data.reason ||
+						'Your post may contain sensitive content and will be reviewed.',
+				)
+			}
+		}
 
 		const tagList = tags
 			.split(',')
@@ -131,11 +160,29 @@ export const CreatePostForm = ({
 				<div className='p-4 md:p-6'>
 					<textarea
 						value={content}
-						onChange={e => setContent(e.target.value)}
+						onChange={e => setContent(e.target.value.slice(0, 500))}
+						onKeyDown={e => {
+							if (
+								(e.ctrlKey || e.metaKey) &&
+								e.key === 'Enter' &&
+								content.trim()
+							) {
+								e.preventDefault()
+								handleSubmit(e as unknown as React.FormEvent)
+							}
+						}}
 						placeholder="What's cooking? Share your culinary journey..."
 						className='w-full resize-none rounded-lg bg-bg-card p-3 leading-relaxed text-text-primary caret-primary placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-primary/10'
 						rows={4}
 					/>
+					{/* Character count */}
+					<div className='mt-1 flex justify-end'>
+						<span
+							className={`text-xs ${content.length > 450 ? (content.length >= 500 ? 'text-error' : 'text-warning') : 'text-text-muted'}`}
+						>
+							{content.length}/500
+						</span>
+					</div>
 
 					{/* Photo Previews */}
 					<AnimatePresence>
@@ -251,17 +298,30 @@ export const CreatePostForm = ({
 						</button>
 					</div>
 
-					<AnimatedButton
-						type='submit'
-						disabled={!content.trim()}
-						isLoading={isSubmitting}
-						loadingText='Posting...'
-						className='shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
-						shine
-					>
-						<Send className='mr-2 h-4 w-4' />
-						Post
-					</AnimatedButton>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<span className='inline-block'>
+									<AnimatedButton
+										type='submit'
+										disabled={!content.trim()}
+										isLoading={isSubmitting}
+										loadingText='Posting...'
+										className='shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
+										shine
+									>
+										<Send className='mr-2 h-4 w-4' />
+										Post
+									</AnimatedButton>
+								</span>
+							</TooltipTrigger>
+							{!content.trim() && (
+								<TooltipContent>
+									<p>Write something to post</p>
+								</TooltipContent>
+							)}
+						</Tooltip>
+					</TooltipProvider>
 				</div>
 			</form>
 		</motion.div>

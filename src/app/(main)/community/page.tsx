@@ -215,14 +215,28 @@ export default function CommunityPage() {
 						value='friends'
 						className='mt-0 space-y-8 animate-fadeIn'
 					>
-						{followers.length > 0 && (
-							<section>
-								<div className='mb-4 flex items-center gap-2'>
-									<UserPlus className='size-5 text-xp' />
-									<h2 className='text-xl font-semibold'>
-										Follow Back Suggestions ({followers.length})
-									</h2>
-								</div>
+						<section>
+							<div className='mb-4 flex items-center gap-2'>
+								<UserPlus className='size-5 text-xp' />
+								<h2 className='text-xl font-semibold'>
+									Follow Back Suggestions{' '}
+									{followers.length > 0 && `(${followers.length})`}
+								</h2>
+							</div>
+							{followers.length === 0 ? (
+								<EmptyStateGamified
+									variant='feed'
+									title='No follow requests'
+									description='Keep cooking and sharing — chefs will discover you!'
+									quickActions={[
+										{
+											label: 'Browse Discover',
+											emoji: '🔍',
+											onClick: () => setActiveTab('discover'),
+										},
+									]}
+								/>
+							) : (
 								<StaggerContainer staggerDelay={0.05}>
 									<AnimatePresence mode='popLayout'>
 										<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
@@ -237,8 +251,8 @@ export default function CommunityPage() {
 										</div>
 									</AnimatePresence>
 								</StaggerContainer>
-							</section>
-						)}
+							)}
+						</section>
 
 						<section>
 							<div className='mb-4 flex items-center gap-2'>

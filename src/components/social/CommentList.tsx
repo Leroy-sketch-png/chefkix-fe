@@ -5,6 +5,7 @@ import { Comment } from './Comment'
 import { CommentSkeleton } from '@/components/ui/skeleton'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { getCommentsByPostId, createComment } from '@/services/comment'
+import { moderateContent } from '@/services/ai'
 import { toast } from 'sonner'
 import { Send, Loader2 } from 'lucide-react'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
@@ -54,6 +55,25 @@ export const CommentList = ({
 		if (!newComment.trim() || isSubmitting) return
 
 		setIsSubmitting(true)
+
+		// AI content moderation before posting
+		const moderationResult = await moderateContent(newComment.trim(), 'comment')
+		if (moderationResult.success && moderationResult.data) {
+			if (moderationResult.data.action === 'block') {
+				toast.error(
+					moderationResult.data.reason ||
+						'Your comment contains content that violates our community guidelines.',
+				)
+				setIsSubmitting(false)
+				return
+			}
+			if (moderationResult.data.action === 'flag') {
+				toast.warning(
+					moderationResult.data.reason ||
+						'Your comment may contain sensitive content and will be reviewed.',
+				)
+			}
+		}
 
 		const response = await createComment(postId, {
 			content: newComment.trim(),

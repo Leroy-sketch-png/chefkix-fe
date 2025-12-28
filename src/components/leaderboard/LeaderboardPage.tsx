@@ -340,8 +340,8 @@ export function LeaderboardPage({
 								onUserClick?.({
 									...e,
 									xpThisWeek: e.xp,
-									recipesCooked: e.recipesCooked ?? 0,
-									streak: e.streak ?? 0,
+									recipesCooked: 0,
+									streak: 0,
 								})
 							}
 						/>
