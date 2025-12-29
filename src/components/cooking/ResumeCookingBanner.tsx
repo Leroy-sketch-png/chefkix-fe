@@ -59,6 +59,7 @@ export const ResumeCookingBanner = ({
 				if (
 					response.success &&
 					response.data &&
+					response.data.recipeId && // Guard: ensure recipeId exists
 					(response.data.status === 'in_progress' ||
 						response.data.status === 'paused')
 				) {

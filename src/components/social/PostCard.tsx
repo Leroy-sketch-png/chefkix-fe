@@ -57,6 +57,8 @@ export const PostCard = ({
 }: PostCardProps) => {
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isLiking, setIsLiking] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
+	const [isUpdating, setIsUpdating] = useState(false)
 	const [showMenu, setShowMenu] = useState(false)
 	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
 	const [showComments, setShowComments] = useState(false)
@@ -189,45 +191,61 @@ export const PostCard = ({
 	}
 
 	const handleConfirmDelete = async () => {
-		const response = await deletePost(post.id)
-		if (response.success) {
-			toast.success(POST_MESSAGES.DELETE_SUCCESS)
-			onDelete?.(post.id)
-		} else {
-			toast.error(response.message || POST_MESSAGES.DELETE_FAILED)
+		if (isDeleting) return
+		setIsDeleting(true)
+		try {
+			const response = await deletePost(post.id)
+			if (response.success) {
+				toast.success(POST_MESSAGES.DELETE_SUCCESS)
+				onDelete?.(post.id)
+			} else {
+				toast.error(response.message || POST_MESSAGES.DELETE_FAILED)
+			}
+		} catch {
+			toast.error(POST_MESSAGES.DELETE_FAILED)
+		} finally {
+			setIsDeleting(false)
+			setShowMenu(false)
 		}
-		setShowMenu(false)
 	}
 
 	const handleEdit = async () => {
+		if (isUpdating) return
 		if (!editContent.trim()) {
 			toast.error(POST_MESSAGES.CONTENT_EMPTY)
 			return
 		}
+		setIsUpdating(true)
 
 		const tags = editTags
 			.split(',')
 			.map(t => t.trim())
 			.filter(t => t.length > 0)
 
-		const response = await updatePost(post.id, {
-			content: editContent,
-			tags,
-		})
+		try {
+			const response = await updatePost(post.id, {
+				content: editContent,
+				tags,
+			})
 
-		if (response.statusCode === 410) {
-			// Post edit window expired (backend)
-			toast.error(POST_MESSAGES.EDIT_TIME_LIMIT)
-			return
-		}
+			if (response.statusCode === 410) {
+				// Post edit window expired (backend)
+				toast.error(POST_MESSAGES.EDIT_TIME_LIMIT)
+				return
+			}
 
-		if (response.success && response.data) {
-			setPost(response.data)
-			onUpdate?.(response.data)
-			setIsEditing(false)
-			toast.success(POST_MESSAGES.UPDATE_SUCCESS)
-		} else {
-			toast.error(response.message || POST_MESSAGES.UPDATE_FAILED)
+			if (response.success && response.data) {
+				setPost(response.data)
+				onUpdate?.(response.data)
+				setIsEditing(false)
+				toast.success(POST_MESSAGES.UPDATE_SUCCESS)
+			} else {
+				toast.error(response.message || POST_MESSAGES.UPDATE_FAILED)
+			}
+		} catch {
+			toast.error(POST_MESSAGES.UPDATE_FAILED)
+		} finally {
+			setIsUpdating(false)
 		}
 	}
 

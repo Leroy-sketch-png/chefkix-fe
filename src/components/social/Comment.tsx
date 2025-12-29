@@ -6,7 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { formatDistanceToNow } from 'date-fns'
+import { formatShortTimeAgo } from '@/lib/utils'
 import {
 	Heart,
 	MessageSquare,
@@ -114,7 +114,7 @@ const ReplyItem = ({
 	currentUserId?: string
 }) => {
 	const [likes, setLikes] = useState(reply.likes)
-	const [isLiked, setIsLiked] = useState(false)
+	const [isLiked, setIsLiked] = useState(reply.isLiked ?? false)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 
 	const handleLike = async () => {
@@ -131,24 +131,24 @@ const ReplyItem = ({
 			const response = await toggleLikeReply(reply.parentCommentId, reply.id)
 			if (response.success && response.data) {
 				setIsLiked(response.data.isLiked)
-				setLikes(response.data.likeCount)
+				setLikes(response.data.likes)
 			} else {
 				// Revert on failure
 				setIsLiked(previousLiked)
 				setLikes(previousLikes)
+				toast.error('Failed to like reply')
 			}
 		} catch {
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikes(previousLikes)
+			toast.error('Failed to like reply')
 		} finally {
 			setIsLikeLoading(false)
 		}
 	}
 
-	const timeAgo = formatDistanceToNow(new Date(reply.createdAt), {
-		addSuffix: true,
-	})
+	const timeAgo = formatShortTimeAgo(reply.createdAt)
 
 	return (
 		<div className='flex gap-2.5 py-2'>
@@ -191,7 +191,7 @@ const ReplyItem = ({
 						aria-label={isLiked ? 'Unlike reply' : 'Like reply'}
 					>
 						<Heart
-							className={`size-2.5 ${isLiked ? 'fill-color-error text-color-error' : ''}`}
+							className={`size-2.5 transition-all ${isLiked ? 'fill-color-error text-color-error scale-110' : 'text-text-muted hover:text-color-error'}`}
 						/>
 						{likes > 0 && <span>{likes}</span>}
 					</button>
@@ -213,7 +213,7 @@ export const Comment = ({
 	onDelete,
 }: CommentProps) => {
 	const [likes, setLikes] = useState(comment.likes)
-	const [isLiked, setIsLiked] = useState(false)
+	const [isLiked, setIsLiked] = useState(comment.isLiked ?? false)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 	const [showReplies, setShowReplies] = useState(false)
 	const [showReplyInput, setShowReplyInput] = useState(false)
@@ -221,6 +221,7 @@ export const Comment = ({
 	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 	const [isLoadingReplies, setIsLoadingReplies] = useState(false)
+	const isLoadingRepliesRef = useRef(false)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [replies, setReplies] = useState<Reply[]>([])
@@ -248,11 +249,13 @@ export const Comment = ({
 				// Revert on failure
 				setIsLiked(previousLiked)
 				setLikes(previousLikes)
+				toast.error('Failed to like comment')
 			}
 		} catch {
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikes(previousLikes)
+			toast.error('Failed to like comment')
 		} finally {
 			setIsLikeLoading(false)
 		}
@@ -267,35 +270,43 @@ export const Comment = ({
 		setIsDeleting(true)
 		setShowDeleteConfirm(false)
 
-		const response = await deleteComment(postId, comment.id)
-		if (response.success) {
-			toast.success('Comment deleted')
-			onDelete?.(comment.id)
-		} else {
-			toast.error(response.message || 'Failed to delete comment')
+		try {
+			const response = await deleteComment(postId, comment.id)
+			if (response.success) {
+				toast.success('Comment deleted')
+				onDelete?.(comment.id)
+			} else {
+				toast.error(response.message || 'Failed to delete comment')
+			}
+		} catch {
+			toast.error('Network error. Please try again.')
+		} finally {
+			setIsDeleting(false)
 		}
-
-		setIsDeleting(false)
 	}
 
-	const timeAgo = formatDistanceToNow(new Date(comment.createdAt), {
-		addSuffix: true,
-	})
+	const timeAgo = formatShortTimeAgo(comment.createdAt)
 
 	// Load replies
 	const loadReplies = useCallback(async () => {
-		if (isLoadingReplies) return
+		if (isLoadingRepliesRef.current) return
+		isLoadingRepliesRef.current = true
 		setIsLoadingReplies(true)
 
-		const response = await getRepliesByCommentId(comment.id)
-		if (response.success && response.data) {
-			setReplies(response.data)
-		} else {
+		try {
+			const response = await getRepliesByCommentId(comment.id)
+			if (response.success && response.data) {
+				setReplies(response.data)
+			} else {
+				toast.error('Failed to load replies')
+			}
+		} catch {
 			toast.error('Failed to load replies')
+		} finally {
+			isLoadingRepliesRef.current = false
+			setIsLoadingReplies(false)
 		}
-
-		setIsLoadingReplies(false)
-	}, [comment.id, isLoadingReplies])
+	}, [comment.id])
 
 	// Toggle replies view
 	const handleToggleReplies = async () => {
@@ -311,12 +322,20 @@ export const Comment = ({
 
 		setIsSubmittingReply(true)
 
-		// AI content moderation before posting
+		// AI content moderation before posting (fail-closed for safety)
 		const moderationResult = await moderateContent(
 			replyContent.trim(),
 			'comment',
 		)
-		if (moderationResult.success && moderationResult.data) {
+
+		// Fail-closed: if moderation API fails, don't allow reply
+		if (!moderationResult.success) {
+			toast.error('Unable to verify content. Please try again.')
+			setIsSubmittingReply(false)
+			return
+		}
+
+		if (moderationResult.data) {
 			if (moderationResult.data.action === 'block') {
 				toast.error(
 					moderationResult.data.reason ||
@@ -447,7 +466,7 @@ export const Comment = ({
 							aria-label={isLiked ? 'Unlike comment' : 'Like comment'}
 						>
 							<Heart
-								className={`h-3 w-3 ${isLiked ? 'fill-color-error text-color-error' : ''}`}
+								className={`h-3 w-3 transition-all ${isLiked ? 'fill-color-error text-color-error scale-110' : 'text-text-muted hover:text-color-error'}`}
 							/>
 							{likes > 0 && <span>{likes}</span>}
 						</button>

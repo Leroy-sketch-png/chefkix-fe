@@ -56,9 +56,17 @@ export const CommentList = ({
 
 		setIsSubmitting(true)
 
-		// AI content moderation before posting
+		// AI content moderation before posting (fail-closed for safety)
 		const moderationResult = await moderateContent(newComment.trim(), 'comment')
-		if (moderationResult.success && moderationResult.data) {
+
+		// Fail-closed: if moderation API fails, don't allow comment
+		if (!moderationResult.success) {
+			toast.error('Unable to verify content. Please try again.')
+			setIsSubmitting(false)
+			return
+		}
+
+		if (moderationResult.data) {
 			if (moderationResult.data.action === 'block') {
 				toast.error(
 					moderationResult.data.reason ||

@@ -604,6 +604,13 @@ export const CookingPlayer = () => {
 
 	const handleComplete = useCallback(
 		async (rating: number, notes?: string) => {
+			// Guard against double-completion
+			if (isCompletingSession || session?.status === 'completed') {
+				console.warn(
+					'[handleComplete] Already completing or completed, ignoring',
+				)
+				return
+			}
 			setIsCompletingSession(true)
 			try {
 				const completionResult = await completeCooking(rating, notes)

@@ -200,6 +200,7 @@ export const ReviewCard = ({
 						src={author.avatar}
 						alt={author.name}
 						fill
+						sizes='48px'
 						className='object-cover'
 					/>
 				</div>

@@ -17,6 +17,7 @@ export interface Comment {
 	avatarUrl: string
 	taggedUsers: TaggedUser[] // Per spec 06-comments.txt
 	likes: number
+	isLiked: boolean // Whether current user has liked this comment
 	replyCount: number // Per spec 06-comments.txt (was 'comments')
 	createdAt: string
 	updatedAt: string
@@ -34,6 +35,7 @@ export interface Reply {
 	avatarUrl: string
 	content: string
 	likes: number
+	isLiked: boolean // Whether current user has liked this reply
 	createdAt: string
 	updatedAt: string
 	taggedUsers: TaggedUser[]

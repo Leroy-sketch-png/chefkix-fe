@@ -102,6 +102,11 @@ export const useAuthStore = create<AuthState>()(
 			 */
 			logout: () => {
 				console.log('[authStore] 🚪 Logging out, clearing all auth state')
+				// Stop notification polling to prevent memory leaks
+				// Dynamically import to avoid circular dependency
+				import('./notificationStore').then(({ useNotificationStore }) => {
+					useNotificationStore.getState().stopPolling()
+				})
 				set({
 					isAuthenticated: false,
 					user: null,

@@ -224,6 +224,7 @@ export const ComposerModal = ({
 										src={user.avatarUrl}
 										alt={user.displayName}
 										fill
+										sizes='48px'
 										className='object-cover'
 									/>
 								</div>

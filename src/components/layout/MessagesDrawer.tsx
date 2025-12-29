@@ -253,6 +253,7 @@ export const MessagesDrawer = () => {
 									src={getConversationAvatar(selectedConversation)}
 									alt={getConversationName(selectedConversation)}
 									fill
+									sizes='24px'
 									className='object-cover'
 								/>
 							</div>
@@ -329,6 +330,7 @@ export const MessagesDrawer = () => {
 												src={getConversationAvatar(conv)}
 												alt={getConversationName(conv)}
 												fill
+												sizes='36px'
 												className='object-cover'
 											/>
 										</div>

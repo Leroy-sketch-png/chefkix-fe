@@ -192,6 +192,15 @@ export const useCookingStore = create<CookingState>()(
 
 					const session = response.data
 
+					// Guard against missing recipeId before fetching recipe
+					if (!session.recipeId) {
+						console.warn(
+							'[resumeExistingSession] Session has no recipeId, cannot resume',
+						)
+						set({ isLoading: false })
+						return false
+					}
+
 					// Fetch recipe data
 					const recipeResponse = await getRecipeById(session.recipeId)
 					if (!recipeResponse.success || !recipeResponse.data) {

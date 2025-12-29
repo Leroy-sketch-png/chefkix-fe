@@ -20,7 +20,7 @@ import {
 	SessionHistoryItem,
 } from '@/services/cookingSession'
 import { getRecipesByUserId, getSavedRecipes } from '@/services/recipe'
-import { getPostsByUser } from '@/services/post'
+import { getPostsByUser, getSavedPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/components/ui/toaster'
@@ -195,7 +195,10 @@ export const UserProfile = ({
 	const [userPosts, setUserPosts] = useState<Post[]>([])
 	const [isLoadingPosts, setIsLoadingPosts] = useState(false)
 	const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([])
+	const [savedPosts, setSavedPosts] = useState<Post[]>([])
 	const [isLoadingSaved, setIsLoadingSaved] = useState(false)
+	const [isLoadingSavedPosts, setIsLoadingSavedPosts] = useState(false)
+	const [savedSubTab, setSavedSubTab] = useState<'recipes' | 'posts'>('recipes')
 	const [cookingSessions, setCookingSessions] = useState<PendingSession[]>([])
 	const [cookingStats, setCookingStats] = useState({
 		totalSessions: 0,
@@ -310,6 +313,28 @@ export const UserProfile = ({
 
 		fetchSaved()
 	}, [isOwnProfile, activeTab])
+
+	// Fetch saved posts when saved tab + posts sub-tab is active
+	useEffect(() => {
+		if (!isOwnProfile || activeTab !== 'saved' || savedSubTab !== 'posts')
+			return
+
+		const fetchSavedPosts = async () => {
+			setIsLoadingSavedPosts(true)
+			try {
+				const response = await getSavedPosts(0, 20)
+				if (response.success && response.data?.content) {
+					setSavedPosts(response.data.content)
+				}
+			} catch (err) {
+				console.error('Failed to fetch saved posts:', err)
+			} finally {
+				setIsLoadingSavedPosts(false)
+			}
+		}
+
+		fetchSavedPosts()
+	}, [isOwnProfile, activeTab, savedSubTab])
 
 	// Transform Profile to ProfileUser for gamified header
 	const profileUser = transformProfileToProfileUser(profile)
@@ -617,70 +642,161 @@ export const UserProfile = ({
 					<>
 						{!isOwnProfile ? (
 							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
-								<p className='text-text-muted'>Saved recipes are private</p>
-							</div>
-						) : isLoadingSaved ? (
-							<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-								{[1, 2, 3, 4].map(i => (
-									<div
-										key={i}
-										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
-									>
-										<Skeleton className='h-40 w-full' />
-										<div className='p-4'>
-											<Skeleton className='h-5 w-3/4' />
-											<Skeleton className='mt-2 h-4 w-1/2' />
-										</div>
-									</div>
-								))}
-							</div>
-						) : savedRecipes.length === 0 ? (
-							<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
-								<Bookmark className='size-8 text-text-muted' />
-								<p className='mt-2 text-text-muted'>No saved recipes yet</p>
-								<Button
-									variant='outline'
-									className='mt-4'
-									onClick={() => router.push('/explore')}
-								>
-									Explore Recipes
-								</Button>
+								<p className='text-text-muted'>Saved items are private</p>
 							</div>
 						) : (
-							<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-								{savedRecipes.map(recipe => (
-									<div
-										key={recipe.id}
-										className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-md'
-										onClick={() => router.push(`/recipes/${recipe.id}`)}
+							<div className='space-y-4'>
+								{/* Sub-tabs for Recipes/Posts */}
+								<div className='flex gap-2'>
+									<button
+										onClick={() => setSavedSubTab('recipes')}
+										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+											savedSubTab === 'recipes'
+												? 'bg-brand text-white'
+												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
+										}`}
 									>
-										<div className='relative h-40 overflow-hidden'>
-											<Image
-												src={
-													getRecipeImage(recipe) || '/placeholder-recipe.jpg'
-												}
-												alt={recipe.title}
-												fill
-												className='object-cover transition-transform group-hover:scale-105'
-											/>
-										</div>
-										<div className='p-4'>
-											<h3 className='font-semibold text-text line-clamp-1'>
-												{recipe.title}
-											</h3>
-											<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
-												<span className='flex items-center gap-1'>
-													<Clock className='size-4' />
-													{getTotalTime(recipe)} min
-												</span>
-												<span className='flex items-center gap-1'>
-													<Heart className='size-4' />
-													{recipe.likeCount}
-												</span>
+										Recipes ({savedRecipes.length})
+									</button>
+									<button
+										onClick={() => setSavedSubTab('posts')}
+										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+											savedSubTab === 'posts'
+												? 'bg-brand text-white'
+												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
+										}`}
+									>
+										Posts ({savedPosts.length})
+									</button>
+								</div>
+
+								{/* Saved Recipes */}
+								{savedSubTab === 'recipes' && (
+									<>
+										{isLoadingSaved ? (
+											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+												{[1, 2, 3, 4].map(i => (
+													<div
+														key={i}
+														className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
+													>
+														<Skeleton className='h-40 w-full' />
+														<div className='p-4'>
+															<Skeleton className='h-5 w-3/4' />
+															<Skeleton className='mt-2 h-4 w-1/2' />
+														</div>
+													</div>
+												))}
 											</div>
-										</div>
-									</div>
-								))}
+										) : savedRecipes.length === 0 ? (
+											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+												<Bookmark className='size-8 text-text-muted' />
+												<p className='mt-2 text-text-muted'>
+													No saved recipes yet
+												</p>
+												<Button
+													variant='outline'
+													className='mt-4'
+													onClick={() => router.push('/explore')}
+												>
+													Explore Recipes
+												</Button>
+											</div>
+										) : (
+											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+												{savedRecipes.map(recipe => (
+													<div
+														key={recipe.id}
+														className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-md'
+														onClick={() => router.push(`/recipes/${recipe.id}`)}
+													>
+														<div className='relative h-40 overflow-hidden'>
+															<Image
+																src={
+																	getRecipeImage(recipe) ||
+																	'/placeholder-recipe.jpg'
+																}
+																alt={recipe.title}
+																fill
+																className='object-cover transition-transform group-hover:scale-105'
+															/>
+														</div>
+														<div className='p-4'>
+															<h3 className='font-semibold text-text line-clamp-1'>
+																{recipe.title}
+															</h3>
+															<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
+																<span className='flex items-center gap-1'>
+																	<Clock className='size-4' />
+																	{getTotalTime(recipe)} min
+																</span>
+																<span className='flex items-center gap-1'>
+																	<Heart className='size-4' />
+																	{recipe.likeCount}
+																</span>
+															</div>
+														</div>
+													</div>
+												))}
+											</div>
+										)}
+									</>
+								)}
+
+								{/* Saved Posts */}
+								{savedSubTab === 'posts' && (
+									<>
+										{isLoadingSavedPosts ? (
+											<div className='space-y-4'>
+												{[1, 2, 3].map(i => (
+													<div
+														key={i}
+														className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card p-4'
+													>
+														<div className='flex items-center gap-3'>
+															<Skeleton className='size-10 rounded-full' />
+															<div className='flex-1'>
+																<Skeleton className='h-4 w-1/3' />
+																<Skeleton className='mt-1 h-3 w-1/4' />
+															</div>
+														</div>
+														<Skeleton className='mt-3 h-20 w-full' />
+													</div>
+												))}
+											</div>
+										) : savedPosts.length === 0 ? (
+											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+												<MessageCircle className='size-8 text-text-muted' />
+												<p className='mt-2 text-text-muted'>
+													No saved posts yet
+												</p>
+												<Button
+													variant='outline'
+													className='mt-4'
+													onClick={() => router.push('/')}
+												>
+													Explore Feed
+												</Button>
+											</div>
+										) : (
+											<div className='space-y-4'>
+												{savedPosts.map(post => (
+													<PostCard
+														key={post.id}
+														post={post}
+														currentUserId={currentUserId}
+														onDelete={id => {
+															// Remove from saved list when unsaved
+															setSavedPosts(prev =>
+																prev.filter(p => p.id !== id),
+															)
+														}}
+													/>
+												))}
+											</div>
+										)}
+									</>
+								)}
 							</div>
 						)}
 					</>

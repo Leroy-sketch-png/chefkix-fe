@@ -165,17 +165,44 @@ const ImageUpload = ({
 	label: string
 }) => {
 	const [preview, setPreview] = useState<string | undefined>(value)
+	const blobUrlRef = React.useRef<string | null>(null)
+
+	// Sync preview with value prop (for edit mode with existing server URL)
+	React.useEffect(() => {
+		// Only update if value is a server URL (not blob), and no local blob exists
+		if (value && !value.startsWith('blob:') && !blobUrlRef.current) {
+			setPreview(value)
+		}
+	}, [value])
+
+	// Cleanup blob URL on unmount
+	React.useEffect(() => {
+		return () => {
+			if (blobUrlRef.current) {
+				URL.revokeObjectURL(blobUrlRef.current)
+			}
+		}
+	}, [])
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (file) {
+			// Revoke previous blob URL if exists
+			if (blobUrlRef.current) {
+				URL.revokeObjectURL(blobUrlRef.current)
+			}
 			const url = URL.createObjectURL(file)
+			blobUrlRef.current = url
 			setPreview(url)
 			onChange(file)
 		}
 	}
 
 	const handleRemove = () => {
+		if (blobUrlRef.current) {
+			URL.revokeObjectURL(blobUrlRef.current)
+			blobUrlRef.current = null
+		}
 		setPreview(undefined)
 		onChange(null)
 	}
@@ -184,7 +211,13 @@ const ImageUpload = ({
 		<div className='relative'>
 			{preview ? (
 				<div className='relative aspect-video w-full overflow-hidden rounded-2xl'>
-					<Image src={preview} alt='Preview' fill className='object-cover' />
+					<Image
+						src={preview}
+						alt='Preview'
+						fill
+						sizes='(max-width: 768px) 100vw, 50vw'
+						className='object-cover'
+					/>
 					<button
 						type='button'
 						onClick={handleRemove}
@@ -278,6 +311,16 @@ const StepRow = ({
 }) => {
 	const [showTimerInput, setShowTimerInput] = useState(!!step.timerSeconds)
 	const fileInputRef = React.useRef<HTMLInputElement>(null)
+	const blobUrlRef = React.useRef<string | null>(null)
+
+	// Cleanup blob URL on unmount
+	React.useEffect(() => {
+		return () => {
+			if (blobUrlRef.current) {
+				URL.revokeObjectURL(blobUrlRef.current)
+			}
+		}
+	}, [])
 
 	// Convert timerSeconds to H:M:S for display
 	const totalSeconds = step.timerSeconds || 0
@@ -288,12 +331,21 @@ const StepRow = ({
 	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (file) {
+			// Revoke previous blob URL if exists
+			if (blobUrlRef.current) {
+				URL.revokeObjectURL(blobUrlRef.current)
+			}
 			const url = URL.createObjectURL(file)
+			blobUrlRef.current = url
 			onChange({ ...step, imageUrl: url, imageFile: file })
 		}
 	}
 
 	const handleRemoveImage = () => {
+		if (blobUrlRef.current) {
+			URL.revokeObjectURL(blobUrlRef.current)
+			blobUrlRef.current = null
+		}
 		onChange({ ...step, imageUrl: undefined, imageFile: undefined })
 		if (fileInputRef.current) {
 			fileInputRef.current.value = ''
@@ -590,7 +642,8 @@ export const RecipeFormDetailed = ({
 	const handleCoverImage = (file: File | null) => {
 		if (file) {
 			updateField('coverImageFile', file)
-			updateField('coverImageUrl', URL.createObjectURL(file))
+			// Note: ImageUpload manages blob URL preview internally.
+			// We only store the file for upload. coverImageUrl is for existing server URLs.
 		} else {
 			updateField('coverImageFile', undefined)
 			updateField('coverImageUrl', undefined)

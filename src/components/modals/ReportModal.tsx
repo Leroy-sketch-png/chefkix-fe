@@ -183,27 +183,27 @@ export const ReportModal = ({
 						>
 							{submitted ? (
 								// Confirmation View
-								<div className='p-10 text-center'>
+								<div className='p-5 text-center md:p-6'>
 									<motion.div
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
 										transition={TRANSITION_BOUNCY}
-										className='mx-auto mb-5 flex size-thumbnail-lg items-center justify-center rounded-full bg-success/10 text-success'
+										className='mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-success/10 text-success'
 									>
-										<CheckCircle className='h-9 w-9' />
+										<CheckCircle className='size-7' />
 									</motion.div>
-									<h3 className='mb-3 text-xl font-extrabold'>
+									<h3 className='mb-2 text-lg font-extrabold'>
 										Report Submitted
 									</h3>
-									<p className='mb-6 leading-relaxed text-text-muted'>
+									<p className='mb-4 text-sm leading-relaxed text-text-muted'>
 										Thanks for helping keep ChefKix safe. Our team will review
 										this content within 24 hours.
 									</p>
-									<div className='mb-6 rounded-2xl bg-bg-elevated p-5 text-left'>
-										<h4 className='mb-3 text-sm font-bold'>
+									<div className='mb-4 rounded-lg bg-bg-elevated p-4 text-left'>
+										<h4 className='mb-2 text-sm font-bold'>
 											What happens next?
 										</h4>
-										<ul className='space-y-2 text-sm text-text-muted'>
+										<ul className='space-y-1.5 text-xs text-text-muted'>
 											<li>• AI moderators will review immediately</li>
 											<li>• If flagged, human moderators will take action</li>
 											<li>• We&apos;ll notify you if action is taken</li>
@@ -213,7 +213,7 @@ export const ReportModal = ({
 										onClick={handleClose}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
+										className='w-full rounded-lg bg-gradient-xp py-3 text-sm font-bold text-white'
 									>
 										Done
 									</motion.button>
@@ -221,49 +221,50 @@ export const ReportModal = ({
 							) : (
 								// Report Form
 								<>
-									<div className='flex items-center justify-between border-b border-border p-7'>
-										<h2 className='text-xl font-extrabold'>Report Content</h2>
+									<div className='flex items-center justify-between border-b border-border p-4 md:p-5'>
+										<h2 className='text-lg font-extrabold'>Report Content</h2>
 										<motion.button
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
 										>
-											<X className='h-5 w-5' />
+											<X className='size-4' />
 										</motion.button>
-									</div>{' '}
-									<div className='p-7'>
+									</div>
+									<div className='p-4 md:p-5'>
 										{/* Content Preview */}
-										<div className='mb-6 flex items-center gap-3.5 rounded-xl bg-bg-elevated px-4 py-3.5'>
-											<div className='relative h-12 w-12 overflow-hidden rounded-full'>
+										<div className='mb-4 flex items-center gap-3 rounded-xl bg-bg-elevated px-3 py-2.5'>
+											<div className='relative size-10 overflow-hidden rounded-full'>
 												<Image
 													src={content.author.avatarUrl}
 													alt={content.author.username}
 													fill
+													sizes='40px'
 													className='object-cover'
 												/>
 											</div>
 											<div>
-												<div className='font-bold'>
+												<div className='text-sm font-bold'>
 													@{content.author.username}
 												</div>
-												<div className='text-sm text-text-muted capitalize'>
+												<div className='text-xs text-text-muted capitalize'>
 													{content.type}
 												</div>
 											</div>
 										</div>
 
 										{/* Reasons */}
-										<div className='mb-5'>
-											<h3 className='mb-3.5 text-sm font-bold'>
+										<div className='mb-4'>
+											<h3 className='mb-2.5 text-sm font-bold'>
 												Why are you reporting this?
 											</h3>
-											<div className='flex flex-col gap-2.5'>
+											<div className='flex flex-col gap-2'>
 												{reportReasons.map(reason => (
 													<label
 														key={reason.value}
 														className={cn(
-															'flex cursor-pointer items-start gap-3.5 rounded-xl border-2 border-transparent bg-bg-elevated p-4 transition-all',
+															'flex cursor-pointer items-start gap-3 rounded-lg border-2 border-transparent bg-bg-elevated p-3 transition-all',
 															selectedReason === reason.value
 																? 'border-xp bg-xp/10'
 																: 'hover:border-border',
@@ -279,21 +280,21 @@ export const ReportModal = ({
 														/>
 														<div
 															className={cn(
-																'mt-0.5 flex size-icon-md flex-shrink-0 items-center justify-center rounded-full border-2',
+																'mt-0.5 flex size-4 flex-shrink-0 items-center justify-center rounded-full border-2',
 																selectedReason === reason.value
 																	? 'border-xp'
 																	: 'border-border',
 															)}
 														>
 															{selectedReason === reason.value && (
-																<div className='h-2.5 w-2.5 rounded-full bg-xp' />
+																<div className='size-2 rounded-full bg-xp' />
 															)}
 														</div>
-														<div className='flex flex-col gap-1'>
-															<span className='font-semibold'>
+														<div className='flex flex-col gap-0.5'>
+															<span className='text-sm font-semibold'>
 																{reason.title}
 															</span>
-															<span className='text-sm text-text-muted'>
+															<span className='text-xs text-text-muted'>
 																{reason.desc}
 															</span>
 														</div>
@@ -303,22 +304,22 @@ export const ReportModal = ({
 										</div>
 
 										{/* Additional Details */}
-										<div className='mb-5'>
-											<h3 className='mb-2 text-sm font-bold'>
+										<div className='mb-4'>
+											<h3 className='mb-1.5 text-sm font-bold'>
 												Additional details (optional)
 											</h3>
 											<textarea
 												value={details}
 												onChange={e => setDetails(e.target.value)}
-												placeholder="Provide more context about why you're reporting this content..."
-												className='min-h-textarea w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-4 text-sm leading-relaxed outline-none transition-colors focus:border-purple-500'
+												placeholder='Provide more context...'
+												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-purple-500'
 											/>
 										</div>
 
 										{/* Trust Signal */}
-										<div className='mb-5 flex items-start gap-2.5 rounded-xl bg-xp/10 p-4'>
-											<Shield className='mt-0.5 size-icon-sm flex-shrink-0 text-xp' />
-											<span className='text-sm leading-relaxed text-text-muted'>
+										<div className='mb-4 flex items-start gap-2 rounded-lg bg-xp/10 p-3'>
+											<Shield className='mt-0.5 size-4 flex-shrink-0 text-xp' />
+											<span className='text-xs leading-relaxed text-text-muted'>
 												Reports are reviewed within 24 hours. False reports may
 												affect your account.
 											</span>
@@ -334,13 +335,13 @@ export const ReportModal = ({
 											whileTap={
 												selectedReason && !isSubmitting ? { scale: 0.98 } : {}
 											}
-											className='flex w-full items-center justify-center gap-2.5 rounded-xl bg-error py-4 font-bold text-white disabled:opacity-50'
+											className='flex w-full items-center justify-center gap-2 rounded-lg bg-error py-3 text-sm font-bold text-white disabled:opacity-50'
 										>
 											{isSubmitting ? (
-												<Loader2 className='size-icon-sm animate-spin' />
+												<Loader2 className='size-4 animate-spin' />
 											) : (
 												<>
-													<Flag className='size-icon-sm' />
+													<Flag className='size-4' />
 													<span>Submit Report</span>
 												</>
 											)}
@@ -836,7 +837,13 @@ export const ContentRemovedNotice = ({
 				<div className='mb-3.5 flex items-center gap-3.5 rounded-xl bg-bg-elevated p-3.5'>
 					{thumbnailUrl && (
 						<div className='relative size-thumbnail-md overflow-hidden rounded-lg opacity-50'>
-							<Image src={thumbnailUrl} alt='' fill className='object-cover' />
+							<Image
+								src={thumbnailUrl}
+								alt=''
+								fill
+								sizes='64px'
+								className='object-cover'
+							/>
 						</div>
 					)}
 					<div className='flex flex-col gap-1'>
