@@ -167,7 +167,6 @@ Look for this in browser console when sharing:
 
 ```tsx
 import { SharePostModal } from '@/components/social/SharePostModal'
-
 ;<SharePostModal
 	isOpen={showShareModal}
 	onClose={() => setShowShareModal(false)}
