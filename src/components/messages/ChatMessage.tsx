@@ -249,7 +249,10 @@ export const ChatMessage = ({
 					message.isOwn && 'flex-row-reverse',
 				)}
 				onMouseEnter={() => setShowActions(true)}
-				onMouseLeave={() => setShowActions(false)}
+				onMouseLeave={() => {
+					setShowActions(false)
+					setShowReactionPicker(false)
+				}}
 			>
 				{/* Avatar (for received messages) */}
 				{!message.isOwn && showAvatar && (
