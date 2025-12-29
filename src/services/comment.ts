@@ -218,15 +218,15 @@ export const deleteReply = async (
 export const toggleLikeReply = async (
 	commentId: string,
 	replyId: string,
-): Promise<ApiResponse<{ likeCount: number; isLiked: boolean }>> => {
+): Promise<ApiResponse<{ likes: number; isLiked: boolean }>> => {
 	try {
 		const response = await api.post<
-			ApiResponse<{ likeCount: number; isLiked: boolean }>
+			ApiResponse<{ likes: number; isLiked: boolean }>
 		>(API_ENDPOINTS.POST.TOGGLE_LIKE_REPLY(commentId, replyId))
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<
-			ApiResponse<{ likeCount: number; isLiked: boolean }>
+			ApiResponse<{ likes: number; isLiked: boolean }>
 		>
 		if (axiosError.response) {
 			return axiosError.response.data

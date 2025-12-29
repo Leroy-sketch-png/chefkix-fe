@@ -725,6 +725,8 @@ const StepItem = ({
 			if (response.success && response.data?.[0]) {
 				// Replace local preview with server URL
 				onUpdate({ imageUrl: response.data[0] })
+				// Revoke blob URL after server URL is set
+				URL.revokeObjectURL(localPreviewUrl)
 			} else {
 				// Upload failed - keep local preview but warn user
 				toast.error('Image upload failed', {
@@ -1316,6 +1318,8 @@ export const RecipeCreateAiFlow = ({
 					setRecipe(prev =>
 						prev ? { ...prev, coverImageUrl: response.data![0] } : prev,
 					)
+					// Revoke blob URL after server URL is set
+					URL.revokeObjectURL(localPreviewUrl)
 					toast.success('Cover image uploaded!')
 				} else {
 					// Upload failed - keep local preview but warn user
@@ -1812,6 +1816,10 @@ export const RecipeCreateAiFlow = ({
 					toast.success('Recipe published! 🎉', {
 						description: `"${targetRecipe.title}" is now live! You earned ${targetRecipe.xpReward || 0} XP`,
 					})
+
+					// Brief delay to let user see confetti and toast before navigation
+					await new Promise(resolve => setTimeout(resolve, 1500))
+
 					// Notify parent of success (for navigation)
 					onPublishSuccess?.(currentDraftId)
 				} else {

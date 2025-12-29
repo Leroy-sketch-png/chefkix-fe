@@ -417,9 +417,10 @@ export default function SettingsPage() {
 		}
 
 		setIsUploadingCover(true)
+		let localPreviewUrl: string | null = null
 		try {
 			// Show local preview immediately
-			const localPreviewUrl = URL.createObjectURL(file)
+			localPreviewUrl = URL.createObjectURL(file)
 			setCoverImageUrl(localPreviewUrl)
 
 			// Upload to server
@@ -446,6 +447,10 @@ export default function SettingsPage() {
 			toast.error('Failed to upload cover photo')
 			setCoverImageUrl(user?.coverImageUrl) // Revert
 		} finally {
+			// Revoke the local blob URL to prevent memory leak
+			if (localPreviewUrl) {
+				URL.revokeObjectURL(localPreviewUrl)
+			}
 			setIsUploadingCover(false)
 			if (coverInputRef.current) {
 				coverInputRef.current.value = ''
@@ -484,8 +489,9 @@ export default function SettingsPage() {
 		}
 
 		setIsUploadingAvatar(true)
+		let localPreviewUrl: string | null = null
 		try {
-			const localPreviewUrl = URL.createObjectURL(file)
+			localPreviewUrl = URL.createObjectURL(file)
 			setAvatarUrl(localPreviewUrl)
 
 			const response = await uploadRecipeImages([file])
@@ -508,6 +514,10 @@ export default function SettingsPage() {
 			toast.error('Failed to upload avatar')
 			setAvatarUrl(user?.avatarUrl)
 		} finally {
+			// Revoke the local blob URL to prevent memory leak
+			if (localPreviewUrl) {
+				URL.revokeObjectURL(localPreviewUrl)
+			}
 			setIsUploadingAvatar(false)
 			if (avatarInputRef.current) {
 				avatarInputRef.current.value = ''

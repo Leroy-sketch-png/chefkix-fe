@@ -90,6 +90,16 @@ export const getAllRecipes = async (
 export const getRecipeById = async (
 	recipeId: string,
 ): Promise<ApiResponse<Recipe>> => {
+	// Guard against undefined/null recipeId to prevent /recipes/undefined requests
+	if (!recipeId) {
+		console.error('[getRecipeById] Called with undefined/null recipeId')
+		return {
+			success: false,
+			statusCode: 400,
+			message: 'Recipe ID is required',
+			data: null as unknown as Recipe,
+		}
+	}
 	const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_ID(recipeId))
 	return response.data
 }
@@ -315,8 +325,23 @@ export const discardDraft = async (
 export const createRecipe = async (
 	data: RecipeCreateRequest,
 ): Promise<ApiResponse<Recipe>> => {
-	const response = await api.post(API_ENDPOINTS.RECIPES.CREATE, data)
-	return response.data
+	try {
+		const response = await api.post<ApiResponse<Recipe>>(
+			API_ENDPOINTS.RECIPES.CREATE,
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to create recipe',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -326,8 +351,23 @@ export const updateRecipe = async (
 	recipeId: string,
 	data: RecipeUpdateRequest,
 ): Promise<ApiResponse<Recipe>> => {
-	const response = await api.put(API_ENDPOINTS.RECIPES.UPDATE(recipeId), data)
-	return response.data
+	try {
+		const response = await api.put<ApiResponse<Recipe>>(
+			API_ENDPOINTS.RECIPES.UPDATE(recipeId),
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to update recipe',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -336,8 +376,22 @@ export const updateRecipe = async (
 export const deleteRecipe = async (
 	recipeId: string,
 ): Promise<ApiResponse<void>> => {
-	const response = await api.delete(API_ENDPOINTS.RECIPES.DELETE(recipeId))
-	return response.data
+	try {
+		const response = await api.delete<ApiResponse<void>>(
+			API_ENDPOINTS.RECIPES.DELETE(recipeId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<void>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to delete recipe',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -346,8 +400,24 @@ export const deleteRecipe = async (
 export const toggleLikeRecipe = async (
 	recipeId: string,
 ): Promise<ApiResponse<{ isLiked: boolean; likeCount: number }>> => {
-	const response = await api.post(API_ENDPOINTS.RECIPES.TOGGLE_LIKE(recipeId))
-	return response.data
+	try {
+		const response = await api.post<
+			ApiResponse<{ isLiked: boolean; likeCount: number }>
+		>(API_ENDPOINTS.RECIPES.TOGGLE_LIKE(recipeId))
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<
+			ApiResponse<{ isLiked: boolean; likeCount: number }>
+		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to toggle like',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -356,8 +426,24 @@ export const toggleLikeRecipe = async (
 export const toggleSaveRecipe = async (
 	recipeId: string,
 ): Promise<ApiResponse<{ isSaved: boolean; saveCount: number }>> => {
-	const response = await api.post(API_ENDPOINTS.RECIPES.TOGGLE_SAVE(recipeId))
-	return response.data
+	try {
+		const response = await api.post<
+			ApiResponse<{ isSaved: boolean; saveCount: number }>
+		>(API_ENDPOINTS.RECIPES.TOGGLE_SAVE(recipeId))
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<
+			ApiResponse<{ isSaved: boolean; saveCount: number }>
+		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to toggle save',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -366,8 +452,23 @@ export const toggleSaveRecipe = async (
 export const getSavedRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<ApiResponse<Recipe[]>> => {
-	const response = await api.get(API_ENDPOINTS.RECIPES.SAVED, { params })
-	return response.data
+	try {
+		const response = await api.get<ApiResponse<Recipe[]>>(
+			API_ENDPOINTS.RECIPES.SAVED,
+			{ params },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to fetch saved recipes',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -376,8 +477,23 @@ export const getSavedRecipes = async (
 export const getLikedRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<ApiResponse<Recipe[]>> => {
-	const response = await api.get(API_ENDPOINTS.RECIPES.LIKED, { params })
-	return response.data
+	try {
+		const response = await api.get<ApiResponse<Recipe[]>>(
+			API_ENDPOINTS.RECIPES.LIKED,
+			{ params },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to fetch liked recipes',
+			statusCode: 500,
+		}
+	}
 }
 
 // ============================================

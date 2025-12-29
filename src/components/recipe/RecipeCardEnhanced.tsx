@@ -638,7 +638,13 @@ const FeaturedCard = ({
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			<div className='relative aspect-video min-h-panel-md'>
-				<Image src={imageUrl} alt={title} fill className='object-cover' />
+				<Image
+					src={imageUrl}
+					alt={title}
+					fill
+					sizes='(max-width: 768px) 100vw, 50vw'
+					className='object-cover'
+				/>
 				{/* Gradient overlay */}
 				<div className='absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent' />
 
@@ -799,7 +805,13 @@ const CookedCard = ({
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}
 			<div className='relative aspect-video overflow-hidden'>
-				<Image src={imageUrl} alt={title} fill className='object-cover' />
+				<Image
+					src={imageUrl}
+					alt={title}
+					fill
+					sizes='(max-width: 768px) 100vw, 33vw'
+					className='object-cover'
+				/>
 				<MasteryBadge level={mastery.masteryLevel} />
 				<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm'>
 					{mastery.personalCookCount}× cooked

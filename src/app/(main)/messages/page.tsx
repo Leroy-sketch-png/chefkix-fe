@@ -30,7 +30,7 @@ import {
 } from '@/services/chat'
 import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
 // HELPERS
@@ -90,8 +90,7 @@ function ConversationItem({
 	const hasUnread = conversation.unreadCount && conversation.unreadCount > 0
 
 	return (
-		<motion.button
-			variants={staggerItem}
+		<button
 			onClick={onClick}
 			className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-all duration-200 ${
 				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated'
@@ -142,7 +141,7 @@ function ConversationItem({
 					{conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount}
 				</span>
 			)}
-		</motion.button>
+		</button>
 	)
 }
 
@@ -530,22 +529,27 @@ export default function MessagesPage() {
 					) : filteredConversations.length === 0 ? (
 						<EmptyConversations />
 					) : (
-						<motion.div
-							variants={staggerContainer}
-							initial='hidden'
-							animate='visible'
-							className='flex flex-col gap-1'
-						>
-							{filteredConversations.map(conv => (
-								<ConversationItem
-									key={conv.id}
-									conversation={conv}
-									isSelected={selectedConversation?.id === conv.id}
-									currentUserId={user?.userId}
-									onClick={() => handleSelectConversation(conv)}
-								/>
-							))}
-						</motion.div>
+						<div className='flex flex-col gap-1'>
+							<AnimatePresence initial={false} mode='popLayout'>
+								{filteredConversations.map(conv => (
+									<motion.div
+										key={conv.id}
+										initial={{ opacity: 0, y: -10, scale: 0.95 }}
+										animate={{ opacity: 1, y: 0, scale: 1 }}
+										exit={{ opacity: 0, scale: 0.95 }}
+										transition={TRANSITION_SPRING}
+										layout
+									>
+										<ConversationItem
+											conversation={conv}
+											isSelected={selectedConversation?.id === conv.id}
+											currentUserId={user?.userId}
+											onClick={() => handleSelectConversation(conv)}
+										/>
+									</motion.div>
+								))}
+							</AnimatePresence>
+						</div>
 					)}
 				</nav>
 			</aside>

@@ -362,7 +362,7 @@ export const moderateContent = async (
 	try {
 		const response = await api.post<ApiResponse<ModerateResponse>>(
 			API_ENDPOINTS.AI.MODERATE,
-			{ text, content_type: contentType },
+			{ content: text, content_type: contentType },
 		)
 		return response.data
 	} catch (error) {

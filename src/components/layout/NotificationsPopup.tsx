@@ -142,6 +142,10 @@ const transformToSocialNotification = (
 	// BE sends actor info directly on notification, not in 'data' object
 	const userId = notif.latestActorId || notif.actorInfo?.actorId || ''
 	const userName = notif.latestActorName || notif.actorInfo?.actorName || 'User'
+	const userAvatar =
+		notif.latestActorAvatarUrl ||
+		notif.actorInfo?.avatarUrl ||
+		'/placeholder-avatar.png'
 
 	return {
 		id: index,
@@ -149,7 +153,7 @@ const transformToSocialNotification = (
 		type,
 		userId,
 		user: userName,
-		avatar: '/placeholder-avatar.png', // TODO: BE should send avatarUrl
+		avatar: userAvatar,
 		action: notif.content || notif.body || '',
 		target: undefined,
 		targetEntityId: notif.targetEntityId, // Post ID for likes/comments, userId for follows

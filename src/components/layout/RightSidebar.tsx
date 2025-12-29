@@ -208,6 +208,7 @@ export const RightSidebar = () => {
 											src={suggestion.avatarUrl || '/placeholder-avatar.png'}
 											alt={suggestion.displayName || suggestion.username}
 											fill
+											sizes='40px'
 											className='object-cover'
 										/>
 									</div>
