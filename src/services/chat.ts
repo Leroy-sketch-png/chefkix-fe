@@ -6,6 +6,8 @@ import { AxiosError } from 'axios'
 // TYPES - Based on implemented_spec/09-chat.txt
 // ============================================
 
+export type MessageType = 'TEXT' | 'POST_SHARE'
+
 export interface ChatParticipant {
 	userId: string
 	username: string
@@ -45,6 +47,21 @@ export interface CreateConversationDto {
 export interface SendMessageDto {
 	conversationId: string
 	message: string
+}
+
+export interface ShareContactResponse {
+	conversationId: string
+	displayName: string
+	avatar: string
+	type: 'DIRECT' | 'GROUP'
+	userId?: string // Only present for DIRECT conversations
+}
+
+export interface CreateMessageRequest {
+	conversationId: string
+	message?: string // Optional for POST_SHARE (auto-filled by BE)
+	type?: MessageType
+	relatedId?: string // Post ID for POST_SHARE
 }
 
 // ============================================
@@ -101,6 +118,31 @@ export const getMyConversations = async (): Promise<
 		return {
 			success: false,
 			message: 'Failed to get conversations',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Share a post to a conversation
+ */
+export const sharePostToConversation = async (
+	data: CreateMessageRequest,
+): Promise<ApiResponse<ChatMessage>> => {
+	try {
+		const response = await api.post<ApiResponse<ChatMessage>>(
+			`${API_BASE}/messages/create`,
+			data,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<ChatMessage>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to share post',
 			statusCode: 500,
 		}
 	}
@@ -191,6 +233,31 @@ export const getOrCreateDirectConversation = async (
 		return {
 			success: false,
 			message: 'Failed to get or create conversation',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get conversation suggestions for sharing (recent chats)
+ */
+export const getShareSuggestions = async (
+	size: number = 5,
+): Promise<ApiResponse<ShareContactResponse[]>> => {
+	try {
+		const response = await api.get<ApiResponse<ShareContactResponse[]>>(
+			`${API_BASE}/conversations/share-suggestions`,
+			{ params: { size } },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<ShareContactResponse[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to get share suggestions',
 			statusCode: 500,
 		}
 	}

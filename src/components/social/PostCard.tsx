@@ -41,6 +41,7 @@ import {
 } from '@/components/modals/ReportModal'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
+import { SharePostModal } from '@/components/social/SharePostModal'
 
 interface PostCardProps {
 	post: Post
@@ -68,10 +69,17 @@ export const PostCard = ({
 	const [showReportModal, setShowReportModal] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false)
+	const [showShareModal, setShowShareModal] = useState(false)
+	const [showShareMenu, setShowShareMenu] = useState(false)
+	const [shareMenuPosition, setShareMenuPosition] = useState({
+		top: 0,
+		right: 0,
+	})
 
 	// Refs
 	const likeButtonRef = useRef<HTMLButtonElement>(null)
 	const menuButtonRef = useRef<HTMLButtonElement>(null)
+	const shareButtonRef = useRef<HTMLButtonElement>(null)
 	const lastTapRef = useRef<number>(0)
 	const DOUBLE_TAP_DELAY = 300 // ms
 
@@ -84,6 +92,7 @@ export const PostCard = ({
 		setPost(initialPost)
 		setIsSaved(initialPost.isSaved ?? false)
 	}, [initialPost])
+
 	const canEdit =
 		isOwner &&
 		Date.now() - createdAt.getTime() < 60 * 60 * 1000 && // Within 1 hour
@@ -99,6 +108,17 @@ export const PostCard = ({
 		}
 		setShowMenu(!showMenu)
 	}, [showMenu])
+
+	const handleShareMenuToggle = useCallback(() => {
+		if (!showShareMenu && shareButtonRef.current) {
+			const rect = shareButtonRef.current.getBoundingClientRect()
+			setShareMenuPosition({
+				top: rect.top - 4, // Above button
+				right: window.innerWidth - rect.right,
+			})
+		}
+		setShowShareMenu(!showShareMenu)
+	}, [showShareMenu])
 
 	const handleLike = async () => {
 		if (isLiking) return
@@ -249,8 +269,8 @@ export const PostCard = ({
 		}
 	}
 
-	// Handle share post
-	const handleShare = async () => {
+	const handleNativeShare = async () => {
+		setShowShareMenu(false)
 		const postUrl = `${window.location.origin}/post/${post.id}`
 		const shareData = {
 			title: `Post by ${post.displayName || 'ChefKix User'}`,
@@ -274,6 +294,11 @@ export const PostCard = ({
 			await navigator.clipboard.writeText(postUrl)
 			toast.success('Link copied to clipboard!')
 		}
+	}
+
+	const handleShareToChat = () => {
+		setShowShareMenu(false)
+		setShowShareModal(true)
 	}
 
 	// Handle double-tap to like on images (Instagram pattern)
@@ -315,6 +340,16 @@ export const PostCard = ({
 				cancelLabel='Cancel'
 				variant='destructive'
 				onConfirm={handleConfirmDelete}
+			/>
+
+			{/* Share Post Modal */}
+			<SharePostModal
+				isOpen={showShareModal}
+				onClose={() => setShowShareModal(false)}
+				postId={post.id}
+				postTitle={post.recipeTitle || undefined}
+				postImage={post.photoUrls?.[0] || post.photoUrl || undefined}
+				postContent={post.content}
 			/>
 
 			<motion.article
@@ -591,7 +626,8 @@ export const PostCard = ({
 								}`}
 							/>
 							<span>{post.likes ?? 0}</span>
-						</button>{' '}
+						</button>
+
 						<button
 							onClick={() => setShowComments(!showComments)}
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
@@ -599,13 +635,57 @@ export const PostCard = ({
 							<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
 							<span>{post.commentCount ?? 0}</span>
 						</button>
-						<button
-							onClick={handleShare}
-							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
-						>
-							<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
-							<span>Share</span>
-						</button>
+
+						{/* Share button with dropdown menu */}
+						<div className='relative flex-1'>
+							<button
+								ref={shareButtonRef}
+								onClick={handleShareMenuToggle}
+								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
+							>
+								<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
+								<span>Share</span>
+							</button>
+
+							{/* Share options menu */}
+							<AnimatePresence>
+								{showShareMenu && (
+									<Portal>
+										{/* Click outside to close */}
+										<div
+											className='fixed inset-0 z-dropdown'
+											onClick={() => setShowShareMenu(false)}
+										/>
+										<motion.div
+											initial={{ opacity: 0, scale: 0.95, y: 10 }}
+											animate={{ opacity: 1, scale: 1, y: 0 }}
+											exit={{ opacity: 0, scale: 0.95, y: 10 }}
+											className='fixed z-dropdown w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
+											style={{
+												bottom: `${window.innerHeight - shareMenuPosition.top}px`,
+												right: `${shareMenuPosition.right}px`,
+											}}
+										>
+											<button
+												onClick={handleShareToChat}
+												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
+											>
+												<MessageSquare className='h-4 w-4' />
+												Send in chat
+											</button>
+											<button
+												onClick={handleNativeShare}
+												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
+											>
+												<Send className='h-4 w-4' />
+												Share externally
+											</button>
+										</motion.div>
+									</Portal>
+								)}
+							</AnimatePresence>
+						</div>
+
 						<button
 							onClick={handleSave}
 							disabled={isSaving}
@@ -622,7 +702,6 @@ export const PostCard = ({
 										: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
 								}`}
 							/>
-							<span>Save</span>
 						</button>
 					</div>
 
@@ -650,6 +729,7 @@ export const PostCard = ({
 						)}
 					</AnimatePresence>
 				</motion.div>
+
 				{/* Report Modal */}
 				<ReportModal
 					isOpen={showReportModal}
