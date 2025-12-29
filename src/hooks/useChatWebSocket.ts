@@ -176,6 +176,20 @@ export function useChatWebSocket({
 			(message: IMessage) => {
 				try {
 					const chatMessage: ChatMessage = JSON.parse(message.body)
+
+					// ✅ Debug log to verify POST_SHARE fields
+					if (chatMessage.type === 'POST_SHARE') {
+						console.log('[WebSocket] POST_SHARE received:', {
+							id: chatMessage.id,
+							type: chatMessage.type,
+							relatedId: chatMessage.relatedId,
+							hasImage: !!chatMessage.sharedPostImage,
+							hasTitle: !!chatMessage.sharedPostTitle,
+							image: chatMessage.sharedPostImage,
+							title: chatMessage.sharedPostTitle,
+						})
+					}
+
 					console.log('[WebSocket] Received message:', chatMessage)
 					onMessageRef.current(chatMessage)
 				} catch (err) {

@@ -876,6 +876,19 @@ img {
 	display: block;
 }
 
+/* Fallback for broken images */
+img[alt]:after {
+	content: '🍳 ' attr(alt);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--bg-elevated);
+	color: var(--text-muted);
+	font-size: 0.75rem;
+	text-align: center;
+	padding: 1rem;
+}
+
 /* ============ CUSTOM SCROLLBAR - BRAND ACCENT ============ */
 ::-webkit-scrollbar {
 	width: 10px;

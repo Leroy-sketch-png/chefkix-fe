@@ -119,3 +119,15 @@ export const COMMON_MESSAGES = {
 	TRY_AGAIN: 'Please try again',
 	BACK_HOME: 'Back to Home',
 } as const
+
+// ============ CHAT MESSAGES ============
+export const CHAT_MESSAGES = {
+	SHARE_SUCCESS: 'Post shared successfully! 🎉',
+	SHARE_FAILED: 'Failed to share post',
+	SELECT_CONVERSATION: 'Please select at least one conversation',
+	LOAD_CONVERSATIONS_FAILED: 'Failed to load conversations',
+	SHARE_MULTIPLE_SUCCESS: (count: number) =>
+		`Post shared to ${count} conversation${count > 1 ? 's' : ''}! 🎉`,
+	SHARE_PARTIAL_FAIL: (failCount: number) =>
+		`Failed to share to ${failCount} conversation(s)`,
+} as const

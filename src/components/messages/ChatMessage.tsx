@@ -10,7 +10,10 @@ import {
 	MoreHorizontal,
 	Reply,
 	Copy,
+	Share2,
 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { TRANSITION_SPRING, scaleIn } from '@/lib/motion'
@@ -36,6 +39,10 @@ export interface Message {
 		count: number
 		userReacted: boolean
 	}[]
+	type?: 'TEXT' | 'POST_SHARE'
+	relatedId?: string // Post ID for POST_SHARE
+	sharedPostImage?: string // Post thumbnail
+	sharedPostTitle?: string // Optional: recipe title if available
 }
 
 interface ChatMessageProps {
@@ -60,7 +67,7 @@ const formatTime = (date: Date): string => {
 const getStatusIcon = (status: Message['status']) => {
 	switch (status) {
 		case 'sending':
-			return <span className='text-muted-foreground'>○</span>
+			return <div className='h-3 w-3 rounded-full bg-muted-foreground/50' />
 		case 'sent':
 			return <Check className='h-3 w-3 text-muted-foreground' />
 		case 'delivered':
@@ -91,45 +98,43 @@ const MessageActions = ({
 }: MessageActionsProps) => {
 	return (
 		<motion.div
-			className={cn(
-				'absolute top-0 flex items-center gap-1 bg-panel-bg border border-border rounded-lg shadow-lg p-1',
-				isOwn ? 'right-full mr-2' : 'left-full ml-2',
-			)}
-			initial={{ opacity: 0, scale: 0.8 }}
+			initial={{ opacity: 0, scale: 0.9 }}
 			animate={{ opacity: 1, scale: 1 }}
-			exit={{ opacity: 0, scale: 0.8 }}
-			transition={TRANSITION_SPRING}
+			exit={{ opacity: 0, scale: 0.9 }}
+			className={cn(
+				'absolute top-0 flex gap-1 rounded-lg bg-card p-1 shadow-lg',
+				isOwn ? 'left-0 -translate-x-full' : 'right-0 translate-x-full',
+			)}
 		>
 			<button
-				className='p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground'
 				onClick={onReact}
-				title='React'
+				className='rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
 			>
-				👍
+				<ThumbsUp className='h-4 w-4' />
 			</button>
 			<button
-				className='p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground'
 				onClick={onReply}
-				title='Reply'
+				className='rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
 			>
 				<Reply className='h-4 w-4' />
 			</button>
 			<button
-				className='p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground'
 				onClick={onCopy}
-				title='Copy'
+				className='rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
 			>
 				<Copy className='h-4 w-4' />
 			</button>
 			{isOwn && onDelete && (
 				<button
-					className='p-1.5 rounded-md hover:bg-error/10 transition-colors text-muted-foreground hover:text-error'
 					onClick={onDelete}
-					title='Delete'
+					className='rounded p-1.5 text-destructive transition-colors hover:bg-destructive/10'
 				>
 					<Trash2 className='h-4 w-4' />
 				</button>
 			)}
+			<button className='rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'>
+				<MoreHorizontal className='h-4 w-4' />
+			</button>
 		</motion.div>
 	)
 }
@@ -152,22 +157,19 @@ export const ChatMessage = ({
 
 	const handleReact = () => {
 		onReact?.(message.id, '👍')
-		setShowActions(false)
 	}
 
 	const handleReply = () => {
 		onReply?.(message)
-		setShowActions(false)
 	}
 
 	const handleCopy = () => {
+		navigator.clipboard.writeText(message.content)
 		onCopy?.(message.content)
-		setShowActions(false)
 	}
 
 	const handleDelete = () => {
 		onDelete?.(message.id)
-		setShowActions(false)
 	}
 
 	return (
@@ -219,19 +221,107 @@ export const ChatMessage = ({
 						</div>
 					)}
 
-					{/* Bubble */}
-					<div
-						className={cn(
-							'px-4 py-2.5 rounded-2xl max-w-bubble-md md:max-w-bubble-lg',
-							message.isOwn
-								? 'bg-primary text-primary-foreground rounded-br-md'
-								: 'bg-muted text-foreground rounded-bl-md',
-						)}
-					>
-						<p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>
-							{message.content}
-						</p>
-					</div>
+					{/* Bubble - Conditional rendering based on message type */}
+					{message.type === 'POST_SHARE' && message.relatedId ? (
+						// POST_SHARE: Clickable card linking to post detail
+						<Link
+							href={`/post/${message.relatedId}`}
+							className={cn(
+								'block rounded-2xl overflow-hidden border transition-all hover:shadow-lg hover:scale-[1.02] max-w-bubble-md md:max-w-bubble-lg',
+								message.isOwn
+									? 'bg-primary/10 border-primary/30 rounded-br-md'
+									: 'bg-bg-elevated border-border-subtle rounded-bl-md',
+							)}
+						>
+							<div className='flex items-start gap-3 p-3'>
+								{/* Thumbnail */}
+								{message.sharedPostImage && (
+									<div className='relative size-16 flex-shrink-0 overflow-hidden rounded-lg bg-bg-hover'>
+										<Image
+											src={message.sharedPostImage}
+											alt='Shared post'
+											fill
+											className='object-cover'
+											unoptimized // Cloudinary images don't need Next.js optimization
+											onError={e => {
+												// Fallback to placeholder on error
+												e.currentTarget.src = '/images/post-placeholder.png'
+											}}
+										/>
+									</div>
+								)}
+
+								{/* Content */}
+								<div className='min-w-0 flex-1'>
+									{/* Badge */}
+									<div className='flex items-center gap-1.5 mb-1'>
+										<Share2
+											className={cn(
+												'size-3',
+												message.isOwn ? 'text-primary' : 'text-text-muted',
+											)}
+										/>
+										<span
+											className={cn(
+												'text-xs font-semibold uppercase tracking-wide',
+												message.isOwn ? 'text-primary' : 'text-text-muted',
+											)}
+										>
+											Shared Post
+										</span>
+									</div>
+
+									{/* Recipe title (if cooking post) */}
+									{message.sharedPostTitle && (
+										<p
+											className={cn(
+												'text-xs font-bold mb-0.5 line-clamp-1',
+												message.isOwn
+													? 'text-primary-foreground'
+													: 'text-text-primary',
+											)}
+										>
+											{message.sharedPostTitle}
+										</p>
+									)}
+
+									{/* Caption/message (auto-filled by BE or custom) */}
+									<p
+										className={cn(
+											'text-sm leading-relaxed line-clamp-2',
+											message.isOwn ? 'text-text' : 'text-text-secondary',
+										)}
+									>
+										{message.content}
+									</p>
+
+									{/* Click to view indicator */}
+									<p
+										className={cn(
+											'text-xs mt-1 opacity-70',
+											message.isOwn ? 'text-primary' : 'text-text-muted',
+										)}
+									>
+										Tap to view post
+									</p>
+								</div>
+							</div>
+						</Link>
+					) : (
+						// TEXT: Regular bubble
+						<div
+							className={cn(
+								'px-4 py-2.5 rounded-2xl max-w-bubble-md md:max-w-bubble-lg',
+								message.isOwn
+									? 'bg-primary text-primary-foreground rounded-br-md'
+									: 'bg-muted text-foreground rounded-bl-md',
+							)}
+						>
+							<p className='text-sm leading-relaxed whitespace-pre-wrap break-words'>
+								{message.content}
+							</p>
+						</div>
+					)}
 
 					{/* Reactions */}
 					{message.reactions && message.reactions.length > 0 && (
@@ -368,7 +458,7 @@ export const DateDivider = ({ date }: DateDividerProps) => {
 	return (
 		<div className='flex items-center gap-4 my-4'>
 			<div className='flex-1 h-px bg-border' />
-			<span className='text-xs text-muted-foreground font-medium'>
+			<span className='text-xs font-semibold text-muted-foreground px-3 py-1 bg-muted rounded-full'>
 				{formatDate(date)}
 			</span>
 			<div className='flex-1 h-px bg-border' />

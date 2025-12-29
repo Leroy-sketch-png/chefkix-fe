@@ -16,6 +16,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toaster'
+import { CHAT_MESSAGES } from '@/constants/messages'
 import {
 	getShareSuggestions,
 	sharePostToConversation,
@@ -115,7 +116,7 @@ export const SharePostModal = ({
 
 	const handleShare = async () => {
 		if (selectedConversations.size === 0) {
-			toast.error('Please select at least one conversation')
+			toast.error(CHAT_MESSAGES.SELECT_CONVERSATION)
 			return
 		}
 
@@ -132,27 +133,40 @@ export const SharePostModal = ({
 							message: customMessage.trim() || undefined,
 							type: 'POST_SHARE',
 							relatedId: postId,
+							// Backend will fetch post details and populate sharedPostImage/sharedPostTitle
 						})
 
 						if (response.success) {
 							successCount++
 						} else {
 							failCount++
+							console.error(
+								'Share failed for conversation:',
+								conversationId,
+								response.message,
+							)
 						}
-					} catch {
+					} catch (err) {
 						failCount++
+						console.error(
+							'Share exception for conversation:',
+							conversationId,
+							err,
+						)
 					}
 				}),
 			)
 
 			if (successCount > 0) {
 				toast.success(
-					`Post shared to ${successCount} conversation${successCount > 1 ? 's' : ''}!`,
+					successCount === 1
+						? CHAT_MESSAGES.SHARE_SUCCESS
+						: CHAT_MESSAGES.SHARE_MULTIPLE_SUCCESS(successCount),
 				)
 			}
 
 			if (failCount > 0) {
-				toast.error(`Failed to share to ${failCount} conversation(s)`)
+				toast.error(CHAT_MESSAGES.SHARE_PARTIAL_FAIL(failCount))
 			}
 
 			if (successCount > 0) {
