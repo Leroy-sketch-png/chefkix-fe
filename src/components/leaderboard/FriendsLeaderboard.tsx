@@ -26,6 +26,8 @@ import { LeaderboardPodium, type PodiumEntry } from './LeaderboardPodium'
 export interface FriendsLeaderboardProps {
 	entries: LeaderboardEntry[]
 	totalFriends: number
+	/** Whether this is a global leaderboard (shows all users) or friends-only */
+	isGlobal?: boolean
 	closestCompetitor?: {
 		entry: LeaderboardEntry
 		xpBehind: number
@@ -81,18 +83,41 @@ function AvatarWithFallback({
 }
 
 // ============================================================================
-// FRIENDS SUMMARY
+// LEADERBOARD SUMMARY
 // ============================================================================
 
-function FriendsSummary({
+function LeaderboardSummary({
 	totalFriends,
+	totalChefs,
+	isGlobal,
 	onInviteFriends,
 }: {
 	totalFriends: number
+	totalChefs?: number
+	isGlobal?: boolean
 	onInviteFriends?: () => void
 }) {
-	// Actionable copy based on friend count
+	// Actionable copy based on context
 	const getMessage = () => {
+		if (isGlobal) {
+			if (totalChefs && totalChefs > 1) {
+				return (
+					<>
+						Competing with{' '}
+						<strong className='text-text'>
+							{totalChefs} {totalChefs === 1 ? 'chef' : 'chefs'}
+						</strong>{' '}
+						this week
+					</>
+				)
+			}
+			return (
+				<>
+					<span className='text-streak font-semibold'>First on the board!</span>{' '}
+					Start cooking to climb the ranks
+				</>
+			)
+		}
 		if (totalFriends === 0) {
 			return (
 				<>
@@ -190,6 +215,7 @@ function CatchingUpAlert({
 export function FriendsLeaderboard({
 	entries,
 	totalFriends,
+	isGlobal = false,
 	closestCompetitor,
 	isLoading = false,
 	onUserClick,
@@ -201,31 +227,33 @@ export function FriendsLeaderboard({
 	const currentUser = entries.find(e => e.isCurrentUser)
 	const isLeading = currentUser?.rank === 1
 
-	// Extract top 3 for podium (only if we have enough entries)
-	const podiumEntries =
-		entries.length >= 3
-			? (entries
-					.filter(e => e.rank <= 3)
-					.map(e => ({
-						...e,
-						rank: e.rank as 1 | 2 | 3,
-						xp: e.xpThisWeek,
-					})) as PodiumEntry[])
-			: []
+	// Extract top 3 for podium (only if we have 3+ entries)
+	const showPodium = entries.length >= 3
+	const podiumEntries = showPodium
+		? (entries
+				.filter(e => e.rank <= 3)
+				.map(e => ({
+					...e,
+					rank: e.rank as 1 | 2 | 3,
+					xp: e.xpThisWeek,
+				})) as PodiumEntry[])
+		: []
 
-	// Remaining entries for list
-	const listEntries = entries.filter(e => e.rank > 3)
+	// Remaining entries for list (rank > 3 if podium shown, otherwise ALL entries)
+	const listEntries = showPodium ? entries.filter(e => e.rank > 3) : entries
 
 	return (
 		<div className={cn('max-w-modal-xl mx-auto p-4', className)}>
-			{/* Friends Summary */}
-			<FriendsSummary
+			{/* Leaderboard Summary */}
+			<LeaderboardSummary
 				totalFriends={totalFriends}
+				totalChefs={entries.length}
+				isGlobal={isGlobal}
 				onInviteFriends={onInviteFriends}
 			/>
 
 			{/* Podium (if we have 3+ friends) */}
-			{podiumEntries.length === 3 && (
+			{showPodium && podiumEntries.length === 3 && (
 				<LeaderboardPodium
 					entries={podiumEntries}
 					onUserClick={e =>
@@ -237,6 +265,32 @@ export function FriendsLeaderboard({
 						})
 					}
 				/>
+			)}
+
+			{/* Solo/Duo Leader Section - Special treatment for 1-2 entries */}
+			{entries.length > 0 && entries.length < 3 && (
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					className='mb-6 rounded-2xl bg-gradient-to-br from-level/10 via-xp/10 to-streak/10 p-6 text-center'
+				>
+					<motion.div
+						initial={{ scale: 0 }}
+						animate={{ scale: 1 }}
+						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+						className='mb-3 inline-flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-level to-xp shadow-lg'
+					>
+						<span className='text-3xl'>👑</span>
+					</motion.div>
+					<h3 className='mb-1 text-xl font-bold text-text'>
+						{entries.length === 1 ? 'Solo Champion!' : 'Dynamic Duo!'}
+					</h3>
+					<p className='mb-4 text-sm text-text-secondary'>
+						{entries.length === 1
+							? "You're the only one here — invite friends to make it a real competition!"
+							: 'Just two of you battling it out. Invite more rivals!'}
+					</p>
+				</motion.div>
 			)}
 
 			{/* Friends List */}

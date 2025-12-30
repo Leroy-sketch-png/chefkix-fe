@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
 	PROFILE: {
 		GET_BY_USER_ID: (userId: string) => `${API_PREFIX}/auth/${userId}`,
 		GET_ALL: `${API_PREFIX}/auth/profiles`,
+		GET_ALL_PAGINATED: `${API_PREFIX}/auth/profiles/paginated`,
 		UPDATE: `${AUTH_PREFIX}/update`,
 		GET_PROFILE_ONLY: (userId: string) =>
 			`${AUTH_PREFIX}/profile-only/${userId}`,

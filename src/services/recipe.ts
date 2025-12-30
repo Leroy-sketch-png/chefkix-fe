@@ -67,6 +67,21 @@ export interface PublishResponse {
 	moderationStatus: 'approved' | 'pending' | 'rejected'
 }
 
+/**
+ * Pagination metadata from recipe-service (different from post-service)
+ * Recipe service uses ApiResponse.successPage() which adds this structure
+ */
+export interface RecipePaginationMeta {
+	totalItems: number
+	itemsPerPage: number
+	totalPages: number
+	currentPage: number // 1-based
+}
+
+export type PaginatedRecipeResponse = ApiResponse<Recipe[]> & {
+	pagination?: RecipePaginationMeta
+}
+
 // ============================================
 // EXISTING API FUNCTIONS
 // ============================================
@@ -76,12 +91,15 @@ const API_BASE = API_ENDPOINTS.RECIPES.BASE
 /**
  * Get all recipes with optional filters
  * Maps FE params to BE params (e.g., search → query)
+ * Returns pagination metadata for infinite scroll
  */
 export const getAllRecipes = async (
 	params?: RecipeQueryParams,
-): Promise<ApiResponse<Recipe[]>> => {
+): Promise<PaginatedRecipeResponse> => {
 	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
-	const response = await api.get(API_BASE, { params: backendParams })
+	const response = await api.get<PaginatedRecipeResponse>(API_BASE, {
+		params: backendParams,
+	})
 	return response.data
 }
 
@@ -126,24 +144,31 @@ export const getRecipesByUserId = async (
  */
 export const getFeedRecipes = async (
 	params?: RecipeQueryParams,
-): Promise<ApiResponse<Recipe[]>> => {
+): Promise<PaginatedRecipeResponse> => {
 	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
-	const response = await api.get(API_ENDPOINTS.RECIPES.FEED, {
-		params: backendParams,
-	})
+	const response = await api.get<PaginatedRecipeResponse>(
+		API_ENDPOINTS.RECIPES.FEED,
+		{
+			params: backendParams,
+		},
+	)
 	return response.data
 }
 
 /**
  * Get trending recipes
+ * Returns pagination metadata for infinite scroll
  */
 export const getTrendingRecipes = async (
 	params?: RecipeQueryParams,
-): Promise<ApiResponse<Recipe[]>> => {
+): Promise<PaginatedRecipeResponse> => {
 	const backendParams = toBackendPagination(params as any) ?? params
-	const response = await api.get(API_ENDPOINTS.RECIPES.TRENDING, {
-		params: backendParams,
-	})
+	const response = await api.get<PaginatedRecipeResponse>(
+		API_ENDPOINTS.RECIPES.TRENDING,
+		{
+			params: backendParams,
+		},
+	)
 	return response.data
 }
 

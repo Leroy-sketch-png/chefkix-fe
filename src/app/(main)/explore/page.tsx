@@ -331,6 +331,7 @@ function FilterChips({
 export default function ExplorePage() {
 	const router = useRouter()
 	const searchInputRef = useRef<HTMLInputElement>(null)
+	const loadMoreRef = useRef<HTMLDivElement>(null)
 
 	// State
 	const [recipes, setRecipes] = useState<Recipe[]>([])
@@ -457,21 +458,24 @@ export default function ExplorePage() {
 		return () => clearTimeout(timeout)
 	}, [searchQuery, debouncedSearch])
 
-	// Fetch recipes
+	// Fetch recipes - initial load or when filters/search/mode change
 	useEffect(() => {
 		const fetchRecipes = async () => {
-			// Only show full loading on initial load or view mode change
-			if (page === 1) {
-				setIsLoading(true)
-			}
+			// Reset to page 1 when filters/search/mode change
+			setPage(1)
+			setIsLoading(true)
 			setError(null)
 
 			try {
 				const response =
 					viewMode === 'trending'
-						? await getTrendingRecipes({ limit: RECIPES_PER_PAGE * page })
+						? await getTrendingRecipes({
+								page: 0,
+								size: RECIPES_PER_PAGE,
+							})
 						: await getAllRecipes({
-								limit: RECIPES_PER_PAGE * page,
+								page: 0,
+								size: RECIPES_PER_PAGE,
 								search: debouncedSearch || undefined,
 							})
 
@@ -479,7 +483,7 @@ export default function ExplorePage() {
 					let allRecipes = response.data
 
 					// Set featured recipe (first trending or random from first page)
-					if (page === 1 && allRecipes.length > 0 && !debouncedSearch) {
+					if (allRecipes.length > 0 && !debouncedSearch) {
 						if (viewMode === 'trending') {
 							setFeaturedRecipe(allRecipes[0])
 							allRecipes = allRecipes.slice(1)
@@ -543,19 +547,25 @@ export default function ExplorePage() {
 					)
 
 					setRecipes(filtered)
-					setTotalCount(filtered.length)
-					setHasMore(response.data.length === RECIPES_PER_PAGE * page)
+					// Use pagination metadata from backend
+					const pagination = response.pagination
+					if (pagination) {
+						setTotalCount(pagination.totalItems)
+						setHasMore(pagination.currentPage < pagination.totalPages)
+					} else {
+						setTotalCount(filtered.length)
+						setHasMore(response.data.length >= RECIPES_PER_PAGE)
+					}
 				}
 			} catch (err) {
 				setError('Failed to load recipes')
 			} finally {
 				setIsLoading(false)
-				setIsLoadingMore(false)
 			}
 		}
 
 		fetchRecipes()
-	}, [debouncedSearch, viewMode, filters, page])
+	}, [debouncedSearch, viewMode, filters])
 
 	// Scroll restoration
 	useEffect(() => {
@@ -576,6 +586,102 @@ export default function ExplorePage() {
 			window.removeEventListener('beforeunload', handleBeforeUnload)
 		}
 	}, [isLoading])
+
+	// Load more handler for infinite scroll
+	const handleLoadMore = useCallback(async () => {
+		if (isLoadingMore || !hasMore) return
+
+		setIsLoadingMore(true)
+		const nextPage = page // page state is already 1-based, backend expects 0-based
+
+		try {
+			const response =
+				viewMode === 'trending'
+					? await getTrendingRecipes({
+							page: nextPage,
+							size: RECIPES_PER_PAGE,
+						})
+					: await getAllRecipes({
+							page: nextPage,
+							size: RECIPES_PER_PAGE,
+							search: debouncedSearch || undefined,
+						})
+
+			if (response.success && response.data) {
+				let newRecipes = response.data
+
+				// Update saved recipes set
+				response.data.forEach(recipe => {
+					if (recipe.isSaved) {
+						setSavedRecipes(prev => new Set([...prev, recipe.id]))
+					}
+				})
+
+				// Apply client-side filters to new recipes
+				if (filters.dietary.length > 0) {
+					newRecipes = newRecipes.filter(recipe =>
+						filters.dietary.some(diet =>
+							recipe.dietaryTags?.some(tag =>
+								tag.toLowerCase().includes(diet.toLowerCase()),
+							),
+						),
+					)
+				}
+				if (filters.cuisine.length > 0) {
+					newRecipes = newRecipes.filter(recipe =>
+						filters.cuisine.some(cuisine =>
+							recipe.cuisineType?.toLowerCase().includes(cuisine.toLowerCase()),
+						),
+					)
+				}
+				if (filters.difficulty.length > 0) {
+					const apiDifficulties = filters.difficulty.map(
+						d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d,
+					)
+					newRecipes = newRecipes.filter(recipe =>
+						apiDifficulties.includes(recipe.difficulty),
+					)
+				}
+				newRecipes = newRecipes.filter(
+					recipe => getTotalTime(recipe) <= filters.cookingTimeMax,
+				)
+
+				// Append to existing recipes
+				setRecipes(prev => [...prev, ...newRecipes])
+				setPage(nextPage + 1)
+
+				// Update pagination state
+				const pagination = response.pagination
+				if (pagination) {
+					setTotalCount(pagination.totalItems)
+					setHasMore(pagination.currentPage < pagination.totalPages)
+				} else {
+					setHasMore(response.data.length >= RECIPES_PER_PAGE)
+				}
+			}
+		} catch (err) {
+			console.error('Failed to load more recipes:', err)
+		} finally {
+			setIsLoadingMore(false)
+		}
+	}, [isLoadingMore, hasMore, page, viewMode, debouncedSearch, filters])
+
+	// Infinite scroll - IntersectionObserver
+	useEffect(() => {
+		if (!loadMoreRef.current || isLoading) return
+
+		const observer = new IntersectionObserver(
+			entries => {
+				if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+					handleLoadMore()
+				}
+			},
+			{ threshold: 0.1, rootMargin: '100px' },
+		)
+
+		observer.observe(loadMoreRef.current)
+		return () => observer.disconnect()
+	}, [hasMore, isLoadingMore, isLoading, handleLoadMore])
 
 	// ============================================
 	// HANDLERS
@@ -679,11 +785,6 @@ export default function ExplorePage() {
 		setSearchQuery('')
 		setDebouncedSearch('')
 		searchInputRef.current?.focus()
-	}
-
-	const handleLoadMore = () => {
-		setIsLoadingMore(true)
-		setPage(p => p + 1)
 	}
 
 	// ============================================
@@ -951,32 +1052,35 @@ export default function ExplorePage() {
 							))}
 						</StaggerContainer>
 
-						{/* Load More Button */}
-						{hasMore && (
+						{/* Infinite scroll sentinel */}
+						<div ref={loadMoreRef} className='h-px' />
+
+						{/* Loading indicator for infinite scroll */}
+						{isLoadingMore && (
 							<motion.div
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
-								className='mt-8 flex justify-center'
+								className='flex justify-center py-8'
 							>
-								<Button
-									variant='outline'
-									size='lg'
-									onClick={handleLoadMore}
-									disabled={isLoadingMore}
-									className='gap-2 rounded-xl border-2 border-border-medium px-8 py-3 font-semibold transition-all hover:border-brand hover:text-brand'
-								>
-									{isLoadingMore ? (
-										<>
-											<Loader2 className='size-5 animate-spin' />
-											Loading...
-										</>
-									) : (
-										<>
-											<ChevronDown className='size-5' />
-											Load More Recipes
-										</>
-									)}
-								</Button>
+								<div className='flex items-center gap-3 text-text-secondary'>
+									<Loader2 className='size-5 animate-spin text-brand' />
+									<span className='text-sm font-medium'>
+										Loading more recipes...
+									</span>
+								</div>
+							</motion.div>
+						)}
+
+						{/* End of results indicator */}
+						{!hasMore && recipes.length > 0 && (
+							<motion.div
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								className='flex justify-center py-8'
+							>
+								<span className='text-sm text-text-muted'>
+									✨ You&apos;ve seen all {totalCount} recipes
+								</span>
 							</motion.div>
 						)}
 					</>

@@ -224,24 +224,51 @@ export const getFeedPosts = async (params?: {
 	page?: number
 	size?: number
 	mode?: 'latest' | 'trending' // 0 = latest (default), 1 = trending (hotScore)
-}): Promise<ApiResponse<Post[]>> => {
+}): Promise<
+	ApiResponse<Post[]> & {
+		pagination?: {
+			totalElements: number
+			totalPages: number
+			currentPage: number
+			size: number
+			first: boolean
+			last: boolean
+		}
+	}
+> => {
 	try {
 		const backendParams = toBackendPagination(params) ?? params
-		// Backend returns Page<PostResponse>, extract content array
-		const response = await api.get<ApiResponse<{ content: Post[] }>>(
-			API_ENDPOINTS.POST.GET_ALL,
-			{
-				params: {
-					...backendParams,
-					mode: params?.mode === 'trending' ? 1 : 0, // Convert to backend mode int
-				},
+		// Backend returns ApiResponse<Page<PostResponse>>
+		const response = await api.get<
+			ApiResponse<{
+				content: Post[]
+				totalElements: number
+				totalPages: number
+				number: number
+				size: number
+				first: boolean
+				last: boolean
+			}>
+		>(API_ENDPOINTS.POST.GET_ALL, {
+			params: {
+				...backendParams,
+				mode: params?.mode === 'trending' ? 1 : 0, // Convert to backend mode int
 			},
-		)
-		// Extract posts from Page.content
+		})
+		// Extract posts from Page.content and preserve pagination metadata
 		if (response.data.success && response.data.data?.content) {
+			const pageData = response.data.data
 			return {
 				...response.data,
-				data: response.data.data.content,
+				data: pageData.content,
+				pagination: {
+					totalElements: pageData.totalElements,
+					totalPages: pageData.totalPages,
+					currentPage: pageData.number,
+					size: pageData.size,
+					first: pageData.first,
+					last: pageData.last,
+				},
 			}
 		}
 		return response.data as any

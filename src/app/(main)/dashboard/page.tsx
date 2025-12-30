@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Post } from '@/lib/types'
 import { getFeedPosts } from '@/services/post'
@@ -24,6 +24,7 @@ import {
 	Sparkles,
 	TrendingUp,
 	Clock,
+	Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
@@ -36,6 +37,12 @@ import { SinceLastVisitCard } from '@/components/dashboard'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+const POSTS_PER_PAGE = 10
 
 // ============================================
 // TYPES
@@ -96,10 +103,14 @@ export default function DashboardPage() {
 	const router = useRouter()
 	const [posts, setPosts] = useState<Post[]>([])
 	const [isLoading, setIsLoading] = useState(true)
+	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [showStreakBanner, setShowStreakBanner] = useState(true)
 	const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([])
 	const [feedMode, setFeedMode] = useState<FeedMode>('latest')
+	const [currentPage, setCurrentPage] = useState(0)
+	const [hasMore, setHasMore] = useState(true)
+	const loadMoreRef = useRef<HTMLDivElement>(null)
 
 	// Filter out posts from blocked users
 	const filteredPosts = useFilterBlockedContent(posts)
@@ -113,15 +124,18 @@ export default function DashboardPage() {
 	const isUrgent =
 		hasStreakAtRisk && hoursUntilBreak > 0 && hoursUntilBreak <= 2
 
+	// Fetch initial page
 	useEffect(() => {
-		const fetchData = async () => {
+		const fetchInitialData = async () => {
 			setIsLoading(true)
 			setError(null)
+			setCurrentPage(0)
+			setPosts([])
 
 			try {
 				// Fetch feed posts and pending sessions in parallel
 				const [feedResponse, pendingResponse] = await Promise.all([
-					getFeedPosts({ limit: 20, mode: feedMode }),
+					getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: feedMode }),
 					getPendingSessions(),
 				])
 
@@ -157,6 +171,8 @@ export default function DashboardPage() {
 					}
 
 					setPosts(feedPosts)
+					// Use pagination info from backend
+					setHasMore(!feedResponse.pagination?.last)
 				}
 
 				if (pendingResponse.success && pendingResponse.data) {
@@ -171,8 +187,57 @@ export default function DashboardPage() {
 			}
 		}
 
-		fetchData()
+		fetchInitialData()
 	}, [feedMode])
+
+	// Load more posts when scrolling
+	const loadMorePosts = useCallback(async () => {
+		if (isLoadingMore || !hasMore) return
+
+		setIsLoadingMore(true)
+		const nextPage = currentPage + 1
+
+		try {
+			const response = await getFeedPosts({
+				page: nextPage,
+				size: POSTS_PER_PAGE,
+				mode: feedMode,
+			})
+
+			if (response.success && response.data) {
+				setPosts(prev => [...prev, ...response.data!])
+				setCurrentPage(nextPage)
+				setHasMore(!response.pagination?.last)
+			}
+		} catch (err) {
+			console.error('Failed to load more posts:', err)
+		} finally {
+			setIsLoadingMore(false)
+		}
+	}, [isLoadingMore, hasMore, currentPage, feedMode])
+
+	// Intersection Observer for infinite scroll
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			entries => {
+				if (
+					entries[0].isIntersecting &&
+					hasMore &&
+					!isLoadingMore &&
+					!isLoading
+				) {
+					loadMorePosts()
+				}
+			},
+			{ threshold: 0.1, rootMargin: '100px' },
+		)
+
+		if (loadMoreRef.current) {
+			observer.observe(loadMoreRef.current)
+		}
+
+		return () => observer.disconnect()
+	}, [hasMore, isLoadingMore, isLoading, loadMorePosts])
 
 	const handlePostCreated = (newPost: Post) => {
 		setPosts(prev => (Array.isArray(prev) ? [newPost, ...prev] : [newPost]))
@@ -339,19 +404,42 @@ export default function DashboardPage() {
 					/>
 				)}
 				{!isLoading && !error && filteredPosts.length > 0 && (
-					<StaggerContainer className='space-y-4 md:space-y-6'>
-						<AnimatePresence mode='popLayout'>
-							{filteredPosts.map(post => (
-								<PostCard
-									key={post.id}
-									post={post}
-									onUpdate={handlePostUpdate}
-									onDelete={handlePostDelete}
-									currentUserId={user?.userId}
-								/>
-							))}
-						</AnimatePresence>
-					</StaggerContainer>
+					<>
+						<StaggerContainer className='space-y-4 md:space-y-6'>
+							<AnimatePresence mode='popLayout'>
+								{filteredPosts.map(post => (
+									<PostCard
+										key={post.id}
+										post={post}
+										onUpdate={handlePostUpdate}
+										onDelete={handlePostDelete}
+										currentUserId={user?.userId}
+									/>
+								))}
+							</AnimatePresence>
+						</StaggerContainer>
+
+						{/* Infinite scroll trigger */}
+						<div ref={loadMoreRef} className='flex justify-center py-8'>
+							{isLoadingMore && (
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									className='flex items-center gap-2 text-text-secondary'
+								>
+									<Loader2 className='size-5 animate-spin text-brand' />
+									<span className='text-sm font-medium'>
+										Loading more posts...
+									</span>
+								</motion.div>
+							)}
+							{!hasMore && filteredPosts.length > POSTS_PER_PAGE && (
+								<p className='text-sm text-text-muted'>
+									You&apos;ve reached the end of the feed
+								</p>
+							)}
+						</div>
+					</>
 				)}
 			</PageContainer>
 		</PageTransition>

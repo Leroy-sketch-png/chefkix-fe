@@ -114,6 +114,75 @@ export const getAllProfiles = async (): Promise<ApiResponse<Profile[]>> => {
 	}
 }
 
+export interface PaginatedProfilesParams {
+	page?: number
+	size?: number
+	search?: string
+}
+
+export interface PaginatedProfilesResponse {
+	data: Profile[]
+	pagination: {
+		totalItems: number
+		totalPages: number
+		currentPage: number
+		size: number
+	}
+}
+
+export const getProfilesPaginated = async (
+	params: PaginatedProfilesParams = {},
+): Promise<
+	ApiResponse<Profile[]> & {
+		pagination?: PaginatedProfilesResponse['pagination']
+	}
+> => {
+	try {
+		const response = await api.get<
+			ApiResponse<{
+				content: Profile[]
+				totalElements: number
+				totalPages: number
+				number: number
+				size: number
+			}>
+		>(API_ENDPOINTS.PROFILE.GET_ALL_PAGINATED, {
+			params: {
+				page: params.page ?? 0,
+				size: params.size ?? 20,
+				search: params.search,
+			},
+		})
+
+		if (response.data.success && response.data.data) {
+			const pageData = response.data.data
+			return {
+				success: true,
+				statusCode: 200,
+				data: pageData.content,
+				pagination: {
+					totalItems: pageData.totalElements,
+					totalPages: pageData.totalPages,
+					currentPage: pageData.number,
+					size: pageData.size,
+				},
+			}
+		}
+
+		return response.data as ApiResponse<Profile[]>
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
 export interface UpdateProfileDto {
 	displayName?: string
 	bio?: string

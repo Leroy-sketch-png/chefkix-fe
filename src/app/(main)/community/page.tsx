@@ -12,7 +12,6 @@ import { FollowSuggestionCard } from '@/components/social/FollowSuggestionCard'
 import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import { getAllProfiles } from '@/services/profile'
 import { getFriends, getFollowers } from '@/services/social'
 import {
 	getLeaderboard,
@@ -37,7 +36,6 @@ export default function CommunityPage() {
 	const { user } = useAuth()
 	const router = useRouter()
 	const [activeTab, setActiveTab] = useState('discover')
-	const [allProfiles, setAllProfiles] = useState<Profile[]>([])
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [followers, setFollowers] = useState<Profile[]>([])
 	const [leaderboardEntries, setLeaderboardEntries] = useState<
@@ -49,17 +47,13 @@ export default function CommunityPage() {
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const [profilesRes, friendsRes, followersRes, leaderboardRes] =
-					await Promise.all([
-						getAllProfiles(),
-						getFriends(),
-						getFollowers(),
-						getLeaderboard({ type: 'friends', timeframe: 'weekly' }),
-					])
-
-				if (profilesRes.success && profilesRes.data) {
-					setAllProfiles(profilesRes.data)
-				}
+				// Note: getAllProfiles removed - UserDiscoveryClient fetches its own data with pagination
+				// Using 'global' leaderboard to show all users, not just friends
+				const [friendsRes, followersRes, leaderboardRes] = await Promise.all([
+					getFriends(),
+					getFollowers(),
+					getLeaderboard({ type: 'global', timeframe: 'weekly' }),
+				])
 
 				if (friendsRes.success && friendsRes.data) {
 					setFriends(friendsRes.data)
@@ -86,11 +80,7 @@ export default function CommunityPage() {
 					setLeaderboardEntries(entries)
 				}
 
-				if (
-					!profilesRes.success &&
-					!friendsRes.success &&
-					!followersRes.success
-				) {
+				if (!friendsRes.success && !followersRes.success) {
 					setError(true)
 				}
 			} catch {
@@ -196,19 +186,8 @@ export default function CommunityPage() {
 					</TabsList>
 
 					<TabsContent value='discover' className='mt-0 animate-fadeIn'>
-						{allProfiles.length === 0 ? (
-							<EmptyStateGamified
-								variant='feed'
-								title='No users found'
-								description='Start by inviting friends to join ChefKix!'
-								primaryAction={{
-									label: 'Invite Friends',
-									href: '/invite',
-								}}
-							/>
-						) : (
-							<UserDiscoveryClient profiles={allProfiles} />
-						)}
+						{/* UserDiscoveryClient handles its own data fetching with pagination */}
+						<UserDiscoveryClient />
 					</TabsContent>
 
 					<TabsContent
@@ -294,6 +273,7 @@ export default function CommunityPage() {
 						<FriendsLeaderboard
 							entries={leaderboardEntries}
 							totalFriends={friends.length}
+							isGlobal={true}
 							onUserClick={handleLeaderboardUserClick}
 							onInviteFriends={() => setActiveTab('discover')}
 							onCookToDefend={() => router.push('/explore')}
