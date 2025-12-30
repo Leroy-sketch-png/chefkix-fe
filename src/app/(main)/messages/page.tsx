@@ -24,9 +24,12 @@ import {
 	getMessages,
 	sendMessage as sendMessageRest,
 	createConversation,
+	mapChatMessageToMessage,
 	Conversation,
-	ChatMessage,
+	ChatMessage as ChatMessageType,
 } from '@/services/chat'
+import { ChatMessage } from '@/components/messages/ChatMessage'
+import type { Message } from '@/components/messages/ChatMessage'
 import { TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
@@ -147,47 +150,31 @@ function MessageBubble({
 	isMe,
 	showAvatar,
 }: {
-	message: ChatMessage
+	message: ChatMessageType
 	isMe: boolean
 	showAvatar?: boolean
 }) {
-	return (
-		<motion.div
-			initial={{ opacity: 0, y: 10, scale: 0.95 }}
-			animate={{ opacity: 1, y: 0, scale: 1 }}
-			transition={TRANSITION_SPRING}
-			className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}
-		>
-			{/* Avatar for received messages */}
-			{!isMe && showAvatar && (
-				<div className='size-8 flex-shrink-0 rounded-full bg-bg-elevated' />
-			)}
-			{!isMe && !showAvatar && <div className='size-8 flex-shrink-0' />}
+	// Map backend ChatMessage to frontend Message format
+	const mappedMessage: Message = {
+		...mapChatMessageToMessage(message),
+		// Override isOwn with computed value for WebSocket broadcasts
+		isOwn: isMe,
+	}
 
-			{/* Bubble */}
-			<div
-				className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
-					isMe
-						? 'rounded-br-md bg-brand text-white'
-						: 'rounded-bl-md bg-bg-elevated text-text'
-				}`}
-			>
-				<p className='text-sm leading-relaxed'>{message.message}</p>
-				<div
-					className={`mt-1 flex items-center justify-end gap-1 text-xs ${
-						isMe ? 'text-white/70' : 'text-text-muted'
-					}`}
-				>
-					<span>
-						{new Date(message.createdDate).toLocaleTimeString([], {
-							hour: '2-digit',
-							minute: '2-digit',
-						})}
-					</span>
-					{isMe && <CheckCheck className='size-3.5' />}
-				</div>
-			</div>
-		</motion.div>
+	// Get sender info for non-own messages
+	const senderAvatar = !isMe ? message.sender?.avatar : undefined
+	const senderName = !isMe
+		? `${message.sender?.firstName || ''} ${message.sender?.lastName || ''}`.trim() ||
+			message.sender?.username
+		: undefined
+
+	return (
+		<ChatMessage
+			message={mappedMessage}
+			senderAvatar={senderAvatar}
+			senderName={senderName}
+			showAvatar={showAvatar}
+		/>
 	)
 }
 
@@ -265,7 +252,7 @@ export default function MessagesPage() {
 
 	// State
 	const [conversations, setConversations] = useState<Conversation[]>([])
-	const [messages, setMessages] = useState<ChatMessage[]>([])
+	const [messages, setMessages] = useState<ChatMessageType[]>([])
 	const [selectedConversation, setSelectedConversation] =
 		useState<Conversation | null>(null)
 	const [newMessage, setNewMessage] = useState('')
@@ -286,7 +273,7 @@ export default function MessagesPage() {
 	const hasHandledUserIdRef = useRef(false)
 
 	// Handle incoming WebSocket messages
-	const handleIncomingMessage = useCallback((message: ChatMessage) => {
+	const handleIncomingMessage = useCallback((message: ChatMessageType) => {
 		setMessages(prev => {
 			if (prev.some(m => m.id === message.id)) return prev
 			return [...prev, message]
