@@ -33,6 +33,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { diag } from '@/lib/diagnostics'
 
 interface CommentProps {
 	comment: CommentType
@@ -75,12 +76,12 @@ const renderContentWithMentions = (
 		const userId = mentionMap.get(mentionName.toLowerCase())
 
 		if (userId) {
-			// Styled mention link
+			// Styled mention link - orange to stand out as interactive
 			parts.push(
 				<a
 					key={match.index}
 					href={`/profile/${userId}`}
-					className='font-medium text-primary hover:underline'
+					className='font-medium text-brand hover:underline'
 					onClick={e => e.stopPropagation()}
 				>
 					@{mentionName}
@@ -155,7 +156,7 @@ const ReplyItem = ({
 			<UserHoverCard userId={reply.userId} currentUserId={currentUserId}>
 				<Avatar size='xs'>
 					<AvatarImage
-						src={reply.avatarUrl || 'https://i.pravatar.cc/150'}
+						src={reply.avatarUrl || '/placeholder-avatar.png'}
 						alt={`${reply.displayName}'s avatar`}
 					/>
 					<AvatarFallback className='text-2xs'>
@@ -233,6 +234,11 @@ export const Comment = ({
 	const handleLike = async () => {
 		if (isLikeLoading) return
 
+		diag.action('social', 'COMMENT_LIKE_TOGGLE', {
+			commentId: comment.id,
+			currentlyLiked: isLiked,
+		})
+
 		// Optimistic update
 		const previousLiked = isLiked
 		const previousLikes = likes
@@ -243,15 +249,28 @@ export const Comment = ({
 		try {
 			const response = await toggleLikeComment(postId, comment.id)
 			if (response.success && response.data) {
+				diag.response(
+					'social',
+					'toggleLikeComment',
+					{
+						isLiked: response.data.isLiked,
+						likes: response.data.likes,
+					},
+					true,
+				)
 				setIsLiked(response.data.isLiked)
 				setLikes(response.data.likes)
 			} else {
+				diag.warn('social', 'COMMENT_LIKE_FAILED', {
+					message: 'API returned failure',
+				})
 				// Revert on failure
 				setIsLiked(previousLiked)
 				setLikes(previousLikes)
 				toast.error('Failed to like comment')
 			}
 		} catch {
+			diag.error('social', 'COMMENT_LIKE_ERROR', { error: 'Network error' })
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikes(previousLikes)
@@ -262,23 +281,31 @@ export const Comment = ({
 	}
 
 	const handleDeleteClick = () => {
+		diag.action('social', 'COMMENT_DELETE_CLICK', { commentId: comment.id })
 		setShowDeleteConfirm(true)
 	}
 
 	const handleConfirmDelete = async () => {
 		if (isDeleting) return
+
+		diag.action('social', 'COMMENT_DELETE_CONFIRMED', { commentId: comment.id })
 		setIsDeleting(true)
 		setShowDeleteConfirm(false)
 
 		try {
 			const response = await deleteComment(postId, comment.id)
 			if (response.success) {
+				diag.response('social', 'deleteComment', { success: true }, true)
 				toast.success('Comment deleted')
 				onDelete?.(comment.id)
 			} else {
+				diag.error('social', 'COMMENT_DELETE_FAILED', {
+					message: response.message,
+				})
 				toast.error(response.message || 'Failed to delete comment')
 			}
 		} catch {
+			diag.error('social', 'COMMENT_DELETE_ERROR', { error: 'Network error' })
 			toast.error('Network error. Please try again.')
 		} finally {
 			setIsDeleting(false)
@@ -320,16 +347,41 @@ export const Comment = ({
 	const handleSubmitReply = async () => {
 		if (!replyContent.trim() || isSubmittingReply) return
 
+		diag.action('social', 'REPLY_SUBMIT', {
+			commentId: comment.id,
+			contentLength: replyContent.trim().length,
+			taggedUserCount: taggedUserIds.length,
+		})
+
 		setIsSubmittingReply(true)
 
 		// AI content moderation before posting (fail-closed for safety)
+		diag.request('social', '/api/v1/moderate', {
+			contentType: 'comment',
+			contentPreview: replyContent.trim().slice(0, 100),
+		})
+
 		const moderationResult = await moderateContent(
 			replyContent.trim(),
 			'comment',
 		)
 
+		diag.response(
+			'social',
+			'/api/v1/moderate',
+			{
+				success: moderationResult.success,
+				action: moderationResult.data?.action,
+				reason: moderationResult.data?.reason,
+			},
+			moderationResult.success,
+		)
+
 		// Fail-closed: if moderation API fails, don't allow reply
 		if (!moderationResult.success) {
+			diag.warn('social', 'REPLY_MODERATION_API_FAILED', {
+				message: 'API failure - fail-closed blocking reply',
+			})
 			toast.error('Unable to verify content. Please try again.')
 			setIsSubmittingReply(false)
 			return
@@ -337,6 +389,9 @@ export const Comment = ({
 
 		if (moderationResult.data) {
 			if (moderationResult.data.action === 'block') {
+				diag.warn('social', 'REPLY_BLOCKED_BY_MODERATION', {
+					reason: moderationResult.data.reason,
+				})
 				toast.error(
 					moderationResult.data.reason ||
 						'Your reply contains content that violates our community guidelines.',
@@ -345,12 +400,21 @@ export const Comment = ({
 				return
 			}
 			if (moderationResult.data.action === 'flag') {
+				diag.warn('social', 'REPLY_FLAGGED_BY_MODERATION', {
+					reason: moderationResult.data.reason,
+				})
 				toast.warning(
 					moderationResult.data.reason ||
 						'Your reply may contain sensitive content and will be reviewed.',
 				)
 			}
 		}
+
+		diag.request('social', 'createReply', {
+			commentId: comment.id,
+			contentLength: replyContent.trim().length,
+			taggedUserIds,
+		})
 
 		const response = await createReply(comment.id, {
 			content: replyContent.trim(),
@@ -359,6 +423,15 @@ export const Comment = ({
 		})
 
 		if (response.success && response.data) {
+			diag.response(
+				'social',
+				'createReply',
+				{
+					replyId: response.data.id,
+					success: true,
+				},
+				true,
+			)
 			setReplies(prev => [...prev, response.data!])
 			setReplyCount(prev => prev + 1)
 			setReplyContent('')
@@ -368,6 +441,9 @@ export const Comment = ({
 			setShowReplies(true)
 			toast.success('Reply posted!')
 		} else {
+			diag.error('social', 'REPLY_CREATE_FAILED', {
+				message: response.message,
+			})
 			toast.error(response.message || 'Failed to post reply')
 		}
 
@@ -392,7 +468,7 @@ export const Comment = ({
 				<UserHoverCard userId={comment.userId} currentUserId={currentUserId}>
 					<Avatar size='sm'>
 						<AvatarImage
-							src={comment.avatarUrl || 'https://i.pravatar.cc/150'}
+							src={comment.avatarUrl || '/placeholder-avatar.png'}
 							alt={`${comment.displayName}'s avatar`}
 						/>
 						<AvatarFallback>

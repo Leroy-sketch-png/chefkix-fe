@@ -89,7 +89,7 @@ const formatTimeAgo = (date: Date): string => {
 const transformToGamifiedNotification = (
 	notif: APINotification,
 ): GamifiedNotification | null => {
-	const data = notif.data as Record<string, unknown>
+	const data = (notif.data ?? {}) as Record<string, unknown>
 	const timestamp = new Date(notif.createdAt)
 
 	switch (notif.type) {

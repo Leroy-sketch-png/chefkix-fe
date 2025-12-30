@@ -14,6 +14,7 @@ import {
 	Info,
 	Plus,
 	Trash2,
+	Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
@@ -225,6 +226,7 @@ export const ImmediateRewards = ({
 	const [showConfetti, setShowConfetti] = useState(false)
 	const [capturedPhotos, setCapturedPhotos] = useState<File[]>([])
 	const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
+	const [isNavigating, setIsNavigating] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	// Trigger confetti on mount
@@ -273,6 +275,8 @@ export const ImmediateRewards = ({
 	}, [])
 
 	const handlePostNowClick = useCallback(() => {
+		// Set loading state - don't reset since navigation will unmount component
+		setIsNavigating(true)
 		// Pass captured photos to the callback
 		onPostNow(capturedPhotos.length > 0 ? capturedPhotos : undefined)
 	}, [onPostNow, capturedPhotos])
@@ -472,7 +476,7 @@ export const ImmediateRewards = ({
 										📸 Capture your dish
 									</span>
 									<span className='text-xs text-text-muted'>
-										{capturedPhotos.length}/3 photos
+										{capturedPhotos.length}/5 photos
 									</span>
 								</div>
 
@@ -502,7 +506,7 @@ export const ImmediateRewards = ({
 									))}
 
 									{/* Add photo button */}
-									{capturedPhotos.length < 3 && (
+									{capturedPhotos.length < 5 && (
 										<label className='flex h-20 w-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-primary hover:bg-bg-hover'>
 											<div className='flex flex-col items-center gap-1'>
 												<Camera className='h-5 w-5 text-text-muted' />
@@ -542,21 +546,35 @@ export const ImmediateRewards = ({
 							<div className='space-y-2.5'>
 								<motion.button
 									onClick={handlePostNowClick}
-									whileHover={STAT_ITEM_HOVER}
-									whileTap={LIST_ITEM_TAP}
-									className='flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
+									disabled={isNavigating}
+									whileHover={isNavigating ? undefined : STAT_ITEM_HOVER}
+									whileTap={isNavigating ? undefined : LIST_ITEM_TAP}
+									className={cn(
+										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow',
+										isNavigating
+											? 'cursor-wait opacity-80'
+											: 'hover:shadow-xl hover:shadow-brand/40',
+									)}
 								>
 									<div className='flex items-center gap-2.5'>
-										<Camera className='h-5 w-5 shrink-0' />
+										{isNavigating ? (
+											<Loader2 className='h-5 w-5 shrink-0 animate-spin' />
+										) : (
+											<Camera className='h-5 w-5 shrink-0' />
+										)}
 										<span className='text-lg font-bold'>
-											{capturedPhotos.length > 0
-												? `Share ${capturedPhotos.length} Photo${capturedPhotos.length > 1 ? 's' : ''}`
-												: 'Share Your Creation'}
+											{isNavigating
+												? 'Preparing Post...'
+												: capturedPhotos.length > 0
+													? `Share ${capturedPhotos.length} Photo${capturedPhotos.length > 1 ? 's' : ''}`
+													: 'Share Your Creation'}
 										</span>
 									</div>
-									<span className='shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
-										Unlock +{pendingTotal} XP
-									</span>
+									{!isNavigating && (
+										<span className='shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
+											Unlock +{pendingTotal} XP
+										</span>
+									)}
 								</motion.button>
 								<button
 									onClick={onPostLater}
@@ -600,7 +618,8 @@ export const RewardsToast = ({
 		<div className='flex items-center gap-3 px-4 py-3'>
 			<span className='text-xl'>✅</span>
 			<span className='text-sm font-semibold'>
-				+{earnedXp} XP earned! Post to unlock +{pendingXp} more
+				+{Math.round(earnedXp)} XP earned! Post to unlock +
+				{Math.round(pendingXp)} more
 			</span>
 			<button
 				onClick={onPostNow}

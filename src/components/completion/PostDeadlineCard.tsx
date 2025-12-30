@@ -283,7 +283,7 @@ export const PostDeadlineCard = ({
 						)}
 					>
 						{state === 'expired' ? '-' : '+'}
-						{pendingXp}
+						{Math.round(pendingXp)}
 					</span>
 					<span className={cn('text-2xs font-semibold', config.xpTextClass)}>
 						{state === 'expired' ? 'XP lost' : 'XP'}
@@ -415,7 +415,7 @@ export const PostDeadlineStack = ({
 											{formatTimeRemaining(post.deadlineAt)}
 										</span>
 										<span className='text-xs font-bold text-success'>
-											+{post.pendingXp} XP
+											+{Math.round(post.pendingXp)} XP
 										</span>
 										<motion.button
 											onClick={() => onPost?.(post.id)}
@@ -461,7 +461,7 @@ export const PostDeadlineBadge = ({
 			<span className='size-2 animate-pulse rounded-full bg-primary' />
 			<span className='font-bold text-primary'>{count}</span>
 			<span className='text-muted-foreground'>pending posts</span>
-			<span className='font-bold text-success'>+{totalXp} XP</span>
+			<span className='font-bold text-success'>+{Math.round(totalXp)} XP</span>
 		</motion.button>
 	)
 }
@@ -505,7 +505,7 @@ export const PostDeadlineMobileStrip = ({
 				{state === 'urgent' ? '🚨' : state === 'warning' ? '⏰' : '📸'}
 			</span>
 			<span className='flex-1 truncate text-xs font-medium'>
-				{recipeName}: {timeRemaining} to claim +{pendingXp} XP
+				{recipeName}: {timeRemaining} to claim +{Math.round(pendingXp)} XP
 			</span>
 			<motion.button
 				onClick={onPost}

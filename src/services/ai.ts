@@ -229,11 +229,6 @@ export const processRecipe = async (
 			API_ENDPOINTS.AI.PROCESS_RECIPE,
 			{ raw_text: rawText },
 		)
-		console.debug('[ai.processRecipe] Response:', {
-			success: response.data?.success,
-			hasData: !!response.data?.data,
-			title: response.data?.data?.title,
-		})
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<ProcessedRecipe>>
@@ -366,9 +361,13 @@ export const moderateContent = async (
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<ModerateResponse>>
-		if (axiosError.response) return axiosError.response.data
-		// Fail open - allow content if moderation service is down
+		// Fail-open: if moderation service has ANY error, allow content
+		// We should never block legitimate user content because moderation broke
+		// Real moderation blocking happens via success:true + action:block
+		console.warn(
+			'[Moderation] Service error, fail-open allowing content:',
+			error,
+		)
 		return {
 			success: true,
 			message: 'Moderation service unavailable, allowing content',

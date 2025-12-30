@@ -37,6 +37,7 @@ import {
 import Image from 'next/image'
 import React, { useState, useCallback, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { diag } from '@/lib/diagnostics'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -713,21 +714,32 @@ const StepItem = ({
 		const file = e.target.files?.[0]
 		if (!file) return
 
+		diag.image('recipe', 'select', {
+			stepIndex: index,
+			fileName: file.name,
+			size: file.size,
+		})
 		setIsUploadingImage(true)
 
 		// Show local preview immediately for better UX
 		const localPreviewUrl = URL.createObjectURL(file)
+		diag.image('recipe', 'upload-start', { stepIndex: index, localPreviewUrl })
 		onUpdate({ imageUrl: localPreviewUrl })
 
 		try {
 			// Upload to server
 			const response = await uploadRecipeImages([file])
 			if (response.success && response.data?.[0]) {
+				diag.image('recipe', 'upload-success', {
+					stepIndex: index,
+					serverUrl: response.data[0],
+				})
 				// Replace local preview with server URL
 				onUpdate({ imageUrl: response.data[0] })
 				// Revoke blob URL after server URL is set
 				URL.revokeObjectURL(localPreviewUrl)
 			} else {
+				diag.image('recipe', 'upload-fail', { stepIndex: index, response })
 				// Upload failed - keep local preview but warn user
 				toast.error('Image upload failed', {
 					description:
@@ -735,7 +747,7 @@ const StepItem = ({
 				})
 			}
 		} catch (error) {
-			console.error('Image upload error:', error)
+			diag.image('recipe', 'upload-fail', { stepIndex: index, error })
 			toast.error('Image upload failed', {
 				description:
 					"Using local preview. Image won't persist after page refresh.",
@@ -772,7 +784,10 @@ const StepItem = ({
 							</div>
 						)}
 						<button
-							onClick={() => onUpdate({ imageUrl: undefined })}
+							onClick={() => {
+								diag.image('recipe', 'remove', { stepIndex: index })
+								onUpdate({ imageUrl: undefined })
+							}}
 							disabled={isUploadingImage}
 							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500 disabled:opacity-50'
 						>
@@ -939,7 +954,7 @@ const XpPreviewModal = ({
 	recipe: ParsedRecipe
 	xpBreakdown: XpBreakdown
 	onBack: () => void
-	onPublish: () => void
+	onPublish: (recipe: ParsedRecipe) => void // CRITICAL: Pass recipe to avoid stale closure
 	isPublishing?: boolean
 }) => {
 	const [showConfirm, setShowConfirm] = useState(false)
@@ -1155,8 +1170,9 @@ const XpPreviewModal = ({
 									Wait, go back
 								</AlertDialogCancel>
 								{/* Use button instead of AlertDialogAction to prevent auto-close on async operation */}
+								{/* CRITICAL: Pass recipe prop to avoid stale closure - ensures publish uses current data */}
 								<button
-									onClick={onPublish}
+									onClick={() => onPublish(recipe)}
 									disabled={isPublishing}
 									className='flex-1 inline-flex items-center justify-center rounded-xl bg-gradient-hero px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none'
 								>
@@ -1196,7 +1212,11 @@ export const RecipeCreateAiFlow = ({
 	const [method, setMethod] = useState<CreateMethod>(
 		initialManualDraft ? 'manual' : 'ai',
 	)
-	const [step, setStep] = useState<CreateStep>('input')
+	// CRITICAL: Initialize step based on whether we have a draft to prevent flicker.
+	// Without this, component mounts with 'input', then useEffect sets 'preview' = visible flicker.
+	const [step, setStep] = useState<CreateStep>(
+		initialDraft ? 'preview' : 'input',
+	)
 	const [rawText, setRawText] = useState('')
 	const [parsingStep, setParsingStep] = useState(0)
 	const [recipe, setRecipe] = useState<ParsedRecipe | null>(null)
@@ -1304,16 +1324,29 @@ export const RecipeCreateAiFlow = ({
 			const file = e.target.files?.[0]
 			if (!file || !recipe) return
 
+			diag.image('recipe', 'select', {
+				type: 'cover',
+				fileName: file.name,
+				size: file.size,
+			})
 			setIsUploadingCover(true)
 
 			// Show local preview immediately for better UX
 			const localPreviewUrl = URL.createObjectURL(file)
-			setRecipe({ ...recipe, coverImageUrl: localPreviewUrl })
+			diag.image('recipe', 'upload-start', { type: 'cover', localPreviewUrl })
+			// Use functional update to avoid stale closure issues
+			setRecipe(prev =>
+				prev ? { ...prev, coverImageUrl: localPreviewUrl } : prev,
+			)
 
 			try {
 				// Upload to server
 				const response = await uploadRecipeImages([file])
 				if (response.success && response.data?.[0]) {
+					diag.image('recipe', 'upload-success', {
+						type: 'cover',
+						serverUrl: response.data[0],
+					})
 					// Replace local preview with server URL
 					setRecipe(prev =>
 						prev ? { ...prev, coverImageUrl: response.data![0] } : prev,
@@ -1322,14 +1355,14 @@ export const RecipeCreateAiFlow = ({
 					URL.revokeObjectURL(localPreviewUrl)
 					toast.success('Cover image uploaded!')
 				} else {
-					// Upload failed - keep local preview but warn user
+					diag.image('recipe', 'upload-fail', { type: 'cover', response })
 					toast.error('Image upload failed', {
 						description:
 							"Using local preview. Image won't persist after page refresh.",
 					})
 				}
 			} catch (error) {
-				console.error('Cover image upload error:', error)
+				diag.image('recipe', 'upload-fail', { type: 'cover', error })
 				toast.error('Image upload failed', {
 					description:
 						"Using local preview. Image won't persist after page refresh.",
@@ -1350,7 +1383,27 @@ export const RecipeCreateAiFlow = ({
 	const handleSaveDraft = useCallback(
 		async (targetRecipe?: ParsedRecipe) => {
 			const recipeToSave = targetRecipe || recipe
-			if (!recipeToSave) return
+			diag.action('recipe', 'SAVE_DRAFT clicked', {
+				hasDraftId: !!draftId,
+				draftId,
+				hasRecipeToSave: !!recipeToSave,
+			})
+
+			if (!recipeToSave) {
+				diag.warn('recipe', 'SAVE_DRAFT aborted - no recipe data')
+				return
+			}
+
+			// Snapshot the recipe state BEFORE saving
+			diag.snapshot('recipe', 'Recipe data being saved', {
+				title: recipeToSave.title,
+				ingredientsCount: recipeToSave.ingredients?.length ?? 0,
+				stepsCount: recipeToSave.steps?.length ?? 0,
+				hasCoverImage: !!recipeToSave.coverImageUrl,
+				coverImageUrl: recipeToSave.coverImageUrl,
+				ingredients: recipeToSave.ingredients,
+				steps: recipeToSave.steps,
+			})
 
 			setIsSaving(true)
 			try {
@@ -1358,7 +1411,15 @@ export const RecipeCreateAiFlow = ({
 
 				// Create draft if we don't have one
 				if (!currentDraftId) {
+					diag.request('recipe', 'POST /drafts', { action: 'create new draft' })
 					const createResponse = await createDraft()
+					diag.response(
+						'recipe',
+						'POST /drafts',
+						createResponse,
+						createResponse.success,
+					)
+
 					if (!createResponse.success || !createResponse.data) {
 						toast.error('Failed to create draft')
 						setIsSaving(false)
@@ -1366,13 +1427,8 @@ export const RecipeCreateAiFlow = ({
 					}
 					currentDraftId = createResponse.data.id
 					setDraftId(currentDraftId)
+					diag.action('recipe', 'Draft created', { draftId: currentDraftId })
 				}
-
-				// Debug logging to trace data flow
-				console.log(
-					'[handleSaveDraft] recipeToSave:',
-					JSON.stringify(recipeToSave, null, 2),
-				)
 
 				const savePayload = {
 					title: recipeToSave.title,
@@ -1417,23 +1473,27 @@ export const RecipeCreateAiFlow = ({
 					difficultyMultiplier: recipeToSave.difficultyMultiplier,
 				}
 
-				console.log(
-					'[handleSaveDraft] savePayload:',
-					JSON.stringify(savePayload, null, 2),
-				)
+				// Log the full payload being sent to backend
+				diag.request('recipe', `PATCH /drafts/${currentDraftId}`, savePayload)
 
 				const saveResponse = await saveDraft(currentDraftId, savePayload)
+				diag.response(
+					'recipe',
+					`PATCH /drafts/${currentDraftId}`,
+					saveResponse,
+					saveResponse.success,
+				)
 
 				if (saveResponse.success) {
+					diag.action('recipe', 'SAVE_DRAFT success', {
+						draftId: currentDraftId,
+					})
 					toast.success('Draft saved!', {
 						description:
 							'Your recipe has been saved. You can continue editing later.',
 					})
 				} else {
-					console.error(
-						'Save draft failed:',
-						JSON.stringify(saveResponse, null, 2),
-					)
+					diag.error('recipe', 'SAVE_DRAFT failed', saveResponse)
 					toast.error('Failed to save draft', {
 						description:
 							saveResponse.message ||
@@ -1441,10 +1501,7 @@ export const RecipeCreateAiFlow = ({
 					})
 				}
 			} catch (err) {
-				console.error(
-					'Save draft error:',
-					err instanceof Error ? err.message : err,
-				)
+				diag.error('recipe', 'SAVE_DRAFT exception', err)
 				const axiosError = err as {
 					response?: { status?: number; data?: { message?: string } }
 				}
@@ -1470,7 +1527,10 @@ export const RecipeCreateAiFlow = ({
 	)
 
 	const handleParse = useCallback(async () => {
+		diag.action('recipe', 'AI_PARSE clicked', { textLength: rawText.length })
+
 		if (!rawText.trim()) {
+			diag.warn('recipe', 'AI_PARSE aborted - no text')
 			toast.error('Please paste some recipe text first')
 			return
 		}
@@ -1485,37 +1545,54 @@ export const RecipeCreateAiFlow = ({
 
 		try {
 			// Call real AI service
-			console.debug('[RecipeCreateAiFlow] Calling processRecipe...')
+			diag.request('recipe', 'POST /process_recipe', {
+				textPreview: rawText.slice(0, 200) + '...',
+			})
 			const response = await processRecipe(rawText)
-			console.debug('[RecipeCreateAiFlow] Response:', response)
+			diag.response(
+				'recipe',
+				'POST /process_recipe',
+				response,
+				response.success,
+			)
 
 			clearInterval(progressInterval)
 			setParsingStep(4)
 
 			if (response.success && response.data) {
-				console.debug('[RecipeCreateAiFlow] Transforming recipe...')
 				const parsed = transformProcessedRecipe(response.data)
 				if (parsed) {
-					console.debug('[RecipeCreateAiFlow] Transform success:', parsed.title)
+					diag.action('recipe', 'AI_PARSE success', {
+						title: parsed.title,
+						ingredientsCount: parsed.ingredients.length,
+						stepsCount: parsed.steps.length,
+						hasXpBreakdown: !!parsed.xpBreakdown,
+					})
+					diag.snapshot('recipe', 'Parsed recipe from AI', parsed)
+
 					setRecipe(parsed)
 					// Store original for smart recalculation detection (30% threshold)
 					setOriginalRecipe(structuredClone(parsed))
 					// Save initial step order for smart reorder detection
 					setPrevStepIds(parsed.steps.map(s => s.id))
 					setStep('preview')
+					diag.nav('recipe', 'input', 'preview', 'AI parse complete')
 					toast.success('Recipe parsed successfully!', {
 						description: `Found ${parsed.steps.length} steps and ${parsed.ingredients.length} ingredients`,
 					})
 				} else {
-					console.error('[RecipeCreateAiFlow] Transform returned null')
+					diag.error(
+						'recipe',
+						'AI_PARSE transform returned null',
+						response.data,
+					)
 					toast.error('Failed to parse recipe', {
 						description: 'The AI response could not be processed. Try again.',
 					})
 					setStep('input')
 				}
 			} else {
-				console.error('[RecipeCreateAiFlow] Recipe parse failed:', response)
-				// Show user-friendly error message
+				diag.error('recipe', 'AI_PARSE failed', response)
 				const errorMessage = response.message || 'Unknown error occurred'
 				toast.error('Recipe parsing failed', {
 					description: errorMessage,
@@ -1524,7 +1601,7 @@ export const RecipeCreateAiFlow = ({
 			}
 		} catch (err) {
 			clearInterval(progressInterval)
-			console.error('[RecipeCreateAiFlow] Exception:', err)
+			diag.error('recipe', 'AI_PARSE exception', err)
 			toast.error('Recipe parsing failed', {
 				description:
 					err instanceof Error
@@ -1536,15 +1613,18 @@ export const RecipeCreateAiFlow = ({
 	}, [rawText])
 
 	const handlePreviewXp = useCallback(async () => {
+		diag.action('recipe', 'PREVIEW_XP clicked', {
+			hasRecipe: !!recipe,
+			method,
+			hasEdited,
+		})
+
 		if (!recipe || isCalculatingXp) return
 
 		// If AI already calculated XP with breakdown and user hasn't edited, use it directly
 		// Per spec 14-ai-integration.txt: calculate_metas is only for manual/edited recipes
 		if (!hasEdited && recipe.xpBreakdown && method === 'ai') {
-			console.debug(
-				'[handlePreviewXp] Using full XP breakdown from AI parsing:',
-				recipe.xpBreakdown,
-			)
+			diag.action('recipe', 'Using cached XP from AI parse', recipe.xpBreakdown)
 			// Use the REAL breakdown from AI - no more estimation!
 			const aiBreakdown = recipe.xpBreakdown
 			setXpBreakdown({
@@ -1569,13 +1649,6 @@ export const RecipeCreateAiFlow = ({
 
 		// User edited the recipe OR it's manual entry - need to recalculate
 		setIsCalculatingXp(true)
-		console.debug(
-			'[handlePreviewXp] Calling calculateMetas (hasEdited:',
-			hasEdited,
-			', method:',
-			method,
-			')',
-		)
 
 		// Build request for calculate-metas API
 		const metasRequest = {
@@ -1604,11 +1677,6 @@ export const RecipeCreateAiFlow = ({
 			include_enrichment: true,
 		}
 
-		console.debug(
-			'[handlePreviewXp] Calling calculateMetas with:',
-			metasRequest,
-		)
-
 		try {
 			const response = await calculateMetas(metasRequest)
 
@@ -1616,15 +1684,26 @@ export const RecipeCreateAiFlow = ({
 				const data = response.data
 
 				// Update recipe with badges from calculate_metas (fixes manual entry showing no badges)
-				if (recipe && data.badges && data.badges.length > 0) {
-					setRecipe({
-						...recipe,
-						detectedBadges: data.badges.map(badge => ({
-							emoji: '🏆',
-							name: badge,
-						})),
-						xpReward: data.xpReward,
-						skillTags: data.skillTags,
+				// CRITICAL: Use functional update to get current state, avoiding stale closure bug
+				// The async callback captures `recipe` from closure which can be stale after await
+				if (data.badges && data.badges.length > 0) {
+					setRecipe(currentRecipe => {
+						// Guard: Ensure we have a valid recipe with required fields
+						if (!currentRecipe || !currentRecipe.title) {
+							console.error(
+								'[handlePreviewXp] Cannot update empty recipe with badges',
+							)
+							return currentRecipe
+						}
+						return {
+							...currentRecipe,
+							detectedBadges: data.badges.map(badge => ({
+								emoji: '🏆',
+								name: badge,
+							})),
+							xpReward: data.xpReward,
+							skillTags: data.skillTags,
+						}
 					})
 				}
 
@@ -1686,15 +1765,79 @@ export const RecipeCreateAiFlow = ({
 	const handlePublish = useCallback(
 		async (recipeToPublish?: ParsedRecipe) => {
 			const targetRecipe = recipeToPublish || recipe
-			if (!targetRecipe || isPublishing) return
+			diag.action('recipe', 'PUBLISH clicked', {
+				hasDraftId: !!draftId,
+				draftId,
+				hasRecipe: !!targetRecipe,
+				hasRecipeFromParam: !!recipeToPublish,
+				hasRecipeFromState: !!recipe,
+				isPublishing,
+			})
+
+			// Detect stale closure issue: if passed recipe is incomplete but state recipe is complete
+			if (recipeToPublish && recipe) {
+				const passedHasData =
+					(recipeToPublish.ingredients?.length ?? 0) > 0 ||
+					(recipeToPublish.steps?.length ?? 0) > 0
+				const stateHasData =
+					(recipe.ingredients?.length ?? 0) > 0 ||
+					(recipe.steps?.length ?? 0) > 0
+				if (!passedHasData && stateHasData) {
+					// Stale closure detected - use state recipe instead
+					diag.warn(
+						'recipe',
+						'PUBLISH detected stale recipe param, using state instead',
+						{
+							paramIngredients: recipeToPublish.ingredients?.length ?? 0,
+							stateIngredients: recipe.ingredients?.length ?? 0,
+						},
+					)
+					// Fall through with recipe from state
+				}
+			}
+
+			// Use whichever recipe has actual content, preferring the passed one if valid
+			const finalRecipe =
+				recipeToPublish && (recipeToPublish.ingredients?.length ?? 0) > 0
+					? recipeToPublish
+					: recipe
+
+			if (!finalRecipe || isPublishing) {
+				diag.warn('recipe', 'PUBLISH aborted', {
+					hasRecipe: !!finalRecipe,
+					isPublishing,
+				})
+				return
+			}
+
+			// Snapshot the recipe state being published
+			diag.snapshot('recipe', 'Recipe data for publish', {
+				title: finalRecipe.title,
+				description: finalRecipe.description?.slice(0, 100),
+				ingredientsCount: finalRecipe.ingredients?.length ?? 0,
+				stepsCount: finalRecipe.steps?.length ?? 0,
+				hasCoverImage: !!finalRecipe.coverImageUrl,
+				coverImageUrl: finalRecipe.coverImageUrl,
+			})
+
+			// INVASIVE: Validate data integrity before any action
+			diag.validateData(
+				'recipe',
+				'finalRecipe before publish',
+				{ ...finalRecipe },
+				['title', 'description', 'ingredients', 'steps', 'difficulty'],
+			)
+
+			// INVASIVE: Check localStorage state
+			diag.inspectLocalStorage('recipe', 'recipe-draft')
 
 			// ============================================
 			// STEP 0: Pre-publish validation (FE guard)
 			// Catches missing required fields BEFORE hitting backend
 			// ============================================
-			const validationErrors = validateRecipeForPublish(targetRecipe)
+			const validationErrors = validateRecipeForPublish(finalRecipe)
 			if (validationErrors.length > 0) {
-				// Show first error as the primary message, list all in description
+				diag.warn('recipe', 'PUBLISH validation failed', validationErrors)
 				const primaryError = validationErrors[0]
 				const allHints = validationErrors.map(e => `• ${e.hint}`).join('\n')
 
@@ -1709,13 +1852,21 @@ export const RecipeCreateAiFlow = ({
 			}
 
 			setIsPublishing(true)
+			diag.action('recipe', 'PUBLISH starting multi-step flow', { step: 1 })
 
 			try {
 				// Step 1: Ensure draft exists
 				let currentDraftId = draftId
 				if (!currentDraftId) {
-					// Create draft first
+					diag.request('recipe', 'POST /drafts (for publish)', {})
 					const createResponse = await createDraft()
+					diag.response(
+						'recipe',
+						'POST /drafts',
+						createResponse,
+						createResponse.success,
+					)
+
 					if (!createResponse.success || !createResponse.data) {
 						toast.error('Failed to save recipe', {
 							description: 'Could not create draft. Please try again.',
@@ -1725,20 +1876,26 @@ export const RecipeCreateAiFlow = ({
 					}
 					currentDraftId = createResponse.data.id
 					setDraftId(currentDraftId)
+					diag.action('recipe', 'PUBLISH step 1: draft created', {
+						draftId: currentDraftId,
+					})
 				}
 
 				// Step 2: Save all recipe data to draft
-				const saveResponse = await saveDraft(currentDraftId, {
-					title: targetRecipe.title,
-					description: targetRecipe.description,
-					coverImageUrl: targetRecipe.coverImageUrl
-						? [targetRecipe.coverImageUrl]
+				diag.action('recipe', 'PUBLISH step 2: saving draft', {
+					draftId: currentDraftId,
+				})
+				const publishSavePayload = {
+					title: finalRecipe.title,
+					description: finalRecipe.description,
+					coverImageUrl: finalRecipe.coverImageUrl
+						? [finalRecipe.coverImageUrl]
 						: undefined,
-					difficulty: targetRecipe.difficulty,
-					cookTimeMinutes: parseInt(targetRecipe.cookTime) || 30,
-					servings: targetRecipe.servings,
-					cuisineType: targetRecipe.cuisine,
-					fullIngredientList: (targetRecipe.ingredients || []).map(i => {
+					difficulty: finalRecipe.difficulty,
+					cookTimeMinutes: parseInt(finalRecipe.cookTime) || 30,
+					servings: finalRecipe.servings,
+					cuisineType: finalRecipe.cuisine,
+					fullIngredientList: (finalRecipe.ingredients || []).map(i => {
 						const parts = i.quantity.trim().split(' ')
 						return {
 							name: i.name,
@@ -1746,7 +1903,7 @@ export const RecipeCreateAiFlow = ({
 							unit: parts.slice(1).join(' ') || '',
 						}
 					}),
-					steps: (targetRecipe.steps || []).map((s, i) => ({
+					steps: (finalRecipe.steps || []).map((s, i) => ({
 						stepNumber: i + 1,
 						description: s.instruction,
 						action: s.technique,
@@ -1754,9 +1911,9 @@ export const RecipeCreateAiFlow = ({
 						imageUrl: s.imageUrl,
 					})),
 					// Gamification: full transparency (save breakdown, not just total)
-					rewardBadges: (targetRecipe.detectedBadges || []).map(b => b.name),
-					skillTags: targetRecipe.skillTags || [],
-					xpReward: xpBreakdown?.total || targetRecipe.xpReward,
+					rewardBadges: (finalRecipe.detectedBadges || []).map(b => b.name),
+					skillTags: finalRecipe.skillTags || [],
+					xpReward: xpBreakdown?.total || finalRecipe.xpReward,
 					xpBreakdown: xpBreakdown
 						? {
 								base: xpBreakdown.base,
@@ -1767,12 +1924,30 @@ export const RecipeCreateAiFlow = ({
 									0,
 								total: xpBreakdown.total,
 							}
-						: targetRecipe.xpBreakdown,
-					difficultyMultiplier: targetRecipe.difficultyMultiplier,
-				})
+						: finalRecipe.xpBreakdown,
+					difficultyMultiplier: finalRecipe.difficultyMultiplier,
+				}
+
+				diag.request(
+					'recipe',
+					`PATCH /drafts/${currentDraftId} (publish save)`,
+					publishSavePayload,
+				)
+				const saveResponse = await saveDraft(currentDraftId, publishSavePayload)
+				diag.response(
+					'recipe',
+					`PATCH /drafts/${currentDraftId}`,
+					saveResponse,
+					saveResponse.success,
+				)
 
 				// Check if save succeeded
 				if (!saveResponse.success) {
+					diag.error(
+						'recipe',
+						'PUBLISH step 2 failed: save draft',
+						saveResponse,
+					)
 					const errorMessage = mapBackendErrorToEnglish(
 						saveResponse.message || 'Unknown error',
 					)
@@ -1784,18 +1959,33 @@ export const RecipeCreateAiFlow = ({
 				}
 
 				// Step 3: Validate recipe for safety (per spec 14-ai-integration.txt)
+				diag.action('recipe', 'PUBLISH step 3: validating content', {})
+				diag.request('recipe', 'POST /validate_recipe', {
+					title: finalRecipe.title,
+				})
 				const validationResponse = await validateRecipe({
-					title: targetRecipe.title,
-					description: targetRecipe.description,
-					ingredients: (targetRecipe.ingredients || []).map(i => i.name),
-					steps: (targetRecipe.steps || []).map(s => s.instruction),
+					title: finalRecipe.title,
+					description: finalRecipe.description,
+					ingredients: (finalRecipe.ingredients || []).map(i => i.name),
+					steps: (finalRecipe.steps || []).map(s => s.instruction),
 					check_safety: true,
 				})
+				diag.response(
+					'recipe',
+					'POST /validate_recipe',
+					validationResponse,
+					validationResponse.success && validationResponse.data?.contentSafe,
+				)
 
 				if (
 					!validationResponse.success ||
 					!validationResponse.data?.contentSafe
 				) {
+					diag.warn(
+						'recipe',
+						'PUBLISH step 3 failed: validation',
+						validationResponse,
+					)
 					const issues = validationResponse.data?.issues || [
 						'Content validation failed',
 					]
@@ -1807,23 +1997,45 @@ export const RecipeCreateAiFlow = ({
 				}
 
 				// Step 4: Publish the draft
+				diag.action('recipe', 'PUBLISH step 4: publishing', {
+					draftId: currentDraftId,
+				})
+				diag.request('recipe', `POST /publish/${currentDraftId}`, {})
 				const publishResponse = await publishRecipe(currentDraftId)
+				diag.response(
+					'recipe',
+					`POST /publish/${currentDraftId}`,
+					publishResponse,
+					publishResponse.success,
+				)
 
 				if (publishResponse.success) {
+					diag.action('recipe', 'PUBLISH SUCCESS! 🎉', {
+						recipeId: currentDraftId,
+						title: finalRecipe.title,
+						xpReward: finalRecipe.xpReward,
+					})
+
 					// 🎉 CELEBRATION! Recipe creation deserves fanfare
 					triggerRecipeCompleteConfetti()
 
 					toast.success('Recipe published! 🎉', {
-						description: `"${targetRecipe.title}" is now live! You earned ${targetRecipe.xpReward || 0} XP`,
+						description: `"${finalRecipe.title}" is now live! You earned ${finalRecipe.xpReward || 0} XP`,
 					})
 
 					// Brief delay to let user see confetti and toast before navigation
 					await new Promise(resolve => setTimeout(resolve, 1500))
 
 					// Notify parent of success (for navigation)
+					// NOTE: Do NOT setIsPublishing(false) here - leave button disabled
+					// until navigation completes and component unmounts. This prevents
+					// user from clicking "Publish" multiple times while waiting.
+					diag.action('recipe', 'Calling onPublishSuccess callback', {
+						recipeId: currentDraftId,
+					})
 					onPublishSuccess?.(currentDraftId)
 				} else {
-					// Map backend error to English and provide actionable feedback
+					diag.error('recipe', 'PUBLISH step 4 failed', publishResponse)
 					const errorMessage = mapBackendErrorToEnglish(
 						publishResponse.message || 'Unknown error',
 					)
@@ -1831,14 +2043,23 @@ export const RecipeCreateAiFlow = ({
 						description: errorMessage,
 						duration: 5000,
 					})
+					// Reset on failure so user can try again
+					setIsPublishing(false)
+					diag.action('recipe', 'PUBLISH flow ended (API failure)', {
+						isPublishing: false,
+					})
 				}
 			} catch (error) {
-				console.error('[handlePublish] Error:', error)
+				diag.error('recipe', 'PUBLISH exception', error)
 				toast.error('Something went wrong', {
 					description: 'Please try again later',
 				})
-			} finally {
+				// Only reset isPublishing on error - on success, leave it true
+				// until navigation completes and component unmounts
 				setIsPublishing(false)
+				diag.action('recipe', 'PUBLISH flow ended (error)', {
+					isPublishing: false,
+				})
 			}
 		},
 		[recipe, draftId, xpBreakdown, isPublishing, onPublishSuccess],
@@ -1851,12 +2072,18 @@ export const RecipeCreateAiFlow = ({
 			if ((e.ctrlKey || e.metaKey) && e.key === 's') {
 				e.preventDefault()
 				if (recipe && (step === 'preview' || step === 'xp-preview')) {
+					diag.action('recipe', 'Keyboard shortcut: Ctrl+S (Save Draft)', {})
 					handleSaveDraft()
 				}
 			}
 			// Ctrl+Enter or Cmd+Enter: Context-aware submit action
 			if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
 				e.preventDefault()
+				diag.action(
+					'recipe',
+					`Keyboard shortcut: Ctrl+Enter (step: ${step})`,
+					{},
+				)
 				if (step === 'input' && rawText.trim()) {
 					handleParse()
 				} else if (step === 'preview' && recipe) {

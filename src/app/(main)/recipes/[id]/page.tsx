@@ -517,7 +517,7 @@ export default function RecipeDetailPage() {
 												src={
 													recipe.author.avatarUrl || '/placeholder-avatar.png'
 												}
-												alt={recipe.author.username}
+												alt={recipe.author.username || 'Recipe author'}
 												fill
 												className='object-cover'
 											/>
@@ -967,7 +967,7 @@ export default function RecipeDetailPage() {
 											<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 												<Image
 													src={step.imageUrl}
-													alt={step.title}
+													alt={step.title || `Step ${step.stepNumber}`}
 													fill
 													className='object-cover transition-transform duration-500 group-hover:scale-105'
 												/>

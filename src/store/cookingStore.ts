@@ -18,6 +18,7 @@ import {
 } from '@/services/cookingSession'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
+import { diag } from '@/lib/diagnostics'
 
 // ============================================
 // TYPES
@@ -57,6 +58,7 @@ interface CookingState {
 	) => Promise<CompleteSessionResponse | null>
 	abandonCooking: () => Promise<void>
 	clearSession: () => void
+	clearAllTimers: () => void
 
 	// Timer management
 	tickTimers: () => void
@@ -77,15 +79,28 @@ export const useCookingStore = create<CookingState>()(
 			localTimers: new Map(),
 
 			startCooking: async (recipeId: string) => {
+				diag.action('cooking', 'START_COOKING clicked', { recipeId })
 				set({ isLoading: true, error: null })
 
 				try {
 					// Start session on backend
+					diag.request('cooking', 'POST /cooking-sessions/start', { recipeId })
 					const sessionResponse = await apiStartSession(recipeId)
+					diag.response(
+						'cooking',
+						'POST /cooking-sessions/start',
+						sessionResponse,
+						sessionResponse.success,
+					)
 
 					// Handle "session already active" error (409 Conflict)
 					// Try to resume the existing session instead of failing
 					if (!sessionResponse.success && sessionResponse.statusCode === 409) {
+						diag.warn(
+							'cooking',
+							'Session already active (409), attempting resume',
+							{},
+						)
 						// User already has an active session - try to resume it
 						const currentResponse = await apiGetCurrentSession()
 						if (currentResponse.success && currentResponse.data) {
@@ -93,6 +108,13 @@ export const useCookingStore = create<CookingState>()(
 
 							// If existing session is for the SAME recipe, resume it
 							if (existingSession.recipeId === recipeId) {
+								diag.action(
+									'cooking',
+									'Resuming existing session for same recipe',
+									{
+										sessionId: existingSession.sessionId,
+									},
+								)
 								const recipeResponse = await getRecipeById(recipeId)
 								if (recipeResponse.success && recipeResponse.data) {
 									// Restore local timers from active timers
@@ -181,35 +203,73 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			resumeExistingSession: async () => {
+				diag.action('cooking', 'RESUME_SESSION called', {})
 				set({ isLoading: true, error: null })
 
 				try {
+					diag.request('cooking', 'GET /cooking-sessions/current', {})
 					const response = await apiGetCurrentSession()
+					diag.response(
+						'cooking',
+						'GET /cooking-sessions/current',
+						response,
+						response.success,
+					)
+
 					if (!response.success || !response.data) {
+						diag.warn('cooking', 'No current session found', {})
 						set({ isLoading: false })
 						return false
 					}
 
 					const session = response.data
+					diag.action('cooking', 'Session found', {
+						sessionId: session.sessionId,
+						recipeId: session.recipeId,
+						currentStep: session.currentStep,
+						status: session.status,
+					})
 
 					// Guard against missing recipeId before fetching recipe
 					if (!session.recipeId) {
-						console.warn(
-							'[resumeExistingSession] Session has no recipeId, cannot resume',
-						)
+						diag.error('cooking', 'Session has no recipeId, cannot resume', {
+							session,
+						})
 						set({ isLoading: false })
 						return false
 					}
 
 					// Fetch recipe data
+					diag.request('cooking', `GET /recipes/${session.recipeId}`, {})
 					const recipeResponse = await getRecipeById(session.recipeId)
+					diag.response(
+						'cooking',
+						`GET /recipes/${session.recipeId}`,
+						recipeResponse,
+						recipeResponse.success,
+					)
+
 					if (!recipeResponse.success || !recipeResponse.data) {
+						diag.error('cooking', 'Failed to load recipe for session', {
+							recipeId: session.recipeId,
+						})
 						set({
 							error: 'Failed to load recipe for session',
 							isLoading: false,
 						})
 						return false
 					}
+
+					// Log the recipe data we loaded
+					diag.snapshot('cooking', 'Recipe loaded for session', {
+						title: recipeResponse.data.title,
+						stepsCount: recipeResponse.data.steps?.length ?? 0,
+						hasSteps: !!recipeResponse.data.steps,
+						stepImages: recipeResponse.data.steps?.map((s, i) => ({
+							step: i + 1,
+							hasImage: !!s.imageUrl,
+						})),
+					})
 
 					// Restore local timers from active timers
 					// When restoring, remainingSeconds IS the initial duration from this point
@@ -253,6 +313,27 @@ export const useCookingStore = create<CookingState>()(
 					}
 
 					const session = response.data
+
+					// Navigation guard: If session is completed or abandoned, don't try to load it for cooking
+					// User should be redirected to recipe page or post page instead
+					if (
+						session.status === 'completed' ||
+						session.status === 'abandoned'
+					) {
+						diag.warn(
+							'cooking',
+							'Attempted to load completed/abandoned session',
+							{
+								sessionId,
+								status: session.status,
+							},
+						)
+						set({
+							error: `This cooking session is ${session.status}. Navigate to the recipe page to cook again.`,
+							isLoading: false,
+						})
+						return false
+					}
 
 					// Fetch recipe
 					const recipeResponse = await getRecipeById(session.recipeId)
@@ -372,7 +453,7 @@ export const useCookingStore = create<CookingState>()(
 						})
 					}
 				} catch (error) {
-					console.error('Failed to pause session:', error)
+					diag.error('cooking', 'PAUSE_SESSION exception', error)
 				}
 			},
 
@@ -380,8 +461,18 @@ export const useCookingStore = create<CookingState>()(
 				const { session } = get()
 				if (!session) return
 
+				diag.action('cooking', 'RESUME_COOKING clicked', {
+					sessionId: session.sessionId,
+				})
 				try {
+					diag.request(
+						'cooking',
+						`POST /cooking-sessions/${session.sessionId}/resume`,
+						{},
+					)
 					const response = await apiResumeSession(session.sessionId)
+					diag.response('cooking', `POST /resume`, response, response.success)
+
 					if (response.success && response.data) {
 						set({
 							session: {
@@ -392,30 +483,47 @@ export const useCookingStore = create<CookingState>()(
 						})
 					}
 				} catch (error) {
-					console.error('Failed to resume session:', error)
+					diag.error('cooking', 'RESUME_COOKING exception', error)
 				}
 			},
 
 			completeCooking: async (rating: number, notes?: string) => {
 				const { session } = get()
-				if (!session) return null
+				diag.action('cooking', 'COMPLETE_COOKING clicked', {
+					sessionId: session?.sessionId,
+					rating,
+					hasNotes: !!notes,
+				})
+
+				if (!session) {
+					diag.warn('cooking', 'COMPLETE_COOKING aborted - no session', {})
+					return null
+				}
 
 				try {
+					diag.request(
+						'cooking',
+						`POST /cooking-sessions/${session.sessionId}/complete`,
+						{ rating, notes },
+					)
 					const response = await apiCompleteSession(session.sessionId, {
 						rating,
 						notes,
 					})
+					diag.response('cooking', `POST /complete`, response, response.success)
+
 					if (response.success && response.data) {
-						// Clear all timers — session is done, no more ticking!
+						diag.action('cooking', 'COMPLETE_COOKING success', {
+							baseXpAwarded: response.data.baseXpAwarded,
+							pendingXp: response.data.pendingXp,
+							postDeadline: response.data.postDeadline,
+						})
+						// CRITICAL: Clear session entirely to prevent ghost sessions in localStorage
+						// The completion data is returned to the caller for the rewards modal,
+						// we don't need to keep the session in store after completion
 						set({
-							session: {
-								...session,
-								status: 'completed',
-								completedAt: response.data.completedAt,
-								baseXpAwarded: response.data.baseXpAwarded,
-								pendingXp: response.data.pendingXp,
-								postDeadline: response.data.postDeadline,
-							},
+							session: null,
+							recipe: null, // Also clear recipe - session is done
 							localTimers: new Map(), // Kill zombie timers
 							error: null,
 						})
@@ -455,6 +563,14 @@ export const useCookingStore = create<CookingState>()(
 					error: null,
 					localTimers: new Map(),
 				})
+			},
+
+			/**
+			 * Clear all active timers immediately.
+			 * Used when showing completion modal to prevent zombie timers.
+			 */
+			clearAllTimers: () => {
+				set({ localTimers: new Map() })
 			},
 
 			tickTimers: () => {

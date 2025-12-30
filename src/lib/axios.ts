@@ -52,17 +52,6 @@ api.interceptors.request.use(
 			config.headers.set('Authorization', `Bearer ${accessToken}`)
 		}
 
-		// Debug logging in development
-		if (process.env.NODE_ENV === 'development') {
-			const url = config.url || ''
-			// Only log non-auth endpoints to reduce noise
-			if (!url.includes('/auth/')) {
-				console.debug(
-					`[axios] ${config.method?.toUpperCase()} ${url} | token: ${accessToken ? 'yes' : 'NO'}`,
-				)
-			}
-		}
-
 		return config
 	},
 	error => Promise.reject(error),
@@ -112,20 +101,13 @@ api.interceptors.response.use(
 		) {
 			// Skip refresh for auth endpoints — 401 here means bad credentials, not expired token
 			if (originalRequest.url?.includes('/auth/')) {
-				console.debug(
-					`[axios] 401 on auth endpoint (${originalRequest.url}), not refreshing`,
-				)
 				return Promise.reject(error)
 			}
 
-			console.warn(
-				`[axios] ⚠️ 401 on ${originalRequest.url}, initiating token refresh`,
-			)
 			originalRequest._retry = true
 
 			// If a refresh is already in progress, wait for it
 			if (isRefreshInProgress()) {
-				console.debug('[axios] Refresh already in progress, waiting...')
 				const newToken = await waitForRefresh()
 				if (newToken) {
 					originalRequest.headers.Authorization = `Bearer ${newToken}`
@@ -160,7 +142,6 @@ api.interceptors.response.use(
 			// Refresh failed
 			if (result.error === 'NETWORK') {
 				// Network error — don't logout, just fail this request
-				console.warn('[axios] Network error during refresh, request failed')
 				return Promise.reject(error)
 			}
 
@@ -186,6 +167,7 @@ api.interceptors.response.use(
 					401: 'Invalid credentials. Please check your email/username and password.',
 					403: 'Access denied. You do not have permission for this action.',
 					404: 'Resource not found.',
+					413: 'File too large. Maximum upload size is 10MB per file.',
 					429: 'Too many requests. Please try again later.',
 					500: 'Server error. Please try again later.',
 					502: 'Service temporarily unavailable. Please try again.',

@@ -237,6 +237,8 @@ export const EXIT_VARIANTS = {
 	fadeOut: { opacity: 0 },
 	scaleOut: { opacity: 0, scale: 0.8 },
 	slideOut: { opacity: 0, x: -20 },
+	// For list items in popLayout mode - exit without leaving blank space
+	listItemExit: { opacity: 0, scale: 0.95, height: 0, marginBottom: 0 },
 }
 
 // ============================================

@@ -126,7 +126,37 @@ export default function DashboardPage() {
 				])
 
 				if (feedResponse.success && feedResponse.data) {
-					setPosts(feedResponse.data)
+					let feedPosts = feedResponse.data
+
+					// OPTIMISTIC UPDATE: Check for newly created post with XP
+					// This handles the "Two Truths" problem where the FE has the
+					// correct XP from linkPostToSession, but the post-service DB
+					// hasn't been updated yet by the Kafka consumer.
+					const newPostJson = sessionStorage.getItem('newPost')
+					if (newPostJson) {
+						try {
+							const newPost = JSON.parse(newPostJson) as Post
+							// Remove from sessionStorage immediately (one-time use)
+							sessionStorage.removeItem('newPost')
+							// Prepend to feed if not already present
+							const exists = feedPosts.some(p => p.id === newPost.id)
+							if (!exists) {
+								feedPosts = [newPost, ...feedPosts]
+							} else {
+								// Post exists but may have stale xpEarned - update it
+								feedPosts = feedPosts.map(p =>
+									p.id === newPost.id
+										? { ...p, xpEarned: newPost.xpEarned }
+										: p,
+								)
+							}
+						} catch (e) {
+							console.error('Failed to parse newPost from sessionStorage:', e)
+							sessionStorage.removeItem('newPost')
+						}
+					}
+
+					setPosts(feedPosts)
 				}
 
 				if (pendingResponse.success && pendingResponse.data) {

@@ -21,10 +21,7 @@ import {
 	BUTTON_TAP,
 	CARD_FEED_HOVER,
 } from '@/lib/motion'
-import {
-	StaggerContainer,
-	staggerItemVariants,
-} from '@/components/ui/stagger-animation'
+import { StaggerContainer } from '@/components/ui/stagger-animation'
 
 // ============================================
 // TYPES
@@ -126,7 +123,8 @@ const ChallengeRecipeCard = ({
 
 	return (
 		<motion.article
-			variants={staggerItemVariants}
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
 			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-panel-bg shadow-md transition-all hover:border-primary/30 hover:shadow-xl'

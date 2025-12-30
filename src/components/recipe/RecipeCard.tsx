@@ -5,13 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Heart, Clock, Bookmark } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, memo } from 'react'
+import { useState, memo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { triggerSaveConfetti } from '@/lib/confetti'
-import { staggerItemVariants } from '@/components/ui/stagger-animation'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
 
 interface RecipeCardProps {
@@ -26,6 +25,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const [saveCount, setSaveCount] = useState(recipe.saveCount)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 	const [isSaveLoading, setIsSaveLoading] = useState(false)
+	const saveButtonRef = useRef<HTMLButtonElement>(null)
 
 	const totalTime = getTotalTime(recipe)
 
@@ -74,20 +74,21 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 		// Optimistic update
 		const previousSaved = isSaved
 		const previousCount = saveCount
-		setIsSaved(!isSaved)
+		const willBeSaved = !isSaved
+		setIsSaved(willBeSaved)
 		setSaveCount(prev => (isSaved ? prev - 1 : prev + 1))
 		setIsSaveLoading(true)
+
+		// Trigger confetti optimistically on save (not unsave)
+		if (willBeSaved) {
+			triggerSaveConfetti(saveButtonRef.current || undefined)
+		}
 
 		try {
 			const response = await toggleSaveRecipe(recipe.id)
 			if (response.success && response.data) {
 				setIsSaved(response.data.isSaved)
 				setSaveCount(response.data.saveCount)
-
-				// Trigger confetti only on save (not unsave)
-				if (response.data.isSaved) {
-					triggerSaveConfetti()
-				}
 
 				toast.success(
 					response.data.isSaved ? 'Recipe saved!' : 'Recipe unsaved',
@@ -112,8 +113,10 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 
 	return (
 		<motion.div
-			variants={staggerItemVariants}
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
 			exit={EXIT_VARIANTS.scaleOut}
+			transition={TRANSITION_SPRING}
 			layout
 		>
 			<motion.div
@@ -150,6 +153,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						</div>
 						{/* Save button */}
 						<button
+							ref={saveButtonRef}
 							onClick={handleSaveClick}
 							disabled={isSaveLoading}
 							className={`absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-sm border-none transition-all duration-300 ${

@@ -169,7 +169,7 @@ export default function CommunityPage() {
 						<h1 className='text-3xl font-bold text-text'>Community Hub</h1>
 					</div>
 					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-xp' />
+						<Sparkles className='size-4 text-streak' />
 						Connect with fellow chefs, discover talent, and climb the ranks.
 					</p>
 				</motion.div>

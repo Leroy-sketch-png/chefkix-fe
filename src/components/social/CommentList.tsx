@@ -9,6 +9,7 @@ import { moderateContent } from '@/services/ai'
 import { toast } from 'sonner'
 import { Send, Loader2 } from 'lucide-react'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
+import { diag } from '@/lib/diagnostics'
 
 interface CommentListProps {
 	postId: string
@@ -54,13 +55,38 @@ export const CommentList = ({
 	const handleSubmitComment = async () => {
 		if (!newComment.trim() || isSubmitting) return
 
+		diag.action('social', 'COMMENT_SUBMIT', {
+			postId,
+			contentLength: newComment.trim().length,
+			taggedUserCount: taggedUserIds.length,
+		})
+
 		setIsSubmitting(true)
 
 		// AI content moderation before posting (fail-closed for safety)
+		diag.request('social', '/api/v1/moderate', {
+			contentType: 'comment',
+			contentPreview: newComment.trim().slice(0, 100),
+		})
+
 		const moderationResult = await moderateContent(newComment.trim(), 'comment')
+
+		diag.response(
+			'social',
+			'/api/v1/moderate',
+			{
+				success: moderationResult.success,
+				action: moderationResult.data?.action,
+				reason: moderationResult.data?.reason,
+			},
+			moderationResult.success,
+		)
 
 		// Fail-closed: if moderation API fails, don't allow comment
 		if (!moderationResult.success) {
+			diag.warn('social', 'COMMENT_MODERATION_API_FAILED', {
+				message: 'API failure - fail-closed blocking comment',
+			})
 			toast.error('Unable to verify content. Please try again.')
 			setIsSubmitting(false)
 			return
@@ -68,6 +94,9 @@ export const CommentList = ({
 
 		if (moderationResult.data) {
 			if (moderationResult.data.action === 'block') {
+				diag.warn('social', 'COMMENT_BLOCKED_BY_MODERATION', {
+					reason: moderationResult.data.reason,
+				})
 				toast.error(
 					moderationResult.data.reason ||
 						'Your comment contains content that violates our community guidelines.',
@@ -76,6 +105,9 @@ export const CommentList = ({
 				return
 			}
 			if (moderationResult.data.action === 'flag') {
+				diag.warn('social', 'COMMENT_FLAGGED_BY_MODERATION', {
+					reason: moderationResult.data.reason,
+				})
 				toast.warning(
 					moderationResult.data.reason ||
 						'Your comment may contain sensitive content and will be reviewed.',
@@ -83,12 +115,27 @@ export const CommentList = ({
 			}
 		}
 
+		diag.request('social', 'createComment', {
+			postId,
+			contentLength: newComment.trim().length,
+			taggedUserIds,
+		})
+
 		const response = await createComment(postId, {
 			content: newComment.trim(),
 			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
 		})
 
 		if (response.success && response.data) {
+			diag.response(
+				'social',
+				'createComment',
+				{
+					commentId: response.data.id,
+					success: true,
+				},
+				true,
+			)
 			setComments(prev => [response.data!, ...prev])
 			setNewComment('')
 			setTaggedUserIds([])
@@ -96,6 +143,9 @@ export const CommentList = ({
 			toast.success('Comment posted!')
 			onCommentCreated?.()
 		} else {
+			diag.error('social', 'COMMENT_CREATE_FAILED', {
+				message: response.message,
+			})
 			toast.error(response.message || 'Failed to post comment')
 		}
 

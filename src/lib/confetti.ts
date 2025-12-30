@@ -67,27 +67,31 @@ export const triggerMutualFollowConfetti = () => {
 
 /** Subtle confetti for like actions - positioned at button location */
 export const triggerLikeConfetti = (element?: HTMLElement) => {
+	// Pre-calculate position synchronously
+	let origin: { x?: number; y: number }
+
 	if (element) {
 		const rect = element.getBoundingClientRect()
-		const x = (rect.left + rect.width / 2) / window.innerWidth
-		const y = (rect.top + rect.height / 2) / window.innerHeight
-		confetti({
-			particleCount: 30,
-			spread: 40,
-			origin: { x, y },
-			colors: ['#ef4444', '#f87171', '#fca5a5'],
-			ticks: 100,
-		})
+		origin = {
+			x: (rect.left + rect.width / 2) / window.innerWidth,
+			y: (rect.top + rect.height / 2) / window.innerHeight,
+		}
 	} else {
 		// Fallback to center if no element provided
+		origin = { y: 0.6 }
+	}
+
+	// Fire on next animation frame to avoid blocking UI
+	requestAnimationFrame(() => {
 		confetti({
 			particleCount: 30,
 			spread: 40,
-			origin: { y: 0.6 },
+			origin,
 			colors: ['#ef4444', '#f87171', '#fca5a5'],
 			ticks: 100,
+			disableForReducedMotion: true,
 		})
-	}
+	})
 }
 
 /** Celebration for earning badges/achievements */
@@ -154,13 +158,31 @@ export const triggerRecipeCompleteConfetti = () => {
 	}, 250)
 }
 
-/** Subtle celebration for saving recipes */
-export const triggerSaveConfetti = () => {
-	confetti({
-		particleCount: 20,
-		spread: 30,
-		origin: { y: 0.7 },
-		colors: ['#fbbf24', '#f59e0b'],
-		ticks: 80,
+/** Subtle celebration for saving recipes - positioned at button location */
+export const triggerSaveConfetti = (element?: HTMLElement) => {
+	// Pre-calculate position synchronously
+	let origin: { x?: number; y: number }
+
+	if (element) {
+		const rect = element.getBoundingClientRect()
+		origin = {
+			x: (rect.left + rect.width / 2) / window.innerWidth,
+			y: (rect.top + rect.height / 2) / window.innerHeight,
+		}
+	} else {
+		// Fallback to center-ish if no element provided
+		origin = { y: 0.7 }
+	}
+
+	// Fire on next animation frame to avoid blocking UI
+	requestAnimationFrame(() => {
+		confetti({
+			particleCount: 20,
+			spread: 30,
+			origin,
+			colors: ['#fbbf24', '#f59e0b'],
+			ticks: 80,
+			disableForReducedMotion: true,
+		})
 	})
 }

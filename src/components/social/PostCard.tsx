@@ -12,7 +12,6 @@ import {
 import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
-import { staggerItemVariants } from '@/components/ui/stagger-animation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -41,6 +40,7 @@ import {
 } from '@/components/modals/ReportModal'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
+import { diag } from '@/lib/diagnostics'
 
 interface PostCardProps {
 	post: Post
@@ -73,6 +73,7 @@ export const PostCard = ({
 
 	// Refs
 	const likeButtonRef = useRef<HTMLButtonElement>(null)
+	const saveButtonRef = useRef<HTMLButtonElement>(null)
 	const menuButtonRef = useRef<HTMLButtonElement>(null)
 	const lastTapRef = useRef<number>(0)
 	const DOUBLE_TAP_DELAY = 300 // ms
@@ -105,6 +106,11 @@ export const PostCard = ({
 	const handleLike = async () => {
 		if (isLiking) return
 
+		diag.action('social', 'POST_LIKE_TOGGLE', {
+			postId: post.id,
+			currentlyLiked: post.isLiked,
+		})
+
 		setIsLiking(true)
 		const wasLiked = post.isLiked
 		const previousLikes = post.likes
@@ -116,6 +122,12 @@ export const PostCard = ({
 			likes: prev.isLiked ? prev.likes - 1 : prev.likes + 1,
 		}))
 
+		// Trigger confetti IMMEDIATELY on like (optimistic, not after API)
+		// Confetti celebrates user's action, not server's confirmation
+		if (!wasLiked) {
+			triggerLikeConfetti(likeButtonRef.current || undefined)
+		}
+
 		const response = await toggleLike(post.id)
 
 		if (response.success && response.data) {
@@ -124,18 +136,27 @@ export const PostCard = ({
 				response.data.likeCount ??
 				(wasLiked ? previousLikes - 1 : previousLikes + 1)
 			const newIsLiked = response.data.isLiked ?? !wasLiked
+
+			diag.response(
+				'social',
+				'toggleLikePost',
+				{
+					isLiked: newIsLiked,
+					likes: newLikes,
+				},
+				true,
+			)
+
 			setPost(prev => ({
 				...prev,
 				likes: newLikes,
 				isLiked: newIsLiked,
 			}))
 			onUpdate?.({ ...post, likes: newLikes, isLiked: newIsLiked })
-
-			// Trigger confetti only on like (not unlike)
-			if (!wasLiked) {
-				triggerLikeConfetti(likeButtonRef.current || undefined)
-			}
 		} else {
+			diag.error('social', 'POST_LIKE_FAILED', {
+				message: response.message,
+			})
 			// Revert on error
 			setPost(prev => ({
 				...prev,
@@ -151,21 +172,35 @@ export const PostCard = ({
 	const handleSave = async () => {
 		if (isSaving) return
 
+		diag.action('social', 'POST_SAVE_TOGGLE', {
+			postId: post.id,
+			currentlySaved: isSaved,
+		})
+
 		// Optimistic update
 		const previousSaved = isSaved
 		setIsSaved(!isSaved)
 		setIsSaving(true)
 
+		// Trigger confetti IMMEDIATELY on save (optimistic, not after API)
+		// Confetti celebrates user's action, not server's confirmation
+		if (!previousSaved) {
+			triggerSaveConfetti(saveButtonRef.current || undefined)
+		}
+
 		try {
 			const response = await toggleSave(post.id)
 
 			if (response.success && response.data) {
+				diag.response(
+					'social',
+					'toggleSavePost',
+					{
+						isSaved: response.data.isSaved,
+					},
+					true,
+				)
 				setIsSaved(response.data.isSaved)
-
-				// Trigger confetti only on save (not unsave)
-				if (response.data.isSaved) {
-					triggerSaveConfetti()
-				}
 
 				toast.success(
 					response.data.isSaved
@@ -173,6 +208,9 @@ export const PostCard = ({
 						: POST_MESSAGES.REMOVE_SAVED,
 				)
 			} else {
+				diag.error('social', 'POST_SAVE_FAILED', {
+					message: response.message,
+				})
 				// Revert on error
 				setIsSaved(previousSaved)
 				toast.error(response.message || 'Failed to save post')
@@ -295,20 +333,23 @@ export const PostCard = ({
 	}
 
 	// Handle double-tap to like on images (Instagram pattern)
+	// Instagram's pattern: Double-tap ALWAYS likes. It NEVER unlikes.
+	// Double-tap = "I like this" regardless of previous state.
 	const handleDoubleTap = useCallback(() => {
 		const now = Date.now()
 		if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
 			// Double tap detected!
-			if (!post.isLiked) {
-				// Only trigger like if not already liked
-				handleLike()
-			}
-			// Always show the heart animation
+			// Always show the heart animation for visual feedback
 			setShowDoubleTapHeart(true)
 			setTimeout(() => setShowDoubleTapHeart(false), 1000)
+
+			// Only trigger like if not already liked (Instagram pattern)
+			if (!post.isLiked) {
+				handleLike()
+			}
 		}
 		lastTapRef.current = now
-	}, [post.isLiked])
+	}, [post.isLiked, handleLike])
 
 	// Report content metadata for the modal
 	const reportContent: ReportedContent = {
@@ -336,9 +377,11 @@ export const PostCard = ({
 			/>
 
 			<motion.article
-				variants={staggerItemVariants}
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
 				layout
 				exit={EXIT_VARIANTS.scaleOut}
+				transition={TRANSITION_SPRING}
 				className='mb-6'
 			>
 				<motion.div
@@ -358,7 +401,7 @@ export const PostCard = ({
 									className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
 								>
 									<AvatarImage
-										src={post.avatarUrl || 'https://i.pravatar.cc/48'}
+										src={post.avatarUrl || '/placeholder-avatar.png'}
 										alt={post.displayName || 'User'}
 									/>
 									<AvatarFallback>
@@ -625,6 +668,7 @@ export const PostCard = ({
 							<span>Share</span>
 						</button>
 						<button
+							ref={saveButtonRef}
 							onClick={handleSave}
 							disabled={isSaving}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${

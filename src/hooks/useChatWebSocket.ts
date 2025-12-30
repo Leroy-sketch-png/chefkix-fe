@@ -64,21 +64,15 @@ export function useChatWebSocket({
 			connectHeaders: {
 				Authorization: `Bearer ${accessToken}`,
 			},
-			debug: str => {
-				if (process.env.NODE_ENV === 'development') {
-					console.log('[STOMP Debug]', str)
-				}
-			},
+			debug: () => {},
 			reconnectDelay: 5000,
 			heartbeatIncoming: 10000,
 			heartbeatOutgoing: 10000,
 			onConnect: () => {
-				console.log('[WebSocket] Connected to chat service')
 				setIsConnected(true)
 				setError(null)
 			},
 			onDisconnect: () => {
-				console.log('[WebSocket] Disconnected from chat service')
 				setIsConnected(false)
 			},
 			onStompError: frame => {
@@ -87,11 +81,6 @@ export function useChatWebSocket({
 				setIsConnected(false)
 			},
 			onWebSocketError: () => {
-				// Don't log the event object - it serializes to {} and is useless
-				// This error fires when backend is offline - expected in dev
-				if (process.env.NODE_ENV === 'development') {
-					console.warn('[WebSocket] Connection failed - backend may be offline')
-				}
 				setError('WebSocket connection failed - chat unavailable')
 				setIsConnected(false)
 			},
@@ -139,7 +128,6 @@ export function useChatWebSocket({
 			(message: IMessage) => {
 				try {
 					const conversation: Conversation = JSON.parse(message.body)
-					console.log('[WebSocket] New conversation received:', conversation)
 					onNewConversationRef.current?.(conversation)
 				} catch (err) {
 					console.error('[WebSocket] Failed to parse new conversation:', err)
@@ -176,7 +164,6 @@ export function useChatWebSocket({
 			(message: IMessage) => {
 				try {
 					const chatMessage: ChatMessage = JSON.parse(message.body)
-					console.log('[WebSocket] Received message:', chatMessage)
 					onMessageRef.current(chatMessage)
 				} catch (err) {
 					console.error('[WebSocket] Failed to parse message:', err)
@@ -185,9 +172,6 @@ export function useChatWebSocket({
 		)
 
 		subscriptionRef.current = subscription
-		console.log(
-			`[WebSocket] Subscribed to /topic/conversation/${conversationId}`,
-		)
 
 		return () => {
 			if (subscriptionRef.current) {
@@ -216,8 +200,6 @@ export function useChatWebSocket({
 				destination: '/app/chat.sendMessage',
 				body: JSON.stringify(payload),
 			})
-
-			console.log('[WebSocket] Message sent:', payload)
 		},
 		[conversationId],
 	)

@@ -71,7 +71,6 @@ export const TokenRefreshProvider = ({
 	const doRefresh = useCallback(async (): Promise<boolean> => {
 		// Skip if already refreshing
 		if (isRefreshInProgress()) {
-			console.debug('[TokenRefresh] Refresh already in progress, skipping')
 			return false
 		}
 
@@ -90,13 +89,6 @@ export const TokenRefreshProvider = ({
 			hasScheduledRef.current = false
 			return
 		}
-
-		// Log token status for debugging
-		const status = getTokenStatus(accessToken)
-		console.log(
-			`[TokenRefresh] Token status: expires in ${status.expiresIn}, ` +
-				`shouldRefresh: ${status.shouldRefresh}`,
-		)
 
 		// Schedule proactive refresh based on actual token expiry
 		if (!hasScheduledRef.current) {
@@ -124,7 +116,6 @@ export const TokenRefreshProvider = ({
 
 			// Check if token needs refresh using actual expiry
 			if (shouldRefreshToken(accessToken)) {
-				console.log('[TokenRefresh] 👁️ Tab visible — token needs refresh')
 				visibilityRefreshPromise = doRefresh()
 				await visibilityRefreshPromise
 				visibilityRefreshPromise = null
@@ -134,11 +125,6 @@ export const TokenRefreshProvider = ({
 				if (newToken) {
 					scheduleProactiveRefresh(newToken, onTokenRefreshed, onSessionExpired)
 				}
-			} else {
-				const status = getTokenStatus(accessToken)
-				console.debug(
-					`[TokenRefresh] Tab visible — token still fresh (${status.expiresIn})`,
-				)
 			}
 		}
 

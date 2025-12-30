@@ -2,6 +2,7 @@ import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types/common'
 import {
 	Recipe,
+	RecipeSummary,
 	RecipeCreateRequest,
 	RecipeUpdateRequest,
 	RecipeQueryParams,
@@ -163,14 +164,19 @@ export const searchRecipes = async (
 }
 
 /**
- * Get current user's draft recipes
+ * Get current user's draft recipes.
+ *
+ * IMPORTANT: Backend returns RecipeSummaryResponse[] (no ingredients/steps).
+ * When resuming a draft for editing, use getRecipeById() to fetch full data.
  */
-export const getDraftRecipes = async (): Promise<ApiResponse<Recipe[]>> => {
+export const getDraftRecipes = async (): Promise<
+	ApiResponse<RecipeSummary[]>
+> => {
 	try {
 		const response = await api.get(API_ENDPOINTS.RECIPES.DRAFTS)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
+		const axiosError = error as AxiosError<ApiResponse<RecipeSummary[]>>
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,
@@ -550,9 +556,12 @@ export const getRecipeMastery = async (
  */
 export const publishRecipe = async (
 	recipeId: string,
+	visibility: 'PUBLIC' | 'FRIENDS_ONLY' | 'PRIVATE' = 'PUBLIC',
 ): Promise<ApiResponse<PublishResponse>> => {
 	try {
-		const response = await api.post(API_ENDPOINTS.RECIPES.PUBLISH(recipeId))
+		const response = await api.post(API_ENDPOINTS.RECIPES.PUBLISH(recipeId), {
+			visibility,
+		})
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<PublishResponse>>

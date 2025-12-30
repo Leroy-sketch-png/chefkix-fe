@@ -100,14 +100,14 @@ export default function ChallengesPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-streak to-streak-urgent shadow-md shadow-streak/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-streak shadow-md shadow-streak/25'
 						>
 							<Trophy className='size-6 text-white' />
 						</motion.div>
 						<h1 className='text-3xl font-bold text-text'>Challenges</h1>
 					</div>
 					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-xp' />
+						<Sparkles className='size-4 text-streak' />
 						Test your skills, earn bonus XP, and unlock exclusive badges!
 					</p>
 				</motion.div>

@@ -17,9 +17,6 @@ import {
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
-	fadeInUp,
-	staggerContainer,
-	scaleIn,
 	BUTTON_HOVER,
 	BUTTON_TAP,
 	BUTTON_SUBTLE_HOVER,
@@ -122,7 +119,9 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 	return (
 		<motion.div
 			className='grid grid-cols-2 md:grid-cols-4 gap-4 bg-panel-bg rounded-2xl p-5 border border-border mb-6'
-			variants={fadeInUp}
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.4, ease: 'easeOut' }}
 		>
 			{statItems.map((stat, index) => (
 				<motion.div
@@ -131,8 +130,9 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 						'text-center p-3 rounded-xl transition-colors hover:bg-muted/50',
 						stat.highlight && 'bg-primary/10 border border-primary/20',
 					)}
-					variants={scaleIn}
-					transition={{ delay: index * 0.05 }}
+					initial={{ opacity: 0, scale: 0.8 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={{ delay: index * 0.05, duration: 0.3 }}
 				>
 					<span
 						className={cn(
@@ -177,7 +177,9 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 				isWarning &&
 					'border border-warning/30 bg-gradient-to-r from-warning/5 to-transparent',
 			)}
-			variants={fadeInUp}
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.3, ease: 'easeOut' }}
 		>
 			{/* Expiry Badge */}
 			{(isUrgent || isWarning) && (
@@ -213,7 +215,8 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 						<span>{formatDuration(session.duration)} session</span>
 					</span>
 
-					{/* XP Decay Indicator */}
+					{/* XP Decay Indicator - ONLY shown when actual time-based decay has occurred */}
+					{/* Decay happens after 7 days: 50% at days 8-14, 0% after day 14 */}
 					{decayPercent > 0 && (
 						<div className='mt-2'>
 							<div className='h-1 bg-border rounded-full overflow-hidden max-w-thumbnail-2xl'>
@@ -225,7 +228,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 								/>
 							</div>
 							<span className='text-xs text-error font-semibold'>
-								XP at {100 - Math.round(decayPercent)}% (late posting)
+								{Math.round(decayPercent)}% time decay — post soon!
 							</span>
 						</div>
 					)}
@@ -236,9 +239,10 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					<span className='block text-xl font-extrabold text-success'>
 						+{session.currentXP}
 					</span>
-					{session.currentXP < session.baseXP && (
+					{/* Only show original XP if there's actual time-based decay */}
+					{session.currentXP < session.baseXP && session.currentXP > 0 && (
 						<span className='block text-xs text-error line-through'>
-							(was +{session.baseXP})
+							was +{session.baseXP}
 						</span>
 					)}
 				</div>
@@ -289,7 +293,9 @@ const CompletedItem = ({
 	return (
 		<motion.div
 			className='bg-muted/30 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow'
-			variants={fadeInUp}
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.3, ease: 'easeOut' }}
 		>
 			<div className='flex items-center gap-4 p-4'>
 				{/* Image Stack */}
@@ -297,13 +303,16 @@ const CompletedItem = ({
 					<Image
 						src={session.recipeImage}
 						alt={session.recipeName}
-						className='w-full h-full rounded-xl object-cover'
+						fill
+						className='rounded-xl object-cover'
 					/>
 					{session.postId && (
 						<Image
 							src={session.recipeImage}
 							alt=''
-							className='absolute -bottom-1 -right-1 w-8 h-8 rounded-lg border-2 border-panel-bg object-cover'
+							width={32}
+							height={32}
+							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-panel-bg object-cover'
 						/>
 					)}
 				</div>
@@ -406,13 +415,17 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 
 	return (
 		<motion.div
-			className='bg-muted/30 rounded-2xl overflow-hidden opacity-60'
-			variants={fadeInUp}
+			className='bg-muted/30 rounded-2xl overflow-hidden'
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 0.6, y: 0 }}
+			transition={{ duration: 0.3, ease: 'easeOut' }}
 		>
 			<div className='flex items-center gap-4 p-4'>
 				<Image
 					src={session.recipeImage}
 					alt={session.recipeName}
+					width={64}
+					height={64}
 					className='w-16 h-16 rounded-xl object-cover grayscale-[50%] flex-shrink-0'
 				/>
 
@@ -432,7 +445,9 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 							)}
 						>
 							{isAbandoned
-								? `Abandoned at Step ${session.abandonedAtStep}`
+								? session.abandonedAtStep
+									? `Abandoned at Step ${session.abandonedAtStep}`
+									: 'Abandoned'
 								: 'Expired'}
 						</span>
 					</span>
@@ -527,12 +542,7 @@ export const CookingHistoryTab = ({
 	}
 
 	return (
-		<motion.div
-			className={cn('p-6', className)}
-			variants={staggerContainer}
-			initial='hidden'
-			animate='visible'
-		>
+		<div className={cn('p-6', className)}>
 			{/* Stats Banner */}
 			<StatsBanner stats={stats} />
 
@@ -540,7 +550,9 @@ export const CookingHistoryTab = ({
 			{pendingSessions.length > 0 && (
 				<motion.section
 					className='bg-panel-bg rounded-2xl p-5 border border-border border-l-4 border-l-primary mb-6'
-					variants={fadeInUp}
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.4, ease: 'easeOut' }}
 				>
 					{/* Section Header */}
 					<div className='flex items-center justify-between mb-4'>
@@ -549,7 +561,7 @@ export const CookingHistoryTab = ({
 							Pending Posts
 						</h3>
 						<span className='text-base font-bold text-success bg-success/10 px-3 py-1.5 rounded-full'>
-							+{totalPendingXP} XP available
+							+{Math.round(totalPendingXP)} XP available
 						</span>
 					</div>
 
@@ -585,7 +597,9 @@ export const CookingHistoryTab = ({
 			{/* Completed Sessions Section */}
 			<motion.section
 				className='bg-panel-bg rounded-2xl p-5 border border-border mb-6'
-				variants={fadeInUp}
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
 			>
 				{/* Section Header */}
 				<div className='flex items-center justify-between mb-4'>
@@ -648,7 +662,7 @@ export const CookingHistoryTab = ({
 					</div>
 				)}
 			</motion.section>
-		</motion.div>
+		</div>
 	)
 }
 

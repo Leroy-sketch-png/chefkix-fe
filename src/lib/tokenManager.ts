@@ -109,20 +109,11 @@ export const shouldRefreshToken = (token: string): boolean => {
 
 	// Already expired
 	if (secondsUntilExpiry <= 0) {
-		console.log('[TokenManager] Token already expired')
 		return true
 	}
 
 	// Should refresh if less than threshold remaining
-	const shouldRefresh = secondsUntilExpiry <= REFRESH_THRESHOLD_SECONDS
-
-	if (shouldRefresh) {
-		console.log(
-			`[TokenManager] Token expires in ${Math.round(secondsUntilExpiry / 60)} min — refresh needed`,
-		)
-	}
-
-	return shouldRefresh
+	return secondsUntilExpiry <= REFRESH_THRESHOLD_SECONDS
 }
 
 /**
@@ -241,15 +232,11 @@ export const refreshAccessToken = async (
 	// Rate limit: prevent rapid-fire refresh attempts
 	const now = Date.now()
 	if (now - lastRefreshAttempt < MIN_REFRESH_INTERVAL_MS) {
-		console.debug(
-			'[TokenManager] Refresh throttled (too soon since last attempt)',
-		)
 		return { success: false, token: null, error: null }
 	}
 
 	// If a refresh is already in progress, queue this request
 	if (isRefreshing && refreshPromise) {
-		console.debug('[TokenManager] Refresh in progress, queueing...')
 		try {
 			const token = await new Promise<string>((resolve, reject) => {
 				refreshSubscribers.push({ resolve, reject })
@@ -271,13 +258,9 @@ export const refreshAccessToken = async (
 	isRefreshing = true
 	lastRefreshAttempt = now
 
-	console.log('[TokenManager] 🔄 Initiating token refresh...')
-
 	try {
 		refreshPromise = callRefreshEndpoint()
 		const newToken = await refreshPromise
-
-		console.log('[TokenManager] ✅ Token refresh successful')
 
 		// Update the store
 		onTokenRefreshed(newToken)
@@ -383,7 +366,6 @@ export const scheduleProactiveRefresh = (
 
 	const decoded = decodeToken(token)
 	if (!decoded) {
-		console.error('[TokenManager] Cannot schedule refresh — invalid token')
 		return
 	}
 
@@ -391,24 +373,14 @@ export const scheduleProactiveRefresh = (
 
 	// If already past refresh threshold, refresh immediately
 	if (secondsUntilExpiry <= REFRESH_THRESHOLD_SECONDS) {
-		console.log(
-			'[TokenManager] Token at/past refresh threshold — refreshing immediately',
-		)
 		refreshAccessToken(onTokenRefreshed, onSessionExpired)
 		return
 	}
 
 	// Schedule refresh at the threshold point
 	const refreshInMs = (secondsUntilExpiry - REFRESH_THRESHOLD_SECONDS) * 1000
-	const refreshInMinutes = Math.round(refreshInMs / 60000)
-
-	console.log(
-		`[TokenManager] 📅 Scheduled proactive refresh in ${refreshInMinutes} min ` +
-			`(token expires at ${new Date(decoded.exp * 1000).toLocaleTimeString()})`,
-	)
 
 	refreshTimeout = setTimeout(async () => {
-		console.log('[TokenManager] ⏰ Scheduled refresh triggered')
 		const result = await refreshAccessToken(onTokenRefreshed, onSessionExpired)
 
 		// If refresh succeeded, schedule the next one
@@ -425,6 +397,5 @@ export const cancelScheduledRefresh = (): void => {
 	if (refreshTimeout) {
 		clearTimeout(refreshTimeout)
 		refreshTimeout = null
-		console.debug('[TokenManager] Scheduled refresh cancelled')
 	}
 }

@@ -17,6 +17,7 @@ import {
 	TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { moderateContent } from '@/services/ai'
+import { diag } from '@/lib/diagnostics'
 
 interface CreatePostFormProps {
 	onPostCreated?: (post: Post) => void
@@ -70,16 +71,42 @@ export const CreatePostForm = ({
 			return
 		}
 
+		diag.action('social', 'POST_SUBMIT', {
+			contentLength: content.trim().length,
+			photoCount: photoFiles.length,
+			hasVideo: !!videoUrl.trim(),
+			hasTags: !!tags.trim(),
+		})
+
 		setIsSubmitting(true)
 
 		// AI content moderation before posting (fail-closed for safety)
+		diag.request('social', '/api/v1/moderate', {
+			contentType: 'post_caption',
+			contentPreview: content.trim().slice(0, 100),
+		})
+
 		const moderationResult = await moderateContent(
 			content.trim(),
 			'post_caption',
 		)
 
+		diag.response(
+			'social',
+			'/api/v1/moderate',
+			{
+				success: moderationResult.success,
+				action: moderationResult.data?.action,
+				reason: moderationResult.data?.reason,
+			},
+			moderationResult.success,
+		)
+
 		// Fail-closed: if moderation API fails, don't allow post
 		if (!moderationResult.success) {
+			diag.warn('social', 'MODERATION_API_FAILED', {
+				message: 'API failure - fail-closed blocking post',
+			})
 			toast.error('Unable to verify content. Please try again.')
 			setIsSubmitting(false)
 			return
@@ -87,6 +114,9 @@ export const CreatePostForm = ({
 
 		if (moderationResult.data) {
 			if (moderationResult.data.action === 'block') {
+				diag.warn('social', 'POST_BLOCKED_BY_MODERATION', {
+					reason: moderationResult.data.reason,
+				})
 				toast.error(
 					moderationResult.data.reason ||
 						'Your post contains content that violates our community guidelines.',
@@ -95,6 +125,9 @@ export const CreatePostForm = ({
 				return
 			}
 			if (moderationResult.data.action === 'flag') {
+				diag.warn('social', 'POST_FLAGGED_BY_MODERATION', {
+					reason: moderationResult.data.reason,
+				})
 				toast.warning(
 					moderationResult.data.reason ||
 						'Your post may contain sensitive content and will be reviewed.',
@@ -107,8 +140,14 @@ export const CreatePostForm = ({
 			.map(t => t.trim())
 			.filter(t => t.length > 0)
 
+		diag.request('social', '/api/v1/post', {
+			contentLength: content.trim().length,
+			photoCount: photoFiles.length,
+			tags: tagList,
+		})
+
 		const response = await createPost({
-			avatarUrl: currentUser?.avatarUrl || 'https://i.pravatar.cc/48',
+			avatarUrl: currentUser?.avatarUrl || '/placeholder-avatar.png',
 			content: content.trim(),
 			photoUrls: photoFiles,
 			videoUrl: videoUrl.trim() || undefined,
@@ -116,6 +155,15 @@ export const CreatePostForm = ({
 		})
 
 		if (response.success && response.data) {
+			diag.response(
+				'social',
+				'/api/v1/post',
+				{
+					postId: response.data.id,
+					success: true,
+				},
+				true,
+			)
 			toast.success(POST_MESSAGES.CREATE_SUCCESS)
 			setContent('')
 			setVideoUrl('')
@@ -125,6 +173,9 @@ export const CreatePostForm = ({
 			setShowAdvanced(false)
 			onPostCreated?.(response.data)
 		} else {
+			diag.error('social', 'POST_CREATE_FAILED', {
+				message: response.message,
+			})
 			toast.error(response.message || 'Failed to create post')
 		}
 
@@ -142,7 +193,7 @@ export const CreatePostForm = ({
 				<div className='flex items-center gap-3 border-b border-border-subtle p-4 md:p-6'>
 					<Avatar size='lg' className='ring-2 ring-primary/10'>
 						<AvatarImage
-							src={currentUser?.avatarUrl || 'https://i.pravatar.cc/48'}
+							src={currentUser?.avatarUrl || '/placeholder-avatar.png'}
 							alt={currentUser?.displayName || 'You'}
 						/>
 						<AvatarFallback>

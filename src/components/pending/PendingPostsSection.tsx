@@ -571,8 +571,9 @@ export const PendingExpandedModal = ({
 												<span className='block text-sm text-muted-foreground'>
 													{getTimeSinceCook(session.cookedAt)}
 												</span>
-												{session.status === 'urgent' &&
-													session.currentXP < session.baseXP && (
+												{/* Decay indicator - only shown when actual time-based decay */}
+												{session.currentXP < session.baseXP &&
+													session.currentXP > 0 && (
 														<div className='mt-2'>
 															<div className='h-1 bg-border rounded-full overflow-hidden w-32'>
 																<div
@@ -583,7 +584,12 @@ export const PendingExpandedModal = ({
 																/>
 															</div>
 															<span className='text-xs text-error font-semibold'>
-																XP decaying
+																{Math.round(
+																	((session.baseXP - session.currentXP) /
+																		session.baseXP) *
+																		100,
+																)}
+																% time decay
 															</span>
 														</div>
 													)}
@@ -599,11 +605,13 @@ export const PendingExpandedModal = ({
 												>
 													+{session.currentXP} XP
 												</span>
-												{session.currentXP < session.baseXP && (
-													<span className='text-xs text-muted-foreground line-through'>
-														was +{session.baseXP}
-													</span>
-												)}
+												{/* Only show original if there's actual decay */}
+												{session.currentXP < session.baseXP &&
+													session.currentXP > 0 && (
+														<span className='text-xs text-muted-foreground line-through'>
+															was +{session.baseXP}
+														</span>
+													)}
 											</div>
 											<motion.button
 												className={cn(

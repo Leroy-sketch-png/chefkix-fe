@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Recipe } from '@/lib/types/recipe'
+import { RecipeSummary } from '@/lib/types/recipe'
 import { getDraftRecipes } from '@/services/recipe'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Clock, FileText, Trash2, Edit3, AlertCircle } from 'lucide-react'
@@ -30,7 +30,11 @@ import { discardDraft } from '@/services/recipe'
 import { toast } from 'sonner'
 
 interface DraftsListProps {
-	onSelectDraft: (draft: Recipe) => void
+	/**
+	 * Called when user selects a draft to edit.
+	 * Receives draft ID — caller is responsible for fetching full recipe data.
+	 */
+	onSelectDraft: (draftId: string) => void
 	onNewRecipe: () => void
 	className?: string
 }
@@ -40,10 +44,10 @@ export function DraftsList({
 	onNewRecipe,
 	className,
 }: DraftsListProps) {
-	const [drafts, setDrafts] = useState<Recipe[]>([])
+	const [drafts, setDrafts] = useState<RecipeSummary[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
-	const [deleteTarget, setDeleteTarget] = useState<Recipe | null>(null)
+	const [deleteTarget, setDeleteTarget] = useState<RecipeSummary | null>(null)
 	const [isDeleting, setIsDeleting] = useState(false)
 
 	useEffect(() => {
@@ -168,7 +172,7 @@ export function DraftsList({
 
 									{/* Content */}
 									<button
-										onClick={() => onSelectDraft(draft)}
+										onClick={() => onSelectDraft(draft.id)}
 										className='flex flex-1 flex-col items-start text-left'
 									>
 										<div className='font-semibold text-text'>
@@ -177,9 +181,9 @@ export function DraftsList({
 										<div className='flex items-center gap-2 text-xs text-text-muted'>
 											<Clock className='size-3' />
 											<span>
-												{draft.updatedAt
-													? `Edited ${formatDistanceToNow(new Date(draft.updatedAt), { addSuffix: true })}`
-													: 'No changes yet'}
+												{draft.createdAt
+													? `Created ${formatDistanceToNow(new Date(draft.createdAt), { addSuffix: true })}`
+													: 'Draft'}
 											</span>
 										</div>
 										{draft.description && (

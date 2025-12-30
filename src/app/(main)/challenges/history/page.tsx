@@ -92,11 +92,8 @@ export default function ChallengeHistoryPageRoute() {
 		setCurrentMonth(newMonth)
 	}
 
-	const handleLoadMore = () => {
-		setIsLoadingMore(true)
-		// TODO: Fetch next page from API with pagination
-		setTimeout(() => setIsLoadingMore(false), 1000)
-	}
+	// NOTE: Load more disabled until pagination API is implemented
+	// When ready, add: onLoadMore={handleLoadMore} to ChallengeHistoryPage
 
 	return (
 		<PageTransition>
@@ -107,7 +104,6 @@ export default function ChallengeHistoryPageRoute() {
 					currentMonth={currentMonth}
 					onMonthChange={handleMonthChange}
 					onBack={() => router.back()}
-					onLoadMore={handleLoadMore}
 					isLoadingMore={isLoadingMore}
 				/>
 			</PageContainer>

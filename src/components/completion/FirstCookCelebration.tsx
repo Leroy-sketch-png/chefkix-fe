@@ -327,7 +327,7 @@ export const FirstCookCelebration = ({
 								</div>
 								<div className='flex-1'>
 									<span className='block text-sm font-bold text-xp'>
-										+{pendingXp} XP waiting
+										+{Math.round(pendingXp)} XP waiting
 									</span>
 									<span className='block text-xs text-text-muted'>
 										Post a photo of your dish to unlock
@@ -369,7 +369,7 @@ export const FirstCookCelebration = ({
 											Share Your Creation
 										</span>
 										<span className='text-xs opacity-85'>
-											Unlock +{pendingXp} XP
+											Unlock +{Math.round(pendingXp)} XP
 										</span>
 									</div>
 								</motion.button>{' '}

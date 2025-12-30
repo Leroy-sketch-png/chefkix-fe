@@ -588,6 +588,7 @@ export default function ExplorePage() {
 
 	const handleSave = async (recipeId: string) => {
 		const wasSaved = savedRecipes.has(recipeId)
+		const willBeSaved = !wasSaved
 
 		// Optimistic update
 		setSavedRecipes(prev => {
@@ -600,11 +601,16 @@ export default function ExplorePage() {
 			return newSet
 		})
 
+		// Trigger confetti optimistically on save (not unsave)
+		// No element ref available from callback, uses center-viewport
+		if (willBeSaved) {
+			triggerSaveConfetti()
+		}
+
 		try {
 			const response = await toggleSaveRecipe(recipeId)
 			if (response.success && response.data) {
 				if (response.data.isSaved) {
-					triggerSaveConfetti()
 					toast.success('Recipe saved!')
 				} else {
 					toast.success('Recipe unsaved')

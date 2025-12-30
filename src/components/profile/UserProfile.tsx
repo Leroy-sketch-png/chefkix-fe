@@ -125,6 +125,27 @@ type UserProfileProps = {
 }
 
 // ============================================
+// HELPER: Calculate XP decay multiplier based on time since completion
+// Business rules:
+// - Days 0-7: 100% of pendingXp
+// - Days 8-14: 50% of pendingXp
+// - Days 15+: 0% (expired, but shown in expired section)
+// ============================================
+function calculateDecayMultiplier(completedAt: string | undefined): number {
+	if (!completedAt) return 1.0
+
+	const completedDate = new Date(completedAt)
+	const now = new Date()
+	const daysSinceCompletion = Math.floor(
+		(now.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24),
+	)
+
+	if (daysSinceCompletion <= 7) return 1.0
+	if (daysSinceCompletion <= 14) return 0.5
+	return 0.0
+}
+
+// ============================================
 // HELPER: Transform session history to pending sessions
 // ============================================
 
@@ -158,6 +179,40 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 		status = 'normal' // Already posted
 	}
 
+	// XP calculation for pending posts:
+	// - baseXP = the ORIGINAL post bonus (pendingXp stored at completion)
+	// - currentXP = post bonus with decay applied based on days since completion
+	//
+	// IMPORTANT: baseXP here is NOT "total XP ever possible", it's specifically
+	// the post bonus. The cooking completion XP (baseXpAwarded) was already given
+	// and is NOT shown here — that's "XP Earned" in the stats.
+	const isPending = !item.postId && item.status === 'completed'
+	const isPosted = !!item.postId
+
+	const decayMultiplier = calculateDecayMultiplier(item.completedAt)
+	const originalPostBonus = item.pendingXp ?? 0
+	const currentPostBonus = Math.round(originalPostBonus * decayMultiplier)
+
+	// For pending: show post bonus (with decay)
+	// For posted: show total XP earned (base + post bonus that was actually awarded)
+	// For abandoned/expired: 0
+	const baseXP = isPending ? originalPostBonus : (item.baseXpAwarded ?? 0)
+	const currentXP = isPending
+		? currentPostBonus
+		: isPosted
+			? (item.xpEarned ?? item.baseXpAwarded ?? 0)
+			: 0
+
+	// Calculate duration from startedAt to completedAt (or now if not completed)
+	const startTime = new Date(item.startedAt).getTime()
+	const endTime = item.completedAt
+		? new Date(item.completedAt).getTime()
+		: Date.now()
+	const durationMinutes = Math.max(
+		0,
+		Math.round((endTime - startTime) / (1000 * 60)),
+	)
+
 	return {
 		id: item.sessionId,
 		recipeId: item.recipeId,
@@ -169,9 +224,9 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 		cookedAt: item.completedAt
 			? new Date(item.completedAt)
 			: new Date(item.startedAt),
-		duration: 0, // Not available from history API
-		baseXP: item.baseXpAwarded || 0,
-		currentXP: item.xpEarned ?? item.baseXpAwarded ?? 0,
+		duration: durationMinutes,
+		baseXP,
+		currentXP,
 		expiresAt,
 		status,
 		postId: item.postId ?? undefined,
@@ -249,13 +304,23 @@ export const UserProfile = ({
 						response.data.sessions.map(s => s.recipeId),
 					)
 					const pendingPosts = response.data.sessions.filter(
-						s =>
-							(s.status === 'completed' || s.status === 'posted') && !s.postId,
+						s => s.status === 'completed' && !s.postId,
 					).length
-					const totalXP = response.data.sessions.reduce(
-						(sum, s) => sum + (s.xpEarned ?? s.baseXpAwarded ?? 0),
-						0,
-					)
+					// XP Earned = sum of all XP actually received:
+					// - Posted sessions: xpEarned (base + post bonus)
+					// - Completed (pending): baseXpAwarded (the 30% given at completion)
+					// - Abandoned: 0 (no XP given)
+					const totalXP = response.data.sessions.reduce((sum, s) => {
+						if (s.status === 'posted' && s.postId) {
+							// Posted: use xpEarned which is base + remaining
+							return sum + (s.xpEarned ?? 0)
+						} else if (s.status === 'completed') {
+							// Completed but not posted: only base XP was awarded
+							return sum + (s.baseXpAwarded ?? 0)
+						}
+						// Abandoned/expired: no XP
+						return sum
+					}, 0)
 
 					setCookingStats({
 						totalSessions: sessions.length,

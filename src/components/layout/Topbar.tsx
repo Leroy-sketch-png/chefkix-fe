@@ -229,7 +229,7 @@ export const Topbar = () => {
 							</svg>
 							<Avatar size='lg' className='shadow-lg'>
 								<AvatarImage
-									src={user.avatarUrl || 'https://i.pravatar.cc/44'}
+									src={user.avatarUrl || '/placeholder-avatar.png'}
 									alt={user.displayName || 'User'}
 								/>
 								<AvatarFallback>

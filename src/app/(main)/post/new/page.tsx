@@ -22,7 +22,7 @@ import { AnimatedButton } from '@/components/ui/animated-button'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { createPost } from '@/services/post'
-import { getSessionById } from '@/services/cookingSession'
+import { getSessionById, linkPostToSession } from '@/services/cookingSession'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import {
@@ -109,6 +109,28 @@ function CreatePostContent() {
 				const response = await getSessionById(sessionId)
 				if (response.success && response.data) {
 					const s = response.data
+
+					// Guard: Check if session was already linked to a post
+					// posted status means XP was already awarded, no point showing it again
+					if (s.status === 'posted') {
+						toast.error('This session was already linked to a post', {
+							description: 'The XP has already been awarded.',
+						})
+						setIsLoadingSession(false)
+						return // Don't set session - user can still make a regular post
+					}
+
+					// Guard: Check if session is not in completed status
+					// Only completed sessions should be linked to posts
+					if (s.status !== 'completed') {
+						toast.error('Session cannot be linked', {
+							description:
+								'Only completed cooking sessions can earn XP from posts.',
+						})
+						setIsLoadingSession(false)
+						return
+					}
+
 					setSession({
 						id: s.sessionId,
 						recipeId: s.recipeId ?? s.recipe?.id ?? '',
@@ -170,10 +192,53 @@ function CreatePostContent() {
 			})
 
 			if (response.success && response.data) {
-				// Check if we got XP from session linking
-				const data = response.data
-				if ('xpAwarded' in data && data.xpAwarded > 0) {
-					toast.success(`Post shared! +${data.xpAwarded} XP unlocked! 🎉`, {
+				const createdPost = response.data
+				const postId = createdPost.id
+
+				// CRITICAL: Post-service only stores the reference, XP is awarded
+				// by recipe-service via the link-post endpoint.
+				// See PostService.java lines 193-196: "XP is awarded when FE calls
+				// recipe-service's POST /{sessionId}/link-post endpoint."
+				let xpAwarded = 0
+				let badgesEarned: string[] = []
+				if (session?.id && postId) {
+					const linkResponse = await linkPostToSession(session.id, postId)
+
+					if (linkResponse.success && linkResponse.data) {
+						xpAwarded = linkResponse.data.xpAwarded ?? 0
+						badgesEarned = linkResponse.data.badgesEarned ?? []
+
+						// OPTIMISTIC UPDATE: Store the post with XP in sessionStorage
+						// so dashboard can display it immediately without waiting for
+						// the Kafka consumer to update the Post entity in post-service.
+						// This solves the "Two Truths" problem where FE has the XP but
+						// the DB hasn't been updated yet by the async Kafka consumer.
+						const postWithXp = {
+							...createdPost,
+							xpEarned: xpAwarded,
+							badgesEarned: badgesEarned,
+						}
+						sessionStorage.setItem('newPost', JSON.stringify(postWithXp))
+					} else {
+						// Post succeeded but XP claim failed - warn user but don't fail
+						console.error('Failed to claim XP:', linkResponse.message)
+						toast.warning(
+							'Post shared, but XP claim failed. Please contact support.',
+							{
+								description: linkResponse.message,
+							},
+						)
+						router.push('/dashboard')
+						return
+					}
+				} else {
+					// No session - just store the post without XP
+					sessionStorage.setItem('newPost', JSON.stringify(createdPost))
+				}
+
+				// Show success with XP if earned
+				if (xpAwarded > 0) {
+					toast.success(`Post shared! +${xpAwarded} XP unlocked! 🎉`, {
 						description: session?.recipeTitle
 							? `Your ${session.recipeTitle} post is now live`
 							: undefined,
@@ -274,7 +339,8 @@ function CreatePostContent() {
 									</h3>
 									<div className='flex flex-wrap items-center gap-3'>
 										<span className='flex items-center gap-1.5 rounded-lg bg-success/10 px-2.5 py-1 text-sm font-bold text-success'>
-											<Trophy className='size-3.5' />+{session.pendingXp} XP
+											<Trophy className='size-3.5' />+
+											{Math.round(session.pendingXp)} XP
 										</span>
 										{getTimeLeft() && (
 											<span className='flex items-center gap-1.5 text-sm text-text-secondary'>
@@ -331,7 +397,7 @@ function CreatePostContent() {
 						</div>
 
 						{/* Content textarea */}
-						<div className='p-4'>
+						<div className='px-4 pb-4'>
 							<textarea
 								value={content}
 								onChange={e => setContent(e.target.value)}
@@ -340,7 +406,7 @@ function CreatePostContent() {
 										? `Tell everyone about your ${session.recipeTitle}! How did it turn out?`
 										: "What's cooking? Share your culinary journey..."
 								}
-								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent p-0 text-text placeholder-text-muted focus:outline-none'
+								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none'
 								autoFocus
 							/>
 
@@ -422,7 +488,9 @@ function CreatePostContent() {
 								) : (
 									<>
 										<Send className='size-4' />
-										{session ? `Post & Claim ${session.pendingXp} XP` : 'Post'}
+										{session
+											? `Post & Claim ${Math.round(session.pendingXp)} XP`
+											: 'Post'}
 									</>
 								)}
 							</AnimatedButton>

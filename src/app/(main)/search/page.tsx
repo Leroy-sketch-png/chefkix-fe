@@ -449,7 +449,7 @@ export default function SearchPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-text-secondary to-text-tertiary shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-md'
 						>
 							<Search className='size-6 text-white' />
 						</motion.div>

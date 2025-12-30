@@ -6,7 +6,9 @@ import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
+import { diag } from '@/lib/diagnostics'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { toast } from 'sonner'
 import {
@@ -470,6 +472,7 @@ export const CookingPlayer = () => {
 		abandonCooking,
 		localTimers,
 		getTimerRemaining,
+		clearAllTimers,
 	} = useCookingStore()
 
 	// Warn users before leaving page during active cooking session
@@ -486,6 +489,11 @@ export const CookingPlayer = () => {
 	)
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
+	const [isNavigating, setIsNavigating] = useState(false)
+
+	// Focus traps for modal accessibility
+	const completionTrapRef = useFocusTrap<HTMLDivElement>(showCompletion)
+	const abandonTrapRef = useFocusTrap<HTMLDivElement>(showAbandonConfirm)
 
 	// Derive current step data from session and recipe
 	const currentStepNumber = session?.currentStep ?? 1
@@ -494,29 +502,70 @@ export const CookingPlayer = () => {
 	const completedSteps = new Set(session?.completedSteps ?? [])
 	const progress = totalSteps > 0 ? (completedSteps.size / totalSteps) * 100 : 0
 
+	// Log when cooking player opens with recipe data
+	useEffect(() => {
+		if (isOpen && recipe) {
+			diag.snapshot('cooking', 'PLAYER_OPENED', {
+				recipeId: recipe.id,
+				recipeTitle: recipe.title,
+				coverImage: recipe.coverImageUrl?.[0] ?? 'NO_COVER_IMAGE',
+				totalSteps,
+				stepsWithImages: recipe.steps?.map((s, i) => ({
+					stepNum: i + 1,
+					hasImage: !!s.imageUrl,
+					imageUrl: s.imageUrl ?? null,
+				})),
+				sessionId: session?.sessionId,
+				sessionStatus: session?.status,
+			})
+		}
+	}, [isOpen, recipe, totalSteps, session])
+
 	// Handlers - defined before useEffects that reference them
 	const handleNextStep = useCallback(async () => {
-		if (!recipe) return
+		if (!recipe || isNavigating) return
 
-		// Complete current step first
-		await completeStep(currentStepNumber)
+		// GUARD: Don't navigate if completion modal is showing
+		if (showCompletion) return
 
-		if (currentStepNumber < totalSteps) {
-			setDirection(1)
-			await navigateToStep('next')
+		setIsNavigating(true)
 
-			// Auto-start timer for the NEXT step if it has one
-			const nextStepNumber = currentStepNumber + 1
-			const nextStep = recipe.steps?.[nextStepNumber - 1]
-			if (nextStep?.timerSeconds && nextStep.timerSeconds > 0) {
-				// Small delay to ensure state is updated before starting timer
-				setTimeout(() => {
-					startTimer(nextStepNumber)
-				}, 100)
+		try {
+			diag.action('cooking', 'STEP_NEXT_CLICK', {
+				currentStep: currentStepNumber,
+				totalSteps,
+				stepHasTimer: !!step?.timerSeconds,
+			})
+
+			// Complete current step first
+			await completeStep(currentStepNumber)
+
+			if (currentStepNumber < totalSteps) {
+				setDirection(1)
+				await navigateToStep('next')
+
+				// Auto-start timer for the NEXT step if it has one
+				const nextStepNumber = currentStepNumber + 1
+				const nextStep = recipe.steps?.[nextStepNumber - 1]
+				if (nextStep?.timerSeconds && nextStep.timerSeconds > 0) {
+					diag.action('cooking', 'AUTO_START_TIMER', {
+						stepNumber: nextStepNumber,
+						timerSeconds: nextStep.timerSeconds,
+					})
+					// Small delay to ensure state is updated before starting timer
+					setTimeout(() => {
+						startTimer(nextStepNumber)
+					}, 100)
+				}
+			} else {
+				// Session complete!
+				diag.modal('cooking', 'COMPLETION_MODAL', true, 'all_steps_done')
+				// CRITICAL: Clear all timers immediately to prevent zombie timer ticks
+				clearAllTimers()
+				setShowCompletion(true)
 			}
-		} else {
-			// Session complete!
-			setShowCompletion(true)
+		} finally {
+			setIsNavigating(false)
 		}
 	}, [
 		currentStepNumber,
@@ -525,18 +574,41 @@ export const CookingPlayer = () => {
 		navigateToStep,
 		recipe,
 		startTimer,
+		step,
+		showCompletion,
+		clearAllTimers,
+		isNavigating,
 	])
 
 	const handlePrevStep = useCallback(async () => {
+		// GUARD: Don't navigate if completion modal is showing or already navigating
+		if (showCompletion || isNavigating) return
+
 		if (currentStepNumber > 1) {
-			setDirection(-1)
-			await navigateToStep('previous')
+			setIsNavigating(true)
+			try {
+				diag.action('cooking', 'STEP_PREV_CLICK', {
+					currentStep: currentStepNumber,
+					goingTo: currentStepNumber - 1,
+				})
+				setDirection(-1)
+				await navigateToStep('previous')
+			} finally {
+				setIsNavigating(false)
+			}
 		}
-	}, [currentStepNumber, navigateToStep])
+	}, [currentStepNumber, navigateToStep, showCompletion, isNavigating])
 
 	const handleStepClick = useCallback(
 		async (stepNumber: number) => {
+			// GUARD: Don't navigate if completion modal is showing
+			if (showCompletion) return
+
 			if (stepNumber === currentStepNumber) return
+			diag.action('cooking', 'STEP_DOT_CLICK', {
+				fromStep: currentStepNumber,
+				toStep: stepNumber,
+			})
 			setDirection(stepNumber > currentStepNumber ? 1 : -1)
 			await navigateToStep('goto', stepNumber)
 		},
@@ -547,9 +619,24 @@ export const CookingPlayer = () => {
 	// NO setInterval here — we removed the duplicate to prevent 2x speed ticking
 
 	// Keyboard navigation
+	// CRITICAL: Disabled when completion modal or abandon confirm is showing
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
+			// Guard: Don't handle keyboard when player is closed
 			if (!isOpen || !recipe) return
+
+			// Guard: Don't capture keyboard events when completion modal is showing
+			// This allows users to type in the rating form (e.g., notes with spaces)
+			if (showCompletion) return
+
+			// Guard: When abandon confirmation is showing, only handle Escape to close it
+			if (showAbandonConfirm) {
+				if (e.key === 'Escape') {
+					e.preventDefault()
+					setShowAbandonConfirm(false)
+				}
+				return
+			}
 
 			if (e.key === 'ArrowRight' || e.key === ' ') {
 				e.preventDefault()
@@ -564,7 +651,15 @@ export const CookingPlayer = () => {
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [isOpen, recipe, closeCookingPanel, handleNextStep, handlePrevStep])
+	}, [
+		isOpen,
+		recipe,
+		closeCookingPanel,
+		handleNextStep,
+		handlePrevStep,
+		showCompletion,
+		showAbandonConfirm,
+	])
 
 	// Reset checked ingredients when step changes
 	useEffect(() => {
@@ -588,9 +683,17 @@ export const CookingPlayer = () => {
 
 		const activeTimer = localTimers.get(currentStepNumber)
 		if (activeTimer) {
+			diag.action('cooking', 'TIMER_SKIP', {
+				stepNumber: currentStepNumber,
+				remainingSeconds: activeTimer.remaining,
+			})
 			// Timer is running, skip it
 			skipTimer(currentStepNumber)
 		} else {
+			diag.action('cooking', 'TIMER_START', {
+				stepNumber: currentStepNumber,
+				timerSeconds: step.timerSeconds,
+			})
 			// Start timer
 			startTimer(currentStepNumber)
 		}
@@ -598,7 +701,10 @@ export const CookingPlayer = () => {
 
 	const handleTimerComplete = useCallback(() => {
 		// Timer completed naturally - handled by tickTimers
-	}, [])
+		diag.action('cooking', 'TIMER_COMPLETE_NATURAL', {
+			stepNumber: currentStepNumber,
+		})
+	}, [currentStepNumber])
 
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
 
@@ -606,11 +712,24 @@ export const CookingPlayer = () => {
 		async (rating: number, notes?: string) => {
 			// Guard against double-completion
 			if (isCompletingSession || session?.status === 'completed') {
+				diag.warn('cooking', 'COMPLETE_DOUBLE_CLICK_BLOCKED', {
+					isCompletingSession,
+					sessionStatus: session?.status,
+				})
 				console.warn(
 					'[handleComplete] Already completing or completed, ignoring',
 				)
 				return
 			}
+
+			diag.action('cooking', 'COMPLETE_SESSION_SUBMIT', {
+				rating,
+				hasNotes: !!notes,
+				sessionId: session?.sessionId,
+				completedSteps: session?.completedSteps?.length ?? 0,
+				totalSteps,
+			})
+
 			setIsCompletingSession(true)
 			try {
 				const completionResult = await completeCooking(rating, notes)
@@ -618,11 +737,28 @@ export const CookingPlayer = () => {
 				if (!completionResult) {
 					// Get error from store and show toast
 					const errorMsg = useCookingStore.getState().error
+					diag.error('cooking', 'COMPLETE_SESSION_FAILED', {
+						error: errorMsg,
+						sessionId: session?.sessionId,
+					})
 					toast.error(
 						errorMsg || 'Failed to complete cooking session. Please try again.',
 					)
 					return
 				}
+
+				diag.response(
+					'cooking',
+					'COMPLETE_SESSION_SUCCESS',
+					{
+						baseXpAwarded: completionResult.baseXpAwarded,
+						pendingXp: completionResult.pendingXp,
+						leveledUp: completionResult.leveledUp,
+						oldLevel: completionResult.oldLevel,
+						newLevel: completionResult.newLevel,
+					},
+					true,
+				)
 
 				// Check for level-up and celebrate FIRST (before rewards modal)
 				if (
@@ -630,6 +766,10 @@ export const CookingPlayer = () => {
 					completionResult.oldLevel &&
 					completionResult.newLevel
 				) {
+					diag.action('cooking', 'LEVEL_UP_CELEBRATION', {
+						oldLevel: completionResult.oldLevel,
+						newLevel: completionResult.newLevel,
+					})
 					showLevelUp({
 						oldLevel: completionResult.oldLevel,
 						newLevel: completionResult.newLevel,
@@ -639,6 +779,7 @@ export const CookingPlayer = () => {
 				}
 
 				// Trigger celebration with immediate rewards data
+				diag.modal('cooking', 'REWARDS_MODAL', true, 'session_completed')
 				showImmediateRewards({
 					sessionId: session?.sessionId ?? '',
 					recipeName: recipe?.title ?? 'Recipe',
@@ -661,14 +802,21 @@ export const CookingPlayer = () => {
 			showLevelUp,
 			recipe,
 			session,
+			isCompletingSession,
+			totalSteps,
 		],
 	)
 
 	const handleAbandon = useCallback(async () => {
+		diag.action('cooking', 'ABANDON_CONFIRMED', {
+			sessionId: session?.sessionId,
+			currentStep: currentStepNumber,
+			completedSteps: session?.completedSteps?.length ?? 0,
+		})
 		setShowAbandonConfirm(false)
 		await abandonCooking()
 		closeCookingPanel()
-	}, [abandonCooking, closeCookingPanel])
+	}, [abandonCooking, closeCookingPanel, session, currentStepNumber])
 
 	if (!isOpen) return null
 
@@ -899,7 +1047,7 @@ export const CookingPlayer = () => {
 													initial={{ opacity: 0, scale: 0.95 }}
 													animate={{ opacity: 1, scale: 1 }}
 													transition={{ delay: 0.1 }}
-													className='relative mx-auto mb-6 aspect-video w-full max-w-md overflow-hidden rounded-2xl shadow-lg'
+													className='relative mx-auto mb-6 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-lg'
 												>
 													<Image
 														src={step.imageUrl}
@@ -1001,12 +1149,20 @@ export const CookingPlayer = () => {
 							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated p-4'>
 								<motion.button
 									onClick={handlePrevStep}
-									disabled={currentStepNumber === 1}
-									whileHover={currentStepNumber > 1 ? BUTTON_HOVER : undefined}
-									whileTap={currentStepNumber > 1 ? BUTTON_TAP : undefined}
+									disabled={currentStepNumber === 1 || isNavigating}
+									whileHover={
+										currentStepNumber > 1 && !isNavigating
+											? BUTTON_HOVER
+											: undefined
+									}
+									whileTap={
+										currentStepNumber > 1 && !isNavigating
+											? BUTTON_TAP
+											: undefined
+									}
 									className={cn(
 										'flex items-center gap-2 rounded-full px-6 py-3 font-bold transition-all',
-										currentStepNumber === 1
+										currentStepNumber === 1 || isNavigating
 											? 'cursor-not-allowed bg-border/50 text-text-muted'
 											: 'bg-border text-text hover:bg-border-medium',
 									)}
@@ -1020,16 +1176,25 @@ export const CookingPlayer = () => {
 
 								<motion.button
 									onClick={handleNextStep}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className='flex items-center gap-2 rounded-full bg-gradient-hero px-8 py-3 font-bold text-white shadow-lg shadow-brand/30'
+									disabled={isNavigating}
+									whileHover={isNavigating ? undefined : BUTTON_HOVER}
+									whileTap={isNavigating ? undefined : BUTTON_TAP}
+									className={cn(
+										'flex items-center gap-2 rounded-full bg-gradient-hero px-8 py-3 font-bold text-white shadow-lg shadow-brand/30 transition-opacity',
+										isNavigating && 'cursor-wait opacity-80',
+									)}
 									title={
 										currentStepNumber === totalSteps
 											? 'Complete recipe'
 											: 'Next step (→ or Space)'
 									}
 								>
-									{currentStepNumber === totalSteps ? (
+									{isNavigating ? (
+										<>
+											<Loader2 className='size-5 animate-spin' />
+											Processing...
+										</>
+									) : currentStepNumber === totalSteps ? (
 										<>
 											<Trophy className='size-5' /> Complete!
 										</>
@@ -1054,10 +1219,14 @@ export const CookingPlayer = () => {
 				{showCompletion && (
 					<Portal>
 						<motion.div
+							ref={completionTrapRef}
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
 							className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-md'
+							role='dialog'
+							aria-modal='true'
+							aria-labelledby='completion-title'
 						>
 							<motion.div
 								variants={CELEBRATION_MODAL}
@@ -1083,10 +1252,15 @@ export const CookingPlayer = () => {
 				{showAbandonConfirm && (
 					<Portal>
 						<motion.div
+							ref={abandonTrapRef}
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
 							className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-md'
+							role='alertdialog'
+							aria-modal='true'
+							aria-labelledby='abandon-title'
+							aria-describedby='abandon-description'
 						>
 							<motion.div
 								initial={{ scale: 0.9, opacity: 0 }}
@@ -1097,10 +1271,16 @@ export const CookingPlayer = () => {
 								<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-red-100 dark:bg-red-900/30'>
 									<LogOut className='size-8 text-red-500' />
 								</div>
-								<h3 className='mb-2 text-xl font-bold text-text'>
+								<h3
+									id='abandon-title'
+									className='mb-2 text-xl font-bold text-text'
+								>
 									Abandon Session?
 								</h3>
-								<p className='mb-6 text-text-secondary'>
+								<p
+									id='abandon-description'
+									className='mb-6 text-text-secondary'
+								>
 									You&apos;ll lose all progress on this cooking session. This
 									action cannot be undone.
 								</p>

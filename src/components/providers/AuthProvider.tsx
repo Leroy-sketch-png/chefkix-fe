@@ -57,54 +57,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 	useEffect(() => {
 		// Wait for Zustand to rehydrate from localStorage
 		if (!isHydrated) {
-			console.debug('[AuthProvider] Waiting for hydration...')
 			return
 		}
 
 		const validateSession = async () => {
-			console.log('[AuthProvider] 🔍 Validating session...')
-
 			// If there's no accessToken, we're done loading.
 			if (!accessToken) {
-				console.log('[AuthProvider] ❌ No access token, skipping validation')
 				setLoading(false)
 				setIsSessionValidated(true)
 				return
 			}
-
-			console.log(
-				'[AuthProvider] ⏳ Token exists, waiting for any pending refresh...',
-			)
 
 			// CRITICAL: Wait for any visibility-triggered token refresh to complete
 			// This prevents race conditions where we call getMyProfile() with an expired token
 			// while TokenRefreshProvider is already refreshing it
 			await waitForVisibilityRefresh()
 
-			console.log(
-				'[AuthProvider] ✅ No pending refresh, proceeding with validation',
-			)
-
 			// Token exists - if we don't have user data, fetch it.
 			if (!user) {
-				console.log('[AuthProvider] 📡 Fetching user profile...')
 				const profileResponse = await getMyProfile()
 				if (profileResponse.success && profileResponse.data) {
-					console.log('[AuthProvider] ✅ Profile fetched successfully')
 					setUser(profileResponse.data)
 				} else {
 					// Failed to fetch profile (token invalid/expired), logout
-					console.error('[AuthProvider] ❌ Profile fetch failed, logging out')
+					console.error('[AuthProvider] Profile fetch failed, logging out')
 					logout()
 				}
-			} else {
-				console.log('[AuthProvider] ✅ User already loaded')
 			}
 
 			// We're done loading
 			setLoading(false)
 			setIsSessionValidated(true)
-			console.log('[AuthProvider] ✅ Session validation complete')
 		}
 
 		validateSession()

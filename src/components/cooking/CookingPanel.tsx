@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
@@ -18,6 +19,7 @@ import {
 	ChefHat,
 	Timer,
 	AlertTriangle,
+	Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_TAP } from '@/lib/motion'
@@ -126,6 +128,7 @@ export const CookingPanel = () => {
 
 	// Exit confirmation dialog state
 	const [showExitConfirm, setShowExitConfirm] = useState(false)
+	const [isNavigating, setIsNavigating] = useState(false)
 
 	// Warn before browser exit during active cooking
 	const hasActiveSession =
@@ -151,20 +154,25 @@ export const CookingPanel = () => {
 
 	// Handlers
 	const handleNextStep = useCallback(async () => {
-		if (!recipe) return
-		await completeStep(currentStepNumber)
-		if (currentStepNumber < totalSteps) {
-			await navigateToStep('next')
+		if (!recipe || isNavigating) return
+		setIsNavigating(true)
+		try {
+			await completeStep(currentStepNumber)
+			if (currentStepNumber < totalSteps) {
+				await navigateToStep('next')
 
-			// Auto-start timer for the NEXT step if it has one
-			const nextStepNumber = currentStepNumber + 1
-			const nextStep = recipe.steps?.[nextStepNumber - 1]
-			if (nextStep?.timerSeconds && nextStep.timerSeconds > 0) {
-				// Small delay to ensure state is updated before starting timer
-				setTimeout(() => {
-					startTimer(nextStepNumber)
-				}, 100)
+				// Auto-start timer for the NEXT step if it has one
+				const nextStepNumber = currentStepNumber + 1
+				const nextStep = recipe.steps?.[nextStepNumber - 1]
+				if (nextStep?.timerSeconds && nextStep.timerSeconds > 0) {
+					// Small delay to ensure state is updated before starting timer
+					setTimeout(() => {
+						startTimer(nextStepNumber)
+					}, 100)
+				}
 			}
+		} finally {
+			setIsNavigating(false)
 		}
 	}, [
 		currentStepNumber,
@@ -173,13 +181,19 @@ export const CookingPanel = () => {
 		navigateToStep,
 		recipe,
 		startTimer,
+		isNavigating,
 	])
 
 	const handlePrevStep = useCallback(async () => {
-		if (currentStepNumber > 1) {
-			await navigateToStep('previous')
+		if (currentStepNumber > 1 && !isNavigating) {
+			setIsNavigating(true)
+			try {
+				await navigateToStep('previous')
+			} finally {
+				setIsNavigating(false)
+			}
 		}
-	}, [currentStepNumber, navigateToStep])
+	}, [currentStepNumber, navigateToStep, isNavigating])
 
 	const handleStepClick = useCallback(
 		async (stepNum: number) => {
@@ -304,6 +318,18 @@ export const CookingPanel = () => {
 					{step?.title || `Step ${currentStepNumber}`}
 				</h4>
 
+				{/* Step Image - Critical for visual guidance */}
+				{step?.imageUrl && (
+					<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
+						<Image
+							src={step.imageUrl}
+							alt={step.title || `Step ${currentStepNumber}`}
+							fill
+							className='object-cover'
+						/>
+					</div>
+				)}
+
 				<p className='mb-4 text-sm leading-relaxed text-text-secondary'>
 					{step?.description}
 				</p>
@@ -371,17 +397,26 @@ export const CookingPanel = () => {
 					<div className='flex gap-2'>
 						<button
 							onClick={handlePrevStep}
-							disabled={currentStepNumber <= 1}
+							disabled={currentStepNumber <= 1 || isNavigating}
 							className='grid size-12 place-items-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-all hover:bg-bg-hover disabled:opacity-30'
 						>
 							<ChevronLeft className='size-5' />
 						</button>
 						<motion.button
 							onClick={handleNextStep}
-							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white'
+							disabled={isNavigating}
+							whileTap={isNavigating ? undefined : BUTTON_TAP}
+							className={cn(
+								'flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white transition-opacity',
+								isNavigating && 'cursor-wait opacity-80',
+							)}
 						>
-							{currentStepNumber === totalSteps ? (
+							{isNavigating ? (
+								<>
+									<Loader2 className='size-5 animate-spin' />
+									Processing...
+								</>
+							) : currentStepNumber === totalSteps ? (
 								<>
 									<Check className='size-5' />
 									Finish

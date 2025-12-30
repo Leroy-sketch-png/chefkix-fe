@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
@@ -8,7 +8,16 @@ import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Recipe } from '@/lib/types/recipe'
-import { ArrowLeft, FileText, Clock, Trash2 } from 'lucide-react'
+import { getRecipeById } from '@/services/recipe'
+import {
+	ArrowLeft,
+	FileText,
+	Clock,
+	Trash2,
+	Loader2,
+	Edit3,
+	Sparkles,
+} from 'lucide-react'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -16,6 +25,7 @@ import {
 	CARD_HOVER,
 } from '@/lib/motion'
 import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -51,6 +61,7 @@ export default function CreateRecipePage() {
 	const [selectedDraft, setSelectedDraft] = useState<Recipe | null>(null)
 	const [localDraft, setLocalDraft] = useState<LocalDraft | null>(null)
 	const [showDiscardDialog, setShowDiscardDialog] = useState(false)
+	const [isLoadingDraft, setIsLoadingDraft] = useState(false)
 
 	// Check for local draft on mount
 	useEffect(() => {
@@ -76,11 +87,29 @@ export default function CreateRecipePage() {
 		router.push(`/recipes/${recipeId}`)
 	}
 
-	const handleSelectDraft = (draft: Recipe) => {
-		setSelectedDraft(draft)
-		setLocalDraft(null) // Clear local draft state when using server draft
-		setMode('create')
-	}
+	/**
+	 * Fetch full recipe data when selecting a draft.
+	 * The draft list only returns summary data (no ingredients/steps).
+	 * We need to fetch the full recipe to edit it properly.
+	 */
+	const handleSelectDraft = useCallback(async (draftId: string) => {
+		setIsLoadingDraft(true)
+		try {
+			const response = await getRecipeById(draftId)
+			if (response.success && response.data) {
+				setSelectedDraft(response.data)
+				setLocalDraft(null) // Clear local draft state when using server draft
+				setMode('create')
+			} else {
+				toast.error(response.message || 'Failed to load draft')
+			}
+		} catch (error) {
+			console.error('Failed to load draft:', error)
+			toast.error('Failed to load draft. Please try again.')
+		} finally {
+			setIsLoadingDraft(false)
+		}
+	}, [])
 
 	const handleResumeLocalDraft = () => {
 		setSelectedDraft(null)
@@ -129,12 +158,30 @@ export default function CreateRecipePage() {
 							transition={TRANSITION_SPRING}
 						>
 							{/* Header */}
-							<div className='mb-8'>
-								<h1 className='text-3xl font-bold text-text'>Create Recipe</h1>
-								<p className='mt-1 text-text-muted'>
+							<motion.div
+								initial={{ opacity: 0, y: -20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={TRANSITION_SPRING}
+								className='mb-8'
+							>
+								<div className='mb-2 flex items-center gap-3'>
+									<motion.div
+										initial={{ scale: 0 }}
+										animate={{ scale: 1 }}
+										transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+										className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+									>
+										<Edit3 className='size-6 text-white' />
+									</motion.div>
+									<h1 className='text-3xl font-bold text-text'>
+										Create Recipe
+									</h1>
+								</div>
+								<p className='flex items-center gap-2 text-text-secondary'>
+									<Sparkles className='size-4 text-streak' />
 									Start a new recipe or continue working on a draft
 								</p>
-							</div>
+							</motion.div>
 
 							{/* Local Draft Recovery Card */}
 							{localDraft && (
@@ -197,6 +244,23 @@ export default function CreateRecipePage() {
 								onSelectDraft={handleSelectDraft}
 								onNewRecipe={handleNewRecipe}
 							/>
+
+							{/* Loading overlay when fetching full draft data */}
+							<AnimatePresence>
+								{isLoadingDraft && (
+									<motion.div
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										exit={{ opacity: 0 }}
+										className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
+									>
+										<div className='flex flex-col items-center gap-4 rounded-2xl bg-bg-card p-8 shadow-lg'>
+											<Loader2 className='size-8 animate-spin text-brand' />
+											<p className='font-medium text-text'>Loading draft...</p>
+										</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
 						</motion.div>
 					) : (
 						<motion.div
