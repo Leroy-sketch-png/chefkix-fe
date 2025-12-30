@@ -124,9 +124,9 @@ export interface PaginatedProfilesResponse {
 	data: Profile[]
 	pagination: {
 		totalItems: number
+		itemsPerPage: number
 		totalPages: number
 		currentPage: number
-		size: number
 	}
 }
 
@@ -162,14 +162,19 @@ export const getProfilesPaginated = async (
 				data: pageData.content,
 				pagination: {
 					totalItems: pageData.totalElements,
+					itemsPerPage: pageData.size,
 					totalPages: pageData.totalPages,
 					currentPage: pageData.number,
-					size: pageData.size,
 				},
 			}
 		}
 
-		return response.data as ApiResponse<Profile[]>
+		// Fallback for unexpected response structure
+		return {
+			success: false,
+			message: 'Unexpected response format',
+			statusCode: 500,
+		}
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
 		if (axiosError.response) {

@@ -171,8 +171,15 @@ export default function DashboardPage() {
 					}
 
 					setPosts(feedPosts)
-					// Use pagination info from backend
-					setHasMore(!feedResponse.pagination?.last)
+					// Use pagination info from backend - check if current page is the last
+					if (feedResponse.pagination) {
+						setHasMore(
+							feedResponse.pagination.currentPage <
+								feedResponse.pagination.totalPages - 1,
+						)
+					} else {
+						setHasMore(feedPosts.length >= POSTS_PER_PAGE)
+					}
 				}
 
 				if (pendingResponse.success && pendingResponse.data) {
@@ -207,7 +214,14 @@ export default function DashboardPage() {
 			if (response.success && response.data) {
 				setPosts(prev => [...prev, ...response.data!])
 				setCurrentPage(nextPage)
-				setHasMore(!response.pagination?.last)
+				if (response.pagination) {
+					setHasMore(
+						response.pagination.currentPage <
+							response.pagination.totalPages - 1,
+					)
+				} else {
+					setHasMore(response.data.length >= POSTS_PER_PAGE)
+				}
 			}
 		} catch (err) {
 			console.error('Failed to load more posts:', err)

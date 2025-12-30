@@ -227,12 +227,10 @@ export const getFeedPosts = async (params?: {
 }): Promise<
 	ApiResponse<Post[]> & {
 		pagination?: {
-			totalElements: number
+			totalItems: number
+			itemsPerPage: number
 			totalPages: number
 			currentPage: number
-			size: number
-			first: boolean
-			last: boolean
 		}
 	}
 > => {
@@ -262,16 +260,19 @@ export const getFeedPosts = async (params?: {
 				...response.data,
 				data: pageData.content,
 				pagination: {
-					totalElements: pageData.totalElements,
+					totalItems: pageData.totalElements,
+					itemsPerPage: pageData.size,
 					totalPages: pageData.totalPages,
 					currentPage: pageData.number,
-					size: pageData.size,
-					first: pageData.first,
-					last: pageData.last,
 				},
 			}
 		}
-		return response.data as any
+		// Fallback for unexpected response structure
+		return {
+			success: false,
+			message: 'Unexpected response format',
+			statusCode: 500,
+		}
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) {
