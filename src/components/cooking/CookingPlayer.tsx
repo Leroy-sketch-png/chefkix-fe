@@ -473,6 +473,7 @@ export const CookingPlayer = () => {
 		localTimers,
 		getTimerRemaining,
 		clearAllTimers,
+		clearSession,
 	} = useCookingStore()
 
 	// Warn users before leaving page during active cooking session
@@ -791,6 +792,8 @@ export const CookingPlayer = () => {
 
 				setShowCompletion(false)
 				closeCookingPanel()
+				// Clean up session/recipe from store now that UI is closed
+				clearSession()
 			} finally {
 				setIsCompletingSession(false)
 			}
@@ -798,6 +801,7 @@ export const CookingPlayer = () => {
 		[
 			completeCooking,
 			closeCookingPanel,
+			clearSession,
 			showImmediateRewards,
 			showLevelUp,
 			recipe,
@@ -844,7 +848,9 @@ export const CookingPlayer = () => {
 	}
 
 	// Error state or no session
-	if (error || !session || !recipe) {
+	// CRITICAL: Don't show error modal when we're completing the session
+	// (session becomes null after completeCooking succeeds, but we need to show celebrations)
+	if ((error || !session || !recipe) && !isCompletingSession) {
 		return (
 			<Portal>
 				<AnimatePresence mode='wait'>

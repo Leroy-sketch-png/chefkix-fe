@@ -152,7 +152,9 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 						</InputGroupAddon>
 						<InputGroupInput
 							placeholder='Search by name or username...'
+							value=''
 							disabled
+							readOnly
 						/>
 					</InputGroup>
 				</div>

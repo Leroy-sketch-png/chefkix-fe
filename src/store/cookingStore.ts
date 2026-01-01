@@ -518,12 +518,14 @@ export const useCookingStore = create<CookingState>()(
 							pendingXp: response.data.pendingXp,
 							postDeadline: response.data.postDeadline,
 						})
-						// CRITICAL: Clear session entirely to prevent ghost sessions in localStorage
-						// The completion data is returned to the caller for the rewards modal,
-						// we don't need to keep the session in store after completion
+						// Update session status to completed and clear timers
+						// DON'T clear session/recipe yet — CookingPlayer still needs them for rendering
+						// The UI will call clearSession() after closeCookingPanel()
+						const { session } = get()
 						set({
-							session: null,
-							recipe: null, // Also clear recipe - session is done
+							session: session
+								? { ...session, status: 'completed' as const }
+								: null,
 							localTimers: new Map(), // Kill zombie timers
 							error: null,
 						})
