@@ -54,10 +54,10 @@ export function useChatWebSocket({
 		}
 
 		// Determine WebSocket URL based on environment
-		// Use same base as API but with WebSocket protocol
-		const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8888'
+		// Monolith uses context-path /api/v1, so WebSocket is at /api/v1/ws
+		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
 		const wsBase = apiBase.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}/ws`
+		const wsUrl = `${wsBase}/api/v1/ws`
 
 		const client = new Client({
 			brokerURL: wsUrl,

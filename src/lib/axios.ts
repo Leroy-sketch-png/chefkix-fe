@@ -31,7 +31,7 @@ import {
 // ============================================================================
 
 export const api = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8888',
+	baseURL: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080',
 	headers: {
 		'Content-Type': 'application/json',
 	},
