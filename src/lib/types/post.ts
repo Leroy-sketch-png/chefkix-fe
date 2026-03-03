@@ -1,8 +1,8 @@
 /**
  * Post API Types
- * Based on Post Service API Specification
+ * Based on Social Module API Specification
  *
- * Note: API spec canonical is photoUrls (array), but legacy chefkix-be uses photoUrl (string).
+ * Note: API spec canonical is photoUrls (array), but legacy code uses photoUrl (string).
  * We support both for compatibility.
  */
 
@@ -13,7 +13,7 @@ export interface Post {
 	avatarUrl?: string
 	content: string
 	slug: string
-	photoUrl?: string | null // Legacy chefkix-be: single photo URL
+	photoUrl?: string | null // Legacy: single photo URL
 	photoUrls?: string[] // Canonical spec: array of photo URLs
 	videoUrl: string | null
 	postUrl: string

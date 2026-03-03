@@ -105,7 +105,7 @@ if ($errors -eq 0) {
     Write-Host "   Project is ready for integration testing" -ForegroundColor Green
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan
-    Write-Host "  1. Start backend: cd ../chefkix-be && npm run dev" -ForegroundColor White
+    Write-Host "  1. Start backend: cd ../chefkix-infrastructure && .\dev.bat" -ForegroundColor White
     Write-Host "  2. Start frontend: npm run dev" -ForegroundColor White
     Write-Host "  3. Test critical flows (see SESSION_SUMMARY_2024-11-05.md)" -ForegroundColor White
 } else {

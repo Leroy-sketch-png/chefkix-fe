@@ -195,10 +195,10 @@ function CreatePostContent() {
 				const createdPost = response.data
 				const postId = createdPost.id
 
-				// CRITICAL: Post-service only stores the reference, XP is awarded
-				// by recipe-service via the link-post endpoint.
-				// See PostService.java lines 193-196: "XP is awarded when FE calls
-				// recipe-service's POST /{sessionId}/link-post endpoint."
+				// CRITICAL: Social module only stores the reference, XP is awarded
+				// by culinary module via the link-post endpoint.
+				// See PostService.java: "XP is awarded when FE calls
+				// culinary module's POST /{sessionId}/link-post endpoint."
 				let xpAwarded = 0
 				let badgesEarned: string[] = []
 				if (session?.id && postId) {
@@ -210,7 +210,7 @@ function CreatePostContent() {
 
 						// OPTIMISTIC UPDATE: Store the post with XP in sessionStorage
 						// so dashboard can display it immediately without waiting for
-						// the Kafka consumer to update the Post entity in post-service.
+						// the Kafka consumer to update the Post entity in social module.
 						// This solves the "Two Truths" problem where FE has the XP but
 						// the DB hasn't been updated yet by the async Kafka consumer.
 						const postWithXp = {

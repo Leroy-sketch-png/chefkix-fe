@@ -6,9 +6,9 @@ import { AxiosError } from 'axios'
 /**
  * Profile API Service
  *
- * IMPORTANT: Profile endpoints should NEVER depend on post-service.
+ * IMPORTANT: Profile endpoints should NEVER depend on the social module.
  * We use /profile-only/{userId} which returns ProfileResponse directly
- * without Feign calls to post-service. This prevents cascading failures.
+ * without cross-module post fetching. This prevents cascading failures.
  * Posts are fetched separately via getPostsByUser() which handles errors gracefully.
  */
 
@@ -16,7 +16,7 @@ export const getProfileByUserId = async (
 	userId: string,
 ): Promise<ApiResponse<Profile>> => {
 	try {
-		// Use profile-only endpoint - NO dependency on post-service
+		// Use profile-only endpoint - NO dependency on social module
 		const response = await api.get<ApiResponse<Profile>>(
 			API_ENDPOINTS.PROFILE.GET_PROFILE_ONLY(userId),
 		)
@@ -59,7 +59,7 @@ export const getProfileByUserId = async (
 export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 	try {
 		// BE now returns ProfileResponse directly (no nested structure)
-		// This endpoint has NO dependency on post-service - prevents cascading failures
+		// This endpoint has NO dependency on social module - prevents cascading failures
 		const response = await api.get<ApiResponse<Profile>>(API_ENDPOINTS.AUTH.ME)
 
 		if (response.data?.data) {

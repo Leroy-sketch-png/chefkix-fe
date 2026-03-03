@@ -1,7 +1,7 @@
 /**
- * Chat types - matches chefkix-chat-service response DTOs
+ * Chat types - matches chefkix-monolith identity module chat DTOs
  *
- * BE: org.example.chefkixmessageservice.dto.response.*
+ * BE: com.chefkix.identity.dto.response.*
  * All fields use default camelCase serialization
  */
 

@@ -144,7 +144,7 @@ export default function DashboardPage() {
 
 					// OPTIMISTIC UPDATE: Check for newly created post with XP
 					// This handles the "Two Truths" problem where the FE has the
-					// correct XP from linkPostToSession, but the post-service DB
+					// correct XP from linkPostToSession, but the social module DB
 					// hasn't been updated yet by the Kafka consumer.
 					const newPostJson = sessionStorage.getItem('newPost')
 					if (newPostJson) {

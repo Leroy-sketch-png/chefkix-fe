@@ -103,7 +103,7 @@ export function difficultyToApi(
  * - maxTime → maxTimeMinutes (time filter)
  * - limit → size (pagination)
  *
- * @see RecipeSearchQuery.java in recipe-service
+ * @see RecipeSearchQuery.java in culinary module
  */
 export function toBackendRecipeParams(params?: Record<string, unknown>) {
 	if (!params) return undefined

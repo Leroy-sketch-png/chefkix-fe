@@ -54,7 +54,7 @@ Comprehensive pre-deployment health check that verifies:
    Project is ready for integration testing
 
 Next steps:
-  1. Start backend: cd ../chefkix-be && npm run dev
+  1. Start backend: cd ../chefkix-infrastructure && .\dev.bat
   2. Start frontend: npm run dev
   3. Test critical flows (see SESSION_SUMMARY_2024-11-05.md)
 =================================

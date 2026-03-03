@@ -2,7 +2,7 @@
 
 > **Status**: Audited December 18, 2025
 > **Frontend**: chefkix-fe (Next.js)
-> **Backend**: chefkix-be (Spring Boot + Keycloak)
+> **Backend**: chefkix-monolith (Spring Boot + Keycloak)
 
 ## Quick Reference
 

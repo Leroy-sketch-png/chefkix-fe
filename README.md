@@ -1,8 +1,8 @@
 # Chefkix — AI-Powered Social Cooking Platform
 
-A microservice-based social platform where users share recipes, cook interactively with AI assistance, and progress through a Duolingo-inspired gamification system. Built across **9 repositories**, **7 backend services**, and **3 languages**.
+A modular monolith social platform where users share recipes, cook interactively with AI assistance, and progress through a Duolingo-inspired gamification system. Built with **Spring Boot 3.5.7**, **Next.js 15**, **FastAPI**, and **3 languages**.
 
-> **This README documents the full system.** Individual service repos are linked below.
+> **This README documents the full system.**
 
 ---
 
@@ -14,19 +14,19 @@ A microservice-based social platform where users share recipes, cook interactive
                             │  React 19 · TypeScript    │
                             │  STOMP/WebSocket · Zustand │
                             └────────────┬─────────────┘
-                                         │ HTTPS
+                                         │ HTTP
                                          ▼
                 ┌─────────────────────────────────────────────┐
-                │         Spring Cloud API Gateway            │
-                │     WebFlux · OAuth2 Resource Server        │
-                │            Eureka Client                    │
+                │      Spring Boot Modular Monolith (8080)    │
+                │     context-path: /api/v1                   │
+                │     OAuth2 Resource Server · WebSocket       │
                 └──┬──────┬──────┬──────┬──────┬─────────────┘
                    │      │      │      │      │
          ┌─────────┘  ┌───┘  ┌───┘  ┌───┘  ┌───┘
          ▼            ▼      ▼      ▼      ▼
    ┌──────────┐ ┌────────┐ ┌────┐ ┌────┐ ┌──────────────┐
-   │ Identity │ │ Recipe │ │Post│ │Chat│ │ Notification │
-   │ Service  │ │Service │ │Svc │ │Svc │ │   Service    │
+   │ Identity │ │Culinary│ │Soc │ │Chat│ │ Notification │
+   │ Module   │ │ Module │ │Mod │ │(id)│ │    Module    │
    │          │ │        │ │    │ │    │ │              │
    │ Auth     │ │Recipes │ │Feed│ │WS/ │ │Kafka Consumer│
    │ Profiles │ │Cooking │ │Cmts│ │STOMP│ │Email (Brevo)│
@@ -37,13 +37,13 @@ A microservice-based social platform where users share recipes, cook interactive
         ▼            ▼        ▼      ▼            ▼
    ┌──────────────────────────────────────────────────────┐
    │                  Infrastructure                       │
-   │  MongoDB · Kafka · Keycloak · Eureka · Redis          │
+   │  MongoDB · Kafka · Keycloak · Redis                   │
    └──────────────────────────────────────────────────────┘
                          │
                          ▼
             ┌────────────────────────┐
             │   AI Service (Python)  │
-            │   FastAPI · 7 LLMs    │
+            │   FastAPI · Gemini     │
             │   Moderation · NLP    │
             │   Anti-Cheat · Enrich │
             └────────────────────────┘
@@ -53,15 +53,14 @@ A microservice-based social platform where users share recipes, cook interactive
 
 ## System Boundaries
 
-| Service | Owns | Talks To | Protocol |
-|---------|------|----------|----------|
-| **Identity** | Users, profiles, friendships, social graph, leaderboards | Keycloak, Redis, MongoDB | REST, Feign |
-| **Recipe** | Recipes, cooking sessions, challenges, interactions | AI Service, MongoDB, Cloudinary | REST, Feign |
-| **Post** | Feed posts, comments, likes, saves, reports | MongoDB, Cloudinary | REST |
-| **Chat** | Conversations, messages | MongoDB | WebSocket (STOMP) |
-| **Notification** | Bell notifications, email delivery | Kafka (consumer), Brevo, MongoDB | Kafka, WebSocket |
-| **AI Service** | Recipe NLP, content moderation, anti-cheat, enrichment | 7 LLM providers, Redis | REST |
-| **API Gateway** | Routing, rate limiting, token validation | All services, Eureka, Keycloak | HTTP |
+| Module           | Owns                                                     | Talks To                         | Protocol          |
+| ---------------- | -------------------------------------------------------- | -------------------------------- | ----------------- |
+| **Identity**     | Users, profiles, friendships, social graph, leaderboards | Keycloak, Redis, MongoDB         | SPI (in-process)  |
+| **Culinary**     | Recipes, cooking sessions, challenges, interactions      | AI Service, MongoDB, Cloudinary  | SPI, REST (AI)    |
+| **Social**       | Feed posts, comments, likes, saves, reports              | MongoDB, Cloudinary              | SPI (in-process)  |
+| **Chat**         | Conversations, messages (in identity module)             | MongoDB                          | WebSocket (STOMP) |
+| **Notification** | Bell notifications, email delivery                       | Kafka (consumer), Brevo, MongoDB | Kafka, WebSocket  |
+| **AI Service**   | Recipe NLP, content moderation, anti-cheat, enrichment   | Gemini 2.5, Redis                | REST              |
 
 ---
 
@@ -117,13 +116,13 @@ Rules engine (regex, leet-speak normalization, cooking-context whitelist)
 
 5 rule checks reduce an XP multiplier from 1.0 downward:
 
-| Check | Detection | Example |
-|-------|-----------|---------|
-| Step spam | SequenceMatcher > 0.8 similarity between steps | Copy-pasting "stir" 20 times |
-| Time inflation | Claimed time vs. technique time dictionary (40+ entries) | 3 hours for "chopping" |
-| Fake techniques | Advanced technique without required context | "Sous vide" with no mention of immersion circulator |
-| Difficulty inflation | Expert claim with < 10 steps or < 30 minutes | Claiming "expert" for toast |
-| Ingredient-step mismatch | Steps > 3× ingredients | 30 steps with 2 ingredients |
+| Check                    | Detection                                                | Example                                             |
+| ------------------------ | -------------------------------------------------------- | --------------------------------------------------- |
+| Step spam                | SequenceMatcher > 0.8 similarity between steps           | Copy-pasting "stir" 20 times                        |
+| Time inflation           | Claimed time vs. technique time dictionary (40+ entries) | 3 hours for "chopping"                              |
+| Fake techniques          | Advanced technique without required context              | "Sous vide" with no mention of immersion circulator |
+| Difficulty inflation     | Expert claim with < 10 steps or < 30 minutes             | Claiming "expert" for toast                         |
+| Ingredient-step mismatch | Steps > 3× ingredients                                   | 30 steps with 2 ingredients                         |
 
 If confidence drops below 0.7 or 2+ issues flag → AI escalation for semantic analysis.
 
@@ -131,11 +130,11 @@ If confidence drops below 0.7 or 2+ issues flag → AI escalation for semantic a
 
 ## Design Decisions
 
-**Why 7 separate microservices (not a monolith)?**
-The chat service needs WebSocket persistence. The notification service is a Kafka consumer. The AI service is Python. These have fundamentally different runtime characteristics — a monolith would force the slowest deployment cycle on the fastest-changing service.
+**Why a modular monolith (not microservices)?**
+All Java modules share the same domain (cooking platform) and the same database (MongoDB). Microservices added network hops, distributed tracing complexity, and Eureka/Feign overhead with no real scaling benefit at this stage. The monolith gives us fast cross-module calls via SPI interfaces, a single deployment artifact, and easy local development — while the module boundaries keep the code just as decoupled.
 
-**Why Kafka for notifications (not direct REST)?**
-Notifications are fire-and-forget from the producer's perspective. If the notification service is down, messages queue in Kafka and process when it recovers. The recipe service shouldn't block a user's cooking session because email is slow.
+**Why Kafka inside a monolith?**
+Notifications and XP delivery are fire-and-forget from the producer's perspective. Kafka gives us async decoupling and durability even within the same JVM — if the notification consumer lags, producers aren't blocked. It also makes future extraction to separate services trivial.
 
 **Why 7 LLM providers instead of just one?**
 Every free-tier provider has aggressive rate limits (Gemini: 5 RPM, Cohere: 1000/month). A single provider caps the system at ~5 concurrent AI features. Rotation across 7 gives ~355 RPM aggregate throughput at zero API cost.
@@ -150,33 +149,28 @@ Recipes, posts, and chat messages have deeply nested, variable-shape documents (
 
 ## Tech Stack
 
-| Layer | Technologies |
-|-------|-------------|
-| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS 4, Zustand, Framer Motion |
-| **Backend** | Java 21, Spring Boot 3.3–3.5, Spring Cloud Gateway (WebFlux) |
-| **AI Service** | Python 3.11, FastAPI, Pydantic v2, 7 LLM providers |
-| **Auth** | Keycloak (OAuth2/OIDC), Google social login, JWT |
-| **Messaging** | Apache Kafka |
-| **Database** | MongoDB, Redis |
-| **Real-time** | WebSocket/STOMP (chat), WebSocket (notifications) |
-| **Infrastructure** | Docker Compose (10+ containers), Kubernetes, 7 GitHub Actions CI/CD pipelines |
-| **Observability** | Structlog (JSON), SpringDoc OpenAPI/Swagger |
+| Layer              | Technologies                                                             |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Frontend**       | Next.js 15, React 19, TypeScript, Tailwind CSS 4, Zustand, Framer Motion |
+| **Backend**        | Java 21, Spring Boot 3.5, Modular Monolith (9 Maven modules)             |
+| **AI Service**     | Python 3.11, FastAPI, Pydantic v2, 7 LLM providers                       |
+| **Auth**           | Keycloak (OAuth2/OIDC), Google social login, JWT                         |
+| **Messaging**      | Apache Kafka                                                             |
+| **Database**       | MongoDB, Redis                                                           |
+| **Real-time**      | WebSocket/STOMP (chat), WebSocket (notifications)                        |
+| **Infrastructure** | Docker Compose, Kubernetes                                               |
+| **Observability**  | Structlog (JSON), SpringDoc OpenAPI/Swagger                              |
 
 ---
 
 ## Repositories
 
-| Repo | Role | Language |
-|------|------|----------|
-| **[chefkix-fe](https://github.com/Leroy-sketch-png/chefkix-fe)** | Next.js frontend | TypeScript |
-| [chefkix-be](https://github.com/NotTisn/chefkix-be) | Identity service | Java |
-| [chefkix-recipe-service](https://github.com/NotTisn/chefkix-recipe-service) | Recipe service | Java |
-| [chefkix-post-service](https://github.com/NotTisn/chefkix-post-service) | Post/feed service | Java |
-| [chefkix-chat-service](https://github.com/NotTisn/chefkix-chat-service) | Real-time chat | Java |
-| [chefkix-notification-service](https://github.com/NotTisn/chefkix-notification-service) | Notifications | Java |
-| [chefkix-api-gateway](https://github.com/NotTisn/chefkix-api-gateway) | API Gateway | Java |
-| [chefkix-ai-service](https://github.com/Leroy-sketch-png/chefkix-ai-service) | AI/ML service | Python |
-| [chefkix-infrastructure](https://github.com/NotTisn/chefkix-infrastructure) | Docker/K8s configs | YAML/JS |
+| Repo                                                                         | Role               | Language   |
+| ---------------------------------------------------------------------------- | ------------------ | ---------- |
+| **[chefkix-fe](https://github.com/Leroy-sketch-png/chefkix-fe)**             | Next.js frontend   | TypeScript |
+| [chefkix-monolith](https://github.com/NotTisn/chefkix-monolith)              | Modular monolith   | Java       |
+| [chefkix-ai-service](https://github.com/Leroy-sketch-png/chefkix-ai-service) | AI/ML service      | Python     |
+| [chefkix-infrastructure](https://github.com/NotTisn/chefkix-infrastructure)  | Docker/K8s configs | YAML/JS    |
 
 ---
 
@@ -186,13 +180,10 @@ Recipes, posts, and chat messages have deeply nested, variable-shape documents (
 # 1. Clone infrastructure and start backing services
 git clone https://github.com/NotTisn/chefkix-infrastructure.git
 cd chefkix-infrastructure
-docker-compose up -d    # MongoDB, Kafka, Keycloak, Eureka
+docker-compose -f compose-infra-only.yaml up -d    # MongoDB, Kafka, Keycloak, Redis
 
-# 2. Start each Java service (in separate terminals)
-cd chefkix-api-gateway && mvn spring-boot:run
-cd chefkix-be && mvn spring-boot:run
-cd chefkix-recipe-service && mvn spring-boot:run
-# ... repeat for post, chat, notification services
+# 2. Start monolith
+cd chefkix-monolith && mvnw spring-boot:run -pl application
 
 # 3. Start AI service
 cd chefkix-ai-service && .\run
@@ -201,13 +192,12 @@ cd chefkix-ai-service && .\run
 cd chefkix-fe && npm install && npm run dev
 ```
 
-**Service ports:** Gateway: 8888 | Identity: 8084 | Recipe: 8081 | Post: 8082 | Notification: 8083 | Chat: 8085 | AI: 8000 | Frontend: 3000
+**Service ports:** Monolith: 8080 | AI: 8000 | Frontend: 3000
 
 ---
 
 ## Stats
 
-- **782 commits** across 9 repositories
+- **782+ commits** across 4 repositories
 - **761+ source files** (268 TS/TSX, ~434 Java, 43 Python)
 - **5 months** of development
-- **7 CI/CD pipelines** (GitHub Actions)

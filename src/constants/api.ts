@@ -1,12 +1,10 @@
 export const API_PREFIX = '/api/v1'
 
 const AUTH_PREFIX = `${API_PREFIX}/auth`
-const POST_SERVICE_PREFIX = `${API_PREFIX}/posts` // ← FIXED: Changed from /post to /posts to match Gateway route
+const POST_SERVICE_PREFIX = `${API_PREFIX}/posts`
 const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}` // No extra prefix, comments are under /posts/{postId}/comments
 const POST_REPLIES_BASE = `${API_PREFIX}/posts` // Replies are under /posts/comments/{commentId}/replies
-// Recipe service uses plural 'recipes' to match gateway (StripPrefix=3)
 const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
-// Social endpoints have dedicated gateway route: /api/v1/social/**
 const SOCIAL_PREFIX = `${API_PREFIX}/social`
 
 export const API_ENDPOINTS = {
@@ -118,9 +116,6 @@ export const API_ENDPOINTS = {
 	STATISTICS: {
 		ADD_XP: (userId: string) => `${API_PREFIX}/auth/${userId}/add_xp`,
 	},
-	UPLOAD: {
-		FILE: `${POST_SERVICE_PREFIX}/api/upload`, // Returns plain text URL, not JSON
-	},
 	// Cooking Sessions per spec (08-cooking-sessions.txt)
 	COOKING_SESSIONS: {
 		BASE: `${API_PREFIX}/cooking-sessions`,
@@ -165,8 +160,7 @@ export const API_ENDPOINTS = {
 		COOKING_ASSISTANT: `${API_PREFIX}/cooking_assistant`,
 		MODERATE: `${API_PREFIX}/moderate`,
 	},
-	// Leaderboard per spec (03-social.txt)
-	// Gateway route: /api/v1/auth/** → identity service
+	// Leaderboard (identity module)
 	LEADERBOARD: {
 		GET: `${AUTH_PREFIX}/leaderboard`,
 		MY_RANK: `${AUTH_PREFIX}/leaderboard/my-rank`,
@@ -176,8 +170,7 @@ export const API_ENDPOINTS = {
 	CREATOR: {
 		STATS: `${AUTH_PREFIX}/me/creator-stats`,
 	},
-	// Notifications per spec (10-notifications.txt)
-	// Gateway route: /api/v1/notification/** (singular)
+	// Notifications (notification module)
 	NOTIFICATIONS: {
 		GET: `${API_PREFIX}/notification`,
 		UNREAD_COUNT: `${API_PREFIX}/notification/unread-count`,
@@ -189,8 +182,7 @@ export const API_ENDPOINTS = {
 		UNREGISTER_DEVICE: (token: string) =>
 			`${API_PREFIX}/notification/devices/${token}`,
 	},
-	// User Settings per spec (16-settings-preferences.txt)
-	// Gateway route: /api/v1/auth/** → identity service
+	// User Settings (identity module)
 	SETTINGS: {
 		GET_ALL: `${AUTH_PREFIX}/settings`,
 		PRIVACY: `${AUTH_PREFIX}/settings/privacy`,

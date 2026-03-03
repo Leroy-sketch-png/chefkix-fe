@@ -1,6 +1,6 @@
 /**
  * Settings service for user preferences management
- * @see chefkix-be/src/main/java/com/chefkix/controller/SettingsController.java
+ * @see chefkix-monolith/identity/src/main/java/com/chefkix/identity/controller/SettingsController.java
  * @see vision_and_spec/16-settings-preferences.txt
  */
 

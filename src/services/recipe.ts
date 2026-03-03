@@ -68,8 +68,8 @@ export interface PublishResponse {
 }
 
 /**
- * Pagination metadata from recipe-service (different from post-service)
- * Recipe service uses ApiResponse.successPage() which adds this structure
+ * Pagination metadata from culinary module
+ * Uses ApiResponse.successPage() which adds this structure
  */
 export interface RecipePaginationMeta {
 	totalItems: number

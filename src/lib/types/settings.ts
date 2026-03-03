@@ -1,6 +1,6 @@
 /**
  * Settings types - matches BE UserSettings entity
- * @see chefkix-be/src/main/java/com/chefkix/entity/UserSettings.java
+ * @see chefkix-monolith/identity/src/main/java/com/chefkix/identity/entity/UserSettings.java
  * @see vision_and_spec/16-settings-preferences.txt
  */
 
