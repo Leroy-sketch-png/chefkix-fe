@@ -2,12 +2,14 @@ import { api } from '@/lib/axios'
 import {
 	signIn,
 	signUp,
+	resendOtp,
 	sendOtp,
 	verifyOtp,
 	forgotPassword,
 	verifyOtpPassword,
 	changePassword,
 } from '@/services/auth'
+import { API_ENDPOINTS } from '@/constants'
 import { LoginSuccessResponse } from '@/lib/types'
 
 // Mock the entire axios module to avoid real network calls
@@ -157,12 +159,12 @@ describe('signUp', () => {
 	})
 })
 
-describe('sendOtp', () => {
+describe('resendOtp', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
 	})
 
-	it('should successfully send an OTP', async () => {
+	it('should successfully resend an OTP using the backend query-param contract', async () => {
 		// Arrange
 		const otpRequest = { email: 'test@example.com' }
 		const mockApiResponse = {
@@ -176,15 +178,14 @@ describe('sendOtp', () => {
 		mockedApi.post.mockResolvedValue(mockApiResponse)
 
 		// Act
-		const response = await sendOtp(otpRequest)
+		const response = await resendOtp(otpRequest)
 
 		// Assert
 		expect(response.success).toBe(true)
 		expect(response.statusCode).toBe(200)
 		expect(response.message).toBe('OTP sent successfully.')
 		expect(mockedApi.post).toHaveBeenCalledWith(
-			'/api/v1/auth/send-otp',
-			otpRequest,
+			`${API_ENDPOINTS.AUTH.RESEND_OTP}?email=${encodeURIComponent(otpRequest.email)}`,
 		)
 	})
 
@@ -203,12 +204,38 @@ describe('sendOtp', () => {
 		mockedApi.post.mockRejectedValue(mockErrorResponse)
 
 		// Act
-		const response = await sendOtp(otpRequest)
+		const response = await resendOtp(otpRequest)
 
 		// Assert
 		expect(response.success).toBe(false)
 		expect(response.statusCode).toBe(404)
 		expect(response.message).toBe('User not found')
+	})
+})
+
+describe('sendOtp', () => {
+	beforeEach(() => {
+		jest.clearAllMocks()
+	})
+
+	it('should remain a backward-compatible alias of resendOtp', async () => {
+		const otpRequest = { email: 'test@example.com' }
+		const mockApiResponse = {
+			data: {
+				success: true,
+				statusCode: 200,
+				message: 'OTP sent successfully.',
+				data: 'OTP has been sent to your email.',
+			},
+		}
+		mockedApi.post.mockResolvedValue(mockApiResponse)
+
+		const response = await sendOtp(otpRequest)
+
+		expect(response.success).toBe(true)
+		expect(mockedApi.post).toHaveBeenCalledWith(
+			`${API_ENDPOINTS.AUTH.RESEND_OTP}?email=${encodeURIComponent(otpRequest.email)}`,
+		)
 	})
 })
 
