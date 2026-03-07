@@ -342,21 +342,18 @@ export default function SearchPage() {
 			setIsLoading(true)
 			try {
 				// Fetch all result types in parallel
-				// TODO: Replace with actual search endpoints when available
+				// Recipes use server-side search; profiles and posts still client-side filtered
 				const [recipesRes, profilesRes, postsRes] = await Promise.all([
-					getAllRecipes(), // TODO: Add search param when endpoint supports
+					getAllRecipes({ search: query }),
 					getAllProfiles(),
 					getFeedPosts({ limit: 20 }),
 				])
 
-				// Filter results client-side for now (until search endpoint exists)
 				const queryLower = query.toLowerCase()
 
 				const recipes =
 					recipesRes.success && recipesRes.data
-						? recipesRes.data
-								.filter(r => r.title.toLowerCase().includes(queryLower))
-								.map(transformRecipe)
+						? recipesRes.data.map(transformRecipe)
 						: []
 
 				const people =

@@ -300,6 +300,31 @@ export default function RecipeDetailPage() {
 		}
 	}
 
+	const [isCreatingRoom, setIsCreatingRoom] = useState(false)
+
+	const handleCookTogether = async () => {
+		if (isCreatingRoom || !recipeId) return
+		setIsCreatingRoom(true)
+		try {
+			const { createRoom } = useCookingStore.getState()
+			const roomCode = await createRoom(recipeId)
+			if (roomCode) {
+				toast.success(`Room created! Code: ${roomCode}`, {
+					description: 'Share this code with friends to cook together',
+					duration: 8000,
+				})
+				router.push('/cook-together')
+			} else {
+				const errorMsg = useCookingStore.getState().error
+				toast.error(errorMsg || 'Failed to create room')
+			}
+		} catch {
+			toast.error('Failed to create room')
+		} finally {
+			setIsCreatingRoom(false)
+		}
+	}
+
 	// Keyboard shortcuts: Enter=cook, S=save, L=like, Esc=back
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -682,6 +707,21 @@ export default function RecipeDetailPage() {
 										Start Cooking
 									</>
 								)}
+							</motion.button>
+							<motion.button
+								onClick={handleCookTogether}
+								disabled={isCreatingRoom || hasOtherSession}
+								whileHover={BUTTON_HOVER}
+								whileTap={BUTTON_TAP}
+								title='Create a room and cook together with friends'
+								className='flex items-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-5 py-4 font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50'
+							>
+								{isCreatingRoom ? (
+									<Loader2 className='size-5 animate-spin' />
+								) : (
+									<Users className='size-5' />
+								)}
+								<span className='hidden sm:inline'>Cook Together</span>
 							</motion.button>
 							<motion.button
 								onClick={handleLike}

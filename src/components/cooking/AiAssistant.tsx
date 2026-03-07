@@ -381,9 +381,8 @@ export const AiAssistant = ({
 		handleSend(action.prompt)
 	}
 
-	const handleFeedback = (messageId: string, helpful: boolean) => {
-		// In production, send feedback to API
-		console.log('Feedback:', { messageId, helpful })
+	const handleFeedback = (_messageId: string, _helpful: boolean) => {
+		// TODO: Send feedback to API when endpoint is available
 	}
 
 	const toggleVoice = () => {

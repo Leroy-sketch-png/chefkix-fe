@@ -467,17 +467,43 @@ export default function ExplorePage() {
 			setError(null)
 
 			try {
+				// Build server-side filter params — BE supports all these via RecipeSearchQuery
+				const filterParams: Record<string, unknown> = {
+					page: 0,
+					size: RECIPES_PER_PAGE,
+					search: debouncedSearch || undefined,
+				}
+
+				// Map display difficulty names to API values (easy→Beginner, etc.)
+				if (filters.difficulty.length > 0) {
+					const apiDifficulty = filters.difficulty
+						.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
+						.find(Boolean)
+					if (apiDifficulty) filterParams.difficulty = apiDifficulty
+				}
+
+				// Cuisine type — BE expects single string
+				if (filters.cuisine.length > 0) {
+					filterParams.cuisineType = filters.cuisine[0]
+				}
+
+				// Dietary tags — BE expects List<String> via repeated query params
+				if (filters.dietary.length > 0) {
+					filterParams.dietaryTags = filters.dietary
+				}
+
+				// Cooking time — only send when user has restricted below default max
+				if (filters.cookingTimeMax < 120) {
+					filterParams.maxTime = filters.cookingTimeMax
+				}
+
 				const response =
 					viewMode === 'trending'
 						? await getTrendingRecipes({
 								page: 0,
 								size: RECIPES_PER_PAGE,
 							})
-						: await getAllRecipes({
-								page: 0,
-								size: RECIPES_PER_PAGE,
-								search: debouncedSearch || undefined,
-							})
+						: await getAllRecipes(filterParams)
 
 				if (response.success && response.data) {
 					let allRecipes = response.data
@@ -506,54 +532,14 @@ export default function ExplorePage() {
 					})
 					setSavedRecipes(saved)
 
-					// Apply client-side filters
-					let filtered = allRecipes
-
-					// Filter by dietary restrictions
-					if (filters.dietary.length > 0) {
-						filtered = filtered.filter(recipe =>
-							filters.dietary.some(diet =>
-								recipe.dietaryTags?.some(tag =>
-									tag.toLowerCase().includes(diet.toLowerCase()),
-								),
-							),
-						)
-					}
-
-					// Filter by cuisine
-					if (filters.cuisine.length > 0) {
-						filtered = filtered.filter(recipe =>
-							filters.cuisine.some(cuisine =>
-								recipe.cuisineType
-									?.toLowerCase()
-									.includes(cuisine.toLowerCase()),
-							),
-						)
-					}
-
-					// Filter by difficulty
-					if (filters.difficulty.length > 0) {
-						const apiDifficulties = filters.difficulty.map(
-							d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d,
-						)
-						filtered = filtered.filter(recipe =>
-							apiDifficulties.includes(recipe.difficulty),
-						)
-					}
-
-					// Filter by cooking time
-					filtered = filtered.filter(
-						recipe => getTotalTime(recipe) <= filters.cookingTimeMax,
-					)
-
-					setRecipes(filtered)
+					setRecipes(allRecipes)
 					// Use pagination metadata from backend
 					const pagination = response.pagination
 					if (pagination) {
 						setTotalCount(pagination.totalItems)
 						setHasMore(pagination.currentPage < pagination.totalPages)
 					} else {
-						setTotalCount(filtered.length)
+						setTotalCount(allRecipes.length)
 						setHasMore(response.data.length >= RECIPES_PER_PAGE)
 					}
 				}
@@ -595,20 +581,39 @@ export default function ExplorePage() {
 		const nextPage = page // page state is already 1-based, backend expects 0-based
 
 		try {
+			// Build same server-side filter params as fetchRecipes
+			const filterParams: Record<string, unknown> = {
+				page: nextPage,
+				size: RECIPES_PER_PAGE,
+				search: debouncedSearch || undefined,
+			}
+
+			if (filters.difficulty.length > 0) {
+				const apiDifficulty = filters.difficulty
+					.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
+					.find(Boolean)
+				if (apiDifficulty) filterParams.difficulty = apiDifficulty
+			}
+			if (filters.cuisine.length > 0) {
+				filterParams.cuisineType = filters.cuisine[0]
+			}
+			if (filters.dietary.length > 0) {
+				filterParams.dietaryTags = filters.dietary
+			}
+			if (filters.cookingTimeMax < 120) {
+				filterParams.maxTime = filters.cookingTimeMax
+			}
+
 			const response =
 				viewMode === 'trending'
 					? await getTrendingRecipes({
 							page: nextPage,
 							size: RECIPES_PER_PAGE,
 						})
-					: await getAllRecipes({
-							page: nextPage,
-							size: RECIPES_PER_PAGE,
-							search: debouncedSearch || undefined,
-						})
+					: await getAllRecipes(filterParams)
 
 			if (response.success && response.data) {
-				let newRecipes = response.data
+				const newRecipes = response.data
 
 				// Update saved recipes set
 				response.data.forEach(recipe => {
@@ -617,36 +622,7 @@ export default function ExplorePage() {
 					}
 				})
 
-				// Apply client-side filters to new recipes
-				if (filters.dietary.length > 0) {
-					newRecipes = newRecipes.filter(recipe =>
-						filters.dietary.some(diet =>
-							recipe.dietaryTags?.some(tag =>
-								tag.toLowerCase().includes(diet.toLowerCase()),
-							),
-						),
-					)
-				}
-				if (filters.cuisine.length > 0) {
-					newRecipes = newRecipes.filter(recipe =>
-						filters.cuisine.some(cuisine =>
-							recipe.cuisineType?.toLowerCase().includes(cuisine.toLowerCase()),
-						),
-					)
-				}
-				if (filters.difficulty.length > 0) {
-					const apiDifficulties = filters.difficulty.map(
-						d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d,
-					)
-					newRecipes = newRecipes.filter(recipe =>
-						apiDifficulties.includes(recipe.difficulty),
-					)
-				}
-				newRecipes = newRecipes.filter(
-					recipe => getTotalTime(recipe) <= filters.cookingTimeMax,
-				)
-
-				// Append to existing recipes
+				// Append to existing recipes (already filtered server-side)
 				setRecipes(prev => [...prev, ...newRecipes])
 				setPage(nextPage + 1)
 

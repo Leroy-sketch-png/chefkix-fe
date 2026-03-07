@@ -177,24 +177,10 @@ export const sharePostToConversation = async (
 			type: 'POST_SHARE',
 		}
 
-		console.log('[SharePost] Sending POST_SHARE request:', {
-			conversationId: payload.conversationId,
-			postId: payload.relatedId,
-			hasCustomMessage: !!payload.message,
-		})
-
 		const response = await api.post<ApiResponse<ChatMessage>>(
 			`${API_BASE}/messages/create`,
 			payload,
 		)
-
-		if (response.data.success && response.data.data) {
-			console.log('[SharePost] Backend cached snapshot:', {
-				hasImage: !!response.data.data.sharedPostImage,
-				hasTitle: !!response.data.data.sharedPostTitle,
-				messagePreview: response.data.data.message.substring(0, 50),
-			})
-		}
 
 		return response.data
 	} catch (error) {

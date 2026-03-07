@@ -12,3 +12,4 @@ export {
 	type RecipeSummary,
 } from './PauseFlow'
 export { ResumeCookingBanner } from './ResumeCookingBanner'
+export { RoomParticipantsBar } from './RoomParticipantsBar'

@@ -5,6 +5,8 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
+import { useAuthStore } from '@/store/authStore'
+import { RoomParticipantsBar } from './RoomParticipantsBar'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
@@ -405,6 +407,10 @@ export const CookingPlayer = () => {
 		toggleIngredient,
 		isPreviewMode,
 		exitPreview,
+		// Co-cooking room state
+		roomCode,
+		participants,
+		isInRoom,
 	} = useCookingStore()
 
 	// Warn users before leaving page during active cooking session (skip in preview)
@@ -970,6 +976,16 @@ export const CookingPlayer = () => {
 											<BarChart2 className='size-4' /> {recipe.difficulty}
 										</span>
 									</div>
+
+									{/* Co-cooking participants */}
+									{isInRoom && roomCode && (
+										<RoomParticipantsBar
+											participants={participants}
+											roomCode={roomCode}
+											currentUserId={useAuthStore.getState().user?.userId}
+											totalSteps={totalSteps}
+										/>
+									)}
 								</div>
 							</div>
 
