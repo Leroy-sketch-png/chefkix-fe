@@ -1,7 +1,15 @@
 #!/usr/bin/env sh
 
-# Run linting
-npm run lint
+# Run linting first
+npm run lint || exit 1
 
-# Run formatting and automatically stage changes
-npm run format && git add -u
+# Format only staged files so commits stay atomic.
+# `prettier --write .` + `git add -u` can silently widen a commit.
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ -z "$staged_files" ]; then
+	exit 0
+fi
+
+git diff --cached --name-only --diff-filter=ACMR -z | xargs -0 npx prettier --write --ignore-unknown || exit 1
+git diff --cached --name-only --diff-filter=ACMR -z | xargs -0 git add --

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
@@ -33,19 +33,17 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { SessionRatingForm } from './SessionRatingForm'
+import { IngredientCheck } from './IngredientCheck'
 import {
 	TRANSITION_SPRING,
-	TRANSITION_BOUNCY,
 	BUTTON_HOVER,
 	BUTTON_TAP,
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 	TIMER_URGENT,
-	GLOW_PULSE,
 	OVERLAY_BACKDROP,
 	CELEBRATION_MODAL,
 } from '@/lib/motion'
-import type { Step, Ingredient } from '@/lib/types/recipe'
 
 // ============================================
 // ANIMATION VARIANTS
@@ -84,23 +82,6 @@ const stepVariants = {
 		opacity: 0,
 		scale: 0.9,
 		transition: { duration: 0.2 },
-	}),
-}
-
-const checkmarkVariants = {
-	unchecked: { scale: 1, pathLength: 0 },
-	checked: {
-		scale: [1, 1.2, 1],
-		pathLength: 1,
-		transition: { duration: 0.3, ease: 'easeOut' },
-	},
-}
-
-const progressVariants = {
-	initial: { scaleX: 0, originX: 0 },
-	animate: (progress: number) => ({
-		scaleX: progress / 100,
-		transition: { type: 'spring', stiffness: 100, damping: 20 },
 	}),
 }
 
@@ -311,60 +292,6 @@ const StepTimer = ({
 }
 
 // Animated Ingredient Checkbox
-const IngredientCheck = ({
-	ingredient,
-	isChecked,
-	onToggle,
-	index,
-}: {
-	ingredient: { name: string; quantity: string; unit: string }
-	isChecked: boolean
-	onToggle: () => void
-	index: number
-}) => (
-	<motion.label
-		initial={{ opacity: 0, x: -20 }}
-		animate={{ opacity: 1, x: 0 }}
-		transition={{ delay: index * 0.05, ...TRANSITION_SPRING }}
-		onClick={onToggle}
-		className={cn(
-			'flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all',
-			isChecked
-				? 'bg-success/10 text-success line-through opacity-60'
-				: 'bg-bg-elevated hover:bg-bg-hover',
-		)}
-	>
-		{/* Custom checkbox */}
-		<motion.div
-			animate={{
-				backgroundColor: isChecked ? 'var(--color-success)' : 'transparent',
-				borderColor: isChecked
-					? 'var(--color-success)'
-					: 'var(--border-medium)',
-			}}
-			className='grid size-6 flex-shrink-0 place-items-center rounded-lg border-2'
-		>
-			<AnimatePresence>
-				{isChecked && (
-					<motion.div
-						initial={{ scale: 0, opacity: 0 }}
-						animate={{ scale: 1, opacity: 1 }}
-						exit={{ scale: 0, opacity: 0 }}
-						transition={TRANSITION_BOUNCY}
-					>
-						<Check className='size-4 text-white' />
-					</motion.div>
-				)}
-			</AnimatePresence>
-		</motion.div>
-
-		<span className='flex-1 text-sm font-medium'>
-			{ingredient.quantity} {ingredient.unit} {ingredient.name}
-		</span>
-	</motion.label>
-)
-
-// XP Preview Badge
 const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 	<motion.div
 		initial={{ scale: 0.8, opacity: 0 }}
@@ -474,10 +401,15 @@ export const CookingPlayer = () => {
 		getTimerRemaining,
 		clearAllTimers,
 		clearSession,
+		checkedIngredients,
+		toggleIngredient,
+		isPreviewMode,
+		exitPreview,
 	} = useCookingStore()
 
-	// Warn users before leaving page during active cooking session
-	const hasActiveSession = session?.status === 'in_progress' && isOpen
+	// Warn users before leaving page during active cooking session (skip in preview)
+	const hasActiveSession =
+		session?.status === 'in_progress' && isOpen && !isPreviewMode
 	useBeforeUnloadWarning(
 		hasActiveSession,
 		'You have an active cooking session. Progress will be saved but timers will reset.',
@@ -485,9 +417,6 @@ export const CookingPlayer = () => {
 
 	// Local UI state
 	const [direction, setDirection] = useState(0) // -1 = back, 1 = forward
-	const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(
-		new Set(),
-	)
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
 	const [isNavigating, setIsNavigating] = useState(false)
@@ -560,9 +489,20 @@ export const CookingPlayer = () => {
 				}
 			} else {
 				// Session complete!
-				diag.modal('cooking', 'COMPLETION_MODAL', true, 'all_steps_done')
 				// CRITICAL: Clear all timers immediately to prevent zombie timer ticks
 				clearAllTimers()
+
+				if (isPreviewMode) {
+					// Preview: skip rating form entirely — just show feedback and exit
+					toast.success('Preview complete! Your recipe looks great.', {
+						icon: '🎬',
+					})
+					exitPreview()
+					closeCookingPanel()
+					return
+				}
+
+				diag.modal('cooking', 'COMPLETION_MODAL', true, 'all_steps_done')
 				setShowCompletion(true)
 			}
 		} finally {
@@ -579,6 +519,9 @@ export const CookingPlayer = () => {
 		showCompletion,
 		clearAllTimers,
 		isNavigating,
+		isPreviewMode,
+		exitPreview,
+		closeCookingPanel,
 	])
 
 	const handlePrevStep = useCallback(async () => {
@@ -662,23 +605,6 @@ export const CookingPlayer = () => {
 		showAbandonConfirm,
 	])
 
-	// Reset checked ingredients when step changes
-	useEffect(() => {
-		setCheckedIngredients(new Set())
-	}, [currentStepNumber])
-
-	const toggleIngredient = useCallback((id: string) => {
-		setCheckedIngredients(prev => {
-			const next = new Set(prev)
-			if (next.has(id)) {
-				next.delete(id)
-			} else {
-				next.add(id)
-			}
-			return next
-		})
-	}, [])
-
 	const handleTimerToggle = useCallback(() => {
 		if (!step?.timerSeconds) return
 
@@ -711,6 +637,15 @@ export const CookingPlayer = () => {
 
 	const handleComplete = useCallback(
 		async (rating: number, notes?: string) => {
+			// Preview mode — no real completion, just close
+			if (isPreviewMode) {
+				toast.success('Preview complete! Your recipe looks great.')
+				exitPreview()
+				closeCookingPanel()
+				setShowCompletion(false)
+				return
+			}
+
 			// Guard against double-completion
 			if (isCompletingSession || session?.status === 'completed') {
 				diag.warn('cooking', 'COMPLETE_DOUBLE_CLICK_BLOCKED', {
@@ -807,11 +742,19 @@ export const CookingPlayer = () => {
 			recipe,
 			session,
 			isCompletingSession,
+			isPreviewMode,
+			exitPreview,
 			totalSteps,
 		],
 	)
 
 	const handleAbandon = useCallback(async () => {
+		if (isPreviewMode) {
+			exitPreview()
+			closeCookingPanel()
+			setShowAbandonConfirm(false)
+			return
+		}
 		diag.action('cooking', 'ABANDON_CONFIRMED', {
 			sessionId: session?.sessionId,
 			currentStep: currentStepNumber,
@@ -820,7 +763,14 @@ export const CookingPlayer = () => {
 		setShowAbandonConfirm(false)
 		await abandonCooking()
 		closeCookingPanel()
-	}, [abandonCooking, closeCookingPanel, session, currentStepNumber])
+	}, [
+		abandonCooking,
+		closeCookingPanel,
+		session,
+		currentStepNumber,
+		isPreviewMode,
+		exitPreview,
+	])
 
 	if (!isOpen) return null
 
@@ -915,6 +865,19 @@ export const CookingPlayer = () => {
 							exit='exit'
 							className='flex h-full max-h-modal w-full max-w-modal-2xl flex-col overflow-hidden rounded-3xl bg-bg-card shadow-2xl'
 						>
+							{/* Preview Mode Banner */}
+							{isPreviewMode && (
+								<div className='flex items-center justify-center gap-2 bg-amber-50 px-4 py-1.5 text-sm dark:bg-amber-950/40'>
+									<Sparkles className='size-3.5 text-amber-600 dark:text-amber-400' />
+									<span className='font-medium text-amber-700 dark:text-amber-300'>
+										Preview Mode
+									</span>
+									<span className='text-amber-600/70 dark:text-amber-400/60'>
+										— experiencing your recipe as a cook
+									</span>
+								</div>
+							)}
+
 							{/* Header */}
 							<div className='relative overflow-hidden bg-gradient-hero p-6 text-white'>
 								{/* Animated background shimmer - pointer-events-none to not block buttons */}
@@ -977,11 +940,13 @@ export const CookingPlayer = () => {
 									</motion.button>
 								</div>
 
-								{/* XP Badge */}
-								<XpPreview
-									xp={recipe.xpReward ?? 0}
-									className='absolute right-4 bottom-4'
-								/>
+								{/* XP Badge (hidden in preview — no real XP) */}
+								{!isPreviewMode && (
+									<XpPreview
+										xp={recipe.xpReward ?? 0}
+										className='absolute right-4 bottom-4'
+									/>
+								)}
 
 								{/* Recipe Info */}
 								<div className='relative z-10 pt-8 text-center'>
@@ -1128,7 +1093,7 @@ export const CookingPlayer = () => {
 													</h4>
 													<div className='flex flex-col gap-2'>
 														{step.ingredients.map((ing, idx) => {
-															const id = `${currentStepNumber}-${ing.name}`
+															const id = `${currentStepNumber}-${idx}`
 															return (
 																<IngredientCheck
 																	key={id}
@@ -1137,7 +1102,7 @@ export const CookingPlayer = () => {
 																		quantity: ing.quantity ?? '',
 																		unit: ing.unit ?? '',
 																	}}
-																	isChecked={checkedIngredients.has(id)}
+																	isChecked={!!checkedIngredients[id]}
 																	onToggle={() => toggleIngredient(id)}
 																	index={idx}
 																/>

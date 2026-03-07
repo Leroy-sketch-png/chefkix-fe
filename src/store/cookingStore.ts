@@ -31,6 +31,14 @@ interface CookingState {
 	isLoading: boolean
 	error: string | null
 
+	// Preview mode — allows creators to test-play recipes without backend session
+	// NOT persisted to localStorage (defaults to false on rehydrate)
+	isPreviewMode: boolean
+
+	// Ingredient checklist state — persisted to localStorage across step changes and minimize
+	// Key format: "${stepNumber}-${ingredientIndex}" (index, NOT name — avoids collision)
+	checkedIngredients: Record<string, boolean>
+
 	// Local timer state (UI-managed, synced on events)
 	// startedAt: original start time, initialDuration: total seconds
 	// remaining is calculated as: initialDuration - elapsed
@@ -60,6 +68,14 @@ interface CookingState {
 	clearSession: () => void
 	clearAllTimers: () => void
 
+	// Preview mode
+	startPreviewCooking: (recipe: Recipe) => void
+	exitPreview: () => void
+
+	// Ingredient checklist
+	toggleIngredient: (id: string) => void
+	clearCheckedIngredients: () => void
+
 	// Timer management
 	tickTimers: () => void
 	getTimerRemaining: (stepNumber: number) => number | null
@@ -76,7 +92,9 @@ export const useCookingStore = create<CookingState>()(
 			recipe: null,
 			isLoading: false,
 			error: null,
+			isPreviewMode: false,
 			localTimers: new Map(),
+			checkedIngredients: {},
 
 			startCooking: async (recipeId: string) => {
 				diag.action('cooking', 'START_COOKING clicked', { recipeId })
@@ -203,6 +221,13 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			resumeExistingSession: async () => {
+				// Skip resume if current session is a preview (sessionId: 'preview')
+				const currentSession = get().session
+				if (currentSession?.sessionId === 'preview') {
+					set({ isPreviewMode: false, session: null, recipe: null })
+					return false
+				}
+
 				diag.action('cooking', 'RESUME_SESSION called', {})
 				set({ isLoading: true, error: null })
 
@@ -359,8 +384,20 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			navigateToStep: async (direction, stepNumber) => {
-				const { session } = get()
+				const { session, isPreviewMode } = get()
 				if (!session) return
+
+				if (isPreviewMode) {
+					// Pure state computation — no API call
+					const totalSteps = session.totalSteps || 0
+					let newStep = session.currentStep
+					if (direction === 'next' && newStep < totalSteps) newStep++
+					else if (direction === 'previous' && newStep > 1) newStep--
+					else if (direction === 'goto' && stepNumber)
+						newStep = Math.max(1, Math.min(stepNumber, totalSteps))
+					set({ session: { ...session, currentStep: newStep } })
+					return
+				}
 
 				try {
 					const response = await apiNavigateStep(
@@ -379,8 +416,21 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			completeStep: async (stepNumber: number) => {
-				const { session } = get()
+				const { session, isPreviewMode } = get()
 				if (!session) return
+
+				if (isPreviewMode) {
+					// Pure state — toggle step in completedSteps
+					const completed = new Set(session.completedSteps)
+					completed.add(stepNumber)
+					set({
+						session: {
+							...session,
+							completedSteps: Array.from(completed),
+						},
+					})
+					return
+				}
 
 				try {
 					const response = await apiCompleteStep(session.sessionId, stepNumber)
@@ -398,12 +448,24 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			startTimer: async (stepNumber: number) => {
-				const { session, recipe, localTimers } = get()
+				const { session, recipe, localTimers, isPreviewMode } = get()
 				if (!session || !recipe) return
 
 				// Find timer duration from recipe step
 				const step = recipe.steps?.find(s => s.stepNumber === stepNumber)
 				const timerSeconds = step?.timerSeconds || 60
+
+				if (isPreviewMode) {
+					// Start local timer without API event
+					const newTimers = new Map(localTimers)
+					newTimers.set(stepNumber, {
+						initialDuration: timerSeconds,
+						startedAt: Date.now(),
+						remaining: timerSeconds,
+					})
+					set({ localTimers: newTimers })
+					return
+				}
 
 				try {
 					await apiLogTimerEvent(session.sessionId, stepNumber, 'start')
@@ -422,8 +484,16 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			skipTimer: async (stepNumber: number) => {
-				const { session, localTimers } = get()
+				const { session, localTimers, isPreviewMode } = get()
 				if (!session) return
+
+				if (isPreviewMode) {
+					// Remove local timer without API event
+					const newTimers = new Map(localTimers)
+					newTimers.delete(stepNumber)
+					set({ localTimers: newTimers })
+					return
+				}
 
 				try {
 					await apiLogTimerEvent(session.sessionId, stepNumber, 'skip')
@@ -438,8 +508,13 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			pauseCooking: async () => {
-				const { session } = get()
+				const { session, isPreviewMode } = get()
 				if (!session) return
+
+				if (isPreviewMode) {
+					set({ session: { ...session, status: 'paused' } })
+					return
+				}
 
 				try {
 					const response = await apiPauseSession(session.sessionId)
@@ -458,8 +533,15 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			resumeCooking: async () => {
-				const { session } = get()
+				const { session, isPreviewMode } = get()
 				if (!session) return
+
+				if (isPreviewMode) {
+					set({
+						session: { ...session, status: 'in_progress', pausedAt: undefined },
+					})
+					return
+				}
 
 				diag.action('cooking', 'RESUME_COOKING clicked', {
 					sessionId: session.sessionId,
@@ -488,7 +570,21 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			completeCooking: async (rating: number, notes?: string) => {
-				const { session } = get()
+				const { session, isPreviewMode } = get()
+
+				if (isPreviewMode) {
+					// Preview mode — no API, just exit
+					set({
+						session: null,
+						recipe: null,
+						isPreviewMode: false,
+						localTimers: new Map(),
+						checkedIngredients: {},
+						error: null,
+					})
+					return null
+				}
+
 				diag.action('cooking', 'COMPLETE_COOKING clicked', {
 					sessionId: session?.sessionId,
 					rating,
@@ -547,8 +643,19 @@ export const useCookingStore = create<CookingState>()(
 			},
 
 			abandonCooking: async () => {
-				const { session } = get()
+				const { session, isPreviewMode } = get()
 				if (!session) return
+
+				if (isPreviewMode) {
+					set({
+						session: null,
+						recipe: null,
+						isPreviewMode: false,
+						localTimers: new Map(),
+						checkedIngredients: {},
+					})
+					return
+				}
 
 				try {
 					await apiAbandonSession(session.sessionId)
@@ -563,7 +670,9 @@ export const useCookingStore = create<CookingState>()(
 					session: null,
 					recipe: null,
 					error: null,
+					isPreviewMode: false,
 					localTimers: new Map(),
+					checkedIngredients: {},
 				})
 			},
 
@@ -575,8 +684,63 @@ export const useCookingStore = create<CookingState>()(
 				set({ localTimers: new Map() })
 			},
 
+			toggleIngredient: (id: string) => {
+				const { checkedIngredients } = get()
+				set({
+					checkedIngredients: {
+						...checkedIngredients,
+						[id]: !checkedIngredients[id],
+					},
+				})
+			},
+
+			clearCheckedIngredients: () => {
+				set({ checkedIngredients: {} })
+			},
+
+			/**
+			 * Start a preview cooking session with a local recipe — no backend session.
+			 * Used by recipe creators to test-play their recipe before publishing.
+			 */
+			startPreviewCooking: (recipe: Recipe) => {
+				const mockSession: CookingSession = {
+					sessionId: 'preview',
+					recipeId: recipe.id || 'preview-unsaved',
+					status: 'in_progress',
+					currentStep: 1,
+					totalSteps: recipe.steps?.length || 0,
+					completedSteps: [],
+					activeTimers: [],
+					startedAt: new Date().toISOString(),
+				}
+				set({
+					session: mockSession,
+					recipe,
+					isPreviewMode: true,
+					isLoading: false,
+					error: null,
+					localTimers: new Map(),
+					checkedIngredients: {},
+				})
+			},
+
+			/**
+			 * Exit preview mode and clean up all state.
+			 */
+			exitPreview: () => {
+				set({
+					session: null,
+					recipe: null,
+					isPreviewMode: false,
+					isLoading: false,
+					error: null,
+					localTimers: new Map(),
+					checkedIngredients: {},
+				})
+			},
+
 			tickTimers: () => {
-				const { localTimers, session } = get()
+				const { localTimers, session, isPreviewMode } = get()
 				if (!session || localTimers.size === 0) return
 
 				const newTimers = new Map(localTimers)
@@ -591,8 +755,10 @@ export const useCookingStore = create<CookingState>()(
 					if (newRemaining !== timer.remaining) {
 						changed = true
 						if (newRemaining <= 0) {
-							// Timer complete - record event
-							apiLogTimerEvent(session.sessionId, stepNumber, 'complete')
+							// Timer complete - record event (skip API in preview mode)
+							if (!isPreviewMode) {
+								apiLogTimerEvent(session.sessionId, stepNumber, 'complete')
+							}
 							newTimers.delete(stepNumber)
 						} else {
 							// Update only remaining, keep startedAt and initialDuration unchanged
@@ -616,7 +782,7 @@ export const useCookingStore = create<CookingState>()(
 		}),
 		{
 			name: 'chefkix-cooking-session',
-			// Only persist session IDs, not full data
+			// Only persist session IDs and checklist state, not full data
 			partialize: state => ({
 				session: state.session
 					? {
@@ -624,6 +790,7 @@ export const useCookingStore = create<CookingState>()(
 							recipeId: state.session.recipeId,
 						}
 					: null,
+				checkedIngredients: state.checkedIngredients,
 			}),
 		},
 	),
