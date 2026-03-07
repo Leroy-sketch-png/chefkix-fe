@@ -4,7 +4,9 @@ import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useCookingStore } from '@/store/cookingStore'
+import { useAuthStore } from '@/store/authStore'
 import { useUiStore } from '@/store/uiStore'
+import { RoomParticipantsBar } from './RoomParticipantsBar'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import {
 	ChevronLeft,
@@ -127,6 +129,10 @@ export const CookingPanel = () => {
 		localTimers,
 		checkedIngredients,
 		toggleIngredient,
+		// Co-cooking room state
+		roomCode,
+		participants,
+		isInRoom,
 	} = useCookingStore()
 
 	// Exit confirmation dialog state
@@ -278,6 +284,17 @@ export const CookingPanel = () => {
 						</div>
 					</div>
 				</div>
+
+				{/* Co-cooking participants */}
+				{isInRoom && roomCode && (
+					<RoomParticipantsBar
+						participants={participants}
+						roomCode={roomCode}
+						currentUserId={useAuthStore.getState().user?.userId}
+						totalSteps={totalSteps}
+						compact
+					/>
+				)}
 
 				{/* Progress Bar */}
 				<div className='mt-3'>

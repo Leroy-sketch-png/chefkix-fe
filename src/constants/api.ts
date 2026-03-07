@@ -140,6 +140,14 @@ export const API_ENDPOINTS = {
 		LINK_POST: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/link-post`,
 	},
+	// Co-Cooking Rooms per spec (18-co-cooking.txt)
+	COOKING_ROOMS: {
+		BASE: `${API_PREFIX}/cooking-rooms`,
+		JOIN: `${API_PREFIX}/cooking-rooms/join`,
+		GET: (roomCode: string) => `${API_PREFIX}/cooking-rooms/${roomCode}`,
+		LEAVE: (roomCode: string) =>
+			`${API_PREFIX}/cooking-rooms/${roomCode}/leave`,
+	},
 	// Daily Challenges per spec (12-challenges.txt)
 	CHALLENGES: {
 		TODAY: `${API_PREFIX}/challenges/today`,

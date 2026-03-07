@@ -19,6 +19,14 @@ import {
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
 import { diag } from '@/lib/diagnostics'
+import type { RoomParticipant, CookingRoom, RoomEvent } from '@/lib/types/room'
+import { useAuthStore } from '@/store/authStore'
+import {
+	createRoom as apiCreateRoom,
+	joinRoom as apiJoinRoom,
+	leaveRoom as apiLeaveRoom,
+	getRoom as apiGetRoom,
+} from '@/services/cookingRoom'
 
 // ============================================
 // TYPES
@@ -46,6 +54,12 @@ interface CookingState {
 		number,
 		{ initialDuration: number; startedAt: number; remaining: number }
 	>
+
+	// Co-cooking room state
+	roomCode: string | null
+	participants: RoomParticipant[]
+	isInRoom: boolean
+	isHost: boolean
 
 	// Actions
 	startCooking: (recipeId: string) => Promise<boolean>
@@ -79,6 +93,14 @@ interface CookingState {
 	// Timer management
 	tickTimers: () => void
 	getTimerRemaining: (stepNumber: number) => number | null
+
+	// Co-cooking room actions
+	createRoom: (recipeId: string) => Promise<string | null>
+	joinRoom: (roomCode: string) => Promise<boolean>
+	leaveRoom: () => Promise<void>
+	refreshRoom: () => Promise<void>
+	handleRoomEvent: (event: RoomEvent) => void
+	clearRoom: () => void
 }
 
 // ============================================
@@ -95,6 +117,10 @@ export const useCookingStore = create<CookingState>()(
 			isPreviewMode: false,
 			localTimers: new Map(),
 			checkedIngredients: {},
+			roomCode: null,
+			participants: [],
+			isInRoom: false,
+			isHost: false,
 
 			startCooking: async (recipeId: string) => {
 				diag.action('cooking', 'START_COOKING clicked', { recipeId })
@@ -778,6 +804,187 @@ export const useCookingStore = create<CookingState>()(
 			getTimerRemaining: (stepNumber: number) => {
 				const timer = get().localTimers.get(stepNumber)
 				return timer ? timer.remaining : null
+			},
+
+			// ===========================================
+			// CO-COOKING ROOM ACTIONS
+			// ===========================================
+
+			createRoom: async (recipeId: string) => {
+				set({ isLoading: true, error: null })
+				try {
+					const response = await apiCreateRoom({ recipeId })
+					if (!response.success || !response.data) {
+						set({
+							error: response.message || 'Failed to create room',
+							isLoading: false,
+						})
+						return null
+					}
+
+					const room: CookingRoom = response.data
+					const userId = useAuthStore.getState().user?.userId
+
+					set({
+						roomCode: room.roomCode,
+						participants: room.participants,
+						isInRoom: true,
+						isHost: room.hostUserId === userId,
+						isLoading: false,
+					})
+
+					return room.roomCode
+				} catch {
+					set({ error: 'Failed to create room', isLoading: false })
+					return null
+				}
+			},
+
+			joinRoom: async (roomCode: string) => {
+				set({ isLoading: true, error: null })
+				try {
+					const response = await apiJoinRoom({ roomCode })
+					if (!response.success || !response.data) {
+						set({
+							error: response.message || 'Failed to join room',
+							isLoading: false,
+						})
+						return false
+					}
+
+					const room: CookingRoom = response.data
+					const userId = useAuthStore.getState().user?.userId
+
+					// Also load the recipe for the cooking UI
+					if (room.recipeId) {
+						const recipeResponse = await getRecipeById(room.recipeId)
+						if (recipeResponse.success && recipeResponse.data) {
+							set({ recipe: recipeResponse.data })
+						}
+					}
+
+					set({
+						roomCode: room.roomCode,
+						participants: room.participants,
+						isInRoom: true,
+						isHost: room.hostUserId === userId,
+						isLoading: false,
+					})
+
+					return true
+				} catch {
+					set({ error: 'Failed to join room', isLoading: false })
+					return false
+				}
+			},
+
+			leaveRoom: async () => {
+				const { roomCode } = get()
+				if (!roomCode) return
+
+				try {
+					await apiLeaveRoom(roomCode)
+				} catch {
+					// Best effort — clear local state regardless
+				}
+
+				set({
+					roomCode: null,
+					participants: [],
+					isInRoom: false,
+					isHost: false,
+				})
+			},
+
+			refreshRoom: async () => {
+				const { roomCode } = get()
+				if (!roomCode) return
+
+				try {
+					const response = await apiGetRoom(roomCode)
+					if (response.success && response.data) {
+						const room: CookingRoom = response.data
+						const userId = useAuthStore.getState().user?.userId
+
+						set({
+							participants: room.participants,
+							isHost: room.hostUserId === userId,
+						})
+					}
+				} catch {
+					// Silently fail — room may have dissolved
+				}
+			},
+
+			handleRoomEvent: (event: RoomEvent) => {
+				const { participants } = get()
+
+				switch (event.type) {
+					case 'PARTICIPANT_JOINED': {
+						// Refresh full room state to get new participant
+						get().refreshRoom()
+						break
+					}
+					case 'PARTICIPANT_LEFT': {
+						set({
+							participants: participants.filter(p => p.userId !== event.userId),
+						})
+						break
+					}
+					case 'HOST_TRANSFERRED': {
+						const newHostId = event.data?.newHostUserId as string
+						const userId = useAuthStore.getState().user?.userId
+						set({
+							isHost: newHostId === userId,
+							participants: participants.map(p => ({
+								...p,
+								isHost: p.userId === newHostId,
+							})),
+						})
+						break
+					}
+					case 'STEP_NAVIGATED':
+					case 'STEP_COMPLETED': {
+						const stepNumber = event.data?.stepNumber as number
+						const completedSteps = event.data?.completedSteps as
+							| number[]
+							| undefined
+						set({
+							participants: participants.map(p =>
+								p.userId === event.userId
+									? {
+											...p,
+											currentStep: stepNumber ?? p.currentStep,
+											completedSteps: completedSteps ?? p.completedSteps,
+										}
+									: p,
+							),
+						})
+						break
+					}
+					case 'ROOM_DISSOLVED': {
+						set({
+							roomCode: null,
+							participants: [],
+							isInRoom: false,
+							isHost: false,
+						})
+						break
+					}
+					// TIMER_STARTED, TIMER_COMPLETED, REACTION, SESSION_COMPLETED
+					// These are informational — UI handles them directly via the hook callback
+					default:
+						break
+				}
+			},
+
+			clearRoom: () => {
+				set({
+					roomCode: null,
+					participants: [],
+					isInRoom: false,
+					isHost: false,
+				})
 			},
 		}),
 		{
