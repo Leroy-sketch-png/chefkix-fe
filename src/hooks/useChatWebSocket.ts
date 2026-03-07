@@ -136,7 +136,6 @@ export function useChatWebSocket({
 		)
 
 		userSubscriptionRef.current = subscription
-		console.log(`[WebSocket] Subscribed to /topic/user/${userId}/conversations`)
 
 		return () => {
 			if (userSubscriptionRef.current) {
