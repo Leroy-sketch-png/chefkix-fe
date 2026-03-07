@@ -9,6 +9,7 @@ import {
 	Loader2,
 	Lock,
 	Plus,
+	Rocket,
 	Save,
 	Send,
 	Signal,
@@ -21,6 +22,9 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { useCookingStore } from '@/store/cookingStore'
+import { useUiStore } from '@/store/uiStore'
+import { formDataToRecipe } from '@/lib/recipeTransforms'
 import type { Difficulty } from '@/lib/types/gamification'
 
 // ============================================
@@ -1067,7 +1071,25 @@ export const RecipeFormDetailed = ({
 				>
 					<div className='mb-6 flex items-center justify-between'>
 						<div>
-							<h2 className='text-xl font-bold text-text'>Instructions</h2>
+							<div className='flex items-center gap-4'>
+								<h2 className='text-xl font-bold text-text'>Instructions</h2>
+								{formData.steps.length > 0 && (
+									<button
+										type='button'
+										onClick={() => {
+											const previewRecipe = formDataToRecipe(formData)
+											useCookingStore
+												.getState()
+												.startPreviewCooking(previewRecipe)
+											useUiStore.getState().expandCookingPanel()
+										}}
+										className='flex items-center gap-1.5 text-sm font-medium text-brand/70 transition-colors hover:text-brand'
+									>
+										<Rocket className='size-3.5' />
+										Test Play
+									</button>
+								)}
+							</div>
 							{errors.steps && (
 								<p className='mt-1 text-sm text-red-500'>{errors.steps}</p>
 							)}

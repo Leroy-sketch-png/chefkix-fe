@@ -49,6 +49,9 @@ import {
 } from '@/lib/motion'
 import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
 import { processRecipe, calculateMetas, validateRecipe } from '@/services/ai'
+import { useCookingStore } from '@/store/cookingStore'
+import { useUiStore } from '@/store/uiStore'
+import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
 import {
 	createDraft,
 	saveDraft,
@@ -2661,10 +2664,28 @@ export const RecipeCreateAiFlow = ({
 						{/* Steps Section */}
 						<div className='rounded-2xl bg-panel-bg p-6'>
 							<div className='mb-4 flex items-center justify-between'>
-								<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>
-									<ListOrdered className='size-5 text-primary' />
-									Instructions
-								</h3>
+								<div className='flex items-center gap-4'>
+									<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>
+										<ListOrdered className='size-5 text-primary' />
+										Instructions
+									</h3>
+									{recipe && recipe.steps.length > 0 && (
+										<button
+											type='button'
+											onClick={() => {
+												const previewRecipe = parsedRecipeToRecipe(recipe)
+												useCookingStore
+													.getState()
+													.startPreviewCooking(previewRecipe)
+												useUiStore.getState().expandCookingPanel()
+											}}
+											className='flex items-center gap-1.5 text-sm font-medium text-brand/70 transition-colors hover:text-brand'
+										>
+											<Rocket className='size-3.5' />
+											Test Play
+										</button>
+									)}
+								</div>
 								<motion.button
 									onClick={addStep}
 									whileHover={BUTTON_HOVER}
@@ -2704,7 +2725,7 @@ export const RecipeCreateAiFlow = ({
 							</Reorder.Group>
 						</div>
 
-						{/* Preview XP Button */}
+						{/* Publish Action */}
 						<div className='sticky bottom-5 pt-4'>
 							<motion.button
 								onClick={handlePreviewXp}

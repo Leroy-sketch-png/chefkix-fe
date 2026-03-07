@@ -14,12 +14,13 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 
 export const CookingIndicator = () => {
 	const { cookingMode, setCookingMode, openCookingPanel } = useUiStore()
-	const { session, recipe, localTimers } = useCookingStore()
+	const { session, recipe, localTimers, isPreviewMode } = useCookingStore()
 
-	// Only show when ACTIVE session exists (not completed/abandoned) and not in expanded mode
+	// Only show when ACTIVE session exists (not completed/abandoned), not in expanded mode, not in preview
 	const isActiveSession =
 		session && session.status !== 'completed' && session.status !== 'abandoned'
-	const isVisible = isActiveSession && recipe && cookingMode !== 'expanded'
+	const isVisible =
+		isActiveSession && recipe && cookingMode !== 'expanded' && !isPreviewMode
 
 	// Timer ticking is now centralized in CookingTimerProvider
 

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useCookingStore } from './cookingStore'
 
 // Cooking UI modes:
 // - 'hidden': No active cooking session displayed
@@ -56,16 +57,30 @@ export const useUiStore = create<UiState>(set => ({
 			cookingMode: 'docked',
 			isCookingPlayerOpen: false, // Docked, not fullscreen
 		}),
-	closeCookingPanel: () =>
+	closeCookingPanel: () => {
+		// Auto-exit preview mode to prevent ghost sessions
+		const cookingState = useCookingStore.getState()
+		if (cookingState.isPreviewMode) {
+			cookingState.exitPreview()
+		}
 		set({
 			cookingMode: 'hidden',
 			isCookingPlayerOpen: false,
-		}),
-	minimizeCookingPanel: () =>
+		})
+	},
+	minimizeCookingPanel: () => {
+		// Preview sessions can't be minimized — exit preview instead
+		const cookingState = useCookingStore.getState()
+		if (cookingState.isPreviewMode) {
+			cookingState.exitPreview()
+			set({ cookingMode: 'hidden', isCookingPlayerOpen: false })
+			return
+		}
 		set({
 			cookingMode: 'mini',
 			isCookingPlayerOpen: false,
-		}),
+		})
+	},
 	expandCookingPanel: () =>
 		set({
 			cookingMode: 'expanded',

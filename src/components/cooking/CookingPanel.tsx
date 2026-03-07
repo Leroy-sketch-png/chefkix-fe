@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_TAP } from '@/lib/motion'
+import { IngredientCheck } from './IngredientCheck'
 import {
 	Dialog,
 	DialogContent,
@@ -124,15 +125,20 @@ export const CookingPanel = () => {
 		skipTimer,
 		abandonCooking,
 		localTimers,
+		checkedIngredients,
+		toggleIngredient,
 	} = useCookingStore()
 
 	// Exit confirmation dialog state
 	const [showExitConfirm, setShowExitConfirm] = useState(false)
 	const [isNavigating, setIsNavigating] = useState(false)
 
-	// Warn before browser exit during active cooking
+	// Warn before browser exit during active cooking (not preview)
+	const { isPreviewMode } = useCookingStore()
 	const hasActiveSession =
-		session?.status === 'in_progress' && cookingMode !== 'hidden'
+		session?.status === 'in_progress' &&
+		cookingMode !== 'hidden' &&
+		!isPreviewMode
 	useBeforeUnloadWarning(
 		hasActiveSession,
 		'You have an active cooking session. Progress will be saved but timers will reset.',
@@ -353,23 +359,30 @@ export const CookingPanel = () => {
 					</div>
 				)}
 
-				{/* Ingredients for this step */}
+				{/* Ingredients Checklist */}
 				{step?.ingredients && step.ingredients.length > 0 && (
 					<div className='rounded-xl border border-border-subtle bg-bg-card p-3'>
 						<h5 className='mb-2 flex items-center gap-2 text-sm font-semibold'>
 							<span>🧾</span> Ingredients
 						</h5>
-						<ul className='space-y-1.5'>
-							{step.ingredients.map((ing, idx) => (
-								<li
-									key={idx}
-									className='flex items-center gap-2 text-sm text-text-secondary'
-								>
-									<div className='size-1.5 rounded-full bg-brand' />
-									{ing.quantity} {ing.unit} {ing.name}
-								</li>
-							))}
-						</ul>
+						<div className='flex flex-col gap-1.5'>
+							{step.ingredients.map((ing, idx) => {
+								const id = `${currentStepNumber}-${idx}`
+								return (
+									<IngredientCheck
+										key={id}
+										ingredient={{
+											name: ing.name,
+											quantity: ing.quantity ?? '',
+											unit: ing.unit ?? '',
+										}}
+										isChecked={!!checkedIngredients[id]}
+										onToggle={() => toggleIngredient(id)}
+										index={idx}
+									/>
+								)
+							})}
+						</div>
 					</div>
 				)}
 			</div>
