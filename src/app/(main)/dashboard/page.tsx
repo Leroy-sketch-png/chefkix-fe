@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Post } from '@/lib/types'
-import { getFeedPosts } from '@/services/post'
+import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
 import {
 	getPendingSessions,
 	SessionHistoryItem,
@@ -19,6 +19,7 @@ import { Stories } from '@/components/social/Stories'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import {
 	Users,
+	Users2,
 	MessageSquare,
 	Home,
 	Sparkles,
@@ -48,7 +49,7 @@ const POSTS_PER_PAGE = 10
 // TYPES
 // ============================================
 
-type FeedMode = 'latest' | 'trending'
+type FeedMode = 'latest' | 'trending' | 'following'
 
 // ============================================
 // HELPERS
@@ -135,7 +136,13 @@ export default function DashboardPage() {
 			try {
 				// Fetch feed posts and pending sessions in parallel
 				const [feedResponse, pendingResponse] = await Promise.all([
-					getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: feedMode }),
+					feedMode === 'following'
+						? getFollowingFeedPosts({
+								page: 0,
+								size: POSTS_PER_PAGE,
+								mode: 'latest',
+							})
+						: getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: feedMode }),
 					getPendingSessions(),
 				])
 
@@ -205,11 +212,18 @@ export default function DashboardPage() {
 		const nextPage = currentPage + 1
 
 		try {
-			const response = await getFeedPosts({
-				page: nextPage,
-				size: POSTS_PER_PAGE,
-				mode: feedMode,
-			})
+			const response =
+				feedMode === 'following'
+					? await getFollowingFeedPosts({
+							page: nextPage,
+							size: POSTS_PER_PAGE,
+							mode: 'latest',
+						})
+					: await getFeedPosts({
+							page: nextPage,
+							size: POSTS_PER_PAGE,
+							mode: feedMode,
+						})
 
 			if (response.success && response.data) {
 				setPosts(prev => [...prev, ...response.data!])
@@ -365,6 +379,18 @@ export default function DashboardPage() {
 						<TrendingUp className='size-4' />
 						Trending
 					</button>
+					<button
+						onClick={() => setFeedMode('following')}
+						className={cn(
+							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+							feedMode === 'following'
+								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+						)}
+					>
+						<Users2 className='size-4' />
+						Following
+					</button>
 				</div>
 				{/* Create Post Form */}
 				<div className='mb-4 md:mb-6'>
@@ -394,29 +420,47 @@ export default function DashboardPage() {
 						onRetry={() => window.location.reload()}
 					/>
 				)}
-				{!isLoading && !error && filteredPosts.length === 0 && (
-					<EmptyStateGamified
-						variant='feed'
-						title='Your feed is empty'
-						description='Follow chefs to see their latest posts here!'
-						primaryAction={{
-							label: 'Discover People',
-							href: '/discover',
-							icon: <Users className='h-4 w-4' />,
-						}}
-						secondaryActions={[
-							{
-								label: 'Explore Posts',
-								href: '/explore',
-								icon: <MessageSquare className='h-4 w-4' />,
-							},
-						]}
-						fomoStats={[
-							{ label: 'Recipes posted today', value: '1,234' },
-							{ label: 'Active chefs', value: '567' },
-						]}
-					/>
-				)}
+				{!isLoading &&
+					!error &&
+					filteredPosts.length === 0 &&
+					feedMode === 'following' && (
+						<EmptyStateGamified
+							variant='feed'
+							title='Your following feed is empty'
+							description='Follow people to see their posts here!'
+							primaryAction={{
+								label: 'Discover People',
+								href: '/community',
+								icon: <Users className='h-4 w-4' />,
+							}}
+						/>
+					)}
+				{!isLoading &&
+					!error &&
+					filteredPosts.length === 0 &&
+					feedMode !== 'following' && (
+						<EmptyStateGamified
+							variant='feed'
+							title='Your feed is empty'
+							description='Follow chefs to see their latest posts here!'
+							primaryAction={{
+								label: 'Discover People',
+								href: '/discover',
+								icon: <Users className='h-4 w-4' />,
+							}}
+							secondaryActions={[
+								{
+									label: 'Explore Posts',
+									href: '/explore',
+									icon: <MessageSquare className='h-4 w-4' />,
+								},
+							]}
+							fomoStats={[
+								{ label: 'Recipes posted today', value: '1,234' },
+								{ label: 'Active chefs', value: '567' },
+							]}
+						/>
+					)}
 				{!isLoading && !error && filteredPosts.length > 0 && (
 					<>
 						<StaggerContainer className='space-y-4 md:space-y-6'>

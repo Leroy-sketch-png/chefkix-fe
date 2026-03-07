@@ -218,6 +218,76 @@ export const toggleLike = async (
 	}
 }
 
+/**
+ * Get personalized feed from users the current user follows + their own posts.
+ * Mirrors getFeedPosts but hits /posts/following instead of /posts/all.
+ * Always requires authentication (no anonymous access).
+ */
+export const getFollowingFeedPosts = async (params?: {
+	limit?: number
+	offset?: number
+	page?: number
+	size?: number
+	mode?: 'latest' | 'trending'
+}): Promise<
+	ApiResponse<Post[]> & {
+		pagination?: {
+			totalItems: number
+			itemsPerPage: number
+			totalPages: number
+			currentPage: number
+		}
+	}
+> => {
+	try {
+		const backendParams = toBackendPagination(params) ?? params
+		const response = await api.get<
+			ApiResponse<{
+				content: Post[]
+				totalElements: number
+				totalPages: number
+				number: number
+				size: number
+				first: boolean
+				last: boolean
+			}>
+		>(API_ENDPOINTS.POST.GET_FOLLOWING, {
+			params: {
+				...backendParams,
+				mode: params?.mode === 'trending' ? 1 : 0,
+			},
+		})
+		if (response.data.success && response.data.data?.content) {
+			const pageData = response.data.data
+			return {
+				...response.data,
+				data: pageData.content,
+				pagination: {
+					totalItems: pageData.totalElements,
+					itemsPerPage: pageData.size,
+					totalPages: pageData.totalPages,
+					currentPage: pageData.number,
+				},
+			}
+		}
+		return {
+			success: false,
+			message: 'Unexpected response format',
+			statusCode: 500,
+		}
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Post[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
 export const getFeedPosts = async (params?: {
 	limit?: number
 	offset?: number

@@ -59,6 +59,7 @@ export const API_ENDPOINTS = {
 		TOGGLE_SAVE: (postId: string) =>
 			`${POST_SERVICE_PREFIX}/toggle-save/${postId}`,
 		GET_ALL: `${POST_SERVICE_PREFIX}/all`,
+		GET_FOLLOWING: `${POST_SERVICE_PREFIX}/following`,
 		GET_FEED: (userId: string) =>
 			`${POST_SERVICE_PREFIX}/feed?userId=${userId}`,
 		GET_SAVED: `${POST_SERVICE_PREFIX}/saved`,
