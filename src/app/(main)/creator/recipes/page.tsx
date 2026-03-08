@@ -16,6 +16,7 @@ import {
 	Loader2,
 	Clock,
 	Search,
+	Copy,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -43,7 +44,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select'
-import { getRecipesByUserId, deleteRecipe } from '@/services/recipe'
+import {
+	getRecipesByUserId,
+	deleteRecipe,
+	duplicateRecipe,
+} from '@/services/recipe'
 import { getRecipeImage } from '@/lib/types/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
@@ -63,7 +68,9 @@ import type { Recipe, Difficulty } from '@/lib/types/recipe'
 interface RecipeManageCardProps {
 	recipe: Recipe
 	onDelete: (id: string) => void
+	onDuplicate: (id: string) => void
 	isDeleting: boolean
+	isDuplicating: boolean
 }
 
 const difficultyColors: Record<Difficulty, string> = {
@@ -76,7 +83,9 @@ const difficultyColors: Record<Difficulty, string> = {
 const RecipeManageCard = ({
 	recipe,
 	onDelete,
+	onDuplicate,
 	isDeleting,
+	isDuplicating,
 }: RecipeManageCardProps) => {
 	const router = useRouter()
 
@@ -164,13 +173,27 @@ const RecipeManageCard = ({
 				{/* Actions */}
 				<div className='flex items-center gap-2'>
 					<Button
-						onClick={() => router.push(`/recipes/${recipe.id}/edit`)}
+						onClick={() => router.push(`/create?draftId=${recipe.id}`)}
 						variant='outline'
 						size='sm'
 						className='flex-1 gap-1'
 					>
 						<Edit3 className='size-4' />
 						Edit
+					</Button>
+					<Button
+						onClick={() => onDuplicate(recipe.id)}
+						variant='outline'
+						size='sm'
+						disabled={isDuplicating}
+						title='Duplicate as draft'
+						className='border-brand/30 text-brand hover:bg-brand/10'
+					>
+						{isDuplicating ? (
+							<Loader2 className='size-4 animate-spin' />
+						) : (
+							<Copy className='size-4' />
+						)}
 					</Button>
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
@@ -223,6 +246,7 @@ export default function MyRecipesPage() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [deletingId, setDeletingId] = useState<string | null>(null)
+	const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'views'>('newest')
 
@@ -266,6 +290,25 @@ export default function MyRecipesPage() {
 			toast.error('Failed to delete recipe')
 		} finally {
 			setDeletingId(null)
+		}
+	}
+
+	// Handle duplicate
+	const handleDuplicate = async (recipeId: string) => {
+		if (duplicatingId) return
+		setDuplicatingId(recipeId)
+		try {
+			const response = await duplicateRecipe(recipeId)
+			if (response.success && response.data) {
+				toast.success('Recipe duplicated as draft')
+				router.push(`/create?draftId=${response.data.id}`)
+			} else {
+				toast.error(response.message || 'Failed to duplicate recipe')
+			}
+		} catch {
+			toast.error('Failed to duplicate recipe')
+		} finally {
+			setDuplicatingId(null)
 		}
 	}
 
@@ -430,7 +473,9 @@ export default function MyRecipesPage() {
 								key={recipe.id}
 								recipe={recipe}
 								onDelete={handleDelete}
+								onDuplicate={handleDuplicate}
 								isDeleting={deletingId === recipe.id}
+								isDuplicating={duplicatingId === recipe.id}
 							/>
 						))}
 					</motion.div>

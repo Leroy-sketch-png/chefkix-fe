@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
 import { DraftsList } from '@/components/recipe/DraftsList'
@@ -57,14 +57,44 @@ interface LocalDraft {
  */
 export default function CreateRecipePage() {
 	const router = useRouter()
-	const [mode, setMode] = useState<'list' | 'create'>('list')
+	const searchParams = useSearchParams()
+	const urlDraftId = searchParams.get('draftId')
+	const [mode, setMode] = useState<'list' | 'create'>(
+		urlDraftId ? 'create' : 'list',
+	)
 	const [selectedDraft, setSelectedDraft] = useState<Recipe | null>(null)
 	const [localDraft, setLocalDraft] = useState<LocalDraft | null>(null)
 	const [showDiscardDialog, setShowDiscardDialog] = useState(false)
-	const [isLoadingDraft, setIsLoadingDraft] = useState(false)
+	const [isLoadingDraft, setIsLoadingDraft] = useState(!!urlDraftId)
+
+	// Load draft from URL ?draftId= param (deep links, redirects from edit page)
+	useEffect(() => {
+		if (!urlDraftId) return
+		const loadUrlDraft = async () => {
+			setIsLoadingDraft(true)
+			try {
+				const response = await getRecipeById(urlDraftId)
+				if (response.success && response.data) {
+					setSelectedDraft(response.data)
+					setMode('create')
+				} else {
+					toast.error(response.message || 'Draft not found')
+					setMode('list')
+				}
+			} catch (error) {
+				console.error('Failed to load draft from URL:', error)
+				toast.error('Failed to load draft')
+				setMode('list')
+			} finally {
+				setIsLoadingDraft(false)
+			}
+		}
+		loadUrlDraft()
+	}, [urlDraftId])
 
 	// Check for local draft on mount
 	useEffect(() => {
+		if (urlDraftId) return // Skip local draft check if loading from URL
 		try {
 			const stored = localStorage.getItem('chefkix-recipe-draft')
 			if (stored) {
@@ -77,7 +107,7 @@ export default function CreateRecipePage() {
 			console.error('Failed to parse local draft:', e)
 			localStorage.removeItem('chefkix-recipe-draft')
 		}
-	}, [])
+	}, [urlDraftId])
 
 	const handlePublishSuccess = (recipeId: string) => {
 		// Clear local draft on successful publish
@@ -131,6 +161,10 @@ export default function CreateRecipePage() {
 	const handleBackToList = () => {
 		setMode('list')
 		setSelectedDraft(null)
+		// Clean URL if we came from ?draftId=
+		if (urlDraftId) {
+			router.replace('/create', { scroll: false })
+		}
 		// Re-check for local draft (it might have been saved during editing)
 		try {
 			const stored = localStorage.getItem('chefkix-recipe-draft')

@@ -105,6 +105,7 @@ export const API_ENDPOINTS = {
 		COMPLETE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/complete`,
 		MASTERY: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/mastery`,
 		PUBLISH: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/publish`,
+		DUPLICATE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/duplicate`,
 		PREVIEW: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/preview`,
 		REGENERATE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/regenerate`,
 		REVERT: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/revert`,

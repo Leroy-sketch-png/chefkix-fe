@@ -236,7 +236,7 @@ export const REQUIRED_PATTERNS = {
 		'/creator',
 		'/creator/recipes',
 		'/recipes/[id]',
-		'/recipes/[id]/edit',
+		'/recipes/[id]/edit', // redirects to /create?draftId={id}
 		'/post/new',
 		'/profile/badges',
 		'/[userId]',
