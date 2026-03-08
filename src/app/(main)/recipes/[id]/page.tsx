@@ -765,7 +765,7 @@ export default function RecipeDetailPage() {
 							{isOwner && (
 								<>
 									<motion.button
-										onClick={() => router.push(`/recipes/${recipeId}/edit`)}
+										onClick={() => router.push(`/create?draftId=${recipeId}`)}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
 										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-xp hover:bg-xp/10'
