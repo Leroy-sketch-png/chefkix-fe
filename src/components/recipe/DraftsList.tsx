@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeSummary } from '@/lib/types/recipe'
 import { getDraftRecipes } from '@/services/recipe'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Clock, FileText, Trash2, Edit3, AlertCircle } from 'lucide-react'
+import { Clock, FileText, Trash2, Edit3, AlertCircle, Copy } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
@@ -26,7 +26,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { discardDraft } from '@/services/recipe'
+import { discardDraft, duplicateRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
 
 interface DraftsListProps {
@@ -36,12 +36,15 @@ interface DraftsListProps {
 	 */
 	onSelectDraft: (draftId: string) => void
 	onNewRecipe: () => void
+	/** Called after a draft is successfully duplicated. Receives the new draft ID. */
+	onDuplicated?: (newDraftId: string) => void
 	className?: string
 }
 
 export function DraftsList({
 	onSelectDraft,
 	onNewRecipe,
+	onDuplicated,
 	className,
 }: DraftsListProps) {
 	const [drafts, setDrafts] = useState<RecipeSummary[]>([])
@@ -49,6 +52,7 @@ export function DraftsList({
 	const [error, setError] = useState<string | null>(null)
 	const [deleteTarget, setDeleteTarget] = useState<RecipeSummary | null>(null)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
 
 	useEffect(() => {
 		const fetchDrafts = async () => {
@@ -69,6 +73,37 @@ export function DraftsList({
 		}
 		fetchDrafts()
 	}, [])
+
+	const handleDuplicate = async (draftId: string) => {
+		if (duplicatingId) return
+		setDuplicatingId(draftId)
+		try {
+			const response = await duplicateRecipe(draftId)
+			if (response.success && response.data) {
+				// Add the new draft to the top of the list
+				const newDraft: RecipeSummary = {
+					id: response.data.id,
+					title: response.data.title || 'Untitled (Copy)',
+					description: response.data.description,
+					coverImageUrl: response.data.coverImageUrl,
+					difficulty: response.data.difficulty,
+					recipeStatus: 'DRAFT',
+					createdAt: response.data.createdAt || new Date().toISOString(),
+					updatedAt: response.data.updatedAt || new Date().toISOString(),
+					author: response.data.author,
+				}
+				setDrafts(prev => [newDraft, ...prev])
+				toast.success('Draft duplicated')
+				onDuplicated?.(response.data.id)
+			} else {
+				toast.error(response.message || 'Failed to duplicate')
+			}
+		} catch {
+			toast.error('Failed to duplicate draft')
+		} finally {
+			setDuplicatingId(null)
+		}
+	}
 
 	const handleDelete = async () => {
 		if (!deleteTarget) return
@@ -193,18 +228,41 @@ export function DraftsList({
 										)}
 									</button>
 
-									{/* Delete Button */}
-									<motion.button
-										onClick={e => {
-											e.stopPropagation()
-											setDeleteTarget(draft)
-										}}
-										whileHover={{ scale: 1.1 }}
-										whileTap={{ scale: 0.9 }}
-										className='flex size-9 items-center justify-center rounded-lg text-text-muted opacity-0 transition-all hover:bg-error/10 hover:text-error group-hover:opacity-100'
-									>
-										<Trash2 className='size-4' />
-									</motion.button>
+									{/* Action Buttons */}
+									<div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+										{/* Duplicate Button */}
+										<motion.button
+											onClick={e => {
+												e.stopPropagation()
+												handleDuplicate(draft.id)
+											}}
+											whileHover={{ scale: 1.1 }}
+											whileTap={{ scale: 0.9 }}
+											disabled={duplicatingId === draft.id}
+											title='Duplicate draft'
+											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50'
+										>
+											<Copy
+												className={cn(
+													'size-4',
+													duplicatingId === draft.id && 'animate-pulse',
+												)}
+											/>
+										</motion.button>
+										{/* Delete Button */}
+										<motion.button
+											onClick={e => {
+												e.stopPropagation()
+												setDeleteTarget(draft)
+											}}
+											whileHover={{ scale: 1.1 }}
+											whileTap={{ scale: 0.9 }}
+											title='Delete draft'
+											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-error/10 hover:text-error'
+										>
+											<Trash2 className='size-4' />
+										</motion.button>
+									</div>
 								</motion.div>
 							))}
 						</AnimatePresence>

@@ -600,6 +600,27 @@ export const publishRecipe = async (
 }
 
 /**
+ * Duplicate any owned recipe as a new DRAFT.
+ * Deep-copies all content; resets status and social counters.
+ */
+export const duplicateRecipe = async (
+	recipeId: string,
+): Promise<ApiResponse<Recipe>> => {
+	try {
+		const response = await api.post(API_ENDPOINTS.RECIPES.DUPLICATE(recipeId))
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to duplicate recipe',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
  * Preview recipe as it will appear when published
  */
 export const previewRecipe = async (
