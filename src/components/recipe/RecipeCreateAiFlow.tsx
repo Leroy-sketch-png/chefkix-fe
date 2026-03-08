@@ -1,41 +1,38 @@
 'use client'
 
-import {
-	motion,
-	AnimatePresence,
-	Reorder,
-	useMotionValue,
-	useTransform,
-	animate,
-} from 'framer-motion'
+/**
+ * RecipeCreateAiFlow — The recipe creation orchestrator.
+ *
+ * This component manages the multi-step creation flow (input → parsing → preview → xp-preview)
+ * and delegates rendering to extracted sub-components. All pure helpers live in recipeCreateUtils.
+ *
+ * Architecture:
+ *   Types         → @/lib/types/recipeCreate
+ *   Pure helpers  → @/lib/recipeCreateUtils
+ *   Sub-components: MethodCard, PasteArea, RecipeParsingOverlay, IngredientItem, StepItem, XpPreviewModal
+ */
+
+import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import {
 	ArrowLeft,
-	Clipboard,
+	AlertTriangle,
+	Clock,
 	Edit3,
-	GripVertical,
 	ImagePlus,
 	ListOrdered,
 	Loader2,
 	Lock,
 	Plus,
-	Send,
-	Shield,
+	Rocket,
 	ShoppingBasket,
+	Signal,
 	Sparkles,
-	Timer,
-	Trash2,
+	Utensils,
 	Wand2,
 	X,
-	CheckCircle,
-	Circle,
-	AlertTriangle,
-	Clock,
-	Signal,
-	Utensils,
-	Rocket,
 } from 'lucide-react'
 import Image from 'next/image'
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { diag } from '@/lib/diagnostics'
 import {
@@ -47,1156 +44,144 @@ import {
 	CONTENT_SWITCH_VARIANTS,
 	CONTENT_SWITCH_TRANSITION,
 } from '@/lib/motion'
-import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
+import { toast } from 'sonner'
+
+// ── Hooks ───────────────────────────────────────────────────────────
+import { useAutoSave, type SaveStatus } from '@/hooks/useAutoSave'
+
+// ── Services & stores ───────────────────────────────────────────────
 import { processRecipe, calculateMetas, validateRecipe } from '@/services/ai'
-import { useCookingStore } from '@/store/cookingStore'
-import { useUiStore } from '@/store/uiStore'
-import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
 import {
 	createDraft,
 	saveDraft,
 	uploadRecipeImages,
 	publishRecipe,
 } from '@/services/recipe'
-import { toast } from 'sonner'
+import { useCookingStore } from '@/store/cookingStore'
+import { useUiStore } from '@/store/uiStore'
+import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
 import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
+
+// ── Types ───────────────────────────────────────────────────────────
 import { Recipe } from '@/lib/types/recipe'
 import type { Difficulty } from '@/lib/types/gamification'
 import { resolveBadge } from '@/lib/data/badgeRegistry'
+import type {
+	CreateMethod,
+	CreateStep,
+	ParsedRecipe,
+	XpBreakdown,
+	Ingredient,
+	RecipeStep,
+} from '@/lib/types/recipeCreate'
+
+// ── Extracted utilities ─────────────────────────────────────────────
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Portal } from '@/components/ui/portal'
+	modKey,
+	RECALCULATION_THRESHOLD,
+	validateRecipeForPublish,
+	mapBackendErrorToEnglish,
+	calculateRecipeChangePercent,
+	transformProcessedRecipe,
+} from '@/lib/recipeCreateUtils'
+
+// ── Extracted sub-components ────────────────────────────────────────
+import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
+import { MethodCard } from './MethodCard'
+import { PasteArea } from './PasteArea'
+import { RecipeParsingOverlay } from './RecipeParsingOverlay'
+import { IngredientItem } from './IngredientItem'
+import { StepItem } from './StepItem'
+import { XpPreviewModal } from './XpPreviewModal'
 
 // ============================================
-// TYPES
+// PROPS
 // ============================================
-
-type CreateMethod = 'ai' | 'manual'
-type CreateStep = 'input' | 'parsing' | 'preview' | 'xp-preview'
-
-// Platform detection for keyboard hints
-const isMac =
-	typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
-const modKey = isMac ? '⌘' : 'Ctrl'
-
-interface Ingredient {
-	id: string
-	quantity: string
-	name: string
-}
-
-type TimeUnit = 'seconds' | 'minutes' | 'hours' | 'days'
-
-interface RecipeStep {
-	id: string
-	instruction: string
-	timerSeconds?: number // Total timer in seconds (source of truth)
-	technique?: string
-	imageUrl?: string // Step-specific image
-}
-
-interface ParsedRecipe {
-	title: string
-	description: string
-	coverImageUrl?: string
-	cookTime: string
-	difficulty: Difficulty
-	servings: number
-	cuisine: string
-	ingredients: Ingredient[]
-	steps: RecipeStep[]
-	detectedBadges: { emoji: string; name: string }[]
-	// XP data from AI (preserved from process_recipe)
-	xpReward?: number
-	xpBreakdown?: {
-		base: number
-		baseReason: string
-		steps: number
-		stepsReason: string
-		time: number
-		timeReason: string
-		techniques?: number
-		techniquesReason?: string
-		total: number
-	}
-	skillTags?: string[]
-	difficultyMultiplier?: number
-}
-
-interface XpBreakdown {
-	base: number
-	steps: number
-	time: number
-	techniques: { name: string; xp: number }[]
-	adjustments?: { reason: string; xp: number }[]
-	total: number
-	isValidated: boolean
-	confidence: number
-}
 
 interface RecipeCreateAiFlowProps {
 	onBack?: () => void
 	onPublishSuccess?: (recipeId: string) => void
 	className?: string
-	/** Optional initial draft to load (from draft listing) - server-saved AI-parsed draft */
+	/** Optional initial draft to load (from draft listing) — server-saved AI-parsed draft */
 	initialDraft?: Recipe
-	/** Optional initial manual draft to load (from localStorage) - manually entered draft */
+	/** Optional initial manual draft to load (from localStorage) — manually entered draft */
 	initialManualDraft?: RecipeFormData
 }
 
 // ============================================
-// HELPER: Pre-publish validation (mirrors backend validateMandatoryFields)
+// AUTO-SAVE INDICATOR
 // ============================================
 
-interface PublishValidationError {
-	field: 'title' | 'coverImage' | 'ingredients' | 'steps'
-	message: string
-	hint: string
-}
-
-/**
- * Validates recipe data before publish, matching backend requirements:
- * 1. Title is required
- * 2. At least 1 cover image
- * 3. Ingredients list is not empty
- * 4. At least 1 step
- *
- * Returns array of validation errors (empty = valid)
- */
-const validateRecipeForPublish = (
-	recipe: ParsedRecipe | null,
-): PublishValidationError[] => {
-	if (!recipe) {
-		return [
-			{
-				field: 'title',
-				message: 'No recipe data',
-				hint: 'Please create a recipe first.',
-			},
-		]
-	}
-
-	const errors: PublishValidationError[] = []
-
-	// 1. Title is required
-	if (!recipe.title?.trim()) {
-		errors.push({
-			field: 'title',
-			message: 'Title is required',
-			hint: 'Add a title for your recipe in the preview.',
-		})
-	}
-
-	// 2. Cover image is required (at least 1)
-	if (!recipe.coverImageUrl?.trim()) {
-		errors.push({
-			field: 'coverImage',
-			message: 'Cover image is required',
-			hint: 'Upload a photo of your finished dish using the image button.',
-		})
-	}
-
-	// 3. Ingredients list is required
-	if (!recipe.ingredients || recipe.ingredients.length === 0) {
-		errors.push({
-			field: 'ingredients',
-			message: 'Ingredients are required',
-			hint: 'Add at least one ingredient to your recipe.',
-		})
-	}
-
-	// 4. Steps are required (at least 1)
-	if (!recipe.steps || recipe.steps.length === 0) {
-		errors.push({
-			field: 'steps',
-			message: 'Steps are required',
-			hint: 'Add at least one step to your recipe instructions.',
-		})
-	}
-
-	return errors
-}
-
-/**
- * Maps backend Vietnamese error messages to English (for robustness)
- */
-const mapBackendErrorToEnglish = (message: string): string => {
-	const errorMap: Record<string, string> = {
-		'Tiêu đề là bắt buộc': 'Title is required',
-		'Cần ít nhất 1 ảnh bìa': 'Cover image is required',
-		'Danh sách nguyên liệu không được trống':
-			'Ingredients list cannot be empty',
-		'Cần ít nhất 1 bước hướng dẫn': 'At least one step is required',
-	}
-	return errorMap[message] || message
-}
-
-// ============================================
-// HELPER: Smart Recalculation Detection (30% threshold)
-// ============================================
-
-/**
- * Calculates the percentage of change between original and current recipe.
- * Only considers XP-affecting content: ingredients and steps.
- * Typo fixes (small text changes) don't count.
- *
- * @returns A number 0-100 representing the % of change
- */
-const calculateRecipeChangePercent = (
-	original: ParsedRecipe | null,
-	current: ParsedRecipe | null,
-): number => {
-	if (!original || !current) return 0
-
-	let totalWeight = 0
-	let changedWeight = 0
-
-	// --- INGREDIENTS COMPARISON (40% of total weight) ---
-	const origIngredients = original.ingredients || []
-	const currIngredients = current.ingredients || []
-	const ingredientWeight = 40
-	totalWeight += ingredientWeight
-
-	// Calculate ingredient change: additions, deletions, and name changes
-	const origIngNames = new Set(
-		origIngredients.map(i => i.name.toLowerCase().trim()),
-	)
-	const currIngNames = new Set(
-		currIngredients.map(i => i.name.toLowerCase().trim()),
-	)
-
-	// Count added and removed
-	const addedIngs = [...currIngNames].filter(n => !origIngNames.has(n)).length
-	const removedIngs = [...origIngNames].filter(n => !currIngNames.has(n)).length
-	const totalIngChanges = addedIngs + removedIngs
-
-	// If all ingredients changed or completely different, full weight
-	const maxIngChanges = Math.max(
-		origIngredients.length,
-		currIngredients.length,
-		1,
-	)
-	const ingChangeRatio = Math.min(totalIngChanges / maxIngChanges, 1)
-	changedWeight += ingredientWeight * ingChangeRatio
-
-	// --- STEPS COMPARISON (60% of total weight) ---
-	const origSteps = original.steps || []
-	const currSteps = current.steps || []
-	const stepWeight = 60
-	totalWeight += stepWeight
-
-	// Step count change (adding/removing steps is significant)
-	const stepCountDiff = Math.abs(currSteps.length - origSteps.length)
-	const stepCountWeight = stepWeight * 0.4 // 40% of step weight is for count changes
-	const maxStepCount = Math.max(origSteps.length, currSteps.length, 1)
-	changedWeight += stepCountWeight * Math.min(stepCountDiff / maxStepCount, 1)
-
-	// Step content change (reordering or changing instructions)
-	// Only count substantial instruction changes, not typo fixes
-	const stepContentWeight = stepWeight * 0.6 // 60% of step weight is for content
-	let substantialStepChanges = 0
-
-	// Compare step by step (using Jaccard similarity on words)
-	const minSteps = Math.min(origSteps.length, currSteps.length)
-	for (let i = 0; i < minSteps; i++) {
-		const origWords = new Set(
-			origSteps[i].instruction
-				.toLowerCase()
-				.split(/\s+/)
-				.filter(w => w.length > 2),
-		)
-		const currWords = new Set(
-			currSteps[i].instruction
-				.toLowerCase()
-				.split(/\s+/)
-				.filter(w => w.length > 2),
-		)
-
-		// Jaccard similarity
-		const intersection = [...origWords].filter(w => currWords.has(w)).length
-		const union = new Set([...origWords, ...currWords]).size
-		const similarity = union > 0 ? intersection / union : 1
-
-		// Consider it a substantial change if less than 50% similar
-		if (similarity < 0.5) {
-			substantialStepChanges++
-		}
-	}
-
-	// Add weight for steps that don't exist in one version (already counted in stepCountDiff)
-	changedWeight +=
-		stepContentWeight * Math.min(substantialStepChanges / maxStepCount, 1)
-
-	return Math.round((changedWeight / totalWeight) * 100)
-}
-
-/**
- * Threshold for triggering recalculation.
- * Typo fixes = ~5-10% change, substantial edits = 30%+
- */
-const RECALCULATION_THRESHOLD = 30
-
-// ============================================
-// HELPER: Transform API response to local types
-// ============================================
-
-const transformProcessedRecipe = (
-	data: Awaited<ReturnType<typeof processRecipe>>['data'],
-): ParsedRecipe | null => {
-	if (!data) return null
-
-	return {
-		title: data.title,
-		description: data.description,
-		cookTime: `${data.cookTimeMinutes} min`,
-		difficulty: (data.difficulty || 'Intermediate') as Difficulty,
-		servings: data.servings,
-		cuisine: data.cuisineType || 'International',
-		ingredients: (data.fullIngredientList || []).map((ing, i) => ({
-			id: `ing-${i}`,
-			quantity: `${ing.quantity} ${ing.unit}`.trim(),
-			name: ing.name,
-		})),
-		steps: (data.steps || []).map(step => ({
-			id: `step-${step.stepNumber}`,
-			instruction: step.description,
-			timerSeconds: step.timerSeconds, // Store in seconds for flexibility
-			technique: step.action,
-			imageUrl: step.imageUrl,
-		})),
-		detectedBadges:
-			data.badges?.map(badge => ({
-				emoji: '🏆',
-				name: badge,
-			})) || [],
-		// PRESERVE ALL XP data from AI - full transparency
-		xpReward: data.xpReward,
-		xpBreakdown: data.xpBreakdown,
-		skillTags: data.skillTags,
-		difficultyMultiplier: data.difficultyMultiplier,
-	}
-}
-
-// ============================================
-// COMPONENTS
-// ============================================
-
-// Method Selection Card
-const MethodCard = ({
-	method,
-	icon,
-	title,
-	description,
-	isActive,
-	badge,
-	onClick,
+function AutoSaveIndicator({
+	status,
+	lastSavedAt,
 }: {
-	method: CreateMethod
-	icon: React.ReactNode
-	title: string
-	description: string
-	isActive: boolean
-	badge?: string
-	onClick: () => void
-}) => (
-	<button
-		onClick={onClick}
-		className={cn(
-			'relative flex items-center gap-3.5 rounded-2xl border-2 p-5 text-left transition-all',
-			isActive
-				? 'border-primary bg-primary/10'
-				: 'border-border bg-panel-bg hover:border-muted-foreground',
-		)}
-	>
-		<div
-			className={cn(
-				'flex size-12 items-center justify-center rounded-xl',
-				method === 'ai'
-					? 'bg-gradient-hero text-white'
-					: 'bg-bg text-muted-foreground',
-			)}
-		>
-			{icon}
-		</div>
-		<div className='flex-1'>
-			<span className='text-base font-bold text-text'>{title}</span>
-			<span className='mt-0.5 block text-xs text-muted-foreground'>
-				{description}
-			</span>
-		</div>
-		{badge && (
-			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-hero px-2.5 py-1 text-2xs font-bold text-white'>
-				{badge}
-			</span>
-		)}
-	</button>
-)
+	status: SaveStatus
+	lastSavedAt: string | null
+}) {
+	if (status === 'idle' && !lastSavedAt) return null
 
-// Paste Area
-const PasteArea = ({
-	value,
-	onChange,
-	onPaste,
-	charCount,
-	maxChars = 5000,
-}: {
-	value: string
-	onChange: (v: string) => void
-	onPaste: () => void
-	charCount: number
-	maxChars?: number
-}) => (
-	<div className='overflow-hidden rounded-2xl border-2 border-dashed border-border bg-bg'>
-		<textarea
-			value={value}
-			onChange={e => onChange(e.target.value)}
-			placeholder={`Paste your recipe text here...
-
-Example:
-Spicy Garlic Noodles
-
-Ingredients:
-- 8 oz rice noodles
-- 4 cloves garlic, minced
-- 2 tbsp soy sauce
-...
-
-Instructions:
-1. Cook noodles according to package
-2. Sauté garlic until fragrant
-...`}
-			className='min-h-textarea-lg w-full resize-y bg-transparent p-5 text-sm leading-relaxed text-text placeholder:text-muted-foreground focus:outline-none'
-		/>
-		<div className='flex items-center justify-between border-t border-border bg-panel-bg px-5 py-3'>
-			<button
-				onClick={onPaste}
-				className='flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-bg'
-			>
-				<Clipboard className='size-4' />
-				Paste from Clipboard
-			</button>
-			<span className='text-xs text-muted-foreground'>
-				{charCount} / {maxChars}
-			</span>
-		</div>
-	</div>
-)
-
-// Parsing Overlay
-const ParsingOverlay = ({ currentStep }: { currentStep: number }) => {
-	const steps = [
-		'Reading text',
-		'Extracting ingredients',
-		'Parsing steps',
-		'Calculating XP',
-	]
-
-	return (
-		<Portal>
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				exit={{ opacity: 0 }}
-				className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm'
-			>
-				<motion.div
-					initial={{ scale: 0.9, opacity: 0 }}
-					animate={{ scale: 1, opacity: 1 }}
-					className='rounded-3xl bg-panel-bg p-12 text-center'
-				>
-					{/* Animated Wand */}
-					<div className='relative mx-auto mb-6 size-20'>
-						<motion.div
-							animate={{ scale: [1, 1.1, 1] }}
-							transition={{ repeat: Infinity, duration: 1.5 }}
-							className='flex size-20 items-center justify-center rounded-2xl bg-gradient-hero text-white shadow-lg'
-						>
-							<Wand2 className='size-9' />
-						</motion.div>
-						{/* Sparkles */}
-						<motion.span
-							animate={{ y: [0, -10, 0], opacity: [1, 0.5, 1] }}
-							transition={{ repeat: Infinity, duration: 2, delay: 0 }}
-							className='absolute -right-5 -top-5 text-2xl'
-						>
-							✨
-						</motion.span>
-						<motion.span
-							animate={{ y: [0, -10, 0], opacity: [1, 0.5, 1] }}
-							transition={{ repeat: Infinity, duration: 2, delay: 0.3 }}
-							className='absolute -bottom-2 -left-4 text-xl'
-						>
-							⭐
-						</motion.span>
-					</div>
-
-					<h3 className='mb-6 text-xl font-bold text-text'>
-						Parsing your recipe...
-					</h3>
-
-					<div className='space-y-4 text-left'>
-						{steps.map((step, i) => (
-							<div
-								key={step}
-								className={cn(
-									'flex items-center gap-3 text-sm',
-									i < currentStep && 'text-success',
-									i === currentStep && 'font-semibold text-text',
-									i > currentStep && 'text-muted-foreground',
-								)}
-							>
-								{i < currentStep ? (
-									<CheckCircle className='size-5' />
-								) : i === currentStep ? (
-									<div className='size-5 animate-spin rounded-full border-2 border-border border-t-primary' />
-								) : (
-									<Circle className='size-5' />
-								)}
-								<span>{step}</span>
-							</div>
-						))}
-					</div>
-				</motion.div>
-			</motion.div>
-		</Portal>
-	)
-}
-
-// Ingredient Item with editing support
-const IngredientItem = ({
-	ingredient,
-	onRemove,
-	onUpdate,
-}: {
-	ingredient: Ingredient
-	onRemove: () => void
-	onUpdate: (updates: Partial<Ingredient>) => void
-}) => (
-	<div className='group flex items-center gap-3 rounded-xl bg-bg px-4 py-3'>
-		<input
-			type='text'
-			value={ingredient.quantity}
-			onChange={e => onUpdate({ quantity: e.target.value })}
-			placeholder='Qty'
-			className='min-w-24 w-auto max-w-40 bg-transparent text-sm font-bold text-primary outline-none placeholder:text-muted-foreground/50'
-		/>
-		<input
-			type='text'
-			value={ingredient.name}
-			onChange={e => onUpdate({ name: e.target.value })}
-			placeholder='Ingredient name'
-			className='flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted-foreground/50'
-		/>
-		<button
-			onClick={onRemove}
-			className='flex size-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500'
-		>
-			<X className='size-4' />
-		</button>
-	</div>
-)
-
-// Helper: Convert seconds to human-readable display
-const formatTimer = (seconds: number): string => {
-	if (seconds >= 86400) {
-		const days = Math.floor(seconds / 86400)
-		const hours = Math.floor((seconds % 86400) / 3600)
-		return hours > 0
-			? `${days}d ${hours}h`
-			: `${days} day${days > 1 ? 's' : ''}`
-	}
-	if (seconds >= 3600) {
-		const hours = Math.floor(seconds / 3600)
-		const mins = Math.floor((seconds % 3600) / 60)
-		return mins > 0
-			? `${hours}h ${mins}m`
-			: `${hours} hour${hours > 1 ? 's' : ''}`
-	}
-	if (seconds >= 60) {
-		return `${Math.floor(seconds / 60)} min`
-	}
-	return `${seconds} sec`
-}
-
-// Helper: Get timer in seconds from step
-const getTimerSeconds = (step: RecipeStep): number | undefined => {
-	if (step.timerSeconds != null && step.timerSeconds > 0)
-		return step.timerSeconds
-	return undefined
-}
-
-// Step Item with flexible timer and image support
-const StepItem = ({
-	step,
-	index,
-	onRemove,
-	onUpdate,
-}: {
-	step: RecipeStep
-	index: number
-	onRemove: () => void
-	onUpdate: (updates: Partial<RecipeStep>) => void
-}) => {
-	const [isEditingTimer, setIsEditingTimer] = useState(false)
-	const [timerValue, setTimerValue] = useState('')
-	const [timerUnit, setTimerUnit] = useState<TimeUnit>('minutes')
-	const fileInputRef = React.useRef<HTMLInputElement>(null)
-
-	// Initialize timer editing state from step
-	const openTimerEditor = () => {
-		const seconds = getTimerSeconds(step)
-		if (seconds !== undefined) {
-			// Convert to most natural unit
-			if (seconds >= 86400 && seconds % 86400 === 0) {
-				setTimerValue((seconds / 86400).toString())
-				setTimerUnit('days')
-			} else if (seconds >= 3600 && seconds % 3600 === 0) {
-				setTimerValue((seconds / 3600).toString())
-				setTimerUnit('hours')
-			} else if (seconds >= 60) {
-				setTimerValue(Math.floor(seconds / 60).toString())
-				setTimerUnit('minutes')
-			} else {
-				setTimerValue(seconds.toString())
-				setTimerUnit('seconds')
-			}
-		} else {
-			setTimerValue('')
-			setTimerUnit('minutes')
-		}
-		setIsEditingTimer(true)
-	}
-
-	const handleTimerSave = () => {
-		const value = parseFloat(timerValue)
-		if (!isNaN(value) && value > 0) {
-			let seconds = value
-			switch (timerUnit) {
-				case 'days':
-					seconds = value * 86400
-					break
-				case 'hours':
-					seconds = value * 3600
-					break
-				case 'minutes':
-					seconds = value * 60
-					break
-				case 'seconds':
-					seconds = value
-					break
-			}
-			onUpdate({ timerSeconds: Math.round(seconds) })
-		} else {
-			// Clear timer
-			onUpdate({ timerSeconds: undefined })
-		}
-		setIsEditingTimer(false)
-	}
-
-	const handleClearTimer = (e: React.MouseEvent) => {
-		e.stopPropagation()
-		onUpdate({ timerSeconds: undefined })
-	}
-
-	const handleTimerKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') handleTimerSave()
-		else if (e.key === 'Escape') setIsEditingTimer(false)
-	}
-
-	const [isUploadingImage, setIsUploadingImage] = useState(false)
-
-	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0]
-		if (!file) return
-
-		diag.image('recipe', 'select', {
-			stepIndex: index,
-			fileName: file.name,
-			size: file.size,
-		})
-		setIsUploadingImage(true)
-
-		// Show local preview immediately for better UX
-		const localPreviewUrl = URL.createObjectURL(file)
-		diag.image('recipe', 'upload-start', { stepIndex: index, localPreviewUrl })
-		onUpdate({ imageUrl: localPreviewUrl })
-
+	const formatTime = (iso: string) => {
 		try {
-			// Upload to server
-			const response = await uploadRecipeImages([file])
-			if (response.success && response.data?.[0]) {
-				diag.image('recipe', 'upload-success', {
-					stepIndex: index,
-					serverUrl: response.data[0],
-				})
-				// Replace local preview with server URL
-				onUpdate({ imageUrl: response.data[0] })
-				// Revoke blob URL after server URL is set
-				URL.revokeObjectURL(localPreviewUrl)
-			} else {
-				diag.image('recipe', 'upload-fail', { stepIndex: index, response })
-				// Upload failed - keep local preview but warn user
-				toast.error('Image upload failed', {
-					description:
-						"Using local preview. Image won't persist after page refresh.",
-				})
-			}
-		} catch (error) {
-			diag.image('recipe', 'upload-fail', { stepIndex: index, error })
-			toast.error('Image upload failed', {
-				description:
-					"Using local preview. Image won't persist after page refresh.",
+			return new Date(iso).toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit',
 			})
-		} finally {
-			setIsUploadingImage(false)
+		} catch {
+			return ''
 		}
 	}
 
-	const timerSeconds = getTimerSeconds(step)
-
 	return (
-		<div className='group flex gap-3.5 rounded-2xl bg-bg p-4'>
-			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-extrabold text-white shadow-md'>
-				{index + 1}
-			</div>
-			<div className='flex-1 space-y-3'>
-				{/* Step Image */}
-				{step.imageUrl ? (
-					<div className='relative'>
-						<Image
-							src={step.imageUrl}
-							alt={`Step ${index + 1}`}
-							width={400}
-							height={128}
-							className={cn(
-								'h-32 w-full rounded-lg object-cover',
-								isUploadingImage && 'opacity-60',
-							)}
-						/>
-						{isUploadingImage && (
-							<div className='absolute inset-0 flex items-center justify-center'>
-								<div className='size-8 animate-spin rounded-full border-2 border-white border-t-transparent' />
-							</div>
-						)}
-						<button
-							onClick={() => {
-								diag.image('recipe', 'remove', { stepIndex: index })
-								onUpdate({ imageUrl: undefined })
-							}}
-							disabled={isUploadingImage}
-							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500 disabled:opacity-50'
-						>
-							<X className='size-3.5' />
-						</button>
-					</div>
-				) : (
-					<button
-						onClick={() => fileInputRef.current?.click()}
-						disabled={isUploadingImage}
-						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
-					>
-						{isUploadingImage ? (
-							<>
-								<div className='size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-								Uploading...
-							</>
-						) : (
-							<>
-								<ImagePlus className='size-4' />
-								Add step photo
-							</>
-						)}
-					</button>
-				)}
-				<input
-					ref={fileInputRef}
-					type='file'
-					accept='image/*'
-					onChange={handleImageUpload}
-					className='hidden'
-				/>
-
-				{/* Instruction */}
-				<textarea
-					defaultValue={step.instruction}
-					onChange={e => onUpdate({ instruction: e.target.value })}
-					placeholder='Describe this step...'
-					className='min-h-16 w-full resize-none rounded-lg border border-border bg-panel-bg p-3 text-sm text-text placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none'
-				/>
-
-				{/* Timer & Technique Tags */}
-				<div className='flex flex-wrap gap-2.5'>
-					{isEditingTimer ? (
-						<div className='flex items-center gap-1.5 rounded-lg border border-primary bg-primary/5 px-2 py-1'>
-							<Timer className='size-3.5 text-primary' />
-							<input
-								type='number'
-								value={timerValue}
-								onChange={e => setTimerValue(e.target.value)}
-								onKeyDown={handleTimerKeyDown}
-								placeholder='0'
-								min='0'
-								className='w-12 bg-transparent text-xs font-semibold text-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
-								autoFocus
-							/>
-							<select
-								value={timerUnit}
-								onChange={e => setTimerUnit(e.target.value as TimeUnit)}
-								className='bg-bg-card text-xs font-semibold text-primary outline-none cursor-pointer rounded px-1 py-0.5'
-							>
-								<option value='seconds' className='bg-bg-card text-text'>
-									sec
-								</option>
-								<option value='minutes' className='bg-bg-card text-text'>
-									min
-								</option>
-								<option value='hours' className='bg-bg-card text-text'>
-									hours
-								</option>
-								<option value='days' className='bg-bg-card text-text'>
-									days
-								</option>
-							</select>
-							<button
-								onClick={handleTimerSave}
-								className='ml-1 rounded bg-primary px-2 py-0.5 text-xs font-semibold text-white'
-							>
-								✓
-							</button>
-						</div>
-					) : timerSeconds ? (
-						<div className='flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-1.5'>
-							<button
-								onClick={openTimerEditor}
-								className='flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary/80'
-							>
-								<Timer className='size-3.5' />
-								{formatTimer(timerSeconds)}
-							</button>
-							<button
-								onClick={handleClearTimer}
-								className='ml-1 flex size-4 items-center justify-center rounded-full text-primary/60 hover:bg-primary/20 hover:text-primary'
-							>
-								<X className='size-3' />
-							</button>
-						</div>
-					) : (
-						<button
-							onClick={openTimerEditor}
-							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary'
-						>
-							<Timer className='size-3.5' />
-							Add Timer
-						</button>
-					)}
-					{step.technique && (
-						<span className='rounded-lg bg-streak/10 px-3 py-1.5 text-xs font-semibold text-streak'>
-							🔥 {step.technique}
-						</span>
-					)}
-				</div>
-			</div>
-			<div className='flex flex-col gap-2'>
-				<button className='flex size-8 cursor-grab items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-muted/30 hover:text-muted-foreground active:cursor-grabbing'>
-					<GripVertical className='size-4' />
-				</button>
-				<button
-					onClick={onRemove}
-					className='flex size-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:bg-red-500/10 hover:text-red-500'
+		<AnimatePresence mode='wait'>
+			{status === 'saving' && (
+				<motion.span
+					key='saving'
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					className='flex items-center gap-1.5 text-xs text-muted-foreground'
 				>
-					<Trash2 className='size-4' />
-				</button>
-			</div>
-		</div>
-	)
-}
-
-// Animated Count-Up Component
-const CountUp = ({
-	value,
-	className,
-}: {
-	value: number
-	className?: string
-}) => {
-	const count = useMotionValue(0)
-	const rounded = useTransform(count, latest => Math.round(latest))
-	const [displayValue, setDisplayValue] = React.useState(0)
-
-	React.useEffect(() => {
-		const controls = animate(count, value, {
-			duration: 1.2,
-			ease: 'easeOut',
-		})
-		const unsubscribe = rounded.on('change', v => setDisplayValue(v))
-		return () => {
-			controls.stop()
-			unsubscribe()
-		}
-	}, [value, count, rounded])
-
-	return <span className={className}>{displayValue}</span>
-}
-
-// XP Preview Modal
-const XpPreviewModal = ({
-	recipe,
-	xpBreakdown,
-	onBack,
-	onPublish,
-	isPublishing = false,
-}: {
-	recipe: ParsedRecipe
-	xpBreakdown: XpBreakdown
-	onBack: () => void
-	onPublish: (recipe: ParsedRecipe) => void // CRITICAL: Pass recipe to avoid stale closure
-	isPublishing?: boolean
-}) => {
-	const [showConfirm, setShowConfirm] = useState(false)
-
-	return (
-		<Portal>
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				exit={{ opacity: 0 }}
-				className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'
-			>
-				<motion.div
-					initial={{ scale: 0.9, opacity: 0 }}
-					animate={{ scale: 1, opacity: 1 }}
-					className='w-full max-w-md max-h-modal overflow-y-auto rounded-3xl bg-panel-bg p-7'
+					<Loader2 className='size-3 animate-spin' />
+					Saving...
+				</motion.span>
+			)}
+			{status === 'saved' && lastSavedAt && (
+				<motion.span
+					key='saved'
+					initial={{ opacity: 0, y: -4 }}
+					animate={{ opacity: 1, y: 0 }}
+					exit={{ opacity: 0 }}
+					className='flex items-center gap-1.5 text-xs text-success'
 				>
-					{/* Header */}
-					<div className='mb-5 flex items-center justify-between'>
-						<h2 className='text-xl font-extrabold text-text'>XP Preview</h2>
-						<button
-							onClick={onBack}
-							className='flex size-9 items-center justify-center rounded-lg bg-bg text-muted-foreground'
-						>
-							<X className='size-5' />
-						</button>
-					</div>
-
-					{/* Recipe Summary */}
-					<div className='mb-5 flex items-center gap-4 rounded-2xl bg-bg p-4'>
-						{recipe.coverImageUrl ? (
-							<Image
-								src={recipe.coverImageUrl}
-								alt={recipe.title}
-								width={80}
-								height={80}
-								className='size-20 rounded-xl object-cover'
-							/>
-						) : (
-							<div className='flex size-20 items-center justify-center rounded-xl bg-muted text-3xl'>
-								🍳
-							</div>
-						)}
-						<div className='flex-1'>
-							<h3 className='text-lg font-bold text-text'>{recipe.title}</h3>
-							<p className='text-xs text-muted-foreground'>
-								{recipe.cookTime} • {recipe.difficulty} • {recipe.servings}{' '}
-								servings
-							</p>
-						</div>
-					</div>
-
-					{/* XP Breakdown */}
-					<div className='mb-5 rounded-2xl bg-bg p-5'>
-						<div className='mb-4 flex items-center justify-between border-b border-border pb-4'>
-							<span className='text-sm text-muted-foreground'>
-								Total Recipe XP
-							</span>
-							<CountUp
-								value={xpBreakdown.total}
-								className='text-4xl font-black text-primary'
-							/>
-						</div>
-
-						<div className='mb-4 space-y-3'>
-							<div className='flex items-center justify-between'>
-								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>📊</span>
-									Base ({recipe.difficulty} difficulty)
-								</div>
-								<span className='font-bold text-success'>
-									+{xpBreakdown.base}
-								</span>
-							</div>
-							<div className='flex items-center justify-between'>
-								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>📝</span>
-									Steps ({recipe.steps.length} × 10)
-								</div>
-								<span className='font-bold text-success'>
-									+{xpBreakdown.steps}
-								</span>
-							</div>
-							<div className='flex items-center justify-between'>
-								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>⏱️</span>
-									Time ({recipe.cookTime})
-								</div>
-								<span className='font-bold text-success'>
-									+{xpBreakdown.time}
-								</span>
-							</div>
-							{(xpBreakdown.techniques || []).map((t, i) => (
-								<div
-									key={i}
-									className='flex items-center justify-between rounded-lg bg-streak/10 px-3.5 py-2.5'
-								>
-									<div className='flex items-center gap-2.5 text-sm text-text'>
-										<span className='text-lg'>🔥</span>
-										{t.name} technique
-									</div>
-									<span className='font-bold text-success'>+{t.xp}</span>
-								</div>
-							))}
-						</div>
-
-						{/* Validation */}
-						<div className='flex items-center gap-3 rounded-xl bg-success/10 px-4 py-3.5 text-success'>
-							<Shield className='size-6' />
-							<div className='flex-1'>
-								<strong className='text-sm'>XP Validated</strong>
-								<span className='block text-xs opacity-80'>
-									Recipe passes anti-cheat checks
-								</span>
-							</div>
-							<span className='text-xs font-semibold text-muted-foreground'>
-								{xpBreakdown.confidence}% confident
-							</span>
-						</div>
-					</div>
-
-					{/* Badges Preview */}
-					<div className='mb-4'>
-						<span className='mb-2.5 block text-xs text-muted-foreground'>
-							Cooks can earn:
-						</span>
-						<div className='flex gap-2.5'>
-							{(recipe.detectedBadges || []).map((badge, i) => (
-								<motion.div
-									key={i}
-									initial={{ opacity: 0, scale: 0.8 }}
-									animate={{ opacity: 1, scale: 1 }}
-									transition={{ delay: i * 0.1, ...TRANSITION_SPRING }}
-									whileHover={{ scale: 1.05 }}
-									className='flex items-center gap-2 rounded-xl bg-bg px-4 py-2.5'
-								>
-									<span className='text-xl'>{badge.emoji}</span>
-									<span className='text-xs font-semibold text-text'>
-										{badge.name}
-									</span>
-								</motion.div>
-							))}
-						</div>
-					</div>
-
-					{/* Creator Incentive */}
-					<div className='mb-5 flex items-center gap-3.5 rounded-2xl border border-xp/20 bg-xp/10 px-5 py-4'>
-						<span className='text-3xl'>✨</span>
-						<div>
-							<strong className='text-sm text-xp'>You earn 4% XP</strong>{' '}
-							<span className='text-sm text-text'>
-								when others cook this recipe
-							</span>
-							<span className='block text-xs text-muted-foreground'>
-								If 100 people cook this: +
-								{Math.round(xpBreakdown.total * 0.04 * 100)} XP for you!
-							</span>
-						</div>
-					</div>
-
-					{/* Actions */}
-					<div className='flex gap-3'>
-						<motion.button
-							onClick={onBack}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-muted-foreground'
-						>
-							<Edit3 className='size-4' />
-							Edit Recipe
-						</motion.button>
-						<motion.button
-							onClick={() => setShowConfirm(true)}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg'
-						>
-							<Send className='size-4' />
-							Publish Recipe
-							<kbd className='hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline-block'>
-								{modKey}+↵
-							</kbd>
-						</motion.button>
-					</div>
-
-					{/* Publish Confirmation Dialog */}
-					<AlertDialog
-						open={showConfirm}
-						onOpenChange={open => !isPublishing && setShowConfirm(open)}
-					>
-						<AlertDialogContent className='max-w-sm rounded-2xl border-border bg-bg-card'>
-							<AlertDialogHeader className='text-center'>
-								<div className='mx-auto mb-2 flex size-14 items-center justify-center rounded-full bg-gradient-hero'>
-									<Rocket className='size-7 text-white' />
-								</div>
-								<AlertDialogTitle className='text-lg font-bold text-text'>
-									Ready to go live?
-								</AlertDialogTitle>
-								<AlertDialogDescription className='text-sm text-muted-foreground'>
-									<span className='font-medium text-text'>{recipe.title}</span>{' '}
-									will be visible to the ChefKix community. You&apos;ll earn{' '}
-									<span className='font-semibold text-xp'>
-										{xpBreakdown.total} XP
-									</span>{' '}
-									when others cook it!
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter className='flex-row gap-3 sm:justify-center'>
-								<AlertDialogCancel
-									disabled={isPublishing}
-									className='flex-1 rounded-xl border-border bg-bg text-muted-foreground hover:bg-muted disabled:opacity-50'
-								>
-									Wait, go back
-								</AlertDialogCancel>
-								{/* Use button instead of AlertDialogAction to prevent auto-close on async operation */}
-								{/* CRITICAL: Pass recipe prop to avoid stale closure - ensures publish uses current data */}
-								<button
-									onClick={() => onPublish(recipe)}
-									disabled={isPublishing}
-									className='flex-1 inline-flex items-center justify-center rounded-xl bg-gradient-hero px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none'
-								>
-									{isPublishing ? (
-										<>
-											<Loader2 className='mr-2 size-4 animate-spin' />
-											Publishing...
-										</>
-									) : (
-										<>
-											<Rocket className='mr-2 size-4' />
-											Publish!
-										</>
-									)}
-								</button>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
-				</motion.div>
-			</motion.div>
-		</Portal>
+					<span className='size-1.5 rounded-full bg-success' />
+					Saved at {formatTime(lastSavedAt)}
+				</motion.span>
+			)}
+			{status === 'error' && (
+				<motion.span
+					key='error'
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					className='flex items-center gap-1.5 text-xs text-destructive'
+				>
+					<AlertTriangle className='size-3' />
+					Save failed — retrying...
+				</motion.span>
+			)}
+			{status === 'idle' && lastSavedAt && (
+				<motion.span
+					key='idle-saved'
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 0.6 }}
+					exit={{ opacity: 0 }}
+					className='text-xs text-muted-foreground'
+				>
+					Saved at {formatTime(lastSavedAt)}
+				</motion.span>
+			)}
+		</AnimatePresence>
 	)
 }
 
@@ -1241,22 +226,57 @@ export const RecipeCreateAiFlow = ({
 	const coverImageRef = React.useRef<HTMLInputElement>(null)
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
 
-	// Compute if recalculation is needed based on 30% change threshold
+	// ── Auto-save ────────────────────────────────────────────────────
+	const autoSavePayload = useMemo(() => {
+		if (!recipe) return null
+		return {
+			title: recipe.title,
+			description: recipe.description,
+			coverImageUrl: recipe.coverImageUrl ? [recipe.coverImageUrl] : undefined,
+			difficulty: recipe.difficulty,
+			cookTimeMinutes: parseInt(recipe.cookTime) || 30,
+			servings: recipe.servings,
+			cuisineType: recipe.cuisine,
+			fullIngredientList: (recipe.ingredients || []).map(i => {
+				const parts = i.quantity.trim().split(' ')
+				return {
+					name: i.name,
+					quantity: parts[0] || '',
+					unit: parts.slice(1).join(' ') || '',
+				}
+			}),
+			steps: (recipe.steps || []).map((s, i) => ({
+				stepNumber: i + 1,
+				description: s.instruction,
+				action: s.technique,
+				timerSeconds: s.timerSeconds || undefined,
+				imageUrl: s.imageUrl,
+			})),
+			rewardBadges: (recipe.detectedBadges || []).map(b => b.name),
+			skillTags: recipe.skillTags || [],
+		}
+	}, [recipe])
+
+	const isAutoSaveEnabled = step === 'preview' && !isPublishing && !isSaving
+	const { saveStatus, lastSavedAt, saveNow } = useAutoSave(
+		draftId,
+		autoSavePayload,
+		isAutoSaveEnabled,
+	)
+
+	// ── Derived state ───────────────────────────────────────────────
 	const changePercent = calculateRecipeChangePercent(originalRecipe, recipe)
 	const needsRecalculation =
 		forceRecalculate || changePercent >= RECALCULATION_THRESHOLD
-	// For backwards compatibility, hasEdited is now computed
 	const hasEdited = needsRecalculation
 
-	// Load initialDraft when provided (from draft listing)
+	// ── Load initial draft ──────────────────────────────────────────
 	useEffect(() => {
 		if (initialDraft) {
-			// Convert Recipe to ParsedRecipe format
-			// Note: Recipe type uses BE field names, ParsedRecipe uses FE/AI field names
 			const parsedRecipe: ParsedRecipe = {
 				title: initialDraft.title,
 				description: initialDraft.description || '',
-				coverImageUrl: initialDraft.coverImageUrl?.[0] || undefined, // Recipe has array
+				coverImageUrl: initialDraft.coverImageUrl?.[0] || undefined,
 				cookTime: `${initialDraft.cookTimeMinutes || initialDraft.totalTimeMinutes || 0} min`,
 				servings: initialDraft.servings,
 				cuisine: initialDraft.cuisineType || '',
@@ -1265,19 +285,18 @@ export const RecipeCreateAiFlow = ({
 					(ing, idx) => ({
 						id: `ing-${idx}`,
 						name: ing.name,
-						quantity: `${ing.quantity || ''} ${ing.unit || ''}`.trim(), // Combine quantity + unit
+						quantity: `${ing.quantity || ''} ${ing.unit || ''}`.trim(),
 					}),
 				),
-				steps: (initialDraft.steps || []).map((step, idx) => ({
+				steps: (initialDraft.steps || []).map((s, idx) => ({
 					id: `step-${idx}`,
-					instruction: step.description, // BE uses 'description', ParsedRecipe uses 'instruction'
-					timerSeconds: step.timerSeconds || undefined,
-					technique: step.action, // BE uses 'action', ParsedRecipe uses 'technique'
-					imageUrl: step.imageUrl,
+					instruction: s.description,
+					timerSeconds: s.timerSeconds || undefined,
+					technique: s.action,
+					imageUrl: s.imageUrl,
 				})),
 				skillTags: initialDraft.skillTags || [],
 				detectedBadges: (initialDraft.rewardBadges || []).map(b => {
-					// Look up badge in registry to get proper emoji
 					const resolved = resolveBadge(b)
 					return {
 						emoji: resolved?.icon || '🏆',
@@ -1289,12 +308,10 @@ export const RecipeCreateAiFlow = ({
 			}
 
 			setRecipe(parsedRecipe)
-			// Store original for smart recalculation detection (30% threshold)
 			setOriginalRecipe(structuredClone(parsedRecipe))
 			setDraftId(initialDraft.id)
 			setStep('preview')
 
-			// Load XP breakdown if available (convert from Recipe's XpBreakdown to component's XpBreakdown)
 			if (initialDraft.xpBreakdown) {
 				const breakdown = initialDraft.xpBreakdown
 				setXpBreakdown({
@@ -1312,6 +329,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [initialDraft])
 
+	// ── Clipboard paste ─────────────────────────────────────────────
 	const handlePaste = useCallback(async () => {
 		try {
 			const text = await navigator.clipboard.readText()
@@ -1321,7 +339,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [])
 
-	// Cover image upload handler
+	// ── Cover image upload ──────────────────────────────────────────
 	const handleCoverImageUpload = useCallback(
 		async (e: React.ChangeEvent<HTMLInputElement>) => {
 			const file = e.target.files?.[0]
@@ -1334,27 +352,22 @@ export const RecipeCreateAiFlow = ({
 			})
 			setIsUploadingCover(true)
 
-			// Show local preview immediately for better UX
 			const localPreviewUrl = URL.createObjectURL(file)
 			diag.image('recipe', 'upload-start', { type: 'cover', localPreviewUrl })
-			// Use functional update to avoid stale closure issues
 			setRecipe(prev =>
 				prev ? { ...prev, coverImageUrl: localPreviewUrl } : prev,
 			)
 
 			try {
-				// Upload to server
 				const response = await uploadRecipeImages([file])
 				if (response.success && response.data?.[0]) {
 					diag.image('recipe', 'upload-success', {
 						type: 'cover',
 						serverUrl: response.data[0],
 					})
-					// Replace local preview with server URL
 					setRecipe(prev =>
 						prev ? { ...prev, coverImageUrl: response.data![0] } : prev,
 					)
-					// Revoke blob URL after server URL is set
 					URL.revokeObjectURL(localPreviewUrl)
 					toast.success('Cover image uploaded!')
 				} else {
@@ -1372,7 +385,6 @@ export const RecipeCreateAiFlow = ({
 				})
 			} finally {
 				setIsUploadingCover(false)
-				// Reset file input so same file can be selected again
 				if (coverImageRef.current) {
 					coverImageRef.current.value = ''
 				}
@@ -1381,8 +393,50 @@ export const RecipeCreateAiFlow = ({
 		[recipe],
 	)
 
-	// Save draft handler - creates draft if needed, then saves
-	// Can accept an optional targetRecipe to use instead of state (for manual mode save)
+	// ── Build save payload (shared between save-draft and publish) ──
+	const buildSavePayload = useCallback(
+		(targetRecipe: ParsedRecipe) => ({
+			title: targetRecipe.title,
+			description: targetRecipe.description,
+			coverImageUrl: targetRecipe.coverImageUrl
+				? [targetRecipe.coverImageUrl]
+				: undefined,
+			difficulty: targetRecipe.difficulty,
+			cookTimeMinutes: parseInt(targetRecipe.cookTime) || 30,
+			servings: targetRecipe.servings,
+			cuisineType: targetRecipe.cuisine,
+			fullIngredientList: (targetRecipe.ingredients || []).map(i => {
+				const parts = i.quantity.trim().split(' ')
+				const quantity = parts[0] || ''
+				const unit = parts.slice(1).join(' ') || ''
+				return { name: i.name, quantity, unit }
+			}),
+			steps: (targetRecipe.steps || []).map((s, i) => ({
+				stepNumber: i + 1,
+				description: s.instruction,
+				action: s.technique,
+				timerSeconds: s.timerSeconds || undefined,
+				imageUrl: s.imageUrl,
+			})),
+			rewardBadges: (targetRecipe.detectedBadges || []).map(b => b.name),
+			skillTags: targetRecipe.skillTags || [],
+			xpReward: xpBreakdown?.total || targetRecipe.xpReward,
+			xpBreakdown: xpBreakdown
+				? {
+						base: xpBreakdown.base,
+						steps: xpBreakdown.steps,
+						time: xpBreakdown.time,
+						techniques:
+							xpBreakdown.techniques?.reduce((sum, t) => sum + t.xp, 0) || 0,
+						total: xpBreakdown.total,
+					}
+				: targetRecipe.xpBreakdown,
+			difficultyMultiplier: targetRecipe.difficultyMultiplier,
+		}),
+		[xpBreakdown],
+	)
+
+	// ── Save draft ──────────────────────────────────────────────────
 	const handleSaveDraft = useCallback(
 		async (targetRecipe?: ParsedRecipe) => {
 			const recipeToSave = targetRecipe || recipe
@@ -1397,7 +451,6 @@ export const RecipeCreateAiFlow = ({
 				return
 			}
 
-			// Snapshot the recipe state BEFORE saving
 			diag.snapshot('recipe', 'Recipe data being saved', {
 				title: recipeToSave.title,
 				ingredientsCount: recipeToSave.ingredients?.length ?? 0,
@@ -1412,7 +465,6 @@ export const RecipeCreateAiFlow = ({
 			try {
 				let currentDraftId = draftId
 
-				// Create draft if we don't have one
 				if (!currentDraftId) {
 					diag.request('recipe', 'POST /drafts', { action: 'create new draft' })
 					const createResponse = await createDraft()
@@ -1433,52 +485,9 @@ export const RecipeCreateAiFlow = ({
 					diag.action('recipe', 'Draft created', { draftId: currentDraftId })
 				}
 
-				const savePayload = {
-					title: recipeToSave.title,
-					description: recipeToSave.description,
-					coverImageUrl: recipeToSave.coverImageUrl
-						? [recipeToSave.coverImageUrl]
-						: undefined,
-					difficulty: recipeToSave.difficulty,
-					cookTimeMinutes: parseInt(recipeToSave.cookTime) || 30,
-					servings: recipeToSave.servings,
-					cuisineType: recipeToSave.cuisine,
-					fullIngredientList: (recipeToSave.ingredients || []).map(i => {
-						// Parse "2 cup" back to { quantity: "2", unit: "cup" }
-						// Handle edge cases: " cup" (empty amount), "2" (no unit), etc.
-						const parts = i.quantity.trim().split(' ')
-						const quantity = parts[0] || ''
-						const unit = parts.slice(1).join(' ') || ''
-						return { name: i.name, quantity, unit }
-					}),
-					steps: (recipeToSave.steps || []).map((s, i) => ({
-						stepNumber: i + 1,
-						description: s.instruction,
-						action: s.technique,
-						timerSeconds: s.timerSeconds || undefined,
-						imageUrl: s.imageUrl,
-					})),
-					// Gamification: full transparency (save breakdown, not just total)
-					rewardBadges: (recipeToSave.detectedBadges || []).map(b => b.name),
-					skillTags: recipeToSave.skillTags || [],
-					xpReward: xpBreakdown?.total || recipeToSave.xpReward,
-					xpBreakdown: xpBreakdown
-						? {
-								base: xpBreakdown.base,
-								steps: xpBreakdown.steps,
-								time: xpBreakdown.time,
-								techniques:
-									xpBreakdown.techniques?.reduce((sum, t) => sum + t.xp, 0) ||
-									0,
-								total: xpBreakdown.total,
-							}
-						: recipeToSave.xpBreakdown,
-					difficultyMultiplier: recipeToSave.difficultyMultiplier,
-				}
+				const savePayload = buildSavePayload(recipeToSave)
 
-				// Log the full payload being sent to backend
 				diag.request('recipe', `PATCH /drafts/${currentDraftId}`, savePayload)
-
 				const saveResponse = await saveDraft(currentDraftId, savePayload)
 				diag.response(
 					'recipe',
@@ -1526,9 +535,10 @@ export const RecipeCreateAiFlow = ({
 				setIsSaving(false)
 			}
 		},
-		[recipe, draftId, xpBreakdown],
+		[recipe, draftId, buildSavePayload],
 	)
 
+	// ── AI parse ────────────────────────────────────────────────────
 	const handleParse = useCallback(async () => {
 		diag.action('recipe', 'AI_PARSE clicked', { textLength: rawText.length })
 
@@ -1541,13 +551,11 @@ export const RecipeCreateAiFlow = ({
 		setStep('parsing')
 		setParsingStep(0)
 
-		// Progress animation
 		const progressInterval = setInterval(() => {
 			setParsingStep(prev => Math.min(prev + 1, 3))
 		}, 600)
 
 		try {
-			// Call real AI service
 			diag.request('recipe', 'POST /process_recipe', {
 				textPreview: rawText.slice(0, 200) + '...',
 			})
@@ -1574,9 +582,7 @@ export const RecipeCreateAiFlow = ({
 					diag.snapshot('recipe', 'Parsed recipe from AI', parsed)
 
 					setRecipe(parsed)
-					// Store original for smart recalculation detection (30% threshold)
 					setOriginalRecipe(structuredClone(parsed))
-					// Save initial step order for smart reorder detection
 					setPrevStepIds(parsed.steps.map(s => s.id))
 					setStep('preview')
 					diag.nav('recipe', 'input', 'preview', 'AI parse complete')
@@ -1615,6 +621,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [rawText])
 
+	// ── XP preview ──────────────────────────────────────────────────
 	const handlePreviewXp = useCallback(async () => {
 		diag.action('recipe', 'PREVIEW_XP clicked', {
 			hasRecipe: !!recipe,
@@ -1625,10 +632,8 @@ export const RecipeCreateAiFlow = ({
 		if (!recipe || isCalculatingXp) return
 
 		// If AI already calculated XP with breakdown and user hasn't edited, use it directly
-		// Per spec 14-ai-integration.txt: calculate_metas is only for manual/edited recipes
 		if (!hasEdited && recipe.xpBreakdown && method === 'ai') {
 			diag.action('recipe', 'Using cached XP from AI parse', recipe.xpBreakdown)
-			// Use the REAL breakdown from AI - no more estimation!
 			const aiBreakdown = recipe.xpBreakdown
 			setXpBreakdown({
 				base: aiBreakdown.base,
@@ -1643,22 +648,21 @@ export const RecipeCreateAiFlow = ({
 						]
 					: [],
 				total: aiBreakdown.total,
-				isValidated: true, // AI already validated
-				confidence: 95, // High confidence since AI computed it
+				isValidated: true,
+				confidence: 95,
 			})
 			setStep('xp-preview')
 			return
 		}
 
-		// User edited the recipe OR it's manual entry - need to recalculate
+		// User edited or manual entry — recalculate via AI
 		setIsCalculatingXp(true)
 
-		// Build request for calculate-metas API
 		const metasRequest = {
 			title: recipe.title,
 			description: recipe.description,
 			difficulty: recipe.difficulty,
-			prep_time_minutes: 10, // Default since not captured
+			prep_time_minutes: 10,
 			cook_time_minutes: parseInt(recipe.cookTime) || 30,
 			servings: recipe.servings,
 			cuisine_type: recipe.cuisine,
@@ -1686,12 +690,8 @@ export const RecipeCreateAiFlow = ({
 			if (response.success && response.data) {
 				const data = response.data
 
-				// Update recipe with badges from calculate_metas (fixes manual entry showing no badges)
-				// CRITICAL: Use functional update to get current state, avoiding stale closure bug
-				// The async callback captures `recipe` from closure which can be stale after await
 				if (data.badges && data.badges.length > 0) {
 					setRecipe(currentRecipe => {
-						// Guard: Ensure we have a valid recipe with required fields
 						if (!currentRecipe || !currentRecipe.title) {
 							console.error(
 								'[handlePreviewXp] Cannot update empty recipe with badges',
@@ -1725,12 +725,10 @@ export const RecipeCreateAiFlow = ({
 				})
 				setStep('xp-preview')
 			} else {
-				// Log the failed response for debugging
 				console.warn('[handlePreviewXp] calculateMetas failed:', response)
 				toast.error('Could not calculate XP', {
 					description: response.message || 'Using default values',
 				})
-				// Fallback: still show XP preview with empty values
 				setXpBreakdown({
 					base: 0,
 					steps: 0,
@@ -1747,7 +745,6 @@ export const RecipeCreateAiFlow = ({
 			toast.error('XP calculation failed', {
 				description: 'Please try again',
 			})
-			// Fallback
 			setXpBreakdown({
 				base: 0,
 				steps: 0,
@@ -1763,8 +760,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [recipe, hasEdited, method, isCalculatingXp])
 
-	// Full publish flow: Save Draft → Validate → Publish
-	// Accepts optional recipeToPublish for manual entry flow
+	// ── Publish flow: Save Draft → Validate → Publish ───────────────
 	const handlePublish = useCallback(
 		async (recipeToPublish?: ParsedRecipe) => {
 			const targetRecipe = recipeToPublish || recipe
@@ -1777,7 +773,7 @@ export const RecipeCreateAiFlow = ({
 				isPublishing,
 			})
 
-			// Detect stale closure issue: if passed recipe is incomplete but state recipe is complete
+			// Detect stale closure issue
 			if (recipeToPublish && recipe) {
 				const passedHasData =
 					(recipeToPublish.ingredients?.length ?? 0) > 0 ||
@@ -1786,7 +782,6 @@ export const RecipeCreateAiFlow = ({
 					(recipe.ingredients?.length ?? 0) > 0 ||
 					(recipe.steps?.length ?? 0) > 0
 				if (!passedHasData && stateHasData) {
-					// Stale closure detected - use state recipe instead
 					diag.warn(
 						'recipe',
 						'PUBLISH detected stale recipe param, using state instead',
@@ -1795,11 +790,9 @@ export const RecipeCreateAiFlow = ({
 							stateIngredients: recipe.ingredients?.length ?? 0,
 						},
 					)
-					// Fall through with recipe from state
 				}
 			}
 
-			// Use whichever recipe has actual content, preferring the passed one if valid
 			const finalRecipe =
 				recipeToPublish && (recipeToPublish.ingredients?.length ?? 0) > 0
 					? recipeToPublish
@@ -1813,7 +806,6 @@ export const RecipeCreateAiFlow = ({
 				return
 			}
 
-			// Snapshot the recipe state being published
 			diag.snapshot('recipe', 'Recipe data for publish', {
 				title: finalRecipe.title,
 				description: finalRecipe.description?.slice(0, 100),
@@ -1823,21 +815,15 @@ export const RecipeCreateAiFlow = ({
 				coverImageUrl: finalRecipe.coverImageUrl,
 			})
 
-			// INVASIVE: Validate data integrity before any action
 			diag.validateData(
 				'recipe',
 				'finalRecipe before publish',
 				{ ...finalRecipe },
 				['title', 'description', 'ingredients', 'steps', 'difficulty'],
 			)
-
-			// INVASIVE: Check localStorage state
 			diag.inspectLocalStorage('recipe', 'recipe-draft')
 
-			// ============================================
-			// STEP 0: Pre-publish validation (FE guard)
-			// Catches missing required fields BEFORE hitting backend
-			// ============================================
+			// ── STEP 0: Pre-publish FE validation ───────────────────
 			const validationErrors = validateRecipeForPublish(finalRecipe)
 			if (validationErrors.length > 0) {
 				diag.warn('recipe', 'PUBLISH validation failed', validationErrors)
@@ -1849,9 +835,9 @@ export const RecipeCreateAiFlow = ({
 						validationErrors.length === 1
 							? primaryError.hint
 							: `Please fix the following:\n${allHints}`,
-					duration: 6000, // Longer duration for actionable feedback
+					duration: 6000,
 				})
-				return // Don't proceed, don't set isPublishing
+				return
 			}
 
 			setIsPublishing(true)
@@ -1888,48 +874,7 @@ export const RecipeCreateAiFlow = ({
 				diag.action('recipe', 'PUBLISH step 2: saving draft', {
 					draftId: currentDraftId,
 				})
-				const publishSavePayload = {
-					title: finalRecipe.title,
-					description: finalRecipe.description,
-					coverImageUrl: finalRecipe.coverImageUrl
-						? [finalRecipe.coverImageUrl]
-						: undefined,
-					difficulty: finalRecipe.difficulty,
-					cookTimeMinutes: parseInt(finalRecipe.cookTime) || 30,
-					servings: finalRecipe.servings,
-					cuisineType: finalRecipe.cuisine,
-					fullIngredientList: (finalRecipe.ingredients || []).map(i => {
-						const parts = i.quantity.trim().split(' ')
-						return {
-							name: i.name,
-							quantity: parts[0] || '',
-							unit: parts.slice(1).join(' ') || '',
-						}
-					}),
-					steps: (finalRecipe.steps || []).map((s, i) => ({
-						stepNumber: i + 1,
-						description: s.instruction,
-						action: s.technique,
-						timerSeconds: s.timerSeconds || undefined,
-						imageUrl: s.imageUrl,
-					})),
-					// Gamification: full transparency (save breakdown, not just total)
-					rewardBadges: (finalRecipe.detectedBadges || []).map(b => b.name),
-					skillTags: finalRecipe.skillTags || [],
-					xpReward: xpBreakdown?.total || finalRecipe.xpReward,
-					xpBreakdown: xpBreakdown
-						? {
-								base: xpBreakdown.base,
-								steps: xpBreakdown.steps,
-								time: xpBreakdown.time,
-								techniques:
-									xpBreakdown.techniques?.reduce((sum, t) => sum + t.xp, 0) ||
-									0,
-								total: xpBreakdown.total,
-							}
-						: finalRecipe.xpBreakdown,
-					difficultyMultiplier: finalRecipe.difficultyMultiplier,
-				}
+				const publishSavePayload = buildSavePayload(finalRecipe)
 
 				diag.request(
 					'recipe',
@@ -1944,7 +889,6 @@ export const RecipeCreateAiFlow = ({
 					saveResponse.success,
 				)
 
-				// Check if save succeeded
 				if (!saveResponse.success) {
 					diag.error(
 						'recipe',
@@ -1961,7 +905,7 @@ export const RecipeCreateAiFlow = ({
 					return
 				}
 
-				// Step 3: Validate recipe for safety (per spec 14-ai-integration.txt)
+				// Step 3: Validate recipe for safety
 				diag.action('recipe', 'PUBLISH step 3: validating content', {})
 				diag.request('recipe', 'POST /validate_recipe', {
 					title: finalRecipe.title,
@@ -2019,20 +963,15 @@ export const RecipeCreateAiFlow = ({
 						xpReward: finalRecipe.xpReward,
 					})
 
-					// 🎉 CELEBRATION! Recipe creation deserves fanfare
 					triggerRecipeCompleteConfetti()
 
 					toast.success('Recipe published! 🎉', {
 						description: `"${finalRecipe.title}" is now live! You earned ${finalRecipe.xpReward || 0} XP`,
 					})
 
-					// Brief delay to let user see confetti and toast before navigation
 					await new Promise(resolve => setTimeout(resolve, 1500))
 
-					// Notify parent of success (for navigation)
-					// NOTE: Do NOT setIsPublishing(false) here - leave button disabled
-					// until navigation completes and component unmounts. This prevents
-					// user from clicking "Publish" multiple times while waiting.
+					// NOTE: Do NOT setIsPublishing(false) — leave button disabled until navigation
 					diag.action('recipe', 'Calling onPublishSuccess callback', {
 						recipeId: currentDraftId,
 					})
@@ -2046,7 +985,6 @@ export const RecipeCreateAiFlow = ({
 						description: errorMessage,
 						duration: 5000,
 					})
-					// Reset on failure so user can try again
 					setIsPublishing(false)
 					diag.action('recipe', 'PUBLISH flow ended (API failure)', {
 						isPublishing: false,
@@ -2057,29 +995,37 @@ export const RecipeCreateAiFlow = ({
 				toast.error('Something went wrong', {
 					description: 'Please try again later',
 				})
-				// Only reset isPublishing on error - on success, leave it true
-				// until navigation completes and component unmounts
 				setIsPublishing(false)
 				diag.action('recipe', 'PUBLISH flow ended (error)', {
 					isPublishing: false,
 				})
 			}
 		},
-		[recipe, draftId, xpBreakdown, isPublishing, onPublishSuccess],
+		[
+			recipe,
+			draftId,
+			xpBreakdown,
+			isPublishing,
+			onPublishSuccess,
+			buildSavePayload,
+		],
 	)
 
-	// Keyboard shortcuts: Ctrl+S = save draft, Ctrl+Enter = context-aware submit
+	// ── Keyboard shortcuts ──────────────────────────────────────────
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
-			// Ctrl+S or Cmd+S: Save draft (in preview or xp-preview step with a recipe)
 			if ((e.ctrlKey || e.metaKey) && e.key === 's') {
 				e.preventDefault()
 				if (recipe && (step === 'preview' || step === 'xp-preview')) {
 					diag.action('recipe', 'Keyboard shortcut: Ctrl+S (Save Draft)', {})
-					handleSaveDraft()
+					// Use auto-save's immediate save if draft already exists, else manual flow
+					if (draftId) {
+						saveNow()
+					} else {
+						handleSaveDraft()
+					}
 				}
 			}
-			// Ctrl+Enter or Cmd+Enter: Context-aware submit action
 			if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
 				e.preventDefault()
 				diag.action(
@@ -2108,8 +1054,11 @@ export const RecipeCreateAiFlow = ({
 		handlePreviewXp,
 		handlePublish,
 		handleSaveDraft,
+		saveNow,
+		draftId,
 	])
 
+	// ── Ingredient CRUD ─────────────────────────────────────────────
 	const removeIngredient = (id: string) => {
 		if (!recipe) return
 		setRecipe({
@@ -2140,6 +1089,7 @@ export const RecipeCreateAiFlow = ({
 		})
 	}
 
+	// ── Step CRUD ───────────────────────────────────────────────────
 	const removeStep = (id: string) => {
 		if (!recipe) return
 		setRecipe({
@@ -2167,6 +1117,7 @@ export const RecipeCreateAiFlow = ({
 		})
 	}
 
+	// ── JSX ─────────────────────────────────────────────────────────
 	return (
 		<div className={cn('mx-auto max-w-3xl space-y-5 p-5', className)}>
 			{/* Header */}
@@ -2183,24 +1134,28 @@ export const RecipeCreateAiFlow = ({
 					{step === 'preview' ? 'Review Recipe' : 'Create Recipe'}
 				</h1>
 				{step === 'preview' && (
-					<button
-						onClick={() => handleSaveDraft()}
-						disabled={isSaving}
-						className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50'
-					>
-						{isSaving ? 'Saving...' : 'Save Draft'}
-						{!isSaving && (
-							<kbd className='hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal md:inline-block'>
-								{modKey}+S
-							</kbd>
-						)}
-					</button>
+					<div className='flex items-center gap-3'>
+						{/* Auto-save status indicator */}
+						<AutoSaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
+						<button
+							onClick={() => handleSaveDraft()}
+							disabled={isSaving || saveStatus === 'saving'}
+							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50'
+						>
+							{isSaving || saveStatus === 'saving' ? 'Saving...' : 'Save Draft'}
+							{!isSaving && saveStatus !== 'saving' && (
+								<kbd className='hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal md:inline-block'>
+									{modKey}+S
+								</kbd>
+							)}
+						</button>
+					</div>
 				)}
 			</div>
 
-			{/* Step Content - Animated transitions between steps */}
+			{/* Step Content — Animated transitions */}
 			<AnimatePresence mode='wait'>
-				{/* Step: Input */}
+				{/* ── Input Step ──────────────────────────────────── */}
 				{step === 'input' && (
 					<motion.div
 						key='input-step'
@@ -2232,9 +1187,9 @@ export const RecipeCreateAiFlow = ({
 							/>
 						</div>
 
-						{/* Method Content - Animated switch between AI and Manual */}
+						{/* Method Content */}
 						<AnimatePresence mode='wait'>
-							{/* Paste Section (AI method) */}
+							{/* AI Paste */}
 							{method === 'ai' && (
 								<motion.div
 									key='ai-method'
@@ -2286,7 +1241,7 @@ export const RecipeCreateAiFlow = ({
 								</motion.div>
 							)}
 
-							{/* Manual Entry Form */}
+							{/* Manual Entry */}
 							{method === 'manual' && (
 								<motion.div
 									key='manual-method'
@@ -2299,15 +1254,12 @@ export const RecipeCreateAiFlow = ({
 									<RecipeFormDetailed
 										initialData={initialManualDraft}
 										onSubmit={async data => {
-											// Clear local draft on submit (it will be server-saved)
 											localStorage.removeItem('chefkix-recipe-draft')
-											// Convert RecipeFormData to ParsedRecipe format
 											const parsed: ParsedRecipe = {
 												title: data.title,
 												description: data.description,
 												coverImageUrl: data.coverImageUrl,
 												cookTime: `${data.cookTimeMinutes} min`,
-												// RecipeFormDetailed now uses Title Case difficulty directly
 												difficulty: data.difficulty,
 												servings: data.servings,
 												cuisine: data.category || 'General',
@@ -2323,14 +1275,9 @@ export const RecipeCreateAiFlow = ({
 													imageUrl: s.imageUrl,
 												})),
 												detectedBadges: [],
-												// Manual entry has no XP yet - must calculate
 											}
-											// Set recipe and go to preview step (same as AI flow)
-											// This ensures XP is calculated via calculate_metas
 											setRecipe(parsed)
-											// Save initial step order for smart reorder detection
 											setPrevStepIds((parsed.steps || []).map(s => s.id))
-											// Manual entry always needs XP calculation (no AI baseline)
 											setForceRecalculate(true)
 											setStep('preview')
 											toast.success('Recipe ready for review!', {
@@ -2338,7 +1285,6 @@ export const RecipeCreateAiFlow = ({
 											})
 										}}
 										onSaveDraft={async data => {
-											// Convert RecipeFormData to ParsedRecipe for server save
 											const parsed: ParsedRecipe = {
 												title: data.title,
 												description: data.description,
@@ -2360,7 +1306,6 @@ export const RecipeCreateAiFlow = ({
 												})),
 												detectedBadges: [],
 											}
-											// Also save to localStorage as backup
 											try {
 												const draft = {
 													type: 'manual' as const,
@@ -2374,12 +1319,10 @@ export const RecipeCreateAiFlow = ({
 											} catch {
 												// localStorage save is best-effort
 											}
-											// Save to server
 											await handleSaveDraft(parsed)
 										}}
 										isSaving={isSaving}
 										isSubmitting={isPublishing}
-										// No onCancel - header already has back button
 										className='-mx-5 -mb-5'
 									/>
 								</motion.div>
@@ -2388,7 +1331,7 @@ export const RecipeCreateAiFlow = ({
 					</motion.div>
 				)}
 
-				{/* Step: Preview */}
+				{/* ── Preview Step ────────────────────────────────── */}
 				{step === 'preview' && recipe && (
 					<motion.div
 						key='preview-step'
@@ -2399,7 +1342,7 @@ export const RecipeCreateAiFlow = ({
 						transition={STEP_TRANSITION}
 						className='space-y-5'
 					>
-						{/* Success Banner with XP Preview */}
+						{/* Success Banner */}
 						<div className='flex items-center justify-between gap-3.5 rounded-2xl border border-success/20 bg-gradient-to-r from-success/10 to-emerald-500/5 px-5 py-4'>
 							<div className='flex items-center gap-3.5'>
 								<span className='text-3xl'>✨</span>
@@ -2416,7 +1359,6 @@ export const RecipeCreateAiFlow = ({
 									</span>
 								</div>
 							</div>
-							{/* Show XP badge immediately if we have it from AI */}
 							{recipe.xpReward && !needsRecalculation && (
 								<motion.div
 									initial={{ opacity: 0, scale: 0.8 }}
@@ -2521,9 +1463,9 @@ export const RecipeCreateAiFlow = ({
 								<input
 									type='text'
 									value={recipe.title}
-									onChange={e => {
+									onChange={e =>
 										setRecipe({ ...recipe, title: e.target.value })
-									}}
+									}
 									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text focus:border-primary focus:outline-none'
 								/>
 							</div>
@@ -2535,29 +1477,27 @@ export const RecipeCreateAiFlow = ({
 								</label>
 								<textarea
 									value={recipe.description}
-									onChange={e => {
+									onChange={e =>
 										setRecipe({ ...recipe, description: e.target.value })
-									}}
+									}
 									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
 								/>
 							</div>
 
-							{/* Meta Row - All Editable */}
+							{/* Meta Row */}
 							<div className='mb-4 flex flex-wrap gap-2.5'>
-								{/* Cook Time - Editable */}
 								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
 									<Clock className='size-4 text-muted-foreground' />
 									<input
 										type='text'
 										value={recipe.cookTime}
-										onChange={e => {
+										onChange={e =>
 											setRecipe({ ...recipe, cookTime: e.target.value })
-										}}
+										}
 										className='w-20 border-none bg-transparent text-xs font-semibold text-text focus:outline-none'
 										placeholder='30 min'
 									/>
 								</div>
-								{/* Difficulty - Read-only (AI determines for XP fairness) */}
 								<div
 									className='group relative flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 cursor-help'
 									title='Difficulty is determined by AI based on techniques and complexity. This ensures fair XP calculation.'
@@ -2568,7 +1508,6 @@ export const RecipeCreateAiFlow = ({
 									</span>
 									<Lock className='size-3 text-muted-foreground/50' />
 								</div>
-								{/* Servings - Editable */}
 								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
 									<Utensils className='size-4 text-muted-foreground' />
 									<input
@@ -2576,27 +1515,26 @@ export const RecipeCreateAiFlow = ({
 										min={1}
 										max={50}
 										value={recipe.servings}
-										onChange={e => {
+										onChange={e =>
 											setRecipe({
 												...recipe,
 												servings: parseInt(e.target.value) || 1,
 											})
-										}}
+										}
 										className='w-12 border-none bg-transparent text-xs font-semibold text-text focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									/>
 									<span className='text-xs text-muted-foreground'>
 										servings
 									</span>
 								</div>
-								{/* Cuisine - Editable */}
 								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
 									<span>🌏</span>
 									<input
 										type='text'
 										value={recipe.cuisine}
-										onChange={e => {
+										onChange={e =>
 											setRecipe({ ...recipe, cuisine: e.target.value })
-										}}
+										}
 										className='w-24 border-none bg-transparent text-xs font-semibold text-text focus:outline-none'
 										placeholder='Cuisine'
 									/>
@@ -2700,7 +1638,6 @@ export const RecipeCreateAiFlow = ({
 								axis='y'
 								values={recipe.steps || []}
 								onReorder={newSteps => {
-									// Simply update the step order - smart recalculation handles detection
 									setRecipe({
 										...recipe,
 										steps: newSteps,
@@ -2766,9 +1703,11 @@ export const RecipeCreateAiFlow = ({
 				)}
 			</AnimatePresence>
 
-			{/* Parsing Overlay - Separate AnimatePresence for overlay */}
+			{/* Parsing Overlay */}
 			<AnimatePresence>
-				{step === 'parsing' && <ParsingOverlay currentStep={parsingStep} />}
+				{step === 'parsing' && (
+					<RecipeParsingOverlay currentStep={parsingStep} />
+				)}
 			</AnimatePresence>
 
 			{/* XP Preview Modal */}
@@ -2788,13 +1727,13 @@ export const RecipeCreateAiFlow = ({
 }
 
 // ============================================
-// EXPORTS
+// RE-EXPORTS (barrel compatibility)
 // ============================================
 
 export type {
 	ParsedRecipe,
 	XpBreakdown,
-	RecipeCreateAiFlowProps,
 	Ingredient,
 	RecipeStep,
-}
+} from '@/lib/types/recipeCreate'
+export type { RecipeCreateAiFlowProps }
