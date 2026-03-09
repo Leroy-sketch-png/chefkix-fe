@@ -12,7 +12,12 @@ import {
 	DailyChallengeBanner,
 } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
-import { getTodaysChallenge, DailyChallenge } from '@/services/challenge'
+import {
+	getTodaysChallenge,
+	getWeeklyChallenge,
+	DailyChallenge,
+	WeeklyChallenge,
+} from '@/services/challenge'
 import { TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
@@ -48,15 +53,20 @@ export default function ChallengesPage() {
 		bonusXp: number
 		endsAt: Date
 	} | null>(null)
+	const [weeklyChallenge, setWeeklyChallenge] =
+		useState<WeeklyChallenge | null>(null)
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
 		const fetchChallenges = async () => {
 			setLoading(true)
 			try {
-				const response = await getTodaysChallenge()
-				if (response.success && response.data) {
-					const data = response.data
+				const [dailyResponse, weeklyResponse] = await Promise.all([
+					getTodaysChallenge(),
+					getWeeklyChallenge(),
+				])
+				if (dailyResponse.success && dailyResponse.data) {
+					const data = dailyResponse.data
 					setDailyChallenge({
 						id: data.id,
 						title: data.title,
@@ -66,7 +76,9 @@ export default function ChallengesPage() {
 						endsAt: new Date(data.endsAt),
 					})
 				}
-				// TODO: Fetch weekly/community challenges when endpoint is available
+				if (weeklyResponse.success && weeklyResponse.data) {
+					setWeeklyChallenge(weeklyResponse.data)
+				}
 			} catch (err) {
 				console.error('Failed to fetch challenges:', err)
 			} finally {
@@ -83,7 +95,8 @@ export default function ChallengesPage() {
 		)
 	}
 
-	const hasNoChallenges = challenges.length === 0 && !dailyChallenge && !loading
+	const hasNoChallenges =
+		challenges.length === 0 && !dailyChallenge && !weeklyChallenge && !loading
 
 	return (
 		<PageTransition>
@@ -131,6 +144,83 @@ export default function ChallengesPage() {
 								challenge={dailyChallenge}
 								onFindRecipe={() => router.push('/discover?quick=true')}
 							/>
+						)}
+
+						{/* Weekly Challenge Section */}
+						{weeklyChallenge && (
+							<section className='mb-8'>
+								<h2 className='mb-4 text-lg font-bold text-text-primary'>
+									Weekly Challenge
+								</h2>
+								<motion.div
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+									className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
+								>
+									<div className='mb-3 flex items-center justify-between'>
+										<div className='flex items-center gap-3'>
+											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-md shadow-indigo-500/25'>
+												<Trophy className='size-5 text-white' />
+											</div>
+											<div>
+												<h3 className='text-lg font-bold text-text'>
+													{weeklyChallenge.title}
+												</h3>
+												<p className='text-sm text-text-secondary'>
+													{weeklyChallenge.description}
+												</p>
+											</div>
+										</div>
+										<div className='text-right'>
+											<span className='text-lg font-bold text-xp'>
+												+{weeklyChallenge.bonusXp} XP
+											</span>
+											{weeklyChallenge.completed && (
+												<p className='text-xs font-semibold text-success'>
+													Completed!
+												</p>
+											)}
+										</div>
+									</div>
+
+									{/* Progress bar */}
+									<div className='mb-2'>
+										<div className='mb-1 flex justify-between text-xs text-text-muted'>
+											<span>
+												{weeklyChallenge.progress} / {weeklyChallenge.target}{' '}
+												completed
+											</span>
+											<span>
+												{Math.round(
+													(weeklyChallenge.progress / weeklyChallenge.target) *
+														100,
+												)}
+												%
+											</span>
+										</div>
+										<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+											<motion.div
+												initial={{ width: 0 }}
+												animate={{
+													width: `${Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100)}%`,
+												}}
+												transition={{ duration: 0.8, ease: 'easeOut' }}
+												className='h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500'
+											/>
+										</div>
+									</div>
+
+									{/* Time remaining */}
+									<p className='text-xs text-text-muted'>
+										Ends{' '}
+										{new Date(weeklyChallenge.endsAt).toLocaleDateString(
+											'en-US',
+											{ weekday: 'long', month: 'short', day: 'numeric' },
+										)}
+									</p>
+								</motion.div>
+							</section>
 						)}
 
 						{/* Active Challenges Section */}

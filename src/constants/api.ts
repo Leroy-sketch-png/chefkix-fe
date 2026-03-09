@@ -110,6 +110,7 @@ export const API_ENDPOINTS = {
 		REGENERATE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/regenerate`,
 		REVERT: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/revert`,
 		UPLOAD: `${RECIPE_SERVICE_PREFIX}/uploads`,
+		UPLOAD_VIDEO: `${RECIPE_SERVICE_PREFIX}/uploads/video`,
 		SAVED: `${RECIPE_SERVICE_PREFIX}/saved`,
 		LIKED: `${RECIPE_SERVICE_PREFIX}/liked`,
 	},
@@ -141,17 +142,21 @@ export const API_ENDPOINTS = {
 		LINK_POST: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/link-post`,
 	},
-	// Co-Cooking Rooms per spec (18-co-cooking.txt)
+	// Co-Cooking Rooms per spec (18-co-cooking.txt, 24-advanced-multiplayer.txt)
 	COOKING_ROOMS: {
 		BASE: `${API_PREFIX}/cooking-rooms`,
 		JOIN: `${API_PREFIX}/cooking-rooms/join`,
 		GET: (roomCode: string) => `${API_PREFIX}/cooking-rooms/${roomCode}`,
 		LEAVE: (roomCode: string) =>
 			`${API_PREFIX}/cooking-rooms/${roomCode}/leave`,
+		INVITE: (roomCode: string) =>
+			`${API_PREFIX}/cooking-rooms/${roomCode}/invite`,
+		FRIENDS_ACTIVE: `${API_PREFIX}/cooking-rooms/friends-active`,
 	},
-	// Daily Challenges per spec (12-challenges.txt)
+	// Daily & Weekly Challenges per spec (12-challenges.txt)
 	CHALLENGES: {
 		TODAY: `${API_PREFIX}/challenges/today`,
+		WEEKLY: `${API_PREFIX}/challenges/weekly`,
 		HISTORY: `${API_PREFIX}/challenges/history`,
 	},
 	// Chat / Messaging per spec (09-chat.txt)
@@ -179,6 +184,8 @@ export const API_ENDPOINTS = {
 	// BE: StatisticController.java -> /auth/me/creator-stats
 	CREATOR: {
 		STATS: `${AUTH_PREFIX}/me/creator-stats`,
+		PERFORMANCE: `${RECIPE_SERVICE_PREFIX}/creator/performance`,
+		RECENT_COOKS: `${RECIPE_SERVICE_PREFIX}/creator/recent-cooks`,
 	},
 	// Notifications (notification module)
 	NOTIFICATIONS: {
@@ -191,6 +198,42 @@ export const API_ENDPOINTS = {
 		REGISTER_DEVICE: `${API_PREFIX}/notification/devices`,
 		UNREGISTER_DEVICE: (token: string) =>
 			`${API_PREFIX}/notification/devices/${token}`,
+	},
+	// Pantry Management per spec (23-pantry-and-meal-planning.txt)
+	PANTRY: {
+		BASE: `${API_PREFIX}/pantry`,
+		BULK_ADD: `${API_PREFIX}/pantry/bulk`,
+		UPDATE: (id: string) => `${API_PREFIX}/pantry/${id}`,
+		DELETE: (id: string) => `${API_PREFIX}/pantry/${id}`,
+		CLEAR_EXPIRED: `${API_PREFIX}/pantry/expired`,
+		MATCH_RECIPES: `${API_PREFIX}/pantry/recipes`,
+	},
+	// Meal Planning per spec (23-pantry-and-meal-planning.txt)
+	MEAL_PLANS: {
+		GENERATE: `${API_PREFIX}/meal-plans/generate`,
+		CURRENT: `${API_PREFIX}/meal-plans/current`,
+		GET: (id: string) => `${API_PREFIX}/meal-plans/${id}`,
+		DELETE: (id: string) => `${API_PREFIX}/meal-plans/${id}`,
+		SWAP_MEAL: (id: string, day: string, type: string) =>
+			`${API_PREFIX}/meal-plans/${id}/meals/${day}/${type}`,
+		SHOPPING_LIST: (id: string) =>
+			`${API_PREFIX}/meal-plans/${id}/shopping-list`,
+	},
+	// Shopping Lists (standalone persistent lists)
+	SHOPPING_LISTS: {
+		BASE: `${API_PREFIX}/shopping-lists`,
+		FROM_MEAL_PLAN: `${API_PREFIX}/shopping-lists/from-meal-plan`,
+		FROM_RECIPE: `${API_PREFIX}/shopping-lists/from-recipe`,
+		CUSTOM: `${API_PREFIX}/shopping-lists/custom`,
+		GET: (id: string) => `${API_PREFIX}/shopping-lists/${id}`,
+		SHARED: (token: string) => `${API_PREFIX}/shopping-lists/shared/${token}`,
+		TOGGLE_ITEM: (id: string, itemId: string) =>
+			`${API_PREFIX}/shopping-lists/${id}/items/${itemId}/toggle`,
+		ADD_ITEM: (id: string) => `${API_PREFIX}/shopping-lists/${id}/items`,
+		REMOVE_ITEM: (id: string, itemId: string) =>
+			`${API_PREFIX}/shopping-lists/${id}/items/${itemId}`,
+		DELETE: (id: string) => `${API_PREFIX}/shopping-lists/${id}`,
+		SHARE: (id: string) => `${API_PREFIX}/shopping-lists/${id}/share`,
 	},
 	// User Settings (identity module)
 	SETTINGS: {

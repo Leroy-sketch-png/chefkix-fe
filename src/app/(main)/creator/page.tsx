@@ -6,7 +6,14 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { CreatorDashboard } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { getCreatorStats, CreatorStats } from '@/services/creator'
+import {
+	getCreatorStats,
+	getCreatorPerformance,
+	getRecentCooks,
+	CreatorStats,
+	CreatorPerformanceResponse,
+	RecentCooksResponse,
+} from '@/services/creator'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ChefHat, Sparkles } from 'lucide-react'
 import { TRANSITION_SPRING } from '@/lib/motion'
@@ -34,23 +41,31 @@ export default function CreatorRoute() {
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(true)
 	const [stats, setStats] = useState<CreatorStats | null>(null)
+	const [performanceData, setPerformanceData] =
+		useState<CreatorPerformanceResponse | null>(null)
+	const [recentCooksData, setRecentCooksData] =
+		useState<RecentCooksResponse | null>(null)
 
 	useEffect(() => {
-		const fetchStats = async () => {
+		const fetchAll = async () => {
 			setIsLoading(true)
 			try {
-				const response = await getCreatorStats()
-				if (response.success && response.data) {
-					setStats(response.data)
-				}
+				const [statsRes, perfRes, cooksRes] = await Promise.all([
+					getCreatorStats(),
+					getCreatorPerformance(),
+					getRecentCooks(0, 10),
+				])
+				if (statsRes.success && statsRes.data) setStats(statsRes.data)
+				if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
+				if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
 			} catch (err) {
-				console.error('Failed to fetch creator stats:', err)
+				console.error('Failed to fetch creator data:', err)
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
-		fetchStats()
+		fetchAll()
 	}, [])
 
 	// Transform API data to component format
@@ -111,26 +126,44 @@ export default function CreatorRoute() {
 		: null
 
 	// These need additional API endpoints - leaving empty for now
-	const recipePerformance: Array<{
-		id: string
-		rank: number
-		title: string
-		imageUrl: string
-		cookCount: number
-		xpGenerated: number
-		badge?: { type: 'milestone' | 'trending'; label: string }
-		needsAttention?: boolean
-	}> = []
+	const recipePerformance = (performanceData?.recipes ?? []).map((r, idx) => ({
+		id: r.id,
+		rank: idx + 1,
+		title: r.title,
+		imageUrl: r.coverImageUrl?.[0] ?? '/placeholder-recipe.jpg',
+		cookCount: r.cookCount,
+		xpGenerated: r.creatorXpEarned ?? 0,
+		badge:
+			r.cookCount >= 100
+				? { type: 'milestone' as const, label: '100+ Cooks' }
+				: r.cookCount >= 50
+					? { type: 'trending' as const, label: 'Popular' }
+					: undefined,
+		needsAttention: r.cookCount === 0 && r.viewCount > 10,
+	}))
 
-	const recentCooks: Array<{
-		id: string
-		userId: string
-		userName: string
-		userAvatar: string
-		recipeTitle: string
-		xpEarned: number
-		timeAgo: string
-	}> = []
+	const formatTimeAgo = (dateStr: string): string => {
+		const date = new Date(dateStr)
+		const now = new Date()
+		const diffMs = now.getTime() - date.getTime()
+		const diffMin = Math.floor(diffMs / 60000)
+		if (diffMin < 60) return `${diffMin}m ago`
+		const diffHrs = Math.floor(diffMin / 60)
+		if (diffHrs < 24) return `${diffHrs}h ago`
+		const diffDays = Math.floor(diffHrs / 24)
+		if (diffDays < 7) return `${diffDays}d ago`
+		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+	}
+
+	const recentCooks = (recentCooksData?.cooks ?? []).map(c => ({
+		id: c.sessionId,
+		userId: c.cookUserId,
+		userName: c.cookDisplayName ?? c.cookUsername ?? 'Chef',
+		userAvatar: c.cookAvatarUrl ?? '/placeholder-avatar.png',
+		recipeTitle: c.recipeTitle,
+		xpEarned: 0, // Creator XP is tracked per-recipe, not per-session
+		timeAgo: formatTimeAgo(c.completedAt),
+	}))
 
 	return (
 		<PageTransition>

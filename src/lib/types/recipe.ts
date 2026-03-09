@@ -51,6 +51,9 @@ export interface Step {
 	ingredients?: Ingredient[] // Steps can have their own ingredients
 	timerSeconds?: number
 	imageUrl?: string
+	videoUrl?: string
+	videoThumbnailUrl?: string
+	videoDurationSec?: number
 	tips?: string
 }
 
@@ -197,6 +200,8 @@ export interface Recipe {
 export interface RecipeSummary {
 	id: string
 	createdAt: string
+	updatedAt?: string
+	recipeStatus?: RecipeStatus
 	title: string
 	description: string
 	coverImageUrl: string[]

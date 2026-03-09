@@ -251,6 +251,9 @@ export interface DraftSaveRequest {
 		ingredients?: Array<{ name: string; quantity: string; unit: string }>
 		timerSeconds?: number
 		imageUrl?: string
+		videoUrl?: string
+		videoThumbnailUrl?: string
+		videoDurationSec?: number
 		tips?: string
 	}>
 	// Gamification (from AI service)
@@ -710,6 +713,44 @@ export const uploadRecipeImages = async (
 		return {
 			success: false,
 			message: 'Failed to upload images',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Upload a step video.
+ * Returns { url, thumbnailUrl, durationSec }.
+ * Spec: vision_and_spec/20-media-lifecycle.txt §2
+ * Constraints: mp4/webm only, max 50MB, max 60 seconds.
+ */
+export interface VideoUploadResult {
+	url: string
+	thumbnailUrl: string
+	durationSec: number | null
+}
+
+export const uploadStepVideo = async (
+	file: File,
+): Promise<ApiResponse<VideoUploadResult>> => {
+	try {
+		const formData = new FormData()
+		formData.append('file', file)
+		const response = await api.post(
+			API_ENDPOINTS.RECIPES.UPLOAD_VIDEO,
+			formData,
+			{
+				headers: { 'Content-Type': 'multipart/form-data' },
+				timeout: 120000, // 2 min timeout for video uploads
+			},
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<VideoUploadResult>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to upload video',
 			statusCode: 500,
 		}
 	}

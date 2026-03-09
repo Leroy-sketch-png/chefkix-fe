@@ -1,0 +1,346 @@
+'use client'
+
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Post } from '@/lib/types'
+import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PageTransition } from '@/components/layout/PageTransition'
+import { PostCard } from '@/components/social/PostCard'
+import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
+import { CreatePostForm } from '@/components/social/CreatePostForm'
+import { ErrorState } from '@/components/ui/error-state'
+import { EmptyStateGamified } from '@/components/shared'
+import { StaggerContainer } from '@/components/ui/stagger-animation'
+import {
+	Newspaper,
+	Users2,
+	TrendingUp,
+	Sparkles,
+	Users,
+	MessageSquare,
+	Loader2,
+} from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
+import { TRANSITION_SPRING } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+const POSTS_PER_PAGE = 15
+
+// ============================================
+// TYPES
+// ============================================
+
+type FeedTab = 'following' | 'trending'
+
+// ============================================
+// PAGE
+// ============================================
+
+export default function FeedPage() {
+	const { user } = useAuth()
+	const [posts, setPosts] = useState<Post[]>([])
+	const [isLoading, setIsLoading] = useState(true)
+	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+	const [activeTab, setActiveTab] = useState<FeedTab>('following')
+	const [currentPage, setCurrentPage] = useState(0)
+	const [hasMore, setHasMore] = useState(true)
+	const loadMoreRef = useRef<HTMLDivElement>(null)
+
+	// Filter out posts from blocked users
+	const filteredPosts = useFilterBlockedContent(posts)
+
+	// Fetch initial page when tab changes
+	useEffect(() => {
+		const fetchPosts = async () => {
+			setIsLoading(true)
+			setError(null)
+			setCurrentPage(0)
+			setPosts([])
+
+			try {
+				const response =
+					activeTab === 'following'
+						? await getFollowingFeedPosts({
+								page: 0,
+								size: POSTS_PER_PAGE,
+								mode: 'latest',
+							})
+						: await getFeedPosts({
+								page: 0,
+								size: POSTS_PER_PAGE,
+								mode: 'trending',
+							})
+
+				if (response.success && response.data) {
+					setPosts(response.data)
+					if (response.pagination) {
+						setHasMore(
+							response.pagination.currentPage <
+								response.pagination.totalPages - 1,
+						)
+					} else {
+						setHasMore(response.data.length >= POSTS_PER_PAGE)
+					}
+				}
+			} catch {
+				setError('Failed to load feed')
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchPosts()
+	}, [activeTab])
+
+	// Load more posts on scroll
+	const loadMorePosts = useCallback(async () => {
+		if (isLoadingMore || !hasMore) return
+
+		setIsLoadingMore(true)
+		const nextPage = currentPage + 1
+
+		try {
+			const response =
+				activeTab === 'following'
+					? await getFollowingFeedPosts({
+							page: nextPage,
+							size: POSTS_PER_PAGE,
+							mode: 'latest',
+						})
+					: await getFeedPosts({
+							page: nextPage,
+							size: POSTS_PER_PAGE,
+							mode: 'trending',
+						})
+
+			if (response.success && response.data) {
+				setPosts(prev => [...prev, ...response.data!])
+				setCurrentPage(nextPage)
+				if (response.pagination) {
+					setHasMore(
+						response.pagination.currentPage <
+							response.pagination.totalPages - 1,
+					)
+				} else {
+					setHasMore(response.data.length >= POSTS_PER_PAGE)
+				}
+			}
+		} catch (err) {
+			console.error('Failed to load more posts:', err)
+		} finally {
+			setIsLoadingMore(false)
+		}
+	}, [isLoadingMore, hasMore, currentPage, activeTab])
+
+	// Intersection Observer for infinite scroll
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			entries => {
+				if (
+					entries[0].isIntersecting &&
+					hasMore &&
+					!isLoadingMore &&
+					!isLoading
+				) {
+					loadMorePosts()
+				}
+			},
+			{ threshold: 0.1, rootMargin: '100px' },
+		)
+
+		if (loadMoreRef.current) {
+			observer.observe(loadMoreRef.current)
+		}
+
+		return () => observer.disconnect()
+	}, [hasMore, isLoadingMore, isLoading, loadMorePosts])
+
+	const handlePostCreated = (newPost: Post) => {
+		setPosts(prev => (Array.isArray(prev) ? [newPost, ...prev] : [newPost]))
+	}
+
+	const handlePostUpdate = (updatedPost: Post) => {
+		setPosts(prev =>
+			Array.isArray(prev)
+				? prev.map(p => (p.id === updatedPost.id ? updatedPost : p))
+				: [],
+		)
+	}
+
+	const handlePostDelete = (postId: string) => {
+		setPosts(prev =>
+			Array.isArray(prev) ? prev.filter(p => p.id !== postId) : [],
+		)
+	}
+
+	return (
+		<PageTransition>
+			<PageContainer maxWidth='lg'>
+				{/* Header */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-6'
+				>
+					<div className='mb-2 flex items-center gap-3'>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-md shadow-primary/25'
+						>
+							<Newspaper className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold leading-tight text-text'>Feed</h1>
+					</div>
+					<p className='flex items-center gap-2 leading-normal text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />
+						See what the community is cooking
+					</p>
+				</motion.div>
+
+				{/* Tabs */}
+				<div className='mb-4 flex gap-2'>
+					<button
+						onClick={() => setActiveTab('following')}
+						className={cn(
+							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+							activeTab === 'following'
+								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+						)}
+					>
+						<Users2 className='size-4' />
+						Following
+					</button>
+					<button
+						onClick={() => setActiveTab('trending')}
+						className={cn(
+							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+							activeTab === 'trending'
+								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+						)}
+					>
+						<TrendingUp className='size-4' />
+						Trending
+					</button>
+				</div>
+
+				{/* Create Post */}
+				<div className='mb-4 md:mb-6'>
+					<CreatePostForm
+						onPostCreated={handlePostCreated}
+						currentUser={
+							user
+								? {
+										userId: user.userId ?? '',
+										displayName: user.displayName || user.username || 'User',
+										avatarUrl: user.avatarUrl,
+									}
+								: undefined
+						}
+					/>
+				</div>
+
+				{/* Loading State */}
+				{isLoading && (
+					<div className='space-y-4 md:space-y-6'>
+						<PostCardSkeleton count={3} showImages={false} />
+					</div>
+				)}
+
+				{/* Error State */}
+				{error && (
+					<ErrorState
+						title='Failed to load feed'
+						message={error}
+						onRetry={() => window.location.reload()}
+					/>
+				)}
+
+				{/* Empty State — Following */}
+				{!isLoading &&
+					!error &&
+					filteredPosts.length === 0 &&
+					activeTab === 'following' && (
+						<EmptyStateGamified
+							variant='feed'
+							title='Your following feed is empty'
+							description='Follow creators to see their cooking posts here!'
+							primaryAction={{
+								label: 'Discover Creators',
+								href: '/community',
+								icon: <Users className='size-4' />,
+							}}
+						/>
+					)}
+
+				{/* Empty State — Trending */}
+				{!isLoading &&
+					!error &&
+					filteredPosts.length === 0 &&
+					activeTab === 'trending' && (
+						<EmptyStateGamified
+							variant='feed'
+							title='No posts yet'
+							description='Be the first to cook something and share it with the community!'
+							primaryAction={{
+								label: 'Explore Recipes',
+								href: '/explore',
+								icon: <MessageSquare className='size-4' />,
+							}}
+						/>
+					)}
+
+				{/* Posts */}
+				{!isLoading && !error && filteredPosts.length > 0 && (
+					<>
+						<StaggerContainer className='space-y-4 md:space-y-6'>
+							<AnimatePresence mode='popLayout'>
+								{filteredPosts.map(post => (
+									<PostCard
+										key={post.id}
+										post={post}
+										onUpdate={handlePostUpdate}
+										onDelete={handlePostDelete}
+										currentUserId={user?.userId}
+									/>
+								))}
+							</AnimatePresence>
+						</StaggerContainer>
+
+						{/* Infinite scroll trigger */}
+						<div ref={loadMoreRef} className='flex justify-center py-8'>
+							{isLoadingMore && (
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									className='flex items-center gap-2 text-text-secondary'
+								>
+									<Loader2 className='size-5 animate-spin text-brand' />
+									<span className='text-sm font-medium'>
+										Loading more posts...
+									</span>
+								</motion.div>
+							)}
+							{!hasMore && filteredPosts.length > POSTS_PER_PAGE && (
+								<p className='text-sm text-text-muted'>
+									You&apos;ve reached the end of the feed
+								</p>
+							)}
+						</div>
+					</>
+				)}
+			</PageContainer>
+		</PageTransition>
+	)
+}

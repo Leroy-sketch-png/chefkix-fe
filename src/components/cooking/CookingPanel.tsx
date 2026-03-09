@@ -341,8 +341,20 @@ export const CookingPanel = () => {
 					{step?.title || `Step ${currentStepNumber}`}
 				</h4>
 
-				{/* Step Image - Critical for visual guidance */}
-				{step?.imageUrl && (
+				{/* Step Video (priority) or Image - Critical for visual guidance */}
+				{step?.videoUrl ? (
+					<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
+						<video
+							src={step.videoUrl}
+							poster={step.videoThumbnailUrl || undefined}
+							controls
+							loop
+							muted
+							playsInline
+							className='h-full w-full object-cover'
+						/>
+					</div>
+				) : step?.imageUrl ? (
 					<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 						<Image
 							src={step.imageUrl}
@@ -351,7 +363,7 @@ export const CookingPanel = () => {
 							className='object-cover'
 						/>
 					</div>
-				)}
+				) : null}
 
 				<p className='mb-4 text-sm leading-relaxed text-text-secondary'>
 					{step?.description}

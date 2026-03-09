@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios'
+import { API_ENDPOINTS } from '@/constants/api'
 import { ApiResponse, Difficulty } from '@/lib/types'
 import { AxiosError } from 'axios'
 
@@ -61,11 +62,21 @@ export interface ChallengeHistoryResponse {
 	stats: ChallengeStats
 }
 
-// ============================================
-// API ENDPOINTS
-// ============================================
-
-const API_BASE = '/api/v1/challenges'
+// Weekly challenge (multi-completion target)
+export interface WeeklyChallenge {
+	id: string
+	title: string
+	description: string
+	bonusXp: number
+	target: number
+	progress: number
+	completed: boolean
+	completedAt?: string
+	startsAt: string // ISO8601 Monday 00:00 UTC
+	endsAt: string // ISO8601 next Monday 00:00 UTC
+	criteria: ChallengeCriteria | Record<string, unknown>
+	matchingRecipes: ChallengeMatchingRecipe[]
+}
 
 // ============================================
 // SERVICE FUNCTIONS
@@ -80,7 +91,7 @@ export const getTodaysChallenge = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<DailyChallenge>>(
-			`${API_BASE}/today`,
+			API_ENDPOINTS.CHALLENGES.TODAY,
 		)
 		return response.data
 	} catch (error) {
@@ -105,7 +116,7 @@ export const getChallengeHistory = async (
 ): Promise<ApiResponse<ChallengeHistoryResponse>> => {
 	try {
 		const response = await api.get<ApiResponse<ChallengeHistoryResponse>>(
-			`${API_BASE}/history`,
+			API_ENDPOINTS.CHALLENGES.HISTORY,
 			{ params: { limit } },
 		)
 		return response.data
@@ -150,6 +161,31 @@ export const getChallengeStats = async (): Promise<
 		return {
 			success: false,
 			message: 'Failed to get challenge stats',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get this week's weekly challenge with progress.
+ * Weekly challenges require multiple completions within a week (Mon-Sun).
+ */
+export const getWeeklyChallenge = async (): Promise<
+	ApiResponse<WeeklyChallenge>
+> => {
+	try {
+		const response = await api.get<ApiResponse<WeeklyChallenge>>(
+			API_ENDPOINTS.CHALLENGES.WEEKLY,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<WeeklyChallenge>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to get weekly challenge',
 			statusCode: 500,
 		}
 	}

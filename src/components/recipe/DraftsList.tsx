@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RecipeSummary } from '@/lib/types/recipe'
+import { Recipe, RecipeSummary } from '@/lib/types/recipe'
 import { getDraftRecipes } from '@/services/recipe'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Clock, FileText, Trash2, Edit3, AlertCircle, Copy } from 'lucide-react'
@@ -39,6 +39,30 @@ interface DraftsListProps {
 	/** Called after a draft is successfully duplicated. Receives the new draft ID. */
 	onDuplicated?: (newDraftId: string) => void
 	className?: string
+}
+
+function recipeToSummary(recipe: Recipe): RecipeSummary {
+	return {
+		id: recipe.id,
+		createdAt: recipe.createdAt,
+		updatedAt: recipe.updatedAt,
+		recipeStatus: recipe.recipeStatus,
+		title: recipe.title,
+		description: recipe.description,
+		coverImageUrl: recipe.coverImageUrl,
+		difficulty: recipe.difficulty,
+		totalTimeMinutes: recipe.totalTimeMinutes,
+		servings: recipe.servings,
+		cuisineType: recipe.cuisineType,
+		xpReward: recipe.xpReward,
+		badges: recipe.rewardBadges,
+		likeCount: recipe.likeCount,
+		saveCount: recipe.saveCount,
+		viewCount: recipe.viewCount,
+		author: recipe.author,
+		isLiked: recipe.isLiked,
+		isSaved: recipe.isSaved,
+	}
 }
 
 export function DraftsList({
@@ -81,17 +105,7 @@ export function DraftsList({
 			const response = await duplicateRecipe(draftId)
 			if (response.success && response.data) {
 				// Add the new draft to the top of the list
-				const newDraft: RecipeSummary = {
-					id: response.data.id,
-					title: response.data.title || 'Untitled (Copy)',
-					description: response.data.description,
-					coverImageUrl: response.data.coverImageUrl,
-					difficulty: response.data.difficulty,
-					recipeStatus: 'DRAFT',
-					createdAt: response.data.createdAt || new Date().toISOString(),
-					updatedAt: response.data.updatedAt || new Date().toISOString(),
-					author: response.data.author,
-				}
+				const newDraft = recipeToSummary(response.data)
 				setDrafts(prev => [newDraft, ...prev])
 				toast.success('Draft duplicated')
 				onDuplicated?.(response.data.id)

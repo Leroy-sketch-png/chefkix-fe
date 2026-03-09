@@ -54,6 +54,9 @@ interface RecipeStep {
 	timerSeconds?: number // Total timer in seconds (source of truth)
 	imageUrl?: string
 	imageFile?: File
+	videoUrl?: string
+	videoThumbnailUrl?: string
+	videoDurationSec?: number
 }
 
 interface RecipeFormData {

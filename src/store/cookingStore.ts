@@ -96,7 +96,7 @@ interface CookingState {
 
 	// Co-cooking room actions
 	createRoom: (recipeId: string) => Promise<string | null>
-	joinRoom: (roomCode: string) => Promise<boolean>
+	joinRoom: (roomCode: string, role?: string) => Promise<boolean>
 	leaveRoom: () => Promise<void>
 	refreshRoom: () => Promise<void>
 	handleRoomEvent: (event: RoomEvent) => void
@@ -840,10 +840,13 @@ export const useCookingStore = create<CookingState>()(
 				}
 			},
 
-			joinRoom: async (roomCode: string) => {
+			joinRoom: async (roomCode: string, role?: string) => {
 				set({ isLoading: true, error: null })
 				try {
-					const response = await apiJoinRoom({ roomCode })
+					const response = await apiJoinRoom({
+						roomCode,
+						role: role as 'COOK' | 'SPECTATOR' | undefined,
+					})
 					if (!response.success || !response.data) {
 						set({
 							error: response.message || 'Failed to join room',

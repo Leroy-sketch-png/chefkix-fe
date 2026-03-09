@@ -2,11 +2,11 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { GripVertical, ImagePlus, Timer, Trash2, X } from 'lucide-react'
+import { GripVertical, ImagePlus, Timer, Trash2, Video, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { diag } from '@/lib/diagnostics'
 import { toast } from 'sonner'
-import { uploadRecipeImages } from '@/services/recipe'
+import { uploadRecipeImages, uploadStepVideo } from '@/services/recipe'
 import { formatTimer, getTimerSeconds } from '@/lib/recipeCreateUtils'
 import type { RecipeStep, TimeUnit } from '@/lib/types/recipeCreate'
 
@@ -37,7 +37,9 @@ export const StepItem = ({
 	const [timerValue, setTimerValue] = useState('')
 	const [timerUnit, setTimerUnit] = useState<TimeUnit>('minutes')
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const videoInputRef = useRef<HTMLInputElement>(null)
 	const [isUploadingImage, setIsUploadingImage] = useState(false)
+	const [isUploadingVideo, setIsUploadingVideo] = useState(false)
 
 	// ── Timer editing ───────────────────────────────────────────────
 	const openTimerEditor = () => {
@@ -141,6 +143,46 @@ export const StepItem = ({
 		}
 	}
 
+	// ── Video upload ────────────────────────────────────────────────
+	const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0]
+		if (!file) return
+
+		const validTypes = ['video/mp4', 'video/webm']
+		if (!validTypes.includes(file.type)) {
+			toast.error('Invalid video format', {
+				description: 'Only MP4 and WebM are supported.',
+			})
+			return
+		}
+
+		const maxSize = 50 * 1024 * 1024 // 50MB
+		if (file.size > maxSize) {
+			toast.error('Video too large', { description: 'Maximum size is 50MB.' })
+			return
+		}
+
+		setIsUploadingVideo(true)
+		try {
+			const response = await uploadStepVideo(file)
+			if (response.success && response.data) {
+				onUpdate({
+					videoUrl: response.data.url,
+					videoThumbnailUrl: response.data.thumbnailUrl,
+					videoDurationSec: response.data.durationSec,
+				})
+				toast.success('Video uploaded')
+			} else {
+				toast.error('Video upload failed')
+			}
+		} catch {
+			toast.error('Video upload failed')
+		} finally {
+			setIsUploadingVideo(false)
+			if (videoInputRef.current) videoInputRef.current.value = ''
+		}
+	}
+
 	const timerSeconds = getTimerSeconds(step)
 
 	// ── Render ──────────────────────────────────────────────────────
@@ -203,6 +245,57 @@ export const StepItem = ({
 					type='file'
 					accept='image/*'
 					onChange={handleImageUpload}
+					className='hidden'
+				/>
+
+				{/* Step Video */}
+				{step.videoUrl ? (
+					<div className='relative'>
+						<video
+							src={step.videoUrl}
+							poster={step.videoThumbnailUrl || undefined}
+							controls
+							muted
+							playsInline
+							className='h-32 w-full rounded-lg object-cover'
+						/>
+						<button
+							onClick={() =>
+								onUpdate({
+									videoUrl: undefined,
+									videoThumbnailUrl: undefined,
+									videoDurationSec: undefined,
+								})
+							}
+							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500'
+						>
+							<X className='size-3.5' />
+						</button>
+					</div>
+				) : (
+					<button
+						onClick={() => videoInputRef.current?.click()}
+						disabled={isUploadingVideo}
+						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
+					>
+						{isUploadingVideo ? (
+							<>
+								<div className='size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
+								Uploading video...
+							</>
+						) : (
+							<>
+								<Video className='size-4' />
+								Add step video
+							</>
+						)}
+					</button>
+				)}
+				<input
+					ref={videoInputRef}
+					type='file'
+					accept='video/mp4,video/webm'
+					onChange={handleVideoUpload}
 					className='hidden'
 				/>
 
