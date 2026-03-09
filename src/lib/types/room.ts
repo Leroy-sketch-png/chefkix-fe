@@ -1,17 +1,21 @@
 // ──────────────────────────────────────────────────────
-// Co-Cooking Room Types (per spec 18-co-cooking.txt)
+// Co-Cooking Room Types (per spec 18-co-cooking.txt, 24-advanced-multiplayer.txt)
 // ──────────────────────────────────────────────────────
+
+/** Participant role in a cooking room */
+export type RoomRole = 'COOK' | 'SPECTATOR'
 
 /** A participant in a cooking room */
 export interface RoomParticipant {
 	userId: string
 	displayName: string
 	avatarUrl: string | null
-	sessionId: string
+	sessionId: string | null // null for spectators
 	currentStep: number
 	completedSteps: number[]
 	joinedAt: string
 	isHost: boolean
+	role: RoomRole
 }
 
 /** Room state from REST API */
@@ -58,6 +62,8 @@ export interface CreateRoomRequest {
 /** Request to join a room */
 export interface JoinRoomRequest {
 	roomCode: string
+	/** "COOK" (default) or "SPECTATOR" */
+	role?: RoomRole
 }
 
 /** Response from leaving a room */
@@ -65,6 +71,21 @@ export interface LeaveRoomResponse {
 	left: boolean
 	roomDissolved: boolean
 	newHostUserId: string | null
+}
+
+/** Request to invite a user to a room */
+export interface InviteToRoomRequest {
+	userId: string
+}
+
+/** Active room where a followed user is cooking (for "Friends Cooking Now" widget) */
+export interface FriendsActiveRoom {
+	roomCode: string
+	recipeId: string
+	recipeTitle: string
+	participantCount: number
+	participantNames: string[]
+	startedMinutesAgo: number
 }
 
 /** WebSocket event payloads sent by client */

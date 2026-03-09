@@ -6,12 +6,14 @@ import type {
 	CreateRoomRequest,
 	JoinRoomRequest,
 	LeaveRoomResponse,
+	InviteToRoomRequest,
+	FriendsActiveRoom,
 } from '@/lib/types/room'
 import { AxiosError } from 'axios'
 
 // ============================================
 // CO-COOKING ROOM SERVICE
-// Per spec: 18-co-cooking.txt
+// Per spec: 18-co-cooking.txt, 24-advanced-multiplayer.txt
 // ============================================
 
 /**
@@ -96,6 +98,53 @@ export async function getRoom(
 			success: false,
 			statusCode: 500,
 			message: 'Failed to get cooking room',
+		}
+	}
+}
+
+/**
+ * Invite a friend to join the room. Sends an in-app notification with deep-link.
+ */
+export async function inviteToRoom(
+	roomCode: string,
+	request: InviteToRoomRequest,
+): Promise<ApiResponse<void>> {
+	try {
+		const response = await api.post(
+			API_ENDPOINTS.COOKING_ROOMS.INVITE(roomCode),
+			request,
+		)
+		return response.data
+	} catch (error) {
+		if (error instanceof AxiosError && error.response) {
+			return error.response.data
+		}
+		return {
+			success: false,
+			statusCode: 500,
+			message: 'Failed to send room invite',
+		}
+	}
+}
+
+/**
+ * Get active rooms where followed users are cooking.
+ * Used for "Friends Cooking Now" dashboard widget — poll every 30s.
+ */
+export async function getFriendsActiveRooms(): Promise<
+	ApiResponse<FriendsActiveRoom[]>
+> {
+	try {
+		const response = await api.get(API_ENDPOINTS.COOKING_ROOMS.FRIENDS_ACTIVE)
+		return response.data
+	} catch (error) {
+		if (error instanceof AxiosError && error.response) {
+			return error.response.data
+		}
+		return {
+			success: false,
+			statusCode: 500,
+			message: 'Failed to get friends active rooms',
 		}
 	}
 }

@@ -34,6 +34,7 @@ import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { ResumeCookingBanner } from '@/components/cooking'
+import { FriendsCookingNow } from '@/components/cooking'
 import { SinceLastVisitCard } from '@/components/dashboard'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
@@ -304,6 +305,8 @@ export default function DashboardPage() {
 				<SinceLastVisitCard className='mb-4' />
 				{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
 				<ResumeCookingBanner className='mb-4' />
+				{/* Friends Cooking Now — live activity from followed users' rooms */}
+				<FriendsCookingNow className='mb-4' />
 				{/* Streak Risk Banner - Show when user has a streak but hasn't cooked within window */}
 				{hasStreakAtRisk && showStreakBanner && (
 					<StreakRiskBanner

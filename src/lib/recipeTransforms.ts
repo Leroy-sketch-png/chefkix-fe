@@ -31,6 +31,9 @@ interface AiRecipeStep {
 	timerSeconds?: number
 	technique?: string
 	imageUrl?: string
+	videoUrl?: string
+	videoThumbnailUrl?: string
+	videoDurationSec?: number
 }
 
 /** Subset of ParsedRecipe fields needed for transform */
@@ -76,6 +79,9 @@ interface FormRecipeStep {
 	timerSeconds?: number
 	imageUrl?: string
 	imageFile?: File
+	videoUrl?: string
+	videoThumbnailUrl?: string
+	videoDurationSec?: number
 }
 
 /** Subset of RecipeFormData fields needed for transform */
@@ -189,6 +195,9 @@ export function parsedRecipeToRecipe(parsed: ParsedRecipeInput): Recipe {
 		action: s.technique,
 		timerSeconds: s.timerSeconds,
 		imageUrl: s.imageUrl,
+		videoUrl: s.videoUrl,
+		videoThumbnailUrl: s.videoThumbnailUrl,
+		videoDurationSec: s.videoDurationSec,
 		// Preview can't determine per-step mapping — show all on every step
 		ingredients: fullIngredientList,
 	}))
@@ -238,6 +247,9 @@ export function formDataToRecipe(form: RecipeFormDataInput): Recipe {
 		description: s.instruction,
 		timerSeconds: s.timerSeconds,
 		imageUrl: s.imageUrl,
+		videoUrl: s.videoUrl,
+		videoThumbnailUrl: s.videoThumbnailUrl,
+		videoDurationSec: s.videoDurationSec,
 		// Preview can't determine per-step mapping — show all on every step
 		ingredients: fullIngredientList,
 	}))

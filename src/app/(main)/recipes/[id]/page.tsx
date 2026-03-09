@@ -32,6 +32,7 @@ import {
 	Zap,
 	Check,
 	Edit3,
+	Rocket,
 	MoreHorizontal,
 	Info,
 	Timer,
@@ -765,6 +766,19 @@ export default function RecipeDetailPage() {
 							{isOwner && (
 								<>
 									<motion.button
+										onClick={() => {
+											if (!recipe) return
+											useCookingStore.getState().startPreviewCooking(recipe)
+											useUiStore.getState().expandCookingPanel()
+										}}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-brand hover:bg-brand/10'
+										title='Test Cook (Preview Mode)'
+									>
+										<Rocket className='size-5' />
+									</motion.button>
+									<motion.button
 										onClick={() => router.push(`/create?draftId=${recipeId}`)}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
@@ -1003,7 +1017,19 @@ export default function RecipeDetailPage() {
 												)}
 											</div>
 										</div>
-										{step.imageUrl && (
+										{step.videoUrl ? (
+											<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
+												<video
+													src={step.videoUrl}
+													poster={step.videoThumbnailUrl || undefined}
+													controls
+													loop
+													muted
+													playsInline
+													className='h-full w-full object-cover'
+												/>
+											</div>
+										) : step.imageUrl ? (
 											<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 												<Image
 													src={step.imageUrl}
@@ -1012,7 +1038,7 @@ export default function RecipeDetailPage() {
 													className='object-cover transition-transform duration-500 group-hover:scale-105'
 												/>
 											</div>
-										)}
+										) : null}
 										<p className='leading-relaxed text-text-secondary'>
 											{step.description}
 										</p>

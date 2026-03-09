@@ -12,6 +12,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
 import { diag } from '@/lib/diagnostics'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
+import { useRoomSocket } from '@/hooks/useRoomSocket'
 import { toast } from 'sonner'
 import {
 	Sparkles,
@@ -36,6 +37,10 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { SessionRatingForm } from './SessionRatingForm'
 import { IngredientCheck } from './IngredientCheck'
+import { VoiceModeButton } from './VoiceModeButton'
+import { VoiceCommandToast } from './VoiceCommandToast'
+import { VoiceHelpOverlay } from './VoiceHelpOverlay'
+import { useVoiceMode } from '@/lib/voice'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -413,6 +418,22 @@ export const CookingPlayer = () => {
 		isInRoom,
 	} = useCookingStore()
 
+	// Co-cooking WebSocket: send real-time events to room participants
+	// Room page handles incoming events; CookingPlayer only SENDS
+	const {
+		sendStepNavigated,
+		sendStepCompleted,
+		sendTimerStarted,
+		sendTimerCompleted,
+		sendReaction: _sendReaction,
+		sendSessionCompleted,
+		isConnected: isRoomConnected,
+	} = useRoomSocket({
+		roomCode: isInRoom ? roomCode : null,
+		onEvent: () => {}, // Room page handles incoming events
+		enabled: isInRoom && !isPreviewMode,
+	})
+
 	// Warn users before leaving page during active cooking session (skip in preview)
 	const hasActiveSession =
 		session?.status === 'in_progress' && isOpen && !isPreviewMode
@@ -430,6 +451,9 @@ export const CookingPlayer = () => {
 	// Focus traps for modal accessibility
 	const completionTrapRef = useFocusTrap<HTMLDivElement>(showCompletion)
 	const abandonTrapRef = useFocusTrap<HTMLDivElement>(showAbandonConfirm)
+
+	// Voice mode for hands-free cooking (spec: 22-voice-mode.txt)
+	const voice = useVoiceMode()
 
 	// Derive current step data from session and recipe
 	const currentStepNumber = session?.currentStep ?? 1
@@ -476,9 +500,19 @@ export const CookingPlayer = () => {
 			// Complete current step first
 			await completeStep(currentStepNumber)
 
+			// Broadcast to co-cooking room
+			if (isInRoom)
+				sendStepCompleted(currentStepNumber, [
+					...completedSteps,
+					currentStepNumber,
+				])
+
 			if (currentStepNumber < totalSteps) {
 				setDirection(1)
 				await navigateToStep('next')
+
+				// Broadcast navigation to co-cooking room
+				if (isInRoom) sendStepNavigated(currentStepNumber + 1)
 
 				// Auto-start timer for the NEXT step if it has one
 				const nextStepNumber = currentStepNumber + 1
@@ -543,6 +577,9 @@ export const CookingPlayer = () => {
 				})
 				setDirection(-1)
 				await navigateToStep('previous')
+
+				// Broadcast to co-cooking room
+				if (isInRoom) sendStepNavigated(currentStepNumber - 1)
 			} finally {
 				setIsNavigating(false)
 			}
@@ -561,6 +598,9 @@ export const CookingPlayer = () => {
 			})
 			setDirection(stepNumber > currentStepNumber ? 1 : -1)
 			await navigateToStep('goto', stepNumber)
+
+			// Broadcast to co-cooking room
+			if (isInRoom) sendStepNavigated(stepNumber)
 		},
 		[currentStepNumber, navigateToStep],
 	)
@@ -622,6 +662,9 @@ export const CookingPlayer = () => {
 			})
 			// Timer is running, skip it
 			skipTimer(currentStepNumber)
+
+			// Broadcast timer completion (skip = timer done) to co-cooking room
+			if (isInRoom) sendTimerCompleted(currentStepNumber)
 		} else {
 			diag.action('cooking', 'TIMER_START', {
 				stepNumber: currentStepNumber,
@@ -629,6 +672,9 @@ export const CookingPlayer = () => {
 			})
 			// Start timer
 			startTimer(currentStepNumber)
+
+			// Broadcast timer start to co-cooking room
+			if (isInRoom) sendTimerStarted(currentStepNumber, step.timerSeconds!)
 		}
 	}, [step, currentStepNumber, localTimers, startTimer, skipTimer])
 
@@ -637,7 +683,10 @@ export const CookingPlayer = () => {
 		diag.action('cooking', 'TIMER_COMPLETE_NATURAL', {
 			stepNumber: currentStepNumber,
 		})
-	}, [currentStepNumber])
+
+		// Broadcast to co-cooking room
+		if (isInRoom) sendTimerCompleted(currentStepNumber)
+	}, [currentStepNumber, isInRoom, sendTimerCompleted])
 
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
 
@@ -688,6 +737,9 @@ export const CookingPlayer = () => {
 					)
 					return
 				}
+
+				// Broadcast session completion to co-cooking room
+				if (isInRoom) sendSessionCompleted(rating)
 
 				diag.response(
 					'cooking',
@@ -1028,8 +1080,26 @@ export const CookingPlayer = () => {
 											exit='exit'
 											className='absolute inset-0 flex flex-col overflow-y-auto p-6'
 										>
-											{/* Step Image */}
-											{step.imageUrl && (
+											{/* Step Video (priority over image) */}
+											{step.videoUrl ? (
+												<motion.div
+													initial={{ opacity: 0, scale: 0.95 }}
+													animate={{ opacity: 1, scale: 1 }}
+													transition={{ delay: 0.1 }}
+													className='relative mx-auto mb-6 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-lg'
+												>
+													<video
+														src={step.videoUrl}
+														poster={step.videoThumbnailUrl || undefined}
+														controls
+														loop
+														muted
+														playsInline
+														className='h-full w-full object-cover'
+													/>
+												</motion.div>
+											) : step.imageUrl ? (
+												/* Step Image */
 												<motion.div
 													initial={{ opacity: 0, scale: 0.95 }}
 													animate={{ opacity: 1, scale: 1 }}
@@ -1043,7 +1113,7 @@ export const CookingPlayer = () => {
 														className='object-cover'
 													/>
 												</motion.div>
-											)}
+											) : null}
 
 											{/* Step Title */}
 											<motion.h3
@@ -1132,6 +1202,13 @@ export const CookingPlayer = () => {
 								</AnimatePresence>
 							</div>
 
+							{/* Voice Mode Overlays */}
+							<VoiceCommandToast event={voice.lastEvent} />
+							<VoiceHelpOverlay
+								show={voice.showHelp}
+								onClose={() => voice.setShowHelp(false)}
+							/>
+
 							{/* Navigation */}
 							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated p-4'>
 								<motion.button
@@ -1160,6 +1237,9 @@ export const CookingPlayer = () => {
 										←
 									</kbd>
 								</motion.button>
+
+								{/* Voice Mode Button - between nav buttons */}
+								<VoiceModeButton voice={voice} />
 
 								<motion.button
 									onClick={handleNextStep}

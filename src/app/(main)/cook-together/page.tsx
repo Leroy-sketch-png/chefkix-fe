@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Users,
@@ -20,6 +20,7 @@ import { toast } from 'sonner'
 
 export default function CookTogetherPage() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const [roomCodeInput, setRoomCodeInput] = useState('')
 	const [isJoining, setIsJoining] = useState(false)
 	const [copied, setCopied] = useState(false)
@@ -27,10 +28,52 @@ export default function CookTogetherPage() {
 
 	const { roomCode, isInRoom, joinRoom } = useCookingStore()
 
+	// Auto-fill room code from URL params (invite deep link / Watch button)
+	useEffect(() => {
+		const urlRoomCode = searchParams.get('roomCode')
+		if (urlRoomCode) {
+			setRoomCodeInput(urlRoomCode.toUpperCase())
+		}
+	}, [searchParams])
+
+	// Auto-join if roomCode param provided (from invite notification or Watch/Join button)
+	useEffect(() => {
+		const urlRoomCode = searchParams.get('roomCode')
+		const urlRole = searchParams.get('role')
+		if (urlRoomCode && !isInRoom && !isJoining) {
+			const autoJoin = async () => {
+				setIsJoining(true)
+				try {
+					const success = await joinRoom(
+						urlRoomCode.toUpperCase(),
+						urlRole || undefined,
+					)
+					if (success) {
+						toast.success(
+							urlRole === 'SPECTATOR'
+								? 'Watching the cooking room!'
+								: 'Joined the cooking room!',
+						)
+						router.push('/cook-together/room')
+					} else {
+						toast.error('Could not join room. It may be full or dissolved.')
+					}
+				} catch {
+					toast.error('Failed to join room')
+				} finally {
+					setIsJoining(false)
+				}
+			}
+			autoJoin()
+		}
+	}, [searchParams, isInRoom, isJoining, joinRoom, router])
+
 	// Auto-focus the input on mount
 	useEffect(() => {
-		inputRef.current?.focus()
-	}, [])
+		if (!searchParams.get('roomCode')) {
+			inputRef.current?.focus()
+		}
+	}, [searchParams])
 
 	const handleJoin = useCallback(async () => {
 		const code = roomCodeInput.trim().toUpperCase()
@@ -57,10 +100,14 @@ export default function CookTogetherPage() {
 
 	const handleCopyRoomCode = useCallback(async () => {
 		if (!roomCode) return
-		await navigator.clipboard.writeText(roomCode)
-		setCopied(true)
-		toast.success('Room code copied!')
-		setTimeout(() => setCopied(false), 2000)
+		try {
+			await navigator.clipboard.writeText(roomCode)
+			setCopied(true)
+			toast.success('Room code copied!')
+			setTimeout(() => setCopied(false), 2000)
+		} catch {
+			toast.error('Failed to copy room code')
+		}
 	}, [roomCode])
 
 	const handleKeyDown = useCallback(
@@ -130,7 +177,7 @@ export default function CookTogetherPage() {
 										className='flex items-center gap-2 rounded-xl bg-bg-card px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg-elevated'
 									>
 										{copied ? (
-											<Check className='size-4 text-green-500' />
+											<Check className='size-4 text-success' />
 										) : (
 											<Copy className='size-4' />
 										)}
@@ -181,6 +228,7 @@ export default function CookTogetherPage() {
 							onKeyDown={handleKeyDown}
 							placeholder='ABCDEF'
 							maxLength={6}
+							aria-label='Room code'
 							className='flex-1 rounded-xl border border-border-subtle bg-bg px-4 py-3 font-mono text-xl tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							disabled={isJoining}
 						/>

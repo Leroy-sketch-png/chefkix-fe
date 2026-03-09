@@ -51,6 +51,9 @@ export interface Step {
 	ingredients?: Ingredient[] // Steps can have their own ingredients
 	timerSeconds?: number
 	imageUrl?: string
+	videoUrl?: string
+	videoThumbnailUrl?: string
+	videoDurationSec?: number
 	tips?: string
 }
 

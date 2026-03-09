@@ -29,6 +29,10 @@ export interface RecipeStep {
 	technique?: string
 	/** Step-specific image URL */
 	imageUrl?: string
+	/** Step-specific video (Cloudinary) */
+	videoUrl?: string
+	videoThumbnailUrl?: string
+	videoDurationSec?: number
 }
 
 // ── Parsed Recipe (intermediate FE representation) ──────────────────
