@@ -200,6 +200,8 @@ export interface Recipe {
 export interface RecipeSummary {
 	id: string
 	createdAt: string
+	updatedAt?: string
+	recipeStatus?: RecipeStatus
 	title: string
 	description: string
 	coverImageUrl: string[]
