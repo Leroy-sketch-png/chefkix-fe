@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
 	Home,
+	Newspaper,
 	Compass,
 	Target,
 	PlusSquare,
@@ -15,6 +16,9 @@ import {
 	Settings,
 	User,
 	Bell,
+	Package,
+	CalendarDays,
+	ShoppingCart,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -34,10 +38,14 @@ interface NavItem {
 
 const navItems: NavItem[] = [
 	{ href: '/dashboard', icon: Home, label: 'Home' },
+	{ href: '/feed', icon: Newspaper, label: 'Feed' },
 	{ href: '/explore', icon: Compass, label: 'Explore' },
 	{ href: '/challenges', icon: Target, label: 'Challenges' },
 	{ href: '/community', icon: Users, label: 'Community' },
 	{ href: '/cook-together', icon: ChefHat, label: 'Cook Together' },
+	{ href: '/pantry', icon: Package, label: 'Pantry' },
+	{ href: '/meal-planner', icon: CalendarDays, label: 'Meal Plan' },
+	{ href: '/shopping-lists', icon: ShoppingCart, label: 'Shopping' },
 	{ href: '/create', icon: PlusSquare, label: 'Create' },
 	{ href: '/messages', icon: MessageCircle, label: 'Messages' },
 	{ href: '/notifications', icon: Bell, label: 'Notifs', showBadge: true },
