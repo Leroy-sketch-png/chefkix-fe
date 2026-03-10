@@ -203,6 +203,9 @@ export const API_ENDPOINTS = {
 		REGISTER_DEVICE: `${API_PREFIX}/notification/devices`,
 		UNREGISTER_DEVICE: (token: string) =>
 			`${API_PREFIX}/notification/devices/${token}`,
+		// Push notification token management
+		REGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
+		UNREGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
 	},
 	// Pantry Management per spec (23-pantry-and-meal-planning.txt)
 	PANTRY: {
