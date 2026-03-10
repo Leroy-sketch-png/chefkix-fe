@@ -66,14 +66,12 @@ export async function requestNotificationPermission(): Promise<
 // Register for push notifications
 export async function registerForPush(): Promise<boolean> {
 	if (!isPushSupported()) {
-		console.log('Push notifications not supported')
 		return false
 	}
 
 	if (Notification.permission !== 'granted') {
 		const permission = await requestNotificationPermission()
 		if (permission !== 'granted') {
-			console.log('Notification permission not granted')
 			return false
 		}
 	}
@@ -83,7 +81,7 @@ export async function registerForPush(): Promise<boolean> {
 		const registration = await navigator.serviceWorker.register(
 			'/firebase-messaging-sw.js'
 		)
-		console.log('Service worker registered:', registration)
+		// Service worker registered
 
 		// Wait for service worker to be ready
 		await navigator.serviceWorker.ready
@@ -92,7 +90,6 @@ export async function registerForPush(): Promise<boolean> {
 		// This is a placeholder - actual implementation needs Firebase SDK initialization
 		const fcmToken = await getFCMToken(registration)
 		if (!fcmToken) {
-			console.log('Failed to get FCM token')
 			return false
 		}
 
@@ -104,7 +101,6 @@ export async function registerForPush(): Promise<boolean> {
 			deviceName: getDeviceName(),
 		})
 
-		console.log('Push notification token registered')
 		return true
 	} catch (error) {
 		console.error('Failed to register for push:', error)
@@ -117,7 +113,6 @@ export async function unregisterPush(): Promise<boolean> {
 	try {
 		const deviceId = getDeviceId()
 		await api.delete(`${API_ENDPOINTS.NOTIFICATIONS.UNREGISTER_PUSH_TOKEN}/${deviceId}`)
-		console.log('Push notification token unregistered')
 		return true
 	} catch (error) {
 		console.error('Failed to unregister push:', error)
@@ -152,9 +147,6 @@ async function getFCMToken(
 		//   applicationServerKey: vapidPublicKey,
 		// })
 
-		console.log(
-			'FCM token retrieval requires Firebase SDK initialization'
-		)
 		return null
 	} catch (error) {
 		console.error('Failed to get FCM token:', error)

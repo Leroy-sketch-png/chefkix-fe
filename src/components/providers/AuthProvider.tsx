@@ -123,9 +123,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 			if (!redirectTriggeredRef.current) {
 				redirectTriggeredRef.current = true
 				setIsRedirecting(true)
-				console.log(
-					`[AuthProvider] ✅ Already authenticated on ${pathname}, redirecting to dashboard`,
-				)
 				router.push(PATHS.DASHBOARD)
 			}
 			return

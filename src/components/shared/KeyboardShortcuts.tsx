@@ -87,7 +87,7 @@ export const KeyboardShortcuts = () => {
 			// Handle single-key shortcuts
 			if (e.key === 'n') {
 				e.preventDefault()
-				// TODO: Trigger create post modal
+				router.push('/post/new')
 			}
 		}
 

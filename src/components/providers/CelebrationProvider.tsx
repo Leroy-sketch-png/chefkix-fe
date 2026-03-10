@@ -7,6 +7,7 @@ import {
 	useCallback,
 	ReactNode,
 } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
 	LevelUpCelebration,
@@ -95,6 +96,7 @@ interface LevelUpData {
 interface PostSuccessData {
 	recipeName: string
 	recipeImageUrl: string
+	postId?: string // For navigation to the created post
 	xpRows: XPRow[]
 	totalXp: number
 	currentLevel: number
@@ -213,6 +215,8 @@ interface CelebrationProviderProps {
 }
 
 export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
+	const router = useRouter()
+
 	// Level Up state
 	const [levelUpOpen, setLevelUpOpen] = useState(false)
 	const [levelUpData, setLevelUpData] = useState<LevelUpData | null>(null)
@@ -358,7 +362,9 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	}
 
 	const handlePostSuccessViewPost = () => {
-		// TODO: Navigate to the post
+		if (postSuccessData?.postId) {
+			router.push(`/feed?highlight=${postSuccessData.postId}`)
+		}
 		handlePostSuccessClose()
 	}
 
