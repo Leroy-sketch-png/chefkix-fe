@@ -42,14 +42,10 @@ export function FriendsCookingNow({
 			if (soloRes.success && soloRes.data) {
 				// Filter out friends who are already in rooms to avoid duplicates
 				const roomUserIds = new Set(
-					(roomsRes.data ?? []).flatMap(r =>
-						r.participantNames.map(n => n),
-					),
+					(roomsRes.data ?? []).flatMap(r => r.participantNames.map(n => n)),
 				)
 				// Solo friends: those not in a room (roomCode is null)
-				setSoloFriends(
-					soloRes.data.friends.filter(f => !f.roomCode),
-				)
+				setSoloFriends(soloRes.data.friends.filter(f => !f.roomCode))
 			}
 		} catch {
 			// Silently fail — this is a non-critical widget
@@ -172,9 +168,7 @@ export function FriendsCookingNow({
 								animate={{ opacity: 1, x: 0 }}
 								exit={{ opacity: 0, x: 10 }}
 								transition={TRANSITION_SPRING}
-								onClick={() =>
-									router.push(`/recipes/${friend.recipeId}`)
-								}
+								onClick={() => router.push(`/recipes/${friend.recipeId}`)}
 								className='group flex cursor-pointer items-center gap-3 rounded-xl bg-bg-elevated/50 p-3 transition-colors hover:bg-bg-elevated'
 							>
 								<Avatar size='sm'>

@@ -155,11 +155,13 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-rooms/${roomCode}/invite`,
 		FRIENDS_ACTIVE: `${API_PREFIX}/cooking-rooms/friends-active`,
 	},
-	// Daily & Weekly Challenges per spec (12-challenges.txt)
+	// Daily, Weekly, Community & Seasonal Challenges
 	CHALLENGES: {
 		TODAY: `${API_PREFIX}/challenges/today`,
 		WEEKLY: `${API_PREFIX}/challenges/weekly`,
 		HISTORY: `${API_PREFIX}/challenges/history`,
+		COMMUNITY: `${API_PREFIX}/challenges/community`,
+		SEASONAL: `${API_PREFIX}/challenges/seasonal`,
 	},
 	// Chat / Messaging per spec (09-chat.txt)
 	CHAT: {

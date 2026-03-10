@@ -3,39 +3,43 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Trophy, Sparkles } from 'lucide-react'
+import {
+	Trophy,
+	Sparkles,
+	Users,
+	Leaf,
+	Clock,
+	ChevronRight,
+} from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import {
-	ChallengeCard,
-	ChallengeCardGrid,
 	DailyChallengeBanner,
 } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import {
 	getTodaysChallenge,
 	getWeeklyChallenge,
+	getCommunityChallenges,
+	getSeasonalChallenges,
 	DailyChallenge,
 	WeeklyChallenge,
+	CommunityChallenge,
+	SeasonalChallenge,
 } from '@/services/challenge'
 import { TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
-// TYPES
+// HELPERS
 // ============================================
 
-interface ChallengeUIItem {
-	id: string
-	type: 'weekly' | 'community' | 'seasonal'
-	title: string
-	description: string
-	icon: string
-	bonusXp: number
-	progress?: { current: number; total: number }
-	participants: number
-	endsAt: Date
-	status: 'active' | 'completed' | 'expired'
-	isJoined: boolean
+const formatTimeRemaining = (dateStr: string): string => {
+	const diffMs = new Date(dateStr).getTime() - Date.now()
+	if (diffMs <= 0) return 'Ended'
+	const hours = Math.floor(diffMs / 3600000)
+	if (hours >= 24) return `${Math.floor(hours / 24)}d left`
+	const mins = Math.floor((diffMs % 3600000) / 60000)
+	return `${hours}h ${mins}m left`
 }
 
 // ============================================
@@ -44,7 +48,6 @@ interface ChallengeUIItem {
 
 export default function ChallengesPage() {
 	const router = useRouter()
-	const [challenges, setChallenges] = useState<ChallengeUIItem[]>([])
 	const [dailyChallenge, setDailyChallenge] = useState<{
 		id: string
 		title: string
@@ -55,18 +58,27 @@ export default function ChallengesPage() {
 	} | null>(null)
 	const [weeklyChallenge, setWeeklyChallenge] =
 		useState<WeeklyChallenge | null>(null)
+	const [communityChallenges, setCommunityChallenges] = useState<
+		CommunityChallenge[]
+	>([])
+	const [seasonalChallenges, setSeasonalChallenges] = useState<
+		SeasonalChallenge[]
+	>([])
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
 		const fetchChallenges = async () => {
 			setLoading(true)
 			try {
-				const [dailyResponse, weeklyResponse] = await Promise.all([
-					getTodaysChallenge(),
-					getWeeklyChallenge(),
-				])
-				if (dailyResponse.success && dailyResponse.data) {
-					const data = dailyResponse.data
+				const [dailyRes, weeklyRes, communityRes, seasonalRes] =
+					await Promise.all([
+						getTodaysChallenge(),
+						getWeeklyChallenge(),
+						getCommunityChallenges(),
+						getSeasonalChallenges(),
+					])
+				if (dailyRes.success && dailyRes.data) {
+					const data = dailyRes.data
 					setDailyChallenge({
 						id: data.id,
 						title: data.title,
@@ -76,8 +88,14 @@ export default function ChallengesPage() {
 						endsAt: new Date(data.endsAt),
 					})
 				}
-				if (weeklyResponse.success && weeklyResponse.data) {
-					setWeeklyChallenge(weeklyResponse.data)
+				if (weeklyRes.success && weeklyRes.data) {
+					setWeeklyChallenge(weeklyRes.data)
+				}
+				if (communityRes.success && communityRes.data) {
+					setCommunityChallenges(communityRes.data)
+				}
+				if (seasonalRes.success && seasonalRes.data) {
+					setSeasonalChallenges(seasonalRes.data)
 				}
 			} catch (err) {
 				console.error('Failed to fetch challenges:', err)
@@ -89,14 +107,12 @@ export default function ChallengesPage() {
 		fetchChallenges()
 	}, [])
 
-	const handleJoin = (challengeId: string) => {
-		setChallenges(prev =>
-			prev.map(c => (c.id === challengeId ? { ...c, isJoined: true } : c)),
-		)
-	}
-
 	const hasNoChallenges =
-		challenges.length === 0 && !dailyChallenge && !weeklyChallenge && !loading
+		communityChallenges.length === 0 &&
+		seasonalChallenges.length === 0 &&
+		!dailyChallenge &&
+		!weeklyChallenge &&
+		!loading
 
 	return (
 		<PageTransition>
@@ -223,33 +239,235 @@ export default function ChallengesPage() {
 							</section>
 						)}
 
-						{/* Active Challenges Section */}
-						<section className='mb-8'>
-							<h2 className='mb-4 text-lg font-bold text-text-primary'>
-								Active Challenges
-							</h2>
-							{challenges.length > 0 ? (
-								<ChallengeCardGrid
-									challenges={challenges.map(c => ({
-										...c,
-										onJoin: () => handleJoin(c.id),
-										onView: () => router.push(`/challenges/${c.id}`),
-									}))}
-									loading={loading}
-								/>
-							) : (
-								<p className='text-sm text-muted-foreground'>
-									No active challenges at the moment.
-								</p>
-							)}
-						</section>
+						{/* Community Challenges Section */}
+						{communityChallenges.length > 0 && (
+							<section className='mb-8'>
+								<div className='mb-4 flex items-center gap-2'>
+									<Users className='size-5 text-combo' />
+									<h2 className='text-lg font-bold text-text'>
+										Community Challenges
+									</h2>
+								</div>
+								<div className='space-y-4'>
+									{communityChallenges.map((ch, i) => (
+										<motion.div
+											key={ch.id}
+											initial={{ opacity: 0, y: 12 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{
+												delay: 0.15 + i * 0.08,
+												...TRANSITION_SPRING,
+											}}
+											className='group rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+										>
+											<div className='mb-3 flex items-center justify-between'>
+												<div className='flex items-center gap-3'>
+													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo via-pink-400 to-rose-500 text-xl shadow-md shadow-combo/25'>
+														{ch.emoji || '👥'}
+													</div>
+													<div>
+														<h3 className='text-lg font-bold text-text'>
+															{ch.title}
+														</h3>
+														<p className='text-sm text-text-secondary'>
+															{ch.description}
+														</p>
+													</div>
+												</div>
+												<div className='text-right'>
+													<span className='text-lg font-bold text-xp'>
+														+{ch.rewardXpPerUser} XP
+													</span>
+													<p className='text-xs text-text-muted'>
+														{formatTimeRemaining(ch.endsAt)}
+													</p>
+												</div>
+											</div>
 
-						{/* Completed Challenges (placeholder) */}
+											{/* Global progress bar */}
+											<div className='mb-2'>
+												<div className='mb-1 flex justify-between text-xs text-text-muted'>
+													<span>
+														{ch.currentProgress.toLocaleString()} /{' '}
+														{ch.targetCount.toLocaleString()} {ch.targetUnit}
+													</span>
+													<span>
+														{Math.round(ch.progressPercent)}%
+													</span>
+												</div>
+												<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+													<motion.div
+														initial={{ width: 0 }}
+														animate={{
+															width: `${Math.min(ch.progressPercent, 100)}%`,
+														}}
+														transition={{
+															duration: 1,
+															ease: 'easeOut',
+														}}
+														className='h-full rounded-full bg-gradient-to-r from-combo via-pink-400 to-rose-500'
+													/>
+												</div>
+											</div>
+
+											{/* Footer: participants + contribution status */}
+											<div className='flex items-center justify-between text-xs text-text-muted'>
+												<span className='flex items-center gap-1'>
+													<Users className='size-3.5' />
+													{ch.participantCount.toLocaleString()} participants
+												</span>
+												{ch.hasContributed ? (
+													<span className='font-medium text-success'>
+														✓ You contributed
+													</span>
+												) : (
+													<span className='font-medium text-text-secondary'>
+														Cook to contribute!
+													</span>
+												)}
+											</div>
+										</motion.div>
+									))}
+								</div>
+							</section>
+						)}
+
+						{/* Seasonal Challenges Section */}
+						{seasonalChallenges.length > 0 && (
+							<section className='mb-8'>
+								<div className='mb-4 flex items-center gap-2'>
+									<Leaf className='size-5 text-streak' />
+									<h2 className='text-lg font-bold text-text'>
+										Seasonal Events
+									</h2>
+								</div>
+								<div className='space-y-4'>
+									{seasonalChallenges.map((ev, i) => (
+										<motion.div
+											key={ev.id}
+											initial={{ opacity: 0, y: 12 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{
+												delay: 0.2 + i * 0.08,
+												...TRANSITION_SPRING,
+											}}
+											className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:shadow-warm'
+										>
+											{/* Hero header — accent color or image */}
+											{ev.heroImageUrl ? (
+												<div
+													className='relative h-28 bg-cover bg-center'
+													style={{
+														backgroundImage: `url(${ev.heroImageUrl})`,
+													}}
+												>
+													<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
+													<div className='absolute bottom-3 left-4 text-xl font-bold text-white'>
+														{ev.emoji} {ev.title}
+													</div>
+												</div>
+											) : (
+												<div
+													className='flex h-20 items-center gap-3 px-5'
+													style={{
+														background: ev.accentColor
+															? `linear-gradient(135deg, ${ev.accentColor}30, ${ev.accentColor}10)`
+															: undefined,
+													}}
+												>
+													<span className='text-3xl'>{ev.emoji || '🌿'}</span>
+													<h3 className='text-lg font-bold text-text'>
+														{ev.title}
+													</h3>
+												</div>
+											)}
+
+											<div className='p-5'>
+												<p className='mb-3 text-sm text-text-secondary'>
+													{ev.description}
+												</p>
+
+												{/* Per-user progress */}
+												<div className='mb-2'>
+													<div className='mb-1 flex justify-between text-xs text-text-muted'>
+														<span>
+															{ev.userProgress} / {ev.targetCount}{' '}
+															{ev.targetUnit}
+														</span>
+														<span>
+															{Math.round(
+																(ev.userProgress / ev.targetCount) * 100,
+															)}
+															%
+														</span>
+													</div>
+													<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+														<motion.div
+															initial={{ width: 0 }}
+															animate={{
+																width: `${Math.min((ev.userProgress / ev.targetCount) * 100, 100)}%`,
+															}}
+															transition={{
+																duration: 1,
+																ease: 'easeOut',
+															}}
+															className='h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500'
+														/>
+													</div>
+												</div>
+
+												{/* Footer */}
+												<div className='flex items-center justify-between text-xs text-text-muted'>
+													<span className='flex items-center gap-1'>
+														<Clock className='size-3.5' />
+														{formatTimeRemaining(ev.endsAt)}
+													</span>
+													<div className='flex items-center gap-2'>
+														{ev.rewardBadgeName && (
+															<span className='rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700'>
+																🏅 {ev.rewardBadgeName}
+															</span>
+														)}
+														<span className='font-bold text-xp'>
+															+{ev.rewardXp} XP
+														</span>
+													</div>
+												</div>
+
+												{/* Featured recipes link */}
+												{ev.featuredRecipes &&
+													ev.featuredRecipes.length > 0 && (
+														<button
+															onClick={() =>
+																router.push(
+																	`/explore?seasonal=${ev.id}`,
+																)
+															}
+															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80'
+														>
+															{ev.featuredRecipes.length} featured recipes
+															<ChevronRight className='size-3.5' />
+														</button>
+													)}
+
+												{ev.userCompleted && (
+													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
+														✓ Completed!
+													</div>
+												)}
+											</div>
+										</motion.div>
+									))}
+								</div>
+							</section>
+						)}
+
+						{/* Past Challenges link */}
 						<section>
 							<h2 className='mb-4 text-lg font-bold text-text-secondary'>
 								Past Challenges
 							</h2>
-							<p className='text-sm text-muted-foreground'>
+							<p className='text-sm text-text-muted'>
 								Your completed challenges will appear here.
 							</p>
 						</section>

@@ -83,7 +83,11 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 
 			// Use the new backend endpoint for pre-aggregated summary
 			const response = await getActivitySummary(storedLastVisit.toISOString())
-			if (response.success && response.data && response.data.totalNotifications > 0) {
+			if (
+				response.success &&
+				response.data &&
+				response.data.totalNotifications > 0
+			) {
 				setData(response.data)
 				setLastVisitDate(storedLastVisit)
 				setIsVisible(true)
