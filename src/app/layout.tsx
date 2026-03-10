@@ -47,6 +47,7 @@ export const metadata: Metadata = {
 	},
 	description:
 		'Transform cooking into an interactive game! Follow step-by-step recipes with timers, earn badges, level up, and connect with a community of food enthusiasts.',
+	manifest: '/manifest.json',
 	keywords: [
 		'cooking recipes',
 		'gamified cooking',

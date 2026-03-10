@@ -1,0 +1,43 @@
+{
+  "name": "ChefKix - Gamified Cooking",
+  "short_name": "ChefKix",
+  "description": "Transform cooking into an interactive game! Follow step-by-step recipes with timers, earn badges, and level up.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f4ef",
+  "theme_color": "#ff5a36",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "social"],
+  "shortcuts": [
+    {
+      "name": "Explore Recipes",
+      "short_name": "Explore",
+      "url": "/explore",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile",
+      "url": "/profile",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

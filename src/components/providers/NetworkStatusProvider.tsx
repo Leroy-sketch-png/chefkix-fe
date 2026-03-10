@@ -3,6 +3,8 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Wifi, WifiOff } from 'lucide-react'
+import { installOfflineInterceptor } from '@/lib/offline/offlineInterceptor'
+import { syncQueuedRequests, hasPendingSync } from '@/lib/offline/syncService'
 
 /**
  * NetworkStatusProvider - Monitors network connectivity and shows toasts
@@ -11,14 +13,25 @@ import { Wifi, WifiOff } from 'lucide-react'
  * - Shows offline warning when connection is lost
  * - Shows success toast when connection is restored
  * - Debounces rapid online/offline flickers
+ * - Queue cooking session requests when offline (Stream 11)
+ * - Replay queued requests on reconnect
  *
  * Place this component once in your app layout (e.g., in providers).
  */
 export const NetworkStatusProvider = () => {
 	const wasOffline = useRef(false)
 	const toastId = useRef<string | number | undefined>(undefined)
+	const interceptorInstalled = useRef(false)
 
-	const handleOnline = useCallback(() => {
+	// Install offline interceptor once
+	useEffect(() => {
+		if (!interceptorInstalled.current) {
+			installOfflineInterceptor()
+			interceptorInstalled.current = true
+		}
+	}, [])
+
+	const handleOnline = useCallback(async () => {
 		// Only show reconnection toast if we were previously offline
 		if (wasOffline.current) {
 			// Dismiss the offline toast if still showing
@@ -32,6 +45,25 @@ export const NetworkStatusProvider = () => {
 				icon: <Wifi className='size-5 text-success' />,
 				duration: 3000,
 			})
+
+			// Sync queued offline requests
+			try {
+				const hasQueued = await hasPendingSync()
+				if (hasQueued) {
+					toast.loading('Syncing offline actions...', { id: 'offline-sync' })
+					const result = await syncQueuedRequests()
+					if (result.success > 0) {
+						toast.success(
+							`Synced ${result.success} action${result.success !== 1 ? 's' : ''} successfully`,
+							{ id: 'offline-sync', duration: 3000 },
+						)
+					} else {
+						toast.dismiss('offline-sync')
+					}
+				}
+			} catch {
+				// Silent fail — sync will retry next time
+			}
 		}
 		wasOffline.current = false
 	}, [])

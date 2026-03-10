@@ -40,7 +40,9 @@ import { IngredientCheck } from './IngredientCheck'
 import { VoiceModeButton } from './VoiceModeButton'
 import { VoiceCommandToast } from './VoiceCommandToast'
 import { VoiceHelpOverlay } from './VoiceHelpOverlay'
+import { OfflineBanner } from './OfflineBanner'
 import { useVoiceMode } from '@/lib/voice'
+import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -454,6 +456,9 @@ export const CookingPlayer = () => {
 
 	// Voice mode for hands-free cooking (spec: 22-voice-mode.txt)
 	const voice = useVoiceMode()
+
+	// Offline detection for cooking continuity
+	const { isOffline } = useOnlineStatus()
 
 	// Derive current step data from session and recipe
 	const currentStepNumber = session?.currentStep ?? 1
@@ -935,6 +940,9 @@ export const CookingPlayer = () => {
 									</span>
 								</div>
 							)}
+
+							{/* Offline Mode Banner */}
+							<OfflineBanner isOffline={isOffline} variant='subtle' />
 
 							{/* Header */}
 							<div className='relative overflow-hidden bg-gradient-hero p-6 text-white'>
