@@ -6,6 +6,12 @@
  * We support both for compatibility.
  */
 
+export interface CoChef {
+	userId: string
+	displayName: string
+	avatarUrl: string | null
+}
+
 export interface Post {
 	id: string
 	userId: string
@@ -30,6 +36,8 @@ export interface Post {
 	recipeTitle?: string // For display: "Cooked: Spicy Ramen"
 	isPrivateRecipe?: boolean // True = recipe details hidden, only title shown
 	xpEarned?: number // XP user earned from this post
+	roomCode?: string // Co-cooking room code (null for solo posts)
+	coChefs?: CoChef[] // Co-chefs who cooked together
 }
 
 export interface CreatePostRequest {
