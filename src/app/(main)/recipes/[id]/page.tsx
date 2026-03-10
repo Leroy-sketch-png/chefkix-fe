@@ -53,6 +53,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { RECIPE_MESSAGES } from '@/constants/messages'
+import { SocialProof } from '@/components/recipe/SocialProof'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -816,6 +817,9 @@ export default function RecipeDetailPage() {
 						)}
 					</div>
 				</motion.div>
+
+				{/* Social Proof — community activity */}
+				<SocialProof recipeId={recipeId} />
 
 				{/* XP Breakdown - Transparency for gamification */}
 				{recipe.xpBreakdown ? (

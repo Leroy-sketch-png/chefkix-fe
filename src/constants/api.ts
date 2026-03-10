@@ -113,6 +113,7 @@ export const API_ENDPOINTS = {
 		UPLOAD_VIDEO: `${RECIPE_SERVICE_PREFIX}/uploads/video`,
 		SAVED: `${RECIPE_SERVICE_PREFIX}/saved`,
 		LIKED: `${RECIPE_SERVICE_PREFIX}/liked`,
+		SOCIAL_PROOF: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/social-proof`,
 	},
 	// Statistics per spec (04-statistics.txt)
 	// Note: add_xp is admin/testing only, requires userId in path
@@ -141,6 +142,7 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-sessions/${sessionId}/abandon`,
 		LINK_POST: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/link-post`,
+		FRIENDS_ACTIVE: `${API_PREFIX}/cooking-sessions/friends-active`,
 	},
 	// Co-Cooking Rooms per spec (18-co-cooking.txt, 24-advanced-multiplayer.txt)
 	COOKING_ROOMS: {
@@ -195,6 +197,7 @@ export const API_ENDPOINTS = {
 		UPDATE_READ_STATUS: `${API_PREFIX}/notification`,
 		MARK_READ: (id: string) => `${API_PREFIX}/notification/${id}/read`,
 		MARK_ALL_READ: `${API_PREFIX}/notification/read-all`,
+		SUMMARY_SINCE: `${API_PREFIX}/notification/summary-since`,
 		REGISTER_DEVICE: `${API_PREFIX}/notification/devices`,
 		UNREGISTER_DEVICE: (token: string) =>
 			`${API_PREFIX}/notification/devices/${token}`,
