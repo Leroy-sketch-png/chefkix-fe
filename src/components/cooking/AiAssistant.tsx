@@ -431,6 +431,7 @@ export const AiAssistant = ({
 							<div className='flex items-center gap-2'>
 								<button
 									onClick={toggleVoice}
+									aria-label={isVoiceEnabled ? 'Disable voice' : 'Enable voice'}
 									className={cn(
 										'rounded-full p-2 transition-colors',
 										isVoiceEnabled
@@ -442,6 +443,7 @@ export const AiAssistant = ({
 								</button>
 								<button
 									onClick={onClose}
+									aria-label='Close AI assistant'
 									className='rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white'
 								>
 									<X className='h-5 w-5' />

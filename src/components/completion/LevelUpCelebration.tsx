@@ -417,6 +417,7 @@ export const LevelUpToast = ({
 		</button>
 		<button
 			onClick={onDismiss}
+			aria-label='Dismiss'
 			className='flex h-8 w-8 items-center justify-center text-text-muted hover:text-text'
 		>
 			<X className='h-5 w-5' />

@@ -38,6 +38,7 @@ export function VoiceHelpOverlay({
 							<h3 className='text-lg font-bold text-text'>Voice Commands</h3>
 							<button
 								onClick={onClose}
+								aria-label='Close voice help'
 								className='flex size-8 items-center justify-center rounded-full text-text-muted hover:bg-bg-elevated'
 							>
 								<X className='size-4' />

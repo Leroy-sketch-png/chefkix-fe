@@ -315,10 +315,11 @@ export default function PantryPage() {
 					<motion.div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 						<div className='flex flex-wrap items-end gap-3'>
 							<div className='flex-1 min-w-[180px]'>
-								<label className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label htmlFor='pantry-ingredient' className='mb-1 block text-xs font-medium text-text-secondary'>
 									Ingredient
 								</label>
 								<input
+									id='pantry-ingredient'
 									ref={quickAddRef}
 									value={quickAddName}
 									onChange={e => setQuickAddName(e.target.value)}
@@ -328,10 +329,11 @@ export default function PantryPage() {
 								/>
 							</div>
 							<div className='w-20'>
-								<label className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label htmlFor='pantry-qty' className='mb-1 block text-xs font-medium text-text-secondary'>
 									Qty
 								</label>
 								<input
+									id='pantry-qty'
 									value={quickAddQty}
 									onChange={e => setQuickAddQty(e.target.value)}
 									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
@@ -341,10 +343,11 @@ export default function PantryPage() {
 								/>
 							</div>
 							<div className='w-24'>
-								<label className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label htmlFor='pantry-unit' className='mb-1 block text-xs font-medium text-text-secondary'>
 									Unit
 								</label>
 								<input
+									id='pantry-unit'
 									value={quickAddUnit}
 									onChange={e => setQuickAddUnit(e.target.value)}
 									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
@@ -353,10 +356,11 @@ export default function PantryPage() {
 								/>
 							</div>
 							<div className='w-32'>
-								<label className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label htmlFor='pantry-category' className='mb-1 block text-xs font-medium text-text-secondary'>
 									Category
 								</label>
 								<select
+									id='pantry-category'
 									value={quickAddCategory}
 									onChange={e => setQuickAddCategory(e.target.value)}
 									className='w-full rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
@@ -373,10 +377,11 @@ export default function PantryPage() {
 								</select>
 							</div>
 							<div className='w-36'>
-								<label className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label htmlFor='pantry-expiry' className='mb-1 block text-xs font-medium text-text-secondary'>
 									Expiry
 								</label>
 								<input
+									id='pantry-expiry'
 									type='date'
 									value={quickAddExpiry}
 									onChange={e => setQuickAddExpiry(e.target.value)}

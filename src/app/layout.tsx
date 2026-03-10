@@ -93,6 +93,13 @@ export default function RootLayout({
 			<body
 				className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${playfair.variable} font-sans antialiased`}
 			>
+				{/* Skip to main content link - WCAG 2.4.1 */}
+				<a
+					href='#main-content'
+					className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-tooltip focus:rounded-radius-sm focus:bg-brand focus:px-4 focus:py-2 focus:text-white focus:shadow-lg'
+				>
+					Skip to main content
+				</a>
 				<GoogleOAuthWrapper>
 					<AuthProvider>
 						<TokenRefreshProvider>

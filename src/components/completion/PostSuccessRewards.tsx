@@ -208,6 +208,7 @@ export const PostSuccessRewards = ({
 							{/* Close */}
 							<button
 								onClick={onClose}
+								aria-label='Close'
 								className='absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
 								<X className='h-5 w-5' />

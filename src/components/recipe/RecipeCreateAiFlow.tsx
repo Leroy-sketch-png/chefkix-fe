@@ -1463,10 +1463,11 @@ export const RecipeCreateAiFlow = ({
 
 							{/* Title */}
 							<div className='mb-4'>
-								<label className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+								<label htmlFor='ai-recipe-title' className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
 									Recipe Title
 								</label>
 								<input
+									id='ai-recipe-title'
 									type='text'
 									value={recipe.title}
 									onChange={e =>
@@ -1478,10 +1479,11 @@ export const RecipeCreateAiFlow = ({
 
 							{/* Description */}
 							<div className='mb-4'>
-								<label className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+								<label htmlFor='ai-recipe-description' className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
 									Description
 								</label>
 								<textarea
+									id='ai-recipe-description'
 									value={recipe.description}
 									onChange={e =>
 										setRecipe({ ...recipe, description: e.target.value })

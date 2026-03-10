@@ -810,10 +810,11 @@ export const RecipeFormDetailed = ({
 
 					{/* Title */}
 					<div className='mb-6' data-error={!!errors.title}>
-						<label className='mb-2 block text-sm font-semibold text-text'>
+						<label htmlFor='recipe-title' className='mb-2 block text-sm font-semibold text-text'>
 							Recipe Title <span className='text-red-500'>*</span>
 						</label>
 						<input
+							id='recipe-title'
 							type='text'
 							value={formData.title}
 							onChange={e => updateFieldWithClearError('title', e.target.value)}
@@ -837,10 +838,11 @@ export const RecipeFormDetailed = ({
 
 					{/* Description */}
 					<div className='mb-6' data-error={!!errors.description}>
-						<label className='mb-2 block text-sm font-semibold text-text'>
+						<label htmlFor='recipe-description' className='mb-2 block text-sm font-semibold text-text'>
 							Description <span className='text-red-500'>*</span>
 						</label>
 						<textarea
+							id='recipe-description'
 							value={formData.description}
 							onChange={e =>
 								updateFieldWithClearError('description', e.target.value)
@@ -868,10 +870,11 @@ export const RecipeFormDetailed = ({
 
 					{/* Cover Image */}
 					<div className='mb-6' data-error={!!errors.coverImage}>
-						<label className='mb-2 block text-sm font-semibold text-text'>
+						<label id='recipe-cover-image-label' className='mb-2 block text-sm font-semibold text-text'>
 							Cover Image <span className='text-red-500'>*</span>
 						</label>
 						<div
+							aria-labelledby='recipe-cover-image-label'
 							className={cn(
 								'rounded-2xl',
 								errors.coverImage && 'ring-2 ring-red-500',
@@ -895,11 +898,12 @@ export const RecipeFormDetailed = ({
 					{/* Time & Servings Grid */}
 					<div className='mb-6 grid grid-cols-1 gap-5 sm:grid-cols-3'>
 						<div>
-							<label className='mb-2 block text-sm font-semibold text-text'>
+							<label htmlFor='recipe-prep-time' className='mb-2 block text-sm font-semibold text-text'>
 								Prep Time
 							</label>
 							<div className='relative'>
 								<input
+									id='recipe-prep-time'
 									type='number'
 									value={formData.prepTimeMinutes || ''}
 									onChange={e =>
@@ -918,11 +922,12 @@ export const RecipeFormDetailed = ({
 							</div>
 						</div>
 						<div>
-							<label className='mb-2 block text-sm font-semibold text-text'>
+							<label htmlFor='recipe-cook-time' className='mb-2 block text-sm font-semibold text-text'>
 								Cook Time
 							</label>
 							<div className='relative'>
 								<input
+									id='recipe-cook-time'
 									type='number'
 									value={formData.cookTimeMinutes || ''}
 									onChange={e =>
@@ -941,10 +946,11 @@ export const RecipeFormDetailed = ({
 							</div>
 						</div>
 						<div>
-							<label className='mb-2 block text-sm font-semibold text-text'>
+							<label htmlFor='recipe-servings' className='mb-2 block text-sm font-semibold text-text'>
 								Servings
 							</label>
 							<input
+								id='recipe-servings'
 								type='number'
 								value={formData.servings || ''}
 								onChange={e =>
@@ -960,10 +966,11 @@ export const RecipeFormDetailed = ({
 					{/* Difficulty & Category */}
 					<div className='grid grid-cols-1 gap-5 sm:grid-cols-2'>
 						<div>
-							<label className='mb-2 block text-sm font-semibold text-text'>
+							<label id='recipe-difficulty-label' className='mb-2 block text-sm font-semibold text-text'>
 								Difficulty
 							</label>
 							<div
+								aria-labelledby='recipe-difficulty-label'
 								className='flex items-center gap-2 rounded-xl border-2 border-border bg-bg-card px-4 py-3 cursor-help'
 								title='Difficulty will be determined by AI based on techniques and complexity. This ensures fair XP calculation.'
 							>
@@ -978,10 +985,11 @@ export const RecipeFormDetailed = ({
 							</p>
 						</div>
 						<div data-error={!!errors.category}>
-							<label className='mb-2 block text-sm font-semibold text-text'>
+							<label htmlFor='recipe-category' className='mb-2 block text-sm font-semibold text-text'>
 								Category <span className='text-red-500'>*</span>
 							</label>
 							<select
+								id='recipe-category'
 								value={formData.category}
 								onChange={e =>
 									updateFieldWithClearError('category', e.target.value)

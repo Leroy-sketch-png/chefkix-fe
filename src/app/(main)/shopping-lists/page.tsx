@@ -392,10 +392,11 @@ export default function ShoppingListsPage() {
 								>
 									<div className='flex items-end gap-3'>
 										<div className='flex-1 space-y-2'>
-											<label className='text-xs font-medium text-text-muted'>
+											<label htmlFor='shopping-item-name' className='text-xs font-medium text-text-muted'>
 												Item name
 											</label>
 											<input
+												id='shopping-item-name'
 												value={newItemForm.ingredient}
 												onChange={e =>
 													setNewItemForm(prev => ({
@@ -410,10 +411,11 @@ export default function ShoppingListsPage() {
 											/>
 										</div>
 										<div className='w-24 space-y-2'>
-											<label className='text-xs font-medium text-text-muted'>
+											<label htmlFor='shopping-quantity' className='text-xs font-medium text-text-muted'>
 												Quantity
 											</label>
 											<input
+												id='shopping-quantity'
 												value={newItemForm.quantity || ''}
 												onChange={e =>
 													setNewItemForm(prev => ({

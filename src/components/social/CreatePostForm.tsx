@@ -289,10 +289,11 @@ export const CreatePostForm = ({
 								className='mt-3 space-y-3'
 							>
 								<div>
-									<label className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
+									<label htmlFor='post-video-url' className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
 										Video URL (optional)
 									</label>
 									<input
+										id='post-video-url'
 										type='url'
 										value={videoUrl}
 										onChange={e => setVideoUrl(e.target.value)}
@@ -301,10 +302,11 @@ export const CreatePostForm = ({
 									/>
 								</div>
 								<div>
-									<label className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
+									<label htmlFor='post-tags' className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
 										Tags (comma-separated)
 									</label>
 									<input
+										id='post-tags'
 										type='text'
 										value={tags}
 										onChange={e => setTags(e.target.value)}

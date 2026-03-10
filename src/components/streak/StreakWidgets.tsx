@@ -169,8 +169,7 @@ export function StreakRiskBanner({
 			{/* Dismiss Button */}
 			{onDismiss && !isUrgent && (
 				<button
-					onClick={onDismiss}
-					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-muted-foreground opacity-60 hover:opacity-100 transition-opacity'
+					onClick={onDismiss}				aria-label='Dismiss'					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-muted-foreground opacity-60 hover:opacity-100 transition-opacity'
 				>
 					<X className='w-4 h-4' />
 				</button>

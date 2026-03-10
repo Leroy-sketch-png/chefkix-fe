@@ -251,6 +251,7 @@ export const FilterPanel = ({
 				<h3 className='text-lg font-bold text-foreground'>Filters</h3>
 				<button
 					onClick={onClose}
+					aria-label='Close filters'
 					className='rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
 				>
 					<X className='h-5 w-5' />

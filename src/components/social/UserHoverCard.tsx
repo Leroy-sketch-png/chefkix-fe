@@ -95,7 +95,7 @@ export const UserHoverCard = ({
 
 							{!isOwnProfile && (
 								<div className='flex gap-2'>
-									<Button size='sm' variant='outline' className='h-8 w-8 p-0'>
+									<Button size='sm' variant='outline' className='h-8 w-8 p-0' aria-label='Send message'>
 										<MessageCircle className='h-4 w-4' />
 									</Button>
 									<Button size='sm' className='h-8 px-3'>
