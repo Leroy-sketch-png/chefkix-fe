@@ -113,12 +113,10 @@ export const API_ENDPOINTS = {
 		UPLOAD_VIDEO: `${RECIPE_SERVICE_PREFIX}/uploads/video`,
 		SAVED: `${RECIPE_SERVICE_PREFIX}/saved`,
 		LIKED: `${RECIPE_SERVICE_PREFIX}/liked`,
+		SOCIAL_PROOF: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/social-proof`,
 	},
-	// Statistics per spec (04-statistics.txt)
-	// Note: add_xp is admin/testing only, requires userId in path
-	STATISTICS: {
-		ADD_XP: (userId: string) => `${API_PREFIX}/auth/${userId}/add_xp`,
-	},
+	// Statistics: XP is awarded via Kafka (xp-delivery topic), not REST.
+	STATISTICS: {},
 	// Cooking Sessions per spec (08-cooking-sessions.txt)
 	COOKING_SESSIONS: {
 		BASE: `${API_PREFIX}/cooking-sessions`,
@@ -141,6 +139,7 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-sessions/${sessionId}/abandon`,
 		LINK_POST: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/link-post`,
+		FRIENDS_ACTIVE: `${API_PREFIX}/cooking-sessions/friends-active`,
 	},
 	// Co-Cooking Rooms per spec (18-co-cooking.txt, 24-advanced-multiplayer.txt)
 	COOKING_ROOMS: {
@@ -153,11 +152,13 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-rooms/${roomCode}/invite`,
 		FRIENDS_ACTIVE: `${API_PREFIX}/cooking-rooms/friends-active`,
 	},
-	// Daily & Weekly Challenges per spec (12-challenges.txt)
+	// Daily, Weekly, Community & Seasonal Challenges
 	CHALLENGES: {
 		TODAY: `${API_PREFIX}/challenges/today`,
 		WEEKLY: `${API_PREFIX}/challenges/weekly`,
 		HISTORY: `${API_PREFIX}/challenges/history`,
+		COMMUNITY: `${API_PREFIX}/challenges/community`,
+		SEASONAL: `${API_PREFIX}/challenges/seasonal`,
 	},
 	// Chat / Messaging per spec (09-chat.txt)
 	CHAT: {
@@ -195,9 +196,13 @@ export const API_ENDPOINTS = {
 		UPDATE_READ_STATUS: `${API_PREFIX}/notification`,
 		MARK_READ: (id: string) => `${API_PREFIX}/notification/${id}/read`,
 		MARK_ALL_READ: `${API_PREFIX}/notification/read-all`,
+		SUMMARY_SINCE: `${API_PREFIX}/notification/summary-since`,
 		REGISTER_DEVICE: `${API_PREFIX}/notification/devices`,
 		UNREGISTER_DEVICE: (token: string) =>
 			`${API_PREFIX}/notification/devices/${token}`,
+		// Push notification token management
+		REGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
+		UNREGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
 	},
 	// Pantry Management per spec (23-pantry-and-meal-planning.txt)
 	PANTRY: {

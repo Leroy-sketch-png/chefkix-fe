@@ -311,6 +311,7 @@ export const PostDeadlineCard = ({
 				) : (
 					<button
 						onClick={onDismiss}
+						aria-label='Dismiss'
 						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-muted/50 text-muted-foreground transition-colors hover:bg-muted hover:text-text'
 					>
 						<X className='size-4' />

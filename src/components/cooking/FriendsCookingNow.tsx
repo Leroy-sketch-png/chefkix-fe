@@ -5,7 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChefHat, Users, Eye, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getFriendsActiveRooms } from '@/services/cookingRoom'
+import { getFriendsActiveCooking } from '@/services/heartbeat'
 import type { FriendsActiveRoom } from '@/lib/types/room'
+import type { ActiveFriend } from '@/lib/types/heartbeat'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
@@ -26,13 +29,23 @@ export function FriendsCookingNow({
 }: FriendsCookingNowProps) {
 	const router = useRouter()
 	const [rooms, setRooms] = useState<FriendsActiveRoom[]>([])
+	const [soloFriends, setSoloFriends] = useState<ActiveFriend[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 
-	const fetchRooms = useCallback(async () => {
+	const fetchAll = useCallback(async () => {
 		try {
-			const response = await getFriendsActiveRooms()
-			if (response.success && response.data) {
-				setRooms(response.data)
+			const [roomsRes, soloRes] = await Promise.all([
+				getFriendsActiveRooms(),
+				getFriendsActiveCooking(),
+			])
+			if (roomsRes.success && roomsRes.data) setRooms(roomsRes.data)
+			if (soloRes.success && soloRes.data) {
+				// Filter out friends who are already in rooms to avoid duplicates
+				const roomUserIds = new Set(
+					(roomsRes.data ?? []).flatMap(r => r.participantNames.map(n => n)),
+				)
+				// Solo friends: those not in a room (roomCode is null)
+				setSoloFriends(soloRes.data.friends.filter(f => !f.roomCode))
 			}
 		} catch {
 			// Silently fail — this is a non-critical widget
@@ -42,16 +55,17 @@ export function FriendsCookingNow({
 	}, [])
 
 	useEffect(() => {
-		fetchRooms()
+		fetchAll()
 		const interval = setInterval(() => {
-			// Don't poll when tab is hidden
-			if (!document.hidden) fetchRooms()
+			if (!document.hidden) fetchAll()
 		}, pollInterval)
 		return () => clearInterval(interval)
-	}, [fetchRooms, pollInterval])
+	}, [fetchAll, pollInterval])
 
-	// Don't render anything if no friends are cooking
-	if (!isLoading && rooms.length === 0) return null
+	const totalActive = rooms.length + soloFriends.length
+
+	// Don't render anything if nobody is cooking
+	if (!isLoading && totalActive === 0) return null
 
 	// Loading skeleton
 	if (isLoading) return null // Don't show skeleton for this widget — it appears asynchronously
@@ -72,7 +86,7 @@ export function FriendsCookingNow({
 				</div>
 				<h3 className='text-sm font-bold text-text'>Friends Cooking Now</h3>
 				<span className='ml-auto flex size-5 items-center justify-center rounded-full bg-brand/15 text-[10px] font-bold text-brand'>
-					{rooms.length}
+					{totalActive}
 				</span>
 			</div>
 
@@ -142,6 +156,65 @@ export function FriendsCookingNow({
 					))}
 				</AnimatePresence>
 			</div>
+
+			{/* Solo cooking sessions */}
+			{soloFriends.length > 0 && (
+				<div className={cn('space-y-2', rooms.length > 0 && 'mt-2')}>
+					<AnimatePresence mode='popLayout'>
+						{soloFriends.map(friend => (
+							<motion.div
+								key={friend.userId}
+								initial={{ opacity: 0, x: -10 }}
+								animate={{ opacity: 1, x: 0 }}
+								exit={{ opacity: 0, x: 10 }}
+								transition={TRANSITION_SPRING}
+								onClick={() => router.push(`/recipes/${friend.recipeId}`)}
+								className='group flex cursor-pointer items-center gap-3 rounded-xl bg-bg-elevated/50 p-3 transition-colors hover:bg-bg-elevated'
+							>
+								<Avatar size='sm'>
+									{friend.avatarUrl && (
+										<AvatarImage
+											src={friend.avatarUrl}
+											alt={friend.displayName ?? friend.username ?? 'Friend'}
+										/>
+									)}
+									<AvatarFallback className='text-xs'>
+										{(friend.displayName ?? friend.username ?? '?')
+											.slice(0, 2)
+											.toUpperCase()}
+									</AvatarFallback>
+								</Avatar>
+
+								<div className='min-w-0 flex-1'>
+									<p className='truncate text-sm font-semibold text-text'>
+										{friend.displayName ?? friend.username ?? 'Friend'}
+									</p>
+									<p className='truncate text-xs text-text-secondary'>
+										Cooking{' '}
+										<span className='font-medium text-text'>
+											{friend.recipeTitle}
+										</span>
+									</p>
+									<div className='mt-1 flex items-center gap-2'>
+										{/* Step progress bar */}
+										<div className='h-1.5 flex-1 rounded-full bg-border-subtle'>
+											<div
+												className='h-full rounded-full bg-success transition-all'
+												style={{
+													width: `${friend.totalSteps > 0 ? (friend.currentStep / friend.totalSteps) * 100 : 0}%`,
+												}}
+											/>
+										</div>
+										<span className='text-[10px] text-text-muted'>
+											Step {friend.currentStep}/{friend.totalSteps}
+										</span>
+									</div>
+								</div>
+							</motion.div>
+						))}
+					</AnimatePresence>
+				</div>
+			)}
 		</motion.div>
 	)
 }

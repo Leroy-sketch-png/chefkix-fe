@@ -351,7 +351,7 @@ const ButtonGroup = <T extends string>({
 // ============================================
 
 export default function SettingsPage() {
-	const { user } = useAuth()
+	const { user, setUser } = useAuth()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
@@ -463,6 +463,10 @@ export default function SettingsPage() {
 		try {
 			const response = await updateProfile({ displayName, bio })
 			if (response.success) {
+				// Update auth store so navbar/sidebar reflect changes immediately
+				if (user) {
+					setUser({ ...user, displayName, bio })
+				}
 				toast.success('Profile updated!')
 			} else {
 				toast.error(response.message || 'Failed to update profile')
@@ -501,6 +505,10 @@ export default function SettingsPage() {
 
 				const updateResponse = await updateProfile({ avatarUrl: uploadedUrl })
 				if (updateResponse.success) {
+					// Update auth store so navbar avatar reflects change immediately
+					if (user) {
+						setUser({ ...user, avatarUrl: uploadedUrl })
+					}
 					toast.success('Avatar updated!')
 				} else {
 					toast.error('Failed to save avatar')
@@ -736,8 +744,8 @@ export default function SettingsPage() {
 										<div className='space-y-4'>
 											{/* Cover Photo Upload */}
 											<div className='grid gap-2'>
-												<Label>Cover Photo</Label>
-												<div className='relative'>
+												<Label id='settings-cover-label'>Cover Photo</Label>
+												<div className='relative' aria-labelledby='settings-cover-label'>
 													<div
 														className={cn(
 															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border bg-gradient-to-br from-brand/20 via-amber-100/30 to-orange-50/40 transition-all',
@@ -788,8 +796,8 @@ export default function SettingsPage() {
 
 											{/* Avatar Upload */}
 											<div className='grid gap-2'>
-												<Label>Profile Photo</Label>
-												<div className='flex items-center gap-4'>
+												<Label id='settings-avatar-label'>Profile Photo</Label>
+												<div className='flex items-center gap-4' aria-labelledby='settings-avatar-label'>
 													<div
 														className={cn(
 															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-all',
@@ -916,8 +924,8 @@ export default function SettingsPage() {
 										description='Control who can see your profile and content'
 									>
 										<div className='space-y-4'>
-											<div>
-												<Label className='mb-3 block'>
+											<div role='group' aria-labelledby='settings-visibility-label'>
+												<Label id='settings-visibility-label' className='mb-3 block'>
 													Who can see your profile?
 												</Label>
 												<ButtonGroup
@@ -928,8 +936,8 @@ export default function SettingsPage() {
 													}
 												/>
 											</div>
-											<div>
-												<Label className='mb-3 block'>
+											<div role='group' aria-labelledby='settings-messaging-label'>
+												<Label id='settings-messaging-label' className='mb-3 block'>
 													Who can message you?
 												</Label>
 												<ButtonGroup
@@ -1264,9 +1272,10 @@ export default function SettingsPage() {
 									<SettingsCard title='Cooking Preferences'>
 										<div className='space-y-6'>
 											<div>
-												<Label className='mb-3 block'>Default Servings</Label>
+												<Label htmlFor='settings-default-servings' className='mb-3 block'>Default Servings</Label>
 												<div className='flex items-center gap-4'>
 													<Input
+														id='settings-default-servings'
 														type='number'
 														min={1}
 														max={20}
@@ -1284,9 +1293,10 @@ export default function SettingsPage() {
 												</div>
 											</div>
 											<div>
-												<Label className='mb-3 block'>Max Cooking Time</Label>
+												<Label htmlFor='settings-max-cooking-time' className='mb-3 block'>Max Cooking Time</Label>
 												<div className='flex items-center gap-4'>
 													<Input
+														id='settings-max-cooking-time'
 														type='number'
 														min={0}
 														max={480}
@@ -1306,8 +1316,8 @@ export default function SettingsPage() {
 													</span>
 												</div>
 											</div>
-											<div>
-												<Label className='mb-3 block'>Measurement Units</Label>
+											<div role='group' aria-labelledby='settings-units-label'>
+												<Label id='settings-units-label' className='mb-3 block'>Measurement Units</Label>
 												<ButtonGroup
 													options={[
 														{

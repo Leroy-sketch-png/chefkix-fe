@@ -26,6 +26,7 @@ import {
 	ChefHat,
 	Zap,
 	Flag,
+	Users,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -574,6 +575,38 @@ export const PostCard = ({
 											</span>
 										)}
 									</Link>
+								)}
+
+								{/* Co-Chef Attribution - Shows co-cooking participants */}
+								{post.coChefs && post.coChefs.length > 0 && (
+									<div className='flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/5 to-purple-500/5 px-3 py-2'>
+										<Users className='size-4 flex-shrink-0 text-brand' />
+										<span className='text-sm text-text-secondary'>
+											Cooked with{' '}
+										</span>
+										<div className='flex flex-wrap items-center gap-1'>
+											{post.coChefs.map((chef, i) => (
+												<span key={chef.userId}>
+													<Link
+														href={`/profile/${chef.userId}`}
+														className='inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline'
+													>
+														{chef.avatarUrl && (
+															<img
+																src={chef.avatarUrl}
+																alt={chef.displayName}
+																className='size-4 rounded-full object-cover'
+															/>
+														)}
+														@{chef.displayName}
+													</Link>
+													{i < (post.coChefs?.length ?? 0) - 1 && (
+														<span className='text-text-muted'>, </span>
+													)}
+												</span>
+											))}
+										</div>
+									</div>
 								)}
 							</div>
 

@@ -226,6 +226,9 @@ export const Toaster = ({
 	return (
 		<Portal>
 			<div
+				role='status'
+				aria-live='polite'
+				aria-label='Notifications'
 				className={cn(
 					'pointer-events-none fixed z-notification flex max-h-screen w-full gap-3 p-4 md:max-w-sm',
 					positionClasses[position],

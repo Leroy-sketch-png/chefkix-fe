@@ -215,7 +215,7 @@ export const MessagesDrawer = () => {
 
 			<div className='flex items-center justify-between border-b p-3'>
 				<h3 className='font-semibold'>Messages</h3>
-				<Button variant='ghost' size='icon' onClick={toggleMessagesDrawer}>
+				<Button variant='ghost' size='icon' onClick={toggleMessagesDrawer} aria-label='Close messages'>
 					<X className='h-4 w-4' />
 				</Button>
 			</div>

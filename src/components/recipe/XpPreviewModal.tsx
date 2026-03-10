@@ -88,8 +88,7 @@ export const XpPreviewModal = ({
 					<div className='mb-5 flex items-center justify-between'>
 						<h2 className='text-xl font-extrabold text-text'>XP Preview</h2>
 						<button
-							onClick={onBack}
-							className='flex size-9 items-center justify-center rounded-lg bg-bg text-muted-foreground'
+							onClick={onBack}						aria-label='Close'							className='flex size-9 items-center justify-center rounded-lg bg-bg text-muted-foreground'
 						>
 							<X className='size-5' />
 						</button>

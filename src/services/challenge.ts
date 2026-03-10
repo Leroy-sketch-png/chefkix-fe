@@ -78,6 +78,52 @@ export interface WeeklyChallenge {
 	matchingRecipes: ChallengeMatchingRecipe[]
 }
 
+// Community challenge (global collaborative progress, Redis-backed)
+export interface CommunityChallenge {
+	id: string
+	title: string
+	description: string
+	emoji: string
+	targetCount: number
+	targetUnit: string
+	currentProgress: number
+	participantCount: number
+	progressPercent: number
+	rewardXpPerUser: number
+	rewardBadgeId?: string
+	startsAt: string
+	endsAt: string
+	status: 'ACTIVE' | 'COMPLETED' | 'EXPIRED'
+	hasContributed: boolean
+	criteria: Record<string, unknown>
+	tags: string[]
+}
+
+// Seasonal challenge (time-limited themed event, per-user progress)
+export interface SeasonalChallenge {
+	id: string
+	title: string
+	description: string
+	emoji: string
+	theme: string
+	heroImageUrl?: string
+	accentColor?: string
+	targetCount: number
+	targetUnit: string
+	rewardXp: number
+	rewardBadgeId?: string
+	rewardBadgeName?: string
+	startsAt: string
+	endsAt: string
+	status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'EXPIRED'
+	userProgress: number
+	userCompleted: boolean
+	userCompletedAt?: string
+	criteria: Record<string, unknown>
+	featuredRecipes: ChallengeMatchingRecipe[]
+	tags: string[]
+}
+
 // ============================================
 // SERVICE FUNCTIONS
 // ============================================
@@ -186,6 +232,58 @@ export const getWeeklyChallenge = async (): Promise<
 		return {
 			success: false,
 			message: 'Failed to get weekly challenge',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get active community challenges with live global progress.
+ */
+export const getCommunityChallenges = async (): Promise<
+	ApiResponse<CommunityChallenge[]>
+> => {
+	try {
+		const response = await api.get<ApiResponse<CommunityChallenge[]>>(
+			API_ENDPOINTS.CHALLENGES.COMMUNITY,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<
+			ApiResponse<CommunityChallenge[]>
+		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to get community challenges',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get seasonal challenges (active + upcoming) with per-user progress.
+ */
+export const getSeasonalChallenges = async (): Promise<
+	ApiResponse<SeasonalChallenge[]>
+> => {
+	try {
+		const response = await api.get<ApiResponse<SeasonalChallenge[]>>(
+			API_ENDPOINTS.CHALLENGES.SEASONAL,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<
+			ApiResponse<SeasonalChallenge[]>
+		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to get seasonal challenges',
 			statusCode: 500,
 		}
 	}

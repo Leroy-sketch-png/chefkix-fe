@@ -358,6 +358,7 @@ export const StepItem = ({
 							</button>
 							<button
 								onClick={handleClearTimer}
+								aria-label='Clear timer'
 								className='ml-1 flex size-4 items-center justify-center rounded-full text-primary/60 hover:bg-primary/20 hover:text-primary'
 							>
 								<X className='size-3' />
@@ -380,11 +381,12 @@ export const StepItem = ({
 				</div>
 			</div>
 			<div className='flex flex-col gap-2'>
-				<button className='flex size-8 cursor-grab items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-muted/30 hover:text-muted-foreground active:cursor-grabbing'>
+				<button aria-label='Drag to reorder' className='flex size-8 cursor-grab items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-muted/30 hover:text-muted-foreground active:cursor-grabbing'>
 					<GripVertical className='size-4' />
 				</button>
 				<button
 					onClick={onRemove}
+					aria-label='Remove step'
 					className='flex size-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:bg-red-500/10 hover:text-red-500'
 				>
 					<Trash2 className='size-4' />

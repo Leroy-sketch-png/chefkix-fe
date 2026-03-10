@@ -194,6 +194,7 @@ export const AchievementModal = ({
 					{/* Close Button */}
 					<button
 						onClick={onClose}
+						aria-label='Close'
 						className='absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-foreground/30 text-background transition-all hover:bg-foreground/50 hover:rotate-90'
 					>
 						<X className='h-5 w-5' />

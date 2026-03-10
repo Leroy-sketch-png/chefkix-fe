@@ -8,24 +8,17 @@ import {
 	UserPlus,
 	Trophy,
 	Sparkles,
+	Award,
 	X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
-import { getNotifications, type Notification } from '@/services/notification'
+import { TRANSITION_SPRING } from '@/lib/motion'
+import { getActivitySummary } from '@/services/heartbeat'
+import type { NotificationSummaryResponse } from '@/lib/types/heartbeat'
 
 // ============================================
 // TYPES
 // ============================================
-
-interface ActivitySummary {
-	likesReceived: number
-	commentsReceived: number
-	newFollowers: number
-	xpEarned: number
-	badgesEarned: number
-	lastVisit: Date
-}
 
 interface SinceLastVisitCardProps {
 	className?: string
@@ -53,48 +46,6 @@ function setLastVisit(): void {
 	localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString())
 }
 
-function aggregateNotifications(
-	notifications: Notification[],
-	since: Date,
-): ActivitySummary {
-	const summary: ActivitySummary = {
-		likesReceived: 0,
-		commentsReceived: 0,
-		newFollowers: 0,
-		xpEarned: 0,
-		badgesEarned: 0,
-		lastVisit: since,
-	}
-
-	for (const notif of notifications) {
-		const notifDate = new Date(notif.createdAt)
-		if (notifDate < since) continue
-
-		switch (notif.type) {
-			case 'POST_LIKE':
-				summary.likesReceived += notif.count || 1
-				break
-			case 'POST_COMMENT':
-				summary.commentsReceived += notif.count || 1
-				break
-			case 'NEW_FOLLOWER':
-			case 'FOLLOW':
-				summary.newFollowers += notif.count || 1
-				break
-			case 'XP_AWARDED':
-				// Try to parse XP from content like "You earned 50 XP for..."
-				const xpMatch = notif.content?.match(/(\d+)\s*XP/i)
-				if (xpMatch) summary.xpEarned += parseInt(xpMatch[1])
-				break
-			case 'BADGE_EARNED':
-				summary.badgesEarned += 1
-				break
-		}
-	}
-
-	return summary
-}
-
 function formatTimeSince(date: Date): string {
 	const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60))
 	if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
@@ -107,48 +58,39 @@ function formatTimeSince(date: Date): string {
 // ============================================
 
 export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
-	const [summary, setSummary] = useState<ActivitySummary | null>(null)
+	const [data, setData] = useState<NotificationSummaryResponse | null>(null)
+	const [lastVisit, setLastVisitDate] = useState<Date | null>(null)
 	const [isVisible, setIsVisible] = useState(false)
 	const [isDismissed, setIsDismissed] = useState(false)
 
 	useEffect(() => {
 		const fetchActivity = async () => {
-			const lastVisit = getLastVisit()
+			const storedLastVisit = getLastVisit()
 			const now = new Date()
 
 			// First visit or < MIN_ABSENCE_HOURS since last
-			if (!lastVisit) {
+			if (!storedLastVisit) {
 				setLastVisit()
 				return
 			}
 
 			const hoursSinceVisit =
-				(now.getTime() - lastVisit.getTime()) / (1000 * 60 * 60)
+				(now.getTime() - storedLastVisit.getTime()) / (1000 * 60 * 60)
 			if (hoursSinceVisit < MIN_ABSENCE_HOURS) {
 				setLastVisit()
 				return
 			}
 
-			// Fetch notifications to aggregate activity
-			const response = await getNotifications({ size: 100 })
-			if (response.success && response.data) {
-				const aggregated = aggregateNotifications(
-					response.data.notifications,
-					lastVisit,
-				)
-
-				// Only show if there's something to report
-				const hasActivity =
-					aggregated.likesReceived > 0 ||
-					aggregated.commentsReceived > 0 ||
-					aggregated.newFollowers > 0 ||
-					aggregated.xpEarned > 0 ||
-					aggregated.badgesEarned > 0
-
-				if (hasActivity) {
-					setSummary(aggregated)
-					setIsVisible(true)
-				}
+			// Use the new backend endpoint for pre-aggregated summary
+			const response = await getActivitySummary(storedLastVisit.toISOString())
+			if (
+				response.success &&
+				response.data &&
+				response.data.totalNotifications > 0
+			) {
+				setData(response.data)
+				setLastVisitDate(storedLastVisit)
+				setIsVisible(true)
 			}
 
 			// Update last visit time
@@ -160,42 +102,47 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 
 	const handleDismiss = () => {
 		setIsDismissed(true)
-		// Animate out then remove
 		setTimeout(() => setIsVisible(false), 300)
 	}
 
-	if (!isVisible || !summary) return null
+	if (!isVisible || !data || !lastVisit) return null
 
 	const stats = [
 		{
 			icon: Heart,
-			value: summary.likesReceived,
+			value: data.newLikes,
 			label: 'likes',
 			color: 'text-red-500',
 		},
 		{
 			icon: MessageCircle,
-			value: summary.commentsReceived,
+			value: data.newComments,
 			label: 'comments',
 			color: 'text-blue-500',
 		},
 		{
 			icon: UserPlus,
-			value: summary.newFollowers,
+			value: data.newFollowers,
 			label: 'followers',
 			color: 'text-green-500',
 		},
 		{
 			icon: Sparkles,
-			value: summary.xpEarned,
+			value: data.xpAwarded,
 			label: 'XP',
 			color: 'text-purple-500',
 		},
 		{
 			icon: Trophy,
-			value: summary.badgesEarned,
+			value: data.badgesEarned,
 			label: 'badges',
 			color: 'text-yellow-500',
+		},
+		{
+			icon: Award,
+			value: data.levelsGained,
+			label: 'levels',
+			color: 'text-xp',
 		},
 	].filter(s => s.value > 0)
 
@@ -231,7 +178,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 							Welcome back! 👋
 						</h3>
 						<p className='mb-3 text-xs text-text-muted'>
-							Since your last visit {formatTimeSince(summary.lastVisit)}
+							Since your last visit {formatTimeSince(lastVisit)}
 						</p>
 
 						{/* Stats grid */}

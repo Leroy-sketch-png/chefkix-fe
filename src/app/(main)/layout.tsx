@@ -27,7 +27,7 @@ export default function MainAppLayout({
 				<ErrorBoundary>
 					<LeftSidebar />
 				</ErrorBoundary>
-				<main className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 lg:gap-6 lg:p-6'>
+				<main id='main-content' className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 lg:gap-6 lg:p-6'>
 					<ErrorBoundary>{children}</ErrorBoundary>
 				</main>
 				{/* Conditional: CookingPanel (when cooking) or RightSidebar (default) */}

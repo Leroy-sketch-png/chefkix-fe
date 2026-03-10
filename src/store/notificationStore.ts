@@ -16,8 +16,9 @@ interface NotificationState {
 	stopPolling: () => void
 }
 
-// Polling interval - 10 seconds for near real-time feel
-const POLLING_INTERVAL = 10_000
+// Polling interval - 30 seconds. Push notifications handle real-time;
+// polling is a fallback for browsers without push support.
+const POLLING_INTERVAL = 30_000
 
 let pollingIntervalId: NodeJS.Timeout | null = null
 

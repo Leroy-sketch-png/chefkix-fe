@@ -109,8 +109,8 @@
 	--text: #2c2420; /* Espresso - rich warm black */
 	--text-primary: #2c2420;
 	--text-secondary: #524840; /* Dark chocolate - readable warmth */
-	--text-tertiary: #7a6f65; /* Cocoa - medium emphasis */
-	--text-muted: #a89f94; /* Latte - soft muted */
+	--text-tertiary: #6b5f55; /* Cocoa - medium emphasis (WCAG AA ≥4.5:1 on --bg) */
+	--text-muted: #766b62; /* Latte - soft muted (WCAG AA ≥4.5:1 on --bg) */
 
 	/* Borders - Warm stone/terracotta undertones */
 	--border: #e5ddd5; /* Warm sand border */
@@ -488,7 +488,7 @@
 		--text-primary: #faf8f6;
 		--text-secondary: #e7e5e4;
 		--text-tertiary: #a8a29e;
-		--text-muted: #78716c;
+		--text-muted: #9c958f; /* WCAG AA ≥4.5:1 on --bg dark */
 
 		/* ============ DARK MODE BORDERS ============ */
 		--border: #2e2a27;
@@ -832,8 +832,15 @@ html {
 	line-height: 1.2;
 }
 
-/* Focus styles - Clean and minimal */
+/* Focus styles - Visible and accessible (WCAG 2.4.7) */
 :focus-visible {
+	outline: 2px solid var(--color-brand);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+/* Remove focus ring for mouse users only */
+:focus:not(:focus-visible) {
 	outline: none;
 }
 

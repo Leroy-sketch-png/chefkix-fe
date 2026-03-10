@@ -254,9 +254,11 @@ function CreatePostContent() {
 		} catch (error) {
 			console.error('Post creation error:', error)
 			toast.error('Something went wrong. Please try again.')
-		} finally {
 			setIsSubmitting(false)
 		}
+		// NOTE: Do NOT reset isSubmitting on success — router.push() is async.
+		// Re-enabling the button before navigation completes allows double-submit.
+		// Component unmount on navigation handles cleanup.
 	}
 
 	const getTimeLeft = () => {

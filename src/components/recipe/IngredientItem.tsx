@@ -35,6 +35,7 @@ export const IngredientItem = ({
 		/>
 		<button
 			onClick={onRemove}
+			aria-label='Remove ingredient'
 			className='flex size-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500'
 		>
 			<X className='size-4' />
