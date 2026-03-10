@@ -1,3 +1,7 @@
+/**
+ * @deprecated DEAD CODE — Not imported anywhere. Forgot password flow uses ForgotPasswordDialog (modal) in SignInForm.
+ * Kept for reference if standalone page is needed later. No corresponding page.tsx exists.
+ */
 'use client'
 
 import { z } from 'zod'

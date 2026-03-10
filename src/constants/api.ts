@@ -115,11 +115,8 @@ export const API_ENDPOINTS = {
 		LIKED: `${RECIPE_SERVICE_PREFIX}/liked`,
 		SOCIAL_PROOF: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/social-proof`,
 	},
-	// Statistics per spec (04-statistics.txt)
-	// Note: add_xp is admin/testing only, requires userId in path
-	STATISTICS: {
-		ADD_XP: (userId: string) => `${API_PREFIX}/auth/${userId}/add_xp`,
-	},
+	// Statistics: XP is awarded via Kafka (xp-delivery topic), not REST.
+	STATISTICS: {},
 	// Cooking Sessions per spec (08-cooking-sessions.txt)
 	COOKING_SESSIONS: {
 		BASE: `${API_PREFIX}/cooking-sessions`,

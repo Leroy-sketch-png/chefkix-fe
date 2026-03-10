@@ -27,7 +27,7 @@ import {
 } from '@/lib/tokenManager'
 
 // ============================================================================
-// AXIOS INSTANCE
+// AXIOS INSTANCES
 // ============================================================================
 
 export const api = axios.create({
@@ -37,6 +37,20 @@ export const api = axios.create({
 	},
 	timeout: app.AXIOS_TIMEOUT,
 	withCredentials: true, // CRITICAL: Send HttpOnly cookies (refresh_token)
+})
+
+/**
+ * Separate axios instance for the Python AI service (port 8000).
+ * AI endpoints (process_recipe, calculate_metas, cooking_assistant, moderate)
+ * live on the AI service, NOT the monolith.
+ * No credentials needed — AI service doesn't validate JWT.
+ */
+export const aiApi = axios.create({
+	baseURL: process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000',
+	headers: {
+		'Content-Type': 'application/json',
+	},
+	timeout: 60_000, // AI calls can take longer (Gemini processing)
 })
 
 // ============================================================================

@@ -105,14 +105,14 @@ const GoogleSignInButtonDisabled: React.FC<{
 
 /**
  * Google Sign-In button that gracefully handles missing configuration.
- * Shows "Coming Soon" when NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set.
+ * Returns null (renders nothing) when NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set.
+ * Per §COMMON_GOTCHAS: "Coming Soon that never comes → Remove until real."
  */
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = props => {
-	const { text = 'Sign in with Google', onFailure } = props
 	const isGoogleConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 	if (!isGoogleConfigured) {
-		return <GoogleSignInButtonDisabled onFailure={onFailure} text={text} />
+		return null
 	}
 
 	return <GoogleSignInButtonWithOAuth {...props} />

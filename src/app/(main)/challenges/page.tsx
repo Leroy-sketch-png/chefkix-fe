@@ -158,7 +158,7 @@ export default function ChallengesPage() {
 							<DailyChallengeBanner
 								variant='active'
 								challenge={dailyChallenge}
-								onFindRecipe={() => router.push('/discover?quick=true')}
+								onFindRecipe={() => router.push('/explore')}
 							/>
 						)}
 

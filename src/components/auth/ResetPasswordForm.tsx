@@ -1,3 +1,7 @@
+/**
+ * @deprecated DEAD CODE — Not imported anywhere. Password reset is handled inside ForgotPasswordDialog.
+ * Contains route to /auth/forgot-password which doesn't exist. Kept for reference.
+ */
 'use client'
 
 import { z } from 'zod'

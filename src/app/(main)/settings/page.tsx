@@ -351,7 +351,7 @@ const ButtonGroup = <T extends string>({
 // ============================================
 
 export default function SettingsPage() {
-	const { user } = useAuth()
+	const { user, setUser } = useAuth()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
@@ -463,6 +463,10 @@ export default function SettingsPage() {
 		try {
 			const response = await updateProfile({ displayName, bio })
 			if (response.success) {
+				// Update auth store so navbar/sidebar reflect changes immediately
+				if (user) {
+					setUser({ ...user, displayName, bio })
+				}
 				toast.success('Profile updated!')
 			} else {
 				toast.error(response.message || 'Failed to update profile')
@@ -501,6 +505,10 @@ export default function SettingsPage() {
 
 				const updateResponse = await updateProfile({ avatarUrl: uploadedUrl })
 				if (updateResponse.success) {
+					// Update auth store so navbar avatar reflects change immediately
+					if (user) {
+						setUser({ ...user, avatarUrl: uploadedUrl })
+					}
 					toast.success('Avatar updated!')
 				} else {
 					toast.error('Failed to save avatar')

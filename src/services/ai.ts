@@ -4,7 +4,7 @@
  * Based on: .tmp/implemented_spec/14-ai-integration.txt
  */
 
-import { api } from '@/lib/axios'
+import { aiApi } from '@/lib/axios'
 import type { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { AxiosError } from 'axios'
@@ -225,7 +225,7 @@ export const processRecipe = async (
 	rawText: string,
 ): Promise<ApiResponse<ProcessedRecipe>> => {
 	try {
-		const response = await api.post<ApiResponse<ProcessedRecipe>>(
+		const response = await aiApi.post<ApiResponse<ProcessedRecipe>>(
 			API_ENDPOINTS.AI.PROCESS_RECIPE,
 			{ raw_text: rawText },
 		)
@@ -279,7 +279,7 @@ export const calculateMetas = async (
 	recipe: CalculateMetasRequest,
 ): Promise<ApiResponse<CalculateMetasResponse>> => {
 	try {
-		const response = await api.post<ApiResponse<CalculateMetasResponse>>(
+		const response = await aiApi.post<ApiResponse<CalculateMetasResponse>>(
 			API_ENDPOINTS.AI.CALCULATE_METAS,
 			recipe,
 		)
@@ -303,7 +303,7 @@ export const validateRecipe = async (
 	recipe: ValidateRecipeRequest,
 ): Promise<ApiResponse<ValidateRecipeResponse>> => {
 	try {
-		const response = await api.post<ApiResponse<ValidateRecipeResponse>>(
+		const response = await aiApi.post<ApiResponse<ValidateRecipeResponse>>(
 			API_ENDPOINTS.AI.VALIDATE_RECIPE,
 			recipe,
 		)
@@ -328,7 +328,7 @@ export const askCookingAssistant = async (
 	context: string,
 ): Promise<ApiResponse<CookingAssistantResponse>> => {
 	try {
-		const response = await api.post<ApiResponse<CookingAssistantResponse>>(
+		const response = await aiApi.post<ApiResponse<CookingAssistantResponse>>(
 			API_ENDPOINTS.AI.COOKING_ASSISTANT,
 			{ query, context },
 		)
@@ -355,7 +355,7 @@ export const moderateContent = async (
 	contentType: ContentType,
 ): Promise<ApiResponse<ModerateResponse>> => {
 	try {
-		const response = await api.post<ApiResponse<ModerateResponse>>(
+		const response = await aiApi.post<ApiResponse<ModerateResponse>>(
 			API_ENDPOINTS.AI.MODERATE,
 			{ content: text, content_type: contentType },
 		)
