@@ -20,48 +20,6 @@ export interface RecipeSearchParams {
 	limit?: number
 }
 
-export interface RecipeMastery {
-	recipeId: string
-	cookCount: number
-	masteryLevel: 'none' | 'apprentice' | 'expert' | 'master'
-	masteryBadge?: string
-	nextMilestone?: {
-		level: string
-		cooksRequired: number
-		cooksRemaining: number
-	}
-	xpEarned: {
-		first: number
-		second: number
-		third: number
-		total: number
-	}
-	lastCookedAt?: string
-}
-
-export interface RecipeCompleteRequest {
-	timerLogs: Array<{
-		stepNumber: number
-		elapsedSeconds: number
-	}>
-	rating?: number
-	notes?: string
-}
-
-export interface RecipeCompleteResponse {
-	completionId: string
-	recipeId: string
-	xpEarned: number
-	newBadges: string[]
-	userProfile: {
-		userId: string
-		level: number
-		currentXP: number
-		currentXPGoal: number
-		completionCount: number
-	}
-}
-
 export interface PublishResponse {
 	isPublished: boolean
 	moderationStatus: 'approved' | 'pending' | 'rejected'
@@ -535,51 +493,6 @@ export const getLikedRecipes = async (
 // ============================================
 
 /**
- * Complete a recipe (legacy - prefer cooking sessions flow)
- * Note: This bypasses session system. Use cooking sessions for proper XP tracking.
- */
-export const completeRecipe = async (
-	recipeId: string,
-	data: RecipeCompleteRequest,
-): Promise<ApiResponse<RecipeCompleteResponse>> => {
-	try {
-		const response = await api.post(
-			API_ENDPOINTS.RECIPES.COMPLETE(recipeId),
-			data,
-		)
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<RecipeCompleteResponse>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to complete recipe',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
- * Get user's mastery progress for a recipe
- */
-export const getRecipeMastery = async (
-	recipeId: string,
-): Promise<ApiResponse<RecipeMastery>> => {
-	try {
-		const response = await api.get(API_ENDPOINTS.RECIPES.MASTERY(recipeId))
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<RecipeMastery>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to fetch mastery',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
  * Publish a recipe (with moderation check)
  */
 export const publishRecipe = async (
@@ -618,77 +531,6 @@ export const duplicateRecipe = async (
 		return {
 			success: false,
 			message: 'Failed to duplicate recipe',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
- * Preview recipe as it will appear when published
- */
-export const previewRecipe = async (
-	recipeId: string,
-): Promise<ApiResponse<Recipe>> => {
-	try {
-		const response = await api.get(API_ENDPOINTS.RECIPES.PREVIEW(recipeId))
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<Recipe>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to preview recipe',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
- * Regenerate recipe with AI (recalculate XP, badges, enrichment)
- */
-export const regenerateRecipe = async (
-	recipeId: string,
-	aiResponse: Record<string, unknown>,
-): Promise<
-	ApiResponse<Recipe & { currentVersion: number; versionsAvailable: number[] }>
-> => {
-	try {
-		const response = await api.post(
-			API_ENDPOINTS.RECIPES.REGENERATE(recipeId),
-			{
-				aiResponse,
-			},
-		)
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<Recipe>>
-		if (axiosError.response) return axiosError.response.data as any
-		return {
-			success: false,
-			message: 'Failed to regenerate recipe',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
- * Revert recipe to a previous version
- */
-export const revertRecipe = async (
-	recipeId: string,
-	version: number,
-): Promise<ApiResponse<Recipe>> => {
-	try {
-		const response = await api.post(API_ENDPOINTS.RECIPES.REVERT(recipeId), {
-			version,
-		})
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<Recipe>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to revert recipe',
 			statusCode: 500,
 		}
 	}

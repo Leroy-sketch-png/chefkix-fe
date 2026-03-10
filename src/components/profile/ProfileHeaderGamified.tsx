@@ -257,26 +257,51 @@ const TitleBadge = ({ title }: { title: UserTitle }) => {
 const StatsRow = ({
 	social,
 	cooking,
+	isOwnProfile,
 }: {
 	social: { followers: number; following: number }
 	cooking: { recipesCooked: number; recipesCreated: number; mastered?: number }
+	isOwnProfile?: boolean
 }) => (
 	<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
 		{/* Social Stats */}
 		<div className='flex gap-8'>
-			{/* TODO: Make clickable when /profile/[id]/followers page exists */}
-			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold'>
-					{formatNumber(social.followers)}
-				</span>
-				<span className='text-xs text-text-muted'>Followers</span>
-			</div>
-			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold'>
-					{formatNumber(social.following)}
-				</span>
-				<span className='text-xs text-text-muted'>Following</span>
-			</div>
+			{isOwnProfile ? (
+				<Link
+					href='/profile/followers?tab=followers'
+					className='flex flex-col transition-opacity hover:opacity-70'
+				>
+					<span className='text-xl font-extrabold'>
+						{formatNumber(social.followers)}
+					</span>
+					<span className='text-xs text-text-muted'>Followers</span>
+				</Link>
+			) : (
+				<div className='flex flex-col'>
+					<span className='text-xl font-extrabold'>
+						{formatNumber(social.followers)}
+					</span>
+					<span className='text-xs text-text-muted'>Followers</span>
+				</div>
+			)}
+			{isOwnProfile ? (
+				<Link
+					href='/profile/followers?tab=following'
+					className='flex flex-col transition-opacity hover:opacity-70'
+				>
+					<span className='text-xl font-extrabold'>
+						{formatNumber(social.following)}
+					</span>
+					<span className='text-xs text-text-muted'>Following</span>
+				</Link>
+			) : (
+				<div className='flex flex-col'>
+					<span className='text-xl font-extrabold'>
+						{formatNumber(social.following)}
+					</span>
+					<span className='text-xs text-text-muted'>Following</span>
+				</div>
+			)}
 		</div>
 
 		{/* Divider */}
@@ -591,6 +616,7 @@ const OwnProfileHeader = ({
 			{/* Stats */}
 			<div className='mt-4'>
 				<StatsRow
+					isOwnProfile
 					social={{
 						followers: user.stats.followers,
 						following: user.stats.following,
@@ -799,6 +825,7 @@ const OtherUserProfileHeader = ({
 			{/* Stats */}
 			<div className='mt-4'>
 				<StatsRow
+					isOwnProfile={false}
 					social={{
 						followers: user.stats.followers,
 						following: user.stats.following,

@@ -20,7 +20,7 @@ export const API_ENDPOINTS = {
 		VERIFY_OTP_PASSWORD: `${API_PREFIX}/auth/verify-otp-password`,
 		FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
 		CHANGE_PASSWORD: `${API_PREFIX}/auth/change-password`,
-		GOOGLE: `${API_PREFIX}/auth/google`, // TODO: Pending backend implementation (OAuth flow may change)
+		GOOGLE: `${API_PREFIX}/auth/google`, // Future: Requires Keycloak Google IdP setup + backend OAuth callback
 		REFRESH_TOKEN: `${API_PREFIX}/auth/refresh-token`, // Public endpoint, no auth header needed
 		ME: `${API_PREFIX}/auth/me`,
 	} as const,
@@ -102,21 +102,15 @@ export const API_ENDPOINTS = {
 		DELETE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}`,
 		TOGGLE_LIKE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/like`,
 		TOGGLE_SAVE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/save`,
-		COMPLETE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/complete`,
-		MASTERY: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/mastery`,
 		PUBLISH: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/publish`,
 		DUPLICATE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/duplicate`,
-		PREVIEW: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/preview`,
-		REGENERATE: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/regenerate`,
-		REVERT: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/revert`,
 		UPLOAD: `${RECIPE_SERVICE_PREFIX}/uploads`,
 		UPLOAD_VIDEO: `${RECIPE_SERVICE_PREFIX}/uploads/video`,
 		SAVED: `${RECIPE_SERVICE_PREFIX}/saved`,
 		LIKED: `${RECIPE_SERVICE_PREFIX}/liked`,
 		SOCIAL_PROOF: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/social-proof`,
 	},
-	// Statistics: XP is awarded via Kafka (xp-delivery topic), not REST.
-	STATISTICS: {},
+	// Statistics: XP is awarded via Kafka (xp-delivery topic), not REST. No FE endpoints needed.
 	// Cooking Sessions per spec (08-cooking-sessions.txt)
 	COOKING_SESSIONS: {
 		BASE: `${API_PREFIX}/cooking-sessions`,
@@ -197,10 +191,7 @@ export const API_ENDPOINTS = {
 		MARK_READ: (id: string) => `${API_PREFIX}/notification/${id}/read`,
 		MARK_ALL_READ: `${API_PREFIX}/notification/read-all`,
 		SUMMARY_SINCE: `${API_PREFIX}/notification/summary-since`,
-		REGISTER_DEVICE: `${API_PREFIX}/notification/devices`,
-		UNREGISTER_DEVICE: (token: string) =>
-			`${API_PREFIX}/notification/devices/${token}`,
-		// Push notification token management
+		// Push notification token management (matches BE DeviceController at /devices/push-token)
 		REGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
 		UNREGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
 	},

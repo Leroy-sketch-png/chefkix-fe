@@ -18,6 +18,7 @@ import {
 } from '@/services/cookingSession'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
+import { toast } from 'sonner'
 import { diag } from '@/lib/diagnostics'
 import type { RoomParticipant, CookingRoom, RoomEvent } from '@/lib/types/room'
 import { useAuthStore } from '@/store/authStore'
@@ -438,6 +439,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					console.error('Failed to navigate step:', error)
+					toast.error('Failed to navigate step. Please try again.')
 				}
 			},
 
@@ -470,6 +472,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					console.error('Failed to complete step:', error)
+					toast.error('Failed to mark step as complete. Please try again.')
 				}
 			},
 
@@ -506,6 +509,7 @@ export const useCookingStore = create<CookingState>()(
 					set({ localTimers: newTimers })
 				} catch (error) {
 					console.error('Failed to start timer:', error)
+					toast.error('Failed to start timer. Please try again.')
 				}
 			},
 
@@ -530,6 +534,7 @@ export const useCookingStore = create<CookingState>()(
 					set({ localTimers: newTimers })
 				} catch (error) {
 					console.error('Failed to skip timer:', error)
+					toast.error('Failed to skip timer. Please try again.')
 				}
 			},
 
@@ -555,6 +560,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					diag.error('cooking', 'PAUSE_SESSION exception', error)
+					toast.error('Failed to pause session. Please try again.')
 				}
 			},
 
@@ -592,6 +598,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					diag.error('cooking', 'RESUME_COOKING exception', error)
+					toast.error('Failed to resume session. Please try again.')
 				}
 			},
 
@@ -684,10 +691,18 @@ export const useCookingStore = create<CookingState>()(
 				}
 
 				try {
-					await apiAbandonSession(session.sessionId)
-					set({ session: null, recipe: null, localTimers: new Map() })
+					const response = await apiAbandonSession(session.sessionId)
+					if (response.success) {
+						set({ session: null, recipe: null, localTimers: new Map() })
+					} else {
+						console.error('Failed to abandon session:', response.message)
+						toast.error(
+							'Failed to abandon session. Please try again.',
+						)
+					}
 				} catch (error) {
 					console.error('Failed to abandon session:', error)
+					toast.error('Failed to abandon session. Please try again.')
 				}
 			},
 
@@ -784,6 +799,7 @@ export const useCookingStore = create<CookingState>()(
 							// Timer complete - record event (skip API in preview mode)
 							if (!isPreviewMode) {
 								apiLogTimerEvent(session.sessionId, stepNumber, 'complete')
+									.catch(err => console.error('Timer complete event failed:', err))
 							}
 							newTimers.delete(stepNumber)
 						} else {

@@ -382,7 +382,8 @@ export const AiAssistant = ({
 	}
 
 	const handleFeedback = (_messageId: string, _helpful: boolean) => {
-		// TODO: Send feedback to API when endpoint is available
+		// Feedback collection requires a dedicated backend endpoint (not yet implemented).
+		// When available: POST /api/v1/ai/feedback { messageId, helpful, sessionId }
 	}
 
 	const toggleVoice = () => {
