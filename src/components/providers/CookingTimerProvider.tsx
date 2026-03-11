@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useCookingStore } from '@/store/cookingStore'
 import { useTimerNotifications } from '@/hooks/useTimerNotifications'
+import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { useAuthStore } from '@/store/authStore'
 import { useUiStore } from '@/store/uiStore'
 
@@ -16,6 +17,7 @@ import { useUiStore } from '@/store/uiStore'
  * 2. The setInterval that ticks all active timers (1 second)
  * 3. Timer completion notifications via useTimerNotifications hook
  * 4. Auto-showing cooking UI when session is restored
+ * 5. Global beforeunload guard (warns on tab close during active session)
  *
  * ARCHITECTURAL DECISION:
  * Timer intervals were previously scattered across CookingPanel,
@@ -36,6 +38,16 @@ export const CookingTimerProvider = () => {
 
 	// Timer completion notifications (toast + chime)
 	useTimerNotifications()
+
+	// Global beforeunload guard — warns user when closing/refreshing tab with active session
+	// This is the GLOBAL guard. CookingPanel/CookingPlayer have their own, but those
+	// only fire when the component is mounted/visible. This one fires ALWAYS.
+	const hasActiveSession =
+		session?.status === 'in_progress' && !!session?.recipeId
+	useBeforeUnloadWarning(
+		hasActiveSession,
+		'You have an active cooking session. Leaving will not save your progress.',
+	)
 
 	// Sync with backend on mount — catch "ninja sessions" that exist on BE but not in FE store
 	// This handles: cleared localStorage, different browser, out-of-sync state

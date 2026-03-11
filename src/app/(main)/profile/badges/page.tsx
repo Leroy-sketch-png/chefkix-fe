@@ -271,6 +271,9 @@ export default function BadgeCatalogPage() {
 		return new Set(user?.statistics?.badges ?? [])
 	}, [user?.statistics?.badges])
 
+	// Badge timestamps map for earnedAt lookup
+	const badgeTimestamps = user?.statistics?.badgeTimestamps ?? {}
+
 	// Resolve earned badges with timestamps (if available)
 	const earnedBadges = useMemo(() => {
 		const ids = user?.statistics?.badges ?? []
@@ -491,7 +494,11 @@ export default function BadgeCatalogPage() {
 										<BadgeCard
 											badge={badge}
 											isEarned={isEarned}
-											earnedAt={undefined} // TODO: Track earnedAt in user statistics
+											earnedAt={
+												badgeTimestamps[badge.id] ??
+												badgeTimestamps[badge.name] ??
+												undefined
+											}
 										/>
 									</motion.div>
 								)

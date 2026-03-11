@@ -171,52 +171,6 @@ export const markAllNotificationsRead = async (): Promise<
 }
 
 /**
- * Register device for push notifications
- */
-export const registerDevice = async (
-	token: string,
-	platform: 'ios' | 'android',
-): Promise<ApiResponse<void>> => {
-	try {
-		const response = await api.post<ApiResponse<void>>(
-			API_ENDPOINTS.NOTIFICATIONS.REGISTER_DEVICE,
-			{ token, platform },
-		)
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<void>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to register device',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
- * Unregister device from push notifications
- */
-export const unregisterDevice = async (
-	token: string,
-): Promise<ApiResponse<void>> => {
-	try {
-		const response = await api.delete<ApiResponse<void>>(
-			API_ENDPOINTS.NOTIFICATIONS.UNREGISTER_DEVICE(token),
-		)
-		return response.data
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<void>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to unregister device',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
  * Get unread notification count
  * Lightweight endpoint for badge display without fetching all notifications
  */

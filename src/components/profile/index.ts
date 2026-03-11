@@ -9,3 +9,4 @@ export {
 export { ProfileNotFound } from './ProfileNotFound'
 export { UserProfile } from './UserProfile'
 export { UserProfileSkeleton } from './UserProfileSkeleton'
+export { FollowUserCard } from './FollowUserCard'

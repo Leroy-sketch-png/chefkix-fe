@@ -14,6 +14,8 @@ export interface Statistics {
 	completionCount: number // Total cooking completions
 	reputation: number
 	badges?: string[] // Earned badge IDs
+	/** Badge name → ISO timestamp when earned. Null for badges earned before tracking was added. */
+	badgeTimestamps?: Record<string, string>
 	// Additional fields per spec 02-profile.txt
 	recipesCooked?: number // Distinct recipes user has cooked
 	recipesMastered?: number // Recipes cooked 5+ times (mastery threshold)
