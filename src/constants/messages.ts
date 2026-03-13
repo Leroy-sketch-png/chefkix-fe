@@ -68,13 +68,6 @@ export const VERIFY_OTP_MESSAGES = {
 	PAGE_SUBTITLE: 'Enter the verification code sent to your email',
 } as const
 
-// ============ PROFILE MESSAGES ============
-export const PROFILE_MESSAGES = {
-	NOT_FOUND: 'Profile not found',
-	NOT_FOUND_DESCRIPTION: 'The user you are looking for does not exist.',
-	LOADING: 'Loading profile...',
-} as const
-
 // ============ POST MESSAGES ============
 export const POST_MESSAGES = {
 	DELETE_CONFIRM: 'Are you sure you want to delete this post?',
@@ -100,24 +93,6 @@ export const RECIPE_MESSAGES = {
 	LIKE_FAILED: 'Failed to like recipe',
 	SAVE_FAILED: 'Failed to save recipe',
 	LINK_COPIED: 'Link copied to clipboard!',
-} as const
-
-// ============ SOCIAL MESSAGES ============
-export const SOCIAL_MESSAGES = {
-	FOLLOW_SUCCESS: 'Now following!',
-	UNFOLLOW_SUCCESS: 'Unfollowed',
-	MUTUAL_FOLLOW: "You're now friends!", // Instagram model: mutual follow
-	BLOCK_SUCCESS: 'User blocked',
-	UNBLOCK_SUCCESS: 'User unblocked',
-} as const
-
-// ============ COMMON MESSAGES ============
-export const COMMON_MESSAGES = {
-	LOADING: 'Loading...',
-	ERROR: 'An error occurred',
-	SUCCESS: 'Success!',
-	TRY_AGAIN: 'Please try again',
-	BACK_HOME: 'Back to Home',
 } as const
 
 // ============ CHAT MESSAGES ============

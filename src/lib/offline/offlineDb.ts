@@ -1,9 +1,6 @@
 /**
  * IndexedDB wrapper for offline data persistence
- * Stores:
- * 1. Queued API requests for replay on reconnect
- * 2. Cached recipe data for offline cooking
- * 3. Session state for offline navigation
+ * Stores queued API requests for replay on reconnect
  */
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb'
@@ -23,24 +20,6 @@ export interface QueuedRequest {
 	priority: number // Lower = higher priority
 }
 
-export interface CachedRecipe {
-	id: string
-	data: unknown // Full recipe data
-	cachedAt: number
-}
-
-export interface OfflineSession {
-	sessionId: string
-	recipeId: string
-	currentStep: number
-	completedSteps: number[]
-	timerState: Record<
-		number,
-		{ startedAt?: number; remaining: number; isPaused: boolean }
-	>
-	lastUpdated: number
-}
-
 // ============================================
 // SCHEMA
 // ============================================
@@ -51,14 +30,23 @@ interface ChefKixOfflineDB extends DBSchema {
 		value: QueuedRequest
 		indexes: { 'by-timestamp': number; 'by-priority': number }
 	}
+	// Legacy stores kept for IndexedDB schema compatibility.
+	// No application code reads/writes these anymore.
 	'cached-recipes': {
 		key: string
-		value: CachedRecipe
+		value: { id: string; data: unknown; cachedAt: number }
 		indexes: { 'by-cached-at': number }
 	}
 	'offline-sessions': {
 		key: string
-		value: OfflineSession
+		value: {
+			sessionId: string
+			recipeId: string
+			currentStep: number
+			completedSteps: number[]
+			timerState: Record<string, unknown>
+			lastUpdated: number
+		}
 		indexes: { 'by-last-updated': number }
 	}
 }
@@ -85,7 +73,7 @@ function getDb(): Promise<IDBPDatabase<ChefKixOfflineDB>> {
 					requestStore.createIndex('by-priority', 'priority')
 				}
 
-				// Cached recipes store
+				// Legacy stores — created for schema compatibility
 				if (!db.objectStoreNames.contains('cached-recipes')) {
 					const recipeStore = db.createObjectStore('cached-recipes', {
 						keyPath: 'id',
@@ -93,7 +81,6 @@ function getDb(): Promise<IDBPDatabase<ChefKixOfflineDB>> {
 					recipeStore.createIndex('by-cached-at', 'cachedAt')
 				}
 
-				// Offline sessions store
 				if (!db.objectStoreNames.contains('offline-sessions')) {
 					const sessionStore = db.createObjectStore('offline-sessions', {
 						keyPath: 'sessionId',
@@ -165,103 +152,6 @@ export async function incrementRetryCount(id: string): Promise<void> {
 export async function getQueueCount(): Promise<number> {
 	const db = await getDb()
 	return db.count('request-queue')
-}
-
-/**
- * Clear all queued requests (e.g., after logout)
- */
-export async function clearRequestQueue(): Promise<void> {
-	const db = await getDb()
-	await db.clear('request-queue')
-}
-
-// ============================================
-// CACHED RECIPES OPERATIONS
-// ============================================
-
-/**
- * Cache a recipe for offline access
- */
-export async function cacheRecipe(
-	recipeId: string,
-	data: unknown,
-): Promise<void> {
-	const db = await getDb()
-	await db.put('cached-recipes', {
-		id: recipeId,
-		data,
-		cachedAt: Date.now(),
-	})
-}
-
-/**
- * Get a cached recipe
- */
-export async function getCachedRecipe(
-	recipeId: string,
-): Promise<CachedRecipe | undefined> {
-	const db = await getDb()
-	return db.get('cached-recipes', recipeId)
-}
-
-/**
- * Remove old cached recipes (> 7 days)
- */
-export async function cleanupCachedRecipes(): Promise<void> {
-	const db = await getDb()
-	const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
-	const all = await db.getAll('cached-recipes')
-	for (const recipe of all) {
-		if (recipe.cachedAt < sevenDaysAgo) {
-			await db.delete('cached-recipes', recipe.id)
-		}
-	}
-}
-
-// ============================================
-// OFFLINE SESSIONS OPERATIONS
-// ============================================
-
-/**
- * Save session state for offline access
- */
-export async function saveOfflineSession(
-	session: Omit<OfflineSession, 'lastUpdated'>,
-): Promise<void> {
-	const db = await getDb()
-	await db.put('offline-sessions', {
-		...session,
-		lastUpdated: Date.now(),
-	})
-}
-
-/**
- * Get offline session state
- */
-export async function getOfflineSession(
-	sessionId: string,
-): Promise<OfflineSession | undefined> {
-	const db = await getDb()
-	return db.get('offline-sessions', sessionId)
-}
-
-/**
- * Remove offline session (after sync or completion)
- */
-export async function removeOfflineSession(sessionId: string): Promise<void> {
-	const db = await getDb()
-	await db.delete('offline-sessions', sessionId)
-}
-
-/**
- * Get the most recent offline session
- */
-export async function getLatestOfflineSession(): Promise<
-	OfflineSession | undefined
-> {
-	const db = await getDb()
-	const all = await db.getAllFromIndex('offline-sessions', 'by-last-updated')
-	return all.length > 0 ? all[all.length - 1] : undefined
 }
 
 // ============================================

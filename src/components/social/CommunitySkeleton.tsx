@@ -77,34 +77,3 @@ const UserCardSkeleton = () => {
 		</div>
 	)
 }
-
-/**
- * FriendCardSkeleton - Matches FollowSuggestionCard/MutualFollowCard dimensions
- *
- * Structure:
- * - Avatar (left)
- * - Name + username (center)
- * - Action buttons (right)
- */
-export const FriendCardSkeleton = () => {
-	return (
-		<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6'>
-			<div className='flex items-center justify-between gap-3'>
-				{/* Left: Avatar + Info */}
-				<div className='flex items-center gap-md'>
-					<Skeleton className='size-12 flex-shrink-0 rounded-full' />
-					<div className='space-y-2'>
-						<Skeleton className='h-4 w-32' /> {/* Name */}
-						<Skeleton className='h-3 w-24' /> {/* Username */}
-					</div>
-				</div>
-
-				{/* Right: Action buttons */}
-				<div className='flex gap-2'>
-					<Skeleton className='h-9 w-20 rounded-radius' />
-					<Skeleton className='h-9 w-9 rounded-radius' />
-				</div>
-			</div>
-		</div>
-	)
-}

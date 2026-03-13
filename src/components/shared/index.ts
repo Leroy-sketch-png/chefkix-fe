@@ -1,5 +1,4 @@
 // Shared components barrel export
-export { AchievementBadge } from './AchievementBadge'
 // EmptyStateGamified has FOMO stats, animated illustrations, preset variants
 // For simpler empty states, use @/components/ui/empty-state
 export {
@@ -29,19 +28,6 @@ export {
 } from './FilterSort'
 export { KeyboardShortcuts } from './KeyboardShortcuts'
 export { default as LottieAnimation } from './LottieAnimation'
-export {
-	StarRating,
-	RatingDisplay,
-	ReviewCard,
-	RatingBreakdown,
-} from './RatingReview'
-export { RecipeFilterExample } from './RecipeFilterExample'
 export { RecipeFiltersSheet } from './RecipeFiltersSheet'
-export {
-	Toast,
-	ToastContainer,
-	useToast,
-	toastPresets,
-} from './ToastNotification'
 // Note: MobileBottomNav is in layout folder, not here
 // EmptyState here is gamified version with FOMO stats - simpler version is in ui/empty-state.tsx

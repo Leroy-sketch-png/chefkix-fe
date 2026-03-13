@@ -1,14 +1,17 @@
 /**
- * Offline cooking support module
- * 
+ * Offline support module
+ *
  * Provides:
- * - IndexedDB storage for request queuing and recipe caching
+ * - IndexedDB storage for request queuing
  * - Axios interceptor for transparent offline request queueing
  * - Sync service for replaying queued requests on reconnect
- * - React hooks for offline status and cooking support
  */
 
-export { isIndexedDBAvailable, queueRequest, cacheRecipe, getCachedRecipe } from './offlineDb'
-export type { QueuedRequest, CachedRecipe, OfflineSession } from './offlineDb'
-export { syncQueuedRequests, hasPendingSync, getPendingSyncCount } from './syncService'
+export { isIndexedDBAvailable, queueRequest } from './offlineDb'
+export type { QueuedRequest } from './offlineDb'
+export {
+	syncQueuedRequests,
+	hasPendingSync,
+	getPendingSyncCount,
+} from './syncService'
 export { installOfflineInterceptor } from './offlineInterceptor'
