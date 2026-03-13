@@ -1,11 +1,19 @@
 /**
  * Pagination metadata from BE ApiResponse.PaginationMeta
+ * Matches PaginationMeta.java exactly:
+ * - page (0-based index)
+ * - size (items per page)
+ * - totalElements (total item count)
+ * - totalPages
+ * - first, last (boolean flags)
  */
 export interface PaginationMeta {
-	totalItems: number
-	itemsPerPage: number
+	page: number
+	size: number
+	totalElements: number
 	totalPages: number
-	currentPage: number
+	first: boolean
+	last: boolean
 }
 
 /**

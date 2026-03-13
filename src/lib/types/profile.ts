@@ -26,16 +26,14 @@ export interface Statistics {
 	hoursUntilStreakBreaks?: number // Hours remaining until streak breaks (0 if broken)
 }
 
-// Instagram model: Follow only, mutual follow = implicit friends
+// RelationshipStatus: MUST match BE enum exactly (RelationshipStatus.java)
+// Follow relationships are tracked via isFollowing/isFollowedBy booleans, NOT this enum
 export type RelationshipStatus =
 	| 'SELF' // Viewing own profile
-	| 'FOLLOWING' // I follow them
-	| 'FOLLOWED_BY' // They follow me
-	| 'MUTUAL' // We follow each other (= "friends")
-	| 'NONE' // No relationship
-	// Legacy alias for backward compat during migration
-	| 'FRIENDS' // Alias for MUTUAL
-	| 'NOT_FRIENDS' // Alias for NONE
+	| 'FRIENDS' // Legacy friendship (mutual follows computed from booleans)
+	| 'REQUEST_SENT' // Friend request sent to this user
+	| 'REQUEST_RECEIVED' // Friend request received from this user
+	| 'NOT_FRIENDS' // No relationship
 
 import type { Badge } from './gamification'
 

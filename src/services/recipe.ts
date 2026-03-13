@@ -54,11 +54,23 @@ const API_BASE = API_ENDPOINTS.RECIPES.BASE
 export const getAllRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<PaginatedRecipeResponse> => {
-	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
-	const response = await api.get<PaginatedRecipeResponse>(API_BASE, {
-		params: backendParams,
-	})
-	return response.data
+	try {
+		const backendParams = toBackendRecipeParams(
+			params as Record<string, unknown>,
+		)
+		const response = await api.get<PaginatedRecipeResponse>(API_BASE, {
+			params: backendParams,
+		})
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<PaginatedRecipeResponse>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch recipes',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -77,8 +89,18 @@ export const getRecipeById = async (
 			data: null as unknown as Recipe,
 		}
 	}
-	const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_ID(recipeId))
-	return response.data
+	try {
+		const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_ID(recipeId))
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch recipe',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -89,11 +111,23 @@ export const getRecipesByUserId = async (
 	userId: string,
 	params?: RecipeQueryParams,
 ): Promise<ApiResponse<Recipe[]>> => {
-	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
-	const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_USER(userId), {
-		params: backendParams,
-	})
-	return response.data
+	try {
+		const backendParams = toBackendRecipeParams(
+			params as Record<string, unknown>,
+		)
+		const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_USER(userId), {
+			params: backendParams,
+		})
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch user recipes',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -103,14 +137,26 @@ export const getRecipesByUserId = async (
 export const getFeedRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<PaginatedRecipeResponse> => {
-	const backendParams = toBackendRecipeParams(params as Record<string, unknown>)
-	const response = await api.get<PaginatedRecipeResponse>(
-		API_ENDPOINTS.RECIPES.FEED,
-		{
-			params: backendParams,
-		},
-	)
-	return response.data
+	try {
+		const backendParams = toBackendRecipeParams(
+			params as Record<string, unknown>,
+		)
+		const response = await api.get<PaginatedRecipeResponse>(
+			API_ENDPOINTS.RECIPES.FEED,
+			{
+				params: backendParams,
+			},
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<PaginatedRecipeResponse>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch feed recipes',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
@@ -120,14 +166,24 @@ export const getFeedRecipes = async (
 export const getTrendingRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<PaginatedRecipeResponse> => {
-	const backendParams = toBackendPagination(params as any) ?? params
-	const response = await api.get<PaginatedRecipeResponse>(
-		API_ENDPOINTS.RECIPES.TRENDING,
-		{
-			params: backendParams,
-		},
-	)
-	return response.data
+	try {
+		const backendParams = toBackendPagination(params as any) ?? params
+		const response = await api.get<PaginatedRecipeResponse>(
+			API_ENDPOINTS.RECIPES.TRENDING,
+			{
+				params: backendParams,
+			},
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<PaginatedRecipeResponse>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch trending recipes',
+			statusCode: 500,
+		}
+	}
 }
 
 /**
