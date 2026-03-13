@@ -3,6 +3,19 @@ import { Profile } from './profile'
 // User is the authenticated user, which is essentially a Profile
 export type User = Profile
 
+/**
+ * Minimal user info returned by BE AuthenticationResponse.user.
+ * This is UserResponse.java — NOT the full Profile.
+ * Full Profile must be fetched separately via GET /api/v1/profiles/me.
+ */
+export interface LoginUser {
+	id: string
+	username: string
+	email: string
+	enabled: boolean
+	roles: string[]
+}
+
 export interface SignInDto {
 	emailOrUsername: string
 	password: string
@@ -19,8 +32,9 @@ export interface SignUpDto {
 /**
  * Login response from BE AuthenticationResponse.java
  * RefreshToken is set as HttpOnly cookie, so only accessToken is needed in body.
- * Other fields (idToken, scope, authenticated, lastLogin, user) exist in BE
- * but are optional for FE consumption.
+ *
+ * IMPORTANT: `user` is a minimal UserResponse (id, username, email, enabled, roles).
+ * It is NOT a full Profile. Use GET /api/v1/profiles/me for full Profile data.
  */
 export interface LoginSuccessResponse {
 	accessToken: string
@@ -28,8 +42,8 @@ export interface LoginSuccessResponse {
 	idToken?: string
 	scope?: string
 	authenticated?: boolean
-	lastLogin?: string // ISO timestamp
-	user?: Profile
+	lastLogin?: string // ISO timestamp (BE: LocalDateTime, no timezone)
+	user?: LoginUser // Minimal user — NOT full Profile. See LoginUser type.
 }
 
 export interface VerifyOtpDto {

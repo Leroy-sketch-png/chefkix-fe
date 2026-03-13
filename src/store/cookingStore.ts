@@ -554,7 +554,7 @@ export const useCookingStore = create<CookingState>()(
 							session: {
 								...session,
 								status: 'paused',
-								pausedAt: response.data.pausedAt,
+								pausedAt: response.data.pauseAt, // BE uses pauseAt (not pausedAt)
 							},
 						})
 					}
@@ -696,9 +696,7 @@ export const useCookingStore = create<CookingState>()(
 						set({ session: null, recipe: null, localTimers: new Map() })
 					} else {
 						console.error('Failed to abandon session:', response.message)
-						toast.error(
-							'Failed to abandon session. Please try again.',
-						)
+						toast.error('Failed to abandon session. Please try again.')
 					}
 				} catch (error) {
 					console.error('Failed to abandon session:', error)
@@ -798,8 +796,13 @@ export const useCookingStore = create<CookingState>()(
 						if (newRemaining <= 0) {
 							// Timer complete - record event (skip API in preview mode)
 							if (!isPreviewMode) {
-								apiLogTimerEvent(session.sessionId, stepNumber, 'complete')
-									.catch(err => console.error('Timer complete event failed:', err))
+								apiLogTimerEvent(
+									session.sessionId,
+									stepNumber,
+									'complete',
+								).catch(err =>
+									console.error('Timer complete event failed:', err),
+								)
 							}
 							newTimers.delete(stepNumber)
 						} else {

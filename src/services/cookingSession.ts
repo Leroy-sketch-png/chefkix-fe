@@ -106,6 +106,9 @@ export interface CompleteSessionResponse {
 	newLevel?: number
 	currentXp?: number
 	xpToNextLevel?: number
+	// Co-op multiplier — only set when cooking in a room with 2+ cooks
+	xpMultiplier?: number // 1.2 (duo) or 1.1 (group), null if solo
+	xpMultiplierReason?: string // "CO_OP_DUO" or "CO_OP_GROUP"
 }
 
 export interface LinkPostResponse {
@@ -402,7 +405,7 @@ export const pauseSession = async (
 	ApiResponse<{
 		sessionId: string
 		status: 'paused'
-		pausedAt: string
+		pauseAt: string // BE field name: pauseAt (not pausedAt)
 		resumeDeadline: string
 	}>
 > => {
@@ -411,7 +414,7 @@ export const pauseSession = async (
 			ApiResponse<{
 				sessionId: string
 				status: 'paused'
-				pausedAt: string
+				pauseAt: string
 				resumeDeadline: string
 			}>
 		>(`${API_BASE}/${sessionId}/pause`)
@@ -421,7 +424,7 @@ export const pauseSession = async (
 			ApiResponse<{
 				sessionId: string
 				status: 'paused'
-				pausedAt: string
+				pauseAt: string
 				resumeDeadline: string
 			}>
 		>
@@ -445,7 +448,7 @@ export const resumeSession = async (
 	ApiResponse<{
 		sessionId: string
 		status: 'in_progress'
-		resumedAt: string
+		resumeAt: string // BE field name: resumeAt (not resumedAt)
 	}>
 > => {
 	try {
@@ -453,7 +456,7 @@ export const resumeSession = async (
 			ApiResponse<{
 				sessionId: string
 				status: 'in_progress'
-				resumedAt: string
+				resumeAt: string
 			}>
 		>(`${API_BASE}/${sessionId}/resume`)
 		return response.data
@@ -462,7 +465,7 @@ export const resumeSession = async (
 			ApiResponse<{
 				sessionId: string
 				status: 'in_progress'
-				resumedAt: string
+				resumeAt: string
 			}>
 		>
 		if (axiosError.response) {

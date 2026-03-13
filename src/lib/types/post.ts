@@ -2,8 +2,10 @@
  * Post API Types
  * Based on Social Module API Specification
  *
- * Note: API spec canonical is photoUrls (array), but legacy code uses photoUrl (string).
- * We support both for compatibility.
+ * IMPORTANT: BE PostResponse.java only sends `photoUrls` (List<String>).
+ * The singular `photoUrl` field does NOT exist in BE responses.
+ * FE keeps `photoUrl` as an optional field for graceful degradation,
+ * but all new code should use `photoUrls` exclusively.
  */
 
 export interface CoChef {
@@ -19,12 +21,12 @@ export interface Post {
 	avatarUrl?: string
 	content: string
 	slug: string
-	photoUrl?: string | null // Legacy: single photo URL
-	photoUrls?: string[] // Canonical spec: array of photo URLs
+	photoUrl?: string | null // @deprecated — BE does NOT send this field. Use photoUrls[0] instead. Kept for legacy FE fallback only.
+	photoUrls?: string[] // Canonical: BE PostResponse.photoUrls (List<String>)
 	videoUrl: string | null
 	postUrl: string
 	tags: string[]
-	likes: number
+	likes: number // BE: Integer (nullable), but FE defaults to 0
 	commentCount: number
 	createdAt: string
 	updatedAt: string | null

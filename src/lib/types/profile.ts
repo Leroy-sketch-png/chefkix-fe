@@ -16,9 +16,15 @@ export interface Statistics {
 	badges?: string[] // Earned badge IDs
 	/** Badge name → ISO timestamp when earned. Null for badges earned before tracking was added. */
 	badgeTimestamps?: Record<string, string>
-	// Additional fields per spec 02-profile.txt
+	// ── Fields below exist in BE StatisticResponse but were previously untyped ──
+	friendCount?: number // BE: Long friendCount (mutual follow count)
+	friendRequestCount?: number // BE: Long friendRequestCount (pending requests)
+	// ── Fields below are aspirational (spec 02-profile.txt) — NOT in BE StatisticResponse ──
+	/** @notImplemented — BE StatisticResponse does not include this field */
 	recipesCooked?: number // Distinct recipes user has cooked
+	/** @notImplemented — BE StatisticResponse does not include this field */
 	recipesMastered?: number // Recipes cooked 5+ times (mastery threshold)
+	/** @notImplemented — BE StatisticResponse does not include this field */
 	longestStreak?: number // Historical best streak
 	// Streak status fields (computed from lastCookAt by backend)
 	cookedToday?: boolean // Whether user has cooked within streak window (72h)
@@ -61,14 +67,23 @@ export interface Profile {
 	isFollowedBy?: boolean // They follow me (for mutual detection)
 	relationshipStatus?: RelationshipStatus
 	isBlocked?: boolean // Block status from API
-	// Gamification fields per spec 02-profile.txt
+	// ── Aspirational gamification fields (per spec 02-profile.txt) ──
+	// These are NOT in BE ProfileResponse. Always undefined from API.
+	// Kept for future implementation. Use Statistics fields for actual data.
+	/** @notImplemented — BE ProfileResponse does not include this field */
 	badges?: Badge[] // Earned badges
+	/** @notImplemented — BE ProfileResponse does not include this field */
 	recipesCooked?: number // Distinct recipes completed
+	/** @notImplemented — BE ProfileResponse does not include this field */
 	totalCookingSessions?: number // Total sessions (includes repeats)
+	/** @notImplemented — BE ProfileResponse does not include this field */
 	lastCookDate?: string // ISO8601, for streak calculation
+	/** @notImplemented — BE ProfileResponse does not include this field */
 	longestStreak?: number // Historical best
-	// AI Quota per spec
+	// ── AI Quota (per spec) — NOT in BE ProfileResponse ──
+	/** @notImplemented — BE ProfileResponse does not include this field */
 	aiGenerationsRemaining?: number // Resets daily, default 30
+	/** @notImplemented — BE ProfileResponse does not include this field */
 	aiQuotaResetAt?: string // ISO8601, next reset timestamp
 }
 

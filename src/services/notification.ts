@@ -58,9 +58,13 @@ export interface Notification {
 		actorName: string
 		avatarUrl?: string
 	}
-	// Legacy fields for UI that may expect different shapes
+	// Legacy FE-only fields — NOT in BE NotificationResponse.java
+	// These will always be undefined from API responses.
+	/** @deprecated Not in BE response. Use content/actorInfo instead. */
 	title?: string
+	/** @deprecated Not in BE response. Use content instead. */
 	body?: string
+	/** @deprecated Not in BE response. Use targetEntityId instead. */
 	data?: Record<string, unknown>
 }
 

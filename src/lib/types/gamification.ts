@@ -272,8 +272,9 @@ export interface ChallengeStreak {
 // ============================================
 
 // BE uses lowercase strings for leaderboard type/timeframe
+// IMPORTANT: BE uses "all_time" (underscore) — see LeaderboardResponse.java
 export type LeaderboardType = 'global' | 'friends' | 'league'
-export type LeaderboardTimeframe = 'weekly' | 'monthly' | 'all-time'
+export type LeaderboardTimeframe = 'weekly' | 'monthly' | 'all_time'
 
 export interface LeaderboardEntry {
 	rank: number
@@ -334,7 +335,7 @@ export interface CreatorStats {
 	creatorBadges: Array<{
 		name: string
 		icon: string
-		recipeTitle: string | null
+		recipeTitle: string | null // BE: nullable (badges not always tied to a recipe)
 	}>
 }
 
