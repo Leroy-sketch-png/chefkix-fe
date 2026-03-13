@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -19,6 +19,7 @@ import {
 	Package,
 	CalendarDays,
 	ShoppingCart,
+	Shield,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -36,7 +37,7 @@ interface NavItem {
 	showBadge?: boolean // Whether this item can show a notification badge
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
 	{ href: '/dashboard', icon: Home, label: 'Home' },
 	{ href: '/feed', icon: Newspaper, label: 'Feed' },
 	{ href: '/explore', icon: Compass, label: 'Explore' },
@@ -55,10 +56,27 @@ const navItems: NavItem[] = [
 	{ href: '/settings', icon: Settings, label: 'Settings' },
 ]
 
+const adminNavItem: NavItem = {
+	href: '/admin',
+	icon: Shield,
+	label: 'Admin',
+}
+
 export const LeftSidebar = () => {
 	const pathname = usePathname()
 	const { user, isAuthenticated } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
+
+	// Include admin nav item only for admin users
+	const navItems = useMemo(() => {
+		if (user?.accountType === 'admin') {
+			// Insert admin item before Settings (second to last)
+			const items = [...baseNavItems]
+			items.splice(items.length - 1, 0, adminNavItem)
+			return items
+		}
+		return baseNavItems
+	}, [user?.accountType])
 
 	// Start/stop polling based on auth state
 	useEffect(() => {
