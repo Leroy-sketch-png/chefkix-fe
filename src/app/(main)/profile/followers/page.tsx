@@ -189,7 +189,7 @@ export default function FollowersPage() {
 											? 'Find chefs you admire and follow them for inspiration.'
 											: 'Mutual follows become friends. Start by following chefs you love!'
 								}
-								icon={
+								illustration={
 									TABS.find(t => t.key === activeTab)?.icon || (
 										<Users className='size-6' />
 									)
@@ -203,7 +203,7 @@ export default function FollowersPage() {
 										profile={profile}
 										isMutual={
 											activeTab === 'friends' ||
-											profile.relationshipStatus === 'MUTUAL'
+											profile.relationshipStatus === 'FRIENDS'
 										}
 										onFollowChange={handleFollowChange}
 									/>

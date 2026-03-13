@@ -533,11 +533,10 @@ export default function ExplorePage() {
 					setSavedRecipes(saved)
 
 					setRecipes(allRecipes)
-					// Use pagination metadata from backend
 					const pagination = response.pagination
 					if (pagination) {
-						setTotalCount(pagination.totalItems)
-						setHasMore(pagination.currentPage < pagination.totalPages)
+						setTotalCount(pagination.totalElements)
+						setHasMore(!pagination.last)
 					} else {
 						setTotalCount(allRecipes.length)
 						setHasMore(response.data.length >= RECIPES_PER_PAGE)
@@ -629,8 +628,8 @@ export default function ExplorePage() {
 				// Update pagination state
 				const pagination = response.pagination
 				if (pagination) {
-					setTotalCount(pagination.totalItems)
-					setHasMore(pagination.currentPage < pagination.totalPages)
+					setTotalCount(pagination.totalElements)
+					setHasMore(!pagination.last)
 				} else {
 					setHasMore(response.data.length >= RECIPES_PER_PAGE)
 				}

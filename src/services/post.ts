@@ -1,6 +1,7 @@
 import { api } from '@/lib/axios'
 import {
 	ApiResponse,
+	PaginationMeta,
 	Post,
 	CreatePostRequest,
 	UpdatePostRequest,
@@ -231,12 +232,7 @@ export const getFollowingFeedPosts = async (params?: {
 	mode?: 'latest' | 'trending'
 }): Promise<
 	ApiResponse<Post[]> & {
-		pagination?: {
-			totalItems: number
-			itemsPerPage: number
-			totalPages: number
-			currentPage: number
-		}
+		pagination?: PaginationMeta
 	}
 > => {
 	try {
@@ -263,10 +259,12 @@ export const getFollowingFeedPosts = async (params?: {
 				...response.data,
 				data: pageData.content,
 				pagination: {
-					totalItems: pageData.totalElements,
-					itemsPerPage: pageData.size,
+					page: pageData.number,
+					size: pageData.size,
+					totalElements: pageData.totalElements,
 					totalPages: pageData.totalPages,
-					currentPage: pageData.number,
+					first: pageData.first,
+					last: pageData.last,
 				},
 			}
 		}
@@ -296,12 +294,7 @@ export const getFeedPosts = async (params?: {
 	mode?: 'latest' | 'trending' // 0 = latest (default), 1 = trending (hotScore)
 }): Promise<
 	ApiResponse<Post[]> & {
-		pagination?: {
-			totalItems: number
-			itemsPerPage: number
-			totalPages: number
-			currentPage: number
-		}
+		pagination?: PaginationMeta
 	}
 > => {
 	try {
@@ -330,10 +323,12 @@ export const getFeedPosts = async (params?: {
 				...response.data,
 				data: pageData.content,
 				pagination: {
-					totalItems: pageData.totalElements,
-					itemsPerPage: pageData.size,
+					page: pageData.number,
+					size: pageData.size,
+					totalElements: pageData.totalElements,
 					totalPages: pageData.totalPages,
-					currentPage: pageData.number,
+					first: pageData.first,
+					last: pageData.last,
 				},
 			}
 		}

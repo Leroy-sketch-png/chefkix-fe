@@ -57,10 +57,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 				if (response.success && response.data) {
 					setProfiles(response.data)
 					if (response.pagination) {
-						setHasMore(
-							response.pagination.currentPage <
-								response.pagination.totalPages - 1,
-						)
+						setHasMore(!response.pagination.last)
 					} else {
 						setHasMore(response.data.length >= PROFILES_PER_PAGE)
 					}
@@ -100,10 +97,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 				setProfiles(prev => [...prev, ...response.data!])
 				setPage(nextPage)
 				if (response.pagination) {
-					setHasMore(
-						response.pagination.currentPage <
-							response.pagination.totalPages - 1,
-					)
+					setHasMore(!response.pagination.last)
 				} else {
 					setHasMore(response.data.length >= PROFILES_PER_PAGE)
 				}

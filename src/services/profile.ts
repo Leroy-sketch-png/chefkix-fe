@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import { ApiResponse, Profile } from '@/lib/types'
+import { ApiResponse, PaginationMeta, Profile } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
 
@@ -122,12 +122,7 @@ export interface PaginatedProfilesParams {
 
 export interface PaginatedProfilesResponse {
 	data: Profile[]
-	pagination: {
-		totalItems: number
-		itemsPerPage: number
-		totalPages: number
-		currentPage: number
-	}
+	pagination: PaginationMeta
 }
 
 export const getProfilesPaginated = async (
@@ -145,6 +140,8 @@ export const getProfilesPaginated = async (
 				totalPages: number
 				number: number
 				size: number
+				first: boolean
+				last: boolean
 			}>
 		>(API_ENDPOINTS.PROFILE.GET_ALL_PAGINATED, {
 			params: {
@@ -161,10 +158,12 @@ export const getProfilesPaginated = async (
 				statusCode: 200,
 				data: pageData.content,
 				pagination: {
-					totalItems: pageData.totalElements,
-					itemsPerPage: pageData.size,
+					page: pageData.number,
+					size: pageData.size,
+					totalElements: pageData.totalElements,
 					totalPages: pageData.totalPages,
-					currentPage: pageData.number,
+					first: pageData.first,
+					last: pageData.last,
 				},
 			}
 		}

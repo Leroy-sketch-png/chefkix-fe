@@ -181,10 +181,7 @@ export default function DashboardPage() {
 					setPosts(feedPosts)
 					// Use pagination info from backend - check if current page is the last
 					if (feedResponse.pagination) {
-						setHasMore(
-							feedResponse.pagination.currentPage <
-								feedResponse.pagination.totalPages - 1,
-						)
+						setHasMore(!feedResponse.pagination.last)
 					} else {
 						setHasMore(feedPosts.length >= POSTS_PER_PAGE)
 					}
@@ -230,10 +227,7 @@ export default function DashboardPage() {
 				setPosts(prev => [...prev, ...response.data!])
 				setCurrentPage(nextPage)
 				if (response.pagination) {
-					setHasMore(
-						response.pagination.currentPage <
-							response.pagination.totalPages - 1,
-					)
+					setHasMore(!response.pagination.last)
 				} else {
 					setHasMore(response.data.length >= POSTS_PER_PAGE)
 				}

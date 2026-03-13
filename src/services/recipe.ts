@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import { ApiResponse } from '@/lib/types/common'
+import { ApiResponse, PaginationMeta } from '@/lib/types/common'
 import {
 	Recipe,
 	RecipeSummary,
@@ -26,18 +26,12 @@ export interface PublishResponse {
 }
 
 /**
- * Pagination metadata from culinary module
- * Uses ApiResponse.successPage() which adds this structure
+ * Pagination metadata from culinary module.
+ * Uses the canonical PaginationMeta from common.ts which matches
+ * BE ApiResponse.PaginationMeta (page/size/totalElements/totalPages/first/last).
  */
-export interface RecipePaginationMeta {
-	totalItems: number
-	itemsPerPage: number
-	totalPages: number
-	currentPage: number // 1-based
-}
-
 export type PaginatedRecipeResponse = ApiResponse<Recipe[]> & {
-	pagination?: RecipePaginationMeta
+	pagination?: PaginationMeta
 }
 
 // ============================================

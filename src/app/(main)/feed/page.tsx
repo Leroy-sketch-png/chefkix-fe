@@ -81,10 +81,7 @@ export default function FeedPage() {
 				if (response.success && response.data) {
 					setPosts(response.data)
 					if (response.pagination) {
-						setHasMore(
-							response.pagination.currentPage <
-								response.pagination.totalPages - 1,
-						)
+						setHasMore(!response.pagination.last)
 					} else {
 						setHasMore(response.data.length >= POSTS_PER_PAGE)
 					}
@@ -124,10 +121,7 @@ export default function FeedPage() {
 				setPosts(prev => [...prev, ...response.data!])
 				setCurrentPage(nextPage)
 				if (response.pagination) {
-					setHasMore(
-						response.pagination.currentPage <
-							response.pagination.totalPages - 1,
-					)
+					setHasMore(!response.pagination.last)
 				} else {
 					setHasMore(response.data.length >= POSTS_PER_PAGE)
 				}

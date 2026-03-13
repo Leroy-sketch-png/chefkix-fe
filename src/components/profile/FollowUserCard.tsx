@@ -8,7 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Profile, getProfileDisplayName } from '@/lib/types/profile'
 import { toggleFollow } from '@/services/social'
 import { useAuth } from '@/hooks/useAuth'
-import { CARD_HOVER, BUTTON_HOVER, BUTTON_TAP, TRANSITION_SPRING } from '@/lib/motion'
+import {
+	CARD_HOVER,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	TRANSITION_SPRING,
+} from '@/lib/motion'
 import { UserCheck, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -31,7 +36,7 @@ export function FollowUserCard({
 	const [isLoading, setIsLoading] = useState(false)
 
 	const displayName = getProfileDisplayName(profile)
-	const isOwnProfile = user?.id === profile.userId
+	const isOwnProfile = user?.userId === profile.userId
 
 	const handleToggleFollow = async (e: React.MouseEvent) => {
 		e.stopPropagation()
@@ -66,10 +71,7 @@ export function FollowUserCard({
 		>
 			<Avatar size='md'>
 				{profile.avatarUrl && (
-					<AvatarImage
-						src={profile.avatarUrl}
-						alt={displayName}
-					/>
+					<AvatarImage src={profile.avatarUrl} alt={displayName} />
 				)}
 				<AvatarFallback className='text-sm font-semibold'>
 					{displayName.slice(0, 2).toUpperCase()}
@@ -87,9 +89,7 @@ export function FollowUserCard({
 						</span>
 					)}
 				</div>
-				<p className='truncate text-xs text-text-muted'>
-					@{profile.username}
-				</p>
+				<p className='truncate text-xs text-text-muted'>@{profile.username}</p>
 				{profile.bio && (
 					<p className='mt-0.5 line-clamp-1 text-xs text-text-secondary'>
 						{profile.bio}
