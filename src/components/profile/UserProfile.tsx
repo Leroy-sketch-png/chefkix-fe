@@ -90,9 +90,7 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		id: profile.userId,
 		displayName: getProfileDisplayName(profile),
 		username: profile.username || 'user',
-		avatarUrl:
-			profile.avatarUrl ||
-			`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || profile.userId}`,
+		avatarUrl: profile.avatarUrl || '/placeholder-avatar.svg',
 		coverUrl: profile.coverImageUrl, // Cover photo from profile
 		bio: profile.bio,
 		isVerified:
