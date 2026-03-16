@@ -129,11 +129,7 @@ export const ImageWithFallback = ({
 	}
 
 	// Check if URL is external (needs unoptimized)
-	const isExternalUrl =
-		typeof src === 'string' &&
-		(src.includes('unsplash.com') ||
-			src.includes('cloudinary.com') ||
-			src.includes('images.pexels.com'))
+	const isExternalUrl = typeof src === 'string' && /^https?:\/\//.test(src)
 
 	return (
 		<Image
