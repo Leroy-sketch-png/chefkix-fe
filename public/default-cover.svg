@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 400" role="img" aria-labelledby="title desc">
+  <title id="title">Default ChefKix Cover</title>
+  <desc id="desc">Warm gradient background with subtle abstract shapes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8f4ef" />
+      <stop offset="55%" stop-color="#ffe0c2" />
+      <stop offset="100%" stop-color="#ffb37d" />
+    </linearGradient>
+    <linearGradient id="shapeA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff5a36" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#c94d2a" stop-opacity="0.08" />
+    </linearGradient>
+    <linearGradient id="shapeB" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff5a36" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#f8f4ef" stop-opacity="0.08" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="400" fill="url(#bg)" />
+  <circle cx="240" cy="120" r="200" fill="url(#shapeA)" />
+  <circle cx="1330" cy="320" r="280" fill="url(#shapeB)" />
+  <path d="M0 320 C280 240 520 410 820 320 C1080 245 1320 360 1600 300 L1600 400 L0 400 Z" fill="#ffffff" fill-opacity="0.22" />
+</svg>

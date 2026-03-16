@@ -361,27 +361,11 @@ export const moderateContent = async (
 		)
 		return response.data
 	} catch (error) {
-		// Fail-open: if moderation service has ANY error, allow content
-		// We should never block legitimate user content because moderation broke
-		// Real moderation blocking happens via success:true + action:block
-		console.warn(
-			'[Moderation] Service error, fail-open allowing content:',
-			error,
-		)
+		console.error('[Moderation] Service unavailable:', error)
 		return {
-			success: true,
-			message: 'Moderation service unavailable, allowing content',
-			statusCode: 200,
-			data: {
-				action: 'approve',
-				category: 'clean',
-				severity: 'low',
-				confidence: 0,
-				score: 0,
-				reason: 'Moderation service unavailable',
-				matched_terms: [],
-				ai_used: false,
-			},
+			success: false,
+			message: 'Moderation service unavailable. Please try again.',
+			statusCode: 503,
 		}
 	}
 }
