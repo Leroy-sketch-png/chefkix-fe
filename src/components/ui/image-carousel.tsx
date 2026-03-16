@@ -161,7 +161,7 @@ export function ImageCarousel({
 						className='object-cover'
 						sizes='(max-width: 768px) 100vw, 600px'
 						onError={() => onImageError?.(currentIndex)}
-						unoptimized={images[currentIndex]?.includes('unsplash.com')}
+						unoptimized={/^https?:\/\//.test(images[currentIndex] || '')}
 					/>
 				</motion.div>
 			</AnimatePresence>

@@ -542,10 +542,7 @@ const OwnProfileHeader = ({
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
-					src={
-						user.coverUrl ||
-						'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200'
-					}
+					src={user.coverUrl || '/default-cover.svg'}
 					alt='Cover'
 					fill
 					className='object-cover'
@@ -716,10 +713,7 @@ const OtherUserProfileHeader = ({
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
-					src={
-						user.coverUrl ||
-						'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=1200'
-					}
+					src={user.coverUrl || '/default-cover.svg'}
 					alt='Cover'
 					fill
 					className='object-cover'
