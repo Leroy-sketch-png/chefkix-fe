@@ -370,6 +370,10 @@
 	--shadow-warm: 0 4px 22px rgba(44, 36, 32, 0.1); /* Cozy card shadow */
 	--shadow-card:
 		0 2px 12px rgba(44, 36, 32, 0.06), 0 1px 3px rgba(44, 36, 32, 0.03); /* Subtle card lift */
+	--shadow-xl:
+		0 16px 48px rgba(44, 36, 32, 0.14), 0 8px 16px rgba(44, 36, 32, 0.08);
+	--shadow-2xl:
+		0 24px 64px rgba(44, 36, 32, 0.18), 0 12px 24px rgba(44, 36, 32, 0.1);
 
 	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -544,6 +548,9 @@
 		--shadow-warm: 0 4px 24px rgba(255, 107, 74, 0.3);
 		--shadow-card:
 			0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
+		--shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
+		--shadow-2xl:
+			0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
 
 		/* ============ DARK MODE GRADIENTS - RICH ============ */
 		--gradient-brand: linear-gradient(
@@ -714,6 +721,8 @@
 	--shadow-sm: var(--shadow-sm);
 	--shadow-md: var(--shadow-md);
 	--shadow-lg: var(--shadow-lg);
+	--shadow-xl: var(--shadow-xl);
+	--shadow-2xl: var(--shadow-2xl);
 	--shadow-glow: var(--shadow-glow);
 
 	/* Drop shadows for filters */

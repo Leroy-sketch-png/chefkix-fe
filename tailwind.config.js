@@ -395,6 +395,8 @@ module.exports = {
 				DEFAULT: 'var(--shadow-md)',
 				md: 'var(--shadow-md)',
 				lg: 'var(--shadow-lg)',
+				xl: 'var(--shadow-xl)',
+				'2xl': 'var(--shadow-2xl)',
 				glow: 'var(--shadow-glow)',
 				card: 'var(--shadow-card)' /* Subtle lift for cards */,
 				warm: 'var(--shadow-warm)' /* Cozy warm shadow */,
