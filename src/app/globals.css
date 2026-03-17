@@ -446,12 +446,6 @@
 	--line-height-normal: 1.5;
 	--line-height-relaxed: 1.65; /* Body text for readability */
 
-	/* ============ CONTAINER WIDTHS ============ */
-	--container-sm: 640px;
-	--container-md: 680px;
-	--container-lg: 800px; /* Main content feed width - uniform across social pages */
-	--container-xl: 1200px;
-
 	/* Accessibility / focus - warm brand glow */
 	--focus: rgba(255, 90, 54, 0.15); /* Brand coral focus ring */
 
@@ -550,8 +544,6 @@
 		--shadow-warm: 0 4px 24px rgba(255, 107, 74, 0.3);
 		--shadow-card:
 			0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
-		--shadow-xp: 0 0 24px rgba(168, 85, 247, 0.4); /* Purple glow */
-		--shadow-success: 0 0 20px rgba(52, 211, 153, 0.4); /* Green glow */
 
 		/* ============ DARK MODE GRADIENTS - RICH ============ */
 		--gradient-brand: linear-gradient(
@@ -767,10 +759,10 @@
 	--spacing-96: 24rem; /* 384px */
 
 	/* Container sizes - For max-w-* utilities */
-	--container-sm: 24rem; /* 384px */
-	--container-md: 28rem; /* 448px */
+	--container-sm: 30rem; /* 480px - matches :root */
+	--container-md: 37.5rem; /* 600px - matches :root */
 	--container-lg: 50rem; /* 800px - Main feed width */
-	--container-xl: 36rem; /* 576px */
+	--container-xl: 62.5rem; /* 1000px - matches :root */
 	--container-2xl: 42rem; /* 672px */
 	--container-3xl: 48rem; /* 768px */
 	--container-4xl: 56rem; /* 896px */
@@ -919,32 +911,6 @@ img[alt]:after {
 
 ::-webkit-scrollbar-thumb:hover {
 	background: var(--color-brand-hover);
-	transform: scale(1.05);
-}
-
-/* ============ UTILITY CLASSES ============ */
-.muted {
-	color: var(--muted);
-}
-
-.text-center {
-	text-align: center;
-}
-
-.font-bold {
-	font-weight: var(--font-weight-bold);
-}
-
-.sr-only {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border-width: 0;
 }
 
 /* ============ MICRO-INTERACTIONS & POLISH ============ */
@@ -1029,12 +995,6 @@ select {
 }
 
 /* ============ LAYOUT UTILITIES ============ */
-/* Force correct container width (browser cache buster) */
-.max-w-container-lg {
-	max-width: 850px !important;
-	max-width: 53.125rem !important;
-}
-
 /* Scrollbar styling for main content area */
 .scroll-smooth {
 	scroll-behavior: smooth;

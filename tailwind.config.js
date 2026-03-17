@@ -70,7 +70,7 @@ module.exports = {
 				},
 				xp: {
 					DEFAULT: 'var(--color-xp)',
-					bonus: 'var(--color-xp-bonus)',
+					bonus: 'var(--color-bonus)',
 				},
 				level: {
 					DEFAULT: 'var(--color-level)',
@@ -423,30 +423,6 @@ module.exports = {
 				notification: 'var(--z-notification)',
 				tooltip: 'var(--z-tooltip)',
 			},
-			backgroundImage: {
-				// Primary gradients
-				'gradient-brand': 'var(--gradient-brand)',
-				'gradient-primary': 'var(--gradient-brand)',
-
-				// Semantic gradients
-				'gradient-success': 'var(--gradient-success)',
-				'gradient-gold': 'var(--gradient-gold)',
-
-				// Gaming gradients
-				'gradient-xp': 'var(--gradient-xp)',
-				'gradient-streak': 'var(--gradient-streak)',
-
-				// Thematic gradients
-				'gradient-warm': 'var(--gradient-warm)',
-				'gradient-cool': 'var(--gradient-cool)',
-				'gradient-ocean': 'var(--gradient-ocean)',
-				'gradient-party': 'var(--gradient-party)',
-				'gradient-sunset': 'var(--gradient-warm)',
-
-				// Celebration gradients
-				'gradient-celebration': 'var(--gradient-celebration)',
-				'gradient-celebration-alt': 'var(--gradient-celebration-alt)',
-			},
 			borderWidth: {
 				DEFAULT: '1px',
 				0: '0',
@@ -582,10 +558,6 @@ module.exports = {
 						transform: 'translateX(-50%) translateY(100px) scale(0.8)',
 					},
 				},
-				shimmer: {
-					'0%': { backgroundPosition: '-1000px 0' },
-					'100%': { backgroundPosition: '1000px 0' },
-				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -614,7 +586,6 @@ module.exports = {
 				'toast-bounce-in':
 					'toast-bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
 				'toast-slide-out': 'toast-slide-out 0.3s ease-in forwards',
-				shimmer: 'shimmer 2s infinite linear',
 			},
 		},
 	},
