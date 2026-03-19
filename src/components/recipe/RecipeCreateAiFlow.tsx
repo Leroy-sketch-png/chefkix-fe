@@ -48,6 +48,7 @@ import { toast } from 'sonner'
 
 // ── Hooks ───────────────────────────────────────────────────────────
 import { useAutoSave, type SaveStatus } from '@/hooks/useAutoSave'
+import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 
 // ── Services & stores ───────────────────────────────────────────────
 import { processRecipe, calculateMetas, validateRecipe } from '@/services/ai'
@@ -93,6 +94,9 @@ import { RecipeParsingOverlay } from './RecipeParsingOverlay'
 import { IngredientItem } from './IngredientItem'
 import { StepItem } from './StepItem'
 import { XpPreviewModal } from './XpPreviewModal'
+
+const isLocalPreviewUrl = (url?: string) =>
+	typeof url === 'string' && url.startsWith('blob:')
 
 // ============================================
 // PROPS
@@ -272,6 +276,19 @@ export const RecipeCreateAiFlow = ({
 	const needsRecalculation =
 		forceRecalculate || changePercent >= RECALCULATION_THRESHOLD
 	const hasEdited = needsRecalculation
+	const hasUnpersistedMedia = useMemo(() => {
+		if (!recipe) return false
+		if (isLocalPreviewUrl(recipe.coverImageUrl)) return true
+		return (recipe.steps || []).some(step => isLocalPreviewUrl(step.imageUrl))
+	}, [recipe])
+
+	// ── Warn before unload if recipe creation is in progress ────────
+	const hasUnsavedWork =
+		(rawText.trim().length > 0 || recipe !== null) && !isPublishing
+	useBeforeUnloadWarning(
+		hasUnsavedWork,
+		'You have an unfinished recipe. Are you sure you want to leave?',
+	)
 
 	// ── Load initial draft ──────────────────────────────────────────
 	useEffect(() => {
@@ -402,7 +419,9 @@ export const RecipeCreateAiFlow = ({
 			title: targetRecipe.title,
 			description: targetRecipe.description,
 			coverImageUrl: targetRecipe.coverImageUrl
-				? [targetRecipe.coverImageUrl]
+				? isLocalPreviewUrl(targetRecipe.coverImageUrl)
+					? undefined
+					: [targetRecipe.coverImageUrl]
 				: undefined,
 			difficulty: targetRecipe.difficulty,
 			cookTimeMinutes: parseInt(targetRecipe.cookTime) || 30,
@@ -419,7 +438,7 @@ export const RecipeCreateAiFlow = ({
 				description: s.instruction,
 				action: s.technique,
 				timerSeconds: s.timerSeconds || undefined,
-				imageUrl: s.imageUrl,
+				imageUrl: isLocalPreviewUrl(s.imageUrl) ? undefined : s.imageUrl,
 				videoUrl: s.videoUrl,
 				videoThumbnailUrl: s.videoThumbnailUrl,
 				videoDurationSec: s.videoDurationSec,
@@ -469,6 +488,13 @@ export const RecipeCreateAiFlow = ({
 
 			setIsSaving(true)
 			try {
+				if (hasUnpersistedMedia) {
+					toast.warning('Some local preview images were not uploaded', {
+						description:
+							'Only successfully uploaded images are saved to your cloud draft.',
+					})
+				}
+
 				let currentDraftId = draftId
 
 				if (!currentDraftId) {
@@ -805,6 +831,13 @@ export const RecipeCreateAiFlow = ({
 					: recipe
 
 			if (!finalRecipe || isPublishing) {
+				if (hasUnpersistedMedia) {
+					toast.error('Please re-upload image previews before publishing', {
+						description:
+							'Local preview images are temporary and cannot be published. Upload them again to continue.',
+					})
+					return
+				}
 				diag.warn('recipe', 'PUBLISH aborted', {
 					hasRecipe: !!finalRecipe,
 					isPublishing,
@@ -975,8 +1008,6 @@ export const RecipeCreateAiFlow = ({
 						description: `"${finalRecipe.title}" is now live! You earned ${finalRecipe.xpReward || 0} XP`,
 					})
 
-					await new Promise(resolve => setTimeout(resolve, 1500))
-
 					// NOTE: Do NOT setIsPublishing(false) — leave button disabled until navigation
 					diag.action('recipe', 'Calling onPublishSuccess callback', {
 						recipeId: currentDraftId,
@@ -1010,8 +1041,8 @@ export const RecipeCreateAiFlow = ({
 		[
 			recipe,
 			draftId,
-			xpBreakdown,
 			isPublishing,
+			hasUnpersistedMedia,
 			onPublishSuccess,
 			buildSavePayload,
 		],
@@ -1420,7 +1451,7 @@ export const RecipeCreateAiFlow = ({
 												setRecipe({ ...recipe, coverImageUrl: undefined })
 											}
 											disabled={isUploadingCover}
-											className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500 disabled:opacity-50'
+											className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-error disabled:opacity-50'
 										>
 											<X className='size-4' />
 										</button>
@@ -1463,7 +1494,10 @@ export const RecipeCreateAiFlow = ({
 
 							{/* Title */}
 							<div className='mb-4'>
-								<label htmlFor='ai-recipe-title' className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+								<label
+									htmlFor='ai-recipe-title'
+									className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'
+								>
 									Recipe Title
 								</label>
 								<input
@@ -1479,7 +1513,10 @@ export const RecipeCreateAiFlow = ({
 
 							{/* Description */}
 							<div className='mb-4'>
-								<label htmlFor='ai-recipe-description' className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+								<label
+									htmlFor='ai-recipe-description'
+									className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'
+								>
 									Description
 								</label>
 								<textarea
