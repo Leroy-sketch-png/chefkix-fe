@@ -35,7 +35,7 @@ export const OfflineBanner = memo(function OfflineBanner({
 						'overflow-hidden',
 						variant === 'subtle'
 							? 'px-4 py-2'
-							: 'px-4 py-3 border-b border-amber-200',
+							: 'px-4 py-3 border-b border-warning/20',
 						className,
 					)}
 				>
@@ -43,15 +43,15 @@ export const OfflineBanner = memo(function OfflineBanner({
 						className={cn(
 							'flex items-center justify-center gap-2 text-sm',
 							variant === 'subtle'
-								? 'rounded-lg bg-amber-50 px-3 py-1.5 text-amber-700'
-								: 'text-amber-700',
+								? 'rounded-lg bg-warning/10 px-3 py-1.5 text-warning'
+								: 'text-warning',
 						)}
-						role="status"
-						aria-live="polite"
+						role='status'
+						aria-live='polite'
 					>
 						{isSyncing ? (
 							<>
-								<Loader2 className="size-4 animate-spin" aria-hidden="true" />
+								<Loader2 className='size-4 animate-spin' aria-hidden='true' />
 								<span>
 									Syncing {pendingCount} pending action
 									{pendingCount !== 1 ? 's' : ''}...
@@ -59,8 +59,10 @@ export const OfflineBanner = memo(function OfflineBanner({
 							</>
 						) : (
 							<>
-								<WifiOff className="size-4" aria-hidden="true" />
-								<span>Offline — your progress will sync when you reconnect</span>
+								<WifiOff className='size-4' aria-hidden='true' />
+								<span>
+									Offline — your progress will sync when you reconnect
+								</span>
 							</>
 						)}
 					</div>

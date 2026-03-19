@@ -76,9 +76,9 @@ interface ChallengeRecipeGridProps {
 
 const difficultyConfig: Record<Difficulty, { bg: string; text: string }> = {
 	Beginner: { bg: 'bg-success', text: 'text-white' },
-	Intermediate: { bg: 'bg-amber-500', text: 'text-white' },
-	Advanced: { bg: 'bg-red-500', text: 'text-white' },
-	Expert: { bg: 'bg-purple-500', text: 'text-white' },
+	Intermediate: { bg: 'bg-warning', text: 'text-white' },
+	Advanced: { bg: 'bg-error', text: 'text-white' },
+	Expert: { bg: 'bg-accent-purple', text: 'text-white' },
 }
 
 // ============================================
@@ -198,7 +198,7 @@ const ChallengeRecipeCard = ({
 							{recipe.cookTime}
 						</span>
 						<span className='flex items-center gap-1 text-xs text-muted-foreground'>
-							<Star className='size-3.5 fill-amber-400 text-amber-400' />
+							<Star className='size-3.5 fill-warning text-warning' />
 							{recipe.rating}
 						</span>
 						<span className='flex items-center gap-1 text-xs text-muted-foreground'>

@@ -117,23 +117,23 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
-				'bg-gradient-to-r from-emerald-500/10 to-teal-500/5',
-				'border-2 border-emerald-500/20 rounded-xl p-5 mb-6',
+				'bg-gradient-to-r from-success/10 to-brand/5',
+				'border-2 border-success/20 rounded-xl p-5 mb-6',
 			)}
 		>
 			{/* Header */}
 			<div className='flex justify-between mb-4'>
-				<span className='text-sm font-bold text-emerald-500'>This Week</span>
+				<span className='text-sm font-bold text-success'>This Week</span>
 				<span className='text-sm text-muted-foreground'>{data.dateRange}</span>
 			</div>
 
 			{/* Stats Grid */}
 			<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 				{/* New Cooks */}
-				<div className='flex items-center gap-3 p-3.5 bg-white/50 rounded-xl'>
+				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
 					<span className='text-icon-lg'>👨‍🍳</span>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xl font-extrabold text-emerald-500'>
+						<span className='text-2xl font-extrabold text-success'>
 							+{data.newCooks}
 						</span>
 						<span className='text-xs text-muted-foreground'>New Cooks</span>
@@ -142,7 +142,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 						<div
 							className={cn(
 								'flex items-center gap-1 text-xs font-semibold',
-								data.newCooksChange! >= 0 ? 'text-emerald-500' : 'text-red-500',
+								data.newCooksChange! >= 0 ? 'text-success' : 'text-error',
 							)}
 						>
 							{data.newCooksChange! >= 0 ? (
@@ -157,7 +157,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 				</div>
 
 				{/* XP Earned */}
-				<div className='flex items-center gap-3 p-3.5 bg-white/50 rounded-xl'>
+				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
 					<span className='text-icon-lg'>⚡</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-extrabold text-text'>
@@ -169,7 +169,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 						<div
 							className={cn(
 								'flex items-center gap-1 text-xs font-semibold',
-								data.xpEarnedChange! >= 0 ? 'text-emerald-500' : 'text-red-500',
+								data.xpEarnedChange! >= 0 ? 'text-success' : 'text-error',
 							)}
 						>
 							{data.xpEarnedChange! >= 0 ? (
@@ -402,7 +402,10 @@ function RecipePerformanceSection({
 		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Recipe Performance</h3>
-				<button className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border rounded-lg text-sm text-text'>
+				<button
+					type='button'
+					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border rounded-lg text-sm text-text'
+				>
 					<ArrowUpDown className='w-3.5 h-3.5 text-muted-foreground' />
 					Most Cooked
 				</button>
@@ -444,11 +447,11 @@ function RecipePerformanceSection({
 									className={cn(
 										'inline-flex w-fit px-2 py-0.5 rounded-lg text-xs font-semibold',
 										recipe.badge.type === 'milestone' &&
-											'bg-indigo-500/10 text-indigo-500',
+											'bg-accent-indigo/10 text-accent-indigo',
 										recipe.badge.type === 'trending' &&
 											'bg-streak/10 text-streak',
 										recipe.badge.type === 'attention' &&
-											'bg-amber-500/10 text-amber-500',
+											'bg-warning/10 text-warning',
 									)}
 								>
 									{recipe.badge.label}
@@ -543,7 +546,7 @@ function RecentCooksSection({
 							</span>
 						</div>
 						<div className='text-right'>
-							<span className='block text-base font-extrabold text-emerald-500'>
+							<span className='block text-base font-extrabold text-success'>
 								+{cook.xpEarned}
 							</span>
 							<span className='text-2xs text-muted-foreground'>XP</span>

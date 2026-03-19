@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
+import { logDevWarn } from '@/lib/dev-log'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
 import { RoomParticipantsBar } from './RoomParticipantsBar'
@@ -136,12 +137,12 @@ const StepDots = ({
 					transition={TRANSITION_SPRING}
 					className={cn(
 						'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors',
-						// Larger touch targets (44px minimum for accessibility)
+						// 44px minimum touch targets for accessibility
 						isCurrent
-							? 'h-9 w-12 bg-white text-brand shadow-md'
+							? 'h-11 w-14 bg-white text-brand shadow-md'
 							: isCompleted
-								? 'size-9 bg-success text-white'
-								: 'size-9 bg-white/20 text-white/70 hover:bg-white/30 hover:text-white',
+								? 'size-11 bg-success text-white'
+								: 'size-11 bg-white/20 text-white/70 hover:bg-white/30 hover:text-white',
 					)}
 					title={`Step ${stepNum}${isCompleted ? ' ✓' : ''}`}
 				>
@@ -464,7 +465,10 @@ export const CookingPlayer = () => {
 	const currentStepNumber = session?.currentStep ?? 1
 	const step = recipe?.steps?.[currentStepNumber - 1]
 	const totalSteps = recipe?.steps?.length ?? 0
-	const completedSteps = new Set(session?.completedSteps ?? [])
+	const completedSteps = useMemo(
+		() => new Set(session?.completedSteps ?? []),
+		[session?.completedSteps],
+	)
 	const progress = totalSteps > 0 ? (completedSteps.size / totalSteps) * 100 : 0
 
 	// Log when cooking player opens with recipe data
@@ -558,11 +562,15 @@ export const CookingPlayer = () => {
 		totalSteps,
 		completeStep,
 		navigateToStep,
+		completedSteps,
 		recipe,
 		startTimer,
 		step,
 		showCompletion,
 		clearAllTimers,
+		isInRoom,
+		sendStepCompleted,
+		sendStepNavigated,
 		isNavigating,
 		isPreviewMode,
 		exitPreview,
@@ -589,7 +597,14 @@ export const CookingPlayer = () => {
 				setIsNavigating(false)
 			}
 		}
-	}, [currentStepNumber, navigateToStep, showCompletion, isNavigating])
+	}, [
+		currentStepNumber,
+		navigateToStep,
+		showCompletion,
+		isNavigating,
+		isInRoom,
+		sendStepNavigated,
+	])
 
 	const handleStepClick = useCallback(
 		async (stepNumber: number) => {
@@ -607,7 +622,13 @@ export const CookingPlayer = () => {
 			// Broadcast to co-cooking room
 			if (isInRoom) sendStepNavigated(stepNumber)
 		},
-		[currentStepNumber, navigateToStep],
+		[
+			currentStepNumber,
+			navigateToStep,
+			showCompletion,
+			isInRoom,
+			sendStepNavigated,
+		],
 	)
 
 	// Timer ticking is handled by CookingTimerProvider (centralized)
@@ -633,7 +654,7 @@ export const CookingPlayer = () => {
 				return
 			}
 
-			if (e.key === 'ArrowRight' || e.key === ' ') {
+			if (e.key === 'ArrowRight') {
 				e.preventDefault()
 				handleNextStep()
 			} else if (e.key === 'ArrowLeft') {
@@ -681,7 +702,16 @@ export const CookingPlayer = () => {
 			// Broadcast timer start to co-cooking room
 			if (isInRoom) sendTimerStarted(currentStepNumber, step.timerSeconds!)
 		}
-	}, [step, currentStepNumber, localTimers, startTimer, skipTimer])
+	}, [
+		step,
+		currentStepNumber,
+		localTimers,
+		startTimer,
+		skipTimer,
+		isInRoom,
+		sendTimerCompleted,
+		sendTimerStarted,
+	])
 
 	const handleTimerComplete = useCallback(() => {
 		// Timer completed naturally - handled by tickTimers
@@ -712,9 +742,7 @@ export const CookingPlayer = () => {
 					isCompletingSession,
 					sessionStatus: session?.status,
 				})
-				console.warn(
-					'[handleComplete] Already completing or completed, ignoring',
-				)
+				logDevWarn('[handleComplete] Already completing or completed, ignoring')
 				return
 			}
 
@@ -805,6 +833,8 @@ export const CookingPlayer = () => {
 			recipe,
 			session,
 			isCompletingSession,
+			isInRoom,
+			sendSessionCompleted,
 			isPreviewMode,
 			exitPreview,
 			totalSteps,
@@ -930,12 +960,10 @@ export const CookingPlayer = () => {
 						>
 							{/* Preview Mode Banner */}
 							{isPreviewMode && (
-								<div className='flex items-center justify-center gap-2 bg-amber-50 px-4 py-1.5 text-sm dark:bg-amber-950/40'>
-									<Sparkles className='size-3.5 text-amber-600 dark:text-amber-400' />
-									<span className='font-medium text-amber-700 dark:text-amber-300'>
-										Preview Mode
-									</span>
-									<span className='text-amber-600/70 dark:text-amber-400/60'>
+								<div className='flex items-center justify-center gap-2 bg-warning/10 px-4 py-1.5 text-sm dark:bg-warning/20'>
+									<Sparkles className='size-3.5 text-warning' />
+									<span className='font-medium text-warning'>Preview Mode</span>
+									<span className='text-warning/70'>
 										— experiencing your recipe as a cook
 									</span>
 								</div>
@@ -960,22 +988,13 @@ export const CookingPlayer = () => {
 									onJumpToStep={handleStepClick}
 								/>
 
-								{/* AI Assist Button - Prominent with pulsing glow */}
+								{/* AI Assist Button - Placeholder until AI assist feature is implemented */}
 								<motion.button
+									onClick={() =>
+										toast.info('AI Assist is coming soon!', { icon: '🤖' })
+									}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									animate={{
-										boxShadow: [
-											'0 0 0 0 rgba(255, 90, 54, 0)',
-											'0 0 20px 4px rgba(255, 90, 54, 0.4)',
-											'0 0 0 0 rgba(255, 90, 54, 0)',
-										],
-									}}
-									transition={{
-										duration: 2,
-										repeat: Infinity,
-										ease: 'easeInOut',
-									}}
 									className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
 								>
 									<Sparkles className='size-4' /> AI Assist
@@ -988,7 +1007,7 @@ export const CookingPlayer = () => {
 										onClick={() => setShowAbandonConfirm(true)}
 										whileHover={ICON_BUTTON_HOVER}
 										whileTap={ICON_BUTTON_TAP}
-										className='grid size-10 place-items-center rounded-full bg-red-500/20 backdrop-blur-sm transition-colors hover:bg-red-500/40'
+										className='grid size-10 place-items-center rounded-full bg-error/20 backdrop-blur-sm transition-colors hover:bg-error/40'
 										title='Exit and abandon session'
 									>
 										<LogOut className='size-5' />
@@ -1261,7 +1280,7 @@ export const CookingPlayer = () => {
 									title={
 										currentStepNumber === totalSteps
 											? 'Complete recipe'
-											: 'Next step (→ or Space)'
+											: 'Next step (→)'
 									}
 								>
 									{isNavigating ? (
@@ -1343,8 +1362,8 @@ export const CookingPlayer = () => {
 								exit={{ scale: 0.9, opacity: 0 }}
 								className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
 							>
-								<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-red-100 dark:bg-red-900/30'>
-									<LogOut className='size-8 text-red-500' />
+								<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-error/10 dark:bg-error/20'>
+									<LogOut className='size-8 text-error' />
 								</div>
 								<h3
 									id='abandon-title'
@@ -1372,7 +1391,7 @@ export const CookingPlayer = () => {
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
 										onClick={handleAbandon}
-										className='flex-1 rounded-full bg-red-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-red-600'
+										className='flex-1 rounded-full bg-error px-6 py-3 font-semibold text-white transition-colors hover:bg-error/90'
 									>
 										Abandon
 									</motion.button>

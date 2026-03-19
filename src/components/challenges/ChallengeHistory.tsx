@@ -125,9 +125,9 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			xpClass: 'text-success',
 		},
 		missed: {
-			badgeBg: 'bg-red-500/20',
+			badgeBg: 'bg-error/20',
 			indicator: <X className='size-3' />,
-			indicatorBg: 'bg-red-500',
+			indicatorBg: 'bg-error',
 			xpClass: 'text-muted-foreground',
 		},
 		today: {
@@ -279,7 +279,7 @@ export const ChallengeHistorySection = ({
 					icon='🏆'
 					value={String(stats.bestStreak)}
 					label='Best Streak'
-					colorClass='text-amber-500'
+					colorClass='text-warning'
 				/>
 			</div>
 
@@ -358,8 +358,8 @@ const HistoryItem = ({
 					className={cn(
 						'flex size-12 items-center justify-center rounded-xl',
 						isCompleted
-							? 'bg-gradient-to-br from-success to-emerald-600'
-							: 'bg-red-500/20',
+							? 'bg-gradient-to-br from-success to-brand'
+							: 'bg-error/20',
 					)}
 				>
 					<span className={cn('text-2xl', !isCompleted && 'opacity-50')}>

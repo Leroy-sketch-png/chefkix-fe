@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback, useState, useRef } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -52,14 +53,10 @@ export default function CookingRoomPage() {
 	} = useCookingStore()
 
 	// Derive spectator status from participants list
-	const currentParticipant = participants.find(
-		p => p.userId === currentUserId,
-	)
+	const currentParticipant = participants.find(p => p.userId === currentUserId)
 	const isSpectator = currentParticipant?.role === 'SPECTATOR'
 	const cookCount = participants.filter(p => p.role !== 'SPECTATOR').length
-	const spectatorCount = participants.filter(
-		p => p.role === 'SPECTATOR',
-	).length
+	const spectatorCount = participants.filter(p => p.role === 'SPECTATOR').length
 
 	// Redirect if not in a room
 	useEffect(() => {
@@ -249,11 +246,11 @@ export default function CookingRoomPage() {
 							initial={{ opacity: 0, y: -20 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -20 }}
-							className='mb-4 flex items-center justify-between rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50 px-4 py-3'
+							className='mb-4 flex items-center justify-between rounded-xl border border-info/20 bg-gradient-to-r from-info/10 to-bg-card px-4 py-3'
 						>
 							<div className='flex items-center gap-2'>
-								<Eye className='size-5 text-purple-600' />
-								<span className='text-sm font-semibold text-purple-700'>
+								<Eye className='size-5 text-info' />
+								<span className='text-sm font-semibold text-info'>
 									You&apos;re watching this session
 								</span>
 							</div>
@@ -305,7 +302,7 @@ export default function CookingRoomPage() {
 								{spectatorCount > 0 && (
 									<>
 										<span>•</span>
-										<span className='flex items-center gap-1 text-sm text-purple-600'>
+										<span className='flex items-center gap-1 text-sm text-info'>
 											<Eye className='size-3.5' />
 											{spectatorCount} watching
 										</span>
@@ -346,7 +343,7 @@ export default function CookingRoomPage() {
 							<h3 className='mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted'>
 								Cooks ({cookCount}/6)
 								{spectatorCount > 0 && (
-									<span className='ml-2 font-normal normal-case text-purple-500'>
+									<span className='ml-2 font-normal normal-case text-info'>
 										+ {spectatorCount} spectator
 										{spectatorCount > 1 ? 's' : ''}
 									</span>
@@ -362,27 +359,28 @@ export default function CookingRoomPage() {
 											animate={{ opacity: 1, x: 0 }}
 											className={`flex items-center gap-3 rounded-xl p-3 ${
 												pIsSpectator
-													? 'bg-purple-50 border border-purple-100'
+													? 'border border-info/20 bg-info/10'
 													: 'bg-bg'
 											}`}
 										>
 											<div className='relative'>
 												{p.avatarUrl ? (
-													<img
+													<Image
 														src={p.avatarUrl}
 														alt={p.displayName}
+														width={40}
+														height={40}
+														unoptimized
 														className={`size-10 rounded-full object-cover ${pIsSpectator ? 'opacity-75' : ''}`}
 													/>
 												) : (
 													<div
 														className={`flex size-10 items-center justify-center rounded-full ${
-															pIsSpectator
-																? 'bg-purple-100'
-																: 'bg-brand/10'
+															pIsSpectator ? 'bg-info/15' : 'bg-brand/10'
 														}`}
 													>
 														{pIsSpectator ? (
-															<Eye className='size-5 text-purple-500' />
+															<Eye className='size-5 text-info' />
 														) : (
 															<ChefHat className='size-5 text-brand' />
 														)}
@@ -395,12 +393,12 @@ export default function CookingRoomPage() {
 														{p.displayName}
 													</span>
 													{p.isHost && (
-														<span className='rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700'>
+														<span className='rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning'>
 															Host
 														</span>
 													)}
 													{pIsSpectator && (
-														<span className='rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-600'>
+														<span className='rounded-full bg-info/15 px-2 py-0.5 text-xs font-medium text-info'>
 															Watching
 														</span>
 													)}
@@ -443,7 +441,7 @@ export default function CookingRoomPage() {
 									disabled={isUpgrading}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 py-4 text-lg font-bold text-white shadow-lg shadow-purple-500/30 disabled:opacity-50'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-accent-indigo py-4 text-lg font-bold text-white shadow-lg shadow-info/30 disabled:opacity-50'
 								>
 									<ArrowUpCircle className='size-6' />
 									{isUpgrading ? 'Joining...' : 'Join as Cook'}

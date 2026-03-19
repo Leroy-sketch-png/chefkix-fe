@@ -17,6 +17,7 @@ import {
 import { motion } from 'framer-motion'
 import { ArrowLeft, ChefHat, Sparkles } from 'lucide-react'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // HELPERS
@@ -59,7 +60,7 @@ export default function CreatorRoute() {
 				if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
 				if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
 			} catch (err) {
-				console.error('Failed to fetch creator data:', err)
+				logDevError('Failed to fetch creator data:', err)
 			} finally {
 				setIsLoading(false)
 			}

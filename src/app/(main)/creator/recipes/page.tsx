@@ -75,7 +75,7 @@ interface RecipeManageCardProps {
 
 const difficultyColors: Record<Difficulty, string> = {
 	Beginner: 'bg-success text-white',
-	Intermediate: 'bg-amber-500 text-white',
+	Intermediate: 'bg-warning text-white',
 	Advanced: 'bg-error text-white',
 	Expert: 'bg-xp text-white',
 }
@@ -249,6 +249,7 @@ export default function MyRecipesPage() {
 	const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'views'>('newest')
+	const [retryCount, setRetryCount] = useState(0)
 
 	// Fetch user's recipes
 	useEffect(() => {
@@ -273,7 +274,7 @@ export default function MyRecipesPage() {
 		}
 
 		fetchRecipes()
-	}, [user?.userId])
+	}, [user?.userId, retryCount])
 
 	// Handle delete
 	const handleDelete = async (recipeId: string) => {
@@ -344,7 +345,10 @@ export default function MyRecipesPage() {
 					<ErrorState
 						title='Failed to load recipes'
 						message={error}
-						onRetry={() => window.location.reload()}
+						onRetry={() => {
+							setError(null)
+							setRetryCount(c => c + 1)
+						}}
 						showHomeButton
 					/>
 				</PageContainer>

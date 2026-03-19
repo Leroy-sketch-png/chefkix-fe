@@ -223,7 +223,7 @@ export const ChallengeCard = ({
 							'w-full rounded-full py-2.5 text-sm font-bold transition-all',
 							isJoined
 								? 'bg-white/20 text-white'
-								: 'bg-white text-indigo-600 hover:bg-white/90',
+								: 'bg-bg-card text-accent-indigo hover:bg-bg-card/90',
 						)}
 					>
 						{isJoined ? 'View Challenge' : 'Join Challenge'}
