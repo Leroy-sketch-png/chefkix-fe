@@ -25,6 +25,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // CONSTANTS
@@ -51,6 +52,7 @@ export default function FeedPage() {
 	const [activeTab, setActiveTab] = useState<FeedTab>('following')
 	const [currentPage, setCurrentPage] = useState(0)
 	const [hasMore, setHasMore] = useState(true)
+	const [retryCount, setRetryCount] = useState(0)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
 	// Filter out posts from blocked users
@@ -86,7 +88,8 @@ export default function FeedPage() {
 						setHasMore(response.data.length >= POSTS_PER_PAGE)
 					}
 				}
-			} catch {
+			} catch (error) {
+				logDevError('Failed to load feed:', error)
 				setError('Failed to load feed')
 			} finally {
 				setIsLoading(false)
@@ -94,7 +97,7 @@ export default function FeedPage() {
 		}
 
 		fetchPosts()
-	}, [activeTab])
+	}, [activeTab, retryCount])
 
 	// Load more posts on scroll
 	const loadMorePosts = useCallback(async () => {
@@ -127,7 +130,7 @@ export default function FeedPage() {
 				}
 			}
 		} catch (err) {
-			console.error('Failed to load more posts:', err)
+			logDevError('Failed to load more posts:', err)
 		} finally {
 			setIsLoadingMore(false)
 		}
@@ -257,7 +260,10 @@ export default function FeedPage() {
 					<ErrorState
 						title='Failed to load feed'
 						message={error}
-						onRetry={() => window.location.reload()}
+						onRetry={() => {
+							setError(null)
+							setRetryCount(c => c + 1)
+						}}
 					/>
 				)}
 

@@ -6,6 +6,7 @@ import { Post } from '@/lib/types'
 import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
 import {
 	getPendingSessions,
+	linkPostToSession,
 	SessionHistoryItem,
 } from '@/services/cookingSession'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -39,6 +40,8 @@ import { SinceLastVisitCard } from '@/components/dashboard'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { logDevError } from '@/lib/dev-log'
+import { toast } from 'sonner'
 
 // ============================================
 // CONSTANTS
@@ -51,6 +54,14 @@ const POSTS_PER_PAGE = 10
 // ============================================
 
 type FeedMode = 'latest' | 'trending' | 'following'
+
+interface PendingPostLink {
+	sessionId: string
+	postId: string
+	createdAt: string
+}
+
+const PENDING_POST_LINK_KEY = 'pendingPostLink'
 
 // ============================================
 // HELPERS
@@ -112,6 +123,9 @@ export default function DashboardPage() {
 	const [feedMode, setFeedMode] = useState<FeedMode>('latest')
 	const [currentPage, setCurrentPage] = useState(0)
 	const [hasMore, setHasMore] = useState(true)
+	const [hasPendingXpSync, setHasPendingXpSync] = useState(false)
+	const [isRetryingPendingXp, setIsRetryingPendingXp] = useState(false)
+	const [retryCount, setRetryCount] = useState(0)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
 	// Filter out posts from blocked users
@@ -126,6 +140,54 @@ export default function DashboardPage() {
 	const isUrgent =
 		hasStreakAtRisk && hoursUntilBreak > 0 && hoursUntilBreak <= 2
 
+	const retryPendingXpSync = useCallback(async (): Promise<boolean> => {
+		const pendingPostLinkJson = sessionStorage.getItem(PENDING_POST_LINK_KEY)
+		if (!pendingPostLinkJson) {
+			setHasPendingXpSync(false)
+			return true
+		}
+
+		try {
+			const pendingPostLink = JSON.parse(pendingPostLinkJson) as PendingPostLink
+			const linkResponse = await linkPostToSession(
+				pendingPostLink.sessionId,
+				pendingPostLink.postId,
+			)
+
+			if (linkResponse.success && linkResponse.data) {
+				sessionStorage.removeItem(PENDING_POST_LINK_KEY)
+				setHasPendingXpSync(false)
+
+				const newPostJson = sessionStorage.getItem('newPost')
+				if (newPostJson) {
+					try {
+						const newPost = JSON.parse(newPostJson) as Post
+						sessionStorage.setItem(
+							'newPost',
+							JSON.stringify({
+								...newPost,
+								xpEarned: linkResponse.data.xpAwarded ?? 0,
+								badgesEarned: linkResponse.data.badgesEarned ?? [],
+							}),
+						)
+					} catch (e) {
+						logDevError('Failed to update recovered newPost payload:', e)
+					}
+				}
+
+				return true
+			}
+
+			logDevError('Pending post XP claim retry failed:', linkResponse.message)
+			setHasPendingXpSync(true)
+			return false
+		} catch (e) {
+			logDevError('Failed to process pending post link retry:', e)
+			setHasPendingXpSync(true)
+			return false
+		}
+	}, [])
+
 	// Fetch initial page
 	useEffect(() => {
 		const fetchInitialData = async () => {
@@ -135,6 +197,19 @@ export default function DashboardPage() {
 			setPosts([])
 
 			try {
+				const pendingPostLinkJson = sessionStorage.getItem(
+					PENDING_POST_LINK_KEY,
+				)
+				setHasPendingXpSync(Boolean(pendingPostLinkJson))
+				if (pendingPostLinkJson) {
+					const recovered = await retryPendingXpSync()
+					if (!recovered) {
+						toast.warning(
+							'Your post was shared, but XP is still syncing. You can retry from the banner on this page.',
+						)
+					}
+				}
+
 				// Fetch feed posts and pending sessions in parallel
 				const [feedResponse, pendingResponse] = await Promise.all([
 					feedMode === 'following'
@@ -173,7 +248,7 @@ export default function DashboardPage() {
 								)
 							}
 						} catch (e) {
-							console.error('Failed to parse newPost from sessionStorage:', e)
+							logDevError('Failed to parse newPost from sessionStorage:', e)
 							sessionStorage.removeItem('newPost')
 						}
 					}
@@ -193,6 +268,7 @@ export default function DashboardPage() {
 					)
 				}
 			} catch (err) {
+				logDevError('Failed to load dashboard feed:', err)
 				setError('Failed to load feed')
 			} finally {
 				setIsLoading(false)
@@ -200,7 +276,18 @@ export default function DashboardPage() {
 		}
 
 		fetchInitialData()
-	}, [feedMode])
+	}, [feedMode, retryPendingXpSync, retryCount])
+
+	const handleRetryPendingXpSync = async () => {
+		setIsRetryingPendingXp(true)
+		const recovered = await retryPendingXpSync()
+		if (recovered) {
+			toast.success('XP sync completed successfully.')
+		} else {
+			toast.error('Still syncing XP. Please try again in a moment.')
+		}
+		setIsRetryingPendingXp(false)
+	}
 
 	// Load more posts when scrolling
 	const loadMorePosts = useCallback(async () => {
@@ -233,7 +320,7 @@ export default function DashboardPage() {
 				}
 			}
 		} catch (err) {
-			console.error('Failed to load more posts:', err)
+			logDevError('Failed to load more posts:', err)
 		} finally {
 			setIsLoadingMore(false)
 		}
@@ -297,6 +384,27 @@ export default function DashboardPage() {
 			<PageContainer maxWidth='lg'>
 				{/* Since Last Visit Summary - Welcome back card with activity summary */}
 				<SinceLastVisitCard className='mb-4' />
+				{hasPendingXpSync && (
+					<div className='mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4'>
+						<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+							<div>
+								<p className='text-sm font-semibold text-warning'>
+									XP Sync Pending
+								</p>
+								<p className='text-sm text-text-secondary'>
+									Your post is published, but XP confirmation is still pending.
+								</p>
+							</div>
+							<Button
+								onClick={handleRetryPendingXpSync}
+								disabled={isRetryingPendingXp}
+								className='sm:w-auto'
+							>
+								{isRetryingPendingXp ? 'Retrying...' : 'Retry XP Sync'}
+							</Button>
+						</div>
+					</div>
+				)}
 				{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
 				<ResumeCookingBanner className='mb-4' />
 				{/* Friends Cooking Now — live activity from followed users' rooms */}
@@ -414,7 +522,10 @@ export default function DashboardPage() {
 					<ErrorState
 						title='Failed to load feed'
 						message={error}
-						onRetry={() => window.location.reload()}
+						onRetry={() => {
+							setError(null)
+							setRetryCount(c => c + 1)
+						}}
 					/>
 				)}
 				{!isLoading &&

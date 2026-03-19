@@ -37,6 +37,7 @@ import { toast } from 'sonner'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import type { Difficulty } from '@/lib/types/gamification'
 import Image from 'next/image'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // CONSTANTS
@@ -355,6 +356,7 @@ export default function ExplorePage() {
 		rating: null,
 	})
 	const [focusedCardIndex, setFocusedCardIndex] = useState(-1)
+	const [retryCount, setRetryCount] = useState(0)
 
 	// ============================================
 	// EFFECTS
@@ -550,7 +552,7 @@ export default function ExplorePage() {
 		}
 
 		fetchRecipes()
-	}, [debouncedSearch, viewMode, filters])
+	}, [debouncedSearch, viewMode, filters, retryCount])
 
 	// Scroll restoration
 	useEffect(() => {
@@ -635,7 +637,7 @@ export default function ExplorePage() {
 				}
 			}
 		} catch (err) {
-			console.error('Failed to load more recipes:', err)
+			logDevError('Failed to load more recipes:', err)
 		} finally {
 			setIsLoadingMore(false)
 		}
@@ -937,7 +939,10 @@ export default function ExplorePage() {
 					<ErrorState
 						title='Failed to load recipes'
 						message={error}
-						onRetry={() => window.location.reload()}
+						onRetry={() => {
+							setError(null)
+							setRetryCount(c => c + 1)
+						}}
 					/>
 				)}
 				{!isLoading && !error && recipes.length === 0 && (

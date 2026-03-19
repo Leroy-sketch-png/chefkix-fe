@@ -38,6 +38,7 @@ import { Portal } from '@/components/ui/portal'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { logDevError } from '@/lib/dev-log'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
@@ -364,12 +365,12 @@ export default function SettingsPage() {
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
 	const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 	const [showPasswordModal, setShowPasswordModal] = useState(false)
-	const [currentPassword, setCurrentPassword] = useState('')
-	const [newPassword, setNewPassword] = useState('')
-	const [confirmPassword, setConfirmPassword] = useState('')
-	const [isChangingPassword, setIsChangingPassword] = useState(false)
 	const coverInputRef = useRef<HTMLInputElement>(null)
 	const avatarInputRef = useRef<HTMLInputElement>(null)
+
+	const closePasswordModal = useCallback(() => {
+		setShowPasswordModal(false)
+	}, [])
 
 	useEffect(() => {
 		const loadSettings = async () => {
@@ -384,7 +385,7 @@ export default function SettingsPage() {
 					} as UserSettings)
 				}
 			} catch (error) {
-				console.error('Failed to load settings:', error)
+				logDevError('Failed to load settings:', error)
 				toast.error('Failed to load settings')
 			} finally {
 				setIsLoading(false)
@@ -403,6 +404,7 @@ export default function SettingsPage() {
 	const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
+		const previousCoverImageUrl = user?.coverImageUrl
 
 		// Validate file type
 		if (!file.type.startsWith('image/')) {
@@ -434,18 +436,22 @@ export default function SettingsPage() {
 					coverImageUrl: uploadedUrl,
 				})
 				if (updateResponse.success) {
+					if (user) {
+						setUser({ ...user, coverImageUrl: uploadedUrl })
+					}
 					toast.success('Cover photo updated!')
 				} else {
 					toast.error('Failed to save cover photo')
+					setCoverImageUrl(previousCoverImageUrl)
 				}
 			} else {
 				toast.error('Failed to upload image')
-				setCoverImageUrl(user?.coverImageUrl) // Revert
+				setCoverImageUrl(previousCoverImageUrl)
 			}
 		} catch (error) {
-			console.error('Cover upload error:', error)
+			logDevError('Cover upload error:', error)
 			toast.error('Failed to upload cover photo')
-			setCoverImageUrl(user?.coverImageUrl) // Revert
+			setCoverImageUrl(previousCoverImageUrl)
 		} finally {
 			// Revoke the local blob URL to prevent memory leak
 			if (localPreviewUrl) {
@@ -472,6 +478,7 @@ export default function SettingsPage() {
 				toast.error(response.message || 'Failed to update profile')
 			}
 		} catch (error) {
+			logDevError('Failed to update profile:', error)
 			toast.error('Failed to update profile')
 		} finally {
 			setIsSaving(false)
@@ -481,6 +488,7 @@ export default function SettingsPage() {
 	const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
+		const previousAvatarUrl = user?.avatarUrl
 
 		if (!file.type.startsWith('image/')) {
 			toast.error('Please select an image file')
@@ -512,15 +520,16 @@ export default function SettingsPage() {
 					toast.success('Avatar updated!')
 				} else {
 					toast.error('Failed to save avatar')
+					setAvatarUrl(previousAvatarUrl)
 				}
 			} else {
 				toast.error('Failed to upload image')
-				setAvatarUrl(user?.avatarUrl)
+				setAvatarUrl(previousAvatarUrl)
 			}
 		} catch (error) {
-			console.error('Avatar upload error:', error)
+			logDevError('Avatar upload error:', error)
 			toast.error('Failed to upload avatar')
-			setAvatarUrl(user?.avatarUrl)
+			setAvatarUrl(previousAvatarUrl)
 		} finally {
 			// Revoke the local blob URL to prevent memory leak
 			if (localPreviewUrl) {
@@ -533,39 +542,10 @@ export default function SettingsPage() {
 		}
 	}
 
-	const handleChangePassword = async () => {
-		if (!currentPassword || !newPassword || !confirmPassword) {
-			toast.error('Please fill in all fields')
-			return
-		}
-		if (newPassword !== confirmPassword) {
-			toast.error('New passwords do not match')
-			return
-		}
-		if (newPassword.length < 8) {
-			toast.error('Password must be at least 8 characters')
-			return
-		}
-
-		setIsChangingPassword(true)
-		try {
-			// Note: This would call a password change API when implemented
-			// For now, show a message that this is handled by Keycloak
-			toast.info('Password changes are managed through your account provider')
-			setShowPasswordModal(false)
-			setCurrentPassword('')
-			setNewPassword('')
-			setConfirmPassword('')
-		} catch (error) {
-			toast.error('Failed to change password')
-		} finally {
-			setIsChangingPassword(false)
-		}
-	}
-
 	const handleUpdatePrivacy = useCallback(
 		async (updates: Partial<PrivacySettings>) => {
 			if (!settings) return
+			const previousSettings = settings
 			const newPrivacy = { ...settings.privacy, ...updates }
 			setSettings({ ...settings, privacy: newPrivacy })
 
@@ -573,8 +553,13 @@ export default function SettingsPage() {
 				const response = await updatePrivacySettings(updates)
 				if (response.success) {
 					toast.success('Privacy settings updated')
+				} else {
+					setSettings(previousSettings)
+					toast.error(response.message || 'Failed to update privacy settings')
 				}
 			} catch (error) {
+				logDevError('Failed to update privacy settings:', error)
+				setSettings(previousSettings)
 				toast.error('Failed to update privacy settings')
 			}
 		},
@@ -584,6 +569,7 @@ export default function SettingsPage() {
 	const handleUpdateNotifications = useCallback(
 		async (updates: Partial<NotificationSettings>) => {
 			if (!settings) return
+			const previousSettings = settings
 			const newNotifications = {
 				...settings.notifications,
 				email: { ...settings.notifications.email, ...updates.email },
@@ -596,8 +582,15 @@ export default function SettingsPage() {
 				const response = await updateNotificationSettings(updates)
 				if (response.success) {
 					toast.success('Notification settings updated')
+				} else {
+					setSettings(previousSettings)
+					toast.error(
+						response.message || 'Failed to update notification settings',
+					)
 				}
 			} catch (error) {
+				logDevError('Failed to update notification settings:', error)
+				setSettings(previousSettings)
 				toast.error('Failed to update notification settings')
 			}
 		},
@@ -607,6 +600,7 @@ export default function SettingsPage() {
 	const handleUpdateCooking = useCallback(
 		async (updates: Partial<CookingPreferences>) => {
 			if (!settings) return
+			const previousSettings = settings
 			const newCooking = { ...settings.cooking, ...updates }
 			setSettings({ ...settings, cooking: newCooking })
 
@@ -614,8 +608,15 @@ export default function SettingsPage() {
 				const response = await updateCookingPreferences(updates)
 				if (response.success) {
 					toast.success('Cooking preferences updated')
+				} else {
+					setSettings(previousSettings)
+					toast.error(
+						response.message || 'Failed to update cooking preferences',
+					)
 				}
 			} catch (error) {
+				logDevError('Failed to update cooking preferences:', error)
+				setSettings(previousSettings)
 				toast.error('Failed to update cooking preferences')
 			}
 		},
@@ -625,6 +626,7 @@ export default function SettingsPage() {
 	const handleUpdateApp = useCallback(
 		async (updates: Partial<AppPreferences>) => {
 			if (!settings) return
+			const previousSettings = settings
 			const newApp = { ...settings.app, ...updates }
 			setSettings({ ...settings, app: newApp })
 
@@ -632,8 +634,13 @@ export default function SettingsPage() {
 				const response = await updateAppPreferences(updates)
 				if (response.success) {
 					toast.success('App preferences updated')
+				} else {
+					setSettings(previousSettings)
+					toast.error(response.message || 'Failed to update app preferences')
 				}
 			} catch (error) {
+				logDevError('Failed to update app preferences:', error)
+				setSettings(previousSettings)
 				toast.error('Failed to update app preferences')
 			}
 		},
@@ -745,7 +752,10 @@ export default function SettingsPage() {
 											{/* Cover Photo Upload */}
 											<div className='grid gap-2'>
 												<Label id='settings-cover-label'>Cover Photo</Label>
-												<div className='relative' aria-labelledby='settings-cover-label'>
+												<div
+													className='relative'
+													aria-labelledby='settings-cover-label'
+												>
 													<div
 														className={cn(
 															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border bg-gradient-to-br from-brand/20 via-amber-100/30 to-orange-50/40 transition-all',
@@ -797,7 +807,10 @@ export default function SettingsPage() {
 											{/* Avatar Upload */}
 											<div className='grid gap-2'>
 												<Label id='settings-avatar-label'>Profile Photo</Label>
-												<div className='flex items-center gap-4' aria-labelledby='settings-avatar-label'>
+												<div
+													className='flex items-center gap-4'
+													aria-labelledby='settings-avatar-label'
+												>
 													<div
 														className={cn(
 															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-all',
@@ -866,8 +879,14 @@ export default function SettingsPage() {
 													className='bg-muted'
 												/>
 												<p className='text-xs text-muted-foreground'>
-													Email cannot be changed
+													Email cannot be changed in-app.
 												</p>
+												<a
+													href='mailto:support@chefkix.com?subject=Email%20Change%20Request'
+													className='inline-flex w-fit items-center text-xs font-semibold text-brand hover:underline'
+												>
+													Need to change it? Contact support.
+												</a>
 											</div>
 											<div className='grid gap-2'>
 												<Label htmlFor='bio'>Bio</Label>
@@ -904,7 +923,7 @@ export default function SettingsPage() {
 												onClick={() => setShowPasswordModal(true)}
 											>
 												<Shield className='mr-2 size-4' />
-												Change Password
+												Password Help
 											</Button>
 										</div>
 									</SettingsCard>
@@ -924,8 +943,14 @@ export default function SettingsPage() {
 										description='Control who can see your profile and content'
 									>
 										<div className='space-y-4'>
-											<div role='group' aria-labelledby='settings-visibility-label'>
-												<Label id='settings-visibility-label' className='mb-3 block'>
+											<div
+												role='group'
+												aria-labelledby='settings-visibility-label'
+											>
+												<Label
+													id='settings-visibility-label'
+													className='mb-3 block'
+												>
 													Who can see your profile?
 												</Label>
 												<ButtonGroup
@@ -936,8 +961,14 @@ export default function SettingsPage() {
 													}
 												/>
 											</div>
-											<div role='group' aria-labelledby='settings-messaging-label'>
-												<Label id='settings-messaging-label' className='mb-3 block'>
+											<div
+												role='group'
+												aria-labelledby='settings-messaging-label'
+											>
+												<Label
+													id='settings-messaging-label'
+													className='mb-3 block'
+												>
 													Who can message you?
 												</Label>
 												<ButtonGroup
@@ -1241,7 +1272,7 @@ export default function SettingsPage() {
 											}
 										/>
 										{settings.cooking.allergies.length > 0 && (
-											<div className='mt-3 flex items-center gap-2 text-amber-600 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3'>
+											<div className='mt-3 flex items-center gap-2 rounded-lg bg-warning/10 p-3 text-warning'>
 												<AlertTriangle className='size-4' />
 												<span className='text-sm'>
 													You will see warnings on recipes containing:{' '}
@@ -1272,7 +1303,12 @@ export default function SettingsPage() {
 									<SettingsCard title='Cooking Preferences'>
 										<div className='space-y-6'>
 											<div>
-												<Label htmlFor='settings-default-servings' className='mb-3 block'>Default Servings</Label>
+												<Label
+													htmlFor='settings-default-servings'
+													className='mb-3 block'
+												>
+													Default Servings
+												</Label>
 												<div className='flex items-center gap-4'>
 													<Input
 														id='settings-default-servings'
@@ -1293,7 +1329,12 @@ export default function SettingsPage() {
 												</div>
 											</div>
 											<div>
-												<Label htmlFor='settings-max-cooking-time' className='mb-3 block'>Max Cooking Time</Label>
+												<Label
+													htmlFor='settings-max-cooking-time'
+													className='mb-3 block'
+												>
+													Max Cooking Time
+												</Label>
 												<div className='flex items-center gap-4'>
 													<Input
 														id='settings-max-cooking-time'
@@ -1317,7 +1358,9 @@ export default function SettingsPage() {
 												</div>
 											</div>
 											<div role='group' aria-labelledby='settings-units-label'>
-												<Label id='settings-units-label' className='mb-3 block'>Measurement Units</Label>
+												<Label id='settings-units-label' className='mb-3 block'>
+													Measurement Units
+												</Label>
 												<ButtonGroup
 													options={[
 														{
@@ -1455,64 +1498,26 @@ export default function SettingsPage() {
 									onClick={e => e.stopPropagation()}
 									className='w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl'
 								>
-									<h2 className='mb-4 text-xl font-bold'>Change Password</h2>
+									<h2 className='mb-3 text-xl font-bold'>Password Security</h2>
 									<div className='space-y-4'>
-										<div className='grid gap-2'>
-											<Label htmlFor='currentPassword'>Current Password</Label>
-											<Input
-												id='currentPassword'
-												type='password'
-												value={currentPassword}
-												onChange={e => setCurrentPassword(e.target.value)}
-												placeholder='Enter current password'
-											/>
-										</div>
-										<div className='grid gap-2'>
-											<Label htmlFor='newPassword'>New Password</Label>
-											<Input
-												id='newPassword'
-												type='password'
-												value={newPassword}
-												onChange={e => setNewPassword(e.target.value)}
-												placeholder='Enter new password'
-											/>
-										</div>
-										<div className='grid gap-2'>
-											<Label htmlFor='confirmPassword'>
-												Confirm New Password
-											</Label>
-											<Input
-												id='confirmPassword'
-												type='password'
-												value={confirmPassword}
-												onChange={e => setConfirmPassword(e.target.value)}
-												placeholder='Confirm new password'
-											/>
+										<p className='text-sm leading-relaxed text-text-secondary'>
+											Password changes are not handled inside the app yet. Use
+											the sign-in flow&apos;s Forgot Password option so the
+											reset happens through the same identity provider that
+											manages your account.
+										</p>
+										<div className='rounded-xl border border-border-subtle bg-bg-elevated p-4 text-sm text-text-secondary'>
+											This keeps password resets consistent with ChefKix
+											authentication and avoids pretending this form can change
+											your password when it cannot.
 										</div>
 										<div className='flex gap-3 pt-2'>
 											<Button
 												variant='outline'
 												className='flex-1'
-												onClick={() => {
-													setShowPasswordModal(false)
-													setCurrentPassword('')
-													setNewPassword('')
-													setConfirmPassword('')
-												}}
+												onClick={closePasswordModal}
 											>
-												Cancel
-											</Button>
-											<Button
-												className='flex-1'
-												onClick={handleChangePassword}
-												disabled={isChangingPassword}
-											>
-												{isChangingPassword ? (
-													<Loader2 className='mr-2 size-4 animate-spin' />
-												) : (
-													<Shield className='mr-2 size-4' />
-												)}
-												Change Password
+												Close
 											</Button>
 										</div>
 									</div>

@@ -33,6 +33,7 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
+import { logDevError } from '@/lib/dev-log'
 
 interface SessionInfo {
 	id: string
@@ -43,6 +44,14 @@ interface SessionInfo {
 	completedAt: string
 	postDeadline: string
 }
+
+interface PendingPostLink {
+	sessionId: string
+	postId: string
+	createdAt: string
+}
+
+const PENDING_POST_LINK_KEY = 'pendingPostLink'
 
 function CreatePostContent() {
 	const router = useRouter()
@@ -57,6 +66,24 @@ function CreatePostContent() {
 	const [photoFiles, setPhotoFiles] = useState<File[]>([])
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
+
+	const claimPendingXp = async (currentSessionId: string, postId: string) => {
+		let lastResponse: Awaited<ReturnType<typeof linkPostToSession>> | null =
+			null
+
+		for (let attempt = 1; attempt <= 3; attempt++) {
+			lastResponse = await linkPostToSession(currentSessionId, postId)
+			if (lastResponse.success && lastResponse.data) {
+				return lastResponse
+			}
+
+			if (attempt < 3) {
+				await new Promise(resolve => setTimeout(resolve, attempt * 1000))
+			}
+		}
+
+		return lastResponse
+	}
 
 	// Load pending photos from sessionStorage (passed from completion modal)
 	useEffect(() => {
@@ -95,8 +122,9 @@ function CreatePostContent() {
 			// Clear from sessionStorage
 			sessionStorage.removeItem('pendingPostPhotos')
 		} catch (error) {
-			console.error('Failed to load pending photos:', error)
+			logDevError('Failed to load pending photos:', error)
 			sessionStorage.removeItem('pendingPostPhotos')
+			toast.info('Photos could not be restored. Please re-upload them.')
 		}
 	}, [])
 
@@ -144,7 +172,7 @@ function CreatePostContent() {
 					toast.error('Session not found')
 				}
 			} catch (error) {
-				console.error('Failed to load session:', error)
+				logDevError('Failed to load session:', error)
 				toast.error('Failed to load session data')
 			} finally {
 				setIsLoadingSession(false)
@@ -202,7 +230,7 @@ function CreatePostContent() {
 				let xpAwarded = 0
 				let badgesEarned: string[] = []
 				if (session?.id && postId) {
-					const linkResponse = await linkPostToSession(session.id, postId)
+					const linkResponse = await claimPendingXp(session.id, postId)
 
 					if (linkResponse.success && linkResponse.data) {
 						xpAwarded = linkResponse.data.xpAwarded ?? 0
@@ -220,14 +248,24 @@ function CreatePostContent() {
 						}
 						sessionStorage.setItem('newPost', JSON.stringify(postWithXp))
 					} else {
-						// Post succeeded but XP claim failed - warn user but don't fail
-						console.error('Failed to claim XP:', linkResponse.message)
-						toast.warning(
-							'Post shared, but XP claim failed. Please contact support.',
-							{
-								description: linkResponse.message,
-							},
+						const pendingLink: PendingPostLink = {
+							sessionId: session.id,
+							postId,
+							createdAt: new Date().toISOString(),
+						}
+						sessionStorage.setItem(
+							PENDING_POST_LINK_KEY,
+							JSON.stringify(pendingLink),
 						)
+						sessionStorage.setItem('newPost', JSON.stringify(createdPost))
+
+						// Post succeeded but XP claim still needs recovery
+						logDevError('Failed to claim XP:', linkResponse.message)
+						toast.warning('Post shared. Cooking XP is still being claimed.', {
+							description:
+								linkResponse.message ||
+								'We will retry the XP award on the dashboard.',
+						})
 						router.push('/dashboard')
 						return
 					}
@@ -250,9 +288,11 @@ function CreatePostContent() {
 				router.push('/dashboard')
 			} else {
 				toast.error(response.message || 'Failed to create post')
+				setIsSubmitting(false)
+				return
 			}
 		} catch (error) {
-			console.error('Post creation error:', error)
+			logDevError('Post creation error:', error)
 			toast.error('Something went wrong. Please try again.')
 			setIsSubmitting(false)
 		}

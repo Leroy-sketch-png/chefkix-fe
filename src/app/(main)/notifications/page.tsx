@@ -38,6 +38,7 @@ import {
 	NotificationItemGamified,
 	type GamifiedNotification,
 } from '@/components/notifications/NotificationItemsGamified'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES
@@ -190,20 +191,20 @@ const transformToSocialNotification = (
 const getNotificationIcon = (type: SocialNotificationType) => {
 	switch (type) {
 		case 'like':
-			return { icon: Heart, color: 'text-red-500', bg: 'bg-red-500/10' }
+			return { icon: Heart, color: 'text-error', bg: 'bg-error/10' }
 		case 'comment':
 			return {
 				icon: MessageCircle,
-				color: 'text-blue-500',
-				bg: 'bg-blue-500/10',
+				color: 'text-info',
+				bg: 'bg-info/10',
 			}
 		case 'follow':
-			return { icon: UserPlus, color: 'text-green-500', bg: 'bg-green-500/10' }
+			return { icon: UserPlus, color: 'text-success', bg: 'bg-success/10' }
 		case 'mention':
 			return {
 				icon: MessageCircle,
-				color: 'text-purple-500',
-				bg: 'bg-purple-500/10',
+				color: 'text-accent-purple',
+				bg: 'bg-accent-purple/10',
 			}
 		case 'cook':
 			return { icon: ChefHat, color: 'text-brand', bg: 'bg-brand/10' }
@@ -423,7 +424,7 @@ export default function NotificationsPage() {
 					setSocialNotifications(social)
 				}
 			} catch (err) {
-				console.error('Failed to fetch notifications:', err)
+				logDevError('Failed to fetch notifications:', err)
 			} finally {
 				setIsLoading(false)
 			}
@@ -456,7 +457,7 @@ export default function NotificationsPage() {
 				setUnreadCount(0)
 			}
 		} catch (err) {
-			console.error('Failed to mark all as read:', err)
+			logDevError('Failed to mark all as read:', err)
 		} finally {
 			setIsMarkingAllRead(false)
 		}
@@ -484,7 +485,7 @@ export default function NotificationsPage() {
 				fetchUnreadCount() // Re-fetch to get accurate count
 			}
 		} catch (err) {
-			console.error('Failed to mark notification as read:', err)
+			logDevError('Failed to mark notification as read:', err)
 		}
 	}
 
@@ -647,7 +648,7 @@ export default function NotificationsPage() {
 							<>
 								{activeFilter === 'all' && (
 									<div className='flex items-center gap-2 py-2'>
-										<Heart className='size-4 text-red-500' />
+										<Heart className='size-4 text-error' />
 										<span className='text-sm font-semibold text-text-secondary'>
 											Social
 										</span>
