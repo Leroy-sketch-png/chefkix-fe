@@ -197,7 +197,7 @@ export default function RecipeDetailPage() {
 		router,
 	])
 
-	const handleLike = async () => {
+	const handleLike = useCallback(async () => {
 		if (isLikeLoading) return
 
 		const previousLiked = isLiked
@@ -227,9 +227,9 @@ export default function RecipeDetailPage() {
 		} finally {
 			setIsLikeLoading(false)
 		}
-	}
+	}, [isLikeLoading, isLiked, likeCount, recipeId])
 
-	const handleSave = async () => {
+	const handleSave = useCallback(async () => {
 		if (isSaveLoading) return
 
 		const previousSaved = isSaved
@@ -260,7 +260,7 @@ export default function RecipeDetailPage() {
 		} finally {
 			setIsSaveLoading(false)
 		}
-	}
+	}, [isSaveLoading, isSaved, recipeId, saveCount])
 
 	const handleShare = async () => {
 		if (navigator.share) {
@@ -280,7 +280,7 @@ export default function RecipeDetailPage() {
 		}
 	}
 
-	const handleStartCooking = async () => {
+	const handleStartCooking = useCallback(async () => {
 		if (isCookingLoading || !recipeId) return
 
 		// If already cooking THIS recipe, just open the panel
@@ -300,7 +300,14 @@ export default function RecipeDetailPage() {
 			const errorMsg = useCookingStore.getState().error
 			toast.error(errorMsg || 'Failed to start cooking session')
 		}
-	}
+	}, [
+		isCookingLoading,
+		recipeId,
+		isCurrentlyCooked,
+		startCooking,
+		openCookingPanel,
+		expandCookingPanel,
+	])
 
 	const [isCreatingRoom, setIsCreatingRoom] = useState(false)
 
@@ -373,7 +380,16 @@ export default function RecipeDetailPage() {
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [recipe, isCookingLoading, isSaveLoading, isLikeLoading, router])
+	}, [
+		recipe,
+		isCookingLoading,
+		isSaveLoading,
+		isLikeLoading,
+		router,
+		handleStartCooking,
+		handleSave,
+		handleLike,
+	])
 
 	if (isLoading) {
 		return <RecipeDetailSkeleton />
@@ -407,9 +423,9 @@ export default function RecipeDetailPage() {
 			glow: 'shadow-success/40',
 		},
 		Intermediate: {
-			color: 'text-amber-500',
-			bg: 'bg-amber-500',
-			glow: 'shadow-amber-500/40',
+			color: 'text-warning',
+			bg: 'bg-warning',
+			glow: 'shadow-warning/40',
 		},
 		Advanced: { color: 'text-error', bg: 'bg-error', glow: 'shadow-error/40' },
 		Expert: { color: 'text-xp', bg: 'bg-xp', glow: 'shadow-xp/40' },
@@ -684,7 +700,7 @@ export default function RecipeDetailPage() {
 									isCurrentlyCooked
 										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 										: hasOtherSession
-											? 'cursor-not-allowed bg-gray-400 text-white shadow-none'
+											? 'cursor-not-allowed bg-border-strong text-white shadow-none'
 											: 'bg-gradient-hero text-white shadow-brand/30 hover:shadow-xl hover:shadow-brand/40',
 								)}
 							>

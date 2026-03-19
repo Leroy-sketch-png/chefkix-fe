@@ -112,25 +112,25 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 			icon: Heart,
 			value: data.newLikes,
 			label: 'likes',
-			color: 'text-red-500',
+			color: 'text-error',
 		},
 		{
 			icon: MessageCircle,
 			value: data.newComments,
 			label: 'comments',
-			color: 'text-blue-500',
+			color: 'text-info',
 		},
 		{
 			icon: UserPlus,
 			value: data.newFollowers,
 			label: 'followers',
-			color: 'text-green-500',
+			color: 'text-success',
 		},
 		{
 			icon: Sparkles,
 			value: data.xpAwarded,
 			label: 'XP',
-			color: 'text-purple-500',
+			color: 'text-accent-purple',
 		},
 		{
 			icon: Trophy,
@@ -161,7 +161,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 				>
 					{/* Background decoration */}
 					<div className='absolute -right-6 -top-6 size-24 rounded-full bg-brand/5 blur-2xl' />
-					<div className='absolute -bottom-4 -left-4 size-16 rounded-full bg-purple-500/5 blur-xl' />
+					<div className='absolute -bottom-4 -left-4 size-16 rounded-full bg-accent-purple/5 blur-xl' />
 
 					{/* Dismiss button */}
 					<button

@@ -1,6 +1,7 @@
 import { Topbar } from '@/components/layout/Topbar'
 import { LeftSidebar } from '@/components/layout/LeftSidebar'
 import { RightSidebar } from '@/components/layout/RightSidebar'
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { MessagesDrawer } from '@/components/layout/MessagesDrawer'
 import { NotificationsPopup } from '@/components/layout/NotificationsPopup'
 import { CookingPlayer } from '@/components/cooking/CookingPlayer'
@@ -27,7 +28,10 @@ export default function MainAppLayout({
 				<ErrorBoundary>
 					<LeftSidebar />
 				</ErrorBoundary>
-				<main id='main-content' className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 lg:gap-6 lg:p-6'>
+				<main
+					id='main-content'
+					className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 pb-20 md:pb-4 lg:gap-6 lg:p-6 lg:pb-6'
+				>
 					<ErrorBoundary>{children}</ErrorBoundary>
 				</main>
 				{/* Conditional: CookingPanel (when cooking) or RightSidebar (default) */}
@@ -41,6 +45,8 @@ export default function MainAppLayout({
 			<CookingPlayer />
 			{/* Mini cooking bar - for mobile collapsed mode */}
 			<MiniCookingBar />
+			{/* Mobile bottom navigation - hidden on desktop, shown below md breakpoint */}
+			<MobileBottomNav />
 			{/* Centralized timer ticking + completion notifications */}
 			<CookingTimerProvider />
 			<KeyboardShortcuts />

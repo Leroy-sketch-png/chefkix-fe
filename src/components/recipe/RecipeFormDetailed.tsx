@@ -297,7 +297,7 @@ const IngredientRow = ({
 		<button
 			type='button'
 			onClick={onRemove}
-			className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500'
+			className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
 		>
 			<Trash2 className='size-4' />
 		</button>
@@ -462,7 +462,7 @@ const StepRow = ({
 									setShowTimerInput(false)
 									onChange({ ...step, timerSeconds: undefined })
 								}}
-								className='text-muted-foreground hover:text-red-500'
+								className='text-muted-foreground hover:text-error'
 							>
 								<X className='size-4' />
 							</button>
@@ -482,7 +482,7 @@ const StepRow = ({
 			<button
 				type='button'
 				onClick={onRemove}
-				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500'
+				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
 			>
 				<Trash2 className='size-4' />
 			</button>
@@ -673,7 +673,7 @@ export const RecipeFormDetailed = ({
 	const [errors, setErrors] = useState<ValidationErrors>({})
 	const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false)
 
-	const validateForm = (): boolean => {
+	const validateForm = useCallback((): boolean => {
 		const newErrors: ValidationErrors = {}
 
 		// Title is required (min 3 chars)
@@ -717,7 +717,7 @@ export const RecipeFormDetailed = ({
 
 		setErrors(newErrors)
 		return Object.keys(newErrors).length === 0
-	}
+	}, [formData])
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
@@ -733,9 +733,9 @@ export const RecipeFormDetailed = ({
 		onSubmit?.(formData)
 	}
 
-	const handleSaveDraft = () => {
+	const handleSaveDraft = useCallback(() => {
 		onSaveDraft?.(formData)
-	}
+	}, [formData, onSaveDraft])
 
 	// Clear individual error when field is updated
 	const updateFieldWithClearError = <K extends keyof RecipeFormData>(
@@ -784,7 +784,7 @@ export const RecipeFormDetailed = ({
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [formData, onSubmit])
+	}, [formData, onSubmit, handleSaveDraft, validateForm])
 
 	return (
 		<div className={cn('mx-auto max-w-container-form p-6 md:p-10', className)}>
@@ -810,8 +810,11 @@ export const RecipeFormDetailed = ({
 
 					{/* Title */}
 					<div className='mb-6' data-error={!!errors.title}>
-						<label htmlFor='recipe-title' className='mb-2 block text-sm font-semibold text-text'>
-							Recipe Title <span className='text-red-500'>*</span>
+						<label
+							htmlFor='recipe-title'
+							className='mb-2 block text-sm font-semibold text-text'
+						>
+							Recipe Title <span className='text-error'>*</span>
 						</label>
 						<input
 							id='recipe-title'
@@ -823,12 +826,12 @@ export const RecipeFormDetailed = ({
 							className={cn(
 								'w-full rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none',
 								errors.title
-									? 'border-red-500 focus:border-red-500'
+									? 'border-error focus:border-error'
 									: 'border-border focus:border-primary',
 							)}
 						/>
 						{errors.title ? (
-							<p className='mt-1.5 text-sm text-red-500'>{errors.title}</p>
+							<p className='mt-1.5 text-sm text-error'>{errors.title}</p>
 						) : (
 							<p className='mt-1.5 text-sm text-muted-foreground'>
 								Give your recipe a catchy, descriptive name
@@ -838,8 +841,11 @@ export const RecipeFormDetailed = ({
 
 					{/* Description */}
 					<div className='mb-6' data-error={!!errors.description}>
-						<label htmlFor='recipe-description' className='mb-2 block text-sm font-semibold text-text'>
-							Description <span className='text-red-500'>*</span>
+						<label
+							htmlFor='recipe-description'
+							className='mb-2 block text-sm font-semibold text-text'
+						>
+							Description <span className='text-error'>*</span>
 						</label>
 						<textarea
 							id='recipe-description'
@@ -853,14 +859,12 @@ export const RecipeFormDetailed = ({
 							className={cn(
 								'w-full resize-y rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none',
 								errors.description
-									? 'border-red-500 focus:border-red-500'
+									? 'border-error focus:border-error'
 									: 'border-border focus:border-primary',
 							)}
 						/>
 						{errors.description ? (
-							<p className='mt-1.5 text-sm text-red-500'>
-								{errors.description}
-							</p>
+							<p className='mt-1.5 text-sm text-error'>{errors.description}</p>
 						) : (
 							<p className='mt-1.5 text-sm text-muted-foreground'>
 								{formData.description.length} / 500 characters
@@ -870,14 +874,17 @@ export const RecipeFormDetailed = ({
 
 					{/* Cover Image */}
 					<div className='mb-6' data-error={!!errors.coverImage}>
-						<label id='recipe-cover-image-label' className='mb-2 block text-sm font-semibold text-text'>
-							Cover Image <span className='text-red-500'>*</span>
+						<label
+							id='recipe-cover-image-label'
+							className='mb-2 block text-sm font-semibold text-text'
+						>
+							Cover Image <span className='text-error'>*</span>
 						</label>
 						<div
 							aria-labelledby='recipe-cover-image-label'
 							className={cn(
 								'rounded-2xl',
-								errors.coverImage && 'ring-2 ring-red-500',
+								errors.coverImage && 'ring-2 ring-error',
 							)}
 						>
 							<ImageUpload
@@ -891,14 +898,17 @@ export const RecipeFormDetailed = ({
 							/>
 						</div>
 						{errors.coverImage && (
-							<p className='mt-1.5 text-sm text-red-500'>{errors.coverImage}</p>
+							<p className='mt-1.5 text-sm text-error'>{errors.coverImage}</p>
 						)}
 					</div>
 
 					{/* Time & Servings Grid */}
 					<div className='mb-6 grid grid-cols-1 gap-5 sm:grid-cols-3'>
 						<div>
-							<label htmlFor='recipe-prep-time' className='mb-2 block text-sm font-semibold text-text'>
+							<label
+								htmlFor='recipe-prep-time'
+								className='mb-2 block text-sm font-semibold text-text'
+							>
 								Prep Time
 							</label>
 							<div className='relative'>
@@ -922,7 +932,10 @@ export const RecipeFormDetailed = ({
 							</div>
 						</div>
 						<div>
-							<label htmlFor='recipe-cook-time' className='mb-2 block text-sm font-semibold text-text'>
+							<label
+								htmlFor='recipe-cook-time'
+								className='mb-2 block text-sm font-semibold text-text'
+							>
 								Cook Time
 							</label>
 							<div className='relative'>
@@ -946,7 +959,10 @@ export const RecipeFormDetailed = ({
 							</div>
 						</div>
 						<div>
-							<label htmlFor='recipe-servings' className='mb-2 block text-sm font-semibold text-text'>
+							<label
+								htmlFor='recipe-servings'
+								className='mb-2 block text-sm font-semibold text-text'
+							>
 								Servings
 							</label>
 							<input
@@ -966,7 +982,10 @@ export const RecipeFormDetailed = ({
 					{/* Difficulty & Category */}
 					<div className='grid grid-cols-1 gap-5 sm:grid-cols-2'>
 						<div>
-							<label id='recipe-difficulty-label' className='mb-2 block text-sm font-semibold text-text'>
+							<label
+								id='recipe-difficulty-label'
+								className='mb-2 block text-sm font-semibold text-text'
+							>
 								Difficulty
 							</label>
 							<div
@@ -985,8 +1004,11 @@ export const RecipeFormDetailed = ({
 							</p>
 						</div>
 						<div data-error={!!errors.category}>
-							<label htmlFor='recipe-category' className='mb-2 block text-sm font-semibold text-text'>
-								Category <span className='text-red-500'>*</span>
+							<label
+								htmlFor='recipe-category'
+								className='mb-2 block text-sm font-semibold text-text'
+							>
+								Category <span className='text-error'>*</span>
 							</label>
 							<select
 								id='recipe-category'
@@ -997,7 +1019,7 @@ export const RecipeFormDetailed = ({
 								className={cn(
 									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text focus:outline-none',
 									errors.category
-										? 'border-red-500 focus:border-red-500'
+										? 'border-error focus:border-error'
 										: 'border-border focus:border-primary',
 								)}
 							>
@@ -1015,7 +1037,7 @@ export const RecipeFormDetailed = ({
 								))}
 							</select>
 							{errors.category && (
-								<p className='mt-1.5 text-sm text-red-500'>{errors.category}</p>
+								<p className='mt-1.5 text-sm text-error'>{errors.category}</p>
 							)}
 						</div>
 					</div>
@@ -1030,9 +1052,7 @@ export const RecipeFormDetailed = ({
 						<div>
 							<h2 className='text-xl font-bold text-text'>Ingredients</h2>
 							{errors.ingredients && (
-								<p className='mt-1 text-sm text-red-500'>
-									{errors.ingredients}
-								</p>
+								<p className='mt-1 text-sm text-error'>{errors.ingredients}</p>
 							)}
 						</div>
 						<motion.button
@@ -1102,7 +1122,7 @@ export const RecipeFormDetailed = ({
 								)}
 							</div>
 							{errors.steps && (
-								<p className='mt-1 text-sm text-red-500'>{errors.steps}</p>
+								<p className='mt-1 text-sm text-error'>{errors.steps}</p>
 							)}
 						</div>
 						<motion.button

@@ -376,8 +376,8 @@ export const SharePostModal = ({
 															className={cn(
 																'absolute -bottom-0.5 -right-0.5 grid size-4.5 place-items-center rounded-full border-2 border-bg-card shadow-sm sm:size-5',
 																conv.type === 'GROUP'
-																	? 'bg-purple-500'
-																	: 'bg-green-500',
+																	? 'bg-accent-purple'
+																	: 'bg-success',
 															)}
 														>
 															{conv.type === 'GROUP' ? (

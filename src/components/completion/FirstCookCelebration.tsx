@@ -47,47 +47,66 @@ interface FirstCookCelebrationProps {
 	onContinueCooking: () => void
 }
 
-// ============================================
-// CONSTANTS
-// ============================================
-
-const UNLOCKS: UnlockItem[] = [
+const buildUnlocks = (
+	immediateXp: number,
+	pendingXp: number,
+	postDeadlineDays: number,
+): UnlockItem[] => [
 	{
 		id: 'badge',
 		emoji: '🎖️',
 		name: 'First Dish Badge',
 		description: 'Your first of many!',
-		glowColor: 'rgba(255, 215, 0, 0.3)', // bonus gold
+		glowColor: 'rgba(255, 215, 0, 0.3)',
 	},
 	{
 		id: 'xp',
 		emoji: '⚡',
-		name: '+30 XP',
-		description: 'Your first XP ever!',
-		glowColor: 'rgba(0, 212, 255, 0.3)', // xp cyan
+		name: `+${Math.round(immediateXp)} XP`,
+		description: 'Earned immediately for finishing the cook',
+		glowColor: 'rgba(0, 212, 255, 0.3)',
 	},
 	{
-		id: 'level',
-		emoji: '📈',
-		name: 'Level 1 Started',
-		description: '70 more XP to Level 2',
-		glowColor: 'rgba(52, 211, 153, 0.3)', // level emerald
+		id: 'share-bonus',
+		emoji: '📸',
+		name: `+${Math.round(pendingXp)} XP waiting`,
+		description: `Post your dish within ${postDeadlineDays} days to claim it`,
+		glowColor: 'rgba(52, 211, 153, 0.3)',
 	},
 	{
 		id: 'challenges',
 		emoji: '🎯',
 		name: 'Daily Challenges',
-		description: 'New challenge every day!',
-		glowColor: 'rgba(168, 85, 247, 0.3)', // rare purple
+		description: 'Bonus XP rotates in every day',
+		glowColor: 'rgba(168, 85, 247, 0.3)',
 	},
 ]
 
-const JOURNEY: JourneyNode[] = [
-	{ id: '1', label: 'First Dish', status: 'done', statusText: '✓ Done' },
-	{ id: '2', label: 'First Post', status: 'upcoming', statusText: '+70 XP' },
-	{ id: '3', label: 'Level 2', status: 'locked', statusText: 'Coming soon' },
-	{ id: '4', label: 'First Badge', status: 'locked', statusText: 'Mystery' },
+const buildJourney = (pendingXp: number): JourneyNode[] => [
+	{ id: '1', label: 'First Dish', status: 'done', statusText: 'Completed' },
+	{
+		id: '2',
+		label: 'Share Your Dish',
+		status: 'upcoming',
+		statusText: `+${Math.round(pendingXp)} XP`,
+	},
+	{
+		id: '3',
+		label: 'Keep Cooking',
+		status: 'locked',
+		statusText: 'Build your streak',
+	},
+	{
+		id: '4',
+		label: 'More Badges',
+		status: 'locked',
+		statusText: 'Cook and post more',
+	},
 ]
+
+// ============================================
+// CONSTANTS
+// ============================================
 
 // ============================================
 // SUB-COMPONENTS
@@ -128,7 +147,7 @@ const BurstRings = () => (
 				}}
 				className={cn(
 					'absolute inset-0 rounded-full border-3',
-					i === 0 && 'border-amber-400',
+					i === 0 && 'border-warning/40',
 					i === 1 && 'border-streak',
 					i === 2 && 'border-streak-urgent',
 				)}
@@ -228,6 +247,9 @@ export const FirstCookCelebration = ({
 	onShareAchievement,
 	onContinueCooking,
 }: FirstCookCelebrationProps) => {
+	const unlocks = buildUnlocks(immediateXp, pendingXp, postDeadlineDays)
+	const journey = buildJourney(pendingXp)
+
 	return (
 		<AnimatePresence>
 			{isOpen && (
@@ -314,7 +336,7 @@ export const FirstCookCelebration = ({
 									You just unlocked:
 								</h3>
 								<div className='grid grid-cols-2 gap-3 max-md:grid-cols-1'>
-									{UNLOCKS.map((item, i) => (
+									{unlocks.map((item, i) => (
 										<UnlockCard key={item.id} item={item} index={i} />
 									))}
 								</div>
@@ -344,10 +366,10 @@ export const FirstCookCelebration = ({
 									Your Chef Journey:
 								</h3>
 								<div className='-mx-6 flex items-start gap-0 overflow-x-auto px-6 py-2 max-md:-mx-6'>
-									{JOURNEY.map((node, i) => (
+									{journey.map((node, i) => (
 										<>
 											<JourneyNodeComponent key={node.id} node={node} />
-											{i < JOURNEY.length - 1 && (
+											{i < journey.length - 1 && (
 												<div className='mt-5 h-0.5 min-w-5 flex-1 bg-border' />
 											)}
 										</>
@@ -391,7 +413,7 @@ export const FirstCookCelebration = ({
 							</div>
 
 							{/* Motivational footer */}
-							<div className='rounded-xl bg-amber-500/10 p-3.5 text-center text-sm'>
+							<div className='rounded-xl bg-warning/10 p-3.5 text-center text-sm'>
 								🍳 <strong>Tip:</strong> Complete a challenge today for bonus
 								XP!
 							</div>

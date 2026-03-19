@@ -94,16 +94,14 @@ export function StreakBrokenModal({
 
 							{/* Best Streak */}
 							{bestStreak && bestStreak > lostStreak && (
-								<div className='flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500/10 rounded-lg mb-6'>
+								<div className='mb-6 flex items-center justify-center gap-2 rounded-lg bg-success/10 px-4 py-3'>
 									<span className='text-xs text-muted-foreground'>
 										Your best streak:
 									</span>
-									<span className='text-sm font-bold text-emerald-500'>
+									<span className='text-sm font-bold text-success'>
 										{bestStreak} days
 									</span>
-									<span className='text-xs text-emerald-500'>
-										You can beat it!
-									</span>
+									<span className='text-xs text-success'>You can beat it!</span>
 								</div>
 							)}
 

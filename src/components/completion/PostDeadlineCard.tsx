@@ -159,13 +159,13 @@ export const PostDeadlineCard = ({
 		urgent: {
 			icon: '🚨',
 			label: 'LAST CHANCE!',
-			borderClass: 'border-red-500/40',
+			borderClass: 'border-error/40',
 			bgClass: '',
-			labelClass: 'text-red-500 animate-pulse',
-			deadlineClass: 'text-red-500 font-bold',
-			xpBgClass: 'bg-red-500/10',
-			xpTextClass: 'text-red-500',
-			buttonClass: 'bg-red-500 hover:bg-red-600',
+			labelClass: 'text-error animate-pulse',
+			deadlineClass: 'text-error font-bold',
+			xpBgClass: 'bg-error/10',
+			xpTextClass: 'text-error',
+			buttonClass: 'bg-error hover:bg-error/90',
 			ClockIcon: Timer,
 		},
 		expired: {
@@ -175,8 +175,8 @@ export const PostDeadlineCard = ({
 			bgClass: 'opacity-70',
 			labelClass: 'text-muted-foreground',
 			deadlineClass: 'text-muted-foreground',
-			xpBgClass: 'bg-red-500/10',
-			xpTextClass: 'text-red-500',
+			xpBgClass: 'bg-error/10',
+			xpTextClass: 'text-error',
 			buttonClass: '',
 			ClockIcon: Clock,
 		},
@@ -408,8 +408,8 @@ export const PostDeadlineStack = ({
 										<span
 											className={cn(
 												'text-xs',
-												state === 'urgent' && 'font-semibold text-red-500',
-												state === 'warning' && 'text-amber-500',
+												state === 'urgent' && 'font-semibold text-error',
+												state === 'warning' && 'text-warning',
 												state === 'normal' && 'text-muted-foreground',
 											)}
 										>
@@ -497,7 +497,7 @@ export const PostDeadlineMobileStrip = ({
 				'flex items-center gap-2.5 border-b px-4 py-2.5',
 				state === 'warning' && 'border-gold/30 bg-gold/10',
 				state === 'urgent' &&
-					'border-red-500/30 bg-gradient-to-r from-red-500/10 to-transparent',
+					'border-error/30 bg-gradient-to-r from-error/10 to-transparent',
 				state === 'normal' && 'border-border bg-panel-bg',
 				className,
 			)}

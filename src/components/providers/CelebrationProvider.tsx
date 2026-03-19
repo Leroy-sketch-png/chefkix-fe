@@ -28,6 +28,7 @@ import {
 	StreakBrokenModal,
 } from '@/components/streak'
 import { ChallengeComplete } from '@/components/challenges'
+import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
 import type { Badge } from '@/lib/types/gamification'
 
@@ -404,7 +405,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 				)
 				sessionStorage.setItem('pendingPostPhotos', JSON.stringify(photoData))
 			} catch (e) {
-				console.error('Failed to store photos:', e)
+				logDevError('Failed to store photos:', e)
 			}
 		}
 

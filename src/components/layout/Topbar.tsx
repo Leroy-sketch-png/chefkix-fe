@@ -22,6 +22,7 @@ import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
+import { logDevError } from '@/lib/dev-log'
 
 export const Topbar = () => {
 	const { user } = useAuth()
@@ -57,7 +58,7 @@ export const Topbar = () => {
 					setUnreadMessages(totalUnread)
 				}
 			} catch (err) {
-				console.error('Failed to fetch unread counts:', err)
+				logDevError('Failed to fetch unread counts:', err)
 			}
 		}
 
@@ -72,7 +73,7 @@ export const Topbar = () => {
 			// Call backend logout to invalidate session/cookies
 			await logoutService()
 		} catch (error) {
-			console.error('Logout error:', error)
+			logDevError('Logout error:', error)
 			// Continue with local logout even if backend call fails
 		} finally {
 			// Always clear local state and redirect
@@ -118,7 +119,14 @@ export const Topbar = () => {
 				</motion.div>
 			</Link>
 			{/* Search Bar - constrained max width, with left margin to avoid overlapping the absolute logo */}
-			<div className='group relative ml-20 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:ml-24 md:px-4 md:py-2.5'>
+			<form
+				onSubmit={e => {
+					e.preventDefault()
+					const q = searchQuery.trim()
+					if (q) router.push(`/explore?q=${encodeURIComponent(q)}`)
+				}}
+				className='group relative ml-20 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:ml-24 md:px-4 md:py-2.5'
+			>
 				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:rotate-12 group-focus-within:text-primary' />
 				<input
 					type='text'
@@ -127,7 +135,7 @@ export const Topbar = () => {
 					onChange={e => setSearchQuery(e.target.value)}
 					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-primary outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
 				/>
-			</div>
+			</form>
 
 			{/* 
 				Mode Toggle REMOVED (Steve Jobs Audit 2024-12-20)
@@ -142,141 +150,158 @@ export const Topbar = () => {
 			{/* Cooking Indicator - Shows when actively cooking */}
 			<CookingIndicator />
 
-			{/* User Profile - Hidden on mobile, shows level badge only on larger screens */}
+			{/* Level Badge - desktop only */}
 			{user && (
-				<div className='hidden items-center gap-2 md:flex lg:gap-3'>
-					{/* Level Badge with XP - only show on larger screens */}
-					<motion.div
-						whileHover={{ scale: 1.05 }}
-						className='relative hidden overflow-hidden rounded-xl bg-gradient-gold px-4 py-2 text-sm font-bold text-amber-950 shadow-md lg:flex lg:items-center lg:gap-2'
-					>
-						<span className='relative z-10'>
-							Lv. {user.statistics?.currentLevel || 1}
-						</span>
-						{/* XP Progress bar inside */}
-						<div className='relative z-10 hidden h-1.5 w-16 overflow-hidden rounded-full bg-amber-950/20 xl:block'>
-							<motion.div
-								className='h-full rounded-full bg-amber-950/40'
-								initial={{ width: 0 }}
-								animate={{ width: `${xpProgress}%` }}
-								transition={{ duration: 1, ease: 'easeOut' }}
-							/>
-						</div>
-						<div className='pointer-events-none absolute inset-0 animate-shine bg-gradient-to-r from-transparent via-white/30 to-transparent' />
-					</motion.div>
-
-					{/* Avatar with XP Ring */}
-					<div className='relative'>
-						<motion.button
-							ref={avatarButtonRef}
-							onClick={() => {
-								if (!showUserMenu && avatarButtonRef.current) {
-									const rect = avatarButtonRef.current.getBoundingClientRect()
-									setMenuPosition({
-										top: rect.bottom + 8,
-										right: window.innerWidth - rect.right,
-									})
-								}
-								setShowUserMenu(!showUserMenu)
-							}}
-							whileHover={{ scale: 1.05, y: -2 }}
-							whileTap={{ scale: 0.98 }}
-							transition={TRANSITION_SPRING}
-							className='group relative cursor-pointer'
-						>
-							{/* XP Progress Ring */}
-							<svg className='absolute -inset-1 size-14' viewBox='0 0 56 56'>
-								<circle
-									cx='28'
-									cy='28'
-									r='26'
-									fill='none'
-									stroke='currentColor'
-									strokeWidth='3'
-									className='text-border-subtle'
-								/>
-								<motion.circle
-									cx='28'
-									cy='28'
-									r='26'
-									fill='none'
-									stroke='url(#xpGradient)'
-									strokeWidth='3'
-									strokeLinecap='round'
-									strokeDasharray={`${2 * Math.PI * 26}`}
-									initial={{ strokeDashoffset: 2 * Math.PI * 26 }}
-									animate={{
-										strokeDashoffset: 2 * Math.PI * 26 * (1 - xpProgress / 100),
-									}}
-									transition={{ duration: 1.5, ease: 'easeOut' }}
-									style={{
-										transform: 'rotate(-90deg)',
-										transformOrigin: 'center',
-									}}
-								/>
-								<defs>
-									<linearGradient
-										id='xpGradient'
-										x1='0%'
-										y1='0%'
-										x2='100%'
-										y2='100%'
-									>
-										<stop offset='0%' stopColor='#8b5cf6' />
-										<stop offset='100%' stopColor='#a855f7' />
-									</linearGradient>
-								</defs>
-							</svg>
-							<Avatar size='lg' className='shadow-lg'>
-								<AvatarImage
-									src={user.avatarUrl || '/placeholder-avatar.png'}
-									alt={user.displayName || 'User'}
-								/>
-								<AvatarFallback>
-									{user.displayName
-										?.split(' ')
-										.map(n => n[0])
-										.join('')
-										.toUpperCase()
-										.slice(0, 2) || 'U'}
-								</AvatarFallback>
-							</Avatar>
-						</motion.button>
-
-						{/* Dropdown Menu - Portaled to escape overflow:hidden clipping */}
-						{showUserMenu && (
-							<Portal>
-								{/* Click outside to close */}
-								<div
-									className='fixed inset-0 z-dropdown'
-									onClick={() => setShowUserMenu(false)}
-								/>
-								<div
-									className='fixed z-dropdown w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg animate-in fade-in-0 zoom-in-95'
-									style={{
-										top: `${menuPosition.top}px`,
-										right: `${menuPosition.right}px`,
-									}}
-								>
-									<Link
-										href={PATHS.SETTINGS}
-										onClick={() => setShowUserMenu(false)}
-										className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
-									>
-										<Settings className='size-4' />
-										<span>Settings</span>
-									</Link>
-									<button
-										onClick={handleLogout}
-										className='flex h-11 w-full items-center gap-3 rounded-b-lg px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
-									>
-										<LogOut className='size-4' />
-										<span>Sign Out</span>
-									</button>
-								</div>
-							</Portal>
-						)}
+				<motion.div
+					whileHover={{ scale: 1.05 }}
+					className='relative hidden overflow-hidden rounded-xl bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-md lg:flex lg:items-center lg:gap-2'
+				>
+					<span className='relative z-10'>
+						Lv. {user.statistics?.currentLevel || 1}
+					</span>
+					{/* XP Progress bar inside */}
+					<div className='relative z-10 hidden h-1.5 w-16 overflow-hidden rounded-full bg-text/10 xl:block'>
+						<motion.div
+							className='h-full rounded-full bg-text/25'
+							initial={{ width: 0 }}
+							animate={{ width: `${xpProgress}%` }}
+							transition={{ duration: 1, ease: 'easeOut' }}
+						/>
 					</div>
+					<div className='pointer-events-none absolute inset-0 animate-shine bg-gradient-to-r from-transparent via-white/30 to-transparent' />
+				</motion.div>
+			)}
+
+			{/* Avatar with dropdown - visible on ALL screen sizes (Settings + Sign Out access on mobile) */}
+			{user && (
+				<div className='relative'>
+					<motion.button
+						ref={avatarButtonRef}
+						onClick={() => {
+							if (!showUserMenu && avatarButtonRef.current) {
+								const rect = avatarButtonRef.current.getBoundingClientRect()
+								setMenuPosition({
+									top: rect.bottom + 8,
+									right: window.innerWidth - rect.right,
+								})
+							}
+							setShowUserMenu(!showUserMenu)
+						}}
+						whileHover={{ scale: 1.05, y: -2 }}
+						whileTap={{ scale: 0.98 }}
+						transition={TRANSITION_SPRING}
+						className='group relative cursor-pointer'
+					>
+						{/* XP Progress Ring - hidden on mobile for compactness */}
+						<svg
+							className='absolute -inset-1 hidden size-14 md:block'
+							viewBox='0 0 56 56'
+						>
+							<circle
+								cx='28'
+								cy='28'
+								r='26'
+								fill='none'
+								stroke='currentColor'
+								strokeWidth='3'
+								className='text-border-subtle'
+							/>
+							<motion.circle
+								cx='28'
+								cy='28'
+								r='26'
+								fill='none'
+								stroke='url(#xpGradient)'
+								strokeWidth='3'
+								strokeLinecap='round'
+								strokeDasharray={`${2 * Math.PI * 26}`}
+								initial={{ strokeDashoffset: 2 * Math.PI * 26 }}
+								animate={{
+									strokeDashoffset: 2 * Math.PI * 26 * (1 - xpProgress / 100),
+								}}
+								transition={{ duration: 1.5, ease: 'easeOut' }}
+								style={{
+									transform: 'rotate(-90deg)',
+									transformOrigin: 'center',
+								}}
+							/>
+							<defs>
+								<linearGradient
+									id='xpGradient'
+									x1='0%'
+									y1='0%'
+									x2='100%'
+									y2='100%'
+								>
+									<stop offset='0%' stopColor='#8b5cf6' />
+									<stop offset='100%' stopColor='#a855f7' />
+								</linearGradient>
+							</defs>
+						</svg>
+						{/* Smaller avatar on mobile, larger on desktop */}
+						<Avatar size='lg' className='hidden shadow-lg md:flex'>
+							<AvatarImage
+								src={user.avatarUrl || '/placeholder-avatar.png'}
+								alt={user.displayName || 'User'}
+							/>
+							<AvatarFallback>
+								{user.displayName
+									?.split(' ')
+									.map(n => n[0])
+									.join('')
+									.toUpperCase()
+									.slice(0, 2) || 'U'}
+							</AvatarFallback>
+						</Avatar>
+						<Avatar size='sm' className='shadow-md md:hidden'>
+							<AvatarImage
+								src={user.avatarUrl || '/placeholder-avatar.png'}
+								alt={user.displayName || 'User'}
+							/>
+							<AvatarFallback>
+								{user.displayName
+									?.split(' ')
+									.map(n => n[0])
+									.join('')
+									.toUpperCase()
+									.slice(0, 2) || 'U'}
+							</AvatarFallback>
+						</Avatar>
+					</motion.button>
+
+					{/* Dropdown Menu - Portaled to escape overflow:hidden clipping */}
+					{showUserMenu && (
+						<Portal>
+							{/* Click outside to close */}
+							<div
+								className='fixed inset-0 z-dropdown'
+								onClick={() => setShowUserMenu(false)}
+							/>
+							<div
+								className='fixed z-dropdown w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg animate-in fade-in-0 zoom-in-95'
+								style={{
+									top: `${menuPosition.top}px`,
+									right: `${menuPosition.right}px`,
+								}}
+							>
+								<Link
+									href={PATHS.SETTINGS}
+									onClick={() => setShowUserMenu(false)}
+									className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
+								>
+									<Settings className='size-4' />
+									<span>Settings</span>
+								</Link>
+								<button
+									onClick={handleLogout}
+									className='flex h-11 w-full items-center gap-3 rounded-b-lg px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+								>
+									<LogOut className='size-4' />
+									<span>Sign Out</span>
+								</button>
+							</div>
+						</Portal>
+					)}
 				</div>
 			)}
 			{/* Communication Icons */}
