@@ -392,7 +392,10 @@ export default function ShoppingListsPage() {
 								>
 									<div className='flex items-end gap-3'>
 										<div className='flex-1 space-y-2'>
-											<label htmlFor='shopping-item-name' className='text-xs font-medium text-text-muted'>
+											<label
+												htmlFor='shopping-item-name'
+												className='text-xs font-medium text-text-muted'
+											>
 												Item name
 											</label>
 											<input
@@ -411,7 +414,10 @@ export default function ShoppingListsPage() {
 											/>
 										</div>
 										<div className='w-24 space-y-2'>
-											<label htmlFor='shopping-quantity' className='text-xs font-medium text-text-muted'>
+											<label
+												htmlFor='shopping-quantity'
+												className='text-xs font-medium text-text-muted'
+											>
 												Quantity
 											</label>
 											<input
@@ -541,7 +547,7 @@ export default function ShoppingListsPage() {
 														{/* Remove */}
 														<button
 															onClick={() => handleRemoveItem(item.itemId)}
-															className='flex-shrink-0 rounded-md p-1 text-text-muted opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100'
+															className='flex-shrink-0 rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
 															aria-label='Remove item'
 														>
 															<Trash2 className='size-4' />
@@ -609,7 +615,7 @@ export default function ShoppingListsPage() {
 												disabled={isCreating}
 												className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
 											>
-												<CalendarDays className='size-4 text-blue-500' />
+												<CalendarDays className='size-4 text-info' />
 												<div>
 													<div className='font-medium'>From Meal Plan</div>
 													<div className='text-xs text-text-muted'>
@@ -622,7 +628,7 @@ export default function ShoppingListsPage() {
 												disabled={isCreating}
 												className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
 											>
-												<FileText className='size-4 text-emerald-500' />
+												<FileText className='size-4 text-success' />
 												<div>
 													<div className='font-medium'>Custom List</div>
 													<div className='text-xs text-text-muted'>
@@ -706,7 +712,7 @@ export default function ShoppingListsPage() {
 													e.stopPropagation()
 													setConfirmingDeleteId(list.id)
 												}}
-												className='rounded-md p-1 text-text-muted opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100'
+												className='rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
 												aria-label='Delete list'
 											>
 												<Trash2 className='size-4' />

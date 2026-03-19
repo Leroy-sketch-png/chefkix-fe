@@ -312,7 +312,7 @@ export const ReportModal = ({
 												value={details}
 												onChange={e => setDetails(e.target.value)}
 												placeholder='Provide more context...'
-												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-purple-500'
+												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
 											/>
 										</div>
 
@@ -728,7 +728,7 @@ export const AppealModal = ({
 													setAppealText(e.target.value.slice(0, 1000))
 												}
 												placeholder='Explain your side of the situation. Provide any context or evidence that might help us review your case...'
-												className='min-h-textarea w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-4 text-sm leading-relaxed outline-none transition-colors focus:border-purple-500'
+												className='min-h-textarea w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-4 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
 											/>
 											<div className='mt-2 text-right text-xs text-text-muted'>
 												{appealText.length} / 1000

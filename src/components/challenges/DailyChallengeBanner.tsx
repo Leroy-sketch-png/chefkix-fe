@@ -187,7 +187,7 @@ const ActiveChallengeBanner = ({
 				<div className='mb-3 flex items-center gap-3.5'>
 					<ChallengeIcon icon={challenge.icon} />
 					<div className='flex-1'>
-						<span className='text-xs font-bold uppercase tracking-wide text-indigo-500'>
+						<span className='text-xs font-bold uppercase tracking-wide text-accent-purple'>
 							Daily Challenge
 						</span>
 						<h3 className='text-xl font-extrabold'>{challenge.title}</h3>
@@ -240,7 +240,7 @@ const ActiveChallengeBanner = ({
 							))}
 							<Link
 								href='/recipes?challenge=today'
-								className='flex flex-shrink-0 items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-2 text-sm font-medium text-indigo-500 transition-colors hover:bg-indigo-500/20'
+								className='flex flex-shrink-0 items-center rounded-full border border-accent-purple/30 bg-accent-purple/10 px-3.5 py-2 text-sm font-medium text-accent-purple transition-colors hover:bg-accent-purple/20'
 							>
 								+{challenge.matchingRecipes.length - 2} more
 							</Link>
@@ -499,7 +499,7 @@ const FeaturedChallengeBanner = ({
 					onClick={onBrowseRecipes}
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
-					className='inline-flex w-fit items-center gap-2 rounded-xl bg-white px-7 py-4 text-base font-bold text-indigo-500 shadow-xl'
+					className='inline-flex w-fit items-center gap-2 rounded-xl bg-bg-card px-7 py-4 text-base font-bold text-accent-purple shadow-xl'
 				>
 					<ChefHat className='h-5 w-5' />
 					Browse Italian Recipes

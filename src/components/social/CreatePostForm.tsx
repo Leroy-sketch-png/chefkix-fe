@@ -32,6 +32,8 @@ export const CreatePostForm = ({
 	onPostCreated,
 	currentUser,
 }: CreatePostFormProps) => {
+	const MAX_PHOTO_COUNT = 5
+	const MAX_PHOTO_SIZE = 10 * 1024 * 1024
 	const [content, setContent] = useState('')
 	const [videoUrl, setVideoUrl] = useState('')
 	const [tags, setTags] = useState('')
@@ -44,8 +46,31 @@ export const CreatePostForm = ({
 		const files = Array.from(e.target.files || [])
 		if (files.length === 0) return
 
+		const invalidFile = files.find(
+			file => !file.type.startsWith('image/') || file.size > MAX_PHOTO_SIZE,
+		)
+		if (invalidFile) {
+			toast.error(
+				!invalidFile.type.startsWith('image/')
+					? 'Only image files can be attached to a post'
+					: 'Each photo must be under 10MB',
+			)
+			e.currentTarget.value = ''
+			return
+		}
+
+		if (photoFiles.length >= MAX_PHOTO_COUNT) {
+			toast.error('You can attach up to 5 photos per post')
+			e.currentTarget.value = ''
+			return
+		}
+
 		// Limit to 5 images
-		const selectedFiles = files.slice(0, 5 - photoFiles.length)
+		const remainingSlots = MAX_PHOTO_COUNT - photoFiles.length
+		const selectedFiles = files.slice(0, remainingSlots)
+		if (selectedFiles.length < files.length) {
+			toast.warning('Only the first 5 photos were added')
+		}
 		setPhotoFiles(prev => [...prev, ...selectedFiles])
 
 		// Create preview URLs
@@ -130,7 +155,7 @@ export const CreatePostForm = ({
 				})
 				toast.warning(
 					moderationResult.data.reason ||
-						'Your post may contain sensitive content and will be reviewed.',
+						'Your post may contain sensitive content. It will still be published, but it may be reviewed by moderation.',
 				)
 			}
 		}
@@ -269,6 +294,7 @@ export const CreatePostForm = ({
 										<button
 											type='button'
 											onClick={() => removePhoto(index)}
+											aria-label={`Remove photo ${index + 1}`}
 											className='absolute right-1 top-1 h-8 w-8 rounded-full bg-text-primary/60 text-bg-card opacity-0 transition-opacity group-hover:opacity-100'
 										>
 											<X className='mx-auto h-4 w-4' />
@@ -289,7 +315,10 @@ export const CreatePostForm = ({
 								className='mt-3 space-y-3'
 							>
 								<div>
-									<label htmlFor='post-video-url' className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
+									<label
+										htmlFor='post-video-url'
+										className='mb-1 block text-sm font-medium leading-normal text-text-primary'
+									>
 										Video URL (optional)
 									</label>
 									<input
@@ -302,7 +331,10 @@ export const CreatePostForm = ({
 									/>
 								</div>
 								<div>
-									<label htmlFor='post-tags' className='mb-1 block text-sm font-medium leading-normal text-text-primary'>
+									<label
+										htmlFor='post-tags'
+										className='mb-1 block text-sm font-medium leading-normal text-text-primary'
+									>
 										Tags (comma-separated)
 									</label>
 									<input
@@ -323,6 +355,7 @@ export const CreatePostForm = ({
 				<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
 					<div className='flex gap-2'>
 						<label className='group h-11 w-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
+							<span className='sr-only'>Add photos</span>
 							<ImageIcon className='mx-auto mt-2.5 h-5 w-5 text-text-secondary transition-colors group-hover:text-primary' />
 							<input
 								type='file'
@@ -330,13 +363,14 @@ export const CreatePostForm = ({
 								multiple
 								onChange={handlePhotoSelect}
 								className='hidden'
-								disabled={photoFiles.length >= 5}
+								disabled={photoFiles.length >= MAX_PHOTO_COUNT}
 							/>
 						</label>
 
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
+							aria-label='Toggle video options'
 							className={`h-11 w-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-primary/10 text-primary'
@@ -349,6 +383,7 @@ export const CreatePostForm = ({
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
+							aria-label='Toggle tag options'
 							className={`h-11 w-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-primary/10 text-primary'

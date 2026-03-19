@@ -13,6 +13,62 @@ import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
 import { AxiosError } from 'axios'
 
+type PostPageData = {
+	content: Post[]
+	totalElements: number
+	totalPages: number
+	number: number
+	size: number
+	first: boolean
+	last: boolean
+}
+
+const isPostPageData = (data: unknown): data is PostPageData => {
+	if (!data || typeof data !== 'object' || !('content' in data)) return false
+	const candidate = data as { content?: unknown }
+	return Array.isArray(candidate.content)
+}
+
+const mapPostPageResponse = (
+	response: ApiResponse<PostPageData | Post[]>,
+): ApiResponse<Post[]> & { pagination?: PaginationMeta } => {
+	if (!response.success || !response.data) {
+		return {
+			...response,
+			data: Array.isArray(response.data) ? response.data : [],
+		}
+	}
+
+	if (Array.isArray(response.data)) {
+		return {
+			...response,
+			data: response.data,
+		}
+	}
+
+	if (isPostPageData(response.data)) {
+		return {
+			...response,
+			data: response.data.content,
+			pagination: {
+				page: response.data.number,
+				size: response.data.size,
+				totalElements: response.data.totalElements,
+				totalPages: response.data.totalPages,
+				first: response.data.first,
+				last: response.data.last,
+			},
+		}
+	}
+
+	return {
+		success: false,
+		message: 'Unexpected response format',
+		statusCode: 500,
+		data: [],
+	}
+}
+
 /**
  * Post API Service
  *
@@ -237,51 +293,26 @@ export const getFollowingFeedPosts = async (params?: {
 > => {
 	try {
 		const backendParams = toBackendPagination(params) ?? params
-		const response = await api.get<
-			ApiResponse<{
-				content: Post[]
-				totalElements: number
-				totalPages: number
-				number: number
-				size: number
-				first: boolean
-				last: boolean
-			}>
-		>(API_ENDPOINTS.POST.GET_FOLLOWING, {
-			params: {
-				...backendParams,
-				mode: params?.mode === 'trending' ? 1 : 0,
-			},
-		})
-		if (response.data.success && response.data.data?.content) {
-			const pageData = response.data.data
-			return {
-				...response.data,
-				data: pageData.content,
-				pagination: {
-					page: pageData.number,
-					size: pageData.size,
-					totalElements: pageData.totalElements,
-					totalPages: pageData.totalPages,
-					first: pageData.first,
-					last: pageData.last,
+		const response = await api.get<ApiResponse<PostPageData | Post[]>>(
+			API_ENDPOINTS.POST.GET_FOLLOWING,
+			{
+				params: {
+					...backendParams,
+					mode: params?.mode === 'trending' ? 1 : 0,
 				},
-			}
-		}
-		return {
-			success: false,
-			message: 'Unexpected response format',
-			statusCode: 500,
-		}
+			},
+		)
+		return mapPostPageResponse(response.data)
 	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<Post[]>>
+		const axiosError = error as AxiosError<ApiResponse<PostPageData | Post[]>>
 		if (axiosError.response) {
-			return axiosError.response.data
+			return mapPostPageResponse(axiosError.response.data)
 		}
 		return {
 			success: false,
 			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
+			data: [],
 		}
 	}
 }
@@ -299,54 +330,26 @@ export const getFeedPosts = async (params?: {
 > => {
 	try {
 		const backendParams = toBackendPagination(params) ?? params
-		// Backend returns ApiResponse<Page<PostResponse>>
-		const response = await api.get<
-			ApiResponse<{
-				content: Post[]
-				totalElements: number
-				totalPages: number
-				number: number
-				size: number
-				first: boolean
-				last: boolean
-			}>
-		>(API_ENDPOINTS.POST.GET_ALL, {
-			params: {
-				...backendParams,
-				mode: params?.mode === 'trending' ? 1 : 0, // Convert to backend mode int
-			},
-		})
-		// Extract posts from Page.content and preserve pagination metadata
-		if (response.data.success && response.data.data?.content) {
-			const pageData = response.data.data
-			return {
-				...response.data,
-				data: pageData.content,
-				pagination: {
-					page: pageData.number,
-					size: pageData.size,
-					totalElements: pageData.totalElements,
-					totalPages: pageData.totalPages,
-					first: pageData.first,
-					last: pageData.last,
+		const response = await api.get<ApiResponse<PostPageData | Post[]>>(
+			API_ENDPOINTS.POST.GET_ALL,
+			{
+				params: {
+					...backendParams,
+					mode: params?.mode === 'trending' ? 1 : 0, // Convert to backend mode int
 				},
-			}
-		}
-		// Fallback for unexpected response structure
-		return {
-			success: false,
-			message: 'Unexpected response format',
-			statusCode: 500,
-		}
+			},
+		)
+		return mapPostPageResponse(response.data)
 	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<Post[]>>
+		const axiosError = error as AxiosError<ApiResponse<PostPageData | Post[]>>
 		if (axiosError.response) {
-			return axiosError.response.data
+			return mapPostPageResponse(axiosError.response.data)
 		}
 		return {
 			success: false,
 			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
+			data: [],
 		}
 	}
 }

@@ -31,6 +31,7 @@ import {
 import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // HELPERS
@@ -264,6 +265,7 @@ export default function MessagesPage() {
 	const [conversationError, setConversationError] = useState<string | null>(
 		null,
 	)
+	const [retryCount, setRetryCount] = useState(0)
 
 	// Mobile: show chat panel when conversation selected
 	const [showMobileChat, setShowMobileChat] = useState(false)
@@ -305,6 +307,9 @@ export default function MessagesPage() {
 
 	// Initialize chat & handle ?userId= param
 	useEffect(() => {
+		// Reset the guard so a new targetUserId is handled on re-navigation
+		hasHandledUserIdRef.current = false
+
 		const initializeChat = async () => {
 			setIsLoadingConversations(true)
 			setConversationError(null)
@@ -357,7 +362,7 @@ export default function MessagesPage() {
 					setIsCreatingConversation(false)
 				}
 			} catch (err) {
-				console.error('Failed to initialize chat:', err)
+				logDevError('Failed to initialize chat:', err)
 				setConversationError('Failed to load conversations')
 			} finally {
 				setIsLoadingConversations(false)
@@ -365,7 +370,7 @@ export default function MessagesPage() {
 		}
 
 		initializeChat()
-	}, [targetUserId])
+	}, [targetUserId, retryCount])
 
 	// Fetch messages when conversation changes
 	const selectedConversationId = selectedConversation?.id
@@ -383,7 +388,7 @@ export default function MessagesPage() {
 					setMessages(response.data)
 				}
 			} catch (err) {
-				console.error('Failed to fetch messages:', err)
+				logDevError('Failed to fetch messages:', err)
 			} finally {
 				setIsLoadingMessages(false)
 			}
@@ -422,7 +427,7 @@ export default function MessagesPage() {
 					setNewMessage(messageText)
 				}
 			} catch (err) {
-				console.error('Failed to send message:', err)
+				logDevError('Failed to send message:', err)
 				setNewMessage(messageText)
 			} finally {
 				setIsSending(false)
@@ -521,7 +526,10 @@ export default function MessagesPage() {
 							<Button
 								variant='outline'
 								size='sm'
-								onClick={() => window.location.reload()}
+								onClick={() => {
+									setConversationError(null)
+									setRetryCount(c => c + 1)
+								}}
 							>
 								Retry
 							</Button>

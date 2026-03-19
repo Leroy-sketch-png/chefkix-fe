@@ -169,6 +169,11 @@ function recipeDefaults(): Partial<Recipe> {
 	}
 }
 
+function sanitizeTransientMediaUrl(url?: string): string | undefined {
+	if (!url) return undefined
+	return url.startsWith('blob:') ? undefined : url
+}
+
 // ============================================
 // TRANSFORMS
 // ============================================
@@ -208,7 +213,9 @@ export function parsedRecipeToRecipe(parsed: ParsedRecipeInput): Recipe {
 		...recipeDefaults(),
 		title: parsed.title,
 		description: parsed.description,
-		coverImageUrl: parsed.coverImageUrl ? [parsed.coverImageUrl] : [],
+		coverImageUrl: sanitizeTransientMediaUrl(parsed.coverImageUrl)
+			? [sanitizeTransientMediaUrl(parsed.coverImageUrl)!]
+			: [],
 		difficulty: parsed.difficulty as Recipe['difficulty'],
 		prepTimeMinutes: 0,
 		cookTimeMinutes: totalTimeMinutes,
@@ -246,7 +253,7 @@ export function formDataToRecipe(form: RecipeFormDataInput): Recipe {
 		title: `Step ${idx + 1}`,
 		description: s.instruction,
 		timerSeconds: s.timerSeconds,
-		imageUrl: s.imageUrl,
+		imageUrl: sanitizeTransientMediaUrl(s.imageUrl),
 		videoUrl: s.videoUrl,
 		videoThumbnailUrl: s.videoThumbnailUrl,
 		videoDurationSec: s.videoDurationSec,
@@ -260,7 +267,9 @@ export function formDataToRecipe(form: RecipeFormDataInput): Recipe {
 		...recipeDefaults(),
 		title: form.title,
 		description: form.description,
-		coverImageUrl: form.coverImageUrl ? [form.coverImageUrl] : [],
+		coverImageUrl: sanitizeTransientMediaUrl(form.coverImageUrl)
+			? [sanitizeTransientMediaUrl(form.coverImageUrl)!]
+			: [],
 		difficulty: form.difficulty as Recipe['difficulty'],
 		prepTimeMinutes: form.prepTimeMinutes,
 		cookTimeMinutes: form.cookTimeMinutes,

@@ -23,7 +23,7 @@ import { Portal } from '@/components/ui/portal'
  * - Spacing: gap-sm, gap-md, p-4
  * - Radius: rounded-radius
  * - Shadows: shadow-lg
- * - Colors: bg-panel-bg, border-border
+ * - Colors: bg-bg-card, border-border
  *
  * @example
  * ```tsx
@@ -39,7 +39,7 @@ import { Portal } from '@/components/ui/portal'
  */
 
 const popoverVariants = cva(
-	'z-popover rounded-radius border border-border bg-panel-bg shadow-lg outline-none animate-in fade-in-0 zoom-in-95',
+	'z-popover rounded-radius border border-border bg-bg-card text-text shadow-lg outline-none animate-in fade-in-0 zoom-in-95',
 	{
 		variants: {
 			side: {

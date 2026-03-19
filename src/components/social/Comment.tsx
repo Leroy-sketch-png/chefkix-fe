@@ -508,7 +508,7 @@ export const Comment = ({
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<button
-											className='flex size-10 items-center justify-center rounded-full text-text-muted opacity-0 transition-opacity hover:bg-bg-hover hover:text-text-secondary group-hover:opacity-100'
+											className='flex size-10 items-center justify-center rounded-full text-text-muted md:opacity-0 transition-opacity hover:bg-bg-hover hover:text-text-secondary md:group-hover:opacity-100'
 											aria-label='Comment options'
 										>
 											<MoreHorizontal className='size-4' />

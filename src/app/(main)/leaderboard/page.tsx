@@ -15,6 +15,7 @@ import {
 	getLeaderboard,
 	type LeaderboardTimeframe,
 } from '@/services/leaderboard'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // PAGE
@@ -76,7 +77,7 @@ export default function LeaderboardRoute() {
 					}
 				}
 			} catch (err) {
-				console.error('Failed to fetch leaderboard:', err)
+				logDevError('Failed to fetch leaderboard:', err)
 			} finally {
 				setIsLoading(false)
 			}

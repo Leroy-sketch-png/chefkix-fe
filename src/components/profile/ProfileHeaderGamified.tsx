@@ -127,9 +127,9 @@ const formatNumber = (num: number): string => {
 }
 
 const titleConfig: Record<UserTitle, { gradient: string; label: string }> = {
-	BEGINNER: { gradient: 'bg-slate-500', label: 'Beginner' },
-	AMATEUR: { gradient: 'bg-blue-500', label: 'Amateur' },
-	SEMIPRO: { gradient: 'bg-amber-500', label: 'Semi-Pro' },
+	BEGINNER: { gradient: 'bg-text-muted', label: 'Beginner' },
+	AMATEUR: { gradient: 'bg-info', label: 'Amateur' },
+	SEMIPRO: { gradient: 'bg-warning', label: 'Semi-Pro' },
 	PRO: {
 		gradient: 'bg-gradient-xp',
 		label: 'Pro',
@@ -750,7 +750,7 @@ const OtherUserProfileHeader = ({
 					<div className='flex items-center gap-2'>
 						<h1 className='text-2xl font-extrabold'>{user.displayName}</h1>
 						{user.isVerified && (
-							<BadgeCheck className='h-icon-md w-icon-md text-blue-500' />
+							<BadgeCheck className='h-icon-md w-icon-md text-info' />
 						)}
 					</div>
 					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
@@ -883,9 +883,7 @@ const MiniProfileHeader = ({
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center gap-1.5'>
 					<span className='text-sm font-bold'>{user.displayName}</span>
-					{user.isVerified && (
-						<BadgeCheck className='h-3.5 w-3.5 text-blue-500' />
-					)}
+					{user.isVerified && <BadgeCheck className='h-3.5 w-3.5 text-info' />}
 					<span
 						className={cn(
 							'rounded-lg px-2 py-0.5 text-2xs font-bold uppercase text-white',

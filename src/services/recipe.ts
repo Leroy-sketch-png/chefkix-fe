@@ -10,6 +10,7 @@ import {
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination, toBackendRecipeParams } from '@/lib/apiUtils'
 import type { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // ADDITIONAL TYPES (from spec 07-recipes.txt)
@@ -75,7 +76,7 @@ export const getRecipeById = async (
 ): Promise<ApiResponse<Recipe>> => {
 	// Guard against undefined/null recipeId to prevent /recipes/undefined requests
 	if (!recipeId) {
-		console.error('[getRecipeById] Called with undefined/null recipeId')
+		logDevError('[getRecipeById] Called with undefined/null recipeId')
 		return {
 			success: false,
 			statusCode: 400,

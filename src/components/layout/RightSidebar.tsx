@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { getTodaysChallenge } from '@/services/challenge'
 import { getAllProfiles } from '@/services/profile'
 import { getSessionHistory } from '@/services/cookingSession'
+import { toggleFollow as toggleFollowApi } from '@/services/social'
 import { Profile } from '@/lib/types'
 
 // ============================================
@@ -133,12 +134,32 @@ export const RightSidebar = () => {
 		fetchData()
 	}, [user]) // Re-fetch when user changes (login/logout)
 
-	const handleFollow = (userId: string) => {
+	const handleFollow = async (userId: string) => {
+		// Optimistic UI update
 		setFollowedIds(prev =>
 			prev.includes(userId)
 				? prev.filter(id => id !== userId)
 				: [...prev, userId],
 		)
+		try {
+			const response = await toggleFollowApi(userId)
+			if (!response.success) {
+				// Revert on failure
+				setFollowedIds(prev =>
+					prev.includes(userId)
+						? prev.filter(id => id !== userId)
+						: [...prev, userId],
+				)
+			}
+		} catch (err) {
+			// Revert on error
+			setFollowedIds(prev =>
+				prev.includes(userId)
+					? prev.filter(id => id !== userId)
+					: [...prev, userId],
+			)
+			console.error('Failed to toggle follow:', err)
+		}
 	}
 
 	// Compute streak data from user stats + cooking session history

@@ -1,5 +1,4 @@
 // Modals barrel export
-export { ComposerModal } from './ComposerModal'
 export {
 	ReportModal,
 	ReportLimitModal,

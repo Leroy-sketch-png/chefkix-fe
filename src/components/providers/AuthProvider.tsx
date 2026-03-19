@@ -7,6 +7,7 @@ import { AUTH_ROUTES, PATHS, PUBLIC_ROUTES } from '@/constants'
 import { getMyProfile } from '@/services/profile'
 import { AuthLoader } from '@/components/auth/AuthLoader'
 import { waitForVisibilityRefresh } from './TokenRefreshProvider'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 interface AuthProviderProps {
 	children: React.ReactNode
@@ -80,7 +81,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 					setUser(profileResponse.data)
 				} else {
 					// Failed to fetch profile (token invalid/expired), logout
-					console.error('[AuthProvider] Profile fetch failed, logging out')
+					logDevError('[AuthProvider] Profile fetch failed, logging out')
 					logout()
 				}
 			}
@@ -101,16 +102,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
 		const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
-		console.debug(
-			`[AuthProvider] Route check: ${pathname} | auth=${isAuthenticated} | public=${isPublicRoute} | authRoute=${isAuthRoute}`,
-		)
-
 		// Protected route access without auth - redirect to sign in
 		if (!isAuthenticated && !isPublicRoute) {
 			if (!redirectTriggeredRef.current) {
 				redirectTriggeredRef.current = true
 				setIsRedirecting(true)
-				console.warn(
+				logDevWarn(
 					`[AuthProvider] 🚨 Unauthorized access to ${pathname}, redirecting to sign-in`,
 				)
 				router.push(PATHS.AUTH.SIGN_IN)

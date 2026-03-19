@@ -122,9 +122,7 @@ const ChatMessage = ({ message, onFeedback }: ChatMessageProps) => {
 			<div
 				className={cn(
 					'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm',
-					isUser
-						? 'bg-brand text-white'
-						: 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white',
+					isUser ? 'bg-brand text-white' : 'bg-gradient-indigo text-white',
 				)}
 			>
 				{isUser ? '👤' : '✨'}
@@ -213,7 +211,7 @@ const TypingIndicator = () => (
 		exit={{ opacity: 0, scale: 0.8 }}
 		className='flex gap-2'
 	>
-		<div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white'>
+		<div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-indigo text-white'>
 			✨
 		</div>
 		<div className='flex items-center gap-1.5 rounded-2xl bg-bg-elevated px-4 py-3'>

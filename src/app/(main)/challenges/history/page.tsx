@@ -13,6 +13,7 @@ import {
 	ChallengeHistoryItem,
 	ChallengeStats,
 } from '@/services/challenge'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // HELPERS
@@ -33,7 +34,7 @@ const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
 		? {
 				id: item.recipeCooked.id,
 				title: item.recipeCooked.title,
-				imageUrl: '/placeholder-recipe.jpg', // API doesn't provide imageUrl in history
+				imageUrl: item.recipeCooked.imageUrl || '/placeholder-recipe.jpg',
 			}
 		: undefined,
 })
@@ -77,7 +78,7 @@ export default function ChallengeHistoryPageRoute() {
 					})
 				}
 			} catch (err) {
-				console.error('Failed to fetch challenge history:', err)
+				logDevError('Failed to fetch challenge history:', err)
 			} finally {
 				setIsLoading(false)
 			}

@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { logDevError } from '@/lib/dev-log'
 
 /**
  * Route-level error boundary for the auth route group.
@@ -17,7 +18,7 @@ export default function AuthError({
 	reset: () => void
 }) {
 	useEffect(() => {
-		console.error('[AuthError] Route error caught:', error)
+		logDevError('[AuthError] Route error caught:', error)
 	}, [error])
 
 	return (
@@ -41,7 +42,7 @@ export default function AuthError({
 						<summary className='cursor-pointer text-xs font-medium text-text-muted'>
 							Error details (dev only)
 						</summary>
-						<pre className='mt-2 overflow-auto text-xs text-red-500'>
+						<pre className='mt-2 overflow-auto text-xs text-error'>
 							{error.message}
 						</pre>
 					</details>

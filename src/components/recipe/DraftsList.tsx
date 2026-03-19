@@ -243,7 +243,7 @@ export function DraftsList({
 									</button>
 
 									{/* Action Buttons */}
-									<div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100'>
+									<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100'>
 										{/* Duplicate Button */}
 										<motion.button
 											onClick={e => {

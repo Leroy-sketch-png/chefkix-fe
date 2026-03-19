@@ -70,7 +70,7 @@ module.exports = {
 				},
 				xp: {
 					DEFAULT: 'var(--color-xp)',
-					bonus: 'var(--color-xp-bonus)',
+					bonus: 'var(--color-bonus)',
 				},
 				level: {
 					DEFAULT: 'var(--color-level)',
@@ -163,10 +163,11 @@ module.exports = {
 				DEFAULT: 'var(--radius)',
 				radius: 'var(--radius)', // Alias for components using 'rounded-radius'
 				sm: 'var(--radius-sm)',
+				md: 'var(--radius-md)',
 				lg: 'var(--radius-lg)',
-				xl: 'var(--radius-xl)', // 20px - large modals, cards with extra rounding
-				'2xl': '24px',
-				'3xl': '28px',
+				xl: 'var(--radius-xl)',
+				'2xl': '28px',
+				'3xl': '32px',
 				full: '9999px',
 			},
 			fontFamily: {
@@ -395,6 +396,8 @@ module.exports = {
 				DEFAULT: 'var(--shadow-md)',
 				md: 'var(--shadow-md)',
 				lg: 'var(--shadow-lg)',
+				xl: 'var(--shadow-xl)',
+				'2xl': 'var(--shadow-2xl)',
 				glow: 'var(--shadow-glow)',
 				card: 'var(--shadow-card)' /* Subtle lift for cards */,
 				warm: 'var(--shadow-warm)' /* Cozy warm shadow */,
@@ -422,30 +425,6 @@ module.exports = {
 				modal: 'var(--z-modal)',
 				notification: 'var(--z-notification)',
 				tooltip: 'var(--z-tooltip)',
-			},
-			backgroundImage: {
-				// Primary gradients
-				'gradient-brand': 'var(--gradient-brand)',
-				'gradient-primary': 'var(--gradient-brand)',
-
-				// Semantic gradients
-				'gradient-success': 'var(--gradient-success)',
-				'gradient-gold': 'var(--gradient-gold)',
-
-				// Gaming gradients
-				'gradient-xp': 'var(--gradient-xp)',
-				'gradient-streak': 'var(--gradient-streak)',
-
-				// Thematic gradients
-				'gradient-warm': 'var(--gradient-warm)',
-				'gradient-cool': 'var(--gradient-cool)',
-				'gradient-ocean': 'var(--gradient-ocean)',
-				'gradient-party': 'var(--gradient-party)',
-				'gradient-sunset': 'var(--gradient-warm)',
-
-				// Celebration gradients
-				'gradient-celebration': 'var(--gradient-celebration)',
-				'gradient-celebration-alt': 'var(--gradient-celebration-alt)',
 			},
 			borderWidth: {
 				DEFAULT: '1px',
@@ -582,10 +561,6 @@ module.exports = {
 						transform: 'translateX(-50%) translateY(100px) scale(0.8)',
 					},
 				},
-				shimmer: {
-					'0%': { backgroundPosition: '-1000px 0' },
-					'100%': { backgroundPosition: '1000px 0' },
-				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -614,7 +589,6 @@ module.exports = {
 				'toast-bounce-in':
 					'toast-bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
 				'toast-slide-out': 'toast-slide-out 0.3s ease-in forwards',
-				shimmer: 'shimmer 2s infinite linear',
 			},
 		},
 	},

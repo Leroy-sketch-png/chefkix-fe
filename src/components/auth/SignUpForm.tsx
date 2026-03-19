@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -46,6 +47,7 @@ const formSchema = z.object({
 export function SignUpForm() {
 	const router = useRouter()
 	const { login, setUser, setLoading, logout } = useAuth()
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -59,35 +61,45 @@ export function SignUpForm() {
 	})
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
-		const response = await signUp(values)
+		if (isSubmitting) return
+		setIsSubmitting(true)
 
-		if (response.success) {
-			toast.success(
-				'Account created! Please check your email for the verification code.',
-			)
-			router.push(
-				`${PATHS.AUTH.VERIFY_OTP}?email=${encodeURIComponent(values.email)}`,
-			)
-		} else {
-			if (response.error) {
-				Object.keys(response.error).forEach(key => {
-					const field = key as keyof z.infer<typeof formSchema>
-					const message =
-						response.error?.[field]?.join(', ') || SIGN_UP_MESSAGES.ERROR
-					form.setError(field, {
-						type: 'manual',
-						message: message,
-					})
-				})
-				toast.error('Please fix the errors in the form.')
+		try {
+			const response = await signUp(values)
+
+			if (response.success) {
+				toast.success(
+					'Account created! Please check your email for the verification code.',
+				)
+				router.push(
+					`${PATHS.AUTH.VERIFY_OTP}?email=${encodeURIComponent(values.email)}`,
+				)
+				// Don't reset isSubmitting on success — navigation is async
 			} else {
-				const errorMsg = response.message || SIGN_UP_MESSAGES.FAILED
-				form.setError('root.general' as any, {
-					type: 'manual',
-					message: errorMsg,
-				})
-				toast.error(errorMsg)
+				if (response.error) {
+					Object.keys(response.error).forEach(key => {
+						const field = key as keyof z.infer<typeof formSchema>
+						const message =
+							response.error?.[field]?.join(', ') || SIGN_UP_MESSAGES.ERROR
+						form.setError(field, {
+							type: 'manual',
+							message: message,
+						})
+					})
+					toast.error('Please fix the errors in the form.')
+				} else {
+					const errorMsg = response.message || SIGN_UP_MESSAGES.FAILED
+					form.setError('root.general' as any, {
+						type: 'manual',
+						message: errorMsg,
+					})
+					toast.error(errorMsg)
+				}
+				setIsSubmitting(false)
 			}
+		} catch {
+			toast.error('An unexpected error occurred. Please try again.')
+			setIsSubmitting(false)
 		}
 	}
 
@@ -207,7 +219,7 @@ export function SignUpForm() {
 						<AnimatedButton
 							type='submit'
 							className='h-12 w-full rounded-xl bg-gradient-xp text-base font-bold shadow-lg shadow-xp/30 transition-shadow hover:shadow-xl hover:shadow-xp/40'
-							isLoading={form.formState.isSubmitting}
+							isLoading={isSubmitting}
 							loadingText='Creating account...'
 							shine
 						>

@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, Crown, ChefHat } from 'lucide-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import type { RoomParticipant } from '@/lib/types/room'
@@ -130,9 +131,12 @@ function ParticipantAvatar({
 
 			{/* Avatar */}
 			{participant.avatarUrl ? (
-				<img
+				<Image
 					src={participant.avatarUrl}
 					alt={participant.displayName}
+					width={compact ? 28 : 36}
+					height={compact ? 28 : 36}
+					unoptimized
 					className={cn(
 						size,
 						'rounded-full border-2 object-cover',
@@ -157,7 +161,7 @@ function ParticipantAvatar({
 			)}
 
 			{/* Step indicator */}
-			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-1 text-[10px] font-bold text-gray-800'>
+			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-bg-card/90 px-1 text-[10px] font-bold text-text'>
 				{participant.currentStep}
 			</div>
 		</motion.div>

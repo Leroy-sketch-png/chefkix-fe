@@ -38,6 +38,7 @@ import { getAllRecipes } from '@/services/recipe'
 import { getAllProfiles } from '@/services/profile'
 import { getFeedPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
+import { logDevError } from '@/lib/dev-log'
 import { Profile, Post } from '@/lib/types'
 
 // ============================================
@@ -142,7 +143,7 @@ const RecipeResultCard = ({
 
 					<div className='mb-3 flex items-center gap-4 border-b border-border pb-3'>
 						{recipe.rating !== undefined && (
-							<div className='flex items-center gap-1 text-amber-500'>
+							<div className='flex items-center gap-1 text-warning'>
 								<Star className='size-3.5 fill-current' />
 								<span className='text-caption font-semibold'>
 									{recipe.rating.toFixed(1)}
@@ -224,7 +225,7 @@ const PersonResultCard = ({
 				className={cn(
 					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors',
 					following
-						? 'border-2 border-border bg-muted text-text hover:border-red-500 hover:bg-red-50 hover:text-red-500'
+						? 'border-2 border-border bg-muted text-text hover:border-error hover:bg-error/5 hover:text-error'
 						: 'bg-primary text-white',
 				)}
 			>
@@ -376,7 +377,7 @@ export default function SearchPage() {
 
 				setResults({ recipes, people, posts })
 			} catch (err) {
-				console.error('Search failed:', err)
+				logDevError('Search failed:', err)
 			} finally {
 				setIsLoading(false)
 			}

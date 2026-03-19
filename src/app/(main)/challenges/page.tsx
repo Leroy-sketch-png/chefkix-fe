@@ -13,9 +13,7 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import {
-	DailyChallengeBanner,
-} from '@/components/challenges'
+import { DailyChallengeBanner } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import {
 	getTodaysChallenge,
@@ -28,6 +26,7 @@ import {
 	SeasonalChallenge,
 } from '@/services/challenge'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // HELPERS
@@ -83,7 +82,7 @@ export default function ChallengesPage() {
 						id: data.id,
 						title: data.title,
 						description: data.description,
-						icon: data.icon,
+						icon: data.icon || '🎯',
 						bonusXp: data.bonusXp,
 						endsAt: new Date(data.endsAt),
 					})
@@ -98,7 +97,7 @@ export default function ChallengesPage() {
 					setSeasonalChallenges(seasonalRes.data)
 				}
 			} catch (err) {
-				console.error('Failed to fetch challenges:', err)
+				logDevError('Failed to fetch challenges:', err)
 			} finally {
 				setLoading(false)
 			}
@@ -176,7 +175,7 @@ export default function ChallengesPage() {
 								>
 									<div className='mb-3 flex items-center justify-between'>
 										<div className='flex items-center gap-3'>
-											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-md shadow-indigo-500/25'>
+											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-md shadow-accent-purple/25'>
 												<Trophy className='size-5 text-white' />
 											</div>
 											<div>
@@ -222,7 +221,7 @@ export default function ChallengesPage() {
 													width: `${Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100)}%`,
 												}}
 												transition={{ duration: 0.8, ease: 'easeOut' }}
-												className='h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500'
+												className='h-full rounded-full bg-gradient-indigo'
 											/>
 										</div>
 									</div>
@@ -291,9 +290,7 @@ export default function ChallengesPage() {
 														{ch.currentProgress.toLocaleString()} /{' '}
 														{ch.targetCount.toLocaleString()} {ch.targetUnit}
 													</span>
-													<span>
-														{Math.round(ch.progressPercent)}%
-													</span>
+													<span>{Math.round(ch.progressPercent)}%</span>
 												</div>
 												<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
 													<motion.div
@@ -424,7 +421,7 @@ export default function ChallengesPage() {
 													</span>
 													<div className='flex items-center gap-2'>
 														{ev.rewardBadgeName && (
-															<span className='rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700'>
+															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning'>
 																🏅 {ev.rewardBadgeName}
 															</span>
 														)}
@@ -439,9 +436,7 @@ export default function ChallengesPage() {
 													ev.featuredRecipes.length > 0 && (
 														<button
 															onClick={() =>
-																router.push(
-																	`/explore?seasonal=${ev.id}`,
-																)
+																router.push(`/explore?seasonal=${ev.id}`)
 															}
 															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80'
 														>

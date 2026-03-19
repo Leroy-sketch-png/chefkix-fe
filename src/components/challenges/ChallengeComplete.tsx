@@ -128,7 +128,7 @@ export const ChallengeComplete = ({
 							transition={{ duration: 1.5, repeat: Infinity }}
 						/>
 						{/* Badge */}
-						<div className='relative flex h-full w-full items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/40'>
+						<div className='relative flex h-full w-full items-center justify-center rounded-3xl bg-gradient-indigo shadow-lg shadow-accent-purple/40'>
 							<span className='text-5xl'>{challengeIcon}</span>
 						</div>
 						{/* Checkmark */}
@@ -214,7 +214,7 @@ export const ChallengeComplete = ({
 											day.isCompleted
 												? 'bg-success text-white'
 												: day.isMilestone
-													? 'bg-amber-500/20 text-amber-500'
+													? 'bg-warning/20 text-warning'
 													: 'bg-border text-text-muted',
 											day.isToday && 'ring-3 ring-success/30',
 										)}
@@ -234,7 +234,7 @@ export const ChallengeComplete = ({
 						</div>
 
 						{/* Milestone message */}
-						<p className='text-sm font-semibold text-amber-500'>
+						<p className='text-sm font-semibold text-warning'>
 							{daysToMilestone} more days for {milestoneReward}!
 						</p>
 					</div>
@@ -245,7 +245,7 @@ export const ChallengeComplete = ({
 							onClick={onContinue}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3.5 text-base font-bold text-white shadow-lg shadow-indigo-500/30'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-indigo py-3.5 text-base font-bold text-white shadow-lg shadow-accent-purple/30'
 						>
 							Continue
 							<ArrowRight className='size-icon-sm' />
@@ -281,11 +281,11 @@ export const ChallengeCompleteInline = ({
 	<motion.div
 		initial={{ opacity: 0, y: 10 }}
 		animate={{ opacity: 1, y: 0 }}
-		className='my-4 rounded-2xl border-2 border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 to-purple-500/5 p-4 px-5'
+		className='my-4 rounded-2xl border-2 border-accent-purple/30 bg-accent-purple/10 p-4 px-5'
 	>
 		{/* Header */}
 		<div className='mb-3 flex items-center gap-3.5'>
-			<div className='flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500'>
+			<div className='flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-indigo'>
 				<span className='text-2xl'>{challengeIcon}</span>
 			</div>
 			<div className='flex-1'>

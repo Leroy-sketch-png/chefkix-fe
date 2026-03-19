@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Portal } from '@/components/ui/portal'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
 	getPantryItems,
@@ -96,6 +98,7 @@ export default function PantryPage() {
 	const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
 		null,
 	)
+	const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
 	const [showClearExpiredConfirm, setShowClearExpiredConfirm] = useState(false)
 	const [isClearingExpired, setIsClearingExpired] = useState(false)
 
@@ -106,7 +109,14 @@ export default function PantryPage() {
 			const data = await getPantryItems(filterCategory ?? undefined)
 			setItems(data)
 		} catch {
-			toast.error('Failed to load pantry items')
+			toast.error('Failed to load pantry items', {
+				action: {
+					label: 'Retry',
+					onClick: () => {
+						void fetchItems()
+					},
+				},
+			})
 		} finally {
 			setLoading(false)
 		}
@@ -143,7 +153,14 @@ export default function PantryPage() {
 			setQuickAddExpiry('')
 			quickAddRef.current?.focus()
 		} catch {
-			toast.error('Failed to add pantry item')
+			toast.error('Failed to add pantry item', {
+				action: {
+					label: 'Retry',
+					onClick: () => {
+						void handleQuickAdd()
+					},
+				},
+			})
 		} finally {
 			setIsAdding(false)
 		}
@@ -169,19 +186,30 @@ export default function PantryPage() {
 			setItems(prev => prev.map(i => (i.id === editingId ? updated : i)))
 			setEditingId(null)
 		} catch {
-			toast.error('Failed to update item')
+			toast.error('Failed to update item', {
+				action: {
+					label: 'Retry',
+					onClick: () => {
+						void saveEdit()
+					},
+				},
+			})
 		}
 	}
 
 	// ── Delete ────────────────────────────────────────────
 
 	const handleDelete = async (id: string) => {
+		setConfirmingDeleteId(null)
+		setIsDeletingId(id)
 		try {
 			await deletePantryItem(id)
 			setItems(prev => prev.filter(i => i.id !== id))
-			setConfirmingDeleteId(null)
 		} catch {
 			toast.error('Failed to delete item')
+			setConfirmingDeleteId(id)
+		} finally {
+			setIsDeletingId(null)
 		}
 	}
 
@@ -195,7 +223,14 @@ export default function PantryPage() {
 			}
 			setShowClearExpiredConfirm(false)
 		} catch {
-			toast.error('Failed to clear expired items')
+			toast.error('Failed to clear expired items', {
+				action: {
+					label: 'Retry',
+					onClick: () => {
+						void handleClearExpired()
+					},
+				},
+			})
 		} finally {
 			setIsClearingExpired(false)
 		}
@@ -210,7 +245,14 @@ export default function PantryPage() {
 			const data = await getMatchingRecipes(0.3, true)
 			setMatchedRecipes(data)
 		} catch {
-			toast.error('Failed to load recipe suggestions')
+			toast.error('Failed to load recipe suggestions', {
+				action: {
+					label: 'Retry',
+					onClick: () => {
+						void loadSuggestions()
+					},
+				},
+			})
 		} finally {
 			setLoadingRecipes(false)
 		}
@@ -315,7 +357,10 @@ export default function PantryPage() {
 					<motion.div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 						<div className='flex flex-wrap items-end gap-3'>
 							<div className='flex-1 min-w-[180px]'>
-								<label htmlFor='pantry-ingredient' className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label
+									htmlFor='pantry-ingredient'
+									className='mb-1 block text-xs font-medium text-text-secondary'
+								>
 									Ingredient
 								</label>
 								<input
@@ -329,7 +374,10 @@ export default function PantryPage() {
 								/>
 							</div>
 							<div className='w-20'>
-								<label htmlFor='pantry-qty' className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label
+									htmlFor='pantry-qty'
+									className='mb-1 block text-xs font-medium text-text-secondary'
+								>
 									Qty
 								</label>
 								<input
@@ -343,7 +391,10 @@ export default function PantryPage() {
 								/>
 							</div>
 							<div className='w-24'>
-								<label htmlFor='pantry-unit' className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label
+									htmlFor='pantry-unit'
+									className='mb-1 block text-xs font-medium text-text-secondary'
+								>
 									Unit
 								</label>
 								<input
@@ -356,7 +407,10 @@ export default function PantryPage() {
 								/>
 							</div>
 							<div className='w-32'>
-								<label htmlFor='pantry-category' className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label
+									htmlFor='pantry-category'
+									className='mb-1 block text-xs font-medium text-text-secondary'
+								>
 									Category
 								</label>
 								<select
@@ -377,7 +431,10 @@ export default function PantryPage() {
 								</select>
 							</div>
 							<div className='w-36'>
-								<label htmlFor='pantry-expiry' className='mb-1 block text-xs font-medium text-text-secondary'>
+								<label
+									htmlFor='pantry-expiry'
+									className='mb-1 block text-xs font-medium text-text-secondary'
+								>
 									Expiry
 								</label>
 								<input
@@ -575,7 +632,7 @@ export default function PantryPage() {
 														>
 															{FRESHNESS_STYLES[item.freshness]?.label}
 														</span>
-														<div className='flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100'>
+														<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
 															<button
 																onClick={() => startEdit(item)}
 																className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text'
@@ -651,9 +708,12 @@ export default function PantryPage() {
 												className='flex items-center gap-4 rounded-lg border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated'
 											>
 												{match.coverImageUrl && (
-													<img
+													<Image
 														src={match.coverImageUrl}
 														alt={match.recipeTitle}
+														width={56}
+														height={56}
+														unoptimized
 														className='size-14 rounded-lg object-cover'
 													/>
 												)}
@@ -697,87 +757,94 @@ export default function PantryPage() {
 				{/* ── Delete Confirmation Dialog ── */}
 				<AnimatePresence>
 					{confirmingDeleteId && (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'
-							onClick={() => setConfirmingDeleteId(null)}
-						>
+						<Portal>
 							<motion.div
-								initial={{ scale: 0.95, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								exit={{ scale: 0.95, opacity: 0 }}
-								onClick={e => e.stopPropagation()}
-								className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4'
+								onClick={() => setConfirmingDeleteId(null)}
 							>
-								<h3 className='mb-2 text-lg font-bold text-text'>
-									Delete Pantry Item?
-								</h3>
-								<p className='mb-6 text-sm text-text-muted'>
-									This item will be permanently removed from your pantry.
-								</p>
-								<div className='flex justify-end gap-3'>
-									<button
-										onClick={() => setConfirmingDeleteId(null)}
-										className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
-									>
-										Cancel
-									</button>
-									<button
-										onClick={() => handleDelete(confirmingDeleteId)}
-										className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90'
-									>
-										Delete
-									</button>
-								</div>
+								<motion.div
+									initial={{ scale: 0.95, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.95, opacity: 0 }}
+									onClick={e => e.stopPropagation()}
+									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								>
+									<h3 className='mb-2 text-lg font-bold text-text'>
+										Delete Pantry Item?
+									</h3>
+									<p className='mb-6 text-sm text-text-muted'>
+										This item will be permanently removed from your pantry.
+									</p>
+									<div className='flex justify-end gap-3'>
+										<button
+											onClick={() => setConfirmingDeleteId(null)}
+											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+										>
+											Cancel
+										</button>
+										<button
+											onClick={() => handleDelete(confirmingDeleteId)}
+											disabled={isDeletingId === confirmingDeleteId}
+											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
+										>
+											{isDeletingId === confirmingDeleteId
+												? 'Deleting...'
+												: 'Delete'}
+										</button>
+									</div>
+								</motion.div>
 							</motion.div>
-						</motion.div>
+						</Portal>
 					)}
 				</AnimatePresence>
 
 				{/* ── Clear Expired Confirmation Dialog ── */}
 				<AnimatePresence>
 					{showClearExpiredConfirm && (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'
-							onClick={() => setShowClearExpiredConfirm(false)}
-						>
+						<Portal>
 							<motion.div
-								initial={{ scale: 0.95, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								exit={{ scale: 0.95, opacity: 0 }}
-								onClick={e => e.stopPropagation()}
-								className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4'
+								onClick={() => setShowClearExpiredConfirm(false)}
 							>
-								<h3 className='mb-2 text-lg font-bold text-text'>
-									Clear Expired Items?
-								</h3>
-								<p className='mb-6 text-sm text-text-muted'>
-									Remove {expiredCount} expired item
-									{expiredCount > 1 ? 's' : ''} from your pantry? This cannot be
-									undone.
-								</p>
-								<div className='flex justify-end gap-3'>
-									<button
-										onClick={() => setShowClearExpiredConfirm(false)}
-										className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
-									>
-										Cancel
-									</button>
-									<button
-										onClick={handleClearExpired}
-										disabled={isClearingExpired}
-										className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
-									>
-										{isClearingExpired ? 'Clearing...' : 'Clear All'}
-									</button>
-								</div>
+								<motion.div
+									initial={{ scale: 0.95, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.95, opacity: 0 }}
+									onClick={e => e.stopPropagation()}
+									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								>
+									<h3 className='mb-2 text-lg font-bold text-text'>
+										Clear Expired Items?
+									</h3>
+									<p className='mb-6 text-sm text-text-muted'>
+										Remove {expiredCount} expired item
+										{expiredCount > 1 ? 's' : ''} from your pantry? This cannot
+										be undone.
+									</p>
+									<div className='flex justify-end gap-3'>
+										<button
+											onClick={() => setShowClearExpiredConfirm(false)}
+											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+										>
+											Cancel
+										</button>
+										<button
+											onClick={handleClearExpired}
+											disabled={isClearingExpired}
+											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
+										>
+											{isClearingExpired ? 'Clearing...' : 'Clear All'}
+										</button>
+									</div>
+								</motion.div>
 							</motion.div>
-						</motion.div>
+						</Portal>
 					)}
 				</AnimatePresence>
 			</PageContainer>

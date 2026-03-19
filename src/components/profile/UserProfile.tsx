@@ -896,14 +896,14 @@ export const UserProfile = ({
 											<span
 												className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${
 													badge.rarity === 'LEGENDARY'
-														? 'bg-amber-100 text-amber-700'
+														? 'bg-warning/15 text-warning'
 														: badge.rarity === 'EPIC'
-															? 'bg-purple-100 text-purple-700'
+															? 'bg-accent-purple/15 text-accent-purple'
 															: badge.rarity === 'RARE'
-																? 'bg-blue-100 text-blue-700'
+																? 'bg-info/15 text-info'
 																: badge.rarity === 'UNCOMMON'
-																	? 'bg-green-100 text-green-700'
-																	: 'bg-slate-100 text-slate-600'
+																	? 'bg-success/15 text-success'
+																	: 'bg-text-secondary/15 text-text-secondary'
 												}`}
 											>
 												{badge.rarity}

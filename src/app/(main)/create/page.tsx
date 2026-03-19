@@ -36,6 +36,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { logDevError } from '@/lib/dev-log'
 
 /**
  * Local Draft shape (stored in localStorage under 'chefkix-recipe-draft')
@@ -67,6 +68,28 @@ export default function CreateRecipePage() {
 	const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 	const [isLoadingDraft, setIsLoadingDraft] = useState(!!urlDraftId)
 
+	const loadLocalDraft = useCallback(() => {
+		try {
+			const stored = localStorage.getItem('chefkix-recipe-draft')
+			if (!stored) {
+				setLocalDraft(null)
+				return
+			}
+
+			const parsed = JSON.parse(stored) as LocalDraft
+			if (parsed.type === 'manual' && parsed.data) {
+				setLocalDraft(parsed)
+				return
+			}
+
+			setLocalDraft(null)
+		} catch (error) {
+			logDevError('Failed to parse local draft:', error)
+			localStorage.removeItem('chefkix-recipe-draft')
+			setLocalDraft(null)
+		}
+	}, [])
+
 	// Load draft from URL ?draftId= param (deep links, redirects from edit page)
 	useEffect(() => {
 		if (!urlDraftId) return
@@ -76,13 +99,17 @@ export default function CreateRecipePage() {
 				const response = await getRecipeById(urlDraftId)
 				if (response.success && response.data) {
 					setSelectedDraft(response.data)
+					localStorage.removeItem('chefkix-recipe-draft')
+					setLocalDraft(null)
 					setMode('create')
 				} else {
+					setSelectedDraft(null)
 					toast.error(response.message || 'Draft not found')
 					setMode('list')
 				}
 			} catch (error) {
-				console.error('Failed to load draft from URL:', error)
+				logDevError('Failed to load draft from URL:', error)
+				setSelectedDraft(null)
 				toast.error('Failed to load draft')
 				setMode('list')
 			} finally {
@@ -95,19 +122,8 @@ export default function CreateRecipePage() {
 	// Check for local draft on mount
 	useEffect(() => {
 		if (urlDraftId) return // Skip local draft check if loading from URL
-		try {
-			const stored = localStorage.getItem('chefkix-recipe-draft')
-			if (stored) {
-				const parsed = JSON.parse(stored) as LocalDraft
-				if (parsed.type === 'manual' && parsed.data) {
-					setLocalDraft(parsed)
-				}
-			}
-		} catch (e) {
-			console.error('Failed to parse local draft:', e)
-			localStorage.removeItem('chefkix-recipe-draft')
-		}
-	}, [urlDraftId])
+		loadLocalDraft()
+	}, [loadLocalDraft, urlDraftId])
 
 	const handlePublishSuccess = (recipeId: string) => {
 		// Clear local draft on successful publish
@@ -128,13 +144,16 @@ export default function CreateRecipePage() {
 			const response = await getRecipeById(draftId)
 			if (response.success && response.data) {
 				setSelectedDraft(response.data)
+				localStorage.removeItem('chefkix-recipe-draft')
 				setLocalDraft(null) // Clear local draft state when using server draft
 				setMode('create')
 			} else {
+				setSelectedDraft(null)
 				toast.error(response.message || 'Failed to load draft')
 			}
 		} catch (error) {
-			console.error('Failed to load draft:', error)
+			logDevError('Failed to load draft:', error)
+			setSelectedDraft(null)
 			toast.error('Failed to load draft. Please try again.')
 		} finally {
 			setIsLoadingDraft(false)
@@ -166,17 +185,7 @@ export default function CreateRecipePage() {
 			router.replace('/create', { scroll: false })
 		}
 		// Re-check for local draft (it might have been saved during editing)
-		try {
-			const stored = localStorage.getItem('chefkix-recipe-draft')
-			if (stored) {
-				const parsed = JSON.parse(stored) as LocalDraft
-				if (parsed.type === 'manual' && parsed.data) {
-					setLocalDraft(parsed)
-				}
-			}
-		} catch (e) {
-			// Ignore
-		}
+		loadLocalDraft()
 	}
 
 	return (
