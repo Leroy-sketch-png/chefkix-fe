@@ -321,7 +321,7 @@ const CompletedItem = ({
 					<span className='flex items-center gap-2 text-base font-bold text-foreground'>
 						{session.recipeName}
 						{isMastered && (
-							<span className='text-xs font-semibold text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded-md'>
+							<span className='rounded-md bg-accent-purple/10 px-2 py-0.5 text-xs font-semibold text-accent-purple'>
 								🥇 Mastered
 							</span>
 						)}

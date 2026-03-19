@@ -53,7 +53,7 @@ const CATEGORY_CONFIG: Record<
 	CUISINE: {
 		label: 'Cuisine',
 		icon: <Globe className='size-4' />,
-		color: 'text-blue-500',
+		color: 'text-info',
 	},
 	STREAK: {
 		label: 'Streaks',
@@ -73,12 +73,12 @@ const CATEGORY_CONFIG: Record<
 	CHALLENGE: {
 		label: 'Challenges',
 		icon: <Target className='size-4' />,
-		color: 'text-amber-500',
+		color: 'text-warning',
 	},
 	CREATOR: {
 		label: 'Creator',
 		icon: <Award className='size-4' />,
-		color: 'text-pink-500',
+		color: 'text-combo',
 	},
 }
 
@@ -89,34 +89,33 @@ const RARITY_CONFIG: Record<
 > = {
 	COMMON: {
 		label: 'Common',
-		bgClass: 'bg-slate-100 dark:bg-slate-800',
-		textClass: 'text-slate-600 dark:text-slate-400',
-		borderClass: 'border-slate-300 dark:border-slate-600',
+		bgClass: 'bg-text-secondary/10',
+		textClass: 'text-text-secondary',
+		borderClass: 'border-text-secondary/20',
 	},
 	UNCOMMON: {
 		label: 'Uncommon',
-		bgClass: 'bg-green-50 dark:bg-green-900/20',
-		textClass: 'text-green-600 dark:text-green-400',
-		borderClass: 'border-green-300 dark:border-green-700',
+		bgClass: 'bg-success/10',
+		textClass: 'text-success',
+		borderClass: 'border-success/30',
 	},
 	RARE: {
 		label: 'Rare',
-		bgClass: 'bg-blue-50 dark:bg-blue-900/20',
-		textClass: 'text-blue-600 dark:text-blue-400',
-		borderClass: 'border-blue-300 dark:border-blue-700',
+		bgClass: 'bg-info/10',
+		textClass: 'text-info',
+		borderClass: 'border-info/30',
 	},
 	EPIC: {
 		label: 'Epic',
-		bgClass: 'bg-purple-50 dark:bg-purple-900/20',
-		textClass: 'text-purple-600 dark:text-purple-400',
-		borderClass: 'border-purple-300 dark:border-purple-700',
+		bgClass: 'bg-accent-purple/10',
+		textClass: 'text-accent-purple',
+		borderClass: 'border-accent-purple/30',
 	},
 	LEGENDARY: {
 		label: 'Legendary',
-		bgClass:
-			'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20',
-		textClass: 'text-amber-600 dark:text-amber-400',
-		borderClass: 'border-amber-400 dark:border-amber-600',
+		bgClass: 'bg-gradient-to-r from-warning/10 to-brand/10',
+		textClass: 'text-warning',
+		borderClass: 'border-warning/30',
 	},
 }
 
@@ -187,7 +186,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 					<div
 						className={cn(
 							'grid size-14 place-items-center rounded-xl text-3xl transition-transform duration-300 group-hover:scale-110',
-							isEarned ? 'bg-white/80 shadow-sm' : 'bg-bg-hover',
+							isEarned ? 'bg-bg-card/80 shadow-sm' : 'bg-bg-hover',
 						)}
 					>
 						{badge.icon}
@@ -376,7 +375,7 @@ export default function BadgeCatalogPage() {
 							</p>
 						</div>
 						<div className='grid size-12 place-items-center rounded-xl bg-gradient-gold text-2xl shadow-md'>
-							<Trophy className='size-6 text-amber-900' />
+							<Trophy className='size-6 text-text' />
 						</div>
 					</div>
 

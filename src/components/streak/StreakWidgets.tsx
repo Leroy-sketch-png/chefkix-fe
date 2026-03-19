@@ -169,7 +169,9 @@ export function StreakRiskBanner({
 			{/* Dismiss Button */}
 			{onDismiss && !isUrgent && (
 				<button
-					onClick={onDismiss}				aria-label='Dismiss'					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-muted-foreground opacity-60 hover:opacity-100 transition-opacity'
+					onClick={onDismiss}
+					aria-label='Dismiss'
+					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-muted-foreground opacity-60 hover:opacity-100 transition-opacity'
 				>
 					<X className='w-4 h-4' />
 				</button>
@@ -201,7 +203,7 @@ export function StreakSavedToast({
 						className={cn(
 							'fixed bottom-24 left-1/2 -translate-x-1/2 z-notification',
 							'flex items-center gap-4 py-4 px-6',
-							'bg-panel-bg border-2 border-emerald-500 rounded-2xl',
+							'bg-panel-bg border-2 border-success rounded-2xl',
 							'shadow-2xl shadow-black/30',
 						)}
 					>
@@ -227,7 +229,7 @@ export function StreakSavedToast({
 
 						{/* Content */}
 						<div className='flex flex-col'>
-							<span className='text-base font-extrabold text-emerald-500'>
+							<span className='text-base font-extrabold text-success'>
 								{isNewStreak ? 'New Streak Started!' : 'Streak Saved!'}
 							</span>
 							<span className='text-sm text-text'>
@@ -243,11 +245,11 @@ export function StreakSavedToast({
 
 						{/* Bonus XP */}
 						{!isNewStreak && bonusXp > 0 && (
-							<div className='flex flex-col items-center py-2.5 px-4 bg-emerald-500/10 rounded-lg'>
+							<div className='flex flex-col items-center rounded-lg bg-success/10 px-4 py-2.5'>
 								<span className='text-2xs text-muted-foreground uppercase tracking-wide'>
 									Streak Bonus
 								</span>
-								<span className='text-base font-extrabold text-emerald-500'>
+								<span className='text-base font-extrabold text-success'>
 									+{bonusXp} XP
 								</span>
 							</div>

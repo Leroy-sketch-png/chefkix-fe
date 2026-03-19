@@ -154,7 +154,11 @@ const formatTimeAgo = (date: Date): string => {
 }
 
 const rarityConfig = {
-	common: { bg: 'bg-slate-500/15', text: 'text-slate-600', label: 'Common' },
+	common: {
+		bg: 'bg-text-muted/15',
+		text: 'text-text-secondary',
+		label: 'Common',
+	},
 	rare: { bg: 'bg-rare/15', text: 'text-rare', label: 'Rare' },
 	epic: { bg: 'bg-combo/15', text: 'text-combo', label: 'Epic' },
 	legendary: {
@@ -512,7 +516,7 @@ const CreatorBonusItem = ({
 	isRead,
 	onViewPost,
 }: CreatorBonusNotification) => (
-	<NotifWrapper isRead={isRead} className='bg-blue-500/5'>
+	<NotifWrapper isRead={isRead} className='bg-info/5'>
 		{/* Avatar */}
 		<div className='relative flex-shrink-0'>
 			<Image
@@ -522,7 +526,7 @@ const CreatorBonusItem = ({
 				height={48}
 				className='h-12 w-12 rounded-full object-cover'
 			/>
-			<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-panel-bg bg-blue-500 text-white'>
+			<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-panel-bg bg-info text-white'>
 				<ChefHat className='h-3 w-3' />
 			</div>
 		</div>
@@ -532,7 +536,7 @@ const CreatorBonusItem = ({
 			<NotifHeader
 				type='Recipe Cooked!'
 				time={timestamp}
-				className='text-blue-500'
+				className='text-info'
 			/>
 			<p className='text-sm'>
 				<strong className='font-bold'>@{cookerUsername}</strong> cooked your{' '}
@@ -549,7 +553,7 @@ const CreatorBonusItem = ({
 		{/* Action */}
 		<ActionButton
 			onClick={onViewPost}
-			className='flex-shrink-0 border border-blue-500/30 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20'
+			className='flex-shrink-0 border border-info/30 bg-info/10 text-info hover:bg-info/20'
 		>
 			See Their Post
 		</ActionButton>
@@ -567,9 +571,9 @@ const PostDeadlineItem = ({
 }: PostDeadlineNotification) => (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-slate-500 text-white'>
+		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted text-white'>
 			<Clock className='relative z-10 h-6 w-6' />
-			<div className='absolute -inset-1 rounded-full border-2 border-slate-500/30' />
+			<div className='absolute -inset-1 rounded-full border-2 border-text-muted/30' />
 		</div>
 
 		{/* Content */}
@@ -580,7 +584,7 @@ const PostDeadlineItem = ({
 				waiting to be posted
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-slate-500/15 text-slate-600'>
+				<MetaTag className='bg-text-secondary/15 text-text-secondary'>
 					{daysRemaining} days left
 				</MetaTag>
 				<span className='text-xs text-text-muted'>{pendingXp} XP at stake</span>
@@ -720,7 +724,7 @@ const StreakLostItem = ({
 }: StreakLostNotification) => (
 	<NotifWrapper isRead={isRead} className='opacity-80'>
 		{/* Icon */}
-		<div className='flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-slate-500'>
+		<div className='flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
 			<span className='text-2xl'>😢</span>
 		</div>
 
@@ -729,14 +733,14 @@ const StreakLostItem = ({
 			<NotifHeader
 				type='Streak Lost'
 				time={timestamp}
-				className='text-slate-500'
+				className='text-text-secondary'
 			/>
 			<p className='text-sm'>
 				Your {lostStreakCount}-day streak has ended. Don&apos;t worry, start
 				fresh!
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-slate-500/15 text-slate-600'>
+				<MetaTag className='bg-text-secondary/15 text-text-secondary'>
 					Best: {bestStreak} days
 				</MetaTag>
 				<span className='text-xs text-text-muted'>

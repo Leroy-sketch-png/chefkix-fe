@@ -42,6 +42,7 @@ import {
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
 import { SharePostModal } from '@/components/social/SharePostModal'
+import { logDevError } from '@/lib/dev-log'
 
 interface PostCardProps {
 	post: Post
@@ -109,7 +110,7 @@ export const PostCard = ({
 				right: window.innerWidth - rect.right,
 			})
 		}
-		setShowMenu(!showMenu)
+		setShowMenu(prev => !prev)
 	}, [showMenu])
 
 	const handleShareMenuToggle = useCallback(() => {
@@ -120,10 +121,10 @@ export const PostCard = ({
 				right: window.innerWidth - rect.right,
 			})
 		}
-		setShowShareMenu(!showShareMenu)
+		setShowShareMenu(prev => !prev)
 	}, [showShareMenu])
 
-	const handleLike = async () => {
+	const handleLike = useCallback(async () => {
 		if (isLiking) return
 
 		setIsLiking(true)
@@ -169,7 +170,7 @@ export const PostCard = ({
 		}
 
 		setIsLiking(false)
-	}
+	}, [isLiking, onUpdate, post])
 
 	const handleSave = async () => {
 		if (isSaving) return
@@ -204,6 +205,7 @@ export const PostCard = ({
 		} catch (error) {
 			// Revert on error
 			setIsSaved(previousSaved)
+			logDevError('Failed to save post:', error)
 			toast.error('Failed to save post')
 		} finally {
 			setIsSaving(false)
@@ -226,6 +228,7 @@ export const PostCard = ({
 				toast.error(response.message || POST_MESSAGES.DELETE_FAILED)
 			}
 		} catch {
+			logDevError('Failed to delete post:', post.id)
 			toast.error(POST_MESSAGES.DELETE_FAILED)
 		} finally {
 			setIsDeleting(false)
@@ -267,6 +270,7 @@ export const PostCard = ({
 				toast.error(response.message || POST_MESSAGES.UPDATE_FAILED)
 			}
 		} catch {
+			logDevError('Failed to update post:', post.id)
 			toast.error(POST_MESSAGES.UPDATE_FAILED)
 		} finally {
 			setIsUpdating(false)
@@ -287,6 +291,7 @@ export const PostCard = ({
 				toast.error(response.message || 'Failed to submit report')
 			}
 		} catch {
+			logDevError('Failed to submit post report:', post.id)
 			toast.error('Failed to submit report')
 		}
 	}
@@ -307,6 +312,7 @@ export const PostCard = ({
 			} catch (err) {
 				// User cancelled or share failed - fallback to clipboard
 				if ((err as Error).name !== 'AbortError') {
+					logDevError('Native share failed, falling back to clipboard:', err)
 					await navigator.clipboard.writeText(postUrl)
 					toast.success('Link copied to clipboard!')
 				}
@@ -431,8 +437,10 @@ export const PostCard = ({
 						{isLoggedIn && (
 							<div className='relative'>
 								<button
+									type='button'
 									ref={menuButtonRef}
 									onClick={handleMenuToggle}
+									aria-label='Open post actions'
 									className='h-11 w-11 rounded-full transition-colors hover:bg-bg-hover'
 								>
 									<MoreVertical className='mx-auto h-5 w-5 text-text-secondary' />
@@ -462,6 +470,7 @@ export const PostCard = ({
 													<>
 														{canEdit && (
 															<button
+																type='button'
 																onClick={() => {
 																	setIsEditing(true)
 																	setShowMenu(false)
@@ -473,6 +482,7 @@ export const PostCard = ({
 															</button>
 														)}
 														<button
+															type='button'
 															onClick={handleDelete}
 															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 														>
@@ -484,6 +494,7 @@ export const PostCard = ({
 												{/* Non-owner actions */}
 												{!isOwner && (
 													<button
+														type='button'
 														onClick={() => {
 															setShowReportModal(true)
 															setShowMenu(false)
@@ -519,12 +530,14 @@ export const PostCard = ({
 							/>
 							<div className='flex gap-2'>
 								<button
+									type='button'
 									onClick={handleEdit}
 									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
 								>
 									Save
 								</button>
 								<button
+									type='button'
 									onClick={() => {
 										setIsEditing(false)
 										setEditContent(post.content)
@@ -588,13 +601,16 @@ export const PostCard = ({
 											{post.coChefs.map((chef, i) => (
 												<span key={chef.userId}>
 													<Link
-														href={`/profile/${chef.userId}`}
+														href={`/${chef.userId}`}
 														className='inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline'
 													>
 														{chef.avatarUrl && (
-															<img
+															<Image
 																src={chef.avatarUrl}
 																alt={chef.displayName}
+																width={16}
+																height={16}
+																unoptimized
 																className='size-4 rounded-full object-cover'
 															/>
 														)}
@@ -668,9 +684,11 @@ export const PostCard = ({
 					{/* Actions */}
 					<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
 						<button
+							type='button'
 							ref={likeButtonRef}
 							onClick={handleLike}
 							disabled={isLiking}
+							aria-label={post.isLiked ? 'Unlike post' : 'Like post'}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								post.isLiked
 									? 'text-primary'
@@ -688,7 +706,9 @@ export const PostCard = ({
 						</button>
 
 						<button
+							type='button'
 							onClick={() => setShowComments(!showComments)}
+							aria-label={showComments ? 'Hide comments' : 'Show comments'}
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 						>
 							<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
@@ -698,8 +718,10 @@ export const PostCard = ({
 						{/* Share button with dropdown menu */}
 						<div className='relative flex-1'>
 							<button
+								type='button'
 								ref={shareButtonRef}
 								onClick={handleShareMenuToggle}
+								aria-label='Share post'
 								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 							>
 								<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
@@ -726,6 +748,7 @@ export const PostCard = ({
 											}}
 										>
 											<button
+												type='button'
 												onClick={handleShareToChat}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
@@ -733,6 +756,7 @@ export const PostCard = ({
 												Send in chat
 											</button>
 											<button
+												type='button'
 												onClick={handleNativeShare}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
@@ -746,9 +770,11 @@ export const PostCard = ({
 						</div>
 
 						<button
+							type='button'
 							ref={saveButtonRef}
 							onClick={handleSave}
 							disabled={isSaving}
+							aria-label={isSaved ? 'Remove saved post' : 'Save post'}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								isSaved
 									? 'text-primary'

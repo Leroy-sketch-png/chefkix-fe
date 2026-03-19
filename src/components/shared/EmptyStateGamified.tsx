@@ -251,7 +251,7 @@ export function EmptyState({
 			className={cn(
 				'text-center py-12 px-6 bg-panel-bg rounded-xl border border-border my-6',
 				isPositive &&
-					'bg-gradient-to-b from-emerald-500/5 to-teal-500/2 border-emerald-500/20',
+					'bg-gradient-to-b from-success/5 to-brand/2 border-success/20',
 				className,
 			)}
 		>

@@ -216,7 +216,7 @@ export const StepItem = ({
 								onUpdate({ imageUrl: undefined })
 							}}
 							disabled={isUploadingImage}
-							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500 disabled:opacity-50'
+							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-error disabled:opacity-50'
 						>
 							<X className='size-3.5' />
 						</button>
@@ -267,7 +267,7 @@ export const StepItem = ({
 									videoDurationSec: undefined,
 								})
 							}
-							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-500'
+							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-error'
 						>
 							<X className='size-3.5' />
 						</button>
@@ -381,13 +381,16 @@ export const StepItem = ({
 				</div>
 			</div>
 			<div className='flex flex-col gap-2'>
-				<button aria-label='Drag to reorder' className='flex size-8 cursor-grab items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-muted/30 hover:text-muted-foreground active:cursor-grabbing'>
+				<button
+					aria-label='Drag to reorder'
+					className='flex size-8 cursor-grab items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-muted/30 hover:text-muted-foreground active:cursor-grabbing'
+				>
 					<GripVertical className='size-4' />
 				</button>
 				<button
 					onClick={onRemove}
 					aria-label='Remove step'
-					className='flex size-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:bg-red-500/10 hover:text-red-500'
+					className='flex size-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:bg-error/10 hover:text-error'
 				>
 					<Trash2 className='size-4' />
 				</button>

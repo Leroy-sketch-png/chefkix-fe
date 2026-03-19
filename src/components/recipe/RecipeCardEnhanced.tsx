@@ -144,8 +144,8 @@ const difficultyConfig: Record<
 		label: 'Easy',
 	},
 	Intermediate: {
-		color: 'text-amber-500',
-		bgColor: 'bg-amber-500',
+		color: 'text-warning',
+		bgColor: 'bg-warning',
 		filledDots: 2,
 		label: 'Medium',
 	},
@@ -306,7 +306,7 @@ const RARITY_STYLES: Record<string, string> = {
 	COMMON: 'bg-border/50 text-text-secondary',
 	UNCOMMON: 'bg-success/15 text-success',
 	RARE: 'bg-info/15 text-info',
-	EPIC: 'bg-purple-500/15 text-purple-500',
+	EPIC: 'bg-accent-purple/15 text-accent-purple',
 	LEGENDARY: 'bg-gold/20 text-gold',
 }
 
@@ -436,7 +436,7 @@ const FeedCard = ({
 							cooked
 						</span>
 						{rating > 0 && (
-							<span className='flex items-center gap-1.5 text-sm text-amber-500'>
+							<span className='flex items-center gap-1.5 text-sm text-warning'>
 								<Star className='h-4 w-4' />
 								{rating.toFixed(1)}
 							</span>
@@ -547,7 +547,7 @@ const GridCard = ({
 					</div>
 					{/* Only show rating if it exists and > 0 */}
 					{rating > 0 && (
-						<span className='flex items-center gap-1 text-amber-500'>
+						<span className='flex items-center gap-1 text-warning'>
 							⭐ {rating.toFixed(1)}
 						</span>
 					)}
@@ -928,7 +928,7 @@ const MiniCard = ({
 						className={cn(
 							'rounded-lg px-2 py-0.5 font-semibold',
 							difficulty === 'Beginner' && 'bg-success/10 text-success',
-							difficulty === 'Intermediate' && 'bg-amber-500/10 text-amber-500',
+							difficulty === 'Intermediate' && 'bg-warning/10 text-warning',
 							difficulty === 'Advanced' && 'bg-error/10 text-error',
 							difficulty === 'Expert' && 'bg-xp/10 text-xp',
 						)}
