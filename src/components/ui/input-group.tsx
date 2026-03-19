@@ -22,7 +22,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
 				'has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3',
 
 				// Focus state - Chefkix tokens (subtle ring only, no border)
-				'has-[[data-slot=input-group-control]:focus-visible]:ring-primary/10 has-[[data-slot=input-group-control]:focus-visible]:ring-1',
+				'has-[[data-slot=input-group-control]:focus-visible]:ring-brand/10 has-[[data-slot=input-group-control]:focus-visible]:ring-1',
 
 				// Error state - Chefkix tokens
 				'has-[[data-slot][aria-invalid=true]]:ring-error/20 has-[[data-slot][aria-invalid=true]]:ring-1',

@@ -163,10 +163,11 @@ module.exports = {
 				DEFAULT: 'var(--radius)',
 				radius: 'var(--radius)', // Alias for components using 'rounded-radius'
 				sm: 'var(--radius-sm)',
+				md: 'var(--radius-md)',
 				lg: 'var(--radius-lg)',
-				xl: 'var(--radius-xl)', // 20px - large modals, cards with extra rounding
-				'2xl': '24px',
-				'3xl': '28px',
+				xl: 'var(--radius-xl)',
+				'2xl': '28px',
+				'3xl': '32px',
 				full: '9999px',
 			},
 			fontFamily: {

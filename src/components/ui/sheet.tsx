@@ -22,7 +22,7 @@ import { Portal } from '@/components/ui/portal'
  * - Spacing: gap-sm, gap-md, gap-lg
  * - Radius: rounded-radius
  * - Shadows: shadow-lg
- * - Colors: bg-panel-bg, text-text-primary, border-border
+ * - Colors: bg-bg-card, text-text-primary, border-border
  *
  * @example
  * ```tsx
@@ -47,7 +47,7 @@ import { Portal } from '@/components/ui/portal'
  */
 
 const sheetVariants = cva(
-	'fixed z-modal bg-panel-bg shadow-lg transition-transform duration-300 ease-in-out',
+	'fixed z-modal bg-bg-card text-text shadow-lg transition-transform duration-300 ease-in-out',
 	{
 		variants: {
 			side: {
