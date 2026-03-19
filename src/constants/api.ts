@@ -239,4 +239,17 @@ export const API_ENDPOINTS = {
 		COOKING: `${AUTH_PREFIX}/settings/cooking`,
 		APP: `${AUTH_PREFIX}/settings/app`,
 	},
+	ADMIN: {
+		GET_PENDING_REPORTS: `${API_PREFIX}/admin/reports`,
+		GET_ALL_REPORTS: `${API_PREFIX}/admin/reports/all`,
+		REVIEW_REPORT: (reportId: string) =>
+			`${API_PREFIX}/admin/reports/${reportId}/review`,
+		BAN_USER: (userId: string) => `${API_PREFIX}/admin/users/${userId}/ban`,
+		GET_USER_BANS: (userId: string) =>
+			`${API_PREFIX}/admin/users/${userId}/bans`,
+		REVOKE_BAN: (banId: string) => `${API_PREFIX}/admin/bans/${banId}`,
+		GET_PENDING_APPEALS: `${API_PREFIX}/admin/appeals`,
+		REVIEW_APPEAL: (appealId: string) =>
+			`${API_PREFIX}/admin/appeals/${appealId}/review`,
+	},
 } as const

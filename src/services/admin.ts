@@ -7,6 +7,7 @@
 
 import { api } from '@/lib/axios'
 import type { ApiResponse } from '@/lib/types'
+import { API_ENDPOINTS } from '@/constants'
 import type {
 	Report,
 	ReviewReportRequest,
@@ -15,19 +16,47 @@ import type {
 	Appeal,
 	ReviewAppealRequest,
 } from '@/lib/types/admin'
+import type { AxiosError } from 'axios'
+
+const handleAdminError = <T>(
+	error: unknown,
+	fallbackMessage: string,
+): ApiResponse<T> => {
+	const axiosError = error as AxiosError<ApiResponse<T>>
+	if (axiosError.response?.data) {
+		return axiosError.response.data
+	}
+	return {
+		success: false,
+		message: fallbackMessage,
+		statusCode: 500,
+	}
+}
 
 // ── Reports ──
 
 /** Get pending reports (status = "pending") */
 export const getPendingReports = async (): Promise<ApiResponse<Report[]>> => {
-	const response = await api.get<ApiResponse<Report[]>>('/admin/reports')
-	return response.data
+	try {
+		const response = await api.get<ApiResponse<Report[]>>(
+			API_ENDPOINTS.ADMIN.GET_PENDING_REPORTS,
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to load pending reports.')
+	}
 }
 
 /** Get all reports regardless of status */
 export const getAllReports = async (): Promise<ApiResponse<Report[]>> => {
-	const response = await api.get<ApiResponse<Report[]>>('/admin/reports/all')
-	return response.data
+	try {
+		const response = await api.get<ApiResponse<Report[]>>(
+			API_ENDPOINTS.ADMIN.GET_ALL_REPORTS,
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to load reports.')
+	}
 }
 
 /** Review a report (resolve/dismiss/ban) */
@@ -35,11 +64,15 @@ export const reviewReport = async (
 	reportId: string,
 	request: ReviewReportRequest,
 ): Promise<ApiResponse<Report>> => {
-	const response = await api.post<ApiResponse<Report>>(
-		`/admin/reports/${reportId}/review`,
-		request,
-	)
-	return response.data
+	try {
+		const response = await api.post<ApiResponse<Report>>(
+			API_ENDPOINTS.ADMIN.REVIEW_REPORT(reportId),
+			request,
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to review report.')
+	}
 }
 
 // ── Bans ──
@@ -49,37 +82,57 @@ export const banUser = async (
 	userId: string,
 	request: BanUserRequest,
 ): Promise<ApiResponse<BanResponse>> => {
-	const response = await api.post<ApiResponse<BanResponse>>(
-		`/admin/users/${userId}/ban`,
-		request,
-	)
-	return response.data
+	try {
+		const response = await api.post<ApiResponse<BanResponse>>(
+			API_ENDPOINTS.ADMIN.BAN_USER(userId),
+			request,
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to ban user.')
+	}
 }
 
 /** Get active bans for a specific user */
 export const getUserBans = async (
 	userId: string,
 ): Promise<ApiResponse<BanResponse[]>> => {
-	const response = await api.get<ApiResponse<BanResponse[]>>(
-		`/admin/users/${userId}/bans`,
-	)
-	return response.data
+	try {
+		const response = await api.get<ApiResponse<BanResponse[]>>(
+			API_ENDPOINTS.ADMIN.GET_USER_BANS(userId),
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to load user bans.')
+	}
 }
 
 /** Revoke (deactivate) a specific ban */
 export const revokeBan = async (
 	banId: string,
 ): Promise<ApiResponse<string>> => {
-	const response = await api.delete<ApiResponse<string>>(`/admin/bans/${banId}`)
-	return response.data
+	try {
+		const response = await api.delete<ApiResponse<string>>(
+			API_ENDPOINTS.ADMIN.REVOKE_BAN(banId),
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to revoke ban.')
+	}
 }
 
 // ── Appeals ──
 
 /** Get pending appeals (status = "pending") */
 export const getPendingAppeals = async (): Promise<ApiResponse<Appeal[]>> => {
-	const response = await api.get<ApiResponse<Appeal[]>>('/admin/appeals')
-	return response.data
+	try {
+		const response = await api.get<ApiResponse<Appeal[]>>(
+			API_ENDPOINTS.ADMIN.GET_PENDING_APPEALS,
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to load pending appeals.')
+	}
 }
 
 /** Review an appeal (approve/reject). Approving auto-revokes the ban. */
@@ -87,9 +140,13 @@ export const reviewAppeal = async (
 	appealId: string,
 	request: ReviewAppealRequest,
 ): Promise<ApiResponse<Appeal>> => {
-	const response = await api.post<ApiResponse<Appeal>>(
-		`/admin/appeals/${appealId}/review`,
-		request,
-	)
-	return response.data
+	try {
+		const response = await api.post<ApiResponse<Appeal>>(
+			API_ENDPOINTS.ADMIN.REVIEW_APPEAL(appealId),
+			request,
+		)
+		return response.data
+	} catch (error) {
+		return handleAdminError(error, 'Failed to review appeal.')
+	}
 }

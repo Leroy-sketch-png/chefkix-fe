@@ -47,6 +47,7 @@ export interface ChallengeHistoryItem {
 	recipeCooked?: {
 		id: string
 		title: string
+		imageUrl?: string
 	}
 }
 
@@ -249,9 +250,7 @@ export const getCommunityChallenges = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<
-			ApiResponse<CommunityChallenge[]>
-		>
+		const axiosError = error as AxiosError<ApiResponse<CommunityChallenge[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
@@ -275,9 +274,7 @@ export const getSeasonalChallenges = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<
-			ApiResponse<SeasonalChallenge[]>
-		>
+		const axiosError = error as AxiosError<ApiResponse<SeasonalChallenge[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}

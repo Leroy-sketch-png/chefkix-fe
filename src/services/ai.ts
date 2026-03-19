@@ -8,6 +8,7 @@ import { aiApi } from '@/lib/axios'
 import type { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES
@@ -238,7 +239,7 @@ export const processRecipe = async (
 		const errorMessage = axiosError.message || 'Unknown error'
 		const responseData = axiosError.response?.data
 
-		console.error(
+		logDevError(
 			'[ai.processRecipe] Error:',
 			`Status: ${status || 'N/A'}`,
 			`Message: ${errorMessage}`,
@@ -361,7 +362,7 @@ export const moderateContent = async (
 		)
 		return response.data
 	} catch (error) {
-		console.error('[Moderation] Service unavailable:', error)
+		logDevError('[Moderation] Service unavailable:', error)
 		return {
 			success: false,
 			message: 'Moderation service unavailable. Please try again.',
