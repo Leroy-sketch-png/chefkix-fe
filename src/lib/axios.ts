@@ -43,12 +43,15 @@ export const api = axios.create({
  * Separate axios instance for the Python AI service (port 8000).
  * AI endpoints (process_recipe, calculate_metas, cooking_assistant, moderate)
  * live on the AI service, NOT the monolith.
- * No credentials needed — AI service doesn't validate JWT.
+ * Authenticated via shared API key (X-AI-Service-Key header).
  */
 export const aiApi = axios.create({
 	baseURL: process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000',
 	headers: {
 		'Content-Type': 'application/json',
+		...(process.env.NEXT_PUBLIC_AI_SERVICE_API_KEY && {
+			'X-AI-Service-Key': process.env.NEXT_PUBLIC_AI_SERVICE_API_KEY,
+		}),
 	},
 	timeout: 60_000, // AI calls can take longer (Gemini processing)
 })
