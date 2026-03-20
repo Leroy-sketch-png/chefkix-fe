@@ -6,13 +6,8 @@ import {
 	Sparkles,
 	X,
 	Send,
-	MessageCircle,
-	ChevronUp,
 	Lightbulb,
 	AlertTriangle,
-	ThumbsUp,
-	ThumbsDown,
-	Volume2,
 	Mic,
 	MicOff,
 	Loader2,
@@ -29,6 +24,27 @@ import {
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 import { askCookingAssistant } from '@/services/ai'
+
+// ============================================
+// WEB SPEECH API (not in all TS lib versions)
+// ============================================
+
+interface SpeechRecognitionInstance {
+	continuous: boolean
+	interimResults: boolean
+	lang: string
+	onresult:
+		| ((event: {
+				results: { [i: number]: { [i: number]: { transcript: string } } }
+		  }) => void)
+		| null
+	onerror: (() => void) | null
+	onend: (() => void) | null
+	start(): void
+	stop(): void
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
 
 // ============================================
 // TYPES
@@ -106,10 +122,9 @@ const QUICK_ACTIONS: QuickAction[] = [
 
 interface ChatMessageProps {
 	message: Message
-	onFeedback?: (helpful: boolean) => void
 }
 
-const ChatMessage = ({ message, onFeedback }: ChatMessageProps) => {
+const ChatMessage = ({ message }: ChatMessageProps) => {
 	const isUser = message.role === 'user'
 
 	return (
@@ -180,25 +195,6 @@ const ChatMessage = ({ message, onFeedback }: ChatMessageProps) => {
 				)}
 
 				<p className='text-sm leading-relaxed'>{message.content}</p>
-
-				{/* Feedback buttons for AI responses */}
-				{!isUser && onFeedback && (
-					<div className='mt-2 flex items-center gap-1 border-t border-border/50 pt-2'>
-						<span className='mr-2 text-xs text-text-tertiary'>Helpful?</span>
-						<button
-							onClick={() => onFeedback(true)}
-							className='rounded-full p-1.5 text-text-tertiary transition-colors hover:bg-success/10 hover:text-success'
-						>
-							<ThumbsUp className='h-3.5 w-3.5' />
-						</button>
-						<button
-							onClick={() => onFeedback(false)}
-							className='rounded-full p-1.5 text-text-tertiary transition-colors hover:bg-error/10 hover:text-error'
-						>
-							<ThumbsDown className='h-3.5 w-3.5' />
-						</button>
-					</div>
-				)}
 			</div>
 		</motion.div>
 	)
@@ -276,8 +272,11 @@ export const AiAssistant = ({
 	const [messages, setMessages] = useState<Message[]>([])
 	const [inputValue, setInputValue] = useState('')
 	const [isTyping, setIsTyping] = useState(false)
-	const [isVoiceEnabled, setIsVoiceEnabled] = useState(false)
 	const [isListening, setIsListening] = useState(false)
+	const [speechSupported] = useState(
+		() => 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window,
+	)
+	const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -382,18 +381,53 @@ export const AiAssistant = ({
 		handleSend(action.prompt)
 	}
 
-	const handleFeedback = (_messageId: string, _helpful: boolean) => {
-		// Feedback collection requires a dedicated backend endpoint (not yet implemented).
-		// When available: POST /api/v1/ai/feedback { messageId, helpful, sessionId }
-	}
-
-	const toggleVoice = () => {
-		setIsVoiceEnabled(!isVoiceEnabled)
-	}
-
 	const toggleListening = () => {
-		setIsListening(!isListening)
-		// In production, use Web Speech API
+		if (!speechSupported) return
+
+		if (isListening) {
+			recognitionRef.current?.stop()
+			setIsListening(false)
+			return
+		}
+
+		const WebSpeech =
+			(
+				window as Window & {
+					SpeechRecognition?: SpeechRecognitionConstructor
+					webkitSpeechRecognition?: SpeechRecognitionConstructor
+				}
+			).SpeechRecognition ??
+			(
+				window as Window & {
+					webkitSpeechRecognition?: SpeechRecognitionConstructor
+				}
+			).webkitSpeechRecognition
+		if (!WebSpeech) return
+
+		const recognition = new WebSpeech()
+		recognition.continuous = false
+		recognition.interimResults = false
+		recognition.lang = 'en-US'
+
+		recognition.onresult = event => {
+			const transcript = event.results[0]?.[0]?.transcript
+			if (transcript) {
+				setInputValue(transcript)
+				inputRef.current?.focus()
+			}
+		}
+
+		recognition.onerror = () => {
+			setIsListening(false)
+		}
+
+		recognition.onend = () => {
+			setIsListening(false)
+		}
+
+		recognitionRef.current = recognition
+		recognition.start()
+		setIsListening(true)
 	}
 
 	return (
@@ -432,18 +466,6 @@ export const AiAssistant = ({
 							</div>
 							<div className='flex items-center gap-2'>
 								<button
-									onClick={toggleVoice}
-									aria-label={isVoiceEnabled ? 'Disable voice' : 'Enable voice'}
-									className={cn(
-										'rounded-full p-2 transition-colors',
-										isVoiceEnabled
-											? 'bg-white text-info'
-											: 'bg-white/20 text-white hover:bg-white/30',
-									)}
-								>
-									<Volume2 className='h-5 w-5' />
-								</button>
-								<button
 									onClick={onClose}
 									aria-label='Close AI assistant'
 									className='rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white'
@@ -467,15 +489,7 @@ export const AiAssistant = ({
 						<div className='flex-1 space-y-4 overflow-y-auto p-4'>
 							<AnimatePresence>
 								{messages.map(message => (
-									<ChatMessage
-										key={message.id}
-										message={message}
-										onFeedback={
-											message.role === 'assistant'
-												? helpful => handleFeedback(message.id, helpful)
-												: undefined
-										}
-									/>
+									<ChatMessage key={message.id} message={message} />
 								))}
 							</AnimatePresence>
 
@@ -508,22 +522,27 @@ export const AiAssistant = ({
 						{/* Input */}
 						<div className='border-t border-border p-4'>
 							<div className='flex items-center gap-2'>
-								{/* Voice input button */}
-								<button
-									onClick={toggleListening}
-									className={cn(
-										'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors',
-										isListening
-											? 'bg-error text-white'
-											: 'bg-bg-elevated text-text-tertiary hover:bg-bg-hover',
-									)}
-								>
-									{isListening ? (
-										<Mic className='h-5 w-5 animate-pulse' />
-									) : (
-										<MicOff className='h-5 w-5' />
-									)}
-								</button>
+								{/* Voice input button - only shown when Web Speech API is available */}
+								{speechSupported && (
+									<button
+										onClick={toggleListening}
+										aria-label={
+											isListening ? 'Stop listening' : 'Start voice input'
+										}
+										className={cn(
+											'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors',
+											isListening
+												? 'bg-error text-white'
+												: 'bg-bg-elevated text-text-tertiary hover:bg-bg-hover',
+										)}
+									>
+										{isListening ? (
+											<Mic className='h-5 w-5 animate-pulse' />
+										) : (
+											<MicOff className='h-5 w-5' />
+										)}
+									</button>
+								)}
 
 								<div className='relative flex-1'>
 									<input
