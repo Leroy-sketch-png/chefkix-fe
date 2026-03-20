@@ -18,6 +18,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
+import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
 import {
 	getMyConversations,
@@ -271,7 +272,7 @@ export default function MessagesPage() {
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
 	const messagesEndRef = useRef<HTMLDivElement>(null)
-	const inputRef = useRef<HTMLInputElement>(null)
+	const inputRef = useRef<MentionInputRef>(null)
 	const hasHandledUserIdRef = useRef(false)
 
 	// Handle incoming WebSocket messages
@@ -432,13 +433,6 @@ export default function MessagesPage() {
 			} finally {
 				setIsSending(false)
 			}
-		}
-	}
-
-	const handleKeyPress = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
-			e.preventDefault()
-			handleSendMessage()
 		}
 	}
 
@@ -647,14 +641,15 @@ export default function MessagesPage() {
 						{/* Input Area */}
 						<footer className='flex-shrink-0 border-t border-border-subtle bg-bg-card p-3 md:p-4'>
 							<div className='flex items-center gap-3'>
-								<Input
+								<MentionInput
 									ref={inputRef}
-									placeholder='Type a message...'
+									placeholder='Type a message... (use @ to mention)'
 									value={newMessage}
-									onChange={e => setNewMessage(e.target.value)}
-									onKeyDown={handleKeyPress}
+									onChange={setNewMessage}
+									onTaggedUsersChange={() => {}}
+									onSubmit={handleSendMessage}
 									disabled={isSending}
-									className='flex-1 bg-bg-elevated'
+									className='bg-bg-elevated'
 								/>
 								<Button
 									onClick={handleSendMessage}
