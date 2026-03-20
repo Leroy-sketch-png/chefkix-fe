@@ -197,6 +197,33 @@ export type ContentType =
 	| 'chat_message'
 	| 'bio'
 
+// Ingredient Substitution
+export type SubstitutionReason =
+	| 'allergy'
+	| 'unavailable'
+	| 'preference'
+	| 'dietary'
+
+export interface SubstitutionRequest {
+	ingredient: string
+	reason: SubstitutionReason
+	dietaryTags?: string[]
+	recipeContext?: string
+}
+
+export interface Substitution {
+	name: string
+	ratio: string
+	notes: string
+	confidenceScore: number
+}
+
+export interface SubstitutionResponse {
+	originalIngredient: string
+	reason: string
+	substitutions: Substitution[]
+}
+
 export interface ModerateRequest {
 	text: string
 	content_type: ContentType
@@ -367,6 +394,38 @@ export const moderateContent = async (
 			success: false,
 			message: 'Moderation service unavailable. Please try again.',
 			statusCode: 503,
+		}
+	}
+}
+
+/**
+ * Get AI-powered ingredient substitution suggestions
+ * Use when user wants to replace an ingredient in a recipe
+ */
+export const suggestSubstitutions = async (
+	ingredient: string,
+	reason: SubstitutionReason,
+	recipeContext?: string,
+	dietaryTags?: string[],
+): Promise<ApiResponse<SubstitutionResponse>> => {
+	try {
+		const response = await aiApi.post<ApiResponse<SubstitutionResponse>>(
+			API_ENDPOINTS.AI.SUGGEST_SUBSTITUTIONS,
+			{
+				ingredient,
+				reason,
+				...(recipeContext && { recipe_context: recipeContext }),
+				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
+			},
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<SubstitutionResponse>>
+		if (axiosError.response?.data) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to suggest substitutions',
+			statusCode: 500,
 		}
 	}
 }

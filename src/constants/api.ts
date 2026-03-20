@@ -169,6 +169,7 @@ export const API_ENDPOINTS = {
 		VALIDATE_RECIPE: `${API_PREFIX}/validate_recipe`,
 		COOKING_ASSISTANT: `${API_PREFIX}/cooking_assistant`,
 		MODERATE: `${API_PREFIX}/moderate`,
+		SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/suggest_substitutions`,
 	},
 	// Leaderboard (identity module)
 	LEADERBOARD: {

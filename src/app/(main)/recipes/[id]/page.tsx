@@ -54,6 +54,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { SocialProof } from '@/components/recipe/SocialProof'
+import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -983,7 +984,7 @@ export default function RecipeDetailPage() {
 										animate={{ opacity: 1, x: 0 }}
 										transition={{ delay: 0.5 + index * 0.03 }}
 										whileHover={{ x: 4 }}
-										className='flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated'
+										className='group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated'
 									>
 										<div className='mt-1.5 size-2 flex-shrink-0 rounded-full bg-brand' />
 										<span className='flex-1 text-text-secondary'>
@@ -992,6 +993,10 @@ export default function RecipeDetailPage() {
 											</span>{' '}
 											{ingredient.name}
 										</span>
+										<SubstitutionButton
+											ingredientName={ingredient.name}
+											recipeTitle={recipe.title}
+										/>
 									</motion.li>
 								))}
 							</ul>
