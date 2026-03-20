@@ -53,6 +53,7 @@ export default function MealPlannerPage() {
 	const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
 	const [confirmingDelete, setConfirmingDelete] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const [useAI, setUseAI] = useState(false)
 
 	// ── Fetch current plan ────────────────────────────────
 
@@ -77,7 +78,7 @@ export default function MealPlannerPage() {
 	const handleGenerate = async () => {
 		setGenerating(true)
 		try {
-			const newPlan = await generateMealPlan({ days: 7 })
+			const newPlan = await generateMealPlan({ days: 7 }, useAI)
 			setPlan(newPlan)
 		} catch {
 			toast.error('Failed to generate meal plan')
@@ -203,6 +204,22 @@ export default function MealPlannerPage() {
 								</>
 							)}
 							<button
+								onClick={() => setUseAI(prev => !prev)}
+								className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+									useAI
+										? 'bg-brand/15 text-brand'
+										: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
+								}`}
+								title={
+									useAI
+										? 'AI-powered generation (uses your pantry + Gemini)'
+										: 'Quick generation (shuffles existing recipes)'
+								}
+							>
+								<Sparkles className='size-4' />
+								{useAI ? 'AI Mode' : 'Quick Mode'}
+							</button>
+							<button
 								onClick={handleGenerate}
 								disabled={generating}
 								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
@@ -210,12 +227,33 @@ export default function MealPlannerPage() {
 								{generating ? (
 									<RefreshCw className='size-4 animate-spin' />
 								) : (
-									<Sparkles className='size-4' />
+									<ChefHat className='size-4' />
 								)}
 								{plan ? 'Regenerate' : 'Generate Plan'}
 							</button>
 						</div>
 					</div>
+
+					{/* ── AI Reasoning Banner ───────────── */}
+					{plan?.reasoning && (
+						<motion.div
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							className='flex items-start gap-3 rounded-xl border border-brand/20 bg-brand/5 p-4'
+						>
+							<Sparkles className='mt-0.5 size-4 flex-shrink-0 text-brand' />
+							<div className='flex-1'>
+								<p className='text-sm text-text'>{plan.reasoning}</p>
+								{plan.pantryUtilizationPercent != null &&
+									plan.pantryUtilizationPercent > 0 && (
+										<p className='mt-1 text-xs text-text-muted'>
+											Pantry utilization:{' '}
+											{Math.round(plan.pantryUtilizationPercent)}%
+										</p>
+									)}
+							</div>
+						</motion.div>
+					)}
 
 					{/* ── No Plan State ─────────────────── */}
 					{!plan ? (

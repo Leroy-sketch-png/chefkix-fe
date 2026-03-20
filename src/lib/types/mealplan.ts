@@ -26,6 +26,8 @@ export interface MealPlan {
 	weekStartDate: string
 	days: PlannedDay[]
 	shoppingList: ShoppingItem[]
+	reasoning?: string | null
+	pantryUtilizationPercent?: number | null
 }
 
 export interface GenerateMealPlanRequest {
