@@ -42,6 +42,7 @@ import { VoiceModeButton } from './VoiceModeButton'
 import { VoiceCommandToast } from './VoiceCommandToast'
 import { VoiceHelpOverlay } from './VoiceHelpOverlay'
 import { OfflineBanner } from './OfflineBanner'
+import { AiAssistPanel } from './AiAssistPanel'
 import { useVoiceMode } from '@/lib/voice'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import {
@@ -449,6 +450,7 @@ export const CookingPlayer = () => {
 	const [direction, setDirection] = useState(0) // -1 = back, 1 = forward
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
+	const [showAiAssist, setShowAiAssist] = useState(false)
 	const [isNavigating, setIsNavigating] = useState(false)
 
 	// Focus traps for modal accessibility
@@ -645,6 +647,9 @@ export const CookingPlayer = () => {
 			// This allows users to type in the rating form (e.g., notes with spaces)
 			if (showCompletion) return
 
+			// Guard: When AI assist or abandon confirmation is showing, don't capture
+			if (showAiAssist) return
+
 			// Guard: When abandon confirmation is showing, only handle Escape to close it
 			if (showAbandonConfirm) {
 				if (e.key === 'Escape') {
@@ -674,6 +679,7 @@ export const CookingPlayer = () => {
 		handleNextStep,
 		handlePrevStep,
 		showCompletion,
+		showAiAssist,
 		showAbandonConfirm,
 	])
 
@@ -988,11 +994,9 @@ export const CookingPlayer = () => {
 									onJumpToStep={handleStepClick}
 								/>
 
-								{/* AI Assist Button - Placeholder until AI assist feature is implemented */}
+								{/* AI Assist Button */}
 								<motion.button
-									onClick={() =>
-										toast.info('AI Assist is coming soon!', { icon: '🤖' })
-									}
+									onClick={() => setShowAiAssist(true)}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
@@ -1340,6 +1344,15 @@ export const CookingPlayer = () => {
 					</Portal>
 				)}
 			</AnimatePresence>
+
+			{/* AI Assist Panel */}
+			<AiAssistPanel
+				isOpen={showAiAssist}
+				onClose={() => setShowAiAssist(false)}
+				recipeTitle={recipe?.title ?? 'Recipe'}
+				currentStep={step?.description ?? ''}
+				stepNumber={currentStepNumber}
+			/>
 
 			{/* Abandon Confirmation Modal - Separate Portal (outside main modal container) */}
 			<AnimatePresence>
