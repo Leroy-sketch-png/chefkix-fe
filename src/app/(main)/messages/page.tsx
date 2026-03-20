@@ -106,8 +106,6 @@ function ConversationItem({
 					fill
 					className='rounded-full object-cover'
 				/>
-				{/* Online indicator */}
-				<span className='absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg-card bg-success' />
 			</div>
 
 			{/* Content */}
