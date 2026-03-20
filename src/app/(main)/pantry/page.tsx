@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -36,6 +36,8 @@ import type {
 	PantryRecipeMatch,
 } from '@/lib/types/pantry'
 import { toast } from 'sonner'
+import { Combobox, ComboboxRef } from '@/components/ui/combobox'
+import { getIngredientOptions, suggestCategory } from '@/lib/data/ingredients'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -83,7 +85,13 @@ export default function PantryPage() {
 	const [quickAddCategory, setQuickAddCategory] = useState('other')
 	const [quickAddExpiry, setQuickAddExpiry] = useState('')
 	const [isAdding, setIsAdding] = useState(false)
-	const quickAddRef = useRef<HTMLInputElement>(null)
+	const quickAddRef = useRef<ComboboxRef>(null)
+
+	// Ingredient autocomplete options (merge static vocab + user's pantry)
+	const ingredientOptions = useMemo(
+		() => getIngredientOptions(items.map(i => i.ingredientName)),
+		[items],
+	)
 
 	// Edit state
 	const [editingId, setEditingId] = useState<string | null>(null)
@@ -363,14 +371,21 @@ export default function PantryPage() {
 								>
 									Ingredient
 								</label>
-								<input
+								<Combobox
 									id='pantry-ingredient'
 									ref={quickAddRef}
 									value={quickAddName}
-									onChange={e => setQuickAddName(e.target.value)}
-									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
+									onChange={setQuickAddName}
+									onSelect={option => {
+										setQuickAddName(option.label)
+										const cat = suggestCategory(option.label)
+										if (cat !== 'other') setQuickAddCategory(cat)
+									}}
+									options={ingredientOptions}
+									onKeyDown={e => {
+										if (e.key === 'Enter') handleQuickAdd()
+									}}
 									placeholder='e.g. Tomatoes'
-									className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
 								/>
 							</div>
 							<div className='w-20'>
