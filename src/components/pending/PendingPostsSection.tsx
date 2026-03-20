@@ -27,6 +27,7 @@ import {
 	CARD_FEATURED_HOVER,
 } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // =============================================================================
 // TYPES
@@ -466,6 +467,8 @@ export const PendingExpandedModal = ({
 	onClose,
 	onPost,
 }: PendingExpandedModalProps) => {
+	useEscapeKey(isOpen, onClose)
+
 	const pendingSessions = sessions.filter(
 		s => !s.postId && s.status !== 'expired' && s.status !== 'abandoned',
 	)

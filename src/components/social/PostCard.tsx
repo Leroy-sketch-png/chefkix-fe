@@ -41,6 +41,7 @@ import {
 } from '@/components/modals/ReportModal'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 
@@ -88,6 +89,9 @@ export const PostCard = ({
 	const DOUBLE_TAP_DELAY = 300 // ms
 
 	const isOwner = currentUserId === post.userId
+
+	useEscapeKey(showMenu, () => setShowMenu(false))
+	useEscapeKey(showShareMenu, () => setShowShareMenu(false))
 	const isLoggedIn = !!currentUserId
 	const createdAt = new Date(post.createdAt)
 

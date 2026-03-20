@@ -35,6 +35,7 @@ import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -371,6 +372,8 @@ export default function SettingsPage() {
 	const closePasswordModal = useCallback(() => {
 		setShowPasswordModal(false)
 	}, [])
+
+	useEscapeKey(showPasswordModal, closePasswordModal)
 
 	useEffect(() => {
 		const loadSettings = async () => {

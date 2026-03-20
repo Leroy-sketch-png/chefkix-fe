@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -279,6 +280,8 @@ export const AiAssistant = ({
 	const [isListening, setIsListening] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
+
+	useEscapeKey(isOpen, onClose)
 
 	// Auto-scroll to bottom on new messages
 	useEffect(() => {

@@ -21,6 +21,7 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
 	getPantryItems,
@@ -109,7 +110,8 @@ export default function PantryPage() {
 	const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
 	const [showClearExpiredConfirm, setShowClearExpiredConfirm] = useState(false)
 	const [isClearingExpired, setIsClearingExpired] = useState(false)
-
+	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
+	useEscapeKey(showClearExpiredConfirm, () => setShowClearExpiredConfirm(false))
 	// ── Fetch ─────────────────────────────────────────────
 
 	const fetchItems = useCallback(async () => {

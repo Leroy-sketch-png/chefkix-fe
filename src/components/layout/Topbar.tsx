@@ -22,6 +22,7 @@ import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 
 export const Topbar = () => {
@@ -29,6 +30,8 @@ export const Topbar = () => {
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [showUserMenu, setShowUserMenu] = useState(false)
+
+	useEscapeKey(showUserMenu, () => setShowUserMenu(false))
 	const [unreadNotifications, setUnreadNotifications] = useState(0)
 	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
 	const avatarButtonRef = useRef<HTMLButtonElement>(null)

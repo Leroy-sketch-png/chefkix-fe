@@ -5,6 +5,7 @@ import { Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // ============================================================================
 // TYPES
@@ -31,6 +32,8 @@ export function StreakBrokenModal({
 	onStartNewStreak,
 	onDismiss,
 }: StreakBrokenModalProps) {
+	useEscapeKey(isOpen, onDismiss ?? (() => {}))
+
 	return (
 		<AnimatePresence>
 			{isOpen && (
