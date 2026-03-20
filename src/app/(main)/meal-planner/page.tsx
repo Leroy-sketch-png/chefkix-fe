@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
 	generateMealPlan,
@@ -54,6 +56,8 @@ export default function MealPlannerPage() {
 	const [confirmingDelete, setConfirmingDelete] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [useAI, setUseAI] = useState(false)
+
+	useEscapeKey(confirmingDelete, () => setConfirmingDelete(false))
 
 	// ── Fetch current plan ────────────────────────────────
 
@@ -461,44 +465,46 @@ export default function MealPlannerPage() {
 				{/* ── Delete Confirmation Dialog ── */}
 				<AnimatePresence>
 					{confirmingDelete && (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'
-							onClick={() => setConfirmingDelete(false)}
-						>
+						<Portal>
 							<motion.div
-								initial={{ scale: 0.95, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								exit={{ scale: 0.95, opacity: 0 }}
-								onClick={e => e.stopPropagation()}
-								className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4'
+								onClick={() => setConfirmingDelete(false)}
 							>
-								<h3 className='mb-2 text-lg font-bold text-text'>
-									Delete Meal Plan?
-								</h3>
-								<p className='mb-6 text-sm text-text-muted'>
-									This will permanently delete your current meal plan and all
-									associated meals. This action cannot be undone.
-								</p>
-								<div className='flex justify-end gap-3'>
-									<button
-										onClick={() => setConfirmingDelete(false)}
-										className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
-									>
-										Cancel
-									</button>
-									<button
-										onClick={handleDelete}
-										disabled={isDeleting}
-										className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
-									>
-										{isDeleting ? 'Deleting...' : 'Delete'}
-									</button>
-								</div>
+								<motion.div
+									initial={{ scale: 0.95, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.95, opacity: 0 }}
+									onClick={e => e.stopPropagation()}
+									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								>
+									<h3 className='mb-2 text-lg font-bold text-text'>
+										Delete Meal Plan?
+									</h3>
+									<p className='mb-6 text-sm text-text-muted'>
+										This will permanently delete your current meal plan and all
+										associated meals. This action cannot be undone.
+									</p>
+									<div className='flex justify-end gap-3'>
+										<button
+											onClick={() => setConfirmingDelete(false)}
+											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+										>
+											Cancel
+										</button>
+										<button
+											onClick={handleDelete}
+											disabled={isDeleting}
+											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
+										>
+											{isDeleting ? 'Deleting...' : 'Delete'}
+										</button>
+									</div>
+								</motion.div>
 							</motion.div>
-						</motion.div>
+						</Portal>
 					)}
 				</AnimatePresence>
 			</PageContainer>
