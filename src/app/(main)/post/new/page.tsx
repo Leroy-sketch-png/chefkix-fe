@@ -443,6 +443,12 @@ function CreatePostContent() {
 							<textarea
 								value={content}
 								onChange={e => setContent(e.target.value)}
+								onKeyDown={e => {
+									if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+										e.preventDefault()
+										handleSubmit()
+									}
+								}}
 								placeholder={
 									session
 										? `Tell everyone about your ${session.recipeTitle}! How did it turn out?`
@@ -533,6 +539,9 @@ function CreatePostContent() {
 										{session
 											? `Post & Claim ${Math.round(session.pendingXp)} XP`
 											: 'Post'}
+										<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
+											⌘↵
+										</kbd>
 									</>
 								)}
 							</AnimatedButton>
