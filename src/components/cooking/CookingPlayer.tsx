@@ -641,7 +641,16 @@ export const CookingPlayer = () => {
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			// Guard: Don't handle keyboard when player is closed
-			if (!isOpen || !recipe) return
+			if (!isOpen) return
+
+			// Error state (no recipe/session): only Escape to dismiss
+			if (!recipe) {
+				if (e.key === 'Escape') {
+					e.preventDefault()
+					closeCookingPanel()
+				}
+				return
+			}
 
 			// Guard: Don't capture keyboard events when completion modal is showing
 			// This allows users to type in the rating form (e.g., notes with spaces)
@@ -1331,7 +1340,7 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 shadow-2xl'
+								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-3xl bg-bg-card p-8 shadow-2xl'
 							>
 								<SessionRatingForm
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
