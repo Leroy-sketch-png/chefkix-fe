@@ -234,6 +234,15 @@ export default function MealPlannerPage() {
 						</div>
 					</div>
 
+					{/* ── AI Mode Notice ─────────────────── */}
+					{useAI && !plan?.reasoning && (
+						<p className='text-xs text-text-muted'>
+							<Sparkles className='mr-1 inline size-3 text-brand' />
+							AI Mode sends your pantry items and preferences to our AI service
+							to generate personalized meal plans.
+						</p>
+					)}
+
 					{/* ── AI Reasoning Banner ───────────── */}
 					{plan?.reasoning && (
 						<motion.div
