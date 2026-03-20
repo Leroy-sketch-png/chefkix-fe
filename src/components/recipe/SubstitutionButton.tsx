@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeftRight, Loader2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	suggestSubstitutions,
 	type Substitution,
@@ -28,6 +29,8 @@ export function SubstitutionButton({
 	const [error, setError] = useState<string | null>(null)
 	const buttonRef = useRef<HTMLButtonElement>(null)
 	const [pos, setPos] = useState({ top: 0, left: 0 })
+
+	useEscapeKey(open, () => setOpen(false))
 
 	useEffect(() => {
 		if (open && buttonRef.current) {
@@ -138,7 +141,7 @@ export function SubstitutionButton({
 										{error}
 									</p>
 								) : substitutions && substitutions.length > 0 ? (
-									<ul className='space-y-2'>
+									<ul className='max-h-64 space-y-2 overflow-y-auto'>
 										{substitutions.map(sub => (
 											<li
 												key={sub.name}
