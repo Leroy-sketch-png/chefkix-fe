@@ -26,6 +26,8 @@ import {
 	sendMessage as sendMessageRest,
 	createConversation,
 	mapChatMessageToMessage,
+	reactToMessage,
+	deleteMessage,
 	Conversation,
 	ChatMessage as ChatMessageType,
 } from '@/services/chat'
@@ -149,10 +151,18 @@ function MessageBubble({
 	message,
 	isMe,
 	showAvatar,
+	onReact,
+	onDelete,
+	onReply,
+	onCopy,
 }: {
 	message: ChatMessageType
 	isMe: boolean
 	showAvatar?: boolean
+	onReact?: (messageId: string, emoji: string) => void
+	onDelete?: (messageId: string) => void
+	onReply?: (message: Message) => void
+	onCopy?: (content: string) => void
 }) {
 	// Map backend ChatMessage to frontend Message format
 	const mappedMessage: Message = {
@@ -174,6 +184,10 @@ function MessageBubble({
 			senderAvatar={senderAvatar}
 			senderName={senderName}
 			showAvatar={showAvatar}
+			onReact={onReact}
+			onDelete={onDelete}
+			onReply={onReply}
+			onCopy={onCopy}
 		/>
 	)
 }
@@ -440,6 +454,36 @@ export default function MessagesPage() {
 		setShowMobileChat(true)
 	}
 
+	// React to a message
+	const handleReact = useCallback(async (messageId: string, emoji: string) => {
+		const response = await reactToMessage(messageId, emoji)
+		if (response.success && response.data) {
+			setMessages(prev =>
+				prev.map(m => (m.id === messageId ? response.data! : m)),
+			)
+		}
+	}, [])
+
+	// Delete a message (own messages only)
+	const handleDelete = useCallback(async (messageId: string) => {
+		const response = await deleteMessage(messageId)
+		if (response.success && response.data) {
+			setMessages(prev =>
+				prev.map(m => (m.id === messageId ? response.data! : m)),
+			)
+		}
+	}, [])
+
+	// Reply to a message - focus input and prepend reply context
+	const handleReply = useCallback((message: Message) => {
+		inputRef.current?.focus()
+	}, [])
+
+	// Copy message content
+	const handleCopy = useCallback((content: string) => {
+		navigator.clipboard.writeText(content)
+	}, [])
+
 	// Back to list (mobile)
 	const handleBackToList = () => {
 		setShowMobileChat(false)
@@ -627,6 +671,10 @@ export default function MessagesPage() {
 															messages[idx - 1]?.sender?.userId ===
 																user?.userId)
 													}
+													onReact={handleReact}
+													onDelete={handleDelete}
+													onReply={handleReply}
+													onCopy={handleCopy}
 												/>
 											)
 										})}

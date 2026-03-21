@@ -48,9 +48,9 @@ interface XPAwardedFullNotification extends BaseNotification {
 
 interface LevelUpNotification extends BaseNotification {
 	type: 'level_up'
-	newLevel: number
-	newGoalXp: number
-	recipesToNextLevel: number
+	newLevel?: number
+	newGoalXp?: number
+	recipesToNextLevel?: number
 }
 
 interface BadgeUnlockedNotification extends BaseNotification {
@@ -76,7 +76,7 @@ interface CreatorBonusNotification extends BaseNotification {
 	cookerAvatarUrl: string
 	recipeName: string
 	xpBonus: number
-	totalCookRewards: number
+	totalCookRewards?: number
 	postId?: string
 	onViewPost?: () => void
 }
@@ -358,7 +358,7 @@ const LevelUpItem = ({
 		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
 			<span className='absolute -right-2 -top-2 z-10 text-lg'>🎉</span>
 			<span className='text-lg font-extrabold text-white drop-shadow-sm'>
-				{newLevel}
+				{newLevel ?? '?'}
 			</span>
 			<motion.div
 				className='absolute -inset-1.5 rounded-full border-3 border-rare/40'
@@ -376,15 +376,19 @@ const LevelUpItem = ({
 			/>
 			<p className='text-sm'>
 				Congratulations! You&apos;ve reached{' '}
-				<strong className='font-bold'>Level {newLevel}</strong>
+				<strong className='font-bold'>Level {newLevel ?? '?'}</strong>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-rare/15 text-rare'>
-					New goal: {newGoalXp.toLocaleString()} XP
-				</MetaTag>
-				<span className='text-xs text-text-muted'>
-					{recipesToNextLevel} recipes to Level {newLevel + 1}
-				</span>
+				{newGoalXp != null && (
+					<MetaTag className='bg-rare/15 text-rare'>
+						New goal: {newGoalXp.toLocaleString()} XP
+					</MetaTag>
+				)}
+				{recipesToNextLevel != null && newLevel != null && (
+					<span className='text-xs text-text-muted'>
+						{recipesToNextLevel} recipes to Level {newLevel + 1}
+					</span>
+				)}
 			</div>
 		</div>
 
@@ -544,9 +548,11 @@ const CreatorBonusItem = ({
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-xp/15 text-xp'>+{xpBonus} XP bonus</MetaTag>
-				<span className='text-xs text-text-muted'>
-					Your {totalCookRewards}th cook reward
-				</span>
+				{totalCookRewards != null && (
+					<span className='text-xs text-text-muted'>
+						Your {totalCookRewards}th cook reward
+					</span>
+				)}
 			</div>
 		</div>
 

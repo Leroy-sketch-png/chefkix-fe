@@ -509,14 +509,16 @@ export default function RecipeDetailPage() {
 						<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
 						{/* XP Badge - top left */}
-						<motion.div
-							initial={{ scale: 0, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							transition={{ delay: 0.3, ...TRANSITION_SPRING }}
-							className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-xp px-4 py-2 text-sm font-bold text-white shadow-lg shadow-xp/40'
-						>
-							<Zap className='size-4' />+{recipe.xpReward || 100} XP
-						</motion.div>
+						{recipe.xpReward != null && recipe.xpReward > 0 && (
+							<motion.div
+								initial={{ scale: 0, opacity: 0 }}
+								animate={{ scale: 1, opacity: 1 }}
+								transition={{ delay: 0.3, ...TRANSITION_SPRING }}
+								className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-xp px-4 py-2 text-sm font-bold text-white shadow-lg shadow-xp/40'
+							>
+								<Zap className='size-4' />+{recipe.xpReward} XP
+							</motion.div>
+						)}
 
 						{/* Difficulty Badge - top right */}
 						<motion.div
@@ -1031,7 +1033,7 @@ export default function RecipeDetailPage() {
 								</p>
 							</div>
 							<span className='text-2xl font-black text-white'>
-								+{recipe.xpReward || 100}
+								+{recipe.xpReward ?? 0}
 							</span>
 						</div>
 					</motion.div>
