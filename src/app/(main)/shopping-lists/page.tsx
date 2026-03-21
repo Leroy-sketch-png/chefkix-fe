@@ -298,6 +298,11 @@ export default function ShoppingListsPage() {
 			: 0
 		: 0
 
+	const uncheckedItems = useMemo(
+		() => (selectedList?.items ?? []).filter(i => !i.checked),
+		[selectedList],
+	)
+
 	// ── Loading skeleton ───────────────────────────────────────────────
 
 	if (isLoading) {
@@ -376,6 +381,43 @@ export default function ShoppingListsPage() {
 								</button>
 							</div>
 						</div>
+
+						{/* Grocery checkout CTA */}
+						{uncheckedItems.length > 0 && (
+							<motion.div
+								initial={{ opacity: 0, y: -8 }}
+								animate={{ opacity: 1, y: 0 }}
+								className='flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3'
+							>
+								<ShoppingCart className='size-5 flex-shrink-0 text-brand' />
+								<div className='flex-1 min-w-0'>
+									<p className='text-sm font-semibold text-text'>
+										Order these groceries
+									</p>
+									<p className='text-xs text-text-muted'>
+										{uncheckedItems.length} item
+										{uncheckedItems.length !== 1 ? 's' : ''} remaining —
+										delivery partner integration coming soon
+									</p>
+								</div>
+								<button
+									onClick={() => {
+										const items = uncheckedItems
+											.map(i => i.ingredient)
+											.join(', ')
+										const searchQuery = encodeURIComponent(items)
+										window.open(
+											`https://www.instacart.com/store/search/${searchQuery}`,
+											'_blank',
+											'noopener,noreferrer',
+										)
+									}}
+									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+								>
+									Order Groceries
+								</button>
+							</motion.div>
+						)}
 
 						{/* Progress bar */}
 						{selectedList.totalItems > 0 && (

@@ -62,7 +62,7 @@ export default function LeaderboardRoute() {
 							xpThisWeek: e.xpThisWeek,
 							recipesCooked: e.recipesCooked,
 							streak: e.streak,
-							badge: undefined, // API doesn't return per-entry badges
+							topBadges: e.topBadges ?? [],
 						})),
 					)
 

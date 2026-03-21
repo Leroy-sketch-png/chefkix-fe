@@ -183,6 +183,7 @@ export const CreatePostForm = ({
 			photoUrls: photoFiles,
 			videoUrl: videoUrl.trim() || undefined,
 			tags: tagList.length > 0 ? tagList : undefined,
+			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
 		})
 
 		if (response.success && response.data) {

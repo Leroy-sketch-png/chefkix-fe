@@ -224,6 +224,30 @@ export interface SubstitutionResponse {
 	substitutions: Substitution[]
 }
 
+export type RemixType =
+	| 'vegetarian'
+	| 'vegan'
+	| 'gluten-free'
+	| 'spicy'
+	| 'healthy'
+	| 'quick'
+
+export interface RemixRecipeRequest {
+	recipe_title: string
+	current_steps: string[]
+	remix_type: RemixType
+}
+
+export interface RemixRecipeResponse {
+	success: boolean
+	remix_title: string
+	modifications: string[]
+	modified_steps: string[]
+	new_ingredients: string[]
+	removed_ingredients: string[]
+	tip: string
+}
+
 export interface ModerateRequest {
 	text: string
 	content_type: ContentType
@@ -425,6 +449,29 @@ export const suggestSubstitutions = async (
 		return {
 			success: false,
 			message: 'Failed to suggest substitutions',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Remix a recipe with AI-powered variations (vegetarian, spicy, quick, etc.)
+ */
+export const remixRecipe = async (
+	request: RemixRecipeRequest,
+): Promise<ApiResponse<RemixRecipeResponse>> => {
+	try {
+		const response = await aiApi.post<ApiResponse<RemixRecipeResponse>>(
+			API_ENDPOINTS.AI.REMIX_RECIPE,
+			request,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<RemixRecipeResponse>>
+		if (axiosError.response?.data) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to remix recipe',
 			statusCode: 500,
 		}
 	}

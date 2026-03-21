@@ -81,6 +81,7 @@ export const API_ENDPOINTS = {
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}`,
 		TOGGLE_LIKE_REPLY: (commentId: string, replyId: string) =>
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}/like`,
+		SEARCH: `${POST_SERVICE_PREFIX}/search`,
 		// Reports per spec (13-moderation.txt)
 		REPORT: `${POST_SERVICE_PREFIX}/report`,
 	},
@@ -170,6 +171,7 @@ export const API_ENDPOINTS = {
 		COOKING_ASSISTANT: `${API_PREFIX}/cooking_assistant`,
 		MODERATE: `${API_PREFIX}/moderate`,
 		SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/suggest_substitutions`,
+		REMIX_RECIPE: `${API_PREFIX}/remix_recipe`,
 	},
 	// Leaderboard (identity module)
 	LEADERBOARD: {

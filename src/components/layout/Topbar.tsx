@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/store/uiStore'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -24,6 +24,10 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
+import { getAllRecipes } from '@/services/recipe'
+import { getProfilesPaginated } from '@/services/profile'
+import { getRecipeImage } from '@/lib/types/recipe'
+import Image from 'next/image'
 
 export const Topbar = () => {
 	const { user } = useAuth()
@@ -38,6 +42,80 @@ export const Topbar = () => {
 	const [unreadMessages, setUnreadMessages] = useState(0)
 	const router = useRouter()
 	const { logout } = useAuth()
+
+	// Typeahead state
+	const [suggestions, setSuggestions] = useState<{
+		recipes: { id: string; title: string; imageUrl: string }[]
+		people: {
+			id: string
+			username: string
+			displayName: string
+			avatarUrl: string
+		}[]
+	}>({ recipes: [], people: [] })
+	const [showSuggestions, setShowSuggestions] = useState(false)
+	const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false)
+	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const searchFormRef = useRef<HTMLFormElement>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	useEscapeKey(showSuggestions, () => setShowSuggestions(false))
+
+	// Debounced typeahead search
+	const fetchSuggestions = useCallback((q: string) => {
+		if (debounceRef.current) clearTimeout(debounceRef.current)
+		if (q.length < 2) {
+			setSuggestions({ recipes: [], people: [] })
+			setShowSuggestions(false)
+			return
+		}
+		debounceRef.current = setTimeout(async () => {
+			setIsFetchingSuggestions(true)
+			try {
+				const [recipesRes, profilesRes] = await Promise.all([
+					getAllRecipes({ search: q, size: 5 }),
+					getProfilesPaginated({ search: q, size: 5 }),
+				])
+				const recipes =
+					recipesRes.success && recipesRes.data
+						? recipesRes.data.slice(0, 5).map(r => ({
+								id: r.id,
+								title: r.title,
+								imageUrl: getRecipeImage(r) || '/placeholder-recipe.jpg',
+							}))
+						: []
+				const people =
+					profilesRes.success && profilesRes.data
+						? profilesRes.data.slice(0, 5).map(p => ({
+								id: p.userId,
+								username: p.username,
+								displayName: p.displayName || p.username,
+								avatarUrl: p.avatarUrl || '/placeholder-avatar.png',
+							}))
+						: []
+				setSuggestions({ recipes, people })
+				setShowSuggestions(recipes.length > 0 || people.length > 0)
+			} catch {
+				// Silently fail — typeahead is an enhancement
+			} finally {
+				setIsFetchingSuggestions(false)
+			}
+		}, 300)
+	}, [])
+
+	// Close suggestions when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				searchFormRef.current &&
+				!searchFormRef.current.contains(e.target as Node)
+			) {
+				setShowSuggestions(false)
+			}
+		}
+		document.addEventListener('mousedown', handleClickOutside)
+		return () => document.removeEventListener('mousedown', handleClickOutside)
+	}, [])
 
 	// Fetch unread counts on mount and periodically
 	useEffect(() => {
@@ -123,8 +201,10 @@ export const Topbar = () => {
 			</Link>
 			{/* Search Bar - constrained max width, with left margin to avoid overlapping the absolute logo */}
 			<form
+				ref={searchFormRef}
 				onSubmit={e => {
 					e.preventDefault()
+					setShowSuggestions(false)
 					const q = searchQuery.trim()
 					if (q) router.push(`/explore?q=${encodeURIComponent(q)}`)
 				}}
@@ -132,12 +212,105 @@ export const Topbar = () => {
 			>
 				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:rotate-12 group-focus-within:text-primary' />
 				<input
+					ref={inputRef}
 					type='text'
 					placeholder='Search...'
 					value={searchQuery}
-					onChange={e => setSearchQuery(e.target.value)}
+					onChange={e => {
+						setSearchQuery(e.target.value)
+						fetchSuggestions(e.target.value.trim())
+					}}
+					onFocus={() => {
+						if (suggestions.recipes.length > 0 || suggestions.people.length > 0)
+							setShowSuggestions(true)
+					}}
 					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-primary outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
 				/>
+				{/* Typeahead Suggestions Dropdown */}
+				{showSuggestions && (
+					<div className='absolute left-0 right-0 top-full z-dropdown mt-2 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'>
+						{suggestions.recipes.length > 0 && (
+							<div>
+								<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+									Recipes
+								</div>
+								{suggestions.recipes.map(r => (
+									<button
+										key={r.id}
+										type='button'
+										onClick={() => {
+											setShowSuggestions(false)
+											setSearchQuery('')
+											router.push(`/recipes/${r.id}`)
+										}}
+										className='flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-bg-elevated'
+									>
+										<Image
+											src={r.imageUrl}
+											alt={r.title}
+											width={36}
+											height={36}
+											className='size-9 flex-shrink-0 rounded-lg object-cover'
+										/>
+										<span className='truncate text-sm font-medium text-text'>
+											{r.title}
+										</span>
+									</button>
+								))}
+							</div>
+						)}
+						{suggestions.people.length > 0 && (
+							<div>
+								<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+									People
+								</div>
+								{suggestions.people.map(p => (
+									<button
+										key={p.id}
+										type='button'
+										onClick={() => {
+											setShowSuggestions(false)
+											setSearchQuery('')
+											router.push(`/profile/${p.id}`)
+										}}
+										className='flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-bg-elevated'
+									>
+										<Image
+											src={p.avatarUrl}
+											alt={p.username}
+											width={36}
+											height={36}
+											className='size-9 flex-shrink-0 rounded-full object-cover'
+										/>
+										<div className='min-w-0'>
+											<span className='block truncate text-sm font-medium text-text'>
+												{p.displayName}
+											</span>
+											<span className='block truncate text-xs text-text-muted'>
+												@{p.username}
+											</span>
+										</div>
+									</button>
+								))}
+							</div>
+						)}
+						{searchQuery.trim().length >= 2 && (
+							<button
+								type='button'
+								onClick={() => {
+									setShowSuggestions(false)
+									router.push(
+										`/explore?q=${encodeURIComponent(searchQuery.trim())}`,
+									)
+								}}
+								className='flex w-full items-center gap-2 border-t border-border-subtle px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-bg-elevated'
+							>
+								<Search className='size-4' />
+								See all results for &quot;{searchQuery.trim()}&quot;
+							</button>
+						)}
+					</div>
+				)}
 			</form>
 
 			{/* 

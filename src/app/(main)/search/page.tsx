@@ -36,7 +36,7 @@ import {
 import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
 import { getAllRecipes } from '@/services/recipe'
 import { getProfilesPaginated } from '@/services/profile'
-import { getFeedPosts } from '@/services/post'
+import { searchPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { logDevError } from '@/lib/dev-log'
 import { Profile, Post } from '@/lib/types'
@@ -342,14 +342,12 @@ export default function SearchPage() {
 
 			setIsLoading(true)
 			try {
-				// Fetch all result types in parallel — profiles use server-side search
+				// Fetch all result types in parallel — all use server-side search
 				const [recipesRes, profilesRes, postsRes] = await Promise.all([
 					getAllRecipes({ search: query }),
 					getProfilesPaginated({ search: query, size: 30 }),
-					getFeedPosts({ limit: 20 }),
+					searchPosts(query, { size: 30 }),
 				])
-
-				const queryLower = query.toLowerCase()
 
 				const recipes =
 					recipesRes.success && recipesRes.data
@@ -362,11 +360,10 @@ export default function SearchPage() {
 						? profilesRes.data.map(transformProfile)
 						: []
 
+				// Server already searched content/displayName/tags/recipeTitle
 				const posts =
 					postsRes.success && postsRes.data
-						? postsRes.data
-								.filter(p => p.content?.toLowerCase().includes(queryLower))
-								.map(transformPost)
+						? postsRes.data.map(transformPost)
 						: []
 
 				setResults({ recipes, people, posts })
