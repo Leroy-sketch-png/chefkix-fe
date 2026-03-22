@@ -255,4 +255,19 @@ export const API_ENDPOINTS = {
 		REVIEW_APPEAL: (appealId: string) =>
 			`${API_PREFIX}/admin/appeals/${appealId}/review`,
 	},
+	EVENTS: {
+		TRACK: `${API_PREFIX}/events`,
+	},
+	SEARCH: {
+		UNIFIED: `${API_PREFIX}/search`,
+		AUTOCOMPLETE: `${API_PREFIX}/search/autocomplete`,
+	},
+	KNOWLEDGE: {
+		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,
+		INGREDIENT: (name: string) => `${API_PREFIX}/knowledge/ingredients/${name}`,
+		SUBSTITUTIONS: (name: string) =>
+			`${API_PREFIX}/knowledge/ingredients/${name}/substitutions`,
+		TECHNIQUES: `${API_PREFIX}/knowledge/techniques`,
+		TECHNIQUE: (name: string) => `${API_PREFIX}/knowledge/techniques/${name}`,
+	},
 } as const

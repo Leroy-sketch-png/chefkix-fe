@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -14,6 +14,7 @@ import {
 	Search,
 	ArrowLeft,
 	Sparkles,
+	X,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -34,12 +35,14 @@ import {
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
-import { getAllRecipes } from '@/services/recipe'
-import { getProfilesPaginated } from '@/services/profile'
-import { searchPosts } from '@/services/post'
-import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
+import { unifiedSearch } from '@/services/search'
+import {
+	RecipeSearchDoc,
+	UserSearchDoc,
+	PostSearchDoc,
+} from '@/lib/types/search'
 import { logDevError } from '@/lib/dev-log'
-import { Profile, Post } from '@/lib/types'
+import { trackEvent } from '@/lib/eventTracker'
 
 // ============================================
 // TYPES
@@ -196,6 +199,7 @@ const PersonResultCard = ({
 
 	const handleFollow = () => {
 		setFollowing(!following)
+		trackEvent('USER_FOLLOWED', person.id, 'user', { followed: !following })
 		onFollow?.(person.id)
 	}
 
@@ -279,40 +283,39 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 // HELPERS
 // ============================================
 
-const transformRecipe = (recipe: Recipe): RecipeResult => ({
-	id: recipe.id,
-	title: recipe.title,
-	imageUrl: getRecipeImage(recipe) || '/placeholder-recipe.jpg',
-	rating: recipe.averageRating ?? recipe.currentUserInteraction?.rating,
-	cookTime: `${getTotalTime(recipe)} min`,
-	difficulty: difficultyToDisplay(recipe.difficulty),
+const transformRecipeDoc = (doc: RecipeSearchDoc): RecipeResult => ({
+	id: doc.id,
+	title: doc.title,
+	imageUrl: doc.coverImageUrl || '/placeholder-recipe.jpg',
+	rating: doc.avgRating > 0 ? doc.avgRating : undefined,
+	cookTime: `${doc.totalTime || 0} min`,
+	difficulty: difficultyToDisplay(
+		doc.difficulty as 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert',
+	),
 	author: {
-		username: recipe.author?.username || 'chef',
-		avatarUrl: recipe.author?.avatarUrl || '/placeholder-avatar.png',
+		username: doc.authorName || 'chef',
+		avatarUrl: '/placeholder-avatar.png',
 	},
-	cookCount: recipe.cookCount || 0,
-	isSaved: recipe.isSaved,
+	cookCount: doc.cookCount || 0,
 })
 
-const transformProfile = (profile: Profile): PersonResult => ({
-	id: profile.userId,
-	displayName: profile.displayName || profile.username,
-	username: profile.username,
-	avatarUrl: profile.avatarUrl || '/placeholder-avatar.png',
-	bio: profile.bio || '',
-	isFollowing: profile.isFollowing,
+const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
+	id: doc.id,
+	displayName: doc.displayName || doc.firstName || doc.username,
+	username: doc.username,
+	avatarUrl: doc.avatarUrl || '/placeholder-avatar.png',
+	bio: doc.bio || '',
 })
 
-const transformPost = (post: Post): PostResult => ({
-	id: post.id,
-	imageUrl: post.photoUrls?.[0] || post.photoUrl || '/placeholder-post.jpg',
-	caption: post.content || '',
+const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
+	id: doc.id,
+	imageUrl: doc.photoUrl || '/placeholder-post.jpg',
+	caption: doc.content || '',
 	author: {
-		username: post.displayName || 'user',
-		avatarUrl: post.avatarUrl || '/placeholder-avatar.png',
+		username: doc.authorName || 'user',
+		avatarUrl: '/placeholder-avatar.png',
 	},
-	likeCount: post.likes || 0,
-	recipeId: undefined, // Post type doesn't have recipeId field
+	likeCount: doc.likeCount || 0,
 })
 
 // ============================================
@@ -323,6 +326,8 @@ export default function SearchPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const query = searchParams.get('q') || ''
+	const [searchInput, setSearchInput] = useState(query)
+	const isInternalNav = useRef(false)
 	const [activeTab, setActiveTab] = useState<SearchTab>('recipes')
 	const [isLoading, setIsLoading] = useState(false)
 	const [results, setResults] = useState<{
@@ -335,38 +340,52 @@ export default function SearchPage() {
 		posts: [],
 	})
 
-	// Fetch search results when query changes
+	// Update input when URL changes from browser nav (back/forward)
+	useEffect(() => {
+		if (!isInternalNav.current) {
+			setSearchInput(query)
+		}
+		isInternalNav.current = false
+	}, [query])
+
+	const handleSearchInputChange = (value: string) => {
+		setSearchInput(value)
+		clearTimeout(
+			(handleSearchInputChange as { _timer?: ReturnType<typeof setTimeout> })
+				._timer,
+		)
+		;(
+			handleSearchInputChange as { _timer?: ReturnType<typeof setTimeout> }
+		)._timer = setTimeout(() => {
+			isInternalNav.current = true
+			const trimmed = value.trim()
+			router.replace(
+				trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : '/search',
+			)
+		}, 300)
+	}
+
+	// Fetch search results via unified Typesense search
 	useEffect(() => {
 		const fetchResults = async () => {
 			if (!query) return
 
 			setIsLoading(true)
 			try {
-				// Fetch all result types in parallel — all use server-side search
-				const [recipesRes, profilesRes, postsRes] = await Promise.all([
-					getAllRecipes({ search: query }),
-					getProfilesPaginated({ search: query, size: 30 }),
-					searchPosts(query, { size: 30 }),
-				])
+				const res = await unifiedSearch(query, 'all', 20)
 
-				const recipes =
-					recipesRes.success && recipesRes.data
-						? recipesRes.data.map(transformRecipe)
-						: []
-
-				// Server already filtered by username/displayName — no client-side filter needed
-				const people =
-					profilesRes.success && profilesRes.data
-						? profilesRes.data.map(transformProfile)
-						: []
-
-				// Server already searched content/displayName/tags/recipeTitle
-				const posts =
-					postsRes.success && postsRes.data
-						? postsRes.data.map(transformPost)
-						: []
-
-				setResults({ recipes, people, posts })
+				if (res.success && res.data) {
+					const recipes =
+						res.data.recipes?.hits?.map(h => transformRecipeDoc(h.document)) ??
+						[]
+					const people =
+						res.data.users?.hits?.map(h => transformUserDoc(h.document)) ?? []
+					const posts =
+						res.data.posts?.hits?.map(h => transformPostDoc(h.document)) ?? []
+					setResults({ recipes, people, posts })
+				} else {
+					setResults({ recipes: [], people: [], posts: [] })
+				}
 			} catch (err) {
 				logDevError('Search failed:', err)
 			} finally {
@@ -405,17 +424,38 @@ export default function SearchPage() {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
-					<div className='py-20'>
-						<EmptyStateGamified
-							variant='search'
-							title='Search Chefkix'
-							description='Find recipes, people, and posts'
-							primaryAction={{
-								label: 'Explore Recipes',
-								href: '/explore',
-							}}
-						/>
+					{/* Search input always visible */}
+					<div className='mx-auto mt-10 mb-8 max-w-xl'>
+						<div className='relative'>
+							<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
+							<input
+								type='text'
+								value={searchInput}
+								onChange={e => handleSearchInputChange(e.target.value)}
+								placeholder='Search recipes, people, posts...'
+								autoFocus
+								className='w-full rounded-2xl border border-border bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+							/>
+							{searchInput && (
+								<button
+									onClick={() => handleSearchInputChange('')}
+									className='absolute right-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text'
+									aria-label='Clear search'
+								>
+									<X className='size-5' />
+								</button>
+							)}
+						</div>
 					</div>
+					<EmptyStateGamified
+						variant='search'
+						title='Search ChefKix'
+						description='Find recipes, people, and posts'
+						primaryAction={{
+							label: 'Explore Recipes',
+							href: '/explore',
+						}}
+					/>
 				</PageContainer>
 			</PageTransition>
 		)
@@ -426,14 +466,36 @@ export default function SearchPage() {
 			<PageContainer maxWidth='lg'>
 				{/* Header - Secondary page pattern with back button */}
 				<div className='mb-6'>
-					<div className='mb-2 flex items-center gap-3'>
-						{/* Back button - Search is accessed via Topbar, not primary nav */}
+					{/* Editable search input - users can refine from within the page */}
+					<div className='mb-4 flex items-center gap-3'>
 						<button
 							onClick={() => router.back()}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+							aria-label='Go back'
 						>
 							<ArrowLeft className='size-5' />
 						</button>
+						<div className='relative flex-1'>
+							<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
+							<input
+								type='text'
+								value={searchInput}
+								onChange={e => handleSearchInputChange(e.target.value)}
+								placeholder='Search recipes, people, posts...'
+								className='w-full rounded-xl border border-border bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+							/>
+							{searchInput && (
+								<button
+									onClick={() => handleSearchInputChange('')}
+									className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text'
+									aria-label='Clear search'
+								>
+									<X className='size-4' />
+								</button>
+							)}
+						</div>
+					</div>
+					<div className='mb-2 flex items-center gap-3'>
 						<motion.div
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}

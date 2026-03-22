@@ -24,9 +24,7 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
-import { getAllRecipes } from '@/services/recipe'
-import { getProfilesPaginated } from '@/services/profile'
-import { getRecipeImage } from '@/lib/types/recipe'
+import { autocompleteSearch } from '@/services/search'
 import Image from 'next/image'
 
 export const Topbar = () => {
@@ -72,25 +70,25 @@ export const Topbar = () => {
 		debounceRef.current = setTimeout(async () => {
 			setIsFetchingSuggestions(true)
 			try {
-				const [recipesRes, profilesRes] = await Promise.all([
-					getAllRecipes({ search: q, size: 5 }),
-					getProfilesPaginated({ search: q, size: 5 }),
-				])
+				const res = await autocompleteSearch(q, 'all', 5)
 				const recipes =
-					recipesRes.success && recipesRes.data
-						? recipesRes.data.slice(0, 5).map(r => ({
-								id: r.id,
-								title: r.title,
-								imageUrl: getRecipeImage(r) || '/placeholder-recipe.jpg',
+					res.success && res.data?.recipes?.hits
+						? res.data.recipes.hits.map(h => ({
+								id: h.document.id,
+								title: h.document.title,
+								imageUrl: h.document.coverImageUrl || '/placeholder-recipe.jpg',
 							}))
 						: []
 				const people =
-					profilesRes.success && profilesRes.data
-						? profilesRes.data.slice(0, 5).map(p => ({
-								id: p.userId,
-								username: p.username,
-								displayName: p.displayName || p.username,
-								avatarUrl: p.avatarUrl || '/placeholder-avatar.png',
+					res.success && res.data?.users?.hits
+						? res.data.users.hits.map(h => ({
+								id: h.document.id,
+								username: h.document.username,
+								displayName:
+									h.document.displayName ||
+									h.document.firstName ||
+									h.document.username,
+								avatarUrl: h.document.avatarUrl || '/placeholder-avatar.png',
 							}))
 						: []
 				setSuggestions({ recipes, people })
@@ -206,7 +204,7 @@ export const Topbar = () => {
 					e.preventDefault()
 					setShowSuggestions(false)
 					const q = searchQuery.trim()
-					if (q) router.push(`/explore?q=${encodeURIComponent(q)}`)
+					if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
 				}}
 				className='group relative ml-20 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:ml-24 md:px-4 md:py-2.5'
 			>
@@ -300,7 +298,7 @@ export const Topbar = () => {
 								onClick={() => {
 									setShowSuggestions(false)
 									router.push(
-										`/explore?q=${encodeURIComponent(searchQuery.trim())}`,
+										`/search?q=${encodeURIComponent(searchQuery.trim())}`,
 									)
 								}}
 								className='flex w-full items-center gap-2 border-t border-border-subtle px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-bg-elevated'
