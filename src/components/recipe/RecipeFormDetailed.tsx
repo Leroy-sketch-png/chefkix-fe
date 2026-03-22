@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Clock,
@@ -21,8 +21,11 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { Combobox, ComboboxOption } from '@/components/ui/combobox'
-import { getIngredientOptions } from '@/lib/data/ingredients'
+import {
+	AsyncCombobox,
+	AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
+import { autocompleteSearch } from '@/services/search'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
@@ -257,16 +260,28 @@ const ImageUpload = ({
 }
 
 // Ingredient Row
+const fetchIngredientOptions = async (
+	query: string,
+): Promise<AsyncComboboxOption[]> => {
+	const res = await autocompleteSearch(query, 'ingredients', 8)
+	if (res.success && res.data?.ingredients?.hits) {
+		return res.data.ingredients.hits.map(h => ({
+			value: h.document.id,
+			label: h.document.name,
+			category: h.document.category,
+		}))
+	}
+	return []
+}
+
 const IngredientRow = ({
 	ingredient,
 	onChange,
 	onRemove,
-	ingredientOptions,
 }: {
 	ingredient: Ingredient
 	onChange: (updated: Ingredient) => void
 	onRemove: () => void
-	ingredientOptions: ComboboxOption[]
 }) => (
 	<div className='group flex items-center gap-3'>
 		<div className='flex flex-1 items-center gap-3'>
@@ -290,12 +305,13 @@ const IngredientRow = ({
 					</option>
 				))}
 			</select>
-			<Combobox
+			<AsyncCombobox
 				value={ingredient.name}
 				onChange={val => onChange({ ...ingredient, name: val })}
 				onSelect={opt => onChange({ ...ingredient, name: opt.label })}
-				options={ingredientOptions}
+				fetchOptions={fetchIngredientOptions}
 				placeholder='Ingredient name'
+				minChars={1}
 				className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-primary focus:outline-none'
 			/>
 		</div>
@@ -629,8 +645,6 @@ export const RecipeFormDetailed = ({
 			ingredients: prev.ingredients.filter(i => i.id !== id),
 		}))
 	}
-
-	const ingredientOptions = useMemo(() => getIngredientOptions(), [])
 
 	const addStep = () => {
 		setFormData(prev => ({
@@ -1095,7 +1109,6 @@ export const RecipeFormDetailed = ({
 												setErrors(prev => ({ ...prev, ingredients: undefined }))
 										}}
 										onRemove={() => removeIngredient(ing.id)}
-										ingredientOptions={ingredientOptions}
 									/>
 								</motion.div>
 							))}

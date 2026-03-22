@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -37,8 +37,13 @@ import type {
 	PantryRecipeMatch,
 } from '@/lib/types/pantry'
 import { toast } from 'sonner'
-import { Combobox, ComboboxRef } from '@/components/ui/combobox'
-import { getIngredientOptions, suggestCategory } from '@/lib/data/ingredients'
+import {
+	AsyncCombobox,
+	AsyncComboboxRef,
+	AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
+import { autocompleteSearch } from '@/services/search'
+import { suggestCategory } from '@/lib/data/ingredients'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -86,12 +91,22 @@ export default function PantryPage() {
 	const [quickAddCategory, setQuickAddCategory] = useState('other')
 	const [quickAddExpiry, setQuickAddExpiry] = useState('')
 	const [isAdding, setIsAdding] = useState(false)
-	const quickAddRef = useRef<ComboboxRef>(null)
+	const quickAddRef = useRef<AsyncComboboxRef>(null)
 
-	// Ingredient autocomplete options (merge static vocab + user's pantry)
-	const ingredientOptions = useMemo(
-		() => getIngredientOptions(items.map(i => i.ingredientName)),
-		[items],
+	// Ingredient autocomplete via Typesense knowledge graph
+	const fetchIngredientOptions = useCallback(
+		async (query: string): Promise<AsyncComboboxOption[]> => {
+			const res = await autocompleteSearch(query, 'ingredients', 8)
+			if (res.success && res.data?.ingredients?.hits) {
+				return res.data.ingredients.hits.map(h => ({
+					value: h.document.id,
+					label: h.document.name,
+					category: h.document.category,
+				}))
+			}
+			return []
+		},
+		[],
 	)
 
 	// Edit state
@@ -373,17 +388,18 @@ export default function PantryPage() {
 								>
 									Ingredient
 								</label>
-								<Combobox
+								<AsyncCombobox
 									id='pantry-ingredient'
 									ref={quickAddRef}
 									value={quickAddName}
 									onChange={setQuickAddName}
 									onSelect={option => {
 										setQuickAddName(option.label)
-										const cat = suggestCategory(option.label)
+										const cat = option.category || suggestCategory(option.label)
 										if (cat !== 'other') setQuickAddCategory(cat)
 									}}
-									options={ingredientOptions}
+									fetchOptions={fetchIngredientOptions}
+									minChars={1}
 									onKeyDown={e => {
 										if (e.key === 'Enter') handleQuickAdd()
 									}}
