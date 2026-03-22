@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	X,
 	Shield,
@@ -160,6 +161,8 @@ export const ReportModal = ({
 		setSubmitted(false)
 		onClose()
 	}
+
+	useEscapeKey(isOpen, handleClose)
 
 	return (
 		<Portal>
@@ -368,6 +371,8 @@ export const ReportLimitModal = ({
 	onClose,
 	hoursUntilReset,
 }: ReportLimitModalProps) => {
+	useEscapeKey(isOpen, onClose)
+
 	return (
 		<Portal>
 			<AnimatePresence>
@@ -596,6 +601,8 @@ export const AppealModal = ({
 	const [appealText, setAppealText] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [submitted, setSubmitted] = useState(false)
+
+	useEscapeKey(isOpen, onClose)
 
 	const handleSubmit = async () => {
 		if (!appealText.trim()) return

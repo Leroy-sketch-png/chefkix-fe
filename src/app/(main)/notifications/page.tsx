@@ -108,9 +108,9 @@ const transformToGamifiedNotification = (
 			return {
 				id: notif.id,
 				type: 'level_up',
-				newLevel: (data.newLevel as number) || 1,
-				newGoalXp: (data.newGoalXp as number) || 1000,
-				recipesToNextLevel: (data.recipesToNextLevel as number) || 5,
+				newLevel: (data.newLevel as number) ?? undefined,
+				newGoalXp: (data.newGoalXp as number) ?? undefined,
+				recipesToNextLevel: (data.recipesToNextLevel as number) ?? undefined,
 				timestamp,
 				isRead: notif.isRead,
 			}
@@ -137,7 +137,7 @@ const transformToGamifiedNotification = (
 					(data.cookerAvatarUrl as string) || '/placeholder-avatar.png',
 				recipeName: (data.recipeName as string) || 'Recipe',
 				xpBonus: (data.xpBonus as number) || 0,
-				totalCookRewards: (data.totalCookRewards as number) || 1,
+				totalCookRewards: (data.totalCookRewards as number) ?? undefined,
 				timestamp,
 				isRead: notif.isRead,
 			}

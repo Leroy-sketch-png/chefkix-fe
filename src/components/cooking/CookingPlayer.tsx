@@ -42,6 +42,7 @@ import { VoiceModeButton } from './VoiceModeButton'
 import { VoiceCommandToast } from './VoiceCommandToast'
 import { VoiceHelpOverlay } from './VoiceHelpOverlay'
 import { OfflineBanner } from './OfflineBanner'
+import { AiAssistPanel } from './AiAssistPanel'
 import { useVoiceMode } from '@/lib/voice'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import {
@@ -449,6 +450,7 @@ export const CookingPlayer = () => {
 	const [direction, setDirection] = useState(0) // -1 = back, 1 = forward
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
+	const [showAiAssist, setShowAiAssist] = useState(false)
 	const [isNavigating, setIsNavigating] = useState(false)
 
 	// Focus traps for modal accessibility
@@ -639,11 +641,23 @@ export const CookingPlayer = () => {
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			// Guard: Don't handle keyboard when player is closed
-			if (!isOpen || !recipe) return
+			if (!isOpen) return
+
+			// Error state (no recipe/session): only Escape to dismiss
+			if (!recipe) {
+				if (e.key === 'Escape') {
+					e.preventDefault()
+					closeCookingPanel()
+				}
+				return
+			}
 
 			// Guard: Don't capture keyboard events when completion modal is showing
 			// This allows users to type in the rating form (e.g., notes with spaces)
 			if (showCompletion) return
+
+			// Guard: When AI assist or abandon confirmation is showing, don't capture
+			if (showAiAssist) return
 
 			// Guard: When abandon confirmation is showing, only handle Escape to close it
 			if (showAbandonConfirm) {
@@ -674,6 +688,7 @@ export const CookingPlayer = () => {
 		handleNextStep,
 		handlePrevStep,
 		showCompletion,
+		showAiAssist,
 		showAbandonConfirm,
 	])
 
@@ -988,11 +1003,9 @@ export const CookingPlayer = () => {
 									onJumpToStep={handleStepClick}
 								/>
 
-								{/* AI Assist Button - Placeholder until AI assist feature is implemented */}
+								{/* AI Assist Button */}
 								<motion.button
-									onClick={() =>
-										toast.info('AI Assist is coming soon!', { icon: '🤖' })
-									}
+									onClick={() => setShowAiAssist(true)}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
@@ -1327,7 +1340,7 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 shadow-2xl'
+								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-3xl bg-bg-card p-8 shadow-2xl'
 							>
 								<SessionRatingForm
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
@@ -1340,6 +1353,15 @@ export const CookingPlayer = () => {
 					</Portal>
 				)}
 			</AnimatePresence>
+
+			{/* AI Assist Panel */}
+			<AiAssistPanel
+				isOpen={showAiAssist}
+				onClose={() => setShowAiAssist(false)}
+				recipeTitle={recipe?.title ?? 'Recipe'}
+				currentStep={step?.description ?? ''}
+				stepNumber={currentStepNumber}
+			/>
 
 			{/* Abandon Confirmation Modal - Separate Portal (outside main modal container) */}
 			<AnimatePresence>

@@ -9,6 +9,9 @@ import {
 	getTrendingRecipes,
 	toggleSaveRecipe,
 } from '@/services/recipe'
+import { unifiedSearch } from '@/services/search'
+import type { RecipeSearchDoc } from '@/lib/types/search'
+import { trackEvent } from '@/lib/eventTracker'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { RecipeCardEnhanced } from '@/components/recipe'
@@ -93,6 +96,52 @@ const calculateXpRewardFallback = (recipe: Recipe): number => {
 		(difficultyBonus[recipe.difficulty as keyof typeof difficultyBonus] || 0) +
 		timeBonus
 	)
+}
+
+/** Map a Typesense RecipeSearchDoc hit to a minimal Recipe shape for cards. */
+function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
+	return {
+		id: doc.id,
+		title: doc.title,
+		description: doc.description,
+		coverImageUrl: doc.coverImageUrl ? [doc.coverImageUrl] : [],
+		videoUrl: [],
+		difficulty: (doc.difficulty as Recipe['difficulty']) || 'Beginner',
+		prepTimeMinutes: 0,
+		cookTimeMinutes: 0,
+		totalTimeMinutes: doc.totalTime ?? 0,
+		servings: 0,
+		cuisineType: doc.cuisine || '',
+		dietaryTags: doc.tags ?? [],
+		fullIngredientList: (doc.ingredients ?? []).map(name => ({
+			name,
+			quantity: '',
+			unit: '',
+		})),
+		steps: [],
+		xpReward: 0,
+		difficultyMultiplier: 1,
+		rewardBadges: [],
+		skillTags: [],
+		likeCount: 0,
+		saveCount: 0,
+		viewCount: 0,
+		cookCount: doc.cookCount ?? 0,
+		averageRating: doc.avgRating ?? 0,
+		author: {
+			userId: doc.authorId,
+			username: doc.authorName ?? '',
+			displayName: doc.authorName ?? 'Unknown Chef',
+			avatarUrl: undefined,
+		},
+		recipeStatus: 'PUBLISHED',
+		createdAt: doc.createdAt
+			? new Date(doc.createdAt * 1000).toISOString()
+			: '',
+		updatedAt: '',
+		isLiked: false,
+		isSaved: false,
+	} as Recipe
 }
 
 // ============================================
@@ -469,79 +518,89 @@ export default function ExplorePage() {
 			setError(null)
 
 			try {
-				// Build server-side filter params — BE supports all these via RecipeSearchQuery
-				const filterParams: Record<string, unknown> = {
-					page: 0,
-					size: RECIPES_PER_PAGE,
-					search: debouncedSearch || undefined,
-				}
-
-				// Map display difficulty names to API values (easy→Beginner, etc.)
-				if (filters.difficulty.length > 0) {
-					const apiDifficulty = filters.difficulty
-						.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
-						.find(Boolean)
-					if (apiDifficulty) filterParams.difficulty = apiDifficulty
-				}
-
-				// Cuisine type — BE expects single string
-				if (filters.cuisine.length > 0) {
-					filterParams.cuisineType = filters.cuisine[0]
-				}
-
-				// Dietary tags — BE expects List<String> via repeated query params
-				if (filters.dietary.length > 0) {
-					filterParams.dietaryTags = filters.dietary
-				}
-
-				// Cooking time — only send when user has restricted below default max
-				if (filters.cookingTimeMax < 120) {
-					filterParams.maxTime = filters.cookingTimeMax
-				}
-
-				const response =
-					viewMode === 'trending'
-						? await getTrendingRecipes({
-								page: 0,
-								size: RECIPES_PER_PAGE,
-							})
-						: await getAllRecipes(filterParams)
-
-				if (response.success && response.data) {
-					let allRecipes = response.data
-
-					// Set featured recipe (first trending or random from first page)
-					if (allRecipes.length > 0 && !debouncedSearch) {
-						if (viewMode === 'trending') {
-							setFeaturedRecipe(allRecipes[0])
-							allRecipes = allRecipes.slice(1)
-						} else {
-							// Pick a random featured from first batch
-							const featuredIdx = Math.floor(
-								Math.random() * Math.min(5, allRecipes.length),
-							)
-							setFeaturedRecipe(allRecipes[featuredIdx])
-							allRecipes = allRecipes.filter((_, i) => i !== featuredIdx)
-						}
-					} else if (debouncedSearch) {
+				// ── Typesense path: typo-tolerant search when user types a query ──
+				if (debouncedSearch) {
+					const searchRes = await unifiedSearch(
+						debouncedSearch,
+						'recipes',
+						RECIPES_PER_PAGE,
+					)
+					if (searchRes.success && searchRes.data?.recipes?.hits) {
+						const allRecipes = searchRes.data.recipes.hits.map(h =>
+							mapRecipeDocToRecipe(h.document),
+						)
 						setFeaturedRecipe(null)
+						setSavedRecipes(new Set<string>())
+						setRecipes(allRecipes)
+						setTotalCount(searchRes.data.recipes.found ?? allRecipes.length)
+						setHasMore(false) // Typesense returns all matches in one page
+					} else {
+						setRecipes([])
+						setTotalCount(0)
+						setHasMore(false)
+					}
+				} else {
+					// ── MongoDB path: browse / filter / trending (no search query) ──
+					const filterParams: Record<string, unknown> = {
+						page: 0,
+						size: RECIPES_PER_PAGE,
 					}
 
-					// Initialize saved recipes set
-					const saved = new Set<string>()
-					response.data.forEach(recipe => {
-						if (recipe.isSaved) saved.add(recipe.id)
-					})
-					setSavedRecipes(saved)
+					if (filters.difficulty.length > 0) {
+						const apiDifficulty = filters.difficulty
+							.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
+							.find(Boolean)
+						if (apiDifficulty) filterParams.difficulty = apiDifficulty
+					}
+					if (filters.cuisine.length > 0) {
+						filterParams.cuisineType = filters.cuisine[0]
+					}
+					if (filters.dietary.length > 0) {
+						filterParams.dietaryTags = filters.dietary
+					}
+					if (filters.cookingTimeMax < 120) {
+						filterParams.maxTime = filters.cookingTimeMax
+					}
 
-					setRecipes(allRecipes)
-					const pagination = response.pagination
-					if (pagination) {
-						setTotalCount(pagination.totalElements)
-						setHasMore(!pagination.last)
-					} else {
-						setTotalCount(allRecipes.length)
-						setHasMore(response.data.length >= RECIPES_PER_PAGE)
+					const response =
+						viewMode === 'trending'
+							? await getTrendingRecipes({
+									page: 0,
+									size: RECIPES_PER_PAGE,
+								})
+							: await getAllRecipes(filterParams)
+
+					if (response.success && response.data) {
+						let allRecipes = response.data
+
+						if (allRecipes.length > 0) {
+							if (viewMode === 'trending') {
+								setFeaturedRecipe(allRecipes[0])
+								allRecipes = allRecipes.slice(1)
+							} else {
+								const featuredIdx = Math.floor(
+									Math.random() * Math.min(5, allRecipes.length),
+								)
+								setFeaturedRecipe(allRecipes[featuredIdx])
+								allRecipes = allRecipes.filter((_, i) => i !== featuredIdx)
+							}
+						}
+
+						const saved = new Set<string>()
+						response.data.forEach(recipe => {
+							if (recipe.isSaved) saved.add(recipe.id)
+						})
+						setSavedRecipes(saved)
+
+						setRecipes(allRecipes)
+						const pagination = response.pagination
+						if (pagination) {
+							setTotalCount(pagination.totalElements)
+							setHasMore(!pagination.last)
+						} else {
+							setTotalCount(allRecipes.length)
+							setHasMore(response.data.length >= RECIPES_PER_PAGE)
+						}
 					}
 				}
 			} catch (err) {
@@ -693,6 +752,11 @@ export default function ExplorePage() {
 		try {
 			const response = await toggleSaveRecipe(recipeId)
 			if (response.success && response.data) {
+				trackEvent(
+					response.data.isSaved ? 'RECIPE_SAVED' : 'RECIPE_UNSAVED',
+					recipeId,
+					'recipe',
+				)
 				if (response.data.isSaved) {
 					toast.success('Recipe saved!')
 				} else {

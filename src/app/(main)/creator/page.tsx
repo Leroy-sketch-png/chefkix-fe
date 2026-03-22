@@ -166,6 +166,28 @@ export default function CreatorRoute() {
 		timeAgo: formatTimeAgo(c.completedAt),
 	}))
 
+	if (isLoading) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='xl'>
+					<div className='mb-6 flex items-center gap-3'>
+						<div className='size-10 animate-pulse rounded-xl bg-bg-elevated' />
+						<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated' />
+						<div className='h-8 w-48 animate-pulse rounded-lg bg-bg-elevated' />
+					</div>
+					<div className='space-y-4'>
+						{[0, 1, 2, 3].map(i => (
+							<div
+								key={i}
+								className='h-32 animate-pulse rounded-xl bg-bg-elevated'
+							/>
+						))}
+					</div>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>

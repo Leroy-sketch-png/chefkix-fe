@@ -567,7 +567,7 @@ export const RecipeCreateAiFlow = ({
 				setIsSaving(false)
 			}
 		},
-		[recipe, draftId, buildSavePayload],
+		[recipe, draftId, buildSavePayload, hasUnpersistedMedia],
 	)
 
 	// ── AI parse ────────────────────────────────────────────────────

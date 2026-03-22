@@ -10,10 +10,12 @@ import { API_ENDPOINTS } from '@/constants'
 
 export async function generateMealPlan(
 	req: GenerateMealPlanRequest,
+	useAI = false,
 ): Promise<MealPlan> {
 	const res = await api.post<ApiResponse<MealPlan>>(
 		API_ENDPOINTS.MEAL_PLANS.GENERATE,
 		req,
+		{ params: useAI ? { useAI: true } : undefined },
 	)
 	return res.data.data!
 }

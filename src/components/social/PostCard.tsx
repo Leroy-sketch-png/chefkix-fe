@@ -11,6 +11,7 @@ import {
 } from '@/services/post'
 import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
+import { trackEvent } from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -41,6 +42,7 @@ import {
 } from '@/components/modals/ReportModal'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 
@@ -88,6 +90,9 @@ export const PostCard = ({
 	const DOUBLE_TAP_DELAY = 300 // ms
 
 	const isOwner = currentUserId === post.userId
+
+	useEscapeKey(showMenu, () => setShowMenu(false))
+	useEscapeKey(showShareMenu, () => setShowShareMenu(false))
 	const isLoggedIn = !!currentUserId
 	const createdAt = new Date(post.createdAt)
 
@@ -153,6 +158,7 @@ export const PostCard = ({
 				(wasLiked ? previousLikes - 1 : previousLikes + 1)
 			const newIsLiked = response.data.isLiked ?? !wasLiked
 
+			trackEvent('POST_LIKED', post.id, 'post', { liked: newIsLiked })
 			setPost(prev => ({
 				...prev,
 				likes: newLikes,

@@ -20,6 +20,8 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
 	getUserShoppingLists,
@@ -72,9 +74,12 @@ export default function ShoppingListsPage() {
 	const [shareSuccess, setShareSuccess] = useState(false)
 	const [customListName, setCustomListName] = useState('')
 	const [showCustomNameInput, setShowCustomNameInput] = useState(false)
+	const [isDeletingList, setIsDeletingList] = useState(false)
 	const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
 		null,
 	)
+
+	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
 
 	// ── Fetch lists ────────────────────────────────────────────────────
 
@@ -108,6 +113,7 @@ export default function ShoppingListsPage() {
 	}
 
 	const handleDeleteList = async (id: string) => {
+		setIsDeletingList(true)
 		try {
 			await deleteShoppingList(id)
 			setLists(prev => prev.filter(l => l.id !== id))
@@ -116,6 +122,8 @@ export default function ShoppingListsPage() {
 			toast.success('Shopping list deleted')
 		} catch {
 			toast.error('Failed to delete shopping list')
+		} finally {
+			setIsDeletingList(false)
 		}
 	}
 
@@ -290,6 +298,11 @@ export default function ShoppingListsPage() {
 			: 0
 		: 0
 
+	const uncheckedItems = useMemo(
+		() => (selectedList?.items ?? []).filter(i => !i.checked),
+		[selectedList],
+	)
+
 	// ── Loading skeleton ───────────────────────────────────────────────
 
 	if (isLoading) {
@@ -368,6 +381,43 @@ export default function ShoppingListsPage() {
 								</button>
 							</div>
 						</div>
+
+						{/* Grocery checkout CTA */}
+						{uncheckedItems.length > 0 && (
+							<motion.div
+								initial={{ opacity: 0, y: -8 }}
+								animate={{ opacity: 1, y: 0 }}
+								className='flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3'
+							>
+								<ShoppingCart className='size-5 flex-shrink-0 text-brand' />
+								<div className='flex-1 min-w-0'>
+									<p className='text-sm font-semibold text-text'>
+										Order these groceries
+									</p>
+									<p className='text-xs text-text-muted'>
+										{uncheckedItems.length} item
+										{uncheckedItems.length !== 1 ? 's' : ''} remaining —
+										delivery partner integration coming soon
+									</p>
+								</div>
+								<button
+									onClick={() => {
+										const items = uncheckedItems
+											.map(i => i.ingredient)
+											.join(', ')
+										const searchQuery = encodeURIComponent(items)
+										window.open(
+											`https://www.instacart.com/store/search/${searchQuery}`,
+											'_blank',
+											'noopener,noreferrer',
+										)
+									}}
+									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+								>
+									Order Groceries
+								</button>
+							</motion.div>
+						)}
 
 						{/* Progress bar */}
 						{selectedList.totalItems > 0 && (
@@ -757,43 +807,46 @@ export default function ShoppingListsPage() {
 				{/* ── Delete Confirmation Dialog ── */}
 				<AnimatePresence>
 					{confirmingDeleteId && (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'
-							onClick={() => setConfirmingDeleteId(null)}
-						>
+						<Portal>
 							<motion.div
-								initial={{ scale: 0.95, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								exit={{ scale: 0.95, opacity: 0 }}
-								onClick={e => e.stopPropagation()}
-								className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4'
+								onClick={() => setConfirmingDeleteId(null)}
 							>
-								<h3 className='mb-2 text-lg font-bold text-text'>
-									Delete Shopping List?
-								</h3>
-								<p className='mb-6 text-sm text-text-muted'>
-									This action cannot be undone. All items in this list will be
-									permanently removed.
-								</p>
-								<div className='flex justify-end gap-3'>
-									<button
-										onClick={() => setConfirmingDeleteId(null)}
-										className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
-									>
-										Cancel
-									</button>
-									<button
-										onClick={() => handleDeleteList(confirmingDeleteId)}
-										className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90'
-									>
-										Delete
-									</button>
-								</div>
+								<motion.div
+									initial={{ scale: 0.95, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.95, opacity: 0 }}
+									onClick={e => e.stopPropagation()}
+									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+								>
+									<h3 className='mb-2 text-lg font-bold text-text'>
+										Delete Shopping List?
+									</h3>
+									<p className='mb-6 text-sm text-text-muted'>
+										This action cannot be undone. All items in this list will be
+										permanently removed.
+									</p>
+									<div className='flex justify-end gap-3'>
+										<button
+											onClick={() => setConfirmingDeleteId(null)}
+											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+										>
+											Cancel
+										</button>
+										<button
+											onClick={() => handleDeleteList(confirmingDeleteId)}
+											disabled={isDeletingList}
+											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
+										>
+											{isDeletingList ? 'Deleting...' : 'Delete'}
+										</button>
+									</div>
+								</motion.div>
 							</motion.div>
-						</motion.div>
+						</Portal>
 					)}
 				</AnimatePresence>
 			</PageContainer>

@@ -27,6 +27,7 @@ import {
 } from '@/services/notification'
 import { toggleFollow } from '@/services/social'
 import { toast } from '@/components/ui/toaster'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
 
@@ -197,6 +198,8 @@ export const NotificationsPopup = () => {
 	>([])
 	const [unreadCount, setUnreadCount] = useState(0)
 	const [isLoading, setIsLoading] = useState(false)
+
+	useEscapeKey(isNotificationsPopupOpen, toggleNotificationsPopup)
 
 	// Fetch notifications when popup opens
 	useEffect(() => {

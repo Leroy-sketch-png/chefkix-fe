@@ -20,10 +20,13 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 export const MessagesDrawer = () => {
 	const { user } = useAuth()
 	const { isMessagesDrawerOpen, toggleMessagesDrawer } = useUiStore()
+
+	useEscapeKey(isMessagesDrawerOpen, toggleMessagesDrawer)
 	const [width, setWidth] = useState<number | null>(null) // Start null, use CSS variable
 	const [height, setHeight] = useState<number | null>(null)
 	const [isResizing, setIsResizing] = useState(false)
@@ -215,7 +218,12 @@ export const MessagesDrawer = () => {
 
 			<div className='flex items-center justify-between border-b p-3'>
 				<h3 className='font-semibold'>Messages</h3>
-				<Button variant='ghost' size='icon' onClick={toggleMessagesDrawer} aria-label='Close messages'>
+				<Button
+					variant='ghost'
+					size='icon'
+					onClick={toggleMessagesDrawer}
+					aria-label='Close messages'
+				>
 					<X className='h-4 w-4' />
 				</Button>
 			</div>

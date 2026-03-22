@@ -11,6 +11,7 @@ import { CookingSidebarSwitch } from '@/components/cooking/CookingSidebarSwitch'
 import { CookingTimerProvider } from '@/components/providers/CookingTimerProvider'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
+import { EventTrackerProvider } from '@/components/providers/EventTrackerProvider'
 
 export default function MainAppLayout({
 	children,
@@ -50,6 +51,7 @@ export default function MainAppLayout({
 			{/* Centralized timer ticking + completion notifications */}
 			<CookingTimerProvider />
 			<KeyboardShortcuts />
+			<EventTrackerProvider>{null}</EventTrackerProvider>
 		</div>
 	)
 }

@@ -30,6 +30,7 @@ import {
 import { ChallengeComplete } from '@/components/challenges'
 import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -257,6 +258,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const [challengeCompleteOpen, setChallengeCompleteOpen] = useState(false)
 	const [challengeCompleteData, setChallengeCompleteData] =
 		useState<ChallengeCompleteData | null>(null)
+
+	useEscapeKey(streakMilestoneOpen, () => {
+		setStreakMilestoneOpen(false)
+		setStreakMilestoneData(null)
+	})
 
 	// ============================================
 	// ACTIONS

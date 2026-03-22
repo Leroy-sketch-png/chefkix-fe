@@ -16,6 +16,7 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_SMOOTH,
@@ -562,6 +563,10 @@ export const PauseFlow = ({
 	const handleCancelModal = useCallback(() => {
 		onStateChange(state === 'paused' ? 'paused' : 'idle')
 	}, [onStateChange, state])
+
+	const showsModal =
+		state === 'confirming' || state === 'blocked' || state === 'abandoning'
+	useEscapeKey(showsModal, handleCancelModal)
 
 	return (
 		<>

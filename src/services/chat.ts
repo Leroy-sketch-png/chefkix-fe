@@ -63,6 +63,23 @@ export interface ChatMessage {
 
 	// NEW: enriched snapshot (recommended contract going forward)
 	sharedPost?: SharedPostSnapshot
+
+	// Reactions
+	reactions?: {
+		emoji: string
+		count: number
+		userReacted: boolean
+	}[]
+
+	// Reply-to context
+	replyTo?: {
+		messageId: string
+		content: string
+		senderName: string
+	} | null
+
+	// Soft-delete flag
+	deleted?: boolean
 }
 
 export interface CreateConversationDto {
@@ -317,6 +334,56 @@ export const getShareSuggestions = async (
 }
 
 /**
+ * Toggle a reaction on a message.
+ */
+export const reactToMessage = async (
+	messageId: string,
+	emoji: string,
+): Promise<ApiResponse<ChatMessage>> => {
+	try {
+		const response = await api.post<ApiResponse<ChatMessage>>(
+			`${API_BASE}/messages/${messageId}/react`,
+			{ emoji },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<ChatMessage>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to react to message',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Soft-delete a message. Only the sender can delete their own messages.
+ */
+export const deleteMessage = async (
+	messageId: string,
+): Promise<ApiResponse<ChatMessage>> => {
+	try {
+		const response = await api.delete<ApiResponse<ChatMessage>>(
+			`${API_BASE}/messages/${messageId}`,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<ChatMessage>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to delete message',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
  * Map backend ChatMessage to frontend Message format for UI components.
  * Backend uses 'message' field, frontend uses 'content'.
  *
@@ -370,7 +437,9 @@ export const mapChatMessageToMessage = (
 	return {
 		id: backendMsg.id,
 		senderId: backendMsg.sender.userId,
-		content: backendMsg.message,
+		content: backendMsg.deleted
+			? 'This message was deleted'
+			: backendMsg.message,
 		timestamp: new Date(backendMsg.createdDate),
 		status: 'sent',
 		isOwn: backendMsg.me,
@@ -379,5 +448,13 @@ export const mapChatMessageToMessage = (
 		sharedPostImage: backendMsg.sharedPostImage,
 		sharedPostTitle: backendMsg.sharedPostTitle,
 		sharedPost,
+		replyTo: backendMsg.replyTo
+			? {
+					id: backendMsg.replyTo.messageId,
+					content: backendMsg.replyTo.content,
+					senderName: backendMsg.replyTo.senderName,
+				}
+			: undefined,
+		reactions: backendMsg.reactions,
 	}
 }

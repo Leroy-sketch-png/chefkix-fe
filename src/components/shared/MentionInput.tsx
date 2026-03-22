@@ -24,8 +24,14 @@ export interface MentionInputProps {
 	placeholder?: string
 	disabled?: boolean
 	className?: string
-	onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
+	onKeyDown?: (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void
 	onSubmit?: () => void
+	/** Render as textarea instead of input */
+	multiline?: boolean
+	/** Number of rows for textarea (default: 4) */
+	rows?: number
+	/** Max character length */
+	maxLength?: number
 }
 
 export interface MentionInputRef {
@@ -60,10 +66,13 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 			className,
 			onKeyDown,
 			onSubmit,
+			multiline = false,
+			rows = 4,
+			maxLength,
 		},
 		ref,
 	) => {
-		const inputRef = useRef<HTMLInputElement>(null)
+		const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 		const containerRef = useRef<HTMLDivElement>(null)
 		const [showSuggestions, setShowSuggestions] = useState(false)
 		const [suggestions, setSuggestions] = useState<MentionSuggestion[]>([])
@@ -148,8 +157,12 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		}, [mentionQuery, suggestions])
 
 		// Handle input change — detect @ mentions
-		const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-			const newValue = e.target.value
+		const handleInputChange = (
+			e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+		) => {
+			const newValue = maxLength
+				? e.target.value.slice(0, maxLength)
+				: e.target.value
 			const cursorPos = e.target.selectionStart ?? newValue.length
 			onChange(newValue)
 
@@ -214,7 +227,9 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		}
 
 		// Handle keyboard navigation
-		const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		const handleKeyDown = (
+			e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+		) => {
 			if (showSuggestions && filteredSuggestions.length > 0) {
 				if (e.key === 'ArrowDown') {
 					e.preventDefault()
@@ -242,11 +257,21 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 				}
 			}
 
-			// Submit on Enter (when not in suggestions)
+			// Submit behavior
 			if (e.key === 'Enter' && !showSuggestions) {
-				e.preventDefault()
-				onSubmit?.()
-				return
+				if (multiline) {
+					// Multiline: Ctrl/Cmd+Enter to submit, plain Enter = newline
+					if (e.ctrlKey || e.metaKey) {
+						e.preventDefault()
+						onSubmit?.()
+						return
+					}
+				} else {
+					// Single-line: Enter to submit
+					e.preventDefault()
+					onSubmit?.()
+					return
+				}
 			}
 
 			// Pass through other key events
@@ -261,22 +286,44 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		return (
 			<div ref={containerRef} className='relative flex-1'>
 				<div className='relative'>
-					<input
-						ref={inputRef}
-						type='text'
-						value={value}
-						onChange={handleInputChange}
-						onKeyDown={handleKeyDown}
-						onBlur={handleBlur}
-						placeholder={placeholder}
-						disabled={disabled}
-						className={cn(
-							'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30',
-							className,
-						)}
-					/>
+					{multiline ? (
+						<textarea
+							ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+							value={value}
+							onChange={handleInputChange}
+							onKeyDown={handleKeyDown}
+							onBlur={handleBlur}
+							placeholder={placeholder}
+							disabled={disabled}
+							rows={rows}
+							className={cn(
+								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30',
+								className,
+							)}
+						/>
+					) : (
+						<input
+							ref={inputRef as React.RefObject<HTMLInputElement>}
+							type='text'
+							value={value}
+							onChange={handleInputChange}
+							onKeyDown={handleKeyDown}
+							onBlur={handleBlur}
+							placeholder={placeholder}
+							disabled={disabled}
+							className={cn(
+								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30',
+								className,
+							)}
+						/>
+					)}
 					{/* @ hint icon */}
-					<div className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2'>
+					<div
+						className={cn(
+							'pointer-events-none absolute right-2.5',
+							multiline ? 'top-2.5' : 'top-1/2 -translate-y-1/2',
+						)}
+					>
 						<AtSign className='size-4 text-text-muted opacity-50' />
 					</div>
 				</div>

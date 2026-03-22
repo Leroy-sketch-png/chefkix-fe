@@ -37,6 +37,7 @@ import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { ResumeCookingBanner } from '@/components/cooking'
 import { FriendsCookingNow } from '@/components/cooking'
 import { SinceLastVisitCard } from '@/components/dashboard'
+import { TonightsPick } from '@/components/dashboard'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -120,7 +121,7 @@ export default function DashboardPage() {
 	const [error, setError] = useState<string | null>(null)
 	const [showStreakBanner, setShowStreakBanner] = useState(true)
 	const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([])
-	const [feedMode, setFeedMode] = useState<FeedMode>('latest')
+	const [feedMode, setFeedMode] = useState<FeedMode>('trending')
 	const [currentPage, setCurrentPage] = useState(0)
 	const [hasMore, setHasMore] = useState(true)
 	const [hasPendingXpSync, setHasPendingXpSync] = useState(false)
@@ -382,6 +383,8 @@ export default function DashboardPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
+				{/* Tonight's Pick — hero recipe suggestion */}
+				<TonightsPick className='mb-4' />
 				{/* Since Last Visit Summary - Welcome back card with activity summary */}
 				<SinceLastVisitCard className='mb-4' />
 				{hasPendingXpSync && (

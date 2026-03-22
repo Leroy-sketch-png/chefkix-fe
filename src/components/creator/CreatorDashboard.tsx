@@ -92,7 +92,7 @@ export interface CreatorDashboardProps {
 	weekHighlight: WeekHighlight
 	lifetimeStats: LifetimeStats
 	creatorBadges: CreatorBadge[]
-	topRecipe: TopRecipe
+	topRecipe: TopRecipe | null
 	recipePerformance: RecipePerformance[]
 	recentCooks: RecentCook[]
 	onBack?: () => void
@@ -656,11 +656,13 @@ export function CreatorDashboard({
 			<CreatorBadgesSection badges={creatorBadges} />
 
 			{/* Top Recipe Spotlight */}
-			<TopRecipeSection
-				recipe={topRecipe}
-				onViewAllRecipes={onViewAllRecipes}
-				onRecipeClick={onRecipeClick}
-			/>
+			{topRecipe && (
+				<TopRecipeSection
+					recipe={topRecipe}
+					onViewAllRecipes={onViewAllRecipes}
+					onRecipeClick={onRecipeClick}
+				/>
+			)}
 
 			{/* Recipe Performance */}
 			<RecipePerformanceSection

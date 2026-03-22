@@ -18,6 +18,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
+import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
 import {
 	getMyConversations,
@@ -25,6 +26,8 @@ import {
 	sendMessage as sendMessageRest,
 	createConversation,
 	mapChatMessageToMessage,
+	reactToMessage,
+	deleteMessage,
 	Conversation,
 	ChatMessage as ChatMessageType,
 } from '@/services/chat'
@@ -105,8 +108,6 @@ function ConversationItem({
 					fill
 					className='rounded-full object-cover'
 				/>
-				{/* Online indicator */}
-				<span className='absolute bottom-0 right-0 size-3 rounded-full border-2 border-bg-card bg-success' />
 			</div>
 
 			{/* Content */}
@@ -150,10 +151,18 @@ function MessageBubble({
 	message,
 	isMe,
 	showAvatar,
+	onReact,
+	onDelete,
+	onReply,
+	onCopy,
 }: {
 	message: ChatMessageType
 	isMe: boolean
 	showAvatar?: boolean
+	onReact?: (messageId: string, emoji: string) => void
+	onDelete?: (messageId: string) => void
+	onReply?: (message: Message) => void
+	onCopy?: (content: string) => void
 }) {
 	// Map backend ChatMessage to frontend Message format
 	const mappedMessage: Message = {
@@ -175,6 +184,10 @@ function MessageBubble({
 			senderAvatar={senderAvatar}
 			senderName={senderName}
 			showAvatar={showAvatar}
+			onReact={onReact}
+			onDelete={onDelete}
+			onReply={onReply}
+			onCopy={onCopy}
 		/>
 	)
 }
@@ -271,7 +284,7 @@ export default function MessagesPage() {
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
 	const messagesEndRef = useRef<HTMLDivElement>(null)
-	const inputRef = useRef<HTMLInputElement>(null)
+	const inputRef = useRef<MentionInputRef>(null)
 	const hasHandledUserIdRef = useRef(false)
 
 	// Handle incoming WebSocket messages
@@ -435,18 +448,41 @@ export default function MessagesPage() {
 		}
 	}
 
-	const handleKeyPress = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
-			e.preventDefault()
-			handleSendMessage()
-		}
-	}
-
 	// Select conversation (and show mobile chat)
 	const handleSelectConversation = (conv: Conversation) => {
 		setSelectedConversation(conv)
 		setShowMobileChat(true)
 	}
+
+	// React to a message
+	const handleReact = useCallback(async (messageId: string, emoji: string) => {
+		const response = await reactToMessage(messageId, emoji)
+		if (response.success && response.data) {
+			setMessages(prev =>
+				prev.map(m => (m.id === messageId ? response.data! : m)),
+			)
+		}
+	}, [])
+
+	// Delete a message (own messages only)
+	const handleDelete = useCallback(async (messageId: string) => {
+		const response = await deleteMessage(messageId)
+		if (response.success && response.data) {
+			setMessages(prev =>
+				prev.map(m => (m.id === messageId ? response.data! : m)),
+			)
+		}
+	}, [])
+
+	// Reply to a message - focus input and prepend reply context
+	const handleReply = useCallback((message: Message) => {
+		inputRef.current?.focus()
+	}, [])
+
+	// Copy message content
+	const handleCopy = useCallback((content: string) => {
+		navigator.clipboard.writeText(content)
+	}, [])
 
 	// Back to list (mobile)
 	const handleBackToList = () => {
@@ -635,6 +671,10 @@ export default function MessagesPage() {
 															messages[idx - 1]?.sender?.userId ===
 																user?.userId)
 													}
+													onReact={handleReact}
+													onDelete={handleDelete}
+													onReply={handleReply}
+													onCopy={handleCopy}
 												/>
 											)
 										})}
@@ -647,14 +687,15 @@ export default function MessagesPage() {
 						{/* Input Area */}
 						<footer className='flex-shrink-0 border-t border-border-subtle bg-bg-card p-3 md:p-4'>
 							<div className='flex items-center gap-3'>
-								<Input
+								<MentionInput
 									ref={inputRef}
-									placeholder='Type a message...'
+									placeholder='Type a message... (use @ to mention)'
 									value={newMessage}
-									onChange={e => setNewMessage(e.target.value)}
-									onKeyDown={handleKeyPress}
+									onChange={setNewMessage}
+									onTaggedUsersChange={() => {}}
+									onSubmit={handleSendMessage}
 									disabled={isSending}
-									className='flex-1 bg-bg-elevated'
+									className='bg-bg-elevated'
 								/>
 								<Button
 									onClick={handleSendMessage}

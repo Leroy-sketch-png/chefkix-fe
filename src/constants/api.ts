@@ -81,6 +81,7 @@ export const API_ENDPOINTS = {
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}`,
 		TOGGLE_LIKE_REPLY: (commentId: string, replyId: string) =>
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}/like`,
+		SEARCH: `${POST_SERVICE_PREFIX}/search`,
 		// Reports per spec (13-moderation.txt)
 		REPORT: `${POST_SERVICE_PREFIX}/report`,
 	},
@@ -169,6 +170,8 @@ export const API_ENDPOINTS = {
 		VALIDATE_RECIPE: `${API_PREFIX}/validate_recipe`,
 		COOKING_ASSISTANT: `${API_PREFIX}/cooking_assistant`,
 		MODERATE: `${API_PREFIX}/moderate`,
+		SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/suggest_substitutions`,
+		REMIX_RECIPE: `${API_PREFIX}/remix_recipe`,
 	},
 	// Leaderboard (identity module)
 	LEADERBOARD: {
@@ -251,5 +254,20 @@ export const API_ENDPOINTS = {
 		GET_PENDING_APPEALS: `${API_PREFIX}/admin/appeals`,
 		REVIEW_APPEAL: (appealId: string) =>
 			`${API_PREFIX}/admin/appeals/${appealId}/review`,
+	},
+	EVENTS: {
+		TRACK: `${API_PREFIX}/events`,
+	},
+	SEARCH: {
+		UNIFIED: `${API_PREFIX}/search`,
+		AUTOCOMPLETE: `${API_PREFIX}/search/autocomplete`,
+	},
+	KNOWLEDGE: {
+		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,
+		INGREDIENT: (name: string) => `${API_PREFIX}/knowledge/ingredients/${name}`,
+		SUBSTITUTIONS: (name: string) =>
+			`${API_PREFIX}/knowledge/ingredients/${name}/substitutions`,
+		TECHNIQUES: `${API_PREFIX}/knowledge/techniques`,
+		TECHNIQUE: (name: string) => `${API_PREFIX}/knowledge/techniques/${name}`,
 	},
 } as const

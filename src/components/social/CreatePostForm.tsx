@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createPost } from '@/services/post'
 import { Post } from '@/lib/types'
 import { POST_MESSAGES } from '@/constants/messages'
@@ -18,6 +18,10 @@ import {
 } from '@/components/ui/tooltip'
 import { moderateContent } from '@/services/ai'
 import { diag } from '@/lib/diagnostics'
+import {
+	MentionInput,
+	type MentionInputRef,
+} from '@/components/shared/MentionInput'
 
 interface CreatePostFormProps {
 	onPostCreated?: (post: Post) => void
@@ -41,6 +45,8 @@ export const CreatePostForm = ({
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [showAdvanced, setShowAdvanced] = useState(false)
+	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
+	const mentionRef = useRef<MentionInputRef>(null)
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || [])
@@ -177,6 +183,7 @@ export const CreatePostForm = ({
 			photoUrls: photoFiles,
 			videoUrl: videoUrl.trim() || undefined,
 			tags: tagList.length > 0 ? tagList : undefined,
+			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
 		})
 
 		if (response.success && response.data) {
@@ -196,6 +203,8 @@ export const CreatePostForm = ({
 			setPhotoFiles([])
 			setPreviewUrls([])
 			setShowAdvanced(false)
+			setTaggedUserIds([])
+			mentionRef.current?.clear()
 			onPostCreated?.(response.data)
 		} else {
 			diag.error('social', 'POST_CREATE_FAILED', {
@@ -213,7 +222,7 @@ export const CreatePostForm = ({
 			animate={{ opacity: 1, y: 0 }}
 			className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-md'
 		>
-			<form onSubmit={handleSubmit}>
+			<form onSubmit={handleSubmit} data-post-form>
 				{/* Header */}
 				<div className='flex items-center gap-3 border-b border-border-subtle p-4 md:p-6'>
 					<Avatar size='lg' className='ring-2 ring-primary/10'>
@@ -242,22 +251,24 @@ export const CreatePostForm = ({
 
 				{/* Content Input */}
 				<div className='p-4 md:p-6'>
-					<textarea
+					<MentionInput
+						ref={mentionRef}
 						value={content}
-						onChange={e => setContent(e.target.value.slice(0, 500))}
-						onKeyDown={e => {
-							if (
-								(e.ctrlKey || e.metaKey) &&
-								e.key === 'Enter' &&
-								content.trim()
-							) {
-								e.preventDefault()
-								handleSubmit(e as unknown as React.FormEvent)
+						onChange={setContent}
+						onTaggedUsersChange={setTaggedUserIds}
+						multiline
+						rows={4}
+						maxLength={500}
+						placeholder="What's cooking? Share your culinary journey... (@ to mention)"
+						disabled={isSubmitting}
+						className='bg-bg-card p-3 caret-primary placeholder-text-secondary focus:ring-primary/10'
+						onSubmit={() => {
+							if (content.trim()) {
+								const form =
+									document.querySelector<HTMLFormElement>('[data-post-form]')
+								form?.requestSubmit()
 							}
 						}}
-						placeholder="What's cooking? Share your culinary journey..."
-						className='w-full resize-none rounded-lg bg-bg-card p-3 leading-relaxed text-text-primary caret-primary placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-primary/10'
-						rows={4}
 					/>
 					{/* Character count */}
 					<div className='mt-1 flex justify-end'>

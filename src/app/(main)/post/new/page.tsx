@@ -23,6 +23,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
+import { trackEvent } from '@/lib/eventTracker'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import {
@@ -222,6 +223,9 @@ function CreatePostContent() {
 			if (response.success && response.data) {
 				const createdPost = response.data
 				const postId = createdPost.id
+				trackEvent('POST_CREATED', postId, 'post', {
+					hasSession: !!session?.id,
+				})
 
 				// CRITICAL: Social module only stores the reference, XP is awarded
 				// by culinary module via the link-post endpoint.
@@ -443,6 +447,12 @@ function CreatePostContent() {
 							<textarea
 								value={content}
 								onChange={e => setContent(e.target.value)}
+								onKeyDown={e => {
+									if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+										e.preventDefault()
+										handleSubmit()
+									}
+								}}
 								placeholder={
 									session
 										? `Tell everyone about your ${session.recipeTitle}! How did it turn out?`
@@ -533,6 +543,9 @@ function CreatePostContent() {
 										{session
 											? `Post & Claim ${Math.round(session.pendingXp)} XP`
 											: 'Post'}
+										<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
+											⌘↵
+										</kbd>
 									</>
 								)}
 							</AnimatedButton>

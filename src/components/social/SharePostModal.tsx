@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -73,6 +74,8 @@ export const SharePostModal = ({
 	>(new Set())
 	const [isSending, setIsSending] = useState(false)
 	const [customMessage, setCustomMessage] = useState('')
+
+	useEscapeKey(isOpen, onClose)
 
 	// Fetch conversation suggestions
 	useEffect(() => {
@@ -190,7 +193,7 @@ export const SharePostModal = ({
 		<Portal>
 			<AnimatePresence mode='wait'>
 				<motion.div
-					className='fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4'
+					className='fixed inset-0 z-modal flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4'
 					variants={overlayVariants}
 					initial='hidden'
 					animate='visible'

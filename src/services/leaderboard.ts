@@ -25,6 +25,7 @@ export interface LeaderboardEntry {
 	xpThisWeek: number
 	recipesCooked: number
 	streak: number
+	topBadges?: string[]
 }
 
 export interface MyRank {

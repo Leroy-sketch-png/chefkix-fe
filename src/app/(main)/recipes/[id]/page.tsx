@@ -9,6 +9,7 @@ import {
 	toggleLikeRecipe,
 	toggleSaveRecipe,
 } from '@/services/recipe'
+import { trackEvent } from '@/lib/eventTracker'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,7 @@ import {
 	UtensilsCrossed,
 	Loader2,
 	AlertCircle,
+	Sparkles,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -54,6 +56,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { SocialProof } from '@/components/recipe/SocialProof'
+import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
+import { Portal } from '@/components/ui/portal'
+import {
+	remixRecipe,
+	type RemixType,
+	type RemixRecipeResponse,
+} from '@/services/ai'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -128,6 +137,11 @@ export default function RecipeDetailPage() {
 	const [saveCount, setSaveCount] = useState(0)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 	const [isSaveLoading, setIsSaveLoading] = useState(false)
+	const [showRemixMenu, setShowRemixMenu] = useState(false)
+	const [isRemixing, setIsRemixing] = useState(false)
+	const [remixResult, setRemixResult] = useState<RemixRecipeResponse | null>(
+		null,
+	)
 
 	// Check if current user is the recipe owner
 	const isOwner = user?.userId === recipe?.author?.userId
@@ -144,6 +158,7 @@ export default function RecipeDetailPage() {
 					setIsSaved(response.data.isSaved ?? false)
 					setLikeCount(response.data.likeCount)
 					setSaveCount(response.data.saveCount)
+					trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
 				} else {
 					setError('Recipe not found')
 				}
@@ -251,6 +266,11 @@ export default function RecipeDetailPage() {
 				setSaveCount(
 					response.data.saveCount ?? previousCount + (serverSaved ? 1 : -1),
 				)
+				trackEvent(
+					serverSaved ? 'RECIPE_SAVED' : 'RECIPE_UNSAVED',
+					recipeId,
+					'recipe',
+				)
 				toast.success(serverSaved ? 'Recipe saved!' : 'Recipe unsaved')
 			}
 		} catch (error) {
@@ -277,6 +297,38 @@ export default function RecipeDetailPage() {
 			// Fallback: copy to clipboard
 			await navigator.clipboard.writeText(window.location.href)
 			toast.success(RECIPE_MESSAGES.LINK_COPIED)
+		}
+	}
+
+	const REMIX_OPTIONS: { type: RemixType; label: string; emoji: string }[] = [
+		{ type: 'vegetarian', label: 'Vegetarian', emoji: '🌿' },
+		{ type: 'vegan', label: 'Vegan', emoji: '🌱' },
+		{ type: 'gluten-free', label: 'Gluten-Free', emoji: '🌾' },
+		{ type: 'spicy', label: 'Spicy', emoji: '🌶️' },
+		{ type: 'healthy', label: 'Healthy', emoji: '💚' },
+		{ type: 'quick', label: 'Quick', emoji: '⚡' },
+	]
+
+	const handleRemix = async (remixType: RemixType) => {
+		if (!recipe) return
+		setShowRemixMenu(false)
+		setIsRemixing(true)
+		try {
+			const steps = recipe.steps.map(s => s.description || '')
+			const response = await remixRecipe({
+				recipe_title: recipe.title,
+				current_steps: steps,
+				remix_type: remixType,
+			})
+			if (response.success && response.data) {
+				setRemixResult(response.data)
+			} else {
+				toast.error(response.message || 'Failed to remix recipe')
+			}
+		} catch {
+			toast.error('Failed to remix recipe')
+		} finally {
+			setIsRemixing(false)
 		}
 	}
 
@@ -464,14 +516,16 @@ export default function RecipeDetailPage() {
 						<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
 						{/* XP Badge - top left */}
-						<motion.div
-							initial={{ scale: 0, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							transition={{ delay: 0.3, ...TRANSITION_SPRING }}
-							className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-xp px-4 py-2 text-sm font-bold text-white shadow-lg shadow-xp/40'
-						>
-							<Zap className='size-4' />+{recipe.xpReward || 100} XP
-						</motion.div>
+						{recipe.xpReward != null && recipe.xpReward > 0 && (
+							<motion.div
+								initial={{ scale: 0, opacity: 0 }}
+								animate={{ scale: 1, opacity: 1 }}
+								transition={{ delay: 0.3, ...TRANSITION_SPRING }}
+								className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-xp px-4 py-2 text-sm font-bold text-white shadow-lg shadow-xp/40'
+							>
+								<Zap className='size-4' />+{recipe.xpReward} XP
+							</motion.div>
+						)}
 
 						{/* Difficulty Badge - top right */}
 						<motion.div
@@ -771,6 +825,39 @@ export default function RecipeDetailPage() {
 								<Bookmark className={cn('size-5', isSaved && 'fill-current')} />
 								{isSaved ? 'Saved' : 'Save'}
 							</motion.button>
+							{/* Remix Dropdown */}
+							<DropdownMenu
+								open={showRemixMenu}
+								onOpenChange={setShowRemixMenu}
+							>
+								<DropdownMenuTrigger asChild>
+									<motion.button
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										disabled={isRemixing}
+										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-xp hover:bg-xp/10 disabled:opacity-50'
+										title='Remix Recipe'
+									>
+										{isRemixing ? (
+											<Loader2 className='size-5 animate-spin' />
+										) : (
+											<Sparkles className='size-5' />
+										)}
+									</motion.button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align='center' className='w-48'>
+									{REMIX_OPTIONS.map(opt => (
+										<DropdownMenuItem
+											key={opt.type}
+											onClick={() => handleRemix(opt.type)}
+											className='cursor-pointer gap-2 text-sm'
+										>
+											<span>{opt.emoji}</span>
+											<span>{opt.label}</span>
+										</DropdownMenuItem>
+									))}
+								</DropdownMenuContent>
+							</DropdownMenu>
 							<motion.button
 								onClick={handleShare}
 								whileHover={BUTTON_HOVER}
@@ -953,7 +1040,7 @@ export default function RecipeDetailPage() {
 								</p>
 							</div>
 							<span className='text-2xl font-black text-white'>
-								+{recipe.xpReward || 100}
+								+{recipe.xpReward ?? 0}
 							</span>
 						</div>
 					</motion.div>
@@ -983,7 +1070,7 @@ export default function RecipeDetailPage() {
 										animate={{ opacity: 1, x: 0 }}
 										transition={{ delay: 0.5 + index * 0.03 }}
 										whileHover={{ x: 4 }}
-										className='flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated'
+										className='group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated'
 									>
 										<div className='mt-1.5 size-2 flex-shrink-0 rounded-full bg-brand' />
 										<span className='flex-1 text-text-secondary'>
@@ -992,6 +1079,10 @@ export default function RecipeDetailPage() {
 											</span>{' '}
 											{ingredient.name}
 										</span>
+										<SubstitutionButton
+											ingredientName={ingredient.name}
+											recipeTitle={recipe.title}
+										/>
 									</motion.li>
 								))}
 							</ul>
@@ -1068,6 +1159,142 @@ export default function RecipeDetailPage() {
 					</motion.div>
 				</div>
 			</PageContainer>
+
+			{/* Remix Result Modal */}
+			{remixResult && (
+				<Portal>
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
+						onClick={() => setRemixResult(null)}
+					>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95, y: 20 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							transition={TRANSITION_SPRING}
+							className='max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-lg md:p-8'
+							onClick={e => e.stopPropagation()}
+						>
+							<div className='mb-4 flex items-start justify-between'>
+								<div>
+									<span className='mb-1 inline-block rounded-full bg-xp/10 px-3 py-1 text-xs font-semibold text-xp'>
+										AI Remix
+									</span>
+									<h2 className='mt-2 text-xl font-bold text-text'>
+										{remixResult.remix_title}
+									</h2>
+								</div>
+								<button
+									onClick={() => setRemixResult(null)}
+									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+								>
+									✕
+								</button>
+							</div>
+
+							{/* Modifications */}
+							{remixResult.modifications &&
+								remixResult.modifications.length > 0 && (
+									<div className='mb-5'>
+										<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-text-secondary'>
+											Changes Made
+										</h3>
+										<ul className='space-y-1'>
+											{remixResult.modifications.map((mod, i) => (
+												<li
+													key={i}
+													className='flex items-start gap-2 text-sm text-text-secondary'
+												>
+													<Check className='mt-0.5 size-4 flex-shrink-0 text-brand' />
+													{mod}
+												</li>
+											))}
+										</ul>
+									</div>
+								)}
+
+							{/* Ingredient Changes */}
+							{((remixResult.new_ingredients &&
+								remixResult.new_ingredients.length > 0) ||
+								(remixResult.removed_ingredients &&
+									remixResult.removed_ingredients.length > 0)) && (
+								<div className='mb-5 flex gap-4'>
+									{remixResult.new_ingredients &&
+										remixResult.new_ingredients.length > 0 && (
+											<div className='flex-1'>
+												<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-brand'>
+													+ Added
+												</h3>
+												<ul className='space-y-1'>
+													{remixResult.new_ingredients.map((ing, i) => (
+														<li key={i} className='text-sm text-text-secondary'>
+															{ing}
+														</li>
+													))}
+												</ul>
+											</div>
+										)}
+									{remixResult.removed_ingredients &&
+										remixResult.removed_ingredients.length > 0 && (
+											<div className='flex-1'>
+												<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-error'>
+													− Removed
+												</h3>
+												<ul className='space-y-1'>
+													{remixResult.removed_ingredients.map((ing, i) => (
+														<li
+															key={i}
+															className='text-sm text-text-secondary line-through'
+														>
+															{ing}
+														</li>
+													))}
+												</ul>
+											</div>
+										)}
+								</div>
+							)}
+
+							{/* Modified Steps */}
+							{remixResult.modified_steps &&
+								remixResult.modified_steps.length > 0 && (
+									<div className='mb-5'>
+										<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-text-secondary'>
+											Steps
+										</h3>
+										<ol className='space-y-2'>
+											{remixResult.modified_steps.map((step, i) => (
+												<li
+													key={i}
+													className='flex gap-3 text-sm text-text-secondary'
+												>
+													<span className='flex size-6 flex-shrink-0 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand'>
+														{i + 1}
+													</span>
+													<span className='pt-0.5'>{step}</span>
+												</li>
+											))}
+										</ol>
+									</div>
+								)}
+
+							{/* Tip */}
+							{remixResult.tip && (
+								<div className='rounded-xl border border-border-subtle bg-bg-elevated p-4'>
+									<div className='flex items-start gap-2'>
+										<Info className='mt-0.5 size-4 flex-shrink-0 text-brand' />
+										<p className='text-sm text-text-secondary'>
+											{remixResult.tip}
+										</p>
+									</div>
+								</div>
+							)}
+						</motion.div>
+					</motion.div>
+				</Portal>
+			)}
 		</PageTransition>
 	)
 }

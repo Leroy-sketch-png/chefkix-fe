@@ -21,6 +21,7 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
 	getPantryItems,
@@ -36,6 +37,13 @@ import type {
 	PantryRecipeMatch,
 } from '@/lib/types/pantry'
 import { toast } from 'sonner'
+import {
+	AsyncCombobox,
+	AsyncComboboxRef,
+	AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
+import { autocompleteSearch } from '@/services/search'
+import { suggestCategory } from '@/lib/data/ingredients'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -83,7 +91,23 @@ export default function PantryPage() {
 	const [quickAddCategory, setQuickAddCategory] = useState('other')
 	const [quickAddExpiry, setQuickAddExpiry] = useState('')
 	const [isAdding, setIsAdding] = useState(false)
-	const quickAddRef = useRef<HTMLInputElement>(null)
+	const quickAddRef = useRef<AsyncComboboxRef>(null)
+
+	// Ingredient autocomplete via Typesense knowledge graph
+	const fetchIngredientOptions = useCallback(
+		async (query: string): Promise<AsyncComboboxOption[]> => {
+			const res = await autocompleteSearch(query, 'ingredients', 8)
+			if (res.success && res.data?.ingredients?.hits) {
+				return res.data.ingredients.hits.map(h => ({
+					value: h.document.id,
+					label: h.document.name,
+					category: h.document.category,
+				}))
+			}
+			return []
+		},
+		[],
+	)
 
 	// Edit state
 	const [editingId, setEditingId] = useState<string | null>(null)
@@ -101,7 +125,8 @@ export default function PantryPage() {
 	const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
 	const [showClearExpiredConfirm, setShowClearExpiredConfirm] = useState(false)
 	const [isClearingExpired, setIsClearingExpired] = useState(false)
-
+	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
+	useEscapeKey(showClearExpiredConfirm, () => setShowClearExpiredConfirm(false))
 	// ── Fetch ─────────────────────────────────────────────
 
 	const fetchItems = useCallback(async () => {
@@ -363,14 +388,22 @@ export default function PantryPage() {
 								>
 									Ingredient
 								</label>
-								<input
+								<AsyncCombobox
 									id='pantry-ingredient'
 									ref={quickAddRef}
 									value={quickAddName}
-									onChange={e => setQuickAddName(e.target.value)}
-									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
+									onChange={setQuickAddName}
+									onSelect={option => {
+										setQuickAddName(option.label)
+										const cat = option.category || suggestCategory(option.label)
+										if (cat !== 'other') setQuickAddCategory(cat)
+									}}
+									fetchOptions={fetchIngredientOptions}
+									minChars={1}
+									onKeyDown={e => {
+										if (e.key === 'Enter') handleQuickAdd()
+									}}
 									placeholder='e.g. Tomatoes'
-									className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
 								/>
 							</div>
 							<div className='w-20'>

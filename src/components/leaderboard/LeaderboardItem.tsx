@@ -29,6 +29,7 @@ export interface LeaderboardEntry {
 	xpAllTime?: number
 	recipesCooked: number
 	streak: number
+	topBadges?: string[]
 	isCurrentUser?: boolean
 }
 
@@ -176,6 +177,21 @@ export function LeaderboardItem({
 					</span>
 				)}
 			</div>
+
+			{/* Badges - top achievements */}
+			{entry.topBadges && entry.topBadges.length > 0 && (
+				<div className='hidden gap-1 md:flex'>
+					{entry.topBadges.slice(0, 3).map((badge, i) => (
+						<span
+							key={i}
+							className='rounded-md bg-bg-elevated px-1.5 py-0.5 text-[10px] font-semibold text-text-secondary'
+							title={badge}
+						>
+							{badge.length > 12 ? badge.slice(0, 12) + '...' : badge}
+						</span>
+					))}
+				</div>
+			)}
 
 			{/* Stats (hidden on mobile) */}
 			{showStats && (

@@ -40,6 +40,7 @@ export interface Post {
 	xpEarned?: number // XP user earned from this post
 	roomCode?: string // Co-cooking room code (null for solo posts)
 	coChefs?: CoChef[] // Co-chefs who cooked together
+	taggedUserIds?: string[] // @mentioned user IDs in the post
 }
 
 export interface CreatePostRequest {
@@ -51,6 +52,7 @@ export interface CreatePostRequest {
 	// Session linking for XP unlock (per spec 05-posts.txt)
 	sessionId?: string // Links post to a cooking session
 	isPrivateRecipe?: boolean // For private recipe attempts (default: false)
+	taggedUserIds?: string[] // @mentioned user IDs
 }
 
 export interface UpdatePostRequest {

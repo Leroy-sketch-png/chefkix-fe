@@ -21,6 +21,11 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import {
+	AsyncCombobox,
+	AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
+import { autocompleteSearch } from '@/services/search'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
@@ -255,6 +260,20 @@ const ImageUpload = ({
 }
 
 // Ingredient Row
+const fetchIngredientOptions = async (
+	query: string,
+): Promise<AsyncComboboxOption[]> => {
+	const res = await autocompleteSearch(query, 'ingredients', 8)
+	if (res.success && res.data?.ingredients?.hits) {
+		return res.data.ingredients.hits.map(h => ({
+			value: h.document.id,
+			label: h.document.name,
+			category: h.document.category,
+		}))
+	}
+	return []
+}
+
 const IngredientRow = ({
 	ingredient,
 	onChange,
@@ -286,11 +305,13 @@ const IngredientRow = ({
 					</option>
 				))}
 			</select>
-			<input
-				type='text'
+			<AsyncCombobox
 				value={ingredient.name}
-				onChange={e => onChange({ ...ingredient, name: e.target.value })}
+				onChange={val => onChange({ ...ingredient, name: val })}
+				onSelect={opt => onChange({ ...ingredient, name: opt.label })}
+				fetchOptions={fetchIngredientOptions}
 				placeholder='Ingredient name'
+				minChars={1}
 				className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-primary focus:outline-none'
 			/>
 		</div>

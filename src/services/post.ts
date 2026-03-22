@@ -135,6 +135,12 @@ export const createPost = async (
 			formData.append('isPrivateRecipe', String(data.isPrivateRecipe))
 		}
 
+		if (data.taggedUserIds && data.taggedUserIds.length > 0) {
+			data.taggedUserIds.forEach(id => {
+				formData.append('taggedUserIds', id)
+			})
+		}
+
 		const response = await api.post<ApiResponse<Post | PostWithXpResponse>>(
 			API_ENDPOINTS.POST.CREATE,
 			formData,
@@ -336,6 +342,40 @@ export const getFeedPosts = async (params?: {
 				params: {
 					...backendParams,
 					mode: params?.mode === 'trending' ? 1 : 0, // Convert to backend mode int
+				},
+			},
+		)
+		return mapPostPageResponse(response.data)
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<PostPageData | Post[]>>
+		if (axiosError.response) {
+			return mapPostPageResponse(axiosError.response.data)
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+			data: [],
+		}
+	}
+}
+
+/**
+ * Server-side post search.
+ * Searches content, displayName, tags, and recipeTitle fields.
+ */
+export const searchPosts = async (
+	query: string,
+	params?: { page?: number; size?: number },
+): Promise<ApiResponse<Post[]> & { pagination?: PaginationMeta }> => {
+	try {
+		const backendParams = toBackendPagination(params)
+		const response = await api.get<ApiResponse<PostPageData | Post[]>>(
+			API_ENDPOINTS.POST.SEARCH,
+			{
+				params: {
+					q: query,
+					...backendParams,
 				},
 			},
 		)
