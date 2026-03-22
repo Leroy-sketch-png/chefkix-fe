@@ -56,6 +56,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { SocialProof } from '@/components/recipe/SocialProof'
+import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
 import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
 import { Portal } from '@/components/ui/portal'
 import {
@@ -1158,6 +1159,9 @@ export default function RecipeDetailPage() {
 						</div>
 					</motion.div>
 				</div>
+
+				{/* Similar Recipes */}
+				<SimilarRecipes recipeId={recipeId} />
 			</PageContainer>
 
 			{/* Remix Result Modal */}

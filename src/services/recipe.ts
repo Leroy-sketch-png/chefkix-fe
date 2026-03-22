@@ -198,6 +198,51 @@ export const searchRecipes = async (
 }
 
 /**
+ * Get tonight's personalized recipe recommendation.
+ * Uses cooking history + trending for taste-based picks.
+ */
+export const getTonightsPick = async (): Promise<ApiResponse<Recipe>> => {
+	try {
+		const response = await api.get<ApiResponse<Recipe>>(
+			API_ENDPOINTS.RECIPES.TONIGHT_PICK,
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch tonight\'s pick',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get similar recipes based on cuisine, difficulty, and ingredients.
+ */
+export const getSimilarRecipes = async (
+	recipeId: string,
+	size: number = 6,
+): Promise<PaginatedRecipeResponse> => {
+	try {
+		const response = await api.get<PaginatedRecipeResponse>(
+			API_ENDPOINTS.RECIPES.SIMILAR(recipeId),
+			{ params: { size } },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<PaginatedRecipeResponse>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch similar recipes',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
  * Get current user's draft recipes.
  *
  * IMPORTANT: Backend returns RecipeSummaryResponse[] (no ingredients/steps).
