@@ -12,6 +12,7 @@ import { CookingTimerProvider } from '@/components/providers/CookingTimerProvide
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
 import { EventTrackerProvider } from '@/components/providers/EventTrackerProvider'
+import { NotificationSocketProvider } from '@/components/providers/NotificationSocketProvider'
 
 export default function MainAppLayout({
 	children,
@@ -52,6 +53,7 @@ export default function MainAppLayout({
 			<CookingTimerProvider />
 			<KeyboardShortcuts />
 			<EventTrackerProvider>{null}</EventTrackerProvider>
+			<NotificationSocketProvider />
 		</div>
 	)
 }
