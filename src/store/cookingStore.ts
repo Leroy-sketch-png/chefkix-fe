@@ -33,12 +33,37 @@ import {
 // TYPES
 // ============================================
 
+/**
+ * Kitchen Protocol interaction modes — spec: §COMMON_GOTCHAS / 22-voice-mode.txt
+ *
+ * PREP        Before cooking starts. User is reading steps, gathering ingredients.
+ *             Auto-transitions to ACTIVE after 30s or on first "Next Step".
+ * ACTIVE      Hands free. Touch is primary. Normal cooking flow.
+ * MESSY_HANDS Hands dirty (flour, oil, water). Touch secondary; voice + audio primary.
+ *             Entered manually via button or voice "messy hands" command.
+ * MONITORING  Timer running. Waiting for something to cook/boil/bake.
+ *             Auto-entered when any timer starts; auto-exits when all timers clear.
+ *             MESSY_HANDS takes priority (if both would apply, stay MESSY_HANDS).
+ * COMPLETION  All steps done. Triggers rating modal.
+ *             Auto-entered when showCompletion becomes true.
+ */
+export type KitchenInteractionMode =
+	| 'PREP'
+	| 'ACTIVE'
+	| 'MESSY_HANDS'
+	| 'MONITORING'
+	| 'COMPLETION'
+
 interface CookingState {
 	// Current session
 	session: CookingSession | null
 	recipe: Recipe | null
 	isLoading: boolean
 	error: string | null
+
+	// Kitchen Protocol interaction mode (null = no active session)
+	interactionMode: KitchenInteractionMode | null
+	setInteractionMode: (mode: KitchenInteractionMode) => void
 
 	// Preview mode — allows creators to test-play recipes without backend session
 	// NOT persisted to localStorage (defaults to false on rehydrate)
@@ -115,6 +140,7 @@ export const useCookingStore = create<CookingState>()(
 			recipe: null,
 			isLoading: false,
 			error: null,
+			interactionMode: null,
 			isPreviewMode: false,
 			localTimers: new Map(),
 			checkedIngredients: {},
@@ -122,6 +148,10 @@ export const useCookingStore = create<CookingState>()(
 			participants: [],
 			isInRoom: false,
 			isHost: false,
+
+			setInteractionMode: (mode: KitchenInteractionMode) => {
+				set({ interactionMode: mode })
+			},
 
 			startCooking: async (recipeId: string) => {
 				diag.action('cooking', 'START_COOKING clicked', { recipeId })
@@ -184,6 +214,7 @@ export const useCookingStore = create<CookingState>()(
 										recipe: recipeResponse.data,
 										isLoading: false,
 										localTimers,
+										interactionMode: 'ACTIVE', // Already in-progress session
 									})
 									return true // Successfully resumed!
 								}
@@ -235,6 +266,7 @@ export const useCookingStore = create<CookingState>()(
 						recipe: recipeResponse.data,
 						isLoading: false,
 						localTimers: new Map(),
+						interactionMode: 'PREP', // New session → PREP until user engages
 					})
 
 					return true
@@ -342,6 +374,7 @@ export const useCookingStore = create<CookingState>()(
 						recipe: recipeResponse.data,
 						localTimers,
 						isLoading: false,
+						interactionMode: 'ACTIVE', // Resuming past-PREP session
 					})
 
 					return true
@@ -401,6 +434,7 @@ export const useCookingStore = create<CookingState>()(
 						session,
 						recipe: recipeResponse.data,
 						isLoading: false,
+						interactionMode: 'ACTIVE', // loadSession = already past PREP
 					})
 
 					return true
@@ -712,6 +746,7 @@ export const useCookingStore = create<CookingState>()(
 					isPreviewMode: false,
 					localTimers: new Map(),
 					checkedIngredients: {},
+					interactionMode: null,
 				})
 			},
 
@@ -760,6 +795,7 @@ export const useCookingStore = create<CookingState>()(
 					error: null,
 					localTimers: new Map(),
 					checkedIngredients: {},
+					interactionMode: 'PREP', // Preview starts in PREP too
 				})
 			},
 
@@ -775,6 +811,7 @@ export const useCookingStore = create<CookingState>()(
 					error: null,
 					localTimers: new Map(),
 					checkedIngredients: {},
+					interactionMode: null,
 				})
 			},
 

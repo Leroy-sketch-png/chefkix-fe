@@ -14,6 +14,7 @@ export type VoiceAction =
 	| 'TIME_LEFT'
 	| 'COMPLETE_STEP'
 	| 'SHOW_HELP'
+	| 'TOGGLE_MESSY_HANDS'
 
 interface CommandDef {
 	keywords: string[]
@@ -71,6 +72,12 @@ export const COMMANDS: CommandDef[] = [
 		action: 'SHOW_HELP',
 		label: 'Show Help',
 		icon: '❓',
+	},
+	{
+		keywords: ['messy hands', 'dirty hands', 'hands busy', 'hands full', 'clean hands', 'hands free'],
+		action: 'TOGGLE_MESSY_HANDS',
+		label: 'Toggle Messy Hands',
+		icon: '🙌',
 	},
 ]
 
