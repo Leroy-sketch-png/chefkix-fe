@@ -9,6 +9,8 @@ import {
 	PostWithXpResponse,
 	Page,
 } from '@/lib/types'
+import { PollVoteResponse } from '@/lib/types/post'
+import { PlateRateResponse } from '@/lib/types/post'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
 import { AxiosError } from 'axios'
@@ -139,6 +141,21 @@ export const createPost = async (
 			data.taggedUserIds.forEach(id => {
 				formData.append('taggedUserIds', id)
 			})
+		}
+
+		if (data.postType) {
+			formData.append('postType', data.postType)
+		}
+
+		// Poll fields (only when postType === 'POLL')
+		if (data.pollQuestion) {
+			formData.append('pollQuestion', data.pollQuestion)
+		}
+		if (data.pollOptionA) {
+			formData.append('pollOptionA', data.pollOptionA)
+		}
+		if (data.pollOptionB) {
+			formData.append('pollOptionB', data.pollOptionB)
 		}
 
 		const response = await api.post<ApiResponse<Post | PostWithXpResponse>>(
@@ -328,7 +345,7 @@ export const getFeedPosts = async (params?: {
 	offset?: number
 	page?: number
 	size?: number
-	mode?: 'latest' | 'trending' // 0 = latest (default), 1 = trending (hotScore)
+	mode?: 'latest' | 'trending' | 'forYou' // 0 = latest (default), 1 = trending (hotScore), 2 = forYou (taste-based)
 }): Promise<
 	ApiResponse<Post[]> & {
 		pagination?: PaginationMeta
@@ -336,12 +353,13 @@ export const getFeedPosts = async (params?: {
 > => {
 	try {
 		const backendParams = toBackendPagination(params) ?? params
+		const modeMap = { latest: 0, trending: 1, forYou: 2 } as const
 		const response = await api.get<ApiResponse<PostPageData | Post[]>>(
 			API_ENDPOINTS.POST.GET_ALL,
 			{
 				params: {
 					...backendParams,
-					mode: params?.mode === 'trending' ? 1 : 0, // Convert to backend mode int
+					mode: modeMap[params?.mode ?? 'latest'],
 				},
 			},
 		)
@@ -410,6 +428,52 @@ export const toggleSave = async (
 		const axiosError = error as AxiosError<
 			ApiResponse<{ isSaved: boolean; saveCount: number }>
 		>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const votePoll = async (
+	postId: string,
+	option: 'A' | 'B',
+): Promise<ApiResponse<PollVoteResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<PollVoteResponse>>(
+			API_ENDPOINTS.POST.VOTE_POLL(postId),
+			{ option },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<PollVoteResponse>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const ratePlate = async (
+	postId: string,
+	rating: 'FIRE' | 'CRINGE',
+): Promise<ApiResponse<PlateRateResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<PlateRateResponse>>(
+			API_ENDPOINTS.POST.RATE_PLATE(postId),
+			{ rating },
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<PlateRateResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}

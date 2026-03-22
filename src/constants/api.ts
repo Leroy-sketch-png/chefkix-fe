@@ -58,6 +58,10 @@ export const API_ENDPOINTS = {
 			`${POST_SERVICE_PREFIX}/toggle-like/${postId}`,
 		TOGGLE_SAVE: (postId: string) =>
 			`${POST_SERVICE_PREFIX}/toggle-save/${postId}`,
+		VOTE_POLL: (postId: string) =>
+			`${POST_SERVICE_PREFIX}/${postId}/vote`,
+		RATE_PLATE: (postId: string) =>
+			`${POST_SERVICE_PREFIX}/${postId}/rate-plate`,
 		GET_ALL: `${POST_SERVICE_PREFIX}/all`,
 		GET_FOLLOWING: `${POST_SERVICE_PREFIX}/following`,
 		GET_FEED: (userId: string) =>
@@ -110,6 +114,8 @@ export const API_ENDPOINTS = {
 		SAVED: `${RECIPE_SERVICE_PREFIX}/saved`,
 		LIKED: `${RECIPE_SERVICE_PREFIX}/liked`,
 		SOCIAL_PROOF: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/social-proof`,
+		TONIGHT_PICK: `${RECIPE_SERVICE_PREFIX}/tonight-pick`,
+		SIMILAR: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/similar`,
 	},
 	// Statistics: XP is awarded via Kafka (xp-delivery topic), not REST. No FE endpoints needed.
 	// Cooking Sessions per spec (08-cooking-sessions.txt)

@@ -7,8 +7,11 @@ import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PostCard } from '@/components/social/PostCard'
+import { PollCard } from '@/components/social/PollCard'
+import { RecentCookCard } from '@/components/social/RecentCookCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
+import { QuickPostFAB } from '@/components/social/QuickPostFAB'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
@@ -37,7 +40,7 @@ const POSTS_PER_PAGE = 15
 // TYPES
 // ============================================
 
-type FeedTab = 'following' | 'trending'
+type FeedTab = 'forYou' | 'following' | 'trending'
 
 // ============================================
 // PAGE
@@ -49,7 +52,7 @@ export default function FeedPage() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [activeTab, setActiveTab] = useState<FeedTab>('following')
+	const [activeTab, setActiveTab] = useState<FeedTab>('forYou')
 	const [currentPage, setCurrentPage] = useState(0)
 	const [hasMore, setHasMore] = useState(true)
 	const [retryCount, setRetryCount] = useState(0)
@@ -67,18 +70,12 @@ export default function FeedPage() {
 			setPosts([])
 
 			try {
-				const response =
-					activeTab === 'following'
-						? await getFollowingFeedPosts({
-								page: 0,
-								size: POSTS_PER_PAGE,
-								mode: 'latest',
-							})
-						: await getFeedPosts({
-								page: 0,
-								size: POSTS_PER_PAGE,
-								mode: 'trending',
-							})
+				const fetchByTab = {
+					forYou: () => getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'forYou' }),
+					following: () => getFollowingFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'latest' }),
+					trending: () => getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'trending' }),
+				}
+				const response = await fetchByTab[activeTab]()
 
 				if (response.success && response.data) {
 					setPosts(response.data)
@@ -107,18 +104,12 @@ export default function FeedPage() {
 		const nextPage = currentPage + 1
 
 		try {
-			const response =
-				activeTab === 'following'
-					? await getFollowingFeedPosts({
-							page: nextPage,
-							size: POSTS_PER_PAGE,
-							mode: 'latest',
-						})
-					: await getFeedPosts({
-							page: nextPage,
-							size: POSTS_PER_PAGE,
-							mode: 'trending',
-						})
+const fetchByTab = {
+			forYou: () => getFeedPosts({ page: nextPage, size: POSTS_PER_PAGE, mode: 'forYou' }),
+			following: () => getFollowingFeedPosts({ page: nextPage, size: POSTS_PER_PAGE, mode: 'latest' }),
+			trending: () => getFeedPosts({ page: nextPage, size: POSTS_PER_PAGE, mode: 'trending' }),
+		}
+		const response = await fetchByTab[activeTab]()
 
 			if (response.success && response.data) {
 				setPosts(prev => [...prev, ...response.data!])
@@ -206,30 +197,25 @@ export default function FeedPage() {
 
 				{/* Tabs */}
 				<div className='mb-4 flex gap-2'>
-					<button
-						onClick={() => setActiveTab('following')}
-						className={cn(
-							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
-							activeTab === 'following'
-								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
-								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
-						)}
-					>
-						<Users2 className='size-4' />
-						Following
-					</button>
-					<button
-						onClick={() => setActiveTab('trending')}
-						className={cn(
-							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
-							activeTab === 'trending'
-								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
-								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
-						)}
-					>
-						<TrendingUp className='size-4' />
-						Trending
-					</button>
+					{([
+						{ key: 'forYou' as FeedTab, label: 'For You', icon: Sparkles },
+						{ key: 'following' as FeedTab, label: 'Following', icon: Users2 },
+						{ key: 'trending' as FeedTab, label: 'Trending', icon: TrendingUp },
+					] as const).map(tab => (
+						<button
+							key={tab.key}
+							onClick={() => setActiveTab(tab.key)}
+							className={cn(
+								'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+								activeTab === tab.key
+									? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+									: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+							)}
+						>
+							<tab.icon className='size-4' />
+							{tab.label}
+						</button>
+					))}
 				</div>
 
 				{/* Create Post */}
@@ -284,6 +270,23 @@ export default function FeedPage() {
 						/>
 					)}
 
+				{/* Empty State — For You */}
+				{!isLoading &&
+					!error &&
+					filteredPosts.length === 0 &&
+					activeTab === 'forYou' && (
+						<EmptyStateGamified
+							variant='feed'
+							title='Your personalized feed is warming up'
+							description='Like and save posts to teach the algorithm your taste. The more you interact, the better your feed gets!'
+							primaryAction={{
+								label: 'Explore Trending',
+								href: '/feed',
+								icon: <TrendingUp className='size-4' />,
+							}}
+						/>
+					)}
+
 				{/* Empty State — Trending */}
 				{!isLoading &&
 					!error &&
@@ -306,15 +309,29 @@ export default function FeedPage() {
 					<>
 						<StaggerContainer className='space-y-4 md:space-y-6'>
 							<AnimatePresence mode='popLayout'>
-								{filteredPosts.map(post => (
-									<PostCard
-										key={post.id}
-										post={post}
-										onUpdate={handlePostUpdate}
-										onDelete={handlePostDelete}
-										currentUserId={user?.userId}
-									/>
-								))}
+								{filteredPosts.map(post =>
+									post.postType === 'POLL' ? (
+										<PollCard
+											key={post.id}
+											post={post}
+											onUpdate={handlePostUpdate}
+											currentUserId={user?.userId}
+										/>
+									) : post.postType === 'RECENT_COOK' ? (
+										<RecentCookCard
+											key={post.id}
+											post={post}
+										/>
+									) : (
+										<PostCard
+											key={post.id}
+											post={post}
+											onUpdate={handlePostUpdate}
+											onDelete={handlePostDelete}
+											currentUserId={user?.userId}
+										/>
+									),
+								)}
 							</AnimatePresence>
 						</StaggerContainer>
 
@@ -341,6 +358,9 @@ export default function FeedPage() {
 					</>
 				)}
 			</PageContainer>
+
+			{/* Quick Post FAB */}
+			<QuickPostFAB onPostCreated={handlePostCreated} />
 		</PageTransition>
 	)
 }

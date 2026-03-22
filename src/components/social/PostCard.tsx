@@ -8,6 +8,7 @@ import {
 	updatePost,
 	toggleSave,
 	reportPost,
+	ratePlate,
 } from '@/services/post'
 import { toast } from '@/components/ui/toaster'
 import { POST_MESSAGES } from '@/constants/messages'
@@ -80,6 +81,7 @@ export const PostCard = ({
 		top: 0,
 		right: 0,
 	})
+	const [isRatingPlate, setIsRatingPlate] = useState(false)
 
 	// Refs
 	const likeButtonRef = useRef<HTMLButtonElement>(null)
@@ -90,6 +92,7 @@ export const PostCard = ({
 	const DOUBLE_TAP_DELAY = 300 // ms
 
 	const isOwner = currentUserId === post.userId
+	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
 
 	useEscapeKey(showMenu, () => setShowMenu(false))
 	useEscapeKey(showShareMenu, () => setShowShareMenu(false))
@@ -215,6 +218,68 @@ export const PostCard = ({
 			toast.error('Failed to save post')
 		} finally {
 			setIsSaving(false)
+		}
+	}
+
+	const handleRatePlate = async (rating: 'FIRE' | 'CRINGE') => {
+		if (isRatingPlate) return
+		setIsRatingPlate(true)
+
+		// Optimistic update
+		const prevRating = post.userPlateRating
+		const prevFire = post.fireCount ?? 0
+		const prevCringe = post.cringeCount ?? 0
+
+		let newRating: typeof prevRating
+		let newFire = prevFire
+		let newCringe = prevCringe
+
+		if (prevRating === rating) {
+			// Toggle off
+			newRating = null
+			if (rating === 'FIRE') newFire--; else newCringe--
+		} else {
+			if (prevRating) {
+				// Switch
+				if (prevRating === 'FIRE') newFire--; else newCringe--
+			}
+			newRating = rating
+			if (rating === 'FIRE') newFire++; else newCringe++
+		}
+
+		setPost(prev => ({
+			...prev,
+			userPlateRating: newRating,
+			fireCount: Math.max(0, newFire),
+			cringeCount: Math.max(0, newCringe),
+		}))
+
+		try {
+			const response = await ratePlate(post.id, rating)
+			if (response.success && response.data) {
+				setPost(prev => ({
+					...prev,
+					userPlateRating: response.data!.userRating,
+					fireCount: response.data!.fireCount,
+					cringeCount: response.data!.cringeCount,
+				}))
+			} else {
+				setPost(prev => ({
+					...prev,
+					userPlateRating: prevRating,
+					fireCount: prevFire,
+					cringeCount: prevCringe,
+				}))
+			}
+		} catch {
+			setPost(prev => ({
+				...prev,
+				userPlateRating: prevRating,
+				fireCount: prevFire,
+				cringeCount: prevCringe,
+			}))
+		} finally {
+			setIsRatingPlate(false)
 		}
 	}
 
@@ -685,6 +750,47 @@ export const PostCard = ({
 								</div>
 							)}
 						</>
+					)}
+
+					{/* Rate This Plate — zero-effort engagement for posts with photos */}
+					{hasPhotos && post.postType !== 'POLL' && post.postType !== 'RECENT_COOK' && post.userId !== currentUserId && (
+						<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated/50 px-4 py-2'>
+							<span className='text-xs font-medium text-text-muted'>
+								Rate this plate
+							</span>
+							<div className='flex items-center gap-2'>
+								<button
+									type='button'
+									onClick={() => handleRatePlate('FIRE')}
+									disabled={isRatingPlate}
+									className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
+										post.userPlateRating === 'FIRE'
+											? 'bg-orange-500/15 text-orange-500 ring-1 ring-orange-500/30'
+											: 'text-text-muted hover:bg-orange-500/10 hover:text-orange-500'
+									}`}
+								>
+									<span>🔥</span>
+									{(post.fireCount ?? 0) > 0 && (
+										<span className='text-xs font-semibold'>{post.fireCount}</span>
+									)}
+								</button>
+								<button
+									type='button'
+									onClick={() => handleRatePlate('CRINGE')}
+									disabled={isRatingPlate}
+									className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
+										post.userPlateRating === 'CRINGE'
+											? 'bg-purple-500/15 text-purple-500 ring-1 ring-purple-500/30'
+											: 'text-text-muted hover:bg-purple-500/10 hover:text-purple-500'
+									}`}
+								>
+									<span>😬</span>
+									{(post.cringeCount ?? 0) > 0 && (
+										<span className='text-xs font-semibold'>{post.cringeCount}</span>
+									)}
+								</button>
+							</div>
+						</div>
 					)}
 
 					{/* Actions */}

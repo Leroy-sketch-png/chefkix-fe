@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getFollowing } from '@/services/social'
+import { autocompleteSearch } from '@/services/search'
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Loader2, AtSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -112,7 +113,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 			},
 		}))
 
-		// Load following list for mentions
+		// Load following list once for mention suggestions
 		const loadSuggestions = useCallback(async () => {
 			if (suggestions.length > 0) return // Already loaded
 			setIsLoading(true)
@@ -138,22 +139,65 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 			}
 		}, [suggestions.length])
 
-		// Filter suggestions based on query
+		// Filter suggestions: following list first, Typesense search as fallback
 		useEffect(() => {
 			if (!mentionQuery) {
 				setFilteredSuggestions(suggestions.slice(0, 5))
-			} else {
-				const query = mentionQuery.toLowerCase()
-				const filtered = suggestions
-					.filter(
-						s =>
-							s.displayName?.toLowerCase().includes(query) ||
-							s.username?.includes(query),
-					)
-					.slice(0, 5)
-				setFilteredSuggestions(filtered)
+				setSelectedIndex(0)
+				return
 			}
-			setSelectedIndex(0)
+
+			const query = mentionQuery.toLowerCase()
+			const followingMatches = suggestions
+				.filter(
+					s =>
+						s.displayName?.toLowerCase().includes(query) ||
+						s.username?.includes(query),
+				)
+				.slice(0, 5)
+
+			if (followingMatches.length >= 3) {
+				// Enough following matches — no need to hit search
+				setFilteredSuggestions(followingMatches)
+				setSelectedIndex(0)
+				return
+			}
+
+			// Fall through to Typesense for broader user search
+			const searchTimeout = setTimeout(async () => {
+				setIsLoading(true)
+				try {
+					const res = await autocompleteSearch(mentionQuery, 'users', 5)
+					if (res.success && res.data?.users?.hits) {
+						const searchResults: MentionSuggestion[] = res.data.users.hits.map(
+							(h: { document: { id: string; username: string; displayName?: string; firstName?: string; avatarUrl?: string } }) => ({
+								userId: h.document.id,
+								displayName:
+									h.document.displayName ||
+									h.document.firstName ||
+									h.document.username,
+								avatarUrl: h.document.avatarUrl || '/placeholder-avatar.png',
+								username: h.document.username,
+							}),
+						)
+						// Merge: following matches first, then unique search results
+						const followingIds = new Set(followingMatches.map(f => f.userId))
+						const merged = [
+							...followingMatches,
+							...searchResults.filter(r => !followingIds.has(r.userId)),
+						].slice(0, 5)
+						setFilteredSuggestions(merged)
+					} else {
+						setFilteredSuggestions(followingMatches)
+					}
+				} catch {
+					setFilteredSuggestions(followingMatches)
+				} finally {
+					setIsLoading(false)
+				}
+			}, 300)
+
+			return () => clearTimeout(searchTimeout)
 		}, [mentionQuery, suggestions])
 
 		// Handle input change — detect @ mentions
