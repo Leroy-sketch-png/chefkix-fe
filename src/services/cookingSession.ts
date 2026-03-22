@@ -1,6 +1,7 @@
 import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { AxiosError } from 'axios'
+import { trackEvent } from '@/lib/eventTracker'
 
 // ============================================
 // TYPES - Based on implemented_spec/08-cooking-sessions.txt
@@ -142,6 +143,9 @@ export const startSession = async (
 			API_BASE,
 			{ recipeId },
 		)
+		if (response.data.success) {
+			trackEvent('COOKING_STARTED', recipeId, 'recipe')
+		}
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<StartSessionResponse>>
@@ -492,6 +496,9 @@ export const completeSession = async (
 			`${API_BASE}/${sessionId}/complete`,
 			data || {},
 		)
+		if (response.data.success) {
+			trackEvent('COOKING_COMPLETED', sessionId, 'session')
+		}
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<CompleteSessionResponse>>
@@ -544,6 +551,9 @@ export const abandonSession = async (
 		const response = await api.post<ApiResponse<{ abandoned: boolean }>>(
 			`${API_BASE}/${sessionId}/abandon`,
 		)
+		if (response.data.success) {
+			trackEvent('COOKING_ABANDONED', sessionId, 'session')
+		}
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<{ abandoned: boolean }>>

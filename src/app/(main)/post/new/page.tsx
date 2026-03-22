@@ -23,6 +23,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
+import { trackEvent } from '@/lib/eventTracker'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import {
@@ -222,6 +223,9 @@ function CreatePostContent() {
 			if (response.success && response.data) {
 				const createdPost = response.data
 				const postId = createdPost.id
+				trackEvent('POST_CREATED', postId, 'post', {
+					hasSession: !!session?.id,
+				})
 
 				// CRITICAL: Social module only stores the reference, XP is awarded
 				// by culinary module via the link-post endpoint.

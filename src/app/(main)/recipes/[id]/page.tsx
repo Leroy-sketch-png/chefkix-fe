@@ -9,6 +9,7 @@ import {
 	toggleLikeRecipe,
 	toggleSaveRecipe,
 } from '@/services/recipe'
+import { trackEvent } from '@/lib/eventTracker'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Button } from '@/components/ui/button'
@@ -157,6 +158,7 @@ export default function RecipeDetailPage() {
 					setIsSaved(response.data.isSaved ?? false)
 					setLikeCount(response.data.likeCount)
 					setSaveCount(response.data.saveCount)
+					trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
 				} else {
 					setError('Recipe not found')
 				}
@@ -263,6 +265,11 @@ export default function RecipeDetailPage() {
 				setIsSaved(serverSaved)
 				setSaveCount(
 					response.data.saveCount ?? previousCount + (serverSaved ? 1 : -1),
+				)
+				trackEvent(
+					serverSaved ? 'RECIPE_SAVED' : 'RECIPE_UNSAVED',
+					recipeId,
+					'recipe',
 				)
 				toast.success(serverSaved ? 'Recipe saved!' : 'Recipe unsaved')
 			}
