@@ -96,7 +96,9 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		coverUrl: profile.coverImageUrl, // Cover photo from profile
 		bio: profile.bio,
 		isVerified:
-			profile.accountType === 'chef' || profile.accountType === 'admin',
+			profile.isVerified ||
+			profile.accountType === 'chef' ||
+			profile.accountType === 'admin',
 		stats: {
 			followers: statistics.followerCount,
 			following: statistics.followingCount,

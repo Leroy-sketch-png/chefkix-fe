@@ -1,0 +1,30 @@
+'use client'
+
+import { BadgeCheck } from 'lucide-react'
+
+interface VerifiedBadgeProps {
+	size?: 'sm' | 'md' | 'lg'
+	className?: string
+}
+
+const SIZE_MAP = {
+	sm: 'size-3.5',
+	md: 'size-4',
+	lg: 'size-5',
+} as const
+
+/**
+ * Verified creator badge — blue checkmark shown next to usernames.
+ * W5.9: Verified Creator Badge.
+ */
+export function VerifiedBadge({
+	size = 'md',
+	className = '',
+}: VerifiedBadgeProps) {
+	return (
+		<BadgeCheck
+			className={`${SIZE_MAP[size]} shrink-0 text-blue-500 ${className}`}
+			aria-label="Verified creator"
+		/>
+	)
+}

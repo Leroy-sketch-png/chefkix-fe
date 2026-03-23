@@ -29,5 +29,6 @@ export {
 export { KeyboardShortcuts } from './KeyboardShortcuts'
 export { default as LottieAnimation } from './LottieAnimation'
 export { RecipeFiltersSheet } from './RecipeFiltersSheet'
+export { VerifiedBadge } from './VerifiedBadge'
 // Note: MobileBottomNav is in layout folder, not here
 // EmptyState here is gamified version with FOMO stats - simpler version is in ui/empty-state.tsx
