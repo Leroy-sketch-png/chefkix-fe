@@ -222,7 +222,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							<div className='mb-6 flex items-center gap-3'>
 								<Image
 									src={
-										recipe.author.avatarUrl || '/images/avatar-placeholder.png'
+										recipe.author.avatarUrl || '/placeholder-avatar.svg'
 									}
 									alt={recipe.author.displayName}
 									width={40}
@@ -511,6 +511,7 @@ export default function ExplorePage() {
 
 	// Fetch recipes - initial load or when filters/search/mode change
 	useEffect(() => {
+		let cancelled = false
 		const fetchRecipes = async () => {
 			// Reset to page 1 when filters/search/mode change
 			setPage(1)
@@ -525,6 +526,7 @@ export default function ExplorePage() {
 						'recipes',
 						RECIPES_PER_PAGE,
 					)
+					if (cancelled) return
 					if (searchRes.success && searchRes.data?.recipes?.hits) {
 						const allRecipes = searchRes.data.recipes.hits.map(h =>
 							mapRecipeDocToRecipe(h.document),
@@ -570,6 +572,7 @@ export default function ExplorePage() {
 								})
 							: await getAllRecipes(filterParams)
 
+					if (cancelled) return
 					if (response.success && response.data) {
 						let allRecipes = response.data
 
@@ -604,13 +607,14 @@ export default function ExplorePage() {
 					}
 				}
 			} catch (err) {
-				setError('Failed to load recipes')
+				if (!cancelled) setError('Failed to load recipes')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchRecipes()
+		return () => { cancelled = true }
 	}, [debouncedSearch, viewMode, filters, retryCount])
 
 	// Scroll restoration
@@ -1083,7 +1087,7 @@ export default function ExplorePage() {
 														name: recipe.author.displayName,
 														avatarUrl:
 															recipe.author.avatarUrl ||
-															'/images/avatar-placeholder.png',
+															'/placeholder-avatar.svg',
 														isVerified: false,
 													}
 												: undefined

@@ -18,7 +18,9 @@ import {
 	Search,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
+import { Portal } from '@/components/ui/portal'
 import {
 	getActiveDuels,
 	getPendingInvites,
@@ -176,9 +178,11 @@ function DuelCard({
 				<div className='flex items-center gap-3'>
 					<div className='relative'>
 						{opponentAvatar ? (
-							<img
+							<Image
 								src={opponentAvatar}
 								alt={opponentName}
+								width={40}
+								height={40}
 								className='size-10 rounded-full object-cover ring-2 ring-border-subtle'
 							/>
 						) : (
@@ -438,6 +442,7 @@ const loadRecipes = async () => {
 	if (!isOpen) return null
 
 	return (
+		<Portal>
 		<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'>
 			<motion.div
 				initial={{ opacity: 0, scale: 0.95 }}
@@ -525,9 +530,11 @@ const loadRecipes = async () => {
 											className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
 										>
 											{friend.avatarUrl ? (
-												<img
+												<Image
 													src={friend.avatarUrl}
 													alt={getProfileDisplayName(friend)}
+													width={40}
+													height={40}
 													className='size-10 rounded-full object-cover'
 												/>
 											) : (
@@ -596,9 +603,11 @@ const loadRecipes = async () => {
 											className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
 										>
 											{recipe.coverImageUrl?.[0] ? (
-												<img
+												<Image
 													src={recipe.coverImageUrl[0]}
 													alt={recipe.title}
+													width={48}
+													height={48}
 													className='size-12 rounded-xl object-cover'
 												/>
 											) : (
@@ -696,6 +705,7 @@ const loadRecipes = async () => {
 				</div>
 			</motion.div>
 		</div>
+		</Portal>
 	)
 }
 
