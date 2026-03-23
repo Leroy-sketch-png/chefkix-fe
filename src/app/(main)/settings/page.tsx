@@ -30,6 +30,8 @@ import {
 	Eye,
 	ImagePlus,
 	Camera,
+	Gift,
+	Crown,
 } from 'lucide-react'
 import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -51,6 +53,8 @@ import {
 	BUTTON_TAP,
 	staggerContainer,
 } from '@/lib/motion'
+import ReferralCard from '@/components/referral/ReferralCard'
+import PremiumUpgradeCard from '@/components/premium/PremiumUpgradeCard'
 import {
 	getAllSettings,
 	updatePrivacySettings,
@@ -91,6 +95,8 @@ type SettingsTab =
 	| 'notifications'
 	| 'cooking'
 	| 'appearance'
+	| 'referral'
+	| 'premium'
 
 interface TabConfig {
 	id: SettingsTab
@@ -133,6 +139,18 @@ const TABS: TabConfig[] = [
 		label: 'Appearance',
 		icon: Palette,
 		description: 'Theme, sounds, and accessibility',
+	},
+	{
+		id: 'premium',
+		label: 'Premium',
+		icon: Crown,
+		description: 'Upgrade your ChefKix experience',
+	},
+	{
+		id: 'referral',
+		label: 'Referral',
+		icon: Gift,
+		description: 'Invite friends and earn XP',
 	},
 ]
 
@@ -1410,6 +1428,21 @@ export default function SettingsPage() {
 									</SettingsCard>
 								</motion.div>
 							)}
+
+							{/* Referral Tab */}
+							{activeTab === 'referral' && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									className='space-y-6'
+								>
+									<ReferralCard />
+								</motion.div>
+							)}
+
+							{/* Premium Tab */}
+							{activeTab === 'premium' && <PremiumUpgradeCard />}
 
 							{/* Appearance Tab */}
 							{activeTab === 'appearance' && settings && (
