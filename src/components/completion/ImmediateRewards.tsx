@@ -15,6 +15,7 @@ import {
 	Plus,
 	Trash2,
 	Loader2,
+	ImageIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
@@ -53,6 +54,7 @@ interface RewardRow {
 interface ImmediateRewardsProps {
 	isOpen: boolean
 	onClose: () => void
+	sessionId?: string
 	recipeName: string
 	recipeImageUrl?: string
 	// XP breakdown
@@ -210,6 +212,7 @@ const AchievementBanner = ({ achievement }: AchievementBannerProps) => (
 export const ImmediateRewards = ({
 	isOpen,
 	onClose,
+	sessionId,
 	recipeName,
 	recipeImageUrl,
 	immediateXp,
@@ -542,6 +545,26 @@ export const ImmediateRewards = ({
 									</p>
 								)}
 							</div>
+
+							{/* Cook Card CTA */}
+							{sessionId && (
+								<motion.a
+									href={`/cook-card?session=${sessionId}`}
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ ...TRANSITION_SPRING, delay: 0.6 }}
+									className='mb-4 flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-brand/10'
+								>
+									<ImageIcon className='size-5 shrink-0' />
+									<div className='flex-1'>
+										<span className='block font-semibold'>View Your Cook Card</span>
+										<span className='block text-xs text-text-muted'>
+											Download &amp; share a beautiful summary card
+										</span>
+									</div>
+									<span className='text-xs text-text-muted'>&rarr;</span>
+								</motion.a>
+							)}
 
 							{/* Actions */}
 							<div className='space-y-2.5'>

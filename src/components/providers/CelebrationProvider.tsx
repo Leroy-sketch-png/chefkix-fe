@@ -609,6 +609,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 				<ImmediateRewards
 					isOpen={immediateRewardsOpen}
 					onClose={handleImmediateRewardsClose}
+					sessionId={immediateRewardsData.sessionId}
 					recipeName={immediateRewardsData.recipeName}
 					recipeImageUrl={immediateRewardsData.recipeImageUrl}
 					immediateXp={immediateRewardsData.immediateXp}
