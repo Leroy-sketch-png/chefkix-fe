@@ -89,7 +89,7 @@ export const SimilarRecipes = ({ recipeId, className }: SimilarRecipesProps) => 
 }
 
 function SimilarRecipeCard({ recipe }: { recipe: Recipe }) {
-	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.jpg'
+	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.svg'
 	const difficulty = difficultyToDisplay(recipe.difficulty)
 	const totalTime =
 		recipe.totalTimeMinutes || recipe.prepTimeMinutes + recipe.cookTimeMinutes

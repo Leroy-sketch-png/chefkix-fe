@@ -76,7 +76,7 @@ export const Topbar = () => {
 						? res.data.recipes.hits.map(h => ({
 								id: h.document.id,
 								title: h.document.title,
-								imageUrl: h.document.coverImageUrl || '/placeholder-recipe.jpg',
+								imageUrl: h.document.coverImageUrl || '/placeholder-recipe.svg',
 							}))
 						: []
 				const people =
@@ -88,7 +88,7 @@ export const Topbar = () => {
 									h.document.displayName ||
 									h.document.firstName ||
 									h.document.username,
-								avatarUrl: h.document.avatarUrl || '/placeholder-avatar.png',
+								avatarUrl: h.document.avatarUrl || '/placeholder-avatar.svg',
 							}))
 						: []
 				setSuggestions({ recipes, people })
@@ -410,7 +410,7 @@ export const Topbar = () => {
 						{/* Smaller avatar on mobile, larger on desktop */}
 						<Avatar size='lg' className='hidden shadow-lg md:flex'>
 							<AvatarImage
-								src={user.avatarUrl || '/placeholder-avatar.png'}
+								src={user.avatarUrl || '/placeholder-avatar.svg'}
 								alt={user.displayName || 'User'}
 							/>
 							<AvatarFallback>
@@ -424,7 +424,7 @@ export const Topbar = () => {
 						</Avatar>
 						<Avatar size='sm' className='shadow-md md:hidden'>
 							<AvatarImage
-								src={user.avatarUrl || '/placeholder-avatar.png'}
+								src={user.avatarUrl || '/placeholder-avatar.svg'}
 								alt={user.displayName || 'User'}
 							/>
 							<AvatarFallback>

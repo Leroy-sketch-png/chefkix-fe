@@ -286,7 +286,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 const transformRecipeDoc = (doc: RecipeSearchDoc): RecipeResult => ({
 	id: doc.id,
 	title: doc.title,
-	imageUrl: doc.coverImageUrl || '/placeholder-recipe.jpg',
+	imageUrl: doc.coverImageUrl || '/placeholder-recipe.svg',
 	rating: doc.avgRating > 0 ? doc.avgRating : undefined,
 	cookTime: `${doc.totalTime || 0} min`,
 	difficulty: difficultyToDisplay(
@@ -294,7 +294,7 @@ const transformRecipeDoc = (doc: RecipeSearchDoc): RecipeResult => ({
 	),
 	author: {
 		username: doc.authorName || 'chef',
-		avatarUrl: '/placeholder-avatar.png',
+		avatarUrl: '/placeholder-avatar.svg',
 	},
 	cookCount: doc.cookCount || 0,
 })
@@ -303,7 +303,7 @@ const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
 	id: doc.id,
 	displayName: doc.displayName || doc.firstName || doc.username,
 	username: doc.username,
-	avatarUrl: doc.avatarUrl || '/placeholder-avatar.png',
+	avatarUrl: doc.avatarUrl || '/placeholder-avatar.svg',
 	bio: doc.bio || '',
 })
 
@@ -313,7 +313,7 @@ const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
 	caption: doc.content || '',
 	author: {
 		username: doc.authorName || 'user',
-		avatarUrl: '/placeholder-avatar.png',
+		avatarUrl: '/placeholder-avatar.svg',
 	},
 	likeCount: doc.likeCount || 0,
 })

@@ -100,7 +100,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		)
 	}
 
-	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.jpg'
+	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.svg'
 	const difficulty = difficultyToDisplay(recipe.difficulty)
 	const totalTime =
 		recipe.totalTimeMinutes || recipe.prepTimeMinutes + recipe.cookTimeMinutes

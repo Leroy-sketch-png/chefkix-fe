@@ -426,7 +426,7 @@ export const PostCard = ({
 			post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
 		author: {
 			username: post.displayName || 'Unknown User',
-			avatarUrl: post.avatarUrl || '/placeholder-avatar.png',
+			avatarUrl: post.avatarUrl || '/placeholder-avatar.svg',
 		},
 	}
 
@@ -479,7 +479,7 @@ export const PostCard = ({
 									className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
 								>
 									<AvatarImage
-										src={post.avatarUrl || '/placeholder-avatar.png'}
+										src={post.avatarUrl || '/placeholder-avatar.svg'}
 										alt={post.displayName || 'User'}
 									/>
 									<AvatarFallback>

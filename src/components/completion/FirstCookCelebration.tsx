@@ -314,7 +314,7 @@ export const FirstCookCelebration = ({
 							<div className='mb-6 flex items-center gap-4 rounded-2xl bg-bg-elevated p-4'>
 								<div className='relative'>
 									<Image
-										src={recipeImageUrl || '/placeholder-recipe.jpg'}
+										src={recipeImageUrl || '/placeholder-recipe.svg'}
 										alt={recipeName}
 										width={80}
 										height={80}

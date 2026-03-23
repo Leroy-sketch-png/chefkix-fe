@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <title>Default Recipe Cover</title>
+  <desc>Warm placeholder illustration for recipes without a cover image.</desc>
+  <defs>
+    <linearGradient id="recipeBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8f4ef" />
+      <stop offset="60%" stop-color="#ffe8d6" />
+      <stop offset="100%" stop-color="#ffd4b8" />
+    </linearGradient>
+    <linearGradient id="plateGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f0ebe5" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="300" rx="16" fill="url(#recipeBg)" />
+
+  <!-- Subtle decorative circles -->
+  <circle cx="60" cy="50" r="80" fill="#FF5A36" opacity="0.06" />
+  <circle cx="340" cy="250" r="100" fill="#FF5A36" opacity="0.04" />
+
+  <!-- Plate -->
+  <ellipse cx="200" cy="175" rx="90" ry="20" fill="#e5ddd5" opacity="0.5" />
+  <ellipse cx="200" cy="160" rx="80" ry="55" fill="url(#plateGrad)" stroke="#e5ddd5" stroke-width="1.5" />
+  <ellipse cx="200" cy="160" rx="65" ry="42" fill="none" stroke="#e5ddd5" stroke-width="1" opacity="0.6" />
+
+  <!-- Fork (left) -->
+  <g transform="translate(110, 100) rotate(-25)">
+    <rect x="3" y="0" width="3" height="70" rx="1.5" fill="#d4cac0" />
+    <rect x="0" y="0" width="2" height="20" rx="1" fill="#d4cac0" />
+    <rect x="3" y="0" width="2" height="22" rx="1" fill="#d4cac0" />
+    <rect x="6" y="0" width="2" height="20" rx="1" fill="#d4cac0" />
+  </g>
+
+  <!-- Knife (right) -->
+  <g transform="translate(280, 105) rotate(25)">
+    <rect x="0" y="0" width="4" height="68" rx="2" fill="#d4cac0" />
+    <path d="M0 0 Q-3 -8 0 -20 Q4 -8 4 0 Z" fill="#d4cac0" opacity="0.8" />
+  </g>
+
+  <!-- Steam wisps -->
+  <path d="M185 110 Q180 95 190 85" stroke="#FF5A36" stroke-width="2" fill="none" opacity="0.15" stroke-linecap="round" />
+  <path d="M200 105 Q195 88 205 78" stroke="#FF5A36" stroke-width="2" fill="none" opacity="0.2" stroke-linecap="round" />
+  <path d="M215 110 Q210 95 220 85" stroke="#FF5A36" stroke-width="2" fill="none" opacity="0.15" stroke-linecap="round" />
+
+  <!-- ChefKix brand mark -->
+  <text x="200" y="240" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#FF5A36" opacity="0.4" letter-spacing="2">CHEFKIX</text>
+</svg>

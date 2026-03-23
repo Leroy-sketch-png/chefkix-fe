@@ -12,6 +12,8 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PostCard } from '@/components/social/PostCard'
+import { PollCard } from '@/components/social/PollCard'
+import { RecentCookCard } from '@/components/social/RecentCookCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { ErrorState } from '@/components/ui/error-state'
@@ -54,7 +56,7 @@ const POSTS_PER_PAGE = 10
 // TYPES
 // ============================================
 
-type FeedMode = 'latest' | 'trending' | 'following'
+type FeedMode = 'forYou' | 'latest' | 'trending' | 'following'
 
 interface PendingPostLink {
 	sessionId: string
@@ -97,7 +99,7 @@ const transformToPendingSession = (
 		id: session.sessionId,
 		recipeId: session.recipeId,
 		recipeName: session.recipeTitle,
-		recipeImage: session.coverImageUrl?.[0] || '/placeholder-recipe.jpg',
+		recipeImage: session.coverImageUrl?.[0] || '/placeholder-recipe.svg',
 		cookedAt,
 		duration: 0, // API doesn't provide cook duration
 		baseXP: session.baseXpAwarded || 0,
@@ -121,7 +123,7 @@ export default function DashboardPage() {
 	const [error, setError] = useState<string | null>(null)
 	const [showStreakBanner, setShowStreakBanner] = useState(true)
 	const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([])
-	const [feedMode, setFeedMode] = useState<FeedMode>('trending')
+	const [feedMode, setFeedMode] = useState<FeedMode>('forYou')
 	const [currentPage, setCurrentPage] = useState(0)
 	const [hasMore, setHasMore] = useState(true)
 	const [hasPendingXpSync, setHasPendingXpSync] = useState(false)
@@ -462,43 +464,27 @@ export default function DashboardPage() {
 					</p>
 				</motion.div>
 				{/* Feed Mode Tabs */}
-				<div className='mb-4 flex gap-2'>
-					<button
-						onClick={() => setFeedMode('latest')}
-						className={cn(
-							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
-							feedMode === 'latest'
-								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
-								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
-						)}
-					>
-						<Clock className='size-4' />
-						Latest
-					</button>
-					<button
-						onClick={() => setFeedMode('trending')}
-						className={cn(
-							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
-							feedMode === 'trending'
-								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
-								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
-						)}
-					>
-						<TrendingUp className='size-4' />
-						Trending
-					</button>
-					<button
-						onClick={() => setFeedMode('following')}
-						className={cn(
-							'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
-							feedMode === 'following'
-								? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
-								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
-						)}
-					>
-						<Users2 className='size-4' />
-						Following
-					</button>
+				<div className='mb-4 flex gap-2 overflow-x-auto scrollbar-none'>
+					{([
+						{ key: 'forYou' as FeedMode, label: 'For You', icon: Sparkles },
+						{ key: 'trending' as FeedMode, label: 'Trending', icon: TrendingUp },
+						{ key: 'following' as FeedMode, label: 'Following', icon: Users2 },
+						{ key: 'latest' as FeedMode, label: 'Latest', icon: Clock },
+					] as const).map(tab => (
+						<button
+							key={tab.key}
+							onClick={() => setFeedMode(tab.key)}
+							className={cn(
+								'flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+								feedMode === tab.key
+									? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+									: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+							)}
+						>
+							<tab.icon className='size-4' />
+							{tab.label}
+						</button>
+					))}
 				</div>
 				{/* Create Post Form */}
 				<div className='mb-4 md:mb-6'>
@@ -549,7 +535,23 @@ export default function DashboardPage() {
 				{!isLoading &&
 					!error &&
 					filteredPosts.length === 0 &&
-					feedMode !== 'following' && (
+					feedMode === 'forYou' && (
+						<EmptyStateGamified
+							variant='feed'
+							title='Your personalized feed is warming up'
+							description='Like and save posts to teach the algorithm your taste. The more you interact, the better your feed gets!'
+							primaryAction={{
+								label: 'Explore Trending',
+								href: '/feed',
+								icon: <TrendingUp className='size-4' />,
+							}}
+						/>
+					)}
+				{!isLoading &&
+					!error &&
+					filteredPosts.length === 0 &&
+					feedMode !== 'following' &&
+					feedMode !== 'forYou' && (
 						<EmptyStateGamified
 							variant='feed'
 							title='Your feed is empty'
@@ -557,13 +559,13 @@ export default function DashboardPage() {
 							primaryAction={{
 								label: 'Discover People',
 								href: '/discover',
-								icon: <Users className='h-4 w-4' />,
+								icon: <Users className='size-4' />,
 							}}
 							secondaryActions={[
 								{
 									label: 'Explore Posts',
 									href: '/explore',
-									icon: <MessageSquare className='h-4 w-4' />,
+									icon: <MessageSquare className='size-4' />,
 								},
 							]}
 							fomoStats={[
@@ -576,7 +578,17 @@ export default function DashboardPage() {
 					<>
 						<StaggerContainer className='space-y-4 md:space-y-6'>
 							<AnimatePresence mode='popLayout'>
-								{filteredPosts.map(post => (
+							{filteredPosts.map(post =>
+								post.postType === 'POLL' ? (
+									<PollCard
+										key={post.id}
+										post={post}
+										onUpdate={handlePostUpdate}
+										currentUserId={user?.userId}
+									/>
+								) : post.postType === 'RECENT_COOK' ? (
+									<RecentCookCard key={post.id} post={post} />
+								) : (
 									<PostCard
 										key={post.id}
 										post={post}
@@ -584,7 +596,8 @@ export default function DashboardPage() {
 										onDelete={handlePostDelete}
 										currentUserId={user?.userId}
 									/>
-								))}
+								),
+							)}
 							</AnimatePresence>
 						</StaggerContainer>
 

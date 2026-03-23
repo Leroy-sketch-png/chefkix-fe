@@ -33,6 +33,7 @@ import {
 } from '@/lib/data/badgeRegistry'
 import { PostCard } from '@/components/social/PostCard'
 import { RecipeCard } from '@/components/recipe/RecipeCard'
+import { SkillTree } from '@/components/achievements/SkillTree'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 
@@ -218,7 +219,7 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 		recipeImage:
 			(Array.isArray(item.coverImageUrl)
 				? item.coverImageUrl[0]
-				: item.coverImageUrl) || '/placeholder-recipe.jpg',
+				: item.coverImageUrl) || '/placeholder-recipe.svg',
 		cookedAt: item.completedAt
 			? new Date(item.completedAt)
 			: new Date(item.startedAt),
@@ -588,7 +589,7 @@ export const UserProfile = ({
 										<div className='relative h-48 w-full'>
 											<Image
 												src={
-													getRecipeImage(recipe) || '/placeholder-recipe.jpg'
+													getRecipeImage(recipe) || '/placeholder-recipe.svg'
 												}
 												alt={recipe.title}
 												fill
@@ -777,7 +778,7 @@ export const UserProfile = ({
 															<Image
 																src={
 																	getRecipeImage(recipe) ||
-																	'/placeholder-recipe.jpg'
+																	'/placeholder-recipe.svg'
 																}
 																alt={recipe.title}
 																fill
@@ -866,7 +867,13 @@ export const UserProfile = ({
 				)}
 
 				{activeTab === 'achievements' && (
-					<div className='space-y-6'>
+					<div className='space-y-8'>
+						{/* Skill Tree */}
+						<SkillTree
+							userId={profile.userId}
+							isOwnProfile={isOwnProfile}
+						/>
+
 						{/* Earned Badges */}
 						<div>
 							<h3 className='mb-4 flex items-center gap-2 text-lg font-bold text-text'>

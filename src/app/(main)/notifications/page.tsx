@@ -134,7 +134,7 @@ const transformToGamifiedNotification = (
 				cookerName: (data.cookerName as string) || 'User',
 				cookerUsername: (data.cookerUsername as string) || 'user',
 				cookerAvatarUrl:
-					(data.cookerAvatarUrl as string) || '/placeholder-avatar.png',
+					(data.cookerAvatarUrl as string) || '/placeholder-avatar.svg',
 				recipeName: (data.recipeName as string) || 'Recipe',
 				xpBonus: (data.xpBonus as number) || 0,
 				totalCookRewards: (data.totalCookRewards as number) ?? undefined,
@@ -178,7 +178,7 @@ const transformToSocialNotification = (
 			notif.latestActorAvatarUrl ||
 			notif.actorInfo?.avatarUrl ||
 			(data.avatarUrl as string) ||
-			'/placeholder-avatar.png',
+			'/placeholder-avatar.svg',
 		action: notif.content || notif.body || '',
 		target: (data.targetTitle as string) || undefined,
 		time: formatTimeAgo(timestamp),
