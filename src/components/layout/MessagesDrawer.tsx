@@ -18,6 +18,7 @@ import {
 	ChatMessage,
 } from '@/services/chat'
 import Image from 'next/image'
+import { logDevError } from '@/lib/dev-log'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -56,7 +57,7 @@ export const MessagesDrawer = () => {
 					setConversations(response.data)
 				}
 			} catch (err) {
-				console.error('Failed to fetch conversations:', err)
+				logDevError('Failed to fetch conversations:', err)
 			} finally {
 				setIsLoadingConversations(false)
 			}
@@ -81,7 +82,7 @@ export const MessagesDrawer = () => {
 					setMessages(response.data)
 				}
 			} catch (err) {
-				console.error('Failed to fetch messages:', err)
+				logDevError('Failed to fetch messages:', err)
 			} finally {
 				setIsLoadingMessages(false)
 			}
@@ -170,7 +171,7 @@ export const MessagesDrawer = () => {
 				setNewMessage('')
 			}
 		} catch (err) {
-			console.error('Failed to send message:', err)
+			logDevError('Failed to send message:', err)
 		} finally {
 			setIsSending(false)
 		}

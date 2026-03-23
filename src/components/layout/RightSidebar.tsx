@@ -11,6 +11,7 @@ import { getAllProfiles } from '@/services/profile'
 import { getSessionHistory } from '@/services/cookingSession'
 import { toggleFollow as toggleFollowApi } from '@/services/social'
 import { Profile } from '@/lib/types'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // HELPER: Compute week progress from cooking session history
@@ -127,7 +128,7 @@ export const RightSidebar = () => {
 					setCookDates(completedDates)
 				}
 			} catch (err) {
-				console.error('Failed to fetch sidebar data:', err)
+				logDevError('Failed to fetch sidebar data:', err)
 			}
 		}
 
@@ -158,7 +159,7 @@ export const RightSidebar = () => {
 					? prev.filter(id => id !== userId)
 					: [...prev, userId],
 			)
-			console.error('Failed to toggle follow:', err)
+			logDevError('Failed to toggle follow:', err)
 		}
 	}
 

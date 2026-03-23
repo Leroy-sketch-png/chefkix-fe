@@ -327,7 +327,7 @@ export const createDraft = async (): Promise<ApiResponse<Recipe>> => {
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
-		console.error('[createDraft] Error details:', {
+		logDevError('[createDraft] Error details:', {
 			status: axiosError.response?.status,
 			statusText: axiosError.response?.statusText,
 			data: axiosError.response?.data,
@@ -363,7 +363,7 @@ export const saveDraft = async (
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
-		console.error('[saveDraft] Error details:', {
+		logDevError('[saveDraft] Error details:', {
 			status: axiosError.response?.status,
 			statusText: axiosError.response?.statusText,
 			data: axiosError.response?.data,

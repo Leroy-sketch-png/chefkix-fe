@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
+import { logDevError } from '@/lib/dev-log'
 import type { RoomEvent, RoomEventPayload } from '@/lib/types/room'
 
 interface UseRoomSocketOptions {
@@ -86,7 +87,7 @@ export function useRoomSocket({
 				setIsConnected(false)
 			},
 			onStompError: frame => {
-				console.error('[RoomSocket] STOMP error:', frame.headers['message'])
+				logDevError('[RoomSocket] STOMP error:', frame.headers['message'])
 				setError(frame.headers['message'] || 'Connection error')
 				setIsConnected(false)
 			},
@@ -131,7 +132,7 @@ export function useRoomSocket({
 					const event: RoomEvent = JSON.parse(message.body)
 					onEventRef.current(event)
 				} catch (err) {
-					console.error('[RoomSocket] Failed to parse event:', err)
+					logDevError('[RoomSocket] Failed to parse event:', err)
 				}
 			},
 		)

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
+import { logDevError } from '@/lib/dev-log'
 import type { Notification } from '@/services/notification'
 
 interface NotificationEvent {
@@ -69,7 +70,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 							const event: NotificationEvent = JSON.parse(message.body)
 							handleNotification(event)
 						} catch (err) {
-							console.error('[NotifSocket] Failed to parse:', err)
+							logDevError('[NotifSocket] Failed to parse:', err)
 						}
 					},
 				)
@@ -82,7 +83,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 				setIsConnected(false)
 			},
 			onStompError: frame => {
-				console.error(
+				logDevError(
 					'[NotifSocket] STOMP error:',
 					frame.headers['message'],
 				)

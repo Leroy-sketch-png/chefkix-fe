@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
 import { ChatMessage, Conversation } from '@/services/chat'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 interface UseChatWebSocketOptions {
 	conversationId: string | null
@@ -76,7 +77,7 @@ export function useChatWebSocket({
 				setIsConnected(false)
 			},
 			onStompError: frame => {
-				console.error('[WebSocket] STOMP error:', frame.headers['message'])
+				logDevError('[WebSocket] STOMP error:', frame.headers['message'])
 				setError(frame.headers['message'] || 'Connection error')
 				setIsConnected(false)
 			},
@@ -130,7 +131,7 @@ export function useChatWebSocket({
 					const conversation: Conversation = JSON.parse(message.body)
 					onNewConversationRef.current?.(conversation)
 				} catch (err) {
-					console.error('[WebSocket] Failed to parse new conversation:', err)
+					logDevError('[WebSocket] Failed to parse new conversation:', err)
 				}
 			},
 		)
@@ -165,7 +166,7 @@ export function useChatWebSocket({
 					const chatMessage: ChatMessage = JSON.parse(message.body)
 					onMessageRef.current(chatMessage)
 				} catch (err) {
-					console.error('[WebSocket] Failed to parse message:', err)
+					logDevError('[WebSocket] Failed to parse message:', err)
 				}
 			},
 		)
@@ -184,7 +185,7 @@ export function useChatWebSocket({
 	const sendMessage = useCallback(
 		(message: string) => {
 			if (!clientRef.current?.connected || !conversationId) {
-				console.warn(
+				logDevWarn(
 					'[WebSocket] Cannot send: not connected or no conversation',
 				)
 				return

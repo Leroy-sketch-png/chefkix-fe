@@ -28,6 +28,7 @@ import {
 import { toggleFollow } from '@/services/social'
 import { toast } from '@/components/ui/toaster'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { logDevError } from '@/lib/dev-log'
 
 type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
 
@@ -233,7 +234,7 @@ export const NotificationsPopup = () => {
 					setSocialNotifications(social)
 				}
 			} catch (err) {
-				console.error('Failed to fetch notifications:', err)
+				logDevError('Failed to fetch notifications:', err)
 			} finally {
 				setIsLoading(false)
 			}
@@ -255,7 +256,7 @@ export const NotificationsPopup = () => {
 				setSocialNotifications(prev => prev.map(n => ({ ...n, read: true })))
 			}
 		} catch (err) {
-			console.error('Failed to mark all as read:', err)
+			logDevError('Failed to mark all as read:', err)
 		}
 	}
 

@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { googleSignIn } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { AUTH_MESSAGES, PATHS } from '@/constants'
+import { logDevError } from '@/lib/dev-log'
 
 const GoogleCallbackPage = () => {
 	const router = useRouter()
@@ -18,7 +19,7 @@ const GoogleCallbackPage = () => {
 
 		if (error) {
 			// Handle error: redirect to sign-in with an error message
-			console.error(`Google OAuth Error: ${error}`)
+			logDevError(`Google OAuth Error: ${error}`)
 			router.push(
 				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.GOOGLE_SIGN_IN_FAILED)}`,
 			)

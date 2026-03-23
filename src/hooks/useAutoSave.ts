@@ -13,6 +13,7 @@
 
 import { useRef, useEffect, useCallback, useState } from 'react'
 import { saveDraft, type DraftSaveRequest } from '@/services/recipe'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -100,12 +101,12 @@ export function useAutoSave(
 					setSaveStatus('idle')
 				}, SAVED_DISPLAY_MS)
 			} else {
-				console.warn('[useAutoSave] Save failed:', response.message)
+				logDevWarn('[useAutoSave] Save failed:', response.message)
 				setSaveStatus('error')
 				scheduleRetry()
 			}
 		} catch (err) {
-			console.error('[useAutoSave] Save exception:', err)
+			logDevError('[useAutoSave] Save exception:', err)
 			setSaveStatus('error')
 			scheduleRetry()
 		} finally {

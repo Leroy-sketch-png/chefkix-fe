@@ -3,6 +3,7 @@
 import { useEffect, useState, memo, useMemo } from 'react'
 import Lottie, { LottieComponentProps } from 'lottie-react'
 import { useDeviceSize } from '@/hooks/useDeviceSize'
+import { logDevError } from '@/lib/dev-log'
 import { useInView, motion, type Variants } from 'framer-motion'
 import { useRef } from 'react'
 
@@ -183,7 +184,7 @@ function LazyLottieComponent({
 
 				const response = await fetch(src)
 				if (!response.ok) {
-					console.error(`Failed to fetch Lottie: ${src}`)
+					logDevError(`Failed to fetch Lottie: ${src}`)
 					return
 				}
 
@@ -192,7 +193,7 @@ function LazyLottieComponent({
 				setAnimationData(data)
 				setHasLoaded(true)
 			} catch (error) {
-				console.error(`Error loading Lottie animation: ${src}`, error)
+				logDevError(`Error loading Lottie animation: ${src}`, error)
 			}
 		}
 

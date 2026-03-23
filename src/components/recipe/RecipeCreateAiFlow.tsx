@@ -45,6 +45,7 @@ import {
 	CONTENT_SWITCH_TRANSITION,
 } from '@/lib/motion'
 import { toast } from 'sonner'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 // ── Hooks ───────────────────────────────────────────────────────────
 import { useAutoSave, type SaveStatus } from '@/hooks/useAutoSave'
@@ -355,7 +356,7 @@ export const RecipeCreateAiFlow = ({
 			const text = await navigator.clipboard.readText()
 			setRawText(text)
 		} catch (err) {
-			console.error('Failed to read clipboard:', err)
+			logDevError('Failed to read clipboard:', err)
 		}
 	}, [])
 
@@ -725,7 +726,7 @@ export const RecipeCreateAiFlow = ({
 				if (data.badges && data.badges.length > 0) {
 					setRecipe(currentRecipe => {
 						if (!currentRecipe || !currentRecipe.title) {
-							console.error(
+							logDevError(
 								'[handlePreviewXp] Cannot update empty recipe with badges',
 							)
 							return currentRecipe
@@ -757,7 +758,7 @@ export const RecipeCreateAiFlow = ({
 				})
 				setStep('xp-preview')
 			} else {
-				console.warn('[handlePreviewXp] calculateMetas failed:', response)
+				logDevWarn('[handlePreviewXp] calculateMetas failed:', response)
 				toast.error('Could not calculate XP', {
 					description: response.message || 'Using default values',
 				})
@@ -773,7 +774,7 @@ export const RecipeCreateAiFlow = ({
 				setStep('xp-preview')
 			}
 		} catch (err) {
-			console.error('[handlePreviewXp] XP calculation error:', err)
+			logDevError('[handlePreviewXp] XP calculation error:', err)
 			toast.error('XP calculation failed', {
 				description: 'Please try again',
 			})
