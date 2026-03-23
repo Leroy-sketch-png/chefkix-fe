@@ -18,7 +18,6 @@ import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
-import { Stories } from '@/components/social/Stories'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import {
 	Users,
@@ -435,9 +434,6 @@ export default function DashboardPage() {
 						className='mb-4'
 					/>
 				)}
-				<div className='mb-4 md:mb-6 lg:hidden'>
-					<Stories variant='horizontal' />
-				</div>
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}

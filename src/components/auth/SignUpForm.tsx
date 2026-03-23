@@ -27,6 +27,7 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from '@/components/ui/toaster'
 import { useAuth } from '@/hooks/useAuth'
 import { staggerContainer, staggerItem } from '@/lib/motion'
+import { logDevError } from '@/lib/dev-log'
 
 const formSchema = z.object({
 	firstName: z.string().min(1, {
@@ -265,7 +266,7 @@ export function SignUpForm() {
 							}}
 							onFailure={error => {
 								toast.error('Failed to sign in with Google. Please try again.')
-								console.error(error)
+									logDevError(error)
 							}}
 							text='Sign up with Google'
 						/>

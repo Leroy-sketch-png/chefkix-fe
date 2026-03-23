@@ -18,6 +18,10 @@ import {
 	Gem,
 	Loader2,
 	AlertTriangle,
+	ChefHat,
+	Users,
+	BookOpen,
+	Camera,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -47,6 +51,41 @@ interface FeatureConfig {
 }
 
 const FEATURES: FeatureConfig[] = [
+	{
+		icon: ChefHat,
+		label: 'Cooking Sessions & XP',
+		description: 'Cook recipes and earn experience points',
+		free: true,
+		premium: true,
+	},
+	{
+		icon: Camera,
+		label: 'Post Your Creations',
+		description: 'Share cooking photos with the community',
+		free: true,
+		premium: true,
+	},
+	{
+		icon: BookOpen,
+		label: 'Browse All Recipes',
+		description: 'Access the full recipe library',
+		free: true,
+		premium: true,
+	},
+	{
+		icon: Users,
+		label: 'Social Features',
+		description: 'Follow friends, like, comment, and chat',
+		free: true,
+		premium: true,
+	},
+	{
+		icon: Bookmark,
+		label: 'Saved Recipes',
+		description: 'Save up to 50 recipes (unlimited with Premium)',
+		free: true,
+		premium: true,
+	},
 	{
 		icon: Shield,
 		label: 'Ad-Free Experience',
@@ -86,13 +125,6 @@ const FEATURES: FeatureConfig[] = [
 		icon: HeadphonesIcon,
 		label: 'Priority Support',
 		description: 'Get help faster when you need it',
-		free: false,
-		premium: true,
-	},
-	{
-		icon: Bookmark,
-		label: 'Unlimited Saves',
-		description: 'Save unlimited recipes to your collection',
 		free: false,
 		premium: true,
 	},
@@ -266,42 +298,57 @@ export default function PremiumUpgradeCard() {
 				)}
 			</motion.div>
 
-			{/* Feature Grid */}
+			{/* Feature Comparison Grid */}
 			<motion.div variants={FADE_IN_VARIANTS} className="space-y-3">
 				<h4 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
-					Premium Features
+					Free vs Premium
 				</h4>
-				<div className="grid gap-2">
+
+				{/* Column headers */}
+				<div className="flex items-center gap-3 px-4 py-2">
+					<div className="flex-1" />
+					<span className="w-14 shrink-0 text-center text-xs font-semibold uppercase text-text-muted">Free</span>
+					<span className="w-14 shrink-0 text-center text-xs font-semibold uppercase text-amber-500">Pro</span>
+				</div>
+
+				<div className="grid gap-1.5">
 					{FEATURES.map((feature) => {
 						const Icon = feature.icon
+						const isPremiumOnly = !feature.free && feature.premium
 						return (
 							<motion.div
 								key={feature.label}
 								variants={FADE_IN_VARIANTS}
 								className={cn(
-									'flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors',
-									isPremium
-										? 'border-amber-200/30 bg-amber-50/30'
+									'flex items-center gap-3 rounded-lg border px-4 py-2.5 transition-colors',
+									isPremiumOnly
+										? 'border-amber-200/20 bg-amber-50/20'
 										: 'border-border-subtle bg-bg-card'
 								)}
 							>
 								<div
 									className={cn(
-										'flex size-8 shrink-0 items-center justify-center rounded-lg',
-										isPremium ? 'bg-amber-100 text-amber-600' : 'bg-bg-elevated text-text-muted'
+										'flex size-7 shrink-0 items-center justify-center rounded-lg',
+										isPremiumOnly ? 'bg-amber-100/60 text-amber-600' : 'bg-bg-elevated text-text-muted'
 									)}
 								>
-									<Icon className="size-4" />
+									<Icon className="size-3.5" />
 								</div>
 								<div className="min-w-0 flex-1">
 									<p className="text-sm font-medium text-text">{feature.label}</p>
-									<p className="text-xs text-text-muted">{feature.description}</p>
 								</div>
-								<div className="shrink-0">
-									{isPremium ? (
+								<div className="w-14 shrink-0 flex justify-center">
+									{feature.free ? (
 										<Check className="size-4 text-green-500" />
 									) : (
-										<X className="size-4 text-text-muted/40" />
+										<X className="size-4 text-text-muted/30" />
+									)}
+								</div>
+								<div className="w-14 shrink-0 flex justify-center">
+									{feature.premium ? (
+										<Check className="size-4 text-green-500" />
+									) : (
+										<X className="size-4 text-text-muted/30" />
 									)}
 								</div>
 							</motion.div>

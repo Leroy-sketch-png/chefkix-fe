@@ -36,6 +36,7 @@ import { RecipeCard } from '@/components/recipe/RecipeCard'
 import { SkillTree } from '@/components/achievements/SkillTree'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // ADAPTER: Profile → ProfileUser
@@ -278,7 +279,7 @@ export const UserProfile = ({
 					setUserRecipes(response.data)
 				}
 			} catch (err) {
-				console.error('Failed to fetch user recipes:', err)
+				logDevError('Failed to fetch user recipes:', err)
 			} finally {
 				setIsLoadingRecipes(false)
 			}
@@ -329,7 +330,7 @@ export const UserProfile = ({
 					})
 				}
 			} catch (err) {
-				console.error('Failed to fetch cooking sessions:', err)
+				logDevError('Failed to fetch cooking sessions:', err)
 			}
 		}
 
@@ -348,7 +349,7 @@ export const UserProfile = ({
 					setUserPosts(response.data)
 				}
 			} catch (err) {
-				console.error('Failed to fetch user posts:', err)
+				logDevError('Failed to fetch user posts:', err)
 			} finally {
 				setIsLoadingPosts(false)
 			}
@@ -369,7 +370,7 @@ export const UserProfile = ({
 					setSavedRecipes(response.data as Recipe[])
 				}
 			} catch (err) {
-				console.error('Failed to fetch saved recipes:', err)
+				logDevError('Failed to fetch saved recipes:', err)
 			} finally {
 				setIsLoadingSaved(false)
 			}
@@ -391,7 +392,7 @@ export const UserProfile = ({
 					setSavedPosts(response.data.content)
 				}
 			} catch (err) {
-				console.error('Failed to fetch saved posts:', err)
+				logDevError('Failed to fetch saved posts:', err)
 			} finally {
 				setIsLoadingSavedPosts(false)
 			}

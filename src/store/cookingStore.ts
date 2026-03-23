@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { logDevError } from '@/lib/dev-log'
 import {
 	CookingSession,
 	SessionHistoryItem,
@@ -472,7 +473,7 @@ export const useCookingStore = create<CookingState>()(
 						})
 					}
 				} catch (error) {
-					console.error('Failed to navigate step:', error)
+					logDevError('Failed to navigate step:', error)
 					toast.error('Failed to navigate step. Please try again.')
 				}
 			},
@@ -505,7 +506,7 @@ export const useCookingStore = create<CookingState>()(
 						})
 					}
 				} catch (error) {
-					console.error('Failed to complete step:', error)
+					logDevError('Failed to complete step:', error)
 					toast.error('Failed to mark step as complete. Please try again.')
 				}
 			},
@@ -542,7 +543,7 @@ export const useCookingStore = create<CookingState>()(
 					})
 					set({ localTimers: newTimers })
 				} catch (error) {
-					console.error('Failed to start timer:', error)
+					logDevError('Failed to start timer:', error)
 					toast.error('Failed to start timer. Please try again.')
 				}
 			},
@@ -567,7 +568,7 @@ export const useCookingStore = create<CookingState>()(
 					newTimers.delete(stepNumber)
 					set({ localTimers: newTimers })
 				} catch (error) {
-					console.error('Failed to skip timer:', error)
+					logDevError('Failed to skip timer:', error)
 					toast.error('Failed to skip timer. Please try again.')
 				}
 			},
@@ -701,7 +702,7 @@ export const useCookingStore = create<CookingState>()(
 					})
 					return null
 				} catch (error) {
-					console.error('Failed to complete session:', error)
+					logDevError('Failed to complete session:', error)
 					set({
 						error: 'Network error while completing session. Please try again.',
 					})
@@ -729,11 +730,11 @@ export const useCookingStore = create<CookingState>()(
 					if (response.success) {
 						set({ session: null, recipe: null, localTimers: new Map() })
 					} else {
-						console.error('Failed to abandon session:', response.message)
+						logDevError('Failed to abandon session:', response.message)
 						toast.error('Failed to abandon session. Please try again.')
 					}
 				} catch (error) {
-					console.error('Failed to abandon session:', error)
+					logDevError('Failed to abandon session:', error)
 					toast.error('Failed to abandon session. Please try again.')
 				}
 			},
@@ -838,7 +839,7 @@ export const useCookingStore = create<CookingState>()(
 									stepNumber,
 									'complete',
 								).catch(err =>
-									console.error('Timer complete event failed:', err),
+									logDevError('Timer complete event failed:', err),
 								)
 							}
 							newTimers.delete(stepNumber)

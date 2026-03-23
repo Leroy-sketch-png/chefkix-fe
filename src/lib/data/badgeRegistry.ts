@@ -22,6 +22,7 @@ import type {
 	BadgeRarity,
 	BadgeCategory,
 } from '@/lib/types/gamification'
+import { logDevWarn } from '@/lib/dev-log'
 
 // ============================================
 // BADGE CATEGORY MAPPING (AI Service → FE)
@@ -761,7 +762,7 @@ export function resolveBadge(
 	const definition = BADGE_DEFINITIONS[normalized]
 
 	if (!definition) {
-		console.warn(`Unknown badge ID: "${badgeId}" (normalized: "${normalized}")`)
+		logDevWarn(`Unknown badge ID: "${badgeId}" (normalized: "${normalized}")`)
 		return undefined
 	}
 

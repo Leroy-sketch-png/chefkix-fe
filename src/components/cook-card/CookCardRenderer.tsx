@@ -397,6 +397,16 @@ export default function CookCardRenderer({
         <p className="text-sm text-text-secondary">
           {error || 'No data available'}
         </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setIsLoading(true)
+            fetchData()
+          }}
+        >
+          Try Again
+        </Button>
       </div>
     )
   }

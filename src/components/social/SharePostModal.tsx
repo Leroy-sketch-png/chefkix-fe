@@ -13,6 +13,7 @@ import {
 	User,
 } from 'lucide-react'
 import Image from 'next/image'
+import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -89,7 +90,7 @@ export const SharePostModal = ({
 					setConversations(response.data)
 				}
 			} catch (error) {
-				console.error('Failed to fetch share suggestions:', error)
+				logDevError('Failed to fetch share suggestions:', error)
 				toast.error('Failed to load conversations')
 			} finally {
 				setIsLoading(false)
@@ -150,7 +151,7 @@ export const SharePostModal = ({
 							successCount++
 						} else {
 							failCount++
-							console.error(
+							logDevError(
 								'Share failed for conversation:',
 								conversationId,
 								response.message,
@@ -158,7 +159,7 @@ export const SharePostModal = ({
 						}
 					} catch (err) {
 						failCount++
-						console.error(
+						logDevError(
 							'Share exception for conversation:',
 							conversationId,
 							err,
