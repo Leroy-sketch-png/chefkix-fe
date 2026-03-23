@@ -28,8 +28,14 @@ export interface UseVoiceModeReturn {
 	isSupported: boolean
 	/** Whether currently listening */
 	isListening: boolean
-	/** Toggle listening on/off */
+	/** Toggle push-to-talk listening on/off */
 	toggleListening: () => void
+	/** Start always-on continuous listening (auto-restarts on end) */
+	startContinuous: () => void
+	/** Stop continuous listening */
+	stopContinuous: () => void
+	/** Whether in continuous listening mode */
+	isContinuous: boolean
 	/** Latest voice event for toast display */
 	lastEvent: VoiceEvent | null
 	/** Whether TTS is available */
@@ -43,9 +49,14 @@ export interface UseVoiceModeReturn {
 
 export function useVoiceMode(): UseVoiceModeReturn {
 	const [isListening, setIsListening] = useState(false)
+	const [isContinuous, setIsContinuous] = useState(false)
 	const [lastEvent, setLastEvent] = useState<VoiceEvent | null>(null)
 	const [showHelp, setShowHelp] = useState(false)
 	const recognitionRef = useRef<VoiceRecognition | null>(null)
+
+	// Refs for stable callbacks in continuous mode (avoids stale closures)
+	const handleResultRef = useRef<(transcript: string, confidence: number) => void>(() => {})
+	const handleErrorRef = useRef<(error: string) => void>(() => {})
 
 	const {
 		session,
@@ -55,6 +66,8 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		startTimer,
 		skipTimer,
 		getTimerRemaining,
+		interactionMode,
+		setInteractionMode,
 	} = useCookingStore()
 
 	const supported = isVoiceSupported()
@@ -201,6 +214,22 @@ export function useVoiceMode(): UseVoiceModeReturn {
 						icon: cmd.icon,
 					})
 					break
+
+				case 'TOGGLE_MESSY_HANDS': {
+					const entering = interactionMode !== 'MESSY_HANDS'
+					setInteractionMode(entering ? 'MESSY_HANDS' : 'ACTIVE')
+					setLastEvent({
+						type: 'command',
+						message: entering ? 'Messy Hands mode — voice primary' : 'Clean hands — touch restored',
+						icon: entering ? '🙌' : '✋',
+					})
+					if (entering) {
+						await speak('Messy hands mode. Voice commands active.')
+					} else {
+						await speak('Hands free. Touch mode restored.')
+					}
+					break
+				}
 			}
 		},
 		[
@@ -213,6 +242,8 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			getTimerRemaining,
 			speak,
 			formatTimeRemaining,
+			interactionMode,
+			setInteractionMode,
 		],
 	)
 
@@ -243,10 +274,15 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		if (error === 'not-allowed') {
 			setLastEvent({ type: 'error', message: 'Microphone access denied' })
 			setIsListening(false)
+			setIsContinuous(false)
 		} else {
 			setLastEvent({ type: 'error', message: `Voice error: ${error}` })
 		}
 	}, [])
+
+	// Keep refs updated so long-lived continuous recognition uses latest callbacks
+	handleResultRef.current = handleResult
+	handleErrorRef.current = handleError
 
 	const toggleListening = useCallback(() => {
 		if (!supported) return
@@ -254,6 +290,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		if (isListening) {
 			recognitionRef.current?.stop()
 			setIsListening(false)
+			setIsContinuous(false)
 			return
 		}
 
@@ -271,6 +308,37 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		rec.start()
 	}, [supported, isListening, handleResult, handleError])
 
+	// Continuous listening: always-on voice recognition that auto-restarts
+	const startContinuous = useCallback(() => {
+		if (!supported || isContinuous) return
+
+		// Stop any existing recognition
+		recognitionRef.current?.stop()
+
+		const rec = new VoiceRecognition({
+			language: 'en-US',
+			continuous: true,
+			// Use refs to avoid stale closures — continuous recognition is long-lived
+			onResult: (t, c) => handleResultRef.current(t, c),
+			onError: (e) => handleErrorRef.current(e),
+			onEnd: () => {
+				// Only fires when intentionally stopped (continuous auto-restarts otherwise)
+				setIsListening(false)
+				setIsContinuous(false)
+			},
+			onListeningChange: setIsListening,
+		})
+
+		recognitionRef.current = rec
+		rec.start()
+		setIsContinuous(true)
+	}, [supported, isContinuous])
+
+	const stopContinuous = useCallback(() => {
+		recognitionRef.current?.stop()
+		setIsContinuous(false)
+	}, [])
+
 	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
@@ -282,6 +350,9 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		isSupported: supported,
 		isListening,
 		toggleListening,
+		startContinuous,
+		stopContinuous,
+		isContinuous,
 		lastEvent,
 		hasTTS,
 		speak,

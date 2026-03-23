@@ -409,6 +409,16 @@ export const mapChatMessageToMessage = (
 	sharedPostImage?: string
 	sharedPostTitle?: string
 	sharedPost?: SharedPostSnapshot
+	replyTo?: {
+		id: string
+		content: string
+		senderName: string
+	}
+	reactions?: {
+		emoji: string
+		count: number
+		userReacted: boolean
+	}[]
 } => {
 	const isPostShare = (backendMsg.type || 'TEXT') === 'POST_SHARE'
 	const postId = backendMsg.relatedId

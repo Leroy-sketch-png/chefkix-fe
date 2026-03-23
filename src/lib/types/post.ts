@@ -14,6 +14,16 @@ export interface CoChef {
 	avatarUrl: string | null
 }
 
+export type PostType = 'PERSONAL' | 'GROUP' | 'QUICK' | 'POLL' | 'RECENT_COOK'
+
+export interface PollData {
+	question: string
+	optionA: string
+	optionB: string
+	votesA: number
+	votesB: number
+}
+
 export interface Post {
 	id: string
 	userId: string
@@ -26,6 +36,7 @@ export interface Post {
 	videoUrl: string | null
 	postUrl: string
 	tags: string[]
+	postType?: PostType
 	likes: number // BE: Integer (nullable), but FE defaults to 0
 	commentCount: number
 	createdAt: string
@@ -41,6 +52,13 @@ export interface Post {
 	roomCode?: string // Co-cooking room code (null for solo posts)
 	coChefs?: CoChef[] // Co-chefs who cooked together
 	taggedUserIds?: string[] // @mentioned user IDs in the post
+	// Poll data (only present when postType === 'POLL')
+	pollData?: PollData
+	userVote?: 'A' | 'B' | null
+	// Rate This Plate data (for posts with photos)
+	fireCount?: number
+	cringeCount?: number
+	userPlateRating?: 'FIRE' | 'CRINGE' | null
 }
 
 export interface CreatePostRequest {
@@ -49,10 +67,15 @@ export interface CreatePostRequest {
 	photoUrls?: File[] // For multipart upload (canonical)
 	videoUrl?: string
 	tags?: string[]
+	postType?: PostType // QUICK for quick posts, defaults to PERSONAL
 	// Session linking for XP unlock (per spec 05-posts.txt)
 	sessionId?: string // Links post to a cooking session
 	isPrivateRecipe?: boolean // For private recipe attempts (default: false)
 	taggedUserIds?: string[] // @mentioned user IDs
+	// Poll fields (only when postType === 'POLL')
+	pollQuestion?: string
+	pollOptionA?: string
+	pollOptionB?: string
 }
 
 export interface UpdatePostRequest {
@@ -78,6 +101,26 @@ export interface ToggleLikeResponse {
 export interface ToggleSaveResponse {
 	isSaved: boolean
 	saveCount: number
+}
+
+/**
+ * Response from POST /posts/{postId}/vote
+ * Matches PollVoteResponse.java exactly
+ */
+export interface PollVoteResponse {
+	userVote: 'A' | 'B' | null
+	votesA: number
+	votesB: number
+}
+
+/**
+ * Response from POST /posts/{postId}/rate-plate
+ * Matches PlateRateResponse.java exactly
+ */
+export interface PlateRateResponse {
+	userRating: 'FIRE' | 'CRINGE' | null
+	fireCount: number
+	cringeCount: number
 }
 
 // Post creation response when sessionId is provided

@@ -6,6 +6,7 @@ import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
 import { logDevWarn } from '@/lib/dev-log'
 import { useCookingStore } from '@/store/cookingStore'
+import type { KitchenInteractionMode } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
 import { RoomParticipantsBar } from './RoomParticipantsBar'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
@@ -33,6 +34,11 @@ import {
 	Loader2,
 	AlertCircle,
 	LogOut,
+	ZoomIn,
+	ZoomOut,
+	BookOpen,
+	Camera,
+	Hand,
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -45,6 +51,9 @@ import { OfflineBanner } from './OfflineBanner'
 import { AiAssistPanel } from './AiAssistPanel'
 import { useVoiceMode } from '@/lib/voice'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
+import { useWakeLock } from '@/hooks/useWakeLock'
+import { useStepPhotos } from '@/hooks/useStepPhotos'
+import { useClapDetection } from '@/hooks/useClapDetection'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -160,11 +169,13 @@ const StepTimer = ({
 	isRunning,
 	onToggle,
 	onComplete,
+	kitchenMode = false,
 }: {
 	seconds: number
 	isRunning: boolean
 	onToggle: () => void
 	onComplete: () => void
+	kitchenMode?: boolean
 }) => {
 	// StepTimer is now a DISPLAY component
 	// Timer ticking is handled by CookingTimerProvider (centralized)
@@ -225,6 +236,9 @@ const StepTimer = ({
 	return (
 		<motion.div
 			animate={isUrgent && isRunning ? TIMER_URGENT.animate : undefined}
+			role='timer'
+			aria-live='polite'
+			aria-label={`Timer: ${display}. ${isComplete ? 'Complete' : isRunning ? 'Running' : 'Paused'}`}
 			className={cn(
 				'relative mx-auto flex flex-col items-center gap-2 rounded-2xl px-8 py-4',
 				isComplete
@@ -243,7 +257,7 @@ const StepTimer = ({
 				/>
 			)}
 
-			<span className='relative z-10 text-xs font-semibold uppercase tracking-wider opacity-70'>
+			<span className={cn('relative z-10 font-semibold uppercase tracking-wider opacity-70', kitchenMode ? 'text-sm' : 'text-xs')}>
 				{isComplete
 					? '✓ Timer Complete!'
 					: isRunning
@@ -257,7 +271,8 @@ const StepTimer = ({
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					className={cn(
-						'grid size-12 place-items-center rounded-full transition-colors',
+						'grid place-items-center rounded-full transition-colors',
+						kitchenMode ? 'size-16' : 'size-12',
 						isComplete
 							? 'bg-success text-white'
 							: isRunning
@@ -278,7 +293,7 @@ const StepTimer = ({
 					key={seconds}
 					initial={{ scale: 1.1, opacity: 0.5 }}
 					animate={{ scale: 1, opacity: 1 }}
-					className='relative z-10 font-mono text-4xl font-bold tabular-nums'
+					className={cn('relative z-10 font-mono font-bold tabular-nums', kitchenMode ? 'text-6xl' : 'text-4xl')}
 				>
 					{display}
 				</motion.span>
@@ -316,6 +331,82 @@ const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 		<span>+{xp} XP</span>
 	</motion.div>
 )
+
+// ============================================
+// KITCHEN PROTOCOL MODE INDICATOR
+// ============================================
+
+const MODE_CONFIG: Record<
+	KitchenInteractionMode,
+	{ label: string; icon: string; bg: string; text: string }
+> = {
+	PREP: {
+		label: 'Getting Ready',
+		icon: '📋',
+		bg: 'bg-brand/20',
+		text: 'text-brand',
+	},
+	ACTIVE: {
+		label: 'Cooking',
+		icon: '🔥',
+		bg: 'bg-success/20',
+		text: 'text-success',
+	},
+	MESSY_HANDS: {
+		label: 'Messy Hands',
+		icon: '🙌',
+		bg: 'bg-warning/25',
+		text: 'text-warning',
+	},
+	MONITORING: {
+		label: 'Monitoring',
+		icon: '👀',
+		bg: 'bg-streak/20',
+		text: 'text-streak',
+	},
+	COMPLETION: {
+		label: 'Done!',
+		icon: '🏆',
+		bg: 'bg-xp/20',
+		text: 'text-xp',
+	},
+}
+
+/**
+ * ModeIndicatorBadge — Shows current Kitchen Protocol interaction mode.
+ * Animates on mode change so users notice the transition.
+ */
+const ModeIndicatorBadge = ({
+	mode,
+	className,
+}: {
+	mode: KitchenInteractionMode | null
+	className?: string
+}) => {
+	if (!mode || mode === 'ACTIVE') return null // ACTIVE is the default — no badge needed
+
+	const config = MODE_CONFIG[mode]
+	return (
+		<AnimatePresence mode='wait'>
+			<motion.div
+				key={mode}
+				initial={{ opacity: 0, scale: 0.8, y: -4 }}
+				animate={{ opacity: 1, scale: 1, y: 0 }}
+				exit={{ opacity: 0, scale: 0.8, y: -4 }}
+				transition={TRANSITION_SPRING}
+				className={cn(
+					'flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold',
+					config.bg,
+					config.text,
+					className,
+				)}
+			>
+				<span>{config.icon}</span>
+				<span>{config.label}</span>
+			</motion.div>
+		</AnimatePresence>
+	)
+}
 
 // Active Timers Badge - Shows all running timers from all steps
 const ActiveTimersBadge = ({
@@ -416,6 +507,8 @@ export const CookingPlayer = () => {
 		toggleIngredient,
 		isPreviewMode,
 		exitPreview,
+		interactionMode,
+		setInteractionMode,
 		// Co-cooking room state
 		roomCode,
 		participants,
@@ -452,6 +545,23 @@ export const CookingPlayer = () => {
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
 	const [showAiAssist, setShowAiAssist] = useState(false)
 	const [isNavigating, setIsNavigating] = useState(false)
+	const [kitchenMode, setKitchenMode] = useState(true) // Auto-enabled: 28px+ text, 64px+ targets
+	const [liveAnnouncement, setLiveAnnouncement] = useState('') // aria-live region text
+
+	// Adaptive recipe instructions (Wave 2): adjust detail level based on user proficiency
+	// BEGINNER → detailed (tips expanded, TTS reads tips), AMATEUR → standard, SEMIPRO/PRO → condensed
+	const userTitle = useAuthStore.getState().user?.statistics?.title ?? 'BEGINNER'
+	const defaultDetail = userTitle === 'BEGINNER' ? 'detailed' : userTitle === 'AMATEUR' ? 'standard' : 'condensed'
+	const [instructionDetail, setInstructionDetail] = useState<'detailed' | 'standard' | 'condensed'>(defaultDetail)
+
+	const cycleInstructionDetail = useCallback(() => {
+		setInstructionDetail(prev => prev === 'detailed' ? 'standard' : prev === 'standard' ? 'condensed' : 'detailed')
+	}, [])
+
+	// Step photo capture (Wave 2: Kitchen Protocol)
+	const stepPhotos = useStepPhotos()
+	const [showPhotoPrompt, setShowPhotoPrompt] = useState(false)
+	const [photoStepNumber, setPhotoStepNumber] = useState(0) // Tracks which step was just completed (for photo prompt)
 
 	// Focus traps for modal accessibility
 	const completionTrapRef = useFocusTrap<HTMLDivElement>(showCompletion)
@@ -463,6 +573,20 @@ export const CookingPlayer = () => {
 	// Offline detection for cooking continuity
 	const { isOffline } = useOnlineStatus()
 
+	// Keep screen awake during cooking (Wave 2: Kitchen Protocol)
+	useWakeLock(isOpen && !!session && session.status === 'in_progress')
+
+	// Auto-start continuous voice listening when cooking (Wave 2: Kitchen Protocol)
+	// Enables hands-free commands without pushing any button
+	useEffect(() => {
+		if (isOpen && session?.status === 'in_progress' && voice.isSupported && !voice.isContinuous) {
+			voice.startContinuous()
+		}
+		if (!isOpen && voice.isContinuous) {
+			voice.stopContinuous()
+		}
+	}, [isOpen, session?.status, voice.isSupported, voice.isContinuous, voice.startContinuous, voice.stopContinuous])
+
 	// Derive current step data from session and recipe
 	const currentStepNumber = session?.currentStep ?? 1
 	const step = recipe?.steps?.[currentStepNumber - 1]
@@ -472,6 +596,23 @@ export const CookingPlayer = () => {
 		[session?.completedSteps],
 	)
 	const progress = totalSteps > 0 ? (completedSteps.size / totalSteps) * 100 : 0
+
+	// Double-clap detection: re-reads current step via TTS (Wave 2: Kitchen Protocol)
+	// Hands-free wake — clap twice to hear the current step again
+	// Respects instructionDetail: detailed includes tips, condensed reads title only
+	const handleDoubleclap = useCallback(() => {
+		if (!step || !voice.hasTTS) return
+		const tipsText = instructionDetail === 'detailed' && step.tips ? ` Tip: ${step.tips}` : ''
+		const speech = instructionDetail === 'condensed'
+			? `Step ${step.stepNumber}. ${step.title ?? step.description}`
+			: `Step ${step.stepNumber}. ${step.description}${tipsText}`
+		voice.speak(speech)
+	}, [step, voice, instructionDetail])
+
+	useClapDetection({
+		enabled: isOpen && !!session && session.status === 'in_progress',
+		onDoubleclap: handleDoubleclap,
+	})
 
 	// Log when cooking player opens with recipe data
 	useEffect(() => {
@@ -492,6 +633,100 @@ export const CookingPlayer = () => {
 		}
 	}, [isOpen, recipe, totalSteps, session])
 
+	// Auto-read step instructions via TTS on navigation (Wave 2: Kitchen Protocol)
+	// Uses a ref to track previous step — speaks when step CHANGES, INCLUDING Step 1 on open
+	// Adaptive: 'detailed' mode includes tips in TTS, 'condensed' reads only core instruction
+	const prevStepRef = useRef(0) // Start at 0 so Step 1 is auto-read on first open
+	useEffect(() => {
+		if (!isOpen || !step || showCompletion) return
+
+		// Only read on actual navigation, not on first render
+		if (prevStepRef.current === currentStepNumber) return
+		prevStepRef.current = currentStepNumber
+
+		const tipsText = instructionDetail === 'detailed' && step.tips ? ` Tip: ${step.tips}` : ''
+		const announcement = `Step ${step.stepNumber} of ${totalSteps}. ${step.title ?? 'Cook'}. ${step.description}${tipsText}`
+		// Update aria-live region for screen readers
+		setLiveAnnouncement(announcement)
+
+		if (isAudioEnabled() && voice.hasTTS) {
+			const speech = instructionDetail === 'condensed'
+				? `Step ${step.stepNumber}. ${step.title ?? step.description}`
+				: `Step ${step.stepNumber}. ${step.description}${tipsText}`
+			voice.speak(speech)
+		}
+	}, [isOpen, currentStepNumber, step, showCompletion, voice, instructionDetail, totalSteps])
+
+	// ============================================
+	// KITCHEN PROTOCOL: AUTO-TRANSITIONS (Task 8)
+	// ============================================
+
+	// TRANSITION 1: PREP → ACTIVE
+	// Auto-exits PREP after 30 seconds so the user is never stuck in overview mode.
+	// Also exits PREP immediately when any step is completed (first "Next Step" click).
+	const prepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	useEffect(() => {
+		if (interactionMode !== 'PREP') {
+			if (prepTimeoutRef.current) {
+				clearTimeout(prepTimeoutRef.current)
+				prepTimeoutRef.current = null
+			}
+			return
+		}
+		prepTimeoutRef.current = setTimeout(() => {
+			// Only auto-progress if still in PREP (user may have manually moved)
+			if (useCookingStore.getState().interactionMode === 'PREP') {
+				setInteractionMode('ACTIVE')
+			}
+		}, 30_000)
+		return () => {
+			if (prepTimeoutRef.current) {
+				clearTimeout(prepTimeoutRef.current)
+				prepTimeoutRef.current = null
+			}
+		}
+	}, [interactionMode, setInteractionMode])
+
+	// Exit PREP immediately on first step completion
+	const prevCompletedCountRef = useRef(0)
+	useEffect(() => {
+		const count = session?.completedSteps?.length ?? 0
+		if (count > prevCompletedCountRef.current && interactionMode === 'PREP') {
+			setInteractionMode('ACTIVE')
+		}
+		prevCompletedCountRef.current = count
+	}, [session?.completedSteps?.length, interactionMode, setInteractionMode])
+
+	// TRANSITION 2: ACTIVE ↔ MONITORING
+	// Enters MONITORING when a timer starts; exits back to ACTIVE when all timers clear.
+	// MESSY_HANDS takes priority — if user set messy hands, timer start does NOT override it.
+	const prevTimerCountRef = useRef(0)
+	useEffect(() => {
+		const count = localTimers.size
+		if (count > 0 && interactionMode === 'ACTIVE') {
+			setInteractionMode('MONITORING')
+		} else if (count === 0 && interactionMode === 'MONITORING') {
+			setInteractionMode('ACTIVE')
+		}
+		prevTimerCountRef.current = count
+	}, [localTimers.size, interactionMode, setInteractionMode])
+
+	// TRANSITION 3: Any → COMPLETION
+	// When the completion modal opens, reflect it in the interaction mode.
+	useEffect(() => {
+		if (showCompletion && interactionMode !== 'COMPLETION') {
+			setInteractionMode('COMPLETION')
+		}
+	}, [showCompletion, interactionMode, setInteractionMode])
+
+	// TRANSITION 4: Auto-enable continuous voice in MESSY_HANDS mode
+	// MESSY_HANDS = voice is primary; ensure it's always listening.
+	useEffect(() => {
+		if (interactionMode === 'MESSY_HANDS' && voice.isSupported && !voice.isContinuous) {
+			voice.startContinuous()
+		}
+	}, [interactionMode, voice.isSupported, voice.isContinuous, voice.startContinuous])
+
 	// Handlers - defined before useEffects that reference them
 	const handleNextStep = useCallback(async () => {
 		if (!recipe || isNavigating) return
@@ -510,6 +745,11 @@ export const CookingPlayer = () => {
 
 			// Complete current step first
 			await completeStep(currentStepNumber)
+
+			// Show photo capture prompt — capture step number NOW before navigation changes it
+			setPhotoStepNumber(currentStepNumber)
+			setShowPhotoPrompt(true)
+			setTimeout(() => setShowPhotoPrompt(false), 4000)
 
 			// Broadcast to co-cooking room
 			if (isInRoom)
@@ -542,6 +782,9 @@ export const CookingPlayer = () => {
 				// Session complete!
 				// CRITICAL: Clear all timers immediately to prevent zombie timer ticks
 				clearAllTimers()
+
+				// Persist step photos for post creation (await to prevent data loss on unmount)
+				await stepPhotos.persistForPostCreation()
 
 				if (isPreviewMode) {
 					// Preview: skip rating form entirely — just show feedback and exit
@@ -987,6 +1230,31 @@ export const CookingPlayer = () => {
 							{/* Offline Mode Banner */}
 							<OfflineBanner isOffline={isOffline} variant='subtle' />
 
+							{/* MESSY HANDS mode banner — voice is primary, big dismiss CTA */}
+							<AnimatePresence>
+								{interactionMode === 'MESSY_HANDS' && (
+									<motion.div
+										initial={{ height: 0, opacity: 0 }}
+										animate={{ height: 'auto', opacity: 1 }}
+										exit={{ height: 0, opacity: 0 }}
+										className='flex items-center justify-between overflow-hidden bg-warning/15 px-4 py-2 border-b border-warning/20'
+									>
+										<div className='flex items-center gap-2 text-sm font-medium text-warning'>
+											<span>🙌</span>
+											<span>Messy Hands — voice commands active</span>
+										</div>
+										<motion.button
+											onClick={() => setInteractionMode('ACTIVE')}
+											whileHover={BUTTON_HOVER}
+											whileTap={BUTTON_TAP}
+											className='flex items-center gap-1.5 rounded-full bg-warning/20 px-3 py-1 text-xs font-semibold text-warning hover:bg-warning/30'
+										>
+											<Hand className='size-3.5' /> Clean Hands ✓
+										</motion.button>
+									</motion.div>
+								)}
+							</AnimatePresence>
+
 							{/* Header */}
 							<div className='relative overflow-hidden bg-gradient-hero p-6 text-white'>
 								{/* Animated background shimmer - pointer-events-none to not block buttons */}
@@ -1003,18 +1271,56 @@ export const CookingPlayer = () => {
 									onJumpToStep={handleStepClick}
 								/>
 
-								{/* AI Assist Button */}
-								<motion.button
-									onClick={() => setShowAiAssist(true)}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
-								>
-									<Sparkles className='size-4' /> AI Assist
-								</motion.button>
+								{/* AI Assist Button + Mode Indicator */}
+								<div className='absolute left-4 top-4 flex items-center gap-2'>
+									<motion.button
+										onClick={() => setShowAiAssist(true)}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
+									>
+										<Sparkles className='size-4' /> AI Assist
+									</motion.button>
+									<ModeIndicatorBadge mode={interactionMode} />
+								</div>
 
 								{/* Header buttons group */}
 								<div className='absolute right-4 top-4 flex items-center gap-2'>
+									{/* Kitchen-Distance Mode Toggle (Wave 2: Kitchen Protocol) */}
+									<motion.button
+										onClick={() => setKitchenMode((k) => !k)}
+										whileHover={ICON_BUTTON_HOVER}
+										whileTap={ICON_BUTTON_TAP}
+										className={cn(
+											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors',
+											kitchenMode
+												? 'bg-white/40 text-white'
+												: 'bg-white/20 text-white/70 hover:bg-white/30',
+										)}
+										title={kitchenMode ? 'Kitchen display: ON (large text)' : 'Kitchen display: OFF'}
+									>
+										{kitchenMode ? <ZoomOut className='size-5' /> : <ZoomIn className='size-5' />}
+									</motion.button>
+
+									{/* Adaptive Instructions Toggle (Wave 2: Kitchen Protocol) */}
+									{/* Cycles: Detailed → Standard → Condensed based on user skill */}
+									<motion.button
+										onClick={cycleInstructionDetail}
+										whileHover={ICON_BUTTON_HOVER}
+										whileTap={ICON_BUTTON_TAP}
+										className={cn(
+											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors',
+											instructionDetail === 'detailed'
+												? 'bg-success/40 text-white'
+												: instructionDetail === 'condensed'
+													? 'bg-warning/40 text-white'
+													: 'bg-white/20 text-white/70 hover:bg-white/30',
+										)}
+										title={`Instructions: ${instructionDetail === 'detailed' ? 'Detailed (tips shown + read)' : instructionDetail === 'standard' ? 'Standard' : 'Condensed (expert mode)'}`}
+									>
+										<BookOpen className='size-5' />
+									</motion.button>
+
 									{/* Exit Session Button */}
 									<motion.button
 										onClick={() => setShowAbandonConfirm(true)}
@@ -1084,7 +1390,7 @@ export const CookingPlayer = () => {
 							{/* Progress Section */}
 							<div className='border-b border-border-subtle bg-bg-elevated px-6 py-4'>
 								<div className='mb-3 flex items-center justify-between'>
-									<span className='text-sm font-medium text-text-secondary'>
+									<span className={cn('font-medium text-text-secondary', kitchenMode ? 'text-base' : 'text-sm')}>
 										Step {currentStepNumber} of {totalSteps}
 									</span>
 									<StepDots
@@ -1108,7 +1414,89 @@ export const CookingPlayer = () => {
 							</div>
 
 							{/* Step Content - Animated */}
-							<div className='relative flex-1 overflow-hidden'>
+							{/* MONITORING mode: dim content — timer is the focus */}
+							<div className={cn(
+								'relative flex-1 overflow-hidden transition-opacity duration-500',
+								interactionMode === 'MONITORING' && 'opacity-50 pointer-events-none',
+							)}>
+								{/* PREP mode overlay: show "Ready to cook?" over step 1 */}
+								<AnimatePresence>
+									{interactionMode === 'PREP' && (
+										<motion.div
+											initial={{ opacity: 0 }}
+											animate={{ opacity: 1 }}
+											exit={{ opacity: 0 }}
+											transition={{ duration: 0.3 }}
+											className='absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-bg-card/95 p-6 backdrop-blur-sm'
+										>
+											<span className='text-5xl'>📋</span>
+											<div className='text-center'>
+												<h3 className='text-xl font-bold text-text'>Ready to cook?</h3>
+												<p className='mt-1 text-sm text-text-secondary'>
+													Review the ingredients below, then tap when ready.
+												</p>
+											</div>
+											{/* Ingredient preview */}
+											{recipe.fullIngredientList && recipe.fullIngredientList.length > 0 && (
+												<div className='max-h-48 w-full max-w-sm overflow-y-auto rounded-2xl border border-border-subtle bg-bg-elevated p-4'>
+													<p className='mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+														You'll need
+													</p>
+													<ul className='space-y-1'>
+														{recipe.fullIngredientList.slice(0, 8).map((ing, i) => (
+															<li key={i} className='flex items-center gap-2 text-sm text-text'>
+																<span className='size-1.5 rounded-full bg-brand flex-shrink-0' />
+																<span>
+																	{ing.quantity} {ing.unit} {ing.name}
+																</span>
+															</li>
+														))}
+														{recipe.fullIngredientList.length > 8 && (
+															<li className='text-xs text-text-muted'>
+																+{recipe.fullIngredientList.length - 8} more ingredients
+															</li>
+														)}
+													</ul>
+												</div>
+											)}
+											<motion.button
+												onClick={() => setInteractionMode('ACTIVE')}
+												whileHover={BUTTON_HOVER}
+												whileTap={BUTTON_TAP}
+												className='rounded-full bg-gradient-hero px-10 py-3 font-bold text-white shadow-lg shadow-brand/30'
+											>
+												Let&apos;s Cook! 🔥
+											</motion.button>
+										</motion.div>
+									)}
+								</AnimatePresence>
+
+								{/* MONITORING mode hero: elevated timer indicator above dimmed content */}
+								<AnimatePresence>
+									{interactionMode === 'MONITORING' && (
+										<motion.div
+											initial={{ opacity: 0, y: -10 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, y: -10 }}
+											transition={TRANSITION_SPRING}
+											className='absolute left-0 right-0 top-0 z-10 mx-4 mt-4 flex items-center justify-between rounded-2xl border border-streak/30 bg-streak/10 px-5 py-3 pointer-events-auto'
+										>
+											<div className='flex items-center gap-2 text-streak'>
+												<Clock className='size-5' />
+												<span className='font-semibold'>Monitoring timer…</span>
+											</div>
+											<motion.button
+												onClick={() => setInteractionMode('ACTIVE')}
+												whileHover={{ scale: 1.05 }}
+												whileTap={{ scale: 0.95 }}
+												className='rounded-full bg-streak/20 px-3 py-1 text-xs font-semibold text-streak hover:bg-streak/30'
+											>
+												Back to steps
+											</motion.button>
+										</motion.div>
+									)}
+								</AnimatePresence>
+
 								<AnimatePresence initial={false} custom={direction} mode='wait'>
 									{step && (
 										<motion.div
@@ -1160,30 +1548,36 @@ export const CookingPlayer = () => {
 												initial={{ opacity: 0, y: 10 }}
 												animate={{ opacity: 1, y: 0 }}
 												transition={{ delay: 0.15 }}
-												className='mb-3 text-center text-xl font-bold text-text md:text-2xl'
+												className={cn('mb-3 text-center font-bold text-text', kitchenMode ? 'text-2xl md:text-4xl' : 'text-xl md:text-2xl')}
 											>
 												Step {step.stepNumber}: {step.title ?? 'Cook'}
 											</motion.h3>
 
-											{/* Step Description - Large for kitchen readability */}
+											{/* Step Description - Kitchen-distance: 28px+ for readability at arm's length */}
 											<motion.p
 												initial={{ opacity: 0 }}
 												animate={{ opacity: 1 }}
 												transition={{ delay: 0.2 }}
-												className='mx-auto mb-6 max-w-lg text-center text-lg leading-relaxed text-text-secondary md:text-xl'
+												className={cn('mx-auto mb-6 max-w-lg text-center leading-relaxed text-text-secondary', kitchenMode ? 'text-2xl md:text-3xl' : 'text-lg md:text-xl')}
 											>
 												{step.description}
 											</motion.p>
 
-											{/* Tips */}
-											{step.tips && (
+											{/* Tips — Adaptive: detailed=emphasized, standard=normal, condensed=collapsed */}
+											{step.tips && instructionDetail !== 'condensed' && (
 												<motion.div
 													initial={{ opacity: 0, y: 10 }}
 													animate={{ opacity: 1, y: 0 }}
 													transition={{ delay: 0.25 }}
-													className='mx-auto mb-6 flex max-w-md items-start gap-3 rounded-xl bg-bonus/10 p-4 text-sm'
+													className={cn(
+														'mx-auto mb-6 flex max-w-md items-start gap-3 rounded-xl p-4',
+														instructionDetail === 'detailed'
+															? 'border border-bonus/30 bg-bonus/15'
+															: 'bg-bonus/10',
+														kitchenMode ? 'text-base' : 'text-sm',
+													)}
 												>
-													<span className='text-lg'>💡</span>
+													<span className={kitchenMode ? 'text-2xl' : 'text-lg'}>💡</span>
 													<p className='text-bonus'>{step.tips}</p>
 												</motion.div>
 											)}
@@ -1201,6 +1595,7 @@ export const CookingPlayer = () => {
 														isRunning={timerRunning}
 														onToggle={handleTimerToggle}
 														onComplete={handleTimerComplete}
+														kitchenMode={kitchenMode}
 													/>
 												</motion.div>
 											)}
@@ -1242,6 +1637,53 @@ export const CookingPlayer = () => {
 								</AnimatePresence>
 							</div>
 
+							{/* Accessibility: aria-live region for step/timer announcements (Wave 2) */}
+							<div
+								role='status'
+								aria-live='assertive'
+								aria-atomic='true'
+								className='sr-only'
+							>
+								{liveAnnouncement}
+							</div>
+
+							{/* Step Photo Capture — hidden input + floating prompt (Wave 2: Kitchen Protocol) */}
+							<input
+								ref={stepPhotos.fileInputRef}
+								type='file'
+								accept='image/*'
+								capture='environment'
+								onChange={stepPhotos.onFileChange}
+								className='hidden'
+								aria-hidden='true'
+							/>
+							<AnimatePresence>
+								{showPhotoPrompt && !showCompletion && (
+									<motion.button
+										initial={{ opacity: 0, y: 20, scale: 0.9 }}
+										animate={{ opacity: 1, y: 0, scale: 1 }}
+										exit={{ opacity: 0, y: 10, scale: 0.95 }}
+										transition={TRANSITION_SPRING}
+										onClick={() => {
+											stepPhotos.captureForStep(photoStepNumber)
+											setShowPhotoPrompt(false)
+										}}
+										className={cn(
+											'mx-auto mb-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-4 py-2 text-brand transition-colors hover:bg-brand/20',
+											kitchenMode ? 'px-6 py-3 text-base' : 'text-sm',
+										)}
+									>
+										<Camera className={kitchenMode ? 'size-5' : 'size-4'} />
+										<span>Snap your progress!</span>
+										{stepPhotos.totalCount > 0 && (
+											<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white'>
+												{stepPhotos.totalCount}
+											</span>
+										)}
+									</motion.button>
+								)}
+							</AnimatePresence>
+
 							{/* Voice Mode Overlays */}
 							<VoiceCommandToast event={voice.lastEvent} />
 							<VoiceHelpOverlay
@@ -1265,7 +1707,8 @@ export const CookingPlayer = () => {
 											: undefined
 									}
 									className={cn(
-										'flex items-center gap-2 rounded-full px-6 py-3 font-bold transition-all',
+										'flex items-center gap-2 rounded-full font-bold transition-all',
+										(kitchenMode || interactionMode === 'MESSY_HANDS') ? 'min-h-16 px-8 py-4 text-lg' : 'px-6 py-3',
 										currentStepNumber === 1 || isNavigating
 											? 'cursor-not-allowed bg-border/50 text-text-muted'
 											: 'bg-border text-text hover:bg-border-medium',
@@ -1281,13 +1724,39 @@ export const CookingPlayer = () => {
 								{/* Voice Mode Button - between nav buttons */}
 								<VoiceModeButton voice={voice} />
 
+								{/* Messy Hands toggle (Kitchen Protocol: Task 8) */}
+								<motion.button
+									onClick={() =>
+										setInteractionMode(
+											interactionMode === 'MESSY_HANDS' ? 'ACTIVE' : 'MESSY_HANDS',
+										)
+									}
+									whileHover={ICON_BUTTON_HOVER}
+									whileTap={ICON_BUTTON_TAP}
+									title={
+										interactionMode === 'MESSY_HANDS'
+											? 'Clean hands — restore touch mode'
+											: 'Messy hands — switch to voice-primary mode'
+									}
+									className={cn(
+										'grid place-items-center rounded-full transition-colors',
+										kitchenMode ? 'size-14' : 'size-10',
+										interactionMode === 'MESSY_HANDS'
+											? 'bg-warning/30 text-warning ring-2 ring-warning/50'
+											: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+									)}
+								>
+									<Hand className={kitchenMode ? 'size-7' : 'size-5'} />
+								</motion.button>
+
 								<motion.button
 									onClick={handleNextStep}
 									disabled={isNavigating}
 									whileHover={isNavigating ? undefined : BUTTON_HOVER}
 									whileTap={isNavigating ? undefined : BUTTON_TAP}
 									className={cn(
-										'flex items-center gap-2 rounded-full bg-gradient-hero px-8 py-3 font-bold text-white shadow-lg shadow-brand/30 transition-opacity',
+										'flex items-center gap-2 rounded-full bg-gradient-hero font-bold text-white shadow-lg shadow-brand/30 transition-opacity',
+										(kitchenMode || interactionMode === 'MESSY_HANDS') ? 'min-h-16 px-10 py-4 text-lg' : 'px-8 py-3',
 										isNavigating && 'cursor-wait opacity-80',
 									)}
 									title={

@@ -41,18 +41,37 @@ export function VoiceModeButton({
 		}
 	}, [voice.lastEvent])
 
+	const handleClick = () => {
+		if (voice.isContinuous) {
+			voice.stopContinuous()
+		} else if (voice.isListening) {
+			voice.toggleListening()
+		} else {
+			// Default to continuous in cooking context
+			voice.startContinuous()
+		}
+	}
+
 	return (
 		<motion.button
-			onClick={voice.toggleListening}
+			onClick={handleClick}
 			whileTap={{ scale: 0.9 }}
 			className={cn(
 				'relative flex size-10 items-center justify-center rounded-full transition-colors',
 				voice.isListening
-					? 'bg-brand text-white shadow-glow'
+					? voice.isContinuous
+						? 'bg-success text-white shadow-glow'
+						: 'bg-brand text-white shadow-glow'
 					: 'bg-bg-elevated text-text-secondary hover:bg-bg-card hover:text-text',
 				className,
 			)}
-			title={voice.isListening ? 'Stop listening' : 'Voice commands'}
+			title={
+				voice.isContinuous
+					? 'Continuous listening active — tap to mute'
+					: voice.isListening
+						? 'Stop listening'
+						: 'Start voice commands'
+			}
 			aria-label={
 				voice.isListening ? 'Stop voice commands' : 'Start voice commands'
 			}

@@ -17,7 +17,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { getNotifications } from '@/services/notification'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
 import { TRANSITION_SPRING } from '@/lib/motion'
@@ -25,6 +24,7 @@ import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 import { autocompleteSearch } from '@/services/search'
+import { useNotificationStore } from '@/store/notificationStore'
 import Image from 'next/image'
 
 export const Topbar = () => {
@@ -34,7 +34,7 @@ export const Topbar = () => {
 	const [showUserMenu, setShowUserMenu] = useState(false)
 
 	useEscapeKey(showUserMenu, () => setShowUserMenu(false))
-	const [unreadNotifications, setUnreadNotifications] = useState(0)
+	const { unreadCount: unreadNotifications, fetchUnreadCount } = useNotificationStore()
 	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
 	const avatarButtonRef = useRef<HTMLButtonElement>(null)
 	const [unreadMessages, setUnreadMessages] = useState(0)
@@ -115,21 +115,17 @@ export const Topbar = () => {
 		return () => document.removeEventListener('mousedown', handleClickOutside)
 	}, [])
 
-	// Fetch unread counts on mount and periodically
+	// Fetch notification count via store (WebSocket keeps it updated after mount)
 	useEffect(() => {
-		const fetchCounts = async () => {
+		fetchUnreadCount()
+	}, [fetchUnreadCount])
+
+	// Fetch unread message counts on mount and periodically
+	useEffect(() => {
+		const fetchMessageCounts = async () => {
 			try {
-				const [notifResponse, convResponse] = await Promise.all([
-					getNotifications({ size: 1 }), // Just need unreadCount
-					getMyConversations(),
-				])
-
-				if (notifResponse.success && notifResponse.data) {
-					setUnreadNotifications(notifResponse.data.unreadCount)
-				}
-
+				const convResponse = await getMyConversations()
 				if (convResponse.success && convResponse.data) {
-					// Sum up unread counts from all conversations
 					const totalUnread = convResponse.data.reduce(
 						(sum, conv) => sum + (conv.unreadCount || 0),
 						0,
@@ -137,13 +133,12 @@ export const Topbar = () => {
 					setUnreadMessages(totalUnread)
 				}
 			} catch (err) {
-				logDevError('Failed to fetch unread counts:', err)
+				logDevError('Failed to fetch unread message counts:', err)
 			}
 		}
 
-		fetchCounts()
-		// Refresh every 30 seconds
-		const interval = setInterval(fetchCounts, 30000)
+		fetchMessageCounts()
+		const interval = setInterval(fetchMessageCounts, 30000)
 		return () => clearInterval(interval)
 	}, [])
 

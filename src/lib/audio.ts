@@ -34,19 +34,43 @@ function getAudioContext(): AudioContext | null {
 /**
  * Play a pleasant "timer complete" chime
  * Three ascending notes that sound like a kitchen timer
+ * Default chord: C5-E5-G5 major arpeggio
  */
 export function playTimerCompleteSound(): void {
+	playTimerCompleteForStep(1)
+}
+
+/**
+ * Play a distinct timer completion tone per step number.
+ * Each step gets a unique major chord arpeggio so the user can identify
+ * which timer finished by ear (critical for multi-timer cooking).
+ *
+ * Step 1: C major (C5-E5-G5)
+ * Step 2: D major (D5-F#5-A5)
+ * Step 3: E major (E5-G#5-B5)
+ * Step 4: F major (F5-A5-C6)
+ * Step 5: G major (G5-B5-D6)
+ * Step 6+: cycles back
+ */
+export function playTimerCompleteForStep(stepNumber: number): void {
 	const ctx = getAudioContext()
 	if (!ctx) return
 
 	const now = ctx.currentTime
 
-	// Three ascending notes (C5, E5, G5) - a major chord arpeggio
-	const frequencies = [523.25, 659.25, 783.99]
+	// Major chord root frequencies, rotating through 5 keys
+	const chords: [number, number, number][] = [
+		[523.25, 659.25, 783.99], // C major: C5, E5, G5
+		[587.33, 739.99, 880.00], // D major: D5, F#5, A5
+		[659.25, 830.61, 987.77], // E major: E5, G#5, B5
+		[698.46, 880.00, 1046.50], // F major: F5, A5, C6
+		[783.99, 987.77, 1174.66], // G major: G5, B5, D6
+	]
+	const chord = chords[(stepNumber - 1) % chords.length]
 	const duration = 0.15
 	const gap = 0.1
 
-	frequencies.forEach((freq, i) => {
+	chord.forEach((freq, i) => {
 		const oscillator = ctx.createOscillator()
 		const gainNode = ctx.createGain()
 

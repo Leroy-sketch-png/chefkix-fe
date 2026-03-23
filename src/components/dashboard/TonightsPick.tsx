@@ -6,7 +6,7 @@ import { ChefHat, Clock, Flame, Star, Play, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Recipe } from '@/lib/types/recipe'
-import { getTrendingRecipes } from '@/services/recipe'
+import { getTonightsPick } from '@/services/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
 import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -34,9 +34,9 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 	useEffect(() => {
 		const fetchPick = async () => {
 			try {
-				const res = await getTrendingRecipes({ size: 1 })
-				if (res.success && res.data && res.data.length > 0) {
-					setRecipe(res.data[0])
+				const res = await getTonightsPick()
+				if (res.success && res.data) {
+					setRecipe(res.data)
 				}
 			} catch (err) {
 				logDevError("Failed to fetch Tonight's Pick:", err)

@@ -62,6 +62,12 @@ import { updateProfile } from '@/services/profile'
 import { uploadRecipeImages } from '@/services/recipe'
 import { playTimerChime } from '@/hooks/useTimerNotifications'
 import {
+	requestNotificationPermission,
+	isNotificationSupported,
+	getNotificationPermission,
+	setTimerAlertsEnabled,
+} from '@/lib/pushNotifications'
+import {
 	UserSettings,
 	PrivacySettings,
 	NotificationSettings,
@@ -258,14 +264,16 @@ const ToggleRow = ({
 	checked,
 	onCheckedChange,
 	icon: Icon,
+	disabled,
 }: {
 	label: string
 	description?: string
 	checked: boolean
 	onCheckedChange: (checked: boolean) => void
 	icon?: typeof Bell
+	disabled?: boolean
 }) => (
-	<div className='flex items-center justify-between py-3 border-b border-border last:border-0'>
+	<div className={cn('flex items-center justify-between py-3 border-b border-border last:border-0', disabled && 'opacity-50')}>
 		<div className='flex items-center gap-3'>
 			{Icon && <Icon className='size-4 text-muted-foreground' />}
 			<div>
@@ -275,7 +283,7 @@ const ToggleRow = ({
 				)}
 			</div>
 		</div>
-		<Switch checked={checked} onCheckedChange={onCheckedChange} />
+		<Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
 	</div>
 )
 
@@ -381,6 +389,8 @@ export default function SettingsPage() {
 				const response = await getAllSettings()
 				if (response.success && response.data) {
 					setSettings(response.data)
+					// Sync push timerAlerts preference to localStorage for use outside settings page
+					setTimerAlertsEnabled(response.data.notifications?.push?.timerAlerts ?? true)
 				} else {
 					setSettings({
 						userId: user?.userId || '',
@@ -1007,7 +1017,7 @@ export default function SettingsPage() {
 											/>
 											<ToggleRow
 												label='Show Cooking Activity'
-												description='Show when you are cooking to friends'
+												description='Auto-share when you finish cooking & show activity status'
 												icon={ChefHat}
 												checked={settings.privacy.showCookingActivity}
 												onCheckedChange={checked =>
@@ -1190,31 +1200,46 @@ export default function SettingsPage() {
 										<div>
 											<ToggleRow
 												label='Enable Push Notifications'
-												description='Receive notifications even when not using ChefKix'
+												description={
+													!isNotificationSupported()
+														? 'Not supported in this browser'
+														: getNotificationPermission() === 'denied'
+															? 'Blocked by browser — reset in browser settings'
+															: 'Receive notifications even when not using ChefKix'
+												}
 												icon={Smartphone}
 												checked={settings.notifications.push.enabled}
-												onCheckedChange={checked =>
+												disabled={!isNotificationSupported() || getNotificationPermission() === 'denied'}
+												onCheckedChange={async checked => {
+													if (checked) {
+														const permission = await requestNotificationPermission()
+														if (permission !== 'granted') {
+															toast.error('Notification permission was not granted')
+															return
+														}
+													}
 													handleUpdateNotifications({
 														push: {
 															...settings.notifications.push,
 															enabled: checked,
 														},
 													})
-												}
+												}}
 											/>
 											<ToggleRow
 												label='Timer Alerts'
 												description='When cooking timers complete'
 												icon={Timer}
 												checked={settings.notifications.push.timerAlerts}
-												onCheckedChange={checked =>
+												onCheckedChange={checked => {
+													setTimerAlertsEnabled(checked)
 													handleUpdateNotifications({
 														push: {
 															...settings.notifications.push,
 															timerAlerts: checked,
 														},
 													})
-												}
+												}}
 											/>
 										</div>
 									</SettingsCard>

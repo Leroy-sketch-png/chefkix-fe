@@ -3,49 +3,28 @@
 import { useEffect, useRef } from 'react'
 import { useCookingStore } from '@/store/cookingStore'
 import { toast } from '@/components/ui/toaster'
+import { playTimerCompleteForStep, isAudioEnabled } from '@/lib/audio'
+import { getTextToSpeech, isTTSSupported } from '@/lib/voice/TextToSpeech'
+import { showTimerNotification } from '@/lib/pushNotifications'
 
 /**
- * Plays a pleasant chime sound using Web Audio API
- * No audio file required - generates a harmonious notification sound
- *
- * Exported for use in settings "Test Sound" feature
+ * Plays a pleasant chime sound using Web Audio API.
+ * Delegates to audio.ts for the actual sound generation.
+ * Exported for use in settings "Test Sound" feature.
  */
 export const playTimerChime = () => {
-	if (typeof window === 'undefined' || !window.AudioContext) return
+	playTimerCompleteForStep(1)
+}
 
-	try {
-		const ctx = new (window.AudioContext ||
-			(window as unknown as { webkitAudioContext: typeof AudioContext })
-				.webkitAudioContext)()
-		const now = ctx.currentTime
+// Milestone thresholds in seconds for contextual TTS announcements
+const MILESTONES = [300, 180, 60, 30] // 5min, 3min, 1min, 30s
 
-		// Create a pleasant three-note chime (C5-E5-G5 chord arpeggio)
-		const frequencies = [523.25, 659.25, 783.99] // C5, E5, G5
-
-		frequencies.forEach((freq, i) => {
-			const osc = ctx.createOscillator()
-			const gain = ctx.createGain()
-
-			osc.type = 'sine'
-			osc.frequency.value = freq
-
-			// ADSR envelope for smooth sound
-			gain.gain.setValueAtTime(0, now + i * 0.15)
-			gain.gain.linearRampToValueAtTime(0.3, now + i * 0.15 + 0.05)
-			gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.6)
-
-			osc.connect(gain)
-			gain.connect(ctx.destination)
-
-			osc.start(now + i * 0.15)
-			osc.stop(now + i * 0.15 + 0.7)
-		})
-
-		// Clean up context after sound completes
-		setTimeout(() => ctx.close(), 2000)
-	} catch {
-		// Audio failed, silently continue
+function formatTimeRemaining(seconds: number): string {
+	if (seconds >= 60) {
+		const mins = Math.floor(seconds / 60)
+		return `${mins} minute${mins > 1 ? 's' : ''}`
 	}
+	return `${seconds} seconds`
 }
 
 /**
@@ -53,6 +32,7 @@ export const playTimerChime = () => {
  *
  * Subscribes to the cooking store and shows toast notifications
  * when timers complete. Also plays an audio notification.
+ * Wave 2: Contextual TTS announcements at key milestones.
  *
  * This hook should be mounted in a high-level component that
  * persists across navigation (e.g., MainLayout).
@@ -60,11 +40,14 @@ export const playTimerChime = () => {
 export const useTimerNotifications = () => {
 	const { localTimers, recipe, session } = useCookingStore()
 	const previousTimers = useRef<Map<number, number>>(new Map())
+	// Track announced milestones per step: stepNumber -> Set of milestone thresholds already spoken
+	const announcedMilestones = useRef<Map<number, Set<number>>>(new Map())
 
-	// Detect timer completions by comparing previous vs current
+	// Detect timer completions + milestone announcements
 	useEffect(() => {
 		if (!recipe || !session) {
 			previousTimers.current.clear()
+			announcedMilestones.current.clear()
 			return
 		}
 
@@ -84,15 +67,57 @@ export const useTimerNotifications = () => {
 					duration: 8000,
 				})
 
-				// Play chime sound
-				playTimerChime()
+				// Play distinct chime for this step (different pitch per step)
+				if (isAudioEnabled()) {
+					playTimerCompleteForStep(stepNumber)
+				}
+
+				// TTS: announce completion
+				if (isAudioEnabled() && isTTSSupported()) {
+					getTextToSpeech().speak(`${stepTitle} timer is done.`)
+				}
 
 				// Vibrate on mobile if supported
 				if (typeof navigator !== 'undefined' && navigator.vibrate) {
 					navigator.vibrate([200, 100, 200])
 				}
+
+				// Browser notification when tab is backgrounded
+				if (typeof document !== 'undefined' && document.hidden) {
+					showTimerNotification(stepTitle)
+				}
+
+				// Clean up milestone tracking for this step
+				announcedMilestones.current.delete(stepNumber)
 			}
 		})
+
+		// Contextual timer announcements at milestones (Wave 2: Kitchen Protocol)
+		// Speak "{StepTitle}: {time} remaining" when crossing a threshold
+		if (isAudioEnabled() && isTTSSupported()) {
+			current.forEach((timer, stepNumber) => {
+				const prevRemaining = previous.get(stepNumber)
+				if (prevRemaining === undefined) return // Timer just started, skip
+
+				const step = recipe.steps?.[stepNumber - 1]
+				const stepTitle = step?.title || `Step ${stepNumber}`
+
+				// Get or create the announced set for this step
+				if (!announcedMilestones.current.has(stepNumber)) {
+					announcedMilestones.current.set(stepNumber, new Set())
+				}
+				const announced = announcedMilestones.current.get(stepNumber)!
+
+				for (const milestone of MILESTONES) {
+					// Check if we just crossed this milestone (was above, now at or below)
+					if (prevRemaining > milestone && timer.remaining <= milestone && !announced.has(milestone)) {
+						announced.add(milestone)
+						getTextToSpeech().speak(`${stepTitle}: ${formatTimeRemaining(milestone)} remaining.`)
+						break // Only one announcement per tick
+					}
+				}
+			})
+		}
 
 		// Update previous state for next comparison
 		const newPrevious = new Map<number, number>()
