@@ -171,3 +171,44 @@ export async function regenerateShareToken(
 		return handleError(error)
 	}
 }
+
+// ── Commerce (W5.5+W5.8: Grocery Affiliate) ────────────────────
+
+export interface GroceryProviderInfo {
+	id: string
+	displayName: string
+}
+
+export interface CheckoutResult {
+	orderId: string
+	checkoutUrl: string | null
+	provider: string
+	itemCount: number
+	estimatedTotal: number
+	status: string
+}
+
+export async function getGroceryProviders(): Promise<GroceryProviderInfo[]> {
+	try {
+		const res = await api.get<ApiResponse<GroceryProviderInfo[]>>(
+			`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/grocery-providers`,
+		)
+		return res.data.data ?? []
+	} catch (error) {
+		return handleError(error)
+	}
+}
+
+export async function checkoutShoppingList(
+	listId: string,
+	provider: string = 'affiliate',
+): Promise<CheckoutResult> {
+	try {
+		const res = await api.post<ApiResponse<CheckoutResult>>(
+			`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/${listId}/checkout?provider=${encodeURIComponent(provider)}`,
+		)
+		return res.data.data!
+	} catch (error) {
+		return handleError(error)
+	}
+}
