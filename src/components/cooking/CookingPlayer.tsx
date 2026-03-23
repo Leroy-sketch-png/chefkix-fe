@@ -727,6 +727,65 @@ export const CookingPlayer = () => {
 		}
 	}, [interactionMode, voice.isSupported, voice.isContinuous, voice.startContinuous])
 
+	// TRANSITION 5: Auto MESSY_HANDS heuristic
+	// If user doesn't touch the screen for 45s during ACTIVE cooking, they likely
+	// have messy/wet/occupied hands. Auto-enter MESSY_HANDS so voice becomes primary.
+	// Resets on any touch/click/pointer event on the cooking player container.
+	const messyHandsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const lastTouchRef = useRef<number>(Date.now())
+
+	const resetMessyHandsTimer = useCallback(() => {
+		lastTouchRef.current = Date.now()
+		if (messyHandsTimeoutRef.current) {
+			clearTimeout(messyHandsTimeoutRef.current)
+			messyHandsTimeoutRef.current = null
+		}
+		if (interactionMode === 'ACTIVE') {
+			messyHandsTimeoutRef.current = setTimeout(() => {
+				const store = useCookingStore.getState()
+				if (store.interactionMode === 'ACTIVE') {
+					setInteractionMode('MESSY_HANDS')
+				}
+			}, 45_000)
+		}
+	}, [interactionMode, setInteractionMode])
+
+	useEffect(() => {
+		if (!isOpen || interactionMode !== 'ACTIVE') {
+			if (messyHandsTimeoutRef.current) {
+				clearTimeout(messyHandsTimeoutRef.current)
+				messyHandsTimeoutRef.current = null
+			}
+			return
+		}
+
+		// Start the timer when entering ACTIVE mode
+		messyHandsTimeoutRef.current = setTimeout(() => {
+			const store = useCookingStore.getState()
+			if (store.interactionMode === 'ACTIVE') {
+				setInteractionMode('MESSY_HANDS')
+				toast('🙌 Messy Hands mode activated', {
+					description: 'No touch detected — switching to voice-primary. Say "clean hands" to switch back.',
+					duration: 4000,
+				})
+			}
+		}, 45_000)
+
+		// Listen for touch/pointer/click events on document to reset timer
+		const handler = () => resetMessyHandsTimer()
+		document.addEventListener('pointerdown', handler, { passive: true })
+		document.addEventListener('touchstart', handler, { passive: true })
+
+		return () => {
+			if (messyHandsTimeoutRef.current) {
+				clearTimeout(messyHandsTimeoutRef.current)
+				messyHandsTimeoutRef.current = null
+			}
+			document.removeEventListener('pointerdown', handler)
+			document.removeEventListener('touchstart', handler)
+		}
+	}, [isOpen, interactionMode, setInteractionMode, resetMessyHandsTimer])
+
 	// Handlers - defined before useEffects that reference them
 	const handleNextStep = useCallback(async () => {
 		if (!recipe || isNavigating) return
