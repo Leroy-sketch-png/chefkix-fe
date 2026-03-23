@@ -50,3 +50,4 @@ public/workbox-*.js.map
 _build_out*.txt
 _output*.txt
 _ts_output*.txt
+_tsc*.txt

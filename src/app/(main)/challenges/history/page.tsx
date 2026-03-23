@@ -34,7 +34,7 @@ const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
 		? {
 				id: item.recipeCooked.id,
 				title: item.recipeCooked.title,
-				imageUrl: item.recipeCooked.imageUrl || '/placeholder-recipe.jpg',
+				imageUrl: item.recipeCooked.imageUrl || '/placeholder-recipe.svg',
 			}
 		: undefined,
 })

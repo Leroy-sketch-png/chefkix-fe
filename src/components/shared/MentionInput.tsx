@@ -176,7 +176,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 									h.document.displayName ||
 									h.document.firstName ||
 									h.document.username,
-								avatarUrl: h.document.avatarUrl || '/placeholder-avatar.png',
+								avatarUrl: h.document.avatarUrl || '/placeholder-avatar.svg',
 								username: h.document.username,
 							}),
 						)

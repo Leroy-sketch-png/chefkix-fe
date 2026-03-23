@@ -406,7 +406,7 @@ const PausedScreen = ({
 					{/* Recipe card */}
 					<div className='mb-8 flex items-center gap-4 rounded-2xl bg-bg-elevated p-4 text-left'>
 						<Image
-							src={recipe.imageUrl || '/placeholder-recipe.jpg'}
+							src={recipe.imageUrl || '/placeholder-recipe.svg'}
 							alt={recipe.title}
 							width={80}
 							height={80}
@@ -481,7 +481,7 @@ const ExpiredScreen = ({ recipe, onRestart, onGoHome }: ExpiredScreenProps) => (
 				{/* Recipe card */}
 				<div className='mb-8 flex items-center gap-4 rounded-xl bg-bg-elevated p-4 text-left'>
 					<Image
-						src={recipe.imageUrl || '/placeholder-recipe.jpg'}
+						src={recipe.imageUrl || '/placeholder-recipe.svg'}
 						alt={recipe.title}
 						width={64}
 						height={64}

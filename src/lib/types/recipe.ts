@@ -338,7 +338,7 @@ export type { RecipeMastery } from './gamification'
 export function getRecipeImage(
 	recipe: { coverImageUrl?: string[] } | null | undefined,
 ): string {
-	if (!recipe?.coverImageUrl?.length) return '/placeholder-recipe.jpg'
+	if (!recipe?.coverImageUrl?.length) return '/placeholder-recipe.svg'
 	return recipe.coverImageUrl[0]
 }
 

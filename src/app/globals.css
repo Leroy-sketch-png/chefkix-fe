@@ -921,6 +921,52 @@ img[alt]:after {
 	animation: glow-pulse 2s ease-in-out infinite;
 }
 
+/* Auth page floating orbs — gentle vertical drift with subtle scale breath */
+@keyframes float-orb {
+	0%,
+	100% {
+		transform: translateY(0) scale(1);
+	}
+	50% {
+		transform: translateY(-20px) scale(1.05);
+	}
+}
+
+.animate-float-orb {
+	animation: float-orb 8s ease-in-out infinite;
+}
+
+/* Subtle urgency pulse for deadline/expiring cards */
+@keyframes pulse-subtle {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.82;
+	}
+}
+
+.animate-pulse-subtle {
+	animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* OTP input caret blink — crisp on/off with slight hold */
+@keyframes caret-blink {
+	0%,
+	70% {
+		opacity: 1;
+	}
+	71%,
+	100% {
+		opacity: 0;
+	}
+}
+
+.animate-caret-blink {
+	animation: caret-blink 1.2s step-end infinite;
+}
+
 /* Smooth color transitions for interactive elements */
 button,
 a,

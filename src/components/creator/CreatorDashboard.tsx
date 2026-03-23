@@ -12,6 +12,7 @@ import {
 	Signal,
 	ArrowUpDown,
 	Edit3,
+	BarChart3,
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -101,6 +102,7 @@ export interface CreatorDashboardProps {
 	onCreateRecipe?: () => void
 	onImproveRecipe?: (recipeId: string) => void
 	onRecipeClick?: (recipeId: string) => void
+	onViewStepAnalytics?: (recipeId: string) => void
 	className?: string
 }
 
@@ -393,10 +395,12 @@ function RecipePerformanceSection({
 	recipes,
 	onImproveRecipe,
 	onRecipeClick,
+	onViewStepAnalytics,
 }: {
 	recipes: RecipePerformance[]
 	onImproveRecipe?: (id: string) => void
 	onRecipeClick?: (id: string) => void
+	onViewStepAnalytics?: (id: string) => void
 }) {
 	return (
 		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
@@ -472,6 +476,20 @@ function RecipePerformanceSection({
 								<span className='text-2xs text-muted-foreground'>XP</span>
 							</div>
 						</div>
+						{onViewStepAnalytics && recipe.cookCount > 0 && (
+							<motion.button
+								whileHover={BUTTON_SUBTLE_HOVER}
+								whileTap={BUTTON_SUBTLE_TAP}
+								onClick={e => {
+									e.stopPropagation()
+									onViewStepAnalytics(recipe.id)
+								}}
+								className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-brand'
+								title='View step analytics'
+							>
+								<BarChart3 className='w-4 h-4' />
+							</motion.button>
+						)}
 						{recipe.needsAttention && onImproveRecipe && (
 							<motion.button
 								whileHover={BUTTON_SUBTLE_HOVER}
@@ -620,6 +638,7 @@ export function CreatorDashboard({
 	onCreateRecipe,
 	onImproveRecipe,
 	onRecipeClick,
+	onViewStepAnalytics,
 	className,
 }: CreatorDashboardProps) {
 	return (
@@ -669,6 +688,7 @@ export function CreatorDashboard({
 				recipes={recipePerformance}
 				onImproveRecipe={onImproveRecipe}
 				onRecipeClick={onRecipeClick}
+				onViewStepAnalytics={onViewStepAnalytics}
 			/>
 
 			{/* Recent Cooks */}

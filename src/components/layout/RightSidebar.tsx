@@ -226,7 +226,7 @@ export const RightSidebar = () => {
 								>
 									<div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg'>
 										<Image
-											src={suggestion.avatarUrl || '/placeholder-avatar.png'}
+											src={suggestion.avatarUrl || '/placeholder-avatar.svg'}
 											alt={suggestion.displayName || suggestion.username}
 											fill
 											sizes='40px'

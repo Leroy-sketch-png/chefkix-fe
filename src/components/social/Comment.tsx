@@ -156,7 +156,7 @@ const ReplyItem = ({
 			<UserHoverCard userId={reply.userId} currentUserId={currentUserId}>
 				<Avatar size='xs'>
 					<AvatarImage
-						src={reply.avatarUrl || '/placeholder-avatar.png'}
+						src={reply.avatarUrl || '/placeholder-avatar.svg'}
 						alt={`${reply.displayName}'s avatar`}
 					/>
 					<AvatarFallback className='text-2xs'>
@@ -468,7 +468,7 @@ export const Comment = ({
 				<UserHoverCard userId={comment.userId} currentUserId={currentUserId}>
 					<Avatar size='sm'>
 						<AvatarImage
-							src={comment.avatarUrl || '/placeholder-avatar.png'}
+							src={comment.avatarUrl || '/placeholder-avatar.svg'}
 							alt={`${comment.displayName}'s avatar`}
 						/>
 						<AvatarFallback>

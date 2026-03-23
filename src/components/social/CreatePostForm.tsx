@@ -178,7 +178,7 @@ export const CreatePostForm = ({
 		})
 
 		const response = await createPost({
-			avatarUrl: currentUser?.avatarUrl || '/placeholder-avatar.png',
+			avatarUrl: currentUser?.avatarUrl || '/placeholder-avatar.svg',
 			content: content.trim(),
 			photoUrls: photoFiles,
 			videoUrl: videoUrl.trim() || undefined,
@@ -227,7 +227,7 @@ export const CreatePostForm = ({
 				<div className='flex items-center gap-3 border-b border-border-subtle p-4 md:p-6'>
 					<Avatar size='lg' className='ring-2 ring-primary/10'>
 						<AvatarImage
-							src={currentUser?.avatarUrl || '/placeholder-avatar.png'}
+							src={currentUser?.avatarUrl || '/placeholder-avatar.svg'}
 							alt={currentUser?.displayName || 'You'}
 						/>
 						<AvatarFallback>

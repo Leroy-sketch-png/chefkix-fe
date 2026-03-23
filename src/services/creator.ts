@@ -178,3 +178,54 @@ export const getRecentCooks = async (
 		}
 	}
 }
+
+// ============================================
+// STEP HEATMAP TYPES & API (Wave 4)
+// ============================================
+
+export interface StepAnalytics {
+	stepNumber: number
+	title: string
+	/** % of sessions where this step was completed (0-100) */
+	completionRate: number
+	/** % of sessions where the timer for this step was skipped (0-100) */
+	skipRate: number
+	/** Average time spent on this step in seconds */
+	avgTimeSeconds: number | null
+	/** Estimated time from recipe definition (seconds) */
+	estimatedTimeSeconds: number | null
+	/** Whether this step is a "struggle point" */
+	strugglePoint: boolean
+	/** Sessions that were abandoned AT this step */
+	abandonedAtCount: number
+}
+
+export interface StepHeatmapResponse {
+	recipeId: string
+	recipeTitle: string
+	totalSessions: number
+	steps: StepAnalytics[]
+}
+
+/**
+ * Get step-level analytics for a recipe (creator-only).
+ * Shows completion rate, skip rate, avg time, struggle points per step.
+ */
+export const getStepHeatmap = async (
+	recipeId: string,
+): Promise<ApiResponse<StepHeatmapResponse>> => {
+	try {
+		const response = await api.get<ApiResponse<StepHeatmapResponse>>(
+			API_ENDPOINTS.CREATOR.STEP_HEATMAP(recipeId),
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<StepHeatmapResponse>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch step heatmap',
+			statusCode: 500,
+		}
+	}
+}

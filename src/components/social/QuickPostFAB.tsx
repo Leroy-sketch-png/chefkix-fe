@@ -118,7 +118,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 			}
 
 			const response = await createPost({
-				avatarUrl: user?.avatarUrl || '/placeholder-avatar.png',
+				avatarUrl: user?.avatarUrl || '/placeholder-avatar.svg',
 				content: pollQuestion.trim(),
 				postType: 'POLL',
 				pollQuestion: pollQuestion.trim(),
@@ -171,7 +171,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 		}
 
 		const response = await createPost({
-			avatarUrl: user?.avatarUrl || '/placeholder-avatar.png',
+			avatarUrl: user?.avatarUrl || '/placeholder-avatar.svg',
 			content: caption.trim(),
 			photoUrls: photoFiles.length > 0 ? photoFiles : undefined,
 			postType: 'QUICK',

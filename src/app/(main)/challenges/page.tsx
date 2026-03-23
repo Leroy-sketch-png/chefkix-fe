@@ -11,6 +11,7 @@ import {
 	Clock,
 	ChevronRight,
 } from 'lucide-react'
+import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { DailyChallengeBanner } from '@/components/challenges'
@@ -139,6 +140,9 @@ export default function ChallengesPage() {
 						Test your skills, earn bonus XP, and unlock exclusive badges!
 					</p>
 				</motion.div>
+
+				{/* Cooking Duels — 1v1 friend challenges */}
+				<DuelsSection />
 
 				{hasNoChallenges ? (
 					<EmptyStateGamified

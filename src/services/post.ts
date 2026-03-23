@@ -379,40 +379,6 @@ export const getFeedPosts = async (params?: {
 }
 
 /**
- * Server-side post search.
- * Searches content, displayName, tags, and recipeTitle fields.
- */
-export const searchPosts = async (
-	query: string,
-	params?: { page?: number; size?: number },
-): Promise<ApiResponse<Post[]> & { pagination?: PaginationMeta }> => {
-	try {
-		const backendParams = toBackendPagination(params)
-		const response = await api.get<ApiResponse<PostPageData | Post[]>>(
-			API_ENDPOINTS.POST.SEARCH,
-			{
-				params: {
-					q: query,
-					...backendParams,
-				},
-			},
-		)
-		return mapPostPageResponse(response.data)
-	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<PostPageData | Post[]>>
-		if (axiosError.response) {
-			return mapPostPageResponse(axiosError.response.data)
-		}
-		return {
-			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
-			statusCode: 500,
-			data: [],
-		}
-	}
-}
-
-/**
  * Toggle save/bookmark on a post
  * Returns the new save state
  */

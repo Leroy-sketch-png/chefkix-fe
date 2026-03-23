@@ -89,7 +89,7 @@ function ConversationItem({
 	const avatar =
 		conversation.conversationAvatar ||
 		otherParticipant?.avatar ||
-		'/placeholder-avatar.png'
+		'/placeholder-avatar.svg'
 
 	const hasUnread = conversation.unreadCount && conversation.unreadCount > 0
 
@@ -516,7 +516,7 @@ export default function MessagesPage() {
 			avatar:
 				selectedConversation.conversationAvatar ||
 				other?.avatar ||
-				'/placeholder-avatar.png',
+				'/placeholder-avatar.svg',
 		}
 	}
 

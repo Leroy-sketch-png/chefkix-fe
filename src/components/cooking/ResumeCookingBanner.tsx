@@ -71,7 +71,7 @@ export const ResumeCookingBanner = ({
 						setRecipeName(recipeResponse.data.title)
 						setRecipeImage(
 							recipeResponse.data.coverImageUrl?.[0] ||
-								'/placeholder-recipe.jpg',
+								'/placeholder-recipe.svg',
 						)
 					}
 				}

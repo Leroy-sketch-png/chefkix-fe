@@ -82,7 +82,7 @@ export const FollowSuggestionCard = ({
 						className='shadow-sm transition-transform group-hover:scale-105'
 					>
 						<AvatarImage
-							src={profile.avatarUrl || '/placeholder-avatar.png'}
+							src={profile.avatarUrl || '/placeholder-avatar.svg'}
 							alt={displayName}
 						/>
 						<AvatarFallback>

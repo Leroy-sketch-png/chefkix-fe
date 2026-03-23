@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { CreatorDashboard } from '@/components/creator'
+import { CreatorDashboard, StepHeatmap } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import {
@@ -46,6 +46,7 @@ export default function CreatorRoute() {
 		useState<CreatorPerformanceResponse | null>(null)
 	const [recentCooksData, setRecentCooksData] =
 		useState<RecentCooksResponse | null>(null)
+	const [heatmapRecipeId, setHeatmapRecipeId] = useState<string | null>(null)
 
 	useEffect(() => {
 		const fetchAll = async () => {
@@ -117,7 +118,7 @@ export default function CreatorRoute() {
 		? {
 				id: stats.topRecipe.id,
 				title: stats.topRecipe.title,
-				imageUrl: stats.topRecipe.coverImageUrl ?? '/placeholder-recipe.jpg',
+				imageUrl: stats.topRecipe.coverImageUrl ?? '/placeholder-recipe.svg',
 				cookTime: stats.topRecipe.cookTimeMinutes ?? 0,
 				difficulty: mapDifficulty(stats.topRecipe.difficulty),
 				cookCount: stats.topRecipe.cookCount,
@@ -131,7 +132,7 @@ export default function CreatorRoute() {
 		id: r.id,
 		rank: idx + 1,
 		title: r.title,
-		imageUrl: r.coverImageUrl?.[0] ?? '/placeholder-recipe.jpg',
+		imageUrl: r.coverImageUrl?.[0] ?? '/placeholder-recipe.svg',
 		cookCount: r.cookCount,
 		xpGenerated: r.creatorXpEarned ?? 0,
 		badge:
@@ -160,7 +161,7 @@ export default function CreatorRoute() {
 		id: c.sessionId,
 		userId: c.cookUserId,
 		userName: c.cookDisplayName ?? c.cookUsername ?? 'Chef',
-		userAvatar: c.cookAvatarUrl ?? '/placeholder-avatar.png',
+		userAvatar: c.cookAvatarUrl ?? '/placeholder-avatar.svg',
 		recipeTitle: c.recipeTitle,
 		xpEarned: 0, // Creator XP is tracked per-recipe, not per-session
 		timeAgo: formatTimeAgo(c.completedAt),
@@ -231,7 +232,19 @@ export default function CreatorRoute() {
 					onCreateRecipe={() => router.push('/create')}
 					onRecipeClick={id => router.push(`/recipes/${id}`)}
 					onViewAllRecipes={() => router.push('/creator/recipes')}
+					onViewStepAnalytics={id =>
+						setHeatmapRecipeId(prev => (prev === id ? null : id))
+					}
 				/>
+				{heatmapRecipeId && (
+					<StepHeatmap
+						recipeId={heatmapRecipeId}
+						recipeTitle={
+							recipePerformance.find(r => r.id === heatmapRecipeId)?.title
+						}
+						className='mt-6'
+					/>
+				)}
 			</PageContainer>
 		</PageTransition>
 	)

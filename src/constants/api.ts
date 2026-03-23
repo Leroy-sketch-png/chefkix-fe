@@ -85,7 +85,6 @@ export const API_ENDPOINTS = {
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}`,
 		TOGGLE_LIKE_REPLY: (commentId: string, replyId: string) =>
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}/like`,
-		SEARCH: `${POST_SERVICE_PREFIX}/search`,
 		// Reports per spec (13-moderation.txt)
 		REPORT: `${POST_SERVICE_PREFIX}/report`,
 	},
@@ -141,6 +140,8 @@ export const API_ENDPOINTS = {
 		LINK_POST: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/link-post`,
 		FRIENDS_ACTIVE: `${API_PREFIX}/cooking-sessions/friends-active`,
+		COOK_CARD: (sessionId: string) =>
+			`${API_PREFIX}/cooking-sessions/${sessionId}/cook-card`,
 	},
 	// Co-Cooking Rooms per spec (18-co-cooking.txt, 24-advanced-multiplayer.txt)
 	COOKING_ROOMS: {
@@ -160,6 +161,39 @@ export const API_ENDPOINTS = {
 		HISTORY: `${API_PREFIX}/challenges/history`,
 		COMMUNITY: `${API_PREFIX}/challenges/community`,
 		SEASONAL: `${API_PREFIX}/challenges/seasonal`,
+	},
+	// Cooking Duels (1v1 friend challenges)
+	DUELS: {
+		CREATE: `${API_PREFIX}/duels`,
+		ACCEPT: (duelId: string) => `${API_PREFIX}/duels/${duelId}/accept`,
+		DECLINE: (duelId: string) => `${API_PREFIX}/duels/${duelId}/decline`,
+		CANCEL: (duelId: string) => `${API_PREFIX}/duels/${duelId}/cancel`,
+		GET: (duelId: string) => `${API_PREFIX}/duels/${duelId}`,
+		MY: `${API_PREFIX}/duels/my`,
+		ACTIVE: `${API_PREFIX}/duels/active`,
+		INVITES: `${API_PREFIX}/duels/invites`,
+	},
+	// Achievements / Skill Tree
+	ACHIEVEMENTS: {
+		ALL: `${API_PREFIX}/achievements`,
+		MY_SKILL_TREE: `${API_PREFIX}/achievements/my-skill-tree`,
+		USER_SKILL_TREE: (userId: string) =>
+			`${API_PREFIX}/achievements/user/${userId}`,
+		MY_UNLOCKED: `${API_PREFIX}/achievements/my-unlocked`,
+	},
+	// Referral System
+	REFERRALS: {
+		MY_CODE: `${API_PREFIX}/referrals/my-code`,
+		REDEEM: `${API_PREFIX}/referrals/redeem`,
+		STATS: `${API_PREFIX}/referrals/stats`,
+	},
+	// Subscription / Premium
+	SUBSCRIPTION: {
+		MY: `${API_PREFIX}/subscription/my`,
+		PREMIUM_STATUS: `${API_PREFIX}/subscription/premium-status`,
+		ACTIVATE: `${API_PREFIX}/subscription/activate`,
+		TRIAL: `${API_PREFIX}/subscription/trial`,
+		CANCEL: `${API_PREFIX}/subscription/cancel`,
 	},
 	// Chat / Messaging per spec (09-chat.txt)
 	CHAT: {
@@ -190,6 +224,7 @@ export const API_ENDPOINTS = {
 		STATS: `${AUTH_PREFIX}/me/creator-stats`,
 		PERFORMANCE: `${RECIPE_SERVICE_PREFIX}/creator/performance`,
 		RECENT_COOKS: `${RECIPE_SERVICE_PREFIX}/creator/recent-cooks`,
+		STEP_HEATMAP: (id: string) => `${RECIPE_SERVICE_PREFIX}/${id}/step-heatmap`,
 	},
 	// Notifications (notification module)
 	NOTIFICATIONS: {

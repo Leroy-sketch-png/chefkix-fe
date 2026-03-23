@@ -613,7 +613,7 @@ export default function RecipeDetailPage() {
 										<div className='relative size-12 overflow-hidden rounded-full ring-2 ring-border ring-offset-2 ring-offset-bg-card transition-all group-hover/author:ring-brand'>
 											<Image
 												src={
-													recipe.author.avatarUrl || '/placeholder-avatar.png'
+													recipe.author.avatarUrl || '/placeholder-avatar.svg'
 												}
 												alt={recipe.author.username || 'Recipe author'}
 												fill

@@ -79,7 +79,7 @@ export const UserHoverCard = ({
 									className='shadow-md hover:shadow-lg transition-shadow'
 								>
 									<AvatarImage
-										src={profile.avatarUrl || '/placeholder-avatar.png'}
+										src={profile.avatarUrl || '/placeholder-avatar.svg'}
 										alt={displayName}
 									/>
 									<AvatarFallback className='text-lg'>

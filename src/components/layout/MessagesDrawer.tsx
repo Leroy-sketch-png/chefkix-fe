@@ -150,7 +150,7 @@ export const MessagesDrawer = () => {
 			const otherParticipant = conv.participants.find(
 				p => p.userId !== user?.userId,
 			)
-			return otherParticipant?.avatar || '/placeholder-avatar.png'
+			return otherParticipant?.avatar || '/placeholder-avatar.svg'
 		},
 		[user?.userId],
 	)
