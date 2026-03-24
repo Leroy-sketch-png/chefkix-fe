@@ -32,6 +32,7 @@ import {
 	Camera,
 	Gift,
 	Crown,
+	BadgeCheck,
 } from 'lucide-react'
 import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -64,6 +65,11 @@ import {
 } from '@/services/settings'
 import { updateProfile } from '@/services/profile'
 import { uploadRecipeImages } from '@/services/recipe'
+import {
+	applyForVerification,
+	getVerificationStatus,
+	type VerificationStatus,
+} from '@/services/verification'
 import { playTimerChime } from '@/hooks/useTimerNotifications'
 import {
 	requestNotificationPermission,
@@ -97,6 +103,7 @@ type SettingsTab =
 	| 'appearance'
 	| 'referral'
 	| 'premium'
+	| 'verification'
 
 interface TabConfig {
 	id: SettingsTab
@@ -151,6 +158,12 @@ const TABS: TabConfig[] = [
 		label: 'Referral',
 		icon: Gift,
 		description: 'Invite friends and earn XP',
+	},
+	{
+		id: 'verification',
+		label: 'Verification',
+		icon: BadgeCheck,
+		description: 'Get the verified creator badge',
 	},
 ]
 
@@ -392,6 +405,9 @@ export default function SettingsPage() {
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
 	const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 	const [showPasswordModal, setShowPasswordModal] = useState(false)
+	const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | null>(null)
+	const [verificationLoading, setVerificationLoading] = useState(false)
+	const [verificationReason, setVerificationReason] = useState('')
 	const coverInputRef = useRef<HTMLInputElement>(null)
 	const avatarInputRef = useRef<HTMLInputElement>(null)
 
@@ -431,6 +447,22 @@ export default function SettingsPage() {
 			loadSettings()
 		}
 	}, [user])
+
+	// Fetch verification status when verification tab is opened
+	useEffect(() => {
+		if (activeTab !== 'verification' || verificationStatus) return
+		const fetchVerification = async () => {
+			try {
+				const res = await getVerificationStatus()
+				if (res.success && res.data) {
+					setVerificationStatus(res.data)
+				}
+			} catch {
+				// No existing application — show apply form
+			}
+		}
+		fetchVerification()
+	}, [activeTab, verificationStatus])
 
 	const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
@@ -1443,6 +1475,105 @@ export default function SettingsPage() {
 
 							{/* Premium Tab */}
 							{activeTab === 'premium' && <PremiumUpgradeCard />}
+
+							{/* Verification Tab */}
+							{activeTab === 'verification' && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									className='space-y-6'
+								>
+									<SettingsCard
+										title='Creator Verification'
+										description='Get the verified badge next to your name'
+									>
+										<div className='space-y-4'>
+											{verificationStatus ? (
+												<div className='space-y-3'>
+													<div className='flex items-center gap-2'>
+														<span className='text-sm font-medium text-text-secondary'>Status:</span>
+														<span
+															className={cn(
+																'rounded-full px-2.5 py-0.5 text-xs font-semibold',
+																verificationStatus.status === 'APPROVED' && 'bg-green-100 text-green-700',
+																verificationStatus.status === 'PENDING' && 'bg-yellow-100 text-yellow-700',
+																verificationStatus.status === 'REJECTED' && 'bg-red-100 text-red-700',
+															)}
+														>
+															{verificationStatus.status}
+														</span>
+													</div>
+													{verificationStatus.status === 'APPROVED' && (
+														<div className='flex items-center gap-2 rounded-lg bg-green-50 p-3'>
+															<BadgeCheck className='size-5 text-blue-500' />
+															<p className='text-sm font-medium text-green-800'>
+																You&apos;re a verified creator!
+															</p>
+														</div>
+													)}
+													{verificationStatus.status === 'REJECTED' && verificationStatus.adminNotes && (
+														<p className='text-sm text-text-secondary'>
+															<span className='font-medium'>Feedback:</span> {verificationStatus.adminNotes}
+														</p>
+													)}
+													{verificationStatus.status === 'PENDING' && (
+														<p className='text-sm text-text-muted'>
+															Your application is being reviewed. This usually takes 1-3 business days.
+														</p>
+													)}
+												</div>
+											) : (
+												<div className='space-y-4'>
+													<p className='text-sm leading-relaxed text-text-secondary'>
+														The verified badge shows you&apos;re a recognized creator. Share recipes,
+														build your following, and apply when you&apos;re ready.
+													</p>
+													<div>
+														<Label className='mb-1.5 block text-sm font-medium'>
+															Why should you be verified? (optional)
+														</Label>
+														<Textarea
+															value={verificationReason}
+															onChange={e => setVerificationReason(e.target.value)}
+															placeholder='Tell us about your cooking journey, content, or community presence...'
+															className='min-h-[80px] resize-none'
+															maxLength={500}
+														/>
+													</div>
+													<Button
+														onClick={async () => {
+															setVerificationLoading(true)
+															try {
+																const res = await applyForVerification(verificationReason || undefined)
+																if (res.success && res.data) {
+																	setVerificationStatus(res.data)
+																	toast.success('Application submitted!')
+																} else {
+																	toast.error(res.message || 'Failed to submit application')
+																}
+															} catch {
+																toast.error('Something went wrong')
+															} finally {
+																setVerificationLoading(false)
+															}
+														}}
+														disabled={verificationLoading}
+														className='w-full'
+													>
+														{verificationLoading ? (
+															<Loader2 className='mr-2 size-4 animate-spin' />
+														) : (
+															<BadgeCheck className='mr-2 size-4' />
+														)}
+														Apply for Verification
+													</Button>
+												</div>
+											)}
+										</div>
+									</SettingsCard>
+								</motion.div>
+							)}
 
 							{/* Appearance Tab */}
 							{activeTab === 'appearance' && settings && (
