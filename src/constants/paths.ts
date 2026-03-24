@@ -15,4 +15,12 @@ export const PATHS = {
 		RESET_PASSWORD: '/auth/reset-password',
 		GOOGLE_CALLBACK: '/oauth2/callback/google',
 	},
+	GROUPS: {
+		EXPLORE: '/groups/explore',
+		MY_GROUPS: '/groups/my',
+		DETAIL: (groupId: string) => `/groups/${groupId}`,
+		MEMBERS: (groupId: string) => `/groups/${groupId}/members`,
+		CREATE: '/groups/create',
+		EDIT: (groupId: string) => `/groups/${groupId}/edit`,
+	},
 }
