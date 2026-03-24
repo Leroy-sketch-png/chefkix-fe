@@ -143,8 +143,8 @@ export default function GroupDetailPage() {
 	const isMember = group.myStatus === 'ACTIVE'
 
 	return (
-		<main className='min-h-screen py-8'>
-			<div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
+		<main className='min-h-screen py-8 pb-48'>
+			<div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12'>
 				{/* Group Header */}
 				<motion.div
 					initial={{ opacity: 0, y: -20 }}
@@ -165,6 +165,7 @@ export default function GroupDetailPage() {
 					initial={{ opacity: 0, y: 10 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.3, delay: 0.1 }}
+                    className="mb-20"
 				>
 					<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
 						{/* Tab Navigation */}

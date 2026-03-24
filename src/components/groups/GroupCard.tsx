@@ -181,7 +181,7 @@ export const GroupCard = ({
 	// Default variant
 	return (
 		<motion.div
-			className='bg-bg-card rounded-xl border border-border overflow-hidden hover:border-brand transition-colors h-full flex flex-col'
+			className='bg-bg-card rounded-xl border border-border overflow-hidden hover:border-brand transition-colors h-full flex flex-col pb-8'
 			whileHover={{ scale: 1.02 }}
 			transition={TRANSITION_SPRING}
 		>
