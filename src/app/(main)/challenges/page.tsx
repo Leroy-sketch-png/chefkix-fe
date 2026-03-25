@@ -99,6 +99,10 @@ export default function ChallengesPage() {
 				if (seasonalRes.success && seasonalRes.data) {
 					setSeasonalChallenges(seasonalRes.data)
 				}
+				// If ALL calls failed, show error state
+				if (!dailyRes.success && !weeklyRes.success && !communityRes.success && !seasonalRes.success) {
+					setError(true)
+				}
 			} catch (err) {
 				logDevError('Failed to fetch challenges:', err)
 				setError(true)

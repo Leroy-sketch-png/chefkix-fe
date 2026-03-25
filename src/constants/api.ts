@@ -331,6 +331,7 @@ export const API_ENDPOINTS = {
 		NER_EXTRACT: '/api/v1/ner/extract',
 		CALIBRATE_DIFFICULTY: '/api/v1/ml/calibrate-difficulty',
 		CONTENT_GUARD: '/api/v1/ml/content-guard',
+	},
 	GROUPS: {
 		BASE: `${API_PREFIX}/group`,
 		CREATE: `${API_PREFIX}/group`,

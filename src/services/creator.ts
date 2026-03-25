@@ -97,6 +97,7 @@ export interface RecentCookItem {
 	cookUsername: string | null
 	completedAt: string // ISO datetime
 	rating: number | null
+	xpEarned: number | null // XP the cook earned from this session
 }
 
 export interface RecentCooksResponse {

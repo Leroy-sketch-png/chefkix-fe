@@ -40,6 +40,7 @@ import {
 } from '@/components/notifications/NotificationItemsGamified'
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
+import { toast } from 'sonner'
 
 // ============================================
 // TYPES
@@ -457,11 +458,13 @@ export default function NotificationsPage() {
 					prev.map(n => ({ ...n, isRead: true })),
 				)
 				setSocialNotifications(prev => prev.map(n => ({ ...n, read: true })))
-				// Update the notification badge count
 				setUnreadCount(0)
+			} else {
+				toast.error('Failed to mark notifications as read')
 			}
 		} catch (err) {
 			logDevError('Failed to mark all as read:', err)
+			toast.error('Failed to mark notifications as read')
 		} finally {
 			setIsMarkingAllRead(false)
 		}

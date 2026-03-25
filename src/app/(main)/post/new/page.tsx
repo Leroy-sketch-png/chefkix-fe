@@ -255,7 +255,7 @@ function CreatePostContent() {
 				if (session?.id && postId) {
 					const linkResponse = await claimPendingXp(session.id, postId)
 
-					if (linkResponse.success && linkResponse.data) {
+					if (linkResponse?.success && linkResponse.data) {
 						xpAwarded = linkResponse.data.xpAwarded ?? 0
 						badgesEarned = linkResponse.data.badgesEarned ?? []
 
@@ -283,10 +283,10 @@ function CreatePostContent() {
 						sessionStorage.setItem('newPost', JSON.stringify(createdPost))
 
 						// Post succeeded but XP claim still needs recovery
-						logDevError('Failed to claim XP:', linkResponse.message)
+						logDevError('Failed to claim XP:', linkResponse?.message)
 						toast.warning('Post shared. Cooking XP is still being claimed.', {
 							description:
-								linkResponse.message ||
+								linkResponse?.message ||
 								'We will retry the XP award on the dashboard.',
 						})
 						router.push('/dashboard')

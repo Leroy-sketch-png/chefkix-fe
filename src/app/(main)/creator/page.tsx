@@ -18,6 +18,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, ChefHat, Sparkles } from 'lucide-react'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { ErrorState } from '@/components/ui/error-state'
 
 // ============================================
 // HELPERS
@@ -41,6 +42,7 @@ export default function CreatorRoute() {
 	const { user } = useAuth()
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(true)
+	const [fetchError, setFetchError] = useState(false)
 	const [stats, setStats] = useState<CreatorStats | null>(null)
 	const [performanceData, setPerformanceData] =
 		useState<CreatorPerformanceResponse | null>(null)
@@ -51,17 +53,24 @@ export default function CreatorRoute() {
 	useEffect(() => {
 		const fetchAll = async () => {
 			setIsLoading(true)
+			setFetchError(false)
 			try {
 				const [statsRes, perfRes, cooksRes] = await Promise.all([
 					getCreatorStats(),
 					getCreatorPerformance(),
 					getRecentCooks(0, 10),
 				])
+				const anySuccess = statsRes.success || perfRes.success || cooksRes.success
+				if (!anySuccess) {
+					setFetchError(true)
+					return
+				}
 				if (statsRes.success && statsRes.data) setStats(statsRes.data)
 				if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
 				if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
 			} catch (err) {
 				logDevError('Failed to fetch creator data:', err)
+				setFetchError(true)
 			} finally {
 				setIsLoading(false)
 			}
@@ -163,7 +172,7 @@ export default function CreatorRoute() {
 		userName: c.cookDisplayName ?? c.cookUsername ?? 'Chef',
 		userAvatar: c.cookAvatarUrl ?? '/placeholder-avatar.svg',
 		recipeTitle: c.recipeTitle,
-		xpEarned: 0, // Creator XP is tracked per-recipe, not per-session
+		xpEarned: c.xpEarned ?? 0,
 		timeAgo: formatTimeAgo(c.completedAt),
 	}))
 
@@ -184,6 +193,20 @@ export default function CreatorRoute() {
 							/>
 						))}
 					</div>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
+	if (fetchError) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='xl'>
+					<ErrorState
+						title='Failed to load creator analytics'
+						message='Something went wrong loading your data. Please try again.'
+						onRetry={() => window.location.reload()}
+					/>
 				</PageContainer>
 			</PageTransition>
 		)

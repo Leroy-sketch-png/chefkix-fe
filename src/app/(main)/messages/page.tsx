@@ -36,6 +36,7 @@ import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { toast } from 'sonner'
 
 // ============================================
 // HELPERS
@@ -288,6 +289,8 @@ export default function MessagesPage() {
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
 	const messagesEndRef = useRef<HTMLDivElement>(null)
+	const messagesContainerRef = useRef<HTMLDivElement>(null)
+	const isNearBottomRef = useRef(true)
 	const inputRef = useRef<MentionInputRef>(null)
 	const hasHandledUserIdRef = useRef(false)
 
@@ -416,9 +419,23 @@ export default function MessagesPage() {
 		setTimeout(() => inputRef.current?.focus(), 100)
 	}, [selectedConversationId])
 
-	// Scroll to bottom on new messages
+	// Track scroll position to decide auto-scroll behavior
 	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+		const container = messagesContainerRef.current
+		if (!container) return
+		const handleScroll = () => {
+			const { scrollTop, scrollHeight, clientHeight } = container
+			isNearBottomRef.current = scrollHeight - scrollTop - clientHeight < 100
+		}
+		container.addEventListener('scroll', handleScroll)
+		return () => container.removeEventListener('scroll', handleScroll)
+	}, [selectedConversationId])
+
+	// Scroll to bottom on new messages only if user is near bottom
+	useEffect(() => {
+		if (isNearBottomRef.current) {
+			messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+		}
 	}, [messages])
 
 	// Send message handler
@@ -445,10 +462,12 @@ export default function MessagesPage() {
 					setMessages(prev => [...prev, response.data!])
 				} else {
 					setNewMessage(messageText)
+					toast.error('Failed to send message')
 				}
 			} catch (err) {
 				logDevError('Failed to send message:', err)
 				setNewMessage(messageText)
+				toast.error('Failed to send message')
 			} finally {
 				setIsSending(false)
 			}
@@ -468,6 +487,8 @@ export default function MessagesPage() {
 			setMessages(prev =>
 				prev.map(m => (m.id === messageId ? response.data! : m)),
 			)
+		} else {
+			toast.error('Failed to react to message')
 		}
 	}, [])
 
@@ -478,6 +499,8 @@ export default function MessagesPage() {
 			setMessages(prev =>
 				prev.map(m => (m.id === messageId ? response.data! : m)),
 			)
+		} else {
+			toast.error('Failed to delete message')
 		}
 	}, [])
 
@@ -488,8 +511,12 @@ export default function MessagesPage() {
 	}, [])
 
 	// Copy message content
-	const handleCopy = useCallback((content: string) => {
-		navigator.clipboard.writeText(content)
+	const handleCopy = useCallback(async (content: string) => {
+		try {
+			await navigator.clipboard.writeText(content)
+		} catch {
+			toast.error('Failed to copy message')
+		}
 	}, [])
 
 	// Back to list (mobile)
@@ -646,7 +673,7 @@ export default function MessagesPage() {
 						</header>
 
 						{/* Messages Area - Scrollable */}
-						<div className='flex-1 overflow-y-auto px-4 py-4 md:px-6'>
+						<div ref={messagesContainerRef} className='flex-1 overflow-y-auto px-4 py-4 md:px-6'>
 							{isLoadingMessages ? (
 								<div className='flex h-full items-center justify-center'>
 									<Loader2 className='size-6 animate-spin text-text-muted' />

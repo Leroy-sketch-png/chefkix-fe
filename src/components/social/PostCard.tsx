@@ -108,8 +108,7 @@ export const PostCard = ({
 
 	const canEdit =
 		isOwner &&
-		Date.now() - createdAt.getTime() < 60 * 60 * 1000 && // Within 1 hour
-		!post.updatedAt
+		Date.now() - createdAt.getTime() < 60 * 60 * 1000 // Within 1 hour
 
 	const handleMenuToggle = useCallback(() => {
 		if (!showMenu && menuButtonRef.current) {

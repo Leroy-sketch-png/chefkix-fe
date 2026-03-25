@@ -292,12 +292,23 @@ export default function RecipeDetailPage() {
 					url: window.location.href,
 				})
 			} catch (err) {
-				// User cancelled or share failed
+				if ((err as Error).name !== 'AbortError') {
+					// Share failed for non-cancel reason — fall back to clipboard
+					try {
+						await navigator.clipboard.writeText(window.location.href)
+						toast.success(RECIPE_MESSAGES.LINK_COPIED)
+					} catch {
+						toast.error('Failed to share recipe')
+					}
+				}
 			}
 		} else {
-			// Fallback: copy to clipboard
-			await navigator.clipboard.writeText(window.location.href)
-			toast.success(RECIPE_MESSAGES.LINK_COPIED)
+			try {
+				await navigator.clipboard.writeText(window.location.href)
+				toast.success(RECIPE_MESSAGES.LINK_COPIED)
+			} catch {
+				toast.error('Failed to copy link')
+			}
 		}
 	}
 
@@ -398,6 +409,11 @@ export default function RecipeDetailPage() {
 				return
 			}
 
+			// Ignore when menus or modals are open
+			if (showRemixMenu || remixResult) {
+				return
+			}
+
 			// Ignore if any modifier keys are pressed (except shift)
 			if (e.ctrlKey || e.metaKey || e.altKey) {
 				return
@@ -442,6 +458,8 @@ export default function RecipeDetailPage() {
 		handleStartCooking,
 		handleSave,
 		handleLike,
+		showRemixMenu,
+		remixResult,
 	])
 
 	if (isLoading) {
