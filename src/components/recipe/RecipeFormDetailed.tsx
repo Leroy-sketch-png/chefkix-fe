@@ -31,6 +31,7 @@ import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { formDataToRecipe } from '@/lib/recipeTransforms'
 import type { Difficulty } from '@/lib/types/gamification'
+import { calibrateDifficulty } from '@/services/ml'
 
 // ============================================
 // TYPES
@@ -807,6 +808,50 @@ export const RecipeFormDetailed = ({
 		return () => window.removeEventListener('keydown', handleKeyDown)
 	}, [formData, onSubmit, handleSaveDraft, validateForm])
 
+	// ============================================
+	// LIVE DIFFICULTY PREDICTION
+	// ============================================
+	const [predictedDifficulty, setPredictedDifficulty] = useState<string | null>(null)
+	const [difficultyConfidence, setDifficultyConfidence] = useState<number>(0)
+	const difficultyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	useEffect(() => {
+		const ingredientCount = formData.ingredients.filter(i => i.name.trim()).length
+		const stepCount = formData.steps.filter(s => s.instruction.trim()).length
+		const totalTime = (formData.prepTimeMinutes || 0) + (formData.cookTimeMinutes || 0)
+
+		// Need at least 1 ingredient AND 1 step to predict
+		if (ingredientCount === 0 || stepCount === 0) {
+			setPredictedDifficulty(null)
+			return
+		}
+
+		if (difficultyTimerRef.current) clearTimeout(difficultyTimerRef.current)
+
+		difficultyTimerRef.current = setTimeout(async () => {
+			const result = await calibrateDifficulty({
+				ingredient_count: ingredientCount,
+				step_count: stepCount,
+				techniques: [],
+				estimated_time_minutes: totalTime || 30,
+				equipment_count: 0,
+			})
+			if (result.success && result.data) {
+				setPredictedDifficulty(result.data.predictedDifficulty)
+				setDifficultyConfidence(result.data.confidence)
+			}
+		}, 1200)
+
+		return () => {
+			if (difficultyTimerRef.current) clearTimeout(difficultyTimerRef.current)
+		}
+	}, [
+		formData.ingredients,
+		formData.steps,
+		formData.prepTimeMinutes,
+		formData.cookTimeMinutes,
+	])
+
 	return (
 		<div className={cn('mx-auto max-w-container-form p-6 md:p-10', className)}>
 			{/* Header */}
@@ -1014,14 +1059,21 @@ export const RecipeFormDetailed = ({
 								className='flex items-center gap-2 rounded-xl border-2 border-border bg-bg-card px-4 py-3 cursor-help'
 								title='Difficulty will be determined by AI based on techniques and complexity. This ensures fair XP calculation.'
 							>
-								<Signal className='size-4 text-muted-foreground' />
-								<span className='flex-1 text-sm text-muted-foreground'>
-									Determined by AI
+								<Signal className={cn('size-4', predictedDifficulty ? 'text-primary' : 'text-muted-foreground')} />
+								<span className={cn('flex-1 text-sm', predictedDifficulty ? 'font-medium text-text' : 'text-muted-foreground')}>
+									{predictedDifficulty || 'Determined by AI'}
 								</span>
+								{predictedDifficulty && difficultyConfidence > 0 && (
+									<span className='text-xs text-muted-foreground'>
+										{Math.round(difficultyConfidence * 100)}%
+									</span>
+								)}
 								<Lock className='size-4 text-muted-foreground/50' />
 							</div>
 							<p className='mt-1.5 text-xs text-muted-foreground'>
-								AI analyzes your recipe to set fair difficulty
+								{predictedDifficulty
+									? 'AI prediction based on your recipe structure'
+									: 'Add ingredients and steps to see AI prediction'}
 							</p>
 						</div>
 						<div data-error={!!errors.category}>

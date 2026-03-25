@@ -41,6 +41,12 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 		[incrementUnreadCount],
 	)
 
+	// Stable refs to avoid WebSocket reconnection on callback identity changes
+	const handleNotificationRef = useRef(handleNotification)
+	handleNotificationRef.current = handleNotification
+	const stopPollingRef = useRef(stopPolling)
+	stopPollingRef.current = stopPolling
+
 	// Connect to WebSocket
 	useEffect(() => {
 		if (!accessToken || !userId) return
@@ -68,7 +74,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 					(message: IMessage) => {
 						try {
 							const event: NotificationEvent = JSON.parse(message.body)
-							handleNotification(event)
+							handleNotificationRef.current(event)
 						} catch (err) {
 							logDevError('[NotifSocket] Failed to parse:', err)
 						}
@@ -77,7 +83,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 				subscriptionRef.current = sub
 
 				// Kill HTTP polling — WebSocket is now live
-				stopPolling()
+				stopPollingRef.current()
 			},
 			onDisconnect: () => {
 				setIsConnected(false)
@@ -110,7 +116,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 			}
 			setIsConnected(false)
 		}
-	}, [accessToken, userId, handleNotification, stopPolling])
+	}, [accessToken, userId])
 
 	return { isConnected, error }
 }

@@ -28,6 +28,7 @@ export interface NERResult {
 	modelVersion: string
 }
 
+/** @deprecated Use `processRecipe` from `@/services/ai` instead — covers NER as part of full recipe parsing. */
 export const extractEntities = async (
 	rawText: string,
 ): Promise<ApiResponse<NERResult>> => {

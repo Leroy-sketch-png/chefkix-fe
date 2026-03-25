@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -14,6 +14,9 @@ import {
 	Copy,
 	Check,
 	Trash2,
+	Search,
+	Shuffle,
+	Loader2,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -25,7 +28,10 @@ import {
 	getCurrentMealPlan,
 	deleteMealPlan,
 	getShoppingList,
+	swapMeal,
 } from '@/services/mealplan'
+import { getAllRecipes } from '@/services/recipe'
+import { Recipe, getTotalTime } from '@/lib/types/recipe'
 import type {
 	MealPlan,
 	PlannedDay,
@@ -57,7 +63,19 @@ export default function MealPlannerPage() {
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [useAI, setUseAI] = useState(false)
 
+	// Swap meal state
+	const [swapping, setSwapping] = useState<{
+		day: string
+		type: MealType
+	} | null>(null)
+	const [swapSearch, setSwapSearch] = useState('')
+	const [swapResults, setSwapResults] = useState<Recipe[]>([])
+	const [swapLoading, setSwapLoading] = useState(false)
+	const [isSwapping, setIsSwapping] = useState(false)
+	const swapSearchRef = useRef<HTMLInputElement>(null)
+
 	useEscapeKey(confirmingDelete, () => setConfirmingDelete(false))
+	useEscapeKey(!!swapping, () => setSwapping(null))
 
 	// ── Fetch current plan ────────────────────────────────
 
@@ -148,6 +166,62 @@ export default function MealPlannerPage() {
 			else next.add(ingredient)
 			return next
 		})
+	}
+
+	// ── Swap Meal ─────────────────────────────────────────
+
+	const handleSwapClick = (day: string, type: MealType) => {
+		setSwapping({ day, type })
+		setSwapSearch('')
+		setSwapResults([])
+		fetchSwapSuggestions('')
+		setTimeout(() => swapSearchRef.current?.focus(), 100)
+	}
+
+	const fetchSwapSuggestions = useCallback(async (query: string) => {
+		setSwapLoading(true)
+		try {
+			const response = await getAllRecipes({
+				search: query || undefined,
+				size: 8,
+				page: 0,
+			})
+			if (response.success && response.data) {
+				setSwapResults(response.data)
+			}
+		} catch {
+			setSwapResults([])
+		} finally {
+			setSwapLoading(false)
+		}
+	}, [])
+
+	// Debounce swap search
+	useEffect(() => {
+		if (!swapping) return
+		const timeout = setTimeout(() => fetchSwapSuggestions(swapSearch), 300)
+		return () => clearTimeout(timeout)
+	}, [swapSearch, swapping, fetchSwapSuggestions])
+
+	const handleSwapSelect = async (recipe: Recipe) => {
+		if (!swapping || !plan || isSwapping) return
+		setIsSwapping(true)
+		try {
+			const updated = await swapMeal(plan.id, swapping.day, swapping.type, {
+				recipeId: recipe.id,
+				title: recipe.title,
+				totalTimeMinutes: getTotalTime(recipe),
+				servings: recipe.servings,
+				aiGenerated: false,
+			})
+			setPlan(updated)
+			setSwapping(null)
+			toast.success(`Swapped to "${recipe.title}"`)
+		} catch {
+			toast.error('Failed to swap meal')
+		} finally {
+			setIsSwapping(false)
+		}
 	}
 
 	// ── Helpers ───────────────────────────────────────────
@@ -316,34 +390,49 @@ export default function MealPlannerPage() {
 										{plan.days.map(day => {
 											const meal = getMeal(day, mealType)
 											return (
-												<motion.button
+												<motion.div
 													key={`${day.dayOfWeek}-${mealType}`}
 													whileHover={CARD_HOVER}
-													onClick={() =>
-														meal?.recipeId &&
-														router.push(`/recipes/${meal.recipeId}`)
-													}
-													className='group rounded-xl border border-border-subtle bg-bg-card p-3 text-left shadow-card transition-colors hover:border-brand/30'
+													className='group relative rounded-xl border border-border-subtle bg-bg-card p-3 text-left shadow-card transition-colors hover:border-brand/30'
 												>
-													{meal ? (
-														<>
-															<p className='line-clamp-2 text-xs font-medium text-text'>
-																{meal.title}
-															</p>
-															<div className='mt-1.5 flex items-center gap-1.5 text-[10px] text-text-muted'>
-																<Clock className='size-3' />
-																{meal.totalTimeMinutes}m
-																{meal.aiGenerated && (
-																	<span className='rounded bg-info/10 px-1 py-0.5 text-info'>
-																		AI
-																	</span>
-																)}
-															</div>
-														</>
-													) : (
-														<p className='text-xs text-text-muted/50'>—</p>
-													)}
-												</motion.button>
+													<button
+														onClick={() =>
+															meal?.recipeId &&
+															router.push(`/recipes/${meal.recipeId}`)
+														}
+														className='w-full text-left'
+													>
+														{meal ? (
+															<>
+																<p className='line-clamp-2 text-xs font-medium text-text'>
+																	{meal.title}
+																</p>
+																<div className='mt-1.5 flex items-center gap-1.5 text-[10px] text-text-muted'>
+																	<Clock className='size-3' />
+																	{meal.totalTimeMinutes}m
+																	{meal.aiGenerated && (
+																		<span className='rounded bg-info/10 px-1 py-0.5 text-info'>
+																			AI
+																		</span>
+																	)}
+																</div>
+															</>
+														) : (
+															<p className='text-xs text-text-muted/50'>—</p>
+														)}
+													</button>
+													{/* Swap button */}
+													<button
+														onClick={e => {
+															e.stopPropagation()
+															handleSwapClick(day.dayOfWeek, mealType)
+														}}
+														className='absolute right-1 top-1 rounded-md p-1 text-text-muted opacity-0 transition-all hover:bg-bg-elevated hover:text-brand group-hover:opacity-100'
+														title='Swap meal'
+													>
+														<Shuffle className='size-3' />
+													</button>
+												</motion.div>
 											)
 										})}
 									</div>
@@ -461,6 +550,106 @@ export default function MealPlannerPage() {
 						)}
 					</AnimatePresence>
 				</div>
+
+				{/* ── Swap Meal Modal ── */}
+				<AnimatePresence>
+					{swapping && (
+						<Portal>
+							<motion.div
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4'
+								onClick={() => setSwapping(null)}
+							>
+								<motion.div
+									initial={{ scale: 0.95, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.95, opacity: 0 }}
+									onClick={e => e.stopPropagation()}
+									className='flex w-full max-w-md flex-col rounded-xl bg-bg-card shadow-warm'
+									style={{ maxHeight: '80vh' }}
+								>
+									<div className='border-b border-border-subtle p-5'>
+										<div className='mb-4 flex items-center justify-between'>
+											<div>
+												<h3 className='text-lg font-bold text-text'>
+													Swap Meal
+												</h3>
+												<p className='text-xs text-text-muted'>
+													{swapping.day} &middot;{' '}
+													{MEAL_LABELS[swapping.type].emoji}{' '}
+													{MEAL_LABELS[swapping.type].label}
+												</p>
+											</div>
+											<button
+												onClick={() => setSwapping(null)}
+												className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
+											>
+												<X className='size-4' />
+											</button>
+										</div>
+										<div className='relative'>
+											<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+											<input
+												ref={swapSearchRef}
+												type='text'
+												placeholder='Search recipes...'
+												value={swapSearch}
+												onChange={e => setSwapSearch(e.target.value)}
+												className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30'
+											/>
+										</div>
+									</div>
+
+									<div className='flex-1 overflow-y-auto p-2'>
+										{swapLoading ? (
+											<div className='flex items-center justify-center py-8'>
+												<Loader2 className='size-5 animate-spin text-brand' />
+											</div>
+										) : swapResults.length === 0 ? (
+											<p className='py-8 text-center text-sm text-text-muted'>
+												No recipes found
+											</p>
+										) : (
+											<div className='space-y-1'>
+												{swapResults.map(recipe => (
+													<button
+														key={recipe.id}
+														onClick={() => handleSwapSelect(recipe)}
+														disabled={isSwapping}
+														className='flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-bg-elevated disabled:opacity-50'
+													>
+														<div className='flex size-10 items-center justify-center rounded-lg bg-brand/10'>
+															<ChefHat className='size-5 text-brand' />
+														</div>
+														<div className='min-w-0 flex-1'>
+															<p className='truncate text-sm font-medium text-text'>
+																{recipe.title}
+															</p>
+															<div className='flex items-center gap-2 text-xs text-text-muted'>
+																<span className='flex items-center gap-1'>
+																	<Clock className='size-3' />
+																	{getTotalTime(recipe)}m
+																</span>
+																<span>
+																	{recipe.servings} servings
+																</span>
+															</div>
+														</div>
+														{isSwapping && (
+															<Loader2 className='size-4 animate-spin text-brand' />
+														)}
+													</button>
+												))}
+											</div>
+										)}
+									</div>
+								</motion.div>
+							</motion.div>
+						</Portal>
+					)}
+				</AnimatePresence>
 
 				{/* ── Delete Confirmation Dialog ── */}
 				<AnimatePresence>

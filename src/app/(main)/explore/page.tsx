@@ -188,7 +188,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							variant='secondary'
 							className='bg-gradient-xp px-3 py-1 text-sm font-bold text-white shadow-md'
 						>
-							+{recipe.xpReward ?? calculateXpRewardFallback(recipe)} XP
+							+{recipe.xpReward || 0} XP
 						</Badge>
 						{/* Difficulty */}
 						<Badge
@@ -393,6 +393,7 @@ export default function ExplorePage() {
 	const [searchQuery, setSearchQuery] = useState('')
 	const [debouncedSearch, setDebouncedSearch] = useState('')
 	const [viewMode, setViewMode] = useState<'all' | 'trending'>('all')
+	const [sortBy, setSortBy] = useState<string>('newest')
 	const [savedRecipes, setSavedRecipes] = useState<Set<string>>(new Set())
 	const [page, setPage] = useState(1)
 	const [hasMore, setHasMore] = useState(true)
@@ -563,6 +564,9 @@ export default function ExplorePage() {
 					if (filters.cookingTimeMax < 120) {
 						filterParams.maxTime = filters.cookingTimeMax
 					}
+					if (sortBy && viewMode !== 'trending') {
+						filterParams.sortBy = sortBy
+					}
 
 					const response =
 						viewMode === 'trending'
@@ -576,17 +580,11 @@ export default function ExplorePage() {
 					if (response.success && response.data) {
 						let allRecipes = response.data
 
-						if (allRecipes.length > 0) {
-							if (viewMode === 'trending') {
-								setFeaturedRecipe(allRecipes[0])
-								allRecipes = allRecipes.slice(1)
-							} else {
-								const featuredIdx = Math.floor(
-									Math.random() * Math.min(5, allRecipes.length),
-								)
-								setFeaturedRecipe(allRecipes[featuredIdx])
-								allRecipes = allRecipes.filter((_, i) => i !== featuredIdx)
-							}
+						if (allRecipes.length > 0 && viewMode === 'trending') {
+							setFeaturedRecipe(allRecipes[0])
+							allRecipes = allRecipes.slice(1)
+						} else {
+							setFeaturedRecipe(null)
 						}
 
 						const saved = new Set<string>()
@@ -601,7 +599,7 @@ export default function ExplorePage() {
 							setTotalCount(pagination.totalElements)
 							setHasMore(!pagination.last)
 						} else {
-							setTotalCount(allRecipes.length)
+							setTotalCount(response.data.length)
 							setHasMore(response.data.length >= RECIPES_PER_PAGE)
 						}
 					}
@@ -615,7 +613,7 @@ export default function ExplorePage() {
 
 		fetchRecipes()
 		return () => { cancelled = true }
-	}, [debouncedSearch, viewMode, filters, retryCount])
+	}, [debouncedSearch, viewMode, filters, retryCount, sortBy])
 
 	// Scroll restoration
 	useEffect(() => {
@@ -667,6 +665,9 @@ export default function ExplorePage() {
 			if (filters.cookingTimeMax < 120) {
 				filterParams.maxTime = filters.cookingTimeMax
 			}
+			if (sortBy && viewMode !== 'trending') {
+				filterParams.sortBy = sortBy
+			}
 
 			const response =
 				viewMode === 'trending'
@@ -704,7 +705,7 @@ export default function ExplorePage() {
 		} finally {
 			setIsLoadingMore(false)
 		}
-	}, [isLoadingMore, hasMore, page, viewMode, debouncedSearch, filters])
+	}, [isLoadingMore, hasMore, page, viewMode, debouncedSearch, filters, sortBy])
 
 	// Infinite scroll - IntersectionObserver
 	useEffect(() => {
@@ -756,6 +757,16 @@ export default function ExplorePage() {
 		try {
 			const response = await toggleSaveRecipe(recipeId)
 			if (response.success && response.data) {
+				// Reconcile with server's authoritative state
+				setSavedRecipes(prev => {
+					const newSet = new Set(prev)
+					if (response.data!.isSaved) {
+						newSet.add(recipeId)
+					} else {
+						newSet.delete(recipeId)
+					}
+					return newSet
+				})
 				trackEvent(
 					response.data.isSaved ? 'RECIPE_SAVED' : 'RECIPE_UNSAVED',
 					recipeId,
@@ -959,6 +970,26 @@ export default function ExplorePage() {
 							<TrendingUp className='size-4' />
 							Trending
 						</motion.button>
+
+						{/* Sort Dropdown */}
+						{viewMode === 'all' && (
+							<div className='relative'>
+								<select
+									value={sortBy}
+									onChange={e => {
+										setSortBy(e.target.value)
+										setPage(1)
+									}}
+									className='h-12 appearance-none rounded-xl border-2 border-border-medium bg-bg-card py-3 pl-4 pr-10 text-sm font-semibold text-text-secondary transition-all hover:border-brand focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+								>
+									<option value='newest'>Newest</option>
+									<option value='popular'>Most Cooked</option>
+									<option value='rating'>Top Rated</option>
+									<option value='quickest'>Quickest</option>
+								</select>
+								<ChevronDown className='pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+							</div>
+						)}
 					</div>
 				</motion.div>
 
@@ -1073,7 +1104,7 @@ export default function ExplorePage() {
 										cookTimeMinutes={getTotalTime(recipe)}
 										difficulty={(recipe.difficulty as Difficulty) || 'Beginner'}
 										xpReward={
-											recipe.xpReward ?? calculateXpRewardFallback(recipe)
+											recipe.xpReward ?? 0
 										}
 										rating={recipe.averageRating ?? 0}
 										cookCount={recipe.cookCount ?? 0}

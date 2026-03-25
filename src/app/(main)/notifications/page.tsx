@@ -39,6 +39,7 @@ import {
 	type GamifiedNotification,
 } from '@/components/notifications/NotificationItemsGamified'
 import { logDevError } from '@/lib/dev-log'
+import { ErrorState } from '@/components/ui/error-state'
 
 // ============================================
 // TYPES
@@ -393,6 +394,8 @@ export default function NotificationsPage() {
 		SocialNotification[]
 	>([])
 	const [isLoading, setIsLoading] = useState(true)
+	const [error, setError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 	const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
 	const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all')
 
@@ -425,13 +428,14 @@ export default function NotificationsPage() {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch notifications:', err)
+				setError(true)
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
 		fetchNotifications()
-	}, [])
+	}, [retryKey])
 
 	// Calculate counts
 	const counts = {
@@ -515,6 +519,24 @@ export default function NotificationsPage() {
 	const filtered = getFilteredNotifications()
 	const hasNotifications =
 		filtered.gamified.length > 0 || filtered.social.length > 0
+
+	if (error) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title='Failed to load notifications'
+						message='We couldn&apos;t load your notifications. Please try again.'
+						onRetry={() => {
+							setError(false)
+							setIsLoading(true)
+							setRetryKey(k => k + 1)
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
 
 	return (
 		<PageTransition>

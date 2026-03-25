@@ -16,6 +16,7 @@ import {
 	type LeaderboardTimeframe,
 } from '@/services/leaderboard'
 import { logDevError } from '@/lib/dev-log'
+import { ErrorState } from '@/components/ui/error-state'
 
 // ============================================
 // PAGE
@@ -38,6 +39,8 @@ export default function LeaderboardRoute() {
 		| undefined
 	>(undefined)
 	const [isLoading, setIsLoading] = useState(true)
+	const [error, setError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 
 	useEffect(() => {
 		const fetchLeaderboard = async () => {
@@ -78,13 +81,14 @@ export default function LeaderboardRoute() {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch leaderboard:', err)
+				setError(true)
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
 		fetchLeaderboard()
-	}, [type, timeframe])
+	}, [type, timeframe, retryKey])
 
 	// Calculate reset timer (weekly resets on Sunday midnight UTC)
 	const getResetInfo = () => {
@@ -100,6 +104,24 @@ export default function LeaderboardRoute() {
 		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
 		const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
 		return { days, hours, minutes }
+	}
+
+	if (error) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='xl'>
+					<ErrorState
+						title='Failed to load leaderboard'
+						message='We couldn&apos;t load the leaderboard rankings. Please try again.'
+						onRetry={() => {
+							setError(false)
+							setIsLoading(true)
+							setRetryKey(k => k + 1)
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
 	}
 
 	return (
