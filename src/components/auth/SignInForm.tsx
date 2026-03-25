@@ -191,7 +191,7 @@ export function SignInForm() {
 									<FormLabel className='text-text'>Email or Username</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='yourname or test@example.com'
+											placeholder='yourname or chef@email.com'
 											{...field}
 											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>

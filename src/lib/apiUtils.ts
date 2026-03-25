@@ -126,6 +126,18 @@ export function toBackendRecipeParams(params?: Record<string, unknown>) {
 			case 'limit':
 				mapped['size'] = value
 				break
+			// Sort: FE uses 'sortBy' friendly names, BE expects Spring Data 'sort' param
+			case 'sortBy': {
+				const sortMap: Record<string, string> = {
+					newest: 'createdAt,desc',
+					popular: 'cookCount,desc',
+					rating: 'averageRating,desc',
+					quickest: 'totalTimeMinutes,asc',
+				}
+				const sortVal = sortMap[value as string]
+				if (sortVal) mapped['sort'] = sortVal
+				break
+			}
 			// Pass through other params unchanged
 			default:
 				mapped[key] = value

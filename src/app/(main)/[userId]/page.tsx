@@ -24,6 +24,8 @@ const ProfilePage = () => {
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [notFound, setNotFound] = useState(false)
+	const [serverError, setServerError] = useState(false)
+	const [retryCount, setRetryCount] = useState(0)
 
 	useEffect(() => {
 		// Wait for auth to hydrate before making API calls
@@ -32,13 +34,16 @@ const ProfilePage = () => {
 		const fetchProfile = async () => {
 			setIsLoading(true)
 			setNotFound(false)
+			setServerError(false)
 
-			const { success, data } = await getProfileByUserId(userId)
+			const response = await getProfileByUserId(userId)
 
-			if (success && data) {
-				setProfile(data)
-			} else {
+			if (response.success && response.data) {
+				setProfile(response.data)
+			} else if (response.statusCode === 404) {
 				setNotFound(true)
+			} else {
+				setServerError(true)
 			}
 
 			setIsLoading(false)
@@ -47,10 +52,24 @@ const ProfilePage = () => {
 		if (userId) {
 			fetchProfile()
 		}
-	}, [userId, isAuthLoading])
+	}, [userId, isAuthLoading, retryCount])
 
 	if (isLoading || isAuthLoading) {
 		return <UserProfileSkeleton />
+	}
+
+	if (serverError) {
+		return (
+			<div className='flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center'>
+				<p className='text-lg text-text-secondary'>Something went wrong loading this profile.</p>
+				<button
+					onClick={() => setRetryCount(c => c + 1)}
+					className='rounded-lg bg-brand px-4 py-2 text-white transition-colors hover:bg-brand/90'
+				>
+					Try again
+				</button>
+			</div>
+		)
 	}
 
 	if (notFound || !profile) {

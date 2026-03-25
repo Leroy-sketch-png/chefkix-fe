@@ -13,6 +13,7 @@ import {
 	CheckCheck,
 	Sparkles,
 	ArrowLeft,
+	X,
 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -280,6 +281,9 @@ export default function MessagesPage() {
 	)
 	const [retryCount, setRetryCount] = useState(0)
 
+	// Reply state
+	const [replyingTo, setReplyingTo] = useState<Message | null>(null)
+
 	// Mobile: show chat panel when conversation selected
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
@@ -422,10 +426,12 @@ export default function MessagesPage() {
 		if (!newMessage.trim() || !selectedConversation || isSending) return
 
 		const messageText = newMessage.trim()
+		const replyToId = replyingTo?.id
 		setNewMessage('')
+		setReplyingTo(null)
 
 		if (isConnected) {
-			sendMessageWs(messageText)
+			sendMessageWs(messageText, replyToId)
 		} else {
 			// Fallback to REST
 			setIsSending(true)
@@ -433,6 +439,7 @@ export default function MessagesPage() {
 				const response = await sendMessageRest({
 					conversationId: selectedConversation.id,
 					message: messageText,
+					replyToId,
 				})
 				if (response.success && response.data) {
 					setMessages(prev => [...prev, response.data!])
@@ -476,6 +483,7 @@ export default function MessagesPage() {
 
 	// Reply to a message - focus input and prepend reply context
 	const handleReply = useCallback((message: Message) => {
+		setReplyingTo(message)
 		inputRef.current?.focus()
 	}, [])
 
@@ -686,6 +694,31 @@ export default function MessagesPage() {
 
 						{/* Input Area */}
 						<footer className='flex-shrink-0 border-t border-border-subtle bg-bg-card p-3 md:p-4'>
+							{/* Reply Preview */}
+							{replyingTo && (
+								<div className='mb-2 flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2'>
+									<div className='min-w-0 flex-1'>
+										<p className='truncate text-xs font-medium text-brand'>
+											Replying to {replyingTo.isOwn ? 'yourself' : (() => {
+												const orig = messages.find(m => m.id === replyingTo.id)
+												return orig?.sender
+													? `${orig.sender.firstName || ''} ${orig.sender.lastName || ''}`.trim() || orig.sender.username
+													: 'message'
+											})()}
+										</p>
+										<p className='truncate text-xs text-text-secondary'>
+											{replyingTo.content}
+										</p>
+									</div>
+									<button
+										type='button'
+										onClick={() => setReplyingTo(null)}
+										className='flex-shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text'
+									>
+										<X className='size-3.5' />
+									</button>
+								</div>
+							)}
 							<div className='flex items-center gap-3'>
 								<MentionInput
 									ref={inputRef}

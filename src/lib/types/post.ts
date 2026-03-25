@@ -29,6 +29,7 @@ export interface Post {
 	userId: string
 	displayName: string
 	avatarUrl?: string
+	isVerified?: boolean
 	content: string
 	slug: string
 	photoUrl?: string | null // @deprecated — BE does NOT send this field. Use photoUrls[0] instead. Kept for legacy FE fallback only.

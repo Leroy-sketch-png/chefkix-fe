@@ -46,6 +46,7 @@ import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 
 interface PostCardProps {
 	post: Post
@@ -492,8 +493,9 @@ export const PostCard = ({
 									</AvatarFallback>
 								</Avatar>
 								<div>
-									<div className='text-base font-bold leading-tight text-text-primary'>
-										{post.displayName || 'Unknown User'}
+										<div className='flex items-center gap-1 text-base font-bold leading-tight text-text-primary'>
+											{post.displayName || 'Unknown User'}
+											{post.isVerified && <VerifiedBadge size="sm" />}
 									</div>
 									<div className='text-sm leading-normal text-text-secondary'>
 										{formatDistanceToNow(new Date(post.createdAt), {

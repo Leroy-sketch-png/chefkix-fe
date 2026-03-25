@@ -181,7 +181,7 @@ export const blockUser = async (
 ): Promise<ApiResponse<BlockedUser>> => {
 	try {
 		const response = await api.post<ApiResponse<BlockedUser>>(
-			`/api/v1/social/block/${userId}`,
+			API_ENDPOINTS.SOCIAL.BLOCK(userId),
 		)
 		return response.data
 	} catch (error) {
@@ -205,7 +205,7 @@ export const unblockUser = async (
 ): Promise<ApiResponse<void>> => {
 	try {
 		const response = await api.delete<ApiResponse<void>>(
-			`/api/v1/social/block/${userId}`,
+			API_ENDPOINTS.SOCIAL.UNBLOCK(userId),
 		)
 		return response.data
 	} catch (error) {
@@ -229,7 +229,7 @@ export const getBlockedUsers = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<BlockedUser[]>>(
-			`/api/v1/social/blocked-users`,
+			API_ENDPOINTS.SOCIAL.GET_BLOCKED,
 		)
 		return response.data
 	} catch (error) {

@@ -16,6 +16,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { DailyChallengeBanner } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
+import { ErrorState } from '@/components/ui/error-state'
 import {
 	getTodaysChallenge,
 	getWeeklyChallenge,
@@ -65,6 +66,7 @@ export default function ChallengesPage() {
 		SeasonalChallenge[]
 	>([])
 	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState(false)
 
 	useEffect(() => {
 		const fetchChallenges = async () => {
@@ -99,6 +101,7 @@ export default function ChallengesPage() {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch challenges:', err)
+				setError(true)
 			} finally {
 				setLoading(false)
 			}
@@ -113,6 +116,17 @@ export default function ChallengesPage() {
 		!dailyChallenge &&
 		!weeklyChallenge &&
 		!loading
+
+	if (error) {
+		return (
+			<PageContainer maxWidth='lg'>
+				<ErrorState
+					title='Failed to load challenges'
+					message='We could not load challenge data. Please try again.'
+				/>
+			</PageContainer>
+		)
+	}
 
 	return (
 		<PageTransition>
@@ -211,10 +225,12 @@ export default function ChallengesPage() {
 												completed
 											</span>
 											<span>
-												{Math.round(
-													(weeklyChallenge.progress / weeklyChallenge.target) *
-														100,
-												)}
+												{weeklyChallenge.target > 0
+													? Math.round(
+															(weeklyChallenge.progress / weeklyChallenge.target) *
+																100,
+														)
+													: 0}
 												%
 											</span>
 										</div>
@@ -222,7 +238,7 @@ export default function ChallengesPage() {
 											<motion.div
 												initial={{ width: 0 }}
 												animate={{
-													width: `${Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100)}%`,
+													width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
 												}}
 												transition={{ duration: 0.8, ease: 'easeOut' }}
 												className='h-full rounded-full bg-gradient-indigo'
@@ -238,6 +254,17 @@ export default function ChallengesPage() {
 											{ weekday: 'long', month: 'short', day: 'numeric' },
 										)}
 									</p>
+
+									{/* CTA: Find matching recipes */}
+									{!weeklyChallenge.completed && weeklyChallenge.matchingRecipes && weeklyChallenge.matchingRecipes.length > 0 && (
+										<button
+											onClick={() => router.push('/explore')}
+											className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80'
+										>
+											Find Matching Recipes
+											<ChevronRight className='size-4' />
+										</button>
+									)}
 								</motion.div>
 							</section>
 						)}
@@ -322,9 +349,13 @@ export default function ChallengesPage() {
 														✓ You contributed
 													</span>
 												) : (
-													<span className='font-medium text-text-secondary'>
+													<button
+														onClick={() => router.push('/explore')}
+														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80'
+													>
 														Cook to contribute!
-													</span>
+														<ChevronRight className='size-3.5' />
+													</button>
 												)}
 											</div>
 										</motion.div>
@@ -396,9 +427,11 @@ export default function ChallengesPage() {
 															{ev.targetUnit}
 														</span>
 														<span>
-															{Math.round(
-																(ev.userProgress / ev.targetCount) * 100,
-															)}
+															{ev.targetCount > 0
+																? Math.round(
+																		(ev.userProgress / ev.targetCount) * 100,
+																	)
+																: 0}
 															%
 														</span>
 													</div>
@@ -406,7 +439,7 @@ export default function ChallengesPage() {
 														<motion.div
 															initial={{ width: 0 }}
 															animate={{
-																width: `${Math.min((ev.userProgress / ev.targetCount) * 100, 100)}%`,
+																width: `${ev.targetCount > 0 ? Math.min((ev.userProgress / ev.targetCount) * 100, 100) : 0}%`,
 															}}
 															transition={{
 																duration: 1,

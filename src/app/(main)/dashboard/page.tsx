@@ -89,6 +89,12 @@ const transformToPendingSession = (
 ): PendingSession => {
 	const daysRemaining = session.daysRemaining ?? 14
 	const cookedAt = new Date(session.completedAt || session.startedAt)
+	// Compute duration from startedAt and completedAt
+	const startTime = new Date(session.startedAt).getTime()
+	const endTime = session.completedAt
+		? new Date(session.completedAt).getTime()
+		: startTime
+	const durationMinutes = Math.round((endTime - startTime) / 60000)
 	// Calculate expiresAt: postDeadline from API or 14 days from completion
 	const expiresAt = session.postDeadline
 		? new Date(session.postDeadline)
@@ -100,7 +106,7 @@ const transformToPendingSession = (
 		recipeName: session.recipeTitle,
 		recipeImage: session.coverImageUrl?.[0] || '/placeholder-recipe.svg',
 		cookedAt,
-		duration: 0, // API doesn't provide cook duration
+		duration: durationMinutes,
 		baseXP: session.baseXpAwarded || 0,
 		currentXP: session.pendingXp || 0,
 		expiresAt,
