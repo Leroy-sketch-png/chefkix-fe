@@ -331,5 +331,27 @@ export const API_ENDPOINTS = {
 		NER_EXTRACT: '/api/v1/ner/extract',
 		CALIBRATE_DIFFICULTY: '/api/v1/ml/calibrate-difficulty',
 		CONTENT_GUARD: '/api/v1/ml/content-guard',
+	GROUPS: {
+		BASE: `${API_PREFIX}/group`,
+		CREATE: `${API_PREFIX}/group`,
+		GET_BY_ID: (groupId: string) => `${API_PREFIX}/group/${groupId}`,
+		UPDATE: (groupId: string) => `${API_PREFIX}/group/${groupId}`,
+		JOIN: (groupId: string) => `${API_PREFIX}/group/${groupId}/join`,
+		LEAVE: (groupId: string) => `${API_PREFIX}/group/${groupId}/leave`,
+		EXPLORE: `${API_PREFIX}/group/explore`,
+		MY_GROUPS: `${API_PREFIX}/group/me`,
+		GET_MEMBERS: (groupId: string) => `${API_PREFIX}/group/${groupId}/members`,
+		GET_PENDING_REQUESTS: (groupId: string) =>
+			`${API_PREFIX}/group/${groupId}/requests`,
+		PROCESS_REQUEST: (groupId: string, userId: string) =>
+			`${API_PREFIX}/group/${groupId}/requests/${userId}`,
+		KICK_MEMBER: (groupId: string, userId: string) =>
+			`${API_PREFIX}/group/${groupId}/members/${userId}`,
+		TRANSFER_OWNERSHIP: (groupId: string) =>
+			`${API_PREFIX}/group/${groupId}/transfer`,
+		CHANGE_PRIVACY: (groupId: string) =>
+			`${API_PREFIX}/group/${groupId}/privacy`,
+		CREATE_POST: (groupId: string) =>
+			`${API_PREFIX}/posts/groups/${groupId}/posts`,
 	},
 } as const

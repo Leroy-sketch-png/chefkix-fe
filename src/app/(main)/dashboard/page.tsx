@@ -233,6 +233,9 @@ export default function DashboardPage() {
 				if (feedResponse.success && feedResponse.data) {
 					let feedPosts = feedResponse.data
 
+					// Filter to only show PERSONAL posts (not GROUP posts)
+					feedPosts = feedPosts.filter(post => post.postType !== 'GROUP')
+
 					// OPTIMISTIC UPDATE: Check for newly created post with XP
 					// This handles the "Two Truths" problem where the FE has the
 					// correct XP from linkPostToSession, but the social module DB
@@ -319,12 +322,14 @@ export default function DashboardPage() {
 						})
 
 			if (response.success && response.data) {
-				setPosts(prev => [...prev, ...response.data!])
+				// Filter to only show PERSONAL posts (not GROUP posts)
+				const filteredPosts = response.data.filter(post => post.postType !== 'GROUP')
+				setPosts(prev => [...prev, ...filteredPosts])
 				setCurrentPage(nextPage)
 				if (response.pagination) {
 					setHasMore(!response.pagination.last)
 				} else {
-					setHasMore(response.data.length >= POSTS_PER_PAGE)
+					setHasMore(filteredPosts.length >= POSTS_PER_PAGE)
 				}
 			}
 		} catch (err) {

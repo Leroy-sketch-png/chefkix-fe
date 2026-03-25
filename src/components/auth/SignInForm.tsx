@@ -17,6 +17,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form'
+import { useRouter } from 'next/navigation' // <-- Thêm dòng này
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { ApiResponse, LoginSuccessResponse } from '@/lib/types'
@@ -78,6 +79,7 @@ export function SignInForm() {
 			password: '',
 		},
 	})
+	const router = useRouter()
 
 	async function handleSuccessfulLogin(
 		response: ApiResponse<LoginSuccessResponse>,
@@ -104,6 +106,7 @@ export function SignInForm() {
 			toast.success('Welcome back! Signed in successfully.')
 			// Set loading AFTER everything is ready - AuthProvider will handle redirect
 			setLoading(true)
+			router.push('/profile')
 			return true
 		} else {
 			// Profile fetch failed - logout completely and show error

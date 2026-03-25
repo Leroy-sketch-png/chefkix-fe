@@ -12,13 +12,14 @@ import { FollowSuggestionCard } from '@/components/social/FollowSuggestionCard'
 import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
+import { GroupsExploreGrid } from '@/components/groups'
 import { getFriends, getFollowers } from '@/services/social'
 import {
 	getLeaderboard,
 	type LeaderboardEntry as LeaderboardServiceEntry,
 } from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
-import { Users, UserPlus, Trophy, Search, Sparkles } from 'lucide-react'
+import { Users, UserPlus, Trophy, Search, Sparkles, UsersRound } from 'lucide-react'
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -165,7 +166,7 @@ export default function CommunityPage() {
 				</motion.div>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-					<TabsList className='mb-6 grid w-full grid-cols-3 lg:w-auto'>
+					<TabsList className='mb-6 grid w-full grid-cols-4 lg:w-auto'>
 						<TabsTrigger value='discover' className='gap-2'>
 							<Search className='size-4' />
 							<span className='hidden sm:inline'>Discover</span>
@@ -178,6 +179,10 @@ export default function CommunityPage() {
 									{friends.length}
 								</span>
 							)}
+						</TabsTrigger>
+						<TabsTrigger value='groups' className='gap-2'>
+							<UsersRound className='size-4' />
+							<span className='hidden sm:inline'>Groups</span>
 						</TabsTrigger>
 						<TabsTrigger value='leaderboard' className='gap-2'>
 							<Trophy className='size-4' />
@@ -267,6 +272,10 @@ export default function CommunityPage() {
 								</StaggerContainer>
 							)}
 						</section>
+					</TabsContent>
+
+					<TabsContent value='groups' className='mt-0 animate-fadeIn'>
+						<GroupsExploreGrid currentUserId={user?.userId} />
 					</TabsContent>
 
 					<TabsContent value='leaderboard' className='mt-0 animate-fadeIn'>
