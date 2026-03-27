@@ -151,13 +151,13 @@ const TABS: TabConfig[] = [
 		id: 'premium',
 		label: 'Premium',
 		icon: Crown,
-		description: 'Upgrade your ChefKix experience',
+		description: 'Coming soon -- upgrade your experience',
 	},
 	{
 		id: 'referral',
 		label: 'Referral',
 		icon: Gift,
-		description: 'Invite friends and earn XP',
+		description: 'Coming soon -- invite friends, earn XP',
 	},
 	{
 		id: 'verification',

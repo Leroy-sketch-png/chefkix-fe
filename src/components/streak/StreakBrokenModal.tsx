@@ -49,7 +49,7 @@ export function StreakBrokenModal({
 							animate={{ opacity: 1, y: 0, scale: 1 }}
 							exit={{ opacity: 0, y: 30, scale: 0.95 }}
 							transition={TRANSITION_SPRING}
-							className='w-full max-w-modal-md bg-panel-bg rounded-3xl p-10 text-center'
+							className='w-full max-w-modal-md bg-panel-bg rounded-2xl p-10 text-center'
 						>
 							{/* Sad Icon */}
 							<div className='relative mb-6'>

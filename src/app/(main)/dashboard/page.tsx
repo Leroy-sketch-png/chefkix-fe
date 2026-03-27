@@ -396,11 +396,11 @@ export default function DashboardPage() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				{/* Tonight's Pick — hero recipe suggestion */}
-				<TonightsPick className='mb-4' />
+				<TonightsPick className='mb-6' />
 				{/* Since Last Visit Summary - Welcome back card with activity summary */}
-				<SinceLastVisitCard className='mb-4' />
+				<SinceLastVisitCard className='mb-6' />
 				{hasPendingXpSync && (
-					<div className='mb-4 rounded-xl border border-warning/30 bg-warning/10 p-4'>
+					<div className='mb-4 rounded-radius border border-warning/30 bg-warning/10 p-4'>
 						<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
 							<div>
 								<p className='text-sm font-semibold text-warning'>
@@ -421,9 +421,9 @@ export default function DashboardPage() {
 					</div>
 				)}
 				{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
-				<ResumeCookingBanner className='mb-4' />
+				<ResumeCookingBanner className='mb-6' />
 				{/* Friends Cooking Now — live activity from followed users' rooms */}
-				<FriendsCookingNow className='mb-4' />
+				<FriendsCookingNow className='mb-6' />
 				{/* Streak Risk Banner - Show when user has a streak but hasn't cooked within window */}
 				{hasStreakAtRisk && showStreakBanner && (
 					<StreakRiskBanner
@@ -432,7 +432,7 @@ export default function DashboardPage() {
 						isUrgent={isUrgent}
 						onQuickCook={() => router.push('/explore')}
 						onDismiss={() => setShowStreakBanner(false)}
-						className='mb-4'
+						className='mb-6'
 					/>
 				)}
 				{/* Pending Posts Section - Show when user has cooked but not posted */}
@@ -442,7 +442,7 @@ export default function DashboardPage() {
 						onPost={handlePostFromPending}
 						onDismiss={handleDismissPending}
 						onViewAll={() => router.push(`/${user?.userId}?tab=cooking`)}
-						className='mb-4'
+						className='mb-6'
 					/>
 				)}
 				<motion.div
@@ -471,7 +471,7 @@ export default function DashboardPage() {
 					</p>
 				</motion.div>
 				{/* Feed Mode Tabs */}
-				<div className='mb-4 flex gap-2 overflow-x-auto scrollbar-none'>
+				<div className='mb-6 flex gap-2 overflow-x-auto scrollbar-none'>
 					{([
 						{ key: 'forYou' as FeedMode, label: 'For You', icon: Sparkles },
 						{ key: 'trending' as FeedMode, label: 'Trending', icon: TrendingUp },
@@ -482,10 +482,10 @@ export default function DashboardPage() {
 							key={tab.key}
 							onClick={() => setFeedMode(tab.key)}
 							className={cn(
-								'flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+								'relative flex shrink-0 items-center gap-2 rounded-radius px-4 py-2 text-sm font-semibold transition-all duration-200',
 								feedMode === tab.key
-									? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
-									: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+									? 'bg-gradient-brand text-white shadow-sm'
+									: 'text-text-secondary hover:bg-bg-elevated hover:text-text',
 							)}
 						>
 							<tab.icon className='size-4' />
@@ -574,10 +574,6 @@ export default function DashboardPage() {
 									href: '/explore',
 									icon: <MessageSquare className='size-4' />,
 								},
-							]}
-							fomoStats={[
-								{ label: 'Recipes posted today', value: '1,234' },
-								{ label: 'Active chefs', value: '567' },
 							]}
 						/>
 					)}

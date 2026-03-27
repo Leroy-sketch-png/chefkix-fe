@@ -182,7 +182,7 @@ export const ReportModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-3xl bg-panel-bg'
+							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl bg-panel-bg'
 						>
 							{submitted ? (
 								// Confirmation View
@@ -391,7 +391,7 @@ export const ReportLimitModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='w-full max-w-modal-sm rounded-3xl bg-panel-bg p-7 text-center'
+							className='w-full max-w-modal-sm rounded-2xl bg-panel-bg p-7 text-center'
 						>
 							<div className='mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
 								<AlertCircle className='h-8 w-8' />
@@ -448,7 +448,7 @@ export const AccountRestrictedNotice = ({
 	]
 
 	return (
-		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-3xl bg-panel-bg'>
+		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-2xl bg-panel-bg'>
 			{/* Header */}
 			<div
 				className={cn(
@@ -640,7 +640,7 @@ export const AppealModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-3xl bg-panel-bg'
+							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl bg-panel-bg'
 						>
 							{submitted ? (
 								// Submitted View

@@ -114,7 +114,7 @@ export const ChallengeComplete = ({
 					initial={{ scale: 0.5, y: 50, opacity: 0 }}
 					animate={{ scale: 1, y: 0, opacity: 1 }}
 					transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-					className='relative w-full max-w-modal-md overflow-hidden rounded-3xl bg-panel-bg p-8 text-center shadow-2xl'
+					className='relative w-full max-w-modal-md overflow-hidden rounded-2xl bg-panel-bg p-8 text-center shadow-2xl'
 				>
 					{/* Confetti */}
 					<Confetti />
@@ -123,12 +123,12 @@ export const ChallengeComplete = ({
 					<div className='relative mx-auto mb-5 size-thumbnail-xl'>
 						{/* Glow */}
 						<motion.div
-							className='absolute -inset-5 rounded-3xl bg-xp/30 blur-xl'
+							className='absolute -inset-5 rounded-2xl bg-xp/30 blur-xl'
 							animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.1, 1] }}
 							transition={{ duration: 1.5, repeat: Infinity }}
 						/>
 						{/* Badge */}
-						<div className='relative flex h-full w-full items-center justify-center rounded-3xl bg-gradient-indigo shadow-lg shadow-accent-purple/40'>
+						<div className='relative flex h-full w-full items-center justify-center rounded-2xl bg-gradient-indigo shadow-lg shadow-accent-purple/40'>
 							<span className='text-5xl'>{challengeIcon}</span>
 						</div>
 						{/* Checkmark */}

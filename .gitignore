@@ -51,3 +51,5 @@ _build_out*.txt
 _output*.txt
 _ts_output*.txt
 _tsc*.txt
+
+_fe_*.txt

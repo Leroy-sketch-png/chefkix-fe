@@ -52,10 +52,7 @@ export interface EmptyStateProps {
 		icon?: React.ReactNode
 	}[]
 	quickActions?: QuickAction[]
-	fomoStats?: {
-		label: string
-		value: string
-	}[]
+
 	searchSuggestions?: string[]
 	onSuggestionClick?: (suggestion: string) => void
 	isPositive?: boolean
@@ -372,7 +369,6 @@ export function EmptyState({
 	primaryAction,
 	secondaryActions,
 	quickActions,
-	fomoStats,
 	searchSuggestions,
 	onSuggestionClick,
 	isPositive = false,
@@ -408,25 +404,6 @@ export function EmptyState({
 			<p className='text-base text-text-muted mb-6 max-w-xs mx-auto leading-relaxed'>
 				{description}
 			</p>
-
-			{/* FOMO Stats */}
-			{fomoStats && fomoStats.length > 0 && (
-				<div className='inline-block bg-bg rounded-xl py-4 px-5 mb-6'>
-					<span className='block text-xs text-text-muted mb-3'>
-						People you might like are sharing:
-					</span>
-					<div className='flex gap-6 justify-center'>
-						{fomoStats.map((stat, index) => (
-							<div key={index} className='flex flex-col items-center'>
-								<span className='text-xl font-extrabold text-primary'>
-									{stat.value}
-								</span>
-								<span className='text-xs text-text-muted'>{stat.label}</span>
-							</div>
-						))}
-					</div>
-				</div>
-			)}
 
 			{/* Search Suggestions */}
 			{searchSuggestions && searchSuggestions.length > 0 && (
@@ -564,10 +541,7 @@ export function EmptyFeed({
 			variant='feed'
 			title='Your feed is hungry!'
 			description='Follow chefs to fill it with delicious inspiration'
-			fomoStats={[
-				{ value: '847', label: 'recipes today' },
-				{ value: '12.4k', label: 'XP earned' },
-			]}
+
 			primaryAction={{
 				label: 'Discover Chefs',
 				onClick: onDiscoverChefs,
