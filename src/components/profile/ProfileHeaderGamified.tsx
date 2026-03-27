@@ -311,15 +311,23 @@ const StatsRow = ({
 		<div className='flex gap-8'>
 			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold text-success'>
-					{cooking.recipesCooked}
+					{cooking.recipesCooked || (isOwnProfile ? '—' : '0')}
 				</span>
 				<span className='text-xs font-semibold text-success'>
-					Recipes Cooked
+					{cooking.recipesCooked === 0 && isOwnProfile
+						? 'Start cooking!'
+						: 'Recipes Cooked'}
 				</span>
 			</div>
 			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold'>{cooking.recipesCreated}</span>
-				<span className='text-xs text-text-muted'>Recipes Created</span>
+				<span className='text-xl font-extrabold'>
+					{cooking.recipesCreated || (isOwnProfile ? '—' : '0')}
+				</span>
+				<span className='text-xs text-text-muted'>
+					{cooking.recipesCreated === 0 && isOwnProfile
+						? 'Share a recipe!'
+						: 'Recipes Created'}
+				</span>
 			</div>
 			{cooking.mastered !== undefined && (
 				<div className='flex flex-col'>
@@ -400,7 +408,18 @@ const BadgesShowcase = ({
 			</div>
 		)}
 		<div className='flex gap-3 overflow-x-auto pb-2'>
-			{badges.slice(0, compact ? 3 : 5).map((badge, index) => (
+			{badges.length === 0 && isOwnProfile ? (
+				<Link
+					href='/profile/badges'
+					className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-4 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
+				>
+					<span className='text-lg'>🏅</span>
+					Cook a recipe to earn your first badge!
+				</Link>
+			) : badges.length === 0 ? (
+				<p className='py-4 text-center text-sm text-text-muted'>No badges yet</p>
+			) : (
+				badges.slice(0, compact ? 3 : 5).map((badge, index) => (
 				<motion.div
 					key={badge.id || `badge-${index}`}
 					whileHover={STAT_ITEM_HOVER}
@@ -430,7 +449,8 @@ const BadgesShowcase = ({
 						</span>
 					)}
 				</motion.div>
-			))}
+			))
+			)}
 			{compact && totalBadges > 3 && (
 				<span className='flex items-center px-3 text-xs font-semibold text-text-muted'>
 					+{totalBadges - 3}

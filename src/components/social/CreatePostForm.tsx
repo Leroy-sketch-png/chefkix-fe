@@ -306,9 +306,9 @@ export const CreatePostForm = ({
 											type='button'
 											onClick={() => removePhoto(index)}
 											aria-label={`Remove photo ${index + 1}`}
-											className='absolute right-1 top-1 h-8 w-8 rounded-full bg-text-primary/60 text-bg-card opacity-0 transition-opacity group-hover:opacity-100'
+											className='absolute right-1 top-1 size-8 rounded-full bg-text-primary/60 text-bg-card opacity-0 transition-opacity group-hover:opacity-100'
 										>
-											<X className='mx-auto h-4 w-4' />
+											<X className='mx-auto size-4' />
 										</button>
 									</motion.div>
 								))}
@@ -365,9 +365,9 @@ export const CreatePostForm = ({
 				{/* Footer Actions */}
 				<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
 					<div className='flex gap-2'>
-						<label className='group h-11 w-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
+						<label className='group size-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
 							<span className='sr-only'>Add photos</span>
-							<ImageIcon className='mx-auto mt-2.5 h-5 w-5 text-text-secondary transition-colors group-hover:text-primary' />
+							<ImageIcon className='mx-auto mt-2.5 size-5 text-text-secondary transition-colors group-hover:text-primary' />
 							<input
 								type='file'
 								accept='image/*'
@@ -382,26 +382,26 @@ export const CreatePostForm = ({
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
 							aria-label='Toggle video options'
-							className={`h-11 w-11 rounded-lg transition-colors hover:bg-bg-card ${
+							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-primary/10 text-primary'
 									: 'text-text-secondary'
 							}`}
 						>
-							<Video className='mx-auto h-5 w-5' />
+							<Video className='mx-auto size-5' />
 						</button>
 
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
 							aria-label='Toggle tag options'
-							className={`h-11 w-11 rounded-lg transition-colors hover:bg-bg-card ${
+							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-primary/10 text-primary'
 									: 'text-text-secondary'
 							}`}
 						>
-							<Tag className='mx-auto h-5 w-5' />
+							<Tag className='mx-auto size-5' />
 						</button>
 					</div>
 
@@ -417,7 +417,7 @@ export const CreatePostForm = ({
 										className='shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
 										shine
 									>
-										<Send className='mr-2 h-4 w-4' />
+										<Send className='mr-2 size-4' />
 										Post
 									</AnimatedButton>
 								</span>

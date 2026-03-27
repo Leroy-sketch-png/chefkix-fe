@@ -513,9 +513,9 @@ export const PostCard = ({
 									ref={menuButtonRef}
 									onClick={handleMenuToggle}
 									aria-label='Open post actions'
-									className='h-11 w-11 rounded-full transition-colors hover:bg-bg-hover'
+									className='size-11 rounded-full transition-colors hover:bg-bg-hover'
 								>
-									<MoreVertical className='mx-auto h-5 w-5 text-text-secondary' />
+									<MoreVertical className='mx-auto size-5 text-text-secondary' />
 								</button>
 
 								{/* Portaled dropdown to escape overflow:hidden clipping */}
@@ -531,7 +531,7 @@ export const PostCard = ({
 												initial={{ opacity: 0, scale: 0.95, y: -10 }}
 												animate={{ opacity: 1, scale: 1, y: 0 }}
 												exit={{ opacity: 0, scale: 0.95, y: -10 }}
-												className='fixed z-dropdown w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
+												className='fixed z-dropdown w-48 rounded-radius border border-border-subtle bg-bg-card py-1 shadow-card'
 												style={{
 													top: `${menuPosition.top}px`,
 													right: `${menuPosition.right}px`,
@@ -549,7 +549,7 @@ export const PostCard = ({
 																}}
 																className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 															>
-																<Pencil className='h-4 w-4' />
+																<Pencil className='size-4' />
 																Edit post
 															</button>
 														)}
@@ -558,7 +558,7 @@ export const PostCard = ({
 															onClick={handleDelete}
 															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 														>
-															<Trash2 className='h-4 w-4' />
+															<Trash2 className='size-4' />
 															Delete post
 														</button>
 													</>
@@ -573,7 +573,7 @@ export const PostCard = ({
 														}}
 														className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 													>
-														<Flag className='h-4 w-4' />
+														<Flag className='size-4' />
 														Report post
 													</button>
 												)}
@@ -809,7 +809,7 @@ export const PostCard = ({
 							}`}
 						>
 							<Heart
-								className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
+								className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
 									post.isLiked
 										? 'animate-heart-beat fill-destructive stroke-destructive'
 										: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
@@ -824,7 +824,7 @@ export const PostCard = ({
 							aria-label={showComments ? 'Hide comments' : 'Show comments'}
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 						>
-							<MessageSquare className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
+							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
 							<span>{post.commentCount ?? 0}</span>
 						</button>
 
@@ -837,7 +837,7 @@ export const PostCard = ({
 								aria-label='Share post'
 								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 							>
-								<Send className='h-5 w-5 transition-all duration-300 group-hover/btn:scale-125' />
+								<Send className='size-5 transition-all duration-300 group-hover/btn:scale-125' />
 								<span>Share</span>
 							</button>
 
@@ -854,7 +854,7 @@ export const PostCard = ({
 											initial={{ opacity: 0, scale: 0.95, y: 10 }}
 											animate={{ opacity: 1, scale: 1, y: 0 }}
 											exit={{ opacity: 0, scale: 0.95, y: 10 }}
-											className='fixed z-dropdown w-48 rounded-lg border border-border-subtle bg-bg-card py-1 shadow-lg'
+											className='fixed z-dropdown w-48 rounded-radius border border-border-subtle bg-bg-card py-1 shadow-card'
 											style={{
 												bottom: `${window.innerHeight - shareMenuPosition.top}px`,
 												right: `${shareMenuPosition.right}px`,
@@ -865,7 +865,7 @@ export const PostCard = ({
 												onClick={handleShareToChat}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
-												<MessageSquare className='h-4 w-4' />
+												<MessageSquare className='size-4' />
 												Send in chat
 											</button>
 											<button
@@ -873,7 +873,7 @@ export const PostCard = ({
 												onClick={handleNativeShare}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
-												<Send className='h-4 w-4' />
+												<Send className='size-4' />
 												Share externally
 											</button>
 										</motion.div>
@@ -895,7 +895,7 @@ export const PostCard = ({
 							}`}
 						>
 							<Bookmark
-								className={`h-5 w-5 transition-all duration-300 group-hover/btn:scale-125 ${
+								className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
 									isSaved
 										? 'fill-gold stroke-gold'
 										: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'

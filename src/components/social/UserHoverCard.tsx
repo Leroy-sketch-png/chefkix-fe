@@ -116,8 +116,8 @@ export const UserHoverCard = ({
 
 							{!isOwnProfile && (
 								<div className='flex gap-2'>
-									<Button size='sm' variant='outline' className='h-8 w-8 p-0' aria-label='Send message' onClick={handleSendMessage}>
-										<MessageCircle className='h-4 w-4' />
+									<Button size='sm' variant='outline' className='size-8 p-0' aria-label='Send message' onClick={handleSendMessage}>
+										<MessageCircle className='size-4' />
 									</Button>
 									<Button
 										size='sm'
@@ -127,15 +127,15 @@ export const UserHoverCard = ({
 										disabled={isFollowLoading}
 									>
 										{isFollowLoading ? (
-											<Loader2 className='h-4 w-4 animate-spin' />
+											<Loader2 className='size-4 animate-spin' />
 										) : profile.isFollowing ? (
 											<>
-												<UserCheck className='h-4 w-4 mr-1' />
+												<UserCheck className='size-4 mr-1' />
 												Following
 											</>
 										) : (
 											<>
-												<UserPlus className='h-4 w-4 mr-1' />
+												<UserPlus className='size-4 mr-1' />
 												Follow
 											</>
 										)}
