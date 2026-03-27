@@ -426,7 +426,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 					alt={session.recipeName}
 					width={64}
 					height={64}
-					className='w-16 h-16 rounded-xl object-cover grayscale-[50%] flex-shrink-0'
+					className='size-16 rounded-xl object-cover grayscale flex-shrink-0'
 				/>
 
 				<div className='flex-1 min-w-0'>

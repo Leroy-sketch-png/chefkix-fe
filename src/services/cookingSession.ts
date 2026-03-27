@@ -99,6 +99,17 @@ export interface CompleteSessionResponse {
 	completedAt: string
 	baseXpAwarded: number
 	pendingXp: number
+	xpBreakdown?: {
+		base: number
+		baseReason: string
+		steps: number
+		stepsReason: string
+		time: number
+		timeReason: string
+		techniques?: number
+		techniquesReason?: string
+		total: number
+	}
 	postDeadline: string
 	message: string
 	// Level-up tracking for celebration

@@ -60,6 +60,17 @@ interface ImmediateRewardsProps {
 	// XP breakdown
 	immediateXp: number
 	pendingXp: number
+	xpBreakdown?: {
+		base: number
+		baseReason: string
+		steps: number
+		stepsReason: string
+		time: number
+		timeReason: string
+		techniques?: number
+		techniquesReason?: string
+		total: number
+	}
 	streakBonus?: number
 	streakDays?: number
 	creatorTipXp?: number
@@ -217,6 +228,7 @@ export const ImmediateRewards = ({
 	recipeImageUrl,
 	immediateXp,
 	pendingXp,
+	xpBreakdown,
 	streakBonus = 0,
 	streakDays = 0,
 	creatorTipXp = 0,
@@ -352,7 +364,7 @@ export const ImmediateRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative w-full max-w-md overflow-hidden rounded-3xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-modal max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
+							className='relative w-full max-w-md overflow-hidden rounded-2xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-modal max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close button */}
 							<button
@@ -393,6 +405,71 @@ export const ImmediateRewards = ({
 											animationDelay={0.2 + i * 0.1}
 										/>
 									))}
+
+								{/* XP Breakdown (how immediate XP was calculated) */}
+								{xpBreakdown && (
+									<motion.div
+										initial={{ opacity: 0, height: 0 }}
+										animate={{ opacity: 1, height: 'auto' }}
+										transition={{ delay: 0.4, ...TRANSITION_SPRING }}
+										className='mx-2 mb-1 rounded-xl bg-bg px-3 py-2'
+									>
+										<span className='mb-1.5 block text-[10px] font-medium uppercase tracking-wider text-text-muted'>
+											Recipe XP Breakdown
+										</span>
+										<div className='space-y-1'>
+											{xpBreakdown.base > 0 && (
+												<div className='flex items-center justify-between text-xs'>
+													<span className='text-text-secondary'>
+														{xpBreakdown.baseReason || 'Base'}
+													</span>
+													<span className='font-semibold text-xp'>
+														+{xpBreakdown.base}
+													</span>
+												</div>
+											)}
+											{xpBreakdown.steps > 0 && (
+												<div className='flex items-center justify-between text-xs'>
+													<span className='text-text-secondary'>
+														{xpBreakdown.stepsReason || 'Steps'}
+													</span>
+													<span className='font-semibold text-xp'>
+														+{xpBreakdown.steps}
+													</span>
+												</div>
+											)}
+											{xpBreakdown.time > 0 && (
+												<div className='flex items-center justify-between text-xs'>
+													<span className='text-text-secondary'>
+														{xpBreakdown.timeReason || 'Time'}
+													</span>
+													<span className='font-semibold text-xp'>
+														+{xpBreakdown.time}
+													</span>
+												</div>
+											)}
+											{xpBreakdown.techniques != null &&
+												xpBreakdown.techniques > 0 && (
+													<div className='flex items-center justify-between text-xs'>
+														<span className='text-text-secondary'>
+															{xpBreakdown.techniquesReason || 'Techniques'}
+														</span>
+														<span className='font-semibold text-xp'>
+															+{xpBreakdown.techniques}
+														</span>
+													</div>
+												)}
+											<div className='mt-1 flex items-center justify-between border-t border-border-subtle pt-1 text-xs'>
+												<span className='font-medium text-text-muted'>
+													Total recipe XP
+												</span>
+												<span className='font-bold text-text'>
+													{xpBreakdown.total}
+												</span>
+											</div>
+										</div>
+									</motion.div>
+								)}
 
 								{/* Divider with XP split explainer */}
 								<div className='flex items-center gap-3 px-3.5 py-2'>

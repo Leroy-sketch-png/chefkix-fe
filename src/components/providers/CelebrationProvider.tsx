@@ -132,6 +132,17 @@ interface ImmediateRewardsData {
 	recipeImageUrl?: string
 	immediateXp: number
 	pendingXp: number
+	xpBreakdown?: {
+		base: number
+		baseReason: string
+		steps: number
+		stepsReason: string
+		time: number
+		timeReason: string
+		techniques?: number
+		techniquesReason?: string
+		total: number
+	}
 	streakBonus?: number
 	streakDays?: number
 	creatorTipXp?: number
@@ -614,6 +625,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					recipeImageUrl={immediateRewardsData.recipeImageUrl}
 					immediateXp={immediateRewardsData.immediateXp}
 					pendingXp={immediateRewardsData.pendingXp}
+					xpBreakdown={immediateRewardsData.xpBreakdown}
 					streakBonus={immediateRewardsData.streakBonus}
 					streakDays={immediateRewardsData.streakDays}
 					creatorTipXp={immediateRewardsData.creatorTipXp}
