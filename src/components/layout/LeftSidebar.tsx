@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Home,
-	Newspaper,
 	Compass,
 	Target,
 	PlusSquare,
@@ -20,6 +19,7 @@ import {
 	CalendarDays,
 	ShoppingCart,
 	Shield,
+	MoreHorizontal,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -37,22 +37,24 @@ interface NavItem {
 	showBadge?: boolean // Whether this item can show a notification badge
 }
 
-const baseNavItems: NavItem[] = [
+// Primary nav: the 7 items users need most (serves 80% scrollers + 15% cooks)
+const primaryNavItems: NavItem[] = [
 	{ href: '/dashboard', icon: Home, label: 'Home' },
-	{ href: '/feed', icon: Newspaper, label: 'Feed' },
 	{ href: '/explore', icon: Compass, label: 'Explore' },
+	{ href: '/create', icon: PlusSquare, label: 'Create' },
+	{ href: '/messages', icon: MessageCircle, label: 'Messages' },
+	{ href: '/notifications', icon: Bell, label: 'Notifs', showBadge: true },
+	{ href: '/profile', icon: User, label: 'Profile' },
+]
+
+// Secondary nav: kitchen tools, social features, settings (under "More")
+const secondaryNavItems: NavItem[] = [
 	{ href: '/challenges', icon: Target, label: 'Challenges' },
 	{ href: '/community', icon: Users, label: 'Community' },
 	{ href: '/cook-together', icon: ChefHat, label: 'Cook Together' },
 	{ href: '/pantry', icon: Package, label: 'Pantry' },
 	{ href: '/meal-planner', icon: CalendarDays, label: 'Meal Plan' },
 	{ href: '/shopping-lists', icon: ShoppingCart, label: 'Shopping' },
-	{ href: '/create', icon: PlusSquare, label: 'Create' },
-	{ href: '/messages', icon: MessageCircle, label: 'Messages' },
-	{ href: '/notifications', icon: Bell, label: 'Notifs', showBadge: true },
-	// NOTE: Saved removed from nav - access via Profile page's Saved tab
-	// Having both "Saved" and "Profile" in nav was confusing (same destination)
-	{ href: '/profile', icon: User, label: 'Profile' },
 	{ href: '/settings', icon: Settings, label: 'Settings' },
 ]
 
@@ -66,16 +68,29 @@ export const LeftSidebar = () => {
 	const pathname = usePathname()
 	const { user, isAuthenticated } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
+	const [showMore, setShowMore] = useState(false)
 
-	// Include admin nav item only for admin users
-	const navItems = useMemo(() => {
+	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
+	const isSecondaryActive = useMemo(() => {
+		const allSecondary = [...secondaryNavItems]
+		if (user?.accountType === 'admin') allSecondary.push(adminNavItem)
+		return allSecondary.some(item => {
+			const href = typeof item.href === 'function' ? item.href(user?.userId) : item.href
+			return pathname.startsWith(href)
+		})
+	}, [pathname, user?.accountType, user?.userId])
+
+	// Auto-expand when on a secondary route
+	useEffect(() => {
+		if (isSecondaryActive) setShowMore(true)
+	}, [isSecondaryActive])
+
+	// Build the secondary items list (including admin if applicable)
+	const secondaryItems = useMemo(() => {
 		if (user?.accountType === 'admin') {
-			// Insert admin item before Settings (second to last)
-			const items = [...baseNavItems]
-			items.splice(items.length - 1, 0, adminNavItem)
-			return items
+			return [...secondaryNavItems, adminNavItem]
 		}
-		return baseNavItems
+		return secondaryNavItems
 	}, [user?.accountType])
 
 	// Start/stop polling based on auth state
@@ -99,13 +114,63 @@ export const LeftSidebar = () => {
 	const isActive = (item: NavItem) => {
 		const href = getHref(item)
 		if (href === '/dashboard') return pathname === href || pathname === '/'
-		// For saved tab, check if on profile with saved tab
-		if (item.label === 'Saved') {
-			return (
-				pathname.includes(user?.userId ?? '') && pathname.includes('tab=saved')
-			)
-		}
 		return pathname.startsWith(href)
+	}
+
+	const renderNavItem = (item: NavItem) => {
+		const href = getHref(item)
+		const active = isActive(item)
+		const Icon = item.icon
+		return (
+			<Link
+				key={item.label}
+				href={href}
+				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-primary'
+				data-active={active}
+				title={item.label}
+			>
+				{/* Active indicator bar */}
+				<motion.div
+					className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r-sm bg-gradient-primary'
+					initial={false}
+					animate={{
+						height: active ? '70%' : '0%',
+					}}
+					transition={TRANSITION_SPRING}
+				/>{' '}
+				{/* Background glow on active */}
+				<motion.div
+					className='absolute inset-0 rounded-radius bg-gradient-to-r from-primary/10 to-transparent opacity-0'
+					initial={false}
+					animate={{
+						opacity: active ? 1 : 0,
+					}}
+					transition={{
+						duration: 0.3,
+					}}
+				/>
+				{/* Icon with hover animation */}
+				<motion.div
+					whileHover={{
+						...ICON_BUTTON_HOVER,
+						scale: 1.15,
+						rotate: 5,
+					}}
+					whileTap={ICON_BUTTON_TAP}
+					transition={TRANSITION_SPRING}
+					className='relative'
+				>
+					<Icon className='size-6 transition-all duration-300 group-data-[active=true]:drop-shadow-glow' />
+					{/* Unread badge for notifications */}
+					{item.showBadge && unreadCount > 0 && (
+						<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white'>
+							{unreadCount > 9 ? '9+' : unreadCount}
+						</span>
+					)}
+				</motion.div>
+				<div>{item.label}</div>
+			</Link>
+		)
 	}
 
 	return (
@@ -113,61 +178,44 @@ export const LeftSidebar = () => {
 			className='hidden border-r border-border-subtle bg-bg-card px-3 py-6 md:flex md:w-nav md:flex-col md:items-center md:gap-4'
 			aria-label='Main navigation'
 		>
-			{navItems.map(item => {
-				const href = getHref(item)
-				const active = isActive(item)
-				const Icon = item.icon
-				return (
-					<Link
-						key={item.label}
-						href={href}
-						className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-[0.6px] text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-primary'
-						data-active={active}
-						title={item.label}
+			{/* Primary navigation */}
+			{primaryNavItems.map(renderNavItem)}
+
+			{/* More toggle */}
+			<button
+				onClick={() => setShowMore(prev => !prev)}
+				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary'
+				title={showMore ? 'Show less' : 'More'}
+				aria-expanded={showMore}
+			>
+				<motion.div
+					whileHover={{
+						...ICON_BUTTON_HOVER,
+						scale: 1.15,
+					}}
+					whileTap={ICON_BUTTON_TAP}
+					transition={TRANSITION_SPRING}
+				>
+					<MoreHorizontal className='size-6' />
+				</motion.div>
+				<div>{showMore ? 'Less' : 'More'}</div>
+			</button>
+
+			{/* Secondary navigation (collapsible) */}
+			<AnimatePresence>
+				{showMore && (
+					<motion.div
+						initial={{ opacity: 0, height: 0 }}
+						animate={{ opacity: 1, height: 'auto' }}
+						exit={{ opacity: 0, height: 0 }}
+						transition={TRANSITION_SPRING}
+						className='flex w-full flex-col items-center gap-4 overflow-hidden'
 					>
-						{/* Active indicator bar */}
-						<motion.div
-							className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r-sm bg-gradient-primary'
-							initial={false}
-							animate={{
-								height: active ? '70%' : '0%',
-							}}
-							transition={TRANSITION_SPRING}
-						/>{' '}
-						{/* Background glow on active */}
-						<motion.div
-							className='absolute inset-0 rounded-radius bg-gradient-to-r from-primary/10 to-transparent opacity-0'
-							initial={false}
-							animate={{
-								opacity: active ? 1 : 0,
-							}}
-							transition={{
-								duration: 0.3,
-							}}
-						/>
-						{/* Icon with hover animation */}
-						<motion.div
-							whileHover={{
-								...ICON_BUTTON_HOVER,
-								scale: 1.15,
-								rotate: 5,
-							}}
-							whileTap={ICON_BUTTON_TAP}
-							transition={TRANSITION_SPRING}
-							className='relative'
-						>
-							<Icon className='size-6 transition-all duration-300 group-data-[active=true]:drop-shadow-glow' />
-							{/* Unread badge for notifications */}
-							{item.showBadge && unreadCount > 0 && (
-								<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white'>
-									{unreadCount > 9 ? '9+' : unreadCount}
-								</span>
-							)}
-						</motion.div>
-						<div>{item.label}</div>
-					</Link>
-				)
-			})}
+						<div className='mx-auto h-px w-8 bg-border-subtle' />
+						{secondaryItems.map(renderNavItem)}
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</nav>
 	)
 }

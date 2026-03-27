@@ -192,7 +192,7 @@ export const Topbar = () => {
 					</div>
 				</motion.div>
 			</Link>
-			{/* Search Bar - constrained max width, with left margin to avoid overlapping the absolute logo */}
+			{/* Search Bar - constrained max width, with left margin to clear the absolute logo */}
 			<form
 				ref={searchFormRef}
 				onSubmit={e => {
@@ -201,9 +201,9 @@ export const Topbar = () => {
 					const q = searchQuery.trim()
 					if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
 				}}
-				className='group relative ml-20 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-lg focus-within:scale-[1.02] md:ml-24 md:px-4 md:py-2.5'
+				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-md md:ml-44 md:px-4 md:py-2.5'
 			>
-				<Search className='h-5 w-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:rotate-12 group-focus-within:text-primary' />
+				<Search className='size-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
 				<input
 					ref={inputRef}
 					type='text'
@@ -323,7 +323,7 @@ export const Topbar = () => {
 			{user && (
 				<motion.div
 					whileHover={{ scale: 1.05 }}
-					className='relative hidden overflow-hidden rounded-xl bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-md lg:flex lg:items-center lg:gap-2'
+					className='relative hidden overflow-hidden rounded-radius bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-md lg:flex lg:items-center lg:gap-2'
 				>
 					<span className='relative z-10'>
 						Lv. {user.statistics?.currentLevel || 1}
@@ -363,7 +363,9 @@ export const Topbar = () => {
 					>
 						{/* XP Progress Ring - hidden on mobile for compactness */}
 						<svg
-							className='absolute -inset-1 hidden size-14 md:block'
+							className='absolute -inset-1 hidden md:block'
+							width='56'
+							height='56'
 							viewBox='0 0 56 56'
 						>
 							<circle
@@ -447,7 +449,7 @@ export const Topbar = () => {
 								onClick={() => setShowUserMenu(false)}
 							/>
 							<div
-								className='fixed z-dropdown w-48 overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-lg animate-in fade-in-0 zoom-in-95'
+								className='fixed z-dropdown w-48 overflow-hidden rounded-radius border border-border-subtle bg-bg-card shadow-lg animate-in fade-in-0 zoom-in-95'
 								style={{
 									top: `${menuPosition.top}px`,
 									right: `${menuPosition.right}px`,
@@ -456,14 +458,14 @@ export const Topbar = () => {
 								<Link
 									href={PATHS.SETTINGS}
 									onClick={() => setShowUserMenu(false)}
-									className='flex h-11 items-center gap-3 rounded-t-lg px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
+									className='flex h-11 items-center gap-3 px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
 								>
 									<Settings className='size-4' />
 									<span>Settings</span>
 								</Link>
 								<button
 									onClick={handleLogout}
-									className='flex h-11 w-full items-center gap-3 rounded-b-lg px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
+									className='flex h-11 w-full items-center gap-3 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 								>
 									<LogOut className='size-4' />
 									<span>Sign Out</span>

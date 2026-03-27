@@ -225,7 +225,7 @@ export const MessagesDrawer = () => {
 					onClick={toggleMessagesDrawer}
 					aria-label='Close messages'
 				>
-					<X className='h-4 w-4' />
+					<X className='size-4' />
 				</Button>
 			</div>
 
@@ -233,7 +233,7 @@ export const MessagesDrawer = () => {
 			<div className='border-b p-3'>
 				<InputGroup>
 					<InputGroupAddon align='inline-start'>
-						<Search className='h-4 w-4 text-text-muted' />
+						<Search className='size-4 text-text-muted' />
 					</InputGroupAddon>
 					<InputGroupInput
 						placeholder='Search conversations...'
@@ -257,7 +257,7 @@ export const MessagesDrawer = () => {
 							>
 								← Back
 							</Button>
-							<div className='relative h-6 w-6 overflow-hidden rounded-full'>
+							<div className='relative size-6 overflow-hidden rounded-full'>
 								<Image
 									src={getConversationAvatar(selectedConversation)}
 									alt={getConversationName(selectedConversation)}
@@ -312,7 +312,7 @@ export const MessagesDrawer = () => {
 							</div>
 						) : filteredConversations.length === 0 ? (
 							<div className='flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground'>
-								<MessageSquare className='h-8 w-8' />
+								<MessageSquare className='size-8' />
 								<p className='text-sm'>
 									{searchTerm
 										? 'No conversations found'
@@ -334,7 +334,7 @@ export const MessagesDrawer = () => {
 										onClick={() => setSelectedConversation(conv)}
 										className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-muted'
 									>
-										<div className='relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-full'>
+										<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full'>
 											<Image
 												src={getConversationAvatar(conv)}
 												alt={getConversationName(conv)}
@@ -354,7 +354,7 @@ export const MessagesDrawer = () => {
 											)}
 										</div>
 										{conv.unreadCount && conv.unreadCount > 0 && (
-											<span className='flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
+											<span className='flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
 												{conv.unreadCount}
 											</span>
 										)}
@@ -385,7 +385,7 @@ export const MessagesDrawer = () => {
 							{isSending ? (
 								<Loader2 className='size-4 animate-spin' />
 							) : (
-								<Send className='h-4 w-4' />
+								<Send className='size-4' />
 							)}
 						</Button>
 					</>
@@ -395,7 +395,7 @@ export const MessagesDrawer = () => {
 						onClick={toggleMessagesDrawer}
 						className='flex w-full items-center justify-center gap-2 rounded-lg bg-muted py-2 text-sm font-medium transition-colors hover:bg-muted/80'
 					>
-						<MessageSquare className='h-4 w-4' />
+						<MessageSquare className='size-4' />
 						Open Full Messages
 					</Link>
 				)}
