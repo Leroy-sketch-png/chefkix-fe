@@ -54,7 +54,7 @@ interface RecipeCardBase {
 	author?: RecipeAuthor // Optional - hide if data is unavailable
 	cookTimeMinutes: number
 	difficulty: Difficulty
-	xpReward: number
+	xpReward?: number
 	cookCount: number
 	rating: number
 	// Gamification fields
@@ -120,17 +120,20 @@ const XPBadge = ({
 }: {
 	xp: number
 	size?: 'default' | 'large'
-}) => (
-	<div
-		className={cn(
-			'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 font-bold text-white shadow-lg shadow-success/40',
-			size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-sm',
-		)}
-	>
-		<span className={size === 'large' ? 'text-lg' : 'text-sm'}>⚡</span>
-		<span>{xp} XP</span>
-	</div>
-)
+}) => {
+	if (!xp || xp <= 0) return null
+	return (
+		<div
+			className={cn(
+				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 font-bold text-white shadow-lg shadow-success/40',
+				size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-sm',
+			)}
+		>
+			<span className={size === 'large' ? 'text-lg' : 'text-sm'}>⚡</span>
+			<span>{xp} XP</span>
+		</div>
+	)
+}
 
 // Difficulty colors (using backend Title Case keys)
 const difficultyConfig: Record<
@@ -634,7 +637,7 @@ const FeaturedCard = ({
 	<motion.article
 		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-3xl shadow-2xl'
+		className='overflow-hidden rounded-2xl shadow-2xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			<div className='relative aspect-video min-h-panel-md'>
@@ -658,10 +661,12 @@ const FeaturedCard = ({
 
 				{/* XP + Difficulty badges */}
 				<div className='absolute right-5 top-5 flex flex-col items-end gap-2.5'>
-					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-lg shadow-success/40'>
-						<span className='text-lg'>⚡</span>
-						<span>{xpReward} XP</span>
-					</div>
+					{xpReward != null && xpReward > 0 && (
+						<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-lg shadow-success/40'>
+							<span className='text-lg'>⚡</span>
+							<span>{xpReward} XP</span>
+						</div>
+					)}
 					<div
 						className={cn(
 							'rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-white',
@@ -775,9 +780,11 @@ const FeaturedCard = ({
 					>
 						<Play className='h-5 w-5 md:h-6 md:w-6' />
 						Start Cooking
-						<span className='rounded-full bg-white/20 px-3 py-1 text-sm font-semibold max-md:hidden'>
-							Earn {xpReward} XP
-						</span>
+						{xpReward != null && xpReward > 0 && (
+							<span className='rounded-full bg-white/20 px-3 py-1 text-sm font-semibold max-md:hidden'>
+								Earn {xpReward} XP
+							</span>
+						)}
 					</motion.button>
 				</div>
 			</div>
@@ -922,7 +929,9 @@ const MiniCard = ({
 			<div className='min-w-0 flex-1'>
 				<h4 className='mb-1 truncate text-sm font-semibold'>{title}</h4>
 				<div className='flex items-center gap-2.5 text-xs'>
-					<span className='font-semibold text-success'>⚡ {xpReward} XP</span>
+					{xpReward != null && xpReward > 0 && (
+						<span className='font-semibold text-success'>⚡ {xpReward} XP</span>
+					)}
 					<span className='text-text-muted'>{cookTimeMinutes} min</span>
 					<span
 						className={cn(

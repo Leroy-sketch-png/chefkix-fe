@@ -35,7 +35,7 @@ export const RecipeParsingOverlay = ({
 			<motion.div
 				initial={{ scale: 0.9, opacity: 0 }}
 				animate={{ scale: 1, opacity: 1 }}
-				className='rounded-3xl bg-panel-bg p-12 text-center'
+				className='rounded-2xl bg-panel-bg p-12 text-center'
 			>
 				{/* Animated Wand */}
 				<div className='relative mx-auto mb-6 size-20'>

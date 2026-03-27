@@ -139,7 +139,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						/>
 						{/* Difficulty badge */}
 						<div
-							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.3px] text-primary-foreground ${
+							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground ${
 								recipe.difficulty === 'Beginner'
 									? 'bg-gradient-to-br from-success to-success/80'
 									: recipe.difficulty === 'Intermediate'
@@ -156,13 +156,13 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							ref={saveButtonRef}
 							onClick={handleSaveClick}
 							disabled={isSaveLoading}
-							className={`absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-sm border-none transition-all duration-300 ${
+							className={`absolute right-2 top-2 grid size-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 								isSaved
 									? 'bg-gold/10 text-gold'
 									: 'bg-bg-card text-text-secondary hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
 							}`}
 						>
-							<Bookmark className={`h-5 w-5 ${isSaved ? 'fill-gold' : ''}`} />
+							<Bookmark className={`size-5 ${isSaved ? 'fill-gold' : ''}`} />
 						</button>
 					</div>
 					<div className='space-y-3 p-4 md:p-6'>
