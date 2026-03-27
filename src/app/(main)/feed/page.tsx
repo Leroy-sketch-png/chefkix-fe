@@ -58,8 +58,10 @@ export default function FeedPage() {
 	const [retryCount, setRetryCount] = useState(0)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
-	// Filter out posts from blocked users
-	const filteredPosts = useFilterBlockedContent(posts)
+	// Filter out posts from blocked users AND group posts (Facebook pattern)
+	const filteredPosts = useFilterBlockedContent(posts).filter(
+		(post) => post.postType !== 'GROUP'
+	)
 
 	// Fetch initial page when tab changes
 	useEffect(() => {
