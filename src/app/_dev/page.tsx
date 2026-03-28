@@ -131,6 +131,7 @@ export default function DevDashboard() {
 	const [token, setToken] = useState<string | null>(null)
 	const [copied, setCopied] = useState<string | null>(null)
 	const [isRunningApiTests, setIsRunningApiTests] = useState(false)
+	const [isLoggingInToApp, setIsLoggingInToApp] = useState(false)
 	const [lastCheck, setLastCheck] = useState<Date | null>(null)
 
 	// Copy to clipboard
@@ -176,6 +177,42 @@ export default function DevDashboard() {
 			return null
 		} catch {
 			return null
+		}
+	}, [])
+
+	// Login and inject session directly into the app
+	const loginToApp = useCallback(async (username: string, password: string) => {
+		setIsLoggingInToApp(true)
+		try {
+			const loginRes = await fetch(`${BASE}/api/v1/auth/login`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify({ emailOrUsername: username, password }),
+			})
+			const loginData = await loginRes.json()
+			if (!loginData.success || !loginData.data?.accessToken) {
+				alert('Login failed: ' + (loginData.message || 'Check credentials'))
+				return
+			}
+			const accessToken = loginData.data.accessToken
+			const meRes = await fetch(`${BASE}/api/v1/auth/me`, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			})
+			const meData = await meRes.json()
+			if (!meData.success || !meData.data) {
+				alert('Could not fetch user profile')
+				return
+			}
+			localStorage.setItem('auth-storage', JSON.stringify({
+				state: { isAuthenticated: true, accessToken, user: meData.data },
+				version: 0,
+			}))
+			window.location.href = '/dashboard'
+		} catch (err) {
+			alert('Error: ' + (err instanceof Error ? err.message : 'Unknown'))
+		} finally {
+			setIsLoggingInToApp(false)
 		}
 	}, [])
 
@@ -350,6 +387,23 @@ export default function DevDashboard() {
 							>
 								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
 									<span style={{ fontWeight: 600, fontSize: 14 }}>{account.label}</span>
+								<div style={{ display: 'flex', gap: 6 }}>
+									<button
+										onClick={() => loginToApp(account.username, account.password)}
+										disabled={isLoggingInToApp}
+										style={{
+											background: isLoggingInToApp ? '#21262d' : '#1f6feb',
+											border: 'none',
+											color: '#fff',
+											padding: '4px 12px',
+											borderRadius: 6,
+											cursor: isLoggingInToApp ? 'not-allowed' : 'pointer',
+											fontSize: 11,
+											fontWeight: 600,
+										}}
+									>
+										{isLoggingInToApp ? 'Logging in...' : 'Open App →'}
+									</button>
 									<button
 										onClick={() => doLogin(account.username, account.password).then((t) => {
 											if (t) copy(t, 'token')
@@ -365,8 +419,9 @@ export default function DevDashboard() {
 											fontWeight: 600,
 										}}
 									>
-										Login & Copy Token
+										Copy Token
 									</button>
+								</div>
 								</div>
 								<div style={{ display: 'grid', gap: 4, fontSize: 12 }}>
 									{[
@@ -536,6 +591,41 @@ export default function DevDashboard() {
 							))}
 						</div>
 					)}
+				</div>
+
+				{/* OTP Dev Mode Banner */}
+				<div style={{ background: '#161b22', border: '1px solid #d29922', borderRadius: 8, padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+					<div>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+							<h2 style={{ fontSize: 14, fontWeight: 600, color: '#d29922', textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>Dev Email / OTP</h2>
+						</div>
+						<p style={{ margin: '0 0 8px', fontSize: 12, color: '#e6edf3', lineHeight: 1.6 }}>
+							Brevo is not configured for local dev. When you register or resend OTP, the code is <strong style={{ color: '#d29922' }}>printed to the monolith window</strong> instead of your email inbox.
+						</p>
+						<div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 6, padding: 10, marginBottom: 8 }}>
+							<div style={{ fontSize: 11, color: '#8b949e', marginBottom: 4 }}>Look for this line in the monolith window:</div>
+							<code style={{ fontSize: 12, color: '#3fb950', display: 'block' }}>[DEV EMAIL BYPASS] *** OTP CODE: 123456 ***</code>
+						</div>
+						<p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>
+							To enable real emails: get a key at{' '}
+							<a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noopener noreferrer" style={{ color: '#58a6ff' }}>app.brevo.com</a>{' '}
+							and set <code style={{ background: '#21262d', padding: '1px 4px', borderRadius: 3 }}>BREVO_API_KEY</code> in <code style={{ background: '#21262d', padding: '1px 4px', borderRadius: 3 }}>chefkix-monolith/.env</code>
+						</p>
+					</div>
+					<div>
+						<div style={{ fontSize: 12, fontWeight: 600, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Registration Flow (Dev)</div>
+						{[
+							{ step: '1', text: 'Register at /register with any email' },
+							{ step: '2', text: 'Watch the monolith window for [DEV EMAIL BYPASS]' },
+							{ step: '3', text: 'Copy the OTP CODE from the log line' },
+							{ step: '4', text: 'Enter OTP at /verify-otp to complete signup' },
+						].map((item) => (
+							<div key={item.step} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '6px 0', borderBottom: '1px solid #21262d', fontSize: 12 }}>
+								<span style={{ background: '#d29922', color: '#000', width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{item.step}</span>
+								<span style={{ color: '#e6edf3' }}>{item.text}</span>
+							</div>
+						))}
+					</div>
 				</div>
 
 				{/* Row 3: Quick Links + cURL Generator */}
