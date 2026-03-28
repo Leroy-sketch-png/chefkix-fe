@@ -89,18 +89,7 @@ export function GroupSettingsModal({
 
 	// Handle delete group
 	const handleDeleteGroup = async () => {
-		setIsLoading(true)
-		try {
-			// TODO: Implement delete group endpoint when available
-			// For now, just show success and close
-			toast.success('Group deleted successfully')
-			onOpenChange(false)
-			// Redirect will be handled by parent
-		} catch (error) {
-			toast.error('Failed to delete group')
-		} finally {
-			setIsLoading(false)
-		}
+		toast.info('Group deletion is not yet available.')
 	}
 
 	return (

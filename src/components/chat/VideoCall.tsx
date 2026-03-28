@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import useSound from 'use-sound'
+import { toast } from 'sonner'
+import { logDevError } from '@/lib/dev-log'
 
 // Define the structure of the signaling message to match the Spring Boot backend
 interface SignalMessage {
@@ -72,7 +74,7 @@ export default function VideoCall({
 			setIsCameraOn(videoEnabled)
 			setIsMicOn(true)
 		} catch (error) {
-			console.error('Error accessing media devices.', error)
+			logDevError('Error accessing media devices.', error)
 			
 			// Fallback: try audio only if video fails (maybe no webcam)
 			try {
@@ -85,8 +87,8 @@ export default function VideoCall({
 				setIsCameraOn(false)
 				setIsMicOn(true)
 			} catch (audioError) {
-				console.error('Error accessing audio device.', audioError)
-				alert('Could not access microphone array.')
+				logDevError('Error accessing audio device.', audioError)
+				toast.error('Could not access your microphone. Please check browser permissions.')
 			}
 		}
 	}
@@ -125,7 +127,6 @@ export default function VideoCall({
 		const ws = new WebSocket(wsUrl)
 
 		ws.onopen = () => {
-			console.log('WebSocket Connected')
 			// As soon as we connect, tell the backend we are joining this conversation
 			sendMessage(ws, 'join')
 			wsRef.current = ws
@@ -159,19 +160,18 @@ export default function VideoCall({
 				case 'leave':
 					stopRingtone()
 					endCall()
-					alert('The other person left the call.')
+					toast.info('The other person left the call.')
 					break
 				default:
-					console.warn('Unknown message type:', message.type)
+					logDevError('Unknown WebSocket message type:', message.type)
 			}
 		}
 
 		ws.onerror = error => {
-			console.error('WebSocket Error:', error)
+			logDevError('WebSocket Error:', error)
 		}
 
 		ws.onclose = () => {
-			console.log('WebSocket Disconnected')
 			setIsJoined(false)
 		}
 	}
@@ -304,7 +304,7 @@ export default function VideoCall({
 				)
 			}
 		} catch (e) {
-			console.error('Error adding received ice candidate', e)
+			logDevError('Error adding received ice candidate', e)
 		}
 	}
 
