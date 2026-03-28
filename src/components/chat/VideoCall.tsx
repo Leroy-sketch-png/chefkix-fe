@@ -1,10 +1,11 @@
 'use client' // This tells Next.js this is a Client Component (runs in the browser)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import useSound from 'use-sound'
 
 // Define the structure of the signaling message to match the Spring Boot backend
 interface SignalMessage {
-	type: 'join' | 'offer' | 'answer' | 'ice-candidate' | 'leave'
+	type: 'join' | 'offer' | 'answer' | 'ice-candidate' | 'leave' | 'ring'
 	conversationId: string
 	senderId: string
 	data?: any
@@ -13,11 +14,13 @@ interface SignalMessage {
 interface VideoCallProps {
 	conversationId: string // The ID of the chat/room
 	currentUserId: string // The ID of the user currently using the app
+	onClose: () => void // Function to call when the call ends to close the modal
 }
 
 export default function VideoCall({
 	conversationId,
 	currentUserId,
+	onClose,
 }: VideoCallProps) {
 	// --- Phase 1: Refs for Media and Connections ---
 	// We use useRef instead of useState for things that don't need to trigger a re-render when they change
@@ -28,10 +31,16 @@ export default function VideoCall({
 	const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 
+	// Ringtone
+	const [playRingtone, { stop: stopRingtone }] = useSound('/sounds/ringtone.mp3', { loop: true })
+
 	// UI States to control button visibility
 	const [isCameraOn, setIsCameraOn] = useState(false)
+	const [isMicOn, setIsMicOn] = useState(true)
 	const [isJoined, setIsJoined] = useState(false)
 	const [isCallActive, setIsCallActive] = useState(false)
+	const [isReceivingCall, setIsReceivingCall] = useState(false)
+	const [remoteOffer, setRemoteOffer] = useState<RTCSessionDescriptionInit | null>(null)
 
 	// Configuration for WebRTC connecting (using Google's free public STUN server)
 	const rtcConfig = {
@@ -44,11 +53,11 @@ export default function VideoCall({
 
 	// --- Phase 1: Media Setup ---
 	// Turns on the user's camera and microphone
-	const startCamera = async () => {
+	const startMedia = async (videoEnabled: boolean = true) => {
 		try {
 			// Prompt user for camera and mic permissions
 			const stream = await navigator.mediaDevices.getUserMedia({
-				video: true,
+				video: videoEnabled,
 				audio: true,
 			})
 
@@ -60,10 +69,50 @@ export default function VideoCall({
 				localVideoRef.current.srcObject = stream
 			}
 
-			setIsCameraOn(true)
+			setIsCameraOn(videoEnabled)
+			setIsMicOn(true)
 		} catch (error) {
 			console.error('Error accessing media devices.', error)
-			alert('Could not access camera/microphone.')
+			
+			// Fallback: try audio only if video fails (maybe no webcam)
+			try {
+				const audioStream = await navigator.mediaDevices.getUserMedia({
+					video: false,
+					audio: true,
+				})
+				localStreamRef.current = audioStream
+				if (localVideoRef.current) localVideoRef.current.srcObject = audioStream
+				setIsCameraOn(false)
+				setIsMicOn(true)
+			} catch (audioError) {
+				console.error('Error accessing audio device.', audioError)
+				alert('Could not access microphone array.')
+			}
+		}
+	}
+
+	const toggleVideo = () => {
+		if (localStreamRef.current) {
+			const videoTrack = localStreamRef.current.getVideoTracks()[0]
+			if (videoTrack) {
+				videoTrack.enabled = !videoTrack.enabled
+				setIsCameraOn(videoTrack.enabled)
+			} else if (!isCameraOn) {
+				// No video track but we want to turn it on (start from audio only)
+				startMedia(true)
+			}
+		} else {
+			startMedia(true)
+		}
+	}
+
+	const toggleAudio = () => {
+		if (localStreamRef.current) {
+			const audioTrack = localStreamRef.current.getAudioTracks()[0]
+			if (audioTrack) {
+				audioTrack.enabled = !audioTrack.enabled
+				setIsMicOn(audioTrack.enabled)
+			}
 		}
 	}
 
@@ -89,16 +138,24 @@ export default function VideoCall({
 			if (message.senderId === currentUserId) return
 
 			switch (message.type) {
+				case 'ring':
+					playRingtone()
+					setIsReceivingCall(true)
+					break
 				case 'offer':
-					await handleReceiveOffer(message.data)
+					stopRingtone()
+					setIsReceivingCall(true)
+					setRemoteOffer(message.data)
 					break
 				case 'answer':
+					stopRingtone()
 					await handleReceiveAnswer(message.data)
 					break
 				case 'ice-candidate':
 					await handleNewICECandidateMsg(message.data)
 					break
 				case 'leave':
+					stopRingtone()
 					endCall()
 					alert('The other person left the call.')
 					break
@@ -170,6 +227,11 @@ export default function VideoCall({
 
 	// Caller: "I want to call you. Here is my video setup (offer)."
 	const makeCall = async () => {
+		// 1. Send ring signal to start ringing on the other side
+		sendMessage(wsRef.current, 'ring')
+		// 2. Play ringtone locally while waiting
+		playRingtone()
+
 		const pc = initializePeerConnection()
 
 		// Create an offer
@@ -179,7 +241,29 @@ export default function VideoCall({
 
 		// Send it to the other user via WebSocket
 		sendMessage(wsRef.current, 'offer', offer)
-		setIsCallActive(true)
+	}
+
+	// Callee: Answers the incoming call
+	const acceptCall = async () => {
+		stopRingtone()
+		setIsReceivingCall(false)
+		
+		// Attempt to start audio/video. We default to both, but fallback to audio only in startMedia.
+		if (!localStreamRef.current) {
+			await startMedia(true)
+		}
+
+		if (remoteOffer) {
+			await handleReceiveOffer(remoteOffer)
+		}
+	}
+
+	// Callee: Rejects the call
+	const rejectCall = () => {
+		stopRingtone()
+		setIsReceivingCall(false)
+		sendMessage(wsRef.current, 'leave')
+		endCall()
 	}
 
 	// Callee: "I received your call. Here is my video setup (answer)."
@@ -226,6 +310,7 @@ export default function VideoCall({
 	const endCall = useCallback(() => {
 		// Notify the other user
 		sendMessage(wsRef.current, 'leave')
+		stopRingtone()
 
 		// 1. Stop all camera/mic tracks
 		if (localStreamRef.current) {
@@ -251,9 +336,15 @@ export default function VideoCall({
 
 		// Reset UI states
 		setIsCameraOn(false)
+		setIsMicOn(true)
 		setIsJoined(false)
 		setIsCallActive(false)
-	}, [setIsCameraOn, setIsJoined, setIsCallActive])
+		setIsReceivingCall(false)
+		setRemoteOffer(null)
+		
+		// Unmount component
+		onClose()
+	}, [onClose, stopRingtone])
 
 	// Automatically clean up when the user leaves the page or unmounts the component
 	useEffect(() => {
@@ -264,7 +355,34 @@ export default function VideoCall({
 
 	// --- Render UI ---
 	return (
-		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-sm border border-gray-200 w-full max-w-4xl mx-auto mt-10 relative'>
+		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-sm border border-gray-200 w-full max-w-4xl mx-auto relative'>
+			{/* Incoming Call Overlay */}
+			{isReceivingCall && !isCallActive && (
+				<div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl">
+					<div className="w-24 h-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6">
+						<div className="w-16 h-16 bg-brand rounded-full flex items-center justify-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+						</div>
+					</div>
+					<h2 className="text-white text-2xl font-bold mb-8">Incoming Call...</h2>
+					<div className="flex gap-6">
+						<button 
+							onClick={rejectCall}
+							className="px-6 py-3 bg-red-500 hover:bg-red-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105"
+						>
+							Decline
+						</button>
+						<button 
+							onClick={acceptCall}
+							className="px-6 py-3 bg-green-500 hover:bg-green-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+							Answer
+						</button>
+					</div>
+				</div>
+			)}
+
 			<h2 className='text-2xl font-semibold text-primary mb-2'>Video Call</h2>
 
 			{/* Media Stage */}
@@ -298,41 +416,47 @@ export default function VideoCall({
 
 			{/* Control Buttons */}
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
-				{!isCameraOn && (
-					<button
-						onClick={startCamera}
-						className='px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full transition shadow'
-					>
-						Start Camera
-					</button>
-				)}
+				<button
+					onClick={startMedia}
+					className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+				>
+					{isCameraOn ? 'Camera On ✅' : '1. Turn On Camera'}
+				</button>
 
-				{isCameraOn && !isJoined && (
-					<button
-						onClick={connectWebSocket}
-						className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition shadow'
-					>
-						Join Room
-					</button>
-				)}
+				<button
+					onClick={toggleVideo}
+					className='px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600'
+				>
+					{isCameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
+				</button>
 
-				{isJoined && !isCallActive && (
+				<button
+					onClick={toggleAudio}
+					className='px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600'
+				>
+					{isMicOn ? 'Mute Mic' : 'Unmute Mic'}
+				</button>
+
+				{!isCallActive && (
 					<button
 						onClick={makeCall}
-						className='px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full transition shadow font-medium'
+						disabled={!isCameraOn || !isJoined}
+						className={`px-4 py-2 text-white rounded ${
+							!isCameraOn || !isJoined
+								? 'bg-gray-400 cursor-not-allowed'
+								: 'bg-green-500 hover:bg-green-600'
+						}`}
 					>
-						Call
+						2. Call the other person
 					</button>
 				)}
 
-				{(isCameraOn || isJoined || isCallActive) && (
-					<button
-						onClick={endCall}
-						className='px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition shadow font-medium'
-					>
-						End Call
-					</button>
-				)}
+				<button
+					onClick={endCall}
+					className='px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600'
+				>
+					End Call
+				</button>
 			</div>
 		</div>
 	)
