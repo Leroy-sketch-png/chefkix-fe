@@ -13,6 +13,7 @@ import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
 import { EventTrackerProvider } from '@/components/providers/EventTrackerProvider'
 import { NotificationSocketProvider } from '@/components/providers/NotificationSocketProvider'
+import { DemoWidget } from '@/components/dev/DemoWidget'
 
 export default function MainAppLayout({
 	children,
@@ -54,6 +55,7 @@ export default function MainAppLayout({
 			<KeyboardShortcuts />
 			<EventTrackerProvider>{null}</EventTrackerProvider>
 			<NotificationSocketProvider />
+			<DemoWidget />
 		</div>
 	)
 }
