@@ -189,7 +189,7 @@ export const RightSidebar = () => {
 	}, [cookDates, user?.statistics?.streakCount, user?.lastCookDate])
 
 	return (
-		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-4 xl:flex xl:flex-col xl:gap-4'>
+		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-5 xl:flex xl:flex-col xl:gap-5'>
 			{/* Friends Online Widget — real-time via presence heartbeat */}
 			<FriendsOnlineWidget />
 
@@ -205,15 +205,15 @@ export const RightSidebar = () => {
 			{dailyChallenge && (
 				<ExpandableDailyChallengeBanner
 					challenge={dailyChallenge}
-					onFindRecipe={() => router.push('/explore?challenge=pasta')}
+					onFindRecipe={() => router.push(`/explore?search=${encodeURIComponent(dailyChallenge.title)}`)}
 				/>
 			)}
 
 			{/* Trending Creators Card */}
 			{suggestions.length > 0 && (
-				<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-lg backdrop-blur-sm backdrop-saturate'>
+				<div className='rounded-radius border border-border-subtle bg-bg-card p-5 shadow-card'>
 					<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
-						Trending Creators
+						Suggested Creators
 					</div>
 					<div className='flex flex-col gap-3'>
 						{suggestions.map(suggestion => {
@@ -223,7 +223,7 @@ export const RightSidebar = () => {
 									key={suggestion.userId}
 									className='flex items-center gap-3'
 								>
-									<div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg'>
+									<div className='relative size-10 flex-shrink-0 overflow-hidden rounded-full shadow-sm transition-transform duration-200 hover:scale-105'>
 										<Image
 											src={suggestion.avatarUrl || '/placeholder-avatar.svg'}
 											alt={suggestion.displayName || suggestion.username}
@@ -242,7 +242,7 @@ export const RightSidebar = () => {
 									</div>
 									<button
 										onClick={() => handleFollow(suggestion.userId)}
-										className='relative h-9 overflow-hidden rounded-lg border-none bg-gradient-primary px-3 text-xs font-semibold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98]'
+										className='relative h-9 overflow-hidden rounded-radius border-none bg-gradient-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md active:scale-95'
 									>
 										{isFollowed ? 'Following' : 'Follow'}
 									</button>

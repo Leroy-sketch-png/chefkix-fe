@@ -82,7 +82,7 @@ export const XpPreviewModal = ({
 				<motion.div
 					initial={{ scale: 0.9, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
-					className='w-full max-w-md max-h-modal overflow-y-auto rounded-3xl bg-panel-bg p-7'
+					className='w-full max-w-md max-h-modal overflow-y-auto rounded-2xl bg-panel-bg p-7'
 				>
 					{/* Header */}
 					<div className='mb-5 flex items-center justify-between'>

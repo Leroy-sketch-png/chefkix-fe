@@ -542,7 +542,7 @@ export const Comment = ({
 							aria-label={isLiked ? 'Unlike comment' : 'Like comment'}
 						>
 							<Heart
-								className={`h-3 w-3 transition-all ${isLiked ? 'fill-color-error text-color-error scale-110' : 'text-text-muted hover:text-color-error'}`}
+								className={`size-3 transition-all ${isLiked ? 'fill-color-error text-color-error scale-110' : 'text-text-muted hover:text-color-error'}`}
 							/>
 							{likes > 0 && <span>{likes}</span>}
 						</button>
@@ -551,7 +551,7 @@ export const Comment = ({
 							className='flex items-center gap-1 transition-colors hover:text-primary'
 							aria-label='Reply to comment'
 						>
-							<MessageSquare className='h-3 w-3' />
+							<MessageSquare className='size-3' />
 							<span>Reply</span>
 						</button>
 					</div>

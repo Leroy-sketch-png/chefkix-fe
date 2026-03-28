@@ -99,7 +99,7 @@ const SignInPage = () => {
 				{/* Sign In Card - NOTE: No backdrop-blur to avoid stacking context issues with modals */}
 				<motion.div
 					variants={staggerItem}
-					className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card p-8 shadow-xl shadow-black/5'
+					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-8 shadow-xl shadow-black/5'
 				>
 					<motion.h2
 						initial={{ opacity: 0, y: 10 }}

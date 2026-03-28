@@ -512,7 +512,7 @@ export default function RecipeDetailPage() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-8 overflow-hidden rounded-3xl border border-border-subtle bg-bg-card shadow-lg'
+					className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
 				>
 					{/* Hero Image with overlay */}
 					<div className='group relative h-72 w-full overflow-hidden md:h-96'>
@@ -1329,7 +1329,7 @@ function RecipeDetailSkeleton() {
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
-				className='mb-8 overflow-hidden rounded-3xl border border-border-subtle bg-bg-card shadow-lg'
+				className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
 			>
 				<Skeleton className='h-72 w-full md:h-96' />
 				<div className='p-6 md:p-8'>

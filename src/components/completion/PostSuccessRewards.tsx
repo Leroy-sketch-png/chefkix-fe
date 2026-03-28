@@ -203,7 +203,7 @@ export const PostSuccessRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative max-h-modal w-full max-w-md overflow-y-auto rounded-3xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-mobile max-md:rounded-b-none max-md:p-6'
+							className='relative max-h-modal w-full max-w-md overflow-y-auto rounded-2xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-mobile max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close */}
 							<button

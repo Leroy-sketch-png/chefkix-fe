@@ -421,7 +421,7 @@ const FeaturedChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, scale: 0.98 }}
 			animate={{ opacity: 1, scale: 1 }}
-			className='relative mb-5 min-h-banner overflow-hidden rounded-3xl shadow-2xl'
+			className='relative mb-5 min-h-banner overflow-hidden rounded-2xl shadow-2xl'
 		>
 			{/* Background Image */}
 			<div className='absolute inset-0'>

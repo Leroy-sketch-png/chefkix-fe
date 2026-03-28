@@ -285,7 +285,7 @@ export const FirstCookCelebration = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative z-10 w-full max-w-xl overflow-y-auto rounded-3xl bg-panel-bg p-10 shadow-2xl max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-full max-md:rounded-b-none max-md:p-6'
+							className='relative z-10 w-full max-w-xl overflow-y-auto rounded-2xl bg-panel-bg p-10 shadow-2xl max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-full max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Burst animation + badge */}
 							<div className='relative mx-auto mb-6 h-28 w-28 max-md:h-24 max-md:w-24'>

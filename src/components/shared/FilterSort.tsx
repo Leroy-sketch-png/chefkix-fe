@@ -133,7 +133,7 @@ export const FilterBar = ({
 				<button
 					onClick={() => onViewModeChange?.('grid')}
 					className={cn(
-						'h-11 w-11 rounded-lg p-2 transition-all',
+						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'grid'
 							? 'bg-bg-card text-primary shadow-sm'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
@@ -145,7 +145,7 @@ export const FilterBar = ({
 				<button
 					onClick={() => onViewModeChange?.('list')}
 					className={cn(
-						'h-11 w-11 rounded-lg p-2 transition-all',
+						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'list'
 							? 'bg-bg-card text-primary shadow-sm'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
@@ -197,7 +197,7 @@ export const ActiveFilters = ({
 					<span>{filter}</span>
 					<button
 						onClick={() => onRemove?.(filter)}
-						className='grid h-6 w-6 place-items-center rounded-full p-0.5 transition-colors hover:bg-primary/20'
+						className='grid size-6 place-items-center rounded-full p-0.5 transition-colors hover:bg-primary/20'
 						aria-label={`Remove ${filter} filter`}
 					>
 						<X className='h-3.5 w-3.5' />
@@ -254,7 +254,7 @@ export const FilterPanel = ({
 					aria-label='Close filters'
 					className='rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
 				>
-					<X className='h-5 w-5' />
+					<X className='size-5' />
 				</button>
 			</div>
 

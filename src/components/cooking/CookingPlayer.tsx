@@ -823,9 +823,8 @@ export const CookingPlayer = () => {
 			const store = useCookingStore.getState()
 			if (store.interactionMode === 'ACTIVE') {
 				setInteractionMode('MESSY_HANDS')
-				toast('🙌 Messy Hands mode activated', {
-					description:
-						'No touch detected — switching to voice-primary. Say "clean hands" to switch back.',
+				toast('🙌 Switched to voice mode', {
+					description: 'No screen touch for a while — voice commands are now primary. Tap screen or say "clean hands" to switch back.',
 					duration: 4000,
 				})
 			}
@@ -1191,6 +1190,7 @@ export const CookingPlayer = () => {
 					recipeImageUrl: recipe?.coverImageUrl?.[0],
 					immediateXp: completionResult.baseXpAwarded,
 					pendingXp: completionResult.pendingXp,
+					xpBreakdown: completionResult.xpBreakdown,
 					postDeadlineHours: 336, // 14 days in hours
 				})
 
@@ -1288,7 +1288,7 @@ export const CookingPlayer = () => {
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='max-w-md rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
+							className='max-w-md rounded-2xl bg-bg-card p-8 text-center shadow-2xl'
 						>
 							<AlertCircle className='mx-auto mb-4 size-12 text-error' />
 							<h2 className='mb-2 text-xl font-bold text-text'>
@@ -1334,7 +1334,7 @@ export const CookingPlayer = () => {
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='flex h-full max-h-modal w-full max-w-modal-2xl flex-col overflow-hidden rounded-3xl bg-bg-card shadow-2xl'
+							className='flex h-full max-h-modal w-full max-w-modal-2xl flex-col overflow-hidden rounded-2xl bg-bg-card shadow-2xl'
 						>
 							{/* Preview Mode Banner */}
 							{isPreviewMode && (
@@ -1974,7 +1974,7 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-3xl bg-bg-card p-8 shadow-2xl'
+								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-2xl bg-bg-card p-8 shadow-2xl'
 							>
 								<SessionRatingForm
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
@@ -2016,7 +2016,7 @@ export const CookingPlayer = () => {
 								initial={{ scale: 0.9, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
 								exit={{ scale: 0.9, opacity: 0 }}
-								className='mx-4 max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-2xl'
+								className='mx-4 max-w-sm rounded-2xl bg-bg-card p-8 text-center shadow-2xl'
 							>
 								<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-error/10 dark:bg-error/20'>
 									<LogOut className='size-8 text-error' />

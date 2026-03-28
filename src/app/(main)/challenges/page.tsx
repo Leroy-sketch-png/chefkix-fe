@@ -170,12 +170,18 @@ export default function ChallengesPage() {
 				{hasNoChallenges ? (
 					<EmptyStateGamified
 						variant='challenges'
-						title='No Active Challenges'
-						description='Check back soon for new cooking challenges!'
+						title='No Active Challenges Right Now'
+						description='New challenges drop daily! In the meantime, challenge a friend to a cooking duel.'
 						primaryAction={{
-							label: 'Explore Recipes',
-							href: '/explore',
+							label: 'Refresh',
+							onClick: () => window.location.reload(),
 						}}
+						secondaryActions={[
+							{
+								label: 'Explore Recipes',
+								href: '/explore',
+							},
+						]}
 					/>
 				) : (
 					<>

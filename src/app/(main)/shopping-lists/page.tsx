@@ -392,12 +392,12 @@ export default function ShoppingListsPage() {
 								<ShoppingCart className='size-5 flex-shrink-0 text-brand' />
 								<div className='flex-1 min-w-0'>
 									<p className='text-sm font-semibold text-text'>
-										Order these groceries
+										Shop on Instacart
 									</p>
 									<p className='text-xs text-text-muted'>
 										{uncheckedItems.length} item
 										{uncheckedItems.length !== 1 ? 's' : ''} remaining —
-										delivery partner integration coming soon
+										opens Instacart with your items
 									</p>
 								</div>
 								<button
@@ -414,7 +414,7 @@ export default function ShoppingListsPage() {
 									}}
 									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
 								>
-									Order Groceries
+									Shop Now
 								</button>
 							</motion.div>
 						)}

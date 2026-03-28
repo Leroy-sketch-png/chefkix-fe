@@ -178,11 +178,11 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 	return (
 		<div
 			className={cn(
-				'absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-card',
+				'absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-card',
 				bg,
 			)}
 		>
-			<Icon className='h-3 w-3 text-primary-foreground' />
+			<Icon className='size-3 text-primary-foreground' />
 		</div>
 	)
 }
@@ -289,7 +289,7 @@ export const NotificationsPopup = () => {
 						onClick={handleMarkAllRead}
 						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary/10'
 					>
-						<CheckCheck className='h-4 w-4' />
+						<CheckCheck className='size-4' />
 						Mark all read
 					</button>
 				</div>
@@ -450,7 +450,7 @@ export const NotificationsPopup = () => {
 										</div>
 										{/* Unread dot */}
 										{!notif.read && (
-											<div className='absolute right-4 top-5 h-2 w-2 rounded-full bg-primary shadow-glow' />
+											<div className='absolute right-4 top-5 size-2 rounded-full bg-primary shadow-glow' />
 										)}{' '}
 										{/* Follow back button - functional */}
 										{notif.type === 'follow' && !notif.read && (

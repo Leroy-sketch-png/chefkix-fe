@@ -219,7 +219,7 @@ function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
 				initial={{ scale: 0.8, opacity: 0 }}
 				animate={{ scale: 1, opacity: 1 }}
 				transition={TRANSITION_SPRING}
-				className='grid size-20 place-items-center rounded-3xl bg-gradient-hero'
+				className='grid size-20 place-items-center rounded-2xl bg-gradient-hero'
 			>
 				<Sparkles className='size-10 text-white' />
 			</motion.div>

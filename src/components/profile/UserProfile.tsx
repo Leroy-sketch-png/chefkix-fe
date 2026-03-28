@@ -102,7 +102,7 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		stats: {
 			followers: statistics.followerCount,
 			following: statistics.followingCount,
-			recipesCooked: statistics.recipesCooked ?? statistics.postCount, // Prefer actual count, fallback to posts
+			recipesCooked: statistics.completionCount ?? 0, // completionCount = total cooking completions from BE
 			recipesCreated: statistics.recipeCount,
 			mastered: statistics.recipesMastered ?? 0, // From BE when user cooks recipe 5+ times
 		},

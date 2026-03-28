@@ -81,23 +81,6 @@ interface RecipeFilters {
 // HELPER FUNCTIONS
 // ============================================
 
-// XP reward calculation (fallback when backend doesn't provide xpReward)
-const calculateXpRewardFallback = (recipe: Recipe): number => {
-	const baseXp = 50
-	const difficultyBonus = {
-		Beginner: 0,
-		Intermediate: 25,
-		Advanced: 50,
-		Expert: 100,
-	}
-	const timeBonus = Math.floor(getTotalTime(recipe) / 10) * 5
-	return (
-		baseXp +
-		(difficultyBonus[recipe.difficulty as keyof typeof difficultyBonus] || 0) +
-		timeBonus
-	)
-}
-
 /** Map a Typesense RecipeSearchDoc hit to a minimal Recipe shape for cards. */
 function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
 	return {
@@ -119,7 +102,7 @@ function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
 			unit: '',
 		})),
 		steps: [],
-		xpReward: 0,
+		xpReward: doc.xpReward ?? 0,
 		difficultyMultiplier: 1,
 		rewardBadges: [],
 		skillTags: [],
@@ -161,7 +144,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
-			className='relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-brand/10 via-bg-card to-streak/10 shadow-warm'
+			className='relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand/10 via-bg-card to-streak/10 shadow-warm'
 		>
 			<div className='grid gap-6 p-6 md:grid-cols-2 md:p-8'>
 				{/* Left: Image */}
@@ -1059,11 +1042,7 @@ export default function ExplorePage() {
 									? `No recipes match "${debouncedSearch}". Try a different search.`
 									: 'Be the first to share a recipe!'
 						}
-						searchSuggestions={
-							!activeFiltersCount && debouncedSearch
-								? ['Pasta', 'Curry', 'Salad', 'Dessert']
-								: undefined
-						}
+						searchSuggestions={undefined}
 						primaryAction={
 							activeFiltersCount > 0 || debouncedSearch
 								? {
