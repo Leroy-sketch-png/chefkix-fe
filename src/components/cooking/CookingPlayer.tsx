@@ -585,7 +585,7 @@ export const CookingPlayer = () => {
 		if (!isOpen && voice.isContinuous) {
 			voice.stopContinuous()
 		}
-	}, [isOpen, session?.status, voice.isSupported, voice.isContinuous, voice.startContinuous, voice.stopContinuous])
+	}, [isOpen, session?.status, voice.isSupported, voice.isContinuous, voice.startContinuous, voice.stopContinuous, voice])
 
 	// Derive current step data from session and recipe
 	const currentStepNumber = session?.currentStep ?? 1
@@ -725,7 +725,7 @@ export const CookingPlayer = () => {
 		if (interactionMode === 'MESSY_HANDS' && voice.isSupported && !voice.isContinuous) {
 			voice.startContinuous()
 		}
-	}, [interactionMode, voice.isSupported, voice.isContinuous, voice.startContinuous])
+	}, [interactionMode, voice.isSupported, voice.isContinuous, voice.startContinuous, voice])
 
 	// TRANSITION 5: Auto MESSY_HANDS heuristic
 	// If user doesn't touch the screen for 45s during ACTIVE cooking, they likely
@@ -868,6 +868,7 @@ export const CookingPlayer = () => {
 		navigateToStep,
 		completedSteps,
 		recipe,
+		stepPhotos,
 		startTimer,
 		step,
 		showCompletion,
@@ -1154,7 +1155,6 @@ export const CookingPlayer = () => {
 			sendSessionCompleted,
 			isPreviewMode,
 			exitPreview,
-			totalSteps,
 		],
 	)
 
@@ -1499,7 +1499,7 @@ export const CookingPlayer = () => {
 											{recipe.fullIngredientList && recipe.fullIngredientList.length > 0 && (
 												<div className='max-h-48 w-full max-w-sm overflow-y-auto rounded-2xl border border-border-subtle bg-bg-elevated p-4'>
 													<p className='mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-														You'll need
+														You&apos;ll need
 													</p>
 													<ul className='space-y-1'>
 														{recipe.fullIngredientList.slice(0, 8).map((ing, i) => (

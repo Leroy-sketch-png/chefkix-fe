@@ -13,6 +13,8 @@ import {
 	CheckCheck,
 	Sparkles,
 	ArrowLeft,
+	Phone,
+	X,
 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -20,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
+import VideoCall from '@/components/chat/VideoCall'
 import {
 	getMyConversations,
 	getMessages,
@@ -279,6 +282,7 @@ export default function MessagesPage() {
 		null,
 	)
 	const [retryCount, setRetryCount] = useState(0)
+	const [isVideoCallActive, setIsVideoCallActive] = useState(false)
 
 	// Mobile: show chat panel when conversation selected
 	const [showMobileChat, setShowMobileChat] = useState(false)
@@ -635,10 +639,43 @@ export default function MessagesPage() {
 								</h2>
 								<ConnectionStatus isConnected={isConnected} error={wsError} />
 							</div>
+
+							{/* Top Right Action - Video Call */}
+							{user && (
+								<Button
+									variant='ghost'
+									size='icon'
+									onClick={() => setIsVideoCallActive(true)}
+									className='text-brand hover:bg-brand/10'
+								>
+									<Phone className='size-5' />
+								</Button>
+							)}
 						</header>
 
+						{/* Video Call Modal / Overlay */}
+						{isVideoCallActive && selectedConversation && user && (
+							<div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+								<div className="relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+									<Button 
+										variant='ghost' 
+										size='icon' 
+										className="absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10"
+										onClick={() => setIsVideoCallActive(false)}
+									>
+										<X className="size-5" />
+									</Button>
+									
+									<VideoCall 
+										conversationId={selectedConversation.id} 
+										currentUserId={user.userId} 
+									/>
+								</div>
+							</div>
+						)}
+
 						{/* Messages Area - Scrollable */}
-						<div className='flex-1 overflow-y-auto px-4 py-4 md:px-6'>
+						<div className='flex-1 overflow-y-auto px-4 py-4 md:px-6 relative'>
 							{isLoadingMessages ? (
 								<div className='flex h-full items-center justify-center'>
 									<Loader2 className='size-6 animate-spin text-text-muted' />

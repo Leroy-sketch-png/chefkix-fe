@@ -174,7 +174,7 @@ export const GroupHeader = ({
 
 							{isOwner && (
 								<div className='text-xs text-brand px-2 py-1 bg-brand/10 rounded-full'>
-									You're the owner
+									You&apos;re the owner
 								</div>
 							)}
 
