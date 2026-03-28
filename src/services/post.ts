@@ -182,6 +182,53 @@ export const createPost = async (
 }
 
 /**
+ * Create a post within a specific group.
+ * Uses the group-specific endpoint so the post is associated with the group
+ * and filtered correctly in feeds.
+ */
+export const createGroupPost = async (
+	groupId: string,
+	data: CreatePostRequest,
+): Promise<ApiResponse<Post>> => {
+	try {
+		const formData = new FormData()
+		formData.append('content', data.content)
+		formData.append('postType', 'GROUP')
+
+		if (data.photoUrls && data.photoUrls.length > 0) {
+			data.photoUrls.forEach(file => {
+				formData.append('photoUrls', file)
+			})
+		}
+
+		if (data.avatarUrl) {
+			formData.append('avatarUrl', data.avatarUrl)
+		}
+
+		const response = await api.post<ApiResponse<Post>>(
+			API_ENDPOINTS.GROUPS.CREATE_POST(groupId),
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			},
+		)
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<Post>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to create group post. Please try again.',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
  * Get a single post by ID.
  * Useful for post detail pages and notifications that link to a specific post.
  */

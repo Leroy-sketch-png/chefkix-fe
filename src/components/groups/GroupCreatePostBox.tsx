@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Image, Smile, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { createPost } from '@/services/post'
+import { createGroupPost } from '@/services/post'
 import { useAuthStore } from '@/store/authStore'
 
 interface GroupCreatePostBoxProps {
@@ -37,8 +37,8 @@ export function GroupCreatePostBox({
 
 		setIsSubmitting(true)
 		try {
-			// Create post with group context
-			await createPost({
+			// Create post with group context using the group-specific endpoint
+			await createGroupPost(groupId, {
 				content: content.trim(),
 				avatarUrl: user?.avatarUrl || '',
 				postType: 'GROUP',

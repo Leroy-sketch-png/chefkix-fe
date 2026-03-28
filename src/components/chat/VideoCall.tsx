@@ -119,7 +119,9 @@ export default function VideoCall({
 	// --- Phase 2: Signaling Client (WebSocket) ---
 	const connectWebSocket = () => {
 		// Connect to the Spring Boot endpoint we just created
-		const wsUrl = `ws://localhost:8080/api/v1/ws/video-signaling`
+		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+		const wsBase = apiBase.replace(/^http/, 'ws')
+		const wsUrl = `${wsBase}/api/v1/ws/video-signaling`
 		const ws = new WebSocket(wsUrl)
 
 		ws.onopen = () => {
@@ -417,7 +419,7 @@ export default function VideoCall({
 			{/* Control Buttons */}
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
 				<button
-					onClick={startMedia}
+					onClick={() => startMedia()}
 					className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
 				>
 					{isCameraOn ? 'Camera On ✅' : '1. Turn On Camera'}
