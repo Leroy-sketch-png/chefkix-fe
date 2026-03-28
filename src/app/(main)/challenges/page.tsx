@@ -174,7 +174,7 @@ export default function ChallengesPage() {
 						description='New challenges drop daily! In the meantime, challenge a friend to a cooking duel.'
 						primaryAction={{
 							label: 'Refresh',
-							onClick: () => window.location.reload(),
+							onClick: () => router.refresh(),
 						}}
 						secondaryActions={[
 							{

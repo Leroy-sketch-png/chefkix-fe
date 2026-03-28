@@ -206,7 +206,21 @@ export default function CreatorRoute() {
 					<ErrorState
 						title='Failed to load creator analytics'
 						message='Something went wrong loading your data. Please try again.'
-						onRetry={() => window.location.reload()}
+						onRetry={() => {
+							setFetchError(false)
+							setIsLoading(true)
+							Promise.all([
+								getCreatorStats(),
+								getCreatorPerformance(),
+								getRecentCooks(0, 10),
+							]).then(([statsRes, perfRes, cooksRes]) => {
+								const anySuccess = statsRes.success || perfRes.success || cooksRes.success
+								if (!anySuccess) { setFetchError(true); return }
+								if (statsRes.success && statsRes.data) setStats(statsRes.data)
+								if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
+								if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
+							}).catch(() => setFetchError(true)).finally(() => setIsLoading(false))
+						}}
 					/>
 				</PageContainer>
 			</PageTransition>

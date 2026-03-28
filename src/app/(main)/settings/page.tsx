@@ -30,8 +30,6 @@ import {
 	Eye,
 	ImagePlus,
 	Camera,
-	Gift,
-	Crown,
 	BadgeCheck,
 } from 'lucide-react'
 import Image from 'next/image'
@@ -147,18 +145,7 @@ const TABS: TabConfig[] = [
 		icon: Palette,
 		description: 'Theme, sounds, and accessibility',
 	},
-	{
-		id: 'premium',
-		label: 'Premium',
-		icon: Crown,
-		description: 'Coming soon -- upgrade your experience',
-	},
-	{
-		id: 'referral',
-		label: 'Referral',
-		icon: Gift,
-		description: 'Coming soon -- invite friends, earn XP',
-	},
+	// Premium and Referral tabs hidden until backend support is ready
 	{
 		id: 'verification',
 		label: 'Verification',
