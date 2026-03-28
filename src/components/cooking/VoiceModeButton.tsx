@@ -20,12 +20,9 @@ export function VoiceModeButton({
 	voice: UseVoiceModeReturn
 	className?: string
 }) {
-	if (!voice.isSupported) return null
-
 	// Surface voice events as toasts so the user gets feedback
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	useEffect(() => {
-		if (!voice.lastEvent) return
+		if (!voice.isSupported || !voice.lastEvent) return
 		const { type, message } = voice.lastEvent
 		switch (type) {
 			case 'command':
@@ -39,7 +36,9 @@ export function VoiceModeButton({
 				toast.info(message)
 				break
 		}
-	}, [voice.lastEvent])
+	}, [voice.isSupported, voice.lastEvent])
+
+	if (!voice.isSupported) return null
 
 	const handleClick = () => {
 		if (voice.isContinuous) {

@@ -15,11 +15,11 @@ import {
 	ChefHat,
 	Bookmark,
 	Trophy,
-	BadgeCheck,
 	ShieldBan,
 	MoreHorizontal,
 } from 'lucide-react'
 import Link from 'next/link'
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -749,9 +749,7 @@ const OtherUserProfileHeader = ({
 				<div className='flex-1 pt-14'>
 					<div className='flex items-center gap-2'>
 						<h1 className='text-2xl font-extrabold'>{user.displayName}</h1>
-						{user.isVerified && (
-							<BadgeCheck className='h-icon-md w-icon-md text-info' />
-						)}
+						{user.isVerified && <VerifiedBadge className='text-info' />}
 					</div>
 					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
 					{user.bio && (
@@ -883,7 +881,7 @@ const MiniProfileHeader = ({
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center gap-1.5'>
 					<span className='text-sm font-bold'>{user.displayName}</span>
-					{user.isVerified && <BadgeCheck className='h-3.5 w-3.5 text-info' />}
+					{user.isVerified && <VerifiedBadge size='sm' className='text-info' />}
 					<span
 						className={cn(
 							'rounded-lg px-2 py-0.5 text-2xs font-bold uppercase text-white',

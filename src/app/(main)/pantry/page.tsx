@@ -37,6 +37,7 @@ import type {
 	PantryRecipeMatch,
 } from '@/lib/types/pantry'
 import { toast } from 'sonner'
+import { ErrorState } from '@/components/ui/error-state'
 import {
 	AsyncCombobox,
 	AsyncComboboxRef,
@@ -81,6 +82,7 @@ export default function PantryPage() {
 	const router = useRouter()
 	const [items, setItems] = useState<PantryItem[]>([])
 	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState(false)
 	const [filterCategory, setFilterCategory] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
 
@@ -134,6 +136,7 @@ export default function PantryPage() {
 			const data = await getPantryItems(filterCategory ?? undefined)
 			setItems(data)
 		} catch {
+			setError(true)
 			toast.error('Failed to load pantry items', {
 				action: {
 					label: 'Retry',
@@ -298,6 +301,26 @@ export default function PantryPage() {
 		...cat,
 		items: filtered.filter(i => i.category === cat.key),
 	})).filter(g => g.items.length > 0)
+
+	// ── Error state ───────────────────────────────────────
+
+	if (error) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title='Failed to load pantry'
+						message="We couldn't load your pantry items. Please try again."
+						onRetry={() => {
+							setError(false)
+							setLoading(true)
+							fetchItems()
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
 
 	// ── Skeleton ──────────────────────────────────────────
 

@@ -43,6 +43,7 @@ import {
 } from '@/lib/types/search'
 import { logDevError } from '@/lib/dev-log'
 import { trackEvent } from '@/lib/eventTracker'
+import { ErrorState } from '@/components/ui/error-state'
 
 // ============================================
 // TYPES
@@ -330,6 +331,8 @@ export default function SearchPage() {
 	const isInternalNav = useRef(false)
 	const [activeTab, setActiveTab] = useState<SearchTab>('recipes')
 	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 	const [results, setResults] = useState<{
 		recipes: RecipeResult[]
 		people: PersonResult[]
@@ -388,13 +391,14 @@ export default function SearchPage() {
 				}
 			} catch (err) {
 				logDevError('Search failed:', err)
+				setError(true)
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
 		fetchResults()
-	}, [query])
+	}, [query, retryKey])
 
 	const totalResults =
 		results.recipes.length + results.people.length + results.posts.length
@@ -419,6 +423,23 @@ export default function SearchPage() {
 			count: results.posts.length,
 		},
 	]
+
+	if (error && query) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title='Search failed'
+						message="We couldn't complete your search. Please try again."
+						onRetry={() => {
+							setError(false)
+							setIsLoading(true)
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
 
 	if (!query) {
 		return (

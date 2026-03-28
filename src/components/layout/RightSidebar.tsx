@@ -12,6 +12,8 @@ import { getSessionHistory } from '@/services/cookingSession'
 import { toggleFollow as toggleFollowApi } from '@/services/social'
 import { Profile } from '@/lib/types'
 import { logDevError } from '@/lib/dev-log'
+import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
+import { usePresence } from '@/hooks/usePresence'
 
 // ============================================
 // HELPER: Compute week progress from cooking session history
@@ -74,6 +76,7 @@ function computeWeekProgress(
 export const RightSidebar = () => {
 	const { user } = useAuth()
 	const router = useRouter()
+	usePresence() // Send heartbeat while sidebar is mounted
 	const [followedIds, setFollowedIds] = useState<string[]>([])
 	const [suggestions, setSuggestions] = useState<Profile[]>([])
 	const [cookDates, setCookDates] = useState<Date[]>([])
@@ -187,13 +190,8 @@ export const RightSidebar = () => {
 
 	return (
 		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-4 xl:flex xl:flex-col xl:gap-4'>
-			{/* 
-				FriendsCookingWidget REMOVED (Steve Jobs Audit 2024-12-20)
-				
-				The widget displayed "Coming Soon" — advertising a feature that
-				doesn't exist. WebSocket real-time cooking status is a P2 feature.
-				When implemented, add back: <FriendsCookingWidget />
-			*/}
+			{/* Friends Online Widget — real-time via presence heartbeat */}
+			<FriendsOnlineWidget />
 
 			{/* Streak Widget */}
 			<StreakWidget

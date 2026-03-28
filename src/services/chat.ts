@@ -90,6 +90,7 @@ export interface CreateConversationDto {
 export interface SendMessageDto {
 	conversationId: string
 	message: string
+	replyToId?: string
 }
 
 export interface ShareContactResponse {
@@ -227,6 +228,7 @@ export const sendMessage = async (
 				conversationId: data.conversationId,
 				message: data.message,
 				type: 'TEXT', // Explicitly TEXT for regular messages
+				...(data.replyToId && { replyToId: data.replyToId }),
 			},
 		)
 		return response.data

@@ -38,6 +38,7 @@ import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { toast } from 'sonner'
 
 // ============================================
 // HELPERS
@@ -284,10 +285,15 @@ export default function MessagesPage() {
 	const [retryCount, setRetryCount] = useState(0)
 	const [isVideoCallActive, setIsVideoCallActive] = useState(false)
 
+	// Reply state
+	const [replyingTo, setReplyingTo] = useState<Message | null>(null)
+
 	// Mobile: show chat panel when conversation selected
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
 	const messagesEndRef = useRef<HTMLDivElement>(null)
+	const messagesContainerRef = useRef<HTMLDivElement>(null)
+	const isNearBottomRef = useRef(true)
 	const inputRef = useRef<MentionInputRef>(null)
 	const hasHandledUserIdRef = useRef(false)
 
@@ -416,9 +422,23 @@ export default function MessagesPage() {
 		setTimeout(() => inputRef.current?.focus(), 100)
 	}, [selectedConversationId])
 
-	// Scroll to bottom on new messages
+	// Track scroll position to decide auto-scroll behavior
 	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+		const container = messagesContainerRef.current
+		if (!container) return
+		const handleScroll = () => {
+			const { scrollTop, scrollHeight, clientHeight } = container
+			isNearBottomRef.current = scrollHeight - scrollTop - clientHeight < 100
+		}
+		container.addEventListener('scroll', handleScroll)
+		return () => container.removeEventListener('scroll', handleScroll)
+	}, [selectedConversationId])
+
+	// Scroll to bottom on new messages only if user is near bottom
+	useEffect(() => {
+		if (isNearBottomRef.current) {
+			messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+		}
 	}, [messages])
 
 	// Send message handler
@@ -426,10 +446,12 @@ export default function MessagesPage() {
 		if (!newMessage.trim() || !selectedConversation || isSending) return
 
 		const messageText = newMessage.trim()
+		const replyToId = replyingTo?.id
 		setNewMessage('')
+		setReplyingTo(null)
 
 		if (isConnected) {
-			sendMessageWs(messageText)
+			sendMessageWs(messageText, replyToId)
 		} else {
 			// Fallback to REST
 			setIsSending(true)
@@ -437,15 +459,18 @@ export default function MessagesPage() {
 				const response = await sendMessageRest({
 					conversationId: selectedConversation.id,
 					message: messageText,
+					replyToId,
 				})
 				if (response.success && response.data) {
 					setMessages(prev => [...prev, response.data!])
 				} else {
 					setNewMessage(messageText)
+					toast.error('Failed to send message')
 				}
 			} catch (err) {
 				logDevError('Failed to send message:', err)
 				setNewMessage(messageText)
+				toast.error('Failed to send message')
 			} finally {
 				setIsSending(false)
 			}
@@ -465,6 +490,8 @@ export default function MessagesPage() {
 			setMessages(prev =>
 				prev.map(m => (m.id === messageId ? response.data! : m)),
 			)
+		} else {
+			toast.error('Failed to react to message')
 		}
 	}, [])
 
@@ -475,17 +502,24 @@ export default function MessagesPage() {
 			setMessages(prev =>
 				prev.map(m => (m.id === messageId ? response.data! : m)),
 			)
+		} else {
+			toast.error('Failed to delete message')
 		}
 	}, [])
 
 	// Reply to a message - focus input and prepend reply context
 	const handleReply = useCallback((message: Message) => {
+		setReplyingTo(message)
 		inputRef.current?.focus()
 	}, [])
 
 	// Copy message content
-	const handleCopy = useCallback((content: string) => {
-		navigator.clipboard.writeText(content)
+	const handleCopy = useCallback(async (content: string) => {
+		try {
+			await navigator.clipboard.writeText(content)
+		} catch {
+			toast.error('Failed to copy message')
+		}
 	}, [])
 
 	// Back to list (mobile)
@@ -655,27 +689,30 @@ export default function MessagesPage() {
 
 						{/* Video Call Modal / Overlay */}
 						{isVideoCallActive && selectedConversation && user && (
-							<div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-								<div className="relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
-									<Button 
-										variant='ghost' 
-										size='icon' 
-										className="absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10"
+							<div className='absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
+								<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
+									<Button
+										variant='ghost'
+										size='icon'
+										className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
 										onClick={() => setIsVideoCallActive(false)}
 									>
-										<X className="size-5" />
+										<X className='size-5' />
 									</Button>
-									
-									<VideoCall 
-										conversationId={selectedConversation.id} 
-										currentUserId={user.userId} 
+
+									<VideoCall
+										conversationId={selectedConversation.id}
+										currentUserId={user.userId}
 									/>
 								</div>
 							</div>
 						)}
 
 						{/* Messages Area - Scrollable */}
-						<div className='flex-1 overflow-y-auto px-4 py-4 md:px-6 relative'>
+						<div
+							ref={messagesContainerRef}
+							className='flex-1 overflow-y-auto px-4 py-4 md:px-6'
+						>
 							{isLoadingMessages ? (
 								<div className='flex h-full items-center justify-center'>
 									<Loader2 className='size-6 animate-spin text-text-muted' />
@@ -723,6 +760,37 @@ export default function MessagesPage() {
 
 						{/* Input Area */}
 						<footer className='flex-shrink-0 border-t border-border-subtle bg-bg-card p-3 md:p-4'>
+							{/* Reply Preview */}
+							{replyingTo && (
+								<div className='mb-2 flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2'>
+									<div className='min-w-0 flex-1'>
+										<p className='truncate text-xs font-medium text-brand'>
+											Replying to{' '}
+											{replyingTo.isOwn
+												? 'yourself'
+												: (() => {
+														const orig = messages.find(
+															m => m.id === replyingTo.id,
+														)
+														return orig?.sender
+															? `${orig.sender.firstName || ''} ${orig.sender.lastName || ''}`.trim() ||
+																	orig.sender.username
+															: 'message'
+													})()}
+										</p>
+										<p className='truncate text-xs text-text-secondary'>
+											{replyingTo.content}
+										</p>
+									</div>
+									<button
+										type='button'
+										onClick={() => setReplyingTo(null)}
+										className='flex-shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text'
+									>
+										<X className='size-3.5' />
+									</button>
+								</div>
+							)}
 							<div className='flex items-center gap-3'>
 								<MentionInput
 									ref={inputRef}

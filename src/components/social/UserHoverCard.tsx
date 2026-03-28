@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { getProfileByUserId } from '@/services/profile'
+import { toggleFollow } from '@/services/social'
 import {
 	Popover,
 	PopoverTrigger,
@@ -10,8 +11,9 @@ import {
 } from '@/components/ui/popover'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { UserPlus, MessageCircle, Loader2 } from 'lucide-react'
+import { UserPlus, UserCheck, MessageCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface UserHoverCardProps {
 	userId: string
@@ -35,9 +37,11 @@ export const UserHoverCard = ({
 	children,
 	currentUserId,
 }: UserHoverCardProps) => {
+	const router = useRouter()
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [hasError, setHasError] = useState(false)
+	const [isFollowLoading, setIsFollowLoading] = useState(false)
 
 	// Fetch profile data when hovering
 	const handleOpenChange = async (open: boolean) => {
@@ -53,6 +57,25 @@ export const UserHoverCard = ({
 			setIsLoading(false)
 		}
 	}
+
+	const handleFollowToggle = useCallback(async () => {
+		if (isFollowLoading || !profile) return
+		setIsFollowLoading(true)
+		try {
+			const response = await toggleFollow(userId)
+			if (response.success && response.data) {
+				setProfile(prev =>
+					prev ? { ...prev, isFollowing: response.data!.isFollowing } : prev,
+				)
+			}
+		} finally {
+			setIsFollowLoading(false)
+		}
+	}, [userId, profile, isFollowLoading])
+
+	const handleSendMessage = useCallback(() => {
+		router.push(`/messages?userId=${userId}`)
+	}, [router, userId])
 
 	const isOwnProfile = userId === currentUserId
 	const displayName = getProfileDisplayName(profile)
@@ -95,12 +118,35 @@ export const UserHoverCard = ({
 
 							{!isOwnProfile && (
 								<div className='flex gap-2'>
-									<Button size='sm' variant='outline' className='h-8 w-8 p-0' aria-label='Send message'>
+									<Button
+										size='sm'
+										variant='outline'
+										className='h-8 w-8 p-0'
+										aria-label='Send message'
+										onClick={handleSendMessage}
+									>
 										<MessageCircle className='h-4 w-4' />
 									</Button>
-									<Button size='sm' className='h-8 px-3'>
-										<UserPlus className='h-4 w-4 mr-1' />
-										{profile.isFollowing ? 'Following' : 'Follow'}
+									<Button
+										size='sm'
+										className='h-8 px-3'
+										variant={profile.isFollowing ? 'outline' : 'default'}
+										onClick={handleFollowToggle}
+										disabled={isFollowLoading}
+									>
+										{isFollowLoading ? (
+											<Loader2 className='h-4 w-4 animate-spin' />
+										) : profile.isFollowing ? (
+											<>
+												<UserCheck className='h-4 w-4 mr-1' />
+												Following
+											</>
+										) : (
+											<>
+												<UserPlus className='h-4 w-4 mr-1' />
+												Follow
+											</>
+										)}
 									</Button>
 								</div>
 							)}

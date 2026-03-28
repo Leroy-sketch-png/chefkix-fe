@@ -15,7 +15,7 @@ interface UseChatWebSocketOptions {
 }
 
 interface UseChatWebSocketReturn {
-	sendMessage: (message: string) => void
+	sendMessage: (message: string, replyToId?: string) => void
 	isConnected: boolean
 	error: string | null
 }
@@ -183,17 +183,18 @@ export function useChatWebSocket({
 
 	// Send message via WebSocket
 	const sendMessage = useCallback(
-		(message: string) => {
+		(message: string, replyToId?: string) => {
 			if (!clientRef.current?.connected || !conversationId) {
-				logDevWarn(
-					'[WebSocket] Cannot send: not connected or no conversation',
-				)
+				logDevWarn('[WebSocket] Cannot send: not connected or no conversation')
 				return
 			}
 
-			const payload = {
+			const payload: Record<string, string> = {
 				conversationId,
 				message,
+			}
+			if (replyToId) {
+				payload.replyToId = replyToId
 			}
 
 			clientRef.current.publish({

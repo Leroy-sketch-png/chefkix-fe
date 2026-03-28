@@ -67,6 +67,8 @@ export interface Profile {
 	isFollowedBy?: boolean // They follow me (for mutual detection)
 	relationshipStatus?: RelationshipStatus
 	isBlocked?: boolean // Block status from API
+	/** Verified creator badge — from W5.9 */
+	isVerified?: boolean
 	// ── Aspirational gamification fields (per spec 02-profile.txt) ──
 	// These are NOT in BE ProfileResponse. Always undefined from API.
 	// Kept for future implementation. Use Statistics fields for actual data.

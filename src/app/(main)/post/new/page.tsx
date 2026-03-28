@@ -23,6 +23,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
+import { guardContent } from '@/services/ml'
 import { trackEvent } from '@/lib/eventTracker'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
@@ -212,6 +213,30 @@ function CreatePostContent() {
 
 		setIsSubmitting(true)
 
+		// Content safety check — non-blocking if AI is down, but blocks harmful content
+		if (content.trim()) {
+			const guardResult = await guardContent(content.trim(), 'post')
+			if (guardResult.success && guardResult.data) {
+				if (guardResult.data.action === 'block') {
+					toast.error(
+						'Your post contains content that violates community guidelines.',
+						{
+							description:
+								guardResult.data.reasons?.[0] || 'Please revise and try again.',
+						},
+					)
+					setIsSubmitting(false)
+					return
+				}
+				if (guardResult.data.action === 'flag') {
+					toast.warning(
+						'Your post has been flagged for review and may be moderated.',
+					)
+				}
+			}
+			// If guardContent fails (AI down), proceed — don't block posting
+		}
+
 		try {
 			const response = await createPost({
 				avatarUrl: user?.avatarUrl || '',
@@ -236,7 +261,7 @@ function CreatePostContent() {
 				if (session?.id && postId) {
 					const linkResponse = await claimPendingXp(session.id, postId)
 
-					if (linkResponse.success && linkResponse.data) {
+					if (linkResponse?.success && linkResponse.data) {
 						xpAwarded = linkResponse.data.xpAwarded ?? 0
 						badgesEarned = linkResponse.data.badgesEarned ?? []
 
@@ -264,10 +289,10 @@ function CreatePostContent() {
 						sessionStorage.setItem('newPost', JSON.stringify(createdPost))
 
 						// Post succeeded but XP claim still needs recovery
-						logDevError('Failed to claim XP:', linkResponse.message)
+						logDevError('Failed to claim XP:', linkResponse?.message)
 						toast.warning('Post shared. Cooking XP is still being claimed.', {
 							description:
-								linkResponse.message ||
+								linkResponse?.message ||
 								'We will retry the XP award on the dashboard.',
 						})
 						router.push('/dashboard')

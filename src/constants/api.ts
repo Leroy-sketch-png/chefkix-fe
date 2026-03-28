@@ -58,8 +58,7 @@ export const API_ENDPOINTS = {
 			`${POST_SERVICE_PREFIX}/toggle-like/${postId}`,
 		TOGGLE_SAVE: (postId: string) =>
 			`${POST_SERVICE_PREFIX}/toggle-save/${postId}`,
-		VOTE_POLL: (postId: string) =>
-			`${POST_SERVICE_PREFIX}/${postId}/vote`,
+		VOTE_POLL: (postId: string) => `${POST_SERVICE_PREFIX}/${postId}/vote`,
 		RATE_PLATE: (postId: string) =>
 			`${POST_SERVICE_PREFIX}/${postId}/rate-plate`,
 		GET_ALL: `${POST_SERVICE_PREFIX}/all`,
@@ -310,6 +309,27 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/knowledge/ingredients/${name}/substitutions`,
 		TECHNIQUES: `${API_PREFIX}/knowledge/techniques`,
 		TECHNIQUE: (name: string) => `${API_PREFIX}/knowledge/techniques/${name}`,
+	},
+	// ── Wave 5: Intelligence + Commerce ──
+	PRESENCE: {
+		HEARTBEAT: `${API_PREFIX}/presence/heartbeat`,
+		FRIENDS: `${API_PREFIX}/presence/friends`,
+		FRIENDS_COOKING: `${API_PREFIX}/presence/friends/cooking`,
+		OFFLINE: `${API_PREFIX}/presence/offline`,
+	},
+	VERIFICATION: {
+		APPLY: `${API_PREFIX}/verification/apply`,
+		STATUS: `${API_PREFIX}/verification/status`,
+		ADMIN_APPROVE: (requestId: string) =>
+			`${API_PREFIX}/verification/${requestId}/approve`,
+		ADMIN_REJECT: (requestId: string) =>
+			`${API_PREFIX}/verification/${requestId}/reject`,
+	},
+	// AI ML endpoints (direct to AI service on port 8000)
+	ML: {
+		NER_EXTRACT: '/api/v1/ner/extract',
+		CALIBRATE_DIFFICULTY: '/api/v1/ml/calibrate-difficulty',
+		CONTENT_GUARD: '/api/v1/ml/content-guard',
 	},
 	GROUPS: {
 		BASE: `${API_PREFIX}/group`,

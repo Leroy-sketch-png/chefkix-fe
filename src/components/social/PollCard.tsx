@@ -19,22 +19,19 @@ interface PollCardProps {
 	currentUserId?: string
 }
 
-export const PollCard = ({ post: initialPost, onUpdate, currentUserId }: PollCardProps) => {
+export const PollCard = ({
+	post: initialPost,
+	onUpdate,
+	currentUserId,
+}: PollCardProps) => {
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isVoting, setIsVoting] = useState(false)
 
 	const poll = post.pollData
-	if (!poll) return null
-
-	const totalVotes = poll.votesA + poll.votesB
-	const percentA = totalVotes > 0 ? Math.round((poll.votesA / totalVotes) * 100) : 50
-	const percentB = totalVotes > 0 ? Math.round((poll.votesB / totalVotes) * 100) : 50
-	const hasVoted = post.userVote !== null && post.userVote !== undefined
-	const isOwner = currentUserId === post.userId
 
 	const handleVote = useCallback(
 		async (option: 'A' | 'B') => {
-			if (isVoting || isOwner) return
+			if (isVoting || currentUserId === post.userId || !poll) return
 			setIsVoting(true)
 			try {
 				const response = await votePoll(post.id, option)
@@ -53,14 +50,27 @@ export const PollCard = ({ post: initialPost, onUpdate, currentUserId }: PollCar
 				} else {
 					toast.error(response.message || 'Failed to vote')
 				}
-			} catch {
-				toast.error('Failed to vote')
+			} catch (error) {
+				console.error('Failed to vote:', error)
+				toast.error('An error occurred while voting')
 			} finally {
 				setIsVoting(false)
 			}
 		},
-		[isVoting, isOwner, post, poll, onUpdate],
+		[isVoting, currentUserId, post, poll, onUpdate],
 	)
+
+	if (!poll) return null
+
+	const totalVotes = poll.votesA + poll.votesB
+	const percentA =
+		totalVotes > 0 ? Math.round((poll.votesA / totalVotes) * 100) : 50
+	const percentB =
+		totalVotes > 0 ? Math.round((poll.votesB / totalVotes) * 100) : 50
+	const hasVoted = post.userVote !== null && post.userVote !== undefined
+	const isOwner = currentUserId === post.userId
+
+	const canVote = !hasVoted && !isOwner
 
 	const timeAgo = post.createdAt
 		? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
@@ -131,7 +141,9 @@ export const PollCard = ({ post: initialPost, onUpdate, currentUserId }: PollCar
 
 			{/* Footer */}
 			<div className='mt-3 flex items-center justify-between text-xs text-text-muted'>
-				<span>{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
+				<span>
+					{totalVotes} vote{totalVotes !== 1 ? 's' : ''}
+				</span>
 				{isOwner && <span className='italic'>Your poll</span>}
 			</div>
 		</motion.div>
@@ -183,10 +195,7 @@ function PollOption({
 			{/* Content */}
 			<div className='relative flex items-center justify-between'>
 				<span
-					className={cn(
-						'font-medium',
-						isSelected ? 'text-brand' : 'text-text',
-					)}
+					className={cn('font-medium', isSelected ? 'text-brand' : 'text-text')}
 				>
 					{label}
 				</span>

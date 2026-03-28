@@ -187,7 +187,7 @@ export function SignUpForm() {
 									<FormLabel className='text-text'>Email</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='test@example.com'
+											placeholder='chef@email.com'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
@@ -266,7 +266,7 @@ export function SignUpForm() {
 							}}
 							onFailure={error => {
 								toast.error('Failed to sign in with Google. Please try again.')
-									logDevError(error)
+								logDevError(error)
 							}}
 							text='Sign up with Google'
 						/>

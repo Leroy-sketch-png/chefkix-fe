@@ -96,7 +96,9 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		coverUrl: profile.coverImageUrl, // Cover photo from profile
 		bio: profile.bio,
 		isVerified:
-			profile.accountType === 'chef' || profile.accountType === 'admin',
+			profile.isVerified ||
+			profile.accountType === 'chef' ||
+			profile.accountType === 'admin',
 		stats: {
 			followers: statistics.followerCount,
 			following: statistics.followingCount,
@@ -347,7 +349,9 @@ export const UserProfile = ({
 				const response = await getPostsByUser(profile.userId, { limit: 20 })
 				if (response.success && response.data) {
 					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
-					const personalPosts = response.data.filter(post => post.postType !== 'GROUP')
+					const personalPosts = response.data.filter(
+						post => post.postType !== 'GROUP',
+					)
 					setUserPosts(personalPosts)
 				}
 			} catch (err) {
@@ -392,7 +396,9 @@ export const UserProfile = ({
 				const response = await getSavedPosts(0, 20)
 				if (response.success && response.data?.content) {
 					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
-					const personalPosts = response.data.content.filter(post => post.postType !== 'GROUP')
+					const personalPosts = response.data.content.filter(
+						post => post.postType !== 'GROUP',
+					)
 					setSavedPosts(personalPosts)
 				}
 			} catch (err) {
@@ -874,10 +880,7 @@ export const UserProfile = ({
 				{activeTab === 'achievements' && (
 					<div className='space-y-8'>
 						{/* Skill Tree */}
-						<SkillTree
-							userId={profile.userId}
-							isOwnProfile={isOwnProfile}
-						/>
+						<SkillTree userId={profile.userId} isOwnProfile={isOwnProfile} />
 
 						{/* Earned Badges */}
 						<div>

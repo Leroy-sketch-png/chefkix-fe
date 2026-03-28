@@ -39,6 +39,7 @@ export async function getUserSkillTree(
 // ACHIEVEMENT BLUEPRINTS
 // ============================================
 
+/** @deprecated SkillTree (`getMySkillTree`/`getUserSkillTree`) is the primary achievement UI. This flat list is for future achievement browser. */
 export async function getAllAchievements(): Promise<Achievement[]> {
 	try {
 		const res = await api.get<ApiResponse<Achievement[]>>(
@@ -54,6 +55,7 @@ export async function getAllAchievements(): Promise<Achievement[]> {
 // USER ACHIEVEMENTS
 // ============================================
 
+/** @deprecated SkillTree is the primary achievement UI. This flat list is for future achievement browser. */
 export async function getMyUnlockedAchievements(): Promise<UserAchievement[]> {
 	try {
 		const res = await api.get<ApiResponse<UserAchievement[]>>(

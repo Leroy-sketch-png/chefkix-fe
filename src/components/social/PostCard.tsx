@@ -46,6 +46,7 @@ import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 
 interface PostCardProps {
 	post: Post
@@ -105,10 +106,7 @@ export const PostCard = ({
 		setIsSaved(initialPost.isSaved ?? false)
 	}, [initialPost])
 
-	const canEdit =
-		isOwner &&
-		Date.now() - createdAt.getTime() < 60 * 60 * 1000 && // Within 1 hour
-		!post.updatedAt
+	const canEdit = isOwner && Date.now() - createdAt.getTime() < 60 * 60 * 1000 // Within 1 hour
 
 	const handleMenuToggle = useCallback(() => {
 		if (!showMenu && menuButtonRef.current) {
@@ -237,14 +235,17 @@ export const PostCard = ({
 		if (prevRating === rating) {
 			// Toggle off
 			newRating = null
-			if (rating === 'FIRE') newFire--; else newCringe--
+			if (rating === 'FIRE') newFire--
+			else newCringe--
 		} else {
 			if (prevRating) {
 				// Switch
-				if (prevRating === 'FIRE') newFire--; else newCringe--
+				if (prevRating === 'FIRE') newFire--
+				else newCringe--
 			}
 			newRating = rating
-			if (rating === 'FIRE') newFire++; else newCringe++
+			if (rating === 'FIRE') newFire++
+			else newCringe++
 		}
 
 		setPost(prev => ({
@@ -492,8 +493,9 @@ export const PostCard = ({
 									</AvatarFallback>
 								</Avatar>
 								<div>
-									<div className='text-base font-bold leading-tight text-text-primary'>
+									<div className='flex items-center gap-1 text-base font-bold leading-tight text-text-primary'>
 										{post.displayName || 'Unknown User'}
+										{post.isVerified && <VerifiedBadge size='sm' />}
 									</div>
 									<div className='text-sm leading-normal text-text-secondary'>
 										{formatDistanceToNow(new Date(post.createdAt), {
@@ -753,45 +755,52 @@ export const PostCard = ({
 					)}
 
 					{/* Rate This Plate — zero-effort engagement for posts with photos */}
-					{hasPhotos && post.postType !== 'POLL' && post.postType !== 'RECENT_COOK' && post.userId !== currentUserId && (
-						<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated/50 px-4 py-2'>
-							<span className='text-xs font-medium text-text-muted'>
-								Rate this plate
-							</span>
-							<div className='flex items-center gap-2'>
-								<button
-									type='button'
-									onClick={() => handleRatePlate('FIRE')}
-									disabled={isRatingPlate}
-									className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
-										post.userPlateRating === 'FIRE'
-											? 'bg-orange-500/15 text-orange-500 ring-1 ring-orange-500/30'
-											: 'text-text-muted hover:bg-orange-500/10 hover:text-orange-500'
-									}`}
-								>
-									<span>🔥</span>
-									{(post.fireCount ?? 0) > 0 && (
-										<span className='text-xs font-semibold'>{post.fireCount}</span>
-									)}
-								</button>
-								<button
-									type='button'
-									onClick={() => handleRatePlate('CRINGE')}
-									disabled={isRatingPlate}
-									className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
-										post.userPlateRating === 'CRINGE'
-											? 'bg-purple-500/15 text-purple-500 ring-1 ring-purple-500/30'
-											: 'text-text-muted hover:bg-purple-500/10 hover:text-purple-500'
-									}`}
-								>
-									<span>😬</span>
-									{(post.cringeCount ?? 0) > 0 && (
-										<span className='text-xs font-semibold'>{post.cringeCount}</span>
-									)}
-								</button>
+					{hasPhotos &&
+						post.postType !== 'POLL' &&
+						post.postType !== 'RECENT_COOK' &&
+						post.userId !== currentUserId && (
+							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated/50 px-4 py-2'>
+								<span className='text-xs font-medium text-text-muted'>
+									Rate this plate
+								</span>
+								<div className='flex items-center gap-2'>
+									<button
+										type='button'
+										onClick={() => handleRatePlate('FIRE')}
+										disabled={isRatingPlate}
+										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
+											post.userPlateRating === 'FIRE'
+												? 'bg-orange-500/15 text-orange-500 ring-1 ring-orange-500/30'
+												: 'text-text-muted hover:bg-orange-500/10 hover:text-orange-500'
+										}`}
+									>
+										<span>🔥</span>
+										{(post.fireCount ?? 0) > 0 && (
+											<span className='text-xs font-semibold'>
+												{post.fireCount}
+											</span>
+										)}
+									</button>
+									<button
+										type='button'
+										onClick={() => handleRatePlate('CRINGE')}
+										disabled={isRatingPlate}
+										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
+											post.userPlateRating === 'CRINGE'
+												? 'bg-purple-500/15 text-purple-500 ring-1 ring-purple-500/30'
+												: 'text-text-muted hover:bg-purple-500/10 hover:text-purple-500'
+										}`}
+									>
+										<span>😬</span>
+										{(post.cringeCount ?? 0) > 0 && (
+											<span className='text-xs font-semibold'>
+												{post.cringeCount}
+											</span>
+										)}
+									</button>
+								</div>
 							</div>
-						</div>
-					)}
+						)}
 
 					{/* Actions */}
 					<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
