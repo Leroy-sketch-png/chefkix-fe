@@ -60,7 +60,8 @@ export default function CreatorRoute() {
 					getCreatorPerformance(),
 					getRecentCooks(0, 10),
 				])
-				const anySuccess = statsRes.success || perfRes.success || cooksRes.success
+				const anySuccess =
+					statsRes.success || perfRes.success || cooksRes.success
 				if (!anySuccess) {
 					setFetchError(true)
 					return

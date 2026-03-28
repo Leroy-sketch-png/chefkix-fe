@@ -204,9 +204,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						recipe.author.displayName !== 'Unknown Chef' && (
 							<div className='mb-6 flex items-center gap-3'>
 								<Image
-									src={
-										recipe.author.avatarUrl || '/placeholder-avatar.svg'
-									}
+									src={recipe.author.avatarUrl || '/placeholder-avatar.svg'}
 									alt={recipe.author.displayName}
 									width={40}
 									height={40}
@@ -595,7 +593,9 @@ export default function ExplorePage() {
 		}
 
 		fetchRecipes()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [debouncedSearch, viewMode, filters, retryCount, sortBy])
 
 	// Scroll restoration
@@ -1082,7 +1082,7 @@ export default function ExplorePage() {
 										imageUrl={getRecipeImage(recipe)}
 										cookTimeMinutes={getTotalTime(recipe)}
 										difficulty={(recipe.difficulty as Difficulty) || 'Beginner'}
-										xpReward={recipe.xpReward}
+										xpReward={recipe.xpReward ?? 0}
 										rating={recipe.averageRating ?? 0}
 										cookCount={recipe.cookCount ?? 0}
 										skillTags={recipe.skillTags}

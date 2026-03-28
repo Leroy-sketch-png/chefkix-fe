@@ -58,8 +58,7 @@ export const API_ENDPOINTS = {
 			`${POST_SERVICE_PREFIX}/toggle-like/${postId}`,
 		TOGGLE_SAVE: (postId: string) =>
 			`${POST_SERVICE_PREFIX}/toggle-save/${postId}`,
-		VOTE_POLL: (postId: string) =>
-			`${POST_SERVICE_PREFIX}/${postId}/vote`,
+		VOTE_POLL: (postId: string) => `${POST_SERVICE_PREFIX}/${postId}/vote`,
 		RATE_PLATE: (postId: string) =>
 			`${POST_SERVICE_PREFIX}/${postId}/rate-plate`,
 		GET_ALL: `${POST_SERVICE_PREFIX}/all`,

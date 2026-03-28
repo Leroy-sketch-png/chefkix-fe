@@ -19,18 +19,16 @@ export interface VerificationStatus {
 
 export const applyForVerification = async (
 	reason?: string,
-	paymentId?: string
+	paymentId?: string,
 ): Promise<ApiResponse<VerificationStatus>> => {
 	try {
 		const response = await api.post<ApiResponse<VerificationStatus>>(
 			API_ENDPOINTS.VERIFICATION.APPLY,
-			{ reason, paymentId }
+			{ reason, paymentId },
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<
-			ApiResponse<VerificationStatus>
-		>
+		const axiosError = error as AxiosError<ApiResponse<VerificationStatus>>
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,
@@ -45,13 +43,11 @@ export const getVerificationStatus = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<VerificationStatus>>(
-			API_ENDPOINTS.VERIFICATION.STATUS
+			API_ENDPOINTS.VERIFICATION.STATUS,
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<
-			ApiResponse<VerificationStatus>
-		>
+		const axiosError = error as AxiosError<ApiResponse<VerificationStatus>>
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,

@@ -811,14 +811,19 @@ export const RecipeFormDetailed = ({
 	// ============================================
 	// LIVE DIFFICULTY PREDICTION
 	// ============================================
-	const [predictedDifficulty, setPredictedDifficulty] = useState<string | null>(null)
+	const [predictedDifficulty, setPredictedDifficulty] = useState<string | null>(
+		null,
+	)
 	const [difficultyConfidence, setDifficultyConfidence] = useState<number>(0)
 	const difficultyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	useEffect(() => {
-		const ingredientCount = formData.ingredients.filter(i => i.name.trim()).length
+		const ingredientCount = formData.ingredients.filter(i =>
+			i.name.trim(),
+		).length
 		const stepCount = formData.steps.filter(s => s.instruction.trim()).length
-		const totalTime = (formData.prepTimeMinutes || 0) + (formData.cookTimeMinutes || 0)
+		const totalTime =
+			(formData.prepTimeMinutes || 0) + (formData.cookTimeMinutes || 0)
 
 		// Need at least 1 ingredient AND 1 step to predict
 		if (ingredientCount === 0 || stepCount === 0) {
@@ -1059,8 +1064,22 @@ export const RecipeFormDetailed = ({
 								className='flex items-center gap-2 rounded-xl border-2 border-border bg-bg-card px-4 py-3 cursor-help'
 								title='Difficulty will be determined by AI based on techniques and complexity. This ensures fair XP calculation.'
 							>
-								<Signal className={cn('size-4', predictedDifficulty ? 'text-primary' : 'text-muted-foreground')} />
-								<span className={cn('flex-1 text-sm', predictedDifficulty ? 'font-medium text-text' : 'text-muted-foreground')}>
+								<Signal
+									className={cn(
+										'size-4',
+										predictedDifficulty
+											? 'text-primary'
+											: 'text-muted-foreground',
+									)}
+								/>
+								<span
+									className={cn(
+										'flex-1 text-sm',
+										predictedDifficulty
+											? 'font-medium text-text'
+											: 'text-muted-foreground',
+									)}
+								>
 									{predictedDifficulty || 'Determined by AI'}
 								</span>
 								{predictedDifficulty && difficultyConfidence > 0 && (

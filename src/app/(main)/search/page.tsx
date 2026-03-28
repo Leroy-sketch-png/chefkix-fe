@@ -430,7 +430,7 @@ export default function SearchPage() {
 				<PageContainer maxWidth='lg'>
 					<ErrorState
 						title='Search failed'
-						message='We couldn&apos;t complete your search. Please try again.'
+						message="We couldn't complete your search. Please try again."
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)

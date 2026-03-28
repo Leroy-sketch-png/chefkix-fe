@@ -218,14 +218,20 @@ function CreatePostContent() {
 			const guardResult = await guardContent(content.trim(), 'post')
 			if (guardResult.success && guardResult.data) {
 				if (guardResult.data.action === 'block') {
-					toast.error('Your post contains content that violates community guidelines.', {
-						description: guardResult.data.reasons?.[0] || 'Please revise and try again.',
-					})
+					toast.error(
+						'Your post contains content that violates community guidelines.',
+						{
+							description:
+								guardResult.data.reasons?.[0] || 'Please revise and try again.',
+						},
+					)
 					setIsSubmitting(false)
 					return
 				}
 				if (guardResult.data.action === 'flag') {
-					toast.warning('Your post has been flagged for review and may be moderated.')
+					toast.warning(
+						'Your post has been flagged for review and may be moderated.',
+					)
 				}
 			}
 			// If guardContent fails (AI down), proceed — don't block posting

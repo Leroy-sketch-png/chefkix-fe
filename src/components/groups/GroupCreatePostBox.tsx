@@ -80,7 +80,7 @@ export function GroupCreatePostBox({
 
 				<div className="flex gap-2 mt-4 flex-wrap">
 					<button className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand transition-colors">
-						<Image className="w-5 h-5" />
+						<Image className="w-5 h-5" alt="Add photo" />
 						Photo
 					</button>
 					<button className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand transition-colors">

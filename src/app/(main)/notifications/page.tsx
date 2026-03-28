@@ -529,7 +529,7 @@ export default function NotificationsPage() {
 				<PageContainer maxWidth='lg'>
 					<ErrorState
 						title='Failed to load notifications'
-						message='We couldn&apos;t load your notifications. Please try again.'
+						message="We couldn't load your notifications. Please try again."
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)

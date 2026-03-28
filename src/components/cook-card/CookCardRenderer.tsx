@@ -19,6 +19,7 @@ import { FADE_IN_VARIANTS } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import type { CookCardData } from '@/lib/types/cookCard'
 import { getCookCardData } from '@/services/cookCard'
+import Image from 'next/image'
 
 // Card dimensions (Instagram story ratio 4:5)
 const CARD_WIDTH = 1080
@@ -443,10 +444,12 @@ export default function CookCardRenderer({
         <div className="relative -mt-10 flex justify-center">
           <div className="size-24 overflow-hidden rounded-full border-4 border-bg-card bg-bg-elevated shadow-warm">
             {data.coverImageUrl?.[0] ? (
-              <img
+              <Image
                 src={data.coverImageUrl[0]}
                 alt={data.recipeTitle}
                 className="size-full object-cover"
+                width={96}
+                height={96}
               />
             ) : (
               <div className="flex size-full items-center justify-center text-3xl">

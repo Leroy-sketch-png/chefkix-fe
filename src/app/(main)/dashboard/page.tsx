@@ -323,7 +323,9 @@ export default function DashboardPage() {
 
 			if (response.success && response.data) {
 				// Filter to only show PERSONAL posts (not GROUP posts)
-				const filteredPosts = response.data.filter(post => post.postType !== 'GROUP')
+				const filteredPosts = response.data.filter(
+					post => post.postType !== 'GROUP',
+				)
 				setPosts(prev => [...prev, ...filteredPosts])
 				setCurrentPage(nextPage)
 				if (response.pagination) {
@@ -472,12 +474,22 @@ export default function DashboardPage() {
 				</motion.div>
 				{/* Feed Mode Tabs */}
 				<div className='mb-6 flex gap-2 overflow-x-auto scrollbar-none'>
-					{([
-						{ key: 'forYou' as FeedMode, label: 'For You', icon: Sparkles },
-						{ key: 'trending' as FeedMode, label: 'Trending', icon: TrendingUp },
-						{ key: 'following' as FeedMode, label: 'Following', icon: Users2 },
-						{ key: 'latest' as FeedMode, label: 'Latest', icon: Clock },
-					] as const).map(tab => (
+					{(
+						[
+							{ key: 'forYou' as FeedMode, label: 'For You', icon: Sparkles },
+							{
+								key: 'trending' as FeedMode,
+								label: 'Trending',
+								icon: TrendingUp,
+							},
+							{
+								key: 'following' as FeedMode,
+								label: 'Following',
+								icon: Users2,
+							},
+							{ key: 'latest' as FeedMode, label: 'Latest', icon: Clock },
+						] as const
+					).map(tab => (
 						<button
 							key={tab.key}
 							onClick={() => setFeedMode(tab.key)}
@@ -581,26 +593,26 @@ export default function DashboardPage() {
 					<>
 						<StaggerContainer className='space-y-4 md:space-y-6'>
 							<AnimatePresence mode='popLayout'>
-							{filteredPosts.map(post =>
-								post.postType === 'POLL' ? (
-									<PollCard
-										key={post.id}
-										post={post}
-										onUpdate={handlePostUpdate}
-										currentUserId={user?.userId}
-									/>
-								) : post.postType === 'RECENT_COOK' ? (
-									<RecentCookCard key={post.id} post={post} />
-								) : (
-									<PostCard
-										key={post.id}
-										post={post}
-										onUpdate={handlePostUpdate}
-										onDelete={handlePostDelete}
-										currentUserId={user?.userId}
-									/>
-								),
-							)}
+								{filteredPosts.map(post =>
+									post.postType === 'POLL' ? (
+										<PollCard
+											key={post.id}
+											post={post}
+											onUpdate={handlePostUpdate}
+											currentUserId={user?.userId}
+										/>
+									) : post.postType === 'RECENT_COOK' ? (
+										<RecentCookCard key={post.id} post={post} />
+									) : (
+										<PostCard
+											key={post.id}
+											post={post}
+											onUpdate={handlePostUpdate}
+											onDelete={handlePostDelete}
+											currentUserId={user?.userId}
+										/>
+									),
+								)}
 							</AnimatePresence>
 						</StaggerContainer>
 

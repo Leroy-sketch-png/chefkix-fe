@@ -112,7 +112,7 @@ export default function LeaderboardRoute() {
 				<PageContainer maxWidth='xl'>
 					<ErrorState
 						title='Failed to load leaderboard'
-						message='We couldn&apos;t load the leaderboard rankings. Please try again.'
+						message="We couldn't load the leaderboard rankings. Please try again."
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)

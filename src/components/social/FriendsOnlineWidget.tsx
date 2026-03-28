@@ -70,8 +70,8 @@ export function FriendsOnlineWidget() {
 					Friends Online
 				</div>
 				<p className='text-xs leading-relaxed text-text-muted'>
-					None of your friends are online right now. Follow more chefs
-					to see who&apos;s cooking!
+					None of your friends are online right now. Follow more chefs to see
+					who&apos;s cooking!
 				</p>
 			</div>
 		)
@@ -114,7 +114,8 @@ export function FriendsOnlineWidget() {
 											alt={friend.displayName || friend.username}
 										/>
 										<AvatarFallback className='text-xs'>
-											{(friend.displayName || friend.username)?.[0]?.toUpperCase() || 'U'}
+											{(friend.displayName ||
+												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
 									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-green-500' />
@@ -125,7 +126,9 @@ export function FriendsOnlineWidget() {
 									</p>
 									<p className='flex items-center gap-1 truncate text-[10px] text-brand'>
 										<ChefHat className='size-2.5' />
-										{friend.recipeTitle ? `Cooking ${friend.recipeTitle}` : 'Cooking'}
+										{friend.recipeTitle
+											? `Cooking ${friend.recipeTitle}`
+											: 'Cooking'}
 									</p>
 								</div>
 							</Link>
@@ -152,7 +155,8 @@ export function FriendsOnlineWidget() {
 											alt={friend.displayName || friend.username}
 										/>
 										<AvatarFallback className='text-xs'>
-											{(friend.displayName || friend.username)?.[0]?.toUpperCase() || 'U'}
+											{(friend.displayName ||
+												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
 									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-green-500' />

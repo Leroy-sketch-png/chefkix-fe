@@ -632,9 +632,7 @@ export default function MealPlannerPage() {
 																	<Clock className='size-3' />
 																	{getTotalTime(recipe)}m
 																</span>
-																<span>
-																	{recipe.servings} servings
-																</span>
+																<span>{recipe.servings} servings</span>
 															</div>
 														</div>
 														{isSwapping && (

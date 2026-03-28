@@ -310,7 +310,7 @@ export default function PantryPage() {
 				<PageContainer maxWidth='lg'>
 					<ErrorState
 						title='Failed to load pantry'
-						message='We couldn&apos;t load your pantry items. Please try again.'
+						message="We couldn't load your pantry items. Please try again."
 						onRetry={() => {
 							setError(false)
 							setLoading(true)

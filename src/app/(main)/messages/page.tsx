@@ -13,6 +13,7 @@ import {
 	CheckCheck,
 	Sparkles,
 	ArrowLeft,
+	Phone,
 	X,
 } from 'lucide-react'
 import Image from 'next/image'
@@ -21,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
+import VideoCall from '@/components/chat/VideoCall'
 import {
 	getMyConversations,
 	getMessages,
@@ -281,6 +283,7 @@ export default function MessagesPage() {
 		null,
 	)
 	const [retryCount, setRetryCount] = useState(0)
+	const [isVideoCallActive, setIsVideoCallActive] = useState(false)
 
 	// Reply state
 	const [replyingTo, setReplyingTo] = useState<Message | null>(null)
@@ -670,10 +673,46 @@ export default function MessagesPage() {
 								</h2>
 								<ConnectionStatus isConnected={isConnected} error={wsError} />
 							</div>
+
+							{/* Top Right Action - Video Call */}
+							{user && (
+								<Button
+									variant='ghost'
+									size='icon'
+									onClick={() => setIsVideoCallActive(true)}
+									className='text-brand hover:bg-brand/10'
+								>
+									<Phone className='size-5' />
+								</Button>
+							)}
 						</header>
 
+						{/* Video Call Modal / Overlay */}
+						{isVideoCallActive && selectedConversation && user && (
+							<div className='absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
+								<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
+									<Button
+										variant='ghost'
+										size='icon'
+										className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
+										onClick={() => setIsVideoCallActive(false)}
+									>
+										<X className='size-5' />
+									</Button>
+
+									<VideoCall
+										conversationId={selectedConversation.id}
+										currentUserId={user.userId}
+									/>
+								</div>
+							</div>
+						)}
+
 						{/* Messages Area - Scrollable */}
-						<div ref={messagesContainerRef} className='flex-1 overflow-y-auto px-4 py-4 md:px-6'>
+						<div
+							ref={messagesContainerRef}
+							className='flex-1 overflow-y-auto px-4 py-4 md:px-6'
+						>
 							{isLoadingMessages ? (
 								<div className='flex h-full items-center justify-center'>
 									<Loader2 className='size-6 animate-spin text-text-muted' />
@@ -726,12 +765,18 @@ export default function MessagesPage() {
 								<div className='mb-2 flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2'>
 									<div className='min-w-0 flex-1'>
 										<p className='truncate text-xs font-medium text-brand'>
-											Replying to {replyingTo.isOwn ? 'yourself' : (() => {
-												const orig = messages.find(m => m.id === replyingTo.id)
-												return orig?.sender
-													? `${orig.sender.firstName || ''} ${orig.sender.lastName || ''}`.trim() || orig.sender.username
-													: 'message'
-											})()}
+											Replying to{' '}
+											{replyingTo.isOwn
+												? 'yourself'
+												: (() => {
+														const orig = messages.find(
+															m => m.id === replyingTo.id,
+														)
+														return orig?.sender
+															? `${orig.sender.firstName || ''} ${orig.sender.lastName || ''}`.trim() ||
+																	orig.sender.username
+															: 'message'
+													})()}
 										</p>
 										<p className='truncate text-xs text-text-secondary'>
 											{replyingTo.content}

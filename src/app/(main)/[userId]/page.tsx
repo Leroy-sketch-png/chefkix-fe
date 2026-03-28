@@ -61,7 +61,9 @@ const ProfilePage = () => {
 	if (serverError) {
 		return (
 			<div className='flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center'>
-				<p className='text-lg text-text-secondary'>Something went wrong loading this profile.</p>
+				<p className='text-lg text-text-secondary'>
+					Something went wrong loading this profile.
+				</p>
 				<button
 					onClick={() => setRetryCount(c => c + 1)}
 					className='rounded-lg bg-brand px-4 py-2 text-white transition-colors hover:bg-brand/90'

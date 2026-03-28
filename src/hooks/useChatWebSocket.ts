@@ -185,9 +185,7 @@ export function useChatWebSocket({
 	const sendMessage = useCallback(
 		(message: string, replyToId?: string) => {
 			if (!clientRef.current?.connected || !conversationId) {
-				logDevWarn(
-					'[WebSocket] Cannot send: not connected or no conversation',
-				)
+				logDevWarn('[WebSocket] Cannot send: not connected or no conversation')
 				return
 			}
 

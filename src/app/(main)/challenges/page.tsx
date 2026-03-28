@@ -100,7 +100,12 @@ export default function ChallengesPage() {
 					setSeasonalChallenges(seasonalRes.data)
 				}
 				// If ALL calls failed, show error state
-				if (!dailyRes.success && !weeklyRes.success && !communityRes.success && !seasonalRes.success) {
+				if (
+					!dailyRes.success &&
+					!weeklyRes.success &&
+					!communityRes.success &&
+					!seasonalRes.success
+				) {
 					setError(true)
 				}
 			} catch (err) {
@@ -237,7 +242,8 @@ export default function ChallengesPage() {
 											<span>
 												{weeklyChallenge.target > 0
 													? Math.round(
-															(weeklyChallenge.progress / weeklyChallenge.target) *
+															(weeklyChallenge.progress /
+																weeklyChallenge.target) *
 																100,
 														)
 													: 0}
@@ -266,15 +272,17 @@ export default function ChallengesPage() {
 									</p>
 
 									{/* CTA: Find matching recipes */}
-									{!weeklyChallenge.completed && weeklyChallenge.matchingRecipes && weeklyChallenge.matchingRecipes.length > 0 && (
-										<button
-											onClick={() => router.push('/explore')}
-											className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80'
-										>
-											Find Matching Recipes
-											<ChevronRight className='size-4' />
-										</button>
-									)}
+									{!weeklyChallenge.completed &&
+										weeklyChallenge.matchingRecipes &&
+										weeklyChallenge.matchingRecipes.length > 0 && (
+											<button
+												onClick={() => router.push('/explore')}
+												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80'
+											>
+												Find Matching Recipes
+												<ChevronRight className='size-4' />
+											</button>
+										)}
 								</motion.div>
 							</section>
 						)}

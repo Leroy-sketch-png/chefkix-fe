@@ -197,7 +197,7 @@ export const CookingPanel = () => {
 		if (!hasActiveSession && voice.isContinuous) {
 			voice.stopContinuous()
 		}
-	}, [hasActiveSession, voice.isSupported, voice.isContinuous, voice.startContinuous, voice.stopContinuous])
+	}, [hasActiveSession, voice.isSupported, voice.isContinuous, voice.startContinuous, voice.stopContinuous, voice])
 
 	// Derive state (always compute, even if we won't render)
 	const currentStepNumber = session?.currentStep ?? 1

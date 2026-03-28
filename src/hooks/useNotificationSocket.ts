@@ -89,10 +89,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 				setIsConnected(false)
 			},
 			onStompError: frame => {
-				logDevError(
-					'[NotifSocket] STOMP error:',
-					frame.headers['message'],
-				)
+				logDevError('[NotifSocket] STOMP error:', frame.headers['message'])
 				setError(frame.headers['message'] || 'Connection error')
 				setIsConnected(false)
 			},

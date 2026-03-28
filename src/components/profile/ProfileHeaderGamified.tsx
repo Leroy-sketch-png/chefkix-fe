@@ -901,9 +901,7 @@ const MiniProfileHeader = ({
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center gap-1.5'>
 					<span className='text-sm font-bold'>{user.displayName}</span>
-					{user.isVerified && (
-						<VerifiedBadge size='sm' className='text-info' />
-					)}
+					{user.isVerified && <VerifiedBadge size='sm' className='text-info' />}
 					<span
 						className={cn(
 							'rounded-lg px-2 py-0.5 text-2xs font-bold uppercase text-white',

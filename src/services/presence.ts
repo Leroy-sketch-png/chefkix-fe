@@ -19,12 +19,12 @@ export interface PresenceInfo {
 }
 
 export const sendHeartbeat = async (
-	activity: string = 'browsing'
+	activity: string = 'browsing',
 ): Promise<ApiResponse<void>> => {
 	try {
 		const response = await api.post<ApiResponse<void>>(
 			API_ENDPOINTS.PRESENCE.HEARTBEAT,
-			{ activity }
+			{ activity },
 		)
 		return response.data
 	} catch (error) {
@@ -39,7 +39,7 @@ export const getFriendsPresence = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<PresenceInfo[]>>(
-			API_ENDPOINTS.PRESENCE.FRIENDS
+			API_ENDPOINTS.PRESENCE.FRIENDS,
 		)
 		return response.data
 	} catch (error) {
@@ -58,7 +58,7 @@ export const getFriendsCookingNow = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<PresenceInfo[]>>(
-			API_ENDPOINTS.PRESENCE.FRIENDS_COOKING
+			API_ENDPOINTS.PRESENCE.FRIENDS_COOKING,
 		)
 		return response.data
 	} catch (error) {
@@ -75,7 +75,7 @@ export const getFriendsCookingNow = async (): Promise<
 export const goOffline = async (): Promise<ApiResponse<void>> => {
 	try {
 		const response = await api.post<ApiResponse<void>>(
-			API_ENDPOINTS.PRESENCE.OFFLINE
+			API_ENDPOINTS.PRESENCE.OFFLINE,
 		)
 		return response.data
 	} catch (error) {

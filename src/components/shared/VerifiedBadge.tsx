@@ -24,7 +24,7 @@ export function VerifiedBadge({
 	return (
 		<BadgeCheck
 			className={`${SIZE_MAP[size]} shrink-0 text-blue-500 ${className}`}
-			aria-label="Verified creator"
+			aria-label='Verified creator'
 		/>
 	)
 }

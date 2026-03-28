@@ -266,7 +266,7 @@ export function SignUpForm() {
 							}}
 							onFailure={error => {
 								toast.error('Failed to sign in with Google. Please try again.')
-									logDevError(error)
+								logDevError(error)
 							}}
 							text='Sign up with Google'
 						/>

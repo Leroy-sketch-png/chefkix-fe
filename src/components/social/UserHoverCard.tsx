@@ -64,7 +64,9 @@ export const UserHoverCard = ({
 		try {
 			const response = await toggleFollow(userId)
 			if (response.success && response.data) {
-				setProfile(prev => prev ? { ...prev, isFollowing: response.data!.isFollowing } : prev)
+				setProfile(prev =>
+					prev ? { ...prev, isFollowing: response.data!.isFollowing } : prev,
+				)
 			}
 		} finally {
 			setIsFollowLoading(false)
