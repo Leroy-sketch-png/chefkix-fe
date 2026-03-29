@@ -177,7 +177,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							<span>⭐ {likeCount} likes</span>
 						</div>
 						<div className='flex gap-4'>
-							<button className='relative h-11 flex-1 overflow-hidden rounded-sm border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+							<button className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
 								Cook Recipe
 							</button>
 						</div>

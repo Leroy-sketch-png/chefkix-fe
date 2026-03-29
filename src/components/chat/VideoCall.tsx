@@ -54,7 +54,8 @@ export default function VideoCall({
 	const [isJoined, setIsJoined] = useState(false)
 	const [isCallActive, setIsCallActive] = useState(false)
 	const [isReceivingCall, setIsReceivingCall] = useState(false)
-	const [remoteOffer, setRemoteOffer] = useState<RTCSessionDescriptionInit | null>(null)
+	const [remoteOffer, setRemoteOffer] =
+		useState<RTCSessionDescriptionInit | null>(null)
 
 	// Configuration for WebRTC connecting (using Google's free public STUN server)
 	const rtcConfig = {
@@ -87,7 +88,7 @@ export default function VideoCall({
 			setIsMicOn(true)
 		} catch (error) {
 			logDevError('Error accessing media devices.', error)
-			
+
 			// Fallback: try audio only if video fails (maybe no webcam)
 			try {
 				const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -100,7 +101,9 @@ export default function VideoCall({
 				setIsMicOn(true)
 			} catch (audioError) {
 				logDevError('Error accessing audio device.', audioError)
-				toast.error('Could not access your microphone. Please check browser permissions.')
+				toast.error(
+					'Could not access your microphone. Please check browser permissions.',
+				)
 			}
 		}
 	}
@@ -261,7 +264,7 @@ export default function VideoCall({
 	const acceptCall = async () => {
 		stopRingtone()
 		setIsReceivingCall(false)
-		
+
 		// Attempt to start audio/video. We default to both, but fallback to audio only in startMedia.
 		if (!localStreamRef.current) {
 			await startMedia(true)
@@ -355,7 +358,7 @@ export default function VideoCall({
 		setIsCallActive(false)
 		setIsReceivingCall(false)
 		setRemoteOffer(null)
-		
+
 		// Unmount component
 		onClose()
 	}, [onClose, stopRingtone])
@@ -372,25 +375,53 @@ export default function VideoCall({
 		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-sm border border-gray-200 w-full max-w-4xl mx-auto relative'>
 			{/* Incoming Call Overlay */}
 			{isReceivingCall && !isCallActive && (
-				<div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl">
-					<div className="w-24 h-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6">
-						<div className="w-16 h-16 bg-brand rounded-full flex items-center justify-center">
-							<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+				<div className='absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl'>
+					<div className='w-24 h-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
+						<div className='w-16 h-16 bg-brand rounded-full flex items-center justify-center'>
+							<svg
+								xmlns='http://www.w3.org/2000/svg'
+								width='32'
+								height='32'
+								viewBox='0 0 24 24'
+								fill='none'
+								stroke='currentColor'
+								strokeWidth='2'
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								className='text-white'
+							>
+								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
+							</svg>
 						</div>
 					</div>
-					<h2 className="text-white text-2xl font-bold mb-8">Incoming Call...</h2>
-					<div className="flex gap-6">
-						<button 
+					<h2 className='text-white text-2xl font-bold mb-8'>
+						Incoming Call...
+					</h2>
+					<div className='flex gap-6'>
+						<button
 							onClick={rejectCall}
-							className="px-6 py-3 bg-red-500 hover:bg-red-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105"
+							className='px-6 py-3 bg-red-500 hover:bg-red-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105'
 						>
 							Decline
 						</button>
-						<button 
+						<button
 							onClick={acceptCall}
-							className="px-6 py-3 bg-green-500 hover:bg-green-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
+							className='px-6 py-3 bg-green-500 hover:bg-green-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2'
 						>
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+							<svg
+								xmlns='http://www.w3.org/2000/svg'
+								width='20'
+								height='20'
+								viewBox='0 0 24 24'
+								fill='none'
+								stroke='currentColor'
+								strokeWidth='2'
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								className='text-white'
+							>
+								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
+							</svg>
 							Answer
 						</button>
 					</div>
@@ -432,21 +463,21 @@ export default function VideoCall({
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
 				<button
 					onClick={() => startMedia()}
-					className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+					className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600'
 				>
 					{isCameraOn ? 'Camera On ✅' : '1. Turn On Camera'}
 				</button>
 
 				<button
 					onClick={toggleVideo}
-					className='px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600'
+					className='px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600'
 				>
 					{isCameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
 				</button>
 
 				<button
 					onClick={toggleAudio}
-					className='px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600'
+					className='px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600'
 				>
 					{isMicOn ? 'Mute Mic' : 'Unmute Mic'}
 				</button>
@@ -455,7 +486,7 @@ export default function VideoCall({
 					<button
 						onClick={makeCall}
 						disabled={!isCameraOn || !isJoined}
-						className={`px-4 py-2 text-white rounded ${
+						className={`px-4 py-2 text-white rounded-md ${
 							!isCameraOn || !isJoined
 								? 'bg-gray-400 cursor-not-allowed'
 								: 'bg-green-500 hover:bg-green-600'
@@ -467,7 +498,7 @@ export default function VideoCall({
 
 				<button
 					onClick={endCall}
-					className='px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600'
+					className='px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600'
 				>
 					End Call
 				</button>
