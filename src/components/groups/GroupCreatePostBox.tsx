@@ -112,8 +112,12 @@ export function GroupCreatePostBox({
 					placeholder="What's on your mind?"
 					className='resize-none focus-visible:ring-brand'
 					rows={4}
+					maxLength={2000}
 					disabled={isSubmitting}
 				/>
+				{content.length > 0 && (
+					<p className='mt-1 text-right text-xs text-text-muted'>{content.length}/2000</p>
+				)}
 			</div>
 
 			<div className='flex justify-end gap-2'>

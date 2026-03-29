@@ -806,6 +806,7 @@ export default function MessagesPage() {
 									onSubmit={handleSendMessage}
 									disabled={isSending}
 									className='bg-bg-elevated'
+									maxLength={4000}
 								/>
 								<Button
 									onClick={handleSendMessage}

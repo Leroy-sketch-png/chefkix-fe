@@ -574,6 +574,7 @@ export const Comment = ({
 										onSubmit={handleSubmitReply}
 										placeholder='Write a reply... (use @ to mention)'
 										disabled={isSubmittingReply}
+										maxLength={500}
 									/>
 									<button
 										onClick={handleSubmitReply}
@@ -587,6 +588,9 @@ export const Comment = ({
 										)}
 									</button>
 								</div>
+								{replyContent.length > 0 && (
+									<p className='mt-1 text-right text-xs text-text-muted'>{replyContent.length}/500</p>
+								)}
 							</motion.div>
 						)}
 					</AnimatePresence>

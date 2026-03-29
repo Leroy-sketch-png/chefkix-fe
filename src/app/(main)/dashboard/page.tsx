@@ -565,7 +565,7 @@ export default function DashboardPage() {
 					<div className='space-y-4 md:space-y-6'>
 						<PostCardSkeleton count={3} showImages={false} />
 					</div>
-				)}{' '}
+				)}
 				{error && (
 					<ErrorState
 						title='Failed to load feed'
@@ -587,7 +587,7 @@ export default function DashboardPage() {
 							primaryAction={{
 								label: 'Discover People',
 								href: '/community',
-								icon: <Users className='h-4 w-4' />,
+								icon: <Users className='size-4' />,
 							}}
 						/>
 					)}
@@ -617,7 +617,7 @@ export default function DashboardPage() {
 							description='Follow chefs to see their latest posts here!'
 							primaryAction={{
 								label: 'Discover People',
-								href: '/discover',
+								href: '/community',
 								icon: <Users className='size-4' />,
 							}}
 							secondaryActions={[

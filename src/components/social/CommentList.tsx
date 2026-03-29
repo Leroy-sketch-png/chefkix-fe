@@ -173,27 +173,33 @@ export const CommentList = ({
 	return (
 		<div className='border-t border-border-subtle'>
 			{/* Comment Input with @mention support */}
-			<div className='flex gap-2 border-b border-border-subtle p-4 md:p-6'>
-				<MentionInput
-					ref={mentionInputRef}
-					value={newComment}
-					onChange={setNewComment}
-					onTaggedUsersChange={setTaggedUserIds}
-					onSubmit={handleSubmitComment}
-					placeholder='Add a comment... (use @ to mention)'
-					disabled={isSubmitting}
-				/>
-				<button
-					onClick={handleSubmitComment}
-					disabled={!newComment.trim() || isSubmitting}
-					className='grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50'
-				>
-					{isSubmitting ? (
-						<Loader2 className='size-4 animate-spin' />
-					) : (
-						<Send className='size-4' />
-					)}
-				</button>
+			<div className='border-b border-border-subtle p-4 md:p-6'>
+				<div className='flex gap-2'>
+					<MentionInput
+						ref={mentionInputRef}
+						value={newComment}
+						onChange={setNewComment}
+						onTaggedUsersChange={setTaggedUserIds}
+						onSubmit={handleSubmitComment}
+						placeholder='Add a comment... (use @ to mention)'
+						disabled={isSubmitting}
+						maxLength={500}
+					/>
+					<button
+						onClick={handleSubmitComment}
+						disabled={!newComment.trim() || isSubmitting}
+						className='grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50'
+					>
+						{isSubmitting ? (
+							<Loader2 className='size-4 animate-spin' />
+						) : (
+							<Send className='size-4' />
+						)}
+					</button>
+				</div>
+				{newComment.length > 0 && (
+					<p className='mt-1 text-right text-xs text-text-muted'>{newComment.length}/500</p>
+				)}
 			</div>
 
 			{/* Comments List */}

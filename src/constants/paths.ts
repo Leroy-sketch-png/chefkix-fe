@@ -2,7 +2,7 @@ export const PATHS = {
 	HOME: '/',
 	DASHBOARD: '/dashboard',
 	EXPLORE: '/explore',
-	DISCOVER: '/discover',
+	DISCOVER: '/community',
 	COMMUNITY: '/community',
 	MESSAGES: '/messages',
 	CREATE: '/create',
@@ -16,7 +16,7 @@ export const PATHS = {
 		GOOGLE_CALLBACK: '/oauth2/callback/google',
 	},
 	GROUPS: {
-		EXPLORE: '/groups/explore',
+		EXPLORE: '/groups',
 		MY_GROUPS: '/groups/my',
 		DETAIL: (groupId: string) => `/groups/${groupId}`,
 		MEMBERS: (groupId: string) => `/groups/${groupId}/members`,

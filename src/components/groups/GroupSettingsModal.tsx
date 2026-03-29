@@ -114,6 +114,7 @@ export function GroupSettingsModal({
 								onChange={(e) => setName(e.target.value)}
 								placeholder='Enter group name'
 								className='bg-bg border-border'
+								maxLength={50}
 							/>
 						</div>
 
@@ -128,7 +129,11 @@ export function GroupSettingsModal({
 								placeholder='Enter group description (optional)'
 								className='bg-bg border-border resize-none'
 								rows={4}
+								maxLength={500}
 							/>
+							{description.length > 0 && (
+								<p className='mt-1 text-right text-xs text-text-muted'>{description.length}/500</p>
+							)}
 						</div>
 
 						{/* Privacy */}

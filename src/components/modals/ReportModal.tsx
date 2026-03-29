@@ -315,8 +315,12 @@ export const ReportModal = ({
 												value={details}
 												onChange={e => setDetails(e.target.value)}
 												placeholder='Provide more context...'
+												maxLength={1000}
 												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
 											/>
+											{details.length > 0 && (
+												<p className='mt-1 text-right text-xs text-text-muted'>{details.length}/1000</p>
+											)}
 										</div>
 
 										{/* Trust Signal */}

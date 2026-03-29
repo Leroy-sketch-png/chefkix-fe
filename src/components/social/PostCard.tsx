@@ -627,12 +627,17 @@ export const PostCard = ({
 								onChange={e => setEditContent(e.target.value)}
 								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
 								placeholder='Edit your post...'
+								maxLength={2000}
 							/>
+							{editContent.length > 0 && (
+								<p className='text-right text-xs text-text-muted'>{editContent.length}/2000</p>
+							)}
 							<input
 								value={editTags}
 								onChange={e => setEditTags(e.target.value)}
 								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
 								placeholder='Tags (comma-separated)'
+								maxLength={200}
 							/>
 							<div className='flex gap-2'>
 								<button

@@ -813,10 +813,9 @@ export default function ExplorePage() {
 	}
 
 	const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') {
-			// Immediately trigger search (bypass debounce)
-			setDebouncedSearch(searchQuery)
-			setIsSearching(false)
+		if (e.key === 'Enter' && searchQuery.trim()) {
+			// Navigate to full search page which supports recipes, people, posts
+			router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
 		}
 	}
 

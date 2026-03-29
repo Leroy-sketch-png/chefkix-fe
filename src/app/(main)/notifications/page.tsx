@@ -638,7 +638,7 @@ export default function NotificationsPage() {
 									}
 								: {
 										label: 'Explore Recipes',
-										href: '/discover',
+										href: '/explore',
 									}
 						}
 					/>
@@ -670,7 +670,7 @@ export default function NotificationsPage() {
 										extraProps.onPost = () => router.push('/create')
 									}
 									if (notif.type === 'streak_warning') {
-										extraProps.onFindRecipe = () => router.push('/discover')
+										extraProps.onFindRecipe = () => router.push('/explore')
 									}
 									return (
 										<NotificationItemGamified

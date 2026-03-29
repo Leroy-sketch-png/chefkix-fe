@@ -67,7 +67,7 @@ export default function GroupDetailPage() {
 				setGroup(groupData)
 			} catch (error) {
 				toast.error('Failed to load group')
-				router.push('/groups/explore')
+				router.push('/groups')
 			} finally {
 				setIsLoadingGroup(false)
 			}
@@ -131,7 +131,7 @@ export default function GroupDetailPage() {
 		return (
 			<div className='flex flex-col items-center justify-center min-h-screen gap-4'>
 				<p className='text-text-secondary'>Group not found</p>
-				<Link href='/groups/explore'>
+				<Link href='/groups'>
 					<Button>Back to Groups</Button>
 				</Link>
 			</div>
@@ -156,7 +156,7 @@ export default function GroupDetailPage() {
 						group={group}
 						currentUserId={user?.userId}
 						onSettingsClick={() => setShowSettings(true)}
-						onLeaveGroup={() => router.push('/groups/explore')}
+						onLeaveGroup={() => router.push('/groups')}
 					/>
 				</motion.div>
 
