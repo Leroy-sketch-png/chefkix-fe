@@ -436,7 +436,7 @@ function RecipePerformanceSection({
 							{recipe.rank}
 						</span>{' '}
 						<Image
-							src={recipe.imageUrl || '/images/recipe-placeholder.jpg'}
+							src={recipe.imageUrl || '/placeholder-recipe.svg'}
 							alt={recipe.title}
 							width={56}
 							height={56}

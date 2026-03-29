@@ -1,7 +1,6 @@
 'use client' // This tells Next.js this is a Client Component (runs in the browser)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import useSound from 'use-sound'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
 
@@ -33,8 +32,21 @@ export default function VideoCall({
 	const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 
-	// Ringtone
-	const [playRingtone, { stop: stopRingtone }] = useSound('/sounds/ringtone.mp3', { loop: true })
+	// Ringtone (native Audio API — no external deps)
+	const ringtoneRef = useRef<HTMLAudioElement | null>(null)
+	const playRingtone = useCallback(() => {
+		if (!ringtoneRef.current) {
+			ringtoneRef.current = new Audio('/sounds/ringtone.mp3')
+			ringtoneRef.current.loop = true
+		}
+		ringtoneRef.current.play().catch(() => {})
+	}, [])
+	const stopRingtone = useCallback(() => {
+		if (ringtoneRef.current) {
+			ringtoneRef.current.pause()
+			ringtoneRef.current.currentTime = 0
+		}
+	}, [])
 
 	// UI States to control button visibility
 	const [isCameraOn, setIsCameraOn] = useState(false)
