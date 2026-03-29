@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Trophy,
 	Sparkles,
@@ -15,6 +15,7 @@ import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { DailyChallengeBanner } from '@/components/challenges'
+import { ChallengeComplete } from '@/components/challenges/ChallengeComplete'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
 import {
@@ -67,6 +68,41 @@ export default function ChallengesPage() {
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+
+	// Celebration modal state
+	const [celebration, setCelebration] = useState<{
+		title: string
+		icon: string
+		bonusXp: number
+	} | null>(null)
+
+	const isCelebrated = (challengeId: string) => {
+		try {
+			const celebrated = JSON.parse(
+				localStorage.getItem('chefkix_celebrated_challenges') || '[]',
+			)
+			return celebrated.includes(challengeId)
+		} catch {
+			return false
+		}
+	}
+
+	const markCelebrated = (challengeId: string) => {
+		try {
+			const celebrated = JSON.parse(
+				localStorage.getItem('chefkix_celebrated_challenges') || '[]',
+			)
+			if (!celebrated.includes(challengeId)) {
+				celebrated.push(challengeId)
+				localStorage.setItem(
+					'chefkix_celebrated_challenges',
+					JSON.stringify(celebrated),
+				)
+			}
+		} catch {
+			/* ignore */
+		}
+	}
 
 	useEffect(() => {
 		const fetchChallenges = async () => {
@@ -231,11 +267,34 @@ export default function ChallengesPage() {
 											<span className='text-lg font-bold text-xp'>
 												+{weeklyChallenge.bonusXp} XP
 											</span>
-											{weeklyChallenge.completed && (
-												<p className='text-xs font-semibold text-success'>
-													Completed!
-												</p>
-											)}
+											{weeklyChallenge.completed &&
+												(isCelebrated(weeklyChallenge.id) ? (
+													<p className='text-xs font-semibold text-success'>
+														✓ Claimed
+													</p>
+												) : (
+													<motion.button
+														initial={{ scale: 0.9 }}
+														animate={{ scale: [0.9, 1.05, 1] }}
+														transition={{
+															duration: 0.5,
+															repeat: Infinity,
+															repeatDelay: 2,
+														}}
+														onClick={e => {
+															e.stopPropagation()
+															markCelebrated(weeklyChallenge.id)
+															setCelebration({
+																title: weeklyChallenge.title,
+																icon: '🏆',
+																bonusXp: weeklyChallenge.bonusXp,
+															})
+														}}
+														className='mt-1 rounded-full bg-gradient-xp px-3 py-1 text-xs font-bold text-white shadow-md shadow-xp/30'
+													>
+														Claim XP!
+													</motion.button>
+												))}
 										</div>
 									</div>
 
@@ -507,11 +566,30 @@ export default function ChallengesPage() {
 														</button>
 													)}
 
-												{ev.userCompleted && (
-													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-														✓ Completed!
-													</div>
-												)}
+												{ev.userCompleted &&
+													(isCelebrated(ev.id) ? (
+														<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
+															✓ Claimed
+														</div>
+													) : (
+														<motion.button
+															initial={{ scale: 0.95 }}
+															animate={{ scale: [0.95, 1.05, 0.95] }}
+															transition={{ duration: 1.5, repeat: Infinity }}
+															onClick={e => {
+																e.stopPropagation()
+																markCelebrated(ev.id)
+																setCelebration({
+																	title: ev.title,
+																	icon: ev.emoji || '🌿',
+																	bonusXp: ev.rewardXp,
+																})
+															}}
+															className='mt-3 w-full rounded-lg bg-gradient-xp px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-xp/30'
+														>
+															🎉 Claim {ev.rewardXp} XP Reward!
+														</motion.button>
+													))}
 											</div>
 										</motion.div>
 									))}
@@ -531,6 +609,42 @@ export default function ChallengesPage() {
 					</>
 				)}
 			</PageContainer>
+
+			{/* Challenge Completion Celebration */}
+			<AnimatePresence>
+				{celebration && (
+					<ChallengeComplete
+						challengeTitle={celebration.title}
+						challengeIcon={celebration.icon}
+						recipeName='Challenge Complete'
+						bonusXp={celebration.bonusXp}
+						streakDays={[
+							{ label: 'Mon', isCompleted: true },
+							{ label: 'Tue', isCompleted: true },
+							{ label: 'Wed', isCompleted: true },
+							{ label: 'Thu', isCompleted: true, isToday: true },
+							{ label: 'Fri', isCompleted: false },
+							{ label: 'Sat', isCompleted: false },
+							{ label: 'Sun', isCompleted: false, isMilestone: true },
+						]}
+						daysToMilestone={3}
+						milestoneReward='Weekly Warrior Badge'
+						onContinue={() => setCelebration(null)}
+						onShare={() => {
+							if (navigator.share) {
+								navigator
+									.share({
+										title: `I completed "${celebration.title}" on ChefKix!`,
+										text: `Just earned +${celebration.bonusXp} XP from the ${celebration.title} challenge!`,
+										url: window.location.href,
+									})
+									.catch(() => {})
+							}
+							setCelebration(null)
+						}}
+					/>
+				)}
+			</AnimatePresence>
 		</PageTransition>
 	)
 }

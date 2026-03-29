@@ -19,6 +19,7 @@ interface SessionRatingFormProps {
 	xpEarned: number
 	recipeTitle: string
 	onSubmit: (rating: number, notes?: string) => void
+	onSkip?: () => void
 	isSubmitting?: boolean
 }
 
@@ -139,6 +140,7 @@ export function SessionRatingForm({
 	xpEarned,
 	recipeTitle,
 	onSubmit,
+	onSkip,
 	isSubmitting = false,
 }: SessionRatingFormProps) {
 	const [rating, setRating] = useState(0)
@@ -285,6 +287,18 @@ export function SessionRatingForm({
 					'Tap a star to rate ⭐'
 				)}
 			</motion.button>
+
+			{/* Skip option */}
+			{onSkip && (
+				<button
+					type='button'
+					onClick={onSkip}
+					disabled={isSubmitting}
+					className='mt-3 text-sm text-text-muted transition-colors hover:text-text-secondary disabled:opacity-50'
+				>
+					Skip &mdash; rate later
+				</button>
+			)}
 		</div>
 	)
 }

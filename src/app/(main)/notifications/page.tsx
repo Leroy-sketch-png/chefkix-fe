@@ -64,6 +64,8 @@ interface SocialNotification {
 	avatar: string
 	action: string
 	target?: string
+	targetEntityId?: string
+	targetEntityUrl?: string
 	time: string
 	read: boolean
 	createdAt: Date
@@ -183,6 +185,10 @@ const transformToSocialNotification = (
 			'/placeholder-avatar.svg',
 		action: notif.content || notif.body || '',
 		target: (data.targetTitle as string) || undefined,
+		targetEntityId:
+			notif.targetEntityId || (data.targetEntityId as string) || undefined,
+		targetEntityUrl:
+			notif.targetEntityUrl || (data.targetEntityUrl as string) || undefined,
 		time: formatTimeAgo(timestamp),
 		read: notif.isRead,
 		createdAt: timestamp,
@@ -302,6 +308,8 @@ const SocialNotificationItem = ({
 	avatar,
 	action,
 	target,
+	targetEntityId,
+	targetEntityUrl,
 	time,
 	read,
 	currentUserId,
@@ -314,9 +322,16 @@ const SocialNotificationItem = ({
 		if (!read) {
 			onMarkRead(id)
 		}
-		// Navigate based on type
-		if (type === 'follow' && userId) {
+		// Navigate based on type — use targetEntityUrl first, then derive from type
+		if (targetEntityUrl) {
+			router.push(targetEntityUrl)
+		} else if (type === 'follow' && userId) {
 			router.push(`/${userId}`)
+		} else if (
+			(type === 'like' || type === 'comment' || type === 'mention') &&
+			targetEntityId
+		) {
+			router.push(`/post/${targetEntityId}`)
 		}
 	}
 

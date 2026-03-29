@@ -31,6 +31,8 @@ import {
 	ImagePlus,
 	Camera,
 	BadgeCheck,
+	Crown,
+	Gift,
 } from 'lucide-react'
 import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -145,7 +147,18 @@ const TABS: TabConfig[] = [
 		icon: Palette,
 		description: 'Theme, sounds, and accessibility',
 	},
-	// Premium and Referral tabs hidden until backend support is ready
+	{
+		id: 'premium',
+		label: 'Premium',
+		icon: Crown,
+		description: 'Upgrade to ChefKix Premium',
+	},
+	{
+		id: 'referral',
+		label: 'Referral',
+		icon: Gift,
+		description: 'Invite friends and earn XP',
+	},
 	{
 		id: 'verification',
 		label: 'Verification',
@@ -400,19 +413,12 @@ export default function SettingsPage() {
 	const [avatarUrl, setAvatarUrl] = useState<string | undefined>()
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
 	const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
-	const [showPasswordModal, setShowPasswordModal] = useState(false)
 	const [verificationStatus, setVerificationStatus] =
 		useState<VerificationStatus | null>(null)
 	const [verificationLoading, setVerificationLoading] = useState(false)
 	const [verificationReason, setVerificationReason] = useState('')
 	const coverInputRef = useRef<HTMLInputElement>(null)
 	const avatarInputRef = useRef<HTMLInputElement>(null)
-
-	const closePasswordModal = useCallback(() => {
-		setShowPasswordModal(false)
-	}, [])
-
-	useEscapeKey(showPasswordModal, closePasswordModal)
 
 	useEffect(() => {
 		const loadSettings = async () => {
@@ -976,16 +982,23 @@ export default function SettingsPage() {
 
 									<SettingsCard
 										title='Account Security'
-										description='Manage your password and security settings'
+										description='Password is managed through our secure identity provider'
 									>
-										<div className='space-y-4'>
+										<div className='space-y-3'>
+											<p className='text-sm text-text-secondary'>
+												To change your password, use the &quot;Forgot
+												Password&quot; option on the sign-in page. This ensures
+												secure password resets through our identity provider.
+											</p>
 											<Button
 												variant='outline'
 												className='w-full sm:w-auto'
-												onClick={() => setShowPasswordModal(true)}
+												onClick={() => {
+													window.open('/auth/sign-in', '_blank')
+												}}
 											>
 												<Shield className='mr-2 size-4' />
-												Password Help
+												Go to Sign-In Page
 											</Button>
 										</div>
 									</SettingsCard>
@@ -1556,6 +1569,9 @@ export default function SettingsPage() {
 															className='min-h-[80px] resize-none'
 															maxLength={500}
 														/>
+														<p className='mt-1 text-right text-xs text-text-muted'>
+															{verificationReason.length}/500
+														</p>
 													</div>
 													<Button
 														onClick={async () => {
@@ -1606,7 +1622,7 @@ export default function SettingsPage() {
 								>
 									<SettingsCard
 										title='Theme'
-										description='Choose your preferred appearance'
+										description='Dark mode is coming soon — your preference is saved'
 									>
 										<ButtonGroup
 											options={THEME_OPTIONS}
@@ -1643,6 +1659,12 @@ export default function SettingsPage() {
 													variant='outline'
 													size='sm'
 													onClick={() => {
+														if (!settings?.app.soundEffects) {
+															toast.info(
+																'Sound effects are disabled. Enable them above to hear the timer.',
+															)
+															return
+														}
 														playTimerChime()
 														toast.success('🔔 Timer sound played!')
 													}}
@@ -1691,54 +1713,6 @@ export default function SettingsPage() {
 						</motion.div>
 					</AnimatePresence>
 				</div>
-
-				{/* Change Password Modal */}
-				<AnimatePresence>
-					{showPasswordModal && (
-						<Portal>
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
-								onClick={() => setShowPasswordModal(false)}
-							>
-								<motion.div
-									initial={{ scale: 0.95, opacity: 0 }}
-									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0.95, opacity: 0 }}
-									transition={TRANSITION_SPRING}
-									onClick={e => e.stopPropagation()}
-									className='w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl'
-								>
-									<h2 className='mb-3 text-xl font-bold'>Password Security</h2>
-									<div className='space-y-4'>
-										<p className='text-sm leading-relaxed text-text-secondary'>
-											Password changes are not handled inside the app yet. Use
-											the sign-in flow&apos;s Forgot Password option so the
-											reset happens through the same identity provider that
-											manages your account.
-										</p>
-										<div className='rounded-xl border border-border-subtle bg-bg-elevated p-4 text-sm text-text-secondary'>
-											This keeps password resets consistent with ChefKix
-											authentication and avoids pretending this form can change
-											your password when it cannot.
-										</div>
-										<div className='flex gap-3 pt-2'>
-											<Button
-												variant='outline'
-												className='flex-1'
-												onClick={closePasswordModal}
-											>
-												Close
-											</Button>
-										</div>
-									</div>
-								</motion.div>
-							</motion.div>
-						</Portal>
-					)}
-				</AnimatePresence>
 			</PageContainer>
 		</PageTransition>
 	)

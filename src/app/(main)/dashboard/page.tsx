@@ -406,22 +406,25 @@ export default function DashboardPage() {
 				{/* Since Last Visit Summary - Welcome back card with activity summary */}
 				<SinceLastVisitCard className='mb-6' />
 				{hasPendingXpSync && (
-					<div className='mb-4 rounded-radius border border-warning/30 bg-warning/10 p-4'>
+					<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
 						<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
 							<div>
-								<p className='text-sm font-semibold text-warning'>
-									XP Sync Pending
+								<p className='text-sm font-semibold text-brand'>
+									Syncing your XP...
 								</p>
 								<p className='text-sm text-text-secondary'>
-									Your post is published, but XP confirmation is still pending.
+									Your post is published! XP is being confirmed — this usually
+									takes a few seconds.
 								</p>
 							</div>
 							<Button
+								variant='outline'
+								size='sm'
 								onClick={handleRetryPendingXpSync}
 								disabled={isRetryingPendingXp}
 								className='sm:w-auto'
 							>
-								{isRetryingPendingXp ? 'Retrying...' : 'Retry XP Sync'}
+								{isRetryingPendingXp ? 'Syncing...' : 'Sync Now'}
 							</Button>
 						</div>
 					</div>

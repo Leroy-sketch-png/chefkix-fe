@@ -87,6 +87,9 @@ export default function CreateRecipePage() {
 			logDevError('Failed to parse local draft:', error)
 			localStorage.removeItem('chefkix-recipe-draft')
 			setLocalDraft(null)
+			toast.error(
+				'Your local draft was corrupted and had to be removed. Sorry about that!',
+			)
 		}
 	}, [])
 

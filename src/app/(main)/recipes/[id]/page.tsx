@@ -41,6 +41,7 @@ import {
 	Loader2,
 	AlertCircle,
 	Sparkles,
+	Flame,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -749,6 +750,20 @@ export default function RecipeDetailPage() {
 									{recipe.viewCount || 0} views
 								</span>
 							</motion.span>
+
+							{/* Calories */}
+							{recipe.caloriesPerServing != null &&
+								recipe.caloriesPerServing > 0 && (
+									<motion.span
+										variants={staggerItem}
+										className='flex items-center gap-2 text-text-secondary'
+									>
+										<Flame className='size-5 text-brand' />
+										<span className='font-medium'>
+											{recipe.caloriesPerServing} cal/serving
+										</span>
+									</motion.span>
+								)}
 						</motion.div>
 
 						{/* Action Buttons */}

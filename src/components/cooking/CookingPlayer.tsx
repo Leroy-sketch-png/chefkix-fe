@@ -803,11 +803,21 @@ export const CookingPlayer = () => {
 			messyHandsTimeoutRef.current = setTimeout(() => {
 				const store = useCookingStore.getState()
 				if (store.interactionMode === 'ACTIVE') {
-					setInteractionMode('MESSY_HANDS')
+					toast('🙌 Hands busy?', {
+						description:
+							'Tap here to switch to voice mode — no screen touch needed.',
+						action: {
+							label: 'Enable Voice Mode',
+							onClick: () => {
+								useCookingStore.getState().setInteractionMode('MESSY_HANDS')
+							},
+						},
+						duration: 6000,
+					})
 				}
 			}, 45_000)
 		}
-	}, [interactionMode, setInteractionMode])
+	}, [interactionMode])
 
 	useEffect(() => {
 		if (!isOpen || interactionMode !== 'ACTIVE') {
@@ -822,10 +832,16 @@ export const CookingPlayer = () => {
 		messyHandsTimeoutRef.current = setTimeout(() => {
 			const store = useCookingStore.getState()
 			if (store.interactionMode === 'ACTIVE') {
-				setInteractionMode('MESSY_HANDS')
-				toast('🙌 Switched to voice mode', {
-					description: 'No screen touch for a while — voice commands are now primary. Tap screen or say "clean hands" to switch back.',
-					duration: 4000,
+				toast('🙌 Hands busy?', {
+					description:
+						'Tap here to switch to voice mode — no screen touch needed.',
+					duration: 6000,
+					action: {
+						label: 'Enable Voice Mode',
+						onClick: () => {
+							useCookingStore.getState().setInteractionMode('MESSY_HANDS')
+						},
+					},
 				})
 			}
 		}, 45_000)
@@ -1980,6 +1996,7 @@ export const CookingPlayer = () => {
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
 									recipeTitle={recipe.title}
 									onSubmit={handleComplete}
+									onSkip={() => handleComplete(3)}
 									isSubmitting={isCompletingSession}
 								/>
 							</motion.div>
