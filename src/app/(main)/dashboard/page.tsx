@@ -32,6 +32,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
+import { usePostKeyboardNav } from '@/hooks/usePostKeyboardNav'
 import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
@@ -138,6 +139,9 @@ export default function DashboardPage() {
 
 	// Filter out posts from blocked users
 	const filteredPosts = useFilterBlockedContent(posts)
+
+	// j/k keyboard navigation for posts
+	const { focusedIndex: focusedPostIndex } = usePostKeyboardNav(filteredPosts)
 
 	// Streak at risk = has active streak AND hasn't cooked within window
 	// Backend computes cookedToday (within 72h window) and hoursUntilStreakBreaks
@@ -593,26 +597,34 @@ export default function DashboardPage() {
 					<>
 						<StaggerContainer className='space-y-4 md:space-y-6'>
 							<AnimatePresence mode='popLayout'>
-								{filteredPosts.map(post =>
-									post.postType === 'POLL' ? (
-										<PollCard
-											key={post.id}
-											post={post}
-											onUpdate={handlePostUpdate}
-											currentUserId={user?.userId}
-										/>
-									) : post.postType === 'RECENT_COOK' ? (
-										<RecentCookCard key={post.id} post={post} />
-									) : (
-										<PostCard
-											key={post.id}
-											post={post}
-											onUpdate={handlePostUpdate}
-											onDelete={handlePostDelete}
-											currentUserId={user?.userId}
-										/>
-									),
-								)}
+								{filteredPosts.map((post, i) => (
+									<div
+										key={post.id}
+										data-post-index={i}
+										className={cn(
+											'rounded-2xl transition-shadow',
+											focusedPostIndex === i &&
+												'ring-2 ring-brand/50 shadow-warm',
+										)}
+									>
+										{post.postType === 'POLL' ? (
+											<PollCard
+												post={post}
+												onUpdate={handlePostUpdate}
+												currentUserId={user?.userId}
+											/>
+										) : post.postType === 'RECENT_COOK' ? (
+											<RecentCookCard post={post} />
+										) : (
+											<PostCard
+												post={post}
+												onUpdate={handlePostUpdate}
+												onDelete={handlePostDelete}
+												currentUserId={user?.userId}
+											/>
+										)}
+									</div>
+								))}
 							</AnimatePresence>
 						</StaggerContainer>
 

@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
+import { usePostKeyboardNav } from '@/hooks/usePostKeyboardNav'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
@@ -60,8 +61,11 @@ export default function FeedPage() {
 
 	// Filter out posts from blocked users AND group posts (Facebook pattern)
 	const filteredPosts = useFilterBlockedContent(posts).filter(
-		(post) => post.postType !== 'GROUP'
+		post => post.postType !== 'GROUP',
 	)
+
+	// j/k keyboard navigation for posts
+	const { focusedIndex: focusedPostIndex } = usePostKeyboardNav(filteredPosts)
 
 	// Fetch initial page when tab changes
 	useEffect(() => {
@@ -73,9 +77,16 @@ export default function FeedPage() {
 
 			try {
 				const fetchByTab = {
-					forYou: () => getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'forYou' }),
-					following: () => getFollowingFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'latest' }),
-					trending: () => getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'trending' }),
+					forYou: () =>
+						getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'forYou' }),
+					following: () =>
+						getFollowingFeedPosts({
+							page: 0,
+							size: POSTS_PER_PAGE,
+							mode: 'latest',
+						}),
+					trending: () =>
+						getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: 'trending' }),
 				}
 				const response = await fetchByTab[activeTab]()
 
@@ -106,12 +117,27 @@ export default function FeedPage() {
 		const nextPage = currentPage + 1
 
 		try {
-const fetchByTab = {
-			forYou: () => getFeedPosts({ page: nextPage, size: POSTS_PER_PAGE, mode: 'forYou' }),
-			following: () => getFollowingFeedPosts({ page: nextPage, size: POSTS_PER_PAGE, mode: 'latest' }),
-			trending: () => getFeedPosts({ page: nextPage, size: POSTS_PER_PAGE, mode: 'trending' }),
-		}
-		const response = await fetchByTab[activeTab]()
+			const fetchByTab = {
+				forYou: () =>
+					getFeedPosts({
+						page: nextPage,
+						size: POSTS_PER_PAGE,
+						mode: 'forYou',
+					}),
+				following: () =>
+					getFollowingFeedPosts({
+						page: nextPage,
+						size: POSTS_PER_PAGE,
+						mode: 'latest',
+					}),
+				trending: () =>
+					getFeedPosts({
+						page: nextPage,
+						size: POSTS_PER_PAGE,
+						mode: 'trending',
+					}),
+			}
+			const response = await fetchByTab[activeTab]()
 
 			if (response.success && response.data) {
 				setPosts(prev => [...prev, ...response.data!])
@@ -199,11 +225,17 @@ const fetchByTab = {
 
 				{/* Tabs */}
 				<div className='mb-4 flex gap-2'>
-					{([
-						{ key: 'forYou' as FeedTab, label: 'For You', icon: Sparkles },
-						{ key: 'following' as FeedTab, label: 'Following', icon: Users2 },
-						{ key: 'trending' as FeedTab, label: 'Trending', icon: TrendingUp },
-					] as const).map(tab => (
+					{(
+						[
+							{ key: 'forYou' as FeedTab, label: 'For You', icon: Sparkles },
+							{ key: 'following' as FeedTab, label: 'Following', icon: Users2 },
+							{
+								key: 'trending' as FeedTab,
+								label: 'Trending',
+								icon: TrendingUp,
+							},
+						] as const
+					).map(tab => (
 						<button
 							key={tab.key}
 							onClick={() => setActiveTab(tab.key)}
@@ -311,29 +343,34 @@ const fetchByTab = {
 					<>
 						<StaggerContainer className='space-y-4 md:space-y-6'>
 							<AnimatePresence mode='popLayout'>
-								{filteredPosts.map(post =>
-									post.postType === 'POLL' ? (
-										<PollCard
-											key={post.id}
-											post={post}
-											onUpdate={handlePostUpdate}
-											currentUserId={user?.userId}
-										/>
-									) : post.postType === 'RECENT_COOK' ? (
-										<RecentCookCard
-											key={post.id}
-											post={post}
-										/>
-									) : (
-										<PostCard
-											key={post.id}
-											post={post}
-											onUpdate={handlePostUpdate}
-											onDelete={handlePostDelete}
-											currentUserId={user?.userId}
-										/>
-									),
-								)}
+								{filteredPosts.map((post, i) => (
+									<div
+										key={post.id}
+										data-post-index={i}
+										className={cn(
+											'rounded-2xl transition-shadow',
+											focusedPostIndex === i &&
+												'ring-2 ring-brand/50 shadow-warm',
+										)}
+									>
+										{post.postType === 'POLL' ? (
+											<PollCard
+												post={post}
+												onUpdate={handlePostUpdate}
+												currentUserId={user?.userId}
+											/>
+										) : post.postType === 'RECENT_COOK' ? (
+											<RecentCookCard post={post} />
+										) : (
+											<PostCard
+												post={post}
+												onUpdate={handlePostUpdate}
+												onDelete={handlePostDelete}
+												currentUserId={user?.userId}
+											/>
+										)}
+									</div>
+								))}
 							</AnimatePresence>
 						</StaggerContainer>
 

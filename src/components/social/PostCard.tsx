@@ -48,6 +48,38 @@ import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 
+const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+
+function EditCountdown({ createdAt }: { createdAt: Date }) {
+	const [minutesLeft, setMinutesLeft] = useState(() =>
+		Math.max(
+			0,
+			Math.ceil((createdAt.getTime() + EDIT_WINDOW_MS - Date.now()) / 60000),
+		),
+	)
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			const remaining = Math.max(
+				0,
+				Math.ceil((createdAt.getTime() + EDIT_WINDOW_MS - Date.now()) / 60000),
+			)
+			setMinutesLeft(remaining)
+			if (remaining <= 0) clearInterval(interval)
+		}, 30000) // update every 30s
+		return () => clearInterval(interval)
+	}, [createdAt])
+
+	if (minutesLeft <= 0) return null
+
+	return (
+		<span className='inline-flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'>
+			<Pencil className='size-3' />
+			{minutesLeft}m left to edit
+		</span>
+	)
+}
+
 interface PostCardProps {
 	post: Post
 	onUpdate?: (post: Post) => void
@@ -497,10 +529,11 @@ export const PostCard = ({
 										{post.displayName || 'Unknown User'}
 										{post.isVerified && <VerifiedBadge size='sm' />}
 									</div>
-									<div className='text-sm leading-normal text-text-secondary'>
+									<div className='flex items-center gap-2 text-sm leading-normal text-text-secondary'>
 										{formatDistanceToNow(new Date(post.createdAt), {
 											addSuffix: true,
 										})}
+										{canEdit && <EditCountdown createdAt={createdAt} />}
 									</div>
 								</div>
 							</Link>

@@ -415,97 +415,110 @@ function RecipePerformanceSection({
 				</button>
 			</div>
 
-			<motion.div
-				variants={staggerContainer}
-				initial='hidden'
-				animate='visible'
-				className='flex flex-col gap-2'
-			>
-				{recipes.map(recipe => (
-					<motion.div
-						key={recipe.id}
-						variants={staggerItem}
-						whileHover={{ backgroundColor: 'var(--border-color)' }}
-						onClick={() => onRecipeClick?.(recipe.id)}
-						className={cn(
-							'flex items-center gap-3.5 p-3.5 bg-bg rounded-xl cursor-pointer transition-colors',
-							recipe.needsAttention && 'border-l-3 border-l-amber-500',
-						)}
-					>
-						<span className='w-7 text-base font-extrabold text-muted-foreground text-center'>
-							{recipe.rank}
-						</span>{' '}
-						<Image
-							src={recipe.imageUrl || '/placeholder-recipe.svg'}
-							alt={recipe.title}
-							width={56}
-							height={56}
-							className='w-14 h-14 rounded-xl object-cover'
-						/>
-						<div className='flex-1 flex flex-col gap-1.5'>
-							<span className='text-base font-bold text-text'>
-								{recipe.title}
-							</span>
-							{recipe.badge && (
-								<span
-									className={cn(
-										'inline-flex w-fit px-2 py-0.5 rounded-lg text-xs font-semibold',
-										recipe.badge.type === 'milestone' &&
-											'bg-accent-indigo/10 text-accent-indigo',
-										recipe.badge.type === 'trending' &&
-											'bg-streak/10 text-streak',
-										recipe.badge.type === 'attention' &&
-											'bg-warning/10 text-warning',
-									)}
-								>
-									{recipe.badge.label}
-								</span>
+			{recipes.length === 0 ? (
+				<div className='flex flex-col items-center gap-3 py-10 text-center'>
+					<span className='text-4xl'>📊</span>
+					<p className='text-base font-semibold text-text'>
+						No performance data yet
+					</p>
+					<p className='text-sm text-muted-foreground max-w-xs'>
+						Publish recipes and watch them get cooked — your analytics will
+						appear here.
+					</p>
+				</div>
+			) : (
+				<motion.div
+					variants={staggerContainer}
+					initial='hidden'
+					animate='visible'
+					className='flex flex-col gap-2'
+				>
+					{recipes.map(recipe => (
+						<motion.div
+							key={recipe.id}
+							variants={staggerItem}
+							whileHover={{ backgroundColor: 'var(--border-color)' }}
+							onClick={() => onRecipeClick?.(recipe.id)}
+							className={cn(
+								'flex items-center gap-3.5 p-3.5 bg-bg rounded-xl cursor-pointer transition-colors',
+								recipe.needsAttention && 'border-l-3 border-l-amber-500',
 							)}
-						</div>
-						<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
-							<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-								<span className='text-base font-extrabold text-text'>
-									{recipe.cookCount}
+						>
+							<span className='w-7 text-base font-extrabold text-muted-foreground text-center'>
+								{recipe.rank}
+							</span>{' '}
+							<Image
+								src={recipe.imageUrl || '/placeholder-recipe.svg'}
+								alt={recipe.title}
+								width={56}
+								height={56}
+								className='w-14 h-14 rounded-xl object-cover'
+							/>
+							<div className='flex-1 flex flex-col gap-1.5'>
+								<span className='text-base font-bold text-text'>
+									{recipe.title}
 								</span>
-								<span className='text-2xs text-muted-foreground'>Cooks</span>
+								{recipe.badge && (
+									<span
+										className={cn(
+											'inline-flex w-fit px-2 py-0.5 rounded-lg text-xs font-semibold',
+											recipe.badge.type === 'milestone' &&
+												'bg-accent-indigo/10 text-accent-indigo',
+											recipe.badge.type === 'trending' &&
+												'bg-streak/10 text-streak',
+											recipe.badge.type === 'attention' &&
+												'bg-warning/10 text-warning',
+										)}
+									>
+										{recipe.badge.label}
+									</span>
+								)}
 							</div>
-							<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-								<span className='text-base font-extrabold text-text'>
-									+{recipe.xpGenerated}
-								</span>
-								<span className='text-2xs text-muted-foreground'>XP</span>
+							<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
+								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
+									<span className='text-base font-extrabold text-text'>
+										{recipe.cookCount}
+									</span>
+									<span className='text-2xs text-muted-foreground'>Cooks</span>
+								</div>
+								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
+									<span className='text-base font-extrabold text-text'>
+										+{recipe.xpGenerated}
+									</span>
+									<span className='text-2xs text-muted-foreground'>XP</span>
+								</div>
 							</div>
-						</div>
-						{onViewStepAnalytics && recipe.cookCount > 0 && (
-							<motion.button
-								whileHover={BUTTON_SUBTLE_HOVER}
-								whileTap={BUTTON_SUBTLE_TAP}
-								onClick={e => {
-									e.stopPropagation()
-									onViewStepAnalytics(recipe.id)
-								}}
-								className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-brand'
-								title='View step analytics'
-							>
-								<BarChart3 className='w-4 h-4' />
-							</motion.button>
-						)}
-						{recipe.needsAttention && onImproveRecipe && (
-							<motion.button
-								whileHover={BUTTON_SUBTLE_HOVER}
-								whileTap={BUTTON_SUBTLE_TAP}
-								onClick={e => {
-									e.stopPropagation()
-									onImproveRecipe(recipe.id)
-								}}
-								className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-text'
-							>
-								<Edit3 className='w-4 h-4' />
-							</motion.button>
-						)}
-					</motion.div>
-				))}
-			</motion.div>
+							{onViewStepAnalytics && recipe.cookCount > 0 && (
+								<motion.button
+									whileHover={BUTTON_SUBTLE_HOVER}
+									whileTap={BUTTON_SUBTLE_TAP}
+									onClick={e => {
+										e.stopPropagation()
+										onViewStepAnalytics(recipe.id)
+									}}
+									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-brand'
+									title='View step analytics'
+								>
+									<BarChart3 className='w-4 h-4' />
+								</motion.button>
+							)}
+							{recipe.needsAttention && onImproveRecipe && (
+								<motion.button
+									whileHover={BUTTON_SUBTLE_HOVER}
+									whileTap={BUTTON_SUBTLE_TAP}
+									onClick={e => {
+										e.stopPropagation()
+										onImproveRecipe(recipe.id)
+									}}
+									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-text'
+								>
+									<Edit3 className='w-4 h-4' />
+								</motion.button>
+							)}
+						</motion.div>
+					))}
+				</motion.div>
+			)}
 		</div>
 	)
 }
@@ -535,43 +548,56 @@ function RecentCooksSection({
 				)}
 			</div>
 
-			<motion.div
-				variants={staggerContainer}
-				initial='hidden'
-				animate='visible'
-				className='flex flex-col gap-3'
-			>
-				{cooks.map(cook => (
-					<motion.div
-						key={cook.id}
-						variants={staggerItem}
-						className='flex items-center gap-3 p-3 bg-bg rounded-xl'
-					>
-						<Image
-							src={cook.userAvatar || '/images/default-avatar.png'}
-							alt={cook.userName}
-							width={40}
-							height={40}
-							className='w-10 h-10 rounded-full object-cover'
-						/>
-						<div className='flex-1 flex flex-col'>
-							<span className='text-sm text-text'>
-								<strong className='font-bold'>{cook.userName}</strong> cooked
-								your <strong className='font-bold'>{cook.recipeTitle}</strong>
-							</span>
-							<span className='text-xs text-muted-foreground'>
-								{cook.timeAgo}
-							</span>
-						</div>
-						<div className='text-right'>
-							<span className='block text-base font-extrabold text-success'>
-								+{cook.xpEarned}
-							</span>
-							<span className='text-2xs text-muted-foreground'>XP</span>
-						</div>
-					</motion.div>
-				))}
-			</motion.div>
+			{cooks.length === 0 ? (
+				<div className='flex flex-col items-center gap-3 py-10 text-center'>
+					<span className='text-4xl'>👨‍🍳</span>
+					<p className='text-base font-semibold text-text'>
+						No one has cooked your recipes yet
+					</p>
+					<p className='text-sm text-muted-foreground max-w-xs'>
+						Share your recipes with friends — you earn XP every time someone
+						cooks them.
+					</p>
+				</div>
+			) : (
+				<motion.div
+					variants={staggerContainer}
+					initial='hidden'
+					animate='visible'
+					className='flex flex-col gap-3'
+				>
+					{cooks.map(cook => (
+						<motion.div
+							key={cook.id}
+							variants={staggerItem}
+							className='flex items-center gap-3 p-3 bg-bg rounded-xl'
+						>
+							<Image
+								src={cook.userAvatar || '/images/default-avatar.png'}
+								alt={cook.userName}
+								width={40}
+								height={40}
+								className='w-10 h-10 rounded-full object-cover'
+							/>
+							<div className='flex-1 flex flex-col'>
+								<span className='text-sm text-text'>
+									<strong className='font-bold'>{cook.userName}</strong> cooked
+									your <strong className='font-bold'>{cook.recipeTitle}</strong>
+								</span>
+								<span className='text-xs text-muted-foreground'>
+									{cook.timeAgo}
+								</span>
+							</div>
+							<div className='text-right'>
+								<span className='block text-base font-extrabold text-success'>
+									+{cook.xpEarned}
+								</span>
+								<span className='text-2xs text-muted-foreground'>XP</span>
+							</div>
+						</motion.div>
+					))}
+				</motion.div>
+			)}
 		</div>
 	)
 }

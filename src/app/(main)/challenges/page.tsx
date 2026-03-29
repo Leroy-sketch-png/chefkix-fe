@@ -71,49 +71,56 @@ export default function ChallengesPage() {
 	useEffect(() => {
 		const fetchChallenges = async () => {
 			setLoading(true)
-			try {
-				const [dailyRes, weeklyRes, communityRes, seasonalRes] =
-					await Promise.all([
-						getTodaysChallenge(),
-						getWeeklyChallenge(),
-						getCommunityChallenges(),
-						getSeasonalChallenges(),
-					])
-				if (dailyRes.success && dailyRes.data) {
-					const data = dailyRes.data
-					setDailyChallenge({
-						id: data.id,
-						title: data.title,
-						description: data.description,
-						icon: data.icon || '🎯',
-						bonusXp: data.bonusXp,
-						endsAt: new Date(data.endsAt),
-					})
-				}
-				if (weeklyRes.success && weeklyRes.data) {
-					setWeeklyChallenge(weeklyRes.data)
-				}
-				if (communityRes.success && communityRes.data) {
-					setCommunityChallenges(communityRes.data)
-				}
-				if (seasonalRes.success && seasonalRes.data) {
-					setSeasonalChallenges(seasonalRes.data)
-				}
-				// If ALL calls failed, show error state
-				if (
-					!dailyRes.success &&
-					!weeklyRes.success &&
-					!communityRes.success &&
-					!seasonalRes.success
-				) {
-					setError(true)
-				}
-			} catch (err) {
-				logDevError('Failed to fetch challenges:', err)
-				setError(true)
-			} finally {
-				setLoading(false)
+			// Fetch each independently so one failure doesn't kill the others
+			const [dailyRes, weeklyRes, communityRes, seasonalRes] =
+				await Promise.all([
+					getTodaysChallenge().catch(err => {
+						logDevError('Daily challenge failed:', err)
+						return null
+					}),
+					getWeeklyChallenge().catch(err => {
+						logDevError('Weekly challenge failed:', err)
+						return null
+					}),
+					getCommunityChallenges().catch(err => {
+						logDevError('Community challenges failed:', err)
+						return null
+					}),
+					getSeasonalChallenges().catch(err => {
+						logDevError('Seasonal challenges failed:', err)
+						return null
+					}),
+				])
+			if (dailyRes?.success && dailyRes.data) {
+				const data = dailyRes.data
+				setDailyChallenge({
+					id: data.id,
+					title: data.title,
+					description: data.description,
+					icon: data.icon || '🎯',
+					bonusXp: data.bonusXp,
+					endsAt: new Date(data.endsAt),
+				})
 			}
+			if (weeklyRes?.success && weeklyRes.data) {
+				setWeeklyChallenge(weeklyRes.data)
+			}
+			if (communityRes?.success && communityRes.data) {
+				setCommunityChallenges(communityRes.data)
+			}
+			if (seasonalRes?.success && seasonalRes.data) {
+				setSeasonalChallenges(seasonalRes.data)
+			}
+			// Only show global error if ALL calls failed or returned nothing
+			if (
+				!dailyRes?.success &&
+				!weeklyRes?.success &&
+				!communityRes?.success &&
+				!seasonalRes?.success
+			) {
+				setError(true)
+			}
+			setLoading(false)
 		}
 
 		fetchChallenges()

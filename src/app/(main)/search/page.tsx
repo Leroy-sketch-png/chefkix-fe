@@ -15,6 +15,8 @@ import {
 	ArrowLeft,
 	Sparkles,
 	X,
+	History,
+	TrendingUp,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -36,6 +38,8 @@ import {
 } from '@/lib/motion'
 import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
 import { unifiedSearch } from '@/services/search'
+import { toggleFollow } from '@/services/social'
+import { toggleSaveRecipe } from '@/services/recipe'
 import {
 	RecipeSearchDoc,
 	UserSearchDoc,
@@ -44,6 +48,7 @@ import {
 import { logDevError } from '@/lib/dev-log'
 import { trackEvent } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
+import { toast } from 'sonner'
 
 // ============================================
 // TYPES
@@ -88,23 +93,73 @@ interface PostResult {
 }
 
 // ============================================
+// RECENT SEARCHES (localStorage)
+// ============================================
+
+const RECENT_SEARCHES_KEY = 'chefkix_recent_searches'
+const MAX_RECENT_SEARCHES = 8
+
+function getRecentSearches(): string[] {
+	if (typeof window === 'undefined') return []
+	try {
+		const raw = localStorage.getItem(RECENT_SEARCHES_KEY)
+		return raw ? JSON.parse(raw) : []
+	} catch {
+		return []
+	}
+}
+
+function addRecentSearch(term: string) {
+	const trimmed = term.trim()
+	if (!trimmed) return
+	const existing = getRecentSearches().filter(s => s !== trimmed)
+	const updated = [trimmed, ...existing].slice(0, MAX_RECENT_SEARCHES)
+	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+}
+
+function removeRecentSearch(term: string) {
+	const updated = getRecentSearches().filter(s => s !== term)
+	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+}
+
+const SEARCH_SUGGESTIONS = [
+	'Pasta',
+	'Chicken',
+	'Vegan',
+	'Quick meals',
+	'Desserts',
+	'Breakfast',
+	'Soup',
+	'Salad',
+	'Stir fry',
+	'Baking',
+]
+
+// ============================================
 // COMPONENTS
 // ============================================
 
-const RecipeResultCard = ({
-	recipe,
-	onSave,
-}: {
-	recipe: RecipeResult
-	onSave?: (id: string) => void
-}) => {
+const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
 
-	const handleSave = (e: React.MouseEvent) => {
+	const handleSave = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		setSaved(!saved)
-		onSave?.(recipe.id)
+		const prev = saved
+		setSaved(!prev)
+		try {
+			const res = await toggleSaveRecipe(recipe.id)
+			if (res.success && res.data) {
+				setSaved(res.data.isSaved)
+				toast.success(res.data.isSaved ? 'Recipe saved' : 'Recipe unsaved')
+			} else {
+				setSaved(prev)
+				toast.error('Failed to save recipe')
+			}
+		} catch {
+			setSaved(prev)
+			toast.error('Failed to save recipe')
+		}
 	}
 
 	return (
@@ -189,19 +244,30 @@ const RecipeResultCard = ({
 	)
 }
 
-const PersonResultCard = ({
-	person,
-	onFollow,
-}: {
-	person: PersonResult
-	onFollow?: (id: string) => void
-}) => {
+const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const [following, setFollowing] = useState(person.isFollowing)
 
-	const handleFollow = () => {
-		setFollowing(!following)
-		trackEvent('USER_FOLLOWED', person.id, 'user', { followed: !following })
-		onFollow?.(person.id)
+	const handleFollow = async () => {
+		const prev = following
+		setFollowing(!prev)
+		trackEvent('USER_FOLLOWED', person.id, 'user', { followed: !prev })
+		try {
+			const res = await toggleFollow(person.id)
+			if (res.success && res.data) {
+				setFollowing(res.data.isFollowing)
+				toast.success(
+					res.data.isFollowing
+						? `Following @${person.username}`
+						: `Unfollowed @${person.username}`,
+				)
+			} else {
+				setFollowing(prev)
+				toast.error('Failed to follow user')
+			}
+		} catch {
+			setFollowing(prev)
+			toast.error('Failed to follow user')
+		}
 	}
 
 	return (
@@ -333,6 +399,7 @@ export default function SearchPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
+	const [recentSearches, setRecentSearches] = useState<string[]>([])
 	const [results, setResults] = useState<{
 		recipes: RecipeResult[]
 		people: PersonResult[]
@@ -350,6 +417,11 @@ export default function SearchPage() {
 		}
 		isInternalNav.current = false
 	}, [query])
+
+	// Load recent searches from localStorage on mount
+	useEffect(() => {
+		setRecentSearches(getRecentSearches())
+	}, [])
 
 	const handleSearchInputChange = (value: string) => {
 		setSearchInput(value)
@@ -374,6 +446,8 @@ export default function SearchPage() {
 			if (!query) return
 
 			setIsLoading(true)
+			addRecentSearch(query)
+			setRecentSearches(getRecentSearches())
 			try {
 				const res = await unifiedSearch(query, 'all', 20)
 
@@ -442,6 +516,17 @@ export default function SearchPage() {
 	}
 
 	if (!query) {
+		const handleSuggestionClick = (term: string) => {
+			setSearchInput(term)
+			isInternalNav.current = true
+			router.replace(`/search?q=${encodeURIComponent(term)}`)
+		}
+
+		const handleRemoveRecent = (term: string) => {
+			removeRecentSearch(term)
+			setRecentSearches(getRecentSearches())
+		}
+
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
@@ -468,15 +553,64 @@ export default function SearchPage() {
 							)}
 						</div>
 					</div>
-					<EmptyStateGamified
-						variant='search'
-						title='Search ChefKix'
-						description='Find recipes, people, and posts'
-						primaryAction={{
-							label: 'Explore Recipes',
-							href: '/explore',
-						}}
-					/>
+
+					{/* Recent searches */}
+					{recentSearches.length > 0 && (
+						<div className='mx-auto mb-8 max-w-xl'>
+							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+								<History className='size-4' />
+								<span className='text-sm font-semibold'>Recent Searches</span>
+							</div>
+							<div className='flex flex-wrap gap-2'>
+								{recentSearches.map(term => (
+									<button
+										key={term}
+										onClick={() => handleSuggestionClick(term)}
+										className='group flex items-center gap-1.5 rounded-full border border-border bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5'
+									>
+										<span>{term}</span>
+										<span
+											role='button'
+											tabIndex={0}
+											onClick={e => {
+												e.stopPropagation()
+												handleRemoveRecent(term)
+											}}
+											onKeyDown={e => {
+												if (e.key === 'Enter' || e.key === ' ') {
+													e.stopPropagation()
+													handleRemoveRecent(term)
+												}
+											}}
+											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-0 transition-opacity hover:bg-muted hover:text-text group-hover:opacity-100'
+											aria-label={`Remove "${term}" from recent searches`}
+										>
+											<X className='size-3' />
+										</span>
+									</button>
+								))}
+							</div>
+						</div>
+					)}
+
+					{/* Suggestions */}
+					<div className='mx-auto mb-8 max-w-xl'>
+						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+							<TrendingUp className='size-4' />
+							<span className='text-sm font-semibold'>Suggestions</span>
+						</div>
+						<div className='flex flex-wrap gap-2'>
+							{SEARCH_SUGGESTIONS.map(term => (
+								<button
+									key={term}
+									onClick={() => handleSuggestionClick(term)}
+									className='rounded-full border border-border bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text'
+								>
+									{term}
+								</button>
+							))}
+						</div>
+					</div>
 				</PageContainer>
 			</PageTransition>
 		)
@@ -619,7 +753,7 @@ export default function SearchPage() {
 									description={`We couldn't find anyone matching "${query}"`}
 									primaryAction={{
 										label: 'Discover People',
-										href: '/discover',
+										href: '/community',
 									}}
 								/>
 							)}
