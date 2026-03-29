@@ -13,6 +13,7 @@ import {
 	Check,
 	AlertTriangle,
 	Loader2,
+	LogOut,
 	Globe,
 	EyeOff,
 	Users,
@@ -40,6 +41,9 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
+import { useRouter } from 'next/navigation'
+import { PATHS } from '@/constants'
+import { logout as logoutService } from '@/services/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { logDevError } from '@/lib/dev-log'
@@ -401,7 +405,8 @@ const ButtonGroup = <T extends string>({
 // ============================================
 
 export default function SettingsPage() {
-	const { user, setUser } = useAuth()
+	const { user, setUser, logout } = useAuth()
+	const router = useRouter()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
@@ -718,6 +723,17 @@ export default function SettingsPage() {
 	const toggleArrayItem = (arr: string[], item: string): string[] =>
 		arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item]
 
+	const handleLogout = async () => {
+		try {
+			await logoutService()
+		} catch (error) {
+			logDevError('Logout error:', error)
+		} finally {
+			logout()
+			router.push(PATHS.AUTH.SIGN_IN)
+		}
+	}
+
 	if (isLoading) {
 		return (
 			<PageTransition>
@@ -792,6 +808,20 @@ export default function SettingsPage() {
 								</motion.button>
 							)
 						})}
+
+						{/* Divider + Sign Out */}
+						<div className='my-1 h-px bg-border' />
+						<motion.button
+							whileHover={{ x: 4 }}
+							whileTap={{ scale: 0.98 }}
+							onClick={handleLogout}
+							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full'
+						>
+							<LogOut className='size-5 flex-shrink-0' />
+							<div className='hidden lg:block'>
+								<p className='text-sm font-medium'>Sign Out</p>
+							</div>
+						</motion.button>
 					</motion.nav>
 
 					{/* Content Area */}
@@ -1622,12 +1652,18 @@ export default function SettingsPage() {
 								>
 									<SettingsCard
 										title='Theme'
-										description='Dark mode is coming soon — your preference is saved'
+										description='Light mode is active. Dark and System modes are coming soon.'
 									>
 										<ButtonGroup
 											options={THEME_OPTIONS}
 											value={settings.app.theme}
-											onChange={v => handleUpdateApp({ theme: v })}
+											onChange={v => {
+												if (v === 'dark' || v === 'system') {
+													toast.info('Dark mode is coming soon! We\'re actively working on it.')
+													return
+												}
+												handleUpdateApp({ theme: v })
+											}}
 										/>
 									</SettingsCard>
 

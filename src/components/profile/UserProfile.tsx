@@ -621,11 +621,11 @@ export const UserProfile = ({
 											</h3>
 											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
 												<span className='flex items-center gap-1'>
-													<Clock className='h-4 w-4' /> {getTotalTime(recipe)}{' '}
+													<Clock className='size-4' /> {getTotalTime(recipe)}{' '}
 													min
 												</span>
 												<span className='flex items-center gap-1'>
-													<Heart className='h-4 w-4' />{' '}
+													<Heart className='size-4' />{' '}
 													{recipe.likeCount >= 1000
 														? `${(recipe.likeCount / 1000).toFixed(1)}k`
 														: recipe.likeCount}
@@ -739,7 +739,7 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Recipes ({savedRecipes.length})
+										Recipes{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
 									</button>
 									<button
 										onClick={() => setSavedSubTab('posts')}
@@ -749,7 +749,7 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Posts ({savedPosts.length})
+										Posts{savedSubTab === 'posts' && savedPosts.length > 0 ? ` (${savedPosts.length})` : ''}
 									</button>
 								</div>
 

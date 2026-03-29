@@ -16,6 +16,7 @@ import { PollCard } from '@/components/social/PollCard'
 import { RecentCookCard } from '@/components/social/RecentCookCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
+import { QuickPostFAB } from '@/components/social/QuickPostFAB'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import Link from 'next/link'
@@ -601,7 +602,7 @@ export default function DashboardPage() {
 							description='Like and save posts to teach the algorithm your taste. The more you interact, the better your feed gets!'
 							primaryAction={{
 								label: 'Explore Trending',
-								href: '/feed',
+								href: '/explore',
 								icon: <TrendingUp className='size-4' />,
 							}}
 						/>
@@ -687,6 +688,7 @@ export default function DashboardPage() {
 					</>
 				)}
 			</PageContainer>
+			<QuickPostFAB onPostCreated={handlePostCreated} />
 		</PageTransition>
 	)
 }

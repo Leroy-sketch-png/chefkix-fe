@@ -7,7 +7,6 @@ import {
 	Bell,
 	CheckCheck,
 	Filter,
-	Trash2,
 	ChefHat,
 	Heart,
 	MessageCircle,
