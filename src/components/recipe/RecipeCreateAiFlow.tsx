@@ -832,16 +832,17 @@ export const RecipeCreateAiFlow = ({
 					: recipe
 
 			if (!finalRecipe || isPublishing) {
-				if (hasUnpersistedMedia) {
-					toast.error('Please re-upload image previews before publishing', {
-						description:
-							'Local preview images are temporary and cannot be published. Upload them again to continue.',
-					})
-					return
-				}
 				diag.warn('recipe', 'PUBLISH aborted', {
 					hasRecipe: !!finalRecipe,
 					isPublishing,
+				})
+				return
+			}
+
+			if (hasUnpersistedMedia) {
+				toast.error('Please re-upload image previews before publishing', {
+					description:
+						'Local preview images are temporary and cannot be published. Upload them again to continue.',
 				})
 				return
 			}

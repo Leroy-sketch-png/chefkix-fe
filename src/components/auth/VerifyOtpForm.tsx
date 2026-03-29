@@ -124,9 +124,13 @@ export const VerifyOtpForm = () => {
 			setSuccess(successMsg)
 			setError(null)
 			triggerSuccessConfetti()
-			toast.success(successMsg)
+			toast.success('Email verified! Sign in with your password to get started.')
 
-			// Redirect immediately - don't make users wait
+			// Pre-fill email on sign-in page so user only needs to type password
+			if (email) {
+				sessionStorage.setItem('verified-email', email)
+			}
+
 			router.push(PATHS.AUTH.SIGN_IN)
 		} else {
 			const errorMsg = response.message || VERIFY_OTP_MESSAGES.INVALID_OTP

@@ -478,6 +478,7 @@ function CreatePostContent() {
 										handleSubmit()
 									}
 								}}
+								maxLength={2000}
 								placeholder={
 									session
 										? `Tell everyone about your ${session.recipeTitle}! How did it turn out?`
@@ -486,6 +487,9 @@ function CreatePostContent() {
 								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none'
 								autoFocus
 							/>
+							<p className='mt-1 text-right text-xs text-text-muted'>
+								{content.length}/2000
+							</p>
 
 							{/* Photo Previews */}
 							<AnimatePresence>

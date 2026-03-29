@@ -72,10 +72,14 @@ export function SignInForm() {
 	// Separate loading state for the button - form.isSubmitting doesn't track async properly
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
+	// Check if user just verified their email — pre-fill to reduce friction
+	const verifiedEmail = typeof window !== 'undefined' ? sessionStorage.getItem('verified-email') : null
+	if (verifiedEmail) sessionStorage.removeItem('verified-email')
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			emailOrUsername: '',
+			emailOrUsername: verifiedEmail || '',
 			password: '',
 		},
 	})

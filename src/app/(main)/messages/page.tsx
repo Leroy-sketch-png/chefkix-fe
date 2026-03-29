@@ -288,6 +288,9 @@ export default function MessagesPage() {
 	// Reply state
 	const [replyingTo, setReplyingTo] = useState<Message | null>(null)
 
+	// @mention tagged users (captured for future backend support)
+	const taggedUserIdsRef = useRef<string[]>([])
+
 	// Mobile: show chat panel when conversation selected
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
@@ -449,6 +452,7 @@ export default function MessagesPage() {
 		const replyToId = replyingTo?.id
 		setNewMessage('')
 		setReplyingTo(null)
+		taggedUserIdsRef.current = []
 
 		if (isConnected) {
 			sendMessageWs(messageText, replyToId)
@@ -702,8 +706,9 @@ export default function MessagesPage() {
 
 									<VideoCall
 										conversationId={selectedConversation.id}
-										currentUserId={user.userId}
-									/>
+									currentUserId={user.userId}
+									onClose={() => setIsVideoCallActive(false)}
+								/>
 								</div>
 							</div>
 						)}
@@ -797,7 +802,7 @@ export default function MessagesPage() {
 									placeholder='Type a message... (use @ to mention)'
 									value={newMessage}
 									onChange={setNewMessage}
-									onTaggedUsersChange={() => {}}
+									onTaggedUsersChange={(ids) => { taggedUserIdsRef.current = ids }}
 									onSubmit={handleSendMessage}
 									disabled={isSending}
 									className='bg-bg-elevated'

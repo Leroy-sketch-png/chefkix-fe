@@ -18,6 +18,7 @@ import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
+import Link from 'next/link'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import {
 	Users,
@@ -28,6 +29,8 @@ import {
 	TrendingUp,
 	Clock,
 	Loader2,
+	ChefHat,
+	BookOpen,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
@@ -403,6 +406,36 @@ export default function DashboardPage() {
 			<PageContainer maxWidth='lg'>
 				{/* Tonight's Pick — hero recipe suggestion */}
 				<TonightsPick className='mb-6' />
+
+				{/* New User Welcome — shown when user has never cooked or created a recipe */}
+				{stats && (stats.currentXP ?? 0) === 0 && (stats.recipeCount ?? 0) === 0 && (
+					<motion.div
+						initial={{ opacity: 0, y: 12 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={TRANSITION_SPRING}
+						className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
+					>
+						<h2 className='text-lg font-bold text-text'>Welcome to ChefKix! 🎉</h2>
+						<p className='mt-1 text-sm text-text-secondary'>
+							Get started in 3 easy steps:
+						</p>
+						<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+							<Link href='/explore' className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'>
+								<BookOpen className='size-5 flex-shrink-0 text-brand' />
+								<span className='text-sm font-medium text-text'>Browse recipes</span>
+							</Link>
+							<Link href='/create' className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'>
+								<ChefHat className='size-5 flex-shrink-0 text-xp' />
+								<span className='text-sm font-medium text-text'>Cook your first recipe</span>
+							</Link>
+							<Link href='/community' className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'>
+								<Users className='size-5 flex-shrink-0 text-streak' />
+								<span className='text-sm font-medium text-text'>Follow other chefs</span>
+							</Link>
+						</div>
+					</motion.div>
+				)}
+
 				{/* Since Last Visit Summary - Welcome back card with activity summary */}
 				<SinceLastVisitCard className='mb-6' />
 				{hasPendingXpSync && (

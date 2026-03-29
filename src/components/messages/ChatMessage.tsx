@@ -79,9 +79,9 @@ const getStatusIcon = (status: Message['status']) => {
 		case 'sent':
 			return <Check className='h-3.5 w-3.5 text-text-muted' />
 		case 'delivered':
-			return <CheckCheck className='h-3.5 w-3.5 text-text-muted' />
 		case 'read':
-			return <CheckCheck className='h-3.5 w-3.5 text-brand' />
+			// Backend doesn't track read receipts yet — show delivered for both
+			return <CheckCheck className='h-3.5 w-3.5 text-text-muted' />
 	}
 }
 
