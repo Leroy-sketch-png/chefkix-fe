@@ -30,6 +30,7 @@ import { usePostKeyboardNav } from '@/hooks/usePostKeyboardNav'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
+import { toast } from 'sonner'
 
 // ============================================
 // CONSTANTS
@@ -150,6 +151,7 @@ export default function FeedPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to load more posts:', err)
+			toast.error('Failed to load more posts')
 		} finally {
 			setIsLoadingMore(false)
 		}

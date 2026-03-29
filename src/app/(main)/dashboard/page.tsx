@@ -344,6 +344,7 @@ export default function DashboardPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to load more posts:', err)
+			toast.error('Failed to load more posts')
 		} finally {
 			setIsLoadingMore(false)
 		}

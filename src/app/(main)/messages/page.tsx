@@ -415,6 +415,7 @@ export default function MessagesPage() {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch messages:', err)
+				toast.error('Could not load messages')
 			} finally {
 				setIsLoadingMessages(false)
 			}
@@ -489,24 +490,32 @@ export default function MessagesPage() {
 
 	// React to a message
 	const handleReact = useCallback(async (messageId: string, emoji: string) => {
-		const response = await reactToMessage(messageId, emoji)
-		if (response.success && response.data) {
-			setMessages(prev =>
-				prev.map(m => (m.id === messageId ? response.data! : m)),
-			)
-		} else {
+		try {
+			const response = await reactToMessage(messageId, emoji)
+			if (response.success && response.data) {
+				setMessages(prev =>
+					prev.map(m => (m.id === messageId ? response.data! : m)),
+				)
+			} else {
+				toast.error('Failed to react to message')
+			}
+		} catch {
 			toast.error('Failed to react to message')
 		}
 	}, [])
 
 	// Delete a message (own messages only)
 	const handleDelete = useCallback(async (messageId: string) => {
-		const response = await deleteMessage(messageId)
-		if (response.success && response.data) {
-			setMessages(prev =>
-				prev.map(m => (m.id === messageId ? response.data! : m)),
-			)
-		} else {
+		try {
+			const response = await deleteMessage(messageId)
+			if (response.success && response.data) {
+				setMessages(prev =>
+					prev.map(m => (m.id === messageId ? response.data! : m)),
+				)
+			} else {
+				toast.error('Failed to delete message')
+			}
+		} catch {
 			toast.error('Failed to delete message')
 		}
 	}, [])

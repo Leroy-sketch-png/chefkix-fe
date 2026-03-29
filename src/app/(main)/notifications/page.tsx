@@ -507,6 +507,7 @@ export default function NotificationsPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to mark notification as read:', err)
+			toast.error('Failed to update notification')
 		}
 	}
 

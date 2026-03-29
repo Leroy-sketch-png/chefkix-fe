@@ -310,7 +310,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 	return (
 		<motion.div variants={staggerItemVariants}>
 			<Link
-				href={`/posts/${post.id}`}
+				href={`/post/${post.id}`}
 				className='group flex gap-3 rounded-2xl border border-border bg-panel-bg p-3 transition-shadow hover:shadow-md'
 			>
 				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>

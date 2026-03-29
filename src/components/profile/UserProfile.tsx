@@ -23,7 +23,7 @@ import { getRecipesByUserId, getSavedRecipes } from '@/services/recipe'
 import { getPostsByUser, getSavedPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { ProfileHeaderGamified } from './ProfileHeaderGamified'
 import { CookingHistoryTab, type PendingSession } from '@/components/pending'
 import type { Badge as GamificationBadge } from '@/lib/types/gamification'
@@ -282,6 +282,7 @@ export const UserProfile = ({
 				}
 			} catch (err) {
 				logDevError('Failed to fetch user recipes:', err)
+				toast.error('Failed to load recipes')
 			} finally {
 				setIsLoadingRecipes(false)
 			}
@@ -333,6 +334,7 @@ export const UserProfile = ({
 				}
 			} catch (err) {
 				logDevError('Failed to fetch cooking sessions:', err)
+				toast.error('Failed to load cooking sessions')
 			}
 		}
 
@@ -356,6 +358,7 @@ export const UserProfile = ({
 				}
 			} catch (err) {
 				logDevError('Failed to fetch user posts:', err)
+				toast.error('Failed to load posts')
 			} finally {
 				setIsLoadingPosts(false)
 			}
@@ -377,6 +380,7 @@ export const UserProfile = ({
 				}
 			} catch (err) {
 				logDevError('Failed to fetch saved recipes:', err)
+				toast.error('Failed to load saved recipes')
 			} finally {
 				setIsLoadingSaved(false)
 			}
@@ -403,6 +407,7 @@ export const UserProfile = ({
 				}
 			} catch (err) {
 				logDevError('Failed to fetch saved posts:', err)
+				toast.error('Failed to load saved posts')
 			} finally {
 				setIsLoadingSavedPosts(false)
 			}
