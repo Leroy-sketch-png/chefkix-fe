@@ -192,21 +192,20 @@ export default function VideoCall({
 	}
 
 	// Helper to send JSON messages through WebSocket
-	const sendMessage = (
-		wsInstance: WebSocket | null,
-		type: SignalMessage['type'],
-		data?: any,
-	) => {
-		if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
-			const payload: SignalMessage = {
-				type,
-				conversationId,
-				senderId: currentUserId,
-				data,
+	const sendMessage = useCallback(
+		(wsInstance: WebSocket | null, type: SignalMessage['type'], data?: any) => {
+			if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+				const payload: SignalMessage = {
+					type,
+					conversationId,
+					senderId: currentUserId,
+					data,
+				}
+				wsInstance.send(JSON.stringify(payload))
 			}
-			wsInstance.send(JSON.stringify(payload))
-		}
-	}
+		},
+		[conversationId, currentUserId],
+	)
 
 	// --- Phase 3: WebRTC Engine ---
 	const initializePeerConnection = () => {
@@ -361,7 +360,7 @@ export default function VideoCall({
 
 		// Unmount component
 		onClose()
-	}, [onClose, stopRingtone])
+	}, [onClose, sendMessage, stopRingtone])
 
 	// Automatically clean up when the user leaves the page or unmounts the component
 	useEffect(() => {
