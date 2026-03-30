@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { Post } from '@/lib/types'
 import { votePoll } from '@/services/post'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { BarChart3 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -79,9 +79,8 @@ export const PollCard = ({
 	return (
 		<motion.div
 			layout
-			whileHover={CARD_FEED_HOVER}
-			transition={TRANSITION_SPRING}
-			className='group rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card transition-all duration-300 hover:shadow-warm md:p-6'
+			layout
+			className='group -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card p-4 transition-all duration-300 md:p-6'
 		>
 			{/* Header */}
 			<div className='mb-3 flex items-center gap-3'>
@@ -141,7 +140,7 @@ export const PollCard = ({
 
 			{/* Footer */}
 			<div className='mt-3 flex items-center justify-between text-xs text-text-muted'>
-				<span>
+				<span className='tabular-nums'>
 					{totalVotes} vote{totalVotes !== 1 ? 's' : ''}
 				</span>
 				{isOwner && <span className='italic'>Your poll</span>}
