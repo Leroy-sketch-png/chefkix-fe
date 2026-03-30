@@ -206,6 +206,8 @@ function CreatePostContent() {
 	}
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return
+
 		if (!content.trim() && photoFiles.length === 0) {
 			toast.error('Add some content or photos to share!')
 			return

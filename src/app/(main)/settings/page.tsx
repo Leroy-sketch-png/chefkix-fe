@@ -541,6 +541,7 @@ export default function SettingsPage() {
 	}
 
 	const handleSaveProfile = async () => {
+		if (isSaving || isUploadingAvatar || isUploadingCover) return
 		setIsSaving(true)
 		try {
 			const response = await updateProfile({ displayName, bio })

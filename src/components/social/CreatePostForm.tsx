@@ -96,6 +96,7 @@ export const CreatePostForm = ({
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+		if (isSubmitting) return
 
 		if (!content.trim()) {
 			toast.error(POST_MESSAGES.CREATE_EMPTY)
