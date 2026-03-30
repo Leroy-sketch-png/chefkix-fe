@@ -282,7 +282,8 @@ export default function DashboardPage() {
 				}
 
 				if (pendingResponse.success && pendingResponse.data) {
-					const wasDismissed = sessionStorage.getItem('chefkix_pending_dismissed') === 'true'
+					const wasDismissed =
+						sessionStorage.getItem('chefkix_pending_dismissed') === 'true'
 					if (!wasDismissed) {
 						setPendingSessions(
 							pendingResponse.data.map(transformToPendingSession),
@@ -301,6 +302,7 @@ export default function DashboardPage() {
 	}, [feedMode, retryPendingXpSync, retryCount])
 
 	const handleRetryPendingXpSync = async () => {
+		if (isRetryingPendingXp) return
 		setIsRetryingPendingXp(true)
 		const recovered = await retryPendingXpSync()
 		if (recovered) {
@@ -419,33 +421,52 @@ export default function DashboardPage() {
 				<TonightsPick className='mb-6' />
 
 				{/* New User Welcome — shown when user has never cooked or created a recipe */}
-				{stats && (stats.currentXP ?? 0) === 0 && (stats.recipeCount ?? 0) === 0 && (
-					<motion.div
-						initial={{ opacity: 0, y: 12 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={TRANSITION_SPRING}
-						className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
-					>
-						<h2 className='text-lg font-bold text-text'>Welcome to ChefKix! 🎉</h2>
-						<p className='mt-1 text-sm text-text-secondary'>
-							Get started in 3 easy steps:
-						</p>
-						<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
-							<Link href='/explore' className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'>
-								<BookOpen className='size-5 flex-shrink-0 text-brand' />
-								<span className='text-sm font-medium text-text'>Browse recipes</span>
-							</Link>
-							<Link href='/create' className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'>
-								<ChefHat className='size-5 flex-shrink-0 text-xp' />
-								<span className='text-sm font-medium text-text'>Cook your first recipe</span>
-							</Link>
-							<Link href='/community' className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'>
-								<Users className='size-5 flex-shrink-0 text-streak' />
-								<span className='text-sm font-medium text-text'>Follow other chefs</span>
-							</Link>
-						</div>
-					</motion.div>
-				)}
+				{stats &&
+					(stats.currentXP ?? 0) === 0 &&
+					(stats.recipeCount ?? 0) === 0 && (
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={TRANSITION_SPRING}
+							className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
+						>
+							<h2 className='text-lg font-bold text-text'>
+								Welcome to ChefKix! 🎉
+							</h2>
+							<p className='mt-1 text-sm text-text-secondary'>
+								Get started in 3 easy steps:
+							</p>
+							<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+								<Link
+									href='/explore'
+									className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<BookOpen className='size-5 flex-shrink-0 text-brand' />
+									<span className='text-sm font-medium text-text'>
+										Browse recipes
+									</span>
+								</Link>
+								<Link
+									href='/create'
+									className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<ChefHat className='size-5 flex-shrink-0 text-xp' />
+									<span className='text-sm font-medium text-text'>
+										Cook your first recipe
+									</span>
+								</Link>
+								<Link
+									href='/community'
+									className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<Users className='size-5 flex-shrink-0 text-streak' />
+									<span className='text-sm font-medium text-text'>
+										Follow other chefs
+									</span>
+								</Link>
+							</div>
+						</motion.div>
+					)}
 
 				{/* Since Last Visit Summary - Welcome back card with activity summary */}
 				<SinceLastVisitCard className='mb-6' />

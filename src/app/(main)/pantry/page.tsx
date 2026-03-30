@@ -273,6 +273,7 @@ export default function PantryPage() {
 			const data = await getMatchingRecipes(0.3, true)
 			setMatchedRecipes(data)
 		} catch {
+			setShowSuggestions(false)
 			toast.error('Failed to load recipe suggestions', {
 				action: {
 					label: 'Retry',

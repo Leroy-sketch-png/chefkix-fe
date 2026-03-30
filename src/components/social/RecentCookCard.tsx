@@ -24,7 +24,6 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 	return (
 		<motion.div
 			layout
-			layout
 			className='group -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'
 		>
 			<div className='flex items-center gap-3 p-3 md:p-4'>
@@ -96,9 +95,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 					</div>
 
 					{/* Activity label */}
-					<span className='text-xs text-text-muted'>
-						🍳 Cooked this recipe
-					</span>
+					<span className='text-xs text-text-muted'>🍳 Cooked this recipe</span>
 				</div>
 
 				{/* Arrow link to recipe */}

@@ -79,7 +79,6 @@ export const PollCard = ({
 	return (
 		<motion.div
 			layout
-			layout
 			className='group -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card p-4 transition-all duration-300 md:p-6'
 		>
 			{/* Header */}

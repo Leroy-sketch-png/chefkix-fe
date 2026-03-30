@@ -1,0 +1,22 @@
+﻿git : 
+At line:1 char:13
++ git add -A; git commit -m "fix: 8 bugs - QuickPostFAB try-catch, sett ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> chefkix-fe@0.1.0 lint
+> next lint
+
+
+./src/components/chat/VideoCall.tsx
+364:5  Warning: React Hook useCallback has a missing dependency: 
+'sendMessage'. Either include it or remove the dependency array.  
+react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: 
+https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+src/app/(main)/dashboard/page.tsx 2148ms
+src/app/(main)/pantry/page.tsx 2904ms
+src/app/(main)/settings/page.tsx 7845ms
+[90msrc/components/recipe/RecipeCard.tsx[39m 932ms (unchanged)

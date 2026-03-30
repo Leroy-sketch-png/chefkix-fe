@@ -232,7 +232,12 @@ const CUISINE_OPTIONS = [
 	'Middle Eastern',
 ]
 
-const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun; disabled?: boolean }[] = [
+const THEME_OPTIONS: {
+	value: Theme
+	label: string
+	icon: typeof Sun
+	disabled?: boolean
+}[] = [
 	{ value: 'light', label: 'Light', icon: Sun },
 	{ value: 'dark', label: 'Dark', icon: Moon, disabled: true },
 	{ value: 'system', label: 'System', icon: Monitor, disabled: true },
@@ -371,7 +376,13 @@ const ButtonGroup = <T extends string>({
 	value,
 	onChange,
 }: {
-	options: { value: T; label: string; icon?: typeof Sun; emoji?: string; disabled?: boolean }[]
+	options: {
+		value: T
+		label: string
+		icon?: typeof Sun
+		emoji?: string
+		disabled?: boolean
+	}[]
 	value: T
 	onChange: (value: T) => void
 }) => (
@@ -396,7 +407,9 @@ const ButtonGroup = <T extends string>({
 					{Icon && <Icon className='size-4' />}
 					{option.emoji && <span>{option.emoji}</span>}
 					{option.label}
-					{option.disabled && <span className='text-xs opacity-70'>(Soon)</span>}
+					{option.disabled && (
+						<span className='text-xs opacity-70'>(Soon)</span>
+					)}
 				</motion.button>
 			)
 		})}
@@ -413,6 +426,7 @@ export default function SettingsPage() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
+	const [isLoggingOut, setIsLoggingOut] = useState(false)
 	const [settings, setSettings] = useState<UserSettings | null>(null)
 
 	const [displayName, setDisplayName] = useState('')
@@ -728,6 +742,8 @@ export default function SettingsPage() {
 		arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item]
 
 	const handleLogout = async () => {
+		if (isLoggingOut) return
+		setIsLoggingOut(true)
 		try {
 			await logoutService()
 		} catch (error) {
@@ -818,14 +834,17 @@ export default function SettingsPage() {
 						{/* Divider + Sign Out */}
 						<div className='my-1 h-px bg-border-subtle' />
 						<motion.button
-							whileHover={{ x: 4 }}
-							whileTap={{ scale: 0.98 }}
+							whileHover={isLoggingOut ? {} : { x: 4 }}
+							whileTap={isLoggingOut ? {} : { scale: 0.98 }}
 							onClick={handleLogout}
-							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full'
+							disabled={isLoggingOut}
+							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full disabled:opacity-50'
 						>
 							<LogOut className='size-5 flex-shrink-0' />
 							<div className='hidden lg:block'>
-								<p className='text-sm font-medium'>Sign Out</p>
+								<p className='text-sm font-medium'>
+									{isLoggingOut ? 'Signing out...' : 'Sign Out'}
+								</p>
 							</div>
 						</motion.button>
 					</motion.nav>
@@ -1005,13 +1024,20 @@ export default function SettingsPage() {
 													{bio.length}/160
 												</p>
 											</div>
-											<Button onClick={handleSaveProfile} disabled={isSaving || isUploadingAvatar || isUploadingCover}>
+											<Button
+												onClick={handleSaveProfile}
+												disabled={
+													isSaving || isUploadingAvatar || isUploadingCover
+												}
+											>
 												{isSaving ? (
 													<Loader2 className='mr-2 size-4 animate-spin' />
 												) : (
 													<Save className='mr-2 size-4' />
 												)}
-												{isUploadingAvatar || isUploadingCover ? 'Uploading...' : 'Save Profile'}
+												{isUploadingAvatar || isUploadingCover
+													? 'Uploading...'
+													: 'Save Profile'}
 											</Button>
 										</div>
 									</SettingsCard>
