@@ -1004,13 +1004,13 @@ export default function SettingsPage() {
 													{bio.length}/160
 												</p>
 											</div>
-											<Button onClick={handleSaveProfile} disabled={isSaving}>
+											<Button onClick={handleSaveProfile} disabled={isSaving || isUploadingAvatar || isUploadingCover}>
 												{isSaving ? (
 													<Loader2 className='mr-2 size-4 animate-spin' />
 												) : (
 													<Save className='mr-2 size-4' />
 												)}
-												Save Profile
+												{isUploadingAvatar || isUploadingCover ? 'Uploading...' : 'Save Profile'}
 											</Button>
 										</div>
 									</SettingsCard>
