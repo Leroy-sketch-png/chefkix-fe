@@ -206,9 +206,7 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 						</span>
 						<span className='text-icon-lg'>📖</span>
 					</div>
-					<span className='text-sm text-text-secondary'>
-						Recipes Published
-					</span>
+					<span className='text-sm text-text-secondary'>Recipes Published</span>
 				</div>
 
 				{/* Total Cooks */}
@@ -370,9 +368,7 @@ function TopRecipeSection({
 							<span className='text-xl font-extrabold text-primary'>
 								{recipe.xpGenerated.toLocaleString()}
 							</span>
-							<span className='text-xs text-text-secondary'>
-								XP Generated
-							</span>
+							<span className='text-xs text-text-secondary'>XP Generated</span>
 						</div>
 						<div className='flex flex-col'>
 							<span className='text-xl font-extrabold text-primary'>
@@ -637,7 +633,7 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 					'flex items-center justify-center gap-2 py-3 px-5',
 					'bg-gradient-hero',
 					'rounded-xl text-sm font-bold text-white w-full sm:w-auto',
-					'shadow-lg shadow-primary/20',
+					'shadow-card shadow-brand/20',
 				)}
 			>
 				<Plus className='size-icon-sm' />

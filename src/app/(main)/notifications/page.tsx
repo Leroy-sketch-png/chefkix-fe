@@ -453,7 +453,9 @@ export default function NotificationsPage() {
 		}
 
 		fetchNotifications()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [retryKey])
 
 	// Calculate counts
@@ -622,12 +624,12 @@ export default function NotificationsPage() {
 								key={i}
 								className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
 							>
-								<div className='size-10 shrink-0 animate-pulse rounded-full bg-muted/20' />
+								<div className='size-10 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
 								<div className='flex-1 space-y-2'>
-									<div className='h-4 w-3/4 animate-pulse rounded bg-muted/20' />
-									<div className='h-3 w-1/2 animate-pulse rounded bg-muted/20' />
+									<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated/40' />
+									<div className='h-3 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
 								</div>
-								<div className='h-3 w-12 animate-pulse rounded bg-muted/20' />
+								<div className='h-3 w-12 animate-pulse rounded bg-bg-elevated/40' />
 							</div>
 						))}
 					</div>

@@ -248,19 +248,19 @@ export const ChallengeCard = ({
 // ============================================
 
 export const ChallengeCardSkeleton = () => (
-	<div className='animate-pulse rounded-2xl bg-gradient-to-br from-slate-300 to-slate-400 p-6'>
+	<div className='animate-pulse rounded-2xl bg-bg-elevated p-6'>
 		<div className='mb-4 flex items-start justify-between'>
-			<div className='h-4 w-24 rounded bg-white/30' />
-			<div className='h-8 w-8 rounded-lg bg-white/30' />
+			<div className='h-4 w-24 rounded bg-border-subtle' />
+			<div className='h-8 w-8 rounded-lg bg-border-subtle' />
 		</div>
-		<div className='mb-2 h-6 w-3/4 rounded bg-white/30' />
-		<div className='mb-4 h-4 w-full rounded bg-white/30' />
-		<div className='mb-4 h-2.5 rounded-full bg-white/20' />
+		<div className='mb-2 h-6 w-3/4 rounded bg-border-subtle' />
+		<div className='mb-4 h-4 w-full rounded bg-border-subtle' />
+		<div className='mb-4 h-2.5 rounded-full bg-border-subtle/60' />
 		<div className='flex gap-2'>
-			<div className='h-7 w-20 rounded-full bg-white/30' />
-			<div className='h-7 w-16 rounded-full bg-white/30' />
+			<div className='h-7 w-20 rounded-full bg-border-subtle' />
+			<div className='h-7 w-16 rounded-full bg-border-subtle' />
 		</div>
-		<div className='mt-4 h-10 rounded-full bg-white/30' />
+		<div className='mt-4 h-10 rounded-full bg-border-subtle' />
 	</div>
 )
 

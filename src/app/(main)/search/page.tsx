@@ -480,7 +480,9 @@ export default function SearchPage() {
 		}
 
 		fetchResults()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [query, retryKey])
 
 	const totalResults =
@@ -688,7 +690,7 @@ export default function SearchPage() {
 								'-mb-[2px] flex items-center gap-2 whitespace-nowrap border-b-[3px] px-5 py-3 text-label font-semibold transition-colors',
 								activeTab === tab.id
 									? 'border-primary text-primary'
-									: 'border-transparent text-text-secondary hover:bg-muted/30 hover:text-text',
+									: 'border-transparent text-text-secondary hover:bg-bg-hover hover:text-text',
 							)}
 						>
 							<tab.icon className='size-4' />

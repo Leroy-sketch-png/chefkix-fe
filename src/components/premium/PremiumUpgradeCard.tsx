@@ -263,7 +263,7 @@ export default function PremiumUpgradeCard() {
 				className={cn(
 					'relative overflow-hidden rounded-xl border p-6',
 					isPremium
-						? 'border-amber-300/30 bg-gradient-to-br from-amber-50/80 via-orange-50/60 to-yellow-50/40'
+						? 'border-level/30 bg-gradient-to-br from-level/10 via-level/5 to-transparent'
 						: 'border-border-subtle bg-bg-card',
 				)}
 			>
@@ -380,7 +380,7 @@ export default function PremiumUpgradeCard() {
 							<Button
 								onClick={handleStartTrial}
 								disabled={isActioning}
-								className='w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-warm hover:from-amber-600 hover:to-orange-600'
+								className='w-full bg-gradient-gold text-white shadow-warm hover:opacity-90'
 								size='lg'
 							>
 								{isActioning ? (

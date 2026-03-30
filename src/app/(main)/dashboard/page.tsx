@@ -303,7 +303,9 @@ export default function DashboardPage() {
 		}
 
 		fetchInitialData()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [feedMode, retryPendingXpSync, retryCount])
 
 	const handleRetryPendingXpSync = async () => {
@@ -677,7 +679,7 @@ export default function DashboardPage() {
 										className={cn(
 											'transition-shadow',
 											focusedPostIndex === i &&
-												'ring-inset ring-2 ring-zinc-900',
+												'ring-inset ring-2 ring-border-strong',
 										)}
 									>
 										{post.postType === 'POLL' ? (

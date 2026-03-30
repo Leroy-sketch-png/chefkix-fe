@@ -7,18 +7,18 @@ export default function Loading() {
 			{/* Header skeleton */}
 			<div className='mb-6'>
 				<div className='mb-2 flex items-center gap-3'>
-					<div className='size-10 animate-pulse rounded-xl bg-muted/20' />
-					<div className='size-12 animate-pulse rounded-2xl bg-muted/20' />
-					<div className='h-9 w-64 animate-pulse rounded-lg bg-muted/20' />
+					<div className='size-10 animate-pulse rounded-xl bg-bg-elevated/40' />
+					<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
+					<div className='h-9 w-64 animate-pulse rounded-lg bg-bg-elevated/40' />
 				</div>
-				<div className='h-6 w-32 animate-pulse rounded-lg bg-muted/20' />
+				<div className='h-6 w-32 animate-pulse rounded-lg bg-bg-elevated/40' />
 			</div>
 
 			{/* Tabs skeleton */}
 			<div className='mb-8 flex gap-4 border-b-2 border-border'>
-				<div className='h-12 w-24 animate-pulse rounded-t-lg bg-muted/20' />
-				<div className='h-12 w-24 animate-pulse rounded-t-lg bg-muted/20' />
-				<div className='h-12 w-24 animate-pulse rounded-t-lg bg-muted/20' />
+				<div className='h-12 w-24 animate-pulse rounded-t-lg bg-bg-elevated/40' />
+				<div className='h-12 w-24 animate-pulse rounded-t-lg bg-bg-elevated/40' />
+				<div className='h-12 w-24 animate-pulse rounded-t-lg bg-bg-elevated/40' />
 			</div>
 
 			{/* Results grid skeleton */}

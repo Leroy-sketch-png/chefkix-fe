@@ -477,7 +477,9 @@ export default function SettingsPage() {
 		}
 
 		loadSettings()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [user])
 
 	// Fetch verification status when verification tab is opened
@@ -496,7 +498,9 @@ export default function SettingsPage() {
 			}
 		}
 		fetchVerification()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [activeTab, verificationStatus])
 
 	const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -889,7 +893,7 @@ export default function SettingsPage() {
 												>
 													<div
 														className={cn(
-															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border-subtle bg-gradient-to-br from-brand/20 via-amber-100/30 to-orange-50/40 transition-all',
+															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border-subtle bg-gradient-warm transition-all',
 															isUploadingCover && 'opacity-60',
 														)}
 													>

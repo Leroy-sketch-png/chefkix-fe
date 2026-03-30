@@ -323,7 +323,7 @@ export default function ChallengesPage() {
 										>
 											<div className='mb-3 flex items-center justify-between'>
 												<div className='flex items-center gap-3'>
-													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo via-pink-400 to-rose-500 text-xl shadow-card shadow-combo/25'>
+													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
 														{ch.emoji || '👥'}
 													</div>
 													<div>
@@ -364,7 +364,7 @@ export default function ChallengesPage() {
 															duration: 1,
 															ease: 'easeOut',
 														}}
-														className='h-full rounded-full bg-gradient-to-r from-combo via-pink-400 to-rose-500'
+														className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
 													/>
 												</div>
 											</div>
@@ -476,7 +476,7 @@ export default function ChallengesPage() {
 																duration: 1,
 																ease: 'easeOut',
 															}}
-															className='h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500'
+															className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
 														/>
 													</div>
 												</div>
