@@ -49,7 +49,9 @@ export function GroupSettingsModal({
 	// Form state
 	const [name, setName] = useState(group.name)
 	const [description, setDescription] = useState(group.description || '')
-	const [privacy, setPrivacy] = useState<'PUBLIC' | 'PRIVATE'>(group.privacyType as 'PUBLIC' | 'PRIVATE')
+	const [privacy, setPrivacy] = useState<'PUBLIC' | 'PRIVATE'>(
+		group.privacyType as 'PUBLIC' | 'PRIVATE',
+	)
 
 	// UI state
 	const [isLoading, setIsLoading] = useState(false)
@@ -98,9 +100,7 @@ export function GroupSettingsModal({
 				<DialogContent className='max-w-md'>
 					<DialogHeader>
 						<DialogTitle>Group Settings</DialogTitle>
-						<DialogDescription>
-							Update your group information
-						</DialogDescription>
+						<DialogDescription>Update your group information</DialogDescription>
 					</DialogHeader>
 
 					<div className='space-y-4'>
@@ -111,7 +111,7 @@ export function GroupSettingsModal({
 							</label>
 							<Input
 								value={name}
-								onChange={(e) => setName(e.target.value)}
+								onChange={e => setName(e.target.value)}
 								placeholder='Enter group name'
 								className='bg-bg border-border'
 								maxLength={50}
@@ -125,14 +125,16 @@ export function GroupSettingsModal({
 							</label>
 							<Textarea
 								value={description}
-								onChange={(e) => setDescription(e.target.value)}
+								onChange={e => setDescription(e.target.value)}
 								placeholder='Enter group description (optional)'
 								className='bg-bg border-border resize-none'
 								rows={4}
 								maxLength={500}
 							/>
 							{description.length > 0 && (
-								<p className='mt-1 text-right text-xs text-text-muted'>{description.length}/500</p>
+								<p className='mt-1 text-right text-xs text-text-muted'>
+									{description.length}/500
+								</p>
 							)}
 						</div>
 
@@ -141,7 +143,12 @@ export function GroupSettingsModal({
 							<label className='block text-sm font-medium text-text mb-2'>
 								Privacy
 							</label>
-							<Select value={privacy} onValueChange={(value) => setPrivacy(value as 'PUBLIC' | 'PRIVATE')}>
+							<Select
+								value={privacy}
+								onValueChange={value =>
+									setPrivacy(value as 'PUBLIC' | 'PRIVATE')
+								}
+							>
 								<SelectTrigger className='bg-bg border-border'>
 									<SelectValue />
 								</SelectTrigger>
@@ -178,7 +185,7 @@ export function GroupSettingsModal({
 								onClick={() => setShowDeleteConfirm(true)}
 								disabled={isLoading}
 								variant='outline'
-								className='w-full text-red-600 border-red-200 hover:bg-red-50'
+								className='w-full text-error border-error/20 hover:bg-error/5'
 							>
 								<AlertTriangle className='w-4 h-4 mr-2' />
 								Delete Group

@@ -400,13 +400,13 @@ export default function VideoCall({
 					<div className='flex gap-6'>
 						<button
 							onClick={rejectCall}
-							className='px-6 py-3 bg-red-500 hover:bg-red-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105'
+							className='px-6 py-3 bg-error hover:bg-error-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105'
 						>
 							Decline
 						</button>
 						<button
 							onClick={acceptCall}
-							className='px-6 py-3 bg-green-500 hover:bg-green-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2'
+							className='px-6 py-3 bg-success hover:bg-success-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2'
 						>
 							<svg
 								xmlns='http://www.w3.org/2000/svg'
@@ -463,21 +463,21 @@ export default function VideoCall({
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
 				<button
 					onClick={() => startMedia()}
-					className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600'
+					className='px-4 py-2 bg-info text-white rounded-md hover:bg-info-vivid'
 				>
 					{isCameraOn ? 'Camera On ✅' : '1. Turn On Camera'}
 				</button>
 
 				<button
 					onClick={toggleVideo}
-					className='px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600'
+					className='px-4 py-2 bg-warning text-white rounded-md hover:bg-warning-vivid'
 				>
 					{isCameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
 				</button>
 
 				<button
 					onClick={toggleAudio}
-					className='px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600'
+					className='px-4 py-2 bg-accent-purple text-white rounded-md hover:bg-accent-purple-hover'
 				>
 					{isMicOn ? 'Mute Mic' : 'Unmute Mic'}
 				</button>
@@ -489,7 +489,7 @@ export default function VideoCall({
 						className={`px-4 py-2 text-white rounded-md ${
 							!isCameraOn || !isJoined
 								? 'bg-text-muted cursor-not-allowed'
-								: 'bg-green-500 hover:bg-green-600'
+								: 'bg-success hover:bg-success-vivid'
 						}`}
 					>
 						2. Call the other person
@@ -498,7 +498,7 @@ export default function VideoCall({
 
 				<button
 					onClick={endCall}
-					className='px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600'
+					className='px-4 py-2 bg-error text-white rounded-md hover:bg-error-vivid'
 				>
 					End Call
 				</button>

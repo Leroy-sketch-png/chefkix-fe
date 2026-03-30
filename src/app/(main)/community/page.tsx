@@ -19,7 +19,14 @@ import {
 	type LeaderboardEntry as LeaderboardServiceEntry,
 } from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
-import { Users, UserPlus, Trophy, Search, Sparkles, UsersRound } from 'lucide-react'
+import {
+	Users,
+	UserPlus,
+	Trophy,
+	Search,
+	Sparkles,
+	UsersRound,
+} from 'lucide-react'
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -46,6 +53,8 @@ export default function CommunityPage() {
 	const [error, setError] = useState(false)
 
 	useEffect(() => {
+		let cancelled = false
+
 		const fetchData = async () => {
 			try {
 				// Note: getAllProfiles removed - UserDiscoveryClient fetches its own data with pagination
@@ -55,6 +64,8 @@ export default function CommunityPage() {
 					getFollowers(),
 					getLeaderboard({ type: 'global', timeframe: 'weekly' }),
 				])
+
+				if (cancelled) return
 
 				if (friendsRes.success && friendsRes.data) {
 					setFriends(friendsRes.data)
@@ -85,13 +96,16 @@ export default function CommunityPage() {
 					setError(true)
 				}
 			} catch {
-				setError(true)
+				if (!cancelled) setError(true)
 			} finally {
-				setLoading(false)
+				if (!cancelled) setLoading(false)
 			}
 		}
 
 		fetchData()
+		return () => {
+			cancelled = true
+		}
 	}, [user?.userId])
 
 	const handleFollowBack = (userId: string) => {

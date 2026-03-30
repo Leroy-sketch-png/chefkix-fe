@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Profile, Post, getProfileDisplayName } from '@/lib/types'
@@ -272,32 +272,40 @@ export const UserProfile = ({
 	// Fetch user's recipes when recipes tab is active
 	useEffect(() => {
 		if (activeTab !== 'recipes') return
+		let cancelled = false
 
 		const fetchRecipes = async () => {
 			setIsLoadingRecipes(true)
 			try {
 				const response = await getRecipesByUserId(profile.userId, { limit: 20 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					setUserRecipes(response.data)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch user recipes:', err)
 				toast.error('Failed to load recipes')
 			} finally {
-				setIsLoadingRecipes(false)
+				if (!cancelled) setIsLoadingRecipes(false)
 			}
 		}
 
 		fetchRecipes()
+		return () => {
+			cancelled = true
+		}
 	}, [profile.userId, activeTab])
 
 	// Fetch cooking session history when tab is active (for own profile only)
 	useEffect(() => {
 		if (!isOwnProfile || activeTab !== 'cooking') return
+		let cancelled = false
 
 		const fetchCookingSessions = async () => {
 			try {
 				const response = await getSessionHistory({ status: 'all', size: 50 })
+				if (cancelled) return
 				if (response.success && response.data?.sessions) {
 					const sessions = response.data.sessions.map(transformToPendingSession)
 					setCookingSessions(sessions)
@@ -333,22 +341,28 @@ export const UserProfile = ({
 					})
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch cooking sessions:', err)
 				toast.error('Failed to load cooking sessions')
 			}
 		}
 
 		fetchCookingSessions()
+		return () => {
+			cancelled = true
+		}
 	}, [isOwnProfile, activeTab])
 
 	// Fetch user's posts when posts tab is active
 	useEffect(() => {
 		if (activeTab !== 'posts') return
+		let cancelled = false
 
 		const fetchPosts = async () => {
 			setIsLoadingPosts(true)
 			try {
 				const response = await getPostsByUser(profile.userId, { limit: 20 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
 					const personalPosts = response.data.filter(
@@ -357,47 +371,59 @@ export const UserProfile = ({
 					setUserPosts(personalPosts)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch user posts:', err)
 				toast.error('Failed to load posts')
 			} finally {
-				setIsLoadingPosts(false)
+				if (!cancelled) setIsLoadingPosts(false)
 			}
 		}
 
 		fetchPosts()
+		return () => {
+			cancelled = true
+		}
 	}, [profile.userId, activeTab])
 
 	// Fetch saved recipes when saved tab is active (own profile only)
 	useEffect(() => {
 		if (!isOwnProfile || activeTab !== 'saved') return
+		let cancelled = false
 
 		const fetchSaved = async () => {
 			setIsLoadingSaved(true)
 			try {
 				const response = await getSavedRecipes({ limit: 20 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					setSavedRecipes(response.data as Recipe[])
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch saved recipes:', err)
 				toast.error('Failed to load saved recipes')
 			} finally {
-				setIsLoadingSaved(false)
+				if (!cancelled) setIsLoadingSaved(false)
 			}
 		}
 
 		fetchSaved()
+		return () => {
+			cancelled = true
+		}
 	}, [isOwnProfile, activeTab])
 
 	// Fetch saved posts when saved tab + posts sub-tab is active
 	useEffect(() => {
 		if (!isOwnProfile || activeTab !== 'saved' || savedSubTab !== 'posts')
 			return
+		let cancelled = false
 
 		const fetchSavedPosts = async () => {
 			setIsLoadingSavedPosts(true)
 			try {
 				const response = await getSavedPosts(0, 20)
+				if (cancelled) return
 				if (response.success && response.data?.content) {
 					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
 					const personalPosts = response.data.content.filter(
@@ -406,14 +432,18 @@ export const UserProfile = ({
 					setSavedPosts(personalPosts)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch saved posts:', err)
 				toast.error('Failed to load saved posts')
 			} finally {
-				setIsLoadingSavedPosts(false)
+				if (!cancelled) setIsLoadingSavedPosts(false)
 			}
 		}
 
 		fetchSavedPosts()
+		return () => {
+			cancelled = true
+		}
 	}, [isOwnProfile, activeTab, savedSubTab])
 
 	// Transform Profile to ProfileUser for gamified header
@@ -490,41 +520,55 @@ export const UserProfile = ({
 
 	// Initialize isBlocked from profile API response
 	const [isBlocked, setIsBlocked] = useState(profile.isBlocked ?? false)
+	const blockLockRef = useRef(false)
 
 	const handleBlock = async () => {
+		if (blockLockRef.current) return
+		blockLockRef.current = true
 		const wasBlocked = isBlocked
 		const displayName = getProfileDisplayName(profile)
 
 		if (wasBlocked) {
 			// Unblock
 			setIsBlocked(false)
-			const response = await unblockUser(profile.userId)
-			if (response.success) {
-				toast.success(`Unblocked ${displayName}`)
-			} else {
-				setIsBlocked(true)
-				toast.error(response.message || 'Failed to unblock user')
+			try {
+				const response = await unblockUser(profile.userId)
+				if (response.success) {
+					toast.success(`Unblocked ${displayName}`)
+				} else {
+					setIsBlocked(true)
+					toast.error(response.message || 'Failed to unblock user')
+				}
+			} finally {
+				blockLockRef.current = false
 			}
 		} else {
+			blockLockRef.current = false
 			// Block - show confirmation dialog
 			setShowBlockConfirm(true)
 		}
 	}
 
 	const handleConfirmBlock = async () => {
+		if (blockLockRef.current) return
+		blockLockRef.current = true
 		setIsBlocked(true)
 		const displayName = getProfileDisplayName(profile)
-		const response = await blockUser(profile.userId)
-		if (response.success) {
-			toast.success(`Blocked ${displayName}`)
-			// Update profile state to reflect the unfollow
-			setProfile(prev => ({
-				...prev,
-				isFollowing: false,
-			}))
-		} else {
-			setIsBlocked(false)
-			toast.error(response.message || 'Failed to block user')
+		try {
+			const response = await blockUser(profile.userId)
+			if (response.success) {
+				toast.success(`Blocked ${displayName}`)
+				// Update profile state to reflect the unfollow
+				setProfile(prev => ({
+					...prev,
+					isFollowing: false,
+				}))
+			} else {
+				setIsBlocked(false)
+				toast.error(response.message || 'Failed to block user')
+			}
+		} finally {
+			blockLockRef.current = false
 		}
 	}
 
@@ -744,7 +788,8 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Recipes{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
+										Recipes
+										{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
 									</button>
 									<button
 										onClick={() => setSavedSubTab('posts')}
@@ -754,7 +799,10 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Posts{savedSubTab === 'posts' && savedPosts.length > 0 ? ` (${savedPosts.length})` : ''}
+										Posts
+										{savedSubTab === 'posts' && savedPosts.length > 0
+											? ` (${savedPosts.length})`
+											: ''}
 									</button>
 								</div>
 

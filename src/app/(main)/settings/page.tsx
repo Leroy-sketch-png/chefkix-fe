@@ -1579,20 +1579,20 @@ export default function SettingsPage() {
 															className={cn(
 																'rounded-full px-2.5 py-0.5 text-xs font-semibold',
 																verificationStatus.status === 'APPROVED' &&
-																	'bg-green-100 text-green-700',
+																	'bg-success/10 text-success',
 																verificationStatus.status === 'PENDING' &&
-																	'bg-yellow-100 text-yellow-700',
+																	'bg-warning/10 text-warning',
 																verificationStatus.status === 'REJECTED' &&
-																	'bg-red-100 text-red-700',
+																	'bg-error/10 text-error',
 															)}
 														>
 															{verificationStatus.status}
 														</span>
 													</div>
 													{verificationStatus.status === 'APPROVED' && (
-														<div className='flex items-center gap-2 rounded-lg bg-green-50 p-3'>
-															<BadgeCheck className='size-5 text-blue-500' />
-															<p className='text-sm font-medium text-green-800'>
+														<div className='flex items-center gap-2 rounded-lg bg-success/5 p-3'>
+															<BadgeCheck className='size-5 text-info' />
+															<p className='text-sm font-medium text-success'>
 																You&apos;re a verified creator!
 															</p>
 														</div>

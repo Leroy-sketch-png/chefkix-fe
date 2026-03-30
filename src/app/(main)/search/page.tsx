@@ -246,8 +246,11 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 
 const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const [following, setFollowing] = useState(person.isFollowing)
+	const followLockRef = useRef(false)
 
 	const handleFollow = async () => {
+		if (followLockRef.current) return
+		followLockRef.current = true
 		const prev = following
 		setFollowing(!prev)
 		trackEvent('USER_FOLLOWED', person.id, 'user', { followed: !prev })
@@ -267,6 +270,8 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 		} catch {
 			setFollowing(prev)
 			toast.error('Failed to follow user')
+		} finally {
+			followLockRef.current = false
 		}
 	}
 

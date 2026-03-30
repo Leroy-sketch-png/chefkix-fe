@@ -31,12 +31,16 @@ const ProfilePage = () => {
 		// Wait for auth to hydrate before making API calls
 		if (isAuthLoading) return
 
+		let cancelled = false
+
 		const fetchProfile = async () => {
 			setIsLoading(true)
 			setNotFound(false)
 			setServerError(false)
 
 			const response = await getProfileByUserId(userId)
+
+			if (cancelled) return
 
 			if (response.success && response.data) {
 				setProfile(response.data)
@@ -51,6 +55,9 @@ const ProfilePage = () => {
 
 		if (userId) {
 			fetchProfile()
+		}
+		return () => {
+			cancelled = true
 		}
 	}, [userId, isAuthLoading, retryCount])
 

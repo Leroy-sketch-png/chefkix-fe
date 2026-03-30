@@ -490,7 +490,10 @@ export default function MessagesPage() {
 	}
 
 	// React to a message
+	const reactingRef = useRef(new Set<string>())
 	const handleReact = useCallback(async (messageId: string, emoji: string) => {
+		if (reactingRef.current.has(messageId)) return
+		reactingRef.current.add(messageId)
 		try {
 			const response = await reactToMessage(messageId, emoji)
 			if (response.success && response.data) {
@@ -502,11 +505,16 @@ export default function MessagesPage() {
 			}
 		} catch {
 			toast.error('Failed to react to message')
+		} finally {
+			reactingRef.current.delete(messageId)
 		}
 	}, [])
 
 	// Delete a message (own messages only)
+	const deletingRef = useRef(new Set<string>())
 	const handleDelete = useCallback(async (messageId: string) => {
+		if (deletingRef.current.has(messageId)) return
+		deletingRef.current.add(messageId)
 		try {
 			const response = await deleteMessage(messageId)
 			if (response.success && response.data) {
@@ -518,6 +526,8 @@ export default function MessagesPage() {
 			}
 		} catch {
 			toast.error('Failed to delete message')
+		} finally {
+			deletingRef.current.delete(messageId)
 		}
 	}, [])
 
@@ -708,7 +718,7 @@ export default function MessagesPage() {
 										<Button
 											variant='ghost'
 											size='icon'
-											className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-card text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
+											className='absolute -top-3 -right-3 z-[60] bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
 											onClick={() => setIsVideoCallActive(false)}
 										>
 											<X className='size-5' />
@@ -716,9 +726,9 @@ export default function MessagesPage() {
 
 										<VideoCall
 											conversationId={selectedConversation.id}
-										currentUserId={user.userId}
-										onClose={() => setIsVideoCallActive(false)}
-									/>
+											currentUserId={user.userId}
+											onClose={() => setIsVideoCallActive(false)}
+										/>
 									</div>
 								</div>
 							</Portal>
@@ -813,7 +823,9 @@ export default function MessagesPage() {
 									placeholder='Type a message... (use @ to mention)'
 									value={newMessage}
 									onChange={setNewMessage}
-									onTaggedUsersChange={(ids) => { taggedUserIdsRef.current = ids }}
+									onTaggedUsersChange={ids => {
+										taggedUserIdsRef.current = ids
+									}}
 									onSubmit={handleSendMessage}
 									disabled={isSending}
 									className='bg-bg-elevated'

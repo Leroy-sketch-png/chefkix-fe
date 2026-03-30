@@ -69,6 +69,8 @@ export default function ChallengesPage() {
 	const [error, setError] = useState(false)
 
 	useEffect(() => {
+		let cancelled = false
+
 		const fetchChallenges = async () => {
 			setLoading(true)
 			// Fetch each independently so one failure doesn't kill the others
@@ -91,6 +93,7 @@ export default function ChallengesPage() {
 						return null
 					}),
 				])
+			if (cancelled) return
 			if (dailyRes?.success && dailyRes.data) {
 				const data = dailyRes.data
 				setDailyChallenge({
@@ -124,6 +127,9 @@ export default function ChallengesPage() {
 		}
 
 		fetchChallenges()
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	const hasNoChallenges =
@@ -531,7 +537,6 @@ export default function ChallengesPage() {
 					</>
 				)}
 			</PageContainer>
-
 		</PageTransition>
 	)
 }

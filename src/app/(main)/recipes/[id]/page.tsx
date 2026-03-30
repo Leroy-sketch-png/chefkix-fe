@@ -326,7 +326,7 @@ export default function RecipeDetailPage() {
 	]
 
 	const handleRemix = async (remixType: RemixType) => {
-		if (!recipe) return
+		if (!recipe || isRemixing) return
 		setShowRemixMenu(false)
 		setIsRemixing(true)
 		try {
@@ -664,7 +664,9 @@ export default function RecipeDetailPage() {
 										</div>
 										<div>
 											<p className='font-semibold text-text group-hover/author:text-brand'>
-												{recipe.author.displayName || recipe.author.username || 'Unknown'}
+												{recipe.author.displayName ||
+													recipe.author.username ||
+													'Unknown'}
 											</p>
 											<p className='text-sm text-text-muted'>
 												@{recipe.author.username}
@@ -1375,7 +1377,8 @@ export default function RecipeDetailPage() {
 					>
 						<h3 className='mb-2 text-lg font-bold text-text'>Delete Recipe?</h3>
 						<p className='mb-6 text-sm text-text-secondary'>
-							This action cannot be undone. The recipe and all associated data will be permanently deleted.
+							This action cannot be undone. The recipe and all associated data
+							will be permanently deleted.
 						</p>
 						<div className='flex gap-3'>
 							<Button
