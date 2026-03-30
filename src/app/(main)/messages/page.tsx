@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Portal } from '@/components/ui/portal'
 import {
 	MessageCircle,
 	Send,
@@ -678,7 +679,6 @@ export default function MessagesPage() {
 									fill
 									className='rounded-full object-cover'
 								/>
-								<span className='absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-bg-card bg-success' />
 							</div>
 							<div className='min-w-0 flex-1'>
 								<h2 className='truncate font-semibold text-text'>
@@ -702,24 +702,26 @@ export default function MessagesPage() {
 
 						{/* Video Call Modal / Overlay */}
 						{isVideoCallActive && selectedConversation && user && (
-							<div className='absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
-								<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
-									<Button
-										variant='ghost'
-										size='icon'
-										className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
-										onClick={() => setIsVideoCallActive(false)}
-									>
-										<X className='size-5' />
-									</Button>
+							<Portal>
+								<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
+									<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
+										<Button
+											variant='ghost'
+											size='icon'
+											className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
+											onClick={() => setIsVideoCallActive(false)}
+										>
+											<X className='size-5' />
+										</Button>
 
-									<VideoCall
-										conversationId={selectedConversation.id}
-									currentUserId={user.userId}
-									onClose={() => setIsVideoCallActive(false)}
-								/>
+										<VideoCall
+											conversationId={selectedConversation.id}
+										currentUserId={user.userId}
+										onClose={() => setIsVideoCallActive(false)}
+									/>
+									</div>
 								</div>
-							</div>
+							</Portal>
 						)}
 
 						{/* Messages Area - Scrollable */}
