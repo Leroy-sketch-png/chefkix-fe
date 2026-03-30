@@ -18,6 +18,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { TRANSITION_SPRING, scaleIn } from '@/lib/motion'
 
 // =============================================================================
@@ -215,6 +216,7 @@ export const ChatMessage = ({
 }: ChatMessageProps) => {
 	const [showActions, setShowActions] = useState(false)
 	const [showReactionPicker, setShowReactionPicker] = useState(false)
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
 	const handleReact = (emoji: string) => {
 		onReact?.(message.id, emoji)
@@ -233,247 +235,263 @@ export const ChatMessage = ({
 	}
 
 	const handleDelete = () => {
-		onDelete?.(message.id)
 		setShowActions(false)
+		setShowDeleteConfirm(true)
+	}
+
+	const handleConfirmDelete = () => {
+		onDelete?.(message.id)
 	}
 
 	return (
-		<motion.div
-			className={cn(
-				'group relative mb-3 flex flex-col',
-				message.isOwn ? 'items-end' : 'items-start',
-			)}
-			variants={scaleIn}
-			initial='hidden'
-			animate='visible'
-		>
-			<div
+		<>
+			<ConfirmDialog
+				open={showDeleteConfirm}
+				onOpenChange={setShowDeleteConfirm}
+				title='Delete message?'
+				description='This message will be permanently deleted. This cannot be undone.'
+				confirmLabel='Delete'
+				cancelLabel='Cancel'
+				variant='destructive'
+				onConfirm={handleConfirmDelete}
+			/>
+			<motion.div
 				className={cn(
-					'relative flex items-end gap-2.5',
-					message.isOwn && 'flex-row-reverse',
+					'group relative mb-3 flex flex-col',
+					message.isOwn ? 'items-end' : 'items-start',
 				)}
-				onMouseEnter={() => setShowActions(true)}
-				onMouseLeave={() => {
-					setShowActions(false)
-					setShowReactionPicker(false)
-				}}
+				variants={scaleIn}
+				initial='hidden'
+				animate='visible'
 			>
-				{/* Avatar (for received messages) */}
-				{!message.isOwn && showAvatar && (
-					<motion.div
-						initial={{ scale: 0 }}
-						animate={{ scale: 1 }}
-						transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-					>
-						<Avatar className='h-9 w-9 flex-shrink-0 ring-2 ring-bg-card'>
-							<AvatarImage src={senderAvatar} alt={senderName} />
-							<AvatarFallback className='bg-brand/10 text-xs font-semibold text-brand'>
-								{senderName?.slice(0, 2).toUpperCase() || 'U'}
-							</AvatarFallback>
-						</Avatar>
-					</motion.div>
-				)}
-
-				{/* Message Bubble Container */}
-				<div className='relative max-w-[85%] sm:max-w-md md:max-w-lg'>
-					{/* Reply Preview */}
-					{message.replyTo && (
+				<div
+					className={cn(
+						'relative flex items-end gap-2.5',
+						message.isOwn && 'flex-row-reverse',
+					)}
+					onMouseEnter={() => setShowActions(true)}
+					onMouseLeave={() => {
+						setShowActions(false)
+						setShowReactionPicker(false)
+					}}
+				>
+					{/* Avatar (for received messages) */}
+					{!message.isOwn && showAvatar && (
 						<motion.div
-							initial={{ opacity: 0, y: -5 }}
-							animate={{ opacity: 1, y: 0 }}
-							className={cn(
-								'mb-1.5 rounded-xl border-l-4 px-3 py-2 text-xs',
-								message.isOwn
-									? 'border-brand bg-brand/5'
-									: 'border-border bg-bg-elevated',
-							)}
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 						>
-							<span className='font-semibold text-text'>
-								{message.replyTo.senderName}
-							</span>
-							<p className='mt-0.5 line-clamp-2 text-text-secondary'>
-								{message.replyTo.content}
-							</p>
+							<Avatar className='h-9 w-9 flex-shrink-0 ring-2 ring-bg-card'>
+								<AvatarImage src={senderAvatar} alt={senderName} />
+								<AvatarFallback className='bg-brand/10 text-xs font-semibold text-brand'>
+									{senderName?.slice(0, 2).toUpperCase() || 'U'}
+								</AvatarFallback>
+							</Avatar>
 						</motion.div>
 					)}
 
-					{/* Message Bubble */}
-					{message.type === 'POST_SHARE' && message.relatedId ? (
-						// POST_SHARE: Enhanced card
-						<Link href={`/post/${message.relatedId}`}>
+					{/* Message Bubble Container */}
+					<div className='relative max-w-[85%] sm:max-w-md md:max-w-lg'>
+						{/* Reply Preview */}
+						{message.replyTo && (
 							<motion.div
-								whileHover={{ scale: 1.02, y: -2 }}
-								whileTap={{ scale: 0.98 }}
+								initial={{ opacity: 0, y: -5 }}
+								animate={{ opacity: 1, y: 0 }}
 								className={cn(
-									'group/card overflow-hidden rounded-2xl border transition-all hover:shadow-lg',
+									'mb-1.5 rounded-xl border-l-4 px-3 py-2 text-xs',
 									message.isOwn
-										? 'rounded-br-md border-brand/30 bg-brand/5'
-										: 'rounded-bl-md border-border bg-bg-elevated',
+										? 'border-brand bg-brand/5'
+										: 'border-border bg-bg-elevated',
 								)}
 							>
-								<div className='flex items-start gap-3 p-3.5'>
-									{/* Thumbnail */}
-									{message.sharedPostImage && (
-										<div className='relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
-											<Image
-												src={message.sharedPostImage}
-												alt='Shared post'
-												fill
-												className='object-cover transition-transform group-hover/card:scale-110'
-												unoptimized
-											/>
-										</div>
-									)}
+								<span className='font-semibold text-text'>
+									{message.replyTo.senderName}
+								</span>
+								<p className='mt-0.5 line-clamp-2 text-text-secondary'>
+									{message.replyTo.content}
+								</p>
+							</motion.div>
+						)}
 
-									{/* Content */}
-									<div className='min-w-0 flex-1'>
-										{/* Badge */}
-										<div className='mb-1.5 flex items-center gap-1.5'>
-											<div
-												className={cn(
-													'rounded-full p-1',
-													message.isOwn ? 'bg-brand/10' : 'bg-bg-hover',
-												)}
-											>
-												<Share2
-													className={cn(
-														'h-3 w-3',
-														message.isOwn ? 'text-brand' : 'text-text-muted',
-													)}
+						{/* Message Bubble */}
+						{message.type === 'POST_SHARE' && message.relatedId ? (
+							// POST_SHARE: Enhanced card
+							<Link href={`/post/${message.relatedId}`}>
+								<motion.div
+									whileHover={{ scale: 1.02, y: -2 }}
+									whileTap={{ scale: 0.98 }}
+									className={cn(
+										'group/card overflow-hidden rounded-2xl border transition-all hover:shadow-lg',
+										message.isOwn
+											? 'rounded-br-md border-brand/30 bg-brand/5'
+											: 'rounded-bl-md border-border bg-bg-elevated',
+									)}
+								>
+									<div className='flex items-start gap-3 p-3.5'>
+										{/* Thumbnail */}
+										{message.sharedPostImage && (
+											<div className='relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
+												<Image
+													src={message.sharedPostImage}
+													alt='Shared post'
+													fill
+													className='object-cover transition-transform group-hover/card:scale-110'
+													unoptimized
 												/>
 											</div>
-											<span
-												className={cn(
-													'text-[10px] font-bold uppercase tracking-wider',
-													message.isOwn ? 'text-brand' : 'text-text-muted',
-												)}
-											>
-												Shared Recipe
-											</span>
-										</div>
-
-										{/* Title */}
-										{message.sharedPostTitle && (
-											<p className='mb-1 line-clamp-1 text-sm font-bold text-text'>
-												{message.sharedPostTitle}
-											</p>
 										)}
 
-										{/* Caption */}
-										<p className='line-clamp-2 text-xs leading-relaxed text-text-secondary'>
-											{message.content}
-										</p>
+										{/* Content */}
+										<div className='min-w-0 flex-1'>
+											{/* Badge */}
+											<div className='mb-1.5 flex items-center gap-1.5'>
+												<div
+													className={cn(
+														'rounded-full p-1',
+														message.isOwn ? 'bg-brand/10' : 'bg-bg-hover',
+													)}
+												>
+													<Share2
+														className={cn(
+															'h-3 w-3',
+															message.isOwn ? 'text-brand' : 'text-text-muted',
+														)}
+													/>
+												</div>
+												<span
+													className={cn(
+														'text-[10px] font-bold uppercase tracking-wider',
+														message.isOwn ? 'text-brand' : 'text-text-muted',
+													)}
+												>
+													Shared Recipe
+												</span>
+											</div>
 
-										{/* View indicator */}
-										<div className='mt-2 flex items-center gap-1.5'>
-											<motion.div
-												animate={{ x: [0, 3, 0] }}
-												transition={{ duration: 1.5, repeat: Infinity }}
-												className={cn(
-													'text-xs font-medium',
-													message.isOwn ? 'text-brand' : 'text-text-muted',
-												)}
-											>
-												Tap to view →
-											</motion.div>
+											{/* Title */}
+											{message.sharedPostTitle && (
+												<p className='mb-1 line-clamp-1 text-sm font-bold text-text'>
+													{message.sharedPostTitle}
+												</p>
+											)}
+
+											{/* Caption */}
+											<p className='line-clamp-2 text-xs leading-relaxed text-text-secondary'>
+												{message.content}
+											</p>
+
+											{/* View indicator */}
+											<div className='mt-2 flex items-center gap-1.5'>
+												<motion.div
+													animate={{ x: [0, 3, 0] }}
+													transition={{ duration: 1.5, repeat: Infinity }}
+													className={cn(
+														'text-xs font-medium',
+														message.isOwn ? 'text-brand' : 'text-text-muted',
+													)}
+												>
+													Tap to view →
+												</motion.div>
+											</div>
 										</div>
 									</div>
-								</div>
+								</motion.div>
+							</Link>
+						) : (
+							// TEXT: Enhanced bubble
+							<motion.div
+								initial={{ scale: 0.9, opacity: 0 }}
+								animate={{ scale: 1, opacity: 1 }}
+								transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+								className={cn(
+									'rounded-2xl px-4 py-2.5 shadow-card',
+									message.isOwn
+										? 'rounded-br-md bg-brand text-white shadow-brand/10'
+										: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
+								)}
+							>
+								<p className='text-[15px] leading-relaxed whitespace-pre-wrap break-words'>
+									{message.content}
+								</p>
 							</motion.div>
-						</Link>
-					) : (
-						// TEXT: Enhanced bubble
-						<motion.div
-							initial={{ scale: 0.9, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-							className={cn(
-								'rounded-2xl px-4 py-2.5 shadow-card',
-								message.isOwn
-									? 'rounded-br-md bg-brand text-white shadow-brand/10'
-									: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
-							)}
-						>
-							<p className='text-[15px] leading-relaxed whitespace-pre-wrap break-words'>
-								{message.content}
-							</p>
-						</motion.div>
-					)}
-
-					{/* Reactions */}
-					{message.reactions && message.reactions.length > 0 && (
-						<motion.div
-							initial={{ opacity: 0, y: 5 }}
-							animate={{ opacity: 1, y: 0 }}
-							className={cn(
-								'mt-1.5 flex flex-wrap gap-1.5',
-								message.isOwn ? 'justify-end' : 'justify-start',
-							)}
-						>
-							{message.reactions.map((reaction, i) => (
-								<motion.button
-									key={i}
-									onClick={() => onReact?.(message.id, reaction.emoji)}
-									className={cn(
-										'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-card transition-all',
-										reaction.userReacted
-											? 'bg-brand/10 text-brand ring-2 ring-brand/20'
-											: 'bg-bg-elevated text-text-secondary ring-1 ring-border hover:bg-bg-hover',
-									)}
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.95 }}
-								>
-									<span className='text-sm'>{reaction.emoji}</span>
-									<span className='font-semibold'>{reaction.count}</span>
-								</motion.button>
-							))}
-						</motion.div>
-					)}
-
-					{/* Actions */}
-					<AnimatePresence>
-						{showActions && (
-							<MessageActions
-								isOwn={message.isOwn}
-								onReact={() => setShowReactionPicker(!showReactionPicker)}
-								onReply={handleReply}
-								onCopy={handleCopy}
-								onDelete={message.isOwn ? handleDelete : undefined}
-							/>
 						)}
-					</AnimatePresence>
 
-					{/* Reaction Picker */}
-					<AnimatePresence>
-						{showReactionPicker && (
-							<ReactionPicker isOwn={message.isOwn} onSelect={handleReact} />
+						{/* Reactions */}
+						{message.reactions && message.reactions.length > 0 && (
+							<motion.div
+								initial={{ opacity: 0, y: 5 }}
+								animate={{ opacity: 1, y: 0 }}
+								className={cn(
+									'mt-1.5 flex flex-wrap gap-1.5',
+									message.isOwn ? 'justify-end' : 'justify-start',
+								)}
+							>
+								{message.reactions.map((reaction, i) => (
+									<motion.button
+										key={i}
+										onClick={() => onReact?.(message.id, reaction.emoji)}
+										className={cn(
+											'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-card transition-all',
+											reaction.userReacted
+												? 'bg-brand/10 text-brand ring-2 ring-brand/20'
+												: 'bg-bg-elevated text-text-secondary ring-1 ring-border hover:bg-bg-hover',
+										)}
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+									>
+										<span className='text-sm'>{reaction.emoji}</span>
+										<span className='font-semibold'>{reaction.count}</span>
+									</motion.button>
+								))}
+							</motion.div>
 						)}
-					</AnimatePresence>
+
+						{/* Actions */}
+						<AnimatePresence>
+							{showActions && (
+								<MessageActions
+									isOwn={message.isOwn}
+									onReact={() => setShowReactionPicker(!showReactionPicker)}
+									onReply={handleReply}
+									onCopy={handleCopy}
+									onDelete={message.isOwn ? handleDelete : undefined}
+								/>
+							)}
+						</AnimatePresence>
+
+						{/* Reaction Picker */}
+						<AnimatePresence>
+							{showReactionPicker && (
+								<ReactionPicker isOwn={message.isOwn} onSelect={handleReact} />
+							)}
+						</AnimatePresence>
+					</div>
 				</div>
-			</div>
 
-			{/* Status & Time */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.1 }}
-				className={cn(
-					'mt-1 flex items-center gap-1.5 text-xs text-text-muted',
-					message.isOwn ? 'mr-2' : !showAvatar ? 'ml-0' : 'ml-11',
-				)}
-			>
-				<span className='font-medium'>{formatTime(message.timestamp)}</span>
-				{message.isOwn && (
-					<motion.div
-						initial={{ scale: 0 }}
-						animate={{ scale: 1 }}
-						transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-					>
-						{getStatusIcon(message.status)}
-					</motion.div>
-				)}
+				{/* Status & Time */}
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ delay: 0.1 }}
+					className={cn(
+						'mt-1 flex items-center gap-1.5 text-xs text-text-muted',
+						message.isOwn ? 'mr-2' : !showAvatar ? 'ml-0' : 'ml-11',
+					)}
+				>
+					<span className='font-medium'>{formatTime(message.timestamp)}</span>
+					{message.isOwn && (
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+						>
+							{getStatusIcon(message.status)}
+						</motion.div>
+					)}
+				</motion.div>
 			</motion.div>
-		</motion.div>
+		</>
 	)
 }
 
