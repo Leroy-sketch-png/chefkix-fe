@@ -336,6 +336,7 @@ export default function MessagesPage() {
 	useEffect(() => {
 		// Reset the guard so a new targetUserId is handled on re-navigation
 		hasHandledUserIdRef.current = false
+		let cancelled = false
 
 		const initializeChat = async () => {
 			setIsLoadingConversations(true)
@@ -343,6 +344,7 @@ export default function MessagesPage() {
 
 			try {
 				const response = await getMyConversations()
+				if (cancelled) return
 				if (!response.success || !response.data) {
 					setConversationError(
 						response.message || 'Failed to load conversations',
@@ -367,14 +369,17 @@ export default function MessagesPage() {
 					)
 
 					if (existingConversation) {
-						setSelectedConversation(existingConversation)
-						setShowMobileChat(true)
+						if (!cancelled) {
+							setSelectedConversation(existingConversation)
+							setShowMobileChat(true)
+						}
 					} else {
 						// Create new conversation
 						const createResponse = await createConversation({
 							type: 'DIRECT',
 							participantIds: [targetUserId],
 						})
+						if (cancelled) return
 
 						if (createResponse.success && createResponse.data) {
 							setConversations(prev => [createResponse.data!, ...prev])
@@ -386,17 +391,19 @@ export default function MessagesPage() {
 							)
 						}
 					}
-					setIsCreatingConversation(false)
+					if (!cancelled) setIsCreatingConversation(false)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to initialize chat:', err)
 				setConversationError('Failed to load conversations')
 			} finally {
-				setIsLoadingConversations(false)
+				if (!cancelled) setIsLoadingConversations(false)
 			}
 		}
 
 		initializeChat()
+		return () => { cancelled = true }
 	}, [targetUserId, retryCount])
 
 	// Fetch messages when conversation changes
@@ -407,24 +414,28 @@ export default function MessagesPage() {
 			return
 		}
 
+		let cancelled = false
 		const fetchMessages = async () => {
 			setIsLoadingMessages(true)
 			try {
 				const response = await getMessages(selectedConversationId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					setMessages(response.data)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch messages:', err)
 				toast.error('Could not load messages')
 			} finally {
-				setIsLoadingMessages(false)
+				if (!cancelled) setIsLoadingMessages(false)
 			}
 		}
 
 		fetchMessages()
 		// Focus input
 		setTimeout(() => inputRef.current?.focus(), 100)
+		return () => { cancelled = true }
 	}, [selectedConversationId])
 
 	// Track scroll position to decide auto-scroll behavior

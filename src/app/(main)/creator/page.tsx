@@ -51,6 +51,7 @@ export default function CreatorRoute() {
 	const [heatmapRecipeId, setHeatmapRecipeId] = useState<string | null>(null)
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchAll = async () => {
 			setIsLoading(true)
 			setFetchError(false)
@@ -60,6 +61,7 @@ export default function CreatorRoute() {
 					getCreatorPerformance(),
 					getRecentCooks(0, 10),
 				])
+				if (cancelled) return
 				const anySuccess =
 					statsRes.success || perfRes.success || cooksRes.success
 				if (!anySuccess) {
@@ -70,14 +72,16 @@ export default function CreatorRoute() {
 				if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
 				if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch creator data:', err)
 				setFetchError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchAll()
+		return () => { cancelled = true }
 	}, [])
 
 	// Transform API data to component format

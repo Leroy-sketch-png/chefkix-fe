@@ -41,6 +41,7 @@ export default function CookTogetherPage() {
 		const urlRoomCode = searchParams.get('roomCode')
 		const urlRole = searchParams.get('role')
 		if (urlRoomCode && !isInRoom && !isJoining) {
+			let cancelled = false
 			const autoJoin = async () => {
 				setIsJoining(true)
 				try {
@@ -48,6 +49,7 @@ export default function CookTogetherPage() {
 						urlRoomCode.toUpperCase(),
 						urlRole || undefined,
 					)
+					if (cancelled) return
 					if (success) {
 						toast.success(
 							urlRole === 'SPECTATOR'
@@ -59,12 +61,13 @@ export default function CookTogetherPage() {
 						toast.error('Could not join room. It may be full or dissolved.')
 					}
 				} catch {
-					toast.error('Failed to join room')
+					if (!cancelled) toast.error('Failed to join room')
 				} finally {
-					setIsJoining(false)
+					if (!cancelled) setIsJoining(false)
 				}
 			}
 			autoJoin()
+			return () => { cancelled = true }
 		}
 	}, [searchParams, isInRoom, isJoining, joinRoom, router])
 

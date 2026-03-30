@@ -416,10 +416,12 @@ export default function NotificationsPage() {
 
 	// Fetch notifications and sync unread count
 	useEffect(() => {
+		let cancelled = false
 		const fetchNotifications = async () => {
 			setIsLoading(true)
 			try {
 				const response = await getNotifications({ size: 50 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					const { notifications } = response.data
 
@@ -442,14 +444,16 @@ export default function NotificationsPage() {
 					setSocialNotifications(social)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch notifications:', err)
 				setError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchNotifications()
+		return () => { cancelled = true }
 	}, [retryKey])
 
 	// Calculate counts

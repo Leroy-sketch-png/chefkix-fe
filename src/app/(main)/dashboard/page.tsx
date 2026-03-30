@@ -206,6 +206,7 @@ export default function DashboardPage() {
 
 	// Fetch initial page
 	useEffect(() => {
+		let cancelled = false
 		const fetchInitialData = async () => {
 			setIsLoading(true)
 			setError(null)
@@ -219,6 +220,7 @@ export default function DashboardPage() {
 				setHasPendingXpSync(Boolean(pendingPostLinkJson))
 				if (pendingPostLinkJson) {
 					const recovered = await retryPendingXpSync()
+					if (cancelled) return
 					if (!recovered) {
 						toast.warning(
 							'Your post was shared, but XP is still syncing. You can retry from the banner on this page.',
@@ -237,6 +239,7 @@ export default function DashboardPage() {
 						: getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: feedMode }),
 					getPendingSessions(),
 				])
+				if (cancelled) return
 
 				if (feedResponse.success && feedResponse.data) {
 					let feedPosts = feedResponse.data
@@ -291,14 +294,16 @@ export default function DashboardPage() {
 					}
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to load dashboard feed:', err)
 				setError('Failed to load feed')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchInitialData()
+		return () => { cancelled = true }
 	}, [feedMode, retryPendingXpSync, retryCount])
 
 	const handleRetryPendingXpSync = async () => {

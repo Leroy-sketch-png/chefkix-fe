@@ -133,10 +133,12 @@ function CreatePostContent() {
 	// Load session info if sessionId is provided
 	useEffect(() => {
 		if (!sessionId) return
+		let cancelled = false
 
 		const loadSession = async () => {
 			try {
 				const response = await getSessionById(sessionId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					const s = response.data
 
@@ -174,14 +176,16 @@ function CreatePostContent() {
 					toast.error('Session not found')
 				}
 			} catch (error) {
+				if (cancelled) return
 				logDevError('Failed to load session:', error)
 				toast.error('Failed to load session data')
 			} finally {
-				setIsLoadingSession(false)
+				if (!cancelled) setIsLoadingSession(false)
 			}
 		}
 
 		loadSession()
+		return () => { cancelled = true }
 	}, [sessionId])
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -59,22 +59,25 @@ export default function GroupDetailPage() {
 
 	// Load group details when page mounts
 	useEffect(() => {
+		if (!isAuthenticated || !groupId) return
+		let cancelled = false
 		const loadGroup = async () => {
 			try {
 				setIsLoadingGroup(true)
 				const groupData = await getGroupDetails(groupId)
+				if (cancelled) return
 				setGroup(groupData)
 			} catch (error) {
+				if (cancelled) return
 				toast.error('Failed to load group')
 				router.push('/groups')
 			} finally {
-				setIsLoadingGroup(false)
+				if (!cancelled) setIsLoadingGroup(false)
 			}
 		}
 
-		if (isAuthenticated && groupId) {
-			loadGroup()
-		}
+		loadGroup()
+		return () => { cancelled = true }
 	}, [groupId, isAuthenticated, router])
 
 	// Load members when members tab is clicked

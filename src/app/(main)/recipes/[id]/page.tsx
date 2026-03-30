@@ -182,30 +182,33 @@ export default function RecipeDetailPage() {
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
 		if (
-			shouldAutoStartCooking &&
-			recipe &&
-			!autoStartAttempted.current &&
-			!isCookingLoading
-		) {
-			autoStartAttempted.current = true
-			// Remove the query param to prevent re-triggering
-			router.replace(`/recipes/${recipeId}`, { scroll: false })
+			!shouldAutoStartCooking ||
+			!recipe ||
+			autoStartAttempted.current ||
+			isCookingLoading
+		) return
 
-			// Start cooking session
-			const initCooking = async () => {
-				const success = await startCooking(recipeId)
-				if (success) {
-					// Open docked panel on desktop, expanded on mobile
-					const isDesktop = window.innerWidth >= 1280
-					isDesktop ? openCookingPanel() : expandCookingPanel()
-				} else {
-					// Get the error message from the store for better context
-					const errorMsg = useCookingStore.getState().error
-					toast.error(errorMsg || 'Failed to start cooking session')
-				}
+		autoStartAttempted.current = true
+		// Remove the query param to prevent re-triggering
+		router.replace(`/recipes/${recipeId}`, { scroll: false })
+
+		let cancelled = false
+		// Start cooking session
+		const initCooking = async () => {
+			const success = await startCooking(recipeId)
+			if (cancelled) return
+			if (success) {
+				// Open docked panel on desktop, expanded on mobile
+				const isDesktop = window.innerWidth >= 1280
+				isDesktop ? openCookingPanel() : expandCookingPanel()
+			} else {
+				// Get the error message from the store for better context
+				const errorMsg = useCookingStore.getState().error
+				toast.error(errorMsg || 'Failed to start cooking session')
 			}
-			initCooking()
 		}
+		initCooking()
+		return () => { cancelled = true }
 	}, [
 		shouldAutoStartCooking,
 		recipe,

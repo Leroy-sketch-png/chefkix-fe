@@ -443,9 +443,18 @@ export default function SettingsPage() {
 	const avatarInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
+		if (!user) return
+		let cancelled = false
+
+		setDisplayName(user.displayName || '')
+		setBio(user.bio || '')
+		setCoverImageUrl(user.coverImageUrl)
+		setAvatarUrl(user.avatarUrl)
+
 		const loadSettings = async () => {
 			try {
 				const response = await getAllSettings()
+				if (cancelled) return
 				if (response.success && response.data) {
 					setSettings(response.data)
 					// Sync push timerAlerts preference to localStorage for use outside settings page
@@ -459,28 +468,26 @@ export default function SettingsPage() {
 					} as UserSettings)
 				}
 			} catch (error) {
+				if (cancelled) return
 				logDevError('Failed to load settings:', error)
 				toast.error('Failed to load settings')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
-		if (user) {
-			setDisplayName(user.displayName || '')
-			setBio(user.bio || '')
-			setCoverImageUrl(user.coverImageUrl)
-			setAvatarUrl(user.avatarUrl)
-			loadSettings()
-		}
+		loadSettings()
+		return () => { cancelled = true }
 	}, [user])
 
 	// Fetch verification status when verification tab is opened
 	useEffect(() => {
 		if (activeTab !== 'verification' || verificationStatus) return
+		let cancelled = false
 		const fetchVerification = async () => {
 			try {
 				const res = await getVerificationStatus()
+				if (cancelled) return
 				if (res.success && res.data) {
 					setVerificationStatus(res.data)
 				}
@@ -489,6 +496,7 @@ export default function SettingsPage() {
 			}
 		}
 		fetchVerification()
+		return () => { cancelled = true }
 	}, [activeTab, verificationStatus])
 
 	const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

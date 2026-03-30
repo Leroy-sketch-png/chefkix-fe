@@ -96,10 +96,12 @@ export default function CreateRecipePage() {
 	// Load draft from URL ?draftId= param (deep links, redirects from edit page)
 	useEffect(() => {
 		if (!urlDraftId) return
+		let cancelled = false
 		const loadUrlDraft = async () => {
 			setIsLoadingDraft(true)
 			try {
 				const response = await getRecipeById(urlDraftId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					setSelectedDraft(response.data)
 					localStorage.removeItem('chefkix-recipe-draft')
@@ -111,15 +113,17 @@ export default function CreateRecipePage() {
 					setMode('list')
 				}
 			} catch (error) {
+				if (cancelled) return
 				logDevError('Failed to load draft from URL:', error)
 				setSelectedDraft(null)
 				toast.error('Failed to load draft')
 				setMode('list')
 			} finally {
-				setIsLoadingDraft(false)
+				if (!cancelled) setIsLoadingDraft(false)
 			}
 		}
 		loadUrlDraft()
+		return () => { cancelled = true }
 	}, [urlDraftId])
 
 	// Check for local draft on mount

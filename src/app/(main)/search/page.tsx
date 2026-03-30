@@ -447,14 +447,16 @@ export default function SearchPage() {
 
 	// Fetch search results via unified Typesense search
 	useEffect(() => {
-		const fetchResults = async () => {
-			if (!query) return
+		if (!query) return
+		let cancelled = false
 
+		const fetchResults = async () => {
 			setIsLoading(true)
 			addRecentSearch(query)
 			setRecentSearches(getRecentSearches())
 			try {
 				const res = await unifiedSearch(query, 'all', 20)
+				if (cancelled) return
 
 				if (res.success && res.data) {
 					const recipes =
@@ -469,14 +471,16 @@ export default function SearchPage() {
 					setResults({ recipes: [], people: [], posts: [] })
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Search failed:', err)
 				setError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchResults()
+		return () => { cancelled = true }
 	}, [query, retryKey])
 
 	const totalResults =
