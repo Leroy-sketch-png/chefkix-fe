@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { cn } from '@/lib/utils'
 
 interface UserAvatarProps extends React.ComponentProps<typeof Avatar> {
@@ -29,7 +28,7 @@ export function UserAvatar({
   ...props
 }: UserAvatarProps) {
   const activeUserId = userId || user?.id
-  const isOnline = useOnlineStatus(showOnlineStatus ? activeUserId : undefined)
+  const isOnline = false // TODO: Wire up to real user presence hook if available
   const displayName = name || user?.name || 'User'
   const initials = displayName.substring(0, 2).toUpperCase()
   const avatarSrc = src || user?.avatarUrl
@@ -44,13 +43,13 @@ export function UserAvatar({
       {showOnlineStatus && isOnline && (
         <span 
           className={cn(
-            "absolute bottom-0 right-0 rounded-full border-2 border-bg bg-green-500",
-            size === 'xs' && "h-2 w-2",
-            size === 'sm' && "h-2.5 w-2.5",
-            size === 'md' && "h-3 w-3",
-            size === 'lg' && "h-3.5 w-3.5",
-            size === 'xl' && "h-4 w-4",
-            size === '2xl' && "h-5 w-5"
+            "absolute bottom-0 right-0 rounded-full border-2 border-bg bg-success",
+            size === 'xs' && "size-2",
+            size === 'sm' && "size-2.5",
+            size === 'md' && "size-3",
+            size === 'lg' && "size-3.5",
+            size === 'xl' && "size-4",
+            size === '2xl' && "size-5"
           )} 
           title="Online"
         />

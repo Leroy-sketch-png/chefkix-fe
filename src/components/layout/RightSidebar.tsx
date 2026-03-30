@@ -12,6 +12,7 @@ import { getSessionHistory } from '@/services/cookingSession'
 import { toggleFollow as toggleFollowApi } from '@/services/social'
 import { Profile } from '@/lib/types'
 import { logDevError } from '@/lib/dev-log'
+import { cn } from '@/lib/utils'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
 import { usePresence } from '@/hooks/usePresence'
 
@@ -99,6 +100,8 @@ export const RightSidebar = () => {
 				const [challengeResponse, profilesResponse, sessionResponse] =
 					await Promise.all([
 						getTodaysChallenge(),
+						// TODO(perf): getAllProfiles() fetches all users just to take 5.
+						// Replace with a dedicated suggestions endpoint with size=5.
 						getAllProfiles(),
 						getSessionHistory({ status: 'all', size: 100 }),
 					])
@@ -189,7 +192,10 @@ export const RightSidebar = () => {
 	}, [cookDates, user?.statistics?.streakCount, user?.lastCookDate])
 
 	return (
-		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-5 xl:flex xl:flex-col xl:gap-5'>
+		<aside
+			className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-5 xl:flex xl:flex-col xl:gap-5'
+			aria-label='Complementary content'
+		>
 			{/* Friends Online Widget — real-time via presence heartbeat */}
 			<FriendsOnlineWidget />
 
@@ -242,7 +248,13 @@ export const RightSidebar = () => {
 									</div>
 									<button
 										onClick={() => handleFollow(suggestion.userId)}
-										className='relative h-9 overflow-hidden rounded-radius border-none bg-gradient-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md active:scale-95'
+										aria-pressed={isFollowed}
+										className={cn(
+											'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-sm transition-all duration-200 active:scale-95',
+											isFollowed
+												? 'border border-border-medium bg-bg-card text-text-secondary hover:border-error/50 hover:text-error'
+												: 'border-none bg-gradient-primary text-primary-foreground hover:shadow-md',
+										)}
 									>
 										{isFollowed ? 'Following' : 'Follow'}
 									</button>
