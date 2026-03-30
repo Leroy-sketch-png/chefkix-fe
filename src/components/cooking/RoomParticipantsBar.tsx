@@ -157,7 +157,7 @@ function ParticipantAvatar({
 
 			{/* Host crown */}
 			{participant.isHost && (
-				<Crown className='absolute -right-1 -top-1 size-3 text-yellow-400' />
+				<Crown className='absolute -right-1 -top-1 size-3 text-medal-gold' />
 			)}
 
 			{/* Step indicator */}

@@ -58,8 +58,34 @@ export default function PostDetailPage() {
 	}, [postId])
 
 	useEffect(() => {
-		fetchPost()
-	}, [fetchPost])
+		let cancelled = false
+
+		const load = async () => {
+			if (!postId) return
+
+			setIsLoading(true)
+			setError(null)
+
+			try {
+				const response = await getPostById(postId)
+				if (cancelled) return
+				if (response.success && response.data) {
+					setPost(response.data)
+				} else {
+					setError(response.message || 'Post not found')
+				}
+			} catch {
+				if (!cancelled) setError('Failed to load post. Please try again.')
+			} finally {
+				if (!cancelled) setIsLoading(false)
+			}
+		}
+
+		load()
+		return () => {
+			cancelled = true
+		}
+	}, [postId])
 
 	const handlePostUpdate = useCallback((updatedPost: Post) => {
 		setPost(updatedPost)

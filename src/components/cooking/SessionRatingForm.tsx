@@ -92,7 +92,7 @@ function StarRating({
 							<Star
 								className={cn(
 									'size-10',
-									isHovered ? 'text-yellow-400' : 'text-yellow-500',
+									isHovered ? 'text-medal-gold' : 'text-medal-gold/80',
 								)}
 								fill='currentColor'
 								strokeWidth={0}

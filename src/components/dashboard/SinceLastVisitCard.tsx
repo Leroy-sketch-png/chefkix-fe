@@ -146,7 +146,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 			icon: Trophy,
 			value: data.badgesEarned,
 			label: 'badges',
-			color: 'text-yellow-500',
+			color: 'text-medal-gold',
 			href: '/profile/badges',
 		},
 		{

@@ -253,6 +253,7 @@ export default function MyRecipesPage() {
 
 	// Fetch user's recipes
 	useEffect(() => {
+		let cancelled = false
 		const fetchRecipes = async () => {
 			if (!user?.userId) return
 
@@ -261,19 +262,23 @@ export default function MyRecipesPage() {
 
 			try {
 				const response = await getRecipesByUserId(user.userId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					setRecipes(response.data)
 				} else {
 					setError(response.message || 'Failed to load recipes')
 				}
 			} catch {
-				setError('Failed to load recipes')
+				if (!cancelled) setError('Failed to load recipes')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchRecipes()
+		return () => {
+			cancelled = true
+		}
 	}, [user?.userId, retryCount])
 
 	// Handle delete

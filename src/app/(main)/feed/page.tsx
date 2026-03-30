@@ -70,6 +70,8 @@ export default function FeedPage() {
 
 	// Fetch initial page when tab changes
 	useEffect(() => {
+		let cancelled = false
+
 		const fetchPosts = async () => {
 			setIsLoading(true)
 			setError(null)
@@ -91,6 +93,8 @@ export default function FeedPage() {
 				}
 				const response = await fetchByTab[activeTab]()
 
+				if (cancelled) return
+
 				if (response.success && response.data) {
 					setPosts(response.data)
 					if (response.pagination) {
@@ -100,14 +104,18 @@ export default function FeedPage() {
 					}
 				}
 			} catch (error) {
+				if (cancelled) return
 				logDevError('Failed to load feed:', error)
 				setError('Failed to load feed')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchPosts()
+		return () => {
+			cancelled = true
+		}
 	}, [activeTab, retryCount])
 
 	// Load more posts on scroll

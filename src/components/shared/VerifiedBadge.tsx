@@ -23,7 +23,7 @@ export function VerifiedBadge({
 }: VerifiedBadgeProps) {
 	return (
 		<BadgeCheck
-			className={`${SIZE_MAP[size]} shrink-0 text-blue-500 ${className}`}
+			className={`${SIZE_MAP[size]} shrink-0 text-info ${className}`}
 			aria-label='Verified creator'
 		/>
 	)

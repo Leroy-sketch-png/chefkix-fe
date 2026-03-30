@@ -98,8 +98,46 @@ export default function FollowersPage() {
 
 	// Fetch active tab on mount and tab change
 	useEffect(() => {
-		fetchTab(activeTab)
-	}, [activeTab, fetchTab])
+		let cancelled = false
+
+		const load = async () => {
+			setLoading(prev => ({ ...prev, [activeTab]: true }))
+			setErrors(prev => ({ ...prev, [activeTab]: null }))
+
+			const fetchers: Record<Tab, () => ReturnType<typeof getFollowers>> = {
+				followers: getFollowers,
+				following: getFollowing,
+				friends: getFriends,
+			}
+
+			try {
+				const response = await fetchers[activeTab]()
+				if (cancelled) return
+				if (response.success && response.data) {
+					setData(prev => ({ ...prev, [activeTab]: response.data! }))
+				} else {
+					setErrors(prev => ({
+						...prev,
+						[activeTab]: response.message || `Failed to load ${activeTab}`,
+					}))
+				}
+			} catch {
+				if (!cancelled) {
+					setErrors(prev => ({
+						...prev,
+						[activeTab]: `Failed to load ${activeTab}`,
+					}))
+				}
+			} finally {
+				if (!cancelled) setLoading(prev => ({ ...prev, [activeTab]: false }))
+			}
+		}
+
+		load()
+		return () => {
+			cancelled = true
+		}
+	}, [activeTab])
 
 	const handleFollowChange = (userId: string, isNowFollowing: boolean) => {
 		// Update local state when follow status changes

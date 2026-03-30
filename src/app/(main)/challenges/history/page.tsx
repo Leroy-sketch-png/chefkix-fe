@@ -60,10 +60,12 @@ export default function ChallengeHistoryPageRoute() {
 	})
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchHistory = async () => {
 			setIsLoading(true)
 			try {
 				const response = await getChallengeHistory(30) // Get last 30 days
+				if (cancelled) return
 				if (response.success && response.data) {
 					const { challenges, stats: apiStats } = response.data
 					setDays(challenges.map(transformToChallengeDay))
@@ -78,13 +80,16 @@ export default function ChallengeHistoryPageRoute() {
 					})
 				}
 			} catch (err) {
-				logDevError('Failed to fetch challenge history:', err)
+				if (!cancelled) logDevError('Failed to fetch challenge history:', err)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchHistory()
+		return () => {
+			cancelled = true
+		}
 	}, [currentMonth])
 
 	const handleMonthChange = (direction: 'prev' | 'next') => {

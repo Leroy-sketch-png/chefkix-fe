@@ -249,13 +249,18 @@ export const PostCard = ({
 			} else {
 				// Revert on error
 				setIsSaved(previousSaved)
-				toast.error(response.message || (previousSaved ? 'Failed to unsave post' : 'Failed to save post'))
+				toast.error(
+					response.message ||
+						(previousSaved ? 'Failed to unsave post' : 'Failed to save post'),
+				)
 			}
 		} catch (error) {
 			// Revert on error
 			setIsSaved(previousSaved)
 			logDevError('Failed to save post:', error)
-			toast.error(previousSaved ? 'Failed to unsave post' : 'Failed to save post')
+			toast.error(
+				previousSaved ? 'Failed to unsave post' : 'Failed to save post',
+			)
 		} finally {
 			setIsSaving(false)
 		}
@@ -515,9 +520,7 @@ export const PostCard = ({
 				transition={TRANSITION_SPRING}
 				className='mb-6'
 			>
-				<motion.div
-					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'
-				>
+				<motion.div className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'>
 					{/* Header */}
 					<div className='flex items-center justify-between p-4 md:p-6'>
 						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
@@ -652,7 +655,9 @@ export const PostCard = ({
 								maxLength={2000}
 							/>
 							{editContent.length > 0 && (
-								<p className='text-right text-xs text-text-muted'>{editContent.length}/2000</p>
+								<p className='text-right text-xs text-text-muted'>
+									{editContent.length}/2000
+								</p>
 							)}
 							<input
 								value={editTags}
@@ -846,8 +851,8 @@ export const PostCard = ({
 										disabled={isRatingPlate}
 										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
 											post.userPlateRating === 'CRINGE'
-												? 'bg-purple-500/15 text-purple-500 ring-1 ring-purple-500/30'
-												: 'text-text-muted hover:bg-purple-500/10 hover:text-purple-500'
+												? 'bg-accent-purple/15 text-accent-purple ring-1 ring-accent-purple/30'
+												: 'text-text-muted hover:bg-accent-purple/10 hover:text-accent-purple'
 										}`}
 									>
 										<span>😬</span>

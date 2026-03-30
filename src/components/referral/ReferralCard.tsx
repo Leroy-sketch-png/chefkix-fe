@@ -174,7 +174,7 @@ export default function ReferralCard() {
 											animate={{ scale: 1 }}
 											exit={{ scale: 0 }}
 										>
-											<Check className='size-4 text-green-500' />
+											<Check className='size-4 text-success' />
 										</motion.div>
 									) : (
 										<motion.div

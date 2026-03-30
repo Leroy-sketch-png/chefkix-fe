@@ -36,11 +36,7 @@ import type { DuelResponse, CreateDuelRequest } from '@/lib/types/duel'
 import type { Profile } from '@/lib/types/profile'
 import type { Recipe } from '@/lib/types/recipe'
 import { getProfileDisplayName } from '@/lib/types/profile'
-import {
-	TRANSITION_SPRING,
-	CARD_HOVER,
-	BUTTON_TAP,
-} from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 
 // ============================================
@@ -53,32 +49,32 @@ const STATUS_META: Record<
 > = {
 	Pending: {
 		label: 'Pending',
-		color: 'text-amber-600',
-		bgColor: 'bg-amber-50',
+		color: 'text-warning',
+		bgColor: 'bg-warning/10',
 		icon: <Hourglass className='size-3.5' />,
 	},
 	Accepted: {
 		label: 'Accepted',
-		color: 'text-blue-600',
-		bgColor: 'bg-blue-50',
+		color: 'text-info',
+		bgColor: 'bg-info/10',
 		icon: <Check className='size-3.5' />,
 	},
 	'In Progress': {
 		label: 'In Progress',
-		color: 'text-indigo-600',
-		bgColor: 'bg-indigo-50',
+		color: 'text-accent-purple',
+		bgColor: 'bg-accent-purple/10',
 		icon: <ChefHat className='size-3.5' />,
 	},
 	Completed: {
 		label: 'Completed',
-		color: 'text-emerald-600',
-		bgColor: 'bg-emerald-50',
+		color: 'text-success',
+		bgColor: 'bg-success/10',
 		icon: <Trophy className='size-3.5' />,
 	},
 	Declined: {
 		label: 'Declined',
-		color: 'text-red-500',
-		bgColor: 'bg-red-50',
+		color: 'text-error',
+		bgColor: 'bg-error/10',
 		icon: <X className='size-3.5' />,
 	},
 	Expired: {
@@ -191,18 +187,18 @@ function DuelCard({
 							</div>
 						)}
 						{duel.status === 'Completed' && isWinner && (
-							<div className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-amber-400 shadow-card'>
+							<div className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-medal-gold shadow-card'>
 								<Crown className='size-3 text-white' />
 							</div>
 						)}
 					</div>
 					<div>
 						<p className='font-semibold text-text'>
-							{isChallenger ? `vs ${opponentName}` : `${duel.challengerName} challenged you`}
+							{isChallenger
+								? `vs ${opponentName}`
+								: `${duel.challengerName} challenged you`}
 						</p>
-						<p className='text-sm text-text-secondary'>
-							{duel.recipeTitle}
-						</p>
+						<p className='text-sm text-text-secondary'>{duel.recipeTitle}</p>
 					</div>
 				</div>
 				<span
@@ -220,22 +216,22 @@ function DuelCard({
 						<div className='text-center'>
 							<p className='text-xs text-text-muted'>You</p>
 							<p
-								className={`text-2xl font-bold ${isWinner ? 'text-amber-500' : 'text-text'}`}
+								className={`text-2xl font-bold ${isWinner ? 'text-medal-gold' : 'text-text'}`}
 							>
 								{myScore}
 							</p>
 						</div>
 						<div className='text-center'>
 							{isDraw ? (
-								<span className='rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-600'>
+								<span className='rounded-full bg-warning/10 px-3 py-1 text-sm font-bold text-warning'>
 									Draw
 								</span>
 							) : isWinner ? (
-								<span className='rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-600'>
+								<span className='rounded-full bg-success/10 px-3 py-1 text-sm font-bold text-success'>
 									Won!
 								</span>
 							) : (
-								<span className='rounded-full bg-red-100 px-3 py-1 text-sm font-bold text-red-500'>
+								<span className='rounded-full bg-error/10 px-3 py-1 text-sm font-bold text-error'>
 									Lost
 								</span>
 							)}
@@ -243,7 +239,7 @@ function DuelCard({
 						<div className='text-center'>
 							<p className='text-xs text-text-muted'>{opponentName}</p>
 							<p
-								className={`text-2xl font-bold ${!isWinner && !isDraw ? 'text-amber-500' : 'text-text'}`}
+								className={`text-2xl font-bold ${!isWinner && !isDraw ? 'text-medal-gold' : 'text-text'}`}
 							>
 								{theirScore}
 							</p>
@@ -375,6 +371,7 @@ function CreateDuelModal({
 	// Load friends
 	useEffect(() => {
 		if (!isOpen) return
+		let cancelled = false
 		setStep('friend')
 		setSelectedFriend(null)
 		setSelectedRecipe(null)
@@ -382,29 +379,38 @@ function CreateDuelModal({
 		const loadFriends = async () => {
 			setLoading(true)
 			const res = await getFollowing()
+			if (cancelled) return
 			if (res.success && res.data) setFriends(res.data)
 			setLoading(false)
 		}
 		loadFriends()
+		return () => {
+			cancelled = true
+		}
 	}, [isOpen])
 
 	// Load recipes when moving to recipe step
 	useEffect(() => {
 		if (step !== 'recipe') return
-const loadRecipes = async () => {
+		let cancelled = false
+		const loadRecipes = async () => {
 			setLoading(true)
 			const res = await getAllRecipes({ page: 0, size: 20 })
+			if (cancelled) return
 			if (res.success && res.data) {
 				setRecipes(Array.isArray(res.data) ? res.data : [])
 			}
 			setLoading(false)
 		}
 		loadRecipes()
+		return () => {
+			cancelled = true
+		}
 	}, [step])
 
 	const filteredFriends = useMemo(
 		() =>
-			friends.filter((f) => {
+			friends.filter(f => {
 				const name = getProfileDisplayName(f).toLowerCase()
 				const q = friendSearch.toLowerCase()
 				return name.includes(q) || f.username?.toLowerCase().includes(q)
@@ -414,7 +420,7 @@ const loadRecipes = async () => {
 
 	const filteredRecipes = useMemo(
 		() =>
-			recipes.filter((r) =>
+			recipes.filter(r =>
 				r.title.toLowerCase().includes(recipeSearch.toLowerCase()),
 			),
 		[recipes, recipeSearch],
@@ -430,7 +436,9 @@ const loadRecipes = async () => {
 		}
 		const result = await createDuel(request)
 		if (result) {
-			toast.success(`Challenge sent to ${getProfileDisplayName(selectedFriend)}!`)
+			toast.success(
+				`Challenge sent to ${getProfileDisplayName(selectedFriend)}!`,
+			)
 			onCreated()
 			onClose()
 		} else {
@@ -443,268 +451,270 @@ const loadRecipes = async () => {
 
 	return (
 		<Portal>
-		<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'>
-			<motion.div
-				initial={{ opacity: 0, scale: 0.95 }}
-				animate={{ opacity: 1, scale: 1 }}
-				exit={{ opacity: 0, scale: 0.95 }}
-				transition={TRANSITION_SPRING}
-				className='w-full max-w-md overflow-hidden rounded-2xl bg-bg-card shadow-xl'
-			>
-				{/* Header */}
-				<div className='flex items-center justify-between border-b border-border-subtle px-5 py-4'>
-					<div className='flex items-center gap-2'>
-						<Swords className='size-5 text-brand' />
-						<h2 className='text-lg font-bold text-text'>
-							{step === 'friend'
-								? 'Pick a Friend'
-								: step === 'recipe'
-									? 'Pick a Recipe'
-									: 'Confirm Challenge'}
-						</h2>
+			<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'>
+				<motion.div
+					initial={{ opacity: 0, scale: 0.95 }}
+					animate={{ opacity: 1, scale: 1 }}
+					exit={{ opacity: 0, scale: 0.95 }}
+					transition={TRANSITION_SPRING}
+					className='w-full max-w-md overflow-hidden rounded-2xl bg-bg-card shadow-xl'
+				>
+					{/* Header */}
+					<div className='flex items-center justify-between border-b border-border-subtle px-5 py-4'>
+						<div className='flex items-center gap-2'>
+							<Swords className='size-5 text-brand' />
+							<h2 className='text-lg font-bold text-text'>
+								{step === 'friend'
+									? 'Pick a Friend'
+									: step === 'recipe'
+										? 'Pick a Recipe'
+										: 'Confirm Challenge'}
+							</h2>
+						</div>
+						<button
+							onClick={onClose}
+							className='rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-elevated'
+						>
+							<X className='size-5' />
+						</button>
 					</div>
-					<button
-						onClick={onClose}
-						className='rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-elevated'
-					>
-						<X className='size-5' />
-					</button>
-				</div>
 
-				{/* Step indicator */}
-				<div className='flex gap-1 px-5 pt-4'>
-					{['friend', 'recipe', 'confirm'].map((s, i) => (
-						<div
-							key={s}
-							className={`h-1 flex-1 rounded-full transition-colors ${
-								['friend', 'recipe', 'confirm'].indexOf(step) >= i
-									? 'bg-brand'
-									: 'bg-bg-elevated'
-							}`}
-						/>
-					))}
-				</div>
+					{/* Step indicator */}
+					<div className='flex gap-1 px-5 pt-4'>
+						{['friend', 'recipe', 'confirm'].map((s, i) => (
+							<div
+								key={s}
+								className={`h-1 flex-1 rounded-full transition-colors ${
+									['friend', 'recipe', 'confirm'].indexOf(step) >= i
+										? 'bg-brand'
+										: 'bg-bg-elevated'
+								}`}
+							/>
+						))}
+					</div>
 
-				<div className='max-h-[60vh] overflow-y-auto p-5'>
-					{/* STEP 1: Friend picker */}
-					{step === 'friend' && (
-						<div className='space-y-3'>
-							<div className='relative'>
-								<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-								<input
-									type='text'
-									placeholder='Search friends...'
-									value={friendSearch}
-									onChange={(e) => setFriendSearch(e.target.value)}
-									className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
-								/>
-							</div>
-							{loading ? (
-								<div className='space-y-2'>
-									{[1, 2, 3].map((i) => (
-										<div
-											key={i}
-											className='flex animate-pulse items-center gap-3 rounded-xl p-3'
-										>
-											<div className='size-10 rounded-full bg-bg-elevated' />
-											<div className='h-4 w-32 rounded bg-bg-elevated' />
-										</div>
-									))}
+					<div className='max-h-[60vh] overflow-y-auto p-5'>
+						{/* STEP 1: Friend picker */}
+						{step === 'friend' && (
+							<div className='space-y-3'>
+								<div className='relative'>
+									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+									<input
+										type='text'
+										placeholder='Search friends...'
+										value={friendSearch}
+										onChange={e => setFriendSearch(e.target.value)}
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+									/>
 								</div>
-							) : filteredFriends.length === 0 ? (
-								<p className='py-8 text-center text-sm text-text-muted'>
-									{friends.length === 0
-										? 'Follow some people to challenge them!'
-										: 'No friends match your search'}
-								</p>
-							) : (
-								<div className='space-y-1'>
-									{filteredFriends.map((friend) => (
-										<motion.button
-											key={friend.userId}
-											whileTap={BUTTON_TAP}
-											onClick={() => {
-												setSelectedFriend(friend)
-												setStep('recipe')
-											}}
-											className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
-										>
-											{friend.avatarUrl ? (
-												<Image
-													src={friend.avatarUrl}
-													alt={getProfileDisplayName(friend)}
-													width={40}
-													height={40}
-													className='size-10 rounded-full object-cover'
-												/>
-											) : (
-												<div className='flex size-10 items-center justify-center rounded-full bg-bg-elevated'>
-													<User className='size-5 text-text-muted' />
+								{loading ? (
+									<div className='space-y-2'>
+										{[1, 2, 3].map(i => (
+											<div
+												key={i}
+												className='flex animate-pulse items-center gap-3 rounded-xl p-3'
+											>
+												<div className='size-10 rounded-full bg-bg-elevated' />
+												<div className='h-4 w-32 rounded bg-bg-elevated' />
+											</div>
+										))}
+									</div>
+								) : filteredFriends.length === 0 ? (
+									<p className='py-8 text-center text-sm text-text-muted'>
+										{friends.length === 0
+											? 'Follow some people to challenge them!'
+											: 'No friends match your search'}
+									</p>
+								) : (
+									<div className='space-y-1'>
+										{filteredFriends.map(friend => (
+											<motion.button
+												key={friend.userId}
+												whileTap={BUTTON_TAP}
+												onClick={() => {
+													setSelectedFriend(friend)
+													setStep('recipe')
+												}}
+												className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
+											>
+												{friend.avatarUrl ? (
+													<Image
+														src={friend.avatarUrl}
+														alt={getProfileDisplayName(friend)}
+														width={40}
+														height={40}
+														className='size-10 rounded-full object-cover'
+													/>
+												) : (
+													<div className='flex size-10 items-center justify-center rounded-full bg-bg-elevated'>
+														<User className='size-5 text-text-muted' />
+													</div>
+												)}
+												<div>
+													<p className='font-medium text-text'>
+														{getProfileDisplayName(friend)}
+													</p>
+													<p className='text-xs text-text-secondary'>
+														@{friend.username}
+													</p>
 												</div>
-											)}
-											<div>
-												<p className='font-medium text-text'>
-													{getProfileDisplayName(friend)}
-												</p>
-												<p className='text-xs text-text-secondary'>
-													@{friend.username}
-												</p>
-											</div>
-											<ChevronRight className='ml-auto size-4 text-text-muted' />
-										</motion.button>
-									))}
-								</div>
-							)}
-						</div>
-					)}
-
-					{/* STEP 2: Recipe picker */}
-					{step === 'recipe' && (
-						<div className='space-y-3'>
-							<div className='relative'>
-								<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-								<input
-									type='text'
-									placeholder='Search recipes...'
-									value={recipeSearch}
-									onChange={(e) => setRecipeSearch(e.target.value)}
-									className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
-								/>
+												<ChevronRight className='ml-auto size-4 text-text-muted' />
+											</motion.button>
+										))}
+									</div>
+								)}
 							</div>
-							{loading ? (
-								<div className='space-y-2'>
-									{[1, 2, 3].map((i) => (
-										<div
-											key={i}
-											className='flex animate-pulse items-center gap-3 rounded-xl p-3'
-										>
-											<div className='size-12 rounded-xl bg-bg-elevated' />
-											<div className='space-y-1.5'>
-												<div className='h-4 w-40 rounded bg-bg-elevated' />
-												<div className='h-3 w-24 rounded bg-bg-elevated' />
-											</div>
-										</div>
-									))}
+						)}
+
+						{/* STEP 2: Recipe picker */}
+						{step === 'recipe' && (
+							<div className='space-y-3'>
+								<div className='relative'>
+									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+									<input
+										type='text'
+										placeholder='Search recipes...'
+										value={recipeSearch}
+										onChange={e => setRecipeSearch(e.target.value)}
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+									/>
 								</div>
-							) : filteredRecipes.length === 0 ? (
-								<p className='py-8 text-center text-sm text-text-muted'>
-									No recipes found
-								</p>
-							) : (
-								<div className='space-y-1'>
-									{filteredRecipes.map((recipe) => (
-										<motion.button
-											key={recipe.id}
-											whileTap={BUTTON_TAP}
-											onClick={() => {
-												setSelectedRecipe(recipe)
-												setStep('confirm')
-											}}
-											className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
-										>
-											{recipe.coverImageUrl?.[0] ? (
-												<Image
-													src={recipe.coverImageUrl[0]}
-													alt={recipe.title}
-													width={48}
-													height={48}
-													className='size-12 rounded-xl object-cover'
-												/>
-											) : (
-												<div className='flex size-12 items-center justify-center rounded-xl bg-bg-elevated'>
-													<ChefHat className='size-5 text-text-muted' />
+								{loading ? (
+									<div className='space-y-2'>
+										{[1, 2, 3].map(i => (
+											<div
+												key={i}
+												className='flex animate-pulse items-center gap-3 rounded-xl p-3'
+											>
+												<div className='size-12 rounded-xl bg-bg-elevated' />
+												<div className='space-y-1.5'>
+													<div className='h-4 w-40 rounded bg-bg-elevated' />
+													<div className='h-3 w-24 rounded bg-bg-elevated' />
 												</div>
-											)}
-											<div className='min-w-0 flex-1'>
-												<p className='truncate font-medium text-text'>
-													{recipe.title}
-												</p>
-												<p className='text-xs text-text-secondary'>
-													{recipe.difficulty} &middot;{' '}
-													{recipe.steps?.length ?? 0} steps
-												</p>
 											</div>
-											<ChevronRight className='size-4 flex-shrink-0 text-text-muted' />
-										</motion.button>
-									))}
-								</div>
-							)}
-							<button
-								onClick={() => setStep('friend')}
-								className='text-sm font-medium text-brand hover:underline'
-							>
-								&larr; Back to friends
-							</button>
-						</div>
-					)}
-
-					{/* STEP 3: Confirm */}
-					{step === 'confirm' && selectedFriend && selectedRecipe && (
-						<div className='space-y-4'>
-							{/* Summary */}
-							<div className='rounded-xl bg-bg-elevated p-4'>
-								<div className='mb-3 flex items-center gap-3'>
-									<Swords className='size-5 text-brand' />
-									<span className='font-semibold text-text'>Challenge Summary</span>
-								</div>
-								<div className='space-y-2 text-sm'>
-									<div className='flex items-center justify-between'>
-										<span className='text-text-secondary'>Opponent</span>
-										<span className='font-medium text-text'>
-											{getProfileDisplayName(selectedFriend)}
-										</span>
+										))}
 									</div>
-									<div className='flex items-center justify-between'>
-										<span className='text-text-secondary'>Recipe</span>
-										<span className='font-medium text-text'>
-											{selectedRecipe.title}
-										</span>
+								) : filteredRecipes.length === 0 ? (
+									<p className='py-8 text-center text-sm text-text-muted'>
+										No recipes found
+									</p>
+								) : (
+									<div className='space-y-1'>
+										{filteredRecipes.map(recipe => (
+											<motion.button
+												key={recipe.id}
+												whileTap={BUTTON_TAP}
+												onClick={() => {
+													setSelectedRecipe(recipe)
+													setStep('confirm')
+												}}
+												className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
+											>
+												{recipe.coverImageUrl?.[0] ? (
+													<Image
+														src={recipe.coverImageUrl[0]}
+														alt={recipe.title}
+														width={48}
+														height={48}
+														className='size-12 rounded-xl object-cover'
+													/>
+												) : (
+													<div className='flex size-12 items-center justify-center rounded-xl bg-bg-elevated'>
+														<ChefHat className='size-5 text-text-muted' />
+													</div>
+												)}
+												<div className='min-w-0 flex-1'>
+													<p className='truncate font-medium text-text'>
+														{recipe.title}
+													</p>
+													<p className='text-xs text-text-secondary'>
+														{recipe.difficulty} &middot;{' '}
+														{recipe.steps?.length ?? 0} steps
+													</p>
+												</div>
+												<ChevronRight className='size-4 flex-shrink-0 text-text-muted' />
+											</motion.button>
+										))}
 									</div>
-									<div className='flex items-center justify-between'>
-										<span className='text-text-secondary'>Bonus XP</span>
-										<span className='font-semibold text-xp'>+50 XP</span>
-									</div>
-								</div>
-							</div>
-
-							{/* Optional message */}
-							<div>
-								<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
-									Trash talk (optional)
-								</label>
-								<input
-									type='text'
-									placeholder='Think you can beat me?'
-									value={message}
-									onChange={(e) => setMessage(e.target.value)}
-									maxLength={200}
-									className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 px-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
-								/>
-							</div>
-
-							{/* Actions */}
-							<div className='flex gap-2'>
+								)}
 								<button
-									onClick={() => setStep('recipe')}
-									className='flex-1 rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated'
+									onClick={() => setStep('friend')}
+									className='text-sm font-medium text-brand hover:underline'
 								>
-									Back
+									&larr; Back to friends
 								</button>
-								<motion.button
-									whileTap={BUTTON_TAP}
-									disabled={submitting}
-									onClick={handleSubmit}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 disabled:opacity-50'
-								>
-									<Send className='size-4' />
-									{submitting ? 'Sending...' : 'Send Challenge'}
-								</motion.button>
 							</div>
-						</div>
-					)}
-				</div>
-			</motion.div>
-		</div>
+						)}
+
+						{/* STEP 3: Confirm */}
+						{step === 'confirm' && selectedFriend && selectedRecipe && (
+							<div className='space-y-4'>
+								{/* Summary */}
+								<div className='rounded-xl bg-bg-elevated p-4'>
+									<div className='mb-3 flex items-center gap-3'>
+										<Swords className='size-5 text-brand' />
+										<span className='font-semibold text-text'>
+											Challenge Summary
+										</span>
+									</div>
+									<div className='space-y-2 text-sm'>
+										<div className='flex items-center justify-between'>
+											<span className='text-text-secondary'>Opponent</span>
+											<span className='font-medium text-text'>
+												{getProfileDisplayName(selectedFriend)}
+											</span>
+										</div>
+										<div className='flex items-center justify-between'>
+											<span className='text-text-secondary'>Recipe</span>
+											<span className='font-medium text-text'>
+												{selectedRecipe.title}
+											</span>
+										</div>
+										<div className='flex items-center justify-between'>
+											<span className='text-text-secondary'>Bonus XP</span>
+											<span className='font-semibold text-xp'>+50 XP</span>
+										</div>
+									</div>
+								</div>
+
+								{/* Optional message */}
+								<div>
+									<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
+										Trash talk (optional)
+									</label>
+									<input
+										type='text'
+										placeholder='Think you can beat me?'
+										value={message}
+										onChange={e => setMessage(e.target.value)}
+										maxLength={200}
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 px-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+									/>
+								</div>
+
+								{/* Actions */}
+								<div className='flex gap-2'>
+									<button
+										onClick={() => setStep('recipe')}
+										className='flex-1 rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated'
+									>
+										Back
+									</button>
+									<motion.button
+										whileTap={BUTTON_TAP}
+										disabled={submitting}
+										onClick={handleSubmit}
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 disabled:opacity-50'
+									>
+										<Send className='size-4' />
+										{submitting ? 'Sending...' : 'Send Challenge'}
+									</motion.button>
+								</div>
+							</div>
+						)}
+					</div>
+				</motion.div>
+			</div>
 		</Portal>
 	)
 }
@@ -714,7 +724,7 @@ const loadRecipes = async () => {
 // ============================================
 
 export function DuelsSection() {
-	const user = useAuthStore((s) => s.user)
+	const user = useAuthStore(s => s.user)
 	const [invites, setInvites] = useState<DuelResponse[]>([])
 	const [activeDuels, setActiveDuels] = useState<DuelResponse[]>([])
 	const [history, setHistory] = useState<DuelResponse[]>([])
@@ -735,7 +745,7 @@ export function DuelsSection() {
 			// History = completed, declined, expired, cancelled
 			setHistory(
 				all.filter(
-					(d) =>
+					d =>
 						d.status === 'Completed' ||
 						d.status === 'Declined' ||
 						d.status === 'Expired' ||
@@ -784,8 +794,8 @@ export function DuelsSection() {
 					<DuelCardSkeleton />
 				</div>
 			) : invites.length === 0 &&
-				activeDuels.length === 0 &&
-				history.length === 0 ? (
+			  activeDuels.length === 0 &&
+			  history.length === 0 ? (
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
 					<Swords className='mx-auto mb-3 size-10 text-text-muted' />
 					<p className='mb-1 font-semibold text-text'>No duels yet</p>
@@ -810,7 +820,7 @@ export function DuelsSection() {
 								Incoming Challenges
 							</p>
 							<div className='space-y-3'>
-								{invites.map((duel) => (
+								{invites.map(duel => (
 									<DuelCard
 										key={duel.id}
 										duel={duel}
@@ -829,7 +839,7 @@ export function DuelsSection() {
 								Active Duels
 							</p>
 							<div className='space-y-3'>
-								{activeDuels.map((duel) => (
+								{activeDuels.map(duel => (
 									<DuelCard
 										key={duel.id}
 										duel={duel}
@@ -845,7 +855,7 @@ export function DuelsSection() {
 					{history.length > 0 && (
 						<div>
 							<button
-								onClick={() => setShowHistory((v) => !v)}
+								onClick={() => setShowHistory(v => !v)}
 								className='mb-2 flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text'
 							>
 								<Trophy className='size-4' />
@@ -863,7 +873,7 @@ export function DuelsSection() {
 										transition={TRANSITION_SPRING}
 										className='space-y-3 overflow-hidden'
 									>
-										{history.map((duel) => (
+										{history.map(duel => (
 											<DuelCard
 												key={duel.id}
 												duel={duel}

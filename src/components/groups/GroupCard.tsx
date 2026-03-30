@@ -48,7 +48,7 @@ export const GroupCard = ({
 	const [isJoining, setIsJoining] = useState(false)
 	const [hasJoined, setHasJoined] = useState(group.isJoined ?? false)
 	const [requestPending, setRequestPending] = useState(
-		group.hasPendingRequest ?? false
+		group.hasPendingRequest ?? false,
 	)
 
 	const handleJoin = useCallback(async () => {
@@ -153,7 +153,7 @@ export const GroupCard = ({
 				)}
 
 				{requestPending && (
-					<div className='text-xs font-medium text-amber-600 flex items-center gap-1'>
+					<div className='text-xs font-medium text-warning flex items-center gap-1'>
 						<Clock className='w-3 h-3' />
 						Pending
 					</div>
@@ -167,11 +167,7 @@ export const GroupCard = ({
 						disabled={isJoining}
 						className='flex-shrink-0'
 					>
-						{isJoining ? (
-							<Loader2 className='w-3 h-3 animate-spin' />
-						) : (
-							'Join'
-						)}
+						{isJoining ? <Loader2 className='w-3 h-3 animate-spin' /> : 'Join'}
 					</Button>
 				)}
 			</motion.div>
@@ -224,7 +220,10 @@ export const GroupCard = ({
 
 			{/* Content */}
 			<div className='flex-1 p-4 flex flex-col'>
-				<Link href={PATHS.GROUPS.DETAIL(group.id)} className='hover:no-underline'>
+				<Link
+					href={PATHS.GROUPS.DETAIL(group.id)}
+					className='hover:no-underline'
+				>
 					<h3 className='font-bold text-lg text-text line-clamp-2 hover:text-brand transition-colors'>
 						{group.name}
 					</h3>
@@ -237,7 +236,7 @@ export const GroupCard = ({
 				{/* Tags */}
 				{group.tags && group.tags.length > 0 && (
 					<div className='flex gap-2 mt-3 flex-wrap'>
-						{group.tags.slice(0, 2).map((tag) => (
+						{group.tags.slice(0, 2).map(tag => (
 							<span
 								key={tag}
 								className='text-xs bg-brand/10 text-brand px-2 py-1 rounded-full'
@@ -263,17 +262,14 @@ export const GroupCard = ({
 			{/* Footer / Actions */}
 			<div className='border-t border-border p-4'>
 				{hasJoined ? (
-					<Link
-						href={PATHS.GROUPS.DETAIL(group.id)}
-						className='block'
-					>
+					<Link href={PATHS.GROUPS.DETAIL(group.id)} className='block'>
 						<Button className='w-full bg-brand hover:bg-brand/90 text-white'>
 							View Group
 						</Button>
 					</Link>
 				) : requestPending ? (
 					<div className='text-center py-2'>
-						<p className='text-xs text-amber-600 font-medium'>
+						<p className='text-xs text-warning font-medium'>
 							Request pending approval
 						</p>
 					</div>

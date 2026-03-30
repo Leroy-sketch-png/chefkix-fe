@@ -1,7 +1,7 @@
 ﻿git : 
-At line:1 char:13
-+ git add -A; git commit -m "fix: 8 bugs - QuickPostFAB try-catch, sett ...
-+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At line:1 char:1
++ git commit -m "fix: 18 bugs - stale useEffect guards (challenges, use ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
@@ -16,7 +16,39 @@ react-hooks/exhaustive-deps
 
 info  - Need to disable some ESLint rules? Learn more here: 
 https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
-src/app/(main)/dashboard/page.tsx 2148ms
-src/app/(main)/pantry/page.tsx 2904ms
-src/app/(main)/settings/page.tsx 7845ms
-[90msrc/components/recipe/RecipeCard.tsx[39m 932ms (unchanged)
+src/app/(main)/[userId]/page.tsx 776ms
+src/app/(main)/challenges/page.tsx 1250ms
+src/app/(main)/community/page.tsx 651ms
+src/app/(main)/groups/[id]/page.tsx 502ms
+src/app/(main)/messages/page.tsx 1587ms
+src/app/(main)/recipes/[id]/page.tsx 2866ms
+[90msrc/app/(main)/search/page.tsx[39m 1500ms (unchanged)
+[90msrc/app/(main)/settings/page.tsx[39m 2222ms (unchanged)
+src/app/(main)/shopping-lists/page.tsx 1022ms
+[90msrc/components/chat/VideoCall.tsx[39m 452ms (unchanged)
+src/components/groups/GroupSettingsModal.tsx 241ms
+src/components/profile/UserProfile.tsx 1076ms
+src/services/cookCard.ts 29ms
+warning: in the working copy of 'src/app/(main)/[userId]/page.tsx', LF will be 
+replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/(main)/challenges/page.tsx', LF will 
+be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/(main)/community/page.tsx', LF will 
+be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/(main)/groups/[id]/page.tsx', LF will 
+be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/(main)/messages/page.tsx', LF will be 
+replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/(main)/recipes/[id]/page.tsx', LF 
+will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/app/(main)/shopping-lists/page.tsx', LF 
+will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 
+'src/components/groups/GroupSettingsModal.tsx', LF will be replaced by CRLF 
+the next time Git touches it
+warning: in the working copy of 'src/components/profile/UserProfile.tsx', LF 
+will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/services/cookCard.ts', LF will be 
+replaced by CRLF the next time Git touches it
+[fix/audit-ux-and-code-quality aca88e3] fix: 18 bugs - stale useEffect guards (challenges, userId, UserProfile x5, groups x2, community), double-click locks (messages react+delete, search follow, UserProfile block, shopping-lists add+remove), remix loading guard, cookCard logDevError, design system tokens (VideoCall x7, messages, GroupSettings, settings x5)
+ 13 files changed, 316 insertions(+), 186 deletions(-)
