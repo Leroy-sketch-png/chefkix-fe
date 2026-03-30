@@ -39,6 +39,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { toast } from 'sonner'
 
 export default function CommunityPage() {
 	const { user } = useAuth()
@@ -96,7 +97,10 @@ export default function CommunityPage() {
 					setError(true)
 				}
 			} catch {
-				if (!cancelled) setError(true)
+				if (!cancelled) {
+					setError(true)
+					toast.error('Failed to load community data')
+				}
 			} finally {
 				if (!cancelled) setLoading(false)
 			}

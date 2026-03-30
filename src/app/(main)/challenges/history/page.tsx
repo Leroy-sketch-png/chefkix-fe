@@ -14,6 +14,7 @@ import {
 	ChallengeStats,
 } from '@/services/challenge'
 import { logDevError } from '@/lib/dev-log'
+import { toast } from 'sonner'
 
 // ============================================
 // HELPERS
@@ -80,7 +81,10 @@ export default function ChallengeHistoryPageRoute() {
 					})
 				}
 			} catch (err) {
-				if (!cancelled) logDevError('Failed to fetch challenge history:', err)
+				if (!cancelled) {
+					logDevError('Failed to fetch challenge history:', err)
+					toast.error('Failed to load challenge history')
+				}
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}

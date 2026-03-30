@@ -14,6 +14,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { toast } from 'sonner'
 
 /**
  * Post Detail Page
@@ -52,6 +53,7 @@ export default function PostDetailPage() {
 			}
 		} catch {
 			setError('Failed to load post. Please try again.')
+			toast.error('Failed to load post')
 		} finally {
 			setIsLoading(false)
 		}
@@ -75,7 +77,10 @@ export default function PostDetailPage() {
 					setError(response.message || 'Post not found')
 				}
 			} catch {
-				if (!cancelled) setError('Failed to load post. Please try again.')
+				if (!cancelled) {
+					setError('Failed to load post. Please try again.')
+					toast.error('Failed to load post')
+				}
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}

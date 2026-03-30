@@ -8,6 +8,7 @@ import { UserProfile } from '@/components/profile/UserProfile'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 import { Profile } from '@/lib/types'
+import { toast } from 'sonner'
 
 /**
  * Dynamic profile page at /{userId}
@@ -48,6 +49,7 @@ const ProfilePage = () => {
 				setNotFound(true)
 			} else {
 				setServerError(true)
+				toast.error('Failed to load profile')
 			}
 
 			setIsLoading(false)
