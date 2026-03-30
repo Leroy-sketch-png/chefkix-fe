@@ -143,6 +143,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
 			transition={TRANSITION_SPRING}
 			className='relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand/10 via-bg-card to-streak/10 shadow-warm'
 		>

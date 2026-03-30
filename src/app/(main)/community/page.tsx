@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -52,6 +52,18 @@ export default function CommunityPage() {
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+
+	// Compute closest competitor for CatchingUpAlert
+	const closestCompetitor = useMemo(() => {
+		const currentUser = leaderboardEntries.find(e => e.isCurrentUser)
+		if (!currentUser || currentUser.rank !== 1) return undefined
+		const runnerUp = leaderboardEntries.find(e => e.rank === 2)
+		if (!runnerUp) return undefined
+		return {
+			entry: runnerUp,
+			xpBehind: currentUser.xpThisWeek - runnerUp.xpThisWeek,
+		}
+	}, [leaderboardEntries])
 
 	useEffect(() => {
 		let cancelled = false
@@ -301,6 +313,7 @@ export default function CommunityPage() {
 							entries={leaderboardEntries}
 							totalFriends={friends.length}
 							isGlobal={true}
+							closestCompetitor={closestCompetitor}
 							onUserClick={handleLeaderboardUserClick}
 							onInviteFriends={() => setActiveTab('discover')}
 							onCookToDefend={() => router.push('/explore')}
