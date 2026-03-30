@@ -48,6 +48,7 @@ import {
 import { logDevError } from '@/lib/dev-log'
 import { trackEvent } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 
 // ============================================
@@ -174,7 +175,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 			>
 				<div className='relative h-44 w-full overflow-hidden'>
 					<Image
-						src={recipe.imageUrl}
+						src={recipe.imageUrl || '/placeholder-recipe.svg'}
 						alt={recipe.title}
 						fill
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
@@ -222,13 +223,15 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 
 					<div className='flex items-center justify-between'>
 						<div className='flex items-center gap-2'>
-							<Image
-								src={recipe.author.avatarUrl}
-								alt={recipe.author.username}
-								width={24}
-								height={24}
-								className='rounded-full'
-							/>
+							<Avatar size='xs'>
+								<AvatarImage
+									src={recipe.author.avatarUrl}
+									alt={recipe.author.username}
+								/>
+								<AvatarFallback>
+									{recipe.author.username?.slice(0, 2).toUpperCase() || '??'}
+								</AvatarFallback>
+							</Avatar>
 							<span className='text-caption text-text-secondary'>
 								@{recipe.author.username}
 							</span>
@@ -281,13 +284,17 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 			variants={staggerItemVariants}
 			className='flex items-center gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4 transition-shadow hover:shadow-card'
 		>
-			<Image
-				src={person.avatarUrl}
-				alt={person.displayName}
-				width={56}
-				height={56}
-				className='size-14 flex-shrink-0 rounded-full'
-			/>
+			<Avatar size='lg' className='size-14 flex-shrink-0'>
+				<AvatarImage src={person.avatarUrl} alt={person.displayName} />
+				<AvatarFallback>
+					{person.displayName
+						?.split(' ')
+						.map(n => n[0])
+						.join('')
+						.toUpperCase()
+						.slice(0, 2) || '??'}
+				</AvatarFallback>
+			</Avatar>
 			<div className='min-w-0 flex-1'>
 				<p className='text-base font-bold text-text'>{person.displayName}</p>
 				<p className='text-sm text-text-secondary'>@{person.username}</p>
@@ -321,7 +328,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 			>
 				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
 					<Image
-						src={post.imageUrl}
+						src={post.imageUrl || '/placeholder-recipe.svg'}
 						alt='Post'
 						fill
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
@@ -329,13 +336,15 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 				</div>
 				<div className='min-w-0 flex-1'>
 					<div className='mb-1 flex items-center gap-2'>
-						<Image
-							src={post.author.avatarUrl}
-							alt={post.author.username}
-							width={20}
-							height={20}
-							className='rounded-full'
-						/>
+						<Avatar size='xs'>
+							<AvatarImage
+								src={post.author.avatarUrl}
+								alt={post.author.username}
+							/>
+							<AvatarFallback>
+								{post.author.username?.slice(0, 2).toUpperCase() || '??'}
+							</AvatarFallback>
+						</Avatar>
 						<span className='text-sm font-semibold text-text'>
 							@{post.author.username}
 						</span>

@@ -151,7 +151,7 @@ export function GroupSettingsModal({
 					{/* Save Button */}
 					<Button
 						onClick={handleSaveChanges}
-						disabled={isLoading}
+						disabled={isLoading || !name.trim()}
 						className='w-full bg-brand hover:bg-brand/90 text-white'
 					>
 						{isLoading ? (

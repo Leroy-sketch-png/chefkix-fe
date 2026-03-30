@@ -24,6 +24,7 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_SMOOTH,
@@ -239,15 +240,16 @@ export const ReportModal = ({
 									<div className='p-4 md:p-5'>
 										{/* Content Preview */}
 										<div className='mb-4 flex items-center gap-3 rounded-xl bg-bg-elevated px-3 py-2.5'>
-											<div className='relative size-10 overflow-hidden rounded-full'>
-												<Image
+											<Avatar size='sm'>
+												<AvatarImage
 													src={content.author.avatarUrl}
 													alt={content.author.username}
-													fill
-													sizes='40px'
-													className='object-cover'
 												/>
-											</div>
+												<AvatarFallback>
+													{content.author.username?.slice(0, 2).toUpperCase() ||
+														'??'}
+												</AvatarFallback>
+											</Avatar>
 											<div>
 												<div className='text-sm font-bold'>
 													@{content.author.username}
