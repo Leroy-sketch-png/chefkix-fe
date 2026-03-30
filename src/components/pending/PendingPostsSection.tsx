@@ -130,9 +130,7 @@ const SinglePendingPost = ({
 			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-primary/5 to-transparent'>
 				<div className='flex items-center gap-2'>
 					<span className='text-lg'>📸</span>
-					<h3 className='text-base font-bold text-foreground'>
-						Post to unlock XP
-					</h3>
+					<h3 className='text-base font-bold text-text'>Post to unlock XP</h3>
 				</div>
 				{onDismiss && (
 					<motion.button
@@ -143,7 +141,7 @@ const SinglePendingPost = ({
 						transition={TRANSITION_SPRING}
 						aria-label='Dismiss pending posts prompt'
 					>
-						<X className='h-4 w-4 text-text-secondary' />
+						<X className='size-4 text-text-secondary' />
 					</motion.button>
 				)}
 			</div>
@@ -159,7 +157,7 @@ const SinglePendingPost = ({
 				/>
 
 				<div className='flex-1 min-w-0'>
-					<span className='block text-base font-bold text-foreground mb-1'>
+					<span className='block text-base font-bold text-text mb-1'>
 						{session.recipeName}
 					</span>
 					<span className='block text-sm text-text-secondary mb-2'>
@@ -187,7 +185,7 @@ const SinglePendingPost = ({
 					whileTap={BUTTON_TAP}
 					transition={TRANSITION_SPRING}
 				>
-					<Camera className='h-4 w-4' />
+					<Camera className='size-4' />
 					Post Now
 				</motion.button>
 			</div>
@@ -236,7 +234,7 @@ const MultiplePendingPosts = ({
 					>
 						📸
 					</motion.span>
-					<h3 className='text-base font-bold text-foreground'>
+					<h3 className='text-base font-bold text-text'>
 						{sessions.length} recipes waiting
 					</h3>
 					<span className='text-sm font-semibold text-success bg-success/10 px-2 py-1 rounded-full'>
@@ -251,7 +249,7 @@ const MultiplePendingPosts = ({
 					transition={TRANSITION_SPRING}
 				>
 					View All
-					<ChevronDown className='h-4 w-4' />
+					<ChevronDown className='size-4' />
 				</motion.button>
 			</div>
 
@@ -273,10 +271,10 @@ const MultiplePendingPosts = ({
 							alt={session.recipeName}
 							width={44}
 							height={44}
-							className='w-11 h-11 rounded-lg object-cover'
+							className='size-11 rounded-lg object-cover'
 						/>
 						<div className='flex-1 min-w-0'>
-							<span className='block text-sm font-semibold text-foreground'>
+							<span className='block text-sm font-semibold text-text'>
 								{session.recipeName}
 							</span>
 							<span
@@ -380,7 +378,7 @@ const ManyPendingPosts = ({
 					transition={TRANSITION_SPRING}
 				>
 					View All
-					<ArrowRight className='h-4 w-4' />
+					<ArrowRight className='size-4' />
 				</motion.button>
 			</div>
 		</motion.section>
@@ -497,9 +495,7 @@ export const PendingExpandedModal = ({
 						>
 							{/* Header */}
 							<div className='flex items-center gap-3 px-6 py-5 border-b border-border'>
-								<h2 className='text-xl font-bold text-foreground'>
-									Pending Posts
-								</h2>
+								<h2 className='text-xl font-bold text-text'>Pending Posts</h2>
 								<span className='text-sm text-text-secondary'>
 									{pendingSessions.length} recipes • +{totalXP} XP available
 								</span>
@@ -511,14 +507,14 @@ export const PendingExpandedModal = ({
 									transition={TRANSITION_SPRING}
 									aria-label='Close pending posts'
 								>
-									<X className='h-5 w-5 text-text-secondary' />
+									<X className='size-5 text-text-secondary' />
 								</motion.button>
 							</div>
 
 							{/* Urgency Banner */}
 							{urgentSessions.length > 0 && (
 								<div className='flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-error to-error/80 text-white text-sm font-semibold'>
-									<AlertTriangle className='h-4 w-4' />
+									<AlertTriangle className='size-4' />
 									{urgentSessions.length} recipe
 									{urgentSessions.length > 1 ? 's' : ''} expire within 24 hours.
 									Post now to claim XP!
@@ -567,10 +563,10 @@ export const PendingExpandedModal = ({
 												alt={session.recipeName}
 												width={64}
 												height={64}
-												className='w-16 h-16 rounded-xl object-cover'
+												className='size-16 rounded-xl object-cover'
 											/>
 											<div className='flex-1 min-w-0'>
-												<span className='block text-base font-bold text-foreground'>
+												<span className='block text-base font-bold text-text'>
 													{session.recipeName}
 												</span>
 												<span className='block text-sm text-text-secondary'>

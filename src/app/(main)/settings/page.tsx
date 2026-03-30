@@ -896,7 +896,7 @@ export default function SettingsPage() {
 															</div>
 														)}
 														{isUploadingCover && (
-															<div className='absolute inset-0 flex items-center justify-center bg-background/50'>
+															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
 																<Loader2 className='size-6 animate-spin text-primary' />
 															</div>
 														)}
@@ -951,7 +951,7 @@ export default function SettingsPage() {
 															</div>
 														)}
 														{isUploadingAvatar && (
-															<div className='absolute inset-0 flex items-center justify-center bg-background/50'>
+															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
 																<Loader2 className='size-5 animate-spin text-primary' />
 															</div>
 														)}

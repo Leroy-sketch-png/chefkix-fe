@@ -400,8 +400,8 @@ export const ReportLimitModal = ({
 							onClick={e => e.stopPropagation()}
 							className='w-full max-w-modal-sm rounded-2xl bg-panel-bg p-7 text-center'
 						>
-							<div className='mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
-								<AlertCircle className='h-8 w-8' />
+							<div className='mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
+								<AlertCircle className='size-8' />
 							</div>
 							<h3 className='mb-3 text-xl font-extrabold'>
 								Daily Report Limit Reached
@@ -474,9 +474,9 @@ export const AccountRestrictedNotice = ({
 					)}
 				>
 					{isPermanent ? (
-						<Ban className='h-9 w-9' />
+						<Ban className='size-9' />
 					) : (
-						<AlertTriangle className='h-9 w-9' />
+						<AlertTriangle className='size-9' />
 					)}
 				</div>
 				<h2 className='text-2xl font-extrabold'>
@@ -549,7 +549,7 @@ export const AccountRestrictedNotice = ({
 				{/* Escalation Warning */}
 				{!isPermanent && (
 					<div className='mb-5 flex items-start gap-3 rounded-xl border border-error/20 bg-error/10 p-4'>
-						<TrendingUp className='mt-0.5 h-5 w-5 flex-shrink-0 text-error' />
+						<TrendingUp className='mt-0.5 size-5 flex-shrink-0 text-error' />
 						<div className='flex flex-col gap-1'>
 							<strong className='text-sm text-error'>
 								Future violations will have longer restrictions:
@@ -658,7 +658,7 @@ export const AppealModal = ({
 										transition={TRANSITION_BOUNCY}
 										className='mx-auto mb-5 flex h-avatar-md w-avatar-md items-center justify-center rounded-full bg-success/10 text-success'
 									>
-										<CheckCircle className='h-9 w-9' />
+										<CheckCircle className='size-9' />
 									</motion.div>
 									<h3 className='mb-3 text-xl font-extrabold'>
 										Appeal Submitted
@@ -679,7 +679,7 @@ export const AppealModal = ({
 											</span>
 										</div>
 										<div className='mb-4 flex items-center justify-center gap-2 text-sm text-text-muted'>
-											<Clock className='h-4 w-4' />
+											<Clock className='size-4' />
 											<span>
 												Estimated decision:{' '}
 												<strong className='text-text'>~48 hours</strong>
@@ -705,10 +705,10 @@ export const AppealModal = ({
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											className='flex size-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
 											aria-label='Close appeal form'
 										>
-											<X className='h-5 w-5' />
+											<X className='size-5' />
 										</motion.button>
 									</div>{' '}
 									<div className='p-7'>
@@ -833,7 +833,7 @@ export const ContentRemovedNotice = ({
 		<div className='max-w-modal-md overflow-hidden rounded-xl border border-error/20 bg-panel-bg'>
 			{/* Header */}
 			<div className='flex items-center gap-2.5 bg-error/10 px-5 py-4 font-bold text-error'>
-				<Trash2 className='h-5 w-5' />
+				<Trash2 className='size-5' />
 				<span>Content Removed</span>
 			</div>
 
@@ -844,7 +844,7 @@ export const ContentRemovedNotice = ({
 				</p>
 
 				<div className='mb-4 inline-flex items-center gap-2 rounded-lg bg-bg-elevated px-4 py-2.5 text-sm font-semibold text-error'>
-					<AlertCircle className='h-4 w-4' />
+					<AlertCircle className='size-4' />
 					<span>{violationType}</span>
 				</div>
 

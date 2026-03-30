@@ -448,7 +448,7 @@ function RecipePerformanceSection({
 								alt={recipe.title}
 								width={56}
 								height={56}
-								className='w-14 h-14 rounded-xl object-cover'
+								className='size-14 rounded-xl object-cover'
 							/>
 							<div className='flex-1 flex flex-col gap-1.5'>
 								<span className='text-base font-bold text-text'>
@@ -574,7 +574,7 @@ function RecentCooksSection({
 								alt={cook.userName}
 								width={40}
 								height={40}
-								className='w-10 h-10 rounded-full object-cover'
+								className='size-10 rounded-full object-cover'
 							/>
 							<div className='flex-1 flex flex-col'>
 								<span className='text-sm text-text'>
@@ -673,7 +673,7 @@ export function CreatorDashboard({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='w-10 h-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text'
+						className='size-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text'
 						aria-label='Go back'
 					>
 						<ArrowLeft className='size-5' />

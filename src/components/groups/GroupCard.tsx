@@ -88,10 +88,10 @@ export const GroupCard = ({
 								alt={group.name}
 								width={60}
 								height={60}
-								className='w-12 h-12 rounded-md object-cover'
+								className='size-12 rounded-md object-cover'
 							/>
 						) : (
-							<div className='w-12 h-12 rounded-md bg-brand/10 flex items-center justify-center'>
+							<div className='size-12 rounded-md bg-brand/10 flex items-center justify-center'>
 								<Users className='size-6 text-brand' />
 							</div>
 						)}
@@ -123,10 +123,10 @@ export const GroupCard = ({
 						alt={group.name}
 						width={48}
 						height={48}
-						className='w-12 h-12 rounded object-cover flex-shrink-0'
+						className='size-12 rounded object-cover flex-shrink-0'
 					/>
 				) : (
-					<div className='w-12 h-12 rounded bg-brand/10 flex items-center justify-center flex-shrink-0'>
+					<div className='size-12 rounded bg-brand/10 flex items-center justify-center flex-shrink-0'>
 						<Users className='size-5 text-brand' />
 					</div>
 				)}
@@ -192,7 +192,7 @@ export const GroupCard = ({
 					/>
 				) : (
 					<div className='w-full h-full flex items-center justify-center'>
-						<Users className='w-16 h-16 text-brand/30' />
+						<Users className='size-16 text-brand/30' />
 					</div>
 				)}
 

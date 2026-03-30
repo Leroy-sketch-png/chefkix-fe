@@ -375,8 +375,8 @@ export default function VideoCall({
 			{/* Incoming Call Overlay */}
 			{isReceivingCall && !isCallActive && (
 				<div className='absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl'>
-					<div className='w-24 h-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
-						<div className='w-16 h-16 bg-brand rounded-full flex items-center justify-center'>
+					<div className='size-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
+						<div className='size-16 bg-brand rounded-full flex items-center justify-center'>
 							<svg
 								xmlns='http://www.w3.org/2000/svg'
 								width='32'
