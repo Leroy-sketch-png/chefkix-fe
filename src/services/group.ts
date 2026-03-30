@@ -11,6 +11,7 @@ import {
 	GroupExploreQuery,
 } from '@/lib/types/group'
 import { ApiResponse, Post } from '@/lib/types'
+import { logDevError } from '@/lib/dev-log'
 
 // Helper to handle pagination responses
 interface PaginatedResponse<T> {
@@ -247,7 +248,8 @@ export const getGroupPosts = async (
 			totalElements: response.data.data.totalElements,
 			totalPages: response.data.data.totalPages,
 		}
-	} catch {
+	} catch (error) {
+		logDevError('Failed to fetch group posts:', error)
 		return { content: [], totalElements: 0, totalPages: 0 }
 	}
 }

@@ -6,6 +6,7 @@ import {
 	ReferralStatsResponse,
 	RedeemReferralRequest,
 } from '@/lib/types/referral'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // QUERIES
@@ -17,7 +18,8 @@ export async function getMyReferralCode(): Promise<ReferralCodeResponse | null> 
 			API_ENDPOINTS.REFERRALS.MY_CODE,
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get my referral code:', error)
 		return null
 	}
 }
@@ -28,7 +30,8 @@ export async function getReferralStats(): Promise<ReferralStatsResponse | null> 
 			API_ENDPOINTS.REFERRALS.STATS,
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get referral stats:', error)
 		return null
 	}
 }
@@ -46,7 +49,8 @@ export async function redeemReferralCode(
 			request,
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to redeem referral code:', error)
 		return null
 	}
 }
