@@ -149,7 +149,7 @@ export const GroupMembersList = ({
 											handleKickMember(member.userId, member.displayName)
 										}
 										disabled={kickingUserId === member.userId}
-										className='text-red-600 focus:text-red-600'
+										className='text-error focus:text-error'
 									>
 										{kickingUserId === member.userId ? (
 											<Loader2 className='w-4 h-4 mr-2 animate-spin' />
