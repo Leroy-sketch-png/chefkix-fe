@@ -182,33 +182,43 @@ export const PostCard = ({
 			triggerLikeConfetti(likeButtonRef.current || undefined)
 		}
 
-		const response = await toggleLike(post.id)
+		try {
+			const response = await toggleLike(post.id)
 
-		if (response.success && response.data) {
-			// Update with server response - use likeCount (BE field name)
-			const newLikes =
-				response.data.likeCount ??
-				(wasLiked ? previousLikes - 1 : previousLikes + 1)
-			const newIsLiked = response.data.isLiked ?? !wasLiked
+			if (response.success && response.data) {
+				// Update with server response - use likeCount (BE field name)
+				const newLikes =
+					response.data.likeCount ??
+					(wasLiked ? previousLikes - 1 : previousLikes + 1)
+				const newIsLiked = response.data.isLiked ?? !wasLiked
 
-			trackEvent('POST_LIKED', post.id, 'post', { liked: newIsLiked })
-			setPost(prev => ({
-				...prev,
-				likes: newLikes,
-				isLiked: newIsLiked,
-			}))
-			onUpdate?.({ ...post, likes: newLikes, isLiked: newIsLiked })
-		} else {
-			// Revert on error
+				trackEvent('POST_LIKED', post.id, 'post', { liked: newIsLiked })
+				setPost(prev => ({
+					...prev,
+					likes: newLikes,
+					isLiked: newIsLiked,
+				}))
+				onUpdate?.({ ...post, likes: newLikes, isLiked: newIsLiked })
+			} else {
+				// Revert on error
+				setPost(prev => ({
+					...prev,
+					isLiked: wasLiked,
+					likes: previousLikes,
+				}))
+				toast.error(response.message || POST_MESSAGES.LIKE_FAILED)
+			}
+		} catch {
+			// Revert on network/unexpected error
 			setPost(prev => ({
 				...prev,
 				isLiked: wasLiked,
 				likes: previousLikes,
 			}))
-			toast.error(response.message || POST_MESSAGES.LIKE_FAILED)
+			toast.error(POST_MESSAGES.LIKE_FAILED)
+		} finally {
+			setIsLiking(false)
 		}
-
-		setIsLiking(false)
 	}, [isLiking, onUpdate, post])
 
 	const handleSave = async () => {
@@ -419,14 +429,22 @@ export const PostCard = ({
 				// User cancelled or share failed - fallback to clipboard
 				if ((err as Error).name !== 'AbortError') {
 					logDevError('Native share failed, falling back to clipboard:', err)
-					await navigator.clipboard.writeText(postUrl)
-					toast.success('Link copied to clipboard!')
+					try {
+						await navigator.clipboard.writeText(postUrl)
+						toast.success('Link copied to clipboard!')
+					} catch {
+						toast.error('Failed to copy link')
+					}
 				}
 			}
 		} else {
 			// Fallback: copy to clipboard
-			await navigator.clipboard.writeText(postUrl)
-			toast.success('Link copied to clipboard!')
+			try {
+				await navigator.clipboard.writeText(postUrl)
+				toast.success('Link copied to clipboard!')
+			} catch {
+				toast.error('Failed to copy link')
+			}
 		}
 	}
 
@@ -748,7 +766,6 @@ export const PostCard = ({
 								<div
 									className='relative w-full cursor-pointer select-none'
 									onClick={handleDoubleTap}
-									onTouchEnd={handleDoubleTap}
 								>
 									{/* Use ImageCarousel for multi-image support */}
 									<ImageCarousel
