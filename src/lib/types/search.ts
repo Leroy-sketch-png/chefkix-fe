@@ -40,6 +40,7 @@ export interface RecipeSearchDoc {
 	authorName?: string
 	coverImageUrl: string
 	createdAt: number
+	xpReward: number
 }
 
 export interface UserSearchDoc {

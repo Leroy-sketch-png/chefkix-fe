@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Image, Smile, MapPin } from 'lucide-react'
+import { Image as ImageIcon, Smile, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { createGroupPost } from '@/services/post'
@@ -80,7 +80,7 @@ export function GroupCreatePostBox({
 
 				<div className='flex gap-2 mt-4 flex-wrap'>
 					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
-						<Image className='size-5' alt='Add photo' />
+						<ImageIcon className='size-5' />
 						Photo
 					</button>
 					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
@@ -120,7 +120,9 @@ export function GroupCreatePostBox({
 					disabled={isSubmitting}
 				/>
 				{content.length > 0 && (
-					<p className='mt-1 text-right text-xs text-text-muted'>{content.length}/2000</p>
+					<p className='mt-1 text-right text-xs text-text-muted'>
+						{content.length}/2000
+					</p>
 				)}
 			</div>
 
