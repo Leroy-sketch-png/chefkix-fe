@@ -63,6 +63,7 @@ export const CommentList = ({
 
 		setIsSubmitting(true)
 
+		try {
 		// AI content moderation before posting (fail-closed for safety)
 		diag.request('social', '/api/v1/moderate', {
 			contentType: 'comment',
@@ -148,8 +149,11 @@ export const CommentList = ({
 			})
 			toast.error(response.message || 'Failed to post comment')
 		}
-
-		setIsSubmitting(false)
+		} catch {
+			toast.error('Failed to post comment')
+		} finally {
+			setIsSubmitting(false)
+		}
 	}
 
 	if (loading) {

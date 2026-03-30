@@ -355,6 +355,7 @@ export const Comment = ({
 
 		setIsSubmittingReply(true)
 
+		try {
 		// AI content moderation before posting (fail-closed for safety)
 		diag.request('social', '/api/v1/moderate', {
 			contentType: 'comment',
@@ -446,8 +447,11 @@ export const Comment = ({
 			})
 			toast.error(response.message || 'Failed to post reply')
 		}
-
-		setIsSubmittingReply(false)
+		} catch {
+			toast.error('Failed to post reply')
+		} finally {
+			setIsSubmittingReply(false)
+		}
 	}
 
 	return (
