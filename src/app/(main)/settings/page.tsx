@@ -24,9 +24,7 @@ import {
 	Volume2,
 	Timer,
 	Sparkles,
-	Moon,
 	Sun,
-	Monitor,
 	Clock,
 	Eye,
 	ImagePlus,
@@ -92,7 +90,6 @@ import {
 	AllowMessagesFrom,
 	SkillLevel,
 	MeasurementUnits,
-	Theme,
 } from '@/lib/types/settings'
 
 // ============================================
@@ -230,17 +227,6 @@ const CUISINE_OPTIONS = [
 	'Mediterranean',
 	'American',
 	'Middle Eastern',
-]
-
-const THEME_OPTIONS: {
-	value: Theme
-	label: string
-	icon: typeof Sun
-	disabled?: boolean
-}[] = [
-	{ value: 'light', label: 'Light', icon: Sun },
-	{ value: 'dark', label: 'Dark', icon: Moon, disabled: true },
-	{ value: 'system', label: 'System', icon: Monitor, disabled: true },
 ]
 
 // ============================================
@@ -1696,13 +1682,12 @@ export default function SettingsPage() {
 								>
 									<SettingsCard
 										title='Theme'
-										description='Light mode is active. Dark and System modes coming soon.'
+										description='Your current visual theme.'
 									>
-										<ButtonGroup
-											options={THEME_OPTIONS}
-											value={settings.app.theme}
-											onChange={v => handleUpdateApp({ theme: v })}
-										/>
+										<div className='flex items-center gap-2 text-sm text-text-secondary'>
+											<Sun className='size-4 text-streak' />
+											<span className='font-medium text-text'>Light</span>
+										</div>
 									</SettingsCard>
 
 									<SettingsCard title='Sound & Motion'>

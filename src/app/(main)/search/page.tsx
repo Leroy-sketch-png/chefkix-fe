@@ -381,7 +381,7 @@ const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
 
 const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
 	id: doc.id,
-	imageUrl: doc.photoUrl || '/placeholder-post.jpg',
+	imageUrl: doc.photoUrl || '/placeholder-recipe.svg',
 	caption: doc.content || '',
 	author: {
 		username: doc.authorName || 'user',
