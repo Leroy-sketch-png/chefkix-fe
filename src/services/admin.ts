@@ -17,6 +17,7 @@ import type {
 	ReviewAppealRequest,
 } from '@/lib/types/admin'
 import type { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 const handleAdminError = <T>(
 	error: unknown,
@@ -43,6 +44,7 @@ export const getPendingReports = async (): Promise<ApiResponse<Report[]>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to load pending reports.')
 	}
 }
@@ -55,6 +57,7 @@ export const getAllReports = async (): Promise<ApiResponse<Report[]>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to load reports.')
 	}
 }
@@ -71,6 +74,7 @@ export const reviewReport = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to review report.')
 	}
 }
@@ -89,6 +93,7 @@ export const banUser = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to ban user.')
 	}
 }
@@ -103,6 +108,7 @@ export const getUserBans = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to load user bans.')
 	}
 }
@@ -117,6 +123,7 @@ export const revokeBan = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to revoke ban.')
 	}
 }
@@ -131,6 +138,7 @@ export const getPendingAppeals = async (): Promise<ApiResponse<Appeal[]>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to load pending appeals.')
 	}
 }
@@ -147,6 +155,7 @@ export const reviewAppeal = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		return handleAdminError(error, 'Failed to review appeal.')
 	}
 }

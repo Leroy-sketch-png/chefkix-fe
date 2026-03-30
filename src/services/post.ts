@@ -14,6 +14,7 @@ import { PlateRateResponse } from '@/lib/types/post'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 type PostPageData = {
 	content: Post[]
@@ -169,6 +170,7 @@ export const createPost = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Post>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -216,6 +218,7 @@ export const createGroupPost = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Post>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -241,6 +244,7 @@ export const getPostById = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Post>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -268,6 +272,7 @@ export const getSavedPosts = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Page<Post>>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -291,6 +296,7 @@ export const updatePost = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Post>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -312,6 +318,7 @@ export const deletePost = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -333,6 +340,7 @@ export const toggleLike = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ToggleLikeResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -374,6 +382,7 @@ export const getFollowingFeedPosts = async (params?: {
 		)
 		return mapPostPageResponse(response.data)
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PostPageData | Post[]>>
 		if (axiosError.response) {
 			return mapPostPageResponse(axiosError.response.data)
@@ -412,6 +421,7 @@ export const getFeedPosts = async (params?: {
 		)
 		return mapPostPageResponse(response.data)
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PostPageData | Post[]>>
 		if (axiosError.response) {
 			return mapPostPageResponse(axiosError.response.data)
@@ -438,6 +448,7 @@ export const toggleSave = async (
 		>(API_ENDPOINTS.POST.TOGGLE_SAVE(postId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{ isSaved: boolean; saveCount: number }>
 		>
@@ -463,6 +474,7 @@ export const votePoll = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PollVoteResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -486,6 +498,7 @@ export const ratePlate = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PlateRateResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -531,6 +544,7 @@ export const getPostsByUser = async (
 			data: posts,
 		}
 	} catch (error) {
+		logDevError('data failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -578,6 +592,7 @@ export const reportPost = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ReportResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data

@@ -10,6 +10,7 @@ import type {
 	FriendsActiveRoom,
 } from '@/lib/types/room'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // CO-COOKING ROOM SERVICE
@@ -27,6 +28,7 @@ export async function createRoom(
 		const response = await api.post(API_ENDPOINTS.COOKING_ROOMS.BASE, request)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		if (error instanceof AxiosError && error.response) {
 			return error.response.data
 		}
@@ -49,6 +51,7 @@ export async function joinRoom(
 		const response = await api.post(API_ENDPOINTS.COOKING_ROOMS.JOIN, request)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		if (error instanceof AxiosError && error.response) {
 			return error.response.data
 		}
@@ -70,6 +73,7 @@ export async function leaveRoom(
 		const response = await api.post(API_ENDPOINTS.COOKING_ROOMS.LEAVE(roomCode))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		if (error instanceof AxiosError && error.response) {
 			return error.response.data
 		}
@@ -91,6 +95,7 @@ export async function getRoom(
 		const response = await api.get(API_ENDPOINTS.COOKING_ROOMS.GET(roomCode))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		if (error instanceof AxiosError && error.response) {
 			return error.response.data
 		}
@@ -116,6 +121,7 @@ export async function inviteToRoom(
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		if (error instanceof AxiosError && error.response) {
 			return error.response.data
 		}
@@ -138,6 +144,7 @@ export async function getFriendsActiveRooms(): Promise<
 		const response = await api.get(API_ENDPOINTS.COOKING_ROOMS.FRIENDS_ACTIVE)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		if (error instanceof AxiosError && error.response) {
 			return error.response.data
 		}

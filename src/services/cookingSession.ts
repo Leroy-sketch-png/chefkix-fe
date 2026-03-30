@@ -2,6 +2,7 @@ import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { trackEvent } from '@/lib/eventTracker'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES - Based on implemented_spec/08-cooking-sessions.txt
@@ -159,6 +160,7 @@ export const startSession = async (
 		}
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<StartSessionResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -184,6 +186,7 @@ export const getCurrentSession = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CookingSession | null>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -208,6 +211,7 @@ export const getSessionById = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CookingSession>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -243,6 +247,7 @@ export const getSessionHistory = async (params?: {
 		>(API_BASE, { params })
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{
 				sessions: SessionHistoryItem[]
@@ -285,6 +290,7 @@ export const getPendingSessions = async (): Promise<
 			statusCode: response.statusCode || 500,
 		}
 	} catch (error) {
+		logDevError('pending failed:', error)
 		return {
 			success: false,
 			message: 'Failed to get pending sessions',
@@ -319,6 +325,7 @@ export const navigateStep = async (
 		>(`${API_BASE}/${sessionId}/navigate`, { action, targetStep })
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{
 				sessionId: string
@@ -366,6 +373,7 @@ export const completeStep = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CompleteStepResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -398,6 +406,7 @@ export const logTimerEvent = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<{ logged: boolean }>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -435,6 +444,7 @@ export const pauseSession = async (
 		>(`${API_BASE}/${sessionId}/pause`)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{
 				sessionId: string
@@ -476,6 +486,7 @@ export const resumeSession = async (
 		>(`${API_BASE}/${sessionId}/resume`)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{
 				sessionId: string
@@ -512,6 +523,7 @@ export const completeSession = async (
 		}
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CompleteSessionResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -539,6 +551,7 @@ export const linkPostToSession = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<LinkPostResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -567,6 +580,7 @@ export const abandonSession = async (
 		}
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<{ abandoned: boolean }>>
 		if (axiosError.response) {
 			return axiosError.response.data

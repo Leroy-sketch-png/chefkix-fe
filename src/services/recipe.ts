@@ -58,6 +58,7 @@ export const getAllRecipes = async (
 		})
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<PaginatedRecipeResponse>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -88,6 +89,7 @@ export const getRecipeById = async (
 		const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_ID(recipeId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -115,6 +117,7 @@ export const getRecipesByUserId = async (
 		})
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -144,6 +147,7 @@ export const getFeedRecipes = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<PaginatedRecipeResponse>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -171,6 +175,7 @@ export const getTrendingRecipes = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<PaginatedRecipeResponse>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -191,6 +196,7 @@ export const searchRecipes = async (
 		const response = await api.get(API_ENDPOINTS.RECIPES.SEARCH, { params })
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
 		if (axiosError.response) return axiosError.response.data
 		return { success: false, message: 'Search failed', statusCode: 500 }
@@ -208,6 +214,7 @@ export const getTonightsPick = async (): Promise<ApiResponse<Recipe>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -232,6 +239,7 @@ export const getSimilarRecipes = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<PaginatedRecipeResponse>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -255,6 +263,7 @@ export const getDraftRecipes = async (): Promise<
 		const response = await api.get(API_ENDPOINTS.RECIPES.DRAFTS)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<RecipeSummary[]>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -397,6 +406,7 @@ export const discardDraft = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -420,6 +430,7 @@ export const createRecipe = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -446,6 +457,7 @@ export const updateRecipe = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -470,6 +482,7 @@ export const deleteRecipe = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -494,6 +507,7 @@ export const toggleLikeRecipe = async (
 		>(API_ENDPOINTS.RECIPES.TOGGLE_LIKE(recipeId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{ isLiked: boolean; likeCount: number }>
 		>
@@ -520,6 +534,7 @@ export const toggleSaveRecipe = async (
 		>(API_ENDPOINTS.RECIPES.TOGGLE_SAVE(recipeId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{ isSaved: boolean; saveCount: number }>
 		>
@@ -547,6 +562,7 @@ export const getSavedRecipes = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -572,6 +588,7 @@ export const getLikedRecipes = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -601,6 +618,7 @@ export const publishRecipe = async (
 		})
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PublishResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -622,6 +640,7 @@ export const duplicateRecipe = async (
 		const response = await api.post(API_ENDPOINTS.RECIPES.DUPLICATE(recipeId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Recipe>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -646,6 +665,7 @@ export const uploadRecipeImages = async (
 		})
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string[]>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -684,6 +704,7 @@ export const uploadStepVideo = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<VideoUploadResult>>
 		if (axiosError.response) return axiosError.response.data
 		return {

@@ -1,6 +1,7 @@
 import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES - Based on implemented_spec/09-chat.txt
@@ -131,6 +132,7 @@ export const createConversation = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Conversation>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -155,6 +157,7 @@ export const getMyConversations = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Conversation[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -202,6 +205,7 @@ export const sharePostToConversation = async (
 
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ChatMessage>>
 
 		if (axiosError.response) {
@@ -233,6 +237,7 @@ export const sendMessage = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ChatMessage>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -258,6 +263,7 @@ export const getMessages = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ChatMessage[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -302,6 +308,7 @@ export const getOrCreateDirectConversation = async (
 			participantIds: [userId],
 		})
 	} catch (error) {
+		logDevError('unknown failed:', error)
 		return {
 			success: false,
 			message: 'Failed to get or create conversation',
@@ -323,6 +330,7 @@ export const getShareSuggestions = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ShareContactResponse[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -349,6 +357,7 @@ export const reactToMessage = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ChatMessage>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -373,6 +382,7 @@ export const deleteMessage = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ChatMessage>>
 		if (axiosError.response) {
 			return axiosError.response.data

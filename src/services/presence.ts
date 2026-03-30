@@ -6,6 +6,7 @@ import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 export interface PresenceInfo {
 	userId: string
@@ -28,6 +29,7 @@ export const sendHeartbeat = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) return axiosError.response.data
 		return { success: false, message: 'Heartbeat failed', statusCode: 500 }
@@ -43,6 +45,7 @@ export const getFriendsPresence = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PresenceInfo[]>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -62,6 +65,7 @@ export const getFriendsCookingNow = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PresenceInfo[]>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -79,6 +83,7 @@ export const goOffline = async (): Promise<ApiResponse<void>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) return axiosError.response.data
 		return {

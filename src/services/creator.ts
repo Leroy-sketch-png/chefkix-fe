@@ -7,6 +7,7 @@ import { api } from '@/lib/axios'
 import type { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES
@@ -120,6 +121,7 @@ export const getCreatorStats = async (): Promise<ApiResponse<CreatorStats>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CreatorStats>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -143,6 +145,7 @@ export const getCreatorPerformance = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<CreatorPerformanceResponse>
 		>
@@ -170,6 +173,7 @@ export const getRecentCooks = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<RecentCooksResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -221,6 +225,7 @@ export const getStepHeatmap = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<StepHeatmapResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {

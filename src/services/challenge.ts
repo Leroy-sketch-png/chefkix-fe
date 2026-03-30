@@ -2,6 +2,7 @@ import { api } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants/api'
 import { ApiResponse, Difficulty } from '@/lib/types'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES - Based on implemented_spec/12-challenges.txt
@@ -142,6 +143,7 @@ export const getTodaysChallenge = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<DailyChallenge>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -168,6 +170,7 @@ export const getChallengeHistory = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<ChallengeHistoryResponse>
 		>
@@ -205,6 +208,7 @@ export const getChallengeStats = async (): Promise<
 			statusCode: response.statusCode || 500,
 		}
 	} catch (error) {
+		logDevError('response failed:', error)
 		return {
 			success: false,
 			message: 'Failed to get challenge stats',
@@ -226,6 +230,7 @@ export const getWeeklyChallenge = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<WeeklyChallenge>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -250,6 +255,7 @@ export const getCommunityChallenges = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CommunityChallenge[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -274,6 +280,7 @@ export const getSeasonalChallenges = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<SeasonalChallenge[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
