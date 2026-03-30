@@ -159,6 +159,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							ref={saveButtonRef}
 							onClick={handleSaveClick}
 							disabled={isSaveLoading}
+							aria-label={isSaved ? 'Unsave recipe' : 'Save recipe'}
 							className={`absolute right-2 top-2 grid size-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 								isSaved
 									? 'bg-gold/10 text-gold'

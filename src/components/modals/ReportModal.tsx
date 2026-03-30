@@ -231,6 +231,7 @@ export const ReportModal = ({
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
 											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											aria-label='Close report form'
 										>
 											<X className='size-4' />
 										</motion.button>
@@ -319,7 +320,9 @@ export const ReportModal = ({
 												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
 											/>
 											{details.length > 0 && (
-												<p className='mt-1 text-right text-xs text-text-muted'>{details.length}/1000</p>
+												<p className='mt-1 text-right text-xs text-text-muted'>
+													{details.length}/1000
+												</p>
 											)}
 										</div>
 
@@ -703,6 +706,7 @@ export const AppealModal = ({
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
 											className='flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											aria-label='Close appeal form'
 										>
 											<X className='h-5 w-5' />
 										</motion.button>

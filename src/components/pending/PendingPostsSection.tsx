@@ -141,6 +141,7 @@ const SinglePendingPost = ({
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
+						aria-label='Dismiss pending posts prompt'
 					>
 						<X className='h-4 w-4 text-text-secondary' />
 					</motion.button>
@@ -508,6 +509,7 @@ export const PendingExpandedModal = ({
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
+									aria-label='Close pending posts'
 								>
 									<X className='h-5 w-5 text-text-secondary' />
 								</motion.button>

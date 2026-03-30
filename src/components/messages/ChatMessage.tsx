@@ -162,6 +162,7 @@ const MessageActions = ({
 				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand'
 				whileHover={{ scale: 1.1 }}
 				whileTap={{ scale: 0.95 }}
+				aria-label='React to message'
 			>
 				<Heart className='h-4 w-4' />
 			</motion.button>
@@ -170,6 +171,7 @@ const MessageActions = ({
 				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 				whileHover={{ scale: 1.1 }}
 				whileTap={{ scale: 0.95 }}
+				aria-label='Reply to message'
 			>
 				<Reply className='h-4 w-4' />
 			</motion.button>
@@ -178,6 +180,7 @@ const MessageActions = ({
 				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 				whileHover={{ scale: 1.1 }}
 				whileTap={{ scale: 0.95 }}
+				aria-label='Copy message'
 			>
 				<Copy className='h-4 w-4' />
 			</motion.button>
@@ -187,6 +190,7 @@ const MessageActions = ({
 					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
 					whileHover={{ scale: 1.1 }}
 					whileTap={{ scale: 0.95 }}
+					aria-label='Delete message'
 				>
 					<Trash2 className='h-4 w-4' />
 				</motion.button>

@@ -697,6 +697,7 @@ export default function MessagesPage() {
 								size='icon'
 								onClick={handleBackToList}
 								className='md:hidden'
+								aria-label='Back to conversations'
 							>
 								<ArrowLeft className='size-5' />
 							</Button>
@@ -724,6 +725,7 @@ export default function MessagesPage() {
 									size='icon'
 									onClick={() => setIsVideoCallActive(true)}
 									className='text-brand hover:bg-brand/10'
+									aria-label='Start video call'
 								>
 									<Phone className='size-5' />
 								</Button>
@@ -740,6 +742,7 @@ export default function MessagesPage() {
 											size='icon'
 											className='absolute -top-3 -right-3 z-[60] bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
 											onClick={() => setIsVideoCallActive(false)}
+											aria-label='End video call'
 										>
 											<X className='size-5' />
 										</Button>

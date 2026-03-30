@@ -507,6 +507,7 @@ function RecipePerformanceSection({
 										onImproveRecipe(recipe.id)
 									}}
 									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-text'
+									aria-label='Improve recipe'
 								>
 									<Edit3 className='size-4' />
 								</motion.button>
@@ -673,6 +674,7 @@ export function CreatorDashboard({
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
 						className='w-10 h-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text'
+						aria-label='Go back'
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>

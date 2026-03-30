@@ -621,6 +621,7 @@ const OwnProfileHeader = ({
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
+						aria-label='Share profile'
 					>
 						<Share2 className='size-4' />
 					</motion.button>

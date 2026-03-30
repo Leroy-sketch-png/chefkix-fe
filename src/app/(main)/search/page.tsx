@@ -189,6 +189,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 							onClick={handleSave}
 							whileHover={ICON_BUTTON_HOVER}
 							whileTap={ICON_BUTTON_TAP}
+							aria-label={saved ? 'Unsave recipe' : 'Save recipe'}
 							className={cn(
 								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
 								saved

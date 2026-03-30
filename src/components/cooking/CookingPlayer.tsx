@@ -1483,6 +1483,7 @@ export const CookingPlayer = () => {
 										whileTap={ICON_BUTTON_TAP}
 										className='grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
 										title='Minimize to mini-bar (Esc)'
+										aria-label='Minimize to mini-bar'
 									>
 										<X className='size-5' />
 									</motion.button>

@@ -232,6 +232,7 @@ export const SharePostModal = ({
 									className='grid size-8 flex-shrink-0 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9'
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
+									aria-label='Close share modal'
 								>
 									<X className='size-4 sm:size-5' />
 								</motion.button>
