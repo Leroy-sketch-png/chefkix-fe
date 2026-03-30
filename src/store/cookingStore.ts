@@ -728,7 +728,8 @@ export const useCookingStore = create<CookingState>()(
 				try {
 					const response = await apiAbandonSession(session.sessionId)
 					if (response.success) {
-						set({ session: null, recipe: null, localTimers: new Map() })
+						set({ session: null, recipe: null, localTimers: new Map(), checkedIngredients: {}, interactionMode: null })
+						toast.info('Session abandoned')
 					} else {
 						logDevError('Failed to abandon session:', response.message)
 						toast.error('Failed to abandon session. Please try again.')
@@ -1049,7 +1050,7 @@ export const useCookingStore = create<CookingState>()(
 		}),
 		{
 			name: 'chefkix-cooking-session',
-			// Only persist session IDs and checklist state, not full data
+			// Persist session IDs, checklist state, and active timers
 			partialize: state => ({
 				session: state.session
 					? {
@@ -1058,7 +1059,26 @@ export const useCookingStore = create<CookingState>()(
 						}
 					: null,
 				checkedIngredients: state.checkedIngredients,
+				localTimers: Array.from(state.localTimers.entries()),
 			}),
+			merge: (persisted: unknown, currentState: CookingState) => {
+				const p = persisted as Partial<CookingState & { localTimers: [number, { initialDuration: number; startedAt: number; remaining: number }][] }>
+				const timersArray = Array.isArray(p?.localTimers) ? p.localTimers : []
+				const now = Date.now()
+				const rehydratedTimers = new Map<number, { initialDuration: number; startedAt: number; remaining: number }>()
+				for (const [step, timer] of timersArray) {
+					const elapsed = Math.floor((now - timer.startedAt) / 1000)
+					const remaining = Math.max(0, timer.initialDuration - elapsed)
+					if (remaining > 0) {
+						rehydratedTimers.set(step, { ...timer, remaining })
+					}
+				}
+				return {
+					...currentState,
+					...p,
+					localTimers: rehydratedTimers,
+				}
+			},
 		},
 	),
 )

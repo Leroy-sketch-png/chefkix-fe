@@ -8,6 +8,11 @@ import {
 } from '@/lib/types/mealplan'
 import { API_ENDPOINTS } from '@/constants'
 
+function requireData<T>(data: T | undefined | null, label: string): T {
+	if (data == null) throw new Error(`No data returned from ${label}`)
+	return data
+}
+
 export async function generateMealPlan(
 	req: GenerateMealPlanRequest,
 	useAI = false,
@@ -17,21 +22,21 @@ export async function generateMealPlan(
 		req,
 		{ params: useAI ? { useAI: true } : undefined },
 	)
-	return res.data.data!
+	return requireData(res.data.data, 'generate meal plan')
 }
 
-export async function getCurrentMealPlan(): Promise<MealPlan> {
+export async function getCurrentMealPlan(): Promise<MealPlan | null> {
 	const res = await api.get<ApiResponse<MealPlan>>(
 		API_ENDPOINTS.MEAL_PLANS.CURRENT,
 	)
-	return res.data.data!
+	return res.data.data ?? null
 }
 
 export async function getMealPlanById(id: string): Promise<MealPlan> {
 	const res = await api.get<ApiResponse<MealPlan>>(
 		API_ENDPOINTS.MEAL_PLANS.GET(id),
 	)
-	return res.data.data!
+	return requireData(res.data.data, 'get meal plan')
 }
 
 export async function deleteMealPlan(id: string): Promise<void> {
@@ -48,7 +53,7 @@ export async function swapMeal(
 		API_ENDPOINTS.MEAL_PLANS.SWAP_MEAL(planId, day, mealType),
 		req,
 	)
-	return res.data.data!
+	return requireData(res.data.data, 'swap meal')
 }
 
 export async function getShoppingList(planId: string): Promise<ShoppingItem[]> {

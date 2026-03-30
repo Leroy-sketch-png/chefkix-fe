@@ -63,7 +63,7 @@ export interface Step {
 export interface Author {
 	userId: string
 	username: string
-	displayName: string
+	displayName?: string | null
 	avatarUrl?: string
 }
 

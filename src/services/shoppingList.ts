@@ -9,14 +9,10 @@ import {
 	AddCustomItemRequest,
 } from '@/lib/types/shoppingList'
 import { API_ENDPOINTS } from '@/constants'
-import type { AxiosError } from 'axios'
 
-function handleError<T>(error: unknown): T {
-	const axiosError = error as AxiosError<ApiResponse<T>>
-	if (axiosError.response?.data) {
-		throw axiosError.response.data
-	}
-	throw error
+function requireData<T>(data: T | undefined | null, label: string): T {
+	if (data == null) throw new Error(`No data returned from ${label}`)
+	return data
 }
 
 // ── Create ──────────────────────────────────────────────────────
@@ -24,82 +20,58 @@ function handleError<T>(error: unknown): T {
 export async function createFromMealPlan(
 	req: CreateFromMealPlanRequest,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.post<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.FROM_MEAL_PLAN,
-			req,
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.post<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.FROM_MEAL_PLAN,
+		req,
+	)
+	return requireData(res.data.data, 'create from meal plan')
 }
 
 export async function createFromRecipe(
 	req: CreateFromRecipeRequest,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.post<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.FROM_RECIPE,
-			req,
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.post<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.FROM_RECIPE,
+		req,
+	)
+	return requireData(res.data.data, 'create from recipe')
 }
 
 export async function createCustomList(
 	req: CreateCustomListRequest,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.post<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.CUSTOM,
-			req,
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.post<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.CUSTOM,
+		req,
+	)
+	return requireData(res.data.data, 'create custom list')
 }
 
 // ── Read ────────────────────────────────────────────────────────
 
 export async function getUserShoppingLists(): Promise<ShoppingListSummary[]> {
-	try {
-		const res = await api.get<ApiResponse<ShoppingListSummary[]>>(
-			API_ENDPOINTS.SHOPPING_LISTS.BASE,
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.get<ApiResponse<ShoppingListSummary[]>>(
+		API_ENDPOINTS.SHOPPING_LISTS.BASE,
+	)
+	return res.data.data ?? []
 }
 
 export async function getShoppingListById(
 	id: string,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.get<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.GET(id),
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.get<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.GET(id),
+	)
+	return requireData(res.data.data, 'get shopping list')
 }
 
 export async function getSharedShoppingList(
 	shareToken: string,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.get<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.SHARED(shareToken),
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.get<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.SHARED(shareToken),
+	)
+	return requireData(res.data.data, 'get shared shopping list')
 }
 
 // ── Item Operations ─────────────────────────────────────────────
@@ -108,53 +80,37 @@ export async function toggleShoppingItem(
 	listId: string,
 	itemId: string,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.put<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.TOGGLE_ITEM(listId, itemId),
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.put<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.TOGGLE_ITEM(listId, itemId),
+	)
+	return requireData(res.data.data, 'toggle shopping item')
 }
 
 export async function addCustomItem(
 	listId: string,
 	req: AddCustomItemRequest,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.post<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.ADD_ITEM(listId),
-			req,
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.post<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.ADD_ITEM(listId),
+		req,
+	)
+	return requireData(res.data.data, 'add custom item')
 }
 
 export async function removeShoppingItem(
 	listId: string,
 	itemId: string,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.delete<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.REMOVE_ITEM(listId, itemId),
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.delete<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.REMOVE_ITEM(listId, itemId),
+	)
+	return requireData(res.data.data, 'remove shopping item')
 }
 
 // ── Delete ──────────────────────────────────────────────────────
 
 export async function deleteShoppingList(listId: string): Promise<void> {
-	try {
-		await api.delete(API_ENDPOINTS.SHOPPING_LISTS.DELETE(listId))
-	} catch (error) {
-		handleError(error)
-	}
+	await api.delete(API_ENDPOINTS.SHOPPING_LISTS.DELETE(listId))
 }
 
 // ── Share ───────────────────────────────────────────────────────
@@ -162,14 +118,10 @@ export async function deleteShoppingList(listId: string): Promise<void> {
 export async function regenerateShareToken(
 	listId: string,
 ): Promise<ShoppingListResponse> {
-	try {
-		const res = await api.post<ApiResponse<ShoppingListResponse>>(
-			API_ENDPOINTS.SHOPPING_LISTS.SHARE(listId),
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.post<ApiResponse<ShoppingListResponse>>(
+		API_ENDPOINTS.SHOPPING_LISTS.SHARE(listId),
+	)
+	return requireData(res.data.data, 'regenerate share token')
 }
 
 // ── Commerce (W5.5+W5.8: Grocery Affiliate) ────────────────────
@@ -189,26 +141,18 @@ export interface CheckoutResult {
 }
 
 export async function getGroceryProviders(): Promise<GroceryProviderInfo[]> {
-	try {
-		const res = await api.get<ApiResponse<GroceryProviderInfo[]>>(
-			`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/grocery-providers`,
-		)
-		return res.data.data ?? []
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.get<ApiResponse<GroceryProviderInfo[]>>(
+		`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/grocery-providers`,
+	)
+	return res.data.data ?? []
 }
 
 export async function checkoutShoppingList(
 	listId: string,
 	provider: string = 'affiliate',
 ): Promise<CheckoutResult> {
-	try {
-		const res = await api.post<ApiResponse<CheckoutResult>>(
-			`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/${listId}/checkout?provider=${encodeURIComponent(provider)}`,
-		)
-		return res.data.data!
-	} catch (error) {
-		return handleError(error)
-	}
+	const res = await api.post<ApiResponse<CheckoutResult>>(
+		`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/${listId}/checkout?provider=${encodeURIComponent(provider)}`,
+	)
+	return requireData(res.data.data, 'checkout shopping list')
 }

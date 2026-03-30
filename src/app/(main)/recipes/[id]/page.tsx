@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getRecipeById,
 	toggleLikeRecipe,
 	toggleSaveRecipe,
+	deleteRecipe,
 } from '@/services/recipe'
 import { trackEvent } from '@/lib/eventTracker'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -34,7 +35,6 @@ import {
 	Check,
 	Edit3,
 	Rocket,
-	MoreHorizontal,
 	Info,
 	Timer,
 	UtensilsCrossed,
@@ -42,6 +42,7 @@ import {
 	AlertCircle,
 	Sparkles,
 	Flame,
+	Trash2,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -144,37 +145,39 @@ export default function RecipeDetailPage() {
 	const [remixResult, setRemixResult] = useState<RemixRecipeResponse | null>(
 		null,
 	)
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 
 	// Check if current user is the recipe owner
 	const isOwner = user?.userId === recipe?.author?.userId
 
-	useEffect(() => {
-		const fetchRecipe = async () => {
-			setIsLoading(true)
-			setError(null)
-			try {
-				const response = await getRecipeById(recipeId)
-				if (response.success && response.data) {
-					setRecipe(response.data)
-					setIsLiked(response.data.isLiked ?? false)
-					setIsSaved(response.data.isSaved ?? false)
-					setLikeCount(response.data.likeCount)
-					setSaveCount(response.data.saveCount)
-					trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
-				} else {
-					setError('Recipe not found')
-				}
-			} catch (err) {
-				setError('Failed to load recipe')
-			} finally {
-				setIsLoading(false)
+	const fetchRecipe = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const response = await getRecipeById(recipeId)
+			if (response.success && response.data) {
+				setRecipe(response.data)
+				setIsLiked(response.data.isLiked ?? false)
+				setIsSaved(response.data.isSaved ?? false)
+				setLikeCount(response.data.likeCount)
+				setSaveCount(response.data.saveCount)
+				trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
+			} else {
+				setError('Recipe not found')
 			}
+		} catch (err) {
+			setError('Failed to load recipe')
+		} finally {
+			setIsLoading(false)
 		}
+	}, [recipeId])
 
+	useEffect(() => {
 		if (recipeId) {
 			fetchRecipe()
 		}
-	}, [recipeId])
+	}, [recipeId, fetchRecipe])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
@@ -399,6 +402,25 @@ export default function RecipeDetailPage() {
 		}
 	}
 
+	const handleDeleteRecipe = useCallback(async () => {
+		if (isDeleting) return
+		setIsDeleting(true)
+		try {
+			const response = await deleteRecipe(recipeId)
+			if (response.success) {
+				toast.success('Recipe deleted')
+				router.push('/profile')
+			} else {
+				toast.error(response.message || 'Failed to delete recipe')
+			}
+		} catch {
+			toast.error('Failed to delete recipe')
+		} finally {
+			setIsDeleting(false)
+			setShowDeleteConfirm(false)
+		}
+	}, [isDeleting, recipeId, router])
+
 	// Keyboard shortcuts: Enter=cook, S=save, L=like, Esc=back
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -411,7 +433,7 @@ export default function RecipeDetailPage() {
 			}
 
 			// Ignore when menus or modals are open
-			if (showRemixMenu || remixResult) {
+			if (showRemixMenu || remixResult || showDeleteConfirm) {
 				return
 			}
 
@@ -461,6 +483,7 @@ export default function RecipeDetailPage() {
 		handleLike,
 		showRemixMenu,
 		remixResult,
+		showDeleteConfirm,
 	])
 
 	if (isLoading) {
@@ -474,7 +497,7 @@ export default function RecipeDetailPage() {
 					<ErrorState
 						title='Recipe not found'
 						message={error || 'The recipe you are looking for does not exist.'}
-						onRetry={() => router.push('/explore')}
+						onRetry={fetchRecipe}
 						showHomeButton
 					/>
 				</PageContainer>
@@ -641,7 +664,7 @@ export default function RecipeDetailPage() {
 										</div>
 										<div>
 											<p className='font-semibold text-text group-hover/author:text-brand'>
-												{recipe.author.displayName}
+												{recipe.author.displayName || recipe.author.username || 'Unknown'}
 											</p>
 											<p className='text-sm text-text-muted'>
 												@{recipe.author.username}
@@ -925,12 +948,21 @@ export default function RecipeDetailPage() {
 									>
 										<Edit3 className='size-5' />
 									</motion.button>
+									<motion.button
+										onClick={() => setShowDeleteConfirm(true)}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-error hover:bg-error/10'
+										title='Delete Recipe'
+									>
+										<Trash2 className='size-5 text-error' />
+									</motion.button>
 								</>
 							)}
 						</motion.div>
 
 						{/* Tags */}
-						{(recipe.cuisineType || recipe.dietaryTags.length > 0) && (
+						{(recipe.cuisineType || (recipe.dietaryTags?.length ?? 0) > 0) && (
 							<motion.div
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
@@ -942,7 +974,7 @@ export default function RecipeDetailPage() {
 										{recipe.cuisineType}
 									</span>
 								)}
-								{recipe.dietaryTags.map(tag => (
+								{recipe.dietaryTags?.map(tag => (
 									<span
 										key={tag}
 										className='rounded-full bg-bg-elevated px-4 py-1.5 text-sm font-medium text-text-secondary'
@@ -1331,6 +1363,45 @@ export default function RecipeDetailPage() {
 						</motion.div>
 					</motion.div>
 				</Portal>
+			)}
+
+			{/* Delete Confirmation */}
+			{showDeleteConfirm && (
+				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+					<motion.div
+						initial={{ opacity: 0, scale: 0.95 }}
+						animate={{ opacity: 1, scale: 1 }}
+						className='mx-4 w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-lg'
+					>
+						<h3 className='mb-2 text-lg font-bold text-text'>Delete Recipe?</h3>
+						<p className='mb-6 text-sm text-text-secondary'>
+							This action cannot be undone. The recipe and all associated data will be permanently deleted.
+						</p>
+						<div className='flex gap-3'>
+							<Button
+								variant='outline'
+								className='flex-1'
+								onClick={() => setShowDeleteConfirm(false)}
+								disabled={isDeleting}
+							>
+								Cancel
+							</Button>
+							<Button
+								variant='destructive'
+								className='flex-1'
+								onClick={handleDeleteRecipe}
+								disabled={isDeleting}
+							>
+								{isDeleting ? (
+									<Loader2 className='mr-2 size-4 animate-spin' />
+								) : (
+									<Trash2 className='mr-2 size-4' />
+								)}
+								Delete
+							</Button>
+						</div>
+					</motion.div>
+				</div>
 			)}
 		</PageTransition>
 	)

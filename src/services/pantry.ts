@@ -31,7 +31,9 @@ export async function addPantryItem(
 		API_ENDPOINTS.PANTRY.BASE,
 		item,
 	)
-	return res.data.data!
+	const data = res.data.data
+	if (!data) throw new Error('No data returned from add pantry item')
+	return data
 }
 
 export async function bulkAddPantryItems(
@@ -53,7 +55,9 @@ export async function updatePantryItem(
 		API_ENDPOINTS.PANTRY.UPDATE(id),
 		item,
 	)
-	return res.data.data!
+	const data = res.data.data
+	if (!data) throw new Error('No data returned from update pantry item')
+	return data
 }
 
 export async function deletePantryItem(id: string): Promise<void> {
