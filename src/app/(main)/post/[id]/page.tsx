@@ -86,8 +86,8 @@ export default function PostDetailPage() {
 					message={
 						error || 'This post may have been deleted or is not available.'
 					}
-					showHomeButton={false}
-					onRetry={() => router.push('/dashboard')}
+					showHomeButton
+					onRetry={fetchPost}
 				/>
 			</PageContainer>
 		)
