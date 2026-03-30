@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Copy,
@@ -40,6 +40,7 @@ export default function ReferralCard() {
 	const [copied, setCopied] = useState(false)
 	const [redeemInput, setRedeemInput] = useState('')
 	const [isRedeeming, setIsRedeeming] = useState(false)
+	const redeemLockRef = useRef(false)
 
 	const loadData = useCallback(async () => {
 		try {
@@ -97,7 +98,8 @@ export default function ReferralCard() {
 
 	const handleRedeem = useCallback(async () => {
 		const code = redeemInput.trim().toUpperCase()
-		if (!code) return
+		if (!code || redeemLockRef.current) return
+		redeemLockRef.current = true
 		setIsRedeeming(true)
 		try {
 			const result = await redeemReferralCode({ code })
@@ -111,6 +113,7 @@ export default function ReferralCard() {
 		} catch {
 			toast.error('Failed to redeem code')
 		} finally {
+			redeemLockRef.current = false
 			setIsRedeeming(false)
 		}
 	}, [redeemInput, loadData])
@@ -143,8 +146,7 @@ export default function ReferralCard() {
 
 				<p className='mb-4 text-sm text-text-secondary'>
 					Share your code with friends. You both get{' '}
-					<span className='font-semibold text-xp'>+100 XP</span> when they
-					join!
+					<span className='font-semibold text-xp'>+100 XP</span> when they join!
 				</p>
 
 				{codeData && (
@@ -208,9 +210,7 @@ export default function ReferralCard() {
 						<div className='flex size-8 items-center justify-center rounded-lg bg-xp/10'>
 							<Trophy className='size-4 text-xp' />
 						</div>
-						<h3 className='text-lg font-semibold text-text'>
-							Referral Stats
-						</h3>
+						<h3 className='text-lg font-semibold text-text'>Referral Stats</h3>
 					</div>
 
 					<div className='mb-4 grid grid-cols-2 gap-3'>

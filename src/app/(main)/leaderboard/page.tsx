@@ -43,6 +43,8 @@ export default function LeaderboardRoute() {
 	const [retryKey, setRetryKey] = useState(0)
 
 	useEffect(() => {
+		let cancelled = false
+
 		const fetchLeaderboard = async () => {
 			setIsLoading(true)
 			try {
@@ -51,6 +53,8 @@ export default function LeaderboardRoute() {
 					timeframe: timeframe as LeaderboardTimeframe,
 					limit: 50,
 				})
+
+				if (cancelled) return
 
 				if (response.success && response.data) {
 					// Transform API response to component format
@@ -80,14 +84,18 @@ export default function LeaderboardRoute() {
 					}
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch leaderboard:', err)
 				setError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchLeaderboard()
+		return () => {
+			cancelled = true
+		}
 	}, [type, timeframe, retryKey])
 
 	// Calculate reset timer (weekly resets on Sunday midnight UTC)

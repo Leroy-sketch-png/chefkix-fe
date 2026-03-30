@@ -372,7 +372,7 @@ export default function VideoCall({
 
 	// --- Render UI ---
 	return (
-		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-card border border-gray-200 w-full max-w-4xl mx-auto relative'>
+		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-card border border-border-subtle w-full max-w-4xl mx-auto relative'>
 			{/* Incoming Call Overlay */}
 			{isReceivingCall && !isCallActive && (
 				<div className='absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl'>
@@ -431,7 +431,7 @@ export default function VideoCall({
 			<h2 className='text-2xl font-semibold text-primary mb-2'>Video Call</h2>
 
 			{/* Media Stage */}
-			<div className='relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
+			<div className='relative w-full aspect-video bg-bg-inverse rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
 				{/* Remote Video (Large / Background) */}
 				<video
 					ref={remoteVideoRef}
@@ -441,7 +441,7 @@ export default function VideoCall({
 				/>
 
 				{/* Local Video (Small Picture-in-Picture / Bottom Right) */}
-				<div className='absolute bottom-4 right-4 w-1/4 max-w-[200px] aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-brand shadow-lg'>
+				<div className='absolute bottom-4 right-4 w-1/4 max-w-[200px] aspect-video bg-bg-elevated rounded-lg overflow-hidden border-2 border-brand shadow-lg'>
 					<video
 						ref={localVideoRef}
 						autoPlay
@@ -453,7 +453,7 @@ export default function VideoCall({
 
 				{/* Fallback text when there's no call active */}
 				{!isCallActive && (
-					<div className='absolute inset-0 flex items-center justify-center text-gray-500 font-medium'>
+					<div className='absolute inset-0 flex items-center justify-center text-text-muted font-medium'>
 						Waiting for video connection...
 					</div>
 				)}
@@ -488,7 +488,7 @@ export default function VideoCall({
 						disabled={!isCameraOn || !isJoined}
 						className={`px-4 py-2 text-white rounded-md ${
 							!isCameraOn || !isJoined
-								? 'bg-gray-400 cursor-not-allowed'
+								? 'bg-text-muted cursor-not-allowed'
 								: 'bg-green-500 hover:bg-green-600'
 						}`}
 					>

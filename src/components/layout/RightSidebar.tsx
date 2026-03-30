@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakWidget } from '@/components/streak'
 import { ExpandableDailyChallengeBanner } from '@/components/challenges'
@@ -79,6 +79,7 @@ export const RightSidebar = () => {
 	const router = useRouter()
 	usePresence() // Send heartbeat while sidebar is mounted
 	const [followedIds, setFollowedIds] = useState<string[]>([])
+	const followingLockRef = useRef(new Set<string>())
 	const [suggestions, setSuggestions] = useState<Profile[]>([])
 	const [cookDates, setCookDates] = useState<Date[]>([])
 	const [dailyChallenge, setDailyChallenge] = useState<{
@@ -142,6 +143,8 @@ export const RightSidebar = () => {
 	}, [user]) // Re-fetch when user changes (login/logout)
 
 	const handleFollow = async (userId: string) => {
+		if (followingLockRef.current.has(userId)) return
+		followingLockRef.current.add(userId)
 		// Optimistic UI update
 		setFollowedIds(prev =>
 			prev.includes(userId)
@@ -166,6 +169,8 @@ export const RightSidebar = () => {
 					: [...prev, userId],
 			)
 			logDevError('Failed to toggle follow:', err)
+		} finally {
+			followingLockRef.current.delete(userId)
 		}
 	}
 
@@ -211,7 +216,11 @@ export const RightSidebar = () => {
 			{dailyChallenge && (
 				<ExpandableDailyChallengeBanner
 					challenge={dailyChallenge}
-					onFindRecipe={() => router.push(`/explore?search=${encodeURIComponent(dailyChallenge.title)}`)}
+					onFindRecipe={() =>
+						router.push(
+							`/explore?search=${encodeURIComponent(dailyChallenge.title)}`,
+						)
+					}
 				/>
 			)}
 
