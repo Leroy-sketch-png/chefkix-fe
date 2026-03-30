@@ -403,7 +403,9 @@ export default function MessagesPage() {
 		}
 
 		initializeChat()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [targetUserId, retryCount])
 
 	// Fetch messages when conversation changes
@@ -435,7 +437,9 @@ export default function MessagesPage() {
 		fetchMessages()
 		// Focus input
 		setTimeout(() => inputRef.current?.focus(), 100)
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [selectedConversationId])
 
 	// Track scroll position to decide auto-scroll behavior
@@ -610,7 +614,12 @@ export default function MessagesPage() {
 			>
 				{/* Sidebar Header */}
 				<header className='flex-shrink-0 border-b border-border-subtle p-4'>
-					<h1 className='text-2xl font-bold text-text'>Messages</h1>
+					<div className='mb-3 flex items-center gap-3'>
+						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25'>
+							<MessageCircle className='size-5 text-white' />
+						</div>
+						<h1 className='text-2xl font-bold text-text'>Messages</h1>
+					</div>
 					{/* Search */}
 					<div className='relative mt-3'>
 						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
