@@ -128,6 +128,7 @@ export const MobileBottomNav = () => {
 						<Link
 							key={item.href}
 							href={item.href}
+							aria-current={active ? 'page' : undefined}
 							className={cn(
 								'group relative flex flex-1 max-w-20 flex-col items-center justify-center gap-1 rounded-radius px-3 py-2',
 								active ? 'text-primary' : 'text-text-secondary',
@@ -217,6 +218,7 @@ export const MobileBottomNav = () => {
 								<span className='text-lg font-bold text-text'>More</span>
 								<button
 									onClick={() => setShowMore(false)}
+									aria-label='Close menu'
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 								>
 									<X className='size-5' />

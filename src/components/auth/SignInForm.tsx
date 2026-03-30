@@ -28,7 +28,7 @@ import { PATHS } from '@/constants'
 import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 
 const formSchema = z.object({
@@ -196,6 +196,10 @@ export function SignInForm() {
 									<FormControl>
 										<Input
 											placeholder='yourname or chef@email.com'
+											autoComplete='username'
+											autoCapitalize='none'
+											autoCorrect='off'
+											spellCheck={false}
 											{...field}
 											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
@@ -215,6 +219,7 @@ export function SignInForm() {
 									<FormControl>
 										<PasswordInput
 											placeholder='password'
+											autoComplete='current-password'
 											{...field}
 											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
