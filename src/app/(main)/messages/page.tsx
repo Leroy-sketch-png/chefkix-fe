@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
@@ -264,7 +264,7 @@ function ConnectionStatus({
 // MAIN COMPONENT
 // ============================================
 
-export default function MessagesPage() {
+function MessagesContent() {
 	const { user } = useAuth()
 	const searchParams = useSearchParams()
 	const targetUserId = searchParams.get('userId')
@@ -886,5 +886,19 @@ export default function MessagesPage() {
 				)}
 			</main>
 		</div>
+	)
+}
+
+export default function MessagesPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className='flex min-h-panel-md items-center justify-center'>
+					<Loader2 className='size-8 animate-spin text-primary' />
+				</div>
+			}
+		>
+			<MessagesContent />
+		</Suspense>
 	)
 }

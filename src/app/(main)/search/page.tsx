@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -17,6 +17,7 @@ import {
 	X,
 	History,
 	TrendingUp,
+	Loader2,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -404,7 +405,7 @@ const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
 // PAGE
 // ============================================
 
-export default function SearchPage() {
+function SearchContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const query = searchParams.get('q') || ''
@@ -813,5 +814,21 @@ export default function SearchPage() {
 				</AnimatePresence>
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+export default function SearchPage() {
+	return (
+		<Suspense
+			fallback={
+				<PageContainer maxWidth='lg'>
+					<div className='flex min-h-panel-md items-center justify-center'>
+						<Loader2 className='size-8 animate-spin text-primary' />
+					</div>
+				</PageContainer>
+			}
+		>
+			<SearchContent />
+		</Suspense>
 	)
 }

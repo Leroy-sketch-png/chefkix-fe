@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
@@ -56,7 +56,7 @@ interface LocalDraft {
  *
  * However, when editing a draft or creating new, show a back button to return to drafts.
  */
-export default function CreateRecipePage() {
+function CreateRecipeContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const urlDraftId = searchParams.get('draftId')
@@ -123,7 +123,9 @@ export default function CreateRecipePage() {
 			}
 		}
 		loadUrlDraft()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [urlDraftId])
 
 	// Check for local draft on mount
@@ -365,5 +367,21 @@ export default function CreateRecipePage() {
 				</AlertDialog>
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+export default function CreateRecipePage() {
+	return (
+		<Suspense
+			fallback={
+				<PageContainer maxWidth='lg'>
+					<div className='flex min-h-panel-md items-center justify-center'>
+						<Loader2 className='size-8 animate-spin text-primary' />
+					</div>
+				</PageContainer>
+			}
+		>
+			<CreateRecipeContent />
+		</Suspense>
 	)
 }

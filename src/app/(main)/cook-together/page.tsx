@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -16,9 +16,10 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
+import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-export default function CookTogetherPage() {
+function CookTogetherContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [roomCodeInput, setRoomCodeInput] = useState('')
@@ -67,7 +68,9 @@ export default function CookTogetherPage() {
 				}
 			}
 			autoJoin()
-			return () => { cancelled = true }
+			return () => {
+				cancelled = true
+			}
 		}
 	}, [searchParams, isInRoom, isJoining, joinRoom, router])
 
@@ -317,5 +320,21 @@ export default function CookTogetherPage() {
 				</motion.div>
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+export default function CookTogetherPage() {
+	return (
+		<Suspense
+			fallback={
+				<PageContainer maxWidth='lg'>
+					<div className='flex min-h-panel-md items-center justify-center'>
+						<Loader2 className='size-8 animate-spin text-primary' />
+					</div>
+				</PageContainer>
+			}
+		>
+			<CookTogetherContent />
+		</Suspense>
 	)
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { googleSignIn } from '@/services/auth'
@@ -8,7 +8,7 @@ import { getMyProfile } from '@/services/profile'
 import { AUTH_MESSAGES, PATHS } from '@/constants'
 import { logDevError } from '@/lib/dev-log'
 
-const GoogleCallbackPage = () => {
+const GoogleCallbackContent = () => {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const { login, setUser } = useAuth()
@@ -81,4 +81,16 @@ const GoogleCallbackPage = () => {
 	)
 }
 
-export default GoogleCallbackPage
+export default function GoogleCallbackPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className='flex min-h-screen flex-col items-center justify-center'>
+					<p className='text-lg font-semibold'>Loading...</p>
+				</div>
+			}
+		>
+			<GoogleCallbackContent />
+		</Suspense>
+	)
+}

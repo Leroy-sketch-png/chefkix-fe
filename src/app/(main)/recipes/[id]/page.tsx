@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
@@ -103,7 +103,7 @@ const DIFFICULTY_EXPLANATIONS: Record<
 	},
 }
 
-export default function RecipeDetailPage() {
+function RecipeDetailContent() {
 	const params = useParams()
 	const router = useRouter()
 	const searchParams = useSearchParams()
@@ -1491,5 +1491,21 @@ function RecipeDetailSkeleton() {
 				</motion.div>
 			</div>
 		</PageContainer>
+	)
+}
+
+export default function RecipeDetailPage() {
+	return (
+		<Suspense
+			fallback={
+				<PageContainer maxWidth='lg'>
+					<div className='flex min-h-panel-md items-center justify-center'>
+						<Loader2 className='size-8 animate-spin text-primary' />
+					</div>
+				</PageContainer>
+			}
+		>
+			<RecipeDetailContent />
+		</Suspense>
 	)
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getProfileByUserId } from '@/services/profile'
 import { useAuthStore } from '@/store/authStore'
@@ -15,7 +15,7 @@ import { toast } from 'sonner'
  * Supports ?tab= query param to navigate directly to a tab (recipes, posts, cooking, saved)
  * Must be a client component to access auth store for token in API calls.
  */
-const ProfilePage = () => {
+const ProfileContent = () => {
 	const params = useParams()
 	const searchParams = useSearchParams()
 	const userId = params.userId as string
@@ -96,4 +96,10 @@ const ProfilePage = () => {
 	)
 }
 
-export default ProfilePage
+export default function ProfilePage() {
+	return (
+		<Suspense fallback={<UserProfileSkeleton />}>
+			<ProfileContent />
+		</Suspense>
+	)
+}
