@@ -728,7 +728,9 @@ export default function SettingsPage() {
 			await logoutService()
 		} catch (error) {
 			logDevError('Logout error:', error)
+			toast.error('Could not fully sign out — clearing local session')
 		} finally {
+			// Always clear local state and redirect (security: never leave stale session)
 			logout()
 			router.push(PATHS.AUTH.SIGN_IN)
 		}

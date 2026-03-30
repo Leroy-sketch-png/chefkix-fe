@@ -30,6 +30,7 @@ interface TonightsPickProps {
 export const TonightsPick = ({ className }: TonightsPickProps) => {
 	const [recipe, setRecipe] = useState<Recipe | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
+	const [hasError, setHasError] = useState(false)
 
 	useEffect(() => {
 		const fetchPick = async () => {
@@ -40,6 +41,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 				}
 			} catch (err) {
 				logDevError("Failed to fetch Tonight's Pick:", err)
+				setHasError(true)
 			} finally {
 				setIsLoading(false)
 			}
@@ -51,7 +53,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		return (
 			<div
 				className={cn(
-					'animate-pulse rounded-2xl border border-border-subtle bg-bg-card shadow-card',
+					'animate-pulse rounded-2xl border border-border-subtle bg-bg-card',
 					className,
 				)}
 			>
@@ -75,7 +77,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		return (
 			<div
 				className={cn(
-					'relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-5 shadow-card',
+					'relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-5',
 					className,
 				)}
 			>
@@ -86,8 +88,9 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 					</span>
 				</div>
 				<p className='mt-2 text-sm text-text-secondary'>
-					No trending recipe yet — be the first to cook and inspire the
-					community!
+					{hasError
+						? "Couldn't load tonight's suggestion — try refreshing the page."
+						: 'No trending recipe yet \u2014 be the first to cook and inspire the community!'}
 				</p>
 				<Link
 					href='/explore'
@@ -108,7 +111,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 	return (
 		<motion.div
 			className={cn(
-				'group relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 shadow-card transition-all',
+				'group relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 transition-all',
 				className,
 			)}
 			whileHover={CARD_FEED_HOVER}

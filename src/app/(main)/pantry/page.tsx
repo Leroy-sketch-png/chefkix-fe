@@ -157,7 +157,7 @@ export default function PantryPage() {
 	// ── Quick Add ─────────────────────────────────────────
 
 	const handleQuickAdd = async () => {
-		if (!quickAddName.trim()) return
+		if (!quickAddName.trim() || isAdding) return
 		setIsAdding(true)
 		try {
 			const req: PantryItemRequest = {

@@ -10,7 +10,7 @@ import {
 	reportPost,
 	ratePlate,
 } from '@/services/post'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { POST_MESSAGES } from '@/constants/messages'
 import { trackEvent } from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
@@ -239,13 +239,13 @@ export const PostCard = ({
 			} else {
 				// Revert on error
 				setIsSaved(previousSaved)
-				toast.error(response.message || 'Failed to save post')
+				toast.error(response.message || (previousSaved ? 'Failed to unsave post' : 'Failed to save post'))
 			}
 		} catch (error) {
 			// Revert on error
 			setIsSaved(previousSaved)
 			logDevError('Failed to save post:', error)
-			toast.error('Failed to save post')
+			toast.error(previousSaved ? 'Failed to unsave post' : 'Failed to save post')
 		} finally {
 			setIsSaving(false)
 		}
@@ -303,6 +303,7 @@ export const PostCard = ({
 					fireCount: prevFire,
 					cringeCount: prevCringe,
 				}))
+				toast.error('Failed to rate post')
 			}
 		} catch {
 			setPost(prev => ({
@@ -311,6 +312,7 @@ export const PostCard = ({
 				fireCount: prevFire,
 				cringeCount: prevCringe,
 			}))
+			toast.error('Failed to rate post')
 		} finally {
 			setIsRatingPlate(false)
 		}
@@ -496,9 +498,7 @@ export const PostCard = ({
 				className='mb-6'
 			>
 				<motion.div
-					whileHover={{ ...CARD_FEED_HOVER, scale: 1.005 }}
-					transition={TRANSITION_SPRING}
-					className='group relative overflow-hidden rounded-radius border-l-3 border-l-transparent bg-bg-card shadow-card transition-all duration-300 hover:border-l-primary hover:shadow-warm'
+					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'
 				>
 					{/* Header */}
 					<div className='flex items-center justify-between p-4 md:p-6'>
@@ -509,7 +509,7 @@ export const PostCard = ({
 							>
 								<Avatar
 									size='lg'
-									className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
+									className='transition-all group-hover:opacity-90'
 								>
 									<AvatarImage
 										src={post.avatarUrl || '/placeholder-avatar.svg'}
@@ -562,6 +562,7 @@ export const PostCard = ({
 												onClick={() => setShowMenu(false)}
 											/>
 											<motion.div
+												role='menu'
 												initial={{ opacity: 0, scale: 0.95, y: -10 }}
 												animate={{ opacity: 1, scale: 1, y: 0 }}
 												exit={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -577,6 +578,7 @@ export const PostCard = ({
 														{canEdit && (
 															<button
 																type='button'
+																role='menuitem'
 																onClick={() => {
 																	setIsEditing(true)
 																	setShowMenu(false)
@@ -589,6 +591,7 @@ export const PostCard = ({
 														)}
 														<button
 															type='button'
+															role='menuitem'
 															onClick={handleDelete}
 															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 														>
@@ -601,6 +604,7 @@ export const PostCard = ({
 												{!isOwner && (
 													<button
 														type='button'
+														role='menuitem'
 														onClick={() => {
 															setShowReportModal(true)
 															setShowMenu(false)
@@ -814,7 +818,7 @@ export const PostCard = ({
 									>
 										<span>🔥</span>
 										{(post.fireCount ?? 0) > 0 && (
-											<span className='text-xs font-semibold'>
+											<span className='text-xs font-semibold tabular-nums'>
 												{post.fireCount}
 											</span>
 										)}
@@ -831,7 +835,7 @@ export const PostCard = ({
 									>
 										<span>😬</span>
 										{(post.cringeCount ?? 0) > 0 && (
-											<span className='text-xs font-semibold'>
+											<span className='text-xs font-semibold tabular-nums'>
 												{post.cringeCount}
 											</span>
 										)}
@@ -861,7 +865,7 @@ export const PostCard = ({
 										: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
 								}`}
 							/>
-							<span>{post.likes ?? 0}</span>
+							<span className='tabular-nums'>{post.likes ?? 0}</span>
 						</button>
 
 						<button
@@ -871,7 +875,7 @@ export const PostCard = ({
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 						>
 							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
-							<span>{post.commentCount ?? 0}</span>
+							<span className='tabular-nums'>{post.commentCount ?? 0}</span>
 						</button>
 
 						{/* Share button with dropdown menu */}
@@ -897,6 +901,7 @@ export const PostCard = ({
 											onClick={() => setShowShareMenu(false)}
 										/>
 										<motion.div
+											role='menu'
 											initial={{ opacity: 0, scale: 0.95, y: 10 }}
 											animate={{ opacity: 1, scale: 1, y: 0 }}
 											exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -908,6 +913,7 @@ export const PostCard = ({
 										>
 											<button
 												type='button'
+												role='menuitem'
 												onClick={handleShareToChat}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
@@ -916,6 +922,7 @@ export const PostCard = ({
 											</button>
 											<button
 												type='button'
+												role='menuitem'
 												onClick={handleNativeShare}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>

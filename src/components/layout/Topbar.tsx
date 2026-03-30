@@ -23,6 +23,7 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
+import { toast } from 'sonner'
 import { autocompleteSearch } from '@/services/search'
 import { useNotificationStore } from '@/store/notificationStore'
 import Image from 'next/image'
@@ -52,7 +53,6 @@ export const Topbar = () => {
 		}[]
 	}>({ recipes: [], people: [] })
 	const [showSuggestions, setShowSuggestions] = useState(false)
-	const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false)
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const searchFormRef = useRef<HTMLFormElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -68,7 +68,6 @@ export const Topbar = () => {
 			return
 		}
 		debounceRef.current = setTimeout(async () => {
-			setIsFetchingSuggestions(true)
 			try {
 				const res = await autocompleteSearch(q, 'all', 5)
 				const recipes =
@@ -96,7 +95,6 @@ export const Topbar = () => {
 			} catch {
 				// Silently fail — typeahead is an enhancement
 			} finally {
-				setIsFetchingSuggestions(false)
 			}
 		}, 300)
 	}, [])
@@ -138,7 +136,7 @@ export const Topbar = () => {
 		}
 
 		fetchMessageCounts()
-		const interval = setInterval(fetchMessageCounts, 30000)
+		const interval = setInterval(fetchMessageCounts, 60000)
 		return () => clearInterval(interval)
 	}, [])
 
@@ -148,9 +146,9 @@ export const Topbar = () => {
 			await logoutService()
 		} catch (error) {
 			logDevError('Logout error:', error)
-			// Continue with local logout even if backend call fails
+			toast.error('Could not fully sign out — clearing local session')
 		} finally {
-			// Always clear local state and redirect
+			// Always clear local state and redirect (security: never leave stale session)
 			logout()
 			router.push(PATHS.AUTH.SIGN_IN)
 		}
@@ -195,6 +193,7 @@ export const Topbar = () => {
 			{/* Search Bar - constrained max width, with left margin to clear the absolute logo */}
 			<form
 				ref={searchFormRef}
+				role='search'
 				onSubmit={e => {
 					e.preventDefault()
 					setShowSuggestions(false)
@@ -208,6 +207,7 @@ export const Topbar = () => {
 					ref={inputRef}
 					type='text'
 					placeholder='Search...'
+					aria-label='Search recipes and people'
 					value={searchQuery}
 					onChange={e => {
 						setSearchQuery(e.target.value)
@@ -356,10 +356,12 @@ export const Topbar = () => {
 							}
 							setShowUserMenu(!showUserMenu)
 						}}
-						whileHover={{ scale: 1.05, y: -2 }}
+						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.98 }}
 						transition={TRANSITION_SPRING}
-						className='group relative cursor-pointer'
+						aria-haspopup='true'
+					aria-expanded={showUserMenu}
+					className='group relative cursor-pointer'
 					>
 						{/* XP Progress Ring - hidden on mobile for compactness */}
 						<svg
