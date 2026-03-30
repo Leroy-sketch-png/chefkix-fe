@@ -236,6 +236,8 @@ export const LevelUpCelebration = ({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						role='alertdialog'
+						aria-live='assertive'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -288,7 +290,7 @@ export const LevelUpCelebration = ({
 							</div>
 
 							{/* Stats */}
-							<div className='mb-6 flex justify-center gap-5 rounded-2xl bg-white/5 px-5 py-5 backdrop-blur-sm max-md:flex-col max-md:items-start max-md:gap-3'>
+							<div className='mb-6 flex justify-center gap-5 rounded-2xl bg-white/5 px-5 py-5 max-md:flex-col max-md:items-start max-md:gap-3'>
 								<StatCard
 									emoji='📊'
 									label='Total XP'
@@ -389,6 +391,8 @@ export const LevelUpToast = ({
 	onDismiss,
 }: LevelUpToastProps) => (
 	<motion.div
+		role='alert'
+		aria-live='assertive'
 		initial={{ opacity: 0, y: 20 }}
 		animate={{ opacity: 1, y: 0 }}
 		exit={{ opacity: 0, y: 20 }}

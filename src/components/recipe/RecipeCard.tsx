@@ -120,12 +120,9 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			layout
 		>
 			<motion.div
-				whileHover={{ ...CARD_GRID_HOVER, scale: 1.02 }}
-				transition={TRANSITION_SPRING}
-			>
 				<Link
 					href={`/recipes/${recipe.id}`}
-					className='group block overflow-hidden rounded-radius bg-bg-card shadow-card transition-all duration-300 hover:rotate-x-[2deg] hover:shadow-warm [transform-style:preserve-3d]'
+					className='group block overflow-hidden rounded-radius border border-border-subtle bg-bg-card transition-all duration-300 hover:border-brand/50 hover:bg-bg-elevated'
 				>
 					{/* Gradient overlay on hover */}
 					<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
@@ -159,7 +156,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							className={`absolute right-2 top-2 grid size-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 								isSaved
 									? 'bg-gold/10 text-gold'
-									: 'bg-bg-card text-text-secondary hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
+									: 'bg-bg-card text-text-secondary hover:bg-primary/10 hover:text-primary'
 							}`}
 						>
 							<Bookmark className={`size-5 ${isSaved ? 'fill-gold' : ''}`} />
@@ -177,7 +174,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							<span>⭐ {likeCount} likes</span>
 						</div>
 						<div className='flex gap-4'>
-							<button className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+							<button className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-primary-foreground transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
 								Cook Recipe
 							</button>
 						</div>

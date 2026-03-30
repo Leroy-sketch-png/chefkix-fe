@@ -640,9 +640,9 @@ export default function DashboardPage() {
 										key={post.id}
 										data-post-index={i}
 										className={cn(
-											'rounded-2xl transition-shadow',
+											'transition-shadow',
 											focusedPostIndex === i &&
-												'ring-2 ring-brand/50 shadow-warm',
+												'ring-inset ring-2 ring-zinc-900',
 										)}
 									>
 										{post.postType === 'POLL' ? (

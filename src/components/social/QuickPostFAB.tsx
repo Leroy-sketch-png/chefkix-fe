@@ -9,8 +9,8 @@ import { moderateContent } from '@/services/ai'
 import { Post } from '@/lib/types'
 import { Portal } from '@/components/ui/portal'
 import { useAuthStore } from '@/store/authStore'
-import { toast } from '@/components/ui/toaster'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { toast } from 'sonner'
+import { TRANSITION_SPRING, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { MentionInput } from '@/components/shared/MentionInput'
 
@@ -194,11 +194,11 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 			<motion.button
 				onClick={handleOpen}
 				className={cn(
-					'fixed bottom-6 right-6 z-sticky flex size-14 items-center justify-center rounded-full bg-gradient-brand shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40',
+					'fixed bottom-6 right-6 z-sticky flex size-14 items-center justify-center rounded-full bg-gradient-brand transition-all duration-300 hover:opacity-90',
 					className,
 				)}
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.95 }}
+				whileHover={BUTTON_SUBTLE_HOVER}
+				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
 				aria-label='Quick Post'
 			>
@@ -221,7 +221,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 100 }}
 								transition={TRANSITION_SPRING}
-								className='w-full max-w-lg rounded-t-2xl border border-border-subtle bg-bg-card p-5 shadow-lg sm:rounded-2xl'
+								className='w-full max-w-lg rounded-t-2xl border border-border-subtle bg-bg-card p-5 shadow-card sm:rounded-2xl'
 								onClick={e => e.stopPropagation()}
 							>
 								{/* Header */}
@@ -303,7 +303,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 												/>
 											</div>
 											<div className='flex items-center gap-2'>
-												<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-xs font-bold text-purple-500'>
+												<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-xs font-bold text-secondary'>
 													B
 												</span>
 												<input
@@ -401,7 +401,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 											? !caption.trim() && photoFiles.length === 0
 											: !pollQuestion.trim() || !pollOptionA.trim() || !pollOptionB.trim())
 									}
-									className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3 font-semibold text-white shadow-md shadow-brand/25 transition-all hover:shadow-lg hover:shadow-brand/30 disabled:opacity-50'
+									className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50'
 								>
 									{isSubmitting ? (
 										<>

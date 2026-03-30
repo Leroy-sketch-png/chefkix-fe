@@ -127,6 +127,7 @@ export const LeftSidebar = () => {
 				href={href}
 				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-primary'
 				data-active={active}
+				aria-current={active ? 'page' : undefined}
 				title={item.label}
 			>
 				{/* Active indicator bar */}
@@ -137,7 +138,7 @@ export const LeftSidebar = () => {
 						height: active ? '70%' : '0%',
 					}}
 					transition={TRANSITION_SPRING}
-				/>{' '}
+				/>
 				{/* Background glow on active */}
 				<motion.div
 					className='absolute inset-0 rounded-radius bg-gradient-to-r from-primary/10 to-transparent opacity-0'
@@ -154,7 +155,6 @@ export const LeftSidebar = () => {
 					whileHover={{
 						...ICON_BUTTON_HOVER,
 						scale: 1.15,
-						rotate: 5,
 					}}
 					whileTap={ICON_BUTTON_TAP}
 					transition={TRANSITION_SPRING}

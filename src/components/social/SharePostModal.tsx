@@ -19,7 +19,7 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { CHAT_MESSAGES } from '@/constants/messages'
 import {
 	getShareSuggestions,
@@ -194,7 +194,7 @@ export const SharePostModal = ({
 		<Portal>
 			<AnimatePresence mode='wait'>
 				<motion.div
-					className='fixed inset-0 z-modal flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4'
+					className='fixed inset-0 z-modal flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4'
 					variants={overlayVariants}
 					initial='hidden'
 					animate='visible'

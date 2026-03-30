@@ -80,15 +80,15 @@ export function GroupCreatePostBox({
 
 				<div className='flex gap-2 mt-4 flex-wrap'>
 					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
-						<Image className='w-5 h-5' alt='Add photo' />
+						<Image className='size-5' alt='Add photo' />
 						Photo
 					</button>
 					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
-						<Smile className='w-5 h-5' />
+						<Smile className='size-5' />
 						Feeling
 					</button>
 					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
-						<MapPin className='w-5 h-5' />
+						<MapPin className='size-5' />
 						Location
 					</button>
 				</div>
@@ -110,6 +110,10 @@ export function GroupCreatePostBox({
 					value={content}
 					onChange={e => setContent(e.target.value)}
 					placeholder="What's on your mind?"
+					autoComplete='off'
+					autoCorrect='off'
+					autoCapitalize='none'
+					spellCheck={false}
 					className='resize-none focus-visible:ring-brand'
 					rows={4}
 					maxLength={2000}

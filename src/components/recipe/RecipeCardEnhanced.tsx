@@ -130,7 +130,7 @@ const XPBadge = ({
 			)}
 		>
 			<span className={size === 'large' ? 'text-lg' : 'text-sm'}>⚡</span>
-			<span>{xp} XP</span>
+			<span className='tabular-nums'>{xp} XP</span>
 		</div>
 	)
 }
@@ -177,13 +177,13 @@ const DifficultyIndicator = ({
 	const config = difficultyConfig[difficulty] ?? difficultyConfig.Beginner
 
 	return (
-		<div className='absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm'>
+		<div className='absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white'>
 			<div className='flex gap-0.5'>
 				{[1, 2, 3, 4].map(dot => (
 					<span
 						key={dot}
 						className={cn(
-							'h-2 w-2 rounded-full',
+							'size-2 rounded-full',
 							dot <= config.filledDots ? config.bgColor : 'bg-white/30',
 						)}
 					/>
@@ -226,11 +226,11 @@ const CookCountBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm',
+				'absolute flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white',
 				position === 'bottom-right' ? 'bottom-3 right-3' : 'bottom-3 left-3',
 			)}
 		>
-			<Users className='h-3.5 w-3.5' />
+			<Users className='size-3.5' />
 			<span>{formatted}</span>
 		</div>
 	)
@@ -416,7 +416,7 @@ const FeedCard = ({
 									alt={author.name}
 									width={24}
 									height={24}
-									className='h-6 w-6 rounded-full'
+									className='size-6 rounded-full'
 								/>
 								{author.name}
 							</span>
@@ -424,7 +424,7 @@ const FeedCard = ({
 						</>
 					)}
 					<span className='flex items-center gap-1'>
-						<Clock className='h-3.5 w-3.5' />
+						<Clock className='size-3.5' />
 						{cookTimeMinutes} min
 					</span>
 				</div>
@@ -432,7 +432,7 @@ const FeedCard = ({
 				<div className='flex items-center justify-between gap-4'>
 					<div className='flex gap-4'>
 						<span className='flex items-center gap-1.5 text-sm text-success'>
-							<ChefHat className='h-4 w-4' />
+							<ChefHat className='size-4' />
 							{cookCount >= 1000
 								? `${(cookCount / 1000).toFixed(1)}k`
 								: cookCount}{' '}
@@ -440,7 +440,7 @@ const FeedCard = ({
 						</span>
 						{rating > 0 && (
 							<span className='flex items-center gap-1.5 text-sm text-warning'>
-								<Star className='h-4 w-4' />
+								<Star className='size-4' />
 								{rating.toFixed(1)}
 							</span>
 						)}
@@ -460,7 +460,7 @@ const FeedCard = ({
 			whileTap={BUTTON_TAP}
 			className='absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white'
 		>
-			<Play className='h-4 w-4' />
+			<Play className='size-4' />
 			Cook Now
 		</motion.button>
 	</motion.article>
@@ -536,12 +536,12 @@ const GridCard = ({
 				<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
 					<div className='flex items-center gap-3'>
 						<span className='flex items-center gap-1'>
-							<Clock className='h-3.5 w-3.5' />
+							<Clock className='size-3.5' />
 							{cookTimeMinutes} min
 						</span>
 						{cookCount > 0 && (
 							<span className='flex items-center gap-1 text-success'>
-								<ChefHat className='h-3.5 w-3.5' />
+								<ChefHat className='size-3.5' />
 								{cookCount >= 1000
 									? `${(cookCount / 1000).toFixed(1)}k`
 									: cookCount}
@@ -564,7 +564,7 @@ const GridCard = ({
 							alt={author.name}
 							width={28}
 							height={28}
-							className='h-7 w-7 rounded-full'
+							className='size-7 rounded-full'
 						/>
 						<span>{author.name}</span>
 						{author.isVerified && (
@@ -589,7 +589,7 @@ const GridCard = ({
 				whileTap={BUTTON_TAP}
 				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white'
 			>
-				<Play className='h-4 w-4' />
+				<Play className='size-4' />
 				Start Cooking
 			</motion.button>
 			<motion.button
@@ -601,14 +601,15 @@ const GridCard = ({
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
+				aria-label={isSaved ? 'Remove from saved' : 'Save recipe'}
 				className={cn(
-					'flex h-10 w-10 items-center justify-center rounded-lg border',
+					'flex size-10 items-center justify-center rounded-lg border',
 					isSaved
 						? 'border-brand bg-brand/10 text-brand'
 						: 'border-border bg-bg-elevated text-text-muted hover:border-brand hover:bg-brand/10 hover:text-brand',
 				)}
 			>
-				<Bookmark className={cn('h-5 w-5', isSaved && 'fill-current')} />
+				<Bookmark className={cn('size-5', isSaved && 'fill-current')} />
 			</motion.button>
 		</div>
 	</motion.article>
@@ -654,7 +655,7 @@ const FeaturedCard = ({
 				{/* Trending badge */}
 				{isTrending && (
 					<div className='absolute left-5 top-5 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-error to-error/80 px-4 py-2.5 text-sm font-bold text-white'>
-						<TrendingUp className='h-4 w-4' />
+						<TrendingUp className='size-4' />
 						Trending
 					</div>
 				)}
@@ -664,7 +665,7 @@ const FeaturedCard = ({
 					{xpReward != null && xpReward > 0 && (
 						<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-lg shadow-success/40'>
 							<span className='text-lg'>⚡</span>
-							<span>{xpReward} XP</span>
+							<span className='tabular-nums'>{xpReward} XP</span>
 						</div>
 					)}
 					<div
@@ -695,7 +696,7 @@ const FeaturedCard = ({
 							{skillTags.slice(0, 4).map(skill => (
 								<span
 									key={skill}
-									className='rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm'
+									className='rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white'
 								>
 									{skill}
 								</span>
@@ -711,7 +712,7 @@ const FeaturedCard = ({
 								{badges.slice(0, 2).map(badge => (
 									<span
 										key={badge}
-										className='rounded-full bg-gold/30 px-2.5 py-1 text-xs font-medium text-gold backdrop-blur-sm'
+										className='rounded-full bg-gold/30 px-2.5 py-1 text-xs font-medium text-gold'
 									>
 										{badge}
 									</span>
@@ -728,7 +729,7 @@ const FeaturedCard = ({
 					{/* Stats */}
 					<div className='mb-5 flex flex-wrap gap-4 md:gap-6'>
 						<span className='flex items-center gap-1.5 text-sm text-white/90'>
-							<ChefHat className='h-4 w-4' />
+							<ChefHat className='size-4' />
 							{cookCount >= 1000
 								? `${(cookCount / 1000).toFixed(1)}k`
 								: cookCount}{' '}
@@ -736,12 +737,12 @@ const FeaturedCard = ({
 						</span>
 						{rating > 0 && (
 							<span className='flex items-center gap-1.5 text-sm text-white/90'>
-								<Star className='h-4 w-4' />
+								<Star className='size-4' />
 								{rating.toFixed(1)}
 							</span>
 						)}
 						<span className='flex items-center gap-1.5 text-sm text-white/90'>
-							<Clock className='h-4 w-4' />
+							<Clock className='size-4' />
 							{cookTimeMinutes >= 60
 								? `${Math.floor(cookTimeMinutes / 60)}h ${cookTimeMinutes % 60}min`
 								: `${cookTimeMinutes} min`}
@@ -756,7 +757,7 @@ const FeaturedCard = ({
 								alt={author.name}
 								width={48}
 								height={48}
-								className='h-12 w-12 rounded-full border-2 border-white/30'
+								className='size-12 rounded-full border-2 border-white/30'
 							/>
 							<div className='flex flex-col'>
 								<span className='font-bold text-white'>{author.name}</span>
@@ -778,7 +779,7 @@ const FeaturedCard = ({
 						transition={TRANSITION_SPRING}
 						className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-xl shadow-brand/40 md:px-8 md:text-lg'
 					>
-						<Play className='h-5 w-5 md:h-6 md:w-6' />
+						<Play className='size-5 md:size-6' />
 						Start Cooking
 						{xpReward != null && xpReward > 0 && (
 							<span className='rounded-full bg-white/20 px-3 py-1 text-sm font-semibold max-md:hidden'>
@@ -820,7 +821,7 @@ const CookedCard = ({
 					className='object-cover'
 				/>
 				<MasteryBadge level={mastery.masteryLevel} />
-				<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm'>
+				<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white'>
 					{mastery.personalCookCount}× cooked
 				</div>
 			</div>
@@ -884,7 +885,7 @@ const CookedCard = ({
 				whileTap={BUTTON_TAP}
 				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-xp py-3 text-sm font-semibold text-white'
 			>
-				<RefreshCw className='h-4 w-4' />
+				<RefreshCw className='size-4' />
 				Cook Again
 			</motion.button>
 			<motion.button
@@ -892,9 +893,10 @@ const CookedCard = ({
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
-				className='flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp'
+				className='flex size-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp'
+				aria-label='View cooking history'
 			>
-				<History className='h-5 w-5' />
+				<History className='size-5' />
 			</motion.button>
 		</div>
 	</motion.article>
@@ -924,13 +926,13 @@ const MiniCard = ({
 				alt={title}
 				width={56}
 				height={56}
-				className='h-14 w-14 flex-shrink-0 rounded-lg object-cover'
+				className='size-14 flex-shrink-0 rounded-lg object-cover'
 			/>
 			<div className='min-w-0 flex-1'>
 				<h4 className='mb-1 truncate text-sm font-semibold'>{title}</h4>
 				<div className='flex items-center gap-2.5 text-xs'>
 					{xpReward != null && xpReward > 0 && (
-						<span className='font-semibold text-success'>⚡ {xpReward} XP</span>
+						<span className='font-semibold tabular-nums text-success'>⚡ {xpReward} XP</span>
 					)}
 					<span className='text-text-muted'>{cookTimeMinutes} min</span>
 					<span
@@ -952,9 +954,10 @@ const MiniCard = ({
 			whileHover={ICON_BUTTON_HOVER}
 			whileTap={ICON_BUTTON_TAP}
 			transition={TRANSITION_SPRING}
-			className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white'
+			aria-label='Start cooking'
+			className='flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white'
 		>
-			<Play className='h-4 w-4' />
+			<Play className='size-4' />
 		</motion.button>
 	</motion.article>
 )

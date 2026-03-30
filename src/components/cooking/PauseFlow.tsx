@@ -121,7 +121,7 @@ export const PauseButton = ({
 					: 'border-border bg-bg-card text-text hover:bg-bg-hover',
 			)}
 		>
-			<Pause className='h-4 w-4' />
+			<Pause className='size-4' />
 			<span>Pause</span>
 		</motion.button>
 
@@ -189,17 +189,17 @@ const PauseConfirmModal = ({
 		{/* Info card */}
 		<div className='mb-6 rounded-xl bg-bg-elevated p-4 text-left'>
 			<div className='flex items-center gap-3 border-b border-border py-2.5'>
-				<CheckCircle className='h-5 w-5 shrink-0 text-success' />
+				<CheckCircle className='size-5 shrink-0 text-success' />
 				<span className='text-sm'>
 					Progress saved at Step {recipe.currentStep}
 				</span>
 			</div>
 			<div className='flex items-center gap-3 border-b border-border py-2.5'>
-				<Timer className='h-5 w-5 shrink-0 text-success' />
+				<Timer className='size-5 shrink-0 text-success' />
 				<span className='text-sm'>No active timers</span>
 			</div>
 			<div className='flex items-center gap-3 py-2.5 text-warning'>
-				<AlertCircle className='h-5 w-5 shrink-0' />
+				<AlertCircle className='size-5 shrink-0 text-warning' />
 				<span className='text-sm'>
 					Session expires if not resumed in {PAUSE_LIMIT_HOURS} hours
 				</span>
@@ -286,7 +286,7 @@ const AbandonModal = ({ onCancel, onConfirm }: AbandonModalProps) => (
 
 		{/* Warning */}
 		<div className='mb-6 flex items-center justify-center gap-2 rounded-lg bg-error/10 px-4 py-3 text-error'>
-			<AlertTriangle className='h-5 w-5' />
+			<AlertTriangle className='size-5 text-warning' />
 			<span className='text-sm font-medium'>This action cannot be undone</span>
 		</div>
 
@@ -410,7 +410,7 @@ const PausedScreen = ({
 							alt={recipe.title}
 							width={80}
 							height={80}
-							className='h-20 w-20 rounded-xl object-cover'
+							className='size-20 rounded-xl object-cover shadow-sm'
 						/>
 						<div className='flex-1'>
 							<h3 className='text-lg font-bold'>{recipe.title}</h3>
@@ -434,7 +434,7 @@ const PausedScreen = ({
 							whileTap={LIST_ITEM_TAP}
 							className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-success to-success/90 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-success/30'
 						>
-							<Play className='h-6 w-6' />
+							<Play className='size-6 text-white' />
 							Resume Cooking
 						</motion.button>
 						<button
@@ -482,10 +482,10 @@ const ExpiredScreen = ({ recipe, onRestart, onGoHome }: ExpiredScreenProps) => (
 				<div className='mb-8 flex items-center gap-4 rounded-xl bg-bg-elevated p-4 text-left'>
 					<Image
 						src={recipe.imageUrl || '/placeholder-recipe.svg'}
-						alt={recipe.title}
+						alt=''
 						width={64}
 						height={64}
-						className='h-16 w-16 rounded-lg object-cover opacity-70'
+						className='size-16 rounded-lg object-cover opacity-70 blur-[1px] grayscale transition-all'
 					/>
 					<div>
 						<h3 className='font-semibold'>{recipe.title}</h3>
@@ -501,7 +501,7 @@ const ExpiredScreen = ({ recipe, onRestart, onGoHome }: ExpiredScreenProps) => (
 						onClick={onRestart}
 						className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 font-semibold text-white transition-opacity hover:opacity-90'
 					>
-						<RefreshCw className='h-5 w-5' />
+						<RefreshCw className='size-5 text-text-tertiary transition-colors hover:text-text' />
 						Start Fresh
 					</button>
 					<button
