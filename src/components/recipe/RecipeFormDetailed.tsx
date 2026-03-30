@@ -383,7 +383,7 @@ const StepRow = ({
 
 	return (
 		<div className='group flex gap-4'>
-			<div className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-hero text-sm font-bold text-white shadow-md'>
+			<div className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-hero text-sm font-bold text-white'>
 				{index + 1}
 			</div>
 			<div className='flex-1 space-y-3'>

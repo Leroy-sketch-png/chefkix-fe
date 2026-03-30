@@ -174,7 +174,7 @@ export const ReportModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={handleClose}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
 							variants={modalVariants}
@@ -387,7 +387,7 @@ export const ReportLimitModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={onClose}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
 							variants={modalVariants}
@@ -636,7 +636,7 @@ export const AppealModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={handleClose}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
 							variants={modalVariants}

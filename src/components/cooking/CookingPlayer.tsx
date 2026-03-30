@@ -336,7 +336,7 @@ const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 		)}
 	>
 		<Zap className='size-4' />
-		<span>+{xp} XP</span>
+		<span className='tabular-nums'>+{xp} XP</span>
 	</motion.div>
 )
 

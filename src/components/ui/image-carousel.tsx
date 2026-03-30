@@ -174,7 +174,7 @@ export function ImageCarousel({
 						className={cn(
 							'absolute left-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
-							'bg-bg-card/80 text-text shadow-card backdrop-blur-sm',
+							'bg-bg-card border border-border-subtle text-text',
 							'opacity-0 transition-opacity duration-200 group-hover:opacity-100',
 							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
 						)}
@@ -187,7 +187,7 @@ export function ImageCarousel({
 						className={cn(
 							'absolute right-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
-							'bg-bg-card/80 text-text shadow-card backdrop-blur-sm',
+							'bg-bg-card border border-border-subtle text-text',
 							'opacity-0 transition-opacity duration-200 group-hover:opacity-100',
 							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
 						)}
@@ -203,7 +203,7 @@ export function ImageCarousel({
 				<div
 					className={cn(
 						'absolute bottom-3 left-1/2 z-10 -translate-x-1/2',
-						'flex items-center gap-1.5 rounded-full bg-bg-card/60 px-2 py-1 backdrop-blur-sm',
+						'flex items-center gap-1.5 rounded-full bg-bg-card border border-border-subtle px-2 py-1',
 					)}
 					role='tablist'
 					aria-label='Image indicators'
@@ -231,7 +231,7 @@ export function ImageCarousel({
 				<div
 					className={cn(
 						'absolute right-3 top-3 z-10',
-						'rounded-full bg-bg-card/80 px-2 py-0.5 text-xs font-medium text-text backdrop-blur-sm',
+						'rounded-full bg-bg-card border border-border-subtle px-2 py-0.5 text-xs font-medium text-text',
 					)}
 				>
 					{currentIndex + 1}/{images.length}

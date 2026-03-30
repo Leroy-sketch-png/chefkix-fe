@@ -202,7 +202,7 @@ export function DraftsList({
 									variants={staggerItem}
 									layout
 									exit={{ opacity: 0, x: -20 }}
-									className='group relative flex items-center gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
+									className='group relative flex items-center gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4 transition-all hover:border-brand/50 hover:bg-bg-elevated'
 								>
 									{/* Thumbnail */}
 									<div className='flex size-16 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-2xl'>

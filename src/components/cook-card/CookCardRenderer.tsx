@@ -493,7 +493,7 @@ export default function CookCardRenderer({
             {data.totalSteps != null && (
               <div className="rounded-lg bg-bg-elevated px-3 py-2">
                 <div className="flex items-center justify-center gap-1">
-                  <CheckCircle2 className="size-4 text-green-500" />
+                  <CheckCircle2 className="size-4 text-success" />
                   <span className="text-sm font-bold text-text">
                     {data.stepsCompleted}/{data.totalSteps}
                   </span>
@@ -504,7 +504,7 @@ export default function CookCardRenderer({
             {data.difficulty && (
               <div className="rounded-lg bg-bg-elevated px-3 py-2">
                 <div className="flex items-center justify-center gap-1">
-                  <ChefHat className="size-4 text-amber-500" />
+                  <ChefHat className="size-4 text-warning" />
                   <span className="text-sm font-bold text-text">
                     {data.difficulty}
                   </span>
@@ -523,7 +523,7 @@ export default function CookCardRenderer({
                   className={cn(
                     'size-5',
                     i < data.rating!
-                      ? 'fill-amber-400 text-amber-400'
+                      ? 'fill-gold text-gold'
                       : 'text-text-muted/20'
                   )}
                 />

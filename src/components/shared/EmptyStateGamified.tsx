@@ -269,7 +269,7 @@ function CheckmarkIllustration() {
 				initial={{ scale: 0 }}
 				animate={{ scale: 1 }}
 				transition={TRANSITION_SPRING}
-				className='relative z-10 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30'
+				className='relative z-10 flex size-16 items-center justify-center rounded-full bg-emerald-500 text-white'
 			>
 				<Check className='size-8 text-white' strokeWidth={3} />
 			</motion.div>
@@ -434,7 +434,7 @@ export function EmptyState({
 							className={cn(
 								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
 								'bg-primary text-white text-base font-bold',
-								'hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/30 transition-all',
+								'transition-all hover:bg-primary/90',
 							)}
 						>
 							{primaryAction.icon}
@@ -446,7 +446,7 @@ export function EmptyState({
 							className={cn(
 								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
 								'bg-primary text-white text-base font-bold',
-								'hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/30 transition-all',
+								'transition-all hover:bg-primary/90',
 								isPositive && 'animate-pulse',
 							)}
 						>
@@ -729,7 +729,7 @@ export function AllCaughtUp({
 					</div>
 					<button
 						onClick={onCookNow}
-						className='size-10 flex items-center justify-center bg-primary rounded-lg text-white hover:scale-105 transition-transform'
+						className='size-10 flex items-center justify-center bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors'
 					>
 						<ChefHat className='size-5' />
 					</button>

@@ -356,7 +356,7 @@ export const ImmediateRewards = ({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/75 p-6 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-6'
 					>
 						{/* Card */}
 						<motion.div

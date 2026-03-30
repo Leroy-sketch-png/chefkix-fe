@@ -163,7 +163,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 					exit={{ opacity: 0, y: -20, scale: 0.95 }}
 					transition={TRANSITION_SPRING}
 					className={cn(
-						'relative overflow-hidden rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-elevated to-bg-card p-4 shadow-warm',
+						'relative overflow-hidden rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-elevated to-bg-card p-4',
 						className,
 					)}
 				>

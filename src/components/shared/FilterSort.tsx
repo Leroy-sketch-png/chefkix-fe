@@ -108,7 +108,7 @@ export const FilterBar = ({
 			{/* Filter Button */}
 			<button
 				onClick={onFilterClick}
-				className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:shadow-sm'
+				className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:bg-bg-elevated'
 			>
 				<Filter className='size-4.5 text-text-secondary' />
 				<span>Filters</span>
@@ -121,7 +121,7 @@ export const FilterBar = ({
 
 			{/* Sort Dropdown - Simplified for now, can be enhanced with Radix UI dropdown */}
 			<div className='relative'>
-				<button className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:shadow-sm'>
+				<button className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:bg-bg-elevated'>
 					<ArrowUpDown className='size-4.5 text-text-secondary' />
 					<span>{selectedSort}</span>
 					<ChevronDown className='size-4.5 text-text-secondary' />
@@ -135,7 +135,7 @@ export const FilterBar = ({
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'grid'
-							? 'bg-bg-card text-primary shadow-sm'
+							? 'bg-bg-card text-primary'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
 					aria-label='Grid view'
@@ -147,7 +147,7 @@ export const FilterBar = ({
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'list'
-							? 'bg-bg-card text-primary shadow-sm'
+							? 'bg-bg-card text-primary'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
 					aria-label='List view'

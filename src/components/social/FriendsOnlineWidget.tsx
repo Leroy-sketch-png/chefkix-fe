@@ -87,7 +87,7 @@ export function FriendsOnlineWidget() {
 					<Users className='size-4 text-text-secondary' />
 					Friends Online
 				</div>
-				<span className='rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-semibold text-green-600'>
+				<span className='rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold text-success'>
 					{friends.length}
 				</span>
 			</div>
@@ -118,7 +118,7 @@ export function FriendsOnlineWidget() {
 												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
-									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-green-500' />
+									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' />
 								</div>
 								<div className='min-w-0 flex-1'>
 									<p className='truncate text-xs font-medium text-text-primary'>
@@ -159,7 +159,7 @@ export function FriendsOnlineWidget() {
 												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
-									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-green-500' />
+									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' />
 								</div>
 								<p className='min-w-0 flex-1 truncate text-xs font-medium text-text-primary'>
 									{friend.displayName || friend.username}
