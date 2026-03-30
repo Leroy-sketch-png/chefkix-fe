@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Profile, Post, getProfileDisplayName } from '@/lib/types'
 import {
+	ChefHat,
 	Clock,
 	Heart,
 	MessageCircle,
@@ -632,18 +633,20 @@ export const UserProfile = ({
 								))}
 							</div>
 						) : userRecipes.length === 0 ? (
-							<div className='flex h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-subtle'>
-								<p className='text-text-muted'>
+							<div className='flex h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
+								<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
+									<ChefHat className='size-7 text-brand' />
+								</div>
+								<p className='font-medium text-text-secondary'>
 									{isOwnProfile
 										? "You haven't created any recipes yet"
 										: 'No recipes created yet'}
 								</p>
 								{isOwnProfile && (
-									<Link
-										href='/create'
-										className='rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover'
-									>
-										Create Your First Recipe
+									<Link href='/create'>
+										<Button size='sm' className='mt-1'>
+											Create Your First Recipe
+										</Button>
 									</Link>
 								)}
 							</div>
@@ -950,13 +953,23 @@ export const UserProfile = ({
 								Earned Badges ({profileUser.badges.length})
 							</h3>
 							{profileUser.badges.length === 0 ? (
-								<div className='flex h-32 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
-									<Award className='size-8 text-text-muted' />
-									<p className='mt-2 text-text-muted'>
+								<div className='flex h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
+									<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
+										<Award className='size-7 text-xp' />
+									</div>
+									<p className='font-medium text-text-secondary'>
 										{isOwnProfile
 											? 'Cook recipes to earn badges!'
 											: 'No badges earned yet.'}
 									</p>
+									{isOwnProfile && (
+										<Link href='/explore'>
+											<Button variant='outline' size='sm' className='mt-1'>
+												<ChefHat className='mr-1.5 size-4' />
+												Explore Recipes
+											</Button>
+										</Link>
+									)}
 								</div>
 							) : (
 								<div className='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'>
