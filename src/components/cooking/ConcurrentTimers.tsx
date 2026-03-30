@@ -134,10 +134,10 @@ const TimerItem = ({
 							state === 'PAUSED' && 'bg-border text-text-secondary',
 						)}
 					>
-						{state === 'COMPLETE' ? (
-							<Bell className='h-5 w-5' />
+						{timer.isOvertime ? (
+							<Bell className='size-5' />
 						) : (
-							<Clock className='h-5 w-5' />
+							<Clock className='size-5' />
 						)}
 					</motion.div>
 
@@ -179,10 +179,10 @@ const TimerItem = ({
 										: 'bg-success/20 text-success hover:bg-success/30',
 								)}
 							>
-								{timer.isRunning ? (
-									<Pause className='h-5 w-5' />
+								{timer.isActive ? (
+									<Pause className='size-5' />
 								) : (
-									<Play className='h-5 w-5 ml-0.5' />
+									<Play className='size-5 ml-[2px]' />
 								)}
 							</motion.button>
 						)}
@@ -195,7 +195,8 @@ const TimerItem = ({
 									onClick={onReset}
 									className='flex h-8 w-8 items-center justify-center rounded-full text-text-tertiary hover:bg-bg-hover hover:text-text'
 								>
-									<RotateCcw className='h-4 w-4' />
+									<RotateCcw className='size-4' />
+									<span className='sr-only'>Restart timer</span>
 								</motion.button>
 								<motion.button
 									whileHover={ICON_BUTTON_HOVER}
@@ -203,7 +204,7 @@ const TimerItem = ({
 									onClick={onDelete}
 									className='flex h-8 w-8 items-center justify-center rounded-full text-text-tertiary hover:bg-error/10 hover:text-error'
 								>
-									<X className='h-4 w-4' />
+									<X className='size-4' />
 								</motion.button>
 							</>
 						)}
@@ -254,7 +255,7 @@ const TimerCompleteAlert = ({
 						transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
 						className='flex h-12 w-12 items-center justify-center rounded-full bg-success text-white'
 					>
-						<Bell className='h-6 w-6' />
+						<Bell className='size-6' />
 					</motion.div>
 
 					<div className='flex-1'>
@@ -370,7 +371,7 @@ export const ConcurrentTimers = ({
 									: 'bg-bg-elevated text-text-secondary',
 							)}
 						>
-							<Clock className='h-5 w-5' />
+							<Clock className='size-5' />
 						</div>
 						<div>
 							<p className='font-semibold text-text'>
@@ -398,10 +399,10 @@ export const ConcurrentTimers = ({
 									: 'text-text-tertiary hover:bg-bg-elevated',
 							)}
 						>
-							{isMuted ? (
-								<VolumeX className='h-4 w-4' />
+							{isAudioEnabled ? (
+								<Volume2 className='size-4' />
 							) : (
-								<Volume2 className='h-4 w-4' />
+								<VolumeX className='size-4' />
 							)}
 						</motion.button>
 
@@ -410,7 +411,7 @@ export const ConcurrentTimers = ({
 							animate={{ rotate: isExpanded ? 180 : 0 }}
 							transition={TRANSITION_SPRING}
 						>
-							<ChevronDown className='h-5 w-5 text-text-tertiary' />
+							<ChevronDown className='size-5 text-text-tertiary' />
 						</motion.div>
 					</div>
 				</button>
@@ -438,7 +439,8 @@ export const ConcurrentTimers = ({
 													: 'bg-brand/20 text-brand',
 											)}
 										>
-											<Clock className='h-3.5 w-3.5' />
+											<X className='size-4' />
+											<span className='sr-only'>Dismiss timer</span>
 											<span className='tabular-nums'>
 												{formatTime(timer.remaining)}
 											</span>
@@ -528,7 +530,7 @@ export const MiniTimerBar = ({ timers, onClick }: MiniTimerBarProps) => {
 			>
 				<div className='flex items-center gap-2'>
 					<motion.div animate={urgent ? TIMER_URGENT.animate : undefined}>
-						<Clock className='h-5 w-5' />
+						<Clock className='size-5' />
 					</motion.div>
 					<span className='font-semibold'>
 						{running.length} Timer{running.length > 1 ? 's' : ''} Running
