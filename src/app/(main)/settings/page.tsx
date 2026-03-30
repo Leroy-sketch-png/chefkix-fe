@@ -232,10 +232,10 @@ const CUISINE_OPTIONS = [
 	'Middle Eastern',
 ]
 
-const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun; disabled?: boolean }[] = [
 	{ value: 'light', label: 'Light', icon: Sun },
-	{ value: 'dark', label: 'Dark', icon: Moon },
-	{ value: 'system', label: 'System', icon: Monitor },
+	{ value: 'dark', label: 'Dark', icon: Moon, disabled: true },
+	{ value: 'system', label: 'System', icon: Monitor, disabled: true },
 ]
 
 // ============================================
@@ -371,7 +371,7 @@ const ButtonGroup = <T extends string>({
 	value,
 	onChange,
 }: {
-	options: { value: T; label: string; icon?: typeof Sun; emoji?: string }[]
+	options: { value: T; label: string; icon?: typeof Sun; emoji?: string; disabled?: boolean }[]
 	value: T
 	onChange: (value: T) => void
 }) => (
@@ -381,19 +381,22 @@ const ButtonGroup = <T extends string>({
 			return (
 				<motion.button
 					key={option.value}
-					whileHover={BUTTON_HOVER}
-					whileTap={BUTTON_TAP}
-					onClick={() => onChange(option.value)}
+					whileHover={option.disabled ? undefined : BUTTON_HOVER}
+					whileTap={option.disabled ? undefined : BUTTON_TAP}
+					onClick={() => !option.disabled && onChange(option.value)}
 					className={cn(
 						'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
-						value === option.value
-							? 'bg-primary text-primary-foreground shadow-md'
-							: 'bg-muted text-muted-foreground hover:bg-muted/80',
+						option.disabled
+							? 'cursor-not-allowed opacity-40 bg-muted text-muted-foreground'
+							: value === option.value
+								? 'bg-primary text-primary-foreground shadow-md'
+								: 'bg-muted text-muted-foreground hover:bg-muted/80',
 					)}
 				>
 					{Icon && <Icon className='size-4' />}
 					{option.emoji && <span>{option.emoji}</span>}
 					{option.label}
+					{option.disabled && <span className='text-xs opacity-70'>(Soon)</span>}
 				</motion.button>
 			)
 		})}
@@ -1654,18 +1657,12 @@ export default function SettingsPage() {
 								>
 									<SettingsCard
 										title='Theme'
-										description='Light mode is active. Dark and System modes are coming soon.'
+										description='Light mode is active. Dark and System modes coming soon.'
 									>
 										<ButtonGroup
 											options={THEME_OPTIONS}
 											value={settings.app.theme}
-											onChange={v => {
-												if (v === 'dark' || v === 'system') {
-													toast.info('Dark mode is coming soon! We\'re actively working on it.')
-													return
-												}
-												handleUpdateApp({ theme: v })
-											}}
+											onChange={v => handleUpdateApp({ theme: v })}
 										/>
 									</SettingsCard>
 
