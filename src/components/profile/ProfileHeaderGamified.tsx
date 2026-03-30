@@ -166,10 +166,7 @@ const LevelRing = ({
 			)}
 		>
 			<div
-				className={cn(
-					'relative',
-					size === 'default' ? 'size-12' : 'size-10',
-				)}
+				className={cn('relative', size === 'default' ? 'size-12' : 'size-10')}
 			>
 				<svg viewBox='0 0 100 100' className='-rotate-90'>
 					<circle
@@ -311,7 +308,7 @@ const StatsRow = ({
 		<div className='flex gap-8'>
 			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold text-success'>
-					{cooking.recipesCooked || (isOwnProfile ? '—' : '0')}
+					{cooking.recipesCooked}
 				</span>
 				<span className='text-xs font-semibold text-success'>
 					{cooking.recipesCooked === 0 && isOwnProfile
@@ -320,9 +317,7 @@ const StatsRow = ({
 				</span>
 			</div>
 			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold'>
-					{cooking.recipesCreated || (isOwnProfile ? '—' : '0')}
-				</span>
+				<span className='text-xl font-extrabold'>{cooking.recipesCreated}</span>
 				<span className='text-xs text-text-muted'>
 					{cooking.recipesCreated === 0 && isOwnProfile
 						? 'Share a recipe!'
@@ -417,39 +412,41 @@ const BadgesShowcase = ({
 					Cook a recipe to earn your first badge!
 				</Link>
 			) : badges.length === 0 ? (
-				<p className='py-4 text-center text-sm text-text-muted'>No badges yet</p>
+				<p className='py-4 text-center text-sm text-text-muted'>
+					No badges yet
+				</p>
 			) : (
 				badges.slice(0, compact ? 3 : 5).map((badge, index) => (
-				<motion.div
-					key={badge.id || `badge-${index}`}
-					whileHover={STAT_ITEM_HOVER}
-					transition={TRANSITION_SPRING}
-					className={cn(
-						'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-card',
-						compact
-							? 'min-w-nav px-3 py-2.5'
-							: 'min-w-thumbnail-xl px-4 py-3.5',
-						index === 0 && !compact && 'border-xp/30 bg-xp/10',
-					)}
-				>
-					<span className={compact ? 'text-xl' : 'text-icon-lg'}>
-						{badge.icon}
-					</span>
-					<span
+					<motion.div
+						key={badge.id || `badge-${index}`}
+						whileHover={STAT_ITEM_HOVER}
+						transition={TRANSITION_SPRING}
 						className={cn(
-							'text-center font-semibold',
-							compact ? 'text-2xs' : 'text-xs',
+							'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-card',
+							compact
+								? 'min-w-nav px-3 py-2.5'
+								: 'min-w-thumbnail-xl px-4 py-3.5',
+							index === 0 && !compact && 'border-xp/30 bg-xp/10',
 						)}
 					>
-						{badge.name}
-					</span>
-					{!compact && badge.rarity === 'RARE' && (
-						<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
-							Rare
+						<span className={compact ? 'text-xl' : 'text-icon-lg'}>
+							{badge.icon}
 						</span>
-					)}
-				</motion.div>
-			))
+						<span
+							className={cn(
+								'text-center font-semibold',
+								compact ? 'text-2xs' : 'text-xs',
+							)}
+						>
+							{badge.name}
+						</span>
+						{!compact && badge.rarity === 'RARE' && (
+							<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
+								Rare
+							</span>
+						)}
+					</motion.div>
+				))
 			)}
 			{compact && totalBadges > 3 && (
 				<span className='flex items-center px-3 text-xs font-semibold text-text-muted'>
@@ -541,8 +538,7 @@ const OwnProfileHeader = ({
 	}, [onEditProfile])
 
 	const tabs = [
-		{ id: 'recipes', label: 'Recipes', 			icon: <Utensils className='size-4' />,
-		},
+		{ id: 'recipes', label: 'Recipes', icon: <Utensils className='size-4' /> },
 		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'cooking',

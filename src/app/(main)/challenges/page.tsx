@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
 	Trophy,
@@ -10,6 +11,7 @@ import {
 	Leaf,
 	Clock,
 	ChevronRight,
+	History,
 } from 'lucide-react'
 import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -184,12 +186,16 @@ export default function ChallengesPage() {
 					<EmptyStateGamified
 						variant='challenges'
 						title='No Active Challenges Right Now'
-						description='New challenges drop daily! In the meantime, challenge a friend to a cooking duel.'
+						description='New challenges drop daily! In the meantime, check your past challenges or explore recipes.'
 						primaryAction={{
 							label: 'Refresh',
 							onClick: () => router.refresh(),
 						}}
 						secondaryActions={[
+							{
+								label: 'View History',
+								href: '/challenges/history',
+							},
 							{
 								label: 'Explore Recipes',
 								href: '/explore',
@@ -527,12 +533,25 @@ export default function ChallengesPage() {
 
 						{/* Past Challenges link */}
 						<section>
-							<h2 className='mb-4 text-lg font-bold text-text-secondary'>
-								Past Challenges
-							</h2>
-							<p className='text-sm text-text-muted'>
-								Your completed challenges will appear here.
-							</p>
+							<Link
+								href='/challenges/history'
+								className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+							>
+								<div className='flex items-center gap-3'>
+									<div className='flex size-11 items-center justify-center rounded-xl bg-bg-elevated transition-colors group-hover:bg-brand/10'>
+										<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
+									</div>
+									<div>
+										<h3 className='font-semibold text-text'>
+											Challenge History
+										</h3>
+										<p className='text-sm text-text-muted'>
+											View your past challenges and achievements
+										</p>
+									</div>
+								</div>
+								<ChevronRight className='size-5 text-text-muted transition-colors group-hover:text-brand' />
+							</Link>
 						</section>
 					</>
 				)}
