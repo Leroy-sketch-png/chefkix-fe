@@ -119,7 +119,7 @@ const SinglePendingPost = ({
 	return (
 		<motion.section
 			className={cn(
-				'bg-panel-bg border border-border rounded-2xl overflow-hidden',
+				'bg-bg-card border border-border rounded-2xl overflow-hidden',
 				'border-l-4 border-l-primary',
 			)}
 			variants={fadeInUp}
@@ -217,7 +217,7 @@ const MultiplePendingPosts = ({
 	return (
 		<motion.section
 			className={cn(
-				'bg-panel-bg border border-border rounded-2xl overflow-hidden',
+				'bg-bg-card border border-border rounded-2xl overflow-hidden',
 				'border-l-4 border-l-warning',
 			)}
 			variants={fadeInUp}
@@ -340,7 +340,7 @@ const ManyPendingPosts = ({
 	return (
 		<motion.section
 			className={cn(
-				'bg-panel-bg border border-border rounded-2xl overflow-hidden',
+				'bg-bg-card border border-border rounded-2xl overflow-hidden',
 				urgentCount > 0
 					? 'border-l-4 border-l-error'
 					: 'border-l-4 border-l-warning',
@@ -487,7 +487,7 @@ export const PendingExpandedModal = ({
 						exit={{ opacity: 0 }}
 					>
 						<motion.div
-							className='bg-panel-bg rounded-t-3xl w-full max-w-lg max-h-sheet-mobile flex flex-col'
+							className='bg-bg-card rounded-t-3xl w-full max-w-lg max-h-sheet-mobile flex flex-col'
 							initial={{ y: '100%' }}
 							animate={{ y: 0 }}
 							exit={{ y: '100%' }}
