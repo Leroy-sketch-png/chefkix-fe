@@ -7,7 +7,7 @@ import { POST_MESSAGES } from '@/constants/messages'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Image as ImageIcon, Video, X, Tag, Send } from 'lucide-react'
 import Image from 'next/image'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import {

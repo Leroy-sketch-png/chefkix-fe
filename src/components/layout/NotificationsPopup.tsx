@@ -26,7 +26,7 @@ import {
 	type Notification as APINotification,
 } from '@/services/notification'
 import { toggleFollow } from '@/services/social'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 

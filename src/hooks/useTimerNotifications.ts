@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useCookingStore } from '@/store/cookingStore'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { playTimerCompleteForStep, isAudioEnabled } from '@/lib/audio'
 import { getTextToSpeech, isTTSSupported } from '@/lib/voice/TextToSpeech'
 import { showTimerNotification } from '@/lib/pushNotifications'
@@ -63,7 +63,8 @@ export const useTimerNotifications = () => {
 				const stepTitle = step?.title || `Step ${stepNumber}`
 
 				// Show toast notification
-				toast.success('⏰ Timer Complete!', `${stepTitle} is ready`, {
+				toast.success('⏰ Timer Complete!', {
+					description: `${stepTitle} is ready`,
 					duration: 8000,
 				})
 

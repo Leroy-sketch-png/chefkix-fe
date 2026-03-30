@@ -29,7 +29,7 @@ import {
 	InputOTPSlot,
 } from '@/components/ui/input-otp'
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { forgotPassword, verifyOtpPassword } from '@/services/auth'
 import {
 	FORGOT_PASSWORD_MESSAGES,
