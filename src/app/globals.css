@@ -541,8 +541,7 @@
 	--shadow-card:
 		0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
 	--shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
-	--shadow-2xl:
-		0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
+	--shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
 
 	/* ============ DARK MODE GRADIENTS - RICH ============ */
 	--gradient-brand: linear-gradient(
@@ -551,12 +550,7 @@
 		#ff8566 50%,
 		#ff5a36 100%
 	);
-	--gradient-xp: linear-gradient(
-		135deg,
-		#a78bfa 0%,
-		#c4b5fd 50%,
-		#8b5cf6 100%
-	);
+	--gradient-xp: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 50%, #8b5cf6 100%);
 	--gradient-gold: linear-gradient(
 		135deg,
 		#fbbf24 0%,
@@ -613,9 +607,13 @@
 
 	/* ============ SEMANTIC COLORS ============ */
 	--color-success: var(--color-success);
+	--color-success-vivid: var(--color-success-vivid);
 	--color-warning: var(--color-warning);
+	--color-warning-vivid: var(--color-warning-vivid);
 	--color-error: var(--color-error);
+	--color-error-vivid: var(--color-error-vivid);
 	--color-info: var(--color-info);
+	--color-info-vivid: var(--color-info-vivid);
 	--color-streak: var(--color-streak);
 	--color-streak-urgent: var(--color-streak-urgent);
 
