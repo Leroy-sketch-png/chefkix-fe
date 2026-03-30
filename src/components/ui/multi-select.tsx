@@ -68,7 +68,7 @@ export function MultiSelect({
 							size='sm'
 						>
 							<span>{option.label}</span>
-							{isActive && <Check className='h-4 w-4' />}
+							{isActive && <Check className='size-4' />}
 						</Button>
 					)
 				})}

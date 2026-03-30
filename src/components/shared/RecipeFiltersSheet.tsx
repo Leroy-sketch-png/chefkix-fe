@@ -85,10 +85,10 @@ export const RecipeFiltersSheet = ({
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
 			<SheetTrigger asChild>
 				<Button variant='outline' className='relative'>
-					<Filter className='h-4 w-4 mr-2' />
+					<Filter className='size-4' />
 					Filters
 					{activeFiltersCount > 0 && (
-						<span className='ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
+						<span className='ml-2 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
 							{activeFiltersCount}
 						</span>
 					)}

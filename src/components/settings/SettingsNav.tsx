@@ -54,43 +54,43 @@ const navItems: NavItem[] = [
 	{
 		id: 'profile',
 		label: 'Edit Profile',
-		icon: <User className='h-5 w-5' />,
+		icon: <User className='size-5' />,
 		description: 'Update your personal information',
 	},
 	{
 		id: 'notifications',
 		label: 'Notifications',
-		icon: <Bell className='h-5 w-5' />,
+		icon: <Bell className='size-5' />,
 		description: 'Manage notification preferences',
 	},
 	{
 		id: 'privacy',
 		label: 'Privacy',
-		icon: <Shield className='h-5 w-5' />,
+		icon: <Shield className='size-5' />,
 		description: 'Control who sees your content',
 	},
 	{
 		id: 'account',
 		label: 'Account',
-		icon: <KeyRound className='h-5 w-5' />,
+		icon: <KeyRound className='size-5' />,
 		description: 'Password and security settings',
 	},
 	{
 		id: 'billing',
 		label: 'Billing',
-		icon: <CreditCard className='h-5 w-5' />,
+		icon: <CreditCard className='size-5' />,
 		description: 'Manage subscription and payments',
 	},
 	{
 		id: 'appearance',
 		label: 'Appearance',
-		icon: <Palette className='h-5 w-5' />,
+		icon: <Palette className='size-5' />,
 		description: 'Theme and display preferences',
 	},
 	{
 		id: 'help',
 		label: 'Help & Support',
-		icon: <HelpCircle className='h-5 w-5' />,
+		icon: <HelpCircle className='size-5' />,
 		description: 'FAQs and contact support',
 	},
 ]
@@ -168,7 +168,7 @@ export const SettingsNav = ({
 					whileTap={{ scale: BUTTON_TAP.scale }}
 					transition={TRANSITION_SPRING}
 				>
-					<LogOut className='h-5 w-5 flex-shrink-0' />
+					<LogOut className='size-5 flex-shrink-0' />
 					<span className='font-medium'>Log Out</span>
 				</motion.button>
 			)}

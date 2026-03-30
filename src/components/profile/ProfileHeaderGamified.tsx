@@ -168,7 +168,7 @@ const LevelRing = ({
 			<div
 				className={cn(
 					'relative',
-					size === 'default' ? 'h-12 w-12' : 'h-10 w-10',
+					size === 'default' ? 'size-12' : 'size-10',
 				)}
 			>
 				<svg viewBox='0 0 100 100' className='-rotate-90'>
@@ -541,19 +541,20 @@ const OwnProfileHeader = ({
 	}, [onEditProfile])
 
 	const tabs = [
-		{ id: 'recipes', label: 'Recipes', icon: <Utensils className='h-4 w-4' /> },
-		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='h-4 w-4' /> },
+		{ id: 'recipes', label: 'Recipes', 			icon: <Utensils className='size-4' />,
+		},
+		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'cooking',
 			label: 'Cooking',
-			icon: <ChefHat className='h-4 w-4' />,
+			icon: <ChefHat className='size-4' />,
 			badge: pendingPosts?.count,
 		},
-		{ id: 'saved', label: 'Saved', icon: <Bookmark className='h-4 w-4' /> },
+		{ id: 'saved', label: 'Saved', icon: <Bookmark className='size-4' /> },
 		{
 			id: 'achievements',
 			label: 'Achievements',
-			icon: <Trophy className='h-4 w-4' />,
+			icon: <Trophy className='size-4' />,
 		},
 	]
 
@@ -612,7 +613,7 @@ const OwnProfileHeader = ({
 						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border'
 						title={`Edit Profile (${modKey}+E)`}
 					>
-						<Settings className='h-4 w-4' />
+						<Settings className='size-4' />
 						Edit Profile
 						<kbd className='ml-1.5 hidden rounded bg-bg px-1.5 py-0.5 font-mono text-[10px] text-text-muted group-hover:inline'>
 							{modKey}+E
@@ -625,7 +626,7 @@ const OwnProfileHeader = ({
 						transition={TRANSITION_SPRING}
 						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
 					>
-						<Share2 className='h-4 w-4' />
+						<Share2 className='size-4' />
 					</motion.button>
 				</div>
 			</div>
@@ -664,8 +665,8 @@ const OwnProfileHeader = ({
 			{/* Pending Posts Banner */}
 			{pendingPosts && pendingPosts.count > 0 && (
 				<div className='mx-6 mb-4 flex items-center gap-4 rounded-xl border border-error/30 bg-error/10 px-4 py-3.5'>
-					<div className='flex h-10 w-10 items-center justify-center rounded-full bg-error text-white'>
-						<AlertTriangle className='h-5 w-5' />
+					<div className='flex size-10 items-center justify-center rounded-full bg-error text-white'>
+						<AlertTriangle className='size-5' />
 					</div>
 					<div className='flex flex-1 flex-col gap-0.5'>
 						<span className='text-sm font-semibold'>
@@ -716,14 +717,14 @@ const OtherUserProfileHeader = ({
 		{
 			id: 'recipes',
 			label: 'Recipes',
-			icon: <Utensils className='h-4 w-4' />,
+			icon: <Utensils className='size-4' />,
 			count: user.stats.recipesCreated,
 		},
-		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='h-4 w-4' /> },
+		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'achievements',
 			label: 'Achievements',
-			icon: <Trophy className='h-4 w-4' />,
+			icon: <Trophy className='size-4' />,
 			count: user.totalBadges,
 		},
 	]
@@ -760,7 +761,7 @@ const OtherUserProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='h-avatar-xl w-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
@@ -792,7 +793,7 @@ const OtherUserProfileHeader = ({
 					>
 						{isFollowing ? (
 							<>
-								<Check className='h-4 w-4' />
+								<Check className='size-4' />
 								Following
 							</>
 						) : (
@@ -802,7 +803,7 @@ const OtherUserProfileHeader = ({
 					{/* Mutual Follow Badge (Instagram model: mutual follow = friends) */}
 					{isMutualFollow && (
 						<div className='flex items-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm font-semibold text-success'>
-							<Users className='h-4 w-4' />
+							<Users className='size-4' />
 							Friends
 						</div>
 					)}
@@ -813,7 +814,7 @@ const OtherUserProfileHeader = ({
 						transition={TRANSITION_SPRING}
 						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
 					>
-						<MessageCircle className='h-4 w-4' />
+						<MessageCircle className='size-4' />
 					</motion.button>
 					{/* Block/Unblock Button */}
 					<motion.button
