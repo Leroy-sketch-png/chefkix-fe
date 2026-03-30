@@ -186,7 +186,8 @@ export default function RecipeDetailPage() {
 			!recipe ||
 			autoStartAttempted.current ||
 			isCookingLoading
-		) return
+		)
+			return
 
 		autoStartAttempted.current = true
 		// Remove the query param to prevent re-triggering
@@ -208,7 +209,9 @@ export default function RecipeDetailPage() {
 			}
 		}
 		initCooking()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [
 		shouldAutoStartCooking,
 		recipe,
@@ -340,6 +343,7 @@ export default function RecipeDetailPage() {
 				remix_type: remixType,
 			})
 			if (response.success && response.data) {
+				toast.success('Remix created!')
 				setRemixResult(response.data)
 			} else {
 				toast.error(response.message || 'Failed to remix recipe')
@@ -539,7 +543,7 @@ export default function RecipeDetailPage() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
+					className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 				>
 					{/* Hero Image with overlay */}
 					<div className='group relative h-72 w-full overflow-hidden md:h-96'>
@@ -847,7 +851,11 @@ export default function RecipeDetailPage() {
 								disabled={isCreatingRoom || hasOtherSession}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								title='Create a room and cook together with friends'
+								title={
+									hasOtherSession
+										? `Already cooking: ${activeSession?.recipe?.title || 'another recipe'}`
+										: 'Create a room and cook together with friends'
+								}
 								className='flex items-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-5 py-4 font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50'
 							>
 								{isCreatingRoom ? (
@@ -925,6 +933,7 @@ export default function RecipeDetailPage() {
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-text-secondary hover:bg-bg-elevated'
+								aria-label='Share recipe'
 							>
 								<Share2 className='size-5' />
 							</motion.button>
@@ -959,6 +968,7 @@ export default function RecipeDetailPage() {
 										whileTap={BUTTON_TAP}
 										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-error hover:bg-error/10'
 										title='Delete Recipe'
+										aria-label='Delete recipe'
 									>
 										<Trash2 className='size-5 text-error' />
 									</motion.button>
@@ -1248,7 +1258,7 @@ export default function RecipeDetailPage() {
 							initial={{ opacity: 0, scale: 0.95, y: 20 }}
 							animate={{ opacity: 1, scale: 1, y: 0 }}
 							transition={TRANSITION_SPRING}
-							className='max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-lg md:p-8'
+							className='max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 							onClick={e => e.stopPropagation()}
 						>
 							<div className='mb-4 flex items-start justify-between'>
@@ -1263,6 +1273,7 @@ export default function RecipeDetailPage() {
 								<button
 									onClick={() => setRemixResult(null)}
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+									aria-label='Close remix modal'
 								>
 									✕
 								</button>
@@ -1372,42 +1383,46 @@ export default function RecipeDetailPage() {
 
 			{/* Delete Confirmation */}
 			{showDeleteConfirm && (
-				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
-					<motion.div
-						initial={{ opacity: 0, scale: 0.95 }}
-						animate={{ opacity: 1, scale: 1 }}
-						className='mx-4 w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-lg'
-					>
-						<h3 className='mb-2 text-lg font-bold text-text'>Delete Recipe?</h3>
-						<p className='mb-6 text-sm text-text-secondary'>
-							This action cannot be undone. The recipe and all associated data
-							will be permanently deleted.
-						</p>
-						<div className='flex gap-3'>
-							<Button
-								variant='outline'
-								className='flex-1'
-								onClick={() => setShowDeleteConfirm(false)}
-								disabled={isDeleting}
-							>
-								Cancel
-							</Button>
-							<Button
-								variant='destructive'
-								className='flex-1'
-								onClick={handleDeleteRecipe}
-								disabled={isDeleting}
-							>
-								{isDeleting ? (
-									<Loader2 className='mr-2 size-4 animate-spin' />
-								) : (
-									<Trash2 className='mr-2 size-4' />
-								)}
-								Delete
-							</Button>
-						</div>
-					</motion.div>
-				</div>
+				<Portal>
+					<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95 }}
+							animate={{ opacity: 1, scale: 1 }}
+							className='mx-4 w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-card'
+						>
+							<h3 className='mb-2 text-lg font-bold text-text'>
+								Delete Recipe?
+							</h3>
+							<p className='mb-6 text-sm text-text-secondary'>
+								This action cannot be undone. The recipe and all associated data
+								will be permanently deleted.
+							</p>
+							<div className='flex gap-3'>
+								<Button
+									variant='outline'
+									className='flex-1'
+									onClick={() => setShowDeleteConfirm(false)}
+									disabled={isDeleting}
+								>
+									Cancel
+								</Button>
+								<Button
+									variant='destructive'
+									className='flex-1'
+									onClick={handleDeleteRecipe}
+									disabled={isDeleting}
+								>
+									{isDeleting ? (
+										<Loader2 className='mr-2 size-4 animate-spin' />
+									) : (
+										<Trash2 className='mr-2 size-4' />
+									)}
+									Delete
+								</Button>
+							</div>
+						</motion.div>
+					</div>
+				</Portal>
 			)}
 		</PageTransition>
 	)
@@ -1421,7 +1436,7 @@ function RecipeDetailSkeleton() {
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
-				className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
+				className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 			>
 				<Skeleton className='h-72 w-full md:h-96' />
 				<div className='p-6 md:p-8'>
