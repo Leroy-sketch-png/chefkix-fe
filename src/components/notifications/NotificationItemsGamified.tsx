@@ -294,7 +294,7 @@ const XPAwardedItem = ({
 		{/* Action */}
 		<ActionButton
 			onClick={onPost}
-			className='flex-shrink-0 bg-xp text-white shadow-sm shadow-xp/30'
+			className='flex-shrink-0 bg-xp text-white shadow-card shadow-xp/30'
 		>
 			<Upload className='h-4 w-4' />
 			Post
@@ -808,7 +808,7 @@ const ChallengeReminderItem = ({
 		{/* Action */}
 		<ActionButton
 			onClick={onSeeRecipes}
-			className='flex-shrink-0 bg-xp text-white shadow-sm shadow-xp/30'
+			className='flex-shrink-0 bg-xp text-white shadow-card shadow-xp/30'
 		>
 			See Recipes
 		</ActionButton>

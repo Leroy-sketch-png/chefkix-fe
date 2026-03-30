@@ -218,7 +218,7 @@ export default function FeedPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-md shadow-primary/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-card shadow-primary/25'
 						>
 							<Newspaper className='size-6 text-white' />
 						</motion.div>
@@ -249,7 +249,7 @@ export default function FeedPage() {
 							className={cn(
 								'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
 								activeTab === tab.key
-									? 'bg-gradient-brand text-white shadow-md shadow-brand/25'
+									? 'bg-gradient-brand text-white shadow-card shadow-brand/25'
 									: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
 							)}
 						>

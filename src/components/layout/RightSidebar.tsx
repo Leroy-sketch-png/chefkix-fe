@@ -229,7 +229,7 @@ export const RightSidebar = () => {
 									key={suggestion.userId}
 									className='flex items-center gap-3'
 								>
-									<div className='relative size-10 flex-shrink-0 overflow-hidden rounded-full shadow-sm transition-transform duration-200 hover:scale-105'>
+									<div className='relative size-10 flex-shrink-0 overflow-hidden rounded-full shadow-card transition-transform duration-200 hover:scale-105'>
 										<Image
 											src={suggestion.avatarUrl || '/placeholder-avatar.svg'}
 											alt={suggestion.displayName || suggestion.username}
@@ -250,10 +250,10 @@ export const RightSidebar = () => {
 										onClick={() => handleFollow(suggestion.userId)}
 										aria-pressed={isFollowed}
 										className={cn(
-											'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-sm transition-all duration-200 active:scale-95',
+											'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95',
 											isFollowed
 												? 'border border-border-medium bg-bg-card text-text-secondary hover:border-error/50 hover:text-error'
-												: 'border-none bg-gradient-primary text-primary-foreground hover:shadow-md',
+												: 'border-none bg-gradient-primary text-white hover:shadow-card',
 										)}
 									>
 										{isFollowed ? 'Following' : 'Follow'}

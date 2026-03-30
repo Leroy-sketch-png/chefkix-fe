@@ -126,7 +126,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 			{/* Header */}
 			<div className='flex justify-between mb-4'>
 				<span className='text-sm font-bold text-success'>This Week</span>
-				<span className='text-sm text-muted-foreground'>{data.dateRange}</span>
+				<span className='text-sm text-text-secondary'>{data.dateRange}</span>
 			</div>
 
 			{/* Stats Grid */}
@@ -138,7 +138,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 						<span className='text-2xl font-extrabold text-success'>
 							+{data.newCooks}
 						</span>
-						<span className='text-xs text-muted-foreground'>New Cooks</span>
+						<span className='text-xs text-text-secondary'>New Cooks</span>
 					</div>
 					{hasNewCooksChange && (
 						<div
@@ -165,7 +165,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 						<span className='text-2xl font-extrabold text-text'>
 							+{data.xpEarned}
 						</span>
-						<span className='text-xs text-muted-foreground'>XP Earned</span>
+						<span className='text-xs text-text-secondary'>XP Earned</span>
 					</div>
 					{hasXpEarnedChange && (
 						<div
@@ -206,7 +206,7 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 						</span>
 						<span className='text-icon-lg'>📖</span>
 					</div>
-					<span className='text-sm text-muted-foreground'>
+					<span className='text-sm text-text-secondary'>
 						Recipes Published
 					</span>
 				</div>
@@ -250,7 +250,7 @@ function StatCard({
 			<span className='text-2xl'>{icon}</span>
 			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold text-text'>{value}</span>
-				<span className='text-xs text-muted-foreground'>{label}</span>
+				<span className='text-xs text-text-secondary'>{label}</span>
 			</div>
 		</div>
 	)
@@ -267,7 +267,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 		<div className='mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Creator Badges</h3>
-				<span className='text-sm text-muted-foreground'>
+				<span className='text-sm text-text-secondary'>
 					{earnedCount} earned
 				</span>
 			</div>
@@ -291,7 +291,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 					>
 						<span className='text-icon-xl'>{badge.icon}</span>
 						<span className='text-xs font-bold text-text'>{badge.name}</span>
-						<span className='text-2xs text-muted-foreground line-clamp-2'>
+						<span className='text-2xs text-text-secondary line-clamp-2'>
 							{badge.description}
 						</span>
 
@@ -350,11 +350,11 @@ function TopRecipeSection({
 				<div className='flex-1 flex flex-col gap-2 items-center sm:items-start text-center sm:text-left'>
 					<h4 className='text-xl font-extrabold text-text'>{recipe.title}</h4>
 					<div className='flex gap-3'>
-						<span className='flex items-center gap-1 text-sm text-muted-foreground'>
+						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='w-3.5 h-3.5' />
 							{recipe.cookTime} min
 						</span>
-						<span className='flex items-center gap-1 text-sm text-muted-foreground'>
+						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Signal className='w-3.5 h-3.5' />
 							{recipe.difficulty}
 						</span>
@@ -364,13 +364,13 @@ function TopRecipeSection({
 							<span className='text-xl font-extrabold text-primary'>
 								{recipe.cookCount}
 							</span>
-							<span className='text-xs text-muted-foreground'>Cooks</span>
+							<span className='text-xs text-text-secondary'>Cooks</span>
 						</div>
 						<div className='flex flex-col'>
 							<span className='text-xl font-extrabold text-primary'>
 								{recipe.xpGenerated.toLocaleString()}
 							</span>
-							<span className='text-xs text-muted-foreground'>
+							<span className='text-xs text-text-secondary'>
 								XP Generated
 							</span>
 						</div>
@@ -378,7 +378,7 @@ function TopRecipeSection({
 							<span className='text-xl font-extrabold text-primary'>
 								{recipe.rating.toFixed(1)}
 							</span>
-							<span className='text-xs text-muted-foreground'>Rating</span>
+							<span className='text-xs text-text-secondary'>Rating</span>
 						</div>
 					</div>
 				</div>
@@ -410,7 +410,7 @@ function RecipePerformanceSection({
 					type='button'
 					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border rounded-lg text-sm text-text'
 				>
-					<ArrowUpDown className='w-3.5 h-3.5 text-muted-foreground' />
+					<ArrowUpDown className='w-3.5 h-3.5 text-text-secondary' />
 					Most Cooked
 				</button>
 			</div>
@@ -421,7 +421,7 @@ function RecipePerformanceSection({
 					<p className='text-base font-semibold text-text'>
 						No performance data yet
 					</p>
-					<p className='text-sm text-muted-foreground max-w-xs'>
+					<p className='text-sm text-text-secondary max-w-xs'>
 						Publish recipes and watch them get cooked — your analytics will
 						appear here.
 					</p>
@@ -444,7 +444,7 @@ function RecipePerformanceSection({
 								recipe.needsAttention && 'border-l-3 border-l-amber-500',
 							)}
 						>
-							<span className='w-7 text-base font-extrabold text-muted-foreground text-center'>
+							<span className='w-7 text-base font-extrabold text-text-secondary text-center'>
 								{recipe.rank}
 							</span>{' '}
 							<Image
@@ -479,13 +479,13 @@ function RecipePerformanceSection({
 									<span className='text-base font-extrabold text-text'>
 										{recipe.cookCount}
 									</span>
-									<span className='text-2xs text-muted-foreground'>Cooks</span>
+									<span className='text-2xs text-text-secondary'>Cooks</span>
 								</div>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
 									<span className='text-base font-extrabold text-text'>
 										+{recipe.xpGenerated}
 									</span>
-									<span className='text-2xs text-muted-foreground'>XP</span>
+									<span className='text-2xs text-text-secondary'>XP</span>
 								</div>
 							</div>
 							{onViewStepAnalytics && recipe.cookCount > 0 && (
@@ -496,7 +496,7 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onViewStepAnalytics(recipe.id)
 									}}
-									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-brand'
+									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-brand'
 									title='View step analytics'
 								>
 									<BarChart3 className='w-4 h-4' />
@@ -510,7 +510,7 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onImproveRecipe(recipe.id)
 									}}
-									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-text'
+									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-text'
 								>
 									<Edit3 className='w-4 h-4' />
 								</motion.button>
@@ -554,7 +554,7 @@ function RecentCooksSection({
 					<p className='text-base font-semibold text-text'>
 						No one has cooked your recipes yet
 					</p>
-					<p className='text-sm text-muted-foreground max-w-xs'>
+					<p className='text-sm text-text-secondary max-w-xs'>
 						Share your recipes with friends — you earn XP every time someone
 						cooks them.
 					</p>
@@ -584,7 +584,7 @@ function RecentCooksSection({
 									<strong className='font-bold'>{cook.userName}</strong> cooked
 									your <strong className='font-bold'>{cook.recipeTitle}</strong>
 								</span>
-								<span className='text-xs text-muted-foreground'>
+								<span className='text-xs text-text-secondary'>
 									{cook.timeAgo}
 								</span>
 							</div>
@@ -592,7 +592,7 @@ function RecentCooksSection({
 								<span className='block text-base font-extrabold text-success'>
 									+{cook.xpEarned}
 								</span>
-								<span className='text-2xs text-muted-foreground'>XP</span>
+								<span className='text-2xs text-text-secondary'>XP</span>
 							</div>
 						</motion.div>
 					))}
@@ -623,7 +623,7 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 					<strong className='text-base text-text'>
 						Share your next masterpiece
 					</strong>
-					<span className='text-sm text-muted-foreground'>
+					<span className='text-sm text-text-secondary'>
 						Every cook of your recipe earns you 4% XP
 					</span>
 				</div>

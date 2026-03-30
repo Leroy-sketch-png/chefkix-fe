@@ -99,7 +99,7 @@ export const UserHoverCard = ({
 							<Link href={`/${profile.userId}`} className='flex-shrink-0'>
 								<Avatar
 									size='xl'
-									className='shadow-md hover:shadow-lg transition-shadow'
+									className='shadow-card hover:shadow-lg transition-shadow'
 								>
 									<AvatarImage
 										src={profile.avatarUrl || '/placeholder-avatar.svg'}

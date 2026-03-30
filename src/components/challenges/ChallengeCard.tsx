@@ -175,7 +175,7 @@ export const ChallengeCard = ({
 				{/* Meta Row */}
 				<div className='mb-4 flex items-center gap-4 text-xs'>
 					{/* Bonus XP */}
-					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-sm shadow-bonus/20'>
+					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-card shadow-bonus/20'>
 						<span>⚡</span>
 						<span className='font-bold text-bonus'>+{bonusXp} XP</span>
 					</div>

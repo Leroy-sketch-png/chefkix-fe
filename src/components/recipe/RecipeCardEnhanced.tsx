@@ -376,7 +376,7 @@ const FeedCard = ({
 	<motion.article
 		whileHover={CARD_FEED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='relative overflow-hidden rounded-2xl bg-panel-bg shadow-md hover:shadow-xl'
+		className='relative overflow-hidden rounded-2xl bg-panel-bg shadow-card hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
@@ -490,7 +490,7 @@ const GridCard = ({
 	<motion.article
 		whileHover={CARD_GRID_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-2xl bg-panel-bg shadow-md hover:shadow-xl'
+		className='overflow-hidden rounded-2xl bg-panel-bg shadow-card hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
@@ -808,7 +808,7 @@ const CookedCard = ({
 	<motion.article
 		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-2xl border-2 border-xp/30 bg-panel-bg shadow-md hover:border-xp/50 hover:shadow-xp/15'
+		className='overflow-hidden rounded-2xl border-2 border-xp/30 bg-panel-bg shadow-card hover:border-xp/50 hover:shadow-xp/15'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}

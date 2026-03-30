@@ -33,7 +33,7 @@ export const UserProfileSkeleton = ({
 
 			{/* Profile Section */}
 			<div className='relative -mt-20 px-4 md:px-6'>
-				<div className='rounded-radius bg-bg-card p-6 shadow-md md:p-8'>
+				<div className='rounded-radius bg-bg-card p-6 shadow-card md:p-8'>
 					{/* Avatar and Name Row */}
 					<div className='mb-6 flex flex-col items-center gap-6 md:flex-row md:items-end'>
 						{/* Large Avatar */}

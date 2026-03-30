@@ -70,7 +70,7 @@ export default function AdminLayout({
 							className={cn(
 								'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
 								isActive
-									? 'bg-bg-card text-text shadow-sm'
+									? 'bg-bg-card text-text shadow-card'
 									: 'text-text-muted hover:text-text',
 							)}
 						>

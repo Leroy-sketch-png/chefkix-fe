@@ -193,7 +193,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
 								saved
 									? 'bg-primary/10 text-primary'
-									: 'text-muted-foreground hover:bg-muted hover:text-primary',
+									: 'text-text-secondary hover:bg-bg-hover hover:text-primary',
 							)}
 						>
 							<Bookmark className={cn('size-4', saved && 'fill-current')} />
@@ -209,11 +209,11 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 								</span>
 							</div>
 						)}
-						<div className='flex items-center gap-1 text-muted-foreground'>
+						<div className='flex items-center gap-1 text-text-secondary'>
 							<Clock className='size-3.5' />
 							<span className='text-caption'>{recipe.cookTime}</span>
 						</div>
-						<div className='flex items-center gap-1 text-muted-foreground'>
+						<div className='flex items-center gap-1 text-text-secondary'>
 							<Flame className='size-3.5' />
 							<span className='text-caption'>{recipe.difficulty}</span>
 						</div>
@@ -228,11 +228,11 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 								height={24}
 								className='rounded-full'
 							/>
-							<span className='text-caption text-muted-foreground'>
+							<span className='text-caption text-text-secondary'>
 								@{recipe.author.username}
 							</span>
 						</div>
-						<span className='text-xs font-semibold text-muted-foreground'>
+						<span className='text-xs font-semibold text-text-secondary'>
 							{recipe.cookCount >= 1000
 								? `${(recipe.cookCount / 1000).toFixed(1)}k cooks`
 								: `${recipe.cookCount} cooks`}
@@ -273,7 +273,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	return (
 		<motion.div
 			variants={staggerItemVariants}
-			className='flex items-center gap-4 rounded-2xl border border-border bg-panel-bg p-4 transition-shadow hover:shadow-md'
+			className='flex items-center gap-4 rounded-2xl border border-border bg-panel-bg p-4 transition-shadow hover:shadow-card'
 		>
 			<Image
 				src={person.avatarUrl}
@@ -284,8 +284,8 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 			/>
 			<div className='min-w-0 flex-1'>
 				<p className='text-base font-bold text-text'>{person.displayName}</p>
-				<p className='text-sm text-muted-foreground'>@{person.username}</p>
-				<p className='mt-1 truncate text-caption text-muted-foreground'>
+				<p className='text-sm text-text-secondary'>@{person.username}</p>
+				<p className='mt-1 truncate text-caption text-text-secondary'>
 					{person.bio}
 				</p>
 			</div>
@@ -296,7 +296,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 				className={cn(
 					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors',
 					following
-						? 'border-2 border-border bg-muted text-text hover:border-error hover:bg-error/5 hover:text-error'
+						? 'border-2 border-border bg-bg-elevated text-text hover:border-error hover:bg-error/5 hover:text-error'
 						: 'bg-primary text-white',
 				)}
 			>
@@ -311,7 +311,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 		<motion.div variants={staggerItemVariants}>
 			<Link
 				href={`/post/${post.id}`}
-				className='group flex gap-3 rounded-2xl border border-border bg-panel-bg p-3 transition-shadow hover:shadow-md'
+				className='group flex gap-3 rounded-2xl border border-border bg-panel-bg p-3 transition-shadow hover:shadow-card'
 			>
 				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
 					<Image
@@ -334,10 +334,10 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 							@{post.author.username}
 						</span>
 					</div>
-					<p className='line-clamp-2 text-caption text-muted-foreground'>
+					<p className='line-clamp-2 text-caption text-text-secondary'>
 						{post.caption}
 					</p>
-					<p className='mt-1 text-xs text-muted-foreground'>
+					<p className='mt-1 text-xs text-text-secondary'>
 						❤️ {post.likeCount} likes
 					</p>
 				</div>
@@ -582,7 +582,7 @@ export default function SearchPage() {
 													handleRemoveRecent(term)
 												}
 											}}
-											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-0 transition-opacity hover:bg-muted hover:text-text group-hover:opacity-100'
+											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-0 transition-opacity hover:bg-bg-hover hover:text-text group-hover:opacity-100'
 											aria-label={`Remove "${term}" from recent searches`}
 										>
 											<X className='size-3' />
@@ -655,7 +655,7 @@ export default function SearchPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
 						>
 							<Search className='size-6 text-white' />
 						</motion.div>
@@ -679,7 +679,7 @@ export default function SearchPage() {
 								'-mb-[2px] flex items-center gap-2 whitespace-nowrap border-b-[3px] px-5 py-3 text-label font-semibold transition-colors',
 								activeTab === tab.id
 									? 'border-primary text-primary'
-									: 'border-transparent text-muted-foreground hover:bg-muted/30 hover:text-text',
+									: 'border-transparent text-text-secondary hover:bg-muted/30 hover:text-text',
 							)}
 						>
 							<tab.icon className='size-4' />
@@ -689,7 +689,7 @@ export default function SearchPage() {
 									'rounded-full px-2 py-0.5 text-xs font-bold',
 									activeTab === tab.id
 										? 'bg-primary/15 text-primary'
-										: 'bg-muted text-muted-foreground',
+										: 'bg-bg-elevated text-text-secondary',
 								)}
 							>
 								{tab.count}

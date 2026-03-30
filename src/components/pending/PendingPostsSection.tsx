@@ -136,13 +136,13 @@ const SinglePendingPost = ({
 				</div>
 				{onDismiss && (
 					<motion.button
-						className='p-2 rounded-full bg-muted/50 hover:bg-muted'
+						className='p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
 						onClick={onDismiss}
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
 					>
-						<X className='h-4 w-4 text-muted-foreground' />
+						<X className='h-4 w-4 text-text-secondary' />
 					</motion.button>
 				)}
 			</div>
@@ -161,14 +161,14 @@ const SinglePendingPost = ({
 					<span className='block text-base font-bold text-foreground mb-1'>
 						{session.recipeName}
 					</span>
-					<span className='block text-sm text-muted-foreground mb-2'>
+					<span className='block text-sm text-text-secondary mb-2'>
 						{getTimeSinceCook(session.cookedAt)}
 					</span>
 					<div className='flex items-center gap-3'>
 						<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg'>
 							+{session.currentXP} XP
 						</span>
-						<span className='flex items-center gap-1 text-sm text-muted-foreground'>
+						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='h-3.5 w-3.5' />
 							{getTimeLeft(session.expiresAt)}
 						</span>
@@ -178,7 +178,7 @@ const SinglePendingPost = ({
 				<motion.button
 					className={cn(
 						'flex items-center gap-2 px-5 py-3 rounded-xl',
-						'bg-primary text-primary-foreground font-semibold',
+						'bg-primary text-white font-semibold',
 						'shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
@@ -243,7 +243,7 @@ const MultiplePendingPosts = ({
 					</span>
 				</div>
 				<motion.button
-					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted rounded-lg text-sm font-semibold'
+					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-lg text-sm font-semibold'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
@@ -283,7 +283,7 @@ const MultiplePendingPosts = ({
 									'text-xs',
 									session.status === 'urgent'
 										? 'text-error font-semibold'
-										: 'text-muted-foreground',
+										: 'text-text-secondary',
 								)}
 							>
 								{getTimeLeft(session.expiresAt)}
@@ -297,7 +297,7 @@ const MultiplePendingPosts = ({
 								'px-3 py-1.5 rounded-lg text-sm font-semibold',
 								session.status === 'urgent'
 									? 'bg-error text-white'
-									: 'bg-primary text-primary-foreground',
+									: 'bg-primary text-white',
 							)}
 							onClick={() => onPost(session.id)}
 							whileHover={BUTTON_SUBTLE_HOVER}
@@ -310,7 +310,7 @@ const MultiplePendingPosts = ({
 
 				{remaining > 0 && (
 					<button
-						className='w-full text-center py-2 text-sm text-muted-foreground hover:text-primary transition-colors'
+						className='w-full text-center py-2 text-sm text-text-secondary hover:text-primary transition-colors'
 						onClick={onViewAll}
 					>
 						+{remaining} more recipe{remaining > 1 ? 's' : ''} • Tap to see all
@@ -367,12 +367,12 @@ const ManyPendingPosts = ({
 					</div>
 				)}
 
-				<span className='flex-1 text-sm text-muted-foreground text-right'>
+				<span className='flex-1 text-sm text-text-secondary text-right'>
 					{sessions.length} pending • +{totalXP} XP
 				</span>
 
 				<motion.button
-					className='flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold'
+					className='flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
@@ -499,17 +499,17 @@ export const PendingExpandedModal = ({
 								<h2 className='text-xl font-bold text-foreground'>
 									Pending Posts
 								</h2>
-								<span className='text-sm text-muted-foreground'>
+								<span className='text-sm text-text-secondary'>
 									{pendingSessions.length} recipes • +{totalXP} XP available
 								</span>
 								<motion.button
-									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-muted'
+									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
 									onClick={onClose}
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
 								>
-									<X className='h-5 w-5 text-muted-foreground' />
+									<X className='h-5 w-5 text-text-secondary' />
 								</motion.button>
 							</div>
 
@@ -571,7 +571,7 @@ export const PendingExpandedModal = ({
 												<span className='block text-base font-bold text-foreground'>
 													{session.recipeName}
 												</span>
-												<span className='block text-sm text-muted-foreground'>
+												<span className='block text-sm text-text-secondary'>
 													{getTimeSinceCook(session.cookedAt)}
 												</span>
 												{/* Decay indicator - only shown when actual time-based decay */}
@@ -611,7 +611,7 @@ export const PendingExpandedModal = ({
 												{/* Only show original if there's actual decay */}
 												{session.currentXP < session.baseXP &&
 													session.currentXP > 0 && (
-														<span className='text-xs text-muted-foreground line-through'>
+														<span className='text-xs text-text-secondary line-through'>
 															was +{session.baseXP}
 														</span>
 													)}
@@ -621,7 +621,7 @@ export const PendingExpandedModal = ({
 													'px-4 py-2.5 rounded-xl text-sm font-semibold',
 													session.status === 'urgent'
 														? 'bg-error text-white'
-														: 'bg-primary text-primary-foreground',
+														: 'bg-primary text-white',
 												)}
 												onClick={() => onPost(session.id)}
 												whileHover={BUTTON_SUBTLE_HOVER}
@@ -637,11 +637,11 @@ export const PendingExpandedModal = ({
 
 							{/* Footer */}
 							<div className='p-5 border-t border-border bg-muted/30'>
-								<p className='text-sm text-muted-foreground text-center mb-4'>
+								<p className='text-sm text-text-secondary text-center mb-4'>
 									💡 Post photos of your creations to unlock XP and badges!
 								</p>
 								<motion.button
-									className='w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold'
+									className='w-full py-3 bg-primary text-white rounded-xl font-semibold'
 									onClick={onClose}
 									whileHover={CARD_FEATURED_HOVER}
 									whileTap={BUTTON_TAP}

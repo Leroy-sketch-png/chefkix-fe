@@ -578,11 +578,11 @@ export const UserProfile = ({
 										key={i}
 										className='animate-pulse overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
 									>
-										<div className='h-48 w-full bg-muted' />
+										<div className='h-48 w-full bg-bg-elevated' />
 										<div className='space-y-3 p-4'>
-											<div className='h-5 w-3/4 rounded bg-muted' />
-											<div className='h-4 w-1/2 rounded bg-muted' />
-											<div className='h-11 w-full rounded bg-muted' />
+											<div className='h-5 w-3/4 rounded bg-bg-elevated' />
+											<div className='h-4 w-1/2 rounded bg-bg-elevated' />
+											<div className='h-11 w-full rounded bg-bg-elevated' />
 										</div>
 									</div>
 								))}
@@ -608,7 +608,7 @@ export const UserProfile = ({
 								{userRecipes.map(recipe => (
 									<div
 										key={recipe.id}
-										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-sm transition-shadow hover:shadow-md'
+										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-card'
 									>
 										<div className='relative h-48 w-full'>
 											<Image
@@ -795,7 +795,7 @@ export const UserProfile = ({
 												{savedRecipes.map(recipe => (
 													<div
 														key={recipe.id}
-														className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-md'
+														className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-card'
 														onClick={() => router.push(`/recipes/${recipe.id}`)}
 													>
 														<div className='relative h-40 overflow-hidden'>
@@ -915,7 +915,7 @@ export const UserProfile = ({
 									{profileUser.badges.map((badge, index) => (
 										<div
 											key={badge.id || `badge-${index}`}
-											className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-md'
+											className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-card'
 										>
 											<span className='text-3xl'>{badge.icon}</span>
 											<span className='text-center text-xs font-semibold text-text line-clamp-1'>
@@ -947,7 +947,7 @@ export const UserProfile = ({
 							<div className='flex justify-center'>
 								<Link
 									href='/profile/badges'
-									className='flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-md'
+									className='flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-card'
 								>
 									<Trophy className='size-5' />
 									View Full Badge Catalog ({getAllBadges().length} badges)

@@ -248,7 +248,7 @@ export default function CreatorRoute() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-md shadow-xp/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-card shadow-xp/25'
 						>
 							<ChefHat className='size-6 text-white' />
 						</motion.div>

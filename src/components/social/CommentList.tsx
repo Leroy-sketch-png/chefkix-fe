@@ -194,7 +194,7 @@ export const CommentList = ({
 					<button
 						onClick={handleSubmitComment}
 						disabled={!newComment.trim() || isSubmitting}
-						className='grid size-10 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50'
+						className='grid size-10 place-items-center rounded-lg bg-primary text-white transition-colors hover:bg-primary/90 disabled:opacity-50'
 					>
 						{isSubmitting ? (
 							<Loader2 className='size-4 animate-spin' />

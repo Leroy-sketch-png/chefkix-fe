@@ -242,11 +242,11 @@ const ImageUpload = ({
 			) : (
 				<label className='flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-3 border-dashed border-border bg-bg p-10 transition-colors hover:border-primary hover:bg-primary/5'>
 					<div className='flex size-12 items-center justify-center rounded-xl bg-muted/30'>
-						<Upload className='size-6 text-muted-foreground' />
+						<Upload className='size-6 text-text-secondary' />
 					</div>
 					<div className='text-center'>
 						<p className='font-semibold text-text'>{label}</p>
-						<p className='text-sm text-muted-foreground'>JPG, PNG up to 10MB</p>
+						<p className='text-sm text-text-secondary'>JPG, PNG up to 10MB</p>
 					</div>
 					<input
 						type='file'
@@ -319,7 +319,7 @@ const IngredientRow = ({
 		<button
 			type='button'
 			onClick={onRemove}
-			className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
+			className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
 		>
 			<Trash2 className='size-4' />
 		</button>
@@ -423,7 +423,7 @@ const StepRow = ({
 					<button
 						type='button'
 						onClick={() => fileInputRef.current?.click()}
-						className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+						className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
 					>
 						<ImageIcon className='size-3.5' />
 						{step.imageUrl ? 'Change Photo' : 'Add Photo'}
@@ -484,7 +484,7 @@ const StepRow = ({
 									setShowTimerInput(false)
 									onChange({ ...step, timerSeconds: undefined })
 								}}
-								className='text-muted-foreground hover:text-error'
+								className='text-text-secondary hover:text-error'
 							>
 								<X className='size-4' />
 							</button>
@@ -493,7 +493,7 @@ const StepRow = ({
 						<button
 							type='button'
 							onClick={() => setShowTimerInput(true)}
-							className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
 						>
 							<Timer className='size-3.5' />
 							Add Timer
@@ -504,7 +504,7 @@ const StepRow = ({
 			<button
 				type='button'
 				onClick={onRemove}
-				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
+				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
 			>
 				<Trash2 className='size-4' />
 			</button>
@@ -577,7 +577,7 @@ const TagInput = ({
 							key={tag}
 							type='button'
 							onClick={() => addSuggestedTag(tag)}
-							className='rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+							className='rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
 						>
 							{tag}
 						</button>
@@ -864,7 +864,7 @@ export const RecipeFormDetailed = ({
 				<h1 className='text-3xl font-extrabold text-text md:text-4xl'>
 					Create Your Recipe
 				</h1>
-				<p className='mt-2 text-muted-foreground'>
+				<p className='mt-2 text-text-secondary'>
 					Share your culinary creation with the community
 				</p>
 			</div>
@@ -904,7 +904,7 @@ export const RecipeFormDetailed = ({
 						{errors.title ? (
 							<p className='mt-1.5 text-sm text-error'>{errors.title}</p>
 						) : (
-							<p className='mt-1.5 text-sm text-muted-foreground'>
+							<p className='mt-1.5 text-sm text-text-secondary'>
 								Give your recipe a catchy, descriptive name
 							</p>
 						)}
@@ -937,7 +937,7 @@ export const RecipeFormDetailed = ({
 						{errors.description ? (
 							<p className='mt-1.5 text-sm text-error'>{errors.description}</p>
 						) : (
-							<p className='mt-1.5 text-sm text-muted-foreground'>
+							<p className='mt-1.5 text-sm text-text-secondary'>
 								{formData.description.length} / 500 characters
 							</p>
 						)}
@@ -997,7 +997,7 @@ export const RecipeFormDetailed = ({
 									min={0}
 									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
-								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground'>
+								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									min
 								</span>
 							</div>
@@ -1024,7 +1024,7 @@ export const RecipeFormDetailed = ({
 									min={0}
 									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
-								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground'>
+								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									min
 								</span>
 							</div>
@@ -1069,7 +1069,7 @@ export const RecipeFormDetailed = ({
 										'size-4',
 										predictedDifficulty
 											? 'text-primary'
-											: 'text-muted-foreground',
+											: 'text-text-secondary',
 									)}
 								/>
 								<span
@@ -1077,19 +1077,19 @@ export const RecipeFormDetailed = ({
 										'flex-1 text-sm',
 										predictedDifficulty
 											? 'font-medium text-text'
-											: 'text-muted-foreground',
+											: 'text-text-secondary',
 									)}
 								>
 									{predictedDifficulty || 'Determined by AI'}
 								</span>
 								{predictedDifficulty && difficultyConfidence > 0 && (
-									<span className='text-xs text-muted-foreground'>
+									<span className='text-xs text-text-secondary'>
 										{Math.round(difficultyConfidence * 100)}%
 									</span>
 								)}
-								<Lock className='size-4 text-muted-foreground/50' />
+								<Lock className='size-4 text-text-secondary/50' />
 							</div>
-							<p className='mt-1.5 text-xs text-muted-foreground'>
+							<p className='mt-1.5 text-xs text-text-secondary'>
 								{predictedDifficulty
 									? 'AI prediction based on your recipe structure'
 									: 'Add ingredients and steps to see AI prediction'}
@@ -1156,7 +1156,7 @@ export const RecipeFormDetailed = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
 						>
 							<Plus className='size-4' />
 							Add Ingredient
@@ -1226,7 +1226,7 @@ export const RecipeFormDetailed = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
 						>
 							<Plus className='size-4' />
 							Add Step
@@ -1275,7 +1275,7 @@ export const RecipeFormDetailed = ({
 				{/* Tags Section */}
 				<section className='mb-8'>
 					<h2 className='mb-6 text-xl font-bold text-text'>Tags</h2>
-					<p className='mb-3 text-sm text-muted-foreground'>
+					<p className='mb-3 text-sm text-text-secondary'>
 						Add tags to help people discover your recipe
 					</p>
 					<TagInput
@@ -1312,7 +1312,7 @@ export const RecipeFormDetailed = ({
 								type='button'
 								onClick={onCancel}
 								disabled={isSubmitting || isSaving}
-								className='flex-1 rounded-xl border border-border bg-bg px-5 py-3 font-semibold text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none'
+								className='flex-1 rounded-xl border border-border bg-bg px-5 py-3 font-semibold text-text-secondary disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none'
 							>
 								Cancel
 							</button>

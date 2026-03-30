@@ -274,10 +274,10 @@ export const MessagesDrawer = () => {
 						<div className='flex-1 overflow-y-auto p-3'>
 							{isLoadingMessages ? (
 								<div className='flex h-full items-center justify-center'>
-									<Loader2 className='size-5 animate-spin text-muted-foreground' />
+									<Loader2 className='size-5 animate-spin text-text-secondary' />
 								</div>
 							) : messages.length === 0 ? (
-								<div className='flex h-full items-center justify-center text-sm text-muted-foreground'>
+								<div className='flex h-full items-center justify-center text-sm text-text-secondary'>
 									No messages yet
 								</div>
 							) : (
@@ -290,8 +290,8 @@ export const MessagesDrawer = () => {
 											<div
 												className={`max-w-[70%] rounded-lg p-2 ${
 													message.me
-														? 'rounded-br-none bg-primary text-primary-foreground'
-														: 'rounded-bl-none bg-muted'
+														? 'rounded-br-none bg-primary text-white'
+														: 'rounded-bl-none bg-bg-elevated'
 												}`}
 											>
 												<p className='text-sm'>{message.message}</p>
@@ -308,10 +308,10 @@ export const MessagesDrawer = () => {
 					<div className='p-2'>
 						{isLoadingConversations ? (
 							<div className='flex items-center justify-center py-8'>
-								<Loader2 className='size-5 animate-spin text-muted-foreground' />
+								<Loader2 className='size-5 animate-spin text-text-secondary' />
 							</div>
 						) : filteredConversations.length === 0 ? (
-							<div className='flex flex-col items-center justify-center gap-2 py-8 text-center text-muted-foreground'>
+							<div className='flex flex-col items-center justify-center gap-2 py-8 text-center text-text-secondary'>
 								<MessageSquare className='size-8' />
 								<p className='text-sm'>
 									{searchTerm
@@ -332,7 +332,7 @@ export const MessagesDrawer = () => {
 									<button
 										key={conv.id}
 										onClick={() => setSelectedConversation(conv)}
-										className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-muted'
+										className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-bg-hover'
 									>
 										<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full'>
 											<Image
@@ -348,13 +348,13 @@ export const MessagesDrawer = () => {
 												{getConversationName(conv)}
 											</p>
 											{conv.lastMessage && (
-												<p className='truncate text-xs text-muted-foreground'>
+												<p className='truncate text-xs text-text-secondary'>
 													{conv.lastMessage.message}
 												</p>
 											)}
 										</div>
 										{conv.unreadCount && conv.unreadCount > 0 && (
-											<span className='flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
+											<span className='flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-white'>
 												{conv.unreadCount}
 											</span>
 										)}
@@ -393,7 +393,7 @@ export const MessagesDrawer = () => {
 					<Link
 						href={PATHS.MESSAGES}
 						onClick={toggleMessagesDrawer}
-						className='flex w-full items-center justify-center gap-2 rounded-lg bg-muted py-2 text-sm font-medium transition-colors hover:bg-muted/80'
+						className='flex w-full items-center justify-center gap-2 rounded-lg bg-bg-elevated py-2 text-sm font-medium transition-colors hover:bg-muted/80'
 					>
 						<MessageSquare className='size-4' />
 						Open Full Messages

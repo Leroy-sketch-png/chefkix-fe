@@ -187,7 +187,7 @@ export const VerifyOtpForm = () => {
 			: 'text-text-secondary'
 
 	return (
-		<div className='rounded-lg bg-bg-card p-8 shadow-md'>
+		<div className='rounded-lg bg-bg-card p-8 shadow-card'>
 			<h2 className='text-center text-2xl font-bold leading-tight text-text-primary'>
 				Verify Your Email
 			</h2>

@@ -149,7 +149,7 @@ const StepDots = ({
 						'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors',
 						// 44px minimum touch targets for accessibility
 						isCurrent
-							? 'h-11 w-14 bg-white text-brand shadow-md'
+							? 'h-11 w-14 bg-white text-brand shadow-card'
 							: isCompleted
 								? 'size-11 bg-success text-white'
 								: 'size-11 bg-white/20 text-white/70 hover:bg-white/30 hover:text-white',

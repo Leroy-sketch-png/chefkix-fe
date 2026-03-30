@@ -142,7 +142,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 					>
 						{stat.value}
 					</span>
-					<span className='text-xs md:text-sm text-muted-foreground font-medium'>
+					<span className='text-xs md:text-sm text-text-secondary font-medium'>
 						{stat.label}
 					</span>
 				</motion.div>
@@ -209,7 +209,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					<span className='block text-base font-bold text-foreground'>
 						{session.recipeName}
 					</span>
-					<span className='flex items-center gap-2 text-sm text-muted-foreground'>
+					<span className='flex items-center gap-2 text-sm text-text-secondary'>
 						<span>Cooked {getTimeSinceCook(session.cookedAt)}</span>
 						<span className='opacity-50'>•</span>
 						<span>{formatDuration(session.duration)} session</span>
@@ -253,7 +253,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 						'px-5 py-2.5 rounded-xl font-semibold text-sm',
 						isUrgent
 							? 'bg-error text-white shadow-lg shadow-error/30'
-							: 'bg-primary text-primary-foreground shadow-lg shadow-primary/30',
+							: 'bg-primary text-white shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
 					whileHover={BUTTON_HOVER}
@@ -326,7 +326,7 @@ const CompletedItem = ({
 							</span>
 						)}
 						{!isMastered && session.cookCount && session.cookCount > 1 && (
-							<span className='text-xs font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-md'>
+							<span className='text-xs font-semibold text-text-secondary bg-bg-elevated px-2 py-0.5 rounded-md'>
 								{session.cookCount}
 								{session.cookCount === 2
 									? 'nd'
@@ -337,7 +337,7 @@ const CompletedItem = ({
 							</span>
 						)}
 					</span>
-					<span className='flex items-center gap-2 text-sm text-muted-foreground'>
+					<span className='flex items-center gap-2 text-sm text-text-secondary'>
 						<span>{getTimeSinceCook(session.cookedAt)}</span>
 						<span className='opacity-50'>•</span>
 						<span>{formatDuration(session.duration)}</span>
@@ -362,7 +362,7 @@ const CompletedItem = ({
 						<span className='block text-xs text-success'>Full XP!</span>
 					)}
 					{isReduced && (
-						<span className='block text-xs text-muted-foreground'>
+						<span className='block text-xs text-text-secondary'>
 							25% ({session.cookCount}
 							{session.cookCount === 2 ? 'nd' : 'rd'}+ cook)
 						</span>
@@ -372,7 +372,7 @@ const CompletedItem = ({
 				{/* View Post Button */}
 				{session.postId && onViewPost && (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-muted'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover'
 						onClick={() => onViewPost(session.postId!)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -430,18 +430,18 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				/>
 
 				<div className='flex-1 min-w-0'>
-					<span className='block text-base font-bold text-muted-foreground'>
+					<span className='block text-base font-bold text-text-secondary'>
 						{session.recipeName}
 					</span>
 					<span className='flex items-center gap-2 text-sm'>
-						<span className='text-muted-foreground'>
+						<span className='text-text-secondary'>
 							{getTimeSinceCook(session.cookedAt)}
 						</span>
 						<span className='opacity-50'>•</span>
 						<span
 							className={cn(
 								'font-semibold',
-								isAbandoned ? 'text-muted-foreground' : 'text-error',
+								isAbandoned ? 'text-text-secondary' : 'text-error',
 							)}
 						>
 							{isAbandoned
@@ -456,12 +456,12 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0'>
 					{isAbandoned ? (
-						<span className='text-base font-semibold text-muted-foreground'>
+						<span className='text-base font-semibold text-text-secondary'>
 							0 XP
 						</span>
 					) : (
 						<>
-							<span className='block text-lg font-bold text-muted-foreground'>
+							<span className='block text-lg font-bold text-text-secondary'>
 								+{session.currentXP}
 							</span>
 							<span className='block text-xs text-error'>
@@ -474,7 +474,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				{/* Action */}
 				{isAbandoned && onRetry ? (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-muted'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover'
 						onClick={() => onRetry(session.id)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -484,7 +484,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						Try Again
 					</motion.button>
 				) : (
-					<span className='text-xs text-muted-foreground px-4 py-2.5 bg-muted/50 rounded-lg'>
+					<span className='text-xs text-text-secondary px-4 py-2.5 bg-muted/50 rounded-lg'>
 						Not posted
 					</span>
 				)}
@@ -584,7 +584,7 @@ export const CookingHistoryTab = ({
 					{/* Show More */}
 					{hiddenPendingCount > 0 && (
 						<button
-							className='flex items-center justify-center gap-2 w-full mt-4 py-3 border border-dashed border-border rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted/50 hover:border-solid hover:text-foreground transition-all'
+							className='flex items-center justify-center gap-2 w-full mt-4 py-3 border border-dashed border-border rounded-xl text-sm font-semibold text-text-secondary hover:bg-muted/50 hover:border-solid hover:text-foreground transition-all'
 							onClick={() => setShowMorePending(true)}
 						>
 							Show {hiddenPendingCount} more pending
@@ -656,7 +656,7 @@ export const CookingHistoryTab = ({
 				</div>
 
 				{completedSessions.length === 0 && expiredSessions.length === 0 && (
-					<div className='text-center py-8 text-muted-foreground'>
+					<div className='text-center py-8 text-text-secondary'>
 						<p className='text-lg'>No cooking history yet</p>
 						<p className='text-sm'>Start cooking to build your history!</p>
 					</div>

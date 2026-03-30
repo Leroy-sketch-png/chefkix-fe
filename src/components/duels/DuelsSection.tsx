@@ -191,7 +191,7 @@ function DuelCard({
 							</div>
 						)}
 						{duel.status === 'Completed' && isWinner && (
-							<div className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-amber-400 shadow-sm'>
+							<div className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-amber-400 shadow-card'>
 								<Crown className='size-3 text-white' />
 							</div>
 						)}
@@ -286,7 +286,7 @@ function DuelCard({
 						whileTap={BUTTON_TAP}
 						disabled={acting}
 						onClick={handleAccept}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand/90 disabled:opacity-50'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 disabled:opacity-50'
 					>
 						<Check className='size-4' />
 						Accept
@@ -315,7 +315,7 @@ function DuelCard({
 			{(duel.status === 'Accepted' || duel.status === 'In Progress') && (
 				<a
 					href={`/recipe/${duel.recipeId}?cook=true`}
-					className='flex items-center justify-center gap-2 rounded-xl bg-gradient-streak px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90'
+					className='flex items-center justify-center gap-2 rounded-xl bg-gradient-streak px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90'
 				>
 					<ChefHat className='size-4' />
 					Start Cooking
@@ -694,7 +694,7 @@ const loadRecipes = async () => {
 									whileTap={BUTTON_TAP}
 									disabled={submitting}
 									onClick={handleSubmit}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand/90 disabled:opacity-50'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 disabled:opacity-50'
 								>
 									<Send className='size-4' />
 									{submitting ? 'Sending...' : 'Send Challenge'}
@@ -771,7 +771,7 @@ export function DuelsSection() {
 				<motion.button
 					whileTap={BUTTON_TAP}
 					onClick={() => setShowCreate(true)}
-					className='flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand/90'
+					className='flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90'
 				>
 					<Swords className='size-4' />
 					Challenge
@@ -795,7 +795,7 @@ export function DuelsSection() {
 					<motion.button
 						whileTap={BUTTON_TAP}
 						onClick={() => setShowCreate(true)}
-						className='inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand/90'
+						className='inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90'
 					>
 						<Swords className='size-4' />
 						Send First Challenge

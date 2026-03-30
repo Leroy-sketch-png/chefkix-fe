@@ -509,7 +509,7 @@ export default function DashboardPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 						>
 							<Home className='size-6 text-white' />
 						</motion.div>
@@ -547,7 +547,7 @@ export default function DashboardPage() {
 							className={cn(
 								'relative flex shrink-0 items-center gap-2 rounded-radius px-4 py-2 text-sm font-semibold transition-all duration-200',
 								feedMode === tab.key
-									? 'bg-gradient-brand text-white shadow-sm'
+									? 'bg-gradient-brand text-white shadow-card'
 									: 'text-text-secondary hover:bg-bg-elevated hover:text-text',
 							)}
 						>

@@ -384,7 +384,7 @@ export const ChatMessage = ({
 							animate={{ scale: 1, opacity: 1 }}
 							transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 							className={cn(
-								'rounded-2xl px-4 py-2.5 shadow-sm',
+								'rounded-2xl px-4 py-2.5 shadow-card',
 								message.isOwn
 									? 'rounded-br-md bg-brand text-white shadow-brand/10'
 									: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
@@ -411,7 +411,7 @@ export const ChatMessage = ({
 									key={i}
 									onClick={() => onReact?.(message.id, reaction.emoji)}
 									className={cn(
-										'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm transition-all',
+										'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-card transition-all',
 										reaction.userReacted
 											? 'bg-brand/10 text-brand ring-2 ring-brand/20'
 											: 'bg-bg-elevated text-text-secondary ring-1 ring-border hover:bg-bg-hover',
@@ -501,7 +501,7 @@ export const TypingIndicator = ({
 			</Avatar>
 
 			<motion.div
-				className='rounded-2xl rounded-bl-md bg-bg-elevated px-5 py-3 shadow-sm ring-1 ring-border/50'
+				className='rounded-2xl rounded-bl-md bg-bg-elevated px-5 py-3 shadow-card ring-1 ring-border/50'
 				animate={{
 					boxShadow: [
 						'0 1px 2px rgba(0,0,0,0.05)',
@@ -572,7 +572,7 @@ export const DateDivider = ({ date }: DateDividerProps) => {
 				initial={{ scale: 0 }}
 				animate={{ scale: 1 }}
 				transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-				className='rounded-full bg-bg-elevated px-4 py-1.5 text-xs font-semibold text-text-secondary shadow-sm ring-1 ring-border/50'
+				className='rounded-full bg-bg-elevated px-4 py-1.5 text-xs font-semibold text-text-secondary shadow-card ring-1 ring-border/50'
 			>
 				{formatDate(date)}
 			</motion.span>

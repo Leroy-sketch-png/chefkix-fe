@@ -201,7 +201,7 @@ const ActiveChallengeBanner = ({
 
 				{/* Meta Row */}
 				<div className='mb-4 flex gap-6'>
-					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/20 to-xp/20 px-3.5 py-2 shadow-sm shadow-bonus/20'>
+					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/20 to-xp/20 px-3.5 py-2 shadow-card shadow-bonus/20'>
 						<span>⚡</span>
 						<span className='text-base font-extrabold text-xp'>
 							+{challenge.bonusXp} XP
@@ -379,7 +379,7 @@ const CompactChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, y: -5 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='mb-5 flex items-center justify-between rounded-2xl bg-panel-bg p-3 shadow-md'
+			className='mb-5 flex items-center justify-between rounded-2xl bg-panel-bg p-3 shadow-card'
 		>
 			<div className='flex items-center gap-3'>
 				<span className='text-2xl'>{challenge.icon}</span>
@@ -462,7 +462,7 @@ const FeaturedChallengeBanner = ({
 
 				{/* Meta Row */}
 				<div className='mb-5 flex gap-6'>
-					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/30 to-xp/30 px-4 py-2.5 shadow-sm shadow-bonus/30'>
+					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/30 to-xp/30 px-4 py-2.5 shadow-card shadow-bonus/30'>
 						<span>⚡</span>
 						<span className='text-xl font-extrabold text-xp drop-shadow-glow'>
 							+{challenge.bonusXp} XP

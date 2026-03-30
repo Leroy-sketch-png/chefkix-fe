@@ -176,7 +176,7 @@ export function SessionRatingForm({
 				initial={{ scale: 0 }}
 				animate={{ scale: 1 }}
 				transition={{ delay: 0.2, ...TRANSITION_BOUNCY }}
-				className='mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-xp px-6 py-3 text-xl font-bold text-white shadow-md'
+				className='mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-xp px-6 py-3 text-xl font-bold text-white shadow-card'
 			>
 				<Zap className='size-6' /> +{xpEarned} XP
 			</motion.div>
@@ -266,7 +266,7 @@ export function SessionRatingForm({
 				className={cn(
 					'w-full rounded-full py-3 font-bold text-white transition-all',
 					rating > 0
-						? 'bg-gradient-hero shadow-md hover:shadow-lg'
+						? 'bg-gradient-hero shadow-card hover:shadow-lg'
 						: 'cursor-not-allowed bg-border text-text-muted',
 					isSubmitting && 'opacity-70',
 				)}

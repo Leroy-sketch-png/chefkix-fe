@@ -372,7 +372,7 @@ export default function VideoCall({
 
 	// --- Render UI ---
 	return (
-		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-sm border border-gray-200 w-full max-w-4xl mx-auto relative'>
+		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-card border border-gray-200 w-full max-w-4xl mx-auto relative'>
 			{/* Incoming Call Overlay */}
 			{isReceivingCall && !isCallActive && (
 				<div className='absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl'>

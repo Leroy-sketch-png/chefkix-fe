@@ -167,12 +167,12 @@ export function LeaderboardItem({
 
 				{/* Badges */}
 				{isCurrentUser && !isLeading && (
-					<span className='rounded-lg bg-xp px-2 py-0.5 text-xs font-bold text-white shadow-sm shadow-xp/30'>
+					<span className='rounded-lg bg-xp px-2 py-0.5 text-xs font-bold text-white shadow-card shadow-xp/30'>
 						You
 					</span>
 				)}
 				{isLeading && (
-					<span className='rounded-lg bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-sm shadow-medal-gold/30'>
+					<span className='rounded-lg bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-card shadow-medal-gold/30'>
 						🔥 Leading!
 					</span>
 				)}

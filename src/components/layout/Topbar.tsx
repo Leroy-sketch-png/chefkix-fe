@@ -176,7 +176,7 @@ export const Topbar = () => {
 					transition={TRANSITION_SPRING}
 				>
 					<motion.div
-						className='flex size-9 items-center justify-center rounded-xl bg-gradient-hero shadow-md shadow-brand/25'
+						className='flex size-9 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25'
 						whileHover={{ rotate: 10 }}
 						transition={TRANSITION_SPRING}
 					>
@@ -200,7 +200,7 @@ export const Topbar = () => {
 					const q = searchQuery.trim()
 					if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
 				}}
-				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-md md:ml-44 md:px-4 md:py-2.5'
+				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-card transition-all duration-300 focus-within:border-primary focus-within:shadow-card md:ml-44 md:px-4 md:py-2.5'
 			>
 				<Search className='size-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
 				<input
@@ -323,7 +323,7 @@ export const Topbar = () => {
 			{user && (
 				<motion.div
 					whileHover={{ scale: 1.05 }}
-					className='relative hidden overflow-hidden rounded-radius bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-md lg:flex lg:items-center lg:gap-2'
+					className='relative hidden overflow-hidden rounded-radius bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-card lg:flex lg:items-center lg:gap-2'
 				>
 					<span className='relative z-10'>
 						Lv. {user.statistics?.currentLevel || 1}
@@ -426,7 +426,7 @@ export const Topbar = () => {
 									.slice(0, 2) || 'U'}
 							</AvatarFallback>
 						</Avatar>
-						<Avatar size='sm' className='shadow-md md:hidden'>
+						<Avatar size='sm' className='shadow-card md:hidden'>
 							<AvatarImage
 								src={user.avatarUrl || '/placeholder-avatar.svg'}
 								alt={user.displayName || 'User'}
@@ -492,7 +492,7 @@ export const Topbar = () => {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
-							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-sm'
+							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
 						>
 							{unreadNotifications > 99 ? '99+' : unreadNotifications}
 						</motion.span>
@@ -511,7 +511,7 @@ export const Topbar = () => {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
-							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-sm'
+							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
 						>
 							{unreadMessages > 99 ? '99+' : unreadMessages}
 						</motion.span>

@@ -31,7 +31,7 @@ export const PostCardSkeleton = ({
 				<div
 					key={index}
 					className={cn(
-						'rounded-radius bg-bg-card p-4 shadow-md md:p-6',
+						'rounded-radius bg-bg-card p-4 shadow-card md:p-6',
 						className,
 					)}
 				>

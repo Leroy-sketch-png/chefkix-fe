@@ -153,7 +153,7 @@ export default function CommunityPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-md shadow-xp/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-card shadow-xp/25'
 						>
 							<Users className='size-6 text-white' />
 						</motion.div>

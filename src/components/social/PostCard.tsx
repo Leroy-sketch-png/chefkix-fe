@@ -665,7 +665,7 @@ export const PostCard = ({
 								<button
 									type='button'
 									onClick={handleEdit}
-									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-white transition-colors hover:bg-primary/90'
 								>
 									Save
 								</button>
@@ -802,7 +802,7 @@ export const PostCard = ({
 							)}
 
 							{post.videoUrl && (
-								<div className='relative aspect-video w-full overflow-hidden bg-muted'>
+								<div className='relative aspect-video w-full overflow-hidden bg-bg-elevated'>
 									<video
 										src={post.videoUrl}
 										controls

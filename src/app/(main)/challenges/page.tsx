@@ -159,7 +159,7 @@ export default function ChallengesPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-streak shadow-md shadow-streak/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-streak shadow-card shadow-streak/25'
 						>
 							<Trophy className='size-6 text-white' />
 						</motion.div>
@@ -215,7 +215,7 @@ export default function ChallengesPage() {
 								>
 									<div className='mb-3 flex items-center justify-between'>
 										<div className='flex items-center gap-3'>
-											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-md shadow-accent-purple/25'>
+											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-card shadow-accent-purple/25'>
 												<Trophy className='size-5 text-white' />
 											</div>
 											<div>
@@ -317,7 +317,7 @@ export default function ChallengesPage() {
 										>
 											<div className='mb-3 flex items-center justify-between'>
 												<div className='flex items-center gap-3'>
-													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo via-pink-400 to-rose-500 text-xl shadow-md shadow-combo/25'>
+													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo via-pink-400 to-rose-500 text-xl shadow-card shadow-combo/25'>
 														{ch.emoji || '👥'}
 													</div>
 													<div>

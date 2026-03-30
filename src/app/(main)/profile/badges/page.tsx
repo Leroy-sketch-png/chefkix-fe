@@ -149,7 +149,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 			className={cn(
 				'group relative flex flex-col items-center gap-3 rounded-2xl border-2 p-4 transition-all duration-300',
 				isEarned
-					? `${rarityConfig.bgClass} ${rarityConfig.borderClass} shadow-md`
+					? `${rarityConfig.bgClass} ${rarityConfig.borderClass} shadow-card`
 					: 'border-border-subtle bg-bg-elevated/50 opacity-60 hover:opacity-80',
 				isHidden && 'cursor-help',
 			)}
@@ -159,7 +159,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 				<motion.div
 					initial={{ scale: 0 }}
 					animate={{ scale: 1 }}
-					className='absolute -right-1 -top-1 grid size-6 place-items-center rounded-full bg-success text-white shadow-md'
+					className='absolute -right-1 -top-1 grid size-6 place-items-center rounded-full bg-success text-white shadow-card'
 				>
 					<CheckCircle2 className='size-4' />
 				</motion.div>
@@ -186,7 +186,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 					<div
 						className={cn(
 							'grid size-14 place-items-center rounded-xl text-3xl transition-transform duration-300 group-hover:scale-110',
-							isEarned ? 'bg-bg-card/80 shadow-sm' : 'bg-bg-hover',
+							isEarned ? 'bg-bg-card/80 shadow-card' : 'bg-bg-hover',
 						)}
 					>
 						{badge.icon}
@@ -374,7 +374,7 @@ export default function BadgeCatalogPage() {
 								%)
 							</p>
 						</div>
-						<div className='grid size-12 place-items-center rounded-xl bg-gradient-gold text-2xl shadow-md'>
+						<div className='grid size-12 place-items-center rounded-xl bg-gradient-gold text-2xl shadow-card'>
 							<Trophy className='size-6 text-text' />
 						</div>
 					</div>

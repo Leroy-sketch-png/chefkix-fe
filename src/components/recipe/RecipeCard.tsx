@@ -136,7 +136,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						/>
 						{/* Difficulty badge */}
 						<div
-							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground ${
+							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white ${
 								recipe.difficulty === 'Beginner'
 									? 'bg-gradient-to-br from-success to-success/80'
 									: recipe.difficulty === 'Intermediate'
@@ -174,7 +174,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							<span>⭐ {likeCount} likes</span>
 						</div>
 						<div className='flex gap-4'>
-							<button className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-primary-foreground transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+							<button className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
 								Cook Recipe
 							</button>
 						</div>

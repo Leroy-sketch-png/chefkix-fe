@@ -354,7 +354,7 @@ const ChipSelect = ({
 					className={cn(
 						'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
 						isSelected
-							? 'bg-primary text-primary-foreground shadow-md'
+							? 'bg-primary text-white shadow-card'
 							: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
@@ -389,7 +389,7 @@ const ButtonGroup = <T extends string>({
 						option.disabled
 							? 'cursor-not-allowed opacity-40 bg-bg-elevated text-text-secondary'
 							: value === option.value
-								? 'bg-primary text-primary-foreground shadow-md'
+								? 'bg-primary text-white shadow-card'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
@@ -766,7 +766,7 @@ export default function SettingsPage() {
 						<motion.div
 							whileHover={{ rotate: 45 }}
 							transition={TRANSITION_SPRING}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
 						>
 							<Settings className='size-6 text-white' />
 						</motion.div>

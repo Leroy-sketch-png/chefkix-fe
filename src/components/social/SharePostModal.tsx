@@ -243,7 +243,7 @@ export const SharePostModal = ({
 							{/* Enhanced Post Preview */}
 							{(postImage || postTitle || postContent) && (
 								<motion.div
-									className='mx-3 my-3 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-amber-50/50 to-transparent p-3 shadow-sm dark:from-amber-950/10 sm:mx-4 sm:my-4 sm:p-4'
+									className='mx-3 my-3 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-amber-50/50 to-transparent p-3 shadow-card dark:from-amber-950/10 sm:mx-4 sm:my-4 sm:p-4'
 									initial={{ opacity: 0, y: -10 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.1 }}
@@ -340,7 +340,7 @@ export const SharePostModal = ({
 													className={cn(
 														'group relative flex w-full items-center gap-2.5 overflow-hidden rounded-xl p-2.5 text-left transition-all sm:gap-3 sm:p-3',
 														isSelected
-															? 'bg-brand/10 shadow-sm ring-2 ring-brand/50'
+															? 'bg-brand/10 shadow-card ring-2 ring-brand/50'
 															: 'hover:bg-bg-hover active:bg-bg-hover',
 													)}
 													variants={listItemVariants}
@@ -378,7 +378,7 @@ export const SharePostModal = ({
 														{/* Type badge */}
 														<div
 															className={cn(
-																'absolute -bottom-0.5 -right-0.5 grid size-4.5 place-items-center rounded-full border-2 border-bg-card shadow-sm sm:size-5',
+																'absolute -bottom-0.5 -right-0.5 grid size-4.5 place-items-center rounded-full border-2 border-bg-card shadow-card sm:size-5',
 																conv.type === 'GROUP'
 																	? 'bg-accent-purple'
 																	: 'bg-success',

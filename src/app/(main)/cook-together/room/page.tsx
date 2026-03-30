@@ -259,7 +259,7 @@ export default function CookingRoomPage() {
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								disabled={isUpgrading}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand/90 disabled:opacity-50'
+								className='flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-bold text-white shadow-card transition-all hover:bg-brand/90 disabled:opacity-50'
 							>
 								<ArrowUpCircle className='size-4' />
 								{isUpgrading ? 'Joining...' : 'Join as Cook'}
@@ -280,7 +280,7 @@ export default function CookingRoomPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-card'
 						>
 							<Users className='size-6 text-white' />
 						</motion.div>

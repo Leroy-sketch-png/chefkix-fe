@@ -169,7 +169,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						{/* XP Badge */}
 						<Badge
 							variant='secondary'
-							className='bg-gradient-xp px-3 py-1 text-sm font-bold text-white shadow-md'
+							className='bg-gradient-xp px-3 py-1 text-sm font-bold text-white shadow-card'
 						>
 							+{recipe.xpReward || 0} XP
 						</Badge>
@@ -862,7 +862,7 @@ export default function ExplorePage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 						>
 							<Compass className='size-6 text-white' />
 						</motion.div>
@@ -896,7 +896,7 @@ export default function ExplorePage() {
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							onKeyDown={handleSearchKeyDown}
-							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-sm transition-all focus:border-brand focus:shadow-md focus:ring-2 focus:ring-brand/20'
+							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-card transition-all focus:border-brand focus:shadow-card focus:ring-2 focus:ring-brand/20'
 						/>
 						{/* Loading indicator or clear button */}
 						<div className='absolute right-12 top-1/2 -translate-y-1/2'>
@@ -934,7 +934,7 @@ export default function ExplorePage() {
 							whileTap={BUTTON_TAP}
 							className={`rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
 								viewMode === 'all'
-									? 'bg-gradient-hero text-white shadow-md shadow-brand/30'
+									? 'bg-gradient-hero text-white shadow-card shadow-brand/30'
 									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 							}`}
 						>
@@ -949,7 +949,7 @@ export default function ExplorePage() {
 							whileTap={BUTTON_TAP}
 							className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
 								viewMode === 'trending'
-									? 'bg-gradient-xp text-white shadow-md shadow-xp/30'
+									? 'bg-gradient-xp text-white shadow-card shadow-xp/30'
 									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
 							}`}
 						>

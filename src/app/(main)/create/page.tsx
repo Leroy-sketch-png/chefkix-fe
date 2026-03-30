@@ -215,7 +215,7 @@ export default function CreateRecipePage() {
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
 										transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-										className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+										className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 									>
 										<Edit3 className='size-6 text-white' />
 									</motion.div>
@@ -340,14 +340,14 @@ export default function CreateRecipePage() {
 							<AlertDialogTitle className='text-lg font-bold text-text'>
 								Discard local draft?
 							</AlertDialogTitle>
-							<AlertDialogDescription className='text-sm text-muted-foreground'>
+							<AlertDialogDescription className='text-sm text-text-secondary'>
 								This will permanently delete your unsaved recipe &quot;
 								{localDraft?.data.title || 'Untitled Recipe'}&quot;. This action
 								cannot be undone.
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter className='flex-row gap-3 sm:justify-center'>
-							<AlertDialogCancel className='flex-1 rounded-xl border-border bg-bg text-muted-foreground hover:bg-muted'>
+							<AlertDialogCancel className='flex-1 rounded-xl border-border bg-bg text-text-secondary hover:bg-bg-hover'>
 								Keep it
 							</AlertDialogCancel>
 							<AlertDialogAction

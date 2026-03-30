@@ -138,7 +138,7 @@ export const PostDeadlineCard = ({
 			borderClass: 'border-border',
 			bgClass: '',
 			labelClass: 'text-primary',
-			deadlineClass: 'text-muted-foreground',
+			deadlineClass: 'text-text-secondary',
 			xpBgClass: 'bg-success/10',
 			xpTextClass: 'text-success',
 			buttonClass: 'bg-primary hover:bg-primary/90',
@@ -173,8 +173,8 @@ export const PostDeadlineCard = ({
 			label: 'XP Expired',
 			borderClass: 'border-border',
 			bgClass: 'opacity-70',
-			labelClass: 'text-muted-foreground',
-			deadlineClass: 'text-muted-foreground',
+			labelClass: 'text-text-secondary',
+			deadlineClass: 'text-text-secondary',
 			xpBgClass: 'bg-error/10',
 			xpTextClass: 'text-error',
 			buttonClass: '',
@@ -223,7 +223,7 @@ export const PostDeadlineCard = ({
 							className='size-full rounded-xl object-cover'
 						/>
 					) : (
-						<div className='flex size-full items-center justify-center rounded-xl bg-muted text-2xl'>
+						<div className='flex size-full items-center justify-center rounded-xl bg-bg-elevated text-2xl'>
 							🍳
 						</div>
 					)}
@@ -263,7 +263,7 @@ export const PostDeadlineCard = ({
 						</div>
 					)}
 					{state === 'expired' && (
-						<span className='text-xs text-muted-foreground'>
+						<span className='text-xs text-text-secondary'>
 							Deadline passed
 						</span>
 					)}
@@ -312,7 +312,7 @@ export const PostDeadlineCard = ({
 					<button
 						onClick={onDismiss}
 						aria-label='Dismiss'
-						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-muted/50 text-muted-foreground transition-colors hover:bg-muted hover:text-text'
+						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-muted/50 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
 					>
 						<X className='size-4' />
 					</button>
@@ -362,11 +362,11 @@ export const PostDeadlineStack = ({
 				<span className='text-sm font-bold text-success'>
 					+{totalXp} XP pending
 				</span>
-				<div className='flex size-7 items-center justify-center rounded-full bg-muted'>
+				<div className='flex size-7 items-center justify-center rounded-full bg-bg-elevated'>
 					{isExpanded ? (
-						<ChevronUp className='size-4 text-muted-foreground' />
+						<ChevronUp className='size-4 text-text-secondary' />
 					) : (
-						<ChevronDown className='size-4 text-muted-foreground' />
+						<ChevronDown className='size-4 text-text-secondary' />
 					)}
 				</div>
 			</button>
@@ -398,7 +398,7 @@ export const PostDeadlineStack = ({
 												className='size-10 rounded-lg object-cover'
 											/>
 										) : (
-											<div className='flex size-10 items-center justify-center rounded-lg bg-muted text-lg'>
+											<div className='flex size-10 items-center justify-center rounded-lg bg-bg-elevated text-lg'>
 												🍳
 											</div>
 										)}
@@ -410,7 +410,7 @@ export const PostDeadlineStack = ({
 												'text-xs',
 												state === 'urgent' && 'font-semibold text-error',
 												state === 'warning' && 'text-warning',
-												state === 'normal' && 'text-muted-foreground',
+												state === 'normal' && 'text-text-secondary',
 											)}
 										>
 											{formatTimeRemaining(post.deadlineAt)}
@@ -461,7 +461,7 @@ export const PostDeadlineBadge = ({
 		>
 			<span className='size-2 animate-pulse rounded-full bg-primary' />
 			<span className='font-bold text-primary'>{count}</span>
-			<span className='text-muted-foreground'>pending posts</span>
+			<span className='text-text-secondary'>pending posts</span>
 			<span className='font-bold text-success'>+{Math.round(totalXp)} XP</span>
 		</motion.button>
 	)

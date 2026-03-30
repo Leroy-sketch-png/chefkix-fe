@@ -188,7 +188,7 @@ export const StepItem = ({
 	// ── Render ──────────────────────────────────────────────────────
 	return (
 		<div className='group flex gap-3.5 rounded-2xl bg-bg p-4'>
-			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-extrabold text-white shadow-md'>
+			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-extrabold text-white shadow-card'>
 				{index + 1}
 			</div>
 			<div className='flex-1 space-y-3'>
@@ -225,7 +225,7 @@ export const StepItem = ({
 					<button
 						onClick={() => fileInputRef.current?.click()}
 						disabled={isUploadingImage}
-						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isUploadingImage ? (
 							<>
@@ -276,7 +276,7 @@ export const StepItem = ({
 					<button
 						onClick={() => videoInputRef.current?.click()}
 						disabled={isUploadingVideo}
-						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isUploadingVideo ? (
 							<>
@@ -304,7 +304,7 @@ export const StepItem = ({
 					defaultValue={step.instruction}
 					onChange={e => onUpdate({ instruction: e.target.value })}
 					placeholder='Describe this step...'
-					className='min-h-16 w-full resize-none rounded-lg border border-border bg-panel-bg p-3 text-sm text-text placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none'
+					className='min-h-16 w-full resize-none rounded-lg border border-border bg-panel-bg p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-primary focus:outline-none'
 				/>
 
 				{/* Timer & Technique Tags */}
@@ -367,7 +367,7 @@ export const StepItem = ({
 					) : (
 						<button
 							onClick={openTimerEditor}
-							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-primary hover:text-primary'
 						>
 							<Timer className='size-3.5' />
 							Add Timer
@@ -383,14 +383,14 @@ export const StepItem = ({
 			<div className='flex flex-col gap-2'>
 				<button
 					aria-label='Drag to reorder'
-					className='flex size-8 cursor-grab items-center justify-center rounded-lg text-muted-foreground/70 transition-colors hover:bg-muted/30 hover:text-muted-foreground active:cursor-grabbing'
+					className='flex size-8 cursor-grab items-center justify-center rounded-lg text-text-secondary/70 transition-colors hover:bg-muted/30 hover:text-text-secondary active:cursor-grabbing'
 				>
 					<GripVertical className='size-4' />
 				</button>
 				<button
 					onClick={onRemove}
 					aria-label='Remove step'
-					className='flex size-8 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:bg-error/10 hover:text-error'
+					className='flex size-8 items-center justify-center rounded-lg text-text-secondary/50 transition-colors hover:bg-error/10 hover:text-error'
 				>
 					<Trash2 className='size-4' />
 				</button>

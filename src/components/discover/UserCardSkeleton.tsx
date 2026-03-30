@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export const UserCardSkeleton = () => {
 	return (
-		<div className='overflow-hidden rounded-lg border bg-card p-6 shadow-sm'>
+		<div className='overflow-hidden rounded-lg border bg-card p-6 shadow-card'>
 			<div className='flex items-start gap-4'>
 				{/* Avatar Skeleton */}
 				<Skeleton className='h-16 w-16 flex-shrink-0 rounded-full' />

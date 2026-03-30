@@ -250,7 +250,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 										className={cn(
 											'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-all',
 											mode === 'post'
-												? 'bg-bg-card text-text shadow-sm'
+												? 'bg-bg-card text-text shadow-card'
 												: 'text-text-muted hover:text-text',
 										)}
 									>
@@ -262,7 +262,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 										className={cn(
 											'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-all',
 											mode === 'poll'
-												? 'bg-bg-card text-text shadow-sm'
+												? 'bg-bg-card text-text shadow-card'
 												: 'text-text-muted hover:text-text',
 										)}
 									>

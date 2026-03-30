@@ -1178,7 +1178,7 @@ export default function RecipeDetailPage() {
 										<div className='mb-4 flex items-center gap-4'>
 											<motion.div
 												whileHover={{ scale: 1.1, rotate: 5 }}
-												className='grid size-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-lg font-bold text-white shadow-md'
+												className='grid size-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-lg font-bold text-white shadow-card'
 											>
 												{index + 1}
 											</motion.div>

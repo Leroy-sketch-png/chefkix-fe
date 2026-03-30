@@ -708,7 +708,7 @@ export default function MessagesPage() {
 										<Button
 											variant='ghost'
 											size='icon'
-											className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
+											className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-card text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
 											onClick={() => setIsVideoCallActive(false)}
 										>
 											<X className='size-5' />

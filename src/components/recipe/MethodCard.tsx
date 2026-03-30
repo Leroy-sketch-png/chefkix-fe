@@ -40,14 +40,14 @@ export const MethodCard = ({
 				'flex size-12 items-center justify-center rounded-xl',
 				method === 'ai'
 					? 'bg-gradient-hero text-white'
-					: 'bg-bg text-muted-foreground',
+					: 'bg-bg text-text-secondary',
 			)}
 		>
 			{icon}
 		</div>
 		<div className='flex-1'>
 			<span className='text-base font-bold text-text'>{title}</span>
-			<span className='mt-0.5 block text-xs text-muted-foreground'>
+			<span className='mt-0.5 block text-xs text-text-secondary'>
 				{description}
 			</span>
 		</div>

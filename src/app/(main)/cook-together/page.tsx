@@ -134,7 +134,7 @@ export default function CookTogetherPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-card'
 						>
 							<Users className='size-6 text-white' />
 						</motion.div>

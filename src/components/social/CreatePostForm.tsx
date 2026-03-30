@@ -221,7 +221,7 @@ export const CreatePostForm = ({
 		<motion.div
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-md'
+			className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-card'
 		>
 			<form onSubmit={handleSubmit} data-post-form>
 				{/* Header */}

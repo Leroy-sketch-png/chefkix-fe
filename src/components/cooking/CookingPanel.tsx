@@ -116,7 +116,7 @@ const CompactStepDots = ({
 						isCompleted
 							? 'bg-success text-white'
 							: isCurrent
-								? 'bg-brand text-white shadow-md shadow-brand/30'
+								? 'bg-brand text-white shadow-card shadow-brand/30'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>

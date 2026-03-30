@@ -112,7 +112,7 @@ const SettingsNavItem = ({ item, isActive, onClick }: SettingsNavItemProps) => {
 				'flex items-center gap-3 w-full p-3 rounded-xl text-left',
 				isActive
 					? 'bg-primary/10 text-primary'
-					: 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+					: 'text-text-secondary hover:bg-muted/50 hover:text-foreground',
 			)}
 			onClick={onClick}
 			whileHover={{ x: isActive ? 0 : 4 }}
@@ -122,7 +122,7 @@ const SettingsNavItem = ({ item, isActive, onClick }: SettingsNavItemProps) => {
 			<span
 				className={cn(
 					'flex-shrink-0',
-					isActive ? 'text-primary' : 'text-muted-foreground',
+					isActive ? 'text-primary' : 'text-text-secondary',
 				)}
 			>
 				{item.icon}
@@ -205,8 +205,8 @@ export const SettingsNavCompact = ({
 						'flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap',
 						'text-sm font-medium',
 						activeSection === item.id
-							? 'bg-primary text-primary-foreground'
-							: 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
+							? 'bg-primary text-white'
+							: 'bg-muted/50 text-text-secondary hover:bg-bg-hover hover:text-foreground',
 					)}
 					onClick={() => onSectionChange(item.id)}
 					whileHover={BUTTON_SUBTLE_HOVER}
@@ -242,7 +242,7 @@ export const SettingsSectionHeader = ({
 				{item.label}
 			</h2>
 			{item.description && (
-				<p className='text-muted-foreground mt-1'>{item.description}</p>
+				<p className='text-text-secondary mt-1'>{item.description}</p>
 			)}
 		</div>
 	)

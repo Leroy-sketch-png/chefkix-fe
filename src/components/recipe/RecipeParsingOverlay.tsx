@@ -74,7 +74,7 @@ export const RecipeParsingOverlay = ({
 								'flex items-center gap-3 text-sm',
 								i < currentStep && 'text-success',
 								i === currentStep && 'font-semibold text-text',
-								i > currentStep && 'text-muted-foreground',
+								i > currentStep && 'text-text-secondary',
 							)}
 						>
 							{i < currentStep ? (

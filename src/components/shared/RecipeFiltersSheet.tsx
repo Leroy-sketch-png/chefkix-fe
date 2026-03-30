@@ -88,7 +88,7 @@ export const RecipeFiltersSheet = ({
 					<Filter className='size-4' />
 					Filters
 					{activeFiltersCount > 0 && (
-						<span className='ml-2 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
+						<span className='ml-2 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-white'>
 							{activeFiltersCount}
 						</span>
 					)}

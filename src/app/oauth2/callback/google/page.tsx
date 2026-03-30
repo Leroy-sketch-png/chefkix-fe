@@ -73,7 +73,7 @@ const GoogleCallbackPage = () => {
 	return (
 		<div className='flex min-h-screen flex-col items-center justify-center'>
 			<p className='text-lg font-semibold'>Signing in with Google...</p>
-			<p className='mt-2 text-sm text-muted-foreground'>
+			<p className='mt-2 text-sm text-text-secondary'>
 				Please wait, you will be redirected shortly.
 			</p>
 			{/* You can add a spinner here */}

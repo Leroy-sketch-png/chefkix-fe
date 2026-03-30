@@ -267,7 +267,7 @@ const FilterTabs = ({
 						className={cn(
 							'flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all',
 							isActive
-								? 'bg-brand text-white shadow-md'
+								? 'bg-brand text-white shadow-card'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
 						)}
 					>
@@ -339,7 +339,7 @@ const SocialNotificationItem = ({
 			variants={staggerItem}
 			onClick={handleClick}
 			className={cn(
-				'group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all hover:shadow-md',
+				'group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all hover:shadow-card',
 				read
 					? 'border-transparent bg-bg-card'
 					: 'border-brand/20 bg-brand/5 hover:border-brand/30',
@@ -353,7 +353,7 @@ const SocialNotificationItem = ({
 			{/* Avatar with badge */}
 			<UserHoverCard userId={userId} currentUserId={currentUserId}>
 				<div className='relative flex-shrink-0'>
-					<Avatar size='lg' className='shadow-md'>
+					<Avatar size='lg' className='shadow-card'>
 						<AvatarImage src={avatar} alt={user} />
 						<AvatarFallback>
 							{user
@@ -572,7 +572,7 @@ export default function NotificationsPage() {
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}
 								transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 							>
 								<Bell className='size-6 text-white' />
 							</motion.div>

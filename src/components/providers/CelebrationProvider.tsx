@@ -660,7 +660,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 							/>
 							<button
 								onClick={handleStreakMilestoneClose}
-								className='mt-4 w-full py-3 text-sm text-muted-foreground hover:text-text transition-colors'
+								className='mt-4 w-full py-3 text-sm text-text-secondary hover:text-text transition-colors'
 							>
 								Continue
 							</button>

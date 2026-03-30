@@ -425,7 +425,7 @@ const BadgesShowcase = ({
 					whileHover={STAT_ITEM_HOVER}
 					transition={TRANSITION_SPRING}
 					className={cn(
-						'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-md',
+						'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-card',
 						compact
 							? 'min-w-nav px-3 py-2.5'
 							: 'min-w-thumbnail-xl px-4 py-3.5',
