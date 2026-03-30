@@ -279,14 +279,14 @@ const SettingsCard = ({
 	<motion.div
 		variants={cardVariants}
 		className={cn(
-			'rounded-xl border border-border bg-card p-4 shadow-sm md:p-6',
+			'rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6',
 			className,
 		)}
 	>
 		<div className='mb-4'>
-			<h3 className='text-lg font-semibold text-foreground'>{title}</h3>
+			<h3 className='text-lg font-semibold text-text'>{title}</h3>
 			{description && (
-				<p className='mt-1 text-sm text-muted-foreground'>{description}</p>
+				<p className='mt-1 text-sm text-text-secondary'>{description}</p>
 			)}
 		</div>
 		{children}
@@ -310,16 +310,16 @@ const ToggleRow = ({
 }) => (
 	<div
 		className={cn(
-			'flex items-center justify-between py-3 border-b border-border last:border-0',
+			'flex items-center justify-between py-3 border-b border-border-subtle last:border-0',
 			disabled && 'opacity-50',
 		)}
 	>
 		<div className='flex items-center gap-3'>
-			{Icon && <Icon className='size-4 text-muted-foreground' />}
+			{Icon && <Icon className='size-4 text-text-secondary' />}
 			<div>
-				<p className='text-sm font-medium text-foreground'>{label}</p>
+				<p className='text-sm font-medium text-text'>{label}</p>
 				{description && (
-					<p className='text-xs text-muted-foreground'>{description}</p>
+					<p className='text-xs text-text-secondary'>{description}</p>
 				)}
 			</div>
 		</div>
@@ -355,7 +355,7 @@ const ChipSelect = ({
 						'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
 						isSelected
 							? 'bg-primary text-primary-foreground shadow-md'
-							: 'bg-muted text-muted-foreground hover:bg-muted/80',
+							: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
 					{isSelected && <Check className='mr-1 inline size-3' />}
@@ -387,10 +387,10 @@ const ButtonGroup = <T extends string>({
 					className={cn(
 						'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
 						option.disabled
-							? 'cursor-not-allowed opacity-40 bg-muted text-muted-foreground'
+							? 'cursor-not-allowed opacity-40 bg-bg-elevated text-text-secondary'
 							: value === option.value
 								? 'bg-primary text-primary-foreground shadow-md'
-								: 'bg-muted text-muted-foreground hover:bg-muted/80',
+								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
 					{Icon && <Icon className='size-4' />}
@@ -783,7 +783,7 @@ export default function SettingsPage() {
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={TRANSITION_SPRING}
-						className='flex flex-col gap-1 rounded-xl border border-border bg-card p-2 shadow-sm h-fit lg:sticky lg:top-24'
+						className='flex flex-col gap-1 rounded-radius border border-border-subtle bg-bg-card p-2 shadow-card h-fit lg:sticky lg:top-24'
 					>
 						{TABS.map(tab => {
 							const Icon = tab.icon
@@ -798,13 +798,13 @@ export default function SettingsPage() {
 										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all',
 										isActive
 											? 'bg-primary/10 text-primary font-semibold'
-											: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+											: 'text-text-secondary hover:bg-bg-hover hover:text-text',
 									)}
 								>
 									<Icon
 										className={cn(
 											'size-5',
-											isActive ? 'text-primary' : 'text-muted-foreground',
+											isActive ? 'text-primary' : 'text-text-secondary',
 										)}
 									/>
 									<div className='hidden lg:block'>
@@ -815,7 +815,7 @@ export default function SettingsPage() {
 						})}
 
 						{/* Divider + Sign Out */}
-						<div className='my-1 h-px bg-border' />
+						<div className='my-1 h-px bg-border-subtle' />
 						<motion.button
 							whileHover={{ x: 4 }}
 							whileTap={{ scale: 0.98 }}
@@ -861,7 +861,7 @@ export default function SettingsPage() {
 												>
 													<div
 														className={cn(
-															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border bg-gradient-to-br from-brand/20 via-amber-100/30 to-orange-50/40 transition-all',
+															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border-subtle bg-gradient-to-br from-brand/20 via-amber-100/30 to-orange-50/40 transition-all',
 															isUploadingCover && 'opacity-60',
 														)}
 													>
@@ -874,7 +874,7 @@ export default function SettingsPage() {
 															/>
 														) : (
 															<div className='flex h-full items-center justify-center'>
-																<ImagePlus className='size-8 text-muted-foreground' />
+																<ImagePlus className='size-8 text-text-secondary' />
 															</div>
 														)}
 														{isUploadingCover && (
@@ -902,7 +902,7 @@ export default function SettingsPage() {
 														onChange={handleCoverUpload}
 													/>
 												</div>
-												<p className='text-xs text-muted-foreground'>
+												<p className='text-xs text-text-muted'>
 													Recommended: 1200×300px, max 5MB
 												</p>
 											</div>
@@ -916,7 +916,7 @@ export default function SettingsPage() {
 												>
 													<div
 														className={cn(
-															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-all',
+															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border-subtle bg-bg-elevated transition-all',
 															isUploadingAvatar && 'opacity-60',
 														)}
 													>
@@ -929,7 +929,7 @@ export default function SettingsPage() {
 															/>
 														) : (
 															<div className='flex size-full items-center justify-center'>
-																<User className='size-8 text-muted-foreground' />
+																<User className='size-8 text-text-secondary' />
 															</div>
 														)}
 														{isUploadingAvatar && (
@@ -950,7 +950,7 @@ export default function SettingsPage() {
 															<Camera className='size-4' />
 															{avatarUrl ? 'Change Photo' : 'Upload Photo'}
 														</Button>
-														<p className='text-xs text-muted-foreground'>
+														<p className='text-xs text-text-muted'>
 															Square image, max 5MB
 														</p>
 													</div>
@@ -979,9 +979,9 @@ export default function SettingsPage() {
 													id='email'
 													value={user?.email || ''}
 													disabled
-													className='bg-muted'
+													className='bg-bg-elevated'
 												/>
-												<p className='text-xs text-muted-foreground'>
+												<p className='text-xs text-text-muted'>
 													Email cannot be changed in-app.
 												</p>
 												<a
@@ -1000,7 +1000,7 @@ export default function SettingsPage() {
 													placeholder='Tell us about yourself...'
 													maxLength={160}
 												/>
-												<p className='text-xs text-muted-foreground text-right'>
+												<p className='text-xs text-text-muted text-right'>
 													{bio.length}/160
 												</p>
 											</div>
@@ -1029,7 +1029,7 @@ export default function SettingsPage() {
 												variant='outline'
 												className='w-full sm:w-auto'
 												onClick={() => {
-													window.open('/auth/sign-in', '_blank')
+													router.push('/auth/sign-in')
 												}}
 											>
 												<Shield className='mr-2 size-4' />
@@ -1454,7 +1454,7 @@ export default function SettingsPage() {
 														}
 														className='w-24'
 													/>
-													<span className='text-sm text-muted-foreground'>
+													<span className='text-sm text-text-secondary'>
 														servings
 													</span>
 												</div>
@@ -1483,7 +1483,7 @@ export default function SettingsPage() {
 														placeholder='No limit'
 														className='w-24'
 													/>
-													<span className='text-sm text-muted-foreground'>
+													<span className='text-sm text-text-secondary'>
 														minutes (leave empty for no limit)
 													</span>
 												</div>
@@ -1678,14 +1678,14 @@ export default function SettingsPage() {
 												}
 											/>
 											{/* Test Timer Sound Button */}
-											<div className='flex items-center justify-between border-b border-border py-3'>
+											<div className='flex items-center justify-between border-b border-border-subtle py-3'>
 												<div className='flex items-center gap-3'>
-													<Timer className='size-4 text-muted-foreground' />
+													<Timer className='size-4 text-text-secondary' />
 													<div>
-														<p className='text-sm font-medium text-foreground'>
+														<p className='text-sm font-medium text-text'>
 															Timer Notification Sound
 														</p>
-														<p className='text-xs text-muted-foreground'>
+														<p className='text-xs text-text-secondary'>
 															Preview the sound that plays when timers complete
 														</p>
 													</div>
