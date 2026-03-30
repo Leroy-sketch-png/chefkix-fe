@@ -67,7 +67,7 @@ export const Modal = ({
 	return (
 		<Portal>
 			<div
-				className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/60 p-6 backdrop-blur-sm'
+				className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/80 p-6'
 				onClick={closeOnOverlayClick ? onClose : undefined}
 			>
 				<div

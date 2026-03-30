@@ -39,7 +39,7 @@ import { Portal } from '@/components/ui/portal'
  */
 
 const popoverVariants = cva(
-	'z-popover rounded-radius border border-border bg-bg-card text-text shadow-lg outline-none animate-in fade-in-0 zoom-in-95',
+	'z-popover rounded-radius border border-border-medium bg-bg-card text-text outline-none animate-in fade-in-0 zoom-in-95',
 	{
 		variants: {
 			side: {
