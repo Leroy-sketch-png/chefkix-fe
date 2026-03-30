@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Group } from '@/lib/types/group'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -76,7 +76,7 @@ export const GroupCard = ({
 	if (variant === 'compact') {
 		return (
 			<motion.div
-				className='bg-bg-card rounded-lg p-4 border border-border hover:border-brand transition-colors'
+				className='bg-bg-card rounded-lg p-4 border border-border-subtle hover:border-brand transition-colors'
 				whileHover={{ scale: 1.02 }}
 				transition={TRANSITION_SPRING}
 			>
@@ -113,7 +113,7 @@ export const GroupCard = ({
 	if (variant === 'horizontal') {
 		return (
 			<motion.div
-				className='bg-bg-card rounded-lg p-3 border border-border flex items-center gap-3'
+				className='bg-bg-card rounded-lg p-3 border border-border-subtle flex items-center gap-3'
 				whileHover={{ scale: 1.02 }}
 				transition={TRANSITION_SPRING}
 			>
@@ -177,7 +177,7 @@ export const GroupCard = ({
 	// Default variant
 	return (
 		<motion.div
-			className='bg-bg-card rounded-xl border border-border overflow-hidden hover:border-brand transition-colors h-full flex flex-col pb-8'
+			className='bg-bg-card rounded-xl border border-border-subtle overflow-hidden hover:border-brand transition-colors h-full flex flex-col pb-8'
 			whileHover={{ scale: 1.02 }}
 			transition={TRANSITION_SPRING}
 		>
@@ -260,7 +260,7 @@ export const GroupCard = ({
 			</div>
 
 			{/* Footer / Actions */}
-			<div className='border-t border-border p-4'>
+			<div className='border-t border-border-subtle p-4'>
 				{hasJoined ? (
 					<Link href={PATHS.GROUPS.DETAIL(group.id)} className='block'>
 						<Button className='w-full bg-brand hover:bg-brand/90 text-white'>

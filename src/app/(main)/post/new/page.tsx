@@ -185,7 +185,9 @@ function CreatePostContent() {
 		}
 
 		loadSession()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [sessionId])
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -362,6 +364,7 @@ function CreatePostContent() {
 							className='flex size-10 items-center justify-center rounded-xl bg-bg-hover text-text-secondary transition-colors hover:bg-bg-card hover:text-text'
 							whileHover={ICON_BUTTON_HOVER}
 							whileTap={ICON_BUTTON_TAP}
+							aria-label='Go back'
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
@@ -525,6 +528,7 @@ function CreatePostContent() {
 													className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100'
 													whileHover={{ scale: 1.1 }}
 													whileTap={{ scale: 0.9 }}
+													aria-label={`Remove photo ${index + 1}`}
 												>
 													<X className='size-4' />
 												</motion.button>

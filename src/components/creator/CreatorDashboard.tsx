@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import {
@@ -133,7 +133,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 			<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 				{/* New Cooks */}
 				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
-					<span className='text-icon-lg'>👨‍🍳</span>
+					<span className='text-icon-lg'>ðŸ‘¨â€ðŸ³</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-extrabold text-success'>
 							+{data.newCooks}
@@ -160,7 +160,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 
 				{/* XP Earned */}
 				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
-					<span className='text-icon-lg'>⚡</span>
+					<span className='text-icon-lg'>âš¡</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-extrabold text-text'>
 							+{data.xpEarned}
@@ -195,7 +195,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 
 function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<h3 className='text-lg font-bold text-text mb-4'>Lifetime Stats</h3>
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
 				{/* Recipes Published - Large */}
@@ -204,29 +204,29 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 						<span className='text-4xl font-black text-primary'>
 							{stats.recipesPublished}
 						</span>
-						<span className='text-icon-lg'>📖</span>
+						<span className='text-icon-lg'>ðŸ“–</span>
 					</div>
 					<span className='text-sm text-text-secondary'>Recipes Published</span>
 				</div>
 
 				{/* Total Cooks */}
 				<StatCard
-					icon='👨‍🍳'
+					icon='ðŸ‘¨â€ðŸ³'
 					value={stats.totalCooks.toLocaleString()}
 					label='Total Cooks'
 				/>
 
 				{/* Creator XP */}
 				<StatCard
-					icon='⚡'
+					icon='âš¡'
 					value={stats.creatorXpEarned.toLocaleString()}
 					label='Creator XP Earned'
 				/>
 
 				{/* Avg Rating */}
 				<StatCard
-					icon='⭐'
-					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : '—'}
+					icon='â­'
+					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : 'â€”'}
 					label='Avg Rating'
 				/>
 			</div>
@@ -284,7 +284,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 							'flex-shrink-0 flex flex-col items-center gap-2 w-thumbnail-2xl p-5 rounded-2xl text-center relative',
 							badge.isEarned
 								? 'bg-xp/10 border-2 border-xp/20'
-								: 'bg-panel-bg opacity-60',
+								: 'bg-bg-card opacity-60',
 						)}
 					>
 						<span className='text-icon-xl'>{badge.icon}</span>
@@ -319,9 +319,9 @@ function TopRecipeSection({
 	onRecipeClick?: (id: string) => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>🏆 Top Recipe</h3>
+				<h3 className='text-lg font-bold text-text'>ðŸ† Top Recipe</h3>
 				{onViewAllRecipes && (
 					<button
 						onClick={onViewAllRecipes}
@@ -399,12 +399,12 @@ function RecipePerformanceSection({
 	onViewStepAnalytics?: (id: string) => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Recipe Performance</h3>
 				<button
 					type='button'
-					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border rounded-lg text-sm text-text'
+					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-lg text-sm text-text'
 				>
 					<ArrowUpDown className='w-3.5 h-3.5 text-text-secondary' />
 					Most Cooked
@@ -413,12 +413,12 @@ function RecipePerformanceSection({
 
 			{recipes.length === 0 ? (
 				<div className='flex flex-col items-center gap-3 py-10 text-center'>
-					<span className='text-4xl'>📊</span>
+					<span className='text-4xl'>ðŸ“Š</span>
 					<p className='text-base font-semibold text-text'>
 						No performance data yet
 					</p>
 					<p className='text-sm text-text-secondary max-w-xs'>
-						Publish recipes and watch them get cooked — your analytics will
+						Publish recipes and watch them get cooked â€” your analytics will
 						appear here.
 					</p>
 				</div>
@@ -492,7 +492,7 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onViewStepAnalytics(recipe.id)
 									}}
-									className='size-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-brand'
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-brand'
 									title='View step analytics'
 								>
 									<BarChart3 className='size-4' />
@@ -506,7 +506,7 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onImproveRecipe(recipe.id)
 									}}
-									className='size-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-text'
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-text'
 								>
 									<Edit3 className='size-4' />
 								</motion.button>
@@ -531,7 +531,7 @@ function RecentCooksSection({
 	onViewAll?: () => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Recent Cooks</h3>
 				{onViewAll && (
@@ -546,12 +546,12 @@ function RecentCooksSection({
 
 			{cooks.length === 0 ? (
 				<div className='flex flex-col items-center gap-3 py-10 text-center'>
-					<span className='text-4xl'>👨‍🍳</span>
+					<span className='text-4xl'>ðŸ‘¨â€ðŸ³</span>
 					<p className='text-base font-semibold text-text'>
 						No one has cooked your recipes yet
 					</p>
 					<p className='text-sm text-text-secondary max-w-xs'>
-						Share your recipes with friends — you earn XP every time someone
+						Share your recipes with friends â€” you earn XP every time someone
 						cooks them.
 					</p>
 				</div>
@@ -614,7 +614,7 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			)}
 		>
 			<div className='flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left'>
-				<span className='text-icon-xl'>✨</span>
+				<span className='text-icon-xl'>âœ¨</span>
 				<div className='flex flex-col'>
 					<strong className='text-base text-text'>
 						Share your next masterpiece
@@ -672,7 +672,7 @@ export function CreatorDashboard({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-text'
+						className='w-10 h-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text'
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
@@ -682,7 +682,7 @@ export function CreatorDashboard({
 						Creator Dashboard
 					</h1>
 					<span className='py-1 px-2.5 bg-xp/20 border border-xp/30 rounded-xl text-xs font-semibold text-xp'>
-						📝 Recipe Creator
+						ðŸ“ Recipe Creator
 					</span>
 				</div>
 			</div>

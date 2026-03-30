@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -170,7 +170,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 		>
 			<Link
 				href={`/recipes/${recipe.id}`}
-				className='group block overflow-hidden rounded-2xl border border-border bg-panel-bg transition-shadow hover:shadow-lg'
+				className='group block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card transition-shadow hover:shadow-warm'
 			>
 				<div className='relative h-44 w-full overflow-hidden'>
 					<Image
@@ -200,7 +200,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 						</motion.button>
 					</div>
 
-					<div className='mb-3 flex items-center gap-4 border-b border-border pb-3'>
+					<div className='mb-3 flex items-center gap-4 border-b border-border-subtle pb-3'>
 						{recipe.rating !== undefined && (
 							<div className='flex items-center gap-1 text-warning'>
 								<Star className='size-3.5 fill-current' />
@@ -278,7 +278,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	return (
 		<motion.div
 			variants={staggerItemVariants}
-			className='flex items-center gap-4 rounded-2xl border border-border bg-panel-bg p-4 transition-shadow hover:shadow-card'
+			className='flex items-center gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4 transition-shadow hover:shadow-card'
 		>
 			<Image
 				src={person.avatarUrl}
@@ -301,7 +301,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 				className={cn(
 					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors',
 					following
-						? 'border-2 border-border bg-bg-elevated text-text hover:border-error hover:bg-error/5 hover:text-error'
+						? 'border-2 border-border-subtle bg-bg-elevated text-text hover:border-error hover:bg-error/5 hover:text-error'
 						: 'bg-primary text-white',
 				)}
 			>
@@ -316,7 +316,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 		<motion.div variants={staggerItemVariants}>
 			<Link
 				href={`/post/${post.id}`}
-				className='group flex gap-3 rounded-2xl border border-border bg-panel-bg p-3 transition-shadow hover:shadow-card'
+				className='group flex gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-shadow hover:shadow-card'
 			>
 				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
 					<Image
@@ -343,7 +343,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 						{post.caption}
 					</p>
 					<p className='mt-1 text-xs text-text-secondary'>
-						❤️ {post.likeCount} likes
+						â¤ï¸ {post.likeCount} likes
 					</p>
 				</div>
 			</Link>
@@ -551,7 +551,7 @@ export default function SearchPage() {
 								onChange={e => handleSearchInputChange(e.target.value)}
 								placeholder='Search recipes, people, posts...'
 								autoFocus
-								className='w-full rounded-2xl border border-border bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+								className='w-full rounded-2xl border border-border-subtle bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
 								<button
@@ -577,7 +577,7 @@ export default function SearchPage() {
 									<button
 										key={term}
 										onClick={() => handleSuggestionClick(term)}
-										className='group flex items-center gap-1.5 rounded-full border border-border bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5'
+										className='group flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5'
 									>
 										<span>{term}</span>
 										<span
@@ -615,7 +615,7 @@ export default function SearchPage() {
 								<button
 									key={term}
 									onClick={() => handleSuggestionClick(term)}
-									className='rounded-full border border-border bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text'
+									className='rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text'
 								>
 									{term}
 								</button>
@@ -636,7 +636,7 @@ export default function SearchPage() {
 					<div className='mb-4 flex items-center gap-3'>
 						<button
 							onClick={() => router.back()}
-							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 							aria-label='Go back'
 						>
 							<ArrowLeft className='size-5' />
@@ -648,7 +648,7 @@ export default function SearchPage() {
 								value={searchInput}
 								onChange={e => handleSearchInputChange(e.target.value)}
 								placeholder='Search recipes, people, posts...'
-								className='w-full rounded-xl border border-border bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+								className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
 								<button
@@ -681,7 +681,7 @@ export default function SearchPage() {
 				</div>
 
 				{/* Tabs */}
-				<div className='mb-8 flex gap-2 overflow-x-auto border-b-2 border-border'>
+				<div className='mb-8 flex gap-2 overflow-x-auto border-b-2 border-border-subtle'>
 					{tabs.map(tab => (
 						<button
 							key={tab.id}

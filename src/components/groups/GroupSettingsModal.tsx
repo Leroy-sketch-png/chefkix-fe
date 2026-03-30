@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { Group } from '@/lib/types/group'
@@ -102,7 +102,7 @@ export function GroupSettingsModal({
 							value={name}
 							onChange={e => setName(e.target.value)}
 							placeholder='Enter group name'
-							className='bg-bg border-border'
+							className='bg-bg border-border-subtle'
 							maxLength={50}
 						/>
 					</div>
@@ -116,7 +116,7 @@ export function GroupSettingsModal({
 							value={description}
 							onChange={e => setDescription(e.target.value)}
 							placeholder='Enter group description (optional)'
-							className='bg-bg border-border resize-none'
+							className='bg-bg border-border-subtle resize-none'
 							rows={4}
 							maxLength={500}
 						/>
@@ -136,7 +136,7 @@ export function GroupSettingsModal({
 							value={privacy}
 							onValueChange={value => setPrivacy(value as 'PUBLIC' | 'PRIVATE')}
 						>
-							<SelectTrigger className='bg-bg border-border'>
+							<SelectTrigger className='bg-bg border-border-subtle'>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>

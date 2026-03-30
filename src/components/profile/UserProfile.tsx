@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -39,7 +39,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { logDevError } from '@/lib/dev-log'
 
 // ============================================
-// ADAPTER: Profile → ProfileUser
+// ADAPTER: Profile â†’ ProfileUser
 // ============================================
 
 interface ProfileUser {
@@ -187,7 +187,7 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 	//
 	// IMPORTANT: baseXP here is NOT "total XP ever possible", it's specifically
 	// the post bonus. The cooking completion XP (baseXpAwarded) was already given
-	// and is NOT shown here — that's "XP Earned" in the stats.
+	// and is NOT shown here â€” that's "XP Earned" in the stats.
 	const isPending = !item.postId && item.status === 'completed'
 	const isPosted = !!item.postId
 
@@ -632,7 +632,7 @@ export const UserProfile = ({
 								))}
 							</div>
 						) : userRecipes.length === 0 ? (
-							<div className='flex h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border'>
+							<div className='flex h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border-subtle'>
 								<p className='text-text-muted'>
 									{isOwnProfile
 										? "You haven't created any recipes yet"
@@ -715,7 +715,7 @@ export const UserProfile = ({
 								))}
 							</div>
 						) : userPosts.length === 0 ? (
-							<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+							<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 								<ImageOff className='size-8 text-text-muted' />
 								<p className='mt-2 text-text-muted'>
 									{isOwnProfile
@@ -773,7 +773,7 @@ export const UserProfile = ({
 				{activeTab === 'saved' && (
 					<>
 						{!isOwnProfile ? (
-							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
+							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 								<p className='text-text-muted'>Saved items are private</p>
 							</div>
 						) : (
@@ -825,7 +825,7 @@ export const UserProfile = ({
 												))}
 											</div>
 										) : savedRecipes.length === 0 ? (
-											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 												<Bookmark className='size-8 text-text-muted' />
 												<p className='mt-2 text-text-muted'>
 													No saved recipes yet
@@ -901,7 +901,7 @@ export const UserProfile = ({
 												))}
 											</div>
 										) : savedPosts.length === 0 ? (
-											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 												<MessageCircle className='size-8 text-text-muted' />
 												<p className='mt-2 text-text-muted'>
 													No saved posts yet
@@ -950,7 +950,7 @@ export const UserProfile = ({
 								Earned Badges ({profileUser.badges.length})
 							</h3>
 							{profileUser.badges.length === 0 ? (
-								<div className='flex h-32 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+								<div className='flex h-32 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 									<Award className='size-8 text-text-muted' />
 									<p className='mt-2 text-text-muted'>
 										{isOwnProfile
