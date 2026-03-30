@@ -102,7 +102,7 @@ interface CookingState {
 	pauseCooking: () => Promise<void>
 	resumeCooking: () => Promise<void>
 	completeCooking: (
-		rating: number,
+		rating?: number,
 		notes?: string,
 	) => Promise<CompleteSessionResponse | null>
 	abandonCooking: () => Promise<void>
@@ -637,7 +637,7 @@ export const useCookingStore = create<CookingState>()(
 				}
 			},
 
-			completeCooking: async (rating: number, notes?: string) => {
+			completeCooking: async (rating?: number, notes?: string) => {
 				const { session, isPreviewMode } = get()
 
 				if (isPreviewMode) {
@@ -670,10 +670,10 @@ export const useCookingStore = create<CookingState>()(
 						`POST /cooking-sessions/${session.sessionId}/complete`,
 						{ rating, notes },
 					)
-					const response = await apiCompleteSession(session.sessionId, {
-						rating,
-						notes,
-					})
+					const body: { rating?: number; notes?: string } = {}
+					if (rating != null) body.rating = rating
+					if (notes) body.notes = notes
+					const response = await apiCompleteSession(session.sessionId, body)
 					diag.response('cooking', `POST /complete`, response, response.success)
 
 					if (response.success && response.data) {

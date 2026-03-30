@@ -1119,7 +1119,7 @@ export const CookingPlayer = () => {
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
 
 	const handleComplete = useCallback(
-		async (rating: number, notes?: string) => {
+		async (rating?: number, notes?: string) => {
 			// Preview mode — no real completion, just close
 			if (isPreviewMode) {
 				toast.success('Preview complete! Your recipe looks great.')
@@ -1563,12 +1563,11 @@ export const CookingPlayer = () => {
 							</div>
 
 							{/* Step Content - Animated */}
-							{/* MONITORING mode: dim content — timer is the focus */}
+							{/* MONITORING mode: dim content to emphasize timer, but keep interactive */}
 							<div
 								className={cn(
 									'relative flex-1 overflow-hidden transition-opacity duration-500',
-									interactionMode === 'MONITORING' &&
-										'opacity-50 pointer-events-none',
+									interactionMode === 'MONITORING' && 'opacity-70',
 								)}
 							>
 								{/* PREP mode overlay: show "Ready to cook?" over step 1 */}
@@ -1996,7 +1995,7 @@ export const CookingPlayer = () => {
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
 									recipeTitle={recipe.title}
 									onSubmit={handleComplete}
-									onSkip={() => handleComplete(3)}
+									onSkip={() => handleComplete()}
 									isSubmitting={isCompletingSession}
 								/>
 							</motion.div>
