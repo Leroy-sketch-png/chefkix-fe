@@ -16,6 +16,7 @@ interface CommentListProps {
 	currentUserId?: string
 	isLoading?: boolean
 	onCommentCreated?: () => void
+	onCommentDeleted?: () => void
 }
 
 export const CommentList = ({
@@ -23,6 +24,7 @@ export const CommentList = ({
 	currentUserId,
 	isLoading = false,
 	onCommentCreated,
+	onCommentDeleted,
 }: CommentListProps) => {
 	const [comments, setComments] = useState<CommentType[]>([])
 	const [loading, setLoading] = useState(isLoading)
@@ -221,6 +223,7 @@ export const CommentList = ({
 							currentUserId={currentUserId}
 							onDelete={commentId => {
 								setComments(prev => prev.filter(c => c.id !== commentId))
+								onCommentDeleted?.()
 							}}
 						/>
 					))}

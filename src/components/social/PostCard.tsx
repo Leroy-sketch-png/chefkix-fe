@@ -993,6 +993,12 @@ export const PostCard = ({
 											commentCount: (prev.commentCount ?? 0) + 1,
 										}))
 									}}
+									onCommentDeleted={() => {
+										setPost(prev => ({
+											...prev,
+											commentCount: Math.max((prev.commentCount ?? 1) - 1, 0),
+										}))
+									}}
 								/>
 							</motion.div>
 						)}
