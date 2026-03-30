@@ -295,7 +295,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 
 						{!badge.isEarned && (
 							<div className='absolute inset-0 flex items-center justify-center bg-black/40 rounded-radius'>
-								<Lock className='w-6 h-6 text-white' />
+								<Lock className='size-6 text-white' />
 							</div>
 						)}
 					</motion.div>
@@ -492,10 +492,10 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onViewStepAnalytics(recipe.id)
 									}}
-									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-brand'
+									className='size-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-brand'
 									title='View step analytics'
 								>
-									<BarChart3 className='w-4 h-4' />
+									<BarChart3 className='size-4' />
 								</motion.button>
 							)}
 							{recipe.needsAttention && onImproveRecipe && (
@@ -506,9 +506,9 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onImproveRecipe(recipe.id)
 									}}
-									className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-text'
+									className='size-9 flex items-center justify-center border border-border rounded-lg text-text-secondary hover:text-text'
 								>
-									<Edit3 className='w-4 h-4' />
+									<Edit3 className='size-4' />
 								</motion.button>
 							)}
 						</motion.div>
@@ -674,7 +674,7 @@ export function CreatorDashboard({
 						onClick={onBack}
 						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-text'
 					>
-						<ArrowLeft className='w-5 h-5' />
+						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
 				<div className='flex-1 flex items-center gap-3 flex-wrap'>

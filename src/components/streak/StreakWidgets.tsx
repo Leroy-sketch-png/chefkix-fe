@@ -173,7 +173,7 @@ export function StreakRiskBanner({
 					aria-label='Dismiss'
 					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-text-secondary opacity-60 hover:opacity-100 transition-opacity'
 				>
-					<X className='w-4 h-4' />
+					<X className='size-4' />
 				</button>
 			)}
 		</motion.div>
@@ -339,7 +339,7 @@ export function StreakMilestoneCard({
 					onClick={onShare}
 					className='flex items-center gap-1.5 py-2.5 px-4 bg-panel-bg border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0'
 				>
-					<Share2 className='w-4 h-4' />
+					<Share2 className='size-4' />
 					Share
 				</motion.button>
 			)}

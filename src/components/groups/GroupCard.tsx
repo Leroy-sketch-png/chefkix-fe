@@ -92,7 +92,7 @@ export const GroupCard = ({
 							/>
 						) : (
 							<div className='w-12 h-12 rounded-md bg-brand/10 flex items-center justify-center'>
-								<Users className='w-6 h-6 text-brand' />
+								<Users className='size-6 text-brand' />
 							</div>
 						)}
 						<div className='flex-1 min-w-0'>
@@ -103,7 +103,7 @@ export const GroupCard = ({
 								{group.memberCount} members
 							</p>
 						</div>
-						<ChevronRight className='w-4 h-4 text-text-muted flex-shrink-0' />
+						<ChevronRight className='size-4 text-text-muted flex-shrink-0' />
 					</div>
 				</Link>
 			</motion.div>
@@ -127,7 +127,7 @@ export const GroupCard = ({
 					/>
 				) : (
 					<div className='w-12 h-12 rounded bg-brand/10 flex items-center justify-center flex-shrink-0'>
-						<Users className='w-5 h-5 text-brand' />
+						<Users className='size-5 text-brand' />
 					</div>
 				)}
 
@@ -135,9 +135,9 @@ export const GroupCard = ({
 					<h3 className='font-semibold text-text truncate'>{group.name}</h3>
 					<div className='flex items-center gap-2 mt-1'>
 						{group.privacyType === 'PRIVATE' ? (
-							<Lock className='w-3 h-3 text-text-muted' />
+							<Lock className='size-3 text-text-muted' />
 						) : (
-							<Globe className='w-3 h-3 text-text-muted' />
+							<Globe className='size-3 text-text-muted' />
 						)}
 						<span className='text-xs text-text-secondary'>
 							{group.memberCount} members
@@ -147,14 +147,14 @@ export const GroupCard = ({
 
 				{hasJoined && (
 					<div className='text-xs font-medium text-brand flex items-center gap-1'>
-						<Check className='w-3 h-3' />
+						<Check className='size-3' />
 						Joined
 					</div>
 				)}
 
 				{requestPending && (
 					<div className='text-xs font-medium text-warning flex items-center gap-1'>
-						<Clock className='w-3 h-3' />
+						<Clock className='size-3' />
 						Pending
 					</div>
 				)}
@@ -167,7 +167,7 @@ export const GroupCard = ({
 						disabled={isJoining}
 						className='flex-shrink-0'
 					>
-						{isJoining ? <Loader2 className='w-3 h-3 animate-spin' /> : 'Join'}
+						{isJoining ? <Loader2 className='size-3 animate-spin' /> : 'Join'}
 					</Button>
 				)}
 			</motion.div>
@@ -201,14 +201,14 @@ export const GroupCard = ({
 					<div className='bg-bg/95 backdrop-blur-sm rounded-full p-2 flex items-center gap-1'>
 						{group.privacyType === 'PRIVATE' ? (
 							<>
-								<Lock className='w-3 h-3 text-text-secondary' />
+								<Lock className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
 									Private
 								</span>
 							</>
 						) : (
 							<>
-								<Globe className='w-3 h-3 text-text-secondary' />
+								<Globe className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
 									Public
 								</span>
@@ -254,7 +254,7 @@ export const GroupCard = ({
 
 				{/* Member Count */}
 				<div className='flex items-center gap-2 mt-3 text-sm text-text-secondary'>
-					<Users className='w-4 h-4' />
+					<Users className='size-4' />
 					<span>{group.memberCount} members</span>
 				</div>
 			</div>
@@ -281,7 +281,7 @@ export const GroupCard = ({
 					>
 						{isJoining ? (
 							<>
-								<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+								<Loader2 className='size-4 mr-2 animate-spin' />
 								Joining...
 							</>
 						) : (
