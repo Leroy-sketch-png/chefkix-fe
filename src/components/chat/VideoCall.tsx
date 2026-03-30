@@ -485,9 +485,9 @@ export default function VideoCall({
 					<button
 						onClick={makeCall}
 						disabled={!isCameraOn || !isJoined}
-						className={`px-4 py-2 text-white rounded-md ${
+						className={`px-4 py-2 text-white rounded-md transition-colors ${
 							!isCameraOn || !isJoined
-								? 'bg-text-muted cursor-not-allowed'
+								? 'bg-bg-elevated text-text-muted cursor-not-allowed opacity-50'
 								: 'bg-success hover:bg-success-vivid'
 						}`}
 					>
