@@ -11,7 +11,7 @@ import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
 import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
 import { NetworkStatusProvider } from '@/components/providers/NetworkStatusProvider'
 import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvider'
-import { Toaster } from '@/components/ui/toaster'
+import { Toaster } from 'sonner'
 
 // Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
 // Perfect for a social cooking app - warm but professional
@@ -88,7 +88,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
 	width: 'device-width',
 	initialScale: 1,
-	maximumScale: 1,
+	themeColor: [
+		{ media: '(prefers-color-scheme: light)', color: '#ff5a36' },
+		{ media: '(prefers-color-scheme: dark)', color: '#0f0d0c' },
+	],
 }
 
 export default function RootLayout({
@@ -118,7 +121,7 @@ export default function RootLayout({
 					</AuthProvider>
 				</GoogleOAuthWrapper>
 				<NetworkStatusProvider />
-				<Toaster position='top-right' maxToasts={5} />
+				<Toaster position='bottom-center' />
 			</body>
 		</html>
 	)
