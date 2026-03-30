@@ -139,6 +139,7 @@ export default function DashboardPage() {
 	const [hasPendingXpSync, setHasPendingXpSync] = useState(false)
 	const [isRetryingPendingXp, setIsRetryingPendingXp] = useState(false)
 	const [retryCount, setRetryCount] = useState(0)
+	const [isColdStartFallback, setIsColdStartFallback] = useState(false)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
 	// Filter out posts from blocked users
@@ -276,6 +277,35 @@ export default function DashboardPage() {
 					}
 
 					setPosts(feedPosts)
+					setIsColdStartFallback(false)
+
+					// COLD-START FALLBACK: If "For You" returns 0 posts, show trending instead
+					if (feedMode === 'forYou' && feedPosts.length === 0) {
+						const trendingResponse = await getFeedPosts({
+							page: 0,
+							size: POSTS_PER_PAGE,
+							mode: 'trending',
+						})
+						if (
+							!cancelled &&
+							trendingResponse.success &&
+							trendingResponse.data
+						) {
+							const trendingPosts = trendingResponse.data.filter(
+								post => post.postType !== 'GROUP',
+							)
+							if (trendingPosts.length > 0) {
+								setPosts(trendingPosts)
+								setIsColdStartFallback(true)
+								if (trendingResponse.pagination) {
+									setHasMore(!trendingResponse.pagination.last)
+								} else {
+									setHasMore(trendingPosts.length >= POSTS_PER_PAGE)
+								}
+							}
+						}
+					}
+
 					// Use pagination info from backend - check if current page is the last
 					if (feedResponse.pagination) {
 						setHasMore(!feedResponse.pagination.last)
@@ -328,6 +358,13 @@ export default function DashboardPage() {
 		const nextPage = currentPage + 1
 
 		try {
+			// When cold-start fallback is active, load more from trending (not forYou)
+			const effectiveMode: 'forYou' | 'latest' | 'trending' =
+				isColdStartFallback
+					? 'trending'
+					: feedMode === 'following'
+						? 'latest'
+						: feedMode
 			const response =
 				feedMode === 'following'
 					? await getFollowingFeedPosts({
@@ -338,7 +375,7 @@ export default function DashboardPage() {
 					: await getFeedPosts({
 							page: nextPage,
 							size: POSTS_PER_PAGE,
-							mode: feedMode,
+							mode: effectiveMode,
 						})
 
 			if (response.success && response.data) {
@@ -365,7 +402,7 @@ export default function DashboardPage() {
 		} finally {
 			setIsLoadingMore(false)
 		}
-	}, [isLoadingMore, hasMore, currentPage, feedMode])
+	}, [isLoadingMore, hasMore, currentPage, feedMode, isColdStartFallback])
 
 	// Intersection Observer for infinite scroll
 	useEffect(() => {
@@ -615,6 +652,20 @@ export default function DashboardPage() {
 						}}
 					/>
 				)}
+				{/* Cold-start banner: shown when forYou is empty but trending has posts */}
+				{!isLoading &&
+					!error &&
+					isColdStartFallback &&
+					feedMode === 'forYou' && (
+						<div className='mb-4 flex items-center gap-3 rounded-radius border border-brand/20 bg-brand/5 p-3 text-sm text-text-secondary'>
+							<TrendingUp className='size-4 shrink-0 text-brand' />
+							<span>
+								Showing <strong className='text-text'>trending posts</strong>{' '}
+								while your personalized feed warms up. Like and save posts to
+								teach the algorithm your taste!
+							</span>
+						</div>
+					)}
 				{!isLoading &&
 					!error &&
 					filteredPosts.length === 0 &&
