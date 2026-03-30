@@ -20,6 +20,7 @@ import {
 import { PostCard } from '@/components/social/PostCard'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { logDevError } from '@/lib/dev-log'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -77,7 +78,9 @@ export default function GroupDetailPage() {
 		}
 
 		loadGroup()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [groupId, isAuthenticated, router])
 
 	// Load members when members tab is clicked
@@ -116,7 +119,7 @@ export default function GroupDetailPage() {
 			} catch (error) {
 				if (!cancelled) {
 					toast.error('Failed to load posts')
-					console.error('Post loading error:', error)
+					logDevError('Post loading error:', error)
 				}
 			} finally {
 				if (!cancelled) setIsLoadingPosts(false)
@@ -227,7 +230,7 @@ export default function GroupDetailPage() {
 												const response = await getGroupPosts(groupId, 0, 20)
 												setPosts(response.content || [])
 											} catch (error) {
-												console.error('Failed to reload posts:', error)
+												logDevError('Failed to reload posts:', error)
 											} finally {
 												setIsLoadingPosts(false)
 											}
