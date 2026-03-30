@@ -141,7 +141,11 @@ export default function FeedPage() {
 			const response = await fetchByTab[activeTab]()
 
 			if (response.success && response.data) {
-				setPosts(prev => [...prev, ...response.data!])
+				setPosts(prev => {
+					const existingIds = new Set(prev.map(p => p.id))
+					const newPosts = response.data!.filter(p => !existingIds.has(p.id))
+					return [...prev, ...newPosts]
+				})
 				setCurrentPage(nextPage)
 				if (response.pagination) {
 					setHasMore(!response.pagination.last)

@@ -671,7 +671,11 @@ export default function ExplorePage() {
 				})
 
 				// Append to existing recipes (already filtered server-side)
-				setRecipes(prev => [...prev, ...newRecipes])
+				setRecipes(prev => {
+					const existingIds = new Set(prev.map(r => r.id))
+					const dedupedRecipes = newRecipes.filter(r => !existingIds.has(r.id))
+					return [...prev, ...dedupedRecipes]
+				})
 				setPage(nextPage + 1)
 
 				// Update pagination state

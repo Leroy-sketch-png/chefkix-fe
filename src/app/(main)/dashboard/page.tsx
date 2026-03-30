@@ -282,9 +282,12 @@ export default function DashboardPage() {
 				}
 
 				if (pendingResponse.success && pendingResponse.data) {
-					setPendingSessions(
-						pendingResponse.data.map(transformToPendingSession),
-					)
+					const wasDismissed = sessionStorage.getItem('chefkix_pending_dismissed') === 'true'
+					if (!wasDismissed) {
+						setPendingSessions(
+							pendingResponse.data.map(transformToPendingSession),
+						)
+					}
 				}
 			} catch (err) {
 				logDevError('Failed to load dashboard feed:', err)
@@ -334,7 +337,11 @@ export default function DashboardPage() {
 				const filteredPosts = response.data.filter(
 					post => post.postType !== 'GROUP',
 				)
-				setPosts(prev => [...prev, ...filteredPosts])
+				setPosts(prev => {
+					const existingIds = new Set(prev.map(p => p.id))
+					const newPosts = filteredPosts.filter(p => !existingIds.has(p.id))
+					return [...prev, ...newPosts]
+				})
 				setCurrentPage(nextPage)
 				if (response.pagination) {
 					setHasMore(!response.pagination.last)
@@ -385,8 +392,9 @@ export default function DashboardPage() {
 	}
 
 	const handleDismissPending = () => {
-		// Optionally hide pending section temporarily
 		setPendingSessions([])
+		// Persist dismissal so it doesn't reappear on page refresh within this session
+		sessionStorage.setItem('chefkix_pending_dismissed', 'true')
 	}
 
 	const handlePostUpdate = (updatedPost: Post) => {
