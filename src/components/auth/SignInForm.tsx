@@ -73,8 +73,16 @@ export function SignInForm() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	// Check if user just verified their email — pre-fill to reduce friction
-	const verifiedEmail = typeof window !== 'undefined' ? sessionStorage.getItem('verified-email') : null
+	const verifiedEmail =
+		typeof window !== 'undefined'
+			? sessionStorage.getItem('verified-email')
+			: null
+	const isNewSignup =
+		typeof window !== 'undefined'
+			? sessionStorage.getItem('just-registered') === 'true'
+			: false
 	if (verifiedEmail) sessionStorage.removeItem('verified-email')
+	if (isNewSignup) sessionStorage.removeItem('just-registered')
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -107,10 +115,15 @@ export function SignInForm() {
 		const profileResponse = await getMyProfile()
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
-			toast.success('Welcome back! Signed in successfully.')
-			// Set loading AFTER everything is ready - AuthProvider will handle redirect
-			setLoading(true)
-			router.push('/profile')
+			if (isNewSignup) {
+				toast.success('Welcome to ChefKix! Let\u2019s get cooking 🎉')
+				setLoading(true)
+				router.push('/dashboard')
+			} else {
+				toast.success('Welcome back! Signed in successfully.')
+				setLoading(true)
+				router.push('/dashboard')
+			}
 			return true
 		} else {
 			// Profile fetch failed - logout completely and show error

@@ -32,6 +32,8 @@ import {
 	Loader2,
 	ChefHat,
 	BookOpen,
+	Camera,
+	PenLine,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
@@ -475,39 +477,102 @@ export default function DashboardPage() {
 							className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
 						>
 							<h2 className='text-lg font-bold text-text'>
-								Welcome to ChefKix! 🎉
+								Welcome to ChefKix,{' '}
+								{user?.displayName || user?.firstName || user?.username}! 🎉
 							</h2>
 							<p className='mt-1 text-sm text-text-secondary'>
-								Get started in 3 easy steps:
+								Here&apos;s how to get the most out of ChefKix:
 							</p>
 							<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
 								<Link
 									href='/explore'
-									className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
 								>
-									<BookOpen className='size-5 flex-shrink-0 text-brand' />
-									<span className='text-sm font-medium text-text'>
-										Browse recipes
-									</span>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 transition-colors group-hover:bg-brand/20'>
+										<BookOpen className='size-5 text-brand' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											Find a recipe
+										</span>
+										<p className='text-xs text-text-muted'>
+											Browse hundreds of dishes
+										</p>
+									</div>
 								</Link>
 								<Link
-									href='/create'
-									className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+									href='/explore'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
 								>
-									<ChefHat className='size-5 flex-shrink-0 text-xp' />
-									<span className='text-sm font-medium text-text'>
-										Cook your first recipe
-									</span>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
+										<ChefHat className='size-5 text-xp' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											Start cooking
+										</span>
+										<p className='text-xs text-text-muted'>
+											Earn XP with every dish
+										</p>
+									</div>
 								</Link>
 								<Link
 									href='/community'
-									className='flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
 								>
-									<Users className='size-5 flex-shrink-0 text-streak' />
-									<span className='text-sm font-medium text-text'>
-										Follow other chefs
-									</span>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 transition-colors group-hover:bg-streak/20'>
+										<Users className='size-5 text-streak' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											Join the community
+										</span>
+										<p className='text-xs text-text-muted'>
+											Follow chefs you love
+										</p>
+									</div>
 								</Link>
+							</div>
+						</motion.div>
+					)}
+
+				{/* Complete Your Profile — nudge users who haven't set avatar or bio */}
+				{user &&
+					(!user.avatarUrl ||
+						user.avatarUrl === '/placeholder-avatar.svg' ||
+						!user.bio) && (
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+							className='mb-6 rounded-radius border border-border-subtle bg-bg-card p-5 shadow-card'
+						>
+							<h3 className='text-sm font-bold text-text'>
+								Complete your profile
+							</h3>
+							<p className='mt-1 text-xs text-text-muted'>
+								Profiles with photos get 5x more followers
+							</p>
+							<div className='mt-3 flex flex-wrap gap-2'>
+								{(!user.avatarUrl ||
+									user.avatarUrl === '/placeholder-avatar.svg') && (
+									<Link
+										href='/settings'
+										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+									>
+										<Camera className='size-3.5' />
+										Add a photo
+									</Link>
+								)}
+								{!user.bio && (
+									<Link
+										href='/settings'
+										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+									>
+										<PenLine className='size-3.5' />
+										Write a bio
+									</Link>
+								)}
 							</div>
 						</motion.div>
 					)}

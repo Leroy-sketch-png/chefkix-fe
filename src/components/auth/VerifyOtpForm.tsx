@@ -124,11 +124,12 @@ export const VerifyOtpForm = () => {
 			setSuccess(successMsg)
 			setError(null)
 			triggerSuccessConfetti()
-			toast.success('Email verified! Sign in with your password to get started.')
+			toast.success('Email verified! Just enter your password to jump in.')
 
 			// Pre-fill email on sign-in page so user only needs to type password
 			if (email) {
 				sessionStorage.setItem('verified-email', email)
+				sessionStorage.setItem('just-registered', 'true')
 			}
 
 			router.push(PATHS.AUTH.SIGN_IN)

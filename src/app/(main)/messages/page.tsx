@@ -16,8 +16,10 @@ import {
 	ArrowLeft,
 	Phone,
 	X,
+	Users,
 } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
@@ -206,9 +208,16 @@ function EmptyConversations() {
 			<div>
 				<h3 className='font-semibold text-text'>No conversations yet</h3>
 				<p className='mt-1 text-sm text-text-muted'>
-					Visit a chef&apos;s profile to start chatting! 🍳
+					Find chefs in the community and start chatting!
 				</p>
 			</div>
+			<Link
+				href='/community'
+				className='mt-2 inline-flex items-center gap-2 rounded-radius bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-card transition-shadow hover:shadow-warm'
+			>
+				<Users className='size-4' />
+				Discover Chefs
+			</Link>
 		</div>
 	)
 }
