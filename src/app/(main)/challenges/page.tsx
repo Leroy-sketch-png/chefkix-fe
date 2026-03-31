@@ -69,6 +69,7 @@ export default function ChallengesPage() {
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 
 	useEffect(() => {
 		let cancelled = false
@@ -132,7 +133,7 @@ export default function ChallengesPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [])
+	}, [retryKey])
 
 	const hasNoChallenges =
 		communityChallenges.length === 0 &&
@@ -147,6 +148,10 @@ export default function ChallengesPage() {
 				<ErrorState
 					title='Failed to load challenges'
 					message='We could not load challenge data. Please try again.'
+					onRetry={() => {
+						setError(false)
+						setRetryKey(k => k + 1)
+					}}
 				/>
 			</PageContainer>
 		)

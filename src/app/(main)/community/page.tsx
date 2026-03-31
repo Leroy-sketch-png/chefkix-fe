@@ -52,6 +52,7 @@ export default function CommunityPage() {
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 
 	// Compute closest competitor for CatchingUpAlert
 	const closestCompetitor = useMemo(() => {
@@ -122,7 +123,7 @@ export default function CommunityPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user?.userId])
+	}, [user?.userId, retryKey])
 
 	const handleFollowBack = (userId: string) => {
 		// User followed back, move them from followers to friends
@@ -155,6 +156,10 @@ export default function CommunityPage() {
 				<ErrorState
 					title='Failed to load community'
 					message='We could not load community data. Please try again.'
+					onRetry={() => {
+						setError(false)
+						setRetryKey(k => k + 1)
+					}}
 				/>
 			</PageContainer>
 		)

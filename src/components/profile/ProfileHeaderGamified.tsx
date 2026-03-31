@@ -308,7 +308,7 @@ const StatsRow = ({
 		<div className='flex gap-8'>
 			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold text-success'>
-					{cooking.recipesCooked}
+					{formatNumber(cooking.recipesCooked)}
 				</span>
 				<span className='text-xs font-semibold text-success'>
 					{cooking.recipesCooked === 0 && isOwnProfile
@@ -317,7 +317,9 @@ const StatsRow = ({
 				</span>
 			</div>
 			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold'>{cooking.recipesCreated}</span>
+				<span className='text-xl font-extrabold'>
+					{formatNumber(cooking.recipesCreated)}
+				</span>
 				<span className='text-xs text-text-muted'>
 					{cooking.recipesCreated === 0 && isOwnProfile
 						? 'Share a recipe!'
@@ -326,7 +328,9 @@ const StatsRow = ({
 			</div>
 			{cooking.mastered !== undefined && (
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold'>{cooking.mastered}</span>
+					<span className='text-xl font-extrabold'>
+						{formatNumber(cooking.mastered)}
+					</span>
 					<span className='text-xs text-text-muted'>Mastered</span>
 				</div>
 			)}

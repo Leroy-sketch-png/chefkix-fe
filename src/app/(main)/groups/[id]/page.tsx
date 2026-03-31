@@ -25,6 +25,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
+import { PATHS } from '@/constants'
 
 /**
  * Group Detail Page - Facebook Style
@@ -54,7 +55,7 @@ export default function GroupDetailPage() {
 	// Check authentication
 	useEffect(() => {
 		if (!isAuthenticated) {
-			router.push('/auth/sign-in')
+			router.push(PATHS.AUTH.SIGN_IN)
 		}
 	}, [isAuthenticated, router])
 

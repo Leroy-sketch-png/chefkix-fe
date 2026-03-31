@@ -439,7 +439,22 @@ function RecipeDetailContent() {
 				return
 			}
 
-			// Ignore when menus or modals are open
+			// Escape always works — closes modals or navigates back
+			if (e.key === 'Escape') {
+				e.preventDefault()
+				if (showDeleteConfirm) {
+					setShowDeleteConfirm(false)
+				} else if (showRemixMenu) {
+					setShowRemixMenu(false)
+				} else if (remixResult) {
+					setRemixResult(null)
+				} else {
+					router.back()
+				}
+				return
+			}
+
+			// All other shortcuts: ignore when menus or modals are open
 			if (showRemixMenu || remixResult || showDeleteConfirm) {
 				return
 			}
@@ -469,10 +484,6 @@ function RecipeDetailContent() {
 					if (!isLikeLoading && recipe) {
 						handleLike()
 					}
-					break
-				case 'Escape':
-					e.preventDefault()
-					router.back()
 					break
 			}
 		}
@@ -779,7 +790,10 @@ function RecipeDetailContent() {
 							>
 								<Eye className='size-5 text-brand' />
 								<span className='font-medium'>
-									{recipe.viewCount || 0} views
+									{(recipe.viewCount || 0) >= 1000
+										? `${((recipe.viewCount || 0) / 1000).toFixed(1)}k`
+										: `${recipe.viewCount || 0}`}{' '}
+									views
 								</span>
 							</motion.span>
 

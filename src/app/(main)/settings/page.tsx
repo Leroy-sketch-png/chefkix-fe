@@ -1054,7 +1054,7 @@ export default function SettingsPage() {
 												variant='outline'
 												className='w-full sm:w-auto'
 												onClick={() => {
-													router.push('/auth/sign-in')
+													router.push(PATHS.AUTH.SIGN_IN)
 												}}
 											>
 												<Shield className='mr-2 size-4' />

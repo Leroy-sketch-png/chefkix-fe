@@ -582,8 +582,14 @@ function CreatePostContent() {
 										{session
 											? `Post & Claim ${Math.round(session.pendingXp)} XP`
 											: 'Post'}
-										<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
-											⌘↵
+										<kbd
+											className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
+											suppressHydrationWarning
+										>
+											{typeof window !== 'undefined' &&
+											navigator.platform?.includes('Mac')
+												? '⌘↵'
+												: 'Ctrl+↵'}
 										</kbd>
 									</>
 								)}
