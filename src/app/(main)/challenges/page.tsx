@@ -187,7 +187,36 @@ export default function ChallengesPage() {
 				{/* Cooking Duels — 1v1 friend challenges */}
 				<DuelsSection />
 
-				{hasNoChallenges ? (
+				{loading ? (
+					<div className='space-y-6'>
+						{/* Daily challenge skeleton */}
+						<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
+							<div className='flex items-center gap-4'>
+								<div className='size-12 shrink-0 animate-pulse rounded-2xl bg-bg-elevated/40' />
+								<div className='flex-1 space-y-2'>
+									<div className='h-5 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
+									<div className='h-4 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+								</div>
+								<div className='h-8 w-20 animate-pulse rounded-full bg-bg-elevated/40' />
+							</div>
+						</div>
+						{/* Weekly + community skeletons */}
+						{Array.from({ length: 3 }).map((_, i) => (
+							<div
+								key={i}
+								className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
+							>
+								<div className='flex items-center gap-3'>
+									<div className='size-11 shrink-0 animate-pulse rounded-xl bg-bg-elevated/40' />
+									<div className='flex-1 space-y-1.5'>
+										<div className='h-4 w-2/5 animate-pulse rounded bg-bg-elevated/40' />
+										<div className='h-3 w-3/5 animate-pulse rounded bg-bg-elevated/40' />
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				) : hasNoChallenges ? (
 					<EmptyStateGamified
 						variant='challenges'
 						title='No Active Challenges Right Now'

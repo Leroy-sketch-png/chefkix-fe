@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Shield, FileWarning, Ban, Scale } from 'lucide-react'
@@ -19,7 +19,7 @@ export default function AdminLayout({
 }: {
 	children: React.ReactNode
 }) {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const router = useRouter()
 	const pathname = usePathname()
 	const [authorized, setAuthorized] = useState(false)

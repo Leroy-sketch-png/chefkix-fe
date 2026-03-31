@@ -137,6 +137,7 @@ export default function LeaderboardRoute() {
 			<PageContainer maxWidth='xl'>
 				<LeaderboardPage
 					entries={entries}
+					isLoading={isLoading}
 					myRank={myRank}
 					resetInfo={getResetInfo()}
 					type={type}

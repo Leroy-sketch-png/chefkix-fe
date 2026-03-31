@@ -1,9 +1,10 @@
 'use client'
 
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { GroupsExploreGrid } from '@/components/groups'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { PATHS } from '@/constants'
 import { motion } from 'framer-motion'
 import { Users, Sparkles } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -15,13 +16,12 @@ import { TRANSITION_SPRING } from '@/lib/motion'
  * Allows users to discover and create groups
  */
 export default function GroupsExplorePage() {
-	const user = useAuthStore(state => state.user)
-	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+	const { user, isAuthenticated } = useAuth()
 	const router = useRouter()
 
 	useEffect(() => {
 		if (!isAuthenticated) {
-			router.push('/auth/sign-in')
+			router.push(PATHS.AUTH.SIGN_IN)
 		}
 	}, [isAuthenticated, router])
 

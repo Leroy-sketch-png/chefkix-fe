@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ErrorState } from '@/components/ui/error-state'
@@ -16,7 +16,7 @@ import { ErrorState } from '@/components/ui/error-state'
  */
 const ProfilePage = () => {
 	const router = useRouter()
-	const { user, isAuthenticated, isLoading } = useAuthStore()
+	const { user, isAuthenticated, isLoading } = useAuth()
 	const [timedOut, setTimedOut] = useState(false)
 
 	useEffect(() => {

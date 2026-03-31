@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import {
 	getGroupDetails,
 	getGroupMembers,
@@ -38,9 +38,8 @@ export default function GroupDetailPage() {
 	const params = useParams()
 	const groupId = params?.id as string
 
-	// Get current user from auth store
-	const user = useAuthStore(state => state.user)
-	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+	// Get current user from auth hook
+	const { user, isAuthenticated } = useAuth()
 
 	// Component state
 	const [group, setGroup] = useState<Group | null>(null)
@@ -133,11 +132,33 @@ export default function GroupDetailPage() {
 		}
 	}, [activeTab, group, groupId])
 
-	// Show loading spinner
+	// Show loading state
 	if (isLoadingGroup) {
 		return (
-			<div className='flex items-center justify-center min-h-screen'>
-				<Loader2 className='w-8 h-8 animate-spin text-brand' />
+			<div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8'>
+				{/* Header skeleton */}
+				<div className='mb-8 space-y-4'>
+					<div className='h-48 w-full animate-pulse rounded-2xl bg-bg-elevated/40' />
+					<div className='flex items-center gap-4'>
+						<div className='size-20 shrink-0 animate-pulse rounded-2xl bg-bg-elevated/40' />
+						<div className='flex-1 space-y-2'>
+							<div className='h-6 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
+							<div className='h-4 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
+						</div>
+					</div>
+				</div>
+				{/* Content skeleton */}
+				<div className='space-y-4'>
+					{Array.from({ length: 3 }).map((_, i) => (
+						<div
+							key={i}
+							className='rounded-2xl border border-border-subtle bg-bg-card p-5'
+						>
+							<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated/40' />
+							<div className='mt-2 h-3 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
+						</div>
+					))}
+				</div>
 			</div>
 		)
 	}
