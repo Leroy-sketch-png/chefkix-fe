@@ -114,19 +114,19 @@ export const resendOtp = async (
  */
 export const sendOtp = resendOtp
 
-// Verify OTP function
+// Verify OTP function — returns auth tokens for auto-login after registration
 export const verifyOtp = async (
 	data: VerifyOtpDto,
-): Promise<ApiResponse<string>> => {
+): Promise<ApiResponse<LoginSuccessResponse>> => {
 	try {
-		const response = await api.post<ApiResponse<string>>(
+		const response = await api.post<ApiResponse<LoginSuccessResponse>>(
 			API_ENDPOINTS.AUTH.VERIFY_OTP_USER,
 			data,
 		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<string>>
+		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}

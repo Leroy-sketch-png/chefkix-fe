@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getProfileByUserId } from '@/services/profile'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { UserProfile } from '@/components/profile/UserProfile'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
@@ -20,7 +20,7 @@ const ProfileContent = () => {
 	const searchParams = useSearchParams()
 	const userId = params.userId as string
 	const initialTab = searchParams.get('tab') || undefined
-	const { user: currentUser, isLoading: isAuthLoading } = useAuthStore()
+	const { user: currentUser, isLoading: isAuthLoading } = useAuth()
 
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(true)

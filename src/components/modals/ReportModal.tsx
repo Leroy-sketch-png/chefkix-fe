@@ -856,7 +856,7 @@ export const ContentRemovedNotice = ({
 						<div className='relative size-thumbnail-md overflow-hidden rounded-lg opacity-50'>
 							<Image
 								src={thumbnailUrl}
-								alt=''
+								alt={`Preview of reported content: ${contentTitle || 'content'}`}
 								fill
 								sizes='64px'
 								className='object-cover'

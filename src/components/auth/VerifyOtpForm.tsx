@@ -22,6 +22,8 @@ import {
 import { ResendOtpButton } from '@/components/ui/resend-otp-button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { resendOtp, verifyOtp } from '@/services/auth'
+import { getMyProfile } from '@/services/profile'
+import { useAuth } from '@/hooks/useAuth'
 import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
@@ -49,6 +51,7 @@ export const VerifyOtpForm = () => {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const email = searchParams.get('email')
+	const { login, setUser, setLoading } = useAuth()
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
 
@@ -120,18 +123,33 @@ export const VerifyOtpForm = () => {
 				clearInterval(timerRef.current)
 			}
 
-			const successMsg = VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS
-			setSuccess(successMsg)
+			setSuccess(VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS)
 			setError(null)
 			triggerSuccessConfetti()
-			toast.success('Email verified! Just enter your password to jump in.')
 
-			// Pre-fill email on sign-in page so user only needs to type password
+			// Auto-login: extract tokens and sign in immediately
+			const payload = response.data
+			if (payload?.accessToken) {
+				login(payload.accessToken)
+
+				const profileResponse = await getMyProfile()
+				if (profileResponse.success && profileResponse.data) {
+					setUser(profileResponse.data)
+					toast.success(
+						'Welcome to ChefKix! Let\u2019s get cooking \uD83C\uDF89',
+					)
+					setLoading(true)
+					router.push('/dashboard')
+					return
+				}
+			}
+
+			// Fallback: if auto-login fails, redirect to sign-in with pre-filled email
+			toast.success('Email verified! Just enter your password to jump in.')
 			if (email) {
 				sessionStorage.setItem('verified-email', email)
 				sessionStorage.setItem('just-registered', 'true')
 			}
-
 			router.push(PATHS.AUTH.SIGN_IN)
 		} else {
 			const errorMsg = response.message || VERIFY_OTP_MESSAGES.INVALID_OTP

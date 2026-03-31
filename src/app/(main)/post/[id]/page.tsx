@@ -9,7 +9,7 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { PostCard } from '@/components/social/PostCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
@@ -31,7 +31,7 @@ import { toast } from 'sonner'
 export default function PostDetailPage() {
 	const params = useParams()
 	const router = useRouter()
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const postId = params.id as string
 
 	const [post, setPost] = useState<Post | null>(null)
