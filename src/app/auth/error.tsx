@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { logDevError } from '@/lib/dev-log'
+import { PATHS } from '@/constants'
 
 /**
  * Route-level error boundary for the auth route group.
@@ -54,7 +55,7 @@ export default function AuthError({
 						Try Again
 					</Button>
 					<Button variant='outline' asChild className='h-11 gap-2'>
-						<Link href='/auth/sign-in'>Back to Sign In</Link>
+						<Link href={PATHS.AUTH.SIGN_IN}>Back to Sign In</Link>
 					</Button>
 				</div>
 			</div>

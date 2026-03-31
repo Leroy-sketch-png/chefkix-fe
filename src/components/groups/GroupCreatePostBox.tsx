@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { createGroupPost } from '@/services/post'
 import { useAuthStore } from '@/store/authStore'
+import { logDevError } from '@/lib/dev-log'
 
 interface GroupCreatePostBoxProps {
 	groupId: string
@@ -58,7 +59,7 @@ export function GroupCreatePostBox({
 				position: 'top-right',
 				duration: 3000,
 			})
-			console.error('Post creation error:', error)
+			logDevError('Post creation error:', error)
 		} finally {
 			setIsSubmitting(false)
 		}

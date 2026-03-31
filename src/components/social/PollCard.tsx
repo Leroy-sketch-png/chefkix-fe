@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { logDevError } from '@/lib/dev-log'
 
 interface PollCardProps {
 	post: Post
@@ -51,7 +52,7 @@ export const PollCard = ({
 					toast.error(response.message || 'Failed to vote')
 				}
 			} catch (error) {
-				console.error('Failed to vote:', error)
+				logDevError('Failed to vote:', error)
 				toast.error('An error occurred while voting')
 			} finally {
 				setIsVoting(false)
