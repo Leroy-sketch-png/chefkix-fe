@@ -226,6 +226,23 @@ export const NotificationsPopup = () => {
 							const socialNotif = transformToSocialNotification(notif, idx)
 							if (socialNotif) {
 								social.push(socialNotif)
+							} else {
+								// Fallback: show unknown types as generic social notifications
+								social.push({
+									id: idx,
+									notificationId: notif.id,
+									type: 'achievement',
+									userId: notif.latestActorId || '',
+									user: notif.latestActorName || 'ChefKix',
+									avatar:
+										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
+									action:
+										notif.content ||
+										notif.body ||
+										'You have a new notification',
+									time: formatTimeAgo(new Date(notif.createdAt)),
+									read: notif.isRead,
+								})
 							}
 						}
 					})

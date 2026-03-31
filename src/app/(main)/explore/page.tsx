@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
@@ -362,6 +362,8 @@ function FilterChips({
 
 export default function ExplorePage() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
+	const initialQuery = searchParams.get('q') || ''
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
@@ -372,8 +374,8 @@ export default function ExplorePage() {
 	const [isSearching, setIsSearching] = useState(false)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [searchQuery, setSearchQuery] = useState('')
-	const [debouncedSearch, setDebouncedSearch] = useState('')
+	const [searchQuery, setSearchQuery] = useState(initialQuery)
+	const [debouncedSearch, setDebouncedSearch] = useState(initialQuery)
 	const [viewMode, setViewMode] = useState<'all' | 'trending'>('all')
 	const [sortBy, setSortBy] = useState<string>('newest')
 	const [savedRecipes, setSavedRecipes] = useState<Set<string>>(new Set())

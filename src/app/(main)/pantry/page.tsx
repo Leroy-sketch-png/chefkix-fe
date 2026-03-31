@@ -228,14 +228,13 @@ export default function PantryPage() {
 	// ── Delete ────────────────────────────────────────────
 
 	const handleDelete = async (id: string) => {
-		setConfirmingDeleteId(null)
 		setIsDeletingId(id)
 		try {
 			await deletePantryItem(id)
 			setItems(prev => prev.filter(i => i.id !== id))
+			setConfirmingDeleteId(null)
 		} catch {
 			toast.error('Failed to delete item')
-			setConfirmingDeleteId(id)
 		} finally {
 			setIsDeletingId(null)
 		}

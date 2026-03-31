@@ -479,8 +479,9 @@ export default function SettingsPage() {
 				if (res.success && res.data) {
 					setVerificationStatus(res.data)
 				}
-			} catch {
-				// No existing application — show apply form
+			} catch (error) {
+				if (cancelled) return
+				logDevError('Failed to fetch verification status:', error)
 			}
 		}
 		fetchVerification()

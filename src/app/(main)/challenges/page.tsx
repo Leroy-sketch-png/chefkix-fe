@@ -243,7 +243,11 @@ export default function ChallengesPage() {
 							<DailyChallengeBanner
 								variant='active'
 								challenge={dailyChallenge}
-								onFindRecipe={() => router.push('/explore')}
+								onFindRecipe={() =>
+									router.push(
+										`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
+									)
+								}
 							/>
 						)}
 
@@ -329,7 +333,11 @@ export default function ChallengesPage() {
 										weeklyChallenge.matchingRecipes &&
 										weeklyChallenge.matchingRecipes.length > 0 && (
 											<button
-												onClick={() => router.push('/explore')}
+												onClick={() =>
+													router.push(
+														`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
+													)
+												}
 												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80'
 											>
 												Find Matching Recipes
@@ -421,7 +429,11 @@ export default function ChallengesPage() {
 													</span>
 												) : (
 													<button
-														onClick={() => router.push('/explore')}
+														onClick={() =>
+															router.push(
+																`/explore?q=${encodeURIComponent(ch.title)}`,
+															)
+														}
 														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80'
 													>
 														Cook to contribute!

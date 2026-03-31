@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Heart, Clock, Bookmark } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, memo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
@@ -20,6 +21,7 @@ interface RecipeCardProps {
 }
 
 const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
+	const router = useRouter()
 	const [isLiked, setIsLiked] = useState(recipe.isLiked ?? false)
 	const [isSaved, setIsSaved] = useState(recipe.isSaved ?? false)
 	const [likeCount, setLikeCount] = useState(recipe.likeCount)
@@ -181,7 +183,14 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							<span>⭐ {likeCount} likes</span>
 						</div>
 						<div className='flex gap-4'>
-							<button className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+							<button
+								onClick={e => {
+									e.preventDefault()
+									e.stopPropagation()
+									router.push(`/recipes/${recipe.id}?cook=true`)
+								}}
+								className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
+							>
 								Cook Recipe
 							</button>
 						</div>

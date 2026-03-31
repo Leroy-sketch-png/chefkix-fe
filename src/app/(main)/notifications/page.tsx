@@ -437,6 +437,23 @@ export default function NotificationsPage() {
 							const socialNotif = transformToSocialNotification(notif)
 							if (socialNotif) {
 								social.push(socialNotif)
+							} else {
+								// Fallback: show unknown types as generic social notifications
+								social.push({
+									id: notif.id,
+									type: 'achievement',
+									userId: notif.latestActorId || '',
+									user: notif.latestActorName || 'ChefKix',
+									avatar:
+										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
+									action:
+										notif.content ||
+										notif.body ||
+										'You have a new notification',
+									time: formatTimeAgo(new Date(notif.createdAt)),
+									read: notif.isRead,
+									createdAt: new Date(notif.createdAt),
+								})
 							}
 						}
 					})
