@@ -17,7 +17,6 @@ import {
 	X,
 	History,
 	TrendingUp,
-	Loader2,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -50,6 +49,7 @@ import { logDevError } from '@/lib/dev-log'
 import { trackEvent } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 
 // ============================================
@@ -330,7 +330,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
 					<Image
 						src={post.imageUrl || '/placeholder-recipe.svg'}
-						alt='Post'
+						alt={`Post by ${post.author.username}${post.caption ? `: ${post.caption.slice(0, 80)}` : ''}`}
 						fill
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
 					/>
@@ -425,6 +425,16 @@ function SearchContent() {
 		people: [],
 		posts: [],
 	})
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	// Clean up debounce timer on unmount
+	useEffect(() => {
+		return () => {
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current)
+			}
+		}
+	}, [])
 
 	// Update input when URL changes from browser nav (back/forward)
 	useEffect(() => {
@@ -441,13 +451,10 @@ function SearchContent() {
 
 	const handleSearchInputChange = (value: string) => {
 		setSearchInput(value)
-		clearTimeout(
-			(handleSearchInputChange as { _timer?: ReturnType<typeof setTimeout> })
-				._timer,
-		)
-		;(
-			handleSearchInputChange as { _timer?: ReturnType<typeof setTimeout> }
-		)._timer = setTimeout(() => {
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current)
+		}
+		debounceTimerRef.current = setTimeout(() => {
 			isInternalNav.current = true
 			const trimmed = value.trim()
 			router.replace(
@@ -817,17 +824,40 @@ function SearchContent() {
 	)
 }
 
+function SearchSkeleton() {
+	return (
+		<PageContainer maxWidth='lg'>
+			<div className='space-y-6'>
+				{/* Search bar */}
+				<Skeleton className='h-14 w-full rounded-2xl' />
+				{/* Tab bar */}
+				<div className='flex gap-3'>
+					{[1, 2, 3].map(i => (
+						<Skeleton key={i} className='h-10 w-24 rounded-xl' />
+					))}
+				</div>
+				{/* Result cards */}
+				{[1, 2, 3, 4].map(i => (
+					<div
+						key={i}
+						className='flex gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4'
+					>
+						<Skeleton className='size-20 shrink-0 rounded-xl' />
+						<div className='flex-1 space-y-2'>
+							<Skeleton className='h-5 w-3/4' />
+							<Skeleton className='h-4 w-1/2' />
+							<Skeleton className='h-4 w-1/3' />
+						</div>
+					</div>
+				))}
+			</div>
+		</PageContainer>
+	)
+}
+
 export default function SearchPage() {
 	return (
-		<Suspense
-			fallback={
-				<PageContainer maxWidth='lg'>
-					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
-					</div>
-				</PageContainer>
-			}
-		>
+		<Suspense fallback={<SearchSkeleton />}>
 			<SearchContent />
 		</Suspense>
 	)

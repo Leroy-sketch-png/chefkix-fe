@@ -39,6 +39,7 @@ import {
 } from '@/services/chat'
 import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
@@ -923,15 +924,33 @@ function MessagesContent() {
 	)
 }
 
+function MessagesSkeleton() {
+	return (
+		<div className='flex h-[calc(100vh-4rem)]'>
+			{/* Conversation list */}
+			<div className='w-80 space-y-2 border-r border-border-subtle p-4'>
+				<Skeleton className='mb-4 h-10 w-full rounded-xl' />
+				{[1, 2, 3, 4, 5].map(i => (
+					<div key={i} className='flex items-center gap-3 rounded-xl p-3'>
+						<Skeleton className='size-12 shrink-0 rounded-full' />
+						<div className='flex-1 space-y-1'>
+							<Skeleton className='h-4 w-24' />
+							<Skeleton className='h-3 w-36' />
+						</div>
+					</div>
+				))}
+			</div>
+			{/* Chat area */}
+			<div className='flex-1 p-6'>
+				<Skeleton className='mx-auto mt-24 h-6 w-48' />
+			</div>
+		</div>
+	)
+}
+
 export default function MessagesPage() {
 	return (
-		<Suspense
-			fallback={
-				<div className='flex min-h-panel-md items-center justify-center'>
-					<Loader2 className='size-8 animate-spin text-primary' />
-				</div>
-			}
-		>
+		<Suspense fallback={<MessagesSkeleton />}>
 			<MessagesContent />
 		</Suspense>
 	)

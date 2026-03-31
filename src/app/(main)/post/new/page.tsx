@@ -21,11 +21,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Skeleton } from '@/components/ui/skeleton'
 import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
 import { guardContent } from '@/services/ml'
 import { trackEvent } from '@/lib/eventTracker'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -60,7 +61,7 @@ function CreatePostContent() {
 	const searchParams = useSearchParams()
 	const sessionId = searchParams.get('session')
 
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const [session, setSession] = useState<SessionInfo | null>(null)
 	const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId)
 
@@ -511,7 +512,7 @@ function CreatePostContent() {
 									>
 										{previewUrls.map((url, index) => (
 											<motion.div
-												key={index}
+												key={url}
 												initial={{ opacity: 0, scale: 0.8 }}
 												animate={{ opacity: 1, scale: 1 }}
 												exit={{ opacity: 0, scale: 0.8 }}
@@ -615,17 +616,32 @@ function CreatePostContent() {
 	)
 }
 
+function CreatePostSkeleton() {
+	return (
+		<PageContainer maxWidth='md'>
+			<div className='space-y-6'>
+				{/* Header */}
+				<div className='flex items-center gap-3'>
+					<Skeleton className='size-10 rounded-full' />
+					<div className='space-y-1'>
+						<Skeleton className='h-6 w-40' />
+						<Skeleton className='h-4 w-56' />
+					</div>
+				</div>
+				{/* Photo upload area */}
+				<Skeleton className='h-48 w-full rounded-2xl' />
+				{/* Caption area */}
+				<Skeleton className='h-24 w-full rounded-2xl' />
+				{/* Submit button */}
+				<Skeleton className='h-12 w-full rounded-xl' />
+			</div>
+		</PageContainer>
+	)
+}
+
 export default function CreatePostPage() {
 	return (
-		<Suspense
-			fallback={
-				<PageContainer maxWidth='md'>
-					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
-					</div>
-				</PageContainer>
-			}
-		>
+		<Suspense fallback={<CreatePostSkeleton />}>
 			<CreatePostContent />
 		</Suspense>
 	)

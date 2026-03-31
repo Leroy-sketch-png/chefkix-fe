@@ -14,9 +14,9 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
-import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 function CookTogetherContent() {
@@ -26,8 +26,16 @@ function CookTogetherContent() {
 	const [isJoining, setIsJoining] = useState(false)
 	const [copied, setCopied] = useState(false)
 	const inputRef = useRef<HTMLInputElement>(null)
+	const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const { roomCode, isInRoom, joinRoom } = useCookingStore()
+
+	// Clean up copy timer on unmount
+	useEffect(() => {
+		return () => {
+			if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current)
+		}
+	}, [])
 
 	// Auto-fill room code from URL params (invite deep link / Watch button)
 	useEffect(() => {
@@ -110,7 +118,7 @@ function CookTogetherContent() {
 			await navigator.clipboard.writeText(roomCode)
 			setCopied(true)
 			toast.success('Room code copied!')
-			setTimeout(() => setCopied(false), 2000)
+			copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch {
 			toast.error('Failed to copy room code')
 		}
@@ -323,17 +331,41 @@ function CookTogetherContent() {
 	)
 }
 
+function CookTogetherSkeleton() {
+	return (
+		<PageContainer maxWidth='lg'>
+			<div className='space-y-6'>
+				{/* Header */}
+				<div className='text-center space-y-2'>
+					<Skeleton className='mx-auto h-8 w-48' />
+					<Skeleton className='mx-auto h-5 w-72' />
+				</div>
+				{/* Create room card */}
+				<Skeleton className='h-32 w-full rounded-2xl' />
+				{/* Room cards */}
+				<div className='grid gap-4 sm:grid-cols-2'>
+					{[1, 2, 3, 4].map(i => (
+						<div
+							key={i}
+							className='rounded-2xl border border-border-subtle bg-bg-card p-4 space-y-3'
+						>
+							<div className='flex items-center gap-3'>
+								<Skeleton className='size-10 rounded-full' />
+								<Skeleton className='h-5 w-32' />
+							</div>
+							<Skeleton className='h-4 w-full' />
+							<Skeleton className='h-10 w-full rounded-xl' />
+						</div>
+					))}
+				</div>
+			</div>
+		</PageContainer>
+	)
+}
+
 export default function CookTogetherPage() {
 	return (
-		<Suspense
-			fallback={
-				<PageContainer maxWidth='lg'>
-					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
-					</div>
-				</PageContainer>
-			}
-		>
+		<Suspense fallback={<CookTogetherSkeleton />}>
 			<CookTogetherContent />
 		</Suspense>
 	)

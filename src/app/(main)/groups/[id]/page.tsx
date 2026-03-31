@@ -18,6 +18,7 @@ import {
 	GroupSettingsModal,
 } from '@/components/groups'
 import { PostCard } from '@/components/social/PostCard'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
@@ -261,8 +262,24 @@ export default function GroupDetailPage() {
 
 									{/* Posts list */}
 									{isLoadingPosts ? (
-										<div className='flex items-center justify-center py-12'>
-											<Loader2 className='w-8 h-8 animate-spin text-brand' />
+										<div className='space-y-4'>
+											{[1, 2, 3].map(i => (
+												<div
+													key={i}
+													className='rounded-2xl border border-border-subtle bg-bg-card p-4 space-y-3'
+												>
+													<div className='flex items-center gap-3'>
+														<Skeleton className='size-10 rounded-full' />
+														<div className='space-y-1'>
+															<Skeleton className='h-4 w-24' />
+															<Skeleton className='h-3 w-16' />
+														</div>
+													</div>
+													<Skeleton className='h-4 w-full' />
+													<Skeleton className='h-4 w-3/4' />
+													<Skeleton className='h-48 w-full rounded-xl' />
+												</div>
+											))}
 										</div>
 									) : posts.length > 0 ? (
 										<div className='space-y-4'>

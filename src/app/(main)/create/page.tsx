@@ -7,6 +7,7 @@ import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
 import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
 import {
@@ -370,17 +371,38 @@ function CreateRecipeContent() {
 	)
 }
 
+function CreateRecipeSkeleton() {
+	return (
+		<PageContainer maxWidth='lg'>
+			<div className='space-y-6'>
+				{/* Header */}
+				<div className='flex items-center gap-3'>
+					<Skeleton className='size-10 rounded-xl' />
+					<Skeleton className='h-8 w-48' />
+				</div>
+				{/* Input area / Draft list */}
+				<Skeleton className='h-32 w-full rounded-2xl' />
+				{/* Draft cards */}
+				{[1, 2, 3].map(i => (
+					<div
+						key={i}
+						className='flex gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4'
+					>
+						<Skeleton className='size-16 shrink-0 rounded-xl' />
+						<div className='flex-1 space-y-2'>
+							<Skeleton className='h-5 w-2/3' />
+							<Skeleton className='h-4 w-1/3' />
+						</div>
+					</div>
+				))}
+			</div>
+		</PageContainer>
+	)
+}
+
 export default function CreateRecipePage() {
 	return (
-		<Suspense
-			fallback={
-				<PageContainer maxWidth='lg'>
-					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
-					</div>
-				</PageContainer>
-			}
-		>
+		<Suspense fallback={<CreateRecipeSkeleton />}>
 			<CreateRecipeContent />
 		</Suspense>
 	)

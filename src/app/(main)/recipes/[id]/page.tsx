@@ -49,7 +49,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -115,7 +115,7 @@ function RecipeDetailContent() {
 		isLoading: isCookingLoading,
 		session: activeSession,
 	} = useCookingStore()
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const autoStartAttempted = useRef(false)
 
 	// Determine cooking button state — only count COMPLETE & ACTIVE sessions
@@ -1510,15 +1510,7 @@ function RecipeDetailSkeleton() {
 
 export default function RecipeDetailPage() {
 	return (
-		<Suspense
-			fallback={
-				<PageContainer maxWidth='lg'>
-					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
-					</div>
-				</PageContainer>
-			}
-		>
+		<Suspense fallback={<RecipeDetailSkeleton />}>
 			<RecipeDetailContent />
 		</Suspense>
 	)
