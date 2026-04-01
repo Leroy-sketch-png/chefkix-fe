@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -19,7 +19,14 @@ import {
 	type LeaderboardEntry as LeaderboardServiceEntry,
 } from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
-import { Users, UserPlus, Trophy, Search, Sparkles, UsersRound } from 'lucide-react'
+import {
+	Users,
+	UserPlus,
+	Trophy,
+	Search,
+	Sparkles,
+	UsersRound,
+} from 'lucide-react'
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -32,6 +39,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { toast } from 'sonner'
 
 export default function CommunityPage() {
 	const { user } = useAuth()
@@ -44,8 +52,23 @@ export default function CommunityPage() {
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
+
+	// Compute closest competitor for CatchingUpAlert
+	const closestCompetitor = useMemo(() => {
+		const currentUser = leaderboardEntries.find(e => e.isCurrentUser)
+		if (!currentUser || currentUser.rank !== 1) return undefined
+		const runnerUp = leaderboardEntries.find(e => e.rank === 2)
+		if (!runnerUp) return undefined
+		return {
+			entry: runnerUp,
+			xpBehind: currentUser.xpThisWeek - runnerUp.xpThisWeek,
+		}
+	}, [leaderboardEntries])
 
 	useEffect(() => {
+		let cancelled = false
+
 		const fetchData = async () => {
 			try {
 				// Note: getAllProfiles removed - UserDiscoveryClient fetches its own data with pagination
@@ -55,6 +78,8 @@ export default function CommunityPage() {
 					getFollowers(),
 					getLeaderboard({ type: 'global', timeframe: 'weekly' }),
 				])
+
+				if (cancelled) return
 
 				if (friendsRes.success && friendsRes.data) {
 					setFriends(friendsRes.data)
@@ -85,14 +110,20 @@ export default function CommunityPage() {
 					setError(true)
 				}
 			} catch {
-				setError(true)
+				if (!cancelled) {
+					setError(true)
+					toast.error('Failed to load community data')
+				}
 			} finally {
-				setLoading(false)
+				if (!cancelled) setLoading(false)
 			}
 		}
 
 		fetchData()
-	}, [user?.userId])
+		return () => {
+			cancelled = true
+		}
+	}, [user?.userId, retryKey])
 
 	const handleFollowBack = (userId: string) => {
 		// User followed back, move them from followers to friends
@@ -125,6 +156,10 @@ export default function CommunityPage() {
 				<ErrorState
 					title='Failed to load community'
 					message='We could not load community data. Please try again.'
+					onRetry={() => {
+						setError(false)
+						setRetryKey(k => k + 1)
+					}}
 				/>
 			</PageContainer>
 		)
@@ -153,7 +188,7 @@ export default function CommunityPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-md shadow-xp/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-card shadow-xp/25'
 						>
 							<Users className='size-6 text-white' />
 						</motion.div>
@@ -283,6 +318,7 @@ export default function CommunityPage() {
 							entries={leaderboardEntries}
 							totalFriends={friends.length}
 							isGlobal={true}
+							closestCompetitor={closestCompetitor}
 							onUserClick={handleLeaderboardUserClick}
 							onInviteFriends={() => setActiveTab('discover')}
 							onCookToDefend={() => router.push('/explore')}

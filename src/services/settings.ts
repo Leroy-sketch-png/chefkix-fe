@@ -15,6 +15,7 @@ import {
 } from '@/lib/types/settings'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ================================
 // GET ALL SETTINGS
@@ -31,6 +32,7 @@ export const getAllSettings = async (): Promise<ApiResponse<UserSettings>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<UserSettings>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -59,6 +61,7 @@ export const getPrivacySettings = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PrivacySettings>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -84,6 +87,7 @@ export const updatePrivacySettings = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<PrivacySettings>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -112,6 +116,7 @@ export const getNotificationSettings = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<NotificationSettings>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -137,6 +142,7 @@ export const updateNotificationSettings = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<NotificationSettings>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -165,6 +171,7 @@ export const getCookingPreferences = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CookingPreferences>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -190,6 +197,7 @@ export const updateCookingPreferences = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CookingPreferences>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -218,6 +226,7 @@ export const getAppPreferences = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<AppPreferences>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -243,6 +252,7 @@ export const updateAppPreferences = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<AppPreferences>>
 		if (axiosError.response) {
 			return axiosError.response.data

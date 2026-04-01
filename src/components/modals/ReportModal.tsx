@@ -24,6 +24,7 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_SMOOTH,
@@ -174,7 +175,7 @@ export const ReportModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={handleClose}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
 							variants={modalVariants}
@@ -182,7 +183,7 @@ export const ReportModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl bg-panel-bg'
+							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl bg-bg-card'
 						>
 							{submitted ? (
 								// Confirmation View
@@ -231,6 +232,7 @@ export const ReportModal = ({
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
 											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											aria-label='Close report form'
 										>
 											<X className='size-4' />
 										</motion.button>
@@ -238,15 +240,16 @@ export const ReportModal = ({
 									<div className='p-4 md:p-5'>
 										{/* Content Preview */}
 										<div className='mb-4 flex items-center gap-3 rounded-xl bg-bg-elevated px-3 py-2.5'>
-											<div className='relative size-10 overflow-hidden rounded-full'>
-												<Image
+											<Avatar size='sm'>
+												<AvatarImage
 													src={content.author.avatarUrl}
 													alt={content.author.username}
-													fill
-													sizes='40px'
-													className='object-cover'
 												/>
-											</div>
+												<AvatarFallback>
+													{content.author.username?.slice(0, 2).toUpperCase() ||
+														'??'}
+												</AvatarFallback>
+											</Avatar>
 											<div>
 												<div className='text-sm font-bold'>
 													@{content.author.username}
@@ -315,8 +318,14 @@ export const ReportModal = ({
 												value={details}
 												onChange={e => setDetails(e.target.value)}
 												placeholder='Provide more context...'
+												maxLength={1000}
 												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
 											/>
+											{details.length > 0 && (
+												<p className='mt-1 text-right text-xs text-text-muted'>
+													{details.length}/1000
+												</p>
+											)}
 										</div>
 
 										{/* Trust Signal */}
@@ -383,7 +392,7 @@ export const ReportLimitModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={onClose}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
 							variants={modalVariants}
@@ -391,10 +400,10 @@ export const ReportLimitModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='w-full max-w-modal-sm rounded-2xl bg-panel-bg p-7 text-center'
+							className='w-full max-w-modal-sm rounded-2xl bg-bg-card p-7 text-center'
 						>
-							<div className='mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
-								<AlertCircle className='h-8 w-8' />
+							<div className='mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
+								<AlertCircle className='size-8' />
 							</div>
 							<h3 className='mb-3 text-xl font-extrabold'>
 								Daily Report Limit Reached
@@ -448,7 +457,7 @@ export const AccountRestrictedNotice = ({
 	]
 
 	return (
-		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-2xl bg-panel-bg'>
+		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-2xl bg-bg-card'>
 			{/* Header */}
 			<div
 				className={cn(
@@ -467,9 +476,9 @@ export const AccountRestrictedNotice = ({
 					)}
 				>
 					{isPermanent ? (
-						<Ban className='h-9 w-9' />
+						<Ban className='size-9' />
 					) : (
-						<AlertTriangle className='h-9 w-9' />
+						<AlertTriangle className='size-9' />
 					)}
 				</div>
 				<h2 className='text-2xl font-extrabold'>
@@ -542,7 +551,7 @@ export const AccountRestrictedNotice = ({
 				{/* Escalation Warning */}
 				{!isPermanent && (
 					<div className='mb-5 flex items-start gap-3 rounded-xl border border-error/20 bg-error/10 p-4'>
-						<TrendingUp className='mt-0.5 h-5 w-5 flex-shrink-0 text-error' />
+						<TrendingUp className='mt-0.5 size-5 flex-shrink-0 text-error' />
 						<div className='flex flex-col gap-1'>
 							<strong className='text-sm text-error'>
 								Future violations will have longer restrictions:
@@ -632,7 +641,7 @@ export const AppealModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={handleClose}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
 							variants={modalVariants}
@@ -640,7 +649,7 @@ export const AppealModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl bg-panel-bg'
+							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl bg-bg-card'
 						>
 							{submitted ? (
 								// Submitted View
@@ -651,7 +660,7 @@ export const AppealModal = ({
 										transition={TRANSITION_BOUNCY}
 										className='mx-auto mb-5 flex h-avatar-md w-avatar-md items-center justify-center rounded-full bg-success/10 text-success'
 									>
-										<CheckCircle className='h-9 w-9' />
+										<CheckCircle className='size-9' />
 									</motion.div>
 									<h3 className='mb-3 text-xl font-extrabold'>
 										Appeal Submitted
@@ -672,7 +681,7 @@ export const AppealModal = ({
 											</span>
 										</div>
 										<div className='mb-4 flex items-center justify-center gap-2 text-sm text-text-muted'>
-											<Clock className='h-4 w-4' />
+											<Clock className='size-4' />
 											<span>
 												Estimated decision:{' '}
 												<strong className='text-text'>~48 hours</strong>
@@ -698,9 +707,10 @@ export const AppealModal = ({
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex h-9 w-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											className='flex size-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											aria-label='Close appeal form'
 										>
-											<X className='h-5 w-5' />
+											<X className='size-5' />
 										</motion.button>
 									</div>{' '}
 									<div className='p-7'>
@@ -822,10 +832,10 @@ export const ContentRemovedNotice = ({
 	onDismiss,
 }: ContentRemovedNoticeProps) => {
 	return (
-		<div className='max-w-modal-md overflow-hidden rounded-xl border border-error/20 bg-panel-bg'>
+		<div className='max-w-modal-md overflow-hidden rounded-xl border border-error/20 bg-bg-card'>
 			{/* Header */}
 			<div className='flex items-center gap-2.5 bg-error/10 px-5 py-4 font-bold text-error'>
-				<Trash2 className='h-5 w-5' />
+				<Trash2 className='size-5' />
 				<span>Content Removed</span>
 			</div>
 
@@ -836,7 +846,7 @@ export const ContentRemovedNotice = ({
 				</p>
 
 				<div className='mb-4 inline-flex items-center gap-2 rounded-lg bg-bg-elevated px-4 py-2.5 text-sm font-semibold text-error'>
-					<AlertCircle className='h-4 w-4' />
+					<AlertCircle className='size-4' />
 					<span>{violationType}</span>
 				</div>
 
@@ -846,7 +856,7 @@ export const ContentRemovedNotice = ({
 						<div className='relative size-thumbnail-md overflow-hidden rounded-lg opacity-50'>
 							<Image
 								src={thumbnailUrl}
-								alt=''
+								alt={`Preview of reported content: ${contentTitle || 'content'}`}
 								fill
 								sizes='64px'
 								className='object-cover'

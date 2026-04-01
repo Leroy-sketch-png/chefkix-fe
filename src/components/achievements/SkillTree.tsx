@@ -130,7 +130,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 			{/* Summary Bar */}
 			<div className='flex items-center justify-between rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<div className='flex items-center gap-3'>
-					<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-xp to-accent-purple text-xl text-white shadow-md'>
+					<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-xp to-accent-purple text-xl text-white shadow-card'>
 						<Trophy className='size-6' />
 					</div>
 					<div>
@@ -166,7 +166,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 					className={cn(
 						'rounded-full px-3 py-1.5 text-xs font-semibold transition-all',
 						!filterCategory
-							? 'bg-brand text-white shadow-sm'
+							? 'bg-brand text-white shadow-card'
 							: 'bg-bg-elevated text-text-secondary hover:bg-bg-card',
 					)}
 				>
@@ -184,7 +184,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 							className={cn(
 								'rounded-full px-3 py-1.5 text-xs font-semibold transition-all',
 								filterCategory === cat
-									? `${meta.bgColor} ${meta.color} shadow-sm`
+									? `${meta.bgColor} ${meta.color} shadow-card`
 									: 'bg-bg-elevated text-text-secondary hover:bg-bg-card',
 							)}
 						>
@@ -386,7 +386,7 @@ function AchievementNodeCard({
 			<div className='relative flex flex-col items-center'>
 				<div
 					className={cn(
-						'flex size-9 items-center justify-center rounded-lg text-lg shadow-sm',
+						'flex size-9 items-center justify-center rounded-lg text-lg shadow-card',
 						node.unlocked
 							? `bg-gradient-to-br ${TIER_COLORS[node.tier] || TIER_COLORS[1]} text-white`
 							: isInProgress

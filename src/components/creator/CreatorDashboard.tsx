@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import {
@@ -126,19 +126,19 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 			{/* Header */}
 			<div className='flex justify-between mb-4'>
 				<span className='text-sm font-bold text-success'>This Week</span>
-				<span className='text-sm text-muted-foreground'>{data.dateRange}</span>
+				<span className='text-sm text-text-secondary'>{data.dateRange}</span>
 			</div>
 
 			{/* Stats Grid */}
 			<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 				{/* New Cooks */}
 				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
-					<span className='text-icon-lg'>👨‍🍳</span>
+					<span className='text-icon-lg'>ðŸ‘¨â€ðŸ³</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-extrabold text-success'>
 							+{data.newCooks}
 						</span>
-						<span className='text-xs text-muted-foreground'>New Cooks</span>
+						<span className='text-xs text-text-secondary'>New Cooks</span>
 					</div>
 					{hasNewCooksChange && (
 						<div
@@ -160,12 +160,12 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 
 				{/* XP Earned */}
 				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
-					<span className='text-icon-lg'>⚡</span>
+					<span className='text-icon-lg'>âš¡</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-extrabold text-text'>
 							+{data.xpEarned}
 						</span>
-						<span className='text-xs text-muted-foreground'>XP Earned</span>
+						<span className='text-xs text-text-secondary'>XP Earned</span>
 					</div>
 					{hasXpEarnedChange && (
 						<div
@@ -195,7 +195,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 
 function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<h3 className='text-lg font-bold text-text mb-4'>Lifetime Stats</h3>
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
 				{/* Recipes Published - Large */}
@@ -204,31 +204,29 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 						<span className='text-4xl font-black text-primary'>
 							{stats.recipesPublished}
 						</span>
-						<span className='text-icon-lg'>📖</span>
+						<span className='text-icon-lg'>ðŸ“–</span>
 					</div>
-					<span className='text-sm text-muted-foreground'>
-						Recipes Published
-					</span>
+					<span className='text-sm text-text-secondary'>Recipes Published</span>
 				</div>
 
 				{/* Total Cooks */}
 				<StatCard
-					icon='👨‍🍳'
+					icon='ðŸ‘¨â€ðŸ³'
 					value={stats.totalCooks.toLocaleString()}
 					label='Total Cooks'
 				/>
 
 				{/* Creator XP */}
 				<StatCard
-					icon='⚡'
+					icon='âš¡'
 					value={stats.creatorXpEarned.toLocaleString()}
 					label='Creator XP Earned'
 				/>
 
 				{/* Avg Rating */}
 				<StatCard
-					icon='⭐'
-					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : '—'}
+					icon='â­'
+					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : 'â€”'}
 					label='Avg Rating'
 				/>
 			</div>
@@ -250,7 +248,7 @@ function StatCard({
 			<span className='text-2xl'>{icon}</span>
 			<div className='flex flex-col'>
 				<span className='text-xl font-extrabold text-text'>{value}</span>
-				<span className='text-xs text-muted-foreground'>{label}</span>
+				<span className='text-xs text-text-secondary'>{label}</span>
 			</div>
 		</div>
 	)
@@ -267,7 +265,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 		<div className='mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Creator Badges</h3>
-				<span className='text-sm text-muted-foreground'>
+				<span className='text-sm text-text-secondary'>
 					{earnedCount} earned
 				</span>
 			</div>
@@ -286,18 +284,18 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 							'flex-shrink-0 flex flex-col items-center gap-2 w-thumbnail-2xl p-5 rounded-2xl text-center relative',
 							badge.isEarned
 								? 'bg-xp/10 border-2 border-xp/20'
-								: 'bg-panel-bg opacity-60',
+								: 'bg-bg-card opacity-60',
 						)}
 					>
 						<span className='text-icon-xl'>{badge.icon}</span>
 						<span className='text-xs font-bold text-text'>{badge.name}</span>
-						<span className='text-2xs text-muted-foreground line-clamp-2'>
+						<span className='text-2xs text-text-secondary line-clamp-2'>
 							{badge.description}
 						</span>
 
 						{!badge.isEarned && (
 							<div className='absolute inset-0 flex items-center justify-center bg-black/40 rounded-radius'>
-								<Lock className='w-6 h-6 text-white' />
+								<Lock className='size-6 text-white' />
 							</div>
 						)}
 					</motion.div>
@@ -321,9 +319,9 @@ function TopRecipeSection({
 	onRecipeClick?: (id: string) => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>🏆 Top Recipe</h3>
+				<h3 className='text-lg font-bold text-text'>ðŸ† Top Recipe</h3>
 				{onViewAllRecipes && (
 					<button
 						onClick={onViewAllRecipes}
@@ -350,11 +348,11 @@ function TopRecipeSection({
 				<div className='flex-1 flex flex-col gap-2 items-center sm:items-start text-center sm:text-left'>
 					<h4 className='text-xl font-extrabold text-text'>{recipe.title}</h4>
 					<div className='flex gap-3'>
-						<span className='flex items-center gap-1 text-sm text-muted-foreground'>
+						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='w-3.5 h-3.5' />
 							{recipe.cookTime} min
 						</span>
-						<span className='flex items-center gap-1 text-sm text-muted-foreground'>
+						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Signal className='w-3.5 h-3.5' />
 							{recipe.difficulty}
 						</span>
@@ -364,21 +362,19 @@ function TopRecipeSection({
 							<span className='text-xl font-extrabold text-primary'>
 								{recipe.cookCount}
 							</span>
-							<span className='text-xs text-muted-foreground'>Cooks</span>
+							<span className='text-xs text-text-secondary'>Cooks</span>
 						</div>
 						<div className='flex flex-col'>
 							<span className='text-xl font-extrabold text-primary'>
 								{recipe.xpGenerated.toLocaleString()}
 							</span>
-							<span className='text-xs text-muted-foreground'>
-								XP Generated
-							</span>
+							<span className='text-xs text-text-secondary'>XP Generated</span>
 						</div>
 						<div className='flex flex-col'>
 							<span className='text-xl font-extrabold text-primary'>
 								{recipe.rating.toFixed(1)}
 							</span>
-							<span className='text-xs text-muted-foreground'>Rating</span>
+							<span className='text-xs text-text-secondary'>Rating</span>
 						</div>
 					</div>
 				</div>
@@ -403,109 +399,123 @@ function RecipePerformanceSection({
 	onViewStepAnalytics?: (id: string) => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Recipe Performance</h3>
 				<button
 					type='button'
-					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border rounded-lg text-sm text-text'
+					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-lg text-sm text-text'
 				>
-					<ArrowUpDown className='w-3.5 h-3.5 text-muted-foreground' />
+					<ArrowUpDown className='w-3.5 h-3.5 text-text-secondary' />
 					Most Cooked
 				</button>
 			</div>
 
-			<motion.div
-				variants={staggerContainer}
-				initial='hidden'
-				animate='visible'
-				className='flex flex-col gap-2'
-			>
-				{recipes.map(recipe => (
-					<motion.div
-						key={recipe.id}
-						variants={staggerItem}
-						whileHover={{ backgroundColor: 'var(--border-color)' }}
-						onClick={() => onRecipeClick?.(recipe.id)}
-						className={cn(
-							'flex items-center gap-3.5 p-3.5 bg-bg rounded-xl cursor-pointer transition-colors',
-							recipe.needsAttention && 'border-l-3 border-l-amber-500',
-						)}
-					>
-						<span className='w-7 text-base font-extrabold text-muted-foreground text-center'>
-							{recipe.rank}
-						</span>{' '}
-						<Image
-							src={recipe.imageUrl || '/images/recipe-placeholder.jpg'}
-							alt={recipe.title}
-							width={56}
-							height={56}
-							className='w-14 h-14 rounded-xl object-cover'
-						/>
-						<div className='flex-1 flex flex-col gap-1.5'>
-							<span className='text-base font-bold text-text'>
-								{recipe.title}
-							</span>
-							{recipe.badge && (
-								<span
-									className={cn(
-										'inline-flex w-fit px-2 py-0.5 rounded-lg text-xs font-semibold',
-										recipe.badge.type === 'milestone' &&
-											'bg-accent-indigo/10 text-accent-indigo',
-										recipe.badge.type === 'trending' &&
-											'bg-streak/10 text-streak',
-										recipe.badge.type === 'attention' &&
-											'bg-warning/10 text-warning',
-									)}
-								>
-									{recipe.badge.label}
-								</span>
+			{recipes.length === 0 ? (
+				<div className='flex flex-col items-center gap-3 py-10 text-center'>
+					<span className='text-4xl'>ðŸ“Š</span>
+					<p className='text-base font-semibold text-text'>
+						No performance data yet
+					</p>
+					<p className='text-sm text-text-secondary max-w-xs'>
+						Publish recipes and watch them get cooked â€” your analytics will
+						appear here.
+					</p>
+				</div>
+			) : (
+				<motion.div
+					variants={staggerContainer}
+					initial='hidden'
+					animate='visible'
+					className='flex flex-col gap-2'
+				>
+					{recipes.map(recipe => (
+						<motion.div
+							key={recipe.id}
+							variants={staggerItem}
+							whileHover={{ backgroundColor: 'var(--border-color)' }}
+							onClick={() => onRecipeClick?.(recipe.id)}
+							className={cn(
+								'flex items-center gap-3.5 p-3.5 bg-bg rounded-xl cursor-pointer transition-colors',
+								recipe.needsAttention && 'border-l-3 border-l-amber-500',
 							)}
-						</div>
-						<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
-							<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-								<span className='text-base font-extrabold text-text'>
-									{recipe.cookCount}
+						>
+							<span className='w-7 text-base font-extrabold text-text-secondary text-center'>
+								{recipe.rank}
+							</span>{' '}
+							<Image
+								src={recipe.imageUrl || '/placeholder-recipe.svg'}
+								alt={recipe.title}
+								width={56}
+								height={56}
+								className='size-14 rounded-xl object-cover'
+							/>
+							<div className='flex-1 flex flex-col gap-1.5'>
+								<span className='text-base font-bold text-text'>
+									{recipe.title}
 								</span>
-								<span className='text-2xs text-muted-foreground'>Cooks</span>
+								{recipe.badge && (
+									<span
+										className={cn(
+											'inline-flex w-fit px-2 py-0.5 rounded-lg text-xs font-semibold',
+											recipe.badge.type === 'milestone' &&
+												'bg-accent-indigo/10 text-accent-indigo',
+											recipe.badge.type === 'trending' &&
+												'bg-streak/10 text-streak',
+											recipe.badge.type === 'attention' &&
+												'bg-warning/10 text-warning',
+										)}
+									>
+										{recipe.badge.label}
+									</span>
+								)}
 							</div>
-							<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-								<span className='text-base font-extrabold text-text'>
-									+{recipe.xpGenerated}
-								</span>
-								<span className='text-2xs text-muted-foreground'>XP</span>
+							<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
+								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
+									<span className='text-base font-extrabold text-text'>
+										{recipe.cookCount}
+									</span>
+									<span className='text-2xs text-text-secondary'>Cooks</span>
+								</div>
+								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
+									<span className='text-base font-extrabold text-text'>
+										+{recipe.xpGenerated}
+									</span>
+									<span className='text-2xs text-text-secondary'>XP</span>
+								</div>
 							</div>
-						</div>
-						{onViewStepAnalytics && recipe.cookCount > 0 && (
-							<motion.button
-								whileHover={BUTTON_SUBTLE_HOVER}
-								whileTap={BUTTON_SUBTLE_TAP}
-								onClick={e => {
-									e.stopPropagation()
-									onViewStepAnalytics(recipe.id)
-								}}
-								className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-brand'
-								title='View step analytics'
-							>
-								<BarChart3 className='w-4 h-4' />
-							</motion.button>
-						)}
-						{recipe.needsAttention && onImproveRecipe && (
-							<motion.button
-								whileHover={BUTTON_SUBTLE_HOVER}
-								whileTap={BUTTON_SUBTLE_TAP}
-								onClick={e => {
-									e.stopPropagation()
-									onImproveRecipe(recipe.id)
-								}}
-								className='w-9 h-9 flex items-center justify-center border border-border rounded-lg text-muted-foreground hover:text-text'
-							>
-								<Edit3 className='w-4 h-4' />
-							</motion.button>
-						)}
-					</motion.div>
-				))}
-			</motion.div>
+							{onViewStepAnalytics && recipe.cookCount > 0 && (
+								<motion.button
+									whileHover={BUTTON_SUBTLE_HOVER}
+									whileTap={BUTTON_SUBTLE_TAP}
+									onClick={e => {
+										e.stopPropagation()
+										onViewStepAnalytics(recipe.id)
+									}}
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-brand'
+									title='View step analytics'
+								>
+									<BarChart3 className='size-4' />
+								</motion.button>
+							)}
+							{recipe.needsAttention && onImproveRecipe && (
+								<motion.button
+									whileHover={BUTTON_SUBTLE_HOVER}
+									whileTap={BUTTON_SUBTLE_TAP}
+									onClick={e => {
+										e.stopPropagation()
+										onImproveRecipe(recipe.id)
+									}}
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-text'
+									aria-label='Improve recipe'
+								>
+									<Edit3 className='size-4' />
+								</motion.button>
+							)}
+						</motion.div>
+					))}
+				</motion.div>
+			)}
 		</div>
 	)
 }
@@ -522,7 +532,7 @@ function RecentCooksSection({
 	onViewAll?: () => void
 }) {
 	return (
-		<div className='bg-panel-bg rounded-xl p-6 mb-6'>
+		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>Recent Cooks</h3>
 				{onViewAll && (
@@ -535,43 +545,56 @@ function RecentCooksSection({
 				)}
 			</div>
 
-			<motion.div
-				variants={staggerContainer}
-				initial='hidden'
-				animate='visible'
-				className='flex flex-col gap-3'
-			>
-				{cooks.map(cook => (
-					<motion.div
-						key={cook.id}
-						variants={staggerItem}
-						className='flex items-center gap-3 p-3 bg-bg rounded-xl'
-					>
-						<Image
-							src={cook.userAvatar || '/images/default-avatar.png'}
-							alt={cook.userName}
-							width={40}
-							height={40}
-							className='w-10 h-10 rounded-full object-cover'
-						/>
-						<div className='flex-1 flex flex-col'>
-							<span className='text-sm text-text'>
-								<strong className='font-bold'>{cook.userName}</strong> cooked
-								your <strong className='font-bold'>{cook.recipeTitle}</strong>
-							</span>
-							<span className='text-xs text-muted-foreground'>
-								{cook.timeAgo}
-							</span>
-						</div>
-						<div className='text-right'>
-							<span className='block text-base font-extrabold text-success'>
-								+{cook.xpEarned}
-							</span>
-							<span className='text-2xs text-muted-foreground'>XP</span>
-						</div>
-					</motion.div>
-				))}
-			</motion.div>
+			{cooks.length === 0 ? (
+				<div className='flex flex-col items-center gap-3 py-10 text-center'>
+					<span className='text-4xl'>ðŸ‘¨â€ðŸ³</span>
+					<p className='text-base font-semibold text-text'>
+						No one has cooked your recipes yet
+					</p>
+					<p className='text-sm text-text-secondary max-w-xs'>
+						Share your recipes with friends â€” you earn XP every time someone
+						cooks them.
+					</p>
+				</div>
+			) : (
+				<motion.div
+					variants={staggerContainer}
+					initial='hidden'
+					animate='visible'
+					className='flex flex-col gap-3'
+				>
+					{cooks.map(cook => (
+						<motion.div
+							key={cook.id}
+							variants={staggerItem}
+							className='flex items-center gap-3 p-3 bg-bg rounded-xl'
+						>
+							<Image
+								src={cook.userAvatar || '/images/default-avatar.png'}
+								alt={cook.userName}
+								width={40}
+								height={40}
+								className='size-10 rounded-full object-cover'
+							/>
+							<div className='flex-1 flex flex-col'>
+								<span className='text-sm text-text'>
+									<strong className='font-bold'>{cook.userName}</strong> cooked
+									your <strong className='font-bold'>{cook.recipeTitle}</strong>
+								</span>
+								<span className='text-xs text-text-secondary'>
+									{cook.timeAgo}
+								</span>
+							</div>
+							<div className='text-right'>
+								<span className='block text-base font-extrabold text-success'>
+									+{cook.xpEarned}
+								</span>
+								<span className='text-2xs text-text-secondary'>XP</span>
+							</div>
+						</motion.div>
+					))}
+				</motion.div>
+			)}
 		</div>
 	)
 }
@@ -592,12 +615,12 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			)}
 		>
 			<div className='flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left'>
-				<span className='text-icon-xl'>✨</span>
+				<span className='text-icon-xl'>âœ¨</span>
 				<div className='flex flex-col'>
 					<strong className='text-base text-text'>
 						Share your next masterpiece
 					</strong>
-					<span className='text-sm text-muted-foreground'>
+					<span className='text-sm text-text-secondary'>
 						Every cook of your recipe earns you 4% XP
 					</span>
 				</div>
@@ -611,7 +634,7 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 					'flex items-center justify-center gap-2 py-3 px-5',
 					'bg-gradient-hero',
 					'rounded-xl text-sm font-bold text-white w-full sm:w-auto',
-					'shadow-lg shadow-primary/20',
+					'shadow-card shadow-brand/20',
 				)}
 			>
 				<Plus className='size-icon-sm' />
@@ -650,9 +673,10 @@ export function CreatorDashboard({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='w-10 h-10 flex items-center justify-center bg-panel-bg border border-border rounded-xl text-text'
+						className='size-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text'
+						aria-label='Go back'
 					>
-						<ArrowLeft className='w-5 h-5' />
+						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
 				<div className='flex-1 flex items-center gap-3 flex-wrap'>
@@ -660,7 +684,7 @@ export function CreatorDashboard({
 						Creator Dashboard
 					</h1>
 					<span className='py-1 px-2.5 bg-xp/20 border border-xp/30 rounded-xl text-xs font-semibold text-xp'>
-						📝 Recipe Creator
+						ðŸ“ Recipe Creator
 					</span>
 				</div>
 			</div>

@@ -2,6 +2,7 @@ import { api } from '@/lib/axios'
 import { ApiResponse, PaginationMeta, Profile } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 /**
  * Profile API Service
@@ -36,6 +37,7 @@ export const getProfileByUserId = async (
 			message: 'Profile not found',
 		}
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile>>
 		if (axiosError.response) {
 			return {
@@ -78,6 +80,7 @@ export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 			message: 'Profile not found in response',
 		}
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile>>
 		if (axiosError.response) {
 			return {
@@ -102,6 +105,7 @@ export const getAllProfiles = async (): Promise<ApiResponse<Profile[]>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -175,6 +179,7 @@ export const getProfilesPaginated = async (
 			statusCode: 500,
 		}
 	} catch (error) {
+		logDevError('unknown failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -204,6 +209,7 @@ export const updateProfile = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile>>
 		if (axiosError.response) {
 			return axiosError.response.data

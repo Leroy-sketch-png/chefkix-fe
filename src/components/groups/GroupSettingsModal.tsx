@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { Group } from '@/lib/types/group'
@@ -19,10 +19,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
-import { Loader2, AlertTriangle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateGroup, changeGroupPrivacy } from '@/services/group'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 
 interface GroupSettingsModalProps {
 	open: boolean
@@ -36,7 +35,6 @@ interface GroupSettingsModalProps {
  * Allows admins to:
  * - Change group name and description
  * - Change privacy type
- * - Delete group (owner only)
  *
  * Simple code for beginners - no complex state management
  */
@@ -49,13 +47,12 @@ export function GroupSettingsModal({
 	// Form state
 	const [name, setName] = useState(group.name)
 	const [description, setDescription] = useState(group.description || '')
-	const [privacy, setPrivacy] = useState<'PUBLIC' | 'PRIVATE'>(group.privacyType as 'PUBLIC' | 'PRIVATE')
+	const [privacy, setPrivacy] = useState<'PUBLIC' | 'PRIVATE'>(
+		group.privacyType as 'PUBLIC' | 'PRIVATE',
+	)
 
 	// UI state
 	const [isLoading, setIsLoading] = useState(false)
-	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-
-	const isOwner = group.myRole === 'OWNER'
 
 	// Handle save changes
 	const handleSaveChanges = async () => {
@@ -87,124 +84,87 @@ export function GroupSettingsModal({
 		}
 	}
 
-	// Handle delete group
-	const handleDeleteGroup = async () => {
-		setIsLoading(true)
-		try {
-			// TODO: Implement delete group endpoint when available
-			// For now, just show success and close
-			toast.success('Group deleted successfully')
-			onOpenChange(false)
-			// Redirect will be handled by parent
-		} catch (error) {
-			toast.error('Failed to delete group')
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
 	return (
-		<>
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent className='max-w-md'>
-					<DialogHeader>
-						<DialogTitle>Group Settings</DialogTitle>
-						<DialogDescription>
-							Update your group information
-						</DialogDescription>
-					</DialogHeader>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className='max-w-md'>
+				<DialogHeader>
+					<DialogTitle>Group Settings</DialogTitle>
+					<DialogDescription>Update your group information</DialogDescription>
+				</DialogHeader>
 
-					<div className='space-y-4'>
-						{/* Group Name */}
-						<div>
-							<label className='block text-sm font-medium text-text mb-2'>
-								Group Name
-							</label>
-							<Input
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								placeholder='Enter group name'
-								className='bg-bg border-border'
-							/>
-						</div>
+				<div className='space-y-4'>
+					{/* Group Name */}
+					<div>
+						<label className='block text-sm font-medium text-text mb-2'>
+							Group Name
+						</label>
+						<Input
+							value={name}
+							onChange={e => setName(e.target.value)}
+							placeholder='Enter group name'
+							className='bg-bg border-border-subtle'
+							maxLength={50}
+						/>
+					</div>
 
-						{/* Description */}
-						<div>
-							<label className='block text-sm font-medium text-text mb-2'>
-								Description
-							</label>
-							<Textarea
-								value={description}
-								onChange={(e) => setDescription(e.target.value)}
-								placeholder='Enter group description (optional)'
-								className='bg-bg border-border resize-none'
-								rows={4}
-							/>
-						</div>
-
-						{/* Privacy */}
-						<div>
-							<label className='block text-sm font-medium text-text mb-2'>
-								Privacy
-							</label>
-							<Select value={privacy} onValueChange={(value) => setPrivacy(value as 'PUBLIC' | 'PRIVATE')}>
-								<SelectTrigger className='bg-bg border-border'>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value='PUBLIC'>
-										Public - Anyone can find and join
-									</SelectItem>
-									<SelectItem value='PRIVATE'>
-										Private - Members only
-									</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-
-						{/* Save Button */}
-						<Button
-							onClick={handleSaveChanges}
-							disabled={isLoading}
-							className='w-full bg-brand hover:bg-brand/90 text-white'
-						>
-							{isLoading ? (
-								<>
-									<Loader2 className='w-4 h-4 mr-2 animate-spin' />
-									Saving...
-								</>
-							) : (
-								'Save Changes'
-							)}
-						</Button>
-
-						{/* Delete Button (Owner Only) */}
-						{isOwner && (
-							<Button
-								onClick={() => setShowDeleteConfirm(true)}
-								disabled={isLoading}
-								variant='outline'
-								className='w-full text-red-600 border-red-200 hover:bg-red-50'
-							>
-								<AlertTriangle className='w-4 h-4 mr-2' />
-								Delete Group
-							</Button>
+					{/* Description */}
+					<div>
+						<label className='block text-sm font-medium text-text mb-2'>
+							Description
+						</label>
+						<Textarea
+							value={description}
+							onChange={e => setDescription(e.target.value)}
+							placeholder='Enter group description (optional)'
+							className='bg-bg border-border-subtle resize-none'
+							rows={4}
+							maxLength={500}
+						/>
+						{description.length > 0 && (
+							<p className='mt-1 text-right text-xs text-text-muted'>
+								{description.length}/500
+							</p>
 						)}
 					</div>
-				</DialogContent>
-			</Dialog>
 
-			{/* Delete Confirmation */}
-			<ConfirmDialog
-				open={showDeleteConfirm}
-				onOpenChange={setShowDeleteConfirm}
-				title='Delete Group?'
-				description='This action cannot be undone. All posts and members data will be removed.'
-				confirmLabel='Delete'
-				cancelLabel='Cancel'
-				variant='destructive'
-				onConfirm={handleDeleteGroup}
-			/>
-		</>
+					{/* Privacy */}
+					<div>
+						<label className='block text-sm font-medium text-text mb-2'>
+							Privacy
+						</label>
+						<Select
+							value={privacy}
+							onValueChange={value => setPrivacy(value as 'PUBLIC' | 'PRIVATE')}
+						>
+							<SelectTrigger className='bg-bg border-border-subtle'>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='PUBLIC'>
+									Public - Anyone can find and join
+								</SelectItem>
+								<SelectItem value='PRIVATE'>Private - Members only</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+
+					{/* Save Button */}
+					<Button
+						onClick={handleSaveChanges}
+						disabled={isLoading || !name.trim()}
+						className='w-full bg-brand hover:bg-brand/90 text-white'
+					>
+						{isLoading ? (
+							<>
+								<Loader2 className='size-4 mr-2 animate-spin' />
+								Saving...
+							</>
+						) : (
+							'Save Changes'
+						)}
+					</Button>
+				</div>
+			</DialogContent>
+		</Dialog>
 	)
 }

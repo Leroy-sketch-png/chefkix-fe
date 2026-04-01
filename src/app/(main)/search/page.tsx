@@ -1,6 +1,6 @@
-'use client'
+﻿'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -15,6 +15,8 @@ import {
 	ArrowLeft,
 	Sparkles,
 	X,
+	History,
+	TrendingUp,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -36,6 +38,8 @@ import {
 } from '@/lib/motion'
 import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
 import { unifiedSearch } from '@/services/search'
+import { toggleFollow } from '@/services/social'
+import { toggleSaveRecipe } from '@/services/recipe'
 import {
 	RecipeSearchDoc,
 	UserSearchDoc,
@@ -44,6 +48,9 @@ import {
 import { logDevError } from '@/lib/dev-log'
 import { trackEvent } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
 
 // ============================================
 // TYPES
@@ -88,23 +95,73 @@ interface PostResult {
 }
 
 // ============================================
+// RECENT SEARCHES (localStorage)
+// ============================================
+
+const RECENT_SEARCHES_KEY = 'chefkix_recent_searches'
+const MAX_RECENT_SEARCHES = 8
+
+function getRecentSearches(): string[] {
+	if (typeof window === 'undefined') return []
+	try {
+		const raw = localStorage.getItem(RECENT_SEARCHES_KEY)
+		return raw ? JSON.parse(raw) : []
+	} catch {
+		return []
+	}
+}
+
+function addRecentSearch(term: string) {
+	const trimmed = term.trim()
+	if (!trimmed) return
+	const existing = getRecentSearches().filter(s => s !== trimmed)
+	const updated = [trimmed, ...existing].slice(0, MAX_RECENT_SEARCHES)
+	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+}
+
+function removeRecentSearch(term: string) {
+	const updated = getRecentSearches().filter(s => s !== term)
+	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+}
+
+const SEARCH_SUGGESTIONS = [
+	'Pasta',
+	'Chicken',
+	'Vegan',
+	'Quick meals',
+	'Desserts',
+	'Breakfast',
+	'Soup',
+	'Salad',
+	'Stir fry',
+	'Baking',
+]
+
+// ============================================
 // COMPONENTS
 // ============================================
 
-const RecipeResultCard = ({
-	recipe,
-	onSave,
-}: {
-	recipe: RecipeResult
-	onSave?: (id: string) => void
-}) => {
+const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
 
-	const handleSave = (e: React.MouseEvent) => {
+	const handleSave = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		setSaved(!saved)
-		onSave?.(recipe.id)
+		const prev = saved
+		setSaved(!prev)
+		try {
+			const res = await toggleSaveRecipe(recipe.id)
+			if (res.success && res.data) {
+				setSaved(res.data.isSaved)
+				toast.success(res.data.isSaved ? 'Recipe saved' : 'Recipe unsaved')
+			} else {
+				setSaved(prev)
+				toast.error('Failed to save recipe')
+			}
+		} catch {
+			setSaved(prev)
+			toast.error('Failed to save recipe')
+		}
 	}
 
 	return (
@@ -115,11 +172,11 @@ const RecipeResultCard = ({
 		>
 			<Link
 				href={`/recipes/${recipe.id}`}
-				className='group block overflow-hidden rounded-2xl border border-border bg-panel-bg transition-shadow hover:shadow-lg'
+				className='group block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card transition-shadow hover:shadow-warm'
 			>
 				<div className='relative h-44 w-full overflow-hidden'>
 					<Image
-						src={recipe.imageUrl}
+						src={recipe.imageUrl || '/placeholder-recipe.svg'}
 						alt={recipe.title}
 						fill
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
@@ -134,18 +191,19 @@ const RecipeResultCard = ({
 							onClick={handleSave}
 							whileHover={ICON_BUTTON_HOVER}
 							whileTap={ICON_BUTTON_TAP}
+							aria-label={saved ? 'Unsave recipe' : 'Save recipe'}
 							className={cn(
 								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
 								saved
 									? 'bg-primary/10 text-primary'
-									: 'text-muted-foreground hover:bg-muted hover:text-primary',
+									: 'text-text-secondary hover:bg-bg-hover hover:text-primary',
 							)}
 						>
 							<Bookmark className={cn('size-4', saved && 'fill-current')} />
 						</motion.button>
 					</div>
 
-					<div className='mb-3 flex items-center gap-4 border-b border-border pb-3'>
+					<div className='mb-3 flex items-center gap-4 border-b border-border-subtle pb-3'>
 						{recipe.rating !== undefined && (
 							<div className='flex items-center gap-1 text-warning'>
 								<Star className='size-3.5 fill-current' />
@@ -154,11 +212,11 @@ const RecipeResultCard = ({
 								</span>
 							</div>
 						)}
-						<div className='flex items-center gap-1 text-muted-foreground'>
+						<div className='flex items-center gap-1 text-text-secondary'>
 							<Clock className='size-3.5' />
 							<span className='text-caption'>{recipe.cookTime}</span>
 						</div>
-						<div className='flex items-center gap-1 text-muted-foreground'>
+						<div className='flex items-center gap-1 text-text-secondary'>
 							<Flame className='size-3.5' />
 							<span className='text-caption'>{recipe.difficulty}</span>
 						</div>
@@ -166,18 +224,20 @@ const RecipeResultCard = ({
 
 					<div className='flex items-center justify-between'>
 						<div className='flex items-center gap-2'>
-							<Image
-								src={recipe.author.avatarUrl}
-								alt={recipe.author.username}
-								width={24}
-								height={24}
-								className='rounded-full'
-							/>
-							<span className='text-caption text-muted-foreground'>
+							<Avatar size='xs'>
+								<AvatarImage
+									src={recipe.author.avatarUrl}
+									alt={recipe.author.username}
+								/>
+								<AvatarFallback>
+									{recipe.author.username?.slice(0, 2).toUpperCase() || '??'}
+								</AvatarFallback>
+							</Avatar>
+							<span className='text-caption text-text-secondary'>
 								@{recipe.author.username}
 							</span>
 						</div>
-						<span className='text-xs font-semibold text-muted-foreground'>
+						<span className='text-xs font-semibold text-text-secondary'>
 							{recipe.cookCount >= 1000
 								? `${(recipe.cookCount / 1000).toFixed(1)}k cooks`
 								: `${recipe.cookCount} cooks`}
@@ -189,37 +249,57 @@ const RecipeResultCard = ({
 	)
 }
 
-const PersonResultCard = ({
-	person,
-	onFollow,
-}: {
-	person: PersonResult
-	onFollow?: (id: string) => void
-}) => {
+const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const [following, setFollowing] = useState(person.isFollowing)
+	const followLockRef = useRef(false)
 
-	const handleFollow = () => {
-		setFollowing(!following)
-		trackEvent('USER_FOLLOWED', person.id, 'user', { followed: !following })
-		onFollow?.(person.id)
+	const handleFollow = async () => {
+		if (followLockRef.current) return
+		followLockRef.current = true
+		const prev = following
+		setFollowing(!prev)
+		trackEvent('USER_FOLLOWED', person.id, 'user', { followed: !prev })
+		try {
+			const res = await toggleFollow(person.id)
+			if (res.success && res.data) {
+				setFollowing(res.data.isFollowing)
+				toast.success(
+					res.data.isFollowing
+						? `Following @${person.username}`
+						: `Unfollowed @${person.username}`,
+				)
+			} else {
+				setFollowing(prev)
+				toast.error('Failed to follow user')
+			}
+		} catch {
+			setFollowing(prev)
+			toast.error('Failed to follow user')
+		} finally {
+			followLockRef.current = false
+		}
 	}
 
 	return (
 		<motion.div
 			variants={staggerItemVariants}
-			className='flex items-center gap-4 rounded-2xl border border-border bg-panel-bg p-4 transition-shadow hover:shadow-md'
+			className='flex items-center gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4 transition-shadow hover:shadow-card'
 		>
-			<Image
-				src={person.avatarUrl}
-				alt={person.displayName}
-				width={56}
-				height={56}
-				className='size-14 flex-shrink-0 rounded-full'
-			/>
+			<Avatar size='lg' className='size-14 flex-shrink-0'>
+				<AvatarImage src={person.avatarUrl} alt={person.displayName} />
+				<AvatarFallback>
+					{person.displayName
+						?.split(' ')
+						.map(n => n[0])
+						.join('')
+						.toUpperCase()
+						.slice(0, 2) || '??'}
+				</AvatarFallback>
+			</Avatar>
 			<div className='min-w-0 flex-1'>
 				<p className='text-base font-bold text-text'>{person.displayName}</p>
-				<p className='text-sm text-muted-foreground'>@{person.username}</p>
-				<p className='mt-1 truncate text-caption text-muted-foreground'>
+				<p className='text-sm text-text-secondary'>@{person.username}</p>
+				<p className='mt-1 truncate text-caption text-text-secondary'>
 					{person.bio}
 				</p>
 			</div>
@@ -230,7 +310,7 @@ const PersonResultCard = ({
 				className={cn(
 					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors',
 					following
-						? 'border-2 border-border bg-muted text-text hover:border-error hover:bg-error/5 hover:text-error'
+						? 'border-2 border-border-subtle bg-bg-elevated text-text hover:border-error hover:bg-error/5 hover:text-error'
 						: 'bg-primary text-white',
 				)}
 			>
@@ -244,35 +324,37 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 	return (
 		<motion.div variants={staggerItemVariants}>
 			<Link
-				href={`/posts/${post.id}`}
-				className='group flex gap-3 rounded-2xl border border-border bg-panel-bg p-3 transition-shadow hover:shadow-md'
+				href={`/post/${post.id}`}
+				className='group flex gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-shadow hover:shadow-card'
 			>
 				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
 					<Image
-						src={post.imageUrl}
-						alt='Post'
+						src={post.imageUrl || '/placeholder-recipe.svg'}
+						alt={`Post by ${post.author.username}${post.caption ? `: ${post.caption.slice(0, 80)}` : ''}`}
 						fill
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
 					/>
 				</div>
 				<div className='min-w-0 flex-1'>
 					<div className='mb-1 flex items-center gap-2'>
-						<Image
-							src={post.author.avatarUrl}
-							alt={post.author.username}
-							width={20}
-							height={20}
-							className='rounded-full'
-						/>
+						<Avatar size='xs'>
+							<AvatarImage
+								src={post.author.avatarUrl}
+								alt={post.author.username}
+							/>
+							<AvatarFallback>
+								{post.author.username?.slice(0, 2).toUpperCase() || '??'}
+							</AvatarFallback>
+						</Avatar>
 						<span className='text-sm font-semibold text-text'>
 							@{post.author.username}
 						</span>
 					</div>
-					<p className='line-clamp-2 text-caption text-muted-foreground'>
+					<p className='line-clamp-2 text-caption text-text-secondary'>
 						{post.caption}
 					</p>
-					<p className='mt-1 text-xs text-muted-foreground'>
-						❤️ {post.likeCount} likes
+					<p className='mt-1 text-xs text-text-secondary'>
+						â¤ï¸ {post.likeCount} likes
 					</p>
 				</div>
 			</Link>
@@ -310,7 +392,7 @@ const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
 
 const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
 	id: doc.id,
-	imageUrl: doc.photoUrl || '/placeholder-post.jpg',
+	imageUrl: doc.photoUrl || '/placeholder-recipe.svg',
 	caption: doc.content || '',
 	author: {
 		username: doc.authorName || 'user',
@@ -323,7 +405,7 @@ const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
 // PAGE
 // ============================================
 
-export default function SearchPage() {
+function SearchContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const query = searchParams.get('q') || ''
@@ -333,6 +415,7 @@ export default function SearchPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
+	const [recentSearches, setRecentSearches] = useState<string[]>([])
 	const [results, setResults] = useState<{
 		recipes: RecipeResult[]
 		people: PersonResult[]
@@ -342,6 +425,16 @@ export default function SearchPage() {
 		people: [],
 		posts: [],
 	})
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	// Clean up debounce timer on unmount
+	useEffect(() => {
+		return () => {
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current)
+			}
+		}
+	}, [])
 
 	// Update input when URL changes from browser nav (back/forward)
 	useEffect(() => {
@@ -351,15 +444,17 @@ export default function SearchPage() {
 		isInternalNav.current = false
 	}, [query])
 
+	// Load recent searches from localStorage on mount
+	useEffect(() => {
+		setRecentSearches(getRecentSearches())
+	}, [])
+
 	const handleSearchInputChange = (value: string) => {
 		setSearchInput(value)
-		clearTimeout(
-			(handleSearchInputChange as { _timer?: ReturnType<typeof setTimeout> })
-				._timer,
-		)
-		;(
-			handleSearchInputChange as { _timer?: ReturnType<typeof setTimeout> }
-		)._timer = setTimeout(() => {
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current)
+		}
+		debounceTimerRef.current = setTimeout(() => {
 			isInternalNav.current = true
 			const trimmed = value.trim()
 			router.replace(
@@ -370,12 +465,16 @@ export default function SearchPage() {
 
 	// Fetch search results via unified Typesense search
 	useEffect(() => {
-		const fetchResults = async () => {
-			if (!query) return
+		if (!query) return
+		let cancelled = false
 
+		const fetchResults = async () => {
 			setIsLoading(true)
+			addRecentSearch(query)
+			setRecentSearches(getRecentSearches())
 			try {
 				const res = await unifiedSearch(query, 'all', 20)
+				if (cancelled) return
 
 				if (res.success && res.data) {
 					const recipes =
@@ -390,14 +489,18 @@ export default function SearchPage() {
 					setResults({ recipes: [], people: [], posts: [] })
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Search failed:', err)
 				setError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchResults()
+		return () => {
+			cancelled = true
+		}
 	}, [query, retryKey])
 
 	const totalResults =
@@ -442,6 +545,17 @@ export default function SearchPage() {
 	}
 
 	if (!query) {
+		const handleSuggestionClick = (term: string) => {
+			setSearchInput(term)
+			isInternalNav.current = true
+			router.replace(`/search?q=${encodeURIComponent(term)}`)
+		}
+
+		const handleRemoveRecent = (term: string) => {
+			removeRecentSearch(term)
+			setRecentSearches(getRecentSearches())
+		}
+
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
@@ -455,7 +569,7 @@ export default function SearchPage() {
 								onChange={e => handleSearchInputChange(e.target.value)}
 								placeholder='Search recipes, people, posts...'
 								autoFocus
-								className='w-full rounded-2xl border border-border bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+								className='w-full rounded-2xl border border-border-subtle bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
 								<button
@@ -468,15 +582,64 @@ export default function SearchPage() {
 							)}
 						</div>
 					</div>
-					<EmptyStateGamified
-						variant='search'
-						title='Search ChefKix'
-						description='Find recipes, people, and posts'
-						primaryAction={{
-							label: 'Explore Recipes',
-							href: '/explore',
-						}}
-					/>
+
+					{/* Recent searches */}
+					{recentSearches.length > 0 && (
+						<div className='mx-auto mb-8 max-w-xl'>
+							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+								<History className='size-4' />
+								<span className='text-sm font-semibold'>Recent Searches</span>
+							</div>
+							<div className='flex flex-wrap gap-2'>
+								{recentSearches.map(term => (
+									<button
+										key={term}
+										onClick={() => handleSuggestionClick(term)}
+										className='group flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5'
+									>
+										<span>{term}</span>
+										<span
+											role='button'
+											tabIndex={0}
+											onClick={e => {
+												e.stopPropagation()
+												handleRemoveRecent(term)
+											}}
+											onKeyDown={e => {
+												if (e.key === 'Enter' || e.key === ' ') {
+													e.stopPropagation()
+													handleRemoveRecent(term)
+												}
+											}}
+											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-0 transition-opacity hover:bg-bg-hover hover:text-text group-hover:opacity-100'
+											aria-label={`Remove "${term}" from recent searches`}
+										>
+											<X className='size-3' />
+										</span>
+									</button>
+								))}
+							</div>
+						</div>
+					)}
+
+					{/* Suggestions */}
+					<div className='mx-auto mb-8 max-w-xl'>
+						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+							<TrendingUp className='size-4' />
+							<span className='text-sm font-semibold'>Suggestions</span>
+						</div>
+						<div className='flex flex-wrap gap-2'>
+							{SEARCH_SUGGESTIONS.map(term => (
+								<button
+									key={term}
+									onClick={() => handleSuggestionClick(term)}
+									className='rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text'
+								>
+									{term}
+								</button>
+							))}
+						</div>
+					</div>
 				</PageContainer>
 			</PageTransition>
 		)
@@ -491,7 +654,7 @@ export default function SearchPage() {
 					<div className='mb-4 flex items-center gap-3'>
 						<button
 							onClick={() => router.back()}
-							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 							aria-label='Go back'
 						>
 							<ArrowLeft className='size-5' />
@@ -503,7 +666,7 @@ export default function SearchPage() {
 								value={searchInput}
 								onChange={e => handleSearchInputChange(e.target.value)}
 								placeholder='Search recipes, people, posts...'
-								className='w-full rounded-xl border border-border bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+								className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
 								<button
@@ -521,7 +684,7 @@ export default function SearchPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
 						>
 							<Search className='size-6 text-white' />
 						</motion.div>
@@ -536,7 +699,7 @@ export default function SearchPage() {
 				</div>
 
 				{/* Tabs */}
-				<div className='mb-8 flex gap-2 overflow-x-auto border-b-2 border-border'>
+				<div className='mb-8 flex gap-2 overflow-x-auto border-b-2 border-border-subtle'>
 					{tabs.map(tab => (
 						<button
 							key={tab.id}
@@ -545,7 +708,7 @@ export default function SearchPage() {
 								'-mb-[2px] flex items-center gap-2 whitespace-nowrap border-b-[3px] px-5 py-3 text-label font-semibold transition-colors',
 								activeTab === tab.id
 									? 'border-primary text-primary'
-									: 'border-transparent text-muted-foreground hover:bg-muted/30 hover:text-text',
+									: 'border-transparent text-text-secondary hover:bg-bg-hover hover:text-text',
 							)}
 						>
 							<tab.icon className='size-4' />
@@ -555,7 +718,7 @@ export default function SearchPage() {
 									'rounded-full px-2 py-0.5 text-xs font-bold',
 									activeTab === tab.id
 										? 'bg-primary/15 text-primary'
-										: 'bg-muted text-muted-foreground',
+										: 'bg-bg-elevated text-text-secondary',
 								)}
 							>
 								{tab.count}
@@ -619,7 +782,7 @@ export default function SearchPage() {
 									description={`We couldn't find anyone matching "${query}"`}
 									primaryAction={{
 										label: 'Discover People',
-										href: '/discover',
+										href: '/community',
 									}}
 								/>
 							)}
@@ -658,5 +821,44 @@ export default function SearchPage() {
 				</AnimatePresence>
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+function SearchSkeleton() {
+	return (
+		<PageContainer maxWidth='lg'>
+			<div className='space-y-6'>
+				{/* Search bar */}
+				<Skeleton className='h-14 w-full rounded-2xl' />
+				{/* Tab bar */}
+				<div className='flex gap-3'>
+					{[1, 2, 3].map(i => (
+						<Skeleton key={i} className='h-10 w-24 rounded-xl' />
+					))}
+				</div>
+				{/* Result cards */}
+				{[1, 2, 3, 4].map(i => (
+					<div
+						key={i}
+						className='flex gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4'
+					>
+						<Skeleton className='size-20 shrink-0 rounded-xl' />
+						<div className='flex-1 space-y-2'>
+							<Skeleton className='h-5 w-3/4' />
+							<Skeleton className='h-4 w-1/2' />
+							<Skeleton className='h-4 w-1/3' />
+						</div>
+					</div>
+				))}
+			</div>
+		</PageContainer>
+	)
+}
+
+export default function SearchPage() {
+	return (
+		<Suspense fallback={<SearchSkeleton />}>
+			<SearchContent />
+		</Suspense>
 	)
 }

@@ -119,7 +119,7 @@ const SinglePendingPost = ({
 	return (
 		<motion.section
 			className={cn(
-				'bg-panel-bg border border-border rounded-2xl overflow-hidden',
+				'bg-bg-card border border-border rounded-2xl overflow-hidden',
 				'border-l-4 border-l-primary',
 			)}
 			variants={fadeInUp}
@@ -130,19 +130,18 @@ const SinglePendingPost = ({
 			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-primary/5 to-transparent'>
 				<div className='flex items-center gap-2'>
 					<span className='text-lg'>📸</span>
-					<h3 className='text-base font-bold text-foreground'>
-						Post to unlock XP
-					</h3>
+					<h3 className='text-base font-bold text-text'>Post to unlock XP</h3>
 				</div>
 				{onDismiss && (
 					<motion.button
-						className='p-2 rounded-full bg-muted/50 hover:bg-muted'
+						className='p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
 						onClick={onDismiss}
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
+						aria-label='Dismiss pending posts prompt'
 					>
-						<X className='h-4 w-4 text-muted-foreground' />
+						<X className='size-4 text-text-secondary' />
 					</motion.button>
 				)}
 			</div>
@@ -158,17 +157,17 @@ const SinglePendingPost = ({
 				/>
 
 				<div className='flex-1 min-w-0'>
-					<span className='block text-base font-bold text-foreground mb-1'>
+					<span className='block text-base font-bold text-text mb-1'>
 						{session.recipeName}
 					</span>
-					<span className='block text-sm text-muted-foreground mb-2'>
+					<span className='block text-sm text-text-secondary mb-2'>
 						{getTimeSinceCook(session.cookedAt)}
 					</span>
 					<div className='flex items-center gap-3'>
 						<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg'>
 							+{session.currentXP} XP
 						</span>
-						<span className='flex items-center gap-1 text-sm text-muted-foreground'>
+						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='h-3.5 w-3.5' />
 							{getTimeLeft(session.expiresAt)}
 						</span>
@@ -178,7 +177,7 @@ const SinglePendingPost = ({
 				<motion.button
 					className={cn(
 						'flex items-center gap-2 px-5 py-3 rounded-xl',
-						'bg-primary text-primary-foreground font-semibold',
+						'bg-primary text-white font-semibold',
 						'shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
@@ -186,7 +185,7 @@ const SinglePendingPost = ({
 					whileTap={BUTTON_TAP}
 					transition={TRANSITION_SPRING}
 				>
-					<Camera className='h-4 w-4' />
+					<Camera className='size-4' />
 					Post Now
 				</motion.button>
 			</div>
@@ -218,7 +217,7 @@ const MultiplePendingPosts = ({
 	return (
 		<motion.section
 			className={cn(
-				'bg-panel-bg border border-border rounded-2xl overflow-hidden',
+				'bg-bg-card border border-border rounded-2xl overflow-hidden',
 				'border-l-4 border-l-warning',
 			)}
 			variants={fadeInUp}
@@ -235,7 +234,7 @@ const MultiplePendingPosts = ({
 					>
 						📸
 					</motion.span>
-					<h3 className='text-base font-bold text-foreground'>
+					<h3 className='text-base font-bold text-text'>
 						{sessions.length} recipes waiting
 					</h3>
 					<span className='text-sm font-semibold text-success bg-success/10 px-2 py-1 rounded-full'>
@@ -243,14 +242,14 @@ const MultiplePendingPosts = ({
 					</span>
 				</div>
 				<motion.button
-					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted rounded-lg text-sm font-semibold'
+					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-lg text-sm font-semibold'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					transition={TRANSITION_SPRING}
 				>
 					View All
-					<ChevronDown className='h-4 w-4' />
+					<ChevronDown className='size-4' />
 				</motion.button>
 			</div>
 
@@ -272,10 +271,10 @@ const MultiplePendingPosts = ({
 							alt={session.recipeName}
 							width={44}
 							height={44}
-							className='w-11 h-11 rounded-lg object-cover'
+							className='size-11 rounded-lg object-cover'
 						/>
 						<div className='flex-1 min-w-0'>
-							<span className='block text-sm font-semibold text-foreground'>
+							<span className='block text-sm font-semibold text-text'>
 								{session.recipeName}
 							</span>
 							<span
@@ -283,7 +282,7 @@ const MultiplePendingPosts = ({
 									'text-xs',
 									session.status === 'urgent'
 										? 'text-error font-semibold'
-										: 'text-muted-foreground',
+										: 'text-text-secondary',
 								)}
 							>
 								{getTimeLeft(session.expiresAt)}
@@ -297,7 +296,7 @@ const MultiplePendingPosts = ({
 								'px-3 py-1.5 rounded-lg text-sm font-semibold',
 								session.status === 'urgent'
 									? 'bg-error text-white'
-									: 'bg-primary text-primary-foreground',
+									: 'bg-primary text-white',
 							)}
 							onClick={() => onPost(session.id)}
 							whileHover={BUTTON_SUBTLE_HOVER}
@@ -310,7 +309,7 @@ const MultiplePendingPosts = ({
 
 				{remaining > 0 && (
 					<button
-						className='w-full text-center py-2 text-sm text-muted-foreground hover:text-primary transition-colors'
+						className='w-full text-center py-2 text-sm text-text-secondary hover:text-primary transition-colors'
 						onClick={onViewAll}
 					>
 						+{remaining} more recipe{remaining > 1 ? 's' : ''} • Tap to see all
@@ -341,7 +340,7 @@ const ManyPendingPosts = ({
 	return (
 		<motion.section
 			className={cn(
-				'bg-panel-bg border border-border rounded-2xl overflow-hidden',
+				'bg-bg-card border border-border rounded-2xl overflow-hidden',
 				urgentCount > 0
 					? 'border-l-4 border-l-error'
 					: 'border-l-4 border-l-warning',
@@ -367,19 +366,19 @@ const ManyPendingPosts = ({
 					</div>
 				)}
 
-				<span className='flex-1 text-sm text-muted-foreground text-right'>
+				<span className='flex-1 text-sm text-text-secondary text-right'>
 					{sessions.length} pending • +{totalXP} XP
 				</span>
 
 				<motion.button
-					className='flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold'
+					className='flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					transition={TRANSITION_SPRING}
 				>
 					View All
-					<ArrowRight className='h-4 w-4' />
+					<ArrowRight className='size-4' />
 				</motion.button>
 			</div>
 		</motion.section>
@@ -482,13 +481,13 @@ export const PendingExpandedModal = ({
 			{isOpen && (
 				<Portal>
 					<motion.div
-						className='fixed inset-0 z-modal bg-black/60 backdrop-blur-sm flex items-end justify-center'
+						className='fixed inset-0 z-modal bg-black/60 flex items-end justify-center'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 					>
 						<motion.div
-							className='bg-panel-bg rounded-t-3xl w-full max-w-lg max-h-sheet-mobile flex flex-col'
+							className='bg-bg-card rounded-t-3xl w-full max-w-lg max-h-sheet-mobile flex flex-col'
 							initial={{ y: '100%' }}
 							animate={{ y: 0 }}
 							exit={{ y: '100%' }}
@@ -496,27 +495,26 @@ export const PendingExpandedModal = ({
 						>
 							{/* Header */}
 							<div className='flex items-center gap-3 px-6 py-5 border-b border-border'>
-								<h2 className='text-xl font-bold text-foreground'>
-									Pending Posts
-								</h2>
-								<span className='text-sm text-muted-foreground'>
+								<h2 className='text-xl font-bold text-text'>Pending Posts</h2>
+								<span className='text-sm text-text-secondary'>
 									{pendingSessions.length} recipes • +{totalXP} XP available
 								</span>
 								<motion.button
-									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-muted'
+									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
 									onClick={onClose}
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
+									aria-label='Close pending posts'
 								>
-									<X className='h-5 w-5 text-muted-foreground' />
+									<X className='size-5 text-text-secondary' />
 								</motion.button>
 							</div>
 
 							{/* Urgency Banner */}
 							{urgentSessions.length > 0 && (
 								<div className='flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-error to-error/80 text-white text-sm font-semibold'>
-									<AlertTriangle className='h-4 w-4' />
+									<AlertTriangle className='size-4' />
 									{urgentSessions.length} recipe
 									{urgentSessions.length > 1 ? 's' : ''} expire within 24 hours.
 									Post now to claim XP!
@@ -565,13 +563,13 @@ export const PendingExpandedModal = ({
 												alt={session.recipeName}
 												width={64}
 												height={64}
-												className='w-16 h-16 rounded-xl object-cover'
+												className='size-16 rounded-xl object-cover'
 											/>
 											<div className='flex-1 min-w-0'>
-												<span className='block text-base font-bold text-foreground'>
+												<span className='block text-base font-bold text-text'>
 													{session.recipeName}
 												</span>
-												<span className='block text-sm text-muted-foreground'>
+												<span className='block text-sm text-text-secondary'>
 													{getTimeSinceCook(session.cookedAt)}
 												</span>
 												{/* Decay indicator - only shown when actual time-based decay */}
@@ -611,7 +609,7 @@ export const PendingExpandedModal = ({
 												{/* Only show original if there's actual decay */}
 												{session.currentXP < session.baseXP &&
 													session.currentXP > 0 && (
-														<span className='text-xs text-muted-foreground line-through'>
+														<span className='text-xs text-text-secondary line-through'>
 															was +{session.baseXP}
 														</span>
 													)}
@@ -621,7 +619,7 @@ export const PendingExpandedModal = ({
 													'px-4 py-2.5 rounded-xl text-sm font-semibold',
 													session.status === 'urgent'
 														? 'bg-error text-white'
-														: 'bg-primary text-primary-foreground',
+														: 'bg-primary text-white',
 												)}
 												onClick={() => onPost(session.id)}
 												whileHover={BUTTON_SUBTLE_HOVER}
@@ -637,11 +635,11 @@ export const PendingExpandedModal = ({
 
 							{/* Footer */}
 							<div className='p-5 border-t border-border bg-muted/30'>
-								<p className='text-sm text-muted-foreground text-center mb-4'>
+								<p className='text-sm text-text-secondary text-center mb-4'>
 									💡 Post photos of your creations to unlock XP and badges!
 								</p>
 								<motion.button
-									className='w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold'
+									className='w-full py-3 bg-primary text-white rounded-xl font-semibold'
 									onClick={onClose}
 									whileHover={CARD_FEATURED_HOVER}
 									whileTap={BUTTON_TAP}

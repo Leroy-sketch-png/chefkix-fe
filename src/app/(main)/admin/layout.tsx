@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Shield, FileWarning, Ban, Scale } from 'lucide-react'
@@ -19,7 +19,7 @@ export default function AdminLayout({
 }: {
 	children: React.ReactNode
 }) {
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const router = useRouter()
 	const pathname = usePathname()
 	const [authorized, setAuthorized] = useState(false)
@@ -70,7 +70,7 @@ export default function AdminLayout({
 							className={cn(
 								'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
 								isActive
-									? 'bg-bg-card text-text shadow-sm'
+									? 'bg-bg-card text-text shadow-card'
 									: 'text-text-muted hover:text-text',
 							)}
 						>

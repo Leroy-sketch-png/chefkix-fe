@@ -51,6 +51,7 @@ export default function CreatorRoute() {
 	const [heatmapRecipeId, setHeatmapRecipeId] = useState<string | null>(null)
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchAll = async () => {
 			setIsLoading(true)
 			setFetchError(false)
@@ -60,6 +61,7 @@ export default function CreatorRoute() {
 					getCreatorPerformance(),
 					getRecentCooks(0, 10),
 				])
+				if (cancelled) return
 				const anySuccess =
 					statsRes.success || perfRes.success || cooksRes.success
 				if (!anySuccess) {
@@ -70,14 +72,16 @@ export default function CreatorRoute() {
 				if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
 				if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch creator data:', err)
 				setFetchError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchAll()
+		return () => { cancelled = true }
 	}, [])
 
 	// Transform API data to component format
@@ -206,7 +210,21 @@ export default function CreatorRoute() {
 					<ErrorState
 						title='Failed to load creator analytics'
 						message='Something went wrong loading your data. Please try again.'
-						onRetry={() => window.location.reload()}
+						onRetry={() => {
+							setFetchError(false)
+							setIsLoading(true)
+							Promise.all([
+								getCreatorStats(),
+								getCreatorPerformance(),
+								getRecentCooks(0, 10),
+							]).then(([statsRes, perfRes, cooksRes]) => {
+								const anySuccess = statsRes.success || perfRes.success || cooksRes.success
+								if (!anySuccess) { setFetchError(true); return }
+								if (statsRes.success && statsRes.data) setStats(statsRes.data)
+								if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
+								if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
+							}).catch(() => setFetchError(true)).finally(() => setIsLoading(false))
+						}}
 					/>
 				</PageContainer>
 			</PageTransition>
@@ -234,7 +252,7 @@ export default function CreatorRoute() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-md shadow-xp/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-card shadow-xp/25'
 						>
 							<ChefHat className='size-6 text-white' />
 						</motion.div>

@@ -7,6 +7,7 @@ import { aiApi } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ── NER Extract ─────────────────────────────────────────────────────────────
 
@@ -39,6 +40,7 @@ export const extractEntities = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<NERResult>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -82,6 +84,7 @@ export const calibrateDifficulty = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CalibrationResult>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -115,6 +118,7 @@ export const guardContent = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ContentGuardResult>>
 		if (axiosError.response) return axiosError.response.data
 		return {

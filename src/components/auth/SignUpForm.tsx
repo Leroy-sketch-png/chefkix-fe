@@ -24,7 +24,7 @@ import { signUp, googleSignIn } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
@@ -133,6 +133,7 @@ export function SignUpForm() {
 									<FormControl>
 										<Input
 											placeholder='John'
+											autoComplete='given-name'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
@@ -150,6 +151,7 @@ export function SignUpForm() {
 									<FormControl>
 										<Input
 											placeholder='Doe'
+											autoComplete='family-name'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
@@ -169,6 +171,10 @@ export function SignUpForm() {
 									<FormControl>
 										<Input
 											placeholder='your_username'
+											autoComplete='username'
+											autoCapitalize='none'
+											autoCorrect='off'
+											spellCheck={false}
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
@@ -188,6 +194,11 @@ export function SignUpForm() {
 									<FormControl>
 										<Input
 											placeholder='chef@email.com'
+											autoComplete='email'
+											inputMode='email'
+											autoCapitalize='none'
+											autoCorrect='off'
+											spellCheck={false}
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
@@ -207,6 +218,7 @@ export function SignUpForm() {
 									<FormControl>
 										<PasswordInput
 											placeholder='password'
+											autoComplete='new-password'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>

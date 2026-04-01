@@ -8,21 +8,21 @@ export default function Loading() {
 			<div className='mb-8'>
 				<div className='flex items-center justify-between'>
 					<div className='flex items-center gap-3'>
-						<div className='size-10 animate-pulse rounded-xl bg-muted/20' />
-						<div className='size-12 animate-pulse rounded-2xl bg-muted/20' />
+						<div className='size-10 animate-pulse rounded-xl bg-bg-elevated/40' />
+						<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
 						<div className='space-y-1'>
-							<div className='h-9 w-36 animate-pulse rounded-lg bg-muted/20' />
-							<div className='h-5 w-28 animate-pulse rounded-lg bg-muted/20' />
+							<div className='h-9 w-36 animate-pulse rounded-lg bg-bg-elevated/40' />
+							<div className='h-5 w-28 animate-pulse rounded-lg bg-bg-elevated/40' />
 						</div>
 					</div>
-					<div className='h-10 w-36 animate-pulse rounded-lg bg-muted/20' />
+					<div className='h-10 w-36 animate-pulse rounded-lg bg-bg-elevated/40' />
 				</div>
 			</div>
 
 			{/* Filters skeleton */}
 			<div className='mb-6 flex items-center justify-between'>
-				<div className='h-10 w-64 animate-pulse rounded-lg bg-muted/20' />
-				<div className='h-10 w-40 animate-pulse rounded-lg bg-muted/20' />
+				<div className='h-10 w-64 animate-pulse rounded-lg bg-bg-elevated/40' />
+				<div className='h-10 w-40 animate-pulse rounded-lg bg-bg-elevated/40' />
 			</div>
 
 			{/* Recipe grid skeleton */}

@@ -11,12 +11,12 @@ const Avatar = React.forwardRef<
 	}
 >(({ className, size = 'md', ...props }, ref) => {
 	const sizeClasses = {
-		xs: 'h-6 w-6',
-		sm: 'h-8 w-8',
-		md: 'h-10 w-10',
-		lg: 'h-12 w-12',
-		xl: 'h-16 w-16',
-		'2xl': 'h-24 w-24',
+		xs: 'size-6',
+		sm: 'size-8',
+		md: 'size-10',
+		lg: 'size-12',
+		xl: 'size-16',
+		'2xl': 'size-24',
 	}
 
 	return (

@@ -30,7 +30,7 @@ export const RecipeCardSkeleton = ({
 				<div
 					key={index}
 					className={cn(
-						'block overflow-hidden rounded-radius bg-bg-card shadow-md',
+						'block overflow-hidden rounded-radius border border-border-subtle bg-bg-card',
 						className,
 					)}
 				>

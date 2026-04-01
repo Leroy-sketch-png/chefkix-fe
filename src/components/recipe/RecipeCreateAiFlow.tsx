@@ -145,7 +145,7 @@ function AutoSaveIndicator({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					className='flex items-center gap-1.5 text-xs text-muted-foreground'
+					className='flex items-center gap-1.5 text-xs text-text-secondary'
 				>
 					<Loader2 className='size-3 animate-spin' />
 					Saving...
@@ -181,7 +181,7 @@ function AutoSaveIndicator({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 0.6 }}
 					exit={{ opacity: 0 }}
-					className='text-xs text-muted-foreground'
+					className='text-xs text-text-secondary'
 				>
 					Saved at {formatTime(lastSavedAt)}
 				</motion.span>
@@ -832,16 +832,17 @@ export const RecipeCreateAiFlow = ({
 					: recipe
 
 			if (!finalRecipe || isPublishing) {
-				if (hasUnpersistedMedia) {
-					toast.error('Please re-upload image previews before publishing', {
-						description:
-							'Local preview images are temporary and cannot be published. Upload them again to continue.',
-					})
-					return
-				}
 				diag.warn('recipe', 'PUBLISH aborted', {
 					hasRecipe: !!finalRecipe,
 					isPublishing,
+				})
+				return
+			}
+
+			if (hasUnpersistedMedia) {
+				toast.error('Please re-upload image previews before publishing', {
+					description:
+						'Local preview images are temporary and cannot be published. Upload them again to continue.',
 				})
 				return
 			}
@@ -1178,11 +1179,11 @@ export const RecipeCreateAiFlow = ({
 						<button
 							onClick={() => handleSaveDraft()}
 							disabled={isSaving || saveStatus === 'saving'}
-							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50'
+							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:opacity-50'
 						>
 							{isSaving || saveStatus === 'saving' ? 'Saving...' : 'Save Draft'}
 							{!isSaving && saveStatus !== 'saving' && (
-								<kbd className='hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal md:inline-block'>
+								<kbd className='hidden rounded bg-bg-elevated px-1.5 py-0.5 text-[10px] font-normal md:inline-block'>
 									{modKey}+S
 								</kbd>
 							)}
@@ -1242,7 +1243,7 @@ export const RecipeCreateAiFlow = ({
 										<h3 className='text-lg font-bold text-text'>
 											Paste your recipe
 										</h3>
-										<p className='text-sm text-muted-foreground'>
+										<p className='text-sm text-text-secondary'>
 											From a website, document, or notes
 										</p>
 									</div>
@@ -1388,7 +1389,7 @@ export const RecipeCreateAiFlow = ({
 									<strong className='text-sm text-success'>
 										Recipe parsed successfully!
 									</strong>
-									<span className='block text-xs text-muted-foreground'>
+									<span className='block text-xs text-text-secondary'>
 										{needsRecalculation
 											? `Significant changes detected (${changePercent}%) — recalculate XP`
 											: changePercent > 0
@@ -1409,7 +1410,7 @@ export const RecipeCreateAiFlow = ({
 										<div className='text-lg font-bold text-xp'>
 											+{recipe.xpReward} XP
 										</div>
-										<div className='text-xs text-muted-foreground'>
+										<div className='text-xs text-text-secondary'>
 											{recipe.detectedBadges.length} badge
 											{recipe.detectedBadges.length !== 1 ? 's' : ''}
 										</div>
@@ -1469,7 +1470,7 @@ export const RecipeCreateAiFlow = ({
 									<button
 										onClick={() => coverImageRef.current?.click()}
 										disabled={isUploadingCover}
-										className='flex h-44 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-bg text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
+										className='flex h-44 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-bg text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
 									>
 										{isUploadingCover ? (
 											<>
@@ -1497,7 +1498,7 @@ export const RecipeCreateAiFlow = ({
 							<div className='mb-4'>
 								<label
 									htmlFor='ai-recipe-title'
-									className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'
+									className='mb-2 block text-xs font-semibold uppercase tracking-wide text-text-secondary'
 								>
 									Recipe Title
 								</label>
@@ -1516,7 +1517,7 @@ export const RecipeCreateAiFlow = ({
 							<div className='mb-4'>
 								<label
 									htmlFor='ai-recipe-description'
-									className='mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground'
+									className='mb-2 block text-xs font-semibold uppercase tracking-wide text-text-secondary'
 								>
 									Description
 								</label>
@@ -1533,7 +1534,7 @@ export const RecipeCreateAiFlow = ({
 							{/* Meta Row */}
 							<div className='mb-4 flex flex-wrap gap-2.5'>
 								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
-									<Clock className='size-4 text-muted-foreground' />
+									<Clock className='size-4 text-text-secondary' />
 									<input
 										type='text'
 										value={recipe.cookTime}
@@ -1548,14 +1549,14 @@ export const RecipeCreateAiFlow = ({
 									className='group relative flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 cursor-help'
 									title='Difficulty is determined by AI based on techniques and complexity. This ensures fair XP calculation.'
 								>
-									<Signal className='size-4 text-muted-foreground' />
+									<Signal className='size-4 text-text-secondary' />
 									<span className='text-xs font-semibold text-text'>
 										{recipe.difficulty}
 									</span>
-									<Lock className='size-3 text-muted-foreground/50' />
+									<Lock className='size-3 text-text-secondary/50' />
 								</div>
 								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
-									<Utensils className='size-4 text-muted-foreground' />
+									<Utensils className='size-4 text-text-secondary' />
 									<input
 										type='number'
 										min={1}
@@ -1569,7 +1570,7 @@ export const RecipeCreateAiFlow = ({
 										}
 										className='w-12 border-none bg-transparent text-xs font-semibold text-text focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									/>
-									<span className='text-xs text-muted-foreground'>
+									<span className='text-xs text-text-secondary'>
 										servings
 									</span>
 								</div>
@@ -1589,7 +1590,7 @@ export const RecipeCreateAiFlow = ({
 
 							{/* Detected Badges */}
 							<div className='flex flex-wrap items-center gap-3'>
-								<span className='text-xs text-muted-foreground'>
+								<span className='text-xs text-text-secondary'>
 									Potential Badges:
 								</span>
 								{(recipe.detectedBadges || []).map((badge, i) => (
@@ -1618,7 +1619,7 @@ export const RecipeCreateAiFlow = ({
 									onClick={addIngredient}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
 								>
 									<Plus className='size-4' />
 									Add
@@ -1674,7 +1675,7 @@ export const RecipeCreateAiFlow = ({
 									onClick={addStep}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
 								>
 									<Plus className='size-4' />
 									Add Step

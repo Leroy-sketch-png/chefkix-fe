@@ -10,19 +10,16 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { motion } from 'framer-motion'
-import {
-	MoreVertical,
-	Crown,
-	Shield,
-	Loader2,
-	UserMinus,
-} from 'lucide-react'
+import { MoreVertical, Crown, Shield, Loader2, UserMinus } from 'lucide-react'
 import { useState, useCallback } from 'react'
 import { kickMember } from '@/services/group'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { TRANSITION_SPRING } from '@/lib/motion'
-import { StaggerContainer, staggerItemVariants } from '@/components/ui/stagger-animation'
+import {
+	StaggerContainer,
+	staggerItemVariants,
+} from '@/components/ui/stagger-animation'
 
 interface GroupMembersListProps {
 	members: GroupMember[]
@@ -60,17 +57,17 @@ export const GroupMembersList = ({
 				setKickingUserId(null)
 			}
 		},
-		[groupId, onMemberRemoved]
+		[groupId, onMemberRemoved],
 	)
 
 	const getRoleIcon = (role: MemberRole) => {
 		switch (role) {
 			case 'OWNER':
-				return <Crown className='w-4 h-4 text-amber-500' />
+				return <Crown className='w-4 h-4 text-medal-gold' />
 			case 'ADMIN':
-				return <Shield className='w-4 h-4 text-blue-500' />
+				return <Shield className='w-4 h-4 text-info' />
 			case 'MODERATOR':
-				return <Shield className='w-4 h-4 text-blue-400' />
+				return <Shield className='w-4 h-4 text-info/70' />
 			default:
 				return null
 		}
@@ -98,7 +95,7 @@ export const GroupMembersList = ({
 
 	return (
 		<StaggerContainer className='space-y-2'>
-			{members.map((member) => (
+			{members.map(member => (
 				<motion.div
 					key={member.userId}
 					variants={staggerItemVariants}
@@ -152,7 +149,7 @@ export const GroupMembersList = ({
 											handleKickMember(member.userId, member.displayName)
 										}
 										disabled={kickingUserId === member.userId}
-										className='text-red-600 focus:text-red-600'
+										className='text-error focus:text-error'
 									>
 										{kickingUserId === member.userId ? (
 											<Loader2 className='w-4 h-4 mr-2 animate-spin' />

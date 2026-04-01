@@ -47,7 +47,7 @@ import { Portal } from '@/components/ui/portal'
  */
 
 const sheetVariants = cva(
-	'fixed z-modal bg-bg-card text-text shadow-lg transition-transform duration-300 ease-in-out',
+	'fixed z-modal bg-bg-card border border-border-medium text-text transition-transform duration-300 ease-in-out',
 	{
 		variants: {
 			side: {
@@ -203,7 +203,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 								className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-bg transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
 								aria-label='Close'
 							>
-								<X className='h-5 w-5' />
+								<X className='size-5' />
 							</button>
 						)}
 

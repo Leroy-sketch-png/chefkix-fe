@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
@@ -143,6 +143,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
 			transition={TRANSITION_SPRING}
 			className='relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand/10 via-bg-card to-streak/10 shadow-warm'
 		>
@@ -169,7 +170,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						{/* XP Badge */}
 						<Badge
 							variant='secondary'
-							className='bg-gradient-xp px-3 py-1 text-sm font-bold text-white shadow-md'
+							className='bg-gradient-xp px-3 py-1 text-sm font-bold text-white shadow-card'
 						>
 							+{recipe.xpReward || 0} XP
 						</Badge>
@@ -361,6 +362,8 @@ function FilterChips({
 
 export default function ExplorePage() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
+	const initialQuery = searchParams.get('q') || ''
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
@@ -371,8 +374,8 @@ export default function ExplorePage() {
 	const [isSearching, setIsSearching] = useState(false)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [searchQuery, setSearchQuery] = useState('')
-	const [debouncedSearch, setDebouncedSearch] = useState('')
+	const [searchQuery, setSearchQuery] = useState(initialQuery)
+	const [debouncedSearch, setDebouncedSearch] = useState(initialQuery)
 	const [viewMode, setViewMode] = useState<'all' | 'trending'>('all')
 	const [sortBy, setSortBy] = useState<string>('newest')
 	const [savedRecipes, setSavedRecipes] = useState<Set<string>>(new Set())
@@ -671,7 +674,11 @@ export default function ExplorePage() {
 				})
 
 				// Append to existing recipes (already filtered server-side)
-				setRecipes(prev => [...prev, ...newRecipes])
+				setRecipes(prev => {
+					const existingIds = new Set(prev.map(r => r.id))
+					const dedupedRecipes = newRecipes.filter(r => !existingIds.has(r.id))
+					return [...prev, ...dedupedRecipes]
+				})
 				setPage(nextPage + 1)
 
 				// Update pagination state
@@ -813,10 +820,9 @@ export default function ExplorePage() {
 	}
 
 	const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') {
-			// Immediately trigger search (bypass debounce)
-			setDebouncedSearch(searchQuery)
-			setIsSearching(false)
+		if (e.key === 'Enter' && searchQuery.trim()) {
+			// Navigate to full search page which supports recipes, people, posts
+			router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
 		}
 	}
 
@@ -859,7 +865,7 @@ export default function ExplorePage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 						>
 							<Compass className='size-6 text-white' />
 						</motion.div>
@@ -893,7 +899,7 @@ export default function ExplorePage() {
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							onKeyDown={handleSearchKeyDown}
-							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-sm transition-all focus:border-brand focus:shadow-md focus:ring-2 focus:ring-brand/20'
+							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-card transition-all focus:border-brand focus:shadow-card focus:ring-2 focus:ring-brand/20'
 						/>
 						{/* Loading indicator or clear button */}
 						<div className='absolute right-12 top-1/2 -translate-y-1/2'>
@@ -931,7 +937,7 @@ export default function ExplorePage() {
 							whileTap={BUTTON_TAP}
 							className={`rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
 								viewMode === 'all'
-									? 'bg-gradient-hero text-white shadow-md shadow-brand/30'
+									? 'bg-gradient-hero text-white shadow-card shadow-brand/30'
 									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 							}`}
 						>
@@ -946,7 +952,7 @@ export default function ExplorePage() {
 							whileTap={BUTTON_TAP}
 							className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
 								viewMode === 'trending'
-									? 'bg-gradient-xp text-white shadow-md shadow-xp/30'
+									? 'bg-gradient-xp text-white shadow-card shadow-xp/30'
 									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
 							}`}
 						>

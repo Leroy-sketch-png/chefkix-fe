@@ -2,10 +2,13 @@
 
 import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowLeft, Award, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { PageTransition } from '@/components/layout/PageTransition'
 import CookCardRenderer from '@/components/cook-card/CookCardRenderer'
+import { TRANSITION_SPRING } from '@/lib/motion'
 
 function CookCardContent() {
 	const searchParams = useSearchParams()
@@ -27,21 +30,47 @@ function CookCardContent() {
 	}
 
 	return (
-		<PageContainer>
-			<div className='mb-4'>
-				<button
-					onClick={() => router.back()}
-					className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
+		<PageTransition>
+			<PageContainer>
+				<div className='mb-4'>
+					<button
+						onClick={() => router.back()}
+						className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
+					>
+						<ArrowLeft className='size-4' />
+						Back
+					</button>
+				</div>
+
+				{/* Header */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-6'
 				>
-					<ArrowLeft className='size-4' />
-					Back
-				</button>
-			</div>
-			<div className='mx-auto max-w-md'>
-				<h1 className='mb-6 text-2xl font-bold text-text'>Your Cook Card</h1>
-				<CookCardRenderer sessionId={sessionId} />
-			</div>
-		</PageContainer>
+					<div className='mb-2 flex items-center gap-3'>
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-gold shadow-card shadow-level/25'
+						>
+							<Award className='size-6 text-white' />
+						</motion.div>
+						<h1 className='text-3xl font-bold text-text'>Your Cook Card</h1>
+					</div>
+					<p className='flex items-center gap-2 text-text-secondary'>
+						<Sparkles className='size-4 text-streak' />A keepsake from your
+						cooking session
+					</p>
+				</motion.div>
+
+				<div className='mx-auto max-w-md'>
+					<CookCardRenderer sessionId={sessionId} />
+				</div>
+			</PageContainer>
+		</PageTransition>
 	)
 }
 

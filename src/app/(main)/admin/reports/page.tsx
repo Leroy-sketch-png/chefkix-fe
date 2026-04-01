@@ -333,6 +333,7 @@ function ReportList({
 											value={reviewNotes}
 											onChange={e => setReviewNotes(e.target.value)}
 											placeholder='Review notes (optional)...'
+											maxLength={1000}
 											className='w-full resize-none rounded-lg border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
 											rows={2}
 										/>

@@ -8,6 +8,7 @@ import {
 } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 /**
  * Comment API Service
@@ -41,6 +42,7 @@ export const getCommentsByPostId = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Comment[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -67,6 +69,7 @@ export const createComment = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Comment>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -92,6 +95,7 @@ export const deleteComment = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -117,6 +121,7 @@ export const toggleLikeComment = async (
 		>(API_ENDPOINTS.POST.TOGGLE_LIKE_COMMENT(postId, commentId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{ likes: number; isLiked: boolean }>
 		>
@@ -149,6 +154,7 @@ export const getRepliesByCommentId = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Reply[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -175,6 +181,7 @@ export const createReply = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Reply>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -200,6 +207,7 @@ export const deleteReply = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -225,6 +233,7 @@ export const toggleLikeReply = async (
 		>(API_ENDPOINTS.POST.TOGGLE_LIKE_REPLY(commentId, replyId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<{ likes: number; isLiked: boolean }>
 		>

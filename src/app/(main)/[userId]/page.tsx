@@ -1,25 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getProfileByUserId } from '@/services/profile'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { UserProfile } from '@/components/profile/UserProfile'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 import { Profile } from '@/lib/types'
+import { toast } from 'sonner'
 
 /**
  * Dynamic profile page at /{userId}
  * Supports ?tab= query param to navigate directly to a tab (recipes, posts, cooking, saved)
  * Must be a client component to access auth store for token in API calls.
  */
-const ProfilePage = () => {
+const ProfileContent = () => {
 	const params = useParams()
 	const searchParams = useSearchParams()
 	const userId = params.userId as string
 	const initialTab = searchParams.get('tab') || undefined
-	const { user: currentUser, isLoading: isAuthLoading } = useAuthStore()
+	const { user: currentUser, isLoading: isAuthLoading } = useAuth()
 
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
@@ -31,6 +32,8 @@ const ProfilePage = () => {
 		// Wait for auth to hydrate before making API calls
 		if (isAuthLoading) return
 
+		let cancelled = false
+
 		const fetchProfile = async () => {
 			setIsLoading(true)
 			setNotFound(false)
@@ -38,12 +41,15 @@ const ProfilePage = () => {
 
 			const response = await getProfileByUserId(userId)
 
+			if (cancelled) return
+
 			if (response.success && response.data) {
 				setProfile(response.data)
 			} else if (response.statusCode === 404) {
 				setNotFound(true)
 			} else {
 				setServerError(true)
+				toast.error('Failed to load profile')
 			}
 
 			setIsLoading(false)
@@ -51,6 +57,9 @@ const ProfilePage = () => {
 
 		if (userId) {
 			fetchProfile()
+		}
+		return () => {
+			cancelled = true
 		}
 	}, [userId, isAuthLoading, retryCount])
 
@@ -87,4 +96,10 @@ const ProfilePage = () => {
 	)
 }
 
-export default ProfilePage
+export default function ProfilePage() {
+	return (
+		<Suspense fallback={<UserProfileSkeleton />}>
+			<ProfileContent />
+		</Suspense>
+	)
+}

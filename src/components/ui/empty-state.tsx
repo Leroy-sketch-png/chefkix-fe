@@ -38,7 +38,7 @@ export const EmptyState = ({
 }: EmptyStateProps) => {
 	return (
 		<div className='flex min-h-content flex-col items-center justify-center px-4 py-12'>
-			<div className='mx-auto max-w-md animate-fadeIn text-center'>
+			<div className='mx-auto max-w-md animate-fadeIn text-center' role='status'>
 				{/* Show Lottie animation if provided, otherwise show icon */}
 				{lottieAnimation ? (
 					<div className='mb-6 flex justify-center'>
@@ -51,8 +51,8 @@ export const EmptyState = ({
 					</div>
 				) : Icon ? (
 					<div className='mb-6 flex justify-center'>
-						<div className='rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-8 shadow-lg'>
-							<Icon className='h-16 w-16 text-primary' />
+						<div className='rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-8'>
+							<Icon className='size-16 text-primary' />
 						</div>
 					</div>
 				) : null}

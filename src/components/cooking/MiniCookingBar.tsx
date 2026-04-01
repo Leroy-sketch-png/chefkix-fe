@@ -94,7 +94,7 @@ export const MiniCookingBar = () => {
 									onClick={handleExpand}
 									className='flex min-w-0 flex-1 items-center gap-3'
 								>
-									<div className='grid size-10 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-white shadow-md'>
+									<div className='grid size-10 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-white shadow-card'>
 										<ChefHat className='size-5' />
 									</div>
 									<div className='min-w-0 flex-1 text-left'>

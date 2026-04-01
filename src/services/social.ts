@@ -2,6 +2,7 @@ import { api } from '@/lib/axios'
 import { ApiResponse, ToggleFollowResponse, Profile } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 /**
  * Social API Service - Instagram-Style Follow Model
@@ -49,6 +50,7 @@ export const toggleFollow = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ToggleFollowResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -77,6 +79,7 @@ export const getFollowers = async (): Promise<ApiResponse<Profile[]>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -99,6 +102,7 @@ export const getFollowing = async (): Promise<ApiResponse<Profile[]>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -122,6 +126,7 @@ export const getFriends = async (): Promise<ApiResponse<Profile[]>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -146,6 +151,7 @@ export const isMutualFollow = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<boolean>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -185,6 +191,7 @@ export const blockUser = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<BlockedUser>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -209,6 +216,7 @@ export const unblockUser = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -233,6 +241,7 @@ export const getBlockedUsers = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<BlockedUser[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -257,6 +266,7 @@ export const isUserBlocked = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<boolean>>
 		if (axiosError.response) {
 			return axiosError.response.data

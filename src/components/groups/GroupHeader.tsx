@@ -142,7 +142,7 @@ export const GroupHeader = ({
 								{!isOwner && (
 									<DropdownMenuItem
 										onClick={() => setShowLeaveConfirm(true)}
-										className='text-red-600 focus:text-red-600'
+										className='text-error focus:text-error'
 									>
 										<LogOut className='w-4 h-4 mr-2' />
 										Leave Group
@@ -194,7 +194,7 @@ export const GroupHeader = ({
 				{/* Tags */}
 				{group.tags && group.tags.length > 0 && (
 					<div className='flex gap-2 mt-4 flex-wrap'>
-						{group.tags.map((tag) => (
+						{group.tags.map(tag => (
 							<span
 								key={tag}
 								className='text-xs bg-brand/10 text-brand px-3 py-1 rounded-full'

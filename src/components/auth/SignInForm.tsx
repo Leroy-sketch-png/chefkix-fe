@@ -28,7 +28,7 @@ import { PATHS } from '@/constants'
 import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 
 const formSchema = z.object({
@@ -72,10 +72,22 @@ export function SignInForm() {
 	// Separate loading state for the button - form.isSubmitting doesn't track async properly
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
+	// Check if user just verified their email — pre-fill to reduce friction
+	const verifiedEmail =
+		typeof window !== 'undefined'
+			? sessionStorage.getItem('verified-email')
+			: null
+	const isNewSignup =
+		typeof window !== 'undefined'
+			? sessionStorage.getItem('just-registered') === 'true'
+			: false
+	if (verifiedEmail) sessionStorage.removeItem('verified-email')
+	if (isNewSignup) sessionStorage.removeItem('just-registered')
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			emailOrUsername: '',
+			emailOrUsername: verifiedEmail || '',
 			password: '',
 		},
 	})
@@ -103,10 +115,15 @@ export function SignInForm() {
 		const profileResponse = await getMyProfile()
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
-			toast.success('Welcome back! Signed in successfully.')
-			// Set loading AFTER everything is ready - AuthProvider will handle redirect
-			setLoading(true)
-			router.push('/profile')
+			if (isNewSignup) {
+				toast.success('Welcome to ChefKix! Let\u2019s get cooking 🎉')
+				setLoading(true)
+				router.push('/dashboard')
+			} else {
+				toast.success('Welcome back! Signed in successfully.')
+				setLoading(true)
+				router.push('/dashboard')
+			}
 			return true
 		} else {
 			// Profile fetch failed - logout completely and show error
@@ -192,6 +209,10 @@ export function SignInForm() {
 									<FormControl>
 										<Input
 											placeholder='yourname or chef@email.com'
+											autoComplete='username'
+											autoCapitalize='none'
+											autoCorrect='off'
+											spellCheck={false}
 											{...field}
 											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
@@ -211,6 +232,7 @@ export function SignInForm() {
 									<FormControl>
 										<PasswordInput
 											placeholder='password'
+											autoComplete='current-password'
 											{...field}
 											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>

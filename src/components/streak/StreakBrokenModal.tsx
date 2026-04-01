@@ -42,7 +42,7 @@ export function StreakBrokenModal({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className='fixed inset-0 z-modal flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center p-6 bg-black/60'
 					>
 						<motion.div
 							initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -63,14 +63,14 @@ export function StreakBrokenModal({
 							<h2 className='text-2xl font-extrabold text-text mb-2'>
 								Your streak ended
 							</h2>
-							<p className='text-sm text-muted-foreground mb-6'>
+							<p className='text-sm text-text-secondary mb-6'>
 								Your {lostStreak}-day cooking streak has reset to 0
 							</p>
 
 							{/* Stats Lost */}
 							<div className='flex justify-center gap-6 py-5 px-6 bg-bg rounded-xl mb-5'>
 								<div className='flex flex-col gap-1'>
-									<span className='text-xs text-muted-foreground'>
+									<span className='text-xs text-text-secondary'>
 										Streak Length
 									</span>
 									<span className='text-lg font-bold text-text'>
@@ -78,7 +78,7 @@ export function StreakBrokenModal({
 									</span>
 								</div>
 								<div className='flex flex-col gap-1'>
-									<span className='text-xs text-muted-foreground'>
+									<span className='text-xs text-text-secondary'>
 										Streak Bonuses Earned
 									</span>
 									<span className='text-lg font-bold text-text'>
@@ -88,7 +88,7 @@ export function StreakBrokenModal({
 							</div>
 
 							{/* Motivation */}
-							<div className='mb-5 space-y-2 text-sm text-muted-foreground'>
+							<div className='mb-5 space-y-2 text-sm text-text-secondary'>
 								<p>Don&apos;t worry — every great chef has off days.</p>
 								<p>
 									Your skills and XP are still there. Let&apos;s start fresh! 💪
@@ -98,7 +98,7 @@ export function StreakBrokenModal({
 							{/* Best Streak */}
 							{bestStreak && bestStreak > lostStreak && (
 								<div className='mb-6 flex items-center justify-center gap-2 rounded-lg bg-success/10 px-4 py-3'>
-									<span className='text-xs text-muted-foreground'>
+									<span className='text-xs text-text-secondary'>
 										Your best streak:
 									</span>
 									<span className='text-sm font-bold text-success'>
@@ -126,7 +126,7 @@ export function StreakBrokenModal({
 								</motion.button>
 								<button
 									onClick={onDismiss}
-									className='py-3.5 text-sm text-muted-foreground hover:text-text transition-colors'
+									className='py-3.5 text-sm text-text-secondary hover:text-text transition-colors'
 								>
 									Maybe Later
 								</button>

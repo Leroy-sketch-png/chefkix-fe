@@ -149,7 +149,7 @@ const StepDots = ({
 						'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors',
 						// 44px minimum touch targets for accessibility
 						isCurrent
-							? 'h-11 w-14 bg-white text-brand shadow-md'
+							? 'h-11 w-14 bg-white text-brand shadow-card'
 							: isCompleted
 								? 'size-11 bg-success text-white'
 								: 'size-11 bg-white/20 text-white/70 hover:bg-white/30 hover:text-white',
@@ -336,7 +336,7 @@ const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 		)}
 	>
 		<Zap className='size-4' />
-		<span>+{xp} XP</span>
+		<span className='tabular-nums'>+{xp} XP</span>
 	</motion.div>
 )
 
@@ -803,11 +803,21 @@ export const CookingPlayer = () => {
 			messyHandsTimeoutRef.current = setTimeout(() => {
 				const store = useCookingStore.getState()
 				if (store.interactionMode === 'ACTIVE') {
-					setInteractionMode('MESSY_HANDS')
+					toast('🙌 Hands busy?', {
+						description:
+							'Tap here to switch to voice mode — no screen touch needed.',
+						action: {
+							label: 'Enable Voice Mode',
+							onClick: () => {
+								useCookingStore.getState().setInteractionMode('MESSY_HANDS')
+							},
+						},
+						duration: 6000,
+					})
 				}
 			}, 45_000)
 		}
-	}, [interactionMode, setInteractionMode])
+	}, [interactionMode])
 
 	useEffect(() => {
 		if (!isOpen || interactionMode !== 'ACTIVE') {
@@ -822,10 +832,16 @@ export const CookingPlayer = () => {
 		messyHandsTimeoutRef.current = setTimeout(() => {
 			const store = useCookingStore.getState()
 			if (store.interactionMode === 'ACTIVE') {
-				setInteractionMode('MESSY_HANDS')
-				toast('🙌 Switched to voice mode', {
-					description: 'No screen touch for a while — voice commands are now primary. Tap screen or say "clean hands" to switch back.',
-					duration: 4000,
+				toast('🙌 Hands busy?', {
+					description:
+						'Tap here to switch to voice mode — no screen touch needed.',
+					duration: 6000,
+					action: {
+						label: 'Enable Voice Mode',
+						onClick: () => {
+							useCookingStore.getState().setInteractionMode('MESSY_HANDS')
+						},
+					},
 				})
 			}
 		}, 45_000)
@@ -1103,7 +1119,7 @@ export const CookingPlayer = () => {
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
 
 	const handleComplete = useCallback(
-		async (rating: number, notes?: string) => {
+		async (rating?: number, notes?: string) => {
 			// Preview mode — no real completion, just close
 			if (isPreviewMode) {
 				toast.success('Preview complete! Your recipe looks great.')
@@ -1467,6 +1483,7 @@ export const CookingPlayer = () => {
 										whileTap={ICON_BUTTON_TAP}
 										className='grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
 										title='Minimize to mini-bar (Esc)'
+										aria-label='Minimize to mini-bar'
 									>
 										<X className='size-5' />
 									</motion.button>
@@ -1547,12 +1564,11 @@ export const CookingPlayer = () => {
 							</div>
 
 							{/* Step Content - Animated */}
-							{/* MONITORING mode: dim content — timer is the focus */}
+							{/* MONITORING mode: dim content to emphasize timer, but keep interactive */}
 							<div
 								className={cn(
 									'relative flex-1 overflow-hidden transition-opacity duration-500',
-									interactionMode === 'MONITORING' &&
-										'opacity-50 pointer-events-none',
+									interactionMode === 'MONITORING' && 'opacity-70',
 								)}
 							>
 								{/* PREP mode overlay: show "Ready to cook?" over step 1 */}
@@ -1980,6 +1996,7 @@ export const CookingPlayer = () => {
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
 									recipeTitle={recipe.title}
 									onSubmit={handleComplete}
+									onSkip={() => handleComplete()}
 									isSubmitting={isCompletingSession}
 								/>
 							</motion.div>

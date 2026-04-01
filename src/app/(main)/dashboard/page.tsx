@@ -16,8 +16,10 @@ import { PollCard } from '@/components/social/PollCard'
 import { RecentCookCard } from '@/components/social/RecentCookCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
+import { QuickPostFAB } from '@/components/social/QuickPostFAB'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
+import Link from 'next/link'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import {
 	Users,
@@ -28,10 +30,15 @@ import {
 	TrendingUp,
 	Clock,
 	Loader2,
+	ChefHat,
+	BookOpen,
+	Camera,
+	PenLine,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
+import { usePostKeyboardNav } from '@/hooks/usePostKeyboardNav'
 import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
@@ -134,10 +141,14 @@ export default function DashboardPage() {
 	const [hasPendingXpSync, setHasPendingXpSync] = useState(false)
 	const [isRetryingPendingXp, setIsRetryingPendingXp] = useState(false)
 	const [retryCount, setRetryCount] = useState(0)
+	const [isColdStartFallback, setIsColdStartFallback] = useState(false)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
 	// Filter out posts from blocked users
 	const filteredPosts = useFilterBlockedContent(posts)
+
+	// j/k keyboard navigation for posts
+	const { focusedIndex: focusedPostIndex } = usePostKeyboardNav(filteredPosts)
 
 	// Streak at risk = has active streak AND hasn't cooked within window
 	// Backend computes cookedToday (within 72h window) and hoursUntilStreakBreaks
@@ -198,6 +209,7 @@ export default function DashboardPage() {
 
 	// Fetch initial page
 	useEffect(() => {
+		let cancelled = false
 		const fetchInitialData = async () => {
 			setIsLoading(true)
 			setError(null)
@@ -211,6 +223,7 @@ export default function DashboardPage() {
 				setHasPendingXpSync(Boolean(pendingPostLinkJson))
 				if (pendingPostLinkJson) {
 					const recovered = await retryPendingXpSync()
+					if (cancelled) return
 					if (!recovered) {
 						toast.warning(
 							'Your post was shared, but XP is still syncing. You can retry from the banner on this page.',
@@ -229,6 +242,7 @@ export default function DashboardPage() {
 						: getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: feedMode }),
 					getPendingSessions(),
 				])
+				if (cancelled) return
 
 				if (feedResponse.success && feedResponse.data) {
 					let feedPosts = feedResponse.data
@@ -265,6 +279,35 @@ export default function DashboardPage() {
 					}
 
 					setPosts(feedPosts)
+					setIsColdStartFallback(false)
+
+					// COLD-START FALLBACK: If "For You" returns 0 posts, show trending instead
+					if (feedMode === 'forYou' && feedPosts.length === 0) {
+						const trendingResponse = await getFeedPosts({
+							page: 0,
+							size: POSTS_PER_PAGE,
+							mode: 'trending',
+						})
+						if (
+							!cancelled &&
+							trendingResponse.success &&
+							trendingResponse.data
+						) {
+							const trendingPosts = trendingResponse.data.filter(
+								post => post.postType !== 'GROUP',
+							)
+							if (trendingPosts.length > 0) {
+								setPosts(trendingPosts)
+								setIsColdStartFallback(true)
+								if (trendingResponse.pagination) {
+									setHasMore(!trendingResponse.pagination.last)
+								} else {
+									setHasMore(trendingPosts.length >= POSTS_PER_PAGE)
+								}
+							}
+						}
+					}
+
 					// Use pagination info from backend - check if current page is the last
 					if (feedResponse.pagination) {
 						setHasMore(!feedResponse.pagination.last)
@@ -274,22 +317,31 @@ export default function DashboardPage() {
 				}
 
 				if (pendingResponse.success && pendingResponse.data) {
-					setPendingSessions(
-						pendingResponse.data.map(transformToPendingSession),
-					)
+					const wasDismissed =
+						sessionStorage.getItem('chefkix_pending_dismissed') === 'true'
+					if (!wasDismissed) {
+						setPendingSessions(
+							pendingResponse.data.map(transformToPendingSession),
+						)
+					}
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to load dashboard feed:', err)
 				setError('Failed to load feed')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchInitialData()
+		return () => {
+			cancelled = true
+		}
 	}, [feedMode, retryPendingXpSync, retryCount])
 
 	const handleRetryPendingXpSync = async () => {
+		if (isRetryingPendingXp) return
 		setIsRetryingPendingXp(true)
 		const recovered = await retryPendingXpSync()
 		if (recovered) {
@@ -308,6 +360,13 @@ export default function DashboardPage() {
 		const nextPage = currentPage + 1
 
 		try {
+			// When cold-start fallback is active, load more from trending (not forYou)
+			const effectiveMode: 'forYou' | 'latest' | 'trending' =
+				isColdStartFallback
+					? 'trending'
+					: feedMode === 'following'
+						? 'latest'
+						: feedMode
 			const response =
 				feedMode === 'following'
 					? await getFollowingFeedPosts({
@@ -318,7 +377,7 @@ export default function DashboardPage() {
 					: await getFeedPosts({
 							page: nextPage,
 							size: POSTS_PER_PAGE,
-							mode: feedMode,
+							mode: effectiveMode,
 						})
 
 			if (response.success && response.data) {
@@ -326,7 +385,11 @@ export default function DashboardPage() {
 				const filteredPosts = response.data.filter(
 					post => post.postType !== 'GROUP',
 				)
-				setPosts(prev => [...prev, ...filteredPosts])
+				setPosts(prev => {
+					const existingIds = new Set(prev.map(p => p.id))
+					const newPosts = filteredPosts.filter(p => !existingIds.has(p.id))
+					return [...prev, ...newPosts]
+				})
 				setCurrentPage(nextPage)
 				if (response.pagination) {
 					setHasMore(!response.pagination.last)
@@ -336,10 +399,12 @@ export default function DashboardPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to load more posts:', err)
+			toast.error('Failed to load more posts')
+			setHasMore(false)
 		} finally {
 			setIsLoadingMore(false)
 		}
-	}, [isLoadingMore, hasMore, currentPage, feedMode])
+	}, [isLoadingMore, hasMore, currentPage, feedMode, isColdStartFallback])
 
 	// Intersection Observer for infinite scroll
 	useEffect(() => {
@@ -376,8 +441,9 @@ export default function DashboardPage() {
 	}
 
 	const handleDismissPending = () => {
-		// Optionally hide pending section temporarily
 		setPendingSessions([])
+		// Persist dismissal so it doesn't reappear on page refresh within this session
+		sessionStorage.setItem('chefkix_pending_dismissed', 'true')
 	}
 
 	const handlePostUpdate = (updatedPost: Post) => {
@@ -399,25 +465,140 @@ export default function DashboardPage() {
 			<PageContainer maxWidth='lg'>
 				{/* Tonight's Pick — hero recipe suggestion */}
 				<TonightsPick className='mb-6' />
+
+				{/* New User Welcome — shown when user has never cooked or created a recipe */}
+				{stats &&
+					(stats.currentXP ?? 0) === 0 &&
+					(stats.recipeCount ?? 0) === 0 && (
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={TRANSITION_SPRING}
+							className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
+						>
+							<h2 className='text-lg font-bold text-text'>
+								Welcome to ChefKix,{' '}
+								{user?.displayName || user?.firstName || user?.username}! 🎉
+							</h2>
+							<p className='mt-1 text-sm text-text-secondary'>
+								Here&apos;s how to get the most out of ChefKix:
+							</p>
+							<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+								<Link
+									href='/explore'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 transition-colors group-hover:bg-brand/20'>
+										<BookOpen className='size-5 text-brand' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											Find a recipe
+										</span>
+										<p className='text-xs text-text-muted'>
+											Browse hundreds of dishes
+										</p>
+									</div>
+								</Link>
+								<Link
+									href='/explore'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
+										<ChefHat className='size-5 text-xp' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											Start cooking
+										</span>
+										<p className='text-xs text-text-muted'>
+											Earn XP with every dish
+										</p>
+									</div>
+								</Link>
+								<Link
+									href='/community'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 transition-colors group-hover:bg-streak/20'>
+										<Users className='size-5 text-streak' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											Join the community
+										</span>
+										<p className='text-xs text-text-muted'>
+											Follow chefs you love
+										</p>
+									</div>
+								</Link>
+							</div>
+						</motion.div>
+					)}
+
+				{/* Complete Your Profile — nudge users who haven't set avatar or bio */}
+				{user &&
+					(!user.avatarUrl ||
+						user.avatarUrl === '/placeholder-avatar.svg' ||
+						!user.bio) && (
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+							className='mb-6 rounded-radius border border-border-subtle bg-bg-card p-5 shadow-card'
+						>
+							<h3 className='text-sm font-bold text-text'>
+								Complete your profile
+							</h3>
+							<p className='mt-1 text-xs text-text-muted'>
+								Profiles with photos get 5x more followers
+							</p>
+							<div className='mt-3 flex flex-wrap gap-2'>
+								{(!user.avatarUrl ||
+									user.avatarUrl === '/placeholder-avatar.svg') && (
+									<Link
+										href='/settings'
+										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+									>
+										<Camera className='size-3.5' />
+										Add a photo
+									</Link>
+								)}
+								{!user.bio && (
+									<Link
+										href='/settings'
+										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+									>
+										<PenLine className='size-3.5' />
+										Write a bio
+									</Link>
+								)}
+							</div>
+						</motion.div>
+					)}
+
 				{/* Since Last Visit Summary - Welcome back card with activity summary */}
 				<SinceLastVisitCard className='mb-6' />
 				{hasPendingXpSync && (
-					<div className='mb-4 rounded-radius border border-warning/30 bg-warning/10 p-4'>
+					<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
 						<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
 							<div>
-								<p className='text-sm font-semibold text-warning'>
-									XP Sync Pending
+								<p className='text-sm font-semibold text-brand'>
+									Syncing your XP...
 								</p>
 								<p className='text-sm text-text-secondary'>
-									Your post is published, but XP confirmation is still pending.
+									Your post is published! XP is being confirmed — this usually
+									takes a few seconds.
 								</p>
 							</div>
 							<Button
+								variant='outline'
+								size='sm'
 								onClick={handleRetryPendingXpSync}
 								disabled={isRetryingPendingXp}
 								className='sm:w-auto'
 							>
-								{isRetryingPendingXp ? 'Retrying...' : 'Retry XP Sync'}
+								{isRetryingPendingXp ? 'Syncing...' : 'Sync Now'}
 							</Button>
 						</div>
 					</div>
@@ -458,7 +639,7 @@ export default function DashboardPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 						>
 							<Home className='size-6 text-white' />
 						</motion.div>
@@ -496,7 +677,7 @@ export default function DashboardPage() {
 							className={cn(
 								'relative flex shrink-0 items-center gap-2 rounded-radius px-4 py-2 text-sm font-semibold transition-all duration-200',
 								feedMode === tab.key
-									? 'bg-gradient-brand text-white shadow-sm'
+									? 'bg-gradient-brand text-white shadow-card'
 									: 'text-text-secondary hover:bg-bg-elevated hover:text-text',
 							)}
 						>
@@ -525,7 +706,7 @@ export default function DashboardPage() {
 					<div className='space-y-4 md:space-y-6'>
 						<PostCardSkeleton count={3} showImages={false} />
 					</div>
-				)}{' '}
+				)}
 				{error && (
 					<ErrorState
 						title='Failed to load feed'
@@ -536,6 +717,20 @@ export default function DashboardPage() {
 						}}
 					/>
 				)}
+				{/* Cold-start banner: shown when forYou is empty but trending has posts */}
+				{!isLoading &&
+					!error &&
+					isColdStartFallback &&
+					feedMode === 'forYou' && (
+						<div className='mb-4 flex items-center gap-3 rounded-radius border border-brand/20 bg-brand/5 p-3 text-sm text-text-secondary'>
+							<TrendingUp className='size-4 shrink-0 text-brand' />
+							<span>
+								Showing <strong className='text-text'>trending posts</strong>{' '}
+								while your personalized feed warms up. Like and save posts to
+								teach the algorithm your taste!
+							</span>
+						</div>
+					)}
 				{!isLoading &&
 					!error &&
 					filteredPosts.length === 0 &&
@@ -547,7 +742,7 @@ export default function DashboardPage() {
 							primaryAction={{
 								label: 'Discover People',
 								href: '/community',
-								icon: <Users className='h-4 w-4' />,
+								icon: <Users className='size-4' />,
 							}}
 						/>
 					)}
@@ -561,7 +756,7 @@ export default function DashboardPage() {
 							description='Like and save posts to teach the algorithm your taste. The more you interact, the better your feed gets!'
 							primaryAction={{
 								label: 'Explore Trending',
-								href: '/feed',
+								href: '/explore',
 								icon: <TrendingUp className='size-4' />,
 							}}
 						/>
@@ -577,7 +772,7 @@ export default function DashboardPage() {
 							description='Follow chefs to see their latest posts here!'
 							primaryAction={{
 								label: 'Discover People',
-								href: '/discover',
+								href: '/community',
 								icon: <Users className='size-4' />,
 							}}
 							secondaryActions={[
@@ -593,26 +788,34 @@ export default function DashboardPage() {
 					<>
 						<StaggerContainer className='space-y-4 md:space-y-6'>
 							<AnimatePresence mode='popLayout'>
-								{filteredPosts.map(post =>
-									post.postType === 'POLL' ? (
-										<PollCard
-											key={post.id}
-											post={post}
-											onUpdate={handlePostUpdate}
-											currentUserId={user?.userId}
-										/>
-									) : post.postType === 'RECENT_COOK' ? (
-										<RecentCookCard key={post.id} post={post} />
-									) : (
-										<PostCard
-											key={post.id}
-											post={post}
-											onUpdate={handlePostUpdate}
-											onDelete={handlePostDelete}
-											currentUserId={user?.userId}
-										/>
-									),
-								)}
+								{filteredPosts.map((post, i) => (
+									<div
+										key={post.id}
+										data-post-index={i}
+										className={cn(
+											'transition-shadow',
+											focusedPostIndex === i &&
+												'ring-inset ring-2 ring-border-strong',
+										)}
+									>
+										{post.postType === 'POLL' ? (
+											<PollCard
+												post={post}
+												onUpdate={handlePostUpdate}
+												currentUserId={user?.userId}
+											/>
+										) : post.postType === 'RECENT_COOK' ? (
+											<RecentCookCard post={post} />
+										) : (
+											<PostCard
+												post={post}
+												onUpdate={handlePostUpdate}
+												onDelete={handlePostDelete}
+												currentUserId={user?.userId}
+											/>
+										)}
+									</div>
+								))}
 							</AnimatePresence>
 						</StaggerContainer>
 
@@ -639,6 +842,7 @@ export default function DashboardPage() {
 					</>
 				)}
 			</PageContainer>
+			<QuickPostFAB onPostCreated={handlePostCreated} />
 		</PageTransition>
 	)
 }

@@ -337,6 +337,7 @@ export const calculateMetas = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CalculateMetasResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -361,6 +362,7 @@ export const validateRecipe = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<ValidateRecipeResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -386,6 +388,7 @@ export const askCookingAssistant = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<CookingAssistantResponse>
 		>
@@ -444,6 +447,7 @@ export const suggestSubstitutions = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<SubstitutionResponse>>
 		if (axiosError.response?.data) return axiosError.response.data
 		return {
@@ -467,6 +471,7 @@ export const remixRecipe = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<RemixRecipeResponse>>
 		if (axiosError.response?.data) return axiosError.response.data
 		return {

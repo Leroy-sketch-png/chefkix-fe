@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -14,19 +14,28 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { toast } from 'sonner'
 
-export default function CookTogetherPage() {
+function CookTogetherContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [roomCodeInput, setRoomCodeInput] = useState('')
 	const [isJoining, setIsJoining] = useState(false)
 	const [copied, setCopied] = useState(false)
 	const inputRef = useRef<HTMLInputElement>(null)
+	const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const { roomCode, isInRoom, joinRoom } = useCookingStore()
+
+	// Clean up copy timer on unmount
+	useEffect(() => {
+		return () => {
+			if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current)
+		}
+	}, [])
 
 	// Auto-fill room code from URL params (invite deep link / Watch button)
 	useEffect(() => {
@@ -41,6 +50,7 @@ export default function CookTogetherPage() {
 		const urlRoomCode = searchParams.get('roomCode')
 		const urlRole = searchParams.get('role')
 		if (urlRoomCode && !isInRoom && !isJoining) {
+			let cancelled = false
 			const autoJoin = async () => {
 				setIsJoining(true)
 				try {
@@ -48,6 +58,7 @@ export default function CookTogetherPage() {
 						urlRoomCode.toUpperCase(),
 						urlRole || undefined,
 					)
+					if (cancelled) return
 					if (success) {
 						toast.success(
 							urlRole === 'SPECTATOR'
@@ -59,12 +70,15 @@ export default function CookTogetherPage() {
 						toast.error('Could not join room. It may be full or dissolved.')
 					}
 				} catch {
-					toast.error('Failed to join room')
+					if (!cancelled) toast.error('Failed to join room')
 				} finally {
-					setIsJoining(false)
+					if (!cancelled) setIsJoining(false)
 				}
 			}
 			autoJoin()
+			return () => {
+				cancelled = true
+			}
 		}
 	}, [searchParams, isInRoom, isJoining, joinRoom, router])
 
@@ -104,7 +118,7 @@ export default function CookTogetherPage() {
 			await navigator.clipboard.writeText(roomCode)
 			setCopied(true)
 			toast.success('Room code copied!')
-			setTimeout(() => setCopied(false), 2000)
+			copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch {
 			toast.error('Failed to copy room code')
 		}
@@ -134,7 +148,7 @@ export default function CookTogetherPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-card'
 						>
 							<Users className='size-6 text-white' />
 						</motion.div>
@@ -314,5 +328,45 @@ export default function CookTogetherPage() {
 				</motion.div>
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+function CookTogetherSkeleton() {
+	return (
+		<PageContainer maxWidth='lg'>
+			<div className='space-y-6'>
+				{/* Header */}
+				<div className='text-center space-y-2'>
+					<Skeleton className='mx-auto h-8 w-48' />
+					<Skeleton className='mx-auto h-5 w-72' />
+				</div>
+				{/* Create room card */}
+				<Skeleton className='h-32 w-full rounded-2xl' />
+				{/* Room cards */}
+				<div className='grid gap-4 sm:grid-cols-2'>
+					{[1, 2, 3, 4].map(i => (
+						<div
+							key={i}
+							className='rounded-2xl border border-border-subtle bg-bg-card p-4 space-y-3'
+						>
+							<div className='flex items-center gap-3'>
+								<Skeleton className='size-10 rounded-full' />
+								<Skeleton className='h-5 w-32' />
+							</div>
+							<Skeleton className='h-4 w-full' />
+							<Skeleton className='h-10 w-full rounded-xl' />
+						</div>
+					))}
+				</div>
+			</div>
+		</PageContainer>
+	)
+}
+
+export default function CookTogetherPage() {
+	return (
+		<Suspense fallback={<CookTogetherSkeleton />}>
+			<CookTogetherContent />
+		</Suspense>
 	)
 }

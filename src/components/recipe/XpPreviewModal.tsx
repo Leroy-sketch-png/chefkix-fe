@@ -77,7 +77,7 @@ export const XpPreviewModal = ({
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
-				className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'
+				className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 			>
 				<motion.div
 					initial={{ scale: 0.9, opacity: 0 }}
@@ -88,7 +88,7 @@ export const XpPreviewModal = ({
 					<div className='mb-5 flex items-center justify-between'>
 						<h2 className='text-xl font-extrabold text-text'>XP Preview</h2>
 						<button
-							onClick={onBack}						aria-label='Close'							className='flex size-9 items-center justify-center rounded-lg bg-bg text-muted-foreground'
+							onClick={onBack}						aria-label='Close'							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
 						>
 							<X className='size-5' />
 						</button>
@@ -105,13 +105,13 @@ export const XpPreviewModal = ({
 								className='size-20 rounded-xl object-cover'
 							/>
 						) : (
-							<div className='flex size-20 items-center justify-center rounded-xl bg-muted text-3xl'>
+							<div className='flex size-20 items-center justify-center rounded-xl bg-bg-elevated text-3xl'>
 								🍳
 							</div>
 						)}
 						<div className='flex-1'>
 							<h3 className='text-lg font-bold text-text'>{recipe.title}</h3>
-							<p className='text-xs text-muted-foreground'>
+							<p className='text-xs text-text-secondary'>
 								{recipe.cookTime} • {recipe.difficulty} • {recipe.servings}{' '}
 								servings
 							</p>
@@ -121,7 +121,7 @@ export const XpPreviewModal = ({
 					{/* XP Breakdown */}
 					<div className='mb-5 rounded-2xl bg-bg p-5'>
 						<div className='mb-4 flex items-center justify-between border-b border-border pb-4'>
-							<span className='text-sm text-muted-foreground'>
+							<span className='text-sm text-text-secondary'>
 								Total Recipe XP
 							</span>
 							<CountUp
@@ -181,7 +181,7 @@ export const XpPreviewModal = ({
 									Recipe passes anti-cheat checks
 								</span>
 							</div>
-							<span className='text-xs font-semibold text-muted-foreground'>
+							<span className='text-xs font-semibold text-text-secondary'>
 								{xpBreakdown.confidence}% confident
 							</span>
 						</div>
@@ -189,7 +189,7 @@ export const XpPreviewModal = ({
 
 					{/* Badges Preview */}
 					<div className='mb-4'>
-						<span className='mb-2.5 block text-xs text-muted-foreground'>
+						<span className='mb-2.5 block text-xs text-text-secondary'>
 							Cooks can earn:
 						</span>
 						<div className='flex gap-2.5'>
@@ -219,7 +219,7 @@ export const XpPreviewModal = ({
 							<span className='text-sm text-text'>
 								when others cook this recipe
 							</span>
-							<span className='block text-xs text-muted-foreground'>
+							<span className='block text-xs text-text-secondary'>
 								If 100 people cook this: +
 								{Math.round(xpBreakdown.total * 0.04 * 100)} XP for you!
 							</span>
@@ -232,7 +232,7 @@ export const XpPreviewModal = ({
 							onClick={onBack}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-muted-foreground'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary'
 						>
 							<Edit3 className='size-4' />
 							Edit Recipe
@@ -264,7 +264,7 @@ export const XpPreviewModal = ({
 								<AlertDialogTitle className='text-lg font-bold text-text'>
 									Ready to go live?
 								</AlertDialogTitle>
-								<AlertDialogDescription className='text-sm text-muted-foreground'>
+								<AlertDialogDescription className='text-sm text-text-secondary'>
 									<span className='font-medium text-text'>{recipe.title}</span>{' '}
 									will be visible to the ChefKix community. You&apos;ll earn{' '}
 									<span className='font-semibold text-xp'>
@@ -276,7 +276,7 @@ export const XpPreviewModal = ({
 							<AlertDialogFooter className='flex-row gap-3 sm:justify-center'>
 								<AlertDialogCancel
 									disabled={isPublishing}
-									className='flex-1 rounded-xl border-border bg-bg text-muted-foreground hover:bg-muted disabled:opacity-50'
+									className='flex-1 rounded-xl border-border bg-bg text-text-secondary hover:bg-bg-hover disabled:opacity-50'
 								>
 									Wait, go back
 								</AlertDialogCancel>

@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
+import { ErrorState } from '@/components/ui/error-state'
 
 /**
  * /profile route - Redirects to the current user's profile page
@@ -15,7 +16,8 @@ import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
  */
 const ProfilePage = () => {
 	const router = useRouter()
-	const { user, isAuthenticated, isLoading } = useAuthStore()
+	const { user, isAuthenticated, isLoading } = useAuth()
+	const [timedOut, setTimedOut] = useState(false)
 
 	useEffect(() => {
 		// Wait for auth state to hydrate from localStorage
@@ -29,6 +31,24 @@ const ProfilePage = () => {
 			router.replace(PATHS.DASHBOARD)
 		}
 	}, [isAuthenticated, isLoading, user?.userId, router])
+
+	// Safety timeout: if redirect hasn't happened after 5s, show error
+	useEffect(() => {
+		const timer = setTimeout(() => setTimedOut(true), 5000)
+		return () => clearTimeout(timer)
+	}, [])
+
+	if (timedOut) {
+		return (
+			<div className='flex min-h-[50vh] items-center justify-center p-6'>
+				<ErrorState
+					title='Could not load profile'
+					message='We had trouble loading your profile. Please try logging in again.'
+					onRetry={() => router.replace(PATHS.DASHBOARD)}
+				/>
+			</div>
+		)
+	}
 
 	// Show skeleton while determining redirect destination
 	return <UserProfileSkeleton />

@@ -1,12 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import {
-	Compass,
-	BookOpen,
-	ChefHat,
-	Check,
-} from 'lucide-react'
+import { Compass, BookOpen, ChefHat, Check } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -73,23 +68,101 @@ function PlateIllustration() {
 				animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.3, 0.6] }}
 				transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
 			/>
-			<svg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg' className='relative z-10'>
+			<svg
+				width='100'
+				height='100'
+				viewBox='0 0 100 100'
+				fill='none'
+				xmlns='http://www.w3.org/2000/svg'
+				className='relative z-10'
+			>
 				{/* Plate shadow */}
-				<ellipse cx='50' cy='78' rx='38' ry='8' fill='currentColor' className='text-border-subtle' opacity='0.4' />
+				<ellipse
+					cx='50'
+					cy='78'
+					rx='38'
+					ry='8'
+					fill='currentColor'
+					className='text-border-subtle'
+					opacity='0.4'
+				/>
 				{/* Plate body */}
-				<ellipse cx='50' cy='60' rx='36' ry='22' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.5' className='text-border-medium' />
-				<ellipse cx='50' cy='58' rx='28' ry='16' fill='none' stroke='currentColor' strokeWidth='0.8' className='text-border-subtle' opacity='0.6' />
+				<ellipse
+					cx='50'
+					cy='60'
+					rx='36'
+					ry='22'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					className='text-border-medium'
+				/>
+				<ellipse
+					cx='50'
+					cy='58'
+					rx='28'
+					ry='16'
+					fill='none'
+					stroke='currentColor'
+					strokeWidth='0.8'
+					className='text-border-subtle'
+					opacity='0.6'
+				/>
 				{/* Fork */}
 				<g transform='translate(18, 30) rotate(-20)'>
-					<rect x='2' y='0' width='2' height='35' rx='1' className='fill-text-muted' opacity='0.5' />
-					<rect x='0' y='0' width='1.2' height='10' rx='0.6' className='fill-text-muted' opacity='0.5' />
-					<rect x='2.4' y='0' width='1.2' height='11' rx='0.6' className='fill-text-muted' opacity='0.5' />
-					<rect x='4.8' y='0' width='1.2' height='10' rx='0.6' className='fill-text-muted' opacity='0.5' />
+					<rect
+						x='2'
+						y='0'
+						width='2'
+						height='35'
+						rx='1'
+						className='fill-text-muted'
+						opacity='0.5'
+					/>
+					<rect
+						x='0'
+						y='0'
+						width='1.2'
+						height='10'
+						rx='0.6'
+						className='fill-text-muted'
+						opacity='0.5'
+					/>
+					<rect
+						x='2.4'
+						y='0'
+						width='1.2'
+						height='11'
+						rx='0.6'
+						className='fill-text-muted'
+						opacity='0.5'
+					/>
+					<rect
+						x='4.8'
+						y='0'
+						width='1.2'
+						height='10'
+						rx='0.6'
+						className='fill-text-muted'
+						opacity='0.5'
+					/>
 				</g>
 				{/* Knife */}
 				<g transform='translate(76, 32) rotate(20)'>
-					<rect x='0' y='0' width='2.5' height='34' rx='1.2' className='fill-text-muted' opacity='0.5' />
-					<path d='M0 0 Q-2 -5 0 -12 Q2.5 -5 2.5 0 Z' className='fill-text-muted' opacity='0.4' />
+					<rect
+						x='0'
+						y='0'
+						width='2.5'
+						height='34'
+						rx='1.2'
+						className='fill-text-muted'
+						opacity='0.5'
+					/>
+					<path
+						d='M0 0 Q-2 -5 0 -12 Q2.5 -5 2.5 0 Z'
+						className='fill-text-muted'
+						opacity='0.4'
+					/>
 				</g>
 			</svg>
 			{/* Animated steam wisps */}
@@ -129,23 +202,104 @@ function ChefWaitingIllustration() {
 				animate={{ scale: [1, 1.2, 1] }}
 				transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
 			/>
-			<svg width='80' height='90' viewBox='0 0 80 90' fill='none' xmlns='http://www.w3.org/2000/svg' className='relative z-10'>
+			<svg
+				width='80'
+				height='90'
+				viewBox='0 0 80 90'
+				fill='none'
+				xmlns='http://www.w3.org/2000/svg'
+				className='relative z-10'
+			>
 				{/* Chef hat */}
-				<ellipse cx='28' cy='22' rx='10' ry='12' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.5' className='text-brand' opacity='0.7' />
-				<ellipse cx='40' cy='18' rx='11' ry='13' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.5' className='text-brand' opacity='0.7' />
-				<ellipse cx='52' cy='22' rx='10' ry='12' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.5' className='text-brand' opacity='0.7' />
-				<rect x='26' y='28' width='28' height='6' rx='2' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.5' className='text-brand' opacity='0.7' />
+				<ellipse
+					cx='28'
+					cy='22'
+					rx='10'
+					ry='12'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					className='text-brand'
+					opacity='0.7'
+				/>
+				<ellipse
+					cx='40'
+					cy='18'
+					rx='11'
+					ry='13'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					className='text-brand'
+					opacity='0.7'
+				/>
+				<ellipse
+					cx='52'
+					cy='22'
+					rx='10'
+					ry='12'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					className='text-brand'
+					opacity='0.7'
+				/>
+				<rect
+					x='26'
+					y='28'
+					width='28'
+					height='6'
+					rx='2'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					className='text-brand'
+					opacity='0.7'
+				/>
 				{/* Face */}
-				<circle cx='40' cy='48' r='14' fill='#fff5f3' stroke='currentColor' strokeWidth='1.5' className='text-brand' opacity='0.6' />
+				<circle
+					cx='40'
+					cy='48'
+					r='14'
+					fill='#fff5f3'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					className='text-brand'
+					opacity='0.6'
+				/>
 				{/* Eyes */}
 				<circle cx='35' cy='46' r='1.8' className='fill-brand' opacity='0.6' />
 				<circle cx='45' cy='46' r='1.8' className='fill-brand' opacity='0.6' />
 				{/* Smile */}
-				<path d='M35 53 Q40 57 45 53' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' fill='none' className='text-brand' opacity='0.5' />
+				<path
+					d='M35 53 Q40 57 45 53'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					strokeLinecap='round'
+					fill='none'
+					className='text-brand'
+					opacity='0.5'
+				/>
 				{/* Spatula in hand */}
 				<g transform='translate(58, 38) rotate(15)'>
-					<rect x='0' y='0' width='2' height='22' rx='1' className='fill-text-muted' opacity='0.4' />
-					<rect x='-2' y='20' width='6' height='8' rx='2' className='fill-text-muted' opacity='0.3' />
+					<rect
+						x='0'
+						y='0'
+						width='2'
+						height='22'
+						rx='1'
+						className='fill-text-muted'
+						opacity='0.4'
+					/>
+					<rect
+						x='-2'
+						y='20'
+						width='6'
+						height='8'
+						rx='2'
+						className='fill-text-muted'
+						opacity='0.3'
+					/>
 				</g>
 			</svg>
 			{/* Waiting dots */}
@@ -171,12 +325,47 @@ function SearchIllustration() {
 				animate={{ scale: [1, 1.1, 1] }}
 				transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
 			/>
-			<svg width='80' height='80' viewBox='0 0 80 80' fill='none' xmlns='http://www.w3.org/2000/svg' className='relative z-10'>
+			<svg
+				width='80'
+				height='80'
+				viewBox='0 0 80 80'
+				fill='none'
+				xmlns='http://www.w3.org/2000/svg'
+				className='relative z-10'
+			>
 				{/* Magnifying glass body */}
-				<circle cx='34' cy='34' r='18' fill='#fdfbf8' stroke='currentColor' strokeWidth='2.5' className='text-text-muted' opacity='0.6' />
-				<circle cx='34' cy='34' r='12' fill='none' stroke='currentColor' strokeWidth='1' className='text-border-subtle' opacity='0.5' />
+				<circle
+					cx='34'
+					cy='34'
+					r='18'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='2.5'
+					className='text-text-muted'
+					opacity='0.6'
+				/>
+				<circle
+					cx='34'
+					cy='34'
+					r='12'
+					fill='none'
+					stroke='currentColor'
+					strokeWidth='1'
+					className='text-border-subtle'
+					opacity='0.5'
+				/>
 				{/* Handle */}
-				<line x1='48' y1='48' x2='62' y2='62' stroke='currentColor' strokeWidth='3' strokeLinecap='round' className='text-text-muted' opacity='0.5' />
+				<line
+					x1='48'
+					y1='48'
+					x2='62'
+					y2='62'
+					stroke='currentColor'
+					strokeWidth='3'
+					strokeLinecap='round'
+					className='text-text-muted'
+					opacity='0.5'
+				/>
 				{/* Sparkle accent */}
 				<circle cx='30' cy='28' r='2' className='fill-brand' opacity='0.3' />
 				<circle cx='38' cy='32' r='1.2' className='fill-brand' opacity='0.2' />
@@ -211,15 +400,62 @@ function BookmarkIllustration() {
 						animate={{ opacity: i === 2 ? 1 : 0.4 + i * 0.2, y: 0 }}
 						transition={{ delay: i * 0.15 }}
 					>
-						<svg width={i === 2 ? '44' : '36'} height={i === 2 ? '56' : '46'} viewBox='0 0 44 56' fill='none' xmlns='http://www.w3.org/2000/svg'>
-							<rect x='2' y='2' width='40' height='52' rx='6' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.5' className='text-border-medium' />
+						<svg
+							width={i === 2 ? '44' : '36'}
+							height={i === 2 ? '56' : '46'}
+							viewBox='0 0 44 56'
+							fill='none'
+							xmlns='http://www.w3.org/2000/svg'
+						>
+							<rect
+								x='2'
+								y='2'
+								width='40'
+								height='52'
+								rx='6'
+								fill='#fdfbf8'
+								stroke='currentColor'
+								strokeWidth='1.5'
+								className='text-border-medium'
+							/>
 							{/* Page lines */}
-							<line x1='10' y1='16' x2='34' y2='16' stroke='currentColor' strokeWidth='1' className='text-border-subtle' opacity='0.4' />
-							<line x1='10' y1='22' x2='28' y2='22' stroke='currentColor' strokeWidth='1' className='text-border-subtle' opacity='0.3' />
-							<line x1='10' y1='28' x2='32' y2='28' stroke='currentColor' strokeWidth='1' className='text-border-subtle' opacity='0.3' />
+							<line
+								x1='10'
+								y1='16'
+								x2='34'
+								y2='16'
+								stroke='currentColor'
+								strokeWidth='1'
+								className='text-border-subtle'
+								opacity='0.4'
+							/>
+							<line
+								x1='10'
+								y1='22'
+								x2='28'
+								y2='22'
+								stroke='currentColor'
+								strokeWidth='1'
+								className='text-border-subtle'
+								opacity='0.3'
+							/>
+							<line
+								x1='10'
+								y1='28'
+								x2='32'
+								y2='28'
+								stroke='currentColor'
+								strokeWidth='1'
+								className='text-border-subtle'
+								opacity='0.3'
+							/>
 							{/* Bookmark tab */}
 							{i === 2 && (
-								<path d='M28 2 L28 14 L34 10 L40 14 L40 2' className='fill-brand' opacity='0.6' />
+								<path
+									d='M28 2 L28 14 L34 10 L40 14 L40 2'
+									className='fill-brand'
+									opacity='0.6'
+								/>
 							)}
 						</svg>
 					</motion.div>
@@ -238,17 +474,70 @@ function TargetIllustration() {
 				animate={{ scale: [0.8, 1.6], opacity: [0.6, 0] }}
 				transition={{ duration: 2.5, repeat: Infinity, ease: 'easeOut' }}
 			/>
-			<svg width='80' height='80' viewBox='0 0 80 80' fill='none' xmlns='http://www.w3.org/2000/svg' className='relative z-10'>
+			<svg
+				width='80'
+				height='80'
+				viewBox='0 0 80 80'
+				fill='none'
+				xmlns='http://www.w3.org/2000/svg'
+				className='relative z-10'
+			>
 				{/* Target rings */}
-				<circle cx='40' cy='40' r='30' fill='none' stroke='currentColor' strokeWidth='2' className='text-border-medium' opacity='0.4' />
-				<circle cx='40' cy='40' r='20' fill='none' stroke='currentColor' strokeWidth='2' className='text-brand' opacity='0.3' />
-				<circle cx='40' cy='40' r='10' fill='none' stroke='currentColor' strokeWidth='2' className='text-brand' opacity='0.5' />
+				<circle
+					cx='40'
+					cy='40'
+					r='30'
+					fill='none'
+					stroke='currentColor'
+					strokeWidth='2'
+					className='text-border-medium'
+					opacity='0.4'
+				/>
+				<circle
+					cx='40'
+					cy='40'
+					r='20'
+					fill='none'
+					stroke='currentColor'
+					strokeWidth='2'
+					className='text-brand'
+					opacity='0.3'
+				/>
+				<circle
+					cx='40'
+					cy='40'
+					r='10'
+					fill='none'
+					stroke='currentColor'
+					strokeWidth='2'
+					className='text-brand'
+					opacity='0.5'
+				/>
 				{/* Bullseye */}
 				<circle cx='40' cy='40' r='4' className='fill-brand' opacity='0.7' />
 				{/* Arrow */}
 				<g transform='translate(52, 16) rotate(45)'>
-					<line x1='0' y1='0' x2='20' y2='0' stroke='currentColor' strokeWidth='2' strokeLinecap='round' className='text-brand' opacity='0.5' />
-					<path d='M16 -4 L22 0 L16 4' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' fill='none' className='text-brand' opacity='0.5' />
+					<line
+						x1='0'
+						y1='0'
+						x2='20'
+						y2='0'
+						stroke='currentColor'
+						strokeWidth='2'
+						strokeLinecap='round'
+						className='text-brand'
+						opacity='0.5'
+					/>
+					<path
+						d='M16 -4 L22 0 L16 4'
+						stroke='currentColor'
+						strokeWidth='1.5'
+						strokeLinecap='round'
+						strokeLinejoin='round'
+						fill='none'
+						className='text-brand'
+						opacity='0.5'
+					/>
 				</g>
 			</svg>
 		</div>
@@ -269,7 +558,7 @@ function CheckmarkIllustration() {
 				initial={{ scale: 0 }}
 				animate={{ scale: 1 }}
 				transition={TRANSITION_SPRING}
-				className='relative z-10 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30'
+				className='relative z-10 flex size-16 items-center justify-center rounded-full bg-success-vivid text-white'
 			>
 				<Check className='size-8 text-white' strokeWidth={3} />
 			</motion.div>
@@ -302,15 +591,52 @@ function BellIllustration() {
 				animate={{ scale: [1, 1.1, 1] }}
 				transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
 			/>
-			<svg width='80' height='80' viewBox='0 0 80 80' fill='none' xmlns='http://www.w3.org/2000/svg' className='relative z-10'>
+			<svg
+				width='80'
+				height='80'
+				viewBox='0 0 80 80'
+				fill='none'
+				xmlns='http://www.w3.org/2000/svg'
+				className='relative z-10'
+			>
 				{/* Bell body */}
-				<path d='M28 35 C28 22 52 22 52 35 L54 52 L26 52 Z' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.8' className='text-text-muted' opacity='0.5' />
+				<path
+					d='M28 35 C28 22 52 22 52 35 L54 52 L26 52 Z'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='1.8'
+					className='text-text-muted'
+					opacity='0.5'
+				/>
 				{/* Bell bottom rim */}
-				<rect x='22' y='52' width='36' height='5' rx='2.5' fill='#fdfbf8' stroke='currentColor' strokeWidth='1.5' className='text-text-muted' opacity='0.4' />
+				<rect
+					x='22'
+					y='52'
+					width='36'
+					height='5'
+					rx='2.5'
+					fill='#fdfbf8'
+					stroke='currentColor'
+					strokeWidth='1.5'
+					className='text-text-muted'
+					opacity='0.4'
+				/>
 				{/* Clapper */}
-				<circle cx='40' cy='61' r='3' className='fill-text-muted' opacity='0.4' />
+				<circle
+					cx='40'
+					cy='61'
+					r='3'
+					className='fill-text-muted'
+					opacity='0.4'
+				/>
 				{/* Bell top */}
-				<circle cx='40' cy='22' r='2.5' className='fill-text-muted' opacity='0.3' />
+				<circle
+					cx='40'
+					cy='22'
+					r='2.5'
+					className='fill-text-muted'
+					opacity='0.3'
+				/>
 			</svg>
 			{/* Sleep particles */}
 			{[0, 1, 2].map(i => (
@@ -434,7 +760,7 @@ export function EmptyState({
 							className={cn(
 								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
 								'bg-primary text-white text-base font-bold',
-								'hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/30 transition-all',
+								'transition-all hover:bg-primary/90',
 							)}
 						>
 							{primaryAction.icon}
@@ -446,7 +772,7 @@ export function EmptyState({
 							className={cn(
 								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
 								'bg-primary text-white text-base font-bold',
-								'hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/30 transition-all',
+								'transition-all hover:bg-primary/90',
 								isPositive && 'animate-pulse',
 							)}
 						>
@@ -541,7 +867,6 @@ export function EmptyFeed({
 			variant='feed'
 			title='Your feed is hungry!'
 			description='Follow chefs to fill it with delicious inspiration'
-
 			primaryAction={{
 				label: 'Discover Chefs',
 				onClick: onDiscoverChefs,
@@ -729,7 +1054,7 @@ export function AllCaughtUp({
 					</div>
 					<button
 						onClick={onCookNow}
-						className='size-10 flex items-center justify-center bg-primary rounded-lg text-white hover:scale-105 transition-transform'
+						className='size-10 flex items-center justify-center bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors'
 					>
 						<ChefHat className='size-5' />
 					</button>

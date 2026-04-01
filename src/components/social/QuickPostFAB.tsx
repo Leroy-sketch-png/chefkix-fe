@@ -2,15 +2,26 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, X, Send, Image as ImageIcon, Loader2, BarChart3 } from 'lucide-react'
+import {
+	Camera,
+	X,
+	Send,
+	Image as ImageIcon,
+	Loader2,
+	BarChart3,
+} from 'lucide-react'
 import Image from 'next/image'
 import { createPost } from '@/services/post'
 import { moderateContent } from '@/services/ai'
 import { Post } from '@/lib/types'
 import { Portal } from '@/components/ui/portal'
 import { useAuthStore } from '@/store/authStore'
-import { toast } from '@/components/ui/toaster'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { toast } from 'sonner'
+import {
+	TRANSITION_SPRING,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { MentionInput } from '@/components/shared/MentionInput'
 
@@ -19,7 +30,10 @@ interface QuickPostFABProps {
 	className?: string
 }
 
-export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) => {
+export const QuickPostFAB = ({
+	onPostCreated,
+	className,
+}: QuickPostFABProps) => {
 	const [isOpen, setIsOpen] = useState(false)
 	const [mode, setMode] = useState<'post' | 'poll'>('post')
 	const [caption, setCaption] = useState('')
@@ -97,6 +111,8 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 	}
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return
+
 		if (mode === 'poll') {
 			if (!pollQuestion.trim() || !pollOptionA.trim() || !pollOptionB.trim()) {
 				toast.error('Fill in the question and both options!')
@@ -104,34 +120,42 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 			}
 
 			setIsSubmitting(true)
+			try {
+				const moderationResult = await moderateContent(
+					pollQuestion.trim(),
+					'post_caption',
+				)
+				if (!moderationResult.success) {
+					toast.error('Unable to verify content. Please try again.')
+					return
+				}
+				if (moderationResult.data?.action === 'block') {
+					toast.error(
+						moderationResult.data.reason ||
+							'Content violates community guidelines.',
+					)
+					return
+				}
 
-			const moderationResult = await moderateContent(pollQuestion.trim(), 'post_caption')
-			if (!moderationResult.success) {
-				toast.error('Unable to verify content. Please try again.')
-				setIsSubmitting(false)
-				return
-			}
-			if (moderationResult.data?.action === 'block') {
-				toast.error(moderationResult.data.reason || 'Content violates community guidelines.')
-				setIsSubmitting(false)
-				return
-			}
+				const response = await createPost({
+					avatarUrl: user?.avatarUrl || '/placeholder-avatar.svg',
+					content: pollQuestion.trim(),
+					postType: 'POLL',
+					pollQuestion: pollQuestion.trim(),
+					pollOptionA: pollOptionA.trim(),
+					pollOptionB: pollOptionB.trim(),
+				})
 
-			const response = await createPost({
-				avatarUrl: user?.avatarUrl || '/placeholder-avatar.svg',
-				content: pollQuestion.trim(),
-				postType: 'POLL',
-				pollQuestion: pollQuestion.trim(),
-				pollOptionA: pollOptionA.trim(),
-				pollOptionB: pollOptionB.trim(),
-			})
-
-			if (response.success && response.data) {
-				toast.success('Poll created!')
-				onPostCreated?.(response.data as Post)
-				handleClose()
-			} else {
+				if (response.success && response.data) {
+					toast.success('Poll created!')
+					onPostCreated?.(response.data as Post)
+					handleClose()
+					return
+				}
 				toast.error(response.message || 'Failed to create poll')
+			} catch {
+				toast.error('Something went wrong. Please try again.')
+			} finally {
 				setIsSubmitting(false)
 			}
 			return
@@ -147,43 +171,48 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 		}
 
 		setIsSubmitting(true)
-
-		// AI content moderation (fail-closed)
-		const moderationResult = await moderateContent(caption.trim(), 'post_caption')
-		if (!moderationResult.success) {
-			toast.error('Unable to verify content. Please try again.')
-			setIsSubmitting(false)
-			return
-		}
-		if (moderationResult.data?.action === 'block') {
-			toast.error(
-				moderationResult.data.reason ||
-					'Content violates community guidelines.',
+		try {
+			// AI content moderation (fail-closed)
+			const moderationResult = await moderateContent(
+				caption.trim(),
+				'post_caption',
 			)
-			setIsSubmitting(false)
-			return
-		}
-		if (moderationResult.data?.action === 'flag') {
-			toast.warning(
-				moderationResult.data.reason ||
-					'Content may be reviewed by moderation.',
-			)
-		}
+			if (!moderationResult.success) {
+				toast.error('Unable to verify content. Please try again.')
+				return
+			}
+			if (moderationResult.data?.action === 'block') {
+				toast.error(
+					moderationResult.data.reason ||
+						'Content violates community guidelines.',
+				)
+				return
+			}
+			if (moderationResult.data?.action === 'flag') {
+				toast.warning(
+					moderationResult.data.reason ||
+						'Content may be reviewed by moderation.',
+				)
+			}
 
-		const response = await createPost({
-			avatarUrl: user?.avatarUrl || '/placeholder-avatar.svg',
-			content: caption.trim(),
-			photoUrls: photoFiles.length > 0 ? photoFiles : undefined,
-			postType: 'QUICK',
-			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
-		})
+			const response = await createPost({
+				avatarUrl: user?.avatarUrl || '/placeholder-avatar.svg',
+				content: caption.trim(),
+				photoUrls: photoFiles.length > 0 ? photoFiles : undefined,
+				postType: 'QUICK',
+				taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
+			})
 
-		if (response.success && response.data) {
-			toast.success('Quick post shared!')
-			onPostCreated?.(response.data as Post)
-			handleClose()
-		} else {
+			if (response.success && response.data) {
+				toast.success('Quick post shared!')
+				onPostCreated?.(response.data as Post)
+				handleClose()
+				return
+			}
 			toast.error(response.message || 'Failed to post')
+		} catch {
+			toast.error('Something went wrong. Please try again.')
+		} finally {
 			setIsSubmitting(false)
 		}
 	}
@@ -194,11 +223,11 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 			<motion.button
 				onClick={handleOpen}
 				className={cn(
-					'fixed bottom-6 right-6 z-sticky flex size-14 items-center justify-center rounded-full bg-gradient-brand shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40',
+					'fixed bottom-6 right-6 z-sticky flex size-14 items-center justify-center rounded-full bg-gradient-brand transition-all duration-300 hover:opacity-90',
 					className,
 				)}
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.95 }}
+				whileHover={BUTTON_SUBTLE_HOVER}
+				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
 				aria-label='Quick Post'
 			>
@@ -221,7 +250,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 100 }}
 								transition={TRANSITION_SPRING}
-								className='w-full max-w-lg rounded-t-2xl border border-border-subtle bg-bg-card p-5 shadow-lg sm:rounded-2xl'
+								className='w-full max-w-lg rounded-t-2xl border border-border-subtle bg-bg-card p-5 shadow-card sm:rounded-2xl'
 								onClick={e => e.stopPropagation()}
 							>
 								{/* Header */}
@@ -250,7 +279,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 										className={cn(
 											'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-all',
 											mode === 'post'
-												? 'bg-bg-card text-text shadow-sm'
+												? 'bg-bg-card text-text shadow-card'
 												: 'text-text-muted hover:text-text',
 										)}
 									>
@@ -262,7 +291,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 										className={cn(
 											'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-all',
 											mode === 'poll'
-												? 'bg-bg-card text-text shadow-sm'
+												? 'bg-bg-card text-text shadow-card'
 												: 'text-text-muted hover:text-text',
 										)}
 									>
@@ -303,7 +332,7 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 												/>
 											</div>
 											<div className='flex items-center gap-2'>
-												<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-xs font-bold text-purple-500'>
+												<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-xs font-bold text-secondary'>
 													B
 												</span>
 												<input
@@ -399,9 +428,11 @@ export const QuickPostFAB = ({ onPostCreated, className }: QuickPostFABProps) =>
 										isSubmitting ||
 										(mode === 'post'
 											? !caption.trim() && photoFiles.length === 0
-											: !pollQuestion.trim() || !pollOptionA.trim() || !pollOptionB.trim())
+											: !pollQuestion.trim() ||
+												!pollOptionA.trim() ||
+												!pollOptionB.trim())
 									}
-									className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3 font-semibold text-white shadow-md shadow-brand/25 transition-all hover:shadow-lg hover:shadow-brand/30 disabled:opacity-50'
+									className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3 font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50'
 								>
 									{isSubmitting ? (
 										<>

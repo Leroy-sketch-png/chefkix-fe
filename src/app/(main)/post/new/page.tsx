@@ -21,11 +21,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Skeleton } from '@/components/ui/skeleton'
 import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
 import { guardContent } from '@/services/ml'
 import { trackEvent } from '@/lib/eventTracker'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -60,7 +61,7 @@ function CreatePostContent() {
 	const searchParams = useSearchParams()
 	const sessionId = searchParams.get('session')
 
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const [session, setSession] = useState<SessionInfo | null>(null)
 	const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId)
 
@@ -133,10 +134,12 @@ function CreatePostContent() {
 	// Load session info if sessionId is provided
 	useEffect(() => {
 		if (!sessionId) return
+		let cancelled = false
 
 		const loadSession = async () => {
 			try {
 				const response = await getSessionById(sessionId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					const s = response.data
 
@@ -174,14 +177,18 @@ function CreatePostContent() {
 					toast.error('Session not found')
 				}
 			} catch (error) {
+				if (cancelled) return
 				logDevError('Failed to load session:', error)
 				toast.error('Failed to load session data')
 			} finally {
-				setIsLoadingSession(false)
+				if (!cancelled) setIsLoadingSession(false)
 			}
 		}
 
 		loadSession()
+		return () => {
+			cancelled = true
+		}
 	}, [sessionId])
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,6 +213,8 @@ function CreatePostContent() {
 	}
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return
+
 		if (!content.trim() && photoFiles.length === 0) {
 			toast.error('Add some content or photos to share!')
 			return
@@ -356,6 +365,7 @@ function CreatePostContent() {
 							className='flex size-10 items-center justify-center rounded-xl bg-bg-hover text-text-secondary transition-colors hover:bg-bg-card hover:text-text'
 							whileHover={ICON_BUTTON_HOVER}
 							whileTap={ICON_BUTTON_TAP}
+							aria-label='Go back'
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
@@ -478,6 +488,7 @@ function CreatePostContent() {
 										handleSubmit()
 									}
 								}}
+								maxLength={2000}
 								placeholder={
 									session
 										? `Tell everyone about your ${session.recipeTitle}! How did it turn out?`
@@ -486,6 +497,9 @@ function CreatePostContent() {
 								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none'
 								autoFocus
 							/>
+							<p className='mt-1 text-right text-xs text-text-muted'>
+								{content.length}/2000
+							</p>
 
 							{/* Photo Previews */}
 							<AnimatePresence>
@@ -498,7 +512,7 @@ function CreatePostContent() {
 									>
 										{previewUrls.map((url, index) => (
 											<motion.div
-												key={index}
+												key={url}
 												initial={{ opacity: 0, scale: 0.8 }}
 												animate={{ opacity: 1, scale: 1 }}
 												exit={{ opacity: 0, scale: 0.8 }}
@@ -515,6 +529,7 @@ function CreatePostContent() {
 													className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100'
 													whileHover={{ scale: 1.1 }}
 													whileTap={{ scale: 0.9 }}
+													aria-label={`Remove photo ${index + 1}`}
 												>
 													<X className='size-4' />
 												</motion.button>
@@ -568,8 +583,14 @@ function CreatePostContent() {
 										{session
 											? `Post & Claim ${Math.round(session.pendingXp)} XP`
 											: 'Post'}
-										<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
-											⌘↵
+										<kbd
+											className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
+											suppressHydrationWarning
+										>
+											{typeof window !== 'undefined' &&
+											navigator.platform?.includes('Mac')
+												? '⌘↵'
+												: 'Ctrl+↵'}
 										</kbd>
 									</>
 								)}
@@ -595,17 +616,32 @@ function CreatePostContent() {
 	)
 }
 
+function CreatePostSkeleton() {
+	return (
+		<PageContainer maxWidth='md'>
+			<div className='space-y-6'>
+				{/* Header */}
+				<div className='flex items-center gap-3'>
+					<Skeleton className='size-10 rounded-full' />
+					<div className='space-y-1'>
+						<Skeleton className='h-6 w-40' />
+						<Skeleton className='h-4 w-56' />
+					</div>
+				</div>
+				{/* Photo upload area */}
+				<Skeleton className='h-48 w-full rounded-2xl' />
+				{/* Caption area */}
+				<Skeleton className='h-24 w-full rounded-2xl' />
+				{/* Submit button */}
+				<Skeleton className='h-12 w-full rounded-xl' />
+			</div>
+		</PageContainer>
+	)
+}
+
 export default function CreatePostPage() {
 	return (
-		<Suspense
-			fallback={
-				<PageContainer maxWidth='md'>
-					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
-					</div>
-				</PageContainer>
-			}
-		>
+		<Suspense fallback={<CreatePostSkeleton />}>
 			<CreatePostContent />
 		</Suspense>
 	)

@@ -120,7 +120,7 @@ export function StreakRiskBanner({
 							<>Your {currentStreak}-day streak is at risk!</>
 						)}
 					</span>
-					<span className='text-sm text-muted-foreground'>
+					<span className='text-sm text-text-secondary'>
 						{isUrgent
 							? `Don't lose ${currentStreak} days of progress!`
 							: 'Cook something today to keep it alive'}
@@ -171,9 +171,9 @@ export function StreakRiskBanner({
 				<button
 					onClick={onDismiss}
 					aria-label='Dismiss'
-					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-muted-foreground opacity-60 hover:opacity-100 transition-opacity'
+					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-text-secondary opacity-60 hover:opacity-100 transition-opacity'
 				>
-					<X className='w-4 h-4' />
+					<X className='size-4' />
 				</button>
 			)}
 		</motion.div>
@@ -246,7 +246,7 @@ export function StreakSavedToast({
 						{/* Bonus XP */}
 						{!isNewStreak && bonusXp > 0 && (
 							<div className='flex flex-col items-center rounded-lg bg-success/10 px-4 py-2.5'>
-								<span className='text-2xs text-muted-foreground uppercase tracking-wide'>
+								<span className='text-2xs text-text-secondary uppercase tracking-wide'>
 									Streak Bonus
 								</span>
 								<span className='text-base font-extrabold text-success'>
@@ -303,7 +303,7 @@ export function StreakMilestoneCard({
 				<h3 className='text-lg font-extrabold text-text mb-1'>
 					{days}-Day Streak! 🎉
 				</h3>
-				<p className='text-sm text-muted-foreground mb-3'>
+				<p className='text-sm text-text-secondary mb-3'>
 					You cooked every day for{' '}
 					{days === 7 ? 'a week' : days === 14 ? 'two weeks' : `${days} days`}!
 				</p>
@@ -313,7 +313,7 @@ export function StreakMilestoneCard({
 					<span className='text-2xl'>🎖️</span>
 					<div className='flex flex-col'>
 						<span className='text-sm font-bold text-text'>{badgeName}</span>
-						<span className='text-xs text-muted-foreground'>
+						<span className='text-xs text-text-secondary'>
 							Added to your collection
 						</span>
 					</div>
@@ -321,7 +321,7 @@ export function StreakMilestoneCard({
 
 				{/* Next Milestone */}
 				{nextMilestone && (
-					<div className='text-xs text-muted-foreground'>
+					<div className='text-xs text-text-secondary'>
 						<span>Next milestone: </span>
 						<span className='text-streak font-semibold'>
 							{nextMilestone.days}-day streak → {nextMilestone.badgeName}
@@ -339,7 +339,7 @@ export function StreakMilestoneCard({
 					onClick={onShare}
 					className='flex items-center gap-1.5 py-2.5 px-4 bg-panel-bg border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0'
 				>
-					<Share2 className='w-4 h-4' />
+					<Share2 className='size-4' />
 					Share
 				</motion.button>
 			)}
@@ -429,14 +429,14 @@ export function StreakWidget({
 				<span className='text-5xl font-black text-orange-500 leading-none'>
 					{currentStreak}
 				</span>
-				<span className='text-base font-semibold text-muted-foreground'>
+				<span className='text-base font-semibold text-text-secondary'>
 					days
 				</span>
 			</div>
 
 			{/* Week Progress */}
 			<div className='mb-4'>
-				<span className='block text-xs text-muted-foreground uppercase tracking-wide mb-2.5 text-center'>
+				<span className='block text-xs text-text-secondary uppercase tracking-wide mb-2.5 text-center'>
 					This Week
 				</span>
 				<div className='flex justify-between gap-1.5'>
@@ -446,13 +446,13 @@ export function StreakWidget({
 							className={cn(
 								'flex-1 aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all',
 								day === 'cooked' &&
-									'bg-gradient-streak text-white shadow-sm shadow-streak/30',
+									'bg-gradient-streak text-white shadow-card shadow-streak/30',
 								day === 'today' &&
 									(isActiveToday
-										? 'bg-gradient-success text-white shadow-sm shadow-success/30'
+										? 'bg-gradient-success text-white shadow-card shadow-success/30'
 										: 'bg-panel-bg border-2 border-dashed border-success text-success'),
 								day === 'future' &&
-									'bg-bg border-2 border-border text-muted-foreground',
+									'bg-bg border-2 border-border text-text-secondary',
 							)}
 							title={`${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index]}${day === 'today' ? ' (Today)' : ''}`}
 						>

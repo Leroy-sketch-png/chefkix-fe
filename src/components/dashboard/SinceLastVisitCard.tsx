@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Heart,
@@ -58,6 +59,7 @@ function formatTimeSince(date: Date): string {
 // ============================================
 
 export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
+	const router = useRouter()
 	const [data, setData] = useState<NotificationSummaryResponse | null>(null)
 	const [lastVisit, setLastVisitDate] = useState<Date | null>(null)
 	const [isVisible, setIsVisible] = useState(false)
@@ -82,15 +84,19 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 			}
 
 			// Use the new backend endpoint for pre-aggregated summary
-			const response = await getActivitySummary(storedLastVisit.toISOString())
-			if (
-				response.success &&
-				response.data &&
-				response.data.totalNotifications > 0
-			) {
-				setData(response.data)
-				setLastVisitDate(storedLastVisit)
-				setIsVisible(true)
+			try {
+				const response = await getActivitySummary(storedLastVisit.toISOString())
+				if (
+					response.success &&
+					response.data &&
+					response.data.totalNotifications > 0
+				) {
+					setData(response.data)
+					setLastVisitDate(storedLastVisit)
+					setIsVisible(true)
+				}
+			} catch {
+				// Non-critical — silently fail, card just won't show
 			}
 
 			// Update last visit time
@@ -113,36 +119,42 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 			value: data.newLikes,
 			label: 'likes',
 			color: 'text-error',
+			href: '/notifications',
 		},
 		{
 			icon: MessageCircle,
 			value: data.newComments,
 			label: 'comments',
 			color: 'text-info',
+			href: '/notifications',
 		},
 		{
 			icon: UserPlus,
 			value: data.newFollowers,
 			label: 'followers',
 			color: 'text-success',
+			href: '/community',
 		},
 		{
 			icon: Sparkles,
 			value: data.xpAwarded,
 			label: 'XP',
 			color: 'text-accent-purple',
+			href: '/profile/badges',
 		},
 		{
 			icon: Trophy,
 			value: data.badgesEarned,
 			label: 'badges',
-			color: 'text-yellow-500',
+			color: 'text-medal-gold',
+			href: '/profile/badges',
 		},
 		{
 			icon: Award,
 			value: data.levelsGained,
 			label: 'levels',
 			color: 'text-xp',
+			href: '/profile/badges',
 		},
 	].filter(s => s.value > 0)
 
@@ -155,7 +167,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 					exit={{ opacity: 0, y: -20, scale: 0.95 }}
 					transition={TRANSITION_SPRING}
 					className={cn(
-						'relative overflow-hidden rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-elevated to-bg-card p-4 shadow-warm',
+						'relative overflow-hidden rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-elevated to-bg-card p-4',
 						className,
 					)}
 				>
@@ -183,18 +195,19 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 
 						{/* Stats grid */}
 						<div className='flex flex-wrap gap-3'>
-							{stats.map(({ icon: Icon, value, label, color }) => (
-								<motion.div
+							{stats.map(({ icon: Icon, value, label, color, href }) => (
+								<motion.button
 									key={label}
 									whileHover={{ scale: 1.05 }}
-									className='flex items-center gap-1.5 rounded-lg bg-bg-card/80 px-2.5 py-1.5'
+									onClick={() => router.push(href)}
+									className='flex items-center gap-1.5 rounded-lg bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated'
 								>
 									<Icon className={cn('size-4', color)} />
 									<span className='text-sm font-semibold text-text'>
 										{value}
 									</span>
 									<span className='text-xs text-text-muted'>{label}</span>
-								</motion.div>
+								</motion.button>
 							))}
 						</div>
 					</div>

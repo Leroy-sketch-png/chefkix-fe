@@ -30,7 +30,7 @@ export const RecipeParsingOverlay = ({
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			exit={{ opacity: 0 }}
-			className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm'
+			className='fixed inset-0 z-modal flex items-center justify-center bg-black/80'
 		>
 			<motion.div
 				initial={{ scale: 0.9, opacity: 0 }}
@@ -74,7 +74,7 @@ export const RecipeParsingOverlay = ({
 								'flex items-center gap-3 text-sm',
 								i < currentStep && 'text-success',
 								i === currentStep && 'font-semibold text-text',
-								i > currentStep && 'text-muted-foreground',
+								i > currentStep && 'text-text-secondary',
 							)}
 						>
 							{i < currentStep ? (

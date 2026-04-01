@@ -157,7 +157,7 @@ export default function PantryPage() {
 	// ── Quick Add ─────────────────────────────────────────
 
 	const handleQuickAdd = async () => {
-		if (!quickAddName.trim()) return
+		if (!quickAddName.trim() || isAdding) return
 		setIsAdding(true)
 		try {
 			const req: PantryItemRequest = {
@@ -228,14 +228,13 @@ export default function PantryPage() {
 	// ── Delete ────────────────────────────────────────────
 
 	const handleDelete = async (id: string) => {
-		setConfirmingDeleteId(null)
 		setIsDeletingId(id)
 		try {
 			await deletePantryItem(id)
 			setItems(prev => prev.filter(i => i.id !== id))
+			setConfirmingDeleteId(null)
 		} catch {
 			toast.error('Failed to delete item')
-			setConfirmingDeleteId(id)
 		} finally {
 			setIsDeletingId(null)
 		}
@@ -273,6 +272,7 @@ export default function PantryPage() {
 			const data = await getMatchingRecipes(0.3, true)
 			setMatchedRecipes(data)
 		} catch {
+			setShowSuggestions(false)
 			toast.error('Failed to load recipe suggestions', {
 				action: {
 					label: 'Retry',
@@ -560,14 +560,17 @@ export default function PantryPage() {
 						<motion.div
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
-							className='flex flex-col items-center justify-center gap-4 py-20'
+							className='flex flex-col items-center justify-center gap-3 py-20 text-center'
 						>
-							<Package className='size-16 text-text-muted/40' />
+							<div className='grid size-16 place-items-center rounded-2xl bg-bg-elevated'>
+								<Package className='size-8 text-text-muted' />
+							</div>
 							<h2 className='text-lg font-semibold text-text-secondary'>
 								Your pantry is empty
 							</h2>
-							<p className='text-sm text-text-muted'>
-								Add ingredients above to start tracking what you have.
+							<p className='max-w-xs text-sm text-text-muted'>
+								Add ingredients using the form above to start tracking what you
+								have at home.
 							</p>
 						</motion.div>
 					) : (

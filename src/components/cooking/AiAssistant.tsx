@@ -160,13 +160,13 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 				{/* Type indicator for special messages */}
 				{message.type === 'warning' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-warning'>
-						<AlertTriangle className='h-4 w-4' />
+						<AlertTriangle className='size-4' />
 						<span className='text-xs font-semibold uppercase'>Warning</span>
 					</div>
 				)}
 				{message.type === 'tip' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-success'>
-						<Lightbulb className='h-4 w-4' />
+						<Lightbulb className='size-4' />
 						<span className='text-xs font-semibold uppercase'>Pro Tip</span>
 					</div>
 				)}

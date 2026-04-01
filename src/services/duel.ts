@@ -2,6 +2,7 @@ import { api } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants/api'
 import { ApiResponse } from '@/lib/types'
 import { DuelResponse, CreateDuelRequest } from '@/lib/types/duel'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // MUTATIONS
@@ -16,7 +17,8 @@ export async function createDuel(
 			request,
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to create duel:', error)
 		return null
 	}
 }
@@ -29,7 +31,8 @@ export async function acceptDuel(
 			API_ENDPOINTS.DUELS.ACCEPT(duelId),
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to accept duel:', error)
 		return null
 	}
 }
@@ -42,7 +45,8 @@ export async function declineDuel(
 			API_ENDPOINTS.DUELS.DECLINE(duelId),
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to decline duel:', error)
 		return null
 	}
 }
@@ -55,7 +59,8 @@ export async function cancelDuel(
 			API_ENDPOINTS.DUELS.CANCEL(duelId),
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to cancel duel:', error)
 		return null
 	}
 }
@@ -70,7 +75,8 @@ export async function getDuel(duelId: string): Promise<DuelResponse | null> {
 			API_ENDPOINTS.DUELS.GET(duelId),
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get duel:', error)
 		return null
 	}
 }
@@ -81,7 +87,8 @@ export async function getMyDuels(): Promise<DuelResponse[]> {
 			API_ENDPOINTS.DUELS.MY,
 		)
 		return res.data.data ?? []
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get my duels:', error)
 		return []
 	}
 }
@@ -92,7 +99,8 @@ export async function getActiveDuels(): Promise<DuelResponse[]> {
 			API_ENDPOINTS.DUELS.ACTIVE,
 		)
 		return res.data.data ?? []
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get active duels:', error)
 		return []
 	}
 }
@@ -103,7 +111,8 @@ export async function getPendingInvites(): Promise<DuelResponse[]> {
 			API_ENDPOINTS.DUELS.INVITES,
 		)
 		return res.data.data ?? []
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get pending invites:', error)
 		return []
 	}
 }

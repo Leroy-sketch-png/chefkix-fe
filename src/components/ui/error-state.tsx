@@ -31,7 +31,7 @@ export const ErrorState = ({
 }: ErrorStateProps) => {
 	return (
 		<div className='flex min-h-content-tall flex-col items-center justify-center px-4'>
-			<div className='mx-auto max-w-md text-center'>
+			<div className='mx-auto max-w-md text-center' role='alert'>
 				{/* Show Lottie animation if provided, otherwise show AlertCircle icon */}
 				{lottieAnimation ? (
 					<div className='mb-6 flex justify-center'>
@@ -45,7 +45,7 @@ export const ErrorState = ({
 				) : (
 					<div className='mb-6 flex justify-center'>
 						<div className='rounded-full bg-destructive/10 p-6'>
-							<AlertCircle className='h-16 w-16 text-destructive' />
+							<AlertCircle className='size-16 text-destructive' />
 						</div>
 					</div>
 				)}
@@ -58,7 +58,7 @@ export const ErrorState = ({
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
 					{onRetry && (
 						<Button onClick={onRetry} className='h-11'>
-							<RefreshCw className='mr-2 h-4 w-4' />
+							<RefreshCw className='size-4' />
 							Try Again
 						</Button>
 					)}
@@ -69,7 +69,7 @@ export const ErrorState = ({
 							className='h-11'
 						>
 							<Link href='/dashboard'>
-								<Home className='mr-2 h-4 w-4' />
+								<Home className='size-4' />
 								Go to Dashboard
 							</Link>
 						</Button>

@@ -6,6 +6,7 @@ import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 import type {
 	FriendCookingActivityResponse,
 	RecipeSocialProofResponse,
@@ -25,6 +26,7 @@ export const getFriendsActiveCooking = async (): Promise<
 		>(API_ENDPOINTS.COOKING_SESSIONS.FRIENDS_ACTIVE)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<FriendCookingActivityResponse>
 		>
@@ -50,6 +52,7 @@ export const getRecipeSocialProof = async (
 		>(API_ENDPOINTS.RECIPES.SOCIAL_PROOF(recipeId))
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<RecipeSocialProofResponse>
 		>
@@ -77,6 +80,7 @@ export const getActivitySummary = async (
 		})
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<NotificationSummaryResponse>
 		>

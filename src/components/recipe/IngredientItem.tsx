@@ -24,19 +24,19 @@ export const IngredientItem = ({
 			value={ingredient.quantity}
 			onChange={e => onUpdate({ quantity: e.target.value })}
 			placeholder='Qty'
-			className='min-w-24 w-auto max-w-40 bg-transparent text-sm font-bold text-primary outline-none placeholder:text-muted-foreground/50'
+			className='min-w-24 w-auto max-w-40 bg-transparent text-sm font-bold text-primary outline-none placeholder:text-text-secondary/50'
 		/>
 		<input
 			type='text'
 			value={ingredient.name}
 			onChange={e => onUpdate({ name: e.target.value })}
 			placeholder='Ingredient name'
-			className='flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted-foreground/50'
+			className='flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-secondary/50'
 		/>
 		<button
 			onClick={onRemove}
 			aria-label='Remove ingredient'
-			className='flex size-7 items-center justify-center rounded-lg text-muted-foreground md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
+			className='flex size-7 items-center justify-center rounded-lg text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
 		>
 			<X className='size-4' />
 		</button>

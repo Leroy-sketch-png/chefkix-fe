@@ -103,7 +103,7 @@ const ActiveTimerBadge = ({ timer, isUrgent }: ActiveTimerBadgeProps) => {
 				isUrgent ? 'bg-error/20 text-error' : 'bg-warning/20 text-warning',
 			)}
 		>
-			<Clock className='h-3.5 w-3.5' />
+			<Clock className='size-3.5' />
 			<span>{timeDisplay}</span>
 			{timer.label && (
 				<span className='max-w-nav truncate text-xs opacity-70'>
@@ -204,7 +204,7 @@ export const SessionHeader = ({
 							onClick={onAiAssist}
 							className='flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30'
 						>
-							<Sparkles className='h-4 w-4' />
+							<Sparkles className='size-4' />
 							<span className='hidden sm:inline'>AI Help</span>
 						</motion.button>
 
@@ -231,9 +231,9 @@ export const SessionHeader = ({
 							}
 						>
 							{isPaused ? (
-								<Play className='h-5 w-5' />
+								<Play className='size-5' />
 							) : (
-								<Pause className='h-5 w-5' />
+								<Pause className='size-5' />
 							)}
 						</motion.button>
 
@@ -243,8 +243,9 @@ export const SessionHeader = ({
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onClose}
 							className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30'
+							aria-label='Close cooking header'
 						>
-							<X className='h-5 w-5' />
+							<X className='size-5' />
 						</motion.button>
 					</div>
 				</div>
@@ -267,12 +268,12 @@ export const SessionHeader = ({
 							>
 								{state === 'PAUSED' ? (
 									<>
-										<Pause className='h-4 w-4' />
+										<Pause className='size-4' />
 										<span>Session Paused</span>
 									</>
 								) : (
 									<>
-										<AlertTriangle className='h-4 w-4' />
+										<AlertTriangle className='size-4' />
 										<span>Still there? Session will auto-pause soon</span>
 									</>
 								)}
@@ -393,7 +394,7 @@ export const SessionHeaderCompact = ({
 						strokeLinecap='round'
 					/>
 				</svg>
-				<ChefHat className='absolute inset-0 m-auto h-5 w-5' />
+				<ChefHat className='absolute inset-0 m-auto size-5' />
 			</div>
 
 			{/* Info */}
@@ -410,7 +411,7 @@ export const SessionHeaderCompact = ({
 					animate={GLOW_PULSE.animate}
 					className='flex h-8 w-8 items-center justify-center rounded-full bg-warning'
 				>
-					<Clock className='h-4 w-4 text-white' />
+					<Clock className='size-4 text-white' />
 				</motion.div>
 			)}
 		</motion.button>

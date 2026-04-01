@@ -14,6 +14,7 @@ import {
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
 import { AUTH_MESSAGES } from '@/constants/messages'
+import { logDevError } from '@/lib/dev-log'
 
 // Sign-in function
 export const signIn = async (
@@ -26,6 +27,7 @@ export const signIn = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -47,6 +49,7 @@ export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -67,6 +70,7 @@ export const logout = async (): Promise<ApiResponse<string>> => {
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -92,6 +96,7 @@ export const resendOtp = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -109,18 +114,19 @@ export const resendOtp = async (
  */
 export const sendOtp = resendOtp
 
-// Verify OTP function
+// Verify OTP function — returns auth tokens for auto-login after registration
 export const verifyOtp = async (
 	data: VerifyOtpDto,
-): Promise<ApiResponse<string>> => {
+): Promise<ApiResponse<LoginSuccessResponse>> => {
 	try {
-		const response = await api.post<ApiResponse<string>>(
+		const response = await api.post<ApiResponse<LoginSuccessResponse>>(
 			API_ENDPOINTS.AUTH.VERIFY_OTP_USER,
 			data,
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<string>>
+		logDevError('response failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
@@ -141,6 +147,7 @@ export const forgotPassword = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -163,6 +170,7 @@ export const verifyOtpPassword = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -185,6 +193,7 @@ export const changePassword = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -208,6 +217,7 @@ export const googleSignIn = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data

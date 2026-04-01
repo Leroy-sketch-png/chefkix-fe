@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
 	Trophy,
@@ -10,6 +11,7 @@ import {
 	Leaf,
 	Clock,
 	ChevronRight,
+	History,
 } from 'lucide-react'
 import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -67,57 +69,71 @@ export default function ChallengesPage() {
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 
 	useEffect(() => {
+		let cancelled = false
+
 		const fetchChallenges = async () => {
 			setLoading(true)
-			try {
-				const [dailyRes, weeklyRes, communityRes, seasonalRes] =
-					await Promise.all([
-						getTodaysChallenge(),
-						getWeeklyChallenge(),
-						getCommunityChallenges(),
-						getSeasonalChallenges(),
-					])
-				if (dailyRes.success && dailyRes.data) {
-					const data = dailyRes.data
-					setDailyChallenge({
-						id: data.id,
-						title: data.title,
-						description: data.description,
-						icon: data.icon || '🎯',
-						bonusXp: data.bonusXp,
-						endsAt: new Date(data.endsAt),
-					})
-				}
-				if (weeklyRes.success && weeklyRes.data) {
-					setWeeklyChallenge(weeklyRes.data)
-				}
-				if (communityRes.success && communityRes.data) {
-					setCommunityChallenges(communityRes.data)
-				}
-				if (seasonalRes.success && seasonalRes.data) {
-					setSeasonalChallenges(seasonalRes.data)
-				}
-				// If ALL calls failed, show error state
-				if (
-					!dailyRes.success &&
-					!weeklyRes.success &&
-					!communityRes.success &&
-					!seasonalRes.success
-				) {
-					setError(true)
-				}
-			} catch (err) {
-				logDevError('Failed to fetch challenges:', err)
-				setError(true)
-			} finally {
-				setLoading(false)
+			// Fetch each independently so one failure doesn't kill the others
+			const [dailyRes, weeklyRes, communityRes, seasonalRes] =
+				await Promise.all([
+					getTodaysChallenge().catch(err => {
+						logDevError('Daily challenge failed:', err)
+						return null
+					}),
+					getWeeklyChallenge().catch(err => {
+						logDevError('Weekly challenge failed:', err)
+						return null
+					}),
+					getCommunityChallenges().catch(err => {
+						logDevError('Community challenges failed:', err)
+						return null
+					}),
+					getSeasonalChallenges().catch(err => {
+						logDevError('Seasonal challenges failed:', err)
+						return null
+					}),
+				])
+			if (cancelled) return
+			if (dailyRes?.success && dailyRes.data) {
+				const data = dailyRes.data
+				setDailyChallenge({
+					id: data.id,
+					title: data.title,
+					description: data.description,
+					icon: data.icon || '🎯',
+					bonusXp: data.bonusXp,
+					endsAt: new Date(data.endsAt),
+				})
 			}
+			if (weeklyRes?.success && weeklyRes.data) {
+				setWeeklyChallenge(weeklyRes.data)
+			}
+			if (communityRes?.success && communityRes.data) {
+				setCommunityChallenges(communityRes.data)
+			}
+			if (seasonalRes?.success && seasonalRes.data) {
+				setSeasonalChallenges(seasonalRes.data)
+			}
+			// Only show global error if ALL calls failed or returned nothing
+			if (
+				!dailyRes?.success &&
+				!weeklyRes?.success &&
+				!communityRes?.success &&
+				!seasonalRes?.success
+			) {
+				setError(true)
+			}
+			setLoading(false)
 		}
 
 		fetchChallenges()
-	}, [])
+		return () => {
+			cancelled = true
+		}
+	}, [retryKey])
 
 	const hasNoChallenges =
 		communityChallenges.length === 0 &&
@@ -132,6 +148,10 @@ export default function ChallengesPage() {
 				<ErrorState
 					title='Failed to load challenges'
 					message='We could not load challenge data. Please try again.'
+					onRetry={() => {
+						setError(false)
+						setRetryKey(k => k + 1)
+					}}
 				/>
 			</PageContainer>
 		)
@@ -152,7 +172,7 @@ export default function ChallengesPage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-streak shadow-md shadow-streak/25'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-streak shadow-card shadow-streak/25'
 						>
 							<Trophy className='size-6 text-white' />
 						</motion.div>
@@ -167,16 +187,49 @@ export default function ChallengesPage() {
 				{/* Cooking Duels — 1v1 friend challenges */}
 				<DuelsSection />
 
-				{hasNoChallenges ? (
+				{loading ? (
+					<div className='space-y-6'>
+						{/* Daily challenge skeleton */}
+						<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
+							<div className='flex items-center gap-4'>
+								<div className='size-12 shrink-0 animate-pulse rounded-2xl bg-bg-elevated/40' />
+								<div className='flex-1 space-y-2'>
+									<div className='h-5 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
+									<div className='h-4 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+								</div>
+								<div className='h-8 w-20 animate-pulse rounded-full bg-bg-elevated/40' />
+							</div>
+						</div>
+						{/* Weekly + community skeletons */}
+						{Array.from({ length: 3 }).map((_, i) => (
+							<div
+								key={i}
+								className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
+							>
+								<div className='flex items-center gap-3'>
+									<div className='size-11 shrink-0 animate-pulse rounded-xl bg-bg-elevated/40' />
+									<div className='flex-1 space-y-1.5'>
+										<div className='h-4 w-2/5 animate-pulse rounded bg-bg-elevated/40' />
+										<div className='h-3 w-3/5 animate-pulse rounded bg-bg-elevated/40' />
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				) : hasNoChallenges ? (
 					<EmptyStateGamified
 						variant='challenges'
 						title='No Active Challenges Right Now'
-						description='New challenges drop daily! In the meantime, challenge a friend to a cooking duel.'
+						description='New challenges drop daily! In the meantime, check your past challenges or explore recipes.'
 						primaryAction={{
 							label: 'Refresh',
-							onClick: () => window.location.reload(),
+							onClick: () => router.refresh(),
 						}}
 						secondaryActions={[
+							{
+								label: 'View History',
+								href: '/challenges/history',
+							},
 							{
 								label: 'Explore Recipes',
 								href: '/explore',
@@ -190,7 +243,11 @@ export default function ChallengesPage() {
 							<DailyChallengeBanner
 								variant='active'
 								challenge={dailyChallenge}
-								onFindRecipe={() => router.push('/explore')}
+								onFindRecipe={() =>
+									router.push(
+										`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
+									)
+								}
 							/>
 						)}
 
@@ -208,7 +265,7 @@ export default function ChallengesPage() {
 								>
 									<div className='mb-3 flex items-center justify-between'>
 										<div className='flex items-center gap-3'>
-											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-md shadow-accent-purple/25'>
+											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-card shadow-accent-purple/25'>
 												<Trophy className='size-5 text-white' />
 											</div>
 											<div>
@@ -226,7 +283,7 @@ export default function ChallengesPage() {
 											</span>
 											{weeklyChallenge.completed && (
 												<p className='text-xs font-semibold text-success'>
-													Completed!
+													✓ +{weeklyChallenge.bonusXp} XP Awarded
 												</p>
 											)}
 										</div>
@@ -276,7 +333,11 @@ export default function ChallengesPage() {
 										weeklyChallenge.matchingRecipes &&
 										weeklyChallenge.matchingRecipes.length > 0 && (
 											<button
-												onClick={() => router.push('/explore')}
+												onClick={() =>
+													router.push(
+														`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
+													)
+												}
 												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80'
 											>
 												Find Matching Recipes
@@ -310,7 +371,7 @@ export default function ChallengesPage() {
 										>
 											<div className='mb-3 flex items-center justify-between'>
 												<div className='flex items-center gap-3'>
-													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo via-pink-400 to-rose-500 text-xl shadow-md shadow-combo/25'>
+													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
 														{ch.emoji || '👥'}
 													</div>
 													<div>
@@ -351,7 +412,7 @@ export default function ChallengesPage() {
 															duration: 1,
 															ease: 'easeOut',
 														}}
-														className='h-full rounded-full bg-gradient-to-r from-combo via-pink-400 to-rose-500'
+														className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
 													/>
 												</div>
 											</div>
@@ -368,7 +429,11 @@ export default function ChallengesPage() {
 													</span>
 												) : (
 													<button
-														onClick={() => router.push('/explore')}
+														onClick={() =>
+															router.push(
+																`/explore?q=${encodeURIComponent(ch.title)}`,
+															)
+														}
 														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80'
 													>
 														Cook to contribute!
@@ -463,7 +528,7 @@ export default function ChallengesPage() {
 																duration: 1,
 																ease: 'easeOut',
 															}}
-															className='h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500'
+															className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
 														/>
 													</div>
 												</div>
@@ -502,7 +567,7 @@ export default function ChallengesPage() {
 
 												{ev.userCompleted && (
 													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-														✓ Completed!
+														✓ +{ev.rewardXp} XP Awarded
 													</div>
 												)}
 											</div>
@@ -514,12 +579,25 @@ export default function ChallengesPage() {
 
 						{/* Past Challenges link */}
 						<section>
-							<h2 className='mb-4 text-lg font-bold text-text-secondary'>
-								Past Challenges
-							</h2>
-							<p className='text-sm text-text-muted'>
-								Your completed challenges will appear here.
-							</p>
+							<Link
+								href='/challenges/history'
+								className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+							>
+								<div className='flex items-center gap-3'>
+									<div className='flex size-11 items-center justify-center rounded-xl bg-bg-elevated transition-colors group-hover:bg-brand/10'>
+										<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
+									</div>
+									<div>
+										<h3 className='font-semibold text-text'>
+											Challenge History
+										</h3>
+										<p className='text-sm text-text-muted'>
+											View your past challenges and achievements
+										</p>
+									</div>
+								</div>
+								<ChevronRight className='size-5 text-text-muted transition-colors group-hover:text-brand' />
+							</Link>
 						</section>
 					</>
 				)}

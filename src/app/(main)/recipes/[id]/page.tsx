@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getRecipeById,
 	toggleLikeRecipe,
 	toggleSaveRecipe,
+	deleteRecipe,
 } from '@/services/recipe'
 import { trackEvent } from '@/lib/eventTracker'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -34,20 +35,21 @@ import {
 	Check,
 	Edit3,
 	Rocket,
-	MoreHorizontal,
 	Info,
 	Timer,
 	UtensilsCrossed,
 	Loader2,
 	AlertCircle,
 	Sparkles,
+	Flame,
+	Trash2,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -101,7 +103,7 @@ const DIFFICULTY_EXPLANATIONS: Record<
 	},
 }
 
-export default function RecipeDetailPage() {
+function RecipeDetailContent() {
 	const params = useParams()
 	const router = useRouter()
 	const searchParams = useSearchParams()
@@ -113,7 +115,7 @@ export default function RecipeDetailPage() {
 		isLoading: isCookingLoading,
 		session: activeSession,
 	} = useCookingStore()
-	const { user } = useAuthStore()
+	const { user } = useAuth()
 	const autoStartAttempted = useRef(false)
 
 	// Determine cooking button state — only count COMPLETE & ACTIVE sessions
@@ -143,64 +145,72 @@ export default function RecipeDetailPage() {
 	const [remixResult, setRemixResult] = useState<RemixRecipeResponse | null>(
 		null,
 	)
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 
 	// Check if current user is the recipe owner
 	const isOwner = user?.userId === recipe?.author?.userId
 
-	useEffect(() => {
-		const fetchRecipe = async () => {
-			setIsLoading(true)
-			setError(null)
-			try {
-				const response = await getRecipeById(recipeId)
-				if (response.success && response.data) {
-					setRecipe(response.data)
-					setIsLiked(response.data.isLiked ?? false)
-					setIsSaved(response.data.isSaved ?? false)
-					setLikeCount(response.data.likeCount)
-					setSaveCount(response.data.saveCount)
-					trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
-				} else {
-					setError('Recipe not found')
-				}
-			} catch (err) {
-				setError('Failed to load recipe')
-			} finally {
-				setIsLoading(false)
+	const fetchRecipe = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const response = await getRecipeById(recipeId)
+			if (response.success && response.data) {
+				setRecipe(response.data)
+				setIsLiked(response.data.isLiked ?? false)
+				setIsSaved(response.data.isSaved ?? false)
+				setLikeCount(response.data.likeCount)
+				setSaveCount(response.data.saveCount)
+				trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
+			} else {
+				setError('Recipe not found')
 			}
+		} catch (err) {
+			setError('Failed to load recipe')
+		} finally {
+			setIsLoading(false)
 		}
+	}, [recipeId])
 
+	useEffect(() => {
 		if (recipeId) {
 			fetchRecipe()
 		}
-	}, [recipeId])
+	}, [recipeId, fetchRecipe])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
 		if (
-			shouldAutoStartCooking &&
-			recipe &&
-			!autoStartAttempted.current &&
-			!isCookingLoading
-		) {
-			autoStartAttempted.current = true
-			// Remove the query param to prevent re-triggering
-			router.replace(`/recipes/${recipeId}`, { scroll: false })
+			!shouldAutoStartCooking ||
+			!recipe ||
+			autoStartAttempted.current ||
+			isCookingLoading
+		)
+			return
 
-			// Start cooking session
-			const initCooking = async () => {
-				const success = await startCooking(recipeId)
-				if (success) {
-					// Open docked panel on desktop, expanded on mobile
-					const isDesktop = window.innerWidth >= 1280
-					isDesktop ? openCookingPanel() : expandCookingPanel()
-				} else {
-					// Get the error message from the store for better context
-					const errorMsg = useCookingStore.getState().error
-					toast.error(errorMsg || 'Failed to start cooking session')
-				}
+		autoStartAttempted.current = true
+		// Remove the query param to prevent re-triggering
+		router.replace(`/recipes/${recipeId}`, { scroll: false })
+
+		let cancelled = false
+		// Start cooking session
+		const initCooking = async () => {
+			const success = await startCooking(recipeId)
+			if (cancelled) return
+			if (success) {
+				// Open docked panel on desktop, expanded on mobile
+				const isDesktop = window.innerWidth >= 1280
+				isDesktop ? openCookingPanel() : expandCookingPanel()
+			} else {
+				// Get the error message from the store for better context
+				const errorMsg = useCookingStore.getState().error
+				toast.error(errorMsg || 'Failed to start cooking session')
 			}
-			initCooking()
+		}
+		initCooking()
+		return () => {
+			cancelled = true
 		}
 	}, [
 		shouldAutoStartCooking,
@@ -322,7 +332,7 @@ export default function RecipeDetailPage() {
 	]
 
 	const handleRemix = async (remixType: RemixType) => {
-		if (!recipe) return
+		if (!recipe || isRemixing) return
 		setShowRemixMenu(false)
 		setIsRemixing(true)
 		try {
@@ -333,6 +343,7 @@ export default function RecipeDetailPage() {
 				remix_type: remixType,
 			})
 			if (response.success && response.data) {
+				toast.success('Remix created!')
 				setRemixResult(response.data)
 			} else {
 				toast.error(response.message || 'Failed to remix recipe')
@@ -398,6 +409,25 @@ export default function RecipeDetailPage() {
 		}
 	}
 
+	const handleDeleteRecipe = useCallback(async () => {
+		if (isDeleting) return
+		setIsDeleting(true)
+		try {
+			const response = await deleteRecipe(recipeId)
+			if (response.success) {
+				toast.success('Recipe deleted')
+				router.push('/profile')
+			} else {
+				toast.error(response.message || 'Failed to delete recipe')
+			}
+		} catch {
+			toast.error('Failed to delete recipe')
+		} finally {
+			setIsDeleting(false)
+			setShowDeleteConfirm(false)
+		}
+	}, [isDeleting, recipeId, router])
+
 	// Keyboard shortcuts: Enter=cook, S=save, L=like, Esc=back
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -409,8 +439,23 @@ export default function RecipeDetailPage() {
 				return
 			}
 
-			// Ignore when menus or modals are open
-			if (showRemixMenu || remixResult) {
+			// Escape always works — closes modals or navigates back
+			if (e.key === 'Escape') {
+				e.preventDefault()
+				if (showDeleteConfirm) {
+					setShowDeleteConfirm(false)
+				} else if (showRemixMenu) {
+					setShowRemixMenu(false)
+				} else if (remixResult) {
+					setRemixResult(null)
+				} else {
+					router.back()
+				}
+				return
+			}
+
+			// All other shortcuts: ignore when menus or modals are open
+			if (showRemixMenu || remixResult || showDeleteConfirm) {
 				return
 			}
 
@@ -440,10 +485,6 @@ export default function RecipeDetailPage() {
 						handleLike()
 					}
 					break
-				case 'Escape':
-					e.preventDefault()
-					router.back()
-					break
 			}
 		}
 
@@ -460,6 +501,7 @@ export default function RecipeDetailPage() {
 		handleLike,
 		showRemixMenu,
 		remixResult,
+		showDeleteConfirm,
 	])
 
 	if (isLoading) {
@@ -473,7 +515,7 @@ export default function RecipeDetailPage() {
 					<ErrorState
 						title='Recipe not found'
 						message={error || 'The recipe you are looking for does not exist.'}
-						onRetry={() => router.push('/explore')}
+						onRetry={fetchRecipe}
 						showHomeButton
 					/>
 				</PageContainer>
@@ -512,7 +554,7 @@ export default function RecipeDetailPage() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
+					className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 				>
 					{/* Hero Image with overlay */}
 					<div className='group relative h-72 w-full overflow-hidden md:h-96'>
@@ -640,7 +682,9 @@ export default function RecipeDetailPage() {
 										</div>
 										<div>
 											<p className='font-semibold text-text group-hover/author:text-brand'>
-												{recipe.author.displayName}
+												{recipe.author.displayName ||
+													recipe.author.username ||
+													'Unknown'}
 											</p>
 											<p className='text-sm text-text-muted'>
 												@{recipe.author.username}
@@ -746,9 +790,26 @@ export default function RecipeDetailPage() {
 							>
 								<Eye className='size-5 text-brand' />
 								<span className='font-medium'>
-									{recipe.viewCount || 0} views
+									{(recipe.viewCount || 0) >= 1000
+										? `${((recipe.viewCount || 0) / 1000).toFixed(1)}k`
+										: `${recipe.viewCount || 0}`}{' '}
+									views
 								</span>
 							</motion.span>
+
+							{/* Calories */}
+							{recipe.caloriesPerServing != null &&
+								recipe.caloriesPerServing > 0 && (
+									<motion.span
+										variants={staggerItem}
+										className='flex items-center gap-2 text-text-secondary'
+									>
+										<Flame className='size-5 text-brand' />
+										<span className='font-medium'>
+											{recipe.caloriesPerServing} cal/serving
+										</span>
+									</motion.span>
+								)}
 						</motion.div>
 
 						{/* Action Buttons */}
@@ -804,7 +865,11 @@ export default function RecipeDetailPage() {
 								disabled={isCreatingRoom || hasOtherSession}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								title='Create a room and cook together with friends'
+								title={
+									hasOtherSession
+										? `Already cooking: ${activeSession?.recipe?.title || 'another recipe'}`
+										: 'Create a room and cook together with friends'
+								}
 								className='flex items-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-5 py-4 font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50'
 							>
 								{isCreatingRoom ? (
@@ -882,6 +947,7 @@ export default function RecipeDetailPage() {
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-text-secondary hover:bg-bg-elevated'
+								aria-label='Share recipe'
 							>
 								<Share2 className='size-5' />
 							</motion.button>
@@ -910,12 +976,22 @@ export default function RecipeDetailPage() {
 									>
 										<Edit3 className='size-5' />
 									</motion.button>
+									<motion.button
+										onClick={() => setShowDeleteConfirm(true)}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-error hover:bg-error/10'
+										title='Delete Recipe'
+										aria-label='Delete recipe'
+									>
+										<Trash2 className='size-5 text-error' />
+									</motion.button>
 								</>
 							)}
 						</motion.div>
 
 						{/* Tags */}
-						{(recipe.cuisineType || recipe.dietaryTags.length > 0) && (
+						{(recipe.cuisineType || (recipe.dietaryTags?.length ?? 0) > 0) && (
 							<motion.div
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
@@ -927,7 +1003,7 @@ export default function RecipeDetailPage() {
 										{recipe.cuisineType}
 									</span>
 								)}
-								{recipe.dietaryTags.map(tag => (
+								{recipe.dietaryTags?.map(tag => (
 									<span
 										key={tag}
 										className='rounded-full bg-bg-elevated px-4 py-1.5 text-sm font-medium text-text-secondary'
@@ -1131,7 +1207,7 @@ export default function RecipeDetailPage() {
 										<div className='mb-4 flex items-center gap-4'>
 											<motion.div
 												whileHover={{ scale: 1.1, rotate: 5 }}
-												className='grid size-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-lg font-bold text-white shadow-md'
+												className='grid size-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-lg font-bold text-white shadow-card'
 											>
 												{index + 1}
 											</motion.div>
@@ -1196,7 +1272,7 @@ export default function RecipeDetailPage() {
 							initial={{ opacity: 0, scale: 0.95, y: 20 }}
 							animate={{ opacity: 1, scale: 1, y: 0 }}
 							transition={TRANSITION_SPRING}
-							className='max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-lg md:p-8'
+							className='max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 							onClick={e => e.stopPropagation()}
 						>
 							<div className='mb-4 flex items-start justify-between'>
@@ -1211,6 +1287,7 @@ export default function RecipeDetailPage() {
 								<button
 									onClick={() => setRemixResult(null)}
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+									aria-label='Close remix modal'
 								>
 									✕
 								</button>
@@ -1317,6 +1394,50 @@ export default function RecipeDetailPage() {
 					</motion.div>
 				</Portal>
 			)}
+
+			{/* Delete Confirmation */}
+			{showDeleteConfirm && (
+				<Portal>
+					<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95 }}
+							animate={{ opacity: 1, scale: 1 }}
+							className='mx-4 w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-card'
+						>
+							<h3 className='mb-2 text-lg font-bold text-text'>
+								Delete Recipe?
+							</h3>
+							<p className='mb-6 text-sm text-text-secondary'>
+								This action cannot be undone. The recipe and all associated data
+								will be permanently deleted.
+							</p>
+							<div className='flex gap-3'>
+								<Button
+									variant='outline'
+									className='flex-1'
+									onClick={() => setShowDeleteConfirm(false)}
+									disabled={isDeleting}
+								>
+									Cancel
+								</Button>
+								<Button
+									variant='destructive'
+									className='flex-1'
+									onClick={handleDeleteRecipe}
+									disabled={isDeleting}
+								>
+									{isDeleting ? (
+										<Loader2 className='mr-2 size-4 animate-spin' />
+									) : (
+										<Trash2 className='mr-2 size-4' />
+									)}
+									Delete
+								</Button>
+							</div>
+						</motion.div>
+					</div>
+				</Portal>
+			)}
 		</PageTransition>
 	)
 }
@@ -1329,7 +1450,7 @@ function RecipeDetailSkeleton() {
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
-				className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
+				className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 			>
 				<Skeleton className='h-72 w-full md:h-96' />
 				<div className='p-6 md:p-8'>
@@ -1384,5 +1505,13 @@ function RecipeDetailSkeleton() {
 				</motion.div>
 			</div>
 		</PageContainer>
+	)
+}
+
+export default function RecipeDetailPage() {
+	return (
+		<Suspense fallback={<RecipeDetailSkeleton />}>
+			<RecipeDetailContent />
+		</Suspense>
 	)
 }

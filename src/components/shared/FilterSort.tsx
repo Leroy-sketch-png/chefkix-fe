@@ -108,12 +108,12 @@ export const FilterBar = ({
 			{/* Filter Button */}
 			<button
 				onClick={onFilterClick}
-				className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:shadow-sm'
+				className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:bg-bg-elevated'
 			>
 				<Filter className='size-4.5 text-text-secondary' />
 				<span>Filters</span>
 				{activeFiltersCount > 0 && (
-					<span className='min-w-4.5 rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold text-primary-foreground'>
+					<span className='min-w-4.5 rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold text-white'>
 						{activeFiltersCount}
 					</span>
 				)}
@@ -121,7 +121,7 @@ export const FilterBar = ({
 
 			{/* Sort Dropdown - Simplified for now, can be enhanced with Radix UI dropdown */}
 			<div className='relative'>
-				<button className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:shadow-sm'>
+				<button className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:bg-bg-elevated'>
 					<ArrowUpDown className='size-4.5 text-text-secondary' />
 					<span>{selectedSort}</span>
 					<ChevronDown className='size-4.5 text-text-secondary' />
@@ -135,7 +135,7 @@ export const FilterBar = ({
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'grid'
-							? 'bg-bg-card text-primary shadow-sm'
+							? 'bg-bg-card text-primary'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
 					aria-label='Grid view'
@@ -147,7 +147,7 @@ export const FilterBar = ({
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'list'
-							? 'bg-bg-card text-primary shadow-sm'
+							? 'bg-bg-card text-primary'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
 					aria-label='List view'
@@ -252,7 +252,7 @@ export const FilterPanel = ({
 				<button
 					onClick={onClose}
 					aria-label='Close filters'
-					className='rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+					className='rounded-md p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-foreground'
 				>
 					<X className='size-5' />
 				</button>
@@ -317,7 +317,7 @@ export const CheckboxFilter = ({
 	onChange,
 }: CheckboxFilterProps) => {
 	return (
-		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-muted'>
+		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-bg-hover'>
 			<input
 				type='checkbox'
 				checked={checked}
@@ -329,7 +329,7 @@ export const CheckboxFilter = ({
 			</div>
 			<span className='flex-1 text-sm text-foreground'>{label}</span>
 			{count !== undefined && (
-				<span className='text-xs text-muted-foreground'>({count})</span>
+				<span className='text-xs text-text-secondary'>({count})</span>
 			)}
 		</label>
 	)
@@ -353,7 +353,7 @@ export const RadioFilter = ({
 	onChange,
 }: RadioFilterProps) => {
 	return (
-		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-muted'>
+		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-bg-hover'>
 			<input
 				type='radio'
 				name={name}
@@ -456,7 +456,7 @@ export const CuisinePill = ({
 			className={cn(
 				'rounded-full border px-4 py-2 text-xs font-semibold transition-all',
 				active
-					? 'border-primary bg-primary text-primary-foreground'
+					? 'border-primary bg-primary text-white'
 					: 'border-border bg-muted/20 text-foreground hover:border-primary hover:bg-primary/5',
 			)}
 		>

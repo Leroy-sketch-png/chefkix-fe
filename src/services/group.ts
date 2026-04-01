@@ -11,6 +11,7 @@ import {
 	GroupExploreQuery,
 } from '@/lib/types/group'
 import { ApiResponse, Post } from '@/lib/types'
+import { logDevError } from '@/lib/dev-log'
 
 // Helper to handle pagination responses
 interface PaginatedResponse<T> {
@@ -33,6 +34,7 @@ export const createGroup = async (
 		API_ENDPOINTS.GROUPS.CREATE,
 		request
 	)
+	if (!response.data.data) throw new Error('Failed to create group')
 	return response.data.data
 }
 
@@ -43,6 +45,7 @@ export const getGroupDetails = async (groupId: string): Promise<Group> => {
 	const response = await api.get<ApiResponse<Group>>(
 		API_ENDPOINTS.GROUPS.GET_BY_ID(groupId)
 	)
+	if (!response.data.data) throw new Error('Group not found')
 	return response.data.data
 }
 
@@ -57,6 +60,7 @@ export const updateGroup = async (
 		API_ENDPOINTS.GROUPS.UPDATE(groupId),
 		request
 	)
+	if (!response.data.data) throw new Error('Failed to update group')
 	return response.data.data
 }
 
@@ -68,6 +72,7 @@ export const joinGroup = async (groupId: string): Promise<JoinGroupResponse> => 
 	const response = await api.post<ApiResponse<JoinGroupResponse>>(
 		API_ENDPOINTS.GROUPS.JOIN(groupId)
 	)
+	if (!response.data.data) throw new Error('Failed to join group')
 	return response.data.data
 }
 
@@ -99,7 +104,7 @@ export const exploreGroups = async (
 	const response = await api.get<ApiResponse<PaginatedResponse<Group>>>(
 		`${API_ENDPOINTS.GROUPS.EXPLORE}?${params.toString()}`
 	)
-	return response.data.data
+	return response.data.data ?? { content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: size, hasNext: false, hasPrevious: false }
 }
 
 /**
@@ -118,7 +123,7 @@ export const getMyGroups = async (
 	const response = await api.get<ApiResponse<PaginatedResponse<Group>>>(
 		`${API_ENDPOINTS.GROUPS.MY_GROUPS}?${params.toString()}`
 	)
-	return response.data.data
+	return response.data.data ?? { content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: size, hasNext: false, hasPrevious: false }
 }
 
 /**
@@ -136,7 +141,7 @@ export const getGroupMembers = async (
 	const response = await api.get<ApiResponse<PaginatedResponse<GroupMember>>>(
 		`${API_ENDPOINTS.GROUPS.GET_MEMBERS(groupId)}?${params.toString()}`
 	)
-	return response.data.data
+	return response.data.data ?? { content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: size, hasNext: false, hasPrevious: false }
 }
 
 /**
@@ -154,7 +159,7 @@ export const getPendingRequests = async (
 	const response = await api.get<ApiResponse<PaginatedResponse<PendingRequest>>>(
 		`${API_ENDPOINTS.GROUPS.GET_PENDING_REQUESTS(groupId)}?${params.toString()}`
 	)
-	return response.data.data
+	return response.data.data ?? { content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: size, hasNext: false, hasPrevious: false }
 }
 
 /**
@@ -206,6 +211,7 @@ export const changeGroupPrivacy = async (
 		API_ENDPOINTS.GROUPS.CHANGE_PRIVACY(groupId),
 		{ privacyType }
 	)
+	if (!response.data.data) throw new Error('Failed to change group privacy')
 	return response.data.data
 }
 
@@ -243,7 +249,7 @@ export const getGroupPosts = async (
 			totalPages: response.data.data.totalPages,
 		}
 	} catch (error) {
-		console.error('Failed to fetch group posts:', error)
+		logDevError('Failed to fetch group posts:', error)
 		return { content: [], totalElements: 0, totalPages: 0 }
 	}
 }

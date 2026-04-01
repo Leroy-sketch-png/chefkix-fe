@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Heart, Clock, Bookmark } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, memo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
@@ -12,6 +13,7 @@ import { toast } from 'sonner'
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
+import { logDevError } from '@/lib/dev-log'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -19,6 +21,7 @@ interface RecipeCardProps {
 }
 
 const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
+	const router = useRouter()
 	const [isLiked, setIsLiked] = useState(recipe.isLiked ?? false)
 	const [isSaved, setIsSaved] = useState(recipe.isSaved ?? false)
 	const [likeCount, setLikeCount] = useState(recipe.likeCount)
@@ -60,6 +63,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			setIsLiked(previousLiked)
 			setLikeCount(previousCount)
 			toast.error(RECIPE_MESSAGES.LIKE_FAILED)
+			logDevError('RecipeCard like toggle failed:', error)
 		} finally {
 			setIsLikeLoading(false)
 		}
@@ -106,6 +110,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			setIsSaved(previousSaved)
 			setSaveCount(previousCount)
 			toast.error(RECIPE_MESSAGES.SAVE_FAILED)
+			logDevError('RecipeCard save toggle failed:', error)
 		} finally {
 			setIsSaveLoading(false)
 		}
@@ -125,7 +130,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			>
 				<Link
 					href={`/recipes/${recipe.id}`}
-					className='group block overflow-hidden rounded-radius bg-bg-card shadow-card transition-all duration-300 hover:rotate-x-[2deg] hover:shadow-warm [transform-style:preserve-3d]'
+					className='group block overflow-hidden rounded-radius border border-border-subtle bg-bg-card transition-all duration-300 hover:border-brand/50 hover:bg-bg-elevated'
 				>
 					{/* Gradient overlay on hover */}
 					<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
@@ -139,7 +144,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						/>
 						{/* Difficulty badge */}
 						<div
-							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary-foreground ${
+							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white ${
 								recipe.difficulty === 'Beginner'
 									? 'bg-gradient-to-br from-success to-success/80'
 									: recipe.difficulty === 'Intermediate'
@@ -156,10 +161,11 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							ref={saveButtonRef}
 							onClick={handleSaveClick}
 							disabled={isSaveLoading}
+							aria-label={isSaved ? 'Unsave recipe' : 'Save recipe'}
 							className={`absolute right-2 top-2 grid size-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 								isSaved
 									? 'bg-gold/10 text-gold'
-									: 'bg-bg-card text-text-secondary hover:-translate-y-0.5 hover:bg-primary/10 hover:text-primary'
+									: 'bg-bg-card text-text-secondary hover:bg-primary/10 hover:text-primary'
 							}`}
 						>
 							<Bookmark className={`size-5 ${isSaved ? 'fill-gold' : ''}`} />
@@ -177,7 +183,14 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							<span>⭐ {likeCount} likes</span>
 						</div>
 						<div className='flex gap-4'>
-							<button className='relative h-11 flex-1 overflow-hidden rounded-sm border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-primary-foreground shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'>
+							<button
+								onClick={e => {
+									e.preventDefault()
+									e.stopPropagation()
+									router.push(`/recipes/${recipe.id}?cook=true`)
+								}}
+								className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
+							>
 								Cook Recipe
 							</button>
 						</div>

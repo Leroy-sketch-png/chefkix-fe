@@ -287,6 +287,7 @@ export function LeaderboardPage({
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
 						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text'
+						aria-label='Go back'
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
@@ -300,6 +301,7 @@ export function LeaderboardPage({
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onShare}
 						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-muted'
+						aria-label='Share leaderboard'
 					>
 						<Share2 className='size-5' />
 					</motion.button>

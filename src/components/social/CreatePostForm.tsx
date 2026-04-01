@@ -7,7 +7,7 @@ import { POST_MESSAGES } from '@/constants/messages'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Image as ImageIcon, Video, X, Tag, Send } from 'lucide-react'
 import Image from 'next/image'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import {
@@ -96,6 +96,7 @@ export const CreatePostForm = ({
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+		if (isSubmitting) return
 
 		if (!content.trim()) {
 			toast.error(POST_MESSAGES.CREATE_EMPTY)
@@ -220,7 +221,7 @@ export const CreatePostForm = ({
 		<motion.div
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-md'
+			className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-card'
 		>
 			<form onSubmit={handleSubmit} data-post-form>
 				{/* Header */}

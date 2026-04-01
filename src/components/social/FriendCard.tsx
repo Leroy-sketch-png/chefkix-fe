@@ -82,7 +82,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 					>
 						<Avatar
 							size='lg'
-							className='shadow-sm transition-transform group-hover:scale-105'
+							className='shadow-card transition-transform group-hover:scale-105'
 						>
 							<AvatarImage
 								src={profile.avatarUrl || '/placeholder-avatar.svg'}

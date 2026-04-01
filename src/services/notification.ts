@@ -7,6 +7,7 @@ import { api } from '@/lib/axios'
 import type { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES - Must match BE NotificationType enum exactly
@@ -126,6 +127,7 @@ export const getNotifications = async (
 			},
 		}
 	} catch (error) {
+		logDevError('notifications failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<NotificationsResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -148,6 +150,7 @@ export const markNotificationRead = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<{ read: boolean }>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -170,6 +173,7 @@ export const markAllNotificationsRead = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<{ readCount: number }>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -198,6 +202,7 @@ export const getUnreadCount = async (): Promise<ApiResponse<number>> => {
 			data: count,
 		}
 	} catch (error) {
+		logDevError('count failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<number>>
 		if (axiosError.response) return axiosError.response.data
 		return {

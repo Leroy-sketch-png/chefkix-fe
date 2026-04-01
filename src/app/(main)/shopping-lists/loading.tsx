@@ -18,7 +18,10 @@ export default function Loading() {
 			{/* Shopping list cards grid */}
 			<div className='grid gap-4 sm:grid-cols-2'>
 				{Array.from({ length: 4 }).map((_, i) => (
-					<div key={i} className='h-28 animate-pulse rounded-xl bg-muted/20' />
+					<div
+						key={i}
+						className='h-28 animate-pulse rounded-xl bg-bg-elevated/40'
+					/>
 				))}
 			</div>
 		</PageContainer>

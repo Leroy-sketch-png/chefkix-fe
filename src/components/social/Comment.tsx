@@ -355,6 +355,7 @@ export const Comment = ({
 
 		setIsSubmittingReply(true)
 
+		try {
 		// AI content moderation before posting (fail-closed for safety)
 		diag.request('social', '/api/v1/moderate', {
 			contentType: 'comment',
@@ -446,8 +447,11 @@ export const Comment = ({
 			})
 			toast.error(response.message || 'Failed to post reply')
 		}
-
-		setIsSubmittingReply(false)
+		} catch {
+			toast.error('Failed to post reply')
+		} finally {
+			setIsSubmittingReply(false)
+		}
 	}
 
 	return (
@@ -574,6 +578,7 @@ export const Comment = ({
 										onSubmit={handleSubmitReply}
 										placeholder='Write a reply... (use @ to mention)'
 										disabled={isSubmittingReply}
+										maxLength={500}
 									/>
 									<button
 										onClick={handleSubmitReply}
@@ -587,6 +592,9 @@ export const Comment = ({
 										)}
 									</button>
 								</div>
+								{replyContent.length > 0 && (
+									<p className='mt-1 text-right text-xs text-text-muted'>{replyContent.length}/500</p>
+								)}
 							</motion.div>
 						)}
 					</AnimatePresence>

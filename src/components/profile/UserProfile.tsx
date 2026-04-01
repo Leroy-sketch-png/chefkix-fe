@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Profile, Post, getProfileDisplayName } from '@/lib/types'
 import {
+	ChefHat,
 	Clock,
 	Heart,
 	MessageCircle,
@@ -23,7 +24,7 @@ import { getRecipesByUserId, getSavedRecipes } from '@/services/recipe'
 import { getPostsByUser, getSavedPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { ProfileHeaderGamified } from './ProfileHeaderGamified'
 import { CookingHistoryTab, type PendingSession } from '@/components/pending'
 import type { Badge as GamificationBadge } from '@/lib/types/gamification'
@@ -39,7 +40,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { logDevError } from '@/lib/dev-log'
 
 // ============================================
-// ADAPTER: Profile → ProfileUser
+// ADAPTER: Profile â†’ ProfileUser
 // ============================================
 
 interface ProfileUser {
@@ -187,7 +188,7 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 	//
 	// IMPORTANT: baseXP here is NOT "total XP ever possible", it's specifically
 	// the post bonus. The cooking completion XP (baseXpAwarded) was already given
-	// and is NOT shown here — that's "XP Earned" in the stats.
+	// and is NOT shown here â€” that's "XP Earned" in the stats.
 	const isPending = !item.postId && item.status === 'completed'
 	const isPosted = !!item.postId
 
@@ -272,31 +273,40 @@ export const UserProfile = ({
 	// Fetch user's recipes when recipes tab is active
 	useEffect(() => {
 		if (activeTab !== 'recipes') return
+		let cancelled = false
 
 		const fetchRecipes = async () => {
 			setIsLoadingRecipes(true)
 			try {
 				const response = await getRecipesByUserId(profile.userId, { limit: 20 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					setUserRecipes(response.data)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch user recipes:', err)
+				toast.error('Failed to load recipes')
 			} finally {
-				setIsLoadingRecipes(false)
+				if (!cancelled) setIsLoadingRecipes(false)
 			}
 		}
 
 		fetchRecipes()
+		return () => {
+			cancelled = true
+		}
 	}, [profile.userId, activeTab])
 
 	// Fetch cooking session history when tab is active (for own profile only)
 	useEffect(() => {
 		if (!isOwnProfile || activeTab !== 'cooking') return
+		let cancelled = false
 
 		const fetchCookingSessions = async () => {
 			try {
 				const response = await getSessionHistory({ status: 'all', size: 50 })
+				if (cancelled) return
 				if (response.success && response.data?.sessions) {
 					const sessions = response.data.sessions.map(transformToPendingSession)
 					setCookingSessions(sessions)
@@ -332,21 +342,28 @@ export const UserProfile = ({
 					})
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch cooking sessions:', err)
+				toast.error('Failed to load cooking sessions')
 			}
 		}
 
 		fetchCookingSessions()
+		return () => {
+			cancelled = true
+		}
 	}, [isOwnProfile, activeTab])
 
 	// Fetch user's posts when posts tab is active
 	useEffect(() => {
 		if (activeTab !== 'posts') return
+		let cancelled = false
 
 		const fetchPosts = async () => {
 			setIsLoadingPosts(true)
 			try {
 				const response = await getPostsByUser(profile.userId, { limit: 20 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
 					const personalPosts = response.data.filter(
@@ -355,45 +372,59 @@ export const UserProfile = ({
 					setUserPosts(personalPosts)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch user posts:', err)
+				toast.error('Failed to load posts')
 			} finally {
-				setIsLoadingPosts(false)
+				if (!cancelled) setIsLoadingPosts(false)
 			}
 		}
 
 		fetchPosts()
+		return () => {
+			cancelled = true
+		}
 	}, [profile.userId, activeTab])
 
 	// Fetch saved recipes when saved tab is active (own profile only)
 	useEffect(() => {
 		if (!isOwnProfile || activeTab !== 'saved') return
+		let cancelled = false
 
 		const fetchSaved = async () => {
 			setIsLoadingSaved(true)
 			try {
 				const response = await getSavedRecipes({ limit: 20 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					setSavedRecipes(response.data as Recipe[])
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch saved recipes:', err)
+				toast.error('Failed to load saved recipes')
 			} finally {
-				setIsLoadingSaved(false)
+				if (!cancelled) setIsLoadingSaved(false)
 			}
 		}
 
 		fetchSaved()
+		return () => {
+			cancelled = true
+		}
 	}, [isOwnProfile, activeTab])
 
 	// Fetch saved posts when saved tab + posts sub-tab is active
 	useEffect(() => {
 		if (!isOwnProfile || activeTab !== 'saved' || savedSubTab !== 'posts')
 			return
+		let cancelled = false
 
 		const fetchSavedPosts = async () => {
 			setIsLoadingSavedPosts(true)
 			try {
 				const response = await getSavedPosts(0, 20)
+				if (cancelled) return
 				if (response.success && response.data?.content) {
 					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
 					const personalPosts = response.data.content.filter(
@@ -402,13 +433,18 @@ export const UserProfile = ({
 					setSavedPosts(personalPosts)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch saved posts:', err)
+				toast.error('Failed to load saved posts')
 			} finally {
-				setIsLoadingSavedPosts(false)
+				if (!cancelled) setIsLoadingSavedPosts(false)
 			}
 		}
 
 		fetchSavedPosts()
+		return () => {
+			cancelled = true
+		}
 	}, [isOwnProfile, activeTab, savedSubTab])
 
 	// Transform Profile to ProfileUser for gamified header
@@ -485,41 +521,55 @@ export const UserProfile = ({
 
 	// Initialize isBlocked from profile API response
 	const [isBlocked, setIsBlocked] = useState(profile.isBlocked ?? false)
+	const blockLockRef = useRef(false)
 
 	const handleBlock = async () => {
+		if (blockLockRef.current) return
+		blockLockRef.current = true
 		const wasBlocked = isBlocked
 		const displayName = getProfileDisplayName(profile)
 
 		if (wasBlocked) {
 			// Unblock
 			setIsBlocked(false)
-			const response = await unblockUser(profile.userId)
-			if (response.success) {
-				toast.success(`Unblocked ${displayName}`)
-			} else {
-				setIsBlocked(true)
-				toast.error(response.message || 'Failed to unblock user')
+			try {
+				const response = await unblockUser(profile.userId)
+				if (response.success) {
+					toast.success(`Unblocked ${displayName}`)
+				} else {
+					setIsBlocked(true)
+					toast.error(response.message || 'Failed to unblock user')
+				}
+			} finally {
+				blockLockRef.current = false
 			}
 		} else {
+			blockLockRef.current = false
 			// Block - show confirmation dialog
 			setShowBlockConfirm(true)
 		}
 	}
 
 	const handleConfirmBlock = async () => {
+		if (blockLockRef.current) return
+		blockLockRef.current = true
 		setIsBlocked(true)
 		const displayName = getProfileDisplayName(profile)
-		const response = await blockUser(profile.userId)
-		if (response.success) {
-			toast.success(`Blocked ${displayName}`)
-			// Update profile state to reflect the unfollow
-			setProfile(prev => ({
-				...prev,
-				isFollowing: false,
-			}))
-		} else {
-			setIsBlocked(false)
-			toast.error(response.message || 'Failed to block user')
+		try {
+			const response = await blockUser(profile.userId)
+			if (response.success) {
+				toast.success(`Blocked ${displayName}`)
+				// Update profile state to reflect the unfollow
+				setProfile(prev => ({
+					...prev,
+					isFollowing: false,
+				}))
+			} else {
+				setIsBlocked(false)
+				toast.error(response.message || 'Failed to block user')
+			}
+		} finally {
+			blockLockRef.current = false
 		}
 	}
 
@@ -573,29 +623,39 @@ export const UserProfile = ({
 										key={i}
 										className='animate-pulse overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
 									>
-										<div className='h-48 w-full bg-muted' />
+										<div className='h-48 w-full bg-bg-elevated' />
 										<div className='space-y-3 p-4'>
-											<div className='h-5 w-3/4 rounded bg-muted' />
-											<div className='h-4 w-1/2 rounded bg-muted' />
-											<div className='h-11 w-full rounded bg-muted' />
+											<div className='h-5 w-3/4 rounded bg-bg-elevated' />
+											<div className='h-4 w-1/2 rounded bg-bg-elevated' />
+											<div className='h-11 w-full rounded bg-bg-elevated' />
 										</div>
 									</div>
 								))}
 							</div>
 						) : userRecipes.length === 0 ? (
-							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
-								<p className='text-text-muted'>
+							<div className='flex h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
+								<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
+									<ChefHat className='size-7 text-brand' />
+								</div>
+								<p className='font-medium text-text-secondary'>
 									{isOwnProfile
 										? "You haven't created any recipes yet"
 										: 'No recipes created yet'}
 								</p>
+								{isOwnProfile && (
+									<Link href='/create'>
+										<Button size='sm' className='mt-1'>
+											Create Your First Recipe
+										</Button>
+									</Link>
+								)}
 							</div>
 						) : (
 							<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
 								{userRecipes.map(recipe => (
 									<div
 										key={recipe.id}
-										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-sm transition-shadow hover:shadow-md'
+										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-card'
 									>
 										<div className='relative h-48 w-full'>
 											<Image
@@ -613,11 +673,11 @@ export const UserProfile = ({
 											</h3>
 											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
 												<span className='flex items-center gap-1'>
-													<Clock className='h-4 w-4' /> {getTotalTime(recipe)}{' '}
+													<Clock className='size-4' /> {getTotalTime(recipe)}{' '}
 													min
 												</span>
 												<span className='flex items-center gap-1'>
-													<Heart className='h-4 w-4' />{' '}
+													<Heart className='size-4' />{' '}
 													{recipe.likeCount >= 1000
 														? `${(recipe.likeCount / 1000).toFixed(1)}k`
 														: recipe.likeCount}
@@ -658,7 +718,7 @@ export const UserProfile = ({
 								))}
 							</div>
 						) : userPosts.length === 0 ? (
-							<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+							<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 								<ImageOff className='size-8 text-text-muted' />
 								<p className='mt-2 text-text-muted'>
 									{isOwnProfile
@@ -716,7 +776,7 @@ export const UserProfile = ({
 				{activeTab === 'saved' && (
 					<>
 						{!isOwnProfile ? (
-							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border'>
+							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 								<p className='text-text-muted'>Saved items are private</p>
 							</div>
 						) : (
@@ -731,7 +791,8 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Recipes ({savedRecipes.length})
+										Recipes
+										{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
 									</button>
 									<button
 										onClick={() => setSavedSubTab('posts')}
@@ -741,7 +802,10 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Posts ({savedPosts.length})
+										Posts
+										{savedSubTab === 'posts' && savedPosts.length > 0
+											? ` (${savedPosts.length})`
+											: ''}
 									</button>
 								</div>
 
@@ -764,7 +828,7 @@ export const UserProfile = ({
 												))}
 											</div>
 										) : savedRecipes.length === 0 ? (
-											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 												<Bookmark className='size-8 text-text-muted' />
 												<p className='mt-2 text-text-muted'>
 													No saved recipes yet
@@ -782,7 +846,7 @@ export const UserProfile = ({
 												{savedRecipes.map(recipe => (
 													<div
 														key={recipe.id}
-														className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-md'
+														className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-card'
 														onClick={() => router.push(`/recipes/${recipe.id}`)}
 													>
 														<div className='relative h-40 overflow-hidden'>
@@ -840,7 +904,7 @@ export const UserProfile = ({
 												))}
 											</div>
 										) : savedPosts.length === 0 ? (
-											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
+											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
 												<MessageCircle className='size-8 text-text-muted' />
 												<p className='mt-2 text-text-muted'>
 													No saved posts yet
@@ -889,20 +953,30 @@ export const UserProfile = ({
 								Earned Badges ({profileUser.badges.length})
 							</h3>
 							{profileUser.badges.length === 0 ? (
-								<div className='flex h-32 flex-col items-center justify-center rounded-lg border border-dashed border-border'>
-									<Award className='size-8 text-text-muted' />
-									<p className='mt-2 text-text-muted'>
+								<div className='flex h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
+									<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
+										<Award className='size-7 text-xp' />
+									</div>
+									<p className='font-medium text-text-secondary'>
 										{isOwnProfile
 											? 'Cook recipes to earn badges!'
 											: 'No badges earned yet.'}
 									</p>
+									{isOwnProfile && (
+										<Link href='/explore'>
+											<Button variant='outline' size='sm' className='mt-1'>
+												<ChefHat className='mr-1.5 size-4' />
+												Explore Recipes
+											</Button>
+										</Link>
+									)}
 								</div>
 							) : (
 								<div className='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'>
 									{profileUser.badges.map((badge, index) => (
 										<div
 											key={badge.id || `badge-${index}`}
-											className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-md'
+											className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-card'
 										>
 											<span className='text-3xl'>{badge.icon}</span>
 											<span className='text-center text-xs font-semibold text-text line-clamp-1'>
@@ -934,7 +1008,7 @@ export const UserProfile = ({
 							<div className='flex justify-center'>
 								<Link
 									href='/profile/badges'
-									className='flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-md'
+									className='flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-card'
 								>
 									<Trophy className='size-5' />
 									View Full Badge Catalog ({getAllBadges().length} badges)

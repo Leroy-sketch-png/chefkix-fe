@@ -7,7 +7,6 @@ import {
 	Bell,
 	CheckCheck,
 	Filter,
-	Trash2,
 	ChefHat,
 	Heart,
 	MessageCircle,
@@ -64,6 +63,8 @@ interface SocialNotification {
 	avatar: string
 	action: string
 	target?: string
+	targetEntityId?: string
+	targetEntityUrl?: string
 	time: string
 	read: boolean
 	createdAt: Date
@@ -85,7 +86,8 @@ const formatTimeAgo = (date: Date): string => {
 	if (diffHours < 24) return `${diffHours}h ago`
 	if (diffDays === 1) return 'Yesterday'
 	if (diffDays < 7) return `${diffDays}d ago`
-	return date.toLocaleDateString()
+	if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 // Transform API notification to gamified format
@@ -183,6 +185,10 @@ const transformToSocialNotification = (
 			'/placeholder-avatar.svg',
 		action: notif.content || notif.body || '',
 		target: (data.targetTitle as string) || undefined,
+		targetEntityId:
+			notif.targetEntityId || (data.targetEntityId as string) || undefined,
+		targetEntityUrl:
+			notif.targetEntityUrl || (data.targetEntityUrl as string) || undefined,
 		time: formatTimeAgo(timestamp),
 		read: notif.isRead,
 		createdAt: timestamp,
@@ -262,7 +268,7 @@ const FilterTabs = ({
 						className={cn(
 							'flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all',
 							isActive
-								? 'bg-brand text-white shadow-md'
+								? 'bg-brand text-white shadow-card'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
 						)}
 					>
@@ -302,6 +308,8 @@ const SocialNotificationItem = ({
 	avatar,
 	action,
 	target,
+	targetEntityId,
+	targetEntityUrl,
 	time,
 	read,
 	currentUserId,
@@ -314,9 +322,16 @@ const SocialNotificationItem = ({
 		if (!read) {
 			onMarkRead(id)
 		}
-		// Navigate based on type
-		if (type === 'follow' && userId) {
+		// Navigate based on type — use targetEntityUrl first, then derive from type
+		if (targetEntityUrl) {
+			router.push(targetEntityUrl)
+		} else if (type === 'follow' && userId) {
 			router.push(`/${userId}`)
+		} else if (
+			(type === 'like' || type === 'comment' || type === 'mention') &&
+			targetEntityId
+		) {
+			router.push(`/post/${targetEntityId}`)
 		}
 	}
 
@@ -325,7 +340,7 @@ const SocialNotificationItem = ({
 			variants={staggerItem}
 			onClick={handleClick}
 			className={cn(
-				'group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all hover:shadow-md',
+				'group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all hover:shadow-card',
 				read
 					? 'border-transparent bg-bg-card'
 					: 'border-brand/20 bg-brand/5 hover:border-brand/30',
@@ -339,7 +354,7 @@ const SocialNotificationItem = ({
 			{/* Avatar with badge */}
 			<UserHoverCard userId={userId} currentUserId={currentUserId}>
 				<div className='relative flex-shrink-0'>
-					<Avatar size='lg' className='shadow-md'>
+					<Avatar size='lg' className='shadow-card'>
 						<AvatarImage src={avatar} alt={user} />
 						<AvatarFallback>
 							{user
@@ -402,10 +417,12 @@ export default function NotificationsPage() {
 
 	// Fetch notifications and sync unread count
 	useEffect(() => {
+		let cancelled = false
 		const fetchNotifications = async () => {
 			setIsLoading(true)
 			try {
 				const response = await getNotifications({ size: 50 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					const { notifications } = response.data
 
@@ -420,6 +437,23 @@ export default function NotificationsPage() {
 							const socialNotif = transformToSocialNotification(notif)
 							if (socialNotif) {
 								social.push(socialNotif)
+							} else {
+								// Fallback: show unknown types as generic social notifications
+								social.push({
+									id: notif.id,
+									type: 'achievement',
+									userId: notif.latestActorId || '',
+									user: notif.latestActorName || 'ChefKix',
+									avatar:
+										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
+									action:
+										notif.content ||
+										notif.body ||
+										'You have a new notification',
+									time: formatTimeAgo(new Date(notif.createdAt)),
+									read: notif.isRead,
+									createdAt: new Date(notif.createdAt),
+								})
 							}
 						}
 					})
@@ -428,14 +462,18 @@ export default function NotificationsPage() {
 					setSocialNotifications(social)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch notifications:', err)
 				setError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchNotifications()
+		return () => {
+			cancelled = true
+		}
 	}, [retryKey])
 
 	// Calculate counts
@@ -493,6 +531,7 @@ export default function NotificationsPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to mark notification as read:', err)
+			toast.error('Failed to update notification')
 		}
 	}
 
@@ -557,7 +596,7 @@ export default function NotificationsPage() {
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}
 								transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 							>
 								<Bell className='size-6 text-white' />
 							</motion.div>
@@ -595,13 +634,22 @@ export default function NotificationsPage() {
 					/>
 				</div>
 
-				{/* Loading State */}
+				{/* Loading State — content-shaped skeleton */}
 				{isLoading && (
-					<div className='flex flex-col items-center justify-center py-20'>
-						<Loader2 className='size-8 animate-spin text-brand' />
-						<p className='mt-4 text-sm text-text-muted'>
-							Loading notifications...
-						</p>
+					<div className='space-y-3'>
+						{Array.from({ length: 6 }).map((_, i) => (
+							<div
+								key={i}
+								className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
+							>
+								<div className='size-10 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+								<div className='flex-1 space-y-2'>
+									<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated/40' />
+									<div className='h-3 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
+								</div>
+								<div className='h-3 w-12 animate-pulse rounded bg-bg-elevated/40' />
+							</div>
+						))}
 					</div>
 				)}
 
@@ -623,7 +671,7 @@ export default function NotificationsPage() {
 									}
 								: {
 										label: 'Explore Recipes',
-										href: '/discover',
+										href: '/explore',
 									}
 						}
 					/>
@@ -655,7 +703,7 @@ export default function NotificationsPage() {
 										extraProps.onPost = () => router.push('/create')
 									}
 									if (notif.type === 'streak_warning') {
-										extraProps.onFindRecipe = () => router.push('/discover')
+										extraProps.onFindRecipe = () => router.push('/explore')
 									}
 									return (
 										<NotificationItemGamified

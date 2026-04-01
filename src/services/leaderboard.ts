@@ -7,6 +7,7 @@ import { api } from '@/lib/axios'
 import type { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES
@@ -67,6 +68,7 @@ export const getLeaderboard = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<LeaderboardResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -91,6 +93,7 @@ export const getMyRank = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<MyRank>>
 		if (axiosError.response) return axiosError.response.data
 		return {

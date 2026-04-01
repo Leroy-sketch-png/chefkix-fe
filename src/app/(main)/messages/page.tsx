@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Portal } from '@/components/ui/portal'
 import {
 	MessageCircle,
 	Send,
@@ -15,8 +16,10 @@ import {
 	ArrowLeft,
 	Phone,
 	X,
+	Users,
 } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
@@ -36,6 +39,7 @@ import {
 } from '@/services/chat'
 import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
@@ -205,9 +209,16 @@ function EmptyConversations() {
 			<div>
 				<h3 className='font-semibold text-text'>No conversations yet</h3>
 				<p className='mt-1 text-sm text-text-muted'>
-					Visit a chef&apos;s profile to start chatting! 🍳
+					Find chefs in the community and start chatting!
 				</p>
 			</div>
+			<Link
+				href='/community'
+				className='mt-2 inline-flex items-center gap-2 rounded-radius bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-card transition-shadow hover:shadow-warm'
+			>
+				<Users className='size-4' />
+				Discover Chefs
+			</Link>
 		</div>
 	)
 }
@@ -263,7 +274,7 @@ function ConnectionStatus({
 // MAIN COMPONENT
 // ============================================
 
-export default function MessagesPage() {
+function MessagesContent() {
 	const { user } = useAuth()
 	const searchParams = useSearchParams()
 	const targetUserId = searchParams.get('userId')
@@ -287,6 +298,9 @@ export default function MessagesPage() {
 
 	// Reply state
 	const [replyingTo, setReplyingTo] = useState<Message | null>(null)
+
+	// @mention tagged users (captured for future backend support)
+	const taggedUserIdsRef = useRef<string[]>([])
 
 	// Mobile: show chat panel when conversation selected
 	const [showMobileChat, setShowMobileChat] = useState(false)
@@ -332,6 +346,7 @@ export default function MessagesPage() {
 	useEffect(() => {
 		// Reset the guard so a new targetUserId is handled on re-navigation
 		hasHandledUserIdRef.current = false
+		let cancelled = false
 
 		const initializeChat = async () => {
 			setIsLoadingConversations(true)
@@ -339,6 +354,7 @@ export default function MessagesPage() {
 
 			try {
 				const response = await getMyConversations()
+				if (cancelled) return
 				if (!response.success || !response.data) {
 					setConversationError(
 						response.message || 'Failed to load conversations',
@@ -363,14 +379,17 @@ export default function MessagesPage() {
 					)
 
 					if (existingConversation) {
-						setSelectedConversation(existingConversation)
-						setShowMobileChat(true)
+						if (!cancelled) {
+							setSelectedConversation(existingConversation)
+							setShowMobileChat(true)
+						}
 					} else {
 						// Create new conversation
 						const createResponse = await createConversation({
 							type: 'DIRECT',
 							participantIds: [targetUserId],
 						})
+						if (cancelled) return
 
 						if (createResponse.success && createResponse.data) {
 							setConversations(prev => [createResponse.data!, ...prev])
@@ -382,17 +401,21 @@ export default function MessagesPage() {
 							)
 						}
 					}
-					setIsCreatingConversation(false)
+					if (!cancelled) setIsCreatingConversation(false)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to initialize chat:', err)
 				setConversationError('Failed to load conversations')
 			} finally {
-				setIsLoadingConversations(false)
+				if (!cancelled) setIsLoadingConversations(false)
 			}
 		}
 
 		initializeChat()
+		return () => {
+			cancelled = true
+		}
 	}, [targetUserId, retryCount])
 
 	// Fetch messages when conversation changes
@@ -403,23 +426,31 @@ export default function MessagesPage() {
 			return
 		}
 
+		let cancelled = false
 		const fetchMessages = async () => {
 			setIsLoadingMessages(true)
 			try {
 				const response = await getMessages(selectedConversationId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					setMessages(response.data)
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Failed to fetch messages:', err)
+				toast.error('Could not load messages')
 			} finally {
-				setIsLoadingMessages(false)
+				if (!cancelled) setIsLoadingMessages(false)
 			}
 		}
 
 		fetchMessages()
 		// Focus input
-		setTimeout(() => inputRef.current?.focus(), 100)
+		const focusTimer = setTimeout(() => inputRef.current?.focus(), 100)
+		return () => {
+			cancelled = true
+			clearTimeout(focusTimer)
+		}
 	}, [selectedConversationId])
 
 	// Track scroll position to decide auto-scroll behavior
@@ -449,6 +480,7 @@ export default function MessagesPage() {
 		const replyToId = replyingTo?.id
 		setNewMessage('')
 		setReplyingTo(null)
+		taggedUserIdsRef.current = []
 
 		if (isConnected) {
 			sendMessageWs(messageText, replyToId)
@@ -484,26 +516,44 @@ export default function MessagesPage() {
 	}
 
 	// React to a message
+	const reactingRef = useRef(new Set<string>())
 	const handleReact = useCallback(async (messageId: string, emoji: string) => {
-		const response = await reactToMessage(messageId, emoji)
-		if (response.success && response.data) {
-			setMessages(prev =>
-				prev.map(m => (m.id === messageId ? response.data! : m)),
-			)
-		} else {
+		if (reactingRef.current.has(messageId)) return
+		reactingRef.current.add(messageId)
+		try {
+			const response = await reactToMessage(messageId, emoji)
+			if (response.success && response.data) {
+				setMessages(prev =>
+					prev.map(m => (m.id === messageId ? response.data! : m)),
+				)
+			} else {
+				toast.error('Failed to react to message')
+			}
+		} catch {
 			toast.error('Failed to react to message')
+		} finally {
+			reactingRef.current.delete(messageId)
 		}
 	}, [])
 
 	// Delete a message (own messages only)
+	const deletingRef = useRef(new Set<string>())
 	const handleDelete = useCallback(async (messageId: string) => {
-		const response = await deleteMessage(messageId)
-		if (response.success && response.data) {
-			setMessages(prev =>
-				prev.map(m => (m.id === messageId ? response.data! : m)),
-			)
-		} else {
+		if (deletingRef.current.has(messageId)) return
+		deletingRef.current.add(messageId)
+		try {
+			const response = await deleteMessage(messageId)
+			if (response.success && response.data) {
+				setMessages(prev =>
+					prev.map(m => (m.id === messageId ? response.data! : m)),
+				)
+			} else {
+				toast.error('Failed to delete message')
+			}
+		} catch {
 			toast.error('Failed to delete message')
+		} finally {
+			deletingRef.current.delete(messageId)
 		}
 	}, [])
 
@@ -575,7 +625,12 @@ export default function MessagesPage() {
 			>
 				{/* Sidebar Header */}
 				<header className='flex-shrink-0 border-b border-border-subtle p-4'>
-					<h1 className='text-2xl font-bold text-text'>Messages</h1>
+					<div className='mb-3 flex items-center gap-3'>
+						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25'>
+							<MessageCircle className='size-5 text-white' />
+						</div>
+						<h1 className='text-2xl font-bold text-text'>Messages</h1>
+					</div>
 					{/* Search */}
 					<div className='relative mt-3'>
 						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
@@ -591,8 +646,17 @@ export default function MessagesPage() {
 				{/* Conversations List - Scrollable */}
 				<nav className='flex-1 overflow-y-auto px-2 py-2'>
 					{isLoadingConversations ? (
-						<div className='flex items-center justify-center py-12'>
-							<Loader2 className='size-6 animate-spin text-text-muted' />
+						<div className='space-y-2 px-2'>
+							{Array.from({ length: 5 }).map((_, i) => (
+								<div key={i} className='flex items-center gap-3 rounded-xl p-3'>
+									<div className='size-11 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+									<div className='flex-1 space-y-1.5'>
+										<div className='h-4 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+										<div className='h-3 w-full animate-pulse rounded bg-bg-elevated/40' />
+									</div>
+									<div className='h-3 w-8 animate-pulse rounded bg-bg-elevated/40' />
+								</div>
+							))}
 						</div>
 					) : conversationError ? (
 						<div className='flex flex-col items-center gap-3 p-6 text-center'>
@@ -653,6 +717,7 @@ export default function MessagesPage() {
 								size='icon'
 								onClick={handleBackToList}
 								className='md:hidden'
+								aria-label='Back to conversations'
 							>
 								<ArrowLeft className='size-5' />
 							</Button>
@@ -665,7 +730,6 @@ export default function MessagesPage() {
 									fill
 									className='rounded-full object-cover'
 								/>
-								<span className='absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-bg-card bg-success' />
 							</div>
 							<div className='min-w-0 flex-1'>
 								<h2 className='truncate font-semibold text-text'>
@@ -681,6 +745,7 @@ export default function MessagesPage() {
 									size='icon'
 									onClick={() => setIsVideoCallActive(true)}
 									className='text-brand hover:bg-brand/10'
+									aria-label='Start video call'
 								>
 									<Phone className='size-5' />
 								</Button>
@@ -689,23 +754,27 @@ export default function MessagesPage() {
 
 						{/* Video Call Modal / Overlay */}
 						{isVideoCallActive && selectedConversation && user && (
-							<div className='absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
-								<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
-									<Button
-										variant='ghost'
-										size='icon'
-										className='absolute -top-3 -right-3 z-[60] bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 size-10'
-										onClick={() => setIsVideoCallActive(false)}
-									>
-										<X className='size-5' />
-									</Button>
+							<Portal>
+								<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
+									<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
+										<Button
+											variant='ghost'
+											size='icon'
+											className='absolute -top-3 -right-3 z-[60] bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
+											onClick={() => setIsVideoCallActive(false)}
+											aria-label='End video call'
+										>
+											<X className='size-5' />
+										</Button>
 
-									<VideoCall
-										conversationId={selectedConversation.id}
-										currentUserId={user.userId}
-									/>
+										<VideoCall
+											conversationId={selectedConversation.id}
+											currentUserId={user.userId}
+											onClose={() => setIsVideoCallActive(false)}
+										/>
+									</div>
 								</div>
-							</div>
+							</Portal>
 						)}
 
 						{/* Messages Area - Scrollable */}
@@ -714,8 +783,23 @@ export default function MessagesPage() {
 							className='flex-1 overflow-y-auto px-4 py-4 md:px-6'
 						>
 							{isLoadingMessages ? (
-								<div className='flex h-full items-center justify-center'>
-									<Loader2 className='size-6 animate-spin text-text-muted' />
+								<div className='flex flex-col gap-3 px-2 py-4'>
+									{Array.from({ length: 4 }).map((_, i) => (
+										<div
+											key={i}
+											className={`flex gap-2 ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}
+										>
+											{i % 2 === 0 && (
+												<div className='size-8 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+											)}
+											<div
+												className={`space-y-1.5 rounded-2xl p-3 ${i % 2 === 0 ? 'w-2/3 bg-bg-elevated/20' : 'w-1/2 bg-brand/10'}`}
+											>
+												<div className='h-3 w-full animate-pulse rounded bg-bg-elevated/40' />
+												<div className='h-3 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+											</div>
+										</div>
+									))}
 								</div>
 							) : messages.length === 0 ? (
 								<div className='flex h-full flex-col items-center justify-center gap-3 text-center'>
@@ -797,10 +881,13 @@ export default function MessagesPage() {
 									placeholder='Type a message... (use @ to mention)'
 									value={newMessage}
 									onChange={setNewMessage}
-									onTaggedUsersChange={() => {}}
+									onTaggedUsersChange={ids => {
+										taggedUserIdsRef.current = ids
+									}}
 									onSubmit={handleSendMessage}
 									disabled={isSending}
 									className='bg-bg-elevated'
+									maxLength={4000}
 								/>
 								<Button
 									onClick={handleSendMessage}
@@ -834,5 +921,37 @@ export default function MessagesPage() {
 				)}
 			</main>
 		</div>
+	)
+}
+
+function MessagesSkeleton() {
+	return (
+		<div className='flex h-[calc(100vh-4rem)]'>
+			{/* Conversation list */}
+			<div className='w-80 space-y-2 border-r border-border-subtle p-4'>
+				<Skeleton className='mb-4 h-10 w-full rounded-xl' />
+				{[1, 2, 3, 4, 5].map(i => (
+					<div key={i} className='flex items-center gap-3 rounded-xl p-3'>
+						<Skeleton className='size-12 shrink-0 rounded-full' />
+						<div className='flex-1 space-y-1'>
+							<Skeleton className='h-4 w-24' />
+							<Skeleton className='h-3 w-36' />
+						</div>
+					</div>
+				))}
+			</div>
+			{/* Chat area */}
+			<div className='flex-1 p-6'>
+				<Skeleton className='mx-auto mt-24 h-6 w-48' />
+			</div>
+		</div>
+	)
+}
+
+export default function MessagesPage() {
+	return (
+		<Suspense fallback={<MessagesSkeleton />}>
+			<MessagesContent />
+		</Suspense>
 	)
 }

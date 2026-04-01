@@ -106,7 +106,7 @@ const StatCard = ({
 			<span className={cn('text-lg font-extrabold text-text', colorClass)}>
 				{value}
 			</span>
-			<span className='text-2xs text-muted-foreground'>{label}</span>
+			<span className='text-2xs text-text-secondary'>{label}</span>
 		</div>
 	</div>
 )
@@ -128,7 +128,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			badgeBg: 'bg-error/20',
 			indicator: <X className='size-3' />,
 			indicatorBg: 'bg-error',
-			xpClass: 'text-muted-foreground',
+			xpClass: 'text-text-secondary',
 		},
 		today: {
 			badgeBg: 'bg-gradient-brand',
@@ -146,7 +146,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			badgeBg: 'bg-muted/30',
 			indicator: null,
 			indicatorBg: '',
-			xpClass: 'text-muted-foreground',
+			xpClass: 'text-text-secondary',
 		},
 	}
 
@@ -165,10 +165,10 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 					Today
 				</span>
 			)}
-			<span className='text-xs font-semibold text-muted-foreground'>
+			<span className='text-xs font-semibold text-text-secondary'>
 				{getDayName(day.date)}
 			</span>
-			<span className='text-2xs text-muted-foreground'>
+			<span className='text-2xs text-text-secondary'>
 				{formatDate(day.date)}
 			</span>
 
@@ -196,7 +196,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 					</div>
 				)}
 				{day.status === 'upcoming' && (
-					<span className='absolute -bottom-2 whitespace-nowrap text-2xs font-semibold text-muted-foreground'>
+					<span className='absolute -bottom-2 whitespace-nowrap text-2xs font-semibold text-text-secondary'>
 						Tomorrow
 					</span>
 				)}
@@ -240,7 +240,7 @@ export const ChallengeHistorySection = ({
 						<CalendarCheck className='size-5 text-primary' />
 						Challenge History
 					</h3>
-					<span className='rounded-xl bg-bg px-2.5 py-1 text-xs text-muted-foreground'>
+					<span className='rounded-xl bg-bg px-2.5 py-1 text-xs text-text-secondary'>
 						Last 7 Days
 					</span>
 				</div>
@@ -300,7 +300,7 @@ export const ChallengeHistorySection = ({
 								{daysToNextBadge} more day{daysToNextBadge > 1 ? 's' : ''}
 							</strong>{' '}
 							to unlock &quot;Weekly Champion&quot; badge!
-							<span className='mt-0.5 block text-xs text-muted-foreground'>
+							<span className='mt-0.5 block text-xs text-text-secondary'>
 								Complete tomorrow&apos;s challenge to continue your streak
 							</span>
 						</div>
@@ -342,7 +342,7 @@ const HistoryItem = ({
 				<span className='text-xl font-extrabold leading-none text-text'>
 					{day.date.getDate()}
 				</span>
-				<span className='text-xs text-muted-foreground'>
+				<span className='text-xs text-text-secondary'>
 					{day.date.toLocaleDateString('en-US', { month: 'short' })}
 				</span>
 				{showTodayBadge && (
@@ -371,7 +371,7 @@ const HistoryItem = ({
 					<span className='text-sm font-bold text-text'>
 						{day.challenge?.title ?? 'No Challenge'}
 					</span>
-					<span className='text-xs text-muted-foreground'>
+					<span className='text-xs text-text-secondary'>
 						{day.challenge?.title
 							? `Complete the ${day.challenge.title.toLowerCase()} challenge`
 							: '—'}
@@ -397,7 +397,7 @@ const HistoryItem = ({
 					<span
 						className={cn(
 							'text-sm font-bold',
-							isCompleted ? 'text-success' : 'text-muted-foreground',
+							isCompleted ? 'text-success' : 'text-text-secondary',
 						)}
 					>
 						{isCompleted ? `+${day.challenge?.xp ?? 0} XP` : 'Missed'}
@@ -454,7 +454,7 @@ export const ChallengeHistoryPage = ({
 						<span className='text-6xl font-black leading-none text-primary'>
 							{stats.totalCompleted}
 						</span>
-						<span className='mt-2 text-sm text-muted-foreground'>
+						<span className='mt-2 text-sm text-text-secondary'>
 							Challenges Completed
 						</span>
 					</div>
@@ -466,7 +466,7 @@ export const ChallengeHistoryPage = ({
 							<span className='text-xl font-extrabold text-text'>
 								{stats.currentStreak}
 							</span>
-							<span className='text-xs text-muted-foreground'>
+							<span className='text-xs text-text-secondary'>
 								Current Streak
 							</span>
 						</div>
@@ -475,14 +475,14 @@ export const ChallengeHistoryPage = ({
 							<span className='text-xl font-extrabold text-text'>
 								{stats.bestStreak}
 							</span>
-							<span className='text-xs text-muted-foreground'>Best Streak</span>
+							<span className='text-xs text-text-secondary'>Best Streak</span>
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>⚡</span>
 							<span className='text-xl font-extrabold text-text'>
 								{stats.totalBonusXp.toLocaleString()}
 							</span>
-							<span className='text-xs text-muted-foreground'>
+							<span className='text-xs text-text-secondary'>
 								Total Bonus XP
 							</span>
 						</div>
@@ -492,7 +492,7 @@ export const ChallengeHistoryPage = ({
 				{/* Completion Rate */}
 				<div className='border-t border-border pt-4'>
 					<div className='mb-2.5 flex justify-between'>
-						<span className='text-xs text-muted-foreground'>
+						<span className='text-xs text-text-secondary'>
 							This Week&apos;s Completion
 						</span>
 						<span className='text-sm font-bold text-success'>
@@ -538,7 +538,7 @@ export const ChallengeHistoryPage = ({
 					{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
 						<div
 							key={day}
-							className='py-2 text-center text-xs font-semibold text-muted-foreground'
+							className='py-2 text-center text-xs font-semibold text-text-secondary'
 						>
 							{day}
 						</div>
@@ -563,7 +563,7 @@ export const ChallengeHistoryPage = ({
 						disabled={isLoadingMore}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/30'
+						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-muted/30'
 					>
 						{isLoadingMore ? 'Loading...' : 'Load More'}
 						<ChevronDown className='size-4' />

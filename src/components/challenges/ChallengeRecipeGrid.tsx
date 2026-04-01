@@ -100,7 +100,7 @@ const FilterChip = ({
 			'rounded-full border px-4 py-2 text-xs font-medium transition-all',
 			isActive
 				? 'border-primary bg-primary text-white'
-				: 'border-border bg-bg text-muted-foreground hover:bg-muted/30 hover:text-text',
+				: 'border-border bg-bg text-text-secondary hover:bg-muted/30 hover:text-text',
 		)}
 	>
 		{label}
@@ -127,7 +127,7 @@ const ChallengeRecipeCard = ({
 			animate={{ opacity: 1, y: 0 }}
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-panel-bg shadow-md transition-all hover:border-primary/30 hover:shadow-xl'
+			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-panel-bg shadow-card transition-all hover:border-primary/30 hover:shadow-xl'
 		>
 			<Link href={`/recipes/${recipe.id}`} className='block'>
 				{/* Image Container */}
@@ -180,7 +180,7 @@ const ChallengeRecipeCard = ({
 					<h3 className='mb-1.5 text-base font-bold text-text'>
 						{recipe.title}
 					</h3>
-					<p className='mb-3 line-clamp-1 text-xs leading-relaxed text-muted-foreground'>
+					<p className='mb-3 line-clamp-1 text-xs leading-relaxed text-text-secondary'>
 						{recipe.description}
 					</p>
 
@@ -191,17 +191,17 @@ const ChallengeRecipeCard = ({
 								'flex items-center gap-1 text-xs',
 								recipe.isQuickPick
 									? 'font-semibold text-success'
-									: 'text-muted-foreground',
+									: 'text-text-secondary',
 							)}
 						>
 							<Clock className='size-3.5' />
 							{recipe.cookTime}
 						</span>
-						<span className='flex items-center gap-1 text-xs text-muted-foreground'>
+						<span className='flex items-center gap-1 text-xs text-text-secondary'>
 							<Star className='size-3.5 fill-warning text-warning' />
 							{recipe.rating}
 						</span>
-						<span className='flex items-center gap-1 text-xs text-muted-foreground'>
+						<span className='flex items-center gap-1 text-xs text-text-secondary'>
 							<Users className='size-3.5' />
 							{recipe.cookCount >= 1000
 								? `${(recipe.cookCount / 1000).toFixed(1)}k`
@@ -228,7 +228,7 @@ const ChallengeRecipeCard = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-md transition-shadow hover:shadow-lg'
+							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-card transition-shadow hover:shadow-lg'
 						>
 							<Play className='size-4' />
 							Cook
@@ -293,7 +293,7 @@ export const ChallengeRecipeGrid = ({
 				{onBack && (
 					<button
 						onClick={onBack}
-						className='mb-4 flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-text'
+						className='mb-4 flex items-center gap-1.5 text-xs text-text-secondary transition-colors hover:text-text'
 					>
 						<ArrowLeft className='size-4' />
 						Back to Feed
@@ -311,7 +311,7 @@ export const ChallengeRecipeGrid = ({
 							<h1 className='my-1 text-2xl font-extrabold text-text md:text-3xl'>
 								{challenge.title}
 							</h1>
-							<p className='text-sm text-muted-foreground'>
+							<p className='text-sm text-text-secondary'>
 								{challenge.description}
 							</p>
 						</div>
@@ -324,9 +324,9 @@ export const ChallengeRecipeGrid = ({
 							<span className='text-xl font-extrabold text-success'>
 								+{challenge.bonusXp} XP
 							</span>
-							<span className='text-xs text-muted-foreground'>bonus</span>
+							<span className='text-xs text-text-secondary'>bonus</span>
 						</div>
-						<div className='flex items-center justify-end gap-1.5 text-xs text-muted-foreground'>
+						<div className='flex items-center justify-end gap-1.5 text-xs text-text-secondary'>
 							<Clock className='size-3.5' />
 							{challenge.timeRemaining.hours}h {challenge.timeRemaining.minutes}
 							m left
@@ -365,7 +365,7 @@ export const ChallengeRecipeGrid = ({
 								prev === 'xp' ? 'time' : prev === 'time' ? 'rating' : 'xp',
 							)
 						}
-						className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-bg hover:text-text'
+						className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text'
 					>
 						<ArrowUpDown className='size-3.5' />
 						Sort:{' '}
@@ -395,17 +395,17 @@ export const ChallengeRecipeGrid = ({
 			{topPick && (
 				<div className='rounded-xl bg-panel-bg px-5 py-4'>
 					<div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
-						<span className='text-muted-foreground'>
+						<span className='text-text-secondary'>
 							Top pick XP potential:
 						</span>
 						<span className='font-semibold text-text'>
 							{topPick.baseXp} XP base
 						</span>
-						<span className='text-muted-foreground'>+</span>
+						<span className='text-text-secondary'>+</span>
 						<span className='font-semibold text-success'>
 							{topPick.bonusXp} XP bonus
 						</span>
-						<span className='text-muted-foreground'>=</span>
+						<span className='text-text-secondary'>=</span>
 						<span className='rounded-full bg-primary/10 px-3 py-1 text-lg font-extrabold text-primary'>
 							{topPickTotalXp} XP
 						</span>

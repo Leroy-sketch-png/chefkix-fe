@@ -26,7 +26,7 @@ import {
 	type Notification as APINotification,
 } from '@/services/notification'
 import { toggleFollow } from '@/services/social'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 
@@ -182,7 +182,7 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 				bg,
 			)}
 		>
-			<Icon className='size-3 text-primary-foreground' />
+			<Icon className='size-3 text-white' />
 		</div>
 	)
 }
@@ -226,6 +226,23 @@ export const NotificationsPopup = () => {
 							const socialNotif = transformToSocialNotification(notif, idx)
 							if (socialNotif) {
 								social.push(socialNotif)
+							} else {
+								// Fallback: show unknown types as generic social notifications
+								social.push({
+									id: idx,
+									notificationId: notif.id,
+									type: 'achievement',
+									userId: notif.latestActorId || '',
+									user: notif.latestActorName || 'ChefKix',
+									avatar:
+										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
+									action:
+										notif.content ||
+										notif.body ||
+										'You have a new notification',
+									time: formatTimeAgo(new Date(notif.createdAt)),
+									read: notif.isRead,
+								})
 							}
 						}
 					})
@@ -280,7 +297,7 @@ export const NotificationsPopup = () => {
 					<div className='flex items-center gap-2'>
 						<h3 className='text-lg font-bold text-foreground'>Notifications</h3>
 						{unreadCount > 0 && (
-							<span className='rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground'>
+							<span className='rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white'>
 								{unreadCount}
 							</span>
 						)}
@@ -299,7 +316,7 @@ export const NotificationsPopup = () => {
 					{/* Gamified Notifications (XP, levels, streaks) */}
 					{gamifiedNotifications.length > 0 && (
 						<>
-							<div className='border-b border-border bg-muted/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-muted-foreground'>
+							<div className='border-b border-border bg-muted/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
 								Activity
 							</div>
 							{gamifiedNotifications.map(notif => {
@@ -342,7 +359,7 @@ export const NotificationsPopup = () => {
 					{/* Social Notifications */}
 					{socialNotifications.length > 0 && (
 						<>
-							<div className='border-b border-border bg-muted/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-muted-foreground'>
+							<div className='border-b border-border bg-muted/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
 								Social
 							</div>
 							{socialNotifications.map(notif => {
@@ -409,7 +426,7 @@ export const NotificationsPopup = () => {
 											currentUserId={user?.userId}
 										>
 											<div className='relative flex-shrink-0'>
-												<Avatar size='lg' className='shadow-md'>
+												<Avatar size='lg' className='shadow-card'>
 													<AvatarImage src={notif.avatar} alt={notif.user} />
 													<AvatarFallback>
 														{notif.user
@@ -444,7 +461,7 @@ export const NotificationsPopup = () => {
 													</>
 												)}
 											</p>
-											<span className='text-xs text-muted-foreground'>
+											<span className='text-xs text-text-secondary'>
 												{notif.time}
 											</span>
 										</div>
@@ -456,7 +473,7 @@ export const NotificationsPopup = () => {
 										{notif.type === 'follow' && !notif.read && (
 											<button
 												onClick={handleFollowBack}
-												className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-primary/90'
+												className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-primary/90'
 											>
 												Follow Back
 											</button>

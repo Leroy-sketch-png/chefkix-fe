@@ -7,9 +7,9 @@ function Skeleton({
 	return (
 		<div
 			className={cn(
-				'relative overflow-hidden rounded-radius bg-muted/20',
+				'relative overflow-hidden rounded-radius bg-bg-elevated/40',
 				'before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer',
-				'before:bg-gradient-to-r before:from-transparent before:via-white/40 before:to-transparent',
+				'before:bg-gradient-to-r before:from-transparent before:via-text/5 before:to-transparent',
 				className,
 			)}
 			{...props}
@@ -20,7 +20,7 @@ function Skeleton({
 function CommentSkeleton() {
 	return (
 		<div className='flex gap-3 py-3'>
-			<Skeleton className='h-10 w-10 flex-shrink-0 rounded-full' />
+			<Skeleton className='size-10 flex-shrink-0 rounded-full' />
 			<div className='flex-1 space-y-2'>
 				<Skeleton className='h-20 w-full rounded-lg' />
 				<div className='flex gap-4'>

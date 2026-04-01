@@ -439,163 +439,164 @@
 
 	/* Note: Z-index scale is defined earlier in this file. Do not duplicate here. */
 
-	/* Legacy Tailwind variables (kept for compatibility) */
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.141 0.005 285.823);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.141 0.005 285.823);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.141 0.005 285.823);
-	--primary-foreground: oklch(0.985 0 0);
-	--secondary: oklch(0.967 0.001 286.375);
-	--secondary-foreground: oklch(0.21 0.006 285.885);
-	--destructive: oklch(0.577 0.245 27.325);
-	--ring: oklch(0.705 0.015 286.067);
+	/* Legacy Tailwind variables — mapped to warm palette tokens (no raw oklch) */
+	--background: var(--bg);
+	--foreground: var(--text);
+	--card: var(--bg-card);
+	--card-foreground: var(--text);
+	--popover: var(--bg-elevated);
+	--popover-foreground: var(--text);
+	--primary-foreground: #ffffff;
+	--secondary: var(--bg-elevated);
+	--secondary-foreground: var(--text-primary);
+	--destructive: var(--color-error);
+	--ring: var(--focus);
 }
 
 /* ============ DARK MODE ============ */
-@media (prefers-color-scheme: dark) {
-	:root {
-		/* ============ DARK MODE SURFACES - RICH DEPTH ============ */
-		--bg: #0f0d0c; /* Warm dark base */
-		--bg-page: #0f0d0c;
-		--bg-card: #1a1817; /* Warm elevated cards */
-		--bg-elevated: #262220; /* Higher elevation */
-		--bg-hover: #2e2a27; /* Interactive hover */
-		--bg-input: #1a1817;
-		--panel-bg: #1a1817;
+/* Uses .dark class selector (not @media) — matches tailwind.config.js darkMode: ['class'] */
+.dark {
+	/* ============ DARK MODE SURFACES - RICH DEPTH ============ */
+	--bg: #0f0d0c; /* Warm dark base */
+	--bg-page: #0f0d0c;
+	--bg-card: #1a1817; /* Warm elevated cards */
+	--bg-elevated: #262220; /* Higher elevation */
+	--bg-hover: #2e2a27; /* Interactive hover */
+	--bg-input: #1a1817;
+	--panel-bg: #1a1817;
 
-		/* ============ DARK MODE TEXT - WARM & READABLE ============ */
-		--text: #faf8f6;
-		--text-primary: #faf8f6;
-		--text-secondary: #e7e5e4;
-		--text-tertiary: #a8a29e;
-		--text-muted: #9c958f; /* WCAG AA ≥4.5:1 on --bg dark */
+	/* ============ DARK MODE TEXT - WARM & READABLE ============ */
+	--text: #faf8f6;
+	--text-primary: #faf8f6;
+	--text-secondary: #e7e5e4;
+	--text-tertiary: #a8a29e;
+	--text-muted: #9c958f; /* WCAG AA >=4.5:1 on --bg dark */
 
-		/* ============ DARK MODE BORDERS ============ */
-		--border: #2e2a27;
-		--border-color: #2e2a27;
-		--border-subtle: #1f1c1a;
-		--border-medium: #3d3835;
-		--border-strong: #57534e;
+	/* ============ DARK MODE BORDERS ============ */
+	--border: #2e2a27;
+	--border-color: #2e2a27;
+	--border-subtle: #1f1c1a;
+	--border-medium: #3d3835;
+	--border-strong: #57534e;
 
-		/* Legacy semantic tokens */
-		--muted: #262220;
-		--muted-foreground: var(--text-muted);
-		--muted-strong: #a8a29e;
+	/* Legacy semantic tokens */
+	--muted: #262220;
+	--muted-foreground: var(--text-muted);
+	--muted-strong: #a8a29e;
 
-		/* ============ DARK MODE BRAND - EXTRA VIBRANT ============ */
-		--color-brand: #ff6b4a; /* Brighter on dark */
-		--color-brand-hover: #ff8566;
-		--color-brand-subtle: #2d1810;
+	/* Legacy Tailwind — mapped to dark palette */
+	--background: var(--bg);
+	--foreground: var(--text);
+	--card: var(--bg-card);
+	--card-foreground: var(--text);
+	--popover: var(--bg-elevated);
+	--popover-foreground: var(--text);
 
-		/* Secondary Accent - Purple glows on dark */
-		--color-accent-purple: #a78bfa;
-		--color-accent-purple-hover: #c4b5fd;
-		--color-accent-purple-subtle: #1e1535;
+	/* ============ DARK MODE BRAND - EXTRA VIBRANT ============ */
+	--color-brand: #ff6b4a; /* Brighter on dark */
+	--color-brand-hover: #ff8566;
+	--color-brand-subtle: #2d1810;
 
-		/* Tertiary - Teal pops on dark */
-		--color-accent-teal: #2dd4bf;
-		--color-accent-teal-hover: #5eead4;
-		--color-accent-teal-subtle: #0d2926;
+	/* Secondary Accent - Purple glows on dark */
+	--color-accent-purple: #a78bfa;
+	--color-accent-purple-hover: #c4b5fd;
+	--color-accent-purple-subtle: #1e1535;
 
-		/* Semantic colors - VIVID on dark */
-		--color-success: #34d399;
-		--color-success-vivid: #6ee7b7;
-		--color-warning: #fbbf24;
-		--color-warning-vivid: #fcd34d;
-		--color-error: #f87171;
-		--color-error-vivid: #fca5a5;
-		--color-info: #60a5fa;
-		--color-info-vivid: #93c5fd;
+	/* Tertiary - Teal pops on dark */
+	--color-accent-teal: #2dd4bf;
+	--color-accent-teal-hover: #5eead4;
+	--color-accent-teal-subtle: #0d2926;
 
-		/* Gaming colors - GLOW on dark */
-		--color-streak: #fb923c;
-		--color-streak-urgent: #ef4444;
-		--color-xp: #c084fc;
-		--color-bonus: #d8b4fe;
-		--color-level: #fbbf24;
-		--color-level-glow: #fef08a;
-		--color-badge: #22d3ee;
+	/* Semantic colors - VIVID on dark */
+	--color-success: #34d399;
+	--color-success-vivid: #6ee7b7;
+	--color-warning: #fbbf24;
+	--color-warning-vivid: #fcd34d;
+	--color-error: #f87171;
+	--color-error-vivid: #fca5a5;
+	--color-info: #60a5fa;
+	--color-info-vivid: #93c5fd;
 
-		/* Rarity Colors - Glow on dark */
-		--color-rare: #60a5fa; /* Brighter blue */
-		--color-combo: #f472b6; /* Brighter pink */
-		--color-legendary: #fbbf24; /* Brighter amber */
-		--color-gold: #fde047; /* Brighter gold */
+	/* Gaming colors - GLOW on dark */
+	--color-streak: #fb923c;
+	--color-streak-urgent: #ef4444;
+	--color-xp: #c084fc;
+	--color-bonus: #d8b4fe;
+	--color-level: #fbbf24;
+	--color-level-glow: #fef08a;
+	--color-badge: #22d3ee;
 
-		/* ============ DARK MODE SHADOWS - GLOWY ============ */
-		--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
-		--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
-		--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
-		--shadow-glow: 0 0 32px rgba(255, 107, 74, 0.5); /* Brand glow */
-		--shadow-warm: 0 4px 24px rgba(255, 107, 74, 0.3);
-		--shadow-card:
-			0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
-		--shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
-		--shadow-2xl:
-			0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
+	/* Rarity Colors - Glow on dark */
+	--color-rare: #60a5fa; /* Brighter blue */
+	--color-combo: #f472b6; /* Brighter pink */
+	--color-legendary: #fbbf24; /* Brighter amber */
+	--color-gold: #fde047; /* Brighter gold */
 
-		/* ============ DARK MODE GRADIENTS - RICH ============ */
-		--gradient-brand: linear-gradient(
-			135deg,
-			#ff6b4a 0%,
-			#ff8566 50%,
-			#ff5a36 100%
-		);
-		--gradient-xp: linear-gradient(
-			135deg,
-			#a78bfa 0%,
-			#c4b5fd 50%,
-			#8b5cf6 100%
-		);
-		--gradient-gold: linear-gradient(
-			135deg,
-			#fbbf24 0%,
-			#fcd34d 50%,
-			#f59e0b 100%
-		);
-		--gradient-streak: linear-gradient(
-			135deg,
-			#fb923c 0%,
-			#fdba74 50%,
-			#f97316 100%
-		);
-		--gradient-success: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%);
-		--gradient-warm: linear-gradient(
-			135deg,
-			#ff6b4a 0%,
-			#fb923c 50%,
-			#fbbf24 100%
-		);
-		--gradient-party: linear-gradient(
-			135deg,
-			#f472b6 0%,
-			#c084fc 50%,
-			#818cf8 100%
-		);
-		--gradient-primary: var(--gradient-brand);
+	/* ============ DARK MODE SHADOWS - GLOWY ============ */
+	--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+	--shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+	--shadow-glow: 0 0 32px rgba(255, 107, 74, 0.5); /* Brand glow */
+	--shadow-warm: 0 4px 24px rgba(255, 107, 74, 0.3);
+	--shadow-card:
+		0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
+	--shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
+	--shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
 
-		/* Celebration - Deep & Festive */
-		--gradient-celebration: linear-gradient(
-			135deg,
-			#1e1b4b 0%,
-			#4c1d95 50%,
-			#7c3aed 100%
-		);
-		--gradient-celebration-alt: linear-gradient(
-			135deg,
-			#0f172a 0%,
-			#581c87 50%,
-			#a855f7 100%
-		);
-	}
+	/* ============ DARK MODE GRADIENTS - RICH ============ */
+	--gradient-brand: linear-gradient(
+		135deg,
+		#ff6b4a 0%,
+		#ff8566 50%,
+		#ff5a36 100%
+	);
+	--gradient-xp: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 50%, #8b5cf6 100%);
+	--gradient-gold: linear-gradient(
+		135deg,
+		#fbbf24 0%,
+		#fcd34d 50%,
+		#f59e0b 100%
+	);
+	--gradient-streak: linear-gradient(
+		135deg,
+		#fb923c 0%,
+		#fdba74 50%,
+		#f97316 100%
+	);
+	--gradient-success: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%);
+	--gradient-warm: linear-gradient(
+		135deg,
+		#ff6b4a 0%,
+		#fb923c 50%,
+		#fbbf24 100%
+	);
+	--gradient-party: linear-gradient(
+		135deg,
+		#f472b6 0%,
+		#c084fc 50%,
+		#818cf8 100%
+	);
+	--gradient-primary: var(--gradient-brand);
 
-	/* Dark Mode Image Filtering - Enhance vibrancy */
-	img:not([class*='avatar']):not([class*='profile']),
-	video {
-		filter: brightness(0.98) contrast(1.08) saturate(1.1);
-	}
+	/* Celebration - Deep & Festive */
+	--gradient-celebration: linear-gradient(
+		135deg,
+		#1e1b4b 0%,
+		#4c1d95 50%,
+		#7c3aed 100%
+	);
+	--gradient-celebration-alt: linear-gradient(
+		135deg,
+		#0f172a 0%,
+		#581c87 50%,
+		#a855f7 100%
+	);
+}
+
+/* Dark Mode Image Filtering - Enhance vibrancy */
+.dark img:not([class*='avatar']):not([class*='profile']),
+.dark video {
+	filter: brightness(0.98) contrast(1.08) saturate(1.1);
 }
 
 @theme inline {
@@ -606,9 +607,13 @@
 
 	/* ============ SEMANTIC COLORS ============ */
 	--color-success: var(--color-success);
+	--color-success-vivid: var(--color-success-vivid);
 	--color-warning: var(--color-warning);
+	--color-warning-vivid: var(--color-warning-vivid);
 	--color-error: var(--color-error);
+	--color-error-vivid: var(--color-error-vivid);
 	--color-info: var(--color-info);
+	--color-info-vivid: var(--color-info-vivid);
 	--color-streak: var(--color-streak);
 	--color-streak-urgent: var(--color-streak-urgent);
 
@@ -703,7 +708,7 @@
 	--shadow-glow: var(--shadow-glow);
 
 	/* Drop shadows for filters */
-	--drop-shadow-glow: drop-shadow(0 0 8px rgba(102, 126, 234, 0.5));
+	--drop-shadow-glow: drop-shadow(0 0 8px rgba(255, 90, 54, 0.5));
 
 	/* Spacing Scale - Based on 4px base (Tailwind default: 0.25rem) */
 	/* Maps to: p-*, m-*, gap-*, space-*, w-*, h-*, max-w-*, max-h-*, min-w-*, min-h-* */
@@ -980,16 +985,17 @@ select {
 	transition-timing-function: var(--transition-ease);
 }
 
-/* Elegant hover lift for cards */
+/* Card hover — grounded (no translate-y lift per design system spec) */
 .card-hover {
 	transition:
-		transform 0.3s var(--transition-ease),
-		box-shadow 0.3s var(--transition-ease);
+		background-color 0.3s var(--transition-ease),
+		box-shadow 0.3s var(--transition-ease),
+		border-color 0.3s var(--transition-ease);
 }
 
 .card-hover:hover {
-	transform: translateY(-4px);
 	box-shadow: var(--shadow-warm);
+	border-color: var(--border-medium);
 }
 
 /* ============ REDUCED MOTION ============ */

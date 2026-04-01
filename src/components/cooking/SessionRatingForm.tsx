@@ -19,6 +19,7 @@ interface SessionRatingFormProps {
 	xpEarned: number
 	recipeTitle: string
 	onSubmit: (rating: number, notes?: string) => void
+	onSkip?: () => void
 	isSubmitting?: boolean
 }
 
@@ -91,7 +92,7 @@ function StarRating({
 							<Star
 								className={cn(
 									'size-10',
-									isHovered ? 'text-yellow-400' : 'text-yellow-500',
+									isHovered ? 'text-medal-gold' : 'text-medal-gold/80',
 								)}
 								fill='currentColor'
 								strokeWidth={0}
@@ -139,6 +140,7 @@ export function SessionRatingForm({
 	xpEarned,
 	recipeTitle,
 	onSubmit,
+	onSkip,
 	isSubmitting = false,
 }: SessionRatingFormProps) {
 	const [rating, setRating] = useState(0)
@@ -174,7 +176,7 @@ export function SessionRatingForm({
 				initial={{ scale: 0 }}
 				animate={{ scale: 1 }}
 				transition={{ delay: 0.2, ...TRANSITION_BOUNCY }}
-				className='mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-xp px-6 py-3 text-xl font-bold text-white shadow-md'
+				className='mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-xp px-6 py-3 text-xl font-bold text-white shadow-card'
 			>
 				<Zap className='size-6' /> +{xpEarned} XP
 			</motion.div>
@@ -264,7 +266,7 @@ export function SessionRatingForm({
 				className={cn(
 					'w-full rounded-full py-3 font-bold text-white transition-all',
 					rating > 0
-						? 'bg-gradient-hero shadow-md hover:shadow-lg'
+						? 'bg-gradient-hero shadow-card hover:shadow-lg'
 						: 'cursor-not-allowed bg-border text-text-muted',
 					isSubmitting && 'opacity-70',
 				)}
@@ -285,6 +287,18 @@ export function SessionRatingForm({
 					'Tap a star to rate ⭐'
 				)}
 			</motion.button>
+
+			{/* Skip option */}
+			{onSkip && (
+				<button
+					type='button'
+					onClick={onSkip}
+					disabled={isSubmitting}
+					className='mt-3 text-sm text-text-muted transition-colors hover:text-text-secondary disabled:opacity-50'
+				>
+					Skip &mdash; rate later
+				</button>
+			)}
 		</div>
 	)
 }

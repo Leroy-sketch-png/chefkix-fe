@@ -6,6 +6,7 @@ import {
 	Achievement,
 	UserAchievement,
 } from '@/lib/types/achievement'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // SKILL TREE
@@ -17,7 +18,8 @@ export async function getMySkillTree(): Promise<SkillTreeResponse | null> {
 			API_ENDPOINTS.ACHIEVEMENTS.MY_SKILL_TREE,
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get my skill tree:', error)
 		return null
 	}
 }
@@ -30,7 +32,8 @@ export async function getUserSkillTree(
 			API_ENDPOINTS.ACHIEVEMENTS.USER_SKILL_TREE(userId),
 		)
 		return res.data.data ?? null
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get user skill tree:', error)
 		return null
 	}
 }
@@ -46,7 +49,8 @@ export async function getAllAchievements(): Promise<Achievement[]> {
 			API_ENDPOINTS.ACHIEVEMENTS.ALL,
 		)
 		return res.data.data ?? []
-	} catch {
+	} catch (error) {
+		logDevError('Failed to get all achievements:', error)
 		return []
 	}
 }

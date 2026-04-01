@@ -253,6 +253,7 @@ export default function MyRecipesPage() {
 
 	// Fetch user's recipes
 	useEffect(() => {
+		let cancelled = false
 		const fetchRecipes = async () => {
 			if (!user?.userId) return
 
@@ -261,19 +262,23 @@ export default function MyRecipesPage() {
 
 			try {
 				const response = await getRecipesByUserId(user.userId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					setRecipes(response.data)
 				} else {
 					setError(response.message || 'Failed to load recipes')
 				}
 			} catch {
-				setError('Failed to load recipes')
+				if (!cancelled) setError('Failed to load recipes')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchRecipes()
+		return () => {
+			cancelled = true
+		}
 	}, [user?.userId, retryCount])
 
 	// Handle delete
@@ -378,7 +383,7 @@ export default function MyRecipesPage() {
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}
 								transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-md shadow-xp/25'
+								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-card shadow-xp/25'
 							>
 								<ChefHat className='size-6 text-white' />
 							</motion.div>

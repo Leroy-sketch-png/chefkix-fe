@@ -255,13 +255,15 @@ export const FirstCookCelebration = ({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						role='alertdialog'
+						aria-live='assertive'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						className='fixed inset-0 z-modal flex items-center justify-center overflow-hidden p-5'
 					>
 						{/* Animated background */}
-						<div className='absolute inset-0 overflow-hidden'>
+						<div className='pointer-events-none absolute inset-0 overflow-hidden'>
 							<motion.div
 								animate={{
 									backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],

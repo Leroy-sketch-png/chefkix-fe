@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Plus,
@@ -203,8 +203,15 @@ export default function ShoppingListsPage() {
 		}
 	}
 
+	const addingItemRef = useRef(false)
 	const handleAddItem = async () => {
-		if (!selectedList || !newItemForm.ingredient.trim()) return
+		if (
+			!selectedList ||
+			!newItemForm.ingredient.trim() ||
+			addingItemRef.current
+		)
+			return
+		addingItemRef.current = true
 		try {
 			const updated = await addCustomItem(selectedList.id, {
 				...newItemForm,
@@ -216,17 +223,23 @@ export default function ShoppingListsPage() {
 			fetchLists()
 		} catch {
 			toast.error('Failed to add item')
+		} finally {
+			addingItemRef.current = false
 		}
 	}
 
+	const removingItemRef = useRef(new Set<string>())
 	const handleRemoveItem = async (itemId: string) => {
-		if (!selectedList) return
+		if (!selectedList || removingItemRef.current.has(itemId)) return
+		removingItemRef.current.add(itemId)
 		try {
 			const updated = await removeShoppingItem(selectedList.id, itemId)
 			setSelectedList(updated)
 			fetchLists()
 		} catch {
 			toast.error('Failed to remove item')
+		} finally {
+			removingItemRef.current.delete(itemId)
 		}
 	}
 
@@ -396,8 +409,8 @@ export default function ShoppingListsPage() {
 									</p>
 									<p className='text-xs text-text-muted'>
 										{uncheckedItems.length} item
-										{uncheckedItems.length !== 1 ? 's' : ''} remaining —
-										opens Instacart with your items
+										{uncheckedItems.length !== 1 ? 's' : ''} remaining — opens
+										Instacart with your items
 									</p>
 								</div>
 								<button

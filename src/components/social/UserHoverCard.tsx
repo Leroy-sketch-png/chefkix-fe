@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { getProfileByUserId } from '@/services/profile'
 import { toggleFollow } from '@/services/social'
@@ -42,6 +42,7 @@ export const UserHoverCard = ({
 	const [isLoading, setIsLoading] = useState(false)
 	const [hasError, setHasError] = useState(false)
 	const [isFollowLoading, setIsFollowLoading] = useState(false)
+	const followLockRef = useRef(false)
 
 	// Fetch profile data when hovering
 	const handleOpenChange = async (open: boolean) => {
@@ -59,7 +60,8 @@ export const UserHoverCard = ({
 	}
 
 	const handleFollowToggle = useCallback(async () => {
-		if (isFollowLoading || !profile) return
+		if (followLockRef.current || !profile) return
+		followLockRef.current = true
 		setIsFollowLoading(true)
 		try {
 			const response = await toggleFollow(userId)
@@ -69,9 +71,10 @@ export const UserHoverCard = ({
 				)
 			}
 		} finally {
+			followLockRef.current = false
 			setIsFollowLoading(false)
 		}
-	}, [userId, profile, isFollowLoading])
+	}, [userId, profile])
 
 	const handleSendMessage = useCallback(() => {
 		router.push(`/messages?userId=${userId}`)
@@ -99,7 +102,7 @@ export const UserHoverCard = ({
 							<Link href={`/${profile.userId}`} className='flex-shrink-0'>
 								<Avatar
 									size='xl'
-									className='shadow-md hover:shadow-lg transition-shadow'
+									className='shadow-card hover:shadow-lg transition-shadow'
 								>
 									<AvatarImage
 										src={profile.avatarUrl || '/placeholder-avatar.svg'}
@@ -118,7 +121,13 @@ export const UserHoverCard = ({
 
 							{!isOwnProfile && (
 								<div className='flex gap-2'>
-									<Button size='sm' variant='outline' className='size-8 p-0' aria-label='Send message' onClick={handleSendMessage}>
+									<Button
+										size='sm'
+										variant='outline'
+										className='size-8 p-0'
+										aria-label='Send message'
+										onClick={handleSendMessage}
+									>
 										<MessageCircle className='size-4' />
 									</Button>
 									<Button

@@ -13,7 +13,10 @@ export default function Loading() {
 			{/* Stats summary cards */}
 			<div className='mb-6 grid grid-cols-3 gap-4'>
 				{Array.from({ length: 3 }).map((_, i) => (
-					<div key={i} className='h-20 animate-pulse rounded-xl bg-muted/20' />
+					<div
+						key={i}
+						className='h-20 animate-pulse rounded-xl bg-bg-elevated/40'
+					/>
 				))}
 			</div>
 

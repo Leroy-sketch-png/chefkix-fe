@@ -427,9 +427,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		}
 
 		handleImmediateRewardsClose()
-		window.location.href = sessionId
-			? `/post/new?session=${sessionId}`
-			: '/post/new'
+		router.push(sessionId ? `/post/new?session=${sessionId}` : '/post/new')
 	}
 
 	const handleImmediateRewardsPostLater = () => {
@@ -463,7 +461,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 
 	const handleStartNewStreak = () => {
 		handleStreakBrokenClose()
-		window.location.href = '/explore'
+		router.push('/explore')
 	}
 
 	const handleChallengeCompleteClose = () => {
@@ -557,7 +555,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 							sublabel: 'Try another recipe',
 							onClick: () => {
 								handlePostSuccessClose()
-								window.location.href = '/explore'
+								router.push('/explore')
 							},
 						},
 						{
@@ -567,7 +565,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 							sublabel: 'Earn bonus XP',
 							onClick: () => {
 								handlePostSuccessClose()
-								window.location.href = '/challenges'
+								router.push('/challenges')
 							},
 						},
 						{
@@ -599,7 +597,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					postDeadlineDays={2}
 					onPostNow={() => {
 						handleFirstCookClose()
-						window.location.href = '/create'
+						router.push('/create')
 					}}
 					onShareAchievement={() => {
 						shareWithFallback({
@@ -610,7 +608,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					}}
 					onContinueCooking={() => {
 						handleFirstCookClose()
-						window.location.href = '/explore'
+						router.push('/explore')
 					}}
 				/>
 			)}
@@ -662,7 +660,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 							/>
 							<button
 								onClick={handleStreakMilestoneClose}
-								className='mt-4 w-full py-3 text-sm text-muted-foreground hover:text-text transition-colors'
+								className='mt-4 w-full py-3 text-sm text-text-secondary hover:text-text transition-colors'
 							>
 								Continue
 							</button>

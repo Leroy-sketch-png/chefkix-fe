@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Image, Smile, MapPin } from 'lucide-react'
+import { Image as ImageIcon, Smile, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { createGroupPost } from '@/services/post'
 import { useAuthStore } from '@/store/authStore'
+import { logDevError } from '@/lib/dev-log'
 
 interface GroupCreatePostBoxProps {
 	groupId: string
@@ -24,7 +25,7 @@ export function GroupCreatePostBox({
 	groupName,
 	onPostCreated,
 }: GroupCreatePostBoxProps) {
-	const user = useAuthStore((state) => state.user)
+	const user = useAuthStore(state => state.user)
 	const [isOpen, setIsOpen] = useState(false)
 	const [content, setContent] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -58,7 +59,7 @@ export function GroupCreatePostBox({
 				position: 'top-right',
 				duration: 3000,
 			})
-			console.error('Post creation error:', error)
+			logDevError('Post creation error:', error)
 		} finally {
 			setIsSubmitting(false)
 		}
@@ -69,26 +70,26 @@ export function GroupCreatePostBox({
 			<motion.div
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
-				className="bg-bg-card rounded-lg p-4 border border-border mb-6"
+				className='bg-bg-card rounded-lg p-4 border border-border mb-6'
 			>
 				<button
 					onClick={() => setIsOpen(true)}
-					className="w-full text-left px-4 py-3 bg-bg rounded-full text-text-secondary hover:bg-bg/80 transition-colors"
+					className='w-full text-left px-4 py-3 bg-bg rounded-full text-text-secondary hover:bg-bg/80 transition-colors'
 				>
 					What&apos;s on your mind?
 				</button>
 
-				<div className="flex gap-2 mt-4 flex-wrap">
-					<button className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand transition-colors">
-						<Image className="w-5 h-5" alt="Add photo" />
+				<div className='flex gap-2 mt-4 flex-wrap'>
+					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+						<ImageIcon className='size-5' />
 						Photo
 					</button>
-					<button className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand transition-colors">
-						<Smile className="w-5 h-5" />
+					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+						<Smile className='size-5' />
 						Feeling
 					</button>
-					<button className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand transition-colors">
-						<MapPin className="w-5 h-5" />
+					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+						<MapPin className='size-5' />
 						Location
 					</button>
 				</div>
@@ -100,23 +101,35 @@ export function GroupCreatePostBox({
 		<motion.div
 			initial={{ opacity: 0, y: -10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className="bg-bg-card rounded-lg p-6 border border-border mb-6 shadow-sm"
+			className='bg-bg-card rounded-lg p-6 border border-border mb-6 shadow-card'
 		>
-			<div className="mb-4">
-				<p className="text-sm font-medium text-text mb-3">Post to {groupName}</p>
+			<div className='mb-4'>
+				<p className='text-sm font-medium text-text mb-3'>
+					Post to {groupName}
+				</p>
 				<Textarea
 					value={content}
-					onChange={(e) => setContent(e.target.value)}
+					onChange={e => setContent(e.target.value)}
 					placeholder="What's on your mind?"
-					className="resize-none focus-visible:ring-brand"
+					autoComplete='off'
+					autoCorrect='off'
+					autoCapitalize='none'
+					spellCheck={false}
+					className='resize-none focus-visible:ring-brand'
 					rows={4}
+					maxLength={2000}
 					disabled={isSubmitting}
 				/>
+				{content.length > 0 && (
+					<p className='mt-1 text-right text-xs text-text-muted'>
+						{content.length}/2000
+					</p>
+				)}
 			</div>
 
-			<div className="flex justify-end gap-2">
+			<div className='flex justify-end gap-2'>
 				<Button
-					variant="outline"
+					variant='outline'
 					onClick={() => {
 						setIsOpen(false)
 						setContent('')
@@ -128,7 +141,7 @@ export function GroupCreatePostBox({
 				<Button
 					onClick={handleSubmit}
 					disabled={isSubmitting || !content.trim()}
-					className="bg-brand hover:bg-brand/90"
+					className='bg-brand hover:bg-brand/90'
 				>
 					{isSubmitting ? 'Posting...' : 'Post'}
 				</Button>

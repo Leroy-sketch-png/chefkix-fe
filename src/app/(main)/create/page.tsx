@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
 import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
 import {
@@ -56,7 +57,7 @@ interface LocalDraft {
  *
  * However, when editing a draft or creating new, show a back button to return to drafts.
  */
-export default function CreateRecipePage() {
+function CreateRecipeContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const urlDraftId = searchParams.get('draftId')
@@ -87,16 +88,21 @@ export default function CreateRecipePage() {
 			logDevError('Failed to parse local draft:', error)
 			localStorage.removeItem('chefkix-recipe-draft')
 			setLocalDraft(null)
+			toast.error(
+				'Your local draft was corrupted and had to be removed. Sorry about that!',
+			)
 		}
 	}, [])
 
 	// Load draft from URL ?draftId= param (deep links, redirects from edit page)
 	useEffect(() => {
 		if (!urlDraftId) return
+		let cancelled = false
 		const loadUrlDraft = async () => {
 			setIsLoadingDraft(true)
 			try {
 				const response = await getRecipeById(urlDraftId)
+				if (cancelled) return
 				if (response.success && response.data) {
 					setSelectedDraft(response.data)
 					localStorage.removeItem('chefkix-recipe-draft')
@@ -108,15 +114,19 @@ export default function CreateRecipePage() {
 					setMode('list')
 				}
 			} catch (error) {
+				if (cancelled) return
 				logDevError('Failed to load draft from URL:', error)
 				setSelectedDraft(null)
 				toast.error('Failed to load draft')
 				setMode('list')
 			} finally {
-				setIsLoadingDraft(false)
+				if (!cancelled) setIsLoadingDraft(false)
 			}
 		}
 		loadUrlDraft()
+		return () => {
+			cancelled = true
+		}
 	}, [urlDraftId])
 
 	// Check for local draft on mount
@@ -212,7 +222,7 @@ export default function CreateRecipePage() {
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
 										transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-										className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-md shadow-brand/25'
+										className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
 									>
 										<Edit3 className='size-6 text-white' />
 									</motion.div>
@@ -337,14 +347,14 @@ export default function CreateRecipePage() {
 							<AlertDialogTitle className='text-lg font-bold text-text'>
 								Discard local draft?
 							</AlertDialogTitle>
-							<AlertDialogDescription className='text-sm text-muted-foreground'>
+							<AlertDialogDescription className='text-sm text-text-secondary'>
 								This will permanently delete your unsaved recipe &quot;
 								{localDraft?.data.title || 'Untitled Recipe'}&quot;. This action
 								cannot be undone.
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter className='flex-row gap-3 sm:justify-center'>
-							<AlertDialogCancel className='flex-1 rounded-xl border-border bg-bg text-muted-foreground hover:bg-muted'>
+							<AlertDialogCancel className='flex-1 rounded-xl border-border bg-bg text-text-secondary hover:bg-bg-hover'>
 								Keep it
 							</AlertDialogCancel>
 							<AlertDialogAction
@@ -358,5 +368,42 @@ export default function CreateRecipePage() {
 				</AlertDialog>
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+function CreateRecipeSkeleton() {
+	return (
+		<PageContainer maxWidth='lg'>
+			<div className='space-y-6'>
+				{/* Header */}
+				<div className='flex items-center gap-3'>
+					<Skeleton className='size-10 rounded-xl' />
+					<Skeleton className='h-8 w-48' />
+				</div>
+				{/* Input area / Draft list */}
+				<Skeleton className='h-32 w-full rounded-2xl' />
+				{/* Draft cards */}
+				{[1, 2, 3].map(i => (
+					<div
+						key={i}
+						className='flex gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4'
+					>
+						<Skeleton className='size-16 shrink-0 rounded-xl' />
+						<div className='flex-1 space-y-2'>
+							<Skeleton className='h-5 w-2/3' />
+							<Skeleton className='h-4 w-1/3' />
+						</div>
+					</div>
+				))}
+			</div>
+		</PageContainer>
+	)
+}
+
+export default function CreateRecipePage() {
+	return (
+		<Suspense fallback={<CreateRecipeSkeleton />}>
+			<CreateRecipeContent />
+		</Suspense>
 	)
 }

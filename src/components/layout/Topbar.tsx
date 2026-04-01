@@ -23,6 +23,7 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
+import { toast } from 'sonner'
 import { autocompleteSearch } from '@/services/search'
 import { useNotificationStore } from '@/store/notificationStore'
 import Image from 'next/image'
@@ -52,7 +53,6 @@ export const Topbar = () => {
 		}[]
 	}>({ recipes: [], people: [] })
 	const [showSuggestions, setShowSuggestions] = useState(false)
-	const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false)
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const searchFormRef = useRef<HTMLFormElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -68,7 +68,6 @@ export const Topbar = () => {
 			return
 		}
 		debounceRef.current = setTimeout(async () => {
-			setIsFetchingSuggestions(true)
 			try {
 				const res = await autocompleteSearch(q, 'all', 5)
 				const recipes =
@@ -96,7 +95,6 @@ export const Topbar = () => {
 			} catch {
 				// Silently fail — typeahead is an enhancement
 			} finally {
-				setIsFetchingSuggestions(false)
 			}
 		}, 300)
 	}, [])
@@ -138,7 +136,7 @@ export const Topbar = () => {
 		}
 
 		fetchMessageCounts()
-		const interval = setInterval(fetchMessageCounts, 30000)
+		const interval = setInterval(fetchMessageCounts, 60000)
 		return () => clearInterval(interval)
 	}, [])
 
@@ -148,9 +146,9 @@ export const Topbar = () => {
 			await logoutService()
 		} catch (error) {
 			logDevError('Logout error:', error)
-			// Continue with local logout even if backend call fails
+			toast.error('Could not fully sign out — clearing local session')
 		} finally {
-			// Always clear local state and redirect
+			// Always clear local state and redirect (security: never leave stale session)
 			logout()
 			router.push(PATHS.AUTH.SIGN_IN)
 		}
@@ -178,7 +176,7 @@ export const Topbar = () => {
 					transition={TRANSITION_SPRING}
 				>
 					<motion.div
-						className='flex size-9 items-center justify-center rounded-xl bg-gradient-hero shadow-md shadow-brand/25'
+						className='flex size-9 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25'
 						whileHover={{ rotate: 10 }}
 						transition={TRANSITION_SPRING}
 					>
@@ -195,19 +193,21 @@ export const Topbar = () => {
 			{/* Search Bar - constrained max width, with left margin to clear the absolute logo */}
 			<form
 				ref={searchFormRef}
+				role='search'
 				onSubmit={e => {
 					e.preventDefault()
 					setShowSuggestions(false)
 					const q = searchQuery.trim()
 					if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
 				}}
-				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-sm transition-all duration-300 focus-within:border-primary focus-within:shadow-md md:ml-44 md:px-4 md:py-2.5'
+				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-card transition-all duration-300 focus-within:border-primary focus-within:shadow-card md:ml-44 md:px-4 md:py-2.5'
 			>
 				<Search className='size-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
 				<input
 					ref={inputRef}
 					type='text'
 					placeholder='Search...'
+					aria-label='Search recipes and people'
 					value={searchQuery}
 					onChange={e => {
 						setSearchQuery(e.target.value)
@@ -323,7 +323,7 @@ export const Topbar = () => {
 			{user && (
 				<motion.div
 					whileHover={{ scale: 1.05 }}
-					className='relative hidden overflow-hidden rounded-radius bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-md lg:flex lg:items-center lg:gap-2'
+					className='relative hidden overflow-hidden rounded-radius bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-card lg:flex lg:items-center lg:gap-2'
 				>
 					<span className='relative z-10'>
 						Lv. {user.statistics?.currentLevel || 1}
@@ -356,10 +356,12 @@ export const Topbar = () => {
 							}
 							setShowUserMenu(!showUserMenu)
 						}}
-						whileHover={{ scale: 1.05, y: -2 }}
+						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.98 }}
 						transition={TRANSITION_SPRING}
-						className='group relative cursor-pointer'
+						aria-haspopup='true'
+					aria-expanded={showUserMenu}
+					className='group relative cursor-pointer'
 					>
 						{/* XP Progress Ring - hidden on mobile for compactness */}
 						<svg
@@ -424,7 +426,7 @@ export const Topbar = () => {
 									.slice(0, 2) || 'U'}
 							</AvatarFallback>
 						</Avatar>
-						<Avatar size='sm' className='shadow-md md:hidden'>
+						<Avatar size='sm' className='shadow-card md:hidden'>
 							<AvatarImage
 								src={user.avatarUrl || '/placeholder-avatar.svg'}
 								alt={user.displayName || 'User'}
@@ -490,7 +492,7 @@ export const Topbar = () => {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
-							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-sm'
+							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
 						>
 							{unreadNotifications > 99 ? '99+' : unreadNotifications}
 						</motion.span>
@@ -509,7 +511,7 @@ export const Topbar = () => {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
-							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-sm'
+							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
 						>
 							{unreadMessages > 99 ? '99+' : unreadMessages}
 						</motion.span>

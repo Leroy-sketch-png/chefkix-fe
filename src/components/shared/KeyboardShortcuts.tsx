@@ -117,7 +117,7 @@ export const KeyboardShortcuts = () => {
 								{shortcut.keys.map((key, i) => (
 									<kbd
 										key={i}
-										className='rounded-md border border-border-subtle bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-primary shadow-sm'
+										className='rounded-md border border-border-subtle bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-primary'
 									>
 										{key}
 									</kbd>

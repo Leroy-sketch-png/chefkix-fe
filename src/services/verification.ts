@@ -6,6 +6,7 @@ import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
+import { logDevError } from '@/lib/dev-log'
 
 export interface VerificationStatus {
 	id: string
@@ -28,6 +29,7 @@ export const applyForVerification = async (
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<VerificationStatus>>
 		if (axiosError.response) return axiosError.response.data
 		return {
@@ -47,6 +49,7 @@ export const getVerificationStatus = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
+		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<VerificationStatus>>
 		if (axiosError.response) return axiosError.response.data
 		return {

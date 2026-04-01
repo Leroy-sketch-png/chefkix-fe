@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -34,13 +34,15 @@ export function FollowUserCard({
 	const { user } = useAuth()
 	const [isFollowing, setIsFollowing] = useState(profile.isFollowing ?? false)
 	const [isLoading, setIsLoading] = useState(false)
+	const followLockRef = useRef(false)
 
 	const displayName = getProfileDisplayName(profile)
 	const isOwnProfile = user?.userId === profile.userId
 
 	const handleToggleFollow = async (e: React.MouseEvent) => {
 		e.stopPropagation()
-		if (isLoading || isOwnProfile) return
+		if (followLockRef.current || isOwnProfile) return
+		followLockRef.current = true
 
 		setIsLoading(true)
 		const previousState = isFollowing
@@ -58,6 +60,7 @@ export function FollowUserCard({
 			setIsFollowing(previousState)
 			toast.error('Failed to update follow status')
 		} finally {
+			followLockRef.current = false
 			setIsLoading(false)
 		}
 	}

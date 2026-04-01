@@ -13,6 +13,7 @@ import {
 	Check,
 	AlertTriangle,
 	Loader2,
+	LogOut,
 	Globe,
 	EyeOff,
 	Users,
@@ -23,16 +24,14 @@ import {
 	Volume2,
 	Timer,
 	Sparkles,
-	Moon,
 	Sun,
-	Monitor,
 	Clock,
 	Eye,
 	ImagePlus,
 	Camera,
-	Gift,
-	Crown,
 	BadgeCheck,
+	Crown,
+	Gift,
 } from 'lucide-react'
 import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -40,6 +39,9 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
+import { useRouter } from 'next/navigation'
+import { PATHS } from '@/constants'
+import { logout as logoutService } from '@/services/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { logDevError } from '@/lib/dev-log'
@@ -88,7 +90,6 @@ import {
 	AllowMessagesFrom,
 	SkillLevel,
 	MeasurementUnits,
-	Theme,
 } from '@/lib/types/settings'
 
 // ============================================
@@ -151,13 +152,13 @@ const TABS: TabConfig[] = [
 		id: 'premium',
 		label: 'Premium',
 		icon: Crown,
-		description: 'Coming soon -- upgrade your experience',
+		description: 'Upgrade to ChefKix Premium',
 	},
 	{
 		id: 'referral',
 		label: 'Referral',
 		icon: Gift,
-		description: 'Coming soon -- invite friends, earn XP',
+		description: 'Invite friends and earn XP',
 	},
 	{
 		id: 'verification',
@@ -228,12 +229,6 @@ const CUISINE_OPTIONS = [
 	'Middle Eastern',
 ]
 
-const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
-	{ value: 'light', label: 'Light', icon: Sun },
-	{ value: 'dark', label: 'Dark', icon: Moon },
-	{ value: 'system', label: 'System', icon: Monitor },
-]
-
 // ============================================
 // ANIMATION VARIANTS
 // ============================================
@@ -275,14 +270,14 @@ const SettingsCard = ({
 	<motion.div
 		variants={cardVariants}
 		className={cn(
-			'rounded-xl border border-border bg-card p-4 shadow-sm md:p-6',
+			'rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6',
 			className,
 		)}
 	>
 		<div className='mb-4'>
-			<h3 className='text-lg font-semibold text-foreground'>{title}</h3>
+			<h3 className='text-lg font-semibold text-text'>{title}</h3>
 			{description && (
-				<p className='mt-1 text-sm text-muted-foreground'>{description}</p>
+				<p className='mt-1 text-sm text-text-secondary'>{description}</p>
 			)}
 		</div>
 		{children}
@@ -306,16 +301,16 @@ const ToggleRow = ({
 }) => (
 	<div
 		className={cn(
-			'flex items-center justify-between py-3 border-b border-border last:border-0',
+			'flex items-center justify-between py-3 border-b border-border-subtle last:border-0',
 			disabled && 'opacity-50',
 		)}
 	>
 		<div className='flex items-center gap-3'>
-			{Icon && <Icon className='size-4 text-muted-foreground' />}
+			{Icon && <Icon className='size-4 text-text-secondary' />}
 			<div>
-				<p className='text-sm font-medium text-foreground'>{label}</p>
+				<p className='text-sm font-medium text-text'>{label}</p>
 				{description && (
-					<p className='text-xs text-muted-foreground'>{description}</p>
+					<p className='text-xs text-text-secondary'>{description}</p>
 				)}
 			</div>
 		</div>
@@ -350,8 +345,8 @@ const ChipSelect = ({
 					className={cn(
 						'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
 						isSelected
-							? 'bg-primary text-primary-foreground shadow-md'
-							: 'bg-muted text-muted-foreground hover:bg-muted/80',
+							? 'bg-primary text-white shadow-card'
+							: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
 					{isSelected && <Check className='mr-1 inline size-3' />}
@@ -367,7 +362,13 @@ const ButtonGroup = <T extends string>({
 	value,
 	onChange,
 }: {
-	options: { value: T; label: string; icon?: typeof Sun; emoji?: string }[]
+	options: {
+		value: T
+		label: string
+		icon?: typeof Sun
+		emoji?: string
+		disabled?: boolean
+	}[]
 	value: T
 	onChange: (value: T) => void
 }) => (
@@ -377,19 +378,24 @@ const ButtonGroup = <T extends string>({
 			return (
 				<motion.button
 					key={option.value}
-					whileHover={BUTTON_HOVER}
-					whileTap={BUTTON_TAP}
-					onClick={() => onChange(option.value)}
+					whileHover={option.disabled ? undefined : BUTTON_HOVER}
+					whileTap={option.disabled ? undefined : BUTTON_TAP}
+					onClick={() => !option.disabled && onChange(option.value)}
 					className={cn(
 						'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
-						value === option.value
-							? 'bg-primary text-primary-foreground shadow-md'
-							: 'bg-muted text-muted-foreground hover:bg-muted/80',
+						option.disabled
+							? 'cursor-not-allowed opacity-40 bg-bg-elevated text-text-secondary'
+							: value === option.value
+								? 'bg-primary text-white shadow-card'
+								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
 					{Icon && <Icon className='size-4' />}
 					{option.emoji && <span>{option.emoji}</span>}
 					{option.label}
+					{option.disabled && (
+						<span className='text-xs opacity-70'>(Soon)</span>
+					)}
 				</motion.button>
 			)
 		})}
@@ -401,10 +407,12 @@ const ButtonGroup = <T extends string>({
 // ============================================
 
 export default function SettingsPage() {
-	const { user, setUser } = useAuth()
+	const { user, setUser, logout } = useAuth()
+	const router = useRouter()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
+	const [isLoggingOut, setIsLoggingOut] = useState(false)
 	const [settings, setSettings] = useState<UserSettings | null>(null)
 
 	const [displayName, setDisplayName] = useState('')
@@ -413,7 +421,6 @@ export default function SettingsPage() {
 	const [avatarUrl, setAvatarUrl] = useState<string | undefined>()
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
 	const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
-	const [showPasswordModal, setShowPasswordModal] = useState(false)
 	const [verificationStatus, setVerificationStatus] =
 		useState<VerificationStatus | null>(null)
 	const [verificationLoading, setVerificationLoading] = useState(false)
@@ -421,16 +428,19 @@ export default function SettingsPage() {
 	const coverInputRef = useRef<HTMLInputElement>(null)
 	const avatarInputRef = useRef<HTMLInputElement>(null)
 
-	const closePasswordModal = useCallback(() => {
-		setShowPasswordModal(false)
-	}, [])
-
-	useEscapeKey(showPasswordModal, closePasswordModal)
-
 	useEffect(() => {
+		if (!user) return
+		let cancelled = false
+
+		setDisplayName(user.displayName || '')
+		setBio(user.bio || '')
+		setCoverImageUrl(user.coverImageUrl)
+		setAvatarUrl(user.avatarUrl)
+
 		const loadSettings = async () => {
 			try {
 				const response = await getAllSettings()
+				if (cancelled) return
 				if (response.success && response.data) {
 					setSettings(response.data)
 					// Sync push timerAlerts preference to localStorage for use outside settings page
@@ -444,36 +454,40 @@ export default function SettingsPage() {
 					} as UserSettings)
 				}
 			} catch (error) {
+				if (cancelled) return
 				logDevError('Failed to load settings:', error)
 				toast.error('Failed to load settings')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
-		if (user) {
-			setDisplayName(user.displayName || '')
-			setBio(user.bio || '')
-			setCoverImageUrl(user.coverImageUrl)
-			setAvatarUrl(user.avatarUrl)
-			loadSettings()
+		loadSettings()
+		return () => {
+			cancelled = true
 		}
 	}, [user])
 
 	// Fetch verification status when verification tab is opened
 	useEffect(() => {
 		if (activeTab !== 'verification' || verificationStatus) return
+		let cancelled = false
 		const fetchVerification = async () => {
 			try {
 				const res = await getVerificationStatus()
+				if (cancelled) return
 				if (res.success && res.data) {
 					setVerificationStatus(res.data)
 				}
-			} catch {
-				// No existing application — show apply form
+			} catch (error) {
+				if (cancelled) return
+				logDevError('Failed to fetch verification status:', error)
 			}
 		}
 		fetchVerification()
+		return () => {
+			cancelled = true
+		}
 	}, [activeTab, verificationStatus])
 
 	const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -540,6 +554,7 @@ export default function SettingsPage() {
 	}
 
 	const handleSaveProfile = async () => {
+		if (isSaving || isUploadingAvatar || isUploadingCover) return
 		setIsSaving(true)
 		try {
 			const response = await updateProfile({ displayName, bio })
@@ -725,12 +740,59 @@ export default function SettingsPage() {
 	const toggleArrayItem = (arr: string[], item: string): string[] =>
 		arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item]
 
+	const handleLogout = async () => {
+		if (isLoggingOut) return
+		setIsLoggingOut(true)
+		try {
+			await logoutService()
+		} catch (error) {
+			logDevError('Logout error:', error)
+			toast.error('Could not fully sign out — clearing local session')
+		} finally {
+			// Always clear local state and redirect (security: never leave stale session)
+			logout()
+			router.push(PATHS.AUTH.SIGN_IN)
+		}
+	}
+
 	if (isLoading) {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
-					<div className='flex min-h-content-tall items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
+					{/* Settings skeleton */}
+					<div className='mb-8 flex items-center gap-3'>
+						<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
+						<div className='h-7 w-28 animate-pulse rounded bg-bg-elevated/40' />
+					</div>
+					{/* Tab bar skeleton */}
+					<div className='mb-6 flex gap-2'>
+						{Array.from({ length: 4 }).map((_, i) => (
+							<div
+								key={i}
+								className='h-10 w-24 animate-pulse rounded-xl bg-bg-elevated/40'
+							/>
+						))}
+					</div>
+					{/* Settings cards skeleton */}
+					<div className='space-y-6'>
+						{Array.from({ length: 3 }).map((_, i) => (
+							<div
+								key={i}
+								className='rounded-2xl border border-border-subtle bg-bg-card p-6'
+							>
+								<div className='mb-4 h-5 w-1/4 animate-pulse rounded bg-bg-elevated/40' />
+								<div className='space-y-4'>
+									<div className='flex items-center justify-between'>
+										<div className='h-4 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
+										<div className='h-6 w-11 animate-pulse rounded-full bg-bg-elevated/40' />
+									</div>
+									<div className='flex items-center justify-between'>
+										<div className='h-4 w-2/5 animate-pulse rounded bg-bg-elevated/40' />
+										<div className='h-6 w-11 animate-pulse rounded-full bg-bg-elevated/40' />
+									</div>
+								</div>
+							</div>
+						))}
 					</div>
 				</PageContainer>
 			</PageTransition>
@@ -751,7 +813,7 @@ export default function SettingsPage() {
 						<motion.div
 							whileHover={{ rotate: 45 }}
 							transition={TRANSITION_SPRING}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-md'
+							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
 						>
 							<Settings className='size-6 text-white' />
 						</motion.div>
@@ -769,7 +831,7 @@ export default function SettingsPage() {
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={TRANSITION_SPRING}
-						className='flex flex-col gap-1 rounded-xl border border-border bg-card p-2 shadow-sm h-fit lg:sticky lg:top-24'
+						className='flex flex-col gap-1 rounded-radius border border-border-subtle bg-bg-card p-2 shadow-card h-fit lg:sticky lg:top-24'
 					>
 						{TABS.map(tab => {
 							const Icon = tab.icon
@@ -784,13 +846,13 @@ export default function SettingsPage() {
 										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all',
 										isActive
 											? 'bg-primary/10 text-primary font-semibold'
-											: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+											: 'text-text-secondary hover:bg-bg-hover hover:text-text',
 									)}
 								>
 									<Icon
 										className={cn(
 											'size-5',
-											isActive ? 'text-primary' : 'text-muted-foreground',
+											isActive ? 'text-primary' : 'text-text-secondary',
 										)}
 									/>
 									<div className='hidden lg:block'>
@@ -799,6 +861,23 @@ export default function SettingsPage() {
 								</motion.button>
 							)
 						})}
+
+						{/* Divider + Sign Out */}
+						<div className='my-1 h-px bg-border-subtle' />
+						<motion.button
+							whileHover={isLoggingOut ? {} : { x: 4 }}
+							whileTap={isLoggingOut ? {} : { scale: 0.98 }}
+							onClick={handleLogout}
+							disabled={isLoggingOut}
+							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full disabled:opacity-50'
+						>
+							<LogOut className='size-5 flex-shrink-0' />
+							<div className='hidden lg:block'>
+								<p className='text-sm font-medium'>
+									{isLoggingOut ? 'Signing out...' : 'Sign Out'}
+								</p>
+							</div>
+						</motion.button>
 					</motion.nav>
 
 					{/* Content Area */}
@@ -833,7 +912,7 @@ export default function SettingsPage() {
 												>
 													<div
 														className={cn(
-															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border bg-gradient-to-br from-brand/20 via-amber-100/30 to-orange-50/40 transition-all',
+															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border-subtle bg-gradient-warm transition-all',
 															isUploadingCover && 'opacity-60',
 														)}
 													>
@@ -846,11 +925,11 @@ export default function SettingsPage() {
 															/>
 														) : (
 															<div className='flex h-full items-center justify-center'>
-																<ImagePlus className='size-8 text-muted-foreground' />
+																<ImagePlus className='size-8 text-text-secondary' />
 															</div>
 														)}
 														{isUploadingCover && (
-															<div className='absolute inset-0 flex items-center justify-center bg-background/50'>
+															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
 																<Loader2 className='size-6 animate-spin text-primary' />
 															</div>
 														)}
@@ -874,7 +953,7 @@ export default function SettingsPage() {
 														onChange={handleCoverUpload}
 													/>
 												</div>
-												<p className='text-xs text-muted-foreground'>
+												<p className='text-xs text-text-muted'>
 													Recommended: 1200×300px, max 5MB
 												</p>
 											</div>
@@ -888,7 +967,7 @@ export default function SettingsPage() {
 												>
 													<div
 														className={cn(
-															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-all',
+															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border-subtle bg-bg-elevated transition-all',
 															isUploadingAvatar && 'opacity-60',
 														)}
 													>
@@ -901,11 +980,11 @@ export default function SettingsPage() {
 															/>
 														) : (
 															<div className='flex size-full items-center justify-center'>
-																<User className='size-8 text-muted-foreground' />
+																<User className='size-8 text-text-secondary' />
 															</div>
 														)}
 														{isUploadingAvatar && (
-															<div className='absolute inset-0 flex items-center justify-center bg-background/50'>
+															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
 																<Loader2 className='size-5 animate-spin text-primary' />
 															</div>
 														)}
@@ -922,7 +1001,7 @@ export default function SettingsPage() {
 															<Camera className='size-4' />
 															{avatarUrl ? 'Change Photo' : 'Upload Photo'}
 														</Button>
-														<p className='text-xs text-muted-foreground'>
+														<p className='text-xs text-text-muted'>
 															Square image, max 5MB
 														</p>
 													</div>
@@ -951,9 +1030,9 @@ export default function SettingsPage() {
 													id='email'
 													value={user?.email || ''}
 													disabled
-													className='bg-muted'
+													className='bg-bg-elevated'
 												/>
-												<p className='text-xs text-muted-foreground'>
+												<p className='text-xs text-text-muted'>
 													Email cannot be changed in-app.
 												</p>
 												<a
@@ -972,33 +1051,47 @@ export default function SettingsPage() {
 													placeholder='Tell us about yourself...'
 													maxLength={160}
 												/>
-												<p className='text-xs text-muted-foreground text-right'>
+												<p className='text-xs text-text-muted text-right'>
 													{bio.length}/160
 												</p>
 											</div>
-											<Button onClick={handleSaveProfile} disabled={isSaving}>
+											<Button
+												onClick={handleSaveProfile}
+												disabled={
+													isSaving || isUploadingAvatar || isUploadingCover
+												}
+											>
 												{isSaving ? (
 													<Loader2 className='mr-2 size-4 animate-spin' />
 												) : (
 													<Save className='mr-2 size-4' />
 												)}
-												Save Profile
+												{isUploadingAvatar || isUploadingCover
+													? 'Uploading...'
+													: 'Save Profile'}
 											</Button>
 										</div>
 									</SettingsCard>
 
 									<SettingsCard
 										title='Account Security'
-										description='Manage your password and security settings'
+										description='Password is managed through our secure identity provider'
 									>
-										<div className='space-y-4'>
+										<div className='space-y-3'>
+											<p className='text-sm text-text-secondary'>
+												To change your password, use the &quot;Forgot
+												Password&quot; option on the sign-in page. This ensures
+												secure password resets through our identity provider.
+											</p>
 											<Button
 												variant='outline'
 												className='w-full sm:w-auto'
-												onClick={() => setShowPasswordModal(true)}
+												onClick={() => {
+													router.push(PATHS.AUTH.SIGN_IN)
+												}}
 											>
 												<Shield className='mr-2 size-4' />
-												Password Help
+												Go to Sign-In Page
 											</Button>
 										</div>
 									</SettingsCard>
@@ -1419,7 +1512,7 @@ export default function SettingsPage() {
 														}
 														className='w-24'
 													/>
-													<span className='text-sm text-muted-foreground'>
+													<span className='text-sm text-text-secondary'>
 														servings
 													</span>
 												</div>
@@ -1448,7 +1541,7 @@ export default function SettingsPage() {
 														placeholder='No limit'
 														className='w-24'
 													/>
-													<span className='text-sm text-muted-foreground'>
+													<span className='text-sm text-text-secondary'>
 														minutes (leave empty for no limit)
 													</span>
 												</div>
@@ -1517,20 +1610,20 @@ export default function SettingsPage() {
 															className={cn(
 																'rounded-full px-2.5 py-0.5 text-xs font-semibold',
 																verificationStatus.status === 'APPROVED' &&
-																	'bg-green-100 text-green-700',
+																	'bg-success/10 text-success',
 																verificationStatus.status === 'PENDING' &&
-																	'bg-yellow-100 text-yellow-700',
+																	'bg-warning/10 text-warning',
 																verificationStatus.status === 'REJECTED' &&
-																	'bg-red-100 text-red-700',
+																	'bg-error/10 text-error',
 															)}
 														>
 															{verificationStatus.status}
 														</span>
 													</div>
 													{verificationStatus.status === 'APPROVED' && (
-														<div className='flex items-center gap-2 rounded-lg bg-green-50 p-3'>
-															<BadgeCheck className='size-5 text-blue-500' />
-															<p className='text-sm font-medium text-green-800'>
+														<div className='flex items-center gap-2 rounded-lg bg-success/5 p-3'>
+															<BadgeCheck className='size-5 text-info' />
+															<p className='text-sm font-medium text-success'>
 																You&apos;re a verified creator!
 															</p>
 														</div>
@@ -1569,6 +1662,9 @@ export default function SettingsPage() {
 															className='min-h-[80px] resize-none'
 															maxLength={500}
 														/>
+														<p className='mt-1 text-right text-xs text-text-muted'>
+															{verificationReason.length}/500
+														</p>
 													</div>
 													<Button
 														onClick={async () => {
@@ -1619,13 +1715,12 @@ export default function SettingsPage() {
 								>
 									<SettingsCard
 										title='Theme'
-										description='Choose your preferred appearance'
+										description='Your current visual theme.'
 									>
-										<ButtonGroup
-											options={THEME_OPTIONS}
-											value={settings.app.theme}
-											onChange={v => handleUpdateApp({ theme: v })}
-										/>
+										<div className='flex items-center gap-2 text-sm text-text-secondary'>
+											<Sun className='size-4 text-streak' />
+											<span className='font-medium text-text'>Light</span>
+										</div>
 									</SettingsCard>
 
 									<SettingsCard title='Sound & Motion'>
@@ -1640,14 +1735,14 @@ export default function SettingsPage() {
 												}
 											/>
 											{/* Test Timer Sound Button */}
-											<div className='flex items-center justify-between border-b border-border py-3'>
+											<div className='flex items-center justify-between border-b border-border-subtle py-3'>
 												<div className='flex items-center gap-3'>
-													<Timer className='size-4 text-muted-foreground' />
+													<Timer className='size-4 text-text-secondary' />
 													<div>
-														<p className='text-sm font-medium text-foreground'>
+														<p className='text-sm font-medium text-text'>
 															Timer Notification Sound
 														</p>
-														<p className='text-xs text-muted-foreground'>
+														<p className='text-xs text-text-secondary'>
 															Preview the sound that plays when timers complete
 														</p>
 													</div>
@@ -1656,6 +1751,12 @@ export default function SettingsPage() {
 													variant='outline'
 													size='sm'
 													onClick={() => {
+														if (!settings?.app.soundEffects) {
+															toast.info(
+																'Sound effects are disabled. Enable them above to hear the timer.',
+															)
+															return
+														}
 														playTimerChime()
 														toast.success('🔔 Timer sound played!')
 													}}
@@ -1704,54 +1805,6 @@ export default function SettingsPage() {
 						</motion.div>
 					</AnimatePresence>
 				</div>
-
-				{/* Change Password Modal */}
-				<AnimatePresence>
-					{showPasswordModal && (
-						<Portal>
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
-								onClick={() => setShowPasswordModal(false)}
-							>
-								<motion.div
-									initial={{ scale: 0.95, opacity: 0 }}
-									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0.95, opacity: 0 }}
-									transition={TRANSITION_SPRING}
-									onClick={e => e.stopPropagation()}
-									className='w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl'
-								>
-									<h2 className='mb-3 text-xl font-bold'>Password Security</h2>
-									<div className='space-y-4'>
-										<p className='text-sm leading-relaxed text-text-secondary'>
-											Password changes are not handled inside the app yet. Use
-											the sign-in flow&apos;s Forgot Password option so the
-											reset happens through the same identity provider that
-											manages your account.
-										</p>
-										<div className='rounded-xl border border-border-subtle bg-bg-elevated p-4 text-sm text-text-secondary'>
-											This keeps password resets consistent with ChefKix
-											authentication and avoids pretending this form can change
-											your password when it cannot.
-										</div>
-										<div className='flex gap-3 pt-2'>
-											<Button
-												variant='outline'
-												className='flex-1'
-												onClick={closePasswordModal}
-											>
-												Close
-											</Button>
-										</div>
-									</div>
-								</motion.div>
-							</motion.div>
-						</Portal>
-					)}
-				</AnimatePresence>
 			</PageContainer>
 		</PageTransition>
 	)

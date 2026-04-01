@@ -1,7 +1,8 @@
 'use client' // This tells Next.js this is a Client Component (runs in the browser)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import useSound from 'use-sound'
+import { toast } from 'sonner'
+import { logDevError } from '@/lib/dev-log'
 
 // Define the structure of the signaling message to match the Spring Boot backend
 interface SignalMessage {
@@ -31,8 +32,21 @@ export default function VideoCall({
 	const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 
-	// Ringtone
-	const [playRingtone, { stop: stopRingtone }] = useSound('/sounds/ringtone.mp3', { loop: true })
+	// Ringtone (native Audio API — no external deps)
+	const ringtoneRef = useRef<HTMLAudioElement | null>(null)
+	const playRingtone = useCallback(() => {
+		if (!ringtoneRef.current) {
+			ringtoneRef.current = new Audio('/sounds/ringtone.mp3')
+			ringtoneRef.current.loop = true
+		}
+		ringtoneRef.current.play().catch(() => {})
+	}, [])
+	const stopRingtone = useCallback(() => {
+		if (ringtoneRef.current) {
+			ringtoneRef.current.pause()
+			ringtoneRef.current.currentTime = 0
+		}
+	}, [])
 
 	// UI States to control button visibility
 	const [isCameraOn, setIsCameraOn] = useState(false)
@@ -40,7 +54,8 @@ export default function VideoCall({
 	const [isJoined, setIsJoined] = useState(false)
 	const [isCallActive, setIsCallActive] = useState(false)
 	const [isReceivingCall, setIsReceivingCall] = useState(false)
-	const [remoteOffer, setRemoteOffer] = useState<RTCSessionDescriptionInit | null>(null)
+	const [remoteOffer, setRemoteOffer] =
+		useState<RTCSessionDescriptionInit | null>(null)
 
 	// Configuration for WebRTC connecting (using Google's free public STUN server)
 	const rtcConfig = {
@@ -72,8 +87,8 @@ export default function VideoCall({
 			setIsCameraOn(videoEnabled)
 			setIsMicOn(true)
 		} catch (error) {
-			console.error('Error accessing media devices.', error)
-			
+			logDevError('Error accessing media devices.', error)
+
 			// Fallback: try audio only if video fails (maybe no webcam)
 			try {
 				const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -85,8 +100,10 @@ export default function VideoCall({
 				setIsCameraOn(false)
 				setIsMicOn(true)
 			} catch (audioError) {
-				console.error('Error accessing audio device.', audioError)
-				alert('Could not access microphone array.')
+				logDevError('Error accessing audio device.', audioError)
+				toast.error(
+					'Could not access your microphone. Please check browser permissions.',
+				)
 			}
 		}
 	}
@@ -125,7 +142,6 @@ export default function VideoCall({
 		const ws = new WebSocket(wsUrl)
 
 		ws.onopen = () => {
-			console.log('WebSocket Connected')
 			// As soon as we connect, tell the backend we are joining this conversation
 			sendMessage(ws, 'join')
 			wsRef.current = ws
@@ -159,39 +175,37 @@ export default function VideoCall({
 				case 'leave':
 					stopRingtone()
 					endCall()
-					alert('The other person left the call.')
+					toast.info('The other person left the call.')
 					break
 				default:
-					console.warn('Unknown message type:', message.type)
+					logDevError('Unknown WebSocket message type:', message.type)
 			}
 		}
 
 		ws.onerror = error => {
-			console.error('WebSocket Error:', error)
+			logDevError('WebSocket Error:', error)
 		}
 
 		ws.onclose = () => {
-			console.log('WebSocket Disconnected')
 			setIsJoined(false)
 		}
 	}
 
 	// Helper to send JSON messages through WebSocket
-	const sendMessage = (
-		wsInstance: WebSocket | null,
-		type: SignalMessage['type'],
-		data?: any,
-	) => {
-		if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
-			const payload: SignalMessage = {
-				type,
-				conversationId,
-				senderId: currentUserId,
-				data,
+	const sendMessage = useCallback(
+		(wsInstance: WebSocket | null, type: SignalMessage['type'], data?: any) => {
+			if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+				const payload: SignalMessage = {
+					type,
+					conversationId,
+					senderId: currentUserId,
+					data,
+				}
+				wsInstance.send(JSON.stringify(payload))
 			}
-			wsInstance.send(JSON.stringify(payload))
-		}
-	}
+		},
+		[conversationId, currentUserId],
+	)
 
 	// --- Phase 3: WebRTC Engine ---
 	const initializePeerConnection = () => {
@@ -249,7 +263,7 @@ export default function VideoCall({
 	const acceptCall = async () => {
 		stopRingtone()
 		setIsReceivingCall(false)
-		
+
 		// Attempt to start audio/video. We default to both, but fallback to audio only in startMedia.
 		if (!localStreamRef.current) {
 			await startMedia(true)
@@ -304,7 +318,7 @@ export default function VideoCall({
 				)
 			}
 		} catch (e) {
-			console.error('Error adding received ice candidate', e)
+			logDevError('Error adding received ice candidate', e)
 		}
 	}
 
@@ -343,10 +357,10 @@ export default function VideoCall({
 		setIsCallActive(false)
 		setIsReceivingCall(false)
 		setRemoteOffer(null)
-		
+
 		// Unmount component
 		onClose()
-	}, [onClose, stopRingtone])
+	}, [onClose, sendMessage, stopRingtone])
 
 	// Automatically clean up when the user leaves the page or unmounts the component
 	useEffect(() => {
@@ -357,28 +371,56 @@ export default function VideoCall({
 
 	// --- Render UI ---
 	return (
-		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-sm border border-gray-200 w-full max-w-4xl mx-auto relative'>
+		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-card border border-border-subtle w-full max-w-4xl mx-auto relative'>
 			{/* Incoming Call Overlay */}
 			{isReceivingCall && !isCallActive && (
-				<div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl">
-					<div className="w-24 h-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6">
-						<div className="w-16 h-16 bg-brand rounded-full flex items-center justify-center">
-							<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+				<div className='absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl'>
+					<div className='size-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
+						<div className='size-16 bg-brand rounded-full flex items-center justify-center'>
+							<svg
+								xmlns='http://www.w3.org/2000/svg'
+								width='32'
+								height='32'
+								viewBox='0 0 24 24'
+								fill='none'
+								stroke='currentColor'
+								strokeWidth='2'
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								className='text-white'
+							>
+								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
+							</svg>
 						</div>
 					</div>
-					<h2 className="text-white text-2xl font-bold mb-8">Incoming Call...</h2>
-					<div className="flex gap-6">
-						<button 
+					<h2 className='text-white text-2xl font-bold mb-8'>
+						Incoming Call...
+					</h2>
+					<div className='flex gap-6'>
+						<button
 							onClick={rejectCall}
-							className="px-6 py-3 bg-red-500 hover:bg-red-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105"
+							className='px-6 py-3 bg-error hover:bg-error-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105'
 						>
 							Decline
 						</button>
-						<button 
+						<button
 							onClick={acceptCall}
-							className="px-6 py-3 bg-green-500 hover:bg-green-600 outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
+							className='px-6 py-3 bg-success hover:bg-success-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2'
 						>
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+							<svg
+								xmlns='http://www.w3.org/2000/svg'
+								width='20'
+								height='20'
+								viewBox='0 0 24 24'
+								fill='none'
+								stroke='currentColor'
+								strokeWidth='2'
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								className='text-white'
+							>
+								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
+							</svg>
 							Answer
 						</button>
 					</div>
@@ -388,7 +430,7 @@ export default function VideoCall({
 			<h2 className='text-2xl font-semibold text-primary mb-2'>Video Call</h2>
 
 			{/* Media Stage */}
-			<div className='relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
+			<div className='relative w-full aspect-video bg-bg-inverse rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
 				{/* Remote Video (Large / Background) */}
 				<video
 					ref={remoteVideoRef}
@@ -398,7 +440,7 @@ export default function VideoCall({
 				/>
 
 				{/* Local Video (Small Picture-in-Picture / Bottom Right) */}
-				<div className='absolute bottom-4 right-4 w-1/4 max-w-[200px] aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-brand shadow-lg'>
+				<div className='absolute bottom-4 right-4 w-1/4 max-w-[200px] aspect-video bg-bg-elevated rounded-lg overflow-hidden border-2 border-brand shadow-lg'>
 					<video
 						ref={localVideoRef}
 						autoPlay
@@ -410,7 +452,7 @@ export default function VideoCall({
 
 				{/* Fallback text when there's no call active */}
 				{!isCallActive && (
-					<div className='absolute inset-0 flex items-center justify-center text-gray-500 font-medium'>
+					<div className='absolute inset-0 flex items-center justify-center text-text-muted font-medium'>
 						Waiting for video connection...
 					</div>
 				)}
@@ -420,21 +462,21 @@ export default function VideoCall({
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
 				<button
 					onClick={() => startMedia()}
-					className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+					className='px-4 py-2 bg-info text-white rounded-md hover:bg-info-vivid'
 				>
 					{isCameraOn ? 'Camera On ✅' : '1. Turn On Camera'}
 				</button>
 
 				<button
 					onClick={toggleVideo}
-					className='px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600'
+					className='px-4 py-2 bg-warning text-white rounded-md hover:bg-warning-vivid'
 				>
 					{isCameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
 				</button>
 
 				<button
 					onClick={toggleAudio}
-					className='px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600'
+					className='px-4 py-2 bg-accent-purple text-white rounded-md hover:bg-accent-purple-hover'
 				>
 					{isMicOn ? 'Mute Mic' : 'Unmute Mic'}
 				</button>
@@ -443,10 +485,10 @@ export default function VideoCall({
 					<button
 						onClick={makeCall}
 						disabled={!isCameraOn || !isJoined}
-						className={`px-4 py-2 text-white rounded ${
+						className={`px-4 py-2 text-white rounded-md transition-colors ${
 							!isCameraOn || !isJoined
-								? 'bg-gray-400 cursor-not-allowed'
-								: 'bg-green-500 hover:bg-green-600'
+								? 'bg-bg-elevated text-text-muted cursor-not-allowed opacity-50'
+								: 'bg-success hover:bg-success-vivid'
 						}`}
 					>
 						2. Call the other person
@@ -455,7 +497,7 @@ export default function VideoCall({
 
 				<button
 					onClick={endCall}
-					className='px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600'
+					className='px-4 py-2 bg-error text-white rounded-md hover:bg-error-vivid'
 				>
 					End Call
 				</button>

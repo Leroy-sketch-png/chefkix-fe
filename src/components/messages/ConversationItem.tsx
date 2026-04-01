@@ -123,7 +123,7 @@ export const ConversationItem = ({
 					>
 						{participantName}
 					</span>
-					<span className='text-xs text-muted-foreground flex-shrink-0'>
+					<span className='text-xs text-text-secondary flex-shrink-0'>
 						{formatTime(lastMessageTime)}
 					</span>
 				</div>
@@ -133,7 +133,7 @@ export const ConversationItem = ({
 							'text-sm truncate',
 							unreadCount > 0
 								? 'text-foreground font-medium'
-								: 'text-muted-foreground',
+								: 'text-text-secondary',
 							isTyping && 'text-primary italic',
 						)}
 					>
@@ -147,7 +147,7 @@ export const ConversationItem = ({
 				{isPinned && <span className='text-xs'>📌</span>}
 				{isMuted && <span className='text-xs opacity-50'>🔇</span>}
 				{unreadCount > 0 && !isMuted && (
-					<span className='min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold'>
+					<span className='min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-white text-xs font-bold'>
 						{unreadCount > 99 ? '99+' : unreadCount}
 					</span>
 				)}
@@ -195,7 +195,7 @@ export const ConversationList = ({
 				<div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
 					<span className='text-4xl mb-3'>💬</span>
 					<p className='text-foreground font-semibold'>No conversations yet</p>
-					<p className='text-sm text-muted-foreground mt-1'>
+					<p className='text-sm text-text-secondary mt-1'>
 						Start a conversation with a friend!
 					</p>
 				</div>
@@ -211,10 +211,10 @@ export const ConversationList = ({
 export const ConversationItemSkeleton = () => {
 	return (
 		<div className='flex items-center gap-3 px-4 py-3 border-b border-border animate-pulse'>
-			<div className='w-12 h-12 rounded-full bg-muted flex-shrink-0' />
+			<div className='w-12 h-12 rounded-full bg-bg-elevated flex-shrink-0' />
 			<div className='flex-1'>
-				<div className='h-4 w-24 bg-muted rounded mb-2' />
-				<div className='h-3 w-32 bg-muted rounded' />
+				<div className='h-4 w-24 bg-bg-elevated rounded mb-2' />
+				<div className='h-3 w-32 bg-bg-elevated rounded' />
 			</div>
 		</div>
 	)

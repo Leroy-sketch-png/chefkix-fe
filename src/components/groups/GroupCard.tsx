@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Group } from '@/lib/types/group'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -48,7 +48,7 @@ export const GroupCard = ({
 	const [isJoining, setIsJoining] = useState(false)
 	const [hasJoined, setHasJoined] = useState(group.isJoined ?? false)
 	const [requestPending, setRequestPending] = useState(
-		group.hasPendingRequest ?? false
+		group.hasPendingRequest ?? false,
 	)
 
 	const handleJoin = useCallback(async () => {
@@ -76,7 +76,7 @@ export const GroupCard = ({
 	if (variant === 'compact') {
 		return (
 			<motion.div
-				className='bg-bg-card rounded-lg p-4 border border-border hover:border-brand transition-colors'
+				className='bg-bg-card rounded-lg p-4 border border-border-subtle hover:border-brand transition-colors'
 				whileHover={{ scale: 1.02 }}
 				transition={TRANSITION_SPRING}
 			>
@@ -88,11 +88,11 @@ export const GroupCard = ({
 								alt={group.name}
 								width={60}
 								height={60}
-								className='w-12 h-12 rounded-md object-cover'
+								className='size-12 rounded-md object-cover'
 							/>
 						) : (
-							<div className='w-12 h-12 rounded-md bg-brand/10 flex items-center justify-center'>
-								<Users className='w-6 h-6 text-brand' />
+							<div className='size-12 rounded-md bg-brand/10 flex items-center justify-center'>
+								<Users className='size-6 text-brand' />
 							</div>
 						)}
 						<div className='flex-1 min-w-0'>
@@ -103,7 +103,7 @@ export const GroupCard = ({
 								{group.memberCount} members
 							</p>
 						</div>
-						<ChevronRight className='w-4 h-4 text-text-muted flex-shrink-0' />
+						<ChevronRight className='size-4 text-text-muted flex-shrink-0' />
 					</div>
 				</Link>
 			</motion.div>
@@ -113,7 +113,7 @@ export const GroupCard = ({
 	if (variant === 'horizontal') {
 		return (
 			<motion.div
-				className='bg-bg-card rounded-lg p-3 border border-border flex items-center gap-3'
+				className='bg-bg-card rounded-lg p-3 border border-border-subtle flex items-center gap-3'
 				whileHover={{ scale: 1.02 }}
 				transition={TRANSITION_SPRING}
 			>
@@ -123,11 +123,11 @@ export const GroupCard = ({
 						alt={group.name}
 						width={48}
 						height={48}
-						className='w-12 h-12 rounded object-cover flex-shrink-0'
+						className='size-12 rounded object-cover flex-shrink-0'
 					/>
 				) : (
-					<div className='w-12 h-12 rounded bg-brand/10 flex items-center justify-center flex-shrink-0'>
-						<Users className='w-5 h-5 text-brand' />
+					<div className='size-12 rounded bg-brand/10 flex items-center justify-center flex-shrink-0'>
+						<Users className='size-5 text-brand' />
 					</div>
 				)}
 
@@ -135,9 +135,9 @@ export const GroupCard = ({
 					<h3 className='font-semibold text-text truncate'>{group.name}</h3>
 					<div className='flex items-center gap-2 mt-1'>
 						{group.privacyType === 'PRIVATE' ? (
-							<Lock className='w-3 h-3 text-text-muted' />
+							<Lock className='size-3 text-text-muted' />
 						) : (
-							<Globe className='w-3 h-3 text-text-muted' />
+							<Globe className='size-3 text-text-muted' />
 						)}
 						<span className='text-xs text-text-secondary'>
 							{group.memberCount} members
@@ -147,14 +147,14 @@ export const GroupCard = ({
 
 				{hasJoined && (
 					<div className='text-xs font-medium text-brand flex items-center gap-1'>
-						<Check className='w-3 h-3' />
+						<Check className='size-3' />
 						Joined
 					</div>
 				)}
 
 				{requestPending && (
-					<div className='text-xs font-medium text-amber-600 flex items-center gap-1'>
-						<Clock className='w-3 h-3' />
+					<div className='text-xs font-medium text-warning flex items-center gap-1'>
+						<Clock className='size-3' />
 						Pending
 					</div>
 				)}
@@ -167,11 +167,7 @@ export const GroupCard = ({
 						disabled={isJoining}
 						className='flex-shrink-0'
 					>
-						{isJoining ? (
-							<Loader2 className='w-3 h-3 animate-spin' />
-						) : (
-							'Join'
-						)}
+						{isJoining ? <Loader2 className='size-3 animate-spin' /> : 'Join'}
 					</Button>
 				)}
 			</motion.div>
@@ -181,7 +177,7 @@ export const GroupCard = ({
 	// Default variant
 	return (
 		<motion.div
-			className='bg-bg-card rounded-xl border border-border overflow-hidden hover:border-brand transition-colors h-full flex flex-col pb-8'
+			className='bg-bg-card rounded-xl border border-border-subtle overflow-hidden hover:border-brand transition-colors h-full flex flex-col pb-8'
 			whileHover={{ scale: 1.02 }}
 			transition={TRANSITION_SPRING}
 		>
@@ -196,7 +192,7 @@ export const GroupCard = ({
 					/>
 				) : (
 					<div className='w-full h-full flex items-center justify-center'>
-						<Users className='w-16 h-16 text-brand/30' />
+						<Users className='size-16 text-brand/30' />
 					</div>
 				)}
 
@@ -205,14 +201,14 @@ export const GroupCard = ({
 					<div className='bg-bg/95 backdrop-blur-sm rounded-full p-2 flex items-center gap-1'>
 						{group.privacyType === 'PRIVATE' ? (
 							<>
-								<Lock className='w-3 h-3 text-text-secondary' />
+								<Lock className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
 									Private
 								</span>
 							</>
 						) : (
 							<>
-								<Globe className='w-3 h-3 text-text-secondary' />
+								<Globe className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
 									Public
 								</span>
@@ -224,7 +220,10 @@ export const GroupCard = ({
 
 			{/* Content */}
 			<div className='flex-1 p-4 flex flex-col'>
-				<Link href={PATHS.GROUPS.DETAIL(group.id)} className='hover:no-underline'>
+				<Link
+					href={PATHS.GROUPS.DETAIL(group.id)}
+					className='hover:no-underline'
+				>
 					<h3 className='font-bold text-lg text-text line-clamp-2 hover:text-brand transition-colors'>
 						{group.name}
 					</h3>
@@ -237,7 +236,7 @@ export const GroupCard = ({
 				{/* Tags */}
 				{group.tags && group.tags.length > 0 && (
 					<div className='flex gap-2 mt-3 flex-wrap'>
-						{group.tags.slice(0, 2).map((tag) => (
+						{group.tags.slice(0, 2).map(tag => (
 							<span
 								key={tag}
 								className='text-xs bg-brand/10 text-brand px-2 py-1 rounded-full'
@@ -255,25 +254,22 @@ export const GroupCard = ({
 
 				{/* Member Count */}
 				<div className='flex items-center gap-2 mt-3 text-sm text-text-secondary'>
-					<Users className='w-4 h-4' />
+					<Users className='size-4' />
 					<span>{group.memberCount} members</span>
 				</div>
 			</div>
 
 			{/* Footer / Actions */}
-			<div className='border-t border-border p-4'>
+			<div className='border-t border-border-subtle p-4'>
 				{hasJoined ? (
-					<Link
-						href={PATHS.GROUPS.DETAIL(group.id)}
-						className='block'
-					>
+					<Link href={PATHS.GROUPS.DETAIL(group.id)} className='block'>
 						<Button className='w-full bg-brand hover:bg-brand/90 text-white'>
 							View Group
 						</Button>
 					</Link>
 				) : requestPending ? (
 					<div className='text-center py-2'>
-						<p className='text-xs text-amber-600 font-medium'>
+						<p className='text-xs text-warning font-medium'>
 							Request pending approval
 						</p>
 					</div>
@@ -285,7 +281,7 @@ export const GroupCard = ({
 					>
 						{isJoining ? (
 							<>
-								<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+								<Loader2 className='size-4 mr-2 animate-spin' />
 								Joining...
 							</>
 						) : (

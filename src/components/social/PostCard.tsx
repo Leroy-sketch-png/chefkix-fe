@@ -10,7 +10,7 @@ import {
 	reportPost,
 	ratePlate,
 } from '@/services/post'
-import { toast } from '@/components/ui/toaster'
+import { toast } from 'sonner'
 import { POST_MESSAGES } from '@/constants/messages'
 import { trackEvent } from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
@@ -47,6 +47,38 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
+
+const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+
+function EditCountdown({ createdAt }: { createdAt: Date }) {
+	const [minutesLeft, setMinutesLeft] = useState(() =>
+		Math.max(
+			0,
+			Math.ceil((createdAt.getTime() + EDIT_WINDOW_MS - Date.now()) / 60000),
+		),
+	)
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			const remaining = Math.max(
+				0,
+				Math.ceil((createdAt.getTime() + EDIT_WINDOW_MS - Date.now()) / 60000),
+			)
+			setMinutesLeft(remaining)
+			if (remaining <= 0) clearInterval(interval)
+		}, 30000) // update every 30s
+		return () => clearInterval(interval)
+	}, [createdAt])
+
+	if (minutesLeft <= 0) return null
+
+	return (
+		<span className='inline-flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'>
+			<Pencil className='size-3' />
+			{minutesLeft}m left to edit
+		</span>
+	)
+}
 
 interface PostCardProps {
 	post: Post
@@ -150,33 +182,43 @@ export const PostCard = ({
 			triggerLikeConfetti(likeButtonRef.current || undefined)
 		}
 
-		const response = await toggleLike(post.id)
+		try {
+			const response = await toggleLike(post.id)
 
-		if (response.success && response.data) {
-			// Update with server response - use likeCount (BE field name)
-			const newLikes =
-				response.data.likeCount ??
-				(wasLiked ? previousLikes - 1 : previousLikes + 1)
-			const newIsLiked = response.data.isLiked ?? !wasLiked
+			if (response.success && response.data) {
+				// Update with server response - use likeCount (BE field name)
+				const newLikes =
+					response.data.likeCount ??
+					(wasLiked ? previousLikes - 1 : previousLikes + 1)
+				const newIsLiked = response.data.isLiked ?? !wasLiked
 
-			trackEvent('POST_LIKED', post.id, 'post', { liked: newIsLiked })
-			setPost(prev => ({
-				...prev,
-				likes: newLikes,
-				isLiked: newIsLiked,
-			}))
-			onUpdate?.({ ...post, likes: newLikes, isLiked: newIsLiked })
-		} else {
-			// Revert on error
+				trackEvent('POST_LIKED', post.id, 'post', { liked: newIsLiked })
+				setPost(prev => ({
+					...prev,
+					likes: newLikes,
+					isLiked: newIsLiked,
+				}))
+				onUpdate?.({ ...post, likes: newLikes, isLiked: newIsLiked })
+			} else {
+				// Revert on error
+				setPost(prev => ({
+					...prev,
+					isLiked: wasLiked,
+					likes: previousLikes,
+				}))
+				toast.error(response.message || POST_MESSAGES.LIKE_FAILED)
+			}
+		} catch {
+			// Revert on network/unexpected error
 			setPost(prev => ({
 				...prev,
 				isLiked: wasLiked,
 				likes: previousLikes,
 			}))
-			toast.error(response.message || POST_MESSAGES.LIKE_FAILED)
+			toast.error(POST_MESSAGES.LIKE_FAILED)
+		} finally {
+			setIsLiking(false)
 		}
-
-		setIsLiking(false)
 	}, [isLiking, onUpdate, post])
 
 	const handleSave = async () => {
@@ -207,13 +249,18 @@ export const PostCard = ({
 			} else {
 				// Revert on error
 				setIsSaved(previousSaved)
-				toast.error(response.message || 'Failed to save post')
+				toast.error(
+					response.message ||
+						(previousSaved ? 'Failed to unsave post' : 'Failed to save post'),
+				)
 			}
 		} catch (error) {
 			// Revert on error
 			setIsSaved(previousSaved)
 			logDevError('Failed to save post:', error)
-			toast.error('Failed to save post')
+			toast.error(
+				previousSaved ? 'Failed to unsave post' : 'Failed to save post',
+			)
 		} finally {
 			setIsSaving(false)
 		}
@@ -271,6 +318,7 @@ export const PostCard = ({
 					fireCount: prevFire,
 					cringeCount: prevCringe,
 				}))
+				toast.error('Failed to rate post')
 			}
 		} catch {
 			setPost(prev => ({
@@ -279,6 +327,7 @@ export const PostCard = ({
 				fireCount: prevFire,
 				cringeCount: prevCringe,
 			}))
+			toast.error('Failed to rate post')
 		} finally {
 			setIsRatingPlate(false)
 		}
@@ -385,14 +434,22 @@ export const PostCard = ({
 				// User cancelled or share failed - fallback to clipboard
 				if ((err as Error).name !== 'AbortError') {
 					logDevError('Native share failed, falling back to clipboard:', err)
-					await navigator.clipboard.writeText(postUrl)
-					toast.success('Link copied to clipboard!')
+					try {
+						await navigator.clipboard.writeText(postUrl)
+						toast.success('Link copied to clipboard!')
+					} catch {
+						toast.error('Failed to copy link')
+					}
 				}
 			}
 		} else {
 			// Fallback: copy to clipboard
-			await navigator.clipboard.writeText(postUrl)
-			toast.success('Link copied to clipboard!')
+			try {
+				await navigator.clipboard.writeText(postUrl)
+				toast.success('Link copied to clipboard!')
+			} catch {
+				toast.error('Failed to copy link')
+			}
 		}
 	}
 
@@ -463,11 +520,7 @@ export const PostCard = ({
 				transition={TRANSITION_SPRING}
 				className='mb-6'
 			>
-				<motion.div
-					whileHover={{ ...CARD_FEED_HOVER, scale: 1.005 }}
-					transition={TRANSITION_SPRING}
-					className='group relative overflow-hidden rounded-radius border-l-3 border-l-transparent bg-bg-card shadow-card transition-all duration-300 hover:border-l-primary hover:shadow-warm'
-				>
+				<motion.div className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'>
 					{/* Header */}
 					<div className='flex items-center justify-between p-4 md:p-6'>
 						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
@@ -477,7 +530,7 @@ export const PostCard = ({
 							>
 								<Avatar
 									size='lg'
-									className='shadow-md transition-all group-hover:scale-105 group-hover:shadow-lg'
+									className='transition-all group-hover:opacity-90'
 								>
 									<AvatarImage
 										src={post.avatarUrl || '/placeholder-avatar.svg'}
@@ -497,10 +550,11 @@ export const PostCard = ({
 										{post.displayName || 'Unknown User'}
 										{post.isVerified && <VerifiedBadge size='sm' />}
 									</div>
-									<div className='text-sm leading-normal text-text-secondary'>
+									<div className='flex items-center gap-2 text-sm leading-normal text-text-secondary'>
 										{formatDistanceToNow(new Date(post.createdAt), {
 											addSuffix: true,
 										})}
+										{canEdit && <EditCountdown createdAt={createdAt} />}
 									</div>
 								</div>
 							</Link>
@@ -529,6 +583,7 @@ export const PostCard = ({
 												onClick={() => setShowMenu(false)}
 											/>
 											<motion.div
+												role='menu'
 												initial={{ opacity: 0, scale: 0.95, y: -10 }}
 												animate={{ opacity: 1, scale: 1, y: 0 }}
 												exit={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -544,6 +599,7 @@ export const PostCard = ({
 														{canEdit && (
 															<button
 																type='button'
+																role='menuitem'
 																onClick={() => {
 																	setIsEditing(true)
 																	setShowMenu(false)
@@ -556,6 +612,7 @@ export const PostCard = ({
 														)}
 														<button
 															type='button'
+															role='menuitem'
 															onClick={handleDelete}
 															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 														>
@@ -568,6 +625,7 @@ export const PostCard = ({
 												{!isOwner && (
 													<button
 														type='button'
+														role='menuitem'
 														onClick={() => {
 															setShowReportModal(true)
 															setShowMenu(false)
@@ -594,18 +652,25 @@ export const PostCard = ({
 								onChange={e => setEditContent(e.target.value)}
 								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
 								placeholder='Edit your post...'
+								maxLength={2000}
 							/>
+							{editContent.length > 0 && (
+								<p className='text-right text-xs text-text-muted'>
+									{editContent.length}/2000
+								</p>
+							)}
 							<input
 								value={editTags}
 								onChange={e => setEditTags(e.target.value)}
 								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
 								placeholder='Tags (comma-separated)'
+								maxLength={200}
 							/>
 							<div className='flex gap-2'>
 								<button
 									type='button'
 									onClick={handleEdit}
-									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-colors hover:bg-primary/90'
+									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-white transition-colors hover:bg-primary/90'
 								>
 									Save
 								</button>
@@ -706,7 +771,6 @@ export const PostCard = ({
 								<div
 									className='relative w-full cursor-pointer select-none'
 									onClick={handleDoubleTap}
-									onTouchEnd={handleDoubleTap}
 								>
 									{/* Use ImageCarousel for multi-image support */}
 									<ImageCarousel
@@ -743,7 +807,7 @@ export const PostCard = ({
 							)}
 
 							{post.videoUrl && (
-								<div className='relative aspect-video w-full overflow-hidden bg-muted'>
+								<div className='relative aspect-video w-full overflow-hidden bg-bg-elevated'>
 									<video
 										src={post.videoUrl}
 										controls
@@ -776,7 +840,7 @@ export const PostCard = ({
 									>
 										<span>🔥</span>
 										{(post.fireCount ?? 0) > 0 && (
-											<span className='text-xs font-semibold'>
+											<span className='text-xs font-semibold tabular-nums'>
 												{post.fireCount}
 											</span>
 										)}
@@ -787,13 +851,13 @@ export const PostCard = ({
 										disabled={isRatingPlate}
 										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
 											post.userPlateRating === 'CRINGE'
-												? 'bg-purple-500/15 text-purple-500 ring-1 ring-purple-500/30'
-												: 'text-text-muted hover:bg-purple-500/10 hover:text-purple-500'
+												? 'bg-accent-purple/15 text-accent-purple ring-1 ring-accent-purple/30'
+												: 'text-text-muted hover:bg-accent-purple/10 hover:text-accent-purple'
 										}`}
 									>
 										<span>😬</span>
 										{(post.cringeCount ?? 0) > 0 && (
-											<span className='text-xs font-semibold'>
+											<span className='text-xs font-semibold tabular-nums'>
 												{post.cringeCount}
 											</span>
 										)}
@@ -823,7 +887,7 @@ export const PostCard = ({
 										: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
 								}`}
 							/>
-							<span>{post.likes ?? 0}</span>
+							<span className='tabular-nums'>{post.likes ?? 0}</span>
 						</button>
 
 						<button
@@ -833,7 +897,7 @@ export const PostCard = ({
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 						>
 							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
-							<span>{post.commentCount ?? 0}</span>
+							<span className='tabular-nums'>{post.commentCount ?? 0}</span>
 						</button>
 
 						{/* Share button with dropdown menu */}
@@ -859,6 +923,7 @@ export const PostCard = ({
 											onClick={() => setShowShareMenu(false)}
 										/>
 										<motion.div
+											role='menu'
 											initial={{ opacity: 0, scale: 0.95, y: 10 }}
 											animate={{ opacity: 1, scale: 1, y: 0 }}
 											exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -870,6 +935,7 @@ export const PostCard = ({
 										>
 											<button
 												type='button'
+												role='menuitem'
 												onClick={handleShareToChat}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
@@ -878,6 +944,7 @@ export const PostCard = ({
 											</button>
 											<button
 												type='button'
+												role='menuitem'
 												onClick={handleNativeShare}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
@@ -929,6 +996,12 @@ export const PostCard = ({
 										setPost(prev => ({
 											...prev,
 											commentCount: (prev.commentCount ?? 0) + 1,
+										}))
+									}}
+									onCommentDeleted={() => {
+										setPost(prev => ({
+											...prev,
+											commentCount: Math.max((prev.commentCount ?? 1) - 1, 0),
 										}))
 									}}
 								/>

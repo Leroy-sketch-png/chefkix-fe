@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'next/navigation'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -12,7 +12,7 @@ import { EmptyStateGamified } from '@/components/shared'
 import { getFollowers, getFollowing, getFriends } from '@/services/social'
 import { Profile } from '@/lib/types/profile'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import { Users, UserCheck, Heart, ArrowLeft } from 'lucide-react'
+import { Users, UserCheck, Heart, ArrowLeft, Loader2 } from 'lucide-react'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -49,7 +49,7 @@ function FollowersSkeleton() {
 	)
 }
 
-export default function FollowersPage() {
+function FollowersContent() {
 	const searchParams = useSearchParams()
 	const initialTab = (searchParams.get('tab') as Tab) || 'followers'
 	const [activeTab, setActiveTab] = useState<Tab>(initialTab)
@@ -98,8 +98,46 @@ export default function FollowersPage() {
 
 	// Fetch active tab on mount and tab change
 	useEffect(() => {
-		fetchTab(activeTab)
-	}, [activeTab, fetchTab])
+		let cancelled = false
+
+		const load = async () => {
+			setLoading(prev => ({ ...prev, [activeTab]: true }))
+			setErrors(prev => ({ ...prev, [activeTab]: null }))
+
+			const fetchers: Record<Tab, () => ReturnType<typeof getFollowers>> = {
+				followers: getFollowers,
+				following: getFollowing,
+				friends: getFriends,
+			}
+
+			try {
+				const response = await fetchers[activeTab]()
+				if (cancelled) return
+				if (response.success && response.data) {
+					setData(prev => ({ ...prev, [activeTab]: response.data! }))
+				} else {
+					setErrors(prev => ({
+						...prev,
+						[activeTab]: response.message || `Failed to load ${activeTab}`,
+					}))
+				}
+			} catch {
+				if (!cancelled) {
+					setErrors(prev => ({
+						...prev,
+						[activeTab]: `Failed to load ${activeTab}`,
+					}))
+				}
+			} finally {
+				if (!cancelled) setLoading(prev => ({ ...prev, [activeTab]: false }))
+			}
+		}
+
+		load()
+		return () => {
+			cancelled = true
+		}
+	}, [activeTab])
 
 	const handleFollowChange = (userId: string, isNowFollowing: boolean) => {
 		// Update local state when follow status changes
@@ -214,5 +252,21 @@ export default function FollowersPage() {
 				</AnimatePresence>
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+export default function FollowersPage() {
+	return (
+		<Suspense
+			fallback={
+				<PageContainer maxWidth='lg'>
+					<div className='flex min-h-panel-md items-center justify-center'>
+						<Loader2 className='size-8 animate-spin text-primary' />
+					</div>
+				</PageContainer>
+			}
+		>
+			<FollowersContent />
+		</Suspense>
 	)
 }

@@ -94,7 +94,11 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 			})
 
 			if (response.success && response.data) {
-				setProfiles(prev => [...prev, ...response.data!])
+				setProfiles(prev => {
+					const existingIds = new Set(prev.map(p => p.userId))
+					const newProfiles = response.data!.filter(p => !existingIds.has(p.userId))
+					return [...prev, ...newProfiles]
+				})
 				setPage(nextPage)
 				if (response.pagination) {
 					setHasMore(!response.pagination.last)
