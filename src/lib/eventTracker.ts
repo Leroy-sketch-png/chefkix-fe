@@ -6,12 +6,31 @@ const BATCH_INTERVAL_MS = 10_000
 const MAX_BATCH_SIZE = 50
 const DWELL_THRESHOLD_MS = 2_000
 const SEARCH_DEBOUNCE_MS = 500
+const TRACKING_OPTOUT_KEY = 'chefkix_tracking_optout'
+
+export function isTrackingOptedOut(): boolean {
+	if (typeof window === 'undefined') return false
+	return localStorage.getItem(TRACKING_OPTOUT_KEY) === 'true'
+}
+
+export function setTrackingOptOut(optOut: boolean) {
+	if (typeof window === 'undefined') return
+	if (optOut) {
+		localStorage.setItem(TRACKING_OPTOUT_KEY, 'true')
+		// Stop tracker immediately
+		destroyEventTracker()
+	} else {
+		localStorage.removeItem(TRACKING_OPTOUT_KEY)
+	}
+}
 
 let eventQueue: TrackingEvent[] = []
 let flushTimer: ReturnType<typeof setInterval> | null = null
 let initialized = false
 
 function enqueue(event: TrackingEvent) {
+	if (isTrackingOptedOut()) return
+
 	eventQueue.push({
 		...event,
 		timestamp: event.timestamp || new Date().toISOString(),
@@ -53,6 +72,7 @@ function flushBeacon() {
 
 export function initEventTracker() {
 	if (initialized || typeof window === 'undefined') return
+	if (isTrackingOptedOut()) return
 
 	flushTimer = setInterval(flush, BATCH_INTERVAL_MS)
 
@@ -144,4 +164,13 @@ export function trackScrollDepth(depth: number) {
 
 export function resetScrollDepth() {
 	lastScrollDepth = 0
+}
+
+export async function deleteMyEventData(): Promise<boolean> {
+	try {
+		await api.delete(API_ENDPOINTS.EVENTS.DELETE_MY_DATA)
+		return true
+	} catch {
+		return false
+	}
 }

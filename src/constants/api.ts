@@ -6,6 +6,7 @@ const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}` // No extra prefix, comments
 const POST_REPLIES_BASE = `${API_PREFIX}/posts` // Replies are under /posts/comments/{commentId}/replies
 const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
 const SOCIAL_PREFIX = `${API_PREFIX}/social`
+const COLLECTIONS_PREFIX = `${API_PREFIX}/collections`
 
 export const API_ENDPOINTS = {
 	AUTH: {
@@ -23,6 +24,8 @@ export const API_ENDPOINTS = {
 		GOOGLE: `${API_PREFIX}/auth/google`, // Future: Requires Keycloak Google IdP setup + backend OAuth callback
 		REFRESH_TOKEN: `${API_PREFIX}/auth/refresh-token`, // Public endpoint, no auth header needed
 		ME: `${API_PREFIX}/auth/me`,
+		/** Check if username is available for registration */
+		CHECK_USERNAME: `${API_PREFIX}/auth/check-username`,
 	} as const,
 	PROFILE: {
 		GET_BY_USER_ID: (userId: string) => `${API_PREFIX}/auth/${userId}`,
@@ -31,6 +34,8 @@ export const API_ENDPOINTS = {
 		UPDATE: `${AUTH_PREFIX}/update`,
 		GET_PROFILE_ONLY: (userId: string) =>
 			`${AUTH_PREFIX}/profile-only/${userId}`,
+		DELETE_ACCOUNT: `${AUTH_PREFIX}/delete-account`,
+		EXPORT_DATA: `${AUTH_PREFIX}/export-data`,
 	},
 	// Social endpoints per spec (03-social.txt): /api/v1/social/*
 	// Instagram Model: Follow-only system, mutual follows = friends
@@ -43,6 +48,8 @@ export const API_ENDPOINTS = {
 		// Friends = Mutual follows (no explicit friend requests)
 		GET_FRIENDS: `${SOCIAL_PREFIX}/friends`,
 		IS_MUTUAL: (userId: string) => `${SOCIAL_PREFIX}/is-mutual/${userId}`,
+		// Suggested follows
+		GET_SUGGESTED: `${SOCIAL_PREFIX}/suggested`,
 		// Block system
 		BLOCK: (userId: string) => `${SOCIAL_PREFIX}/block/${userId}`,
 		UNBLOCK: (userId: string) => `${SOCIAL_PREFIX}/block/${userId}`, // DELETE method
@@ -297,10 +304,12 @@ export const API_ENDPOINTS = {
 	},
 	EVENTS: {
 		TRACK: `${API_PREFIX}/events`,
+		DELETE_MY_DATA: `${API_PREFIX}/events/my-data`,
 	},
 	SEARCH: {
 		UNIFIED: `${API_PREFIX}/search`,
 		AUTOCOMPLETE: `${API_PREFIX}/search/autocomplete`,
+		TRENDING: `${API_PREFIX}/search/trending`,
 	},
 	KNOWLEDGE: {
 		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,
@@ -316,6 +325,7 @@ export const API_ENDPOINTS = {
 		FRIENDS: `${API_PREFIX}/presence/friends`,
 		FRIENDS_COOKING: `${API_PREFIX}/presence/friends/cooking`,
 		OFFLINE: `${API_PREFIX}/presence/offline`,
+		GET_USER: (userId: string) => `${API_PREFIX}/presence/${userId}`,
 	},
 	VERIFICATION: {
 		APPLY: `${API_PREFIX}/verification/apply`,
@@ -353,5 +363,19 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/group/${groupId}/privacy`,
 		CREATE_POST: (groupId: string) =>
 			`${API_PREFIX}/posts/groups/${groupId}/posts`,
+	},
+	COLLECTIONS: {
+		BASE: COLLECTIONS_PREFIX,
+		GET_MY: COLLECTIONS_PREFIX,
+		GET_BY_ID: (id: string) => `${COLLECTIONS_PREFIX}/${id}`,
+		GET_POSTS: (id: string) => `${COLLECTIONS_PREFIX}/${id}/posts`,
+		GET_BY_USER: (userId: string) => `${COLLECTIONS_PREFIX}/user/${userId}`,
+		CREATE: COLLECTIONS_PREFIX,
+		UPDATE: (id: string) => `${COLLECTIONS_PREFIX}/${id}`,
+		DELETE: (id: string) => `${COLLECTIONS_PREFIX}/${id}`,
+		ADD_POST: (collectionId: string, postId: string) =>
+			`${COLLECTIONS_PREFIX}/${collectionId}/posts/${postId}`,
+		REMOVE_POST: (collectionId: string, postId: string) =>
+			`${COLLECTIONS_PREFIX}/${collectionId}/posts/${postId}`,
 	},
 } as const

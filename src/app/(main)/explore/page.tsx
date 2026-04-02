@@ -9,11 +9,16 @@ import {
 	getTrendingRecipes,
 	toggleSaveRecipe,
 } from '@/services/recipe'
-import { unifiedSearch } from '@/services/search'
+import {
+	unifiedSearch,
+	autocompleteSearch,
+	getTrendingSearches,
+} from '@/services/search'
 import type { RecipeSearchDoc } from '@/lib/types/search'
 import { trackEvent } from '@/lib/eventTracker'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { RecipeCardEnhanced } from '@/components/recipe'
 import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
 import { RecipeFiltersSheet } from '@/components/shared/RecipeFiltersSheet'
@@ -41,6 +46,7 @@ import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import type { Difficulty } from '@/lib/types/gamification'
 import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
 // ============================================
 // CONSTANTS
@@ -335,6 +341,7 @@ function FilterChips({
 					initial={{ scale: 0.8, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
 					exit={{ scale: 0.8, opacity: 0 }}
+					whileTap={BUTTON_TAP}
 					onClick={() => onRemove(filter.type, filter.value)}
 					className='group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-all hover:bg-brand/20'
 				>
@@ -345,12 +352,13 @@ function FilterChips({
 
 			{/* Clear all button */}
 			{activeFilters.length > 1 && (
-				<button
+				<motion.button
 					onClick={onClearAll}
+					whileTap={BUTTON_TAP}
 					className='text-sm font-medium text-text-muted transition-colors hover:text-text'
 				>
 					Clear all
-				</button>
+				</motion.button>
 			)}
 		</motion.div>
 	)
@@ -366,6 +374,9 @@ export default function ExplorePage() {
 	const initialQuery = searchParams.get('q') || ''
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000 })
 
 	// State
 	const [recipes, setRecipes] = useState<Recipe[]>([])
@@ -391,6 +402,15 @@ export default function ExplorePage() {
 	})
 	const [focusedCardIndex, setFocusedCardIndex] = useState(-1)
 	const [retryCount, setRetryCount] = useState(0)
+
+	// Autocomplete & trending state
+	const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<
+		string[]
+	>([])
+	const [showAutocomplete, setShowAutocomplete] = useState(false)
+	const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+	const [trendingSearches, setTrendingSearches] = useState<string[]>([])
+	const autocompleteRef = useRef<HTMLDivElement>(null)
 
 	// ============================================
 	// EFFECTS
@@ -493,6 +513,56 @@ export default function ExplorePage() {
 		}, SEARCH_DEBOUNCE_MS)
 		return () => clearTimeout(timeout)
 	}, [searchQuery, debouncedSearch])
+
+	// Autocomplete: faster debounce (150ms) — fires suggestions while user types
+	useEffect(() => {
+		if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+			setAutocompleteSuggestions([])
+			setShowAutocomplete(false)
+			return
+		}
+
+		const timeout = setTimeout(async () => {
+			try {
+				const res = await autocompleteSearch(searchQuery.trim(), 'recipes', 5)
+				if (res.success && res.data?.recipes?.hits) {
+					const titles = res.data.recipes.hits
+						.map(h => h.document.title)
+						.filter(Boolean)
+					setAutocompleteSuggestions(titles)
+					setShowAutocomplete(titles.length > 0)
+					setSelectedSuggestionIndex(-1)
+				} else {
+					setAutocompleteSuggestions([])
+					setShowAutocomplete(false)
+				}
+			} catch {
+				setAutocompleteSuggestions([])
+				setShowAutocomplete(false)
+			}
+		}, 150)
+
+		return () => clearTimeout(timeout)
+	}, [searchQuery])
+
+	// Fetch trending searches from API on mount (with hardcoded fallback)
+	useEffect(() => {
+		let cancelled = false
+		const fetchTrending = async () => {
+			try {
+				const res = await getTrendingSearches(8)
+				if (!cancelled && res.success && res.data && res.data.length > 0) {
+					setTrendingSearches(res.data)
+				}
+			} catch {
+				// fallback stays as default
+			}
+		}
+		fetchTrending()
+		return () => {
+			cancelled = true
+		}
+	}, [])
 
 	// Fetch recipes - initial load or when filters/search/mode change
 	useEffect(() => {
@@ -750,7 +820,7 @@ export default function ExplorePage() {
 				// Reconcile with server's authoritative state
 				setSavedRecipes(prev => {
 					const newSet = new Set(prev)
-					if (response.data!.isSaved) {
+					if (response.data.isSaved) {
 						newSet.add(recipeId)
 					} else {
 						newSet.delete(recipeId)
@@ -820,8 +890,38 @@ export default function ExplorePage() {
 	}
 
 	const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+		// Autocomplete navigation
+		if (showAutocomplete && autocompleteSuggestions.length > 0) {
+			if (e.key === 'ArrowDown') {
+				e.preventDefault()
+				setSelectedSuggestionIndex(prev =>
+					prev < autocompleteSuggestions.length - 1 ? prev + 1 : 0,
+				)
+				return
+			}
+			if (e.key === 'ArrowUp') {
+				e.preventDefault()
+				setSelectedSuggestionIndex(prev =>
+					prev > 0 ? prev - 1 : autocompleteSuggestions.length - 1,
+				)
+				return
+			}
+			if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
+				e.preventDefault()
+				const selected = autocompleteSuggestions[selectedSuggestionIndex]
+				setSearchQuery(selected)
+				setDebouncedSearch(selected)
+				setShowAutocomplete(false)
+				return
+			}
+			if (e.key === 'Escape') {
+				setShowAutocomplete(false)
+				return
+			}
+		}
+
 		if (e.key === 'Enter' && searchQuery.trim()) {
-			// Navigate to full search page which supports recipes, people, posts
+			setShowAutocomplete(false)
 			router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
 		}
 	}
@@ -829,6 +929,7 @@ export default function ExplorePage() {
 	const handleClearSearch = () => {
 		setSearchQuery('')
 		setDebouncedSearch('')
+		setShowAutocomplete(false)
 		searchInputRef.current?.focus()
 	}
 
@@ -853,29 +954,13 @@ export default function ExplorePage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				{/* Header with animation */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
-						>
-							<Compass className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Explore Recipes</h1>
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Discover new dishes and flavors from around the world.
-					</p>
-				</motion.div>
+				{/* Header */}
+				<PageHeader
+					icon={Compass}
+					title='Explore Recipes'
+					subtitle='Discover new dishes and flavors from around the world.'
+					gradient='orange'
+				/>
 
 				{/* Hero/Featured Recipe (only when not searching) */}
 				<AnimatePresence mode='wait'>
@@ -899,6 +984,14 @@ export default function ExplorePage() {
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							onKeyDown={handleSearchKeyDown}
+							onFocus={() => {
+								if (autocompleteSuggestions.length > 0)
+									setShowAutocomplete(true)
+							}}
+							onBlur={() => {
+								// Delay to allow dropdown clicks to register
+								setTimeout(() => setShowAutocomplete(false), 200)
+							}}
 							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-card transition-all focus:border-brand focus:shadow-card focus:ring-2 focus:ring-brand/20'
 						/>
 						{/* Loading indicator or clear button */}
@@ -906,19 +999,54 @@ export default function ExplorePage() {
 							{isSearching ? (
 								<Loader2 className='size-5 animate-spin text-brand' />
 							) : searchQuery ? (
-								<button
+								<motion.button
 									onClick={handleClearSearch}
+									whileTap={BUTTON_TAP}
 									className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 									aria-label='Clear search'
 								>
 									<X className='size-4' />
-								</button>
+								</motion.button>
 							) : null}
 						</div>
 						{/* Keyboard shortcut hint */}
 						<kbd className='absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-md border border-border-medium bg-bg-elevated px-2 py-1 text-xs text-text-muted sm:block'>
 							/
 						</kbd>
+
+						{/* Autocomplete dropdown */}
+						<AnimatePresence>
+							{showAutocomplete && autocompleteSuggestions.length > 0 && (
+								<motion.div
+									ref={autocompleteRef}
+									initial={{ opacity: 0, y: -4 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -4 }}
+									transition={{ duration: 0.15 }}
+									className='absolute left-0 right-0 top-full z-dropdown mt-1 overflow-hidden rounded-xl border border-border-medium bg-bg-card shadow-warm'
+								>
+									{autocompleteSuggestions.map((suggestion, index) => (
+										<button
+											key={suggestion}
+											onMouseDown={e => {
+												e.preventDefault()
+												setSearchQuery(suggestion)
+												setDebouncedSearch(suggestion)
+												setShowAutocomplete(false)
+											}}
+											className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
+												index === selectedSuggestionIndex
+													? 'bg-brand/10 text-brand'
+													: 'text-text hover:bg-bg-elevated'
+											}`}
+										>
+											<Search className='size-4 flex-shrink-0 text-text-muted' />
+											<span className='truncate'>{suggestion}</span>
+										</button>
+									))}
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</div>
 					<div className='flex gap-2'>
 						{/* Filter Sheet Button */}
@@ -1017,6 +1145,48 @@ export default function ExplorePage() {
 					</motion.div>
 				)}
 
+				{/* Trending Searches — show when no search is active */}
+				{!debouncedSearch && !isLoading && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						className='mb-6'
+					>
+						<div className='mb-2 flex items-center gap-2 text-sm font-medium text-text-secondary'>
+							<TrendingUp className='size-4 text-brand' />
+							Trending searches
+						</div>
+						<div className='flex flex-wrap gap-2'>
+							{(trendingSearches.length > 0
+								? trendingSearches
+								: [
+										'Quick meals',
+										'Pasta',
+										'Chicken',
+										'Vegan',
+										'Desserts',
+										'Stir fry',
+										'Breakfast',
+										'Baking',
+									]
+							).map(term => (
+								<motion.button
+									key={term}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									onClick={() => {
+										setSearchQuery(term)
+										setDebouncedSearch(term)
+									}}
+									className='rounded-full border border-border bg-bg-card px-3 py-1.5 text-sm text-text transition-colors hover:border-brand hover:bg-brand/5 hover:text-brand'
+								>
+									{term}
+								</motion.button>
+							))}
+						</div>
+					</motion.div>
+				)}
+
 				{/* Content */}
 				{isLoading && (
 					<div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
@@ -1048,7 +1218,19 @@ export default function ExplorePage() {
 									? `No recipes match "${debouncedSearch}". Try a different search.`
 									: 'Be the first to share a recipe!'
 						}
-						searchSuggestions={undefined}
+						searchSuggestions={
+							debouncedSearch
+								? trendingSearches.length > 0
+									? trendingSearches.slice(0, 5)
+									: [
+											'Pasta',
+											'Quick dinner',
+											'Chicken',
+											'Healthy breakfast',
+											'Dessert',
+										]
+								: undefined
+						}
 						primaryAction={
 							activeFiltersCount > 0 || debouncedSearch
 								? {
