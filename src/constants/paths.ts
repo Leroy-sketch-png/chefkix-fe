@@ -2,6 +2,8 @@ export const PATHS = {
 	HOME: '/',
 	DASHBOARD: '/dashboard',
 	EXPLORE: '/explore',
+	SEARCH: '/search',
+	FEED: '/feed',
 	DISCOVER: '/community',
 	COMMUNITY: '/community',
 	MESSAGES: '/messages',

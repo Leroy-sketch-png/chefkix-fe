@@ -93,3 +93,32 @@ export const goOffline = async (): Promise<ApiResponse<void>> => {
 		}
 	}
 }
+
+export interface UserPresenceStatus {
+	userId: string
+	online: boolean
+}
+
+/**
+ * Check if a specific user is online.
+ * Used by UserAvatar to show online indicator.
+ */
+export const getUserPresence = async (
+	userId: string,
+): Promise<ApiResponse<UserPresenceStatus>> => {
+	try {
+		const response = await api.get<ApiResponse<UserPresenceStatus>>(
+			API_ENDPOINTS.PRESENCE.GET_USER(userId),
+		)
+		return response.data
+	} catch (error) {
+		logDevError('getUserPresence failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<UserPresenceStatus>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch user presence',
+			statusCode: 500,
+		}
+	}
+}

@@ -16,11 +16,6 @@ import { logDevError } from '@/lib/dev-log'
 // ADDITIONAL TYPES (from spec 07-recipes.txt)
 // ============================================
 
-export interface RecipeSearchParams {
-	q: string
-	limit?: number
-}
-
 export interface PublishResponse {
 	isPublished: boolean
 	moderationStatus: 'approved' | 'pending' | 'rejected'
@@ -129,36 +124,6 @@ export const getRecipesByUserId = async (
 }
 
 /**
- * Get feed recipes (from friends and followed users)
- * Maps FE params to BE params (e.g., search → query)
- */
-export const getFeedRecipes = async (
-	params?: RecipeQueryParams,
-): Promise<PaginatedRecipeResponse> => {
-	try {
-		const backendParams = toBackendRecipeParams(
-			params as Record<string, unknown>,
-		)
-		const response = await api.get<PaginatedRecipeResponse>(
-			API_ENDPOINTS.RECIPES.FEED,
-			{
-				params: backendParams,
-			},
-		)
-		return response.data
-	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<PaginatedRecipeResponse>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to fetch feed recipes',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
  * Get trending recipes
  * Returns pagination metadata for infinite scroll
  */
@@ -166,7 +131,7 @@ export const getTrendingRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<PaginatedRecipeResponse> => {
 	try {
-		const backendParams = toBackendPagination(params as any) ?? params
+		const backendParams = toBackendPagination(params) ?? params
 		const response = await api.get<PaginatedRecipeResponse>(
 			API_ENDPOINTS.RECIPES.TRENDING,
 			{
@@ -183,23 +148,6 @@ export const getTrendingRecipes = async (
 			message: 'Failed to fetch trending recipes',
 			statusCode: 500,
 		}
-	}
-}
-
-/**
- * Search recipes by query
- */
-export const searchRecipes = async (
-	params: RecipeSearchParams,
-): Promise<ApiResponse<Recipe[]>> => {
-	try {
-		const response = await api.get(API_ENDPOINTS.RECIPES.SEARCH, { params })
-		return response.data
-	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
-		if (axiosError.response) return axiosError.response.data
-		return { success: false, message: 'Search failed', statusCode: 500 }
 	}
 }
 

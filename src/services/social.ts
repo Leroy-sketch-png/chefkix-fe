@@ -164,6 +164,32 @@ export const isMutualFollow = async (
 	}
 }
 
+/**
+ * Get suggested users to follow based on preference overlap and popularity.
+ */
+export const getSuggestedFollows = async (
+	limit: number = 10,
+): Promise<ApiResponse<Profile[]>> => {
+	try {
+		const response = await api.get<ApiResponse<Profile[]>>(
+			API_ENDPOINTS.SOCIAL.GET_SUGGESTED,
+			{ params: { limit } },
+		)
+		return response.data
+	} catch (error) {
+		logDevError('response failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to fetch suggested follows',
+			statusCode: 500,
+		}
+	}
+}
+
 // ============================================================
 // BLOCK SYSTEM - Safety Features
 // ============================================================

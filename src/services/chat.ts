@@ -277,47 +277,6 @@ export const getMessages = async (
 }
 
 /**
- * Get or create a direct conversation with a user.
- * Convenience function that checks existing conversations first.
- */
-export const getOrCreateDirectConversation = async (
-	userId: string,
-): Promise<ApiResponse<Conversation>> => {
-	try {
-		// First try to find existing conversation
-		const conversationsResponse = await getMyConversations()
-		if (conversationsResponse.success && conversationsResponse.data) {
-			const existing = conversationsResponse.data.find(
-				conv =>
-					conv.type === 'DIRECT' &&
-					conv.participants.some(p => p.userId === userId),
-			)
-			if (existing) {
-				return {
-					success: true,
-					message: 'Existing conversation found',
-					statusCode: 200,
-					data: existing,
-				}
-			}
-		}
-
-		// Create new conversation
-		return createConversation({
-			type: 'DIRECT',
-			participantIds: [userId],
-		})
-	} catch (error) {
-		logDevError('unknown failed:', error)
-		return {
-			success: false,
-			message: 'Failed to get or create conversation',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
  * Get conversation suggestions for sharing (recent chats)
  */
 export const getShareSuggestions = async (

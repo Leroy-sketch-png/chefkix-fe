@@ -11,7 +11,6 @@ import {
 	GroupExploreQuery,
 } from '@/lib/types/group'
 import { ApiResponse, Post } from '@/lib/types'
-import { logDevError } from '@/lib/dev-log'
 
 // Helper to handle pagination responses
 interface PaginatedResponse<T> {
@@ -228,29 +227,23 @@ export const getGroupPosts = async (
 	page: number = 0,
 	size: number = 10
 ): Promise<{ content: Post[], totalElements: number, totalPages: number }> => {
-	try {
-		// Fetch all posts with pagination
-		const response = await api.get<ApiResponse<{ content: Post[], totalElements: number, totalPages: number, number: number, size: number }>>(
-			`${API_ENDPOINTS.POST.GET_ALL}?page=${page}&size=${size}`,
-		)
-		
-		if (!response.data.success || !response.data.data) {
-			return { content: [], totalElements: 0, totalPages: 0 }
-		}
-		
-		// Filter to only GROUP posts
-		const groupPosts = response.data.data.content.filter(
-			(post: Post) => post.postType === 'GROUP'
-		)
-		
-		return {
-			content: groupPosts,
-			totalElements: response.data.data.totalElements,
-			totalPages: response.data.data.totalPages,
-		}
-	} catch (error) {
-		logDevError('Failed to fetch group posts:', error)
+	const response = await api.get<ApiResponse<{ content: Post[], totalElements: number, totalPages: number, number: number, size: number }>>(
+		`${API_ENDPOINTS.POST.GET_ALL}?page=${page}&size=${size}`,
+	)
+	
+	if (!response.data.success || !response.data.data) {
 		return { content: [], totalElements: 0, totalPages: 0 }
+	}
+	
+	// Filter to only GROUP posts
+	const groupPosts = response.data.data.content.filter(
+		(post: Post) => post.postType === 'GROUP'
+	)
+	
+	return {
+		content: groupPosts,
+		totalElements: response.data.data.totalElements,
+		totalPages: response.data.data.totalPages,
 	}
 }
 

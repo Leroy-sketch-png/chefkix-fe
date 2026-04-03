@@ -62,6 +62,32 @@ export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 	}
 }
 
+/**
+ * Check if a username is available for registration.
+ * Debounce this on the client side for live validation.
+ */
+export const checkUsernameAvailability = async (
+	username: string,
+): Promise<ApiResponse<{ available: boolean }>> => {
+	try {
+		const response = await api.get<ApiResponse<{ available: boolean }>>(
+			`${API_ENDPOINTS.AUTH.CHECK_USERNAME}?username=${encodeURIComponent(username)}`,
+		)
+		return response.data
+	} catch (error) {
+		logDevError('Username check failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<{ available: boolean }>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Could not check username availability',
+			statusCode: 500,
+		}
+	}
+}
+
 // Logout function - calls backend to invalidate session
 export const logout = async (): Promise<ApiResponse<string>> => {
 	try {

@@ -61,5 +61,31 @@ export default withPWA({
 				},
 			},
 		},
+		{
+			// Cache cooking session data for offline cooking
+			urlPattern: /\/api\/v1\/cooking-sessions\/current/,
+			handler: 'NetworkFirst',
+			options: {
+				cacheName: 'cooking-session',
+				networkTimeoutSeconds: 5,
+				expiration: {
+					maxEntries: 5,
+					maxAgeSeconds: 60 * 60 * 24, // 1 day
+				},
+			},
+		},
+		{
+			// Cache user profile for offline display
+			urlPattern: /\/api\/v1\/auth\/me$/,
+			handler: 'NetworkFirst',
+			options: {
+				cacheName: 'user-profile',
+				networkTimeoutSeconds: 5,
+				expiration: {
+					maxEntries: 1,
+					maxAgeSeconds: 60 * 60 * 24, // 1 day
+				},
+			},
+		},
 	],
 })(nextConfig)

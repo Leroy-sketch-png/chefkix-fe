@@ -14,7 +14,7 @@ export interface CoChef {
 	avatarUrl: string | null
 }
 
-export type PostType = 'PERSONAL' | 'GROUP' | 'QUICK' | 'POLL' | 'RECENT_COOK'
+export type PostType = 'PERSONAL' | 'GROUP' | 'QUICK' | 'POLL' | 'RECENT_COOK' | 'RECIPE_REVIEW' | 'QUICK_TIP' | 'RECIPE_BATTLE'
 
 export interface PollData {
 	question: string
@@ -56,6 +56,19 @@ export interface Post {
 	// Poll data (only present when postType === 'POLL')
 	pollData?: PollData
 	userVote?: 'A' | 'B' | null
+	// Recipe Review data (only present when postType === 'RECIPE_REVIEW')
+	reviewRating?: number // 1-5 star rating
+	// Recipe Battle data (only present when postType === 'RECIPE_BATTLE')
+	battleRecipeIdA?: string
+	battleRecipeIdB?: string
+	battleRecipeTitleA?: string
+	battleRecipeTitleB?: string
+	battleRecipeImageA?: string | null
+	battleRecipeImageB?: string | null
+	battleVotesA?: number
+	battleVotesB?: number
+	battleEndsAt?: string | null
+	userBattleVote?: 'A' | 'B' | null
 	// Rate This Plate data (for posts with photos)
 	fireCount?: number
 	cringeCount?: number
@@ -77,6 +90,11 @@ export interface CreatePostRequest {
 	pollQuestion?: string
 	pollOptionA?: string
 	pollOptionB?: string
+	// Review fields (only when postType === 'RECIPE_REVIEW')
+	reviewRating?: number // 1-5
+	// Battle fields (only when postType === 'RECIPE_BATTLE')
+	battleRecipeIdA?: string
+	battleRecipeIdB?: string
 }
 
 export interface UpdatePostRequest {
@@ -129,4 +147,24 @@ export interface PostWithXpResponse extends Post {
 	xpAwarded: number
 	totalXp: number
 	badgesEarned: string[]
+}
+
+/**
+ * Response from GET /posts/reviews/recipe/{recipeId}/stats
+ * Matches RecipeReviewStatsResponse.java exactly
+ */
+export interface RecipeReviewStatsResponse {
+	recipeId: string
+	averageRating: number
+	totalReviews: number
+}
+
+/**
+ * Response from POST /posts/battles/{postId}/vote
+ * Matches BattleVoteResponse.java exactly
+ */
+export interface BattleVoteResponse {
+	userVote: 'A' | 'B' | null
+	votesA: number
+	votesB: number
 }

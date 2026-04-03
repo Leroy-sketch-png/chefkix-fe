@@ -93,6 +93,15 @@ export const API_ENDPOINTS = {
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}/like`,
 		// Reports per spec (13-moderation.txt)
 		REPORT: `${POST_SERVICE_PREFIX}/report`,
+		// Recipe Reviews
+		GET_REVIEWS_FOR_RECIPE: (recipeId: string) =>
+			`${POST_SERVICE_PREFIX}/reviews/recipe/${recipeId}`,
+		GET_REVIEW_STATS: (recipeId: string) =>
+			`${POST_SERVICE_PREFIX}/reviews/recipe/${recipeId}/stats`,
+		// Recipe Battles
+		VOTE_BATTLE: (postId: string) =>
+			`${POST_SERVICE_PREFIX}/battles/${postId}/vote`,
+		GET_ACTIVE_BATTLES: `${POST_SERVICE_PREFIX}/battles/active`,
 	},
 	// Recipe endpoints per spec (07-recipes.txt): /api/v1/recipe/* (singular)
 	RECIPES: {
