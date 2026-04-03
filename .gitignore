@@ -46,10 +46,5 @@ public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
-# Build output artifacts
-_build_out*.txt
-_output*.txt
-_ts_output*.txt
-_tsc*.txt
-
-_fe_*.txt
+# Dev build/debug artifacts (temp terminal output files)
+_*.txt
