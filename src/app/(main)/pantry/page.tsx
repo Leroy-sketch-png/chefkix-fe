@@ -20,9 +20,11 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP, BUTTON_TAP } from '@/lib/motion'
 import {
 	getPantryItems,
 	addPantryItem,
@@ -45,6 +47,7 @@ import {
 } from '@/components/ui/async-combobox'
 import { autocompleteSearch } from '@/services/search'
 import { suggestCategory } from '@/lib/data/ingredients'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -85,6 +88,9 @@ export default function PantryPage() {
 	const [error, setError] = useState(false)
 	const [filterCategory, setFilterCategory] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000, condition: !loading })
 
 	// Quick-add state
 	const [quickAddName, setQuickAddName] = useState('')
@@ -180,6 +186,7 @@ export default function PantryPage() {
 			setQuickAddUnit('')
 			setQuickAddExpiry('')
 			quickAddRef.current?.focus()
+			toast.success('Added to pantry')
 		} catch {
 			toast.error('Failed to add pantry item', {
 				action: {
@@ -213,6 +220,7 @@ export default function PantryPage() {
 			const updated = await updatePantryItem(editingId, editForm)
 			setItems(prev => prev.map(i => (i.id === editingId ? updated : i)))
 			setEditingId(null)
+			toast.success('Item updated')
 		} catch {
 			toast.error('Failed to update item', {
 				action: {
@@ -350,33 +358,38 @@ export default function PantryPage() {
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
 					{/* ── Header ────────────────────────── */}
-					<div className='flex items-center justify-between'>
-						<div className='flex items-center gap-3'>
-							<Package className='size-7 text-brand' />
-							<h1 className='text-2xl font-bold text-text'>My Pantry</h1>
-							<span className='rounded-full bg-bg-elevated px-2.5 py-0.5 text-sm text-text-secondary'>
-								{items.length} items
-							</span>
-						</div>
-						<div className='flex items-center gap-2'>
-							{expiredCount > 0 && (
-								<button
-									onClick={() => setShowClearExpiredConfirm(true)}
-									className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20'
+					<PageHeader
+						icon={Package}
+						title="My Pantry"
+						subtitle={`Track your ingredients and reduce food waste`}
+						gradient="green"
+						marginBottom="sm"
+						rightAction={
+							<div className='flex items-center gap-2'>
+								<span className='rounded-full bg-bg-elevated px-2.5 py-0.5 text-sm text-text-secondary'>
+									{items.length} items
+								</span>
+								{expiredCount > 0 && (
+									<motion.button
+										onClick={() => setShowClearExpiredConfirm(true)}
+										whileTap={BUTTON_SUBTLE_TAP}
+										className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20'
+									>
+										<Trash2 className='size-4' />
+										Clear {expiredCount} expired
+									</motion.button>
+								)}
+								<motion.button
+									onClick={loadSuggestions}
+									whileTap={BUTTON_SUBTLE_TAP}
+									className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
 								>
-									<Trash2 className='size-4' />
-									Clear {expiredCount} expired
-								</button>
-							)}
-							<button
-								onClick={loadSuggestions}
-								className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
-							>
-								<Sparkles className='size-4' />
-								What can I cook?
-							</button>
-						</div>
-					</div>
+									<Sparkles className='size-4' />
+									What can I cook?
+								</motion.button>
+							</div>
+						}
+					/>
 
 					{/* ── Expiry Warning Banner ─────────── */}
 					{expiringCount > 0 && (
@@ -391,12 +404,13 @@ export default function PantryPage() {
 									{expiringCount} item{expiringCount > 1 ? 's' : ''}
 								</strong>{' '}
 								expiring soon.
-								<button
+								<motion.button
 									onClick={loadSuggestions}
+									whileTap={BUTTON_TAP}
 									className='ml-1 font-semibold text-brand underline-offset-2 hover:underline'
 								>
 									Find recipes to use them
-								</button>
+								</motion.button>
 							</p>
 						</motion.div>
 					)}
@@ -501,14 +515,15 @@ export default function PantryPage() {
 									className='w-full rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
 								/>
 							</div>
-							<button
+							<motion.button
 								onClick={handleQuickAdd}
+								whileTap={BUTTON_TAP}
 								disabled={!quickAddName.trim() || isAdding}
 								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 							>
 								<Plus className='size-4' />
 								Add
-							</button>
+							</motion.button>
 						</div>
 					</motion.div>
 
@@ -525,8 +540,9 @@ export default function PantryPage() {
 						</div>
 						<div className='flex items-center gap-1.5'>
 							<Filter className='size-4 text-text-muted' />
-							<button
+							<motion.button
 								onClick={() => setFilterCategory(null)}
+								whileTap={BUTTON_SUBTLE_TAP}
 								className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
 									!filterCategory
 										? 'bg-brand text-white'
@@ -535,13 +551,14 @@ export default function PantryPage() {
 								aria-label='Show all categories'
 							>
 								All
-							</button>
+							</motion.button>
 							{CATEGORIES.map(c => (
-								<button
+								<motion.button
 									key={c.key}
 									onClick={() =>
 										setFilterCategory(filterCategory === c.key ? null : c.key)
 									}
+									whileTap={BUTTON_SUBTLE_TAP}
 									className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
 										filterCategory === c.key
 											? 'bg-brand text-white'
@@ -550,29 +567,27 @@ export default function PantryPage() {
 									aria-label={`Filter by ${c.label}`}
 								>
 									{c.emoji}
-								</button>
+								</motion.button>
 							))}
 						</div>
 					</div>
 
 					{/* ── Items by Category ─────────────── */}
 					{items.length === 0 ? (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							className='flex flex-col items-center justify-center gap-3 py-20 text-center'
-						>
-							<div className='grid size-16 place-items-center rounded-2xl bg-bg-elevated'>
-								<Package className='size-8 text-text-muted' />
-							</div>
-							<h2 className='text-lg font-semibold text-text-secondary'>
-								Your pantry is empty
-							</h2>
-							<p className='max-w-xs text-sm text-text-muted'>
-								Add ingredients using the form above to start tracking what you
-								have at home.
-							</p>
-						</motion.div>
+						<EmptyStateGamified
+							variant='custom'
+							emoji='🧅'
+							title='Your pantry awaits!'
+							description='Add the ingredients you have at home. We&apos;ll suggest recipes you can cook right now — no grocery run needed.'
+							primaryAction={{
+								label: 'Add Your First Ingredient',
+								onClick: () => {
+									const input = document.querySelector<HTMLInputElement>('[data-pantry-input]')
+									input?.focus()
+								},
+								icon: <Plus className='size-4' />,
+							}}
+						/>
 					) : (
 						<div className='space-y-4'>
 							{grouped.map(group => (
@@ -646,19 +661,21 @@ export default function PantryPage() {
 															}
 															className='w-36 rounded-md border border-border-subtle bg-bg-card px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
 														/>
-														<button
+															<motion.button
 															onClick={saveEdit}
+																whileTap={BUTTON_SUBTLE_TAP}
 															className='rounded-md bg-success/10 p-1.5 text-success hover:bg-success/20'
 															aria-label='Save edit'
 														>
 															<Check className='size-4' />
-														</button>
-														<button
+															</motion.button>
+															<motion.button
 															onClick={() => setEditingId(null)}
+																whileTap={BUTTON_SUBTLE_TAP}
 															className='rounded-md bg-bg-elevated p-1.5 text-text-secondary hover:bg-bg-elevated/80'
 														>
 															<X className='size-4' />
-														</button>
+															</motion.button>
 													</div>
 												) : (
 													/* ── Normal Row ─────── */
@@ -692,20 +709,22 @@ export default function PantryPage() {
 															{FRESHNESS_STYLES[item.freshness]?.label}
 														</span>
 														<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
-															<button
+															<motion.button
 																onClick={() => startEdit(item)}
+																whileTap={BUTTON_SUBTLE_TAP}
 																className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text'
 																aria-label='Edit item'
 															>
 																<Pencil className='size-3.5' />
-															</button>
-															<button
+															</motion.button>
+															<motion.button
 																onClick={() => setConfirmingDeleteId(item.id)}
+																whileTap={BUTTON_SUBTLE_TAP}
 																className='rounded-md p-1.5 text-text-muted hover:bg-destructive/10 hover:text-destructive'
 																aria-label='Delete item'
 															>
 																<Trash2 className='size-3.5' />
-															</button>
+															</motion.button>
 														</div>
 													</>
 												)}
@@ -734,12 +753,13 @@ export default function PantryPage() {
 											Recipes You Can Cook
 										</h2>
 									</div>
-									<button
+									<motion.button
 										onClick={() => setShowSuggestions(false)}
+										whileTap={BUTTON_SUBTLE_TAP}
 										className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
 									>
 										<X className='size-4' />
-									</button>
+									</motion.button>
 								</div>
 
 								{loadingRecipes ? (
@@ -838,21 +858,23 @@ export default function PantryPage() {
 										This item will be permanently removed from your pantry.
 									</p>
 									<div className='flex justify-end gap-3'>
-										<button
+										<motion.button
 											onClick={() => setConfirmingDeleteId(null)}
+											whileTap={BUTTON_SUBTLE_TAP}
 											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
 										>
 											Cancel
-										</button>
-										<button
+										</motion.button>
+										<motion.button
 											onClick={() => handleDelete(confirmingDeleteId)}
+											whileTap={BUTTON_SUBTLE_TAP}
 											disabled={isDeletingId === confirmingDeleteId}
 											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
 										>
 											{isDeletingId === confirmingDeleteId
 												? 'Deleting...'
 												: 'Delete'}
-										</button>
+										</motion.button>
 									</div>
 								</motion.div>
 							</motion.div>
@@ -887,19 +909,21 @@ export default function PantryPage() {
 										be undone.
 									</p>
 									<div className='flex justify-end gap-3'>
-										<button
+										<motion.button
 											onClick={() => setShowClearExpiredConfirm(false)}
+											whileTap={BUTTON_SUBTLE_TAP}
 											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
 										>
 											Cancel
-										</button>
-										<button
+										</motion.button>
+										<motion.button
 											onClick={handleClearExpired}
+											whileTap={BUTTON_SUBTLE_TAP}
 											disabled={isClearingExpired}
 											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
 										>
 											{isClearingExpired ? 'Clearing...' : 'Clear All'}
-										</button>
+										</motion.button>
 									</div>
 								</motion.div>
 							</motion.div>

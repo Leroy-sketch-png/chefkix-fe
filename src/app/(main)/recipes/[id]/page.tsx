@@ -37,6 +37,7 @@ import {
 	Rocket,
 	Info,
 	Timer,
+	ArrowLeft,
 	UtensilsCrossed,
 	Loader2,
 	AlertCircle,
@@ -50,6 +51,7 @@ import { toast } from 'sonner'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -59,6 +61,7 @@ import {
 import { RECIPE_MESSAGES } from '@/constants/messages'
 import { SocialProof } from '@/components/recipe/SocialProof'
 import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
+import { RecipeReviews } from '@/components/recipe/RecipeReviews'
 import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
 import { Portal } from '@/components/ui/portal'
 import {
@@ -75,6 +78,10 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
+import {
+	calibrateDifficulty,
+	type CalibrationResult,
+} from '@/services/ml'
 
 // Difficulty explanations for tooltip
 const DIFFICULTY_EXPLANATIONS: Record<
@@ -116,6 +123,7 @@ function RecipeDetailContent() {
 		session: activeSession,
 	} = useCookingStore()
 	const { user } = useAuth()
+	const requireAuth = useAuthGate()
 	const autoStartAttempted = useRef(false)
 
 	// Determine cooking button state — only count COMPLETE & ACTIVE sessions
@@ -147,6 +155,7 @@ function RecipeDetailContent() {
 	)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const [calibration, setCalibration] = useState<CalibrationResult | null>(null)
 
 	// Check if current user is the recipe owner
 	const isOwner = user?.userId === recipe?.author?.userId
@@ -178,6 +187,27 @@ function RecipeDetailContent() {
 			fetchRecipe()
 		}
 	}, [recipeId, fetchRecipe])
+
+	// AI difficulty calibration — fail-open, non-blocking
+	useEffect(() => {
+		if (!recipe) return
+		const req = {
+			ingredient_count: recipe.fullIngredientList?.length ?? 0,
+			step_count: recipe.steps?.length ?? 0,
+			techniques: recipe.skillTags ?? recipe.enrichment?.techniqueGuides ?? [],
+			estimated_time_minutes: recipe.totalTimeMinutes ?? 0,
+			equipment_count: recipe.enrichment?.equipmentNeeded?.length ?? 0,
+		}
+		// Only calibrate if we have meaningful data
+		if (req.ingredient_count === 0 && req.step_count === 0) return
+		let cancelled = false
+		calibrateDifficulty(req).then((res) => {
+			if (!cancelled && res.success && res.data) {
+				setCalibration(res.data)
+			}
+		}).catch(() => {})
+		return () => { cancelled = true }
+	}, [recipe])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
@@ -225,6 +255,7 @@ function RecipeDetailContent() {
 
 	const handleLike = useCallback(async () => {
 		if (isLikeLoading) return
+		if (!requireAuth('like this recipe')) return
 
 		const previousLiked = isLiked
 		const previousCount = likeCount
@@ -253,10 +284,11 @@ function RecipeDetailContent() {
 		} finally {
 			setIsLikeLoading(false)
 		}
-	}, [isLikeLoading, isLiked, likeCount, recipeId])
+	}, [isLikeLoading, isLiked, likeCount, recipeId, requireAuth])
 
 	const handleSave = useCallback(async () => {
 		if (isSaveLoading) return
+		if (!requireAuth('save this recipe')) return
 
 		const previousSaved = isSaved
 		const previousCount = saveCount
@@ -291,7 +323,7 @@ function RecipeDetailContent() {
 		} finally {
 			setIsSaveLoading(false)
 		}
-	}, [isSaveLoading, isSaved, recipeId, saveCount])
+	}, [isSaveLoading, isSaved, recipeId, saveCount, requireAuth])
 
 	const handleShare = async () => {
 		if (navigator.share) {
@@ -357,6 +389,7 @@ function RecipeDetailContent() {
 
 	const handleStartCooking = useCallback(async () => {
 		if (isCookingLoading || !recipeId) return
+		if (!requireAuth('start cooking')) return
 
 		// If already cooking THIS recipe, just open the panel
 		if (isCurrentlyCooked) {
@@ -382,12 +415,14 @@ function RecipeDetailContent() {
 		startCooking,
 		openCookingPanel,
 		expandCookingPanel,
+		requireAuth,
 	])
 
 	const [isCreatingRoom, setIsCreatingRoom] = useState(false)
 
 	const handleCookTogether = async () => {
 		if (isCreatingRoom || !recipeId) return
+		if (!requireAuth('cook together')) return
 		setIsCreatingRoom(true)
 		try {
 			const { createRoom } = useCookingStore.getState()
@@ -549,6 +584,24 @@ function RecipeDetailContent() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='2xl'>
+				{/* Back Button */}
+				<motion.div
+					initial={{ opacity: 0, x: -10 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-4'
+				>
+					<Button
+						variant='ghost'
+						size='sm'
+						onClick={() => router.back()}
+						className='gap-2 text-text-secondary hover:text-text'
+					>
+						<ArrowLeft className='size-4' />
+						<span>Back</span>
+					</Button>
+				</motion.div>
+
 				{/* Hero Section */}
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
@@ -781,6 +834,31 @@ function RecipeDetailContent() {
 										</TooltipContent>
 									</Tooltip>
 								</TooltipProvider>
+								{/* AI difficulty calibration badge */}
+								{calibration && calibration.predictedDifficulty !== recipe.difficulty && (
+									<TooltipProvider delayDuration={100}>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className='inline-flex items-center gap-1 rounded-full bg-gaming-xp/10 px-2 py-0.5 text-xs font-medium text-gaming-xp'>
+													<Sparkles className='size-3' />
+													AI: {calibration.predictedDifficulty}
+												</span>
+											</TooltipTrigger>
+											<TooltipContent className='max-w-xs p-3'>
+												<div className='space-y-1 text-sm'>
+													<p className='font-semibold text-text'>AI Difficulty Calibration</p>
+													<p className='text-text-secondary'>
+														Based on {recipe.steps?.length} steps, {recipe.fullIngredientList?.length} ingredients, and detected techniques,
+														our AI rates this as <strong>{calibration.predictedDifficulty}</strong> ({Math.round(calibration.confidence * 100)}% confidence).
+													</p>
+													<p className='text-xs text-text-muted'>
+														Source: {calibration.calibrationSource}
+													</p>
+												</div>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								)}
 							</motion.span>
 
 							{/* Views */}
@@ -1253,6 +1331,9 @@ function RecipeDetailContent() {
 						</div>
 					</motion.div>
 				</div>
+
+				{/* Community Reviews */}
+				<RecipeReviews recipeId={recipeId} />
 
 				{/* Similar Recipes */}
 				<SimilarRecipes recipeId={recipeId} />

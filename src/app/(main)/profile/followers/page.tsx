@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { FollowUserCard } from '@/components/profile/FollowUserCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
@@ -13,9 +14,8 @@ import { getFollowers, getFollowing, getFriends } from '@/services/social'
 import { Profile } from '@/lib/types/profile'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { Users, UserCheck, Heart, ArrowLeft, Loader2 } from 'lucide-react'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 
 type Tab = 'followers' | 'following' | 'friends'
 
@@ -51,6 +51,7 @@ function FollowersSkeleton() {
 
 function FollowersContent() {
 	const searchParams = useSearchParams()
+	const router = useRouter()
 	const initialTab = (searchParams.get('tab') as Tab) || 'followers'
 	const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 	const [data, setData] = useState<Record<Tab, Profile[]>>({
@@ -160,15 +161,26 @@ function FollowersContent() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='md'>
-				{/* Header */}
+				{/* Header with PageHeader */}
 				<div className='mb-6 flex items-center gap-3'>
-					<Link
-						href='/profile'
-						className='flex size-9 items-center justify-center rounded-xl bg-bg-elevated text-text-secondary transition-colors hover:bg-bg-elevated/80 hover:text-text'
+					<motion.button
+						onClick={() => router.back()}
+						whileTap={BUTTON_SUBTLE_TAP}
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						aria-label='Go back'
 					>
-						<ArrowLeft className='size-4' />
-					</Link>
-					<h1 className='text-xl font-bold text-text'>Your Network</h1>
+						<ArrowLeft className='size-5' />
+					</motion.button>
+					<div className='flex-1'>
+						<PageHeader
+							icon={Users}
+							title='Your Network'
+							subtitle='Followers, following, and friends'
+							gradient='purple'
+							marginBottom='sm'
+							className='mb-0'
+						/>
+					</div>
 				</div>
 
 				{/* Tab Buttons */}

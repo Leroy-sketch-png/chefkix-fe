@@ -10,18 +10,21 @@ import {
 	Camera,
 	ChefHat,
 	Clock,
-	Image as ImageIcon,
 	Loader2,
 	Sparkles,
 	Trophy,
 	X,
 	Send,
+	PenSquare,
+	Star,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
+import { StarRating } from '@/components/ui/star-rating'
 import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
 import { guardContent } from '@/services/ml'
@@ -31,10 +34,7 @@ import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
 	fadeInUp,
-	BUTTON_HOVER,
-	BUTTON_TAP,
-	ICON_BUTTON_HOVER,
-	ICON_BUTTON_TAP,
+	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 
@@ -69,6 +69,7 @@ function CreatePostContent() {
 	const [photoFiles, setPhotoFiles] = useState<File[]>([])
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [reviewRating, setReviewRating] = useState<number>(0)
 
 	const claimPendingXp = async (currentSessionId: string, postId: string) => {
 		let lastResponse: Awaited<ReturnType<typeof linkPostToSession>> | null =
@@ -252,6 +253,10 @@ function CreatePostContent() {
 				content: content.trim(),
 				photoUrls: photoFiles,
 				sessionId: session?.id, // Link to cooking session for XP
+				...(session && reviewRating > 0 && {
+					postType: 'RECIPE_REVIEW' as const,
+					reviewRating,
+				}),
 			})
 
 			if (response.success && response.data) {
@@ -358,26 +363,29 @@ function CreatePostContent() {
 		<PageTransition>
 			<PageContainer maxWidth='md'>
 				<div className='py-6'>
-					{/* Header */}
-					<div className='mb-6 flex items-center gap-4'>
+					{/* Header with PageHeader */}
+					<div className='mb-6 flex items-center gap-3'>
 						<motion.button
 							onClick={() => router.back()}
-							className='flex size-10 items-center justify-center rounded-xl bg-bg-hover text-text-secondary transition-colors hover:bg-bg-card hover:text-text'
-							whileHover={ICON_BUTTON_HOVER}
-							whileTap={ICON_BUTTON_TAP}
+							whileTap={BUTTON_SUBTLE_TAP}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 							aria-label='Go back'
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
-						<div>
-							<h1 className='text-2xl font-bold text-text'>
-								{session ? 'Share Your Creation' : 'Create Post'}
-							</h1>
-							<p className='text-sm text-text-secondary'>
-								{session
-									? 'Post your cooking photos to unlock XP'
-									: 'Share what you made with the community'}
-							</p>
+						<div className='flex-1'>
+							<PageHeader
+								icon={session ? ChefHat : PenSquare}
+								title={session ? 'Share Your Creation' : 'Create Post'}
+								subtitle={
+									session
+										? 'Post your cooking photos to unlock XP'
+										: 'Share what you made with the community'
+								}
+								gradient='orange'
+								marginBottom='sm'
+								className='mb-0'
+							/>
 						</div>
 					</div>
 
@@ -437,6 +445,43 @@ function CreatePostContent() {
 									<Sparkles className='size-4' />
 									Add photos of your creation to unlock the XP bonus!
 								</p>
+							</div>
+						</motion.div>
+					)}
+
+					{/* Recipe Review — Rate this recipe (optional, only when linking a session) */}
+					{session && !isLoadingSession && (
+						<motion.div
+							variants={fadeInUp}
+							initial='hidden'
+							animate='visible'
+							transition={{ delay: 0.05 }}
+							className='mb-6 overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent'
+						>
+							<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
+								<Star className='size-5 text-amber-500' />
+								<div>
+									<h4 className='text-sm font-bold text-text'>Rate this Recipe</h4>
+									<p className='text-xs text-text-muted'>
+										How was {session.recipeTitle}? Your review helps other cooks.
+									</p>
+								</div>
+							</div>
+							<div className='flex items-center gap-3 px-4 pb-4'>
+								<StarRating
+									value={reviewRating}
+									onChange={setReviewRating}
+									size='md'
+								/>
+								{reviewRating > 0 && (
+									<motion.span
+										initial={{ opacity: 0, x: -10 }}
+										animate={{ opacity: 1, x: 0 }}
+										className='text-sm font-medium text-amber-600'
+									>
+										{reviewRating === 5 ? 'Amazing!' : reviewRating === 4 ? 'Great!' : reviewRating === 3 ? 'Good' : reviewRating === 2 ? 'Okay' : 'Poor'}
+									</motion.span>
+								)}
 							</div>
 						</motion.div>
 					)}

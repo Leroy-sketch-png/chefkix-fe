@@ -7,6 +7,7 @@ import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
 import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
@@ -17,7 +18,6 @@ import {
 	Trash2,
 	Loader2,
 	Edit3,
-	Sparkles,
 } from 'lucide-react'
 import {
 	TRANSITION_SPRING,
@@ -38,6 +38,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { logDevError } from '@/lib/dev-log'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
 /**
  * Local Draft shape (stored in localStorage under 'chefkix-recipe-draft')
@@ -68,6 +69,9 @@ function CreateRecipeContent() {
 	const [localDraft, setLocalDraft] = useState<LocalDraft | null>(null)
 	const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 	const [isLoadingDraft, setIsLoadingDraft] = useState(!!urlDraftId)
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000 })
 
 	const loadLocalDraft = useCallback(() => {
 		try {
@@ -211,30 +215,13 @@ function CreateRecipeContent() {
 							transition={TRANSITION_SPRING}
 						>
 							{/* Header */}
-							<motion.div
-								initial={{ opacity: 0, y: -20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={TRANSITION_SPRING}
-								className='mb-8'
-							>
-								<div className='mb-2 flex items-center gap-3'>
-									<motion.div
-										initial={{ scale: 0 }}
-										animate={{ scale: 1 }}
-										transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-										className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
-									>
-										<Edit3 className='size-6 text-white' />
-									</motion.div>
-									<h1 className='text-3xl font-bold text-text'>
-										Create Recipe
-									</h1>
-								</div>
-								<p className='flex items-center gap-2 text-text-secondary'>
-									<Sparkles className='size-4 text-streak' />
-									Start a new recipe or continue working on a draft
-								</p>
-							</motion.div>
+							<PageHeader
+								icon={Edit3}
+								title='Create Recipe'
+								subtitle='Start a new recipe or continue working on a draft'
+								gradient='orange'
+								marginBottom='md'
+							/>
 
 							{/* Local Draft Recovery Card */}
 							{localDraft && (

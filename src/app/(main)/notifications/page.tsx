@@ -19,13 +19,14 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import { TRANSITION_SPRING, staggerContainer, staggerItem, BUTTON_SUBTLE_TAP, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
 import {
 	getNotifications,
 	markAllNotificationsRead,
@@ -145,6 +146,41 @@ const transformToGamifiedNotification = (
 				timestamp,
 				isRead: notif.isRead,
 			}
+		case 'STREAK_WARNING':
+			return {
+				id: notif.id,
+				type: 'streak_warning',
+				streakCount: (data.streakCount as number) || 0,
+				hoursRemaining: (data.hoursRemaining as number) || 0,
+				timestamp,
+				isRead: notif.isRead,
+			}
+		case 'POST_DEADLINE':
+			return {
+				id: notif.id,
+				type: (data.daysRemaining as number) <= 1 ? 'post_deadline_urgent' : 'post_deadline',
+				recipeName: (data.recipeName as string) || 'Recipe',
+				daysRemaining: (data.daysRemaining as number) || 0,
+				pendingXp: (data.pendingXp as number) || 0,
+				...(((data.daysRemaining as number) <= 1) ? {
+					originalXp: (data.originalXp as number) || 0,
+					decayPercent: (data.decayPercent as number) || 0,
+				} : {}),
+				timestamp,
+				isRead: notif.isRead,
+			} as GamifiedNotification
+		case 'CHALLENGE_AVAILABLE':
+		case 'CHALLENGE_REMINDER':
+			return {
+				id: notif.id,
+				type: 'challenge_reminder',
+				challengeTitle: (data.challengeTitle as string) || 'Challenge',
+				challengeDescription: (data.challengeDescription as string) || '',
+				xpBonusPercent: (data.xpBonusPercent as number) || 0,
+				hoursRemaining: (data.hoursRemaining as number) || 24,
+				timestamp,
+				isRead: notif.isRead,
+			}
 		default:
 			return null
 	}
@@ -161,8 +197,16 @@ const transformToSocialNotification = (
 		NEW_FOLLOWER: 'follow',
 		FOLLOW: 'follow',
 		POST_LIKE: 'like',
+		RECIPE_LIKED: 'like',
 		POST_COMMENT: 'comment',
 		USER_MENTION: 'mention',
+		ROOM_INVITE: 'cook',
+		CO_CHEF_TAGGED: 'mention',
+		DUEL_INVITE: 'cook',
+		DUEL_ACCEPTED: 'cook',
+		DUEL_COMPLETED: 'achievement',
+		MEMBER_JOINED: 'follow',
+		JOIN_REQUEST_APPROVED: 'follow',
 	}
 
 	const type = typeMap[notif.type]
@@ -261,10 +305,11 @@ const FilterTabs = ({
 				const Icon = filter.icon
 				const isActive = activeFilter === filter.id
 
-				return (
-					<button
+					return (
+					<motion.button
 						key={filter.id}
 						onClick={() => onFilterChange(filter.id)}
+						whileTap={BUTTON_SUBTLE_TAP}
 						className={cn(
 							'flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all',
 							isActive
@@ -284,7 +329,7 @@ const FilterTabs = ({
 								{count}
 							</span>
 						)}
-					</button>
+					</motion.button>
 				)
 			})}
 		</div>
@@ -332,12 +377,17 @@ const SocialNotificationItem = ({
 			targetEntityId
 		) {
 			router.push(`/post/${targetEntityId}`)
+		} else if (type === 'cook' || type === 'achievement') {
+			router.push('/dashboard')
 		}
+		// No fallback navigation for unresolvable notifications — mark as read is sufficient
 	}
 
 	return (
 		<motion.div
 			variants={staggerItem}
+			whileHover={LIST_ITEM_HOVER}
+			whileTap={LIST_ITEM_TAP}
 			onClick={handleClick}
 			className={cn(
 				'group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all hover:shadow-card',
@@ -438,22 +488,8 @@ export default function NotificationsPage() {
 							if (socialNotif) {
 								social.push(socialNotif)
 							} else {
-								// Fallback: show unknown types as generic social notifications
-								social.push({
-									id: notif.id,
-									type: 'achievement',
-									userId: notif.latestActorId || '',
-									user: notif.latestActorName || 'ChefKix',
-									avatar:
-										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
-									action:
-										notif.content ||
-										notif.body ||
-										'You have a new notification',
-									time: formatTimeAgo(new Date(notif.createdAt)),
-									read: notif.isRead,
-									createdAt: new Date(notif.createdAt),
-								})
+							// Unknown notification type — skip rather than show broken UI
+							logDevError(`Unhandled notification type: ${notif.type}`, notif)
 							}
 						}
 					})
@@ -584,25 +620,14 @@ export default function NotificationsPage() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				{/* Header - PRIMARY page (in LeftSidebar), no back button */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-6'
-				>
-					<div className='mb-2 flex items-center justify-between'>
-						<div className='flex items-center gap-3'>
-							<motion.div
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
-							>
-								<Bell className='size-6 text-white' />
-							</motion.div>
-							<h1 className='text-3xl font-bold text-text'>Notifications</h1>
-						</div>
-						{counts.unread > 0 && (
+				<PageHeader
+					icon={Bell}
+					title="Notifications"
+					subtitle="Stay updated with your cooking journey"
+					gradient="orange"
+					marginBottom="md"
+					rightAction={
+						counts.unread > 0 ? (
 							<Button
 								variant='ghost'
 								size='sm'
@@ -617,13 +642,9 @@ export default function NotificationsPage() {
 								)}
 								Mark all read
 							</Button>
-						)}
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Stay updated with your cooking journey
-					</p>
-				</motion.div>
+						) : null
+					}
+				/>
 
 				{/* Filter Tabs */}
 				<div className='mb-6'>

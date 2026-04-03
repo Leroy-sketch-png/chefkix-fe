@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { CreatorDashboard, StepHeatmap } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
@@ -15,10 +16,11 @@ import {
 	RecentCooksResponse,
 } from '@/services/creator'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ChefHat, Sparkles } from 'lucide-react'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { ArrowLeft, ChefHat, BookOpen } from 'lucide-react'
+import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
+import { EmptyStateGamified } from '@/components/shared'
 
 // ============================================
 // HELPERS
@@ -141,7 +143,7 @@ export default function CreatorRoute() {
 			}
 		: null
 
-	// These need additional API endpoints - leaving empty for now
+	// Recipe performance from API
 	const recipePerformance = (performanceData?.recipes ?? []).map((r, idx) => ({
 		id: r.id,
 		rank: idx + 1,
@@ -231,38 +233,55 @@ export default function CreatorRoute() {
 		)
 	}
 
+	// New creator with no recipes — show onboarding
+	if (!stats || (stats.totalRecipesPublished === 0 && recipePerformance.length === 0)) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='xl'>
+					<EmptyStateGamified
+						variant='custom'
+						emoji='👨‍🍳'
+						title='Your Creator Studio is ready!'
+						description='Publish your first recipe and watch the analytics roll in. Track who cooks your recipes, earn creator XP, and unlock exclusive badges.'
+						primaryAction={{
+							label: 'Create Your First Recipe',
+							href: '/create',
+							icon: <BookOpen className='size-4' />,
+						}}
+						quickActions={[
+							{ label: 'Explore top recipes', emoji: '🔥', href: '/explore' },
+							{ label: 'Browse challenges', emoji: '🏆', href: '/challenges' },
+						]}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				{/* Header - Secondary page pattern with back button */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-6'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<button
-							onClick={() => router.push('/dashboard')}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						>
-							<ArrowLeft className='size-5' />
-						</button>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-card shadow-xp/25'
-						>
-							<ChefHat className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Creator Dashboard</h1>
+				{/* Header with back button using PageHeader */}
+				<div className='mb-6 flex items-center gap-3'>
+					<motion.button
+						onClick={() => router.push('/dashboard')}
+						whileTap={BUTTON_SUBTLE_TAP}
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						aria-label='Go to dashboard'
+					>
+						<ArrowLeft className='size-5' />
+					</motion.button>
+					<div className='flex-1'>
+						<PageHeader
+							icon={ChefHat}
+							title='Creator Dashboard'
+							subtitle='Track your recipe performance and inspire others'
+							gradient='purple'
+							marginBottom='sm'
+							className='mb-0'
+						/>
 					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Track your recipe performance and inspire others
-					</p>
-				</motion.div>
+				</div>
 				<CreatorDashboard
 					weekHighlight={weekHighlight}
 					lifetimeStats={lifetimeStats}

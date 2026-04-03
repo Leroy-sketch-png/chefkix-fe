@@ -11,6 +11,7 @@ import { CookingSidebarSwitch } from '@/components/cooking/CookingSidebarSwitch'
 import { CookingTimerProvider } from '@/components/providers/CookingTimerProvider'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
+import { CommandPalette } from '@/components/shared/CommandPalette'
 import { EventTrackerProvider } from '@/components/providers/EventTrackerProvider'
 import { NotificationSocketProvider } from '@/components/providers/NotificationSocketProvider'
 import { DemoWidget } from '@/components/dev/DemoWidget'
@@ -41,21 +42,34 @@ export default function MainAppLayout({
 				<ErrorBoundary>
 					<CookingSidebarSwitch />
 				</ErrorBoundary>
-			</div>
+		</div>
+		{/* Global overlays and drawers - wrapped in error boundaries to prevent crashes */}
+		<ErrorBoundary>
 			<MessagesDrawer />
+		</ErrorBoundary>
+		<ErrorBoundary>
 			<NotificationsPopup />
-			{/* Fullscreen cooking player - for expanded mode */}
+		</ErrorBoundary>
+		{/* Fullscreen cooking player - for expanded mode */}
+		<ErrorBoundary>
 			<CookingPlayer />
-			{/* Mini cooking bar - for mobile collapsed mode */}
+		</ErrorBoundary>
+		{/* Mini cooking bar - for mobile collapsed mode */}
+		<ErrorBoundary>
 			<MiniCookingBar />
-			{/* Mobile bottom navigation - hidden on desktop, shown below md breakpoint */}
-			<MobileBottomNav />
-			{/* Centralized timer ticking + completion notifications */}
-			<CookingTimerProvider />
-			<KeyboardShortcuts />
-			<EventTrackerProvider>{null}</EventTrackerProvider>
+		</ErrorBoundary>
+		{/* Mobile bottom navigation - hidden on desktop, shown below md breakpoint */}
+		<MobileBottomNav />
+		{/* Centralized timer ticking + completion notifications */}
+		<CookingTimerProvider />
+		<KeyboardShortcuts />
+		<CommandPalette />
+		<EventTrackerProvider>{null}</EventTrackerProvider>
+		{/* WebSocket provider - wrapped to prevent connection errors from crashing app */}
+		<ErrorBoundary>
 			<NotificationSocketProvider />
-			<DemoWidget />
+		</ErrorBoundary>
+		<DemoWidget />
 		</div>
 	)
 }

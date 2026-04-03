@@ -145,7 +145,7 @@ export default function LeaderboardRoute() {
 					onTypeChange={setType}
 					onTimeframeChange={setTimeframe}
 					onUserClick={entry => router.push(`/${entry.userId}`)}
-					onBack={() => router.push('/dashboard')}
+					onBack={() => router.back()}
 					onCookNow={() => router.push('/explore')}
 				/>
 			</PageContainer>

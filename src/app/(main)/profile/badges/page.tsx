@@ -2,12 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
 	Trophy,
-	ChevronLeft,
 	Search,
-	Filter,
 	Sparkles,
 	Lock,
 	CheckCircle2,
@@ -15,16 +13,18 @@ import {
 	Flame,
 	ChefHat,
 	Award,
-	Utensils,
 	Globe,
 	Users,
 	Target,
+	ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
 	getAllBadges,
-	getBadgesByCategory,
 	resolveBadgesWithFallback,
 } from '@/lib/data/badgeRegistry'
 import type {
@@ -32,7 +32,7 @@ import type {
 	BadgeCategory,
 	BadgeRarity,
 } from '@/lib/types/gamification'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 
 // ============================================
 // BADGE CATALOG PAGE
@@ -253,6 +253,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 
 export default function BadgeCatalogPage() {
 	const { user } = useAuth()
+	const router = useRouter()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [selectedCategory, setSelectedCategory] = useState<
 		BadgeCategory | 'ALL'
@@ -355,106 +356,111 @@ export default function BadgeCatalogPage() {
 	}, [allBadges, earnedBadgeIds])
 
 	return (
-		<div className='min-h-screen bg-bg pb-20'>
-			{/* Header */}
-			<div className='sticky top-0 z-sticky border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
-				<div className='mx-auto max-w-6xl px-4 py-4'>
-					{/* Back + Title */}
-					<div className='flex items-center gap-3'>
-						<Link
-							href='/profile'
-							className='grid size-10 place-items-center rounded-full bg-bg-hover text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						>
-							<ChevronLeft className='size-5' />
-						</Link>
-						<div className='flex-1'>
-							<h1 className='text-xl font-bold text-text'>Badge Collection</h1>
-							<p className='text-sm text-text-muted'>
-								{earnedCount} of {totalBadges} badges earned ({progressPercent}
-								%)
-							</p>
+		<PageTransition>
+			<div className='min-h-screen bg-bg pb-20'>
+				{/* Header */}
+				<div className='sticky top-0 z-sticky border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
+					<PageContainer maxWidth='xl'>
+						<div className='py-4'>
+							{/* Back + PageHeader */}
+							<div className='mb-4 flex items-center gap-3'>
+								<motion.button
+									onClick={() => router.back()}
+									whileTap={BUTTON_SUBTLE_TAP}
+									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+									aria-label='Go back'
+								>
+									<ArrowLeft className='size-5' />
+								</motion.button>
+								<div className='flex-1'>
+									<PageHeader
+										icon={Trophy}
+										title='Badge Collection'
+										subtitle={`${earnedCount} of ${totalBadges} badges earned (${progressPercent}%)`}
+										gradient='warm'
+										marginBottom='sm'
+										className='mb-0'
+									/>
+								</div>
+							</div>
+
+							{/* Progress Bar */}
+							<div className='h-2 overflow-hidden rounded-full bg-bg-hover'>
+								<motion.div
+									initial={{ width: 0 }}
+									animate={{ width: `${progressPercent}%` }}
+									transition={{ duration: 1, ease: 'easeOut' }}
+									className='h-full rounded-full bg-gradient-to-r from-xp to-brand'
+								/>
+							</div>
+
+							{/* Search + Filters */}
+							<div className='mt-4 flex flex-wrap items-center gap-2'>
+								{/* Search */}
+								<div className='relative flex-1 min-w-search'>
+									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+									<input
+										type='text'
+										placeholder='Search badges...'
+										value={searchQuery}
+										onChange={e => setSearchQuery(e.target.value)}
+										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
+									/>
+								</div>
+
+								{/* Category Filter */}
+								<select
+									value={selectedCategory}
+									onChange={e =>
+										setSelectedCategory(e.target.value as BadgeCategory | 'ALL')
+									}
+									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
+								>
+									<option value='ALL'>All Categories</option>
+									{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+										<option key={key} value={key}>
+											{config.label} ({categoryCounts[key]?.earned ?? 0}/
+											{categoryCounts[key]?.total ?? 0})
+										</option>
+									))}
+								</select>
+
+								{/* Rarity Filter */}
+								<select
+									value={selectedRarity}
+									onChange={e =>
+										setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
+									}
+									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
+								>
+									<option value='ALL'>All Rarities</option>
+									{RARITY_ORDER.map(rarity => (
+										<option key={rarity} value={rarity}>
+											{RARITY_CONFIG[rarity].label}
+										</option>
+									))}
+								</select>
+
+								{/* Earned Only Toggle */}
+								<button
+									onClick={() => setShowEarnedOnly(!showEarnedOnly)}
+									className={cn(
+										'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+										showEarnedOnly
+											? 'border-success bg-success/10 text-success'
+											: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
+									)}
+								>
+									<CheckCircle2 className='size-4' />
+									Earned Only
+								</button>
+							</div>
 						</div>
-						<div className='grid size-12 place-items-center rounded-xl bg-gradient-gold text-2xl shadow-card'>
-							<Trophy className='size-6 text-text' />
-						</div>
-					</div>
-
-					{/* Progress Bar */}
-					<div className='mt-4 h-2 overflow-hidden rounded-full bg-bg-hover'>
-						<motion.div
-							initial={{ width: 0 }}
-							animate={{ width: `${progressPercent}%` }}
-							transition={{ duration: 1, ease: 'easeOut' }}
-							className='h-full rounded-full bg-gradient-to-r from-xp to-brand'
-						/>
-					</div>
-
-					{/* Search + Filters */}
-					<div className='mt-4 flex flex-wrap items-center gap-2'>
-						{/* Search */}
-						<div className='relative flex-1 min-w-search'>
-							<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-							<input
-								type='text'
-								placeholder='Search badges...'
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
-								className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
-							/>
-						</div>
-
-						{/* Category Filter */}
-						<select
-							value={selectedCategory}
-							onChange={e =>
-								setSelectedCategory(e.target.value as BadgeCategory | 'ALL')
-							}
-							className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
-						>
-							<option value='ALL'>All Categories</option>
-							{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-								<option key={key} value={key}>
-									{config.label} ({categoryCounts[key]?.earned ?? 0}/
-									{categoryCounts[key]?.total ?? 0})
-								</option>
-							))}
-						</select>
-
-						{/* Rarity Filter */}
-						<select
-							value={selectedRarity}
-							onChange={e =>
-								setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
-							}
-							className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
-						>
-							<option value='ALL'>All Rarities</option>
-							{RARITY_ORDER.map(rarity => (
-								<option key={rarity} value={rarity}>
-									{RARITY_CONFIG[rarity].label}
-								</option>
-							))}
-						</select>
-
-						{/* Earned Only Toggle */}
-						<button
-							onClick={() => setShowEarnedOnly(!showEarnedOnly)}
-							className={cn(
-								'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-								showEarnedOnly
-									? 'border-success bg-success/10 text-success'
-									: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
-							)}
-						>
-							<CheckCircle2 className='size-4' />
-							Earned Only
-						</button>
-					</div>
+					</PageContainer>
 				</div>
-			</div>
 
 			{/* Badge Grid */}
-			<div className='mx-auto max-w-6xl px-4 py-6'>
+				<PageContainer maxWidth='xl' className='py-6'>
 				<AnimatePresence mode='popLayout'>
 					{filteredBadges.length === 0 ? (
 						<motion.div
@@ -505,10 +511,10 @@ export default function BadgeCatalogPage() {
 						</motion.div>
 					)}
 				</AnimatePresence>
-			</div>
+				</PageContainer>
 
-			{/* Rarity Legend */}
-			<div className='mx-auto max-w-6xl px-4 pb-8'>
+				{/* Rarity Legend */}
+				<PageContainer maxWidth='xl' className='pb-8'>
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
 					<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
 						<Star className='size-4 text-xp' />
@@ -536,7 +542,8 @@ export default function BadgeCatalogPage() {
 						})}
 					</div>
 				</div>
+				</PageContainer>
 			</div>
-		</div>
+		</PageTransition>
 	)
 }

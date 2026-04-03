@@ -20,7 +20,13 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Portal } from '@/components/ui/portal'
+import { ErrorState } from '@/components/ui/error-state'
+import {
+	AsyncCombobox,
+	type AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
@@ -34,8 +40,10 @@ import {
 	removeShoppingItem,
 	deleteShoppingList,
 	regenerateShareToken,
+	checkoutShoppingList,
 } from '@/services/shoppingList'
 import { getCurrentMealPlan } from '@/services/mealplan'
+import { autocompleteSearch } from '@/services/search'
 import type {
 	ShoppingListSummary,
 	ShoppingListResponse,
@@ -44,6 +52,7 @@ import type {
 } from '@/lib/types/shoppingList'
 import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { toast } from 'sonner'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
 // ── Source badge colors ──────────────────────────────────────────────
 
@@ -63,6 +72,7 @@ export default function ShoppingListsPage() {
 		null,
 	)
 	const [isLoading, setIsLoading] = useState(true)
+	const [fetchError, setFetchError] = useState(false)
 	const [isDetailLoading, setIsDetailLoading] = useState(false)
 	const [showCreateMenu, setShowCreateMenu] = useState(false)
 	const [showAddItem, setShowAddItem] = useState(false)
@@ -78,16 +88,39 @@ export default function ShoppingListsPage() {
 	const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
 		null,
 	)
+	const [isCheckingOut, setIsCheckingOut] = useState(false)
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000, condition: !isLoading })
 
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
+
+	// ── Ingredient autocomplete via Typesense ──────────────────────────
+
+	const fetchIngredientOptions = useCallback(
+		async (query: string): Promise<AsyncComboboxOption[]> => {
+			const res = await autocompleteSearch(query, 'ingredients', 8)
+			if (res.success && res.data?.ingredients?.hits) {
+				return res.data.ingredients.hits.map(h => ({
+					value: h.document.id,
+					label: h.document.name,
+					category: h.document.category,
+				}))
+			}
+			return []
+		},
+		[],
+	)
 
 	// ── Fetch lists ────────────────────────────────────────────────────
 
 	const fetchLists = useCallback(async () => {
+		setFetchError(false)
 		try {
 			const data = await getUserShoppingLists()
 			setLists(data)
 		} catch {
+			setFetchError(true)
 			toast.error('Failed to load shopping lists')
 		} finally {
 			setIsLoading(false)
@@ -221,6 +254,7 @@ export default function ShoppingListsPage() {
 			setNewItemForm({ ingredient: '' })
 			setShowAddItem(false)
 			fetchLists()
+			toast.success('Item added')
 		} catch {
 			toast.error('Failed to add item')
 		} finally {
@@ -338,6 +372,23 @@ export default function ShoppingListsPage() {
 		)
 	}
 
+	if (fetchError) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title='Failed to load shopping lists'
+						message='Something went wrong. Please try again.'
+						onRetry={() => {
+							setIsLoading(true)
+							fetchLists()
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
 	// ── Detail View ────────────────────────────────────────────────────
 
 	if (selectedList) {
@@ -414,20 +465,38 @@ export default function ShoppingListsPage() {
 									</p>
 								</div>
 								<button
-									onClick={() => {
-										const items = uncheckedItems
-											.map(i => i.ingredient)
-											.join(', ')
-										const searchQuery = encodeURIComponent(items)
-										window.open(
-											`https://www.instacart.com/store/search/${searchQuery}`,
-											'_blank',
-											'noopener,noreferrer',
-										)
+									disabled={isCheckingOut}
+									onClick={async () => {
+										if (!selectedList) return
+										setIsCheckingOut(true)
+										try {
+											const result = await checkoutShoppingList(
+												selectedList.id,
+												'affiliate',
+											)
+											if (result?.checkoutUrl) {
+												window.open(
+													result.checkoutUrl,
+													'_blank',
+													'noopener,noreferrer',
+												)
+												toast.success(
+													`Checkout started — ${result.itemCount} items`,
+												)
+											} else {
+												toast.success(
+													'Shopping list prepared! Check your items.',
+												)
+											}
+										} catch {
+											toast.error('Checkout failed. Please try again.')
+										} finally {
+											setIsCheckingOut(false)
+										}
 									}}
-									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
 								>
-									Shop Now
+									{isCheckingOut ? 'Processing…' : 'Shop Now'}
 								</button>
 							</motion.div>
 						)}
@@ -461,19 +530,25 @@ export default function ShoppingListsPage() {
 											>
 												Item name
 											</label>
-											<input
+											<AsyncCombobox
 												id='shopping-item-name'
 												value={newItemForm.ingredient}
-												onChange={e =>
+												onChange={val =>
 													setNewItemForm(prev => ({
 														...prev,
-														ingredient: e.target.value,
+														ingredient: val,
 													}))
 												}
-												placeholder='e.g. Paper towels'
-												className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+												onSelect={option =>
+													setNewItemForm(prev => ({
+														...prev,
+														ingredient: option.label,
+													}))
+												}
+												fetchOptions={fetchIngredientOptions}
+												minChars={1}
+												placeholder='e.g. Chicken breast'
 												onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-												autoFocus
 											/>
 										</div>
 										<div className='w-24 space-y-2'>
@@ -636,74 +711,74 @@ export default function ShoppingListsPage() {
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
 					{/* Header */}
-					<div className='flex items-center justify-between'>
-						<div>
-							<h1 className='text-2xl font-bold text-text'>Shopping Lists</h1>
-							<p className='text-sm text-text-muted'>
-								{lists.length} {lists.length === 1 ? 'list' : 'lists'}
-							</p>
-						</div>
-						<div className='relative'>
-							<motion.button
-								onClick={() => setShowCreateMenu(!showCreateMenu)}
-								className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
-								whileHover={{ scale: 1.02 }}
-								whileTap={{ scale: 0.98 }}
-							>
-								<Plus className='size-4' />
-								New List
-							</motion.button>
+					<PageHeader
+						icon={ShoppingCart}
+						title="Shopping Lists"
+						subtitle={`${lists.length} ${lists.length === 1 ? 'list' : 'lists'} - never forget an ingredient`}
+						gradient="blue"
+						marginBottom="sm"
+						rightAction={
+							<div className='relative'>
+								<motion.button
+									onClick={() => setShowCreateMenu(!showCreateMenu)}
+									className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+									whileHover={{ scale: 1.02 }}
+									whileTap={{ scale: 0.98 }}
+								>
+									<Plus className='size-4' />
+									New List
+								</motion.button>
 
-							{/* Create dropdown */}
-							<AnimatePresence>
-								{showCreateMenu && (
-									<>
-										<div
-											className='fixed inset-0 z-10'
-											onClick={() => {
-												setShowCreateMenu(false)
-												setShowCustomNameInput(false)
-												setCustomListName('')
-											}}
-										/>
-										<motion.div
-											initial={{ opacity: 0, y: -8, scale: 0.95 }}
-											animate={{ opacity: 1, y: 0, scale: 1 }}
-											exit={{ opacity: 0, y: -8, scale: 0.95 }}
-											transition={{ duration: 0.15 }}
-											className='absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
-										>
-											<button
-												onClick={handleCreateFromMealPlan}
-												disabled={isCreating}
-												className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+								{/* Create dropdown */}
+								<AnimatePresence>
+									{showCreateMenu && (
+										<>
+											<div
+												className='fixed inset-0 z-10'
+												onClick={() => {
+													setShowCreateMenu(false)
+													setShowCustomNameInput(false)
+													setCustomListName('')
+												}}
+											/>
+											<motion.div
+												initial={{ opacity: 0, y: -8, scale: 0.95 }}
+												animate={{ opacity: 1, y: 0, scale: 1 }}
+												exit={{ opacity: 0, y: -8, scale: 0.95 }}
+												transition={{ duration: 0.15 }}
+												className='absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
 											>
-												<CalendarDays className='size-4 text-info' />
-												<div>
-													<div className='font-medium'>From Meal Plan</div>
-													<div className='text-xs text-text-muted'>
-														Current week&apos;s ingredients
+												<button
+													onClick={handleCreateFromMealPlan}
+													disabled={isCreating}
+													className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+												>
+													<CalendarDays className='size-4 text-info' />
+													<div>
+														<div className='font-medium'>From Meal Plan</div>
+														<div className='text-xs text-text-muted'>
+															Current week&apos;s ingredients
+														</div>
 													</div>
-												</div>
-											</button>
-											<button
-												onClick={() => setShowCustomNameInput(true)}
-												disabled={isCreating}
-												className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
-											>
-												<FileText className='size-4 text-success' />
-												<div>
-													<div className='font-medium'>Custom List</div>
-													<div className='text-xs text-text-muted'>
-														Start with an empty list
+												</button>
+												<button
+													onClick={() => setShowCustomNameInput(true)}
+													disabled={isCreating}
+													className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+												>
+													<FileText className='size-4 text-success' />
+													<div>
+														<div className='font-medium'>Custom List</div>
+														<div className='text-xs text-text-muted'>
+															Start with an empty list
+														</div>
 													</div>
-												</div>
-											</button>
-											{showCustomNameInput && (
-												<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
-													<input
-														value={customListName}
-														onChange={e => setCustomListName(e.target.value)}
+												</button>
+												{showCustomNameInput && (
+													<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
+														<input
+															value={customListName}
+															onChange={e => setCustomListName(e.target.value)}
 														placeholder='List name...'
 														className='flex-1 rounded-lg border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 														onKeyDown={e =>
@@ -725,7 +800,8 @@ export default function ShoppingListsPage() {
 								)}
 							</AnimatePresence>
 						</div>
-					</div>
+						}
+					/>
 
 					{/* Empty state */}
 					{lists.length === 0 ? (

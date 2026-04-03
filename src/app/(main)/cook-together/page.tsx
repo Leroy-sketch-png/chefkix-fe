@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
@@ -137,40 +138,22 @@ function CookTogetherContent() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				{/* Header */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-card'
-						>
-							<Users className='size-6 text-white' />
-						</motion.div>
-						<div>
-							<h1 className='text-3xl font-bold text-text'>Cook Together</h1>
-							<p className='text-text-secondary'>
-								Cook the same recipe with friends in real-time
-							</p>
-						</div>
-					</div>
-				</motion.div>
+				<PageHeader
+					icon={Users}
+					title='Cook Together'
+					subtitle='Cook the same recipe with friends in real-time'
+					gradient='orange'
+				/>
 
-				{/* Active Room Banner (if in a room) */}
 				<AnimatePresence>
-					{isInRoom && roomCode && (
-						<motion.div
-							initial={{ opacity: 0, y: -10 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -10 }}
-							transition={TRANSITION_SPRING}
-							className='mb-6 rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
-						>
+					{roomCode && (
+					<motion.div
+						initial={{ opacity: 0, y: -10 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -10 }}
+						transition={TRANSITION_SPRING}
+						className='mb-6 rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
+					>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-3'>
 									<div className='flex size-10 items-center justify-center rounded-xl bg-brand/10'>

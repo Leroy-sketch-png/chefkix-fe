@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { getProfileByUserId } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { UserProfile } from '@/components/profile/UserProfile'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
+import { PageTransition } from '@/components/layout/PageTransition'
 import { Profile } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -18,6 +20,7 @@ import { toast } from 'sonner'
 const ProfileContent = () => {
 	const params = useParams()
 	const searchParams = useSearchParams()
+	const router = useRouter()
 	const userId = params.userId as string
 	const initialTab = searchParams.get('tab') || undefined
 	const { user: currentUser, isLoading: isAuthLoading } = useAuth()
@@ -88,18 +91,32 @@ const ProfileContent = () => {
 	}
 
 	return (
-		<UserProfile
-			profile={profile}
-			currentUserId={currentUser?.userId}
-			initialTab={initialTab}
-		/>
+		<>
+			<div className='mx-auto max-w-4xl px-4 pt-4'>
+				<button
+					onClick={() => router.back()}
+					className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+					aria-label='Go back'
+				>
+					<ArrowLeft className='size-4' />
+					<span>Back</span>
+				</button>
+			</div>
+			<UserProfile
+				profile={profile}
+				currentUserId={currentUser?.userId}
+				initialTab={initialTab}
+			/>
+		</>
 	)
 }
 
 export default function ProfilePage() {
 	return (
-		<Suspense fallback={<UserProfileSkeleton />}>
-			<ProfileContent />
-		</Suspense>
+		<PageTransition>
+			<Suspense fallback={<UserProfileSkeleton />}>
+				<ProfileContent />
+			</Suspense>
+		</PageTransition>
 	)
 }

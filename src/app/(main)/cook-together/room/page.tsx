@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
@@ -268,50 +269,38 @@ export default function CookingRoomPage() {
 					)}
 				</AnimatePresence>
 
-				{/* Header */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-card'
+			{/* Header with PageHeader */}
+				<div className='mb-8'>
+					<PageHeader
+						icon={Users}
+						title='Cooking Room'
+						subtitle={`Room ${roomCode}`}
+						gradient='orange'
+						marginBottom='sm'
+						showSparkles={false}
+						showBack
+					/>
+					{/* Connection status row */}
+					<div className='mt-2 flex items-center gap-2 text-text-secondary'>
+						<span
+							className={`flex items-center gap-1 text-sm ${isConnected ? 'text-success' : 'text-text-muted'}`}
 						>
-							<Users className='size-6 text-white' />
-						</motion.div>
-						<div>
-							<h1 className='text-3xl font-bold text-text'>Cooking Room</h1>
-							<div className='flex items-center gap-2 text-text-secondary'>
-								<span className='font-mono text-lg font-bold tracking-widest text-brand'>
-									{roomCode}
-								</span>
+							<span
+								className={`inline-block size-2 rounded-full ${isConnected ? 'bg-success' : 'bg-text-muted'}`}
+							/>
+							{isConnected ? 'Connected' : 'Connecting...'}
+						</span>
+						{spectatorCount > 0 && (
+							<>
 								<span>•</span>
-								<span
-									className={`flex items-center gap-1 text-sm ${isConnected ? 'text-success' : 'text-text-muted'}`}
-								>
-									<span
-										className={`inline-block size-2 rounded-full ${isConnected ? 'bg-success' : 'bg-text-muted'}`}
-									/>
-									{isConnected ? 'Connected' : 'Connecting...'}
+								<span className='flex items-center gap-1 text-sm text-info'>
+									<Eye className='size-3.5' />
+									{spectatorCount} watching
 								</span>
-								{spectatorCount > 0 && (
-									<>
-										<span>•</span>
-										<span className='flex items-center gap-1 text-sm text-info'>
-											<Eye className='size-3.5' />
-											{spectatorCount} watching
-										</span>
-									</>
-								)}
-							</div>
-						</div>
+							</>
+						)}
 					</div>
-				</motion.div>
+				</div>
 
 				<div className='grid gap-6 lg:grid-cols-3'>
 					{/* Room Card — Main column */}

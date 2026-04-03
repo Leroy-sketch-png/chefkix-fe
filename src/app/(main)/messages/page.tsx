@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { PageTransition } from '@/components/layout/PageTransition'
 import {
 	MessageCircle,
 	Send,
@@ -11,7 +13,6 @@ import {
 	Wifi,
 	WifiOff,
 	Search,
-	CheckCheck,
 	Sparkles,
 	ArrowLeft,
 	Phone,
@@ -623,14 +624,16 @@ function MessagesContent() {
 					showMobileChat ? 'hidden md:flex' : 'flex'
 				}`}
 			>
-				{/* Sidebar Header */}
+				{/* Sidebar Header with PageHeader */}
 				<header className='flex-shrink-0 border-b border-border-subtle p-4'>
-					<div className='mb-3 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25'>
-							<MessageCircle className='size-5 text-white' />
-						</div>
-						<h1 className='text-2xl font-bold text-text'>Messages</h1>
-					</div>
+					<PageHeader
+						icon={MessageCircle}
+						title='Messages'
+						subtitle='Chat with fellow chefs'
+						gradient='blue'
+						marginBottom='sm'
+						className='mb-0'
+					/>
 					{/* Search */}
 					<div className='relative mt-3'>
 						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
@@ -950,8 +953,10 @@ function MessagesSkeleton() {
 
 export default function MessagesPage() {
 	return (
-		<Suspense fallback={<MessagesSkeleton />}>
-			<MessagesContent />
-		</Suspense>
+		<PageTransition>
+			<Suspense fallback={<MessagesSkeleton />}>
+				<MessagesContent />
+			</Suspense>
+		</PageTransition>
 	)
 }

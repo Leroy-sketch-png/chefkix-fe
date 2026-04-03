@@ -20,7 +20,9 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Portal } from '@/components/ui/portal'
+import { ErrorState } from '@/components/ui/error-state'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
@@ -53,6 +55,7 @@ export default function MealPlannerPage() {
 	const router = useRouter()
 	const [plan, setPlan] = useState<MealPlan | null>(null)
 	const [loading, setLoading] = useState(true)
+	const [fetchError, setFetchError] = useState(false)
 	const [generating, setGenerating] = useState(false)
 	const [showShopping, setShowShopping] = useState(false)
 	const [shoppingList, setShoppingList] = useState<ShoppingItem[]>([])
@@ -80,12 +83,18 @@ export default function MealPlannerPage() {
 	// ── Fetch current plan ────────────────────────────────
 
 	const fetchPlan = useCallback(async () => {
+		setFetchError(false)
 		try {
 			const data = await getCurrentMealPlan()
 			setPlan(data)
-		} catch {
-			// No plan for this week
-			setPlan(null)
+		} catch (err: unknown) {
+			// 404 = no plan for this week (expected), anything else = real error
+			const status = (err as { response?: { status?: number } })?.response?.status
+			if (status === 404) {
+				setPlan(null)
+			} else {
+				setFetchError(true)
+			}
 		} finally {
 			setLoading(false)
 		}
@@ -102,6 +111,7 @@ export default function MealPlannerPage() {
 		try {
 			const newPlan = await generateMealPlan({ days: 7 }, useAI)
 			setPlan(newPlan)
+			toast.success('Meal plan generated!')
 		} catch {
 			toast.error('Failed to generate meal plan')
 		} finally {
@@ -251,66 +261,84 @@ export default function MealPlannerPage() {
 			</PageTransition>
 		)
 	}
-
+	if (fetchError) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='xl'>
+					<ErrorState
+						title='Failed to load meal plan'
+						message='Something went wrong. Please try again.'
+						onRetry={() => {
+							setLoading(true)
+							fetchPlan()
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
 				<div className='space-y-6 py-6'>
-					{/* ── Header ────────────────────────── */}
-					<div className='flex items-center justify-between'>
-						<div className='flex items-center gap-3'>
-							<CalendarDays className='size-7 text-brand' />
-							<h1 className='text-2xl font-bold text-text'>Meal Planner</h1>
-						</div>
-						<div className='flex items-center gap-2'>
-							{plan && (
-								<>
-									<button
-										onClick={handleShowShopping}
-										className='flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80'
-									>
-										<ShoppingCart className='size-4' />
-										Shopping List
-									</button>
-									<button
-										onClick={() => setConfirmingDelete(true)}
-										className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20'
-									>
-										<Trash2 className='size-4' />
-										Clear
-									</button>
-								</>
-							)}
-							<button
-								onClick={() => setUseAI(prev => !prev)}
-								className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-									useAI
-										? 'bg-brand/15 text-brand'
-										: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
-								}`}
-								title={
-									useAI
-										? 'AI-powered generation (uses your pantry + Gemini)'
-										: 'Quick generation (shuffles existing recipes)'
-								}
-							>
-								<Sparkles className='size-4' />
-								{useAI ? 'AI Mode' : 'Quick Mode'}
-							</button>
-							<button
-								onClick={handleGenerate}
-								disabled={generating}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
-							>
-								{generating ? (
-									<RefreshCw className='size-4 animate-spin' />
-								) : (
-									<ChefHat className='size-4' />
+					{/* ── Header with PageHeader ────────────────────────── */}
+					<PageHeader
+						icon={CalendarDays}
+						title='Meal Planner'
+						subtitle='Plan your week with personalized recipes'
+						gradient='green'
+						marginBottom='sm'
+						rightAction={
+							<div className='flex items-center gap-2'>
+								{plan && (
+									<>
+										<button
+											onClick={handleShowShopping}
+											className='flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80'
+										>
+											<ShoppingCart className='size-4' />
+											Shopping List
+										</button>
+										<button
+											onClick={() => setConfirmingDelete(true)}
+											className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20'
+										>
+											<Trash2 className='size-4' />
+											Clear
+										</button>
+									</>
 								)}
-								{plan ? 'Regenerate' : 'Generate Plan'}
-							</button>
-						</div>
-					</div>
+								<button
+									onClick={() => setUseAI(prev => !prev)}
+									className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+										useAI
+											? 'bg-brand/15 text-brand'
+											: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
+									}`}
+									title={
+										useAI
+											? 'AI-powered generation (uses your pantry + Gemini)'
+											: 'Quick generation (shuffles existing recipes)'
+									}
+								>
+									<Sparkles className='size-4' />
+									{useAI ? 'AI Mode' : 'Quick Mode'}
+								</button>
+								<button
+									onClick={handleGenerate}
+									disabled={generating}
+									className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+								>
+									{generating ? (
+										<RefreshCw className='size-4 animate-spin' />
+									) : (
+										<ChefHat className='size-4' />
+									)}
+									{plan ? 'Regenerate' : 'Generate Plan'}
+								</button>
+							</div>
+						}
+					/>
 
 					{/* ── AI Mode Notice ─────────────────── */}
 					{useAI && !plan?.reasoning && (

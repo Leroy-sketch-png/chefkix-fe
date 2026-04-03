@@ -25,6 +25,8 @@ import {
 	Timer,
 	Sparkles,
 	Sun,
+	Moon,
+	Monitor,
 	Clock,
 	Eye,
 	ImagePlus,
@@ -32,16 +34,21 @@ import {
 	BadgeCheck,
 	Crown,
 	Gift,
+	Trash2,
+	Download,
 } from 'lucide-react'
 import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { PATHS } from '@/constants'
 import { logout as logoutService } from '@/services/auth'
+import { changePassword } from '@/services/auth'
+import { deleteAccount, exportUserData } from '@/services/profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { logDevError } from '@/lib/dev-log'
@@ -58,6 +65,7 @@ import {
 } from '@/lib/motion'
 import ReferralCard from '@/components/referral/ReferralCard'
 import PremiumUpgradeCard from '@/components/premium/PremiumUpgradeCard'
+import { InterestPicker } from '@/components/onboarding/InterestPicker'
 import {
 	getAllSettings,
 	updatePrivacySettings,
@@ -91,6 +99,7 @@ import {
 	SkillLevel,
 	MeasurementUnits,
 } from '@/lib/types/settings'
+import { isTrackingOptedOut, setTrackingOptOut } from '@/lib/eventTracker'
 
 // ============================================
 // TYPES
@@ -425,8 +434,61 @@ export default function SettingsPage() {
 		useState<VerificationStatus | null>(null)
 	const [verificationLoading, setVerificationLoading] = useState(false)
 	const [verificationReason, setVerificationReason] = useState('')
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const [deleteConfirmText, setDeleteConfirmText] = useState('')
+	const [isExportingData, setIsExportingData] = useState(false)
+	const [showInterestPicker, setShowInterestPicker] = useState(false)
+
+	// Password change state
+	const [oldPassword, setOldPassword] = useState('')
+	const [newPassword, setNewPassword] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
+	const [isChangingPassword, setIsChangingPassword] = useState(false)
+	const [showPasswordForm, setShowPasswordForm] = useState(false)
 	const coverInputRef = useRef<HTMLInputElement>(null)
 	const avatarInputRef = useRef<HTMLInputElement>(null)
+
+	// Theme management
+	type ThemeMode = 'light' | 'dark' | 'system'
+	const [theme, setThemeState] = useState<ThemeMode>('light')
+
+	useEffect(() => {
+		const stored = localStorage.getItem('theme') as ThemeMode | null
+		if (stored === 'dark' || stored === 'light' || stored === 'system') {
+			setThemeState(stored)
+		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			setThemeState('system')
+		}
+	}, [])
+
+	const setTheme = useCallback((mode: ThemeMode) => {
+		setThemeState(mode)
+		localStorage.setItem('theme', mode)
+		const root = document.documentElement
+		if (mode === 'dark') {
+			root.classList.add('dark')
+		} else if (mode === 'light') {
+			root.classList.remove('dark')
+		} else {
+			// system: follow OS preference
+			if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+				root.classList.add('dark')
+			} else {
+				root.classList.remove('dark')
+			}
+		}
+	}, [])
+
+	// Listen for OS theme changes when in 'system' mode
+	useEffect(() => {
+		if (theme !== 'system') return
+		const mq = window.matchMedia('(prefers-color-scheme: dark)')
+		const handler = (e: MediaQueryListEvent) => {
+			document.documentElement.classList.toggle('dark', e.matches)
+		}
+		mq.addEventListener('change', handler)
+		return () => mq.removeEventListener('change', handler)
+	}, [theme])
 
 	useEffect(() => {
 		if (!user) return
@@ -470,7 +532,7 @@ export default function SettingsPage() {
 
 	// Fetch verification status when verification tab is opened
 	useEffect(() => {
-		if (activeTab !== 'verification' || verificationStatus) return
+		if (activeTab !== 'verification') return
 		let cancelled = false
 		const fetchVerification = async () => {
 			try {
@@ -488,7 +550,7 @@ export default function SettingsPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [activeTab, verificationStatus])
+	}, [activeTab])
 
 	const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
@@ -755,6 +817,49 @@ export default function SettingsPage() {
 		}
 	}
 
+	const handleDeleteAccount = async () => {
+		if (deleteConfirmText !== 'DELETE') return
+		try {
+			const res = await deleteAccount()
+			if (res.success) {
+				toast.success('Account deleted. Goodbye!')
+				logout()
+				router.push(PATHS.AUTH.SIGN_IN)
+			} else {
+				toast.error(res.message || 'Failed to delete account')
+			}
+		} catch {
+			toast.error('Failed to delete account. Please try again.')
+		}
+	}
+
+	const handleExportData = async () => {
+		setIsExportingData(true)
+		try {
+			const res = await exportUserData()
+			if (res.success && res.data) {
+				const blob = new Blob([JSON.stringify(res.data, null, 2)], {
+					type: 'application/json',
+				})
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement('a')
+				a.href = url
+				a.download = `chefkix-data-export-${new Date().toISOString().slice(0, 10)}.json`
+				document.body.appendChild(a)
+				a.click()
+				document.body.removeChild(a)
+				URL.revokeObjectURL(url)
+				toast.success('Data exported successfully!')
+			} else {
+				toast.error(res.message || 'Failed to export data')
+			}
+		} catch {
+			toast.error('Failed to export data. Please try again.')
+		} finally {
+			setIsExportingData(false)
+		}
+	}
+
 	if (isLoading) {
 		return (
 			<PageTransition>
@@ -803,27 +908,13 @@ export default function SettingsPage() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				{/* Header - Unified icon-box pattern */}
-				<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							whileHover={{ rotate: 45 }}
-							transition={TRANSITION_SPRING}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
-						>
-							<Settings className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Settings</h1>
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Customize your ChefKix experience
-					</p>
-				</motion.div>
+				<PageHeader
+					icon={Settings}
+					title="Settings"
+					subtitle="Customize your ChefKix experience"
+					gradient="gray"
+					iconAnimation={{ rotate: 45 }}
+				/>
 
 				<div className='grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]'>
 					{/* Sidebar Tabs */}
@@ -1075,24 +1166,210 @@ export default function SettingsPage() {
 
 									<SettingsCard
 										title='Account Security'
-										description='Password is managed through our secure identity provider'
+										description='Change your password'
 									>
-										<div className='space-y-3'>
-											<p className='text-sm text-text-secondary'>
-												To change your password, use the &quot;Forgot
-												Password&quot; option on the sign-in page. This ensures
-												secure password resets through our identity provider.
-											</p>
+										{!showPasswordForm ? (
 											<Button
 												variant='outline'
 												className='w-full sm:w-auto'
-												onClick={() => {
-													router.push(PATHS.AUTH.SIGN_IN)
-												}}
+												onClick={() => setShowPasswordForm(true)}
 											>
 												<Shield className='mr-2 size-4' />
-												Go to Sign-In Page
+												Change Password
 											</Button>
+										) : (
+											<div className='space-y-4'>
+												<div className='space-y-2'>
+													<Label htmlFor='oldPassword'>Current Password</Label>
+													<Input
+														id='oldPassword'
+														type='password'
+														value={oldPassword}
+														onChange={e => setOldPassword(e.target.value)}
+														placeholder='Enter current password'
+														autoComplete='current-password'
+													/>
+												</div>
+												<div className='space-y-2'>
+													<Label htmlFor='newPassword'>New Password</Label>
+													<Input
+														id='newPassword'
+														type='password'
+														value={newPassword}
+														onChange={e => setNewPassword(e.target.value)}
+														placeholder='At least 8 characters'
+														autoComplete='new-password'
+													/>
+												</div>
+												<div className='space-y-2'>
+													<Label htmlFor='confirmPassword'>Confirm New Password</Label>
+													<Input
+														id='confirmPassword'
+														type='password'
+														value={confirmPassword}
+														onChange={e => setConfirmPassword(e.target.value)}
+														placeholder='Repeat new password'
+														autoComplete='new-password'
+													/>
+												</div>
+												{newPassword && confirmPassword && newPassword !== confirmPassword && (
+													<p className='text-xs text-destructive'>Passwords do not match</p>
+												)}
+												<div className='flex gap-2'>
+													<Button
+														disabled={
+															isChangingPassword ||
+															!oldPassword ||
+															!newPassword ||
+															newPassword.length < 8 ||
+															newPassword !== confirmPassword
+														}
+														onClick={async () => {
+															setIsChangingPassword(true)
+															try {
+																const res = await changePassword({ oldPassword, newPassword })
+																if (res.success) {
+																	toast.success('Password changed successfully')
+																	setOldPassword('')
+																	setNewPassword('')
+																	setConfirmPassword('')
+																	setShowPasswordForm(false)
+																} else {
+																	toast.error(res.message || 'Failed to change password')
+																}
+															} catch {
+																toast.error('Failed to change password')
+															} finally {
+																setIsChangingPassword(false)
+															}
+														}}
+													>
+														{isChangingPassword ? (
+															<Loader2 className='mr-2 size-4 animate-spin' />
+														) : (
+															<Save className='mr-2 size-4' />
+														)}
+														{isChangingPassword ? 'Changing...' : 'Update Password'}
+													</Button>
+													<Button
+														variant='outline'
+														onClick={() => {
+															setShowPasswordForm(false)
+															setOldPassword('')
+															setNewPassword('')
+															setConfirmPassword('')
+														}}
+													>
+														Cancel
+													</Button>
+												</div>
+											</div>
+										)}
+									</SettingsCard>
+
+									{/* Data & Account Management */}
+									<SettingsCard
+										title='Your Data'
+										description='Download or manage your personal data'
+									>
+										<div className='space-y-4'>
+											<div className='flex items-center justify-between'>
+												<div>
+													<p className='text-sm font-medium text-text'>
+														Export Your Data
+													</p>
+													<p className='text-xs text-text-secondary'>
+														Download all your personal data as JSON
+													</p>
+												</div>
+												<Button
+													variant='outline'
+													size='sm'
+													onClick={handleExportData}
+													disabled={isExportingData}
+												>
+													{isExportingData ? (
+														<Loader2 className='mr-2 size-4 animate-spin' />
+													) : (
+														<Download className='mr-2 size-4' />
+													)}
+													{isExportingData
+														? 'Exporting...'
+														: 'Export Data'}
+												</Button>
+											</div>
+										</div>
+									</SettingsCard>
+
+									{/* Danger Zone */}
+									<SettingsCard
+										title='Danger Zone'
+										description='Irreversible account actions'
+										className='border-error/30'
+									>
+										<div className='space-y-4'>
+											<p className='text-sm text-text-secondary'>
+												Deleting your account will permanently remove your
+												profile, statistics, and social connections. Your posts
+												will show as &quot;Deleted User&quot;. This action
+												cannot be undone.
+											</p>
+											{!showDeleteConfirm ? (
+												<Button
+													variant='outline'
+													className='border-error/50 text-error hover:bg-error/10'
+													onClick={() =>
+														setShowDeleteConfirm(true)
+													}
+												>
+													<Trash2 className='mr-2 size-4' />
+													Delete Account
+												</Button>
+											) : (
+												<div className='space-y-3 rounded-radius border border-error/30 bg-error/5 p-4'>
+													<p className='text-sm font-medium text-error'>
+														Type DELETE to confirm account deletion
+													</p>
+													<Input
+														value={deleteConfirmText}
+														onChange={e =>
+															setDeleteConfirmText(
+																e.target.value,
+															)
+														}
+														placeholder='Type DELETE'
+														className='max-w-xs'
+													/>
+													<div className='flex gap-2'>
+														<Button
+															variant='outline'
+															size='sm'
+															onClick={() => {
+																setShowDeleteConfirm(
+																	false,
+																)
+																setDeleteConfirmText('')
+															}}
+														>
+															Cancel
+														</Button>
+														<Button
+															size='sm'
+															disabled={
+																deleteConfirmText !==
+																'DELETE'
+															}
+															onClick={
+																handleDeleteAccount
+															}
+															className='bg-error text-white hover:bg-error/90 disabled:opacity-50'
+														>
+															<Trash2 className='mr-2 size-4' />
+															Permanently Delete
+														</Button>
+													</div>
+												</div>
+											)}
 										</div>
 									</SettingsCard>
 								</motion.div>
@@ -1178,6 +1455,28 @@ export default function SettingsPage() {
 												onCheckedChange={checked =>
 													handleUpdatePrivacy({ showCookingActivity: checked })
 												}
+											/>
+										</div>
+									</SettingsCard>
+
+									{/* Data & Analytics Card */}
+									<SettingsCard
+										title='Data & Analytics'
+										description='Control how your data is used'
+									>
+										<div>
+											<ToggleRow
+												label='Usage Analytics'
+												description='Help improve ChefKix by sharing anonymous usage data'
+												icon={Eye}
+												checked={!isTrackingOptedOut()}
+												onCheckedChange={checked => {
+													setTrackingOptOut(!checked)
+													// Force re-render
+													setSettings(prev =>
+														prev ? { ...prev } : prev,
+													)
+												}}
 											/>
 										</div>
 									</SettingsCard>
@@ -1489,6 +1788,41 @@ export default function SettingsPage() {
 										/>
 									</SettingsCard>
 
+									<SettingsCard title='Cuisine Preferences'>
+										<div className='space-y-4'>
+											<p className='text-sm text-text-secondary'>
+												Your selected cuisines help us personalize your recipe feed and recommendations.
+											</p>
+											{user?.preferences && user.preferences.length > 0 ? (
+												<div className='flex flex-wrap gap-2'>
+													{user.preferences.map((pref) => (
+														<span
+															key={pref}
+															className='rounded-full bg-brand/10 px-3 py-1 text-sm font-medium text-brand'
+														>
+															{pref}
+														</span>
+													))}
+												</div>
+											) : (
+												<p className='text-sm text-text-muted italic'>
+													No preferences set yet
+												</p>
+											)}
+											<motion.button
+												onClick={() => setShowInterestPicker(true)}
+												whileHover={{ scale: 1.02 }}
+												whileTap={{ scale: 0.98 }}
+												className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
+											>
+												<Sparkles className='size-4' />
+												{user?.preferences && user.preferences.length > 0 
+													? 'Edit Cuisine Preferences' 
+													: 'Set Cuisine Preferences'}
+											</motion.button>
+										</div>
+									</SettingsCard>
+
 									<SettingsCard title='Cooking Preferences'>
 										<div className='space-y-6'>
 											<div>
@@ -1715,11 +2049,44 @@ export default function SettingsPage() {
 								>
 									<SettingsCard
 										title='Theme'
-										description='Your current visual theme.'
+										description='Choose your visual theme.'
 									>
-										<div className='flex items-center gap-2 text-sm text-text-secondary'>
-											<Sun className='size-4 text-streak' />
-											<span className='font-medium text-text'>Light</span>
+										<div className='flex gap-3'>
+											{(
+												[
+													{
+														mode: 'light' as ThemeMode,
+														icon: Sun,
+														label: 'Light',
+													},
+													{
+														mode: 'dark' as ThemeMode,
+														icon: Moon,
+														label: 'Dark',
+													},
+													{
+														mode: 'system' as ThemeMode,
+														icon: Monitor,
+														label: 'System',
+													},
+												] as const
+											).map(({ mode, icon: ThemeIcon, label }) => (
+												<button
+													key={mode}
+													onClick={() => setTheme(mode)}
+													className={cn(
+														'flex flex-1 flex-col items-center gap-2 rounded-radius border p-3 transition-all',
+														theme === mode
+															? 'border-brand bg-brand/10 text-brand shadow-sm'
+															: 'border-border-subtle bg-bg text-text-secondary hover:border-border hover:bg-bg-elevated',
+													)}
+												>
+													<ThemeIcon className='size-5' />
+													<span className='text-xs font-medium'>
+														{label}
+													</span>
+												</button>
+											))}
 										</div>
 									</SettingsCard>
 
@@ -1806,6 +2173,17 @@ export default function SettingsPage() {
 					</AnimatePresence>
 				</div>
 			</PageContainer>
+
+			{/* Interest Picker Modal */}
+			<AnimatePresence>
+				{showInterestPicker && (
+					<InterestPicker
+						onComplete={() => setShowInterestPicker(false)}
+						dismissible={true}
+						editMode={true}
+					/>
+				)}
+			</AnimatePresence>
 		</PageTransition>
 	)
 }

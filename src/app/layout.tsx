@@ -11,6 +11,8 @@ import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
 import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
 import { NetworkStatusProvider } from '@/components/providers/NetworkStatusProvider'
 import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvider'
+import { LiveAnnouncerProvider } from '@/components/a11y/LiveAnnouncer'
+import { FirstVisitHintsProvider } from '@/components/onboarding/FirstVisitHints'
 import { Toaster } from 'sonner'
 
 // Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
@@ -100,7 +102,14 @@ export default function RootLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<html lang='en'>
+		<html lang='en' suppressHydrationWarning>
+			<head>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t==='system'||!t)&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+					}}
+				/>
+			</head>
 			<body
 				className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${playfair.variable} font-sans antialiased`}
 			>
@@ -115,7 +124,13 @@ export default function RootLayout({
 					<AuthProvider>
 						<TokenRefreshProvider>
 							<BlockedUsersProvider>
-								<CelebrationProvider>{children}</CelebrationProvider>
+								<CelebrationProvider>
+									<LiveAnnouncerProvider>
+										<FirstVisitHintsProvider>
+											{children}
+										</FirstVisitHintsProvider>
+									</LiveAnnouncerProvider>
+								</CelebrationProvider>
 							</BlockedUsersProvider>
 						</TokenRefreshProvider>
 					</AuthProvider>

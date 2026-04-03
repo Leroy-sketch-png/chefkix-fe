@@ -16,6 +16,7 @@ import {
 import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { DailyChallengeBanner } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
@@ -160,29 +161,13 @@ export default function ChallengesPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Header - Unified with Dashboard/Explore pattern */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-streak shadow-card shadow-streak/25'
-						>
-							<Trophy className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Challenges</h1>
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Test your skills, earn bonus XP, and unlock exclusive badges!
-					</p>
-				</motion.div>
+				{/* Header */}
+				<PageHeader
+					icon={Trophy}
+					title="Challenges"
+					subtitle="Test your skills, earn bonus XP, and unlock exclusive badges!"
+					gradient="yellow"
+				/>
 
 				{/* Cooking Duels — 1v1 friend challenges */}
 				<DuelsSection />

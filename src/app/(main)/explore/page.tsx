@@ -16,6 +16,7 @@ import {
 } from '@/services/search'
 import type { RecipeSearchDoc } from '@/lib/types/search'
 import { trackEvent } from '@/lib/eventTracker'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -371,6 +372,7 @@ function FilterChips({
 export default function ExplorePage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const requireAuth = useAuthGate()
 	const initialQuery = searchParams.get('q') || ''
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -789,11 +791,13 @@ export default function ExplorePage() {
 	// ============================================
 
 	const handleCook = (recipeId: string) => {
+		if (!requireAuth('start cooking')) return
 		sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
 		router.push(`/recipes/${recipeId}?cook=true`)
 	}
 
 	const handleSave = async (recipeId: string) => {
+		if (!requireAuth('save this recipe')) return
 		const wasSaved = savedRecipes.has(recipeId)
 		const willBeSaved = !wasSaved
 

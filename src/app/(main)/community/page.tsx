@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
@@ -13,7 +14,7 @@ import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { GroupsExploreGrid } from '@/components/groups'
-import { getFriends, getFollowers } from '@/services/social'
+import { getFriends, getFollowers, getSuggestedFollows } from '@/services/social'
 import {
 	getLeaderboard,
 	type LeaderboardEntry as LeaderboardServiceEntry,
@@ -38,6 +39,7 @@ import {
 } from '@/components/leaderboard'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
 
@@ -47,12 +49,16 @@ export default function CommunityPage() {
 	const [activeTab, setActiveTab] = useState('discover')
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [followers, setFollowers] = useState<Profile[]>([])
+	const [suggestedFollows, setSuggestedFollows] = useState<Profile[]>([])
 	const [leaderboardEntries, setLeaderboardEntries] = useState<
 		LeaderboardEntry[]
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000, condition: !loading })
 
 	// Compute closest competitor for CatchingUpAlert
 	const closestCompetitor = useMemo(() => {
@@ -73,10 +79,11 @@ export default function CommunityPage() {
 			try {
 				// Note: getAllProfiles removed - UserDiscoveryClient fetches its own data with pagination
 				// Using 'global' leaderboard to show all users, not just friends
-				const [friendsRes, followersRes, leaderboardRes] = await Promise.all([
+				const [friendsRes, followersRes, leaderboardRes, suggestedRes] = await Promise.all([
 					getFriends(),
 					getFollowers(),
 					getLeaderboard({ type: 'global', timeframe: 'weekly' }),
+					getSuggestedFollows(12),
 				])
 
 				if (cancelled) return
@@ -104,6 +111,10 @@ export default function CommunityPage() {
 						}),
 					)
 					setLeaderboardEntries(entries)
+				}
+
+				if (suggestedRes.success && suggestedRes.data) {
+					setSuggestedFollows(suggestedRes.data)
 				}
 
 				if (!friendsRes.success && !followersRes.success) {
@@ -137,6 +148,14 @@ export default function CommunityPage() {
 	const handleDismiss = (userId: string) => {
 		// Just remove from suggestions list (don't follow back)
 		setFollowers(prev => prev.filter(f => f.userId !== userId))
+	}
+
+	const handleSuggestedFollow = (userId: string) => {
+		setSuggestedFollows(prev => prev.filter(f => f.userId !== userId))
+	}
+
+	const handleSuggestedDismiss = (userId: string) => {
+		setSuggestedFollows(prev => prev.filter(f => f.userId !== userId))
 	}
 
 	const handleUnfollow = (userId: string) => {
@@ -176,29 +195,14 @@ export default function CommunityPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				{/* Header - Unified with Dashboard/Explore/Challenges pattern */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-6'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-card shadow-xp/25'
-						>
-							<Users className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Community Hub</h1>
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Connect with fellow chefs, discover talent, and climb the ranks.
-					</p>
-				</motion.div>
+				{/* Header */}
+				<PageHeader
+					icon={Users}
+					title="Community Hub"
+					subtitle="Connect with fellow chefs, discover talent, and climb the ranks."
+					gradient="pink"
+					marginBottom="md"
+				/>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
 					<TabsList className='mb-6 grid w-full grid-cols-4 lg:w-auto'>
@@ -272,6 +276,33 @@ export default function CommunityPage() {
 								</StaggerContainer>
 							)}
 						</section>
+
+						{/* Suggested For You — AI-powered user discovery */}
+						{suggestedFollows.length > 0 && (
+							<section>
+								<div className='mb-4 flex items-center gap-2'>
+									<Sparkles className='size-5 text-brand' />
+									<h2 className='text-xl font-semibold'>
+										Suggested For You
+									</h2>
+								</div>
+								<StaggerContainer staggerDelay={0.05}>
+									<AnimatePresence mode='popLayout'>
+										<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+											{suggestedFollows.map(user => (
+												<FollowSuggestionCard
+													key={user.userId}
+													profile={user}
+													variant='suggested'
+													onFollowBack={handleSuggestedFollow}
+													onDismiss={handleSuggestedDismiss}
+												/>
+											))}
+										</div>
+									</AnimatePresence>
+								</StaggerContainer>
+							</section>
+						)}
 
 						<section>
 							<div className='mb-4 flex items-center gap-2'>

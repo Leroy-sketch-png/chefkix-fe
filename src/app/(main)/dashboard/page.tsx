@@ -11,6 +11,7 @@ import {
 } from '@/services/cookingSession'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PostCard } from '@/components/social/PostCard'
 import { PollCard } from '@/components/social/PollCard'
 import { RecentCookCard } from '@/components/social/RecentCookCard'
@@ -19,6 +20,7 @@ import { CreatePostForm } from '@/components/social/CreatePostForm'
 import { QuickPostFAB } from '@/components/social/QuickPostFAB'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
+import { FeedModeTabBar, type FeedMode } from '@/components/shared/FeedTabBar'
 import Link from 'next/link'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import {
@@ -39,6 +41,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
 import { usePostKeyboardNav } from '@/hooks/usePostKeyboardNav'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
@@ -46,6 +49,9 @@ import { ResumeCookingBanner } from '@/components/cooking'
 import { FriendsCookingNow } from '@/components/cooking'
 import { SinceLastVisitCard } from '@/components/dashboard'
 import { TonightsPick } from '@/components/dashboard'
+import { SeasonalBanner } from '@/components/dashboard'
+import { ActiveChallengesWidget } from '@/components/dashboard'
+import { InterestPicker } from '@/components/onboarding/InterestPicker'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -61,8 +67,6 @@ const POSTS_PER_PAGE = 10
 // ============================================
 // TYPES
 // ============================================
-
-type FeedMode = 'forYou' | 'latest' | 'trending' | 'following'
 
 interface PendingPostLink {
 	sessionId: string
@@ -142,7 +146,11 @@ export default function DashboardPage() {
 	const [isRetryingPendingXp, setIsRetryingPendingXp] = useState(false)
 	const [retryCount, setRetryCount] = useState(0)
 	const [isColdStartFallback, setIsColdStartFallback] = useState(false)
+	const [feedRefreshKey, setFeedRefreshKey] = useState(0)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
+
+	// Onboarding hints - show after initial load completes
+	useOnboardingOrchestrator({ delay: 1200, condition: !isLoading })
 
 	// Filter out posts from blocked users
 	const filteredPosts = useFilterBlockedContent(posts)
@@ -338,7 +346,7 @@ export default function DashboardPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [feedMode, retryPendingXpSync, retryCount])
+	}, [feedMode, retryPendingXpSync, retryCount, feedRefreshKey])
 
 	const handleRetryPendingXpSync = async () => {
 		if (isRetryingPendingXp) return
@@ -460,11 +468,38 @@ export default function DashboardPage() {
 		)
 	}
 
+	// Interest picker for first-time users
+	const showInterestPicker =
+		!isLoading &&
+		user &&
+		(!user.preferences || user.preferences.length === 0)
+	const [interestPickerDismissed, setInterestPickerDismissed] = useState(false)
+
+	// Progressive disclosure: hide empty widgets for brand-new users
+	const isNewUser = stats && (stats.currentXP ?? 0) === 0 && (stats.recipeCount ?? 0) === 0
+
 	return (
+		<>
+			<AnimatePresence>
+				{showInterestPicker && !interestPickerDismissed && (
+					<InterestPicker
+						onComplete={() => {
+							setInterestPickerDismissed(true)
+							setFeedRefreshKey(k => k + 1)
+						}}
+					/>
+				)}
+			</AnimatePresence>
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				{/* Tonight's Pick — hero recipe suggestion */}
 				<TonightsPick className='mb-6' />
+
+				{/* Seasonal Event Banner — only shown for users with some activity */}
+				{!isNewUser && <SeasonalBanner className='mb-6' />}
+
+				{/* Active Challenges Widget — only shown for users with some activity */}
+				{!isNewUser && <ActiveChallengesWidget className='mb-6' />}
 
 				{/* New User Welcome — shown when user has never cooked or created a recipe */}
 				{stats &&
@@ -478,7 +513,7 @@ export default function DashboardPage() {
 						>
 							<h2 className='text-lg font-bold text-text'>
 								Welcome to ChefKix,{' '}
-								{user?.displayName || user?.firstName || user?.username}! 🎉
+								{user?.displayName || user?.firstName || user?.username}!
 							</h2>
 							<p className='mt-1 text-sm text-text-secondary'>
 								Here&apos;s how to get the most out of ChefKix:
@@ -493,15 +528,15 @@ export default function DashboardPage() {
 									</div>
 									<div>
 										<span className='text-sm font-medium text-text'>
-											Find a recipe
+											Browse recipes
 										</span>
 										<p className='text-xs text-text-muted'>
-											Browse hundreds of dishes
+											Hundreds of dishes to discover
 										</p>
 									</div>
 								</Link>
 								<Link
-									href='/explore'
+									href='/explore?difficulty=Beginner'
 									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
 								>
 									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
@@ -509,10 +544,10 @@ export default function DashboardPage() {
 									</div>
 									<div>
 										<span className='text-sm font-medium text-text'>
-											Start cooking
+											Try your first recipe
 										</span>
 										<p className='text-xs text-text-muted'>
-											Earn XP with every dish
+											Easy recipes to get started
 										</p>
 									</div>
 								</Link>
@@ -577,8 +612,8 @@ export default function DashboardPage() {
 						</motion.div>
 					)}
 
-				{/* Since Last Visit Summary - Welcome back card with activity summary */}
-				<SinceLastVisitCard className='mb-6' />
+				{/* Since Last Visit Summary - only for returning users */}
+				{!isNewUser && <SinceLastVisitCard className='mb-6' />}
 				{hasPendingXpSync && (
 					<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
 						<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
@@ -606,9 +641,9 @@ export default function DashboardPage() {
 				{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
 				<ResumeCookingBanner className='mb-6' />
 				{/* Friends Cooking Now — live activity from followed users' rooms */}
-				<FriendsCookingNow className='mb-6' />
-				{/* Streak Risk Banner - Show when user has a streak but hasn't cooked within window */}
-				{hasStreakAtRisk && showStreakBanner && (
+				{!isNewUser && <FriendsCookingNow className='mb-6' />}
+				{/* Streak Risk Banner - only shown for users with an active streak at risk */}
+				{!isNewUser && hasStreakAtRisk && showStreakBanner && (
 					<StreakRiskBanner
 						currentStreak={stats?.streakCount ?? 0}
 						timeRemaining={{ hours: hoursUntilBreak, minutes: 0 }}
@@ -618,8 +653,8 @@ export default function DashboardPage() {
 						className='mb-6'
 					/>
 				)}
-				{/* Pending Posts Section - Show when user has cooked but not posted */}
-				{pendingSessions.length > 0 && (
+				{/* Pending Posts Section - only for users who have cooked */}
+				{!isNewUser && pendingSessions.length > 0 && (
 					<PendingPostsSection
 						sessions={pendingSessions}
 						onPost={handlePostFromPending}
@@ -628,64 +663,19 @@ export default function DashboardPage() {
 						className='mb-6'
 					/>
 				)}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-6'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
-						>
-							<Home className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold leading-tight text-text'>
-							Your Feed
-						</h1>
-					</div>
-					<p className='flex items-center gap-2 leading-normal text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Share your culinary journey and see what people you follow are
-						cooking
-					</p>
-				</motion.div>
+				<PageHeader
+					icon={Home}
+					title="Your Feed"
+					subtitle="Share your culinary journey and see what people you follow are cooking"
+					gradient="orange"
+					marginBottom="md"
+				/>
 				{/* Feed Mode Tabs */}
-				<div className='mb-6 flex gap-2 overflow-x-auto scrollbar-none'>
-					{(
-						[
-							{ key: 'forYou' as FeedMode, label: 'For You', icon: Sparkles },
-							{
-								key: 'trending' as FeedMode,
-								label: 'Trending',
-								icon: TrendingUp,
-							},
-							{
-								key: 'following' as FeedMode,
-								label: 'Following',
-								icon: Users2,
-							},
-							{ key: 'latest' as FeedMode, label: 'Latest', icon: Clock },
-						] as const
-					).map(tab => (
-						<button
-							key={tab.key}
-							onClick={() => setFeedMode(tab.key)}
-							className={cn(
-								'relative flex shrink-0 items-center gap-2 rounded-radius px-4 py-2 text-sm font-semibold transition-all duration-200',
-								feedMode === tab.key
-									? 'bg-gradient-brand text-white shadow-card'
-									: 'text-text-secondary hover:bg-bg-elevated hover:text-text',
-							)}
-						>
-							<tab.icon className='size-4' />
-							{tab.label}
-						</button>
-					))}
-				</div>
+				<FeedModeTabBar
+					activeMode={feedMode}
+					onModeChange={setFeedMode}
+					className="mb-6"
+				/>
 				{/* Create Post Form */}
 				<div className='mb-4 md:mb-6'>
 					<CreatePostForm
@@ -793,9 +783,9 @@ export default function DashboardPage() {
 										key={post.id}
 										data-post-index={i}
 										className={cn(
-											'transition-shadow',
+											'rounded-2xl transition-shadow',
 											focusedPostIndex === i &&
-												'ring-inset ring-2 ring-border-strong',
+												'ring-2 ring-brand/50 shadow-warm',
 										)}
 									>
 										{post.postType === 'POLL' ? (
@@ -844,5 +834,6 @@ export default function DashboardPage() {
 			</PageContainer>
 			<QuickPostFAB onPostCreated={handlePostCreated} />
 		</PageTransition>
+		</>
 	)
 }

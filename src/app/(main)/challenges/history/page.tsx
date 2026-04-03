@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { ErrorState } from '@/components/ui/error-state'
 import {
 	ChallengeHistoryPage,
 	type ChallengeDay,
@@ -49,6 +50,7 @@ export default function ChallengeHistoryPageRoute() {
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
+	const [fetchError, setFetchError] = useState(false)
 	const [days, setDays] = useState<ChallengeDay[]>([])
 	const [stats, setStats] = useState({
 		currentStreak: 0,
@@ -64,6 +66,7 @@ export default function ChallengeHistoryPageRoute() {
 		let cancelled = false
 		const fetchHistory = async () => {
 			setIsLoading(true)
+			setFetchError(false)
 			try {
 				const response = await getChallengeHistory(30) // Get last 30 days
 				if (cancelled) return
@@ -84,6 +87,7 @@ export default function ChallengeHistoryPageRoute() {
 				if (!cancelled) {
 					logDevError('Failed to fetch challenge history:', err)
 					toast.error('Failed to load challenge history')
+					setFetchError(true)
 				}
 			} finally {
 				if (!cancelled) setIsLoading(false)
@@ -104,6 +108,24 @@ export default function ChallengeHistoryPageRoute() {
 
 	// NOTE: Load more disabled until pagination API is implemented
 	// When ready, add: onLoadMore={handleLoadMore} to ChallengeHistoryPage
+
+	if (fetchError) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title='Failed to load challenge history'
+						message='Something went wrong loading your challenge history. Please try again.'
+						onRetry={() => {
+							setIsLoading(true)
+							setFetchError(false)
+							setCurrentMonth(new Date(currentMonth))
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
 
 	return (
 		<PageTransition>

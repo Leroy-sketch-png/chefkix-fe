@@ -23,6 +23,8 @@ import Link from 'next/link'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { EmptyStateGamified } from '@/components/shared'
+import { FeedTabBar, type TabItem } from '@/components/shared/FeedTabBar'
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import {
 	StaggerContainer,
 	staggerItemVariants,
@@ -51,6 +53,7 @@ import { ErrorState } from '@/components/ui/error-state'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
+import { useAuthGate } from '@/hooks/useAuthGate'
 
 // ============================================
 // TYPES
@@ -80,6 +83,7 @@ interface PersonResult {
 	avatarUrl: string
 	bio: string
 	isFollowing?: boolean
+	isVerified?: boolean
 }
 
 interface PostResult {
@@ -95,34 +99,14 @@ interface PostResult {
 }
 
 // ============================================
-// RECENT SEARCHES (localStorage)
+// RECENT SEARCHES (shared utility)
 // ============================================
 
-const RECENT_SEARCHES_KEY = 'chefkix_recent_searches'
-const MAX_RECENT_SEARCHES = 8
-
-function getRecentSearches(): string[] {
-	if (typeof window === 'undefined') return []
-	try {
-		const raw = localStorage.getItem(RECENT_SEARCHES_KEY)
-		return raw ? JSON.parse(raw) : []
-	} catch {
-		return []
-	}
-}
-
-function addRecentSearch(term: string) {
-	const trimmed = term.trim()
-	if (!trimmed) return
-	const existing = getRecentSearches().filter(s => s !== trimmed)
-	const updated = [trimmed, ...existing].slice(0, MAX_RECENT_SEARCHES)
-	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
-}
-
-function removeRecentSearch(term: string) {
-	const updated = getRecentSearches().filter(s => s !== term)
-	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
-}
+import {
+	getRecentSearches,
+	addRecentSearch,
+	removeRecentSearch,
+} from '@/lib/recentSearches'
 
 const SEARCH_SUGGESTIONS = [
 	'Pasta',
@@ -137,16 +121,61 @@ const SEARCH_SUGGESTIONS = [
 	'Baking',
 ]
 
+// Extended vocabulary for "Did you mean?" fuzzy matching
+const SEARCH_VOCABULARY = [
+	...SEARCH_SUGGESTIONS,
+	'Pizza', 'Burger', 'Sushi', 'Tacos', 'Curry', 'Rice', 'Noodles',
+	'Grilling', 'Vegetarian', 'Gluten-free', 'Low-carb', 'Keto',
+	'Smoothie', 'Sandwich', 'Seafood', 'Beef', 'Pork', 'Lamb',
+	'Chocolate', 'Cake', 'Cookies', 'Bread', 'Pancakes', 'Waffles',
+	'Italian', 'Mexican', 'Asian', 'Indian', 'Mediterranean', 'Thai',
+	'French', 'Japanese', 'Korean', 'Chinese', 'American', 'Middle Eastern',
+]
+
+/** Simple Levenshtein distance for "Did you mean?" */
+function levenshtein(a: string, b: string): number {
+	const al = a.length, bl = b.length
+	const dp: number[][] = Array.from({ length: al + 1 }, (_, i) =>
+		Array.from({ length: bl + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+	)
+	for (let i = 1; i <= al; i++)
+		for (let j = 1; j <= bl; j++)
+			dp[i][j] = a[i - 1] === b[j - 1]
+				? dp[i - 1][j - 1]
+				: 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+	return dp[al][bl]
+}
+
+/** Find closest matching term from vocabulary (max distance 3) */
+function findSuggestion(query: string): string | null {
+	const q = query.toLowerCase().trim()
+	if (q.length < 2) return null
+	let best: string | null = null
+	let bestDist = Infinity
+	for (const term of SEARCH_VOCABULARY) {
+		const t = term.toLowerCase()
+		if (t === q) return null // exact match — no suggestion needed
+		const dist = levenshtein(q, t)
+		if (dist < bestDist && dist <= 3 && dist < q.length * 0.6) {
+			bestDist = dist
+			best = term
+		}
+	}
+	return best
+}
+
 // ============================================
 // COMPONENTS
 // ============================================
 
 const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
+	const requireAuth = useAuthGate()
 
 	const handleSave = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
+		if (!requireAuth('save this recipe')) return
 		const prev = saved
 		setSaved(!prev)
 		try {
@@ -252,8 +281,10 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const [following, setFollowing] = useState(person.isFollowing)
 	const followLockRef = useRef(false)
+	const requireAuth = useAuthGate()
 
 	const handleFollow = async () => {
+		if (!requireAuth('follow this chef')) return
 		if (followLockRef.current) return
 		followLockRef.current = true
 		const prev = following
@@ -297,7 +328,10 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 				</AvatarFallback>
 			</Avatar>
 			<div className='min-w-0 flex-1'>
-				<p className='text-base font-bold text-text'>{person.displayName}</p>
+				<p className='flex items-center gap-1 text-base font-bold text-text'>
+					{person.displayName}
+					{person.isVerified && <VerifiedBadge size='sm' />}
+				</p>
 				<p className='text-sm text-text-secondary'>@{person.username}</p>
 				<p className='mt-1 truncate text-caption text-text-secondary'>
 					{person.bio}
@@ -388,6 +422,7 @@ const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
 	username: doc.username,
 	avatarUrl: doc.avatarUrl || '/placeholder-avatar.svg',
 	bio: doc.bio || '',
+	isVerified: (doc as UserSearchDoc & { isVerified?: boolean }).isVerified,
 })
 
 const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
@@ -426,6 +461,9 @@ function SearchContent() {
 		posts: [],
 	})
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	// "Did you mean?" suggestion for empty results
+	const suggestion = useMemo(() => query ? findSuggestion(query) : null, [query])
 
 	// Clean up debounce timer on unmount
 	useEffect(() => {
@@ -506,21 +544,21 @@ function SearchContent() {
 	const totalResults =
 		results.recipes.length + results.people.length + results.posts.length
 
-	const tabs = [
+	const tabs: TabItem<SearchTab>[] = [
 		{
-			id: 'recipes' as const,
+			key: 'recipes',
 			label: 'Recipes',
 			icon: BookOpen,
 			count: results.recipes.length,
 		},
 		{
-			id: 'people' as const,
+			key: 'people',
 			label: 'People',
 			icon: Users,
 			count: results.people.length,
 		},
 		{
-			id: 'posts' as const,
+			key: 'posts',
 			label: 'Posts',
 			icon: ImageIcon,
 			count: results.posts.length,
@@ -572,13 +610,14 @@ function SearchContent() {
 								className='w-full rounded-2xl border border-border-subtle bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
-								<button
+								<motion.button
 									onClick={() => handleSearchInputChange('')}
+									whileTap={BUTTON_TAP}
 									className='absolute right-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text'
 									aria-label='Clear search'
 								>
 									<X className='size-5' />
-								</button>
+								</motion.button>
 							)}
 						</div>
 					</div>
@@ -592,9 +631,10 @@ function SearchContent() {
 							</div>
 							<div className='flex flex-wrap gap-2'>
 								{recentSearches.map(term => (
-									<button
+									<motion.button
 										key={term}
 										onClick={() => handleSuggestionClick(term)}
+										whileTap={BUTTON_TAP}
 										className='group flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5'
 									>
 										<span>{term}</span>
@@ -616,7 +656,7 @@ function SearchContent() {
 										>
 											<X className='size-3' />
 										</span>
-									</button>
+									</motion.button>
 								))}
 							</div>
 						</div>
@@ -630,13 +670,14 @@ function SearchContent() {
 						</div>
 						<div className='flex flex-wrap gap-2'>
 							{SEARCH_SUGGESTIONS.map(term => (
-								<button
+								<motion.button
 									key={term}
 									onClick={() => handleSuggestionClick(term)}
+									whileTap={BUTTON_TAP}
 									className='rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text'
 								>
 									{term}
-								</button>
+								</motion.button>
 							))}
 						</div>
 					</div>
@@ -652,13 +693,14 @@ function SearchContent() {
 				<div className='mb-6'>
 					{/* Editable search input - users can refine from within the page */}
 					<div className='mb-4 flex items-center gap-3'>
-						<button
+						<motion.button
 							onClick={() => router.back()}
+							whileTap={BUTTON_TAP}
 							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 							aria-label='Go back'
 						>
 							<ArrowLeft className='size-5' />
-						</button>
+						</motion.button>
 						<div className='relative flex-1'>
 							<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
 							<input
@@ -669,13 +711,14 @@ function SearchContent() {
 								className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
-								<button
+								<motion.button
 									onClick={() => handleSearchInputChange('')}
+									whileTap={BUTTON_TAP}
 									className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text'
 									aria-label='Clear search'
 								>
 									<X className='size-4' />
-								</button>
+								</motion.button>
 							)}
 						</div>
 					</div>
@@ -699,33 +742,14 @@ function SearchContent() {
 				</div>
 
 				{/* Tabs */}
-				<div className='mb-8 flex gap-2 overflow-x-auto border-b-2 border-border-subtle'>
-					{tabs.map(tab => (
-						<button
-							key={tab.id}
-							onClick={() => setActiveTab(tab.id)}
-							className={cn(
-								'-mb-[2px] flex items-center gap-2 whitespace-nowrap border-b-[3px] px-5 py-3 text-label font-semibold transition-colors',
-								activeTab === tab.id
-									? 'border-primary text-primary'
-									: 'border-transparent text-text-secondary hover:bg-bg-hover hover:text-text',
-							)}
-						>
-							<tab.icon className='size-4' />
-							{tab.label}
-							<span
-								className={cn(
-									'rounded-full px-2 py-0.5 text-xs font-bold',
-									activeTab === tab.id
-										? 'bg-primary/15 text-primary'
-										: 'bg-bg-elevated text-text-secondary',
-								)}
-							>
-								{tab.count}
-							</span>
-						</button>
-					))}
-				</div>
+				<FeedTabBar<SearchTab>
+					tabs={tabs}
+					activeTab={activeTab}
+					onTabChange={setActiveTab}
+					variant="underline"
+					size="lg"
+					className="mb-8"
+				/>
 
 				{/* Results */}
 				<AnimatePresence mode='wait'>
@@ -746,15 +770,38 @@ function SearchContent() {
 									</div>
 								</StaggerContainer>
 							) : (
-								<EmptyStateGamified
-									variant='search'
-									title='No recipes found'
-									description={`We couldn't find any recipes matching "${query}"`}
-									primaryAction={{
-										label: 'Explore All',
-										href: '/explore',
-									}}
-								/>
+								<>
+									{suggestion && (
+										<motion.p
+											initial={{ opacity: 0 }}
+											animate={{ opacity: 1 }}
+											className='mb-4 text-center text-sm text-text-secondary'
+										>
+											Did you mean{' '}
+											<motion.button
+												onClick={() => {
+													isInternalNav.current = true
+													setSearchInput(suggestion)
+													router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+												}}
+												whileTap={BUTTON_TAP}
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80'
+											>
+												{suggestion}
+											</motion.button>
+											?
+										</motion.p>
+									)}
+									<EmptyStateGamified
+										variant='search'
+										title='No recipes found'
+										description={`We couldn't find any recipes matching "${query}"`}
+										primaryAction={{
+											label: 'Explore All',
+											href: '/explore',
+										}}
+									/>
+								</>
 							)}
 						</motion.div>
 					)}
@@ -776,15 +823,38 @@ function SearchContent() {
 									</div>
 								</StaggerContainer>
 							) : (
-								<EmptyStateGamified
-									variant='search'
-									title='No people found'
-									description={`We couldn't find anyone matching "${query}"`}
-									primaryAction={{
-										label: 'Discover People',
-										href: '/community',
-									}}
-								/>
+								<>
+									{suggestion && (
+										<motion.p
+											initial={{ opacity: 0 }}
+											animate={{ opacity: 1 }}
+											className='mb-4 text-center text-sm text-text-secondary'
+										>
+											Did you mean{' '}
+											<motion.button
+												onClick={() => {
+													isInternalNav.current = true
+													setSearchInput(suggestion)
+													router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+												}}
+												whileTap={BUTTON_TAP}
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80'
+											>
+												{suggestion}
+											</motion.button>
+											?
+										</motion.p>
+									)}
+									<EmptyStateGamified
+										variant='search'
+										title='No people found'
+										description={`We couldn't find anyone matching "${query}"`}
+										primaryAction={{
+											label: 'Discover People',
+											href: '/community',
+										}}
+									/>
+								</>
 							)}
 						</motion.div>
 					)}
@@ -806,15 +876,38 @@ function SearchContent() {
 									</div>
 								</StaggerContainer>
 							) : (
-								<EmptyStateGamified
-									variant='search'
-									title='No posts found'
-									description={`We couldn't find any posts matching "${query}"`}
-									primaryAction={{
-										label: 'View Feed',
-										href: '/dashboard',
-									}}
-								/>
+								<>
+									{suggestion && (
+										<motion.p
+											initial={{ opacity: 0 }}
+											animate={{ opacity: 1 }}
+											className='mb-4 text-center text-sm text-text-secondary'
+										>
+											Did you mean{' '}
+											<motion.button
+												onClick={() => {
+													isInternalNav.current = true
+													setSearchInput(suggestion)
+													router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+												}}
+												whileTap={BUTTON_TAP}
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80'
+											>
+												{suggestion}
+											</motion.button>
+											?
+										</motion.p>
+									)}
+									<EmptyStateGamified
+										variant='search'
+										title='No posts found'
+										description={`We couldn't find any posts matching "${query}"`}
+										primaryAction={{
+											label: 'View Feed',
+											href: '/dashboard',
+										}}
+									/>
+								</>
 							)}
 						</motion.div>
 					)}

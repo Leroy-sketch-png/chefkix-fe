@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
 import { PATHS } from '@/constants'
+import { PageTransition } from '@/components/layout/PageTransition'
 
 /**
  * Group Detail Page - Facebook Style
@@ -181,7 +182,8 @@ export default function GroupDetailPage() {
 	const isMember = group.myStatus === 'ACTIVE'
 
 	return (
-		<main className='min-h-screen py-8 pb-48'>
+		<PageTransition>
+			<main className='min-h-screen py-8 pb-48'>
 			<div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12'>
 				{/* Group Header */}
 				<motion.div
@@ -350,5 +352,6 @@ export default function GroupDetailPage() {
 				)}
 			</div>
 		</main>
+		</PageTransition>
 	)
 }
