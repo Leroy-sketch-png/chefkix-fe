@@ -9,7 +9,8 @@ import {
 	InputGroupInput,
 } from '@/components/ui/input-group'
 import { EmptyStateGamified } from '@/components/shared'
-import { Search, X, Loader2 } from 'lucide-react'
+import { Search, X, Loader2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TRANSITION_SPRING, staggerContainer } from '@/lib/motion'
 import { getProfilesPaginated } from '@/services/profile'
@@ -30,6 +31,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	const [hasMore, setHasMore] = useState(true)
 	const [isLoading, setIsLoading] = useState(!initialProfiles)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [loadError, setLoadError] = useState(false)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 	const hasAnimated = useRef(false)
 
@@ -45,6 +47,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	useEffect(() => {
 		const fetchProfiles = async () => {
 			setIsLoading(true)
+			setLoadError(false)
 			setPage(0)
 
 			try {
@@ -61,9 +64,13 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 					} else {
 						setHasMore(response.data.length >= PROFILES_PER_PAGE)
 					}
+				} else {
+					setLoadError(true)
+					toast.error('Failed to load users. Please try again.')
 				}
 			} catch {
-				// Silent fail, keep existing profiles
+				setLoadError(true)
+				toast.error('Failed to load users. Please try again.')
 			} finally {
 				setIsLoading(false)
 			}
@@ -96,7 +103,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 			if (response.success && response.data) {
 				setProfiles(prev => {
 					const existingIds = new Set(prev.map(p => p.userId))
-					const newProfiles = response.data!.filter(p => !existingIds.has(p.userId))
+					const newProfiles = response.data.filter(p => !existingIds.has(p.userId))
 					return [...prev, ...newProfiles]
 				})
 				setPage(nextPage)
@@ -105,9 +112,11 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 				} else {
 					setHasMore(response.data.length >= PROFILES_PER_PAGE)
 				}
+			} else {
+				toast.error('Failed to load more users.')
 			}
 		} catch {
-			// Silent fail
+			toast.error('Failed to load more users.')
 		} finally {
 			setIsLoadingMore(false)
 		}
@@ -138,6 +147,41 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	const handleClearSearch = () => {
 		setSearchTerm('')
 		setDebouncedSearch('')
+	}
+
+	const handleRetry = () => {
+		setLoadError(false)
+		setDebouncedSearch(prev => prev) // Trigger re-fetch
+	}
+
+	// Show error state if initial load failed
+	if (loadError && profiles.length === 0) {
+		return (
+			<div className='space-y-6'>
+				<div className='max-w-md'>
+					<InputGroup>
+						<InputGroupAddon align='inline-start'>
+							<Search className='size-4 text-text-muted' />
+						</InputGroupAddon>
+						<InputGroupInput
+							placeholder='Search by name or username...'
+							value={searchTerm}
+							onChange={e => setSearchTerm(e.target.value)}
+						/>
+					</InputGroup>
+				</div>
+				<EmptyStateGamified
+					variant='custom'
+					emoji='⚠️'
+					title='Failed to load users'
+					description='We couldn&apos;t fetch the user list. Please check your connection and try again.'
+					primaryAction={{
+						label: 'Try Again',
+						onClick: handleRetry,
+					}}
+				/>
+			</div>
+		)
 	}
 
 	if (isLoading) {

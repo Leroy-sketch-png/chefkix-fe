@@ -20,7 +20,7 @@ interface EmptyStateProps {
 	onAction?: () => void
 	children?: ReactNode
 	/** Optional Lottie animation to show instead of icon */
-	lottieAnimation?: any
+	lottieAnimation?: object
 	/** Size calculator for Lottie animation */
 	lottieSize?: (width: number, height: number) => number
 }

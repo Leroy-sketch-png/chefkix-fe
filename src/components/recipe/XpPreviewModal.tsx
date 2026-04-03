@@ -7,6 +7,7 @@ import { Edit3, Loader2, Rocket, Send, Shield, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { modKey } from '@/lib/recipeCreateUtils'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	AlertDialog,
 	AlertDialogCancel,
@@ -70,6 +71,8 @@ export const XpPreviewModal = ({
 	isPublishing = false,
 }: XpPreviewModalProps) => {
 	const [showConfirm, setShowConfirm] = useState(false)
+
+	useEscapeKey(!showConfirm && !isPublishing, onBack)
 
 	return (
 		<Portal>

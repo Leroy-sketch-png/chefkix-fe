@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Upload, Clock, AlertTriangle, ChefHat, Search } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, LIST_ITEM_HOVER } from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -184,6 +184,7 @@ const NotifWrapper = ({
 	<motion.div
 		initial={{ opacity: 0, x: -10 }}
 		animate={{ opacity: 1, x: 0 }}
+		whileHover={LIST_ITEM_HOVER}
 		className={cn(
 			'relative flex items-start gap-3.5 border-b border-border px-5 py-4 transition-colors hover:bg-bg-elevated',
 			!isRead && 'bg-brand/5',

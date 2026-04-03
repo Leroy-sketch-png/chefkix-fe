@@ -4,11 +4,14 @@ import { motion } from 'framer-motion'
 import { CheckCircle, Circle, Wand2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // ── Props ───────────────────────────────────────────────────────────
 interface RecipeParsingOverlayProps {
 	/** Index of the currently-active parsing step (0-based). */
 	currentStep: number
+	/** Called when user presses Escape to cancel parsing. */
+	onCancel?: () => void
 }
 
 const PARSING_STEPS = [
@@ -24,8 +27,12 @@ const PARSING_STEPS = [
  */
 export const RecipeParsingOverlay = ({
 	currentStep,
-}: RecipeParsingOverlayProps) => (
-	<Portal>
+	onCancel,
+}: RecipeParsingOverlayProps) => {
+	useEscapeKey(!!onCancel, () => onCancel?.())
+
+	return (
+		<Portal>
 		<motion.div
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
@@ -91,4 +98,5 @@ export const RecipeParsingOverlay = ({
 			</motion.div>
 		</motion.div>
 	</Portal>
-)
+	)
+}

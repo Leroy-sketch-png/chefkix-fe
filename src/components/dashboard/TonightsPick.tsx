@@ -17,15 +17,16 @@ interface TonightsPickProps {
 }
 
 /**
- * "Tonight's Pick" hero card — shows a single trending recipe suggestion.
+ * "Tonight's Pick" hero card — personalized daily recipe recommendation.
  *
- * Progressive data levels (Master Plan §2.1):
- * - No data (new user): trending + easy + fast
- * - Taste only: +taste vector (future)
- * - Taste + pantry: +ingredient matching (future)
- * - Full profile: +skill-appropriate (future)
+ * BE uses 5-signal scoring (RecipeService.scoreTonightsPick):
+ * - Taste match (0.30): user preferences + cuisine history
+ * - Trending (0.20): normalized trendingScore
+ * - Seasonal (0.20): month-appropriate tag matching
+ * - Difficulty fit (0.15): skill-level-appropriate
+ * - Quality (0.15): averageRating + cookCount
  *
- * Wave 1: Cold-start only — trending recipe, sorted by cook count.
+ * Degrades gracefully: unauthenticated → trending + seasonal + quality only.
  */
 export const TonightsPick = ({ className }: TonightsPickProps) => {
 	const [recipe, setRecipe] = useState<Recipe | null>(null)

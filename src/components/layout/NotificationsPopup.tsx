@@ -6,11 +6,11 @@ import { useUiStore } from '@/store/uiStore'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import {
+	Bell,
 	Heart,
 	MessageCircle,
 	UserPlus,
 	ChefHat,
-	X,
 	CheckCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -199,6 +199,7 @@ export const NotificationsPopup = () => {
 	>([])
 	const [unreadCount, setUnreadCount] = useState(0)
 	const [isLoading, setIsLoading] = useState(false)
+	const [fetchError, setFetchError] = useState(false)
 
 	useEscapeKey(isNotificationsPopupOpen, toggleNotificationsPopup)
 
@@ -208,6 +209,7 @@ export const NotificationsPopup = () => {
 
 		const fetchNotifications = async () => {
 			setIsLoading(true)
+			setFetchError(false)
 			try {
 				const response = await getNotifications({ size: 20 })
 				if (response.success && response.data) {
@@ -252,6 +254,7 @@ export const NotificationsPopup = () => {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch notifications:', err)
+				setFetchError(true)
 			} finally {
 				setIsLoading(false)
 			}
@@ -274,6 +277,7 @@ export const NotificationsPopup = () => {
 			}
 		} catch (err) {
 			logDevError('Failed to mark all as read:', err)
+			toast.error('Failed to mark notifications as read')
 		}
 	}
 
@@ -313,6 +317,70 @@ export const NotificationsPopup = () => {
 
 				{/* Notification List */}
 				<div className='max-h-96 overflow-y-auto'>
+					{/* Loading skeleton */}
+					{isLoading && (
+						<div className='space-y-0'>
+							{[0, 1, 2, 3].map(i => (
+								<div key={i} className='flex items-start gap-3 border-b border-border p-4'>
+									<div className='size-10 flex-shrink-0 animate-pulse rounded-full bg-bg-elevated' />
+									<div className='flex-1 space-y-2'>
+										<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated' />
+										<div className='h-3 w-1/3 animate-pulse rounded bg-bg-elevated' />
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+
+					{/* Error state */}
+					{!isLoading && fetchError && (
+						<div className='px-4 py-12 text-center'>
+							<p className='mb-2 text-sm text-text-muted'>Couldn&apos;t load notifications</p>
+							<button
+								onClick={() => {
+									setFetchError(false)
+									setIsLoading(true)
+									getNotifications({ size: 20 })
+										.then(response => {
+											if (response.success && response.data) {
+												const { notifications, unreadCount: count } = response.data
+												setUnreadCount(count)
+												const gamified: GamifiedNotification[] = []
+												const social: SocialNotification[] = []
+												notifications.forEach((notif, idx) => {
+													const g = transformToGamifiedNotification(notif)
+													if (g) gamified.push(g)
+													else {
+														const s = transformToSocialNotification(notif, idx)
+														if (s) social.push(s)
+													}
+												})
+												setGamifiedNotifications(gamified)
+												setSocialNotifications(social)
+											} else {
+												setFetchError(true)
+											}
+										})
+										.catch(() => setFetchError(true))
+										.finally(() => setIsLoading(false))
+								}}
+								className='text-sm font-semibold text-primary hover:text-primary/80'
+							>
+								Try again
+							</button>
+						</div>
+					)}
+
+					{/* Empty state */}
+					{!isLoading && !fetchError && gamifiedNotifications.length === 0 && socialNotifications.length === 0 && (
+						<div className='px-4 py-12 text-center'>
+							<div className='mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-bg-elevated'>
+								<Bell className='size-5 text-text-muted' />
+							</div>
+							<p className='text-sm font-medium text-text-secondary'>All caught up!</p>
+							<p className='mt-1 text-xs text-text-muted'>New activity will appear here</p>
+						</div>
+					)}
 					{/* Gamified Notifications (XP, levels, streaks) */}
 					{gamifiedNotifications.length > 0 && (
 						<>

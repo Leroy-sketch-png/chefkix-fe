@@ -82,7 +82,7 @@ const FEATURES: FeatureConfig[] = [
 	{
 		icon: Bookmark,
 		label: 'Saved Recipes',
-		description: 'Save up to 50 recipes (unlimited with Premium)',
+		description: 'Save your favorite recipes for quick access',
 		free: true,
 		premium: true,
 	},

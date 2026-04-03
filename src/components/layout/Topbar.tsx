@@ -10,6 +10,7 @@ import {
 	LogOut,
 	Settings,
 	ChefHat,
+	Clock,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/store/uiStore'
@@ -20,6 +21,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
@@ -27,6 +29,7 @@ import { toast } from 'sonner'
 import { autocompleteSearch } from '@/services/search'
 import { useNotificationStore } from '@/store/notificationStore'
 import Image from 'next/image'
+import { getRecentSearches, addRecentSearch } from '@/lib/recentSearches'
 
 export const Topbar = () => {
 	const { user } = useAuth()
@@ -53,9 +56,13 @@ export const Topbar = () => {
 		}[]
 	}>({ recipes: [], people: [] })
 	const [showSuggestions, setShowSuggestions] = useState(false)
+	const [isSearching, setIsSearching] = useState(false)
+	const [highlightIndex, setHighlightIndex] = useState(-1)
+	const [recentSearches, setRecentSearches] = useState<string[]>([])
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const searchFormRef = useRef<HTMLFormElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
+	const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
 
 	useEscapeKey(showSuggestions, () => setShowSuggestions(false))
 
@@ -64,9 +71,11 @@ export const Topbar = () => {
 		if (debounceRef.current) clearTimeout(debounceRef.current)
 		if (q.length < 2) {
 			setSuggestions({ recipes: [], people: [] })
-			setShowSuggestions(false)
+			setIsSearching(false)
+			// Show recent searches when query is short
 			return
 		}
+		setIsSearching(true)
 		debounceRef.current = setTimeout(async () => {
 			try {
 				const res = await autocompleteSearch(q, 'all', 5)
@@ -91,12 +100,26 @@ export const Topbar = () => {
 							}))
 						: []
 				setSuggestions({ recipes, people })
-				setShowSuggestions(recipes.length > 0 || people.length > 0)
+				setHighlightIndex(-1)
+				setShowSuggestions(true)
 			} catch {
 				// Silently fail — typeahead is an enhancement
 			} finally {
+				setIsSearching(false)
 			}
 		}, 300)
+	}, [])
+
+	// Update dropdown position when suggestions show
+	const updateDropdownPosition = useCallback(() => {
+		if (searchFormRef.current) {
+			const rect = searchFormRef.current.getBoundingClientRect()
+			setDropdownPosition({
+				top: rect.bottom + 8,
+				left: rect.left,
+				width: rect.width,
+			})
+		}
 	}, [])
 
 	// Close suggestions when clicking outside
@@ -106,6 +129,9 @@ export const Topbar = () => {
 				searchFormRef.current &&
 				!searchFormRef.current.contains(e.target as Node)
 			) {
+				// Also check if click is inside the portaled dropdown
+				const dropdown = document.getElementById('search-suggestions-dropdown')
+				if (dropdown && dropdown.contains(e.target as Node)) return
 				setShowSuggestions(false)
 			}
 		}
@@ -113,13 +139,90 @@ export const Topbar = () => {
 		return () => document.removeEventListener('mousedown', handleClickOutside)
 	}, [])
 
+	// Build flat list of selectable items for keyboard navigation
+	type SuggestionItem =
+		| { type: 'recent'; value: string }
+		| { type: 'recipe'; id: string; title: string; imageUrl: string }
+		| { type: 'person'; id: string; username: string; displayName: string; avatarUrl: string }
+		| { type: 'seeAll' }
+
+	const flatItems: SuggestionItem[] = (() => {
+		const items: SuggestionItem[] = []
+		const q = searchQuery.trim()
+		if (q.length < 2) {
+			// Show recent searches
+			for (const term of recentSearches) {
+				items.push({ type: 'recent', value: term })
+			}
+		} else {
+			for (const r of suggestions.recipes) {
+				items.push({ type: 'recipe', ...r })
+			}
+			for (const p of suggestions.people) {
+				items.push({ type: 'person', ...p })
+			}
+			if (q.length >= 2) {
+				items.push({ type: 'seeAll' })
+			}
+		}
+		return items
+	})()
+
+	const selectItem = useCallback(
+		(item: SuggestionItem) => {
+			setShowSuggestions(false)
+			switch (item.type) {
+				case 'recent':
+					setSearchQuery(item.value)
+					addRecentSearch(item.value)
+					router.push(`/search?q=${encodeURIComponent(item.value)}`)
+					break
+				case 'recipe':
+					setSearchQuery('')
+					addRecentSearch(item.title)
+					router.push(`/recipes/${item.id}`)
+					break
+				case 'person':
+					setSearchQuery('')
+					addRecentSearch(item.displayName)
+					router.push(`/profile/${item.id}`)
+					break
+				case 'seeAll':
+					addRecentSearch(searchQuery.trim())
+					router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+					break
+			}
+			setRecentSearches(getRecentSearches())
+		},
+		[router, searchQuery],
+	)
+
+	const handleSearchKeyDown = useCallback(
+		(e: React.KeyboardEvent) => {
+			if (!showSuggestions || flatItems.length === 0) return
+			if (e.key === 'ArrowDown') {
+				e.preventDefault()
+				setHighlightIndex(i => (i + 1) % flatItems.length)
+			} else if (e.key === 'ArrowUp') {
+				e.preventDefault()
+				setHighlightIndex(i => (i <= 0 ? flatItems.length - 1 : i - 1))
+			} else if (e.key === 'Enter' && highlightIndex >= 0) {
+				e.preventDefault()
+				selectItem(flatItems[highlightIndex])
+			}
+		},
+		[showSuggestions, flatItems, highlightIndex, selectItem],
+	)
+
 	// Fetch notification count via store (WebSocket keeps it updated after mount)
 	useEffect(() => {
-		fetchUnreadCount()
-	}, [fetchUnreadCount])
+		if (user) fetchUnreadCount()
+	}, [fetchUnreadCount, user])
 
 	// Fetch unread message counts on mount and periodically
 	useEffect(() => {
+		if (!user) return
+
 		const fetchMessageCounts = async () => {
 			try {
 				const convResponse = await getMyConversations()
@@ -198,7 +301,10 @@ export const Topbar = () => {
 					e.preventDefault()
 					setShowSuggestions(false)
 					const q = searchQuery.trim()
-					if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
+					if (q) {
+						addRecentSearch(q)
+						router.push(`/search?q=${encodeURIComponent(q)}`)
+					}
 				}}
 				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-card transition-all duration-300 focus-within:border-primary focus-within:shadow-card md:ml-44 md:px-4 md:py-2.5'
 			>
@@ -208,101 +314,192 @@ export const Topbar = () => {
 					type='text'
 					placeholder='Search...'
 					aria-label='Search recipes and people'
+					aria-expanded={showSuggestions}
+					aria-autocomplete='list'
+					aria-controls='search-suggestions-dropdown'
 					value={searchQuery}
 					onChange={e => {
 						setSearchQuery(e.target.value)
 						fetchSuggestions(e.target.value.trim())
 					}}
 					onFocus={() => {
-						if (suggestions.recipes.length > 0 || suggestions.people.length > 0)
-							setShowSuggestions(true)
+						setRecentSearches(getRecentSearches())
+						updateDropdownPosition()
+						const q = searchQuery.trim()
+						if (q.length >= 2) {
+							if (suggestions.recipes.length > 0 || suggestions.people.length > 0)
+								setShowSuggestions(true)
+						} else {
+							// Show recent searches
+							const recent = getRecentSearches()
+							if (recent.length > 0) setShowSuggestions(true)
+						}
 					}}
+					onKeyDown={handleSearchKeyDown}
 					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-primary outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
 				/>
-				{/* Typeahead Suggestions Dropdown */}
+				{/* Typeahead Suggestions Dropdown — Portaled */}
 				{showSuggestions && (
-					<div className='absolute left-0 right-0 top-full z-dropdown mt-2 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'>
-						{suggestions.recipes.length > 0 && (
-							<div>
-								<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-									Recipes
+					<Portal>
+						<div
+							id='search-suggestions-dropdown'
+							role='listbox'
+							className='fixed z-dropdown overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
+							style={{
+								top: dropdownPosition.top,
+								left: dropdownPosition.left,
+								width: dropdownPosition.width,
+							}}
+						>
+							{/* Loading state */}
+							{isSearching && (
+								<div className='flex items-center gap-2 px-4 py-3 text-sm text-text-muted'>
+									<div className='size-4 animate-spin rounded-full border-2 border-text-muted border-t-brand' />
+									Searching...
 								</div>
-								{suggestions.recipes.map(r => (
-									<button
-										key={r.id}
-										type='button'
-										onClick={() => {
-											setShowSuggestions(false)
-											setSearchQuery('')
-											router.push(`/recipes/${r.id}`)
-										}}
-										className='flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-bg-elevated'
-									>
-										<Image
-											src={r.imageUrl}
-											alt={r.title}
-											width={36}
-											height={36}
-											className='size-9 flex-shrink-0 rounded-lg object-cover'
-										/>
-										<span className='truncate text-sm font-medium text-text'>
-											{r.title}
-										</span>
-									</button>
-								))}
-							</div>
-						)}
-						{suggestions.people.length > 0 && (
-							<div>
-								<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-									People
+							)}
+
+							{/* Recent searches — when query is short */}
+							{searchQuery.trim().length < 2 && recentSearches.length > 0 && !isSearching && (
+								<div>
+									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+										Recent
+									</div>
+									{recentSearches.slice(0, 5).map((term, idx) => {
+										const itemIdx = idx
+										return (
+											<button
+												key={term}
+												type='button'
+												role='option'
+												aria-selected={highlightIndex === itemIdx}
+												onClick={() => selectItem({ type: 'recent', value: term })}
+												className={cn(
+													'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors',
+													highlightIndex === itemIdx
+														? 'bg-bg-elevated text-text'
+														: 'text-text-secondary hover:bg-bg-elevated',
+												)}
+											>
+												<Clock className='size-4 shrink-0 text-text-muted' />
+												<span className='truncate'>{term}</span>
+											</button>
+										)
+									})}
 								</div>
-								{suggestions.people.map(p => (
-									<button
-										key={p.id}
-										type='button'
-										onClick={() => {
-											setShowSuggestions(false)
-											setSearchQuery('')
-											router.push(`/profile/${p.id}`)
-										}}
-										className='flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-bg-elevated'
-									>
-										<Image
-											src={p.avatarUrl}
-											alt={p.username}
-											width={36}
-											height={36}
-											className='size-9 flex-shrink-0 rounded-full object-cover'
-										/>
-										<div className='min-w-0'>
-											<span className='block truncate text-sm font-medium text-text'>
-												{p.displayName}
-											</span>
-											<span className='block truncate text-xs text-text-muted'>
-												@{p.username}
-											</span>
-										</div>
-									</button>
-								))}
-							</div>
-						)}
-						{searchQuery.trim().length >= 2 && (
-							<button
-								type='button'
-								onClick={() => {
-									setShowSuggestions(false)
-									router.push(
-										`/search?q=${encodeURIComponent(searchQuery.trim())}`,
-									)
-								}}
-								className='flex w-full items-center gap-2 border-t border-border-subtle px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-bg-elevated'
-							>
-								<Search className='size-4' />
-								See all results for &quot;{searchQuery.trim()}&quot;
-							</button>
-						)}
-					</div>
+							)}
+
+							{/* Recipe results */}
+							{searchQuery.trim().length >= 2 && !isSearching && suggestions.recipes.length > 0 && (
+								<div>
+									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+										Recipes
+									</div>
+									{suggestions.recipes.map((r, idx) => {
+										const itemIdx = idx
+										return (
+											<button
+												key={r.id}
+												type='button'
+												role='option'
+												aria-selected={highlightIndex === itemIdx}
+												onClick={() => selectItem({ type: 'recipe', ...r })}
+												className={cn(
+													'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
+													highlightIndex === itemIdx
+														? 'bg-bg-elevated'
+														: 'hover:bg-bg-elevated',
+												)}
+											>
+												<Image
+													src={r.imageUrl}
+													alt={r.title}
+													width={36}
+													height={36}
+													className='size-9 flex-shrink-0 rounded-lg object-cover'
+												/>
+												<span className='truncate text-sm font-medium text-text'>
+													{r.title}
+												</span>
+											</button>
+										)
+									})}
+								</div>
+							)}
+
+							{/* People results */}
+							{searchQuery.trim().length >= 2 && !isSearching && suggestions.people.length > 0 && (
+								<div>
+									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+										People
+									</div>
+									{suggestions.people.map((p, idx) => {
+										const itemIdx = suggestions.recipes.length + idx
+										return (
+											<button
+												key={p.id}
+												type='button'
+												role='option'
+												aria-selected={highlightIndex === itemIdx}
+												onClick={() => selectItem({ type: 'person', ...p })}
+												className={cn(
+													'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
+													highlightIndex === itemIdx
+														? 'bg-bg-elevated'
+														: 'hover:bg-bg-elevated',
+												)}
+											>
+												<Image
+													src={p.avatarUrl}
+													alt={p.username}
+													width={36}
+													height={36}
+													className='size-9 flex-shrink-0 rounded-full object-cover'
+												/>
+												<div className='min-w-0'>
+													<span className='block truncate text-sm font-medium text-text'>
+														{p.displayName}
+													</span>
+													<span className='block truncate text-xs text-text-muted'>
+														@{p.username}
+													</span>
+												</div>
+											</button>
+										)
+									})}
+								</div>
+							)}
+
+							{/* Empty state */}
+							{searchQuery.trim().length >= 2 &&
+								!isSearching &&
+								suggestions.recipes.length === 0 &&
+								suggestions.people.length === 0 && (
+									<div className='px-4 py-4 text-center text-sm text-text-muted'>
+										No results for &quot;{searchQuery.trim()}&quot;
+									</div>
+								)}
+
+							{/* See all results */}
+							{searchQuery.trim().length >= 2 && !isSearching && (
+								<button
+									type='button'
+									role='option'
+									aria-selected={highlightIndex === flatItems.length - 1}
+									onClick={() => selectItem({ type: 'seeAll' })}
+									className={cn(
+										'flex w-full items-center gap-2 border-t border-border-subtle px-4 py-3 text-sm font-medium text-brand transition-colors',
+										highlightIndex === flatItems.length - 1
+											? 'bg-bg-elevated'
+											: 'hover:bg-bg-elevated',
+									)}
+								>
+									<Search className='size-4' />
+									See all results for &quot;{searchQuery.trim()}&quot;
+								</button>
+							)}
+						</div>
+					</Portal>
 				)}
 			</form>
 
@@ -477,7 +674,26 @@ export const Topbar = () => {
 					)}
 				</div>
 			)}
-			{/* Communication Icons */}
+			{/* Guest CTA - Sign In / Get Started */}
+			{!user && (
+				<div className='flex items-center gap-2'>
+					<Link
+						href={PATHS.AUTH.SIGN_IN}
+						className='rounded-radius px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+					>
+						Sign In
+					</Link>
+					<Link
+						href={PATHS.AUTH.SIGN_UP}
+						className='rounded-radius bg-brand px-4 py-2 text-sm font-bold text-white shadow-card transition-all hover:shadow-warm'
+					>
+						Get Started
+					</Link>
+				</div>
+			)}
+
+			{/* Communication Icons - authenticated users only */}
+			{user && (
 			<div className='flex gap-2 md:gap-3'>
 				<motion.button
 					onClick={toggleNotificationsPopup}
@@ -518,6 +734,7 @@ export const Topbar = () => {
 					)}
 				</motion.button>
 			</div>
+			)}
 		</header>
 	)
 }

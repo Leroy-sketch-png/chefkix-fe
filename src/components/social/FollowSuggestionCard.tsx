@@ -11,6 +11,7 @@ import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import { triggerLikeConfetti } from '@/lib/confetti'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import Link from 'next/link'
 
 interface FollowSuggestionCardProps {
@@ -20,6 +21,8 @@ interface FollowSuggestionCardProps {
 	onFollowBack?: (userId: string) => void
 	/** Called when user dismisses the suggestion - receives userId */
 	onDismiss?: (userId: string) => void
+	/** Variant: 'follow-back' shows "Follows you" tag, 'suggested' shows preference overlap info */
+	variant?: 'follow-back' | 'suggested'
 }
 
 /**
@@ -32,25 +35,32 @@ export const FollowSuggestionCard = ({
 	profile,
 	onFollowBack,
 	onDismiss,
+	variant = 'follow-back',
 }: FollowSuggestionCardProps) => {
 	const [isFollowing, setIsFollowing] = useState(false)
 	const [isDismissing, setIsDismissing] = useState(false)
 	const displayName = getProfileDisplayName(profile)
+	const requireAuth = useAuthGate()
 
 	const handleFollowBack = async () => {
+		if (!requireAuth('follow this chef')) return
 		setIsFollowing(true)
 
-		const response = await toggleFollow(profile.userId)
+		try {
+			const response = await toggleFollow(profile.userId)
 
-		if (response.success) {
-			toast.success(`You are now following ${displayName}!`)
-			triggerLikeConfetti() // Celebrate new mutual connection! 🎉
-			onFollowBack?.(profile.userId)
-		} else {
-			toast.error(response.message || 'Failed to follow user')
+			if (response.success) {
+				toast.success(`You are now following ${displayName}!`)
+				triggerLikeConfetti() // Celebrate new mutual connection!
+				onFollowBack?.(profile.userId)
+			} else {
+				toast.error(response.message || 'Failed to follow user')
+			}
+		} catch {
+			toast.error('Network error. Please check your connection and try again.')
+		} finally {
+			setIsFollowing(false)
 		}
-
-		setIsFollowing(false)
 	}
 
 	const handleDismiss = () => {
@@ -99,7 +109,9 @@ export const FollowSuggestionCard = ({
 							{displayName}
 						</h3>
 						<p className='text-sm text-text-secondary'>@{profile.username}</p>
-						<p className='text-xs text-text-tertiary'>Follows you</p>
+						<p className='text-xs text-text-tertiary'>
+							{variant === 'follow-back' ? 'Follows you' : 'Suggested for you'}
+						</p>
 					</div>
 				</Link>
 
@@ -115,7 +127,7 @@ export const FollowSuggestionCard = ({
 						) : (
 							<>
 								<UserPlus className='mr-1 size-4' />
-								Follow Back
+								{variant === 'follow-back' ? 'Follow Back' : 'Follow'}
 							</>
 						)}
 					</Button>

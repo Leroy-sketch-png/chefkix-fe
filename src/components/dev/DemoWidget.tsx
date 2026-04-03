@@ -35,7 +35,6 @@ const DEMO_ROUTES: QuickRoute[] = [
 		icon: '✏️',
 		description: 'Recipe editor',
 	},
-	{ label: 'Feed', path: '/feed', icon: '📱', description: 'Social feed' },
 	{
 		label: 'Challenges',
 		path: '/challenges',

@@ -172,6 +172,8 @@ function LazyLottieComponent({
 	useEffect(() => {
 		if (!isInView || hasLoaded) return
 
+		const controller = new AbortController()
+
 		const fetchAnimation = async () => {
 			try {
 				// Check cache first
@@ -182,22 +184,27 @@ function LazyLottieComponent({
 					return
 				}
 
-				const response = await fetch(src)
+				const response = await fetch(src, { signal: controller.signal })
 				if (!response.ok) {
 					logDevError(`Failed to fetch Lottie: ${src}`)
 					return
 				}
 
 				const data = await response.json()
-				lottieCache.set(src, data)
-				setAnimationData(data)
-				setHasLoaded(true)
+				if (!controller.signal.aborted) {
+					lottieCache.set(src, data)
+					setAnimationData(data)
+					setHasLoaded(true)
+				}
 			} catch (error) {
+				if (error instanceof Error && error.name === 'AbortError') return
 				logDevError(`Error loading Lottie animation: ${src}`, error)
 			}
 		}
 
 		fetchAnimation()
+
+		return () => controller.abort()
 	}, [isInView, hasLoaded, src])
 
 	// Only render Lottie when we have data and are in view

@@ -556,6 +556,11 @@ export const CookingPlayer = () => {
 	const [kitchenMode, setKitchenMode] = useState(true) // Auto-enabled: 28px+ text, 64px+ targets
 	const [liveAnnouncement, setLiveAnnouncement] = useState('') // aria-live region text
 
+	// Auto-enable kitchen-distance mode when entering MESSY_HANDS
+	useEffect(() => {
+		if (interactionMode === 'MESSY_HANDS') setKitchenMode(true)
+	}, [interactionMode])
+
 	// Adaptive recipe instructions (Wave 2): adjust detail level based on user proficiency
 	// BEGINNER → detailed (tips expanded, TTS reads tips), AMATEUR → standard, SEMIPRO/PRO → condensed
 	const userTitle =

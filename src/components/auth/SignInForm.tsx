@@ -101,7 +101,7 @@ export function SignInForm() {
 		if (!payload || !payload.accessToken) {
 			const errorMsg =
 				'Authentication failed: no access token received from server.'
-			form.setError('root.general' as any, {
+			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
 			})
@@ -131,7 +131,7 @@ export function SignInForm() {
 			const errorMsg =
 				profileResponse.message ||
 				'Login successful, but failed to fetch your profile. Please try again.'
-			form.setError('root.general' as any, {
+			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
 			})
@@ -161,7 +161,7 @@ export function SignInForm() {
 			} else {
 				// Login failed - show user-friendly error
 				const readableError = getReadableErrorMessage(response.message || '')
-				form.setError('root.general' as any, {
+				form.setError('root', {
 					type: 'manual',
 					message: readableError,
 				})
@@ -171,7 +171,7 @@ export function SignInForm() {
 		} catch (error) {
 			// Unexpected error
 			const errorMsg = 'An unexpected error occurred. Please try again.'
-			form.setError('root.general' as any, {
+			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
 			})
@@ -189,14 +189,14 @@ export function SignInForm() {
 		>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
-					{form.formState.errors.root?.general && (
+					{form.formState.errors.root?.message && (
 						<motion.div
 							initial={{ opacity: 0, height: 0 }}
 							animate={{ opacity: 1, height: 'auto' }}
 							className='rounded-xl bg-error/10 p-4 text-sm text-error'
 							role='alert'
 						>
-							{(form.formState.errors.root.general as any).message}
+							{form.formState.errors.root.message}
 						</motion.div>
 					)}
 					<motion.div variants={staggerItem}>
@@ -277,20 +277,27 @@ export function SignInForm() {
 						<GoogleSignInButton
 							text='Sign in with Google'
 							onSuccess={async code => {
-								const response = await googleSignIn({ code })
-								if (response.success) {
-									await handleSuccessfulLogin(response)
-								} else {
-									const errorMessage =
-										response.message || 'Google sign-in failed.'
-									form.setError('root.general' as any, {
+								try {
+									const response = await googleSignIn({ code })
+									if (response.success) {
+										await handleSuccessfulLogin(response)
+									} else {
+										const errorMessage =
+											response.message || 'Google sign-in failed.'
+										form.setError('root', {
+											type: 'manual',
+											message: errorMessage,
+										})
+									}
+								} catch {
+									form.setError('root', {
 										type: 'manual',
-										message: errorMessage,
+										message: 'Google sign-in failed. Please try again.',
 									})
 								}
 							}}
 							onFailure={error => {
-								form.setError('root.general' as any, {
+								form.setError('root', {
 									type: 'manual',
 									message: error.message || 'Google sign-in failed.',
 								})

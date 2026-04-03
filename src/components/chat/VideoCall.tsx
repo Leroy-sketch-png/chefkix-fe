@@ -3,13 +3,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // Define the structure of the signaling message to match the Spring Boot backend
+// data type depends on message type: offer/answer use RTCSessionDescriptionInit,
+// ice-candidate uses RTCIceCandidateInit, join/leave/ring have no data
+type SignalData = RTCSessionDescriptionInit | RTCIceCandidate
 interface SignalMessage {
 	type: 'join' | 'offer' | 'answer' | 'ice-candidate' | 'leave' | 'ring'
 	conversationId: string
 	senderId: string
-	data?: any
+	data?: SignalData
 }
 
 interface VideoCallProps {
@@ -150,35 +154,44 @@ export default function VideoCall({
 
 		// Listen for messages from the backend
 		ws.onmessage = async event => {
-			const message: SignalMessage = JSON.parse(event.data)
+			try {
+				const message: SignalMessage = JSON.parse(event.data)
 
-			// Ignore our own messages just in case
-			if (message.senderId === currentUserId) return
+				// Ignore our own messages just in case
+				if (message.senderId === currentUserId) return
 
-			switch (message.type) {
-				case 'ring':
-					playRingtone()
-					setIsReceivingCall(true)
-					break
-				case 'offer':
-					stopRingtone()
-					setIsReceivingCall(true)
-					setRemoteOffer(message.data)
-					break
-				case 'answer':
-					stopRingtone()
-					await handleReceiveAnswer(message.data)
-					break
-				case 'ice-candidate':
-					await handleNewICECandidateMsg(message.data)
-					break
-				case 'leave':
-					stopRingtone()
-					endCall()
-					toast.info('The other person left the call.')
-					break
-				default:
-					logDevError('Unknown WebSocket message type:', message.type)
+				switch (message.type) {
+					case 'ring':
+						playRingtone()
+						setIsReceivingCall(true)
+						break
+					case 'offer':
+						stopRingtone()
+						setIsReceivingCall(true)
+						setRemoteOffer(message.data as RTCSessionDescriptionInit)
+						break
+					case 'answer':
+						stopRingtone()
+						await handleReceiveAnswer(
+							message.data as RTCSessionDescriptionInit,
+						)
+						break
+					case 'ice-candidate':
+						await handleNewICECandidateMsg(
+							message.data as RTCIceCandidateInit,
+						)
+						break
+					case 'leave':
+						stopRingtone()
+						endCall()
+						toast.info('The other person left the call.')
+						break
+					default:
+						logDevError('Unknown WebSocket message type:', message.type)
+				}
+			} catch (error) {
+				logDevError('Error processing WebSocket message', error)
+				toast.error('Call connection error. Please try again.')
 			}
 		}
 
@@ -193,7 +206,11 @@ export default function VideoCall({
 
 	// Helper to send JSON messages through WebSocket
 	const sendMessage = useCallback(
-		(wsInstance: WebSocket | null, type: SignalMessage['type'], data?: any) => {
+		(
+			wsInstance: WebSocket | null,
+			type: SignalMessage['type'],
+			data?: SignalData,
+		) => {
 			if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
 				const payload: SignalMessage = {
 					type,
@@ -215,8 +232,9 @@ export default function VideoCall({
 
 		// 2. Add our local camera/mic tracks to the connection
 		if (localStreamRef.current) {
-			localStreamRef.current.getTracks().forEach(track => {
-				pc.addTrack(track, localStreamRef.current!)
+			const stream = localStreamRef.current
+			stream.getTracks().forEach(track => {
+				pc.addTrack(track, stream)
 			})
 		}
 
@@ -243,20 +261,26 @@ export default function VideoCall({
 
 	// Caller: "I want to call you. Here is my video setup (offer)."
 	const makeCall = async () => {
-		// 1. Send ring signal to start ringing on the other side
-		sendMessage(wsRef.current, 'ring')
-		// 2. Play ringtone locally while waiting
-		playRingtone()
+		try {
+			// 1. Send ring signal to start ringing on the other side
+			sendMessage(wsRef.current, 'ring')
+			// 2. Play ringtone locally while waiting
+			playRingtone()
 
-		const pc = initializePeerConnection()
+			const pc = initializePeerConnection()
 
-		// Create an offer
-		const offer = await pc.createOffer()
-		// Set it as our local description
-		await pc.setLocalDescription(offer)
+			// Create an offer
+			const offer = await pc.createOffer()
+			// Set it as our local description
+			await pc.setLocalDescription(offer)
 
-		// Send it to the other user via WebSocket
-		sendMessage(wsRef.current, 'offer', offer)
+			// Send it to the other user via WebSocket
+			sendMessage(wsRef.current, 'offer', offer)
+		} catch (error) {
+			logDevError('Failed to initiate call', error)
+			stopRingtone()
+			toast.error('Failed to start call. Please try again.')
+		}
 	}
 
 	// Callee: Answers the incoming call
@@ -264,13 +288,18 @@ export default function VideoCall({
 		stopRingtone()
 		setIsReceivingCall(false)
 
-		// Attempt to start audio/video. We default to both, but fallback to audio only in startMedia.
-		if (!localStreamRef.current) {
-			await startMedia(true)
-		}
+		try {
+			// Attempt to start audio/video. We default to both, but fallback to audio only in startMedia.
+			if (!localStreamRef.current) {
+				await startMedia(true)
+			}
 
-		if (remoteOffer) {
-			await handleReceiveOffer(remoteOffer)
+			if (remoteOffer) {
+				await handleReceiveOffer(remoteOffer)
+			}
+		} catch (error) {
+			logDevError('Failed to accept call', error)
+			toast.error('Failed to connect. Please try again.')
 		}
 	}
 
@@ -284,28 +313,38 @@ export default function VideoCall({
 
 	// Callee: "I received your call. Here is my video setup (answer)."
 	const handleReceiveOffer = async (offer: RTCSessionDescriptionInit) => {
-		// Even if we are receiving, we need to initialize our Peer Connection
-		const pc = initializePeerConnection()
+		try {
+			// Even if we are receiving, we need to initialize our Peer Connection
+			const pc = initializePeerConnection()
 
-		// Register the caller's setup
-		await pc.setRemoteDescription(new RTCSessionDescription(offer))
+			// Register the caller's setup
+			await pc.setRemoteDescription(new RTCSessionDescription(offer))
 
-		// Create our answer
-		const answer = await pc.createAnswer()
-		// Register our setup locally
-		await pc.setLocalDescription(answer)
+			// Create our answer
+			const answer = await pc.createAnswer()
+			// Register our setup locally
+			await pc.setLocalDescription(answer)
 
-		// Send the answer back to the caller
-		sendMessage(wsRef.current, 'answer', answer)
-		setIsCallActive(true)
+			// Send the answer back to the caller
+			sendMessage(wsRef.current, 'answer', answer)
+			setIsCallActive(true)
+		} catch (error) {
+			logDevError('Failed to handle incoming offer', error)
+			toast.error('Failed to establish connection.')
+		}
 	}
 
 	// Caller: "I received your answer. We are now connected."
 	const handleReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {
-		if (peerConnectionRef.current) {
-			await peerConnectionRef.current.setRemoteDescription(
-				new RTCSessionDescription(answer),
-			)
+		try {
+			if (peerConnectionRef.current) {
+				await peerConnectionRef.current.setRemoteDescription(
+					new RTCSessionDescription(answer),
+				)
+			}
+		} catch (error) {
+			logDevError('Failed to process answer', error)
+			toast.error('Failed to establish connection.')
 		}
 	}
 
@@ -368,6 +407,9 @@ export default function VideoCall({
 			endCall()
 		}
 	}, [endCall])
+
+	// Escape key dismisses the incoming call overlay (same as Decline)
+	useEscapeKey(isReceivingCall && !isCallActive, rejectCall)
 
 	// --- Render UI ---
 	return (

@@ -26,6 +26,7 @@ import {
 	toggleLikeReply,
 } from '@/services/comment'
 import { moderateContent } from '@/services/ai'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { toast } from 'sonner'
 import {
 	DropdownMenu,
@@ -117,8 +118,10 @@ const ReplyItem = ({
 	const [likes, setLikes] = useState(reply.likes)
 	const [isLiked, setIsLiked] = useState(reply.isLiked ?? false)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
+	const requireAuth = useAuthGate()
 
 	const handleLike = async () => {
+		if (!requireAuth('like this reply')) return
 		if (isLikeLoading) return
 
 		// Optimistic update
@@ -188,7 +191,8 @@ const ReplyItem = ({
 					<span>{timeAgo}</span>
 					<button
 						onClick={handleLike}
-						className='flex items-center gap-1 transition-colors hover:text-color-error'
+						disabled={isLikeLoading}
+						className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
 						aria-label={isLiked ? 'Unlike reply' : 'Like reply'}
 					>
 						<Heart
@@ -228,10 +232,12 @@ export const Comment = ({
 	const [replies, setReplies] = useState<Reply[]>([])
 	const [replyCount, setReplyCount] = useState(comment.replyCount)
 	const mentionInputRef = useRef<MentionInputRef>(null)
+	const requireAuth = useAuthGate()
 
 	const isOwnComment = currentUserId === comment.userId
 
 	const handleLike = async () => {
+		if (!requireAuth('like this comment')) return
 		if (isLikeLoading) return
 
 		diag.action('social', 'COMMENT_LIKE_TOGGLE', {
@@ -345,6 +351,7 @@ export const Comment = ({
 
 	// Submit reply
 	const handleSubmitReply = async () => {
+		if (!requireAuth('reply to this comment')) return
 		if (!replyContent.trim() || isSubmittingReply) return
 
 		diag.action('social', 'REPLY_SUBMIT', {
@@ -542,7 +549,8 @@ export const Comment = ({
 						<span>{timeAgo}</span>
 						<button
 							onClick={handleLike}
-							className='flex items-center gap-1 transition-colors hover:text-color-error'
+							disabled={isLikeLoading}
+							className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
 							aria-label={isLiked ? 'Unlike comment' : 'Like comment'}
 						>
 							<Heart
@@ -551,7 +559,10 @@ export const Comment = ({
 							{likes > 0 && <span>{likes}</span>}
 						</button>
 						<button
-							onClick={() => setShowReplyInput(!showReplyInput)}
+							onClick={() => {
+								if (!requireAuth('reply to this comment')) return
+								setShowReplyInput(!showReplyInput)
+							}}
 							className='flex items-center gap-1 transition-colors hover:text-primary'
 							aria-label='Reply to comment'
 						>

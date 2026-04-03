@@ -1,8 +1,9 @@
 ﻿'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { Profile, Post, getProfileDisplayName } from '@/lib/types'
 import {
 	ChefHat,
@@ -13,6 +14,7 @@ import {
 	ImageOff,
 	Trophy,
 	Award,
+	Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toggleFollow, blockUser, unblockUser } from '@/services/social'
@@ -25,6 +27,7 @@ import { getPostsByUser, getSavedPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { ProfileHeaderGamified } from './ProfileHeaderGamified'
 import { CookingHistoryTab, type PendingSession } from '@/components/pending'
 import type { Badge as GamificationBadge } from '@/lib/types/gamification'
@@ -37,6 +40,9 @@ import { RecipeCard } from '@/components/recipe/RecipeCard'
 import { SkillTree } from '@/components/achievements/SkillTree'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { TasteCompatibility } from '@/components/profile/TasteCompatibility'
+import { useAuth } from '@/hooks/useAuth'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { logDevError } from '@/lib/dev-log'
 
 // ============================================
@@ -247,6 +253,8 @@ export const UserProfile = ({
 }: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
 	const [isLoading, setIsLoading] = useState(false)
+	const [isFollowLoading, setIsFollowLoading] = useState(false)
+	const [isBlockLoading, setIsBlockLoading] = useState(false)
 	const [activeTab, setActiveTab] = useState(initialTab || 'recipes')
 	const [userRecipes, setUserRecipes] = useState<Recipe[]>([])
 	const [isLoadingRecipes, setIsLoadingRecipes] = useState(false)
@@ -267,6 +275,8 @@ export const UserProfile = ({
 	// Block confirmation dialog state
 	const [showBlockConfirm, setShowBlockConfirm] = useState(false)
 
+	const { user: currentUserProfile } = useAuth()
+	const requireAuth = useAuthGate()
 	const router = useRouter()
 	const isOwnProfile = profile.userId === currentUserId
 
@@ -451,7 +461,9 @@ export const UserProfile = ({
 	const profileUser = transformProfileToProfileUser(profile)
 
 	const handleFollow = async () => {
-		setIsLoading(true)
+		if (isFollowLoading) return
+		if (!requireAuth('follow this chef')) return
+		setIsFollowLoading(true)
 		const wasFollowing = profile.isFollowing
 
 		// Optimistic UI update
@@ -491,7 +503,7 @@ export const UserProfile = ({
 			toast.error(response.message || 'Failed to update follow status')
 		}
 
-		setIsLoading(false)
+		setIsFollowLoading(false)
 	}
 
 	// ============================================
@@ -516,16 +528,17 @@ export const UserProfile = ({
 	}
 
 	const handleMessage = () => {
+		if (!requireAuth('message this chef')) return
 		router.push(`/messages?userId=${profile.userId}`)
 	}
 
 	// Initialize isBlocked from profile API response
 	const [isBlocked, setIsBlocked] = useState(profile.isBlocked ?? false)
-	const blockLockRef = useRef(false)
 
 	const handleBlock = async () => {
-		if (blockLockRef.current) return
-		blockLockRef.current = true
+		if (!requireAuth('block this user')) return
+		if (isBlockLoading) return
+		setIsBlockLoading(true)
 		const wasBlocked = isBlocked
 		const displayName = getProfileDisplayName(profile)
 
@@ -541,18 +554,18 @@ export const UserProfile = ({
 					toast.error(response.message || 'Failed to unblock user')
 				}
 			} finally {
-				blockLockRef.current = false
+				setIsBlockLoading(false)
 			}
 		} else {
-			blockLockRef.current = false
+			setIsBlockLoading(false)
 			// Block - show confirmation dialog
 			setShowBlockConfirm(true)
 		}
 	}
 
 	const handleConfirmBlock = async () => {
-		if (blockLockRef.current) return
-		blockLockRef.current = true
+		if (isBlockLoading) return
+		setIsBlockLoading(true)
 		setIsBlocked(true)
 		const displayName = getProfileDisplayName(profile)
 		try {
@@ -569,7 +582,7 @@ export const UserProfile = ({
 				toast.error(response.message || 'Failed to block user')
 			}
 		} finally {
-			blockLockRef.current = false
+			setIsBlockLoading(false)
 		}
 	}
 
@@ -589,27 +602,51 @@ export const UserProfile = ({
 
 			{/* Gamified Profile Header */}
 			{isOwnProfile ? (
-				<ProfileHeaderGamified
-					variant='own'
-					user={profileUser}
-					onEditProfile={handleEditProfile}
-					onShareProfile={handleShareProfile}
-					activeTab={activeTab}
-					onTabChange={setActiveTab}
-				/>
+				<>
+					<ProfileHeaderGamified
+						variant='own'
+						user={profileUser}
+						onEditProfile={handleEditProfile}
+						onShareProfile={handleShareProfile}
+						activeTab={activeTab}
+						onTabChange={setActiveTab}
+					/>
+					<div className='mt-3 flex justify-center'>
+						<Link
+							href='/profile/taste'
+							className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
+						>
+							<Sparkles className='size-4' />
+							View Your Taste DNA
+						</Link>
+					</div>
+				</>
 			) : (
-				<ProfileHeaderGamified
-					variant='other'
-					user={profileUser}
-					isFollowing={profile.isFollowing}
-					isMutualFollow={profile.relationshipStatus === 'FRIENDS'}
-					isBlocked={isBlocked}
-					onFollow={handleFollow}
-					onMessage={handleMessage}
-					onBlock={handleBlock}
-					activeTab={activeTab}
-					onTabChange={setActiveTab}
-				/>
+				<>
+					<ProfileHeaderGamified
+						variant='other'
+						user={profileUser}
+						isFollowing={profile.isFollowing}
+						isMutualFollow={profile.relationshipStatus === 'FRIENDS'}
+						isBlocked={isBlocked}
+						isFollowLoading={isFollowLoading}
+						isBlockLoading={isBlockLoading}
+						onFollow={handleFollow}
+						onMessage={handleMessage}
+						onBlock={handleBlock}
+						activeTab={activeTab}
+						onTabChange={setActiveTab}
+					/>
+					{/* Taste Compatibility — only on other user's profile when logged in */}
+					{currentUserProfile && (
+						<div className='mx-auto mt-3 max-w-md'>
+							<TasteCompatibility
+								myProfile={currentUserProfile}
+								theirProfile={profile}
+							/>
+						</div>
+					)}
+				</>
 			)}
 
 			{/* Profile Content Grid - Tab Content */}
@@ -783,8 +820,9 @@ export const UserProfile = ({
 							<div className='space-y-4'>
 								{/* Sub-tabs for Recipes/Posts */}
 								<div className='flex gap-2'>
-									<button
+									<motion.button
 										onClick={() => setSavedSubTab('recipes')}
+										whileTap={BUTTON_SUBTLE_TAP}
 										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
 											savedSubTab === 'recipes'
 												? 'bg-brand text-white'
@@ -793,9 +831,10 @@ export const UserProfile = ({
 									>
 										Recipes
 										{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
-									</button>
-									<button
+									</motion.button>
+									<motion.button
 										onClick={() => setSavedSubTab('posts')}
+										whileTap={BUTTON_SUBTLE_TAP}
 										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
 											savedSubTab === 'posts'
 												? 'bg-brand text-white'
@@ -806,7 +845,7 @@ export const UserProfile = ({
 										{savedSubTab === 'posts' && savedPosts.length > 0
 											? ` (${savedPosts.length})`
 											: ''}
-									</button>
+									</motion.button>
 								</div>
 
 								{/* Saved Recipes */}

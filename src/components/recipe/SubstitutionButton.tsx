@@ -120,7 +120,8 @@ export function SubstitutionButton({
 										<button
 											key={r}
 											onClick={() => handleFetch(r)}
-											className={`rounded-md px-2 py-1 text-[11px] font-medium capitalize transition-colors ${
+											disabled={loading}
+											className={`rounded-md px-2 py-1 text-[11px] font-medium capitalize transition-colors disabled:opacity-50 ${
 												reason === r
 													? 'bg-brand/15 text-brand'
 													: 'bg-bg-elevated text-text-muted hover:text-text-secondary'

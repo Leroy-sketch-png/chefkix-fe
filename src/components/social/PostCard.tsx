@@ -29,13 +29,18 @@ import {
 	Zap,
 	Flag,
 	Users,
+	BarChart3,
+	FolderPlus,
+	Star,
+	Lightbulb,
+	Swords,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { CommentList } from '@/components/social/CommentList'
-import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_FEED_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_FEED_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { ImageCarousel } from '@/components/ui/image-carousel'
 import {
 	ReportModal,
@@ -44,9 +49,12 @@ import {
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
+import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPicker'
+import { StarRating } from '@/components/ui/star-rating'
 
 const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
@@ -115,6 +123,8 @@ export const PostCard = ({
 		right: 0,
 	})
 	const [isRatingPlate, setIsRatingPlate] = useState(false)
+	const [showCollectionPicker, setShowCollectionPicker] = useState(false)
+	const [collectionPickerPos, setCollectionPickerPos] = useState({ top: 0, right: 0 })
 
 	// Refs
 	const likeButtonRef = useRef<HTMLButtonElement>(null)
@@ -126,6 +136,7 @@ export const PostCard = ({
 
 	const isOwner = currentUserId === post.userId
 	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
+	const requireAuth = useAuthGate()
 
 	useEscapeKey(showMenu, () => setShowMenu(false))
 	useEscapeKey(showShareMenu, () => setShowShareMenu(false))
@@ -164,6 +175,7 @@ export const PostCard = ({
 
 	const handleLike = useCallback(async () => {
 		if (isLiking) return
+		if (!requireAuth('like this post')) return
 
 		setIsLiking(true)
 		const wasLiked = post.isLiked
@@ -223,6 +235,7 @@ export const PostCard = ({
 
 	const handleSave = async () => {
 		if (isSaving) return
+		if (!requireAuth('save this post')) return
 
 		// Optimistic update
 		const previousSaved = isSaved
@@ -307,9 +320,9 @@ export const PostCard = ({
 			if (response.success && response.data) {
 				setPost(prev => ({
 					...prev,
-					userPlateRating: response.data!.userRating,
-					fireCount: response.data!.fireCount,
-					cringeCount: response.data!.cringeCount,
+					userPlateRating: response.data.userRating,
+					fireCount: response.data.fireCount,
+					cringeCount: response.data.cringeCount,
 				}))
 			} else {
 				setPost(prev => ({
@@ -400,6 +413,7 @@ export const PostCard = ({
 
 	// Handle report submission
 	const handleReportSubmit = async (reason: string, details?: string) => {
+		if (!requireAuth('report this post')) return
 		try {
 			const response = await reportPost(post.id, { reason, details })
 			if (response.success) {
@@ -454,6 +468,7 @@ export const PostCard = ({
 	}
 
 	const handleShareToChat = () => {
+		if (!requireAuth('share to chat')) return
 		setShowShareMenu(false)
 		setShowShareModal(true)
 	}
@@ -520,7 +535,7 @@ export const PostCard = ({
 				transition={TRANSITION_SPRING}
 				className='mb-6'
 			>
-				<motion.div className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'>
+				<motion.div whileHover={CARD_FEED_HOVER} className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'>
 					{/* Header */}
 					<div className='flex items-center justify-between p-4 md:p-6'>
 						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
@@ -551,6 +566,17 @@ export const PostCard = ({
 										{post.isVerified && <VerifiedBadge size='sm' />}
 									</div>
 									<div className='flex items-center gap-2 text-sm leading-normal text-text-secondary'>
+										{post.postType && post.postType !== 'PERSONAL' && (
+											<span className='inline-flex items-center gap-1 rounded-full bg-bg-elevated px-1.5 py-0.5 text-xs font-medium text-text-muted'>
+												{post.postType === 'QUICK' && <><Zap className='size-3' />Quick</>}
+												{post.postType === 'POLL' && <><BarChart3 className='size-3' />Poll</>}
+												{post.postType === 'RECENT_COOK' && <><ChefHat className='size-3' />Cook</>}
+												{post.postType === 'GROUP' && <><Users className='size-3' />Group</>}
+												{post.postType === 'RECIPE_REVIEW' && <><Star className='size-3' />Review</>}
+												{post.postType === 'QUICK_TIP' && <><Lightbulb className='size-3' />Tip</>}
+												{post.postType === 'RECIPE_BATTLE' && <><Swords className='size-3' />Battle</>}
+											</span>
+										)}
 										{formatDistanceToNow(new Date(post.createdAt), {
 											addSuffix: true,
 										})}
@@ -563,15 +589,16 @@ export const PostCard = ({
 						{/* Menu - Show for all logged in users */}
 						{isLoggedIn && (
 							<div className='relative'>
-								<button
+								<motion.button
 									type='button'
 									ref={menuButtonRef}
 									onClick={handleMenuToggle}
+									whileTap={BUTTON_SUBTLE_TAP}
 									aria-label='Open post actions'
 									className='size-11 rounded-full transition-colors hover:bg-bg-hover'
 								>
 									<MoreVertical className='mx-auto size-5 text-text-secondary' />
-								</button>
+								</motion.button>
 
 								{/* Portaled dropdown to escape overflow:hidden clipping */}
 								<AnimatePresence>
@@ -597,9 +624,10 @@ export const PostCard = ({
 												{isOwner && (
 													<>
 														{canEdit && (
-															<button
+															<motion.button
 																type='button'
 																role='menuitem'
+																whileTap={BUTTON_SUBTLE_TAP}
 																onClick={() => {
 																	setIsEditing(true)
 																	setShowMenu(false)
@@ -608,24 +636,26 @@ export const PostCard = ({
 															>
 																<Pencil className='size-4' />
 																Edit post
-															</button>
+															</motion.button>
 														)}
-														<button
+														<motion.button
 															type='button'
 															role='menuitem'
+															whileTap={BUTTON_SUBTLE_TAP}
 															onClick={handleDelete}
 															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 														>
 															<Trash2 className='size-4' />
 															Delete post
-														</button>
+														</motion.button>
 													</>
 												)}
 												{/* Non-owner actions */}
 												{!isOwner && (
-													<button
+													<motion.button
 														type='button'
 														role='menuitem'
+														whileTap={BUTTON_SUBTLE_TAP}
 														onClick={() => {
 															setShowReportModal(true)
 															setShowMenu(false)
@@ -634,7 +664,7 @@ export const PostCard = ({
 													>
 														<Flag className='size-4' />
 														Report post
-													</button>
+													</motion.button>
 												)}
 											</motion.div>
 										</Portal>
@@ -667,24 +697,26 @@ export const PostCard = ({
 								maxLength={200}
 							/>
 							<div className='flex gap-2'>
-								<button
+								<motion.button
 									type='button'
 									onClick={handleEdit}
+									whileTap={BUTTON_SUBTLE_TAP}
 									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-white transition-colors hover:bg-primary/90'
 								>
 									Save
-								</button>
-								<button
+								</motion.button>
+								<motion.button
 									type='button'
 									onClick={() => {
 										setIsEditing(false)
 										setEditContent(post.content)
 										setEditTags((post.tags ?? []).join(', '))
 									}}
+									whileTap={BUTTON_SUBTLE_TAP}
 									className='h-11 flex-1 rounded-lg border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover'
 								>
 									Cancel
-								</button>
+								</motion.button>
 							</div>
 						</div>
 					) : (
@@ -703,6 +735,87 @@ export const PostCard = ({
 												#{tag}
 											</span>
 										))}
+									</div>
+								)}
+
+								{/* Recipe Review — Star rating inline */}
+								{post.postType === 'RECIPE_REVIEW' && post.reviewRating != null && (
+									<div className='flex items-center gap-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-3 py-2'>
+										<StarRating value={post.reviewRating} readOnly size='sm' />
+										<span className='text-sm font-medium text-text-secondary'>
+											{post.reviewRating}/5
+										</span>
+									</div>
+								)}
+
+								{/* Recipe Battle — VS card with two recipe thumbnails */}
+								{post.postType === 'RECIPE_BATTLE' && post.battleRecipeIdA && post.battleRecipeIdB && (
+									<div className='rounded-xl border border-border-subtle bg-bg-elevated/50 p-3'>
+										<div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
+											{/* Recipe A */}
+											<Link href={`/recipes/${post.battleRecipeIdA}`} className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'>
+												{post.battleRecipeImageA && (
+													<div className='relative size-16 overflow-hidden rounded-lg'>
+														<Image src={post.battleRecipeImageA} alt={post.battleRecipeTitleA ?? 'Recipe A'} fill unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
+													</div>
+												)}
+												<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
+													{post.battleRecipeTitleA ?? 'Recipe A'}
+												</span>
+												<span className='text-xs font-bold tabular-nums text-brand'>
+													{post.battleVotesA ?? 0} votes
+												</span>
+											</Link>
+
+											{/* VS Badge */}
+											<div className='flex flex-col items-center gap-1'>
+												<span className='rounded-full bg-gradient-to-br from-brand to-destructive px-3 py-1 text-xs font-black text-white shadow-glow'>
+													VS
+												</span>
+												{post.battleEndsAt && (
+													<span className='text-[10px] text-text-muted'>
+														{new Date(post.battleEndsAt) > new Date() ? 'Active' : 'Ended'}
+													</span>
+												)}
+											</div>
+
+											{/* Recipe B */}
+											<Link href={`/recipes/${post.battleRecipeIdB}`} className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'>
+												{post.battleRecipeImageB && (
+													<div className='relative size-16 overflow-hidden rounded-lg'>
+														<Image src={post.battleRecipeImageB} alt={post.battleRecipeTitleB ?? 'Recipe B'} fill unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
+													</div>
+												)}
+												<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
+													{post.battleRecipeTitleB ?? 'Recipe B'}
+												</span>
+												<span className='text-xs font-bold tabular-nums text-brand'>
+													{post.battleVotesB ?? 0} votes
+												</span>
+											</Link>
+										</div>
+
+										{/* Vote progress bar */}
+										{((post.battleVotesA ?? 0) + (post.battleVotesB ?? 0)) > 0 && (
+											<div className='mt-3 h-2 overflow-hidden rounded-full bg-bg'>
+												<div
+													className='h-full rounded-full bg-gradient-to-r from-brand to-orange-400 transition-all duration-500'
+													style={{
+														width: `${((post.battleVotesA ?? 0) / ((post.battleVotesA ?? 0) + (post.battleVotesB ?? 0))) * 100}%`,
+													}}
+												/>
+											</div>
+										)}
+									</div>
+								)}
+
+								{/* Quick Tip — Highlighted tip block */}
+								{post.postType === 'QUICK_TIP' && (
+									<div className='flex items-start gap-3 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-yellow-500/5 px-4 py-3'>
+										<Lightbulb className='mt-0.5 size-5 flex-shrink-0 text-amber-500' />
+										<span className='text-sm font-medium leading-relaxed text-text-primary'>
+											Quick Tip
+										</span>
 									</div>
 								)}
 
@@ -822,15 +935,18 @@ export const PostCard = ({
 					{hasPhotos &&
 						post.postType !== 'POLL' &&
 						post.postType !== 'RECENT_COOK' &&
+						post.postType !== 'RECIPE_BATTLE' &&
+						post.postType !== 'RECIPE_REVIEW' &&
 						post.userId !== currentUserId && (
 							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated/50 px-4 py-2'>
 								<span className='text-xs font-medium text-text-muted'>
 									Rate this plate
 								</span>
 								<div className='flex items-center gap-2'>
-									<button
+									<motion.button
 										type='button'
 										onClick={() => handleRatePlate('FIRE')}
+										whileTap={BUTTON_SUBTLE_TAP}
 										disabled={isRatingPlate}
 										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
 											post.userPlateRating === 'FIRE'
@@ -844,10 +960,11 @@ export const PostCard = ({
 												{post.fireCount}
 											</span>
 										)}
-									</button>
-									<button
+									</motion.button>
+									<motion.button
 										type='button'
 										onClick={() => handleRatePlate('CRINGE')}
+										whileTap={BUTTON_SUBTLE_TAP}
 										disabled={isRatingPlate}
 										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
 											post.userPlateRating === 'CRINGE'
@@ -861,18 +978,19 @@ export const PostCard = ({
 												{post.cringeCount}
 											</span>
 										)}
-									</button>
+									</motion.button>
 								</div>
 							</div>
 						)}
 
 					{/* Actions */}
 					<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
-						<button
+						<motion.button
 							type='button'
 							ref={likeButtonRef}
 							onClick={handleLike}
 							disabled={isLiking}
+							whileTap={BUTTON_SUBTLE_TAP}
 							aria-label={post.isLiked ? 'Unlike post' : 'Like post'}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								post.isLiked
@@ -888,30 +1006,32 @@ export const PostCard = ({
 								}`}
 							/>
 							<span className='tabular-nums'>{post.likes ?? 0}</span>
-						</button>
+						</motion.button>
 
-						<button
+						<motion.button
 							type='button'
 							onClick={() => setShowComments(!showComments)}
+							whileTap={BUTTON_SUBTLE_TAP}
 							aria-label={showComments ? 'Hide comments' : 'Show comments'}
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 						>
 							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
 							<span className='tabular-nums'>{post.commentCount ?? 0}</span>
-						</button>
+						</motion.button>
 
 						{/* Share button with dropdown menu */}
 						<div className='relative flex-1'>
-							<button
+							<motion.button
 								type='button'
 								ref={shareButtonRef}
 								onClick={handleShareMenuToggle}
+								whileTap={BUTTON_SUBTLE_TAP}
 								aria-label='Share post'
 								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
 							>
 								<Send className='size-5 transition-all duration-300 group-hover/btn:scale-125' />
 								<span>Share</span>
-							</button>
+							</motion.button>
 
 							{/* Share options menu */}
 							<AnimatePresence>
@@ -933,40 +1053,43 @@ export const PostCard = ({
 												right: `${shareMenuPosition.right}px`,
 											}}
 										>
-											<button
+											<motion.button
 												type='button'
 												role='menuitem'
 												onClick={handleShareToChat}
+												whileTap={BUTTON_SUBTLE_TAP}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
 												<MessageSquare className='size-4' />
 												Send in chat
-											</button>
-											<button
+											</motion.button>
+											<motion.button
 												type='button'
 												role='menuitem'
 												onClick={handleNativeShare}
+												whileTap={BUTTON_SUBTLE_TAP}
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
 												<Send className='size-4' />
 												Share externally
-											</button>
+											</motion.button>
 										</motion.div>
 									</Portal>
 								)}
 							</AnimatePresence>
 						</div>
 
-						<button
+						<motion.button
 							type='button'
 							ref={saveButtonRef}
 							onClick={handleSave}
 							disabled={isSaving}
+							whileTap={BUTTON_SUBTLE_TAP}
 							aria-label={isSaved ? 'Remove saved post' : 'Save post'}
-							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
+							className={`group/btn flex h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								isSaved
-									? 'text-primary'
-									: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
+									? 'flex-1 text-primary'
+									: 'flex-1 text-text-secondary hover:bg-bg-hover hover:text-primary'
 							}`}
 						>
 							<Bookmark
@@ -976,7 +1099,40 @@ export const PostCard = ({
 										: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
 								}`}
 							/>
-						</button>
+						</motion.button>
+						{/* Add to Collection button — appears when post is saved */}
+						<AnimatePresence>
+							{isSaved && (
+								<motion.button
+									type='button'
+									initial={{ width: 0, opacity: 0 }}
+									animate={{ width: 'auto', opacity: 1 }}
+									exit={{ width: 0, opacity: 0 }}
+									transition={{ duration: 0.2 }}
+									onClick={() => {
+										const rect = saveButtonRef.current?.getBoundingClientRect()
+										if (rect) {
+											setCollectionPickerPos({
+												top: rect.top,
+												right: window.innerWidth - rect.right,
+											})
+										}
+										setShowCollectionPicker(true)
+									}}
+									whileTap={BUTTON_SUBTLE_TAP}
+									aria-label='Add to collection'
+									className='flex h-11 items-center justify-center overflow-hidden rounded-lg px-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-primary'
+								>
+									<FolderPlus className='size-4' />
+								</motion.button>
+							)}
+						</AnimatePresence>
+						<SaveToCollectionPicker
+							postId={post.id}
+							isOpen={showCollectionPicker}
+							onClose={() => setShowCollectionPicker(false)}
+							anchorPosition={collectionPickerPos}
+						/>
 					</div>
 
 					{/* Comments Section */}

@@ -13,6 +13,11 @@ import { PATHS } from '@/constants/paths'
 
 const shortcuts = [
 	{ keys: ['?'], description: 'Show keyboard shortcuts', action: 'toggle' },
+	{
+		keys: ['Ctrl/⌘', 'K'],
+		description: 'Open command palette',
+		action: 'palette',
+	},
 	{ keys: ['/'], description: 'Focus search', action: 'search' },
 	{ keys: ['g', 'd'], description: 'Go to Dashboard', path: PATHS.DASHBOARD },
 	{ keys: ['g', 'e'], description: 'Go to Explore', path: PATHS.EXPLORE },

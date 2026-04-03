@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	Camera,
 	X,
@@ -41,6 +42,9 @@ export const QuickPostFAB = ({
 	const [photoFiles, setPhotoFiles] = useState<File[]>([])
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
+
+	useEscapeKey(isOpen && !isSubmitting, () => setIsOpen(false))
+
 	// Poll state
 	const [pollQuestion, setPollQuestion] = useState('')
 	const [pollOptionA, setPollOptionA] = useState('')

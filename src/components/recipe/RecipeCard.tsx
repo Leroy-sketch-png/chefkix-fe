@@ -14,6 +14,7 @@ import { RECIPE_MESSAGES } from '@/constants/messages'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { useAuthGate } from '@/hooks/useAuthGate'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -22,6 +23,7 @@ interface RecipeCardProps {
 
 const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const router = useRouter()
+	const requireAuth = useAuthGate()
 	const [isLiked, setIsLiked] = useState(recipe.isLiked ?? false)
 	const [isSaved, setIsSaved] = useState(recipe.isSaved ?? false)
 	const [likeCount, setLikeCount] = useState(recipe.likeCount)
@@ -35,7 +37,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const handleLikeClick = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-
+		if (!requireAuth('like this recipe')) return
 		if (isLikeLoading) return
 
 		// Optimistic update
@@ -72,7 +74,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const handleSaveClick = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-
+		if (!requireAuth('save this recipe')) return
 		if (isSaveLoading) return
 
 		// Optimistic update

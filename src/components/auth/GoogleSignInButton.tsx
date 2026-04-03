@@ -6,7 +6,7 @@ import { useGoogleLogin } from '@react-oauth/google'
 
 interface GoogleSignInButtonProps {
 	onSuccess: (code: string) => void
-	onFailure: (error: any) => void
+	onFailure: (error: Error) => void
 	text?: string
 }
 
@@ -28,7 +28,7 @@ const GoogleSignInButtonWithOAuth: React.FC<GoogleSignInButtonProps> = ({
 			}
 		},
 		onError: error => {
-			onFailure(error)
+			onFailure(new Error(error?.error_description || 'Google sign-in failed'))
 		},
 		flow: 'auth-code',
 	})

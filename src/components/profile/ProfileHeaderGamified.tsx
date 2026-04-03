@@ -91,6 +91,8 @@ interface OtherUserProfileProps {
 	isFollowing?: boolean
 	isMutualFollow?: boolean // They follow each other = implicit friends
 	isBlocked?: boolean
+	isFollowLoading?: boolean
+	isBlockLoading?: boolean
 	onFollow?: () => void
 	onMessage?: () => void
 	onBlock?: () => void
@@ -708,6 +710,8 @@ const OtherUserProfileHeader = ({
 	isFollowing,
 	isMutualFollow,
 	isBlocked,
+	isFollowLoading,
+	isBlockLoading,
 	onFollow,
 	onMessage,
 	onBlock,
@@ -783,10 +787,11 @@ const OtherUserProfileHeader = ({
 				<div className='flex gap-2 pt-14'>
 					<motion.button
 						onClick={onFollow}
+						disabled={isFollowLoading}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className={cn(
-							'flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors',
+							'flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50',
 							isFollowing
 								? 'border border-border bg-bg-elevated hover:bg-border'
 								: 'bg-brand text-white',
@@ -820,11 +825,12 @@ const OtherUserProfileHeader = ({
 					{/* Block/Unblock Button */}
 					<motion.button
 						onClick={onBlock}
+						disabled={isBlockLoading}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className={cn(
-							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors',
+							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
 							isBlocked
 								? 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
 								: 'border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-destructive',

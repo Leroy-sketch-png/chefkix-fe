@@ -8,11 +8,11 @@ interface LottieAnimationProps
 	/**
 	 * Lottie animation data (JSON)
 	 */
-	lottie?: any
+	lottie?: object
 	/**
 	 * Alternative: animation data (for compatibility with lottie-react examples)
 	 */
-	animationData?: any
+	animationData?: object
 	/**
 	 * Width ratio relative to device width (0-1)
 	 * @default 0.4

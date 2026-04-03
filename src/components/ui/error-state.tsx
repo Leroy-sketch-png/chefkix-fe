@@ -16,7 +16,7 @@ interface ErrorStateProps {
 	showHomeButton?: boolean
 	onRetry?: () => void
 	/** Optional Lottie animation to show instead of AlertCircle icon */
-	lottieAnimation?: any
+	lottieAnimation?: object
 	/** Size calculator for Lottie animation */
 	lottieSize?: (width: number, height: number) => number
 }

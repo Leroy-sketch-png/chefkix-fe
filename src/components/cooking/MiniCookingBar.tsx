@@ -16,6 +16,7 @@ import {
 	DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 // ============================================
 // MINI COOKING BAR (Mobile/Tablet)
@@ -68,10 +69,14 @@ export const MiniCookingBar = () => {
 	}
 
 	const handlePlayPause = async () => {
-		if (isPaused) {
-			await resumeCooking()
-		} else {
-			await pauseCooking()
+		try {
+			if (isPaused) {
+				await resumeCooking()
+			} else {
+				await pauseCooking()
+			}
+		} catch {
+			toast.error('Failed to update cooking session. Please try again.')
 		}
 	}
 

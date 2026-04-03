@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { AUTH_ROUTES, PATHS, PUBLIC_ROUTES } from '@/constants'
+import { AUTH_ROUTES, PATHS, isPublicRoutePath } from '@/constants'
 import { getMyProfile } from '@/services/profile'
 import { AuthLoader } from '@/components/auth/AuthLoader'
 import { waitForVisibilityRefresh } from './TokenRefreshProvider'
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		// Don't run redirect logic until loading is complete AND session is validated
 		if (isLoading || !isSessionValidated) return
 
-		const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
+		const isPublicRoute = isPublicRoutePath(pathname)
 		const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
 		// Protected route access without auth - redirect to sign in

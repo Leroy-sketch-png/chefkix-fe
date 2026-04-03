@@ -300,6 +300,7 @@ export const PopoverContent = React.forwardRef<
 			}
 
 			setPosition({ top, left })
+			// Position calculation only depends on layout props, not on mutable DOM refs
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [open, side, align, sideOffset])
 

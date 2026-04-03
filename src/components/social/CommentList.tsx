@@ -9,6 +9,7 @@ import { moderateContent } from '@/services/ai'
 import { toast } from 'sonner'
 import { Send, Loader2 } from 'lucide-react'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { diag } from '@/lib/diagnostics'
 
 interface CommentListProps {
@@ -33,6 +34,7 @@ export const CommentList = ({
 	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const mentionInputRef = useRef<MentionInputRef>(null)
+	const requireAuth = useAuthGate()
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true)
@@ -55,6 +57,7 @@ export const CommentList = ({
 	}, [fetchComments])
 
 	const handleSubmitComment = async () => {
+		if (!requireAuth('comment on this post')) return
 		if (!newComment.trim() || isSubmitting) return
 
 		diag.action('social', 'COMMENT_SUBMIT', {

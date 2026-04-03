@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
-import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_FEED_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 
@@ -80,6 +80,7 @@ export const PollCard = ({
 	return (
 		<motion.div
 			layout
+			whileHover={CARD_FEED_HOVER}
 			className='group -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card p-4 transition-all duration-300 md:p-6'
 		>
 			{/* Header */}
@@ -167,9 +168,10 @@ function PollOption({
 	onClick: () => void
 }) {
 	return (
-		<button
+		<motion.button
 			onClick={onClick}
 			disabled={disabled}
+			whileTap={disabled ? undefined : BUTTON_SUBTLE_TAP}
 			className={cn(
 				'relative w-full overflow-hidden rounded-lg border p-3 text-left transition-all',
 				isSelected
@@ -209,6 +211,6 @@ function PollOption({
 					</span>
 				)}
 			</div>
-		</button>
+		</motion.button>
 	)
 }

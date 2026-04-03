@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { UserPlus, UserCheck, MessageCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuthGate } from '@/hooks/useAuthGate'
 
 interface UserHoverCardProps {
 	userId: string
@@ -38,6 +39,7 @@ export const UserHoverCard = ({
 	currentUserId,
 }: UserHoverCardProps) => {
 	const router = useRouter()
+	const requireAuth = useAuthGate()
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [hasError, setHasError] = useState(false)
@@ -60,6 +62,7 @@ export const UserHoverCard = ({
 	}
 
 	const handleFollowToggle = useCallback(async () => {
+		if (!requireAuth('follow this chef')) return
 		if (followLockRef.current || !profile) return
 		followLockRef.current = true
 		setIsFollowLoading(true)
@@ -67,18 +70,19 @@ export const UserHoverCard = ({
 			const response = await toggleFollow(userId)
 			if (response.success && response.data) {
 				setProfile(prev =>
-					prev ? { ...prev, isFollowing: response.data!.isFollowing } : prev,
+					prev ? { ...prev, isFollowing: response.data.isFollowing } : prev,
 				)
 			}
 		} finally {
 			followLockRef.current = false
 			setIsFollowLoading(false)
 		}
-	}, [userId, profile])
+	}, [userId, profile, requireAuth])
 
 	const handleSendMessage = useCallback(() => {
+		if (!requireAuth('message this chef')) return
 		router.push(`/messages?userId=${userId}`)
-	}, [router, userId])
+	}, [router, userId, requireAuth])
 
 	const isOwnProfile = userId === currentUserId
 	const displayName = getProfileDisplayName(profile)

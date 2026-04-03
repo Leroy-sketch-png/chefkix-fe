@@ -59,6 +59,7 @@ import {
 	uploadRecipeImages,
 	publishRecipe,
 } from '@/services/recipe'
+import { guardContent } from '@/services/ml'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
@@ -387,7 +388,7 @@ export const RecipeCreateAiFlow = ({
 						serverUrl: response.data[0],
 					})
 					setRecipe(prev =>
-						prev ? { ...prev, coverImageUrl: response.data![0] } : prev,
+						prev ? { ...prev, coverImageUrl: response.data[0] } : prev,
 					)
 					URL.revokeObjectURL(localPreviewUrl)
 					toast.success('Cover image uploaded!')
@@ -946,7 +947,31 @@ export const RecipeCreateAiFlow = ({
 					return
 				}
 
-				// Step 3: Validate recipe for safety
+				// Step 3a: Fast content guard (rule-based, fail-open)
+				const recipeText = [
+					finalRecipe.title,
+					finalRecipe.description,
+					...(finalRecipe.steps || []).map(s => s.instruction),
+				]
+					.filter(Boolean)
+					.join(' ')
+				const guardResult = await guardContent(recipeText, 'recipe').catch(
+					() => null,
+				)
+				if (guardResult?.success && guardResult.data?.action === 'block') {
+					diag.warn('recipe', 'PUBLISH blocked by content guard', {
+						reasons: guardResult.data.reasons,
+					})
+					toast.error('Recipe cannot be published', {
+						description:
+							guardResult.data.reasons?.[0] ||
+							'Content violates community guidelines.',
+					})
+					setIsPublishing(false)
+					return
+				}
+
+				// Step 3b: Validate recipe for safety (AI-powered)
 				diag.action('recipe', 'PUBLISH step 3: validating content', {})
 				diag.request('recipe', 'POST /validate_recipe', {
 					title: finalRecipe.title,
@@ -1753,7 +1778,10 @@ export const RecipeCreateAiFlow = ({
 			{/* Parsing Overlay */}
 			<AnimatePresence>
 				{step === 'parsing' && (
-					<RecipeParsingOverlay currentStep={parsingStep} />
+					<RecipeParsingOverlay
+						currentStep={parsingStep}
+						onCancel={() => setStep('input')}
+					/>
 				)}
 			</AnimatePresence>
 

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Profile, getProfileDisplayName } from '@/lib/types/profile'
 import { toggleFollow } from '@/services/social'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import {
 	CARD_HOVER,
 	BUTTON_HOVER,
@@ -32,6 +33,7 @@ export function FollowUserCard({
 }: FollowUserCardProps) {
 	const router = useRouter()
 	const { user } = useAuth()
+	const requireAuth = useAuthGate()
 	const [isFollowing, setIsFollowing] = useState(profile.isFollowing ?? false)
 	const [isLoading, setIsLoading] = useState(false)
 	const followLockRef = useRef(false)
@@ -41,6 +43,7 @@ export function FollowUserCard({
 
 	const handleToggleFollow = async (e: React.MouseEvent) => {
 		e.stopPropagation()
+		if (!requireAuth('follow this chef')) return
 		if (followLockRef.current || isOwnProfile) return
 		followLockRef.current = true
 

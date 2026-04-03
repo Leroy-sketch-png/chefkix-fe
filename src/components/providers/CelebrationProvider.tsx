@@ -381,7 +381,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 
 	const handlePostSuccessViewPost = () => {
 		if (postSuccessData?.postId) {
-			router.push(`/feed?highlight=${postSuccessData.postId}`)
+			router.push(`/dashboard?highlight=${postSuccessData.postId}`)
 		}
 		handlePostSuccessClose()
 	}

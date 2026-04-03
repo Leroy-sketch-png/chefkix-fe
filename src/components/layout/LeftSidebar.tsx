@@ -20,6 +20,7 @@ import {
 	ShoppingCart,
 	Shield,
 	MoreHorizontal,
+	FolderHeart,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -55,6 +56,7 @@ const secondaryNavItems: NavItem[] = [
 	{ href: '/pantry', icon: Package, label: 'Pantry' },
 	{ href: '/meal-planner', icon: CalendarDays, label: 'Meal Plan' },
 	{ href: '/shopping-lists', icon: ShoppingCart, label: 'Shopping' },
+	{ href: '/collections', icon: FolderHeart, label: 'Collections' },
 	{ href: '/settings', icon: Settings, label: 'Settings' },
 ]
 

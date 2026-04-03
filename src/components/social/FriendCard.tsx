@@ -38,17 +38,21 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 	const handleConfirmUnfollow = async () => {
 		setIsUnfollowing(true)
 
-		// In Instagram model, "unfriend" = unfollow (toggleFollow when already following)
-		const response = await toggleFollow(profile.userId)
+		try {
+			// In Instagram model, "unfriend" = unfollow (toggleFollow when already following)
+			const response = await toggleFollow(profile.userId)
 
-		if (response.success) {
-			toast.success(`You unfollowed ${displayName}`)
-			onUnfollow?.(profile.userId)
-		} else {
-			toast.error(response.message || 'Failed to unfollow user')
+			if (response.success) {
+				toast.success(`You unfollowed ${displayName}`)
+				onUnfollow?.(profile.userId)
+			} else {
+				toast.error(response.message || 'Failed to unfollow user')
+			}
+		} catch {
+			toast.error('Network error. Please check your connection and try again.')
+		} finally {
+			setIsUnfollowing(false)
 		}
-
-		setIsUnfollowing(false)
 	}
 
 	return (

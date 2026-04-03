@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
-import { signUp, googleSignIn } from '@/services/auth'
+import { signUp, googleSignIn, checkUsernameAvailability } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
@@ -28,6 +28,8 @@ import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { CheckCircle2, XCircle, Loader2, Info, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const formSchema = z.object({
 	firstName: z.string().min(1, {
@@ -49,6 +51,10 @@ export function SignUpForm() {
 	const router = useRouter()
 	const { login, setUser, setLoading, logout } = useAuth()
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	
+	// Username availability check state
+	const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle')
+	const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -60,6 +66,45 @@ export function SignUpForm() {
 			password: '',
 		},
 	})
+
+	// Watch username for live availability check
+	const usernameValue = form.watch('username')
+	
+	// Debounced username availability check
+	useEffect(() => {
+		// Clear any pending check
+		if (usernameCheckTimeout.current) {
+			clearTimeout(usernameCheckTimeout.current)
+		}
+		
+		// Reset if username is too short
+		if (!usernameValue || usernameValue.length < 2) {
+			setUsernameStatus('idle')
+			return
+		}
+		
+		setUsernameStatus('checking')
+		
+		// Debounce: wait 500ms before checking
+		usernameCheckTimeout.current = setTimeout(async () => {
+			try {
+				const response = await checkUsernameAvailability(usernameValue)
+				if (response.success && response.data) {
+					setUsernameStatus(response.data.available ? 'available' : 'taken')
+				} else {
+					setUsernameStatus('error')
+				}
+			} catch {
+				setUsernameStatus('error')
+			}
+		}, 500)
+		
+		return () => {
+			if (usernameCheckTimeout.current) {
+				clearTimeout(usernameCheckTimeout.current)
+			}
+		}
+	}, [usernameValue])
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		if (isSubmitting) return
@@ -90,7 +135,7 @@ export function SignUpForm() {
 					toast.error('Please fix the errors in the form.')
 				} else {
 					const errorMsg = response.message || SIGN_UP_MESSAGES.FAILED
-					form.setError('root.general' as any, {
+					form.setError('root', {
 						type: 'manual',
 						message: errorMsg,
 					})
@@ -113,14 +158,14 @@ export function SignUpForm() {
 		>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-					{form.formState.errors.root?.general && (
+					{form.formState.errors.root?.message && (
 						<motion.div
 							initial={{ opacity: 0, height: 0 }}
 							animate={{ opacity: 1, height: 'auto' }}
 							className='rounded-xl bg-error/10 p-4 text-sm text-error'
 							role='alert'
 						>
-							{(form.formState.errors.root.general as any).message}
+							{form.formState.errors.root.message}
 						</motion.div>
 					)}
 					<motion.div variants={staggerItem} className='grid grid-cols-2 gap-3'>
@@ -169,16 +214,52 @@ export function SignUpForm() {
 								<FormItem>
 									<FormLabel className='text-text'>Username</FormLabel>
 									<FormControl>
-										<Input
-											placeholder='your_username'
-											autoComplete='username'
-											autoCapitalize='none'
-											autoCorrect='off'
-											spellCheck={false}
-											{...field}
-											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
-										/>
+										<div className='relative'>
+											<Input
+												placeholder='your_username'
+												autoComplete='username'
+												autoCapitalize='none'
+												autoCorrect='off'
+												spellCheck={false}
+												{...field}
+												className={cn(
+													'h-11 rounded-xl border-border-medium bg-bg-elevated pr-10 text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20',
+													usernameStatus === 'taken' && 'border-destructive focus:border-destructive focus:ring-destructive/20',
+													usernameStatus === 'available' && 'border-success focus:border-success focus:ring-success/20',
+												)}
+											/>
+								{/* Username availability indicator */}
+								<div className='absolute right-3 top-1/2 -translate-y-1/2'>
+									{usernameStatus === 'checking' && (
+										<Loader2 className='size-4 animate-spin text-text-muted' />
+									)}
+									{usernameStatus === 'available' && (
+										<CheckCircle2 className='size-4 text-success' />
+									)}
+									{usernameStatus === 'taken' && (
+										<XCircle className='size-4 text-destructive' />
+									)}
+									{usernameStatus === 'error' && (
+										<AlertCircle className='size-4 text-warning' />
+									)}
+								</div>
+										</div>
 									</FormControl>
+								{usernameStatus === 'taken' && (
+									<p className='text-xs text-destructive'>
+										This username is already taken
+									</p>
+								)}
+								{usernameStatus === 'available' && (
+									<p className='text-xs text-success'>
+										Username is available
+									</p>
+								)}
+								{usernameStatus === 'error' && (
+									<p className='text-xs text-warning'>
+										Couldn&apos;t check availability - try signing up anyway
+									</p>
+								)}
 									<FormMessage />
 								</FormItem>
 							)}
@@ -217,12 +298,17 @@ export function SignUpForm() {
 									<FormLabel className='text-text'>Password</FormLabel>
 									<FormControl>
 										<PasswordInput
-											placeholder='password'
+											placeholder='Create a secure password'
 											autoComplete='new-password'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
 									</FormControl>
+									{/* Password requirements hint */}
+									<div className='flex items-center gap-1.5 text-xs text-text-muted'>
+										<Info className='size-3' />
+										<span>At least 6 characters</span>
+									</div>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -269,7 +355,7 @@ export function SignUpForm() {
 								} else {
 									const errorMsg =
 										response.message || 'Failed to sign in with Google.'
-									form.setError('root.general' as any, {
+								form.setError('root', {
 										type: 'manual',
 										message: errorMsg,
 									})

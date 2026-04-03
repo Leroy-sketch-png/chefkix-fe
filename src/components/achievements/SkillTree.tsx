@@ -9,6 +9,8 @@ import {
 	Star,
 	ChevronRight,
 	Sparkles,
+	AlertTriangle,
+	RefreshCw,
 } from 'lucide-react'
 import {
 	FADE_IN_VARIANTS,
@@ -23,6 +25,7 @@ import type {
 	AchievementCategory,
 } from '@/lib/types/achievement'
 import { getMySkillTree, getUserSkillTree } from '@/services/achievement'
+import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -87,6 +90,7 @@ interface SkillTreeProps {
 export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 	const [data, setData] = useState<SkillTreeResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
+	const [hasError, setHasError] = useState(false)
 	const [expandedPath, setExpandedPath] = useState<string | null>(null)
 	const [filterCategory, setFilterCategory] =
 		useState<AchievementCategory | null>(null)
@@ -94,16 +98,56 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 	useEffect(() => {
 		const load = async () => {
 			setIsLoading(true)
-			const result = userId
-				? await getUserSkillTree(userId)
-				: await getMySkillTree()
-			setData(result)
-			setIsLoading(false)
+			setHasError(false)
+			try {
+				const result = userId
+					? await getUserSkillTree(userId)
+					: await getMySkillTree()
+				setData(result)
+			} catch {
+				setHasError(true)
+				toast.error('Failed to load skill tree')
+			} finally {
+				setIsLoading(false)
+			}
 		}
 		load()
 	}, [userId])
 
 	if (isLoading) return <SkillTreeSkeleton />
+
+	if (hasError) {
+		return (
+			<div className='flex h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border'>
+				<AlertTriangle className='size-8 text-color-error' />
+				<p className='mt-2 text-text-muted'>Failed to load achievements</p>
+				<button
+					onClick={() => {
+						setIsLoading(true)
+						setHasError(false)
+						const load = async () => {
+							try {
+								const result = userId
+									? await getUserSkillTree(userId)
+									: await getMySkillTree()
+								setData(result)
+							} catch {
+								setHasError(true)
+								toast.error('Failed to load skill tree')
+							} finally {
+								setIsLoading(false)
+							}
+						}
+						load()
+					}}
+					className='mt-2 flex items-center gap-1 text-sm text-brand hover:underline'
+				>
+					<RefreshCw className='size-3' />
+					Retry
+				</button>
+			</div>
+		)
+	}
 
 	if (!data || data.paths.length === 0) {
 		return (
