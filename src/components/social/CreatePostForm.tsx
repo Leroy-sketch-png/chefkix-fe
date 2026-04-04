@@ -226,7 +226,7 @@ export const CreatePostForm = ({
 			<form onSubmit={handleSubmit} data-post-form>
 				{/* Header */}
 				<div className='flex items-center gap-3 border-b border-border-subtle p-4 md:p-6'>
-					<Avatar size='lg' className='ring-2 ring-primary/10'>
+					<Avatar size='lg' className='ring-2 ring-brand/10'>
 						<AvatarImage
 							src={currentUser?.avatarUrl || '/placeholder-avatar.svg'}
 							alt={currentUser?.displayName || 'You'}
@@ -262,7 +262,7 @@ export const CreatePostForm = ({
 						maxLength={500}
 						placeholder="What's cooking? Share your culinary journey... (@ to mention)"
 						disabled={isSubmitting}
-						className='bg-bg-card p-3 caret-primary placeholder-text-secondary focus:ring-primary/10'
+						className='bg-bg-card p-3 caret-brand placeholder-text-secondary focus:ring-brand/10'
 						onSubmit={() => {
 							if (content.trim()) {
 								const form =
@@ -307,7 +307,7 @@ export const CreatePostForm = ({
 											type='button'
 											onClick={() => removePhoto(index)}
 											aria-label={`Remove photo ${index + 1}`}
-											className='absolute right-1 top-1 size-8 rounded-full bg-text-primary/60 text-bg-card opacity-0 transition-opacity group-hover:opacity-100'
+											className='absolute right-1 top-1 size-8 rounded-full bg-text-brand/60 text-bg-card opacity-0 transition-opacity group-hover:opacity-100'
 										>
 											<X className='mx-auto size-4' />
 										</button>
@@ -339,7 +339,7 @@ export const CreatePostForm = ({
 										value={videoUrl}
 										onChange={e => setVideoUrl(e.target.value)}
 										placeholder='https://...'
-										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
+										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
 									/>
 								</div>
 								<div>
@@ -355,7 +355,7 @@ export const CreatePostForm = ({
 										value={tags}
 										onChange={e => setTags(e.target.value)}
 										placeholder='baking, bread, sourdough'
-										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
+										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
 									/>
 								</div>
 							</motion.div>
@@ -368,7 +368,7 @@ export const CreatePostForm = ({
 					<div className='flex gap-2'>
 						<label className='group size-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
 							<span className='sr-only'>Add photos</span>
-							<ImageIcon className='mx-auto mt-2.5 size-5 text-text-secondary transition-colors group-hover:text-primary' />
+							<ImageIcon className='mx-auto mt-2.5 size-5 text-text-secondary transition-colors group-hover:text-brand' />
 							<input
 								type='file'
 								accept='image/*'
@@ -385,7 +385,7 @@ export const CreatePostForm = ({
 							aria-label='Toggle video options'
 							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
-									? 'bg-primary/10 text-primary'
+									? 'bg-brand/10 text-brand'
 									: 'text-text-secondary'
 							}`}
 						>
@@ -398,7 +398,7 @@ export const CreatePostForm = ({
 							aria-label='Toggle tag options'
 							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
-									? 'bg-primary/10 text-primary'
+									? 'bg-brand/10 text-brand'
 									: 'text-text-secondary'
 							}`}
 						>

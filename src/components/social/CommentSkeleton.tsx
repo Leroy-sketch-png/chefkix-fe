@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+﻿import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 interface CommentSkeletonProps {
@@ -31,7 +31,7 @@ export const CommentSkeleton = ({
 					className={cn('flex gap-3 py-3', isReply && 'ml-12', className)}
 				>
 					{/* Avatar */}
-					<Skeleton className='h-9 w-9 shrink-0 rounded-full' />
+					<Skeleton className='size-9 shrink-0 rounded-full' />
 
 					{/* Comment Content */}
 					<div className='min-w-0 flex-1 space-y-2'>

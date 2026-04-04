@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
 import { logDevWarn } from '@/lib/dev-log'
@@ -10,12 +10,17 @@ import type { KitchenInteractionMode } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
 import { RoomParticipantsBar } from './RoomParticipantsBar'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
+import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
 import { diag } from '@/lib/diagnostics'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { useRoomSocket } from '@/hooks/useRoomSocket'
 import { toast } from 'sonner'
+import {
+	triggerProgressMilestoneConfetti,
+	shouldTriggerMilestone,
+} from '@/lib/confetti'
 import {
 	Sparkles,
 	User,
@@ -40,10 +45,11 @@ import {
 	Camera,
 	Hand,
 } from 'lucide-react'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { SessionRatingForm } from './SessionRatingForm'
 import { IngredientCheck } from './IngredientCheck'
+import { StepV2Renderer } from './StepV2Renderer'
+import type { StepRenderMode } from './StepV2Renderer'
 import { VoiceModeButton } from './VoiceModeButton'
 import { VoiceCommandToast } from './VoiceCommandToast'
 import { VoiceHelpOverlay } from './VoiceHelpOverlay'
@@ -491,7 +497,7 @@ const ActiveTimersBadge = ({
 
 export const CookingPlayer = () => {
 	const { cookingMode, closeCookingPanel } = useUiStore()
-	const prefersReducedMotion = useReducedMotion()
+	const { shouldReduceMotion: prefersReducedMotion } = useReducedMotionPreference()
 	const isOpen = cookingMode === 'expanded'
 	const { showImmediateRewards, showLevelUp } = useCelebration()
 
@@ -517,6 +523,8 @@ export const CookingPlayer = () => {
 		exitPreview,
 		interactionMode,
 		setInteractionMode,
+		stepRenderMode,
+		setStepRenderMode,
 		// Co-cooking room state
 		roomCode,
 		participants,
@@ -593,6 +601,20 @@ export const CookingPlayer = () => {
 	// Focus traps for modal accessibility
 	const completionTrapRef = useFocusTrap<HTMLDivElement>(showCompletion)
 	const abandonTrapRef = useFocusTrap<HTMLDivElement>(showAbandonConfirm)
+
+	// Effective step render mode: kitchenMode overrides, then instructionDetail maps
+	const effectiveRenderMode: StepRenderMode = useMemo(() => {
+		if (kitchenMode) return 'kitchen'
+		if (instructionDetail === 'condensed') return 'quick'
+		return 'full'
+	}, [kitchenMode, instructionDetail])
+
+	// Sync store with effective mode (for persistence across sessions)
+	useEffect(() => {
+		if (stepRenderMode !== effectiveRenderMode) {
+			setStepRenderMode(effectiveRenderMode)
+		}
+	}, [effectiveRenderMode, stepRenderMode, setStepRenderMode])
 
 	// Voice mode for hands-free cooking (spec: 22-voice-mode.txt)
 	const voice = useVoiceMode()
@@ -885,6 +907,20 @@ export const CookingPlayer = () => {
 			// Complete current step first
 			await completeStep(currentStepNumber)
 
+			// Progress milestone dopamine: confetti burst on milestone steps
+			const newCompletedCount = completedSteps.size + 1
+			if (shouldTriggerMilestone(newCompletedCount, totalSteps)) {
+				triggerProgressMilestoneConfetti(currentStepNumber, totalSteps)
+				const remaining = totalSteps - newCompletedCount
+				const message =
+					remaining === 1
+						? 'Almost there! Just 1 step left 🔥'
+						: remaining === 0
+							? 'All steps done! 🎉'
+							: `${newCompletedCount} of ${totalSteps} done! Keep going 🔥`
+				toast.success(message, { duration: 2000 })
+			}
+
 			// Show photo capture prompt — capture step number NOW before navigation changes it
 			setPhotoStepNumber(currentStepNumber)
 			setShowPhotoPrompt(true)
@@ -1059,6 +1095,21 @@ export const CookingPlayer = () => {
 				handlePrevStep()
 			} else if (e.key === 'Escape') {
 				closeCookingPanel()
+			} else if (e.key === 'm' || e.key === 'M') {
+				// Cycle rendering mode: full → quick → kitchen → full
+				e.preventDefault()
+				if (kitchenMode) {
+					// kitchen → full
+					setKitchenMode(false)
+					setInstructionDetail('detailed')
+				} else if (instructionDetail === 'condensed') {
+					// quick → kitchen
+					setKitchenMode(true)
+				} else {
+					// full/standard → quick
+					setKitchenMode(false)
+					setInstructionDetail('condensed')
+				}
 			}
 		}
 
@@ -1073,6 +1124,8 @@ export const CookingPlayer = () => {
 		showCompletion,
 		showAiAssist,
 		showAbandonConfirm,
+		kitchenMode,
+		instructionDetail,
 	])
 
 	const handleTimerToggle = useCallback(() => {
@@ -1440,8 +1493,8 @@ export const CookingPlayer = () => {
 										)}
 										title={
 											kitchenMode
-												? 'Kitchen display: ON (large text)'
-												: 'Kitchen display: OFF'
+												? 'Kitchen display: ON (large text) [M]'
+												: 'Kitchen display: OFF [M]'
 										}
 									>
 										{kitchenMode ? (
@@ -1465,7 +1518,7 @@ export const CookingPlayer = () => {
 													? 'bg-warning/40 text-white'
 													: 'bg-white/20 text-white/70 hover:bg-white/30',
 										)}
-										title={`Instructions: ${instructionDetail === 'detailed' ? 'Detailed (tips shown + read)' : instructionDetail === 'standard' ? 'Standard' : 'Condensed (expert mode)'}`}
+										title={`View mode: ${instructionDetail === 'detailed' ? 'Detailed (tips shown + read)' : instructionDetail === 'standard' ? 'Standard' : 'Condensed (expert mode)'} [M]`}
 									>
 										<BookOpen className='size-5' />
 									</motion.button>
@@ -1674,144 +1727,55 @@ export const CookingPlayer = () => {
 											exit='exit'
 											className='absolute inset-0 flex flex-col overflow-y-auto p-6'
 										>
-											{/* Step Video (priority over image) */}
-											{step.videoUrl ? (
-												<motion.div
-													initial={{ opacity: 0, scale: 0.95 }}
-													animate={{ opacity: 1, scale: 1 }}
-													transition={{ delay: 0.1 }}
-													className='relative mx-auto mb-6 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-lg'
-												>
-													<video
-														src={step.videoUrl}
-														poster={step.videoThumbnailUrl || undefined}
-														controls
-														loop
-														muted
-														playsInline
-														className='h-full w-full object-cover'
-													/>
-												</motion.div>
-											) : step.imageUrl ? (
-												/* Step Image */
-												<motion.div
-													initial={{ opacity: 0, scale: 0.95 }}
-													animate={{ opacity: 1, scale: 1 }}
-													transition={{ delay: 0.1 }}
-													className='relative mx-auto mb-6 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-lg'
-												>
-													<Image
-														src={step.imageUrl}
-														alt={step.title ?? `Step ${step.stepNumber}`}
-														fill
-														className='object-cover'
-													/>
-												</motion.div>
-											) : null}
-
-											{/* Step Title */}
-											<motion.h3
-												initial={{ opacity: 0, y: 10 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{ delay: 0.15 }}
-												className={cn(
-													'mb-3 text-center font-bold text-text',
-													kitchenMode
-														? 'text-2xl md:text-4xl'
-														: 'text-xl md:text-2xl',
-												)}
-											>
-												Step {step.stepNumber}: {step.title ?? 'Cook'}
-											</motion.h3>
-
-											{/* Step Description - Kitchen-distance: 28px+ for readability at arm's length */}
-											<motion.p
-												initial={{ opacity: 0 }}
-												animate={{ opacity: 1 }}
-												transition={{ delay: 0.2 }}
-												className={cn(
-													'mx-auto mb-6 max-w-lg text-center leading-relaxed text-text-secondary',
-													kitchenMode
-														? 'text-2xl md:text-3xl'
-														: 'text-lg md:text-xl',
-												)}
-											>
-												{step.description}
-											</motion.p>
-
-											{/* Tips — Adaptive: detailed=emphasized, standard=normal, condensed=collapsed */}
-											{step.tips && instructionDetail !== 'condensed' && (
-												<motion.div
-													initial={{ opacity: 0, y: 10 }}
-													animate={{ opacity: 1, y: 0 }}
-													transition={{ delay: 0.25 }}
-													className={cn(
-														'mx-auto mb-6 flex max-w-md items-start gap-3 rounded-xl p-4',
-														instructionDetail === 'detailed'
-															? 'border border-bonus/30 bg-bonus/15'
-															: 'bg-bonus/10',
-														kitchenMode ? 'text-base' : 'text-sm',
-													)}
-												>
-													<span
-														className={kitchenMode ? 'text-2xl' : 'text-lg'}
-													>
-														💡
-													</span>
-													<p className='text-bonus'>{step.tips}</p>
-												</motion.div>
-											)}
-
-											{/* Timer */}
-											{step.timerSeconds && step.timerSeconds > 0 && (
-												<motion.div
-													initial={{ opacity: 0, scale: 0.9 }}
-													animate={{ opacity: 1, scale: 1 }}
-													transition={{ delay: 0.3 }}
-													className='mb-6'
-												>
-													<StepTimer
-														seconds={timerRemaining}
-														isRunning={timerRunning}
-														onToggle={handleTimerToggle}
-														onComplete={handleTimerComplete}
-														kitchenMode={kitchenMode}
-													/>
-												</motion.div>
-											)}
-
-											{/* Ingredients Checklist */}
-											{step.ingredients && step.ingredients.length > 0 && (
-												<motion.div
-													initial={{ opacity: 0, y: 20 }}
-													animate={{ opacity: 1, y: 0 }}
-													transition={{ delay: 0.35 }}
-													className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle bg-bg-card p-4'
-												>
-													<h4 className='mb-3 flex items-center gap-2 font-semibold text-text'>
-														<span className='text-lg'>🧾</span> Ingredients for
-														this step
-													</h4>
-													<div className='flex flex-col gap-2'>
-														{step.ingredients.map((ing, idx) => {
-															const id = `${currentStepNumber}-${idx}`
-															return (
-																<IngredientCheck
-																	key={id}
-																	ingredient={{
-																		name: ing.name,
-																		quantity: ing.quantity ?? '',
-																		unit: ing.unit ?? '',
-																	}}
-																	isChecked={!!checkedIngredients[id]}
-																	onToggle={() => toggleIngredient(id)}
-																	index={idx}
-																/>
-															)
-														})}
-													</div>
-												</motion.div>
-											)}
+											<StepV2Renderer
+												step={step}
+												mode={effectiveRenderMode}
+												totalSteps={totalSteps}
+												timerComponent={
+													step.timerSeconds && step.timerSeconds > 0 ? (
+														<StepTimer
+															seconds={timerRemaining}
+															isRunning={timerRunning}
+															onToggle={handleTimerToggle}
+															onComplete={handleTimerComplete}
+															kitchenMode={kitchenMode}
+														/>
+													) : undefined
+												}
+												ingredientChecklistComponent={
+													step.ingredients && step.ingredients.length > 0 ? (
+														<motion.div
+															initial={{ opacity: 0, y: 20 }}
+															animate={{ opacity: 1, y: 0 }}
+															transition={{ delay: 0.35 }}
+															className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle bg-bg-card p-4'
+														>
+															<h4 className='mb-3 flex items-center gap-2 font-semibold text-text'>
+																<span className='text-lg'>🧾</span> Ingredients for
+																this step
+															</h4>
+															<div className='flex flex-col gap-2'>
+																{step.ingredients.map((ing, idx) => {
+																	const id = `${currentStepNumber}-${idx}`
+																	return (
+																		<IngredientCheck
+																			key={id}
+																			ingredient={{
+																				name: ing.name,
+																				quantity: ing.quantity ?? '',
+																				unit: ing.unit ?? '',
+																			}}
+																			isChecked={!!checkedIngredients[id]}
+																			onToggle={() => toggleIngredient(id)}
+																			index={idx}
+																		/>
+																	)
+																})}
+															</div>
+														</motion.div>
+													) : undefined
+												}
+											/>
 										</motion.div>
 									)}
 								</AnimatePresence>

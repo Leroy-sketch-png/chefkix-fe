@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -54,28 +54,28 @@ const buildUnlocks = (
 ): UnlockItem[] => [
 	{
 		id: 'badge',
-		emoji: '🎖️',
+		emoji: 'ðŸŽ–ï¸',
 		name: 'First Dish Badge',
 		description: 'Your first of many!',
 		glowColor: 'rgba(255, 215, 0, 0.3)',
 	},
 	{
 		id: 'xp',
-		emoji: '⚡',
+		emoji: 'âš¡',
 		name: `+${Math.round(immediateXp)} XP`,
 		description: 'Earned immediately for finishing the cook',
 		glowColor: 'rgba(0, 212, 255, 0.3)',
 	},
 	{
 		id: 'share-bonus',
-		emoji: '📸',
+		emoji: 'ðŸ“¸',
 		name: `+${Math.round(pendingXp)} XP waiting`,
 		description: `Post your dish within ${postDeadlineDays} days to claim it`,
 		glowColor: 'rgba(52, 211, 153, 0.3)',
 	},
 	{
 		id: 'challenges',
-		emoji: '🎯',
+		emoji: 'ðŸŽ¯',
 		name: 'Daily Challenges',
 		description: 'Bonus XP rotates in every day',
 		glowColor: 'rgba(168, 85, 247, 0.3)',
@@ -168,7 +168,7 @@ const UnlockCard = ({ item, index }: { item: UnlockItem; index: number }) => (
 		className='flex items-center gap-3 rounded-2xl border border-border bg-bg-elevated p-3.5'
 	>
 		{/* Icon with glow */}
-		<div className='relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-panel-bg'>
+		<div className='relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-bg-card'>
 			<span className='relative z-10 text-2xl'>{item.emoji}</span>
 			<motion.div
 				animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -196,17 +196,17 @@ const JourneyNodeComponent = ({ node }: { node: JourneyNode }) => (
 		{/* Marker */}
 		<div
 			className={cn(
-				'flex h-11 w-11 items-center justify-center rounded-full border-3 text-lg font-extrabold',
+				'flex size-11 items-center justify-center rounded-full border-3 text-lg font-display font-extrabold',
 				node.status === 'done' &&
 					'border-success bg-gradient-to-br from-success to-success/80 text-white shadow-lg shadow-success/40',
 				node.status === 'upcoming' &&
-					'border-dashed border-success bg-panel-bg text-success',
+					'border-dashed border-success bg-bg-card text-success',
 				node.status === 'locked' &&
 					'border-border bg-bg-elevated text-text-muted opacity-50',
 			)}
 		>
 			{node.status === 'locked' ? (
-				<Lock className='h-4 w-4' />
+				<Lock className='size-4' />
 			) : node.id === '4' ? (
 				'?'
 			) : (
@@ -287,10 +287,10 @@ export const FirstCookCelebration = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative z-10 w-full max-w-xl overflow-y-auto rounded-2xl bg-panel-bg p-10 shadow-2xl max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-full max-md:rounded-b-none max-md:p-6'
+							className='relative z-10 w-full max-w-xl overflow-y-auto rounded-2xl bg-bg-card p-10 shadow-2xl max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-full max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Burst animation + badge */}
-							<div className='relative mx-auto mb-6 h-28 w-28 max-md:h-24 max-md:w-24'>
+							<div className='relative mx-auto mb-6 size-28 max-md:h-24 max-md:w-24'>
 								<BurstRings />
 								<motion.div
 									initial={{ scale: 0, rotate: -180 }}
@@ -298,13 +298,13 @@ export const FirstCookCelebration = ({
 									transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
 									className='absolute inset-0 flex items-center justify-center rounded-full bg-gradient-gold shadow-lg shadow-gold/40'
 								>
-									<span className='text-5xl max-md:text-4xl'>👨‍🍳</span>
+									<span className='text-5xl max-md:text-4xl'>ðŸ‘¨â€ðŸ³</span>
 								</motion.div>
 							</div>
 
 							{/* Title */}
 							<div className='mb-7 text-center'>
-								<h1 className='mb-2 bg-gradient-gold bg-clip-text text-3xl font-extrabold text-transparent max-md:text-2xl'>
+								<h1 className='mb-2 bg-gradient-gold bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
 									You&apos;re a Chef Now!
 								</h1>
 								<p className='text-text-muted'>
@@ -346,8 +346,8 @@ export const FirstCookCelebration = ({
 
 							{/* Pending XP teaser */}
 							<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-dashed border-xp/40 bg-gradient-to-r from-xp/10 to-bonus/10 p-4'>
-								<div className='flex h-10 w-10 items-center justify-center rounded-lg bg-panel-bg text-xp'>
-									<Lock className='h-5 w-5' />
+								<div className='flex size-10 items-center justify-center rounded-lg bg-bg-card text-xp'>
+									<Lock className='size-5' />
 								</div>
 								<div className='flex-1'>
 									<span className='block text-sm font-bold text-xp'>
@@ -387,7 +387,7 @@ export const FirstCookCelebration = ({
 									whileTap={LIST_ITEM_TAP}
 									className='mb-3.5 flex w-full items-center justify-center gap-3.5 rounded-2xl bg-gradient-to-r from-brand to-brand/85 px-7 py-5 text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
 								>
-									<Camera className='h-7 w-7' />
+									<Camera className='size-7' />
 									<div className='flex flex-col items-start gap-0.5'>
 										<span className='text-lg font-bold'>
 											Share Your Creation
@@ -402,7 +402,7 @@ export const FirstCookCelebration = ({
 										onClick={onShareAchievement}
 										className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-bg-hover'
 									>
-										<Share2 className='h-4 w-4' />
+										<Share2 className='size-4' />
 										Share Achievement
 									</button>
 									<button
@@ -416,7 +416,7 @@ export const FirstCookCelebration = ({
 
 							{/* Motivational footer */}
 							<div className='rounded-xl bg-warning/10 p-3.5 text-center text-sm'>
-								🍳 <strong>Tip:</strong> Complete a challenge today for bonus
+								ðŸ³ <strong>Tip:</strong> Complete a challenge today for bonus
 								XP!
 							</div>
 						</motion.div>

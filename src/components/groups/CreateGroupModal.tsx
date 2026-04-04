@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -100,7 +100,7 @@ export const CreateGroupModal = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className='sm:max-w-[500px]'>
+			<DialogContent className='sm:max-w-lg'>
 				<DialogHeader>
 					<DialogTitle>Create a New Group</DialogTitle>
 					<DialogDescription>
@@ -242,7 +242,7 @@ export const CreateGroupModal = ({
 							>
 								{isSubmitting ? (
 									<>
-										<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+										<Loader2 className='size-4 mr-2 animate-spin' />
 										Creating...
 									</>
 								) : (

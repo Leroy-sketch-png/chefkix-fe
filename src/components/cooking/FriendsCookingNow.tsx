@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -21,7 +21,7 @@ interface FriendsCookingNowProps {
 /**
  * "Friends Cooking Now" widget for the dashboard.
  * Shows active rooms where followed users are currently cooking.
- * Per spec: 24-advanced-multiplayer.txt §5
+ * Per spec: 24-advanced-multiplayer.txt Â§5
  */
 export function FriendsCookingNow({
 	className,
@@ -48,7 +48,7 @@ export function FriendsCookingNow({
 				setSoloFriends(soloRes.data.friends.filter(f => !f.roomCode))
 			}
 		} catch {
-			// Silently fail — this is a non-critical widget
+			// Silently fail â€” this is a non-critical widget
 		} finally {
 			setIsLoading(false)
 		}
@@ -68,7 +68,7 @@ export function FriendsCookingNow({
 	if (!isLoading && totalActive === 0) return null
 
 	// Loading skeleton
-	if (isLoading) return null // Don't show skeleton for this widget — it appears asynchronously
+	if (isLoading) return null // Don't show skeleton for this widget â€” it appears asynchronously
 
 	return (
 		<motion.div
@@ -85,7 +85,7 @@ export function FriendsCookingNow({
 					<ChefHat className='size-4 text-success' />
 				</div>
 				<h3 className='text-sm font-bold text-text'>Friends Cooking Now</h3>
-				<span className='ml-auto flex size-5 items-center justify-center rounded-full bg-brand/15 text-[10px] font-bold text-brand'>
+				<span className='ml-auto flex size-5 items-center justify-center rounded-full bg-brand/15 text-2xs font-bold text-brand'>
 					{totalActive}
 				</span>
 			</div>
@@ -118,9 +118,9 @@ export function FriendsCookingNow({
 										{room.recipeTitle}
 									</span>
 								</p>
-								<p className='text-[10px] text-text-muted'>
+								<p className='text-2xs text-text-muted'>
 									Started {formatMinutesAgo(room.startedMinutesAgo)} ago
-									{' · '}
+									{' Â· '}
 									<Users className='mb-0.5 inline size-3' />{' '}
 									{room.participantCount}
 								</p>
@@ -205,7 +205,7 @@ export function FriendsCookingNow({
 												}}
 											/>
 										</div>
-										<span className='text-[10px] text-text-muted'>
+										<span className='text-2xs text-text-muted'>
 											Step {friend.currentStep}/{friend.totalSteps}
 										</span>
 									</div>
@@ -219,7 +219,7 @@ export function FriendsCookingNow({
 	)
 }
 
-// ── Helpers ──
+// â”€â”€ Helpers â”€â”€
 
 function formatParticipantNames(names: string[]): string {
 	if (names.length <= 2) return names.join(' & ')

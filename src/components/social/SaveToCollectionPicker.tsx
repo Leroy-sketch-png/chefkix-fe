@@ -230,13 +230,13 @@ export const SaveToCollectionPicker = ({
 									}}
 									placeholder='Collection name...'
 									maxLength={60}
-									className='flex-1 rounded border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none'
+									className='flex-1 rounded border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 								/>
 								<button
 									type='button'
 									disabled={!newName.trim() || isCreating}
 									onClick={handleCreateAndAdd}
-									className='rounded bg-primary px-2 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50'
+									className='rounded bg-brand px-2 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 								>
 									{isCreating ? (
 										<Loader2 className='size-3.5 animate-spin' />
@@ -249,7 +249,7 @@ export const SaveToCollectionPicker = ({
 							<button
 								type='button'
 								onClick={() => setShowCreate(true)}
-								className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-primary transition-colors hover:bg-bg-hover'
+								className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-brand transition-colors hover:bg-bg-hover'
 							>
 								<Plus className='size-4' />
 								<span>New Collection</span>

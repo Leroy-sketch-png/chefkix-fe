@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import {
@@ -111,7 +111,7 @@ const SettingsNavItem = ({ item, isActive, onClick }: SettingsNavItemProps) => {
 			className={cn(
 				'flex items-center gap-3 w-full p-3 rounded-xl text-left',
 				isActive
-					? 'bg-primary/10 text-primary'
+					? 'bg-brand/10 text-brand'
 					: 'text-text-secondary hover:bg-muted/50 hover:text-foreground',
 			)}
 			onClick={onClick}
@@ -122,7 +122,7 @@ const SettingsNavItem = ({ item, isActive, onClick }: SettingsNavItemProps) => {
 			<span
 				className={cn(
 					'flex-shrink-0',
-					isActive ? 'text-primary' : 'text-text-secondary',
+					isActive ? 'text-brand' : 'text-text-secondary',
 				)}
 			>
 				{item.icon}
@@ -205,7 +205,7 @@ export const SettingsNavCompact = ({
 						'flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap',
 						'text-sm font-medium',
 						activeSection === item.id
-							? 'bg-primary text-white'
+							? 'bg-brand text-white'
 							: 'bg-muted/50 text-text-secondary hover:bg-bg-hover hover:text-foreground',
 					)}
 					onClick={() => onSectionChange(item.id)}

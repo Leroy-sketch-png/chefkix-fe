@@ -319,7 +319,7 @@ export const ReportModal = ({
 												onChange={e => setDetails(e.target.value)}
 												placeholder='Provide more context...'
 												maxLength={1000}
-												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
+												className='min-h-20 w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
 											/>
 											{details.length > 0 && (
 												<p className='mt-1 text-right text-xs text-text-muted'>
@@ -463,7 +463,7 @@ export const AccountRestrictedNotice = ({
 				className={cn(
 					'flex flex-col items-center gap-4 p-8 text-center',
 					isPermanent
-						? 'bg-gradient-to-br from-error/20 to-red-900/10'
+						? 'bg-gradient-to-br from-error/20 to-error/10'
 						: 'bg-gradient-to-br from-warning/15 to-error/10',
 				)}
 			>

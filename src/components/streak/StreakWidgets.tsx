@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -99,7 +99,7 @@ export function StreakRiskBanner({
 						}}
 						className='text-icon-xl block'
 					>
-						🔥
+						ðŸ”¥
 					</motion.span>
 					<div
 						className={cn(
@@ -113,9 +113,9 @@ export function StreakRiskBanner({
 
 				{/* Info */}
 				<div className='flex flex-col text-center sm:text-left'>
-					<span className='text-base font-bold text-text'>
+					<span className='text-base font-display font-bold text-text'>
 						{isUrgent ? (
-							<>⚠️ LAST CHANCE! {currentStreak}-day streak ending soon</>
+							<>âš ï¸ LAST CHANCE! {currentStreak}-day streak ending soon</>
 						) : (
 							<>Your {currentStreak}-day streak is at risk!</>
 						)}
@@ -136,7 +136,7 @@ export function StreakRiskBanner({
 							: 'bg-streak/15 text-streak',
 					)}
 				>
-					<Clock className='w-4 h-4' />
+					<Clock className='size-4' />
 					<span className='font-bold'>
 						{timeRemaining.hours}h {timeRemaining.minutes}m
 					</span>
@@ -171,7 +171,7 @@ export function StreakRiskBanner({
 				<button
 					onClick={onDismiss}
 					aria-label='Dismiss'
-					className='absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-text-secondary opacity-60 hover:opacity-100 transition-opacity'
+					className='absolute top-2 right-2 size-7 flex items-center justify-center text-text-secondary opacity-60 hover:opacity-100 transition-opacity'
 				>
 					<X className='size-4' />
 				</button>
@@ -203,7 +203,7 @@ export function StreakSavedToast({
 						className={cn(
 							'fixed bottom-24 left-1/2 -translate-x-1/2 z-notification',
 							'flex items-center gap-4 py-4 px-6',
-							'bg-panel-bg border-2 border-success rounded-2xl',
+							'bg-bg-card border-2 border-success rounded-2xl',
 							'shadow-2xl shadow-black/30',
 						)}
 					>
@@ -215,7 +215,7 @@ export function StreakSavedToast({
 								transition={{ delay: 0.1, ...TRANSITION_SPRING }}
 								className='text-4xl block'
 							>
-								{isNewStreak ? '🌱' : '🔥'}
+								{isNewStreak ? 'ðŸŒ±' : 'ðŸ”¥'}
 							</motion.span>
 							{!isNewStreak && (
 								<motion.div
@@ -229,12 +229,12 @@ export function StreakSavedToast({
 
 						{/* Content */}
 						<div className='flex flex-col'>
-							<span className='text-base font-extrabold text-success'>
+							<span className='text-base font-display font-extrabold text-success'>
 								{isNewStreak ? 'New Streak Started!' : 'Streak Saved!'}
 							</span>
 							<span className='text-sm text-text'>
 								{isNewStreak ? (
-									<>Day 1 — Let&apos;s go!</>
+									<>Day 1 â€” Let&apos;s go!</>
 								) : (
 									<>
 										<strong>{newStreak} days</strong> and counting
@@ -249,7 +249,7 @@ export function StreakSavedToast({
 								<span className='text-2xs text-text-secondary uppercase tracking-wide'>
 									Streak Bonus
 								</span>
-								<span className='text-base font-extrabold text-success'>
+								<span className='text-base font-display font-extrabold text-success'>
 									+{bonusXp} XP
 								</span>
 							</div>
@@ -293,15 +293,15 @@ export function StreakMilestoneCard({
 					className='absolute -inset-2 bg-gradient-to-r from-streak/40 to-transparent rounded-full'
 				/>
 				<span className='text-icon-lg relative z-10'>{badgeEmoji}</span>
-				<div className='absolute -bottom-1 -right-1 w-7 h-7 flex items-center justify-center bg-panel-bg border-3 border-streak rounded-full text-xs font-black text-streak'>
+				<div className='absolute -bottom-1 -right-1 size-7 flex items-center justify-center bg-bg-card border-3 border-streak rounded-full text-xs font-black text-streak'>
 					{days}
 				</div>
 			</div>
 
 			{/* Content */}
 			<div className='flex-1 text-center sm:text-left'>
-				<h3 className='text-lg font-extrabold text-text mb-1'>
-					{days}-Day Streak! 🎉
+				<h3 className='text-lg font-display font-extrabold text-text mb-1'>
+					{days}-Day Streak! ðŸŽ‰
 				</h3>
 				<p className='text-sm text-text-secondary mb-3'>
 					You cooked every day for{' '}
@@ -309,8 +309,8 @@ export function StreakMilestoneCard({
 				</p>
 
 				{/* Badge Reward */}
-				<div className='flex items-center gap-2.5 p-2.5 bg-panel-bg rounded-xl mb-2.5 justify-center sm:justify-start'>
-					<span className='text-2xl'>🎖️</span>
+				<div className='flex items-center gap-2.5 p-2.5 bg-bg-card rounded-xl mb-2.5 justify-center sm:justify-start'>
+					<span className='text-2xl'>ðŸŽ–ï¸</span>
 					<div className='flex flex-col'>
 						<span className='text-sm font-bold text-text'>{badgeName}</span>
 						<span className='text-xs text-text-secondary'>
@@ -324,7 +324,7 @@ export function StreakMilestoneCard({
 					<div className='text-xs text-text-secondary'>
 						<span>Next milestone: </span>
 						<span className='text-streak font-semibold'>
-							{nextMilestone.days}-day streak → {nextMilestone.badgeName}
+							{nextMilestone.days}-day streak â†’ {nextMilestone.badgeName}
 						</span>
 					</div>
 				)}
@@ -337,7 +337,7 @@ export function StreakMilestoneCard({
 					whileTap={BUTTON_SUBTLE_TAP}
 					transition={TRANSITION_SPRING}
 					onClick={onShare}
-					className='flex items-center gap-1.5 py-2.5 px-4 bg-panel-bg border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0'
+					className='flex items-center gap-1.5 py-2.5 px-4 bg-bg-card border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0'
 				>
 					<Share2 className='size-4' />
 					Share
@@ -370,8 +370,8 @@ export function StreakMilestoneMini({
 				className,
 			)}
 		>
-			<span className='py-1.5 px-2.5 bg-gradient-to-r from-streak to-streak/90 rounded-lg text-sm font-extrabold text-white'>
-				🔥 {days}
+			<span className='py-1.5 px-2.5 bg-gradient-to-r from-streak to-streak/90 rounded-lg text-sm font-display font-extrabold text-white'>
+				ðŸ”¥ {days}
 			</span>
 			<span className='flex-1 text-sm font-semibold text-text'>
 				{days}-day streak! You&apos;re on fire!
@@ -379,7 +379,7 @@ export function StreakMilestoneMini({
 			{onViewBadge && (
 				<button
 					onClick={onViewBadge}
-					className='py-2 px-3.5 bg-panel-bg border border-border rounded-lg text-xs font-semibold text-text hover:bg-border transition-colors'
+					className='py-2 px-3.5 bg-bg-card border border-border rounded-lg text-xs font-semibold text-text hover:bg-border transition-colors'
 				>
 					View Badge
 				</button>
@@ -404,7 +404,7 @@ export function StreakWidget({
 	return (
 		<div
 			className={cn(
-				'bg-panel-bg border border-border rounded-2xl p-5',
+				'bg-bg-card border border-border rounded-2xl p-5',
 				className,
 			)}
 		>
@@ -425,8 +425,8 @@ export function StreakWidget({
 
 			{/* Streak Display */}
 			<div className='flex items-baseline justify-center gap-2 mb-5'>
-				<span className='text-4xl'>🔥</span>
-				<span className='text-5xl font-black text-orange-500 leading-none'>
+				<span className='text-4xl'>ðŸ”¥</span>
+				<span className='text-5xl font-black text-streak leading-none'>
 					{currentStreak}
 				</span>
 				<span className='text-base font-semibold text-text-secondary'>
@@ -450,7 +450,7 @@ export function StreakWidget({
 								day === 'today' &&
 									(isActiveToday
 										? 'bg-gradient-success text-white shadow-card shadow-success/30'
-										: 'bg-panel-bg border-2 border-dashed border-success text-success'),
+										: 'bg-bg-card border-2 border-dashed border-success text-success'),
 								day === 'future' &&
 									'bg-bg border-2 border-border text-text-secondary',
 							)}
@@ -473,7 +473,7 @@ export function StreakWidget({
 					{isActiveToday ? (
 						<>
 							<CheckCircle2 className='size-icon-sm' />
-							Cooked today ✓
+							Cooked today âœ“
 						</>
 					) : (
 						<>

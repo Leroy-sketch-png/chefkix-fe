@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -89,7 +89,7 @@ const Sparkle = ({ x, y, delay }: { x: string; y: string; delay: number }) => (
 			delay,
 			ease: 'easeInOut',
 		}}
-		className='absolute h-2 w-2 rounded-full bg-white'
+		className='absolute size-2 rounded-full bg-white'
 		style={{ left: x, top: y }}
 	/>
 )
@@ -203,20 +203,20 @@ export const PostSuccessRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative max-h-modal w-full max-w-md overflow-y-auto rounded-2xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-mobile max-md:rounded-b-none max-md:p-6'
+							className='relative max-h-modal w-full max-w-md overflow-y-auto rounded-2xl bg-bg-card p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-mobile max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close */}
 							<button
 								onClick={onClose}
 								aria-label='Close'
-								className='absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+								className='absolute right-4 top-4 z-10 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
-								<X className='h-5 w-5' />
+								<X className='size-5' />
 							</button>
 
 							{/* Header with posted image */}
 							<div className='mb-6 text-center'>
-								<div className='relative mx-auto mb-4 h-28 w-28'>
+								<div className='relative mx-auto mb-4 size-28'>
 									<Image
 										src={recipeImageUrl}
 										alt={recipeName}
@@ -228,12 +228,12 @@ export const PostSuccessRewards = ({
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
 										transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
-										className='absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-level shadow-lg shadow-level/40'
+										className='absolute -bottom-2 -right-2 flex size-10 items-center justify-center rounded-full bg-gradient-level shadow-lg shadow-level/40'
 									>
-										<Check className='h-5 w-5 text-white' />
+										<Check className='size-5 text-white' />
 									</motion.div>
 								</div>
-								<h1 className='mb-2 text-3xl font-extrabold'>Posted! 🎉</h1>
+								<h1 className='mb-2 text-3xl font-display font-extrabold'>Posted! ðŸŽ‰</h1>
 								<p className='text-text-muted'>Your {recipeName} is now live</p>
 							</div>
 
@@ -245,22 +245,22 @@ export const PostSuccessRewards = ({
 										initial={{ opacity: 1 }}
 										animate={{ opacity: 0 }}
 										transition={{ delay: 0.3 }}
-										className='flex h-12 w-12 items-center justify-center rounded-full bg-panel-bg'
+										className='flex size-12 items-center justify-center rounded-full bg-bg-card'
 									>
-										<Lock className='h-5 w-5 text-text-muted' />
+										<Lock className='size-5 text-text-muted' />
 									</motion.div>
 									<motion.div
 										initial={{ opacity: 0, scale: 0.5 }}
 										animate={{ opacity: 1, scale: 1 }}
 										transition={{ ...TRANSITION_BOUNCY, delay: 0.5 }}
-										className='absolute flex h-12 w-12 items-center justify-center rounded-full bg-panel-bg'
+										className='absolute flex size-12 items-center justify-center rounded-full bg-bg-card'
 									>
-										<Unlock className='h-5 w-5 text-xp' />
+										<Unlock className='size-5 text-xp' />
 									</motion.div>
 								</div>
 
 								{/* XP breakdown */}
-								<div className='space-y-1 rounded-xl bg-panel-bg p-3'>
+								<div className='space-y-1 rounded-xl bg-bg-card p-3'>
 									{xpRows.map((row, i) => (
 										<XPRowComponent key={row.id} row={row} index={i} />
 									))}
@@ -272,7 +272,7 @@ export const PostSuccessRewards = ({
 											initial={{ scale: 0.5, opacity: 0 }}
 											animate={{ scale: 1, opacity: 1 }}
 											transition={{ ...TRANSITION_BOUNCY, delay: 0.8 }}
-											className='text-2xl font-extrabold text-xp'
+											className='text-2xl font-display font-extrabold text-xp'
 										>
 											+{totalXp} XP
 										</motion.span>
@@ -336,18 +336,18 @@ export const PostSuccessRewards = ({
 												className='flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 											>
 												View Post
-												<ArrowRight className='h-4 w-4' />
+												<ArrowRight className='size-4' />
 											</button>
 										)}
 									</div>
-									<div className='overflow-hidden rounded-lg border border-border bg-panel-bg'>
+									<div className='overflow-hidden rounded-lg border border-border bg-bg-card'>
 										<div className='flex items-center gap-2.5 p-3'>
 											<Image
 												src={postPreview.authorAvatar}
 												alt={postPreview.authorName}
 												width={28}
 												height={28}
-												className='h-7 w-7 rounded-full'
+												className='size-7 rounded-full'
 											/>
 											<span className='flex-1 text-sm font-semibold'>
 												{postPreview.authorName}

@@ -15,6 +15,7 @@ import { triggerSaveConfetti } from '@/lib/confetti'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { useAuthGate } from '@/hooks/useAuthGate'
+import { QualityBadge } from './QualityBadge'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -135,7 +136,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 					className='group block overflow-hidden rounded-radius border border-border-subtle bg-bg-card transition-all duration-300 hover:border-brand/50 hover:bg-bg-elevated'
 				>
 					{/* Gradient overlay on hover */}
-					<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+					<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-brand/10 to-accent-purple/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
 
 					<div className='relative aspect-[4/3] w-full overflow-hidden'>
 						<Image
@@ -150,7 +151,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 								recipe.difficulty === 'Beginner'
 									? 'bg-gradient-to-br from-success to-success/80'
 									: recipe.difficulty === 'Intermediate'
-										? 'bg-gradient-to-br from-accent to-accent-variant'
+										? 'bg-gradient-to-br from-accent-purple to-accent-purple-hover'
 										: recipe.difficulty === 'Advanced'
 											? 'bg-gradient-to-br from-warning to-gold'
 											: 'bg-gradient-to-br from-destructive to-gold'
@@ -167,14 +168,26 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							className={`absolute right-2 top-2 grid size-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 								isSaved
 									? 'bg-gold/10 text-gold'
-									: 'bg-bg-card text-text-secondary hover:bg-primary/10 hover:text-primary'
+									: 'bg-bg-card text-text-secondary hover:bg-brand/10 hover:text-brand'
 							}`}
 						>
 							<Bookmark className={`size-5 ${isSaved ? 'fill-gold' : ''}`} />
 						</button>
+						{/* Quality badge - only show Foolproof tier */}
+						{recipe.qualityTier === 'Foolproof' && (
+							<div className='absolute bottom-2 right-2'>
+								<QualityBadge
+									tier='Foolproof'
+									size='sm'
+									showLabel
+									showScore={false}
+									animate={false}
+								/>
+							</div>
+						)}
 					</div>
 					<div className='space-y-3 p-4 md:p-6'>
-						<h3 className='text-lg font-bold leading-tight text-text-primary line-clamp-2'>
+						<h3 className='text-lg font-serif font-bold leading-tight text-text-primary line-clamp-2'>
 							{recipe.title}
 						</h3>
 						<p className='text-sm leading-normal text-text-secondary line-clamp-2'>
@@ -191,7 +204,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 									e.stopPropagation()
 									router.push(`/recipes/${recipe.id}?cook=true`)
 								}}
-								className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent to-accent-variant font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
+								className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent-purple to-accent-purple-hover font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
 							>
 								Cook Recipe
 							</button>

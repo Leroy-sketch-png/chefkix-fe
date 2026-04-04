@@ -95,7 +95,7 @@ export const ImageWithFallback = ({
 			case 'avatar':
 				return 'bg-gradient-to-br from-xp/10 to-bg-elevated'
 			case 'post':
-				return 'bg-gradient-to-br from-accent/10 to-bg-elevated'
+				return 'bg-gradient-to-br from-accent-purple/10 to-bg-elevated'
 			default:
 				return 'bg-bg-elevated'
 		}

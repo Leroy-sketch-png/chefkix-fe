@@ -206,13 +206,13 @@ export const MessagesDrawer = () => {
 			{/* Resize handle */}
 			<div
 				onMouseDown={() => setIsResizing(true)}
-				className='absolute left-0 top-0 flex h-full w-2 cursor-ew-resize items-center justify-center hover:bg-primary/10'
+				className='absolute left-0 top-0 flex h-full w-2 cursor-ew-resize items-center justify-center hover:bg-brand/10'
 			>
 				<div className='h-12 w-1 rounded-full bg-border' />
 			</div>
 			<div
 				onMouseDown={() => setIsResizing(true)}
-				className='absolute left-0 top-0 flex h-2 w-full cursor-ns-resize items-center justify-center hover:bg-primary/10'
+				className='absolute left-0 top-0 flex h-2 w-full cursor-ns-resize items-center justify-center hover:bg-brand/10'
 			>
 				<div className='h-1 w-12 rounded-full bg-border' />
 			</div>
@@ -290,7 +290,7 @@ export const MessagesDrawer = () => {
 											<div
 												className={`max-w-[70%] rounded-lg p-2 ${
 													message.me
-														? 'rounded-br-none bg-primary text-white'
+														? 'rounded-br-none bg-brand text-white'
 														: 'rounded-bl-none bg-bg-elevated'
 												}`}
 											>
@@ -321,7 +321,7 @@ export const MessagesDrawer = () => {
 								<Link
 									href={PATHS.COMMUNITY}
 									onClick={toggleMessagesDrawer}
-									className='text-xs text-primary hover:underline'
+									className='text-xs text-brand hover:underline'
 								>
 									Find people to chat with
 								</Link>
@@ -354,7 +354,7 @@ export const MessagesDrawer = () => {
 											)}
 										</div>
 										{conv.unreadCount && conv.unreadCount > 0 && (
-											<span className='flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-white'>
+											<span className='flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
 												{conv.unreadCount}
 											</span>
 										)}

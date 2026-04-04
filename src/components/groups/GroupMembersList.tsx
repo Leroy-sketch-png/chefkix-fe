@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { GroupMember, MemberRole } from '@/lib/types/group'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -63,11 +63,11 @@ export const GroupMembersList = ({
 	const getRoleIcon = (role: MemberRole) => {
 		switch (role) {
 			case 'OWNER':
-				return <Crown className='w-4 h-4 text-medal-gold' />
+				return <Crown className='size-4 text-medal-gold' />
 			case 'ADMIN':
-				return <Shield className='w-4 h-4 text-info' />
+				return <Shield className='size-4 text-info' />
 			case 'MODERATOR':
-				return <Shield className='w-4 h-4 text-info/70' />
+				return <Shield className='size-4 text-info/70' />
 			default:
 				return null
 		}
@@ -80,7 +80,7 @@ export const GroupMembersList = ({
 	if (isLoading) {
 		return (
 			<div className='flex justify-center py-8'>
-				<Loader2 className='w-6 h-6 animate-spin text-brand' />
+				<Loader2 className='size-6 animate-spin text-brand' />
 			</div>
 		)
 	}
@@ -103,7 +103,7 @@ export const GroupMembersList = ({
 				>
 					<Link href={`/profile/${member.userId}`} className='flex-1'>
 						<div className='flex items-center gap-3 cursor-pointer'>
-							<Avatar className='h-10 w-10'>
+							<Avatar className='size-10'>
 								<AvatarImage
 									src={member.avatarUrl || undefined}
 									alt={member.displayName}
@@ -140,7 +140,7 @@ export const GroupMembersList = ({
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
 									<Button variant='ghost' size='icon'>
-										<MoreVertical className='w-4 h-4' />
+										<MoreVertical className='size-4' />
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align='end'>
@@ -152,9 +152,9 @@ export const GroupMembersList = ({
 										className='text-error focus:text-error'
 									>
 										{kickingUserId === member.userId ? (
-											<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+											<Loader2 className='size-4 mr-2 animate-spin' />
 										) : (
-											<UserMinus className='w-4 h-4 mr-2' />
+											<UserMinus className='size-4 mr-2' />
 										)}
 										Remove Member
 									</DropdownMenuItem>

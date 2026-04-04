@@ -30,7 +30,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 				{/* Cover image thumbnail */}
 				{coverImage && (
 					<Link
-						href={`/recipe/${post.recipeId}`}
+						href={`/recipes/${post.recipeId}`}
 						className='relative size-14 flex-shrink-0 overflow-hidden rounded-lg md:size-16'
 					>
 						<Image
@@ -81,7 +81,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 					{/* Recipe title + duration */}
 					<div className='flex items-center gap-2'>
 						<Link
-							href={`/recipe/${post.recipeId}`}
+							href={`/recipes/${post.recipeId}`}
 							className='truncate text-sm font-semibold text-text hover:text-brand'
 						>
 							{post.recipeTitle ?? 'Unknown Recipe'}
@@ -100,7 +100,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 
 				{/* Arrow link to recipe */}
 				<Link
-					href={`/recipe/${post.recipeId}`}
+					href={`/recipes/${post.recipeId}`}
 					className='flex flex-shrink-0 items-center justify-center rounded-full p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-brand'
 				>
 					<ArrowRight className='size-4' />

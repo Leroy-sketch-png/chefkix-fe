@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Image from 'next/image'
@@ -118,7 +118,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 
 	return (
 		<motion.div
-			className='grid grid-cols-2 md:grid-cols-4 gap-4 bg-panel-bg rounded-2xl p-5 border border-border mb-6'
+			className='grid grid-cols-2 md:grid-cols-4 gap-4 bg-bg-card rounded-2xl p-5 border border-border mb-6'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -128,7 +128,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 					key={stat.label}
 					className={cn(
 						'text-center p-3 rounded-xl transition-colors hover:bg-muted/50',
-						stat.highlight && 'bg-primary/10 border border-primary/20',
+						stat.highlight && 'bg-brand/10 border border-brand/20',
 					)}
 					initial={{ opacity: 0, scale: 0.8 }}
 					animate={{ opacity: 1, scale: 1 }}
@@ -136,8 +136,8 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 				>
 					<span
 						className={cn(
-							'block text-2xl md:text-3xl font-extrabold',
-							stat.highlight ? 'text-primary' : 'text-foreground',
+							'block text-2xl md:text-3xl font-display font-extrabold',
+							stat.highlight ? 'text-brand' : 'text-foreground',
 						)}
 					>
 						{stat.value}
@@ -202,7 +202,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					alt={session.recipeName}
 					width={64}
 					height={64}
-					className='w-16 h-16 rounded-xl object-cover flex-shrink-0'
+					className='size-16 rounded-xl object-cover flex-shrink-0'
 				/>
 
 				<div className='flex-1 min-w-0'>
@@ -211,7 +211,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
 						<span>Cooked {getTimeSinceCook(session.cookedAt)}</span>
-						<span className='opacity-50'>•</span>
+						<span className='opacity-50'>â€¢</span>
 						<span>{formatDuration(session.duration)} session</span>
 					</span>
 
@@ -228,7 +228,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 								/>
 							</div>
 							<span className='text-xs text-error font-semibold'>
-								{Math.round(decayPercent)}% time decay — post soon!
+								{Math.round(decayPercent)}% time decay â€” post soon!
 							</span>
 						</div>
 					)}
@@ -236,7 +236,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0 min-w-thumbnail-lg'>
-					<span className='block text-xl font-extrabold text-success'>
+					<span className='block text-xl font-display font-extrabold text-success'>
 						+{session.currentXP}
 					</span>
 					{/* Only show original XP if there's actual time-based decay */}
@@ -253,7 +253,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 						'px-5 py-2.5 rounded-xl font-semibold text-sm',
 						isUrgent
 							? 'bg-error text-white shadow-lg shadow-error/30'
-							: 'bg-primary text-white shadow-lg shadow-primary/30',
+							: 'bg-brand text-white shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
 					whileHover={BUTTON_HOVER}
@@ -299,7 +299,7 @@ const CompletedItem = ({
 		>
 			<div className='flex items-center gap-4 p-4'>
 				{/* Image Stack */}
-				<div className='relative w-16 h-16 flex-shrink-0'>
+				<div className='relative size-16 flex-shrink-0'>
 					<Image
 						src={session.recipeImage}
 						alt={session.recipeName}
@@ -312,7 +312,7 @@ const CompletedItem = ({
 							alt=''
 							width={32}
 							height={32}
-							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-panel-bg object-cover'
+							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-bg-card object-cover'
 						/>
 					)}
 				</div>
@@ -322,7 +322,7 @@ const CompletedItem = ({
 						{session.recipeName}
 						{isMastered && (
 							<span className='rounded-md bg-accent-purple/10 px-2 py-0.5 text-xs font-semibold text-accent-purple'>
-								🥇 Mastered
+								ðŸ¥‡ Mastered
 							</span>
 						)}
 						{!isMastered && session.cookCount && session.cookCount > 1 && (
@@ -339,13 +339,13 @@ const CompletedItem = ({
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
 						<span>{getTimeSinceCook(session.cookedAt)}</span>
-						<span className='opacity-50'>•</span>
+						<span className='opacity-50'>â€¢</span>
 						<span>{formatDuration(session.duration)}</span>
 						{session.rating && (
 							<>
-								<span className='opacity-50'>•</span>
+								<span className='opacity-50'>â€¢</span>
 								<span className='flex items-center gap-1'>
-									<Star className='h-3 w-3 fill-warning text-warning' />
+									<Star className='size-3 fill-warning text-warning' />
 									{session.rating.toFixed(1)}
 								</span>
 							</>
@@ -355,7 +355,7 @@ const CompletedItem = ({
 
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0'>
-					<span className='block text-xl font-extrabold text-success'>
+					<span className='block text-xl font-display font-extrabold text-success'>
 						+{session.currentXP}
 					</span>
 					{!isReduced && (
@@ -437,7 +437,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						<span className='text-text-secondary'>
 							{getTimeSinceCook(session.cookedAt)}
 						</span>
-						<span className='opacity-50'>•</span>
+						<span className='opacity-50'>â€¢</span>
 						<span
 							className={cn(
 								'font-semibold',
@@ -549,7 +549,7 @@ export const CookingHistoryTab = ({
 			{/* Pending Posts Section */}
 			{pendingSessions.length > 0 && (
 				<motion.section
-					className='bg-panel-bg rounded-2xl p-5 border border-border border-l-4 border-l-primary mb-6'
+					className='bg-bg-card rounded-2xl p-5 border border-border border-l-4 border-l-primary mb-6'
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -557,7 +557,7 @@ export const CookingHistoryTab = ({
 					{/* Section Header */}
 					<div className='flex items-center justify-between mb-4'>
 						<h3 className='flex items-center gap-2 text-lg font-bold'>
-							<span>📸</span>
+							<span>ðŸ“¸</span>
 							Pending Posts
 						</h3>
 						<span className='text-base font-bold text-success bg-success/10 px-3 py-1.5 rounded-full'>
@@ -568,7 +568,7 @@ export const CookingHistoryTab = ({
 					{/* Urgent Alert */}
 					{urgentCount > 0 && (
 						<div className='flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-error/10 to-error/5 border border-error/20 rounded-xl mb-4 text-sm font-semibold text-error'>
-							<span>⚠️</span>
+							<span>âš ï¸</span>
 							{urgentCount} recipe{urgentCount > 1 ? 's' : ''} expire within 24
 							hours!
 						</div>
@@ -588,7 +588,7 @@ export const CookingHistoryTab = ({
 							onClick={() => setShowMorePending(true)}
 						>
 							Show {hiddenPendingCount} more pending
-							<ChevronDown className='h-4 w-4' />
+							<ChevronDown className='size-4' />
 						</button>
 					)}
 				</motion.section>
@@ -596,7 +596,7 @@ export const CookingHistoryTab = ({
 
 			{/* Completed Sessions Section */}
 			<motion.section
-				className='bg-panel-bg rounded-2xl p-5 border border-border mb-6'
+				className='bg-bg-card rounded-2xl p-5 border border-border mb-6'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
@@ -604,7 +604,7 @@ export const CookingHistoryTab = ({
 				{/* Section Header */}
 				<div className='flex items-center justify-between mb-4'>
 					<h3 className='flex items-center gap-2 text-lg font-bold'>
-						<span>✅</span>
+						<span>âœ…</span>
 						Cooking History
 					</h3>
 					<div className='flex gap-2'>

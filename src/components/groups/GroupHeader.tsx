@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Group, MemberRole } from '@/lib/types/group'
 import Image from 'next/image'
@@ -89,7 +89,7 @@ export const GroupHeader = ({
 					/>
 				) : (
 					<div className='w-full h-full flex items-center justify-center'>
-						<Users className='w-24 h-24 text-brand/20' />
+						<Users className='size-24 text-brand/20' />
 					</div>
 				)}
 
@@ -101,14 +101,14 @@ export const GroupHeader = ({
 					<div className='bg-bg/90 backdrop-blur-sm rounded-full p-2 flex items-center gap-1'>
 						{group.privacyType === 'PRIVATE' ? (
 							<>
-								<Lock className='w-4 h-4 text-text-secondary' />
+								<Lock className='size-4 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
 									Private
 								</span>
 							</>
 						) : (
 							<>
-								<Globe className='w-4 h-4 text-text-secondary' />
+								<Globe className='size-4 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
 									Public
 								</span>
@@ -125,18 +125,18 @@ export const GroupHeader = ({
 									size='icon'
 									className='bg-bg/90 backdrop-blur-sm border-0'
 								>
-									<MoreVertical className='w-4 h-4' />
+									<MoreVertical className='size-4' />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align='end'>
 								{(isOwner || isAdmin) && (
 									<DropdownMenuItem onClick={onSettingsClick}>
-										<Settings className='w-4 h-4 mr-2' />
+										<Settings className='size-4 mr-2' />
 										Group Settings
 									</DropdownMenuItem>
 								)}
 								<DropdownMenuItem>
-									<Share2 className='w-4 h-4 mr-2' />
+									<Share2 className='size-4 mr-2' />
 									Share Group
 								</DropdownMenuItem>
 								{!isOwner && (
@@ -144,7 +144,7 @@ export const GroupHeader = ({
 										onClick={() => setShowLeaveConfirm(true)}
 										className='text-error focus:text-error'
 									>
-										<LogOut className='w-4 h-4 mr-2' />
+										<LogOut className='size-4 mr-2' />
 										Leave Group
 									</DropdownMenuItem>
 								)}
@@ -162,7 +162,7 @@ export const GroupHeader = ({
 
 						<div className='flex items-center gap-4 mt-3 flex-wrap'>
 							<div className='flex items-center gap-1 text-text-secondary'>
-								<Users className='w-4 h-4' />
+								<Users className='size-4' />
 								<span className='text-sm'>{group.memberCount} members</span>
 							</div>
 

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -127,7 +127,7 @@ export const LeftSidebar = () => {
 			<Link
 				key={item.label}
 				href={href}
-				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-primary'
+				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-brand'
 				data-active={active}
 				aria-current={active ? 'page' : undefined}
 				title={item.label}
@@ -143,7 +143,7 @@ export const LeftSidebar = () => {
 				/>
 				{/* Background glow on active */}
 				<motion.div
-					className='absolute inset-0 rounded-radius bg-gradient-to-r from-primary/10 to-transparent opacity-0'
+					className='absolute inset-0 rounded-radius bg-gradient-to-r from-brand/10 to-transparent opacity-0'
 					initial={false}
 					animate={{
 						opacity: active ? 1 : 0,
@@ -165,7 +165,7 @@ export const LeftSidebar = () => {
 					<Icon className='size-6 transition-all duration-300 group-data-[active=true]:drop-shadow-glow' />
 					{/* Unread badge for notifications */}
 					{item.showBadge && unreadCount > 0 && (
-						<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white'>
+						<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white'>
 							{unreadCount > 9 ? '9+' : unreadCount}
 						</span>
 					)}

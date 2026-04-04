@@ -31,8 +31,8 @@ export const MethodCard = ({
 		className={cn(
 			'relative flex items-center gap-3.5 rounded-2xl border-2 p-5 text-left transition-all',
 			isActive
-				? 'border-primary bg-primary/10'
-				: 'border-border bg-panel-bg hover:border-muted-foreground',
+				? 'border-brand bg-brand/10'
+				: 'border-border bg-bg-card hover:border-muted-foreground',
 		)}
 	>
 		<div

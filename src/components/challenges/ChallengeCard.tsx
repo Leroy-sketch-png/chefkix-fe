@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import { Clock, Users, Trophy } from 'lucide-react'
@@ -64,23 +64,23 @@ const typeConfig: Record<
 	{ gradient: string; label: string; labelColor: string }
 > = {
 	daily: {
-		gradient: 'from-xp via-cyan-400 to-blue-500',
-		label: '🎯 Daily Challenge',
+		gradient: 'from-xp via-accent-teal to-info',
+		label: 'ðŸŽ¯ Daily Challenge',
 		labelColor: 'text-xp',
 	},
 	weekly: {
-		gradient: 'from-rare via-purple-500 to-pink-500',
-		label: '📅 Weekly Challenge',
+		gradient: 'from-rare via-accent-purple to-brand',
+		label: 'ðŸ“… Weekly Challenge',
 		labelColor: 'text-rare',
 	},
 	community: {
-		gradient: 'from-combo via-pink-400 to-rose-500',
-		label: '👥 Community Challenge',
+		gradient: 'from-combo via-brand to-brand',
+		label: 'ðŸ‘¥ Community Challenge',
 		labelColor: 'text-combo',
 	},
 	seasonal: {
-		gradient: 'from-legendary via-amber-400 to-bonus',
-		label: '🌟 Seasonal Event',
+		gradient: 'from-legendary via-warning to-bonus',
+		label: 'ðŸŒŸ Seasonal Event',
 		labelColor: 'text-legendary',
 	},
 }
@@ -143,7 +143,7 @@ export const ChallengeCard = ({
 				</div>
 
 				{/* Title */}
-				<h3 className='mb-2 text-lg font-extrabold leading-tight'>{title}</h3>
+				<h3 className='mb-2 text-lg font-display font-extrabold leading-tight'>{title}</h3>
 
 				{/* Description */}
 				{description && (
@@ -176,7 +176,7 @@ export const ChallengeCard = ({
 				<div className='mb-4 flex items-center gap-4 text-xs'>
 					{/* Bonus XP */}
 					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-card shadow-bonus/20'>
-						<span>⚡</span>
+						<span>âš¡</span>
 						<span className='font-bold text-bonus'>+{bonusXp} XP</span>
 					</div>
 
@@ -204,7 +204,7 @@ export const ChallengeCard = ({
 				{/* Action Button */}
 				{isCompleted ? (
 					<div className='flex items-center justify-center gap-2 rounded-full bg-white/20 py-2.5 text-sm font-bold'>
-						<Trophy className='h-4 w-4' />
+						<Trophy className='size-4' />
 						Completed!
 					</div>
 				) : isExpired ? (
@@ -223,7 +223,7 @@ export const ChallengeCard = ({
 							'w-full rounded-full py-2.5 text-sm font-bold transition-all',
 							isJoined
 								? 'bg-white/20 text-white'
-								: 'bg-bg-card text-accent-indigo hover:bg-bg-card/90',
+								: 'bg-bg-card text-info hover:bg-bg-card/90',
 						)}
 					>
 						{isJoined ? 'View Challenge' : 'Join Challenge'}
@@ -235,7 +235,7 @@ export const ChallengeCard = ({
 			{isCompleted && (
 				<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
 					<div className='rounded-full bg-success px-4 py-2 text-sm font-bold shadow-lg'>
-						✓ Completed
+						âœ“ Completed
 					</div>
 				</div>
 			)}
@@ -251,7 +251,7 @@ export const ChallengeCardSkeleton = () => (
 	<div className='animate-pulse rounded-2xl bg-bg-elevated p-6'>
 		<div className='mb-4 flex items-start justify-between'>
 			<div className='h-4 w-24 rounded bg-border-subtle' />
-			<div className='h-8 w-8 rounded-lg bg-border-subtle' />
+			<div className='size-8 rounded-lg bg-border-subtle' />
 		</div>
 		<div className='mb-2 h-6 w-3/4 rounded bg-border-subtle' />
 		<div className='mb-4 h-4 w-full rounded bg-border-subtle' />

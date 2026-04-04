@@ -127,7 +127,7 @@ const SinglePendingPost = ({
 			animate='visible'
 		>
 			{/* Header */}
-			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-primary/5 to-transparent'>
+			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-brand/5 to-transparent'>
 				<div className='flex items-center gap-2'>
 					<span className='text-lg'>📸</span>
 					<h3 className='text-base font-bold text-text'>Post to unlock XP</h3>
@@ -177,7 +177,7 @@ const SinglePendingPost = ({
 				<motion.button
 					className={cn(
 						'flex items-center gap-2 px-5 py-3 rounded-xl',
-						'bg-primary text-white font-semibold',
+						'bg-brand text-white font-semibold',
 						'shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
@@ -225,7 +225,7 @@ const MultiplePendingPosts = ({
 			animate='visible'
 		>
 			{/* Header */}
-			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-primary/5 to-transparent'>
+			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-brand/5 to-transparent'>
 				<div className='flex items-center gap-3'>
 					<motion.span
 						className='text-lg'
@@ -296,7 +296,7 @@ const MultiplePendingPosts = ({
 								'px-3 py-1.5 rounded-lg text-sm font-semibold',
 								session.status === 'urgent'
 									? 'bg-error text-white'
-									: 'bg-primary text-white',
+									: 'bg-brand text-white',
 							)}
 							onClick={() => onPost(session.id)}
 							whileHover={BUTTON_SUBTLE_HOVER}
@@ -309,7 +309,7 @@ const MultiplePendingPosts = ({
 
 				{remaining > 0 && (
 					<button
-						className='w-full text-center py-2 text-sm text-text-secondary hover:text-primary transition-colors'
+						className='w-full text-center py-2 text-sm text-text-secondary hover:text-brand transition-colors'
 						onClick={onViewAll}
 					>
 						+{remaining} more recipe{remaining > 1 ? 's' : ''} • Tap to see all
@@ -371,7 +371,7 @@ const ManyPendingPosts = ({
 				</span>
 
 				<motion.button
-					className='flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold'
+					className='flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
@@ -619,7 +619,7 @@ export const PendingExpandedModal = ({
 													'px-4 py-2.5 rounded-xl text-sm font-semibold',
 													session.status === 'urgent'
 														? 'bg-error text-white'
-														: 'bg-primary text-white',
+														: 'bg-brand text-white',
 												)}
 												onClick={() => onPost(session.id)}
 												whileHover={BUTTON_SUBTLE_HOVER}
@@ -639,7 +639,7 @@ export const PendingExpandedModal = ({
 									💡 Post photos of your creations to unlock XP and badges!
 								</p>
 								<motion.button
-									className='w-full py-3 bg-primary text-white rounded-xl font-semibold'
+									className='w-full py-3 bg-brand text-white rounded-xl font-semibold'
 									onClick={onClose}
 									whileHover={CARD_FEATURED_HOVER}
 									whileTap={BUTTON_TAP}

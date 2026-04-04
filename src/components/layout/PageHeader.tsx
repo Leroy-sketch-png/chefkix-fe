@@ -67,24 +67,24 @@ const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> = 
 		shadow: 'shadow-level/25',
 	},
 	blue: {
-		bg: 'bg-gradient-to-br from-blue-500 to-indigo-600',
-		shadow: 'shadow-blue-500/25',
+		bg: 'bg-gradient-indigo',
+		shadow: 'shadow-info/25',
 	},
 	green: {
-		bg: 'bg-gradient-to-br from-emerald-500 to-green-600',
-		shadow: 'shadow-emerald-500/25',
+		bg: 'bg-gradient-success',
+		shadow: 'shadow-success/25',
 	},
 	gray: {
-		bg: 'bg-gradient-to-br from-slate-500 to-gray-600',
-		shadow: 'shadow-slate-500/25',
+		bg: 'bg-gradient-to-br from-border-strong to-text-muted',
+		shadow: 'shadow-border-strong/25',
 	},
 	warm: {
 		bg: 'bg-gradient-warm',
 		shadow: 'shadow-brand/20',
 	},
 	pink: {
-		bg: 'bg-gradient-to-br from-pink-500 to-purple-600',
-		shadow: 'shadow-pink-500/25',
+		bg: 'bg-gradient-social',
+		shadow: 'shadow-xp/25',
 	},
 }
 

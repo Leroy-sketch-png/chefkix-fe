@@ -66,11 +66,11 @@ function preferenceOverlap(a: string[], b: string[]): number {
 }
 
 function getCompatibilityLabel(score: number): { text: string; emoji: string; color: string } {
-	if (score >= 85) return { text: 'Kitchen Soulmates', emoji: '💕', color: 'text-pink-500' }
+	if (score >= 85) return { text: 'Kitchen Soulmates', emoji: '💕', color: 'text-brand' }
 	if (score >= 70) return { text: 'Great Match', emoji: '🔥', color: 'text-brand' }
-	if (score >= 50) return { text: 'Compatible', emoji: '👍', color: 'text-emerald-500' }
-	if (score >= 30) return { text: 'Different Styles', emoji: '🌶️', color: 'text-amber-500' }
-	return { text: 'Opposites Attract', emoji: '🎭', color: 'text-purple-500' }
+	if (score >= 50) return { text: 'Compatible', emoji: '👍', color: 'text-success' }
+	if (score >= 30) return { text: 'Different Styles', emoji: '🌶️', color: 'text-warning' }
+	return { text: 'Opposites Attract', emoji: '🎭', color: 'text-accent-purple' }
 }
 
 export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibilityProps) {
@@ -136,7 +136,7 @@ export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibili
 							transform='rotate(-90 24 24)'
 						/>
 					</svg>
-					<span className='text-xs font-bold text-text'>{score}%</span>
+					<span className='text-xs font-display font-bold text-text'>{score}%</span>
 				</div>
 
 				<div className='flex-1'>

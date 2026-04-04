@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { getMyGroups } from '@/services/group'
@@ -57,7 +57,7 @@ export const MyGroupsSidebar = ({
 		>
 			<div className='flex items-center justify-between'>
 				<h3 className='font-bold text-text flex items-center gap-2'>
-					<Users className='w-4 h-4 text-brand' />
+					<Users className='size-4 text-brand' />
 					My Groups
 				</h3>
 				<Link href={PATHS.GROUPS.EXPLORE}>
@@ -66,14 +66,14 @@ export const MyGroupsSidebar = ({
 						variant='outline'
 						className='h-7 text-xs'
 					>
-						<Plus className='w-3 h-3' />
+						<Plus className='size-3' />
 					</Button>
 				</Link>
 			</div>
 
 			{isLoading ? (
 				<div className='flex justify-center py-4'>
-					<Loader2 className='w-4 h-4 animate-spin text-brand' />
+					<Loader2 className='size-4 animate-spin text-brand' />
 				</div>
 			) : groups.length === 0 ? (
 				<div className='text-center py-4'>
@@ -110,7 +110,7 @@ export const MyGroupsSidebar = ({
 								variant='ghost'
 								className='w-full text-xs text-brand hover:bg-brand/5'
 							>
-								View All →
+								View All â†’
 							</Button>
 						</Link>
 					)}

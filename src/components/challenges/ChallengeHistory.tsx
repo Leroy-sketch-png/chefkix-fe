@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -103,7 +103,7 @@ const StatCard = ({
 	<div className='flex items-center gap-2.5 rounded-xl bg-bg p-3.5'>
 		<span className='text-xl'>{icon}</span>
 		<div className='flex flex-col'>
-			<span className={cn('text-lg font-extrabold text-text', colorClass)}>
+			<span className={cn('text-lg font-display font-extrabold text-text', colorClass)}>
 				{value}
 			</span>
 			<span className='text-2xs text-text-secondary'>{label}</span>
@@ -119,7 +119,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 	const isCurrentDay = isToday(day.date)
 	const statusConfig = {
 		completed: {
-			badgeBg: 'bg-gradient-to-br from-success to-emerald-600',
+			badgeBg: 'bg-gradient-to-br from-success to-success',
 			indicator: <Check className='size-3' />,
 			indicatorBg: 'bg-success',
 			xpClass: 'text-success',
@@ -137,10 +137,10 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			xpClass: 'text-success',
 		},
 		upcoming: {
-			badgeBg: 'border-2 border-dashed border-primary/30 bg-primary/10',
+			badgeBg: 'border-2 border-dashed border-brand/30 bg-brand/10',
 			indicator: null,
 			indicatorBg: '',
-			xpClass: 'text-primary',
+			xpClass: 'text-brand',
 		},
 		future: {
 			badgeBg: 'bg-muted/30',
@@ -156,12 +156,12 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 		<div
 			className={cn(
 				'relative flex flex-col items-center gap-1.5 rounded-xl p-3 text-center',
-				isCurrentDay && 'border-2 border-primary/30 bg-primary/10',
+				isCurrentDay && 'border-2 border-brand/30 bg-brand/10',
 				!isCurrentDay && 'bg-bg',
 			)}
 		>
 			{isCurrentDay && (
-				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-primary px-2 py-0.5 text-2xs font-bold text-white'>
+				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-brand px-2 py-0.5 text-2xs font-bold text-white'>
 					Today
 				</span>
 			)}
@@ -183,7 +183,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 				<span
 					className={cn('text-xl', day.status === 'missed' && 'opacity-50')}
 				>
-					{day.challenge?.emoji ?? '🍳'}
+					{day.challenge?.emoji ?? 'ðŸ³'}
 				</span>
 				{config.indicator && (
 					<div
@@ -203,7 +203,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			</div>
 
 			<span className='max-w-full truncate text-2xs font-semibold text-text'>
-				{day.challenge?.title ?? '—'}
+				{day.challenge?.title ?? 'â€”'}
 			</span>
 			<span className={cn('text-2xs font-bold', config.xpClass)}>
 				{day.status === 'missed'
@@ -232,12 +232,12 @@ export const ChallengeHistorySection = ({
 	const daysToNextBadge = 7 - stats.currentStreak
 
 	return (
-		<div className={cn('rounded-2xl bg-panel-bg p-6', className)}>
+		<div className={cn('rounded-2xl bg-bg-card p-6', className)}>
 			{/* Header */}
 			<div className='mb-5 flex items-center justify-between'>
 				<div className='flex items-center gap-3'>
 					<h3 className='flex items-center gap-2 text-lg font-bold text-text'>
-						<CalendarCheck className='size-5 text-primary' />
+						<CalendarCheck className='size-5 text-brand' />
 						Challenge History
 					</h3>
 					<span className='rounded-xl bg-bg px-2.5 py-1 text-xs text-text-secondary'>
@@ -247,7 +247,7 @@ export const ChallengeHistorySection = ({
 				{onViewAll && (
 					<button
 						onClick={onViewAll}
-						className='flex items-center gap-1 text-xs font-semibold text-primary hover:underline'
+						className='flex items-center gap-1 text-xs font-semibold text-brand hover:underline'
 					>
 						View All
 						<ChevronRight className='size-4' />
@@ -258,25 +258,25 @@ export const ChallengeHistorySection = ({
 			{/* Stats Summary */}
 			<div className='mb-6 grid grid-cols-2 gap-3 md:grid-cols-4'>
 				<StatCard
-					icon='🔥'
+					icon='ðŸ”¥'
 					value={String(stats.currentStreak)}
 					label='Current Streak'
 					colorClass='text-streak'
 				/>
 				<StatCard
-					icon='✅'
+					icon='âœ…'
 					value={`${stats.completedThisWeek}/${stats.totalDays}`}
 					label='Completed'
 					colorClass='text-success'
 				/>
 				<StatCard
-					icon='⚡'
+					icon='âš¡'
 					value={`+${stats.bonusXpEarned}`}
 					label='Bonus XP'
-					colorClass='text-primary'
+					colorClass='text-brand'
 				/>
 				<StatCard
-					icon='🏆'
+					icon='ðŸ†'
 					value={String(stats.bestStreak)}
 					label='Best Streak'
 					colorClass='text-warning'
@@ -294,7 +294,7 @@ export const ChallengeHistorySection = ({
 			{stats.currentStreak > 0 && daysToNextBadge > 0 && (
 				<div className='flex items-center justify-between rounded-xl border border-streak/20 bg-gradient-to-r from-streak/10 to-transparent px-5 py-4'>
 					<div className='flex items-center gap-3.5'>
-						<span className='text-3xl'>🎯</span>
+						<span className='text-3xl'>ðŸŽ¯</span>
 						<div className='text-sm text-text'>
 							<strong className='text-streak'>
 								{daysToNextBadge} more day{daysToNextBadge > 1 ? 's' : ''}
@@ -339,14 +339,14 @@ const HistoryItem = ({
 		<div className='flex gap-4 border-b border-border py-4 last:border-b-0'>
 			{/* Date */}
 			<div className='flex min-w-thumbnail-sm flex-col items-center'>
-				<span className='text-xl font-extrabold leading-none text-text'>
+				<span className='text-xl font-display font-extrabold leading-none text-text'>
 					{day.date.getDate()}
 				</span>
 				<span className='text-xs text-text-secondary'>
 					{day.date.toLocaleDateString('en-US', { month: 'short' })}
 				</span>
 				{showTodayBadge && (
-					<span className='mt-1 rounded-md bg-primary px-1.5 py-0.5 text-2xs font-bold text-white'>
+					<span className='mt-1 rounded-md bg-brand px-1.5 py-0.5 text-2xs font-bold text-white'>
 						Today
 					</span>
 				)}
@@ -363,7 +363,7 @@ const HistoryItem = ({
 					)}
 				>
 					<span className={cn('text-2xl', !isCompleted && 'opacity-50')}>
-						{day.challenge?.emoji ?? '🍳'}
+						{day.challenge?.emoji ?? 'ðŸ³'}
 					</span>
 				</div>
 
@@ -374,7 +374,7 @@ const HistoryItem = ({
 					<span className='text-xs text-text-secondary'>
 						{day.challenge?.title
 							? `Complete the ${day.challenge.title.toLowerCase()} challenge`
-							: '—'}
+							: 'â€”'}
 					</span>
 					{day.recipeCooked && (
 						<div className='mt-1 flex items-center gap-2'>
@@ -385,7 +385,7 @@ const HistoryItem = ({
 								height={24}
 								className='size-6 rounded-md object-cover'
 							/>
-							<span className='text-xs font-semibold text-primary'>
+							<span className='text-xs font-semibold text-brand'>
 								{day.recipeCooked.title}
 							</span>
 						</div>
@@ -393,7 +393,7 @@ const HistoryItem = ({
 				</div>
 
 				<div className='flex flex-col items-end gap-0.5'>
-					<span className='text-xl'>{isCompleted ? '✅' : '❌'}</span>
+					<span className='text-xl'>{isCompleted ? 'âœ…' : 'âŒ'}</span>
 					<span
 						className={cn(
 							'text-sm font-bold',
@@ -436,22 +436,22 @@ export const ChallengeHistoryPage = ({
 				{onBack && (
 					<button
 						onClick={onBack}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-panel-bg text-text'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text'
 					>
 						<ArrowLeft className='size-5' />
 					</button>
 				)}
-				<h1 className='flex-1 text-2xl font-extrabold text-text'>
+				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
 					Challenge History
 				</h1>
 			</div>
 
 			{/* Lifetime Stats */}
-			<div className='rounded-2xl bg-panel-bg p-6'>
+			<div className='rounded-2xl bg-bg-card p-6'>
 				<div className='mb-5 grid gap-5 md:grid-cols-[1fr_2fr]'>
 					{/* Big Stat */}
-					<div className='flex flex-col items-center justify-center rounded-2xl bg-primary/10 p-6'>
-						<span className='text-6xl font-black leading-none text-primary'>
+					<div className='flex flex-col items-center justify-center rounded-2xl bg-brand/10 p-6'>
+						<span className='text-6xl font-black leading-none text-brand'>
 							{stats.totalCompleted}
 						</span>
 						<span className='mt-2 text-sm text-text-secondary'>
@@ -462,8 +462,8 @@ export const ChallengeHistoryPage = ({
 					{/* Small Stats Grid */}
 					<div className='grid grid-cols-3 gap-3'>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
-							<span className='text-xl'>🔥</span>
-							<span className='text-xl font-extrabold text-text'>
+							<span className='text-xl'>ðŸ”¥</span>
+							<span className='text-xl font-display font-extrabold text-text'>
 								{stats.currentStreak}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -471,15 +471,15 @@ export const ChallengeHistoryPage = ({
 							</span>
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
-							<span className='text-xl'>🏆</span>
-							<span className='text-xl font-extrabold text-text'>
+							<span className='text-xl'>ðŸ†</span>
+							<span className='text-xl font-display font-extrabold text-text'>
 								{stats.bestStreak}
 							</span>
 							<span className='text-xs text-text-secondary'>Best Streak</span>
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
-							<span className='text-xl'>⚡</span>
-							<span className='text-xl font-extrabold text-text'>
+							<span className='text-xl'>âš¡</span>
+							<span className='text-xl font-display font-extrabold text-text'>
 								{stats.totalBonusXp.toLocaleString()}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -504,14 +504,14 @@ export const ChallengeHistoryPage = ({
 							initial={{ width: 0 }}
 							animate={{ width: `${completionRate}%` }}
 							transition={{ duration: 0.5, ease: 'easeOut' }}
-							className='h-full rounded-full bg-gradient-to-r from-success to-emerald-600'
+							className='h-full rounded-full bg-gradient-to-r from-success to-success'
 						/>
 					</div>
 				</div>
 			</div>
 
 			{/* Month View */}
-			<div className='rounded-2xl bg-panel-bg p-6'>
+			<div className='rounded-2xl bg-bg-card p-6'>
 				<div className='mb-5 flex items-center justify-center gap-6'>
 					<button
 						onClick={() => onMonthChange?.('prev')}
@@ -547,7 +547,7 @@ export const ChallengeHistoryPage = ({
 			</div>
 
 			{/* Recent History List */}
-			<div className='rounded-2xl bg-panel-bg p-6'>
+			<div className='rounded-2xl bg-bg-card p-6'>
 				<h3 className='mb-5 text-base font-bold text-text'>
 					Recent Challenges
 				</h3>

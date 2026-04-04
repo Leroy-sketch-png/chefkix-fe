@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Group } from '@/lib/types/group'
 import { Users, Clock, Globe, Lock } from 'lucide-react'
@@ -51,14 +51,14 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				>
 					<div className='flex items-start gap-4'>
 						<div className='p-3 bg-brand/10 rounded-lg'>
-							<Users className='w-6 h-6 text-brand' />
+							<Users className='size-6 text-brand' />
 						</div>
 						<div>
 							<p className='text-sm text-text-secondary mb-1'>Members</p>
 							<p className='text-2xl font-bold text-text'>
 								{group.memberCount.toLocaleString()}
 							</p>
-							<p className='text-xs text-brand mt-2'>Click to view members →</p>
+							<p className='text-xs text-brand mt-2'>Click to view members â†’</p>
 						</div>
 					</div>
 				</motion.button>
@@ -67,7 +67,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				<div className='bg-bg-card rounded-lg p-6 border border-border'>
 					<div className='flex items-start gap-4'>
 						<div className='p-3 bg-brand/10 rounded-lg'>
-							<Clock className='w-6 h-6 text-brand' />
+							<Clock className='size-6 text-brand' />
 						</div>
 						<div>
 							<p className='text-sm text-text-secondary mb-1'>Created</p>
@@ -82,9 +82,9 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				<div className='flex items-start gap-4'>
 					<div className='p-3 bg-brand/10 rounded-lg'>
 						{group.privacyType === 'PRIVATE' ? (
-							<Lock className='w-6 h-6 text-brand' />
+							<Lock className='size-6 text-brand' />
 						) : (
-							<Globe className='w-6 h-6 text-brand' />
+							<Globe className='size-6 text-brand' />
 						)}
 					</div>
 					<div>
@@ -127,7 +127,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 					<div className='space-y-3'>
 						{group.rules.map((rule, index) => (
 							<div key={index} className='flex gap-3'>
-								<span className='flex items-center justify-center w-6 h-6 rounded-full bg-brand/10 text-brand text-sm font-bold flex-shrink-0'>
+								<span className='flex items-center justify-center size-6 rounded-full bg-brand/10 text-brand text-sm font-bold flex-shrink-0'>
 									{index + 1}
 								</span>
 								<p className='text-text-secondary leading-relaxed pt-0.5'>

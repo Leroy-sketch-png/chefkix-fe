@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import {
@@ -99,7 +99,7 @@ const FilterChip = ({
 		className={cn(
 			'rounded-full border px-4 py-2 text-xs font-medium transition-all',
 			isActive
-				? 'border-primary bg-primary text-white'
+				? 'border-brand bg-brand text-white'
 				: 'border-border bg-bg text-text-secondary hover:bg-muted/30 hover:text-text',
 		)}
 	>
@@ -127,7 +127,7 @@ const ChallengeRecipeCard = ({
 			animate={{ opacity: 1, y: 0 }}
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-panel-bg shadow-card transition-all hover:border-primary/30 hover:shadow-xl'
+			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-xl'
 		>
 			<Link href={`/recipes/${recipe.id}`} className='block'>
 				{/* Image Container */}
@@ -177,7 +177,7 @@ const ChallengeRecipeCard = ({
 
 				{/* Content */}
 				<div className='p-4'>
-					<h3 className='mb-1.5 text-base font-bold text-text'>
+					<h3 className='mb-1.5 text-base font-serif font-bold text-text'>
 						{recipe.title}
 					</h3>
 					<p className='mb-3 line-clamp-1 text-xs leading-relaxed text-text-secondary'>
@@ -289,7 +289,7 @@ export const ChallengeRecipeGrid = ({
 	return (
 		<div className={cn('space-y-5', className)}>
 			{/* Header */}
-			<div className='rounded-2xl bg-panel-bg p-5'>
+			<div className='rounded-2xl bg-bg-card p-5'>
 				{onBack && (
 					<button
 						onClick={onBack}
@@ -305,10 +305,10 @@ export const ChallengeRecipeGrid = ({
 					<div className='flex items-start gap-4'>
 						<span className='text-5xl'>{challenge.emoji}</span>
 						<div>
-							<span className='text-2xs font-bold uppercase tracking-wide text-primary'>
+							<span className='text-2xs font-bold uppercase tracking-wide text-brand'>
 								{challenge.type}
 							</span>
-							<h1 className='my-1 text-2xl font-extrabold text-text md:text-3xl'>
+							<h1 className='my-1 text-2xl font-display font-extrabold text-text md:text-3xl'>
 								{challenge.title}
 							</h1>
 							<p className='text-sm text-text-secondary'>
@@ -320,8 +320,8 @@ export const ChallengeRecipeGrid = ({
 					{/* Reward */}
 					<div className='text-right'>
 						<div className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-4 py-2.5'>
-							<span className='text-lg'>⚡</span>
-							<span className='text-xl font-extrabold text-success'>
+							<span className='text-lg'>âš¡</span>
+							<span className='text-xl font-display font-extrabold text-success'>
 								+{challenge.bonusXp} XP
 							</span>
 							<span className='text-xs text-text-secondary'>bonus</span>
@@ -393,7 +393,7 @@ export const ChallengeRecipeGrid = ({
 
 			{/* XP Potential Footer */}
 			{topPick && (
-				<div className='rounded-xl bg-panel-bg px-5 py-4'>
+				<div className='rounded-xl bg-bg-card px-5 py-4'>
 					<div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
 						<span className='text-text-secondary'>
 							Top pick XP potential:
@@ -406,7 +406,7 @@ export const ChallengeRecipeGrid = ({
 							{topPick.bonusXp} XP bonus
 						</span>
 						<span className='text-text-secondary'>=</span>
-						<span className='rounded-full bg-primary/10 px-3 py-1 text-lg font-extrabold text-primary'>
+						<span className='rounded-full bg-brand/10 px-3 py-1 text-lg font-display font-extrabold text-brand'>
 							{topPickTotalXp} XP
 						</span>
 					</div>

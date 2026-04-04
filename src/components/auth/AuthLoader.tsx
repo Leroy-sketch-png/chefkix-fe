@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
@@ -60,7 +60,7 @@ export const AuthLoader = () => {
 	return (
 		<div className='flex min-h-screen items-center justify-center bg-background'>
 			{/* Subtle warm glow behind the animation */}
-			<div className='absolute h-32 w-32 rounded-full bg-brand/10 blur-3xl' />
+			<div className='absolute size-32 rounded-full bg-brand/10 blur-3xl' />
 
 			<div className='relative flex flex-col items-center gap-6'>
 				{/* Coral-themed Lottie animation - sized for auth context */}

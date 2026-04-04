@@ -278,7 +278,7 @@ export const VerifyOtpForm = () => {
 									autoplay
 								/>
 							</div>
-							<p className='text-center text-sm font-medium text-accent'>
+							<p className='text-center text-sm font-medium text-success'>
 								{success}
 							</p>
 						</div>

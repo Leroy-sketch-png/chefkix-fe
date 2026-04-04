@@ -241,7 +241,7 @@ export const Topbar = () => {
 		fetchMessageCounts()
 		const interval = setInterval(fetchMessageCounts, 60000)
 		return () => clearInterval(interval)
-	}, [])
+	}, [user])
 
 	const handleLogout = async () => {
 		try {
@@ -306,13 +306,14 @@ export const Topbar = () => {
 						router.push(`/search?q=${encodeURIComponent(q)}`)
 					}
 				}}
-				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-card transition-all duration-300 focus-within:border-primary focus-within:shadow-card md:ml-44 md:px-4 md:py-2.5'
+				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-card transition-all duration-300 focus-within:border-brand focus-within:shadow-card md:ml-44 md:px-4 md:py-2.5'
 			>
-				<Search className='size-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-primary' />
+				<Search className='size-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-brand' />
 				<input
 					ref={inputRef}
 					type='text'
 					placeholder='Search...'
+					role='combobox'
 					aria-label='Search recipes and people'
 					aria-expanded={showSuggestions}
 					aria-autocomplete='list'
@@ -336,7 +337,7 @@ export const Topbar = () => {
 						}
 					}}
 					onKeyDown={handleSearchKeyDown}
-					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-primary outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
+					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-brand outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
 				/>
 				{/* Typeahead Suggestions Dropdown — Portaled */}
 				{showSuggestions && (

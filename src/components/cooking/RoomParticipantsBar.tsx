@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, Crown, ChefHat } from 'lucide-react'
@@ -97,7 +97,7 @@ function ParticipantAvatar({
 			exit={{ scale: 0, opacity: 0 }}
 			transition={TRANSITION_SPRING}
 			className='relative'
-			title={`${participant.displayName} — Step ${participant.currentStep}/${totalSteps}`}
+			title={`${participant.displayName} â€” Step ${participant.currentStep}/${totalSteps}`}
 		>
 			{/* Progress ring */}
 			<svg
@@ -161,7 +161,7 @@ function ParticipantAvatar({
 			)}
 
 			{/* Step indicator */}
-			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-bg-card/90 px-1 text-[10px] font-bold text-text'>
+			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-bg-card/90 px-1 text-2xs font-bold text-text'>
 				{participant.currentStep}
 			</div>
 		</motion.div>

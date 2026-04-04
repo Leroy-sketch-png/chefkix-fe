@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -85,7 +85,7 @@ export const ConversationItem = ({
 			className={cn(
 				'relative flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-border transition-colors',
 				isActive
-					? 'bg-primary/10 border-l-[3px] border-l-primary'
+					? 'bg-brand/10 border-l-[3px] border-l-brand'
 					: 'hover:bg-muted/50',
 				unreadCount > 0 && !isActive && 'bg-muted/30',
 			)}
@@ -96,7 +96,7 @@ export const ConversationItem = ({
 		>
 			{/* Avatar with Online Indicator */}
 			<div className='relative flex-shrink-0'>
-				<Avatar className='h-12 w-12'>
+				<Avatar className='size-12'>
 					<AvatarImage src={participantAvatar} alt={participantName} />
 					<AvatarFallback>
 						{participantName.slice(0, 2).toUpperCase()}
@@ -105,7 +105,7 @@ export const ConversationItem = ({
 				{isOnline && (
 					<span
 						className={cn(
-							'absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-panel-bg',
+							'absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-bg-card',
 							'bg-success',
 						)}
 					/>
@@ -134,7 +134,7 @@ export const ConversationItem = ({
 							unreadCount > 0
 								? 'text-foreground font-medium'
 								: 'text-text-secondary',
-							isTyping && 'text-primary italic',
+							isTyping && 'text-brand italic',
 						)}
 					>
 						{isTyping ? 'typing...' : lastMessage}
@@ -144,10 +144,10 @@ export const ConversationItem = ({
 
 			{/* Badges */}
 			<div className='flex items-center gap-2 flex-shrink-0'>
-				{isPinned && <span className='text-xs'>📌</span>}
-				{isMuted && <span className='text-xs opacity-50'>🔇</span>}
+				{isPinned && <span className='text-xs'>ðŸ“Œ</span>}
+				{isMuted && <span className='text-xs opacity-50'>ðŸ”‡</span>}
 				{unreadCount > 0 && !isMuted && (
-					<span className='min-w-5 h-5 px-1.5 flex items-center justify-center rounded-full bg-primary text-white text-xs font-bold'>
+					<span className='min-size-5 px-1.5 flex items-center justify-center rounded-full bg-brand text-white text-xs font-bold'>
 						{unreadCount > 99 ? '99+' : unreadCount}
 					</span>
 				)}
@@ -193,7 +193,7 @@ export const ConversationList = ({
 
 			{conversations.length === 0 && (
 				<div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
-					<span className='text-4xl mb-3'>💬</span>
+					<span className='text-4xl mb-3'>ðŸ’¬</span>
 					<p className='text-foreground font-semibold'>No conversations yet</p>
 					<p className='text-sm text-text-secondary mt-1'>
 						Start a conversation with a friend!
@@ -211,7 +211,7 @@ export const ConversationList = ({
 export const ConversationItemSkeleton = () => {
 	return (
 		<div className='flex items-center gap-3 px-4 py-3 border-b border-border animate-pulse'>
-			<div className='w-12 h-12 rounded-full bg-bg-elevated flex-shrink-0' />
+			<div className='size-12 rounded-full bg-bg-elevated flex-shrink-0' />
 			<div className='flex-1'>
 				<div className='h-4 w-24 bg-bg-elevated rounded mb-2' />
 				<div className='h-3 w-32 bg-bg-elevated rounded' />

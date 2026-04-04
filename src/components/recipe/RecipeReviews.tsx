@@ -104,7 +104,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 			{/* Header with aggregate stats */}
 			<div className='mb-6 flex items-center justify-between'>
 				<h2 className='flex items-center gap-2 text-xl font-bold text-text'>
-					<Star className='size-5 text-amber-500' />
+					<Star className='size-5 text-warning' />
 					Reviews
 				</h2>
 				{stats && (

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -123,7 +123,7 @@ export function LeaderboardItem({
 			{/* Rank */}
 			<span
 				className={cn(
-					'w-8 text-center text-base font-extrabold',
+					'w-8 text-center text-base font-display font-extrabold',
 					isCurrentUser ? 'text-xp' : 'text-text-tertiary',
 				)}
 			>
@@ -173,7 +173,7 @@ export function LeaderboardItem({
 				)}
 				{isLeading && (
 					<span className='rounded-lg bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-card shadow-medal-gold/30'>
-						🔥 Leading!
+						ðŸ”¥ Leading!
 					</span>
 				)}
 			</div>
@@ -184,7 +184,7 @@ export function LeaderboardItem({
 					{entry.topBadges.slice(0, 3).map((badge, i) => (
 						<span
 							key={i}
-							className='rounded-md bg-bg-elevated px-1.5 py-0.5 text-[10px] font-semibold text-text-secondary'
+							className='rounded-md bg-bg-elevated px-1.5 py-0.5 text-2xs font-semibold text-text-secondary'
 							title={badge}
 						>
 							{badge.length > 12 ? badge.slice(0, 12) + '...' : badge}
@@ -209,7 +209,7 @@ export function LeaderboardItem({
 
 			{/* XP */}
 			<div className='min-w-thumbnail-md text-right'>
-				<span className='block text-base font-extrabold text-text'>
+				<span className='block text-base font-display font-extrabold text-text'>
 					{entry.xpThisWeek.toLocaleString()}
 				</span>
 				<span className='text-xs text-text-muted'>XP</span>
@@ -251,7 +251,7 @@ export function LeaderboardItemSkeleton({ className }: { className?: string }) {
 export function ListDivider({ className }: { className?: string }) {
 	return (
 		<div className={cn('py-3 text-center text-xs text-text-muted', className)}>
-			<span>• • •</span>
+			<span>â€¢ â€¢ â€¢</span>
 		</div>
 	)
 }

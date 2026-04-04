@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Profile, getProfileDisplayName } from '@/lib/types'
@@ -93,7 +93,7 @@ export const UserHoverCard = ({
 			<PopoverContent className='w-80 p-0' align='start'>
 				{isLoading ? (
 					<div className='flex items-center justify-center p-8'>
-						<Loader2 className='size-6 animate-spin text-primary' />
+						<Loader2 className='size-6 animate-spin text-brand' />
 					</div>
 				) : hasError ? (
 					<div className='p-6 text-center text-sm text-text-secondary'>

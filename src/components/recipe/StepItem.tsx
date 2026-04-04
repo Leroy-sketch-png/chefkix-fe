@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
@@ -10,7 +10,7 @@ import { uploadRecipeImages, uploadStepVideo } from '@/services/recipe'
 import { formatTimer, getTimerSeconds } from '@/lib/recipeCreateUtils'
 import type { RecipeStep, TimeUnit } from '@/lib/types/recipeCreate'
 
-// ── Props ───────────────────────────────────────────────────────────
+// â”€â”€ Props â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface StepItemProps {
 	step: RecipeStep
 	index: number
@@ -41,7 +41,7 @@ export const StepItem = ({
 	const [isUploadingImage, setIsUploadingImage] = useState(false)
 	const [isUploadingVideo, setIsUploadingVideo] = useState(false)
 
-	// ── Timer editing ───────────────────────────────────────────────
+	// â”€â”€ Timer editing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const openTimerEditor = () => {
 		const seconds = getTimerSeconds(step)
 		if (seconds !== undefined) {
@@ -100,7 +100,7 @@ export const StepItem = ({
 		else if (e.key === 'Escape') setIsEditingTimer(false)
 	}
 
-	// ── Image upload ────────────────────────────────────────────────
+	// â”€â”€ Image upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
@@ -143,7 +143,7 @@ export const StepItem = ({
 		}
 	}
 
-	// ── Video upload ────────────────────────────────────────────────
+	// â”€â”€ Video upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
@@ -185,10 +185,10 @@ export const StepItem = ({
 
 	const timerSeconds = getTimerSeconds(step)
 
-	// ── Render ──────────────────────────────────────────────────────
+	// â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	return (
 		<div className='group flex gap-3.5 rounded-2xl bg-bg p-4'>
-			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-extrabold text-white shadow-card'>
+			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-display font-extrabold text-white shadow-card'>
 				{index + 1}
 			</div>
 			<div className='flex-1 space-y-3'>
@@ -225,7 +225,7 @@ export const StepItem = ({
 					<button
 						onClick={() => fileInputRef.current?.click()}
 						disabled={isUploadingImage}
-						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isUploadingImage ? (
 							<>
@@ -276,7 +276,7 @@ export const StepItem = ({
 					<button
 						onClick={() => videoInputRef.current?.click()}
 						disabled={isUploadingVideo}
-						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isUploadingVideo ? (
 							<>
@@ -304,14 +304,14 @@ export const StepItem = ({
 					defaultValue={step.instruction}
 					onChange={e => onUpdate({ instruction: e.target.value })}
 					placeholder='Describe this step...'
-					className='min-h-16 w-full resize-none rounded-lg border border-border bg-panel-bg p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-primary focus:outline-none'
+					className='min-h-16 w-full resize-none rounded-lg border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none'
 				/>
 
 				{/* Timer & Technique Tags */}
 				<div className='flex flex-wrap gap-2.5'>
 					{isEditingTimer ? (
-						<div className='flex items-center gap-1.5 rounded-lg border border-primary bg-primary/5 px-2 py-1'>
-							<Timer className='size-3.5 text-primary' />
+						<div className='flex items-center gap-1.5 rounded-lg border border-brand bg-brand/5 px-2 py-1'>
+							<Timer className='size-3.5 text-brand' />
 							<input
 								type='number'
 								value={timerValue}
@@ -319,13 +319,13 @@ export const StepItem = ({
 								onKeyDown={handleTimerKeyDown}
 								placeholder='0'
 								min='0'
-								className='w-12 bg-transparent text-xs font-semibold text-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+								className='w-12 bg-transparent text-xs font-semibold text-brand outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								autoFocus
 							/>
 							<select
 								value={timerUnit}
 								onChange={e => setTimerUnit(e.target.value as TimeUnit)}
-								className='bg-bg-card text-xs font-semibold text-primary outline-none cursor-pointer rounded px-1 py-0.5'
+								className='bg-bg-card text-xs font-semibold text-brand outline-none cursor-pointer rounded px-1 py-0.5'
 							>
 								<option value='seconds' className='bg-bg-card text-text'>
 									sec
@@ -342,16 +342,16 @@ export const StepItem = ({
 							</select>
 							<button
 								onClick={handleTimerSave}
-								className='ml-1 rounded bg-primary px-2 py-0.5 text-xs font-semibold text-white'
+								className='ml-1 rounded bg-brand px-2 py-0.5 text-xs font-semibold text-white'
 							>
-								✓
+								âœ“
 							</button>
 						</div>
 					) : timerSeconds ? (
-						<div className='flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-1.5'>
+						<div className='flex items-center gap-1 rounded-lg bg-brand/10 px-3 py-1.5'>
 							<button
 								onClick={openTimerEditor}
-								className='flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors hover:text-primary/80'
+								className='flex items-center gap-1.5 text-xs font-semibold text-brand transition-colors hover:text-brand/80'
 							>
 								<Timer className='size-3.5' />
 								{formatTimer(timerSeconds)}
@@ -359,7 +359,7 @@ export const StepItem = ({
 							<button
 								onClick={handleClearTimer}
 								aria-label='Clear timer'
-								className='ml-1 flex size-4 items-center justify-center rounded-full text-primary/60 hover:bg-primary/20 hover:text-primary'
+								className='ml-1 flex size-4 items-center justify-center rounded-full text-brand/60 hover:bg-brand/20 hover:text-brand'
 							>
 								<X className='size-3' />
 							</button>
@@ -367,7 +367,7 @@ export const StepItem = ({
 					) : (
 						<button
 							onClick={openTimerEditor}
-							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Timer className='size-3.5' />
 							Add Timer
@@ -375,7 +375,7 @@ export const StepItem = ({
 					)}
 					{step.technique && (
 						<span className='rounded-lg bg-streak/10 px-3 py-1.5 text-xs font-semibold text-streak'>
-							🔥 {step.technique}
+							ðŸ”¥ {step.technique}
 						</span>
 					)}
 				</div>

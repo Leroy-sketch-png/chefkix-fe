@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -41,41 +41,41 @@ const CATEGORY_META: Record<
 		color: 'text-brand',
 		bgColor: 'bg-brand/10',
 		borderColor: 'border-brand/30',
-		icon: '🍳',
+		icon: 'ðŸ³',
 	},
 	Technique: {
 		color: 'text-info',
 		bgColor: 'bg-info/10',
 		borderColor: 'border-info/30',
-		icon: '🔪',
+		icon: 'ðŸ”ª',
 	},
 	Social: {
 		color: 'text-accent-purple',
 		bgColor: 'bg-accent-purple/10',
 		borderColor: 'border-accent-purple/30',
-		icon: '👥',
+		icon: 'ðŸ‘¥',
 	},
 	Hidden: {
 		color: 'text-warning',
 		bgColor: 'bg-warning/10',
 		borderColor: 'border-warning/30',
-		icon: '🔮',
+		icon: 'ðŸ”®',
 	},
 	Seasonal: {
 		color: 'text-success',
 		bgColor: 'bg-success/10',
 		borderColor: 'border-success/30',
-		icon: '🌸',
+		icon: 'ðŸŒ¸',
 	},
 }
 
 const TIER_LABELS = ['', 'Bronze', 'Silver', 'Gold', 'Diamond'] as const
 
 const TIER_COLORS: Record<number, string> = {
-	1: 'from-amber-700 to-amber-600',
-	2: 'from-gray-400 to-gray-300',
-	3: 'from-yellow-500 to-amber-400',
-	4: 'from-cyan-400 to-blue-500',
+	1: 'from-warning to-warning',
+	2: 'from-text-muted to-text-muted',
+	3: 'from-warning to-warning',
+	4: 'from-accent-teal to-info',
 }
 
 // ============================================
@@ -178,7 +178,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 						<Trophy className='size-6' />
 					</div>
 					<div>
-						<p className='text-2xl font-extrabold text-text'>
+						<p className='text-2xl font-display font-extrabold text-text'>
 							{data.totalUnlocked}
 							<span className='text-base font-normal text-text-muted'>
 								{' '}
@@ -317,7 +317,7 @@ function SkillPathCard({
 							{path.pathName}
 						</h4>
 						{isComplete && (
-							<span className='flex items-center gap-0.5 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success'>
+							<span className='flex items-center gap-0.5 rounded-full bg-success/15 px-2 py-0.5 text-2xs font-bold text-success'>
 								<Crown className='size-3' />
 								Complete
 							</span>
@@ -337,7 +337,7 @@ function SkillPathCard({
 								transition={{ duration: 0.6, ease: 'easeOut' }}
 							/>
 						</div>
-						<span className='shrink-0 text-[10px] font-semibold text-text-muted'>
+						<span className='shrink-0 text-2xs font-semibold text-text-muted'>
 							{path.unlockedCount}/{path.totalCount}
 						</span>
 					</div>
@@ -471,7 +471,7 @@ function AchievementNodeCard({
 						<Sparkles className='size-3 shrink-0 text-warning' />
 					)}
 					{node.tier > 1 && (
-						<span className='shrink-0 text-[10px] font-bold text-text-muted'>
+						<span className='shrink-0 text-2xs font-bold text-text-muted'>
 							{TIER_LABELS[node.tier]}
 						</span>
 					)}
@@ -496,7 +496,7 @@ function AchievementNodeCard({
 								transition={{ duration: 0.5, ease: 'easeOut' }}
 							/>
 						</div>
-						<span className='shrink-0 text-[10px] font-semibold text-text-muted'>
+						<span className='shrink-0 text-2xs font-semibold text-text-muted'>
 							{node.currentProgress}/{node.requiredProgress}
 						</span>
 					</div>
@@ -504,7 +504,7 @@ function AchievementNodeCard({
 
 				{/* Unlocked date */}
 				{node.unlocked && node.unlockedAt && (
-					<p className='mt-0.5 text-[10px] text-text-muted'>
+					<p className='mt-0.5 text-2xs text-text-muted'>
 						Unlocked{' '}
 						{new Date(node.unlockedAt).toLocaleDateString(undefined, {
 							month: 'short',

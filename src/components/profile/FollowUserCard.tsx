@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
@@ -90,7 +90,7 @@ export function FollowUserCard({
 						{displayName}
 					</p>
 					{isMutual && (
-						<span className='shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand'>
+						<span className='shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-2xs font-bold text-brand'>
 							Mutual
 						</span>
 					)}

@@ -19,11 +19,11 @@ const maxWidthClasses = {
 
 export const PageContainer = ({
 	children,
-	maxWidth = 'lg', // Default to 850px social-media-style center
+	maxWidth = 'lg', // Default to 800px social-media-style center
 	className,
 }: PageContainerProps) => {
 	return (
-		<div className={cn('mx-auto w-full px-4 sm:px-6 lg:px-8', maxWidthClasses[maxWidth], className)}>
+		<div className={cn('mx-auto w-full', maxWidthClasses[maxWidth], className)}>
 			{children}
 		</div>
 	)

@@ -1,23 +1,24 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChefHat, Clock, Flame, Star, Play, Sparkles } from 'lucide-react'
+import { ChefHat, Clock, Flame, Star, Play, Sparkles, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Recipe } from '@/lib/types/recipe'
+import { Recipe, RecommendationResponse } from '@/lib/types/recipe'
 import { getTonightsPick } from '@/services/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
 import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
+import { QualityBadge } from '@/components/recipe/QualityBadge'
 
 interface TonightsPickProps {
 	className?: string
 }
 
 /**
- * "Tonight's Pick" hero card — personalized daily recipe recommendation.
+ * "Tonight's Pick" hero card â€” personalized daily recipe recommendation.
  *
  * BE uses 5-signal scoring (RecipeService.scoreTonightsPick):
  * - Taste match (0.30): user preferences + cuisine history
@@ -26,10 +27,16 @@ interface TonightsPickProps {
  * - Difficulty fit (0.15): skill-level-appropriate
  * - Quality (0.15): averageRating + cookCount
  *
- * Degrades gracefully: unauthenticated → trending + seasonal + quality only.
+ * Now returns RecommendationResponse with:
+ * - recipe: RecipeDetailResponse
+ * - whyRecommended: string (main reason)
+ * - matchSignals: string[] (all matching signals)
+ * - confidenceScore: number (0-1)
+ *
+ * Degrades gracefully: unauthenticated â†’ trending + seasonal + quality only.
  */
 export const TonightsPick = ({ className }: TonightsPickProps) => {
-	const [recipe, setRecipe] = useState<Recipe | null>(null)
+	const [recommendation, setRecommendation] = useState<RecommendationResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasError, setHasError] = useState(false)
 
@@ -38,7 +45,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			try {
 				const res = await getTonightsPick()
 				if (res.success && res.data) {
-					setRecipe(res.data)
+					setRecommendation(res.data)
 				}
 			} catch (err) {
 				logDevError("Failed to fetch Tonight's Pick:", err)
@@ -59,11 +66,11 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 				)}
 			>
 				<div className='flex gap-4 p-4 md:p-5'>
-					<div className='h-28 w-28 flex-shrink-0 rounded-xl bg-bg-elevated md:h-32 md:w-32' />
+					<div className='size-28 flex-shrink-0 rounded-xl bg-bg-elevated md:h-32 md:w-32' />
 					<div className='flex flex-1 flex-col justify-between gap-2'>
 						<div className='h-4 w-24 rounded bg-bg-elevated' />
 						<div className='h-5 w-full rounded bg-bg-elevated' />
-						<div className='h-3 w-3/4 rounded bg-bg-elevated' />
+						<div className='size-3/4 rounded bg-bg-elevated' />
 						<div className='flex gap-3'>
 							<div className='h-3 w-16 rounded bg-bg-elevated' />
 							<div className='h-3 w-16 rounded bg-bg-elevated' />
@@ -74,7 +81,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		)
 	}
 
-	if (!recipe) {
+	if (!recommendation?.recipe) {
 		return (
 			<div
 				className={cn(
@@ -90,7 +97,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 				</div>
 				<p className='mt-2 text-sm text-text-secondary'>
 					{hasError
-						? "Couldn't load tonight's suggestion — try refreshing the page."
+						? "Couldn't load tonight's suggestion â€” try refreshing the page."
 						: 'No trending recipe yet \u2014 be the first to cook and inspire the community!'}
 				</p>
 				<Link
@@ -104,6 +111,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		)
 	}
 
+	const { recipe, whyRecommended, matchSignals, confidenceScore } = recommendation
 	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.svg'
 	const difficulty = difficultyToDisplay(recipe.difficulty)
 	const totalTime =
@@ -121,7 +129,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			<Link href={`/recipes/${recipe.id}?cook=true`} className='block'>
 				<div className='flex gap-4 p-4 md:p-5'>
 					{/* Recipe Image */}
-					<div className='relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl md:h-32 md:w-32'>
+					<div className='relative size-28 flex-shrink-0 overflow-hidden rounded-xl md:h-32 md:w-32'>
 						<Image
 							src={coverImage}
 							alt={recipe.title}
@@ -138,16 +146,35 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 								<Play className='size-4 text-white' fill='white' />
 							</motion.div>
 						</div>
+						{/* Quality badge - show Foolproof tier */}
+						{recipe.qualityTier === 'Foolproof' && (
+							<div className='absolute bottom-2 left-2'>
+								<QualityBadge
+									tier='Foolproof'
+									size='sm'
+									showLabel={false}
+									animate={false}
+								/>
+							</div>
+						)}
 					</div>
 
 					{/* Recipe Info */}
 					<div className='flex flex-1 flex-col justify-between'>
-						{/* Label */}
-						<div className='flex items-center gap-1.5'>
-							<Sparkles className='size-3.5 text-streak' />
-							<span className='text-xs font-bold uppercase tracking-wider text-streak'>
-								Tonight&apos;s Pick
-							</span>
+						{/* Label + Confidence */}
+						<div className='flex items-center justify-between'>
+							<div className='flex items-center gap-1.5'>
+								<Sparkles className='size-3.5 text-streak' />
+								<span className='text-xs font-bold uppercase tracking-wider text-streak'>
+									Tonight&apos;s Pick
+								</span>
+							</div>
+							{confidenceScore >= 0.8 && (
+								<span className='flex items-center gap-1 text-xs text-success'>
+									<TrendingUp className='size-3' />
+									Great match
+								</span>
+							)}
 						</div>
 
 						{/* Title */}
@@ -155,11 +182,25 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 							{recipe.title}
 						</h3>
 
-						{/* Description */}
-						{recipe.description && (
-							<p className='line-clamp-1 text-sm text-text-secondary'>
-								{recipe.description}
+						{/* Why Recommended */}
+						{whyRecommended && (
+							<p className='line-clamp-1 text-sm text-brand/80'>
+								{whyRecommended}
 							</p>
+						)}
+
+						{/* Match Signals as tags */}
+						{matchSignals && matchSignals.length > 0 && (
+							<div className='flex flex-wrap gap-1'>
+								{matchSignals.slice(0, 2).map((signal, idx) => (
+									<span
+										key={idx}
+										className='rounded-full bg-brand/10 px-2 py-0.5 text-2xs text-brand'
+									>
+										{signal}
+									</span>
+								))}
+							</div>
 						)}
 
 						{/* Stats row */}

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState } from 'react'
 import Image from 'next/image'
@@ -20,7 +20,7 @@ import {
 import { Portal } from '@/components/ui/portal'
 import type { ParsedRecipe, XpBreakdown } from '@/lib/types/recipeCreate'
 
-// ── CountUp (animated number) ───────────────────────────────────────
+// -- CountUp (animated number) ---------------------------------------
 const CountUp = ({
 	value,
 	className,
@@ -47,7 +47,7 @@ const CountUp = ({
 	return <span className={className}>{displayValue}</span>
 }
 
-// ── Props ───────────────────────────────────────────────────────────
+// -- Props -----------------------------------------------------------
 interface XpPreviewModalProps {
 	recipe: ParsedRecipe
 	xpBreakdown: XpBreakdown
@@ -85,11 +85,11 @@ export const XpPreviewModal = ({
 				<motion.div
 					initial={{ scale: 0.9, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
-					className='w-full max-w-md max-h-modal overflow-y-auto rounded-2xl bg-panel-bg p-7'
+					className='w-full max-w-md max-h-modal overflow-y-auto rounded-2xl bg-bg-card p-7'
 				>
 					{/* Header */}
 					<div className='mb-5 flex items-center justify-between'>
-						<h2 className='text-xl font-extrabold text-text'>XP Preview</h2>
+						<h2 className='text-xl font-display font-extrabold text-text'>XP Preview</h2>
 						<button
 							onClick={onBack}						aria-label='Close'							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
 						>
@@ -109,7 +109,7 @@ export const XpPreviewModal = ({
 							/>
 						) : (
 							<div className='flex size-20 items-center justify-center rounded-xl bg-bg-elevated text-3xl'>
-								🍳
+								??
 							</div>
 						)}
 						<div className='flex-1'>
@@ -129,14 +129,14 @@ export const XpPreviewModal = ({
 							</span>
 							<CountUp
 								value={xpBreakdown.total}
-								className='text-4xl font-black text-primary'
+								className='text-4xl font-black text-brand'
 							/>
 						</div>
 
 						<div className='mb-4 space-y-3'>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>📊</span>
+									<span className='text-lg'>??</span>
 									Base ({recipe.difficulty} difficulty)
 								</div>
 								<span className='font-bold text-success'>
@@ -145,7 +145,7 @@ export const XpPreviewModal = ({
 							</div>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>📝</span>
+									<span className='text-lg'>??</span>
 									Steps ({recipe.steps.length} × 10)
 								</div>
 								<span className='font-bold text-success'>
@@ -154,7 +154,7 @@ export const XpPreviewModal = ({
 							</div>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>⏱️</span>
+									<span className='text-lg'>??</span>
 									Time ({recipe.cookTime})
 								</div>
 								<span className='font-bold text-success'>
@@ -167,7 +167,7 @@ export const XpPreviewModal = ({
 									className='flex items-center justify-between rounded-lg bg-streak/10 px-3.5 py-2.5'
 								>
 									<div className='flex items-center gap-2.5 text-sm text-text'>
-										<span className='text-lg'>🔥</span>
+										<span className='text-lg'>??</span>
 										{t.name} technique
 									</div>
 									<span className='font-bold text-success'>+{t.xp}</span>
@@ -216,7 +216,7 @@ export const XpPreviewModal = ({
 
 					{/* Creator Incentive */}
 					<div className='mb-5 flex items-center gap-3.5 rounded-2xl border border-xp/20 bg-xp/10 px-5 py-4'>
-						<span className='text-3xl'>✨</span>
+						<span className='text-3xl'>?</span>
 						<div>
 							<strong className='text-sm text-xp'>You earn 4% XP</strong>{' '}
 							<span className='text-sm text-text'>
@@ -249,7 +249,7 @@ export const XpPreviewModal = ({
 							<Send className='size-4' />
 							Publish Recipe
 							<kbd className='hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline-block'>
-								{modKey}+↵
+								{modKey}+?
 							</kbd>
 						</motion.button>
 					</div>

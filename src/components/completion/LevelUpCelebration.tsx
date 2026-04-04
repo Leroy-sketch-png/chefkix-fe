@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -92,7 +92,7 @@ interface LevelBadgeProps {
 }
 
 const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
-	<div className='relative mx-auto mb-8 h-36 w-36'>
+	<div className='relative mx-auto mb-8 size-36'>
 		{/* Glow */}
 		<motion.div
 			animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -159,7 +159,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 			transition={{ ...TRANSITION_BOUNCY, delay: 1 }}
 			className='absolute -left-2 -top-3 text-2xl'
 		>
-			⭐
+			â­
 		</motion.span>
 		<motion.span
 			initial={{ scale: 0, rotate: -45, opacity: 0 }}
@@ -167,7 +167,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 			transition={{ ...TRANSITION_BOUNCY, delay: 1.1 }}
 			className='absolute -right-4 top-5 text-2xl'
 		>
-			✨
+			âœ¨
 		</motion.span>
 		<motion.span
 			initial={{ scale: 0, rotate: -45, opacity: 0 }}
@@ -175,7 +175,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 			transition={{ ...TRANSITION_BOUNCY, delay: 1.2 }}
 			className='absolute -left-3 bottom-3 text-2xl'
 		>
-			⭐
+			â­
 		</motion.span>
 	</div>
 )
@@ -292,17 +292,17 @@ export const LevelUpCelebration = ({
 							{/* Stats */}
 							<div className='mb-6 flex justify-center gap-5 rounded-2xl bg-white/5 px-5 py-5 max-md:flex-col max-md:items-start max-md:gap-3'>
 								<StatCard
-									emoji='📊'
+									emoji='ðŸ“Š'
 									label='Total XP'
 									value={stats.totalXp.toLocaleString()}
 								/>
 								<StatCard
-									emoji='🍳'
+									emoji='ðŸ³'
 									label='Recipes Cooked'
 									value={stats.recipesCooked.toString()}
 								/>
 								<StatCard
-									emoji='📸'
+									emoji='ðŸ“¸'
 									label='Posts Shared'
 									value={stats.postsShared.toString()}
 								/>
@@ -355,7 +355,7 @@ export const LevelUpCelebration = ({
 									onClick={onShare}
 									className='flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-white/15'
 								>
-									<Share2 className='h-5 w-5' />
+									<Share2 className='size-5' />
 									Share Achievement
 								</button>
 								<motion.button
@@ -397,18 +397,18 @@ export const LevelUpToast = ({
 		animate={{ opacity: 1, y: 0 }}
 		exit={{ opacity: 0, y: 20 }}
 		transition={TRANSITION_SPRING}
-		className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-panel-bg px-4 py-3 shadow-xl shadow-bonus/20 md:bottom-6'
+		className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-bg-card px-4 py-3 shadow-xl shadow-bonus/20 md:bottom-6'
 	>
 		{/* Badge */}
-		<div className='flex h-11 w-11 items-center justify-center rounded-full bg-gradient-celebration'>
+		<div className='flex size-11 items-center justify-center rounded-full bg-gradient-celebration'>
 			<span className='text-lg font-black text-white'>{level}</span>
 		</div>
 
 		{/* Content */}
 		<div className='flex flex-col'>
-			<span className='text-base font-extrabold'>Level {level}!</span>
+			<span className='text-base font-display font-extrabold'>Level {level}!</span>
 			<span className='text-sm text-text-muted'>
-				You&apos;re making progress 🔥
+				You&apos;re making progress ðŸ”¥
 			</span>
 		</div>
 
@@ -422,9 +422,9 @@ export const LevelUpToast = ({
 		<button
 			onClick={onDismiss}
 			aria-label='Dismiss'
-			className='flex h-8 w-8 items-center justify-center text-text-muted hover:text-text'
+			className='flex size-8 items-center justify-center text-text-muted hover:text-text'
 		>
-			<X className='h-5 w-5' />
+			<X className='size-5' />
 		</button>
 	</motion.div>
 )

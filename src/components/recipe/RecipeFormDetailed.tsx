@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -147,7 +147,7 @@ const SUGGESTED_TAGS = [
 // Platform detection for keyboard shortcuts
 const isMac =
 	typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
-const modKey = isMac ? '⌘' : 'Ctrl'
+const modKey = isMac ? 'âŒ˜' : 'Ctrl'
 
 const generateId = () => Math.random().toString(36).substring(2, 9)
 
@@ -240,7 +240,7 @@ const ImageUpload = ({
 					</button>
 				</div>
 			) : (
-				<label className='flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-3 border-dashed border-border bg-bg p-10 transition-colors hover:border-primary hover:bg-primary/5'>
+				<label className='flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-3 border-dashed border-border bg-bg p-10 transition-colors hover:border-brand hover:bg-brand/5'>
 					<div className='flex size-12 items-center justify-center rounded-xl bg-muted/30'>
 						<Upload className='size-6 text-text-secondary' />
 					</div>
@@ -291,14 +291,14 @@ const IngredientRow = ({
 				value={ingredient.amount}
 				onChange={e => onChange({ ...ingredient, amount: e.target.value })}
 				placeholder='Amount'
-				className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-primary focus:outline-none'
+				className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
 			/>
 			<select
 				value={ingredient.unit}
 				onChange={e =>
 					onChange({ ...ingredient, unit: e.target.value as MeasurementUnit })
 				}
-				className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text focus:border-primary focus:outline-none'
+				className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
 			>
 				{MEASUREMENT_UNITS.map(unit => (
 					<option key={unit} value={unit} className='bg-bg-card text-text'>
@@ -313,7 +313,7 @@ const IngredientRow = ({
 				fetchOptions={fetchIngredientOptions}
 				placeholder='Ingredient name'
 				minChars={1}
-				className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-primary focus:outline-none'
+				className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
 			/>
 		</div>
 		<button
@@ -392,7 +392,7 @@ const StepRow = ({
 					onChange={e => onChange({ ...step, instruction: e.target.value })}
 					placeholder='Describe this cooking step in detail...'
 					rows={3}
-					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
+					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
 				/>
 				{/* Step Image Preview */}
 				{step.imageUrl && (
@@ -423,15 +423,15 @@ const StepRow = ({
 					<button
 						type='button'
 						onClick={() => fileInputRef.current?.click()}
-						className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
+						className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 					>
 						<ImageIcon className='size-3.5' />
 						{step.imageUrl ? 'Change Photo' : 'Add Photo'}
 					</button>
 					{showTimerInput ? (
 						<div className='flex items-center gap-2'>
-							<div className='flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5'>
-								<Timer className='size-3.5 text-primary' />
+							<div className='flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1.5'>
+								<Timer className='size-3.5 text-brand' />
 								{/* Hours */}
 								<input
 									type='number'
@@ -442,11 +442,11 @@ const StepRow = ({
 										onChange({ ...step, timerSeconds: newTotal || undefined })
 									}}
 									placeholder='0'
-									className='w-8 bg-transparent text-center text-xs font-semibold text-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									min={0}
 									max={23}
 								/>
-								<span className='text-xs font-semibold text-primary'>h</span>
+								<span className='text-xs font-semibold text-brand'>h</span>
 								{/* Minutes */}
 								<input
 									type='number'
@@ -457,11 +457,11 @@ const StepRow = ({
 										onChange({ ...step, timerSeconds: newTotal || undefined })
 									}}
 									placeholder='0'
-									className='w-8 bg-transparent text-center text-xs font-semibold text-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									min={0}
 									max={59}
 								/>
-								<span className='text-xs font-semibold text-primary'>m</span>
+								<span className='text-xs font-semibold text-brand'>m</span>
 								{/* Seconds */}
 								<input
 									type='number'
@@ -472,11 +472,11 @@ const StepRow = ({
 										onChange({ ...step, timerSeconds: newTotal || undefined })
 									}}
 									placeholder='0'
-									className='w-8 bg-transparent text-center text-xs font-semibold text-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									min={0}
 									max={59}
 								/>
-								<span className='text-xs font-semibold text-primary'>s</span>
+								<span className='text-xs font-semibold text-brand'>s</span>
 							</div>
 							<button
 								type='button'
@@ -493,7 +493,7 @@ const StepRow = ({
 						<button
 							type='button'
 							onClick={() => setShowTimerInput(true)}
-							className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Timer className='size-3.5' />
 							Add Timer
@@ -544,11 +544,11 @@ const TagInput = ({
 
 	return (
 		<div className='space-y-3'>
-			<div className='flex flex-wrap items-center gap-2 rounded-xl border-2 border-border bg-bg p-3 focus-within:border-primary'>
+			<div className='flex flex-wrap items-center gap-2 rounded-xl border-2 border-border bg-bg p-3 focus-within:border-brand'>
 				{tags.map(tag => (
 					<span
 						key={tag}
-						className='flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white'
+						className='flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-white'
 					>
 						{tag}
 						<button
@@ -556,7 +556,7 @@ const TagInput = ({
 							onClick={() => removeTag(tag)}
 							className='flex size-4 items-center justify-center rounded-full transition-colors hover:bg-white/20'
 						>
-							×
+							Ã—
 						</button>
 					</span>
 				))}
@@ -577,7 +577,7 @@ const TagInput = ({
 							key={tag}
 							type='button'
 							onClick={() => addSuggestedTag(tag)}
-							className='rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
+							className='rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							{tag}
 						</button>
@@ -777,18 +777,18 @@ export const RecipeFormDetailed = ({
 		}
 	}
 
-	// Keyboard shortcuts: Ctrl/⌘+S = save draft, Ctrl/⌘+Enter = publish
+	// Keyboard shortcuts: Ctrl/âŒ˜+S = save draft, Ctrl/âŒ˜+Enter = publish
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			const isMod = isMac ? e.metaKey : e.ctrlKey
 
-			// Ctrl/⌘ + S = Save Draft
+			// Ctrl/âŒ˜ + S = Save Draft
 			if (isMod && e.key === 's') {
 				e.preventDefault()
 				handleSaveDraft()
 			}
 
-			// Ctrl/⌘ + Enter = Submit/Publish
+			// Ctrl/âŒ˜ + Enter = Submit/Publish
 			if (isMod && e.key === 'Enter') {
 				e.preventDefault()
 				setHasAttemptedSubmit(true)
@@ -861,7 +861,7 @@ export const RecipeFormDetailed = ({
 		<div className={cn('mx-auto max-w-container-form p-6 md:p-10', className)}>
 			{/* Header */}
 			<div className='mb-10'>
-				<h1 className='text-3xl font-extrabold text-text md:text-4xl'>
+				<h1 className='text-3xl font-display font-extrabold text-text md:text-4xl'>
 					Create Your Recipe
 				</h1>
 				<p className='mt-2 text-text-secondary'>
@@ -871,7 +871,7 @@ export const RecipeFormDetailed = ({
 
 			<form
 				onSubmit={handleSubmit}
-				className='rounded-2xl border border-border bg-panel-bg p-6 md:p-10'
+				className='rounded-2xl border border-border bg-bg-card p-6 md:p-10'
 			>
 				{/* Basic Info Section */}
 				<section className='mb-12 border-b-2 border-border pb-12'>
@@ -898,7 +898,7 @@ export const RecipeFormDetailed = ({
 								'w-full rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none',
 								errors.title
 									? 'border-error focus:border-error'
-									: 'border-border focus:border-primary',
+									: 'border-border focus:border-brand',
 							)}
 						/>
 						{errors.title ? (
@@ -931,7 +931,7 @@ export const RecipeFormDetailed = ({
 								'w-full resize-y rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none',
 								errors.description
 									? 'border-error focus:border-error'
-									: 'border-border focus:border-primary',
+									: 'border-border focus:border-brand',
 							)}
 						/>
 						{errors.description ? (
@@ -995,7 +995,7 @@ export const RecipeFormDetailed = ({
 									}
 									placeholder='15'
 									min={0}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									min
@@ -1022,7 +1022,7 @@ export const RecipeFormDetailed = ({
 									}
 									placeholder='30'
 									min={0}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									min
@@ -1045,7 +1045,7 @@ export const RecipeFormDetailed = ({
 								}
 								placeholder='4'
 								min={1}
-								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 							/>
 						</div>
 					</div>
@@ -1068,7 +1068,7 @@ export const RecipeFormDetailed = ({
 									className={cn(
 										'size-4',
 										predictedDifficulty
-											? 'text-primary'
+											? 'text-brand'
 											: 'text-text-secondary',
 									)}
 								/>
@@ -1112,7 +1112,7 @@ export const RecipeFormDetailed = ({
 									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text focus:outline-none',
 									errors.category
 										? 'border-error focus:border-error'
-										: 'border-border focus:border-primary',
+										: 'border-border focus:border-brand',
 								)}
 							>
 								<option value='' className='bg-bg-card text-text'>
@@ -1156,7 +1156,7 @@ export const RecipeFormDetailed = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Plus className='size-4' />
 							Add Ingredient
@@ -1226,7 +1226,7 @@ export const RecipeFormDetailed = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
+							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Plus className='size-4' />
 							Add Step
@@ -1268,7 +1268,7 @@ export const RecipeFormDetailed = ({
 						onChange={e => updateField('tips', e.target.value)}
 						placeholder='Share any helpful tips, substitutions, or notes about your recipe...'
 						rows={4}
-						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
+						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
 					/>
 				</section>
 
@@ -1292,7 +1292,7 @@ export const RecipeFormDetailed = ({
 						disabled={isSaving}
 						whileHover={isSaving ? undefined : BUTTON_HOVER}
 						whileTap={isSaving ? undefined : BUTTON_TAP}
-						className='flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-5 py-3 font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand/5 px-5 py-3 font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isSaving ? (
 							<Loader2 className='size-4 animate-spin' />
@@ -1301,7 +1301,7 @@ export const RecipeFormDetailed = ({
 						)}
 						{isSaving ? savingLabel : saveDraftLabel}
 						{!isSaving && (
-							<kbd className='ml-1 hidden rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary/70 sm:inline-block'>
+							<kbd className='ml-1 hidden rounded bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand/70 sm:inline-block'>
 								{modKey}+S
 							</kbd>
 						)}
@@ -1332,7 +1332,7 @@ export const RecipeFormDetailed = ({
 							{isSubmitting ? submittingLabel : submitLabel}
 							{!isSubmitting && (
 								<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-medium text-white/80 sm:inline-block'>
-									{modKey}+↵
+									{modKey}+â†µ
 								</kbd>
 							)}
 						</motion.button>

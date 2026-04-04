@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import {
@@ -52,31 +52,31 @@ const leagueConfig: Record<
 	{ icon: string; gradient: string; borderColor: string; textColor: string }
 > = {
 	bronze: {
-		icon: '🥉',
+		icon: 'ðŸ¥‰',
 		gradient: 'from-medal-bronze/20 to-medal-bronze/8',
 		borderColor: 'border-medal-bronze/40',
 		textColor: 'text-medal-bronze',
 	},
 	silver: {
-		icon: '🥈',
+		icon: 'ðŸ¥ˆ',
 		gradient: 'from-medal-silver/25 to-medal-silver/10',
 		borderColor: 'border-medal-silver/50',
 		textColor: 'text-medal-silver',
 	},
 	gold: {
-		icon: '🏆',
+		icon: 'ðŸ†',
 		gradient: 'from-medal-gold/20 to-medal-gold/8',
 		borderColor: 'border-medal-gold/40',
 		textColor: 'text-medal-gold',
 	},
 	diamond: {
-		icon: '💎',
+		icon: 'ðŸ’Ž',
 		gradient: 'from-rare/20 to-rare/8',
 		borderColor: 'border-rare/40',
 		textColor: 'text-rare',
 	},
 	legendary: {
-		icon: '👑',
+		icon: 'ðŸ‘‘',
 		gradient: 'from-xp/20 to-xp/8',
 		borderColor: 'border-xp/40',
 		textColor: 'text-xp',
@@ -112,7 +112,7 @@ function LeagueHeader({
 				<div className='flex flex-col'>
 					<span
 						className={cn(
-							'text-lg font-extrabold capitalize',
+							'text-lg font-display font-extrabold capitalize',
 							config.textColor,
 						)}
 					>
@@ -222,7 +222,7 @@ function ZoneSection({
 				<span>{label}</span>
 				{destination && (
 					<span className='ml-auto font-normal opacity-80'>
-						→ {destination}
+						â†’ {destination}
 					</span>
 				)}
 			</div>
@@ -331,7 +331,7 @@ export function LeagueLeaderboard({
 			{/* Abbreviated indicator for safe zone */}
 			{safeEntries.length > 3 && (
 				<div className='text-center py-3 text-xs text-text-muted'>
-					Ranks {promotionThreshold + 4}-{demotionThreshold} •{' '}
+					Ranks {promotionThreshold + 4}-{demotionThreshold} â€¢{' '}
 					{safeEntries[3]?.xpThisWeek?.toLocaleString()}-
 					{safeEntries[safeEntries.length - 1]?.xpThisWeek?.toLocaleString()} XP
 				</div>

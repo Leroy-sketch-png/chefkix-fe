@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Post } from '@/lib/types'
@@ -12,7 +12,7 @@ import {
 } from '@/services/post'
 import { toast } from 'sonner'
 import { POST_MESSAGES } from '@/constants/messages'
-import { trackEvent } from '@/lib/eventTracker'
+import { trackEvent, startDwellTracking, stopDwellTracking } from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -131,12 +131,36 @@ export const PostCard = ({
 	const saveButtonRef = useRef<HTMLButtonElement>(null)
 	const menuButtonRef = useRef<HTMLButtonElement>(null)
 	const shareButtonRef = useRef<HTMLButtonElement>(null)
+	const cardRef = useRef<HTMLDivElement>(null)
 	const lastTapRef = useRef<number>(0)
 	const DOUBLE_TAP_DELAY = 300 // ms
 
 	const isOwner = currentUserId === post.userId
 	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
 	const requireAuth = useAuthGate()
+
+	// Dwell tracking â€” fire POST_DWELLED when card is visible for 2+ seconds
+	useEffect(() => {
+		const element = cardRef.current
+		if (!element || !post.id) return
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					startDwellTracking(post.id, 'post')
+				} else {
+					stopDwellTracking(post.id)
+				}
+			},
+			{ threshold: 0.5 }, // 50% visible
+		)
+
+		observer.observe(element)
+		return () => {
+			observer.disconnect()
+			stopDwellTracking(post.id)
+		}
+	}, [post.id])
 
 	useEscapeKey(showMenu, () => setShowMenu(false))
 	useEscapeKey(showShareMenu, () => setShowShareMenu(false))
@@ -231,7 +255,7 @@ export const PostCard = ({
 		} finally {
 			setIsLiking(false)
 		}
-	}, [isLiking, onUpdate, post])
+	}, [isLiking, onUpdate, post, requireAuth])
 
 	const handleSave = async () => {
 		if (isSaving) return
@@ -528,6 +552,7 @@ export const PostCard = ({
 			/>
 
 			<motion.article
+				ref={cardRef}
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				layout
@@ -680,7 +705,7 @@ export const PostCard = ({
 							<textarea
 								value={editContent}
 								onChange={e => setEditContent(e.target.value)}
-								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
+								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
 								placeholder='Edit your post...'
 								maxLength={2000}
 							/>
@@ -692,7 +717,7 @@ export const PostCard = ({
 							<input
 								value={editTags}
 								onChange={e => setEditTags(e.target.value)}
-								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-primary focus:outline-none focus:ring-1 focus:ring-primary/10'
+								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
 								placeholder='Tags (comma-separated)'
 								maxLength={200}
 							/>
@@ -701,7 +726,7 @@ export const PostCard = ({
 									type='button'
 									onClick={handleEdit}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='h-11 flex-1 rounded-lg bg-primary px-4 font-medium text-white transition-colors hover:bg-primary/90'
+									className='h-11 flex-1 rounded-lg bg-brand px-4 font-medium text-white transition-colors hover:bg-brand/90'
 								>
 									Save
 								</motion.button>
@@ -730,7 +755,7 @@ export const PostCard = ({
 										{post.tags.map(tag => (
 											<span
 												key={tag}
-												className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'
+												className='rounded-full bg-brand/10 px-3 py-1 text-xs font-medium text-brand'
 											>
 												#{tag}
 											</span>
@@ -738,9 +763,9 @@ export const PostCard = ({
 									</div>
 								)}
 
-								{/* Recipe Review — Star rating inline */}
+								{/* Recipe Review â€” Star rating inline */}
 								{post.postType === 'RECIPE_REVIEW' && post.reviewRating != null && (
-									<div className='flex items-center gap-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-3 py-2'>
+									<div className='flex items-center gap-3 rounded-xl bg-gradient-to-r from-warning/10 to-streak/10 px-3 py-2'>
 										<StarRating value={post.reviewRating} readOnly size='sm' />
 										<span className='text-sm font-medium text-text-secondary'>
 											{post.reviewRating}/5
@@ -748,7 +773,7 @@ export const PostCard = ({
 									</div>
 								)}
 
-								{/* Recipe Battle — VS card with two recipe thumbnails */}
+								{/* Recipe Battle â€” VS card with two recipe thumbnails */}
 								{post.postType === 'RECIPE_BATTLE' && post.battleRecipeIdA && post.battleRecipeIdB && (
 									<div className='rounded-xl border border-border-subtle bg-bg-elevated/50 p-3'>
 										<div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
@@ -773,7 +798,7 @@ export const PostCard = ({
 													VS
 												</span>
 												{post.battleEndsAt && (
-													<span className='text-[10px] text-text-muted'>
+													<span className='text-2xs text-text-muted'>
 														{new Date(post.battleEndsAt) > new Date() ? 'Active' : 'Ended'}
 													</span>
 												)}
@@ -799,7 +824,7 @@ export const PostCard = ({
 										{((post.battleVotesA ?? 0) + (post.battleVotesB ?? 0)) > 0 && (
 											<div className='mt-3 h-2 overflow-hidden rounded-full bg-bg'>
 												<div
-													className='h-full rounded-full bg-gradient-to-r from-brand to-orange-400 transition-all duration-500'
+													className='h-full rounded-full bg-gradient-to-r from-brand to-streak transition-all duration-500'
 													style={{
 														width: `${((post.battleVotesA ?? 0) / ((post.battleVotesA ?? 0) + (post.battleVotesB ?? 0))) * 100}%`,
 													}}
@@ -809,10 +834,10 @@ export const PostCard = ({
 									</div>
 								)}
 
-								{/* Quick Tip — Highlighted tip block */}
+								{/* Quick Tip â€” Highlighted tip block */}
 								{post.postType === 'QUICK_TIP' && (
-									<div className='flex items-start gap-3 rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-yellow-500/5 px-4 py-3'>
-										<Lightbulb className='mt-0.5 size-5 flex-shrink-0 text-amber-500' />
+									<div className='flex items-start gap-3 rounded-xl border border-warning/20 bg-gradient-to-r from-warning/5 to-level/5 px-4 py-3'>
+										<Lightbulb className='mt-0.5 size-5 flex-shrink-0 text-warning' />
 										<span className='text-sm font-medium leading-relaxed text-text-primary'>
 											Quick Tip
 										</span>
@@ -843,7 +868,7 @@ export const PostCard = ({
 
 								{/* Co-Chef Attribution - Shows co-cooking participants */}
 								{post.coChefs && post.coChefs.length > 0 && (
-									<div className='flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/5 to-purple-500/5 px-3 py-2'>
+									<div className='flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/5 to-accent-purple/5 px-3 py-2'>
 										<Users className='size-4 flex-shrink-0 text-brand' />
 										<span className='text-sm text-text-secondary'>
 											Cooked with{' '}
@@ -931,7 +956,7 @@ export const PostCard = ({
 						</>
 					)}
 
-					{/* Rate This Plate — zero-effort engagement for posts with photos */}
+					{/* Rate This Plate â€” zero-effort engagement for posts with photos */}
 					{hasPhotos &&
 						post.postType !== 'POLL' &&
 						post.postType !== 'RECENT_COOK' &&
@@ -950,11 +975,11 @@ export const PostCard = ({
 										disabled={isRatingPlate}
 										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
 											post.userPlateRating === 'FIRE'
-												? 'bg-orange-500/15 text-orange-500 ring-1 ring-orange-500/30'
-												: 'text-text-muted hover:bg-orange-500/10 hover:text-orange-500'
+												? 'bg-streak/100/15 text-streak ring-1 ring-orange-500/30'
+												: 'text-text-muted hover:bg-streak/100/10 hover:text-streak'
 										}`}
 									>
-										<span>🔥</span>
+										<span>ðŸ”¥</span>
 										{(post.fireCount ?? 0) > 0 && (
 											<span className='text-xs font-semibold tabular-nums'>
 												{post.fireCount}
@@ -972,7 +997,7 @@ export const PostCard = ({
 												: 'text-text-muted hover:bg-accent-purple/10 hover:text-accent-purple'
 										}`}
 									>
-										<span>😬</span>
+										<span>ðŸ˜¬</span>
 										{(post.cringeCount ?? 0) > 0 && (
 											<span className='text-xs font-semibold tabular-nums'>
 												{post.cringeCount}
@@ -994,8 +1019,8 @@ export const PostCard = ({
 							aria-label={post.isLiked ? 'Unlike post' : 'Like post'}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								post.isLiked
-									? 'text-primary'
-									: 'text-text-secondary hover:bg-bg-hover hover:text-primary'
+									? 'text-brand'
+									: 'text-text-secondary hover:bg-bg-hover hover:text-brand'
 							}`}
 						>
 							<Heart
@@ -1013,9 +1038,9 @@ export const PostCard = ({
 							onClick={() => setShowComments(!showComments)}
 							whileTap={BUTTON_SUBTLE_TAP}
 							aria-label={showComments ? 'Hide comments' : 'Show comments'}
-							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
+							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-brand'
 						>
-							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-primary group-hover/btn:stroke-primary' />
+							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-brand group-hover/btn:stroke-brand' />
 							<span className='tabular-nums'>{post.commentCount ?? 0}</span>
 						</motion.button>
 
@@ -1027,7 +1052,7 @@ export const PostCard = ({
 								onClick={handleShareMenuToggle}
 								whileTap={BUTTON_SUBTLE_TAP}
 								aria-label='Share post'
-								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-primary'
+								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-brand'
 							>
 								<Send className='size-5 transition-all duration-300 group-hover/btn:scale-125' />
 								<span>Share</span>
@@ -1088,8 +1113,8 @@ export const PostCard = ({
 							aria-label={isSaved ? 'Remove saved post' : 'Save post'}
 							className={`group/btn flex h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								isSaved
-									? 'flex-1 text-primary'
-									: 'flex-1 text-text-secondary hover:bg-bg-hover hover:text-primary'
+									? 'flex-1 text-brand'
+									: 'flex-1 text-text-secondary hover:bg-bg-hover hover:text-brand'
 							}`}
 						>
 							<Bookmark
@@ -1100,7 +1125,7 @@ export const PostCard = ({
 								}`}
 							/>
 						</motion.button>
-						{/* Add to Collection button — appears when post is saved */}
+						{/* Add to Collection button â€” appears when post is saved */}
 						<AnimatePresence>
 							{isSaved && (
 								<motion.button
@@ -1121,7 +1146,7 @@ export const PostCard = ({
 									}}
 									whileTap={BUTTON_SUBTLE_TAP}
 									aria-label='Add to collection'
-									className='flex h-11 items-center justify-center overflow-hidden rounded-lg px-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-primary'
+									className='flex h-11 items-center justify-center overflow-hidden rounded-lg px-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand'
 								>
 									<FolderPlus className='size-4' />
 								</motion.button>

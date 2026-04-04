@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -7,7 +7,7 @@ export const UserCardSkeleton = () => {
 		<div className='overflow-hidden rounded-lg border bg-card p-6 shadow-card'>
 			<div className='flex items-start gap-4'>
 				{/* Avatar Skeleton */}
-				<Skeleton className='h-16 w-16 flex-shrink-0 rounded-full' />
+				<Skeleton className='size-16 flex-shrink-0 rounded-full' />
 
 				<div className='flex-1 space-y-3'>
 					{/* Name & Username */}

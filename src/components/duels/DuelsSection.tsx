@@ -310,7 +310,7 @@ function DuelCard({
 			)}
 			{(duel.status === 'Accepted' || duel.status === 'In Progress') && (
 				<a
-					href={`/recipe/${duel.recipeId}?cook=true`}
+					href={`/recipes/${duel.recipeId}?cook=true`}
 					className='flex items-center justify-center gap-2 rounded-xl bg-gradient-streak px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90'
 				>
 					<ChefHat className='size-4' />

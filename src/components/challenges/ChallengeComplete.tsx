@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Share2, Check } from 'lucide-react'
@@ -50,7 +50,7 @@ interface ChallengeCompleteInlineProps {
 // ============================================
 
 const Confetti = () => {
-	const emojis = ['🎉', '✨', '🎯', '⭐', '🎊']
+	const emojis = ['ðŸŽ‰', 'âœ¨', 'ðŸŽ¯', 'â­', 'ðŸŽŠ']
 
 	return (
 		<div className='pointer-events-none absolute inset-0 overflow-hidden'>
@@ -114,7 +114,7 @@ export const ChallengeComplete = ({
 					initial={{ scale: 0.5, y: 50, opacity: 0 }}
 					animate={{ scale: 1, y: 0, opacity: 1 }}
 					transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-					className='relative w-full max-w-modal-md overflow-hidden rounded-2xl bg-panel-bg p-8 text-center shadow-2xl'
+					className='relative w-full max-w-modal-md overflow-hidden rounded-2xl bg-bg-card p-8 text-center shadow-2xl'
 				>
 					{/* Confetti */}
 					<Confetti />
@@ -136,7 +136,7 @@ export const ChallengeComplete = ({
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
-							className='absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full border-4 border-panel-bg bg-success text-white'
+							className='absolute -bottom-2 -right-2 flex size-9 items-center justify-center rounded-full border-4 border-bg-card bg-success text-white'
 						>
 							<Check className='size-icon-sm' />
 						</motion.div>
@@ -147,7 +147,7 @@ export const ChallengeComplete = ({
 						<span className='mb-1 block text-xs font-bold uppercase tracking-wider text-xp'>
 							Daily Challenge
 						</span>
-						<h2 className='text-2xl font-extrabold'>Complete! 🎯</h2>
+						<h2 className='text-2xl font-display font-extrabold'>Complete! ðŸŽ¯</h2>
 					</div>
 
 					{/* Challenge Info */}
@@ -164,15 +164,15 @@ export const ChallengeComplete = ({
 						initial={{ scale: 0.8, opacity: 0 }}
 						animate={{ scale: 1, opacity: 1 }}
 						transition={{ delay: 0.4 }}
-						className='mb-6 flex items-center justify-center gap-4 rounded-2xl bg-gradient-to-r from-success/10 to-emerald-500/5 p-5'
+						className='mb-6 flex items-center justify-center gap-4 rounded-2xl bg-gradient-to-r from-success/10 to-success/5 p-5'
 					>
-						<div className='relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-success to-emerald-500'>
-							<span className='text-2xl'>⚡</span>
+						<div className='relative flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-success to-success'>
+							<span className='text-2xl'>âš¡</span>
 							{/* Particles */}
 							{[0, 1, 2].map(i => (
 								<motion.span
 									key={i}
-									className='absolute h-2 w-2 rounded-full bg-success'
+									className='absolute size-2 rounded-full bg-success'
 									initial={{ scale: 0, opacity: 1 }}
 									animate={{ scale: [0, 1.5, 2], opacity: [1, 0.5, 0] }}
 									transition={{
@@ -200,7 +200,7 @@ export const ChallengeComplete = ({
 					{/* Streak Progress */}
 					<div className='mb-6 rounded-xl bg-bg-elevated p-4'>
 						<div className='mb-3.5 flex items-center justify-center gap-2'>
-							<span className='text-xl'>🔥</span>
+							<span className='text-xl'>ðŸ”¥</span>
 							<span className='text-sm font-bold'>Challenge Streak</span>
 						</div>
 
@@ -210,7 +210,7 @@ export const ChallengeComplete = ({
 								<div key={i} className='flex flex-col items-center gap-1.5'>
 									<div
 										className={cn(
-											'flex h-7 w-7 items-center justify-center rounded-full text-xs',
+											'flex size-7 items-center justify-center rounded-full text-xs',
 											day.isCompleted
 												? 'bg-success text-white'
 												: day.isMilestone
@@ -219,7 +219,7 @@ export const ChallengeComplete = ({
 											day.isToday && 'ring-3 ring-success/30',
 										)}
 									>
-										{day.isCompleted ? '✓' : day.isMilestone ? '🏆' : ''}
+										{day.isCompleted ? 'âœ“' : day.isMilestone ? 'ðŸ†' : ''}
 									</div>
 									<span
 										className={cn(
@@ -285,7 +285,7 @@ export const ChallengeCompleteInline = ({
 	>
 		{/* Header */}
 		<div className='mb-3 flex items-center gap-3.5'>
-			<div className='flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-indigo'>
+			<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-indigo'>
 				<span className='text-2xl'>{challengeIcon}</span>
 			</div>
 			<div className='flex-1'>
@@ -295,7 +295,7 @@ export const ChallengeCompleteInline = ({
 				<span className='block text-sm text-text-muted'>{challengeTitle}</span>
 			</div>
 			<div className='text-right'>
-				<span className='block text-xl font-extrabold text-success'>
+				<span className='block text-xl font-display font-extrabold text-success'>
 					+{bonusXp} XP
 				</span>
 				<span className='text-xs text-text-muted'>bonus</span>
@@ -304,12 +304,12 @@ export const ChallengeCompleteInline = ({
 
 		{/* Streak Info */}
 		<div className='flex items-center gap-2 rounded-lg bg-streak/10 px-3.5 py-2.5 text-sm'>
-			<span className='text-base'>🔥</span>
+			<span className='text-base'>ðŸ”¥</span>
 			<span className='font-semibold text-streak'>
 				{streakCount} day streak
 			</span>
 			<span className='text-text-muted'>
-				• {daysToMilestone} more for badge
+				â€¢ {daysToMilestone} more for badge
 			</span>
 		</div>
 	</motion.div>

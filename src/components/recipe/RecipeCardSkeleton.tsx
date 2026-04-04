@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+﻿import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 interface RecipeCardSkeletonProps {
@@ -42,7 +42,7 @@ export const RecipeCardSkeleton = ({
 						<Skeleton className='absolute left-2 top-2 h-6 w-16 rounded-xl' />
 
 						{/* Save button skeleton */}
-						<Skeleton className='absolute right-2 top-2 h-11 w-11 rounded-sm' />
+						<Skeleton className='absolute right-2 top-2 size-11 rounded-sm' />
 					</div>
 
 					{/* Content area */}

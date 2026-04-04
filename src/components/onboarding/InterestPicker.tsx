@@ -25,73 +25,73 @@ const INTEREST_TILES = [
 		id: 'italian',
 		label: 'Italian',
 		emoji: '🍝',
-		gradient: 'from-red-500 to-green-600',
+		gradient: 'from-error to-success',
 	},
 	{
 		id: 'asian',
 		label: 'Asian',
 		emoji: '🍜',
-		gradient: 'from-amber-500 to-red-500',
+		gradient: 'from-warning to-error',
 	},
 	{
 		id: 'mexican',
 		label: 'Mexican',
 		emoji: '🌮',
-		gradient: 'from-green-500 to-red-500',
+		gradient: 'from-success to-error',
 	},
 	{
 		id: 'bbq',
 		label: 'BBQ & Grilling',
 		emoji: '🔥',
-		gradient: 'from-orange-600 to-red-700',
+		gradient: 'from-streak to-error',
 	},
 	{
 		id: 'vegan',
 		label: 'Plant-Based',
 		emoji: '🥗',
-		gradient: 'from-green-400 to-emerald-600',
+		gradient: 'from-success to-success',
 	},
 	{
 		id: 'quick-meals',
 		label: 'Quick Meals',
 		emoji: '⚡',
-		gradient: 'from-yellow-400 to-orange-500',
+		gradient: 'from-warning to-streak',
 	},
 	{
 		id: 'baking',
 		label: 'Baking',
 		emoji: '🥐',
-		gradient: 'from-amber-300 to-yellow-600',
+		gradient: 'from-warning to-warning',
 	},
 	{
 		id: 'comfort-food',
 		label: 'Comfort Food',
 		emoji: '🍲',
-		gradient: 'from-orange-400 to-amber-600',
+		gradient: 'from-streak to-warning',
 	},
 	{
 		id: 'healthy',
 		label: 'Healthy',
 		emoji: '🥬',
-		gradient: 'from-lime-400 to-green-500',
+		gradient: 'from-success to-success',
 	},
 	{
 		id: 'indian',
 		label: 'Indian',
 		emoji: '🍛',
-		gradient: 'from-orange-500 to-yellow-500',
+		gradient: 'from-streak to-warning',
 	},
 	{
 		id: 'mediterranean',
 		label: 'Mediterranean',
 		emoji: '🫒',
-		gradient: 'from-blue-400 to-cyan-500',
+		gradient: 'from-info to-accent-teal',
 	},
 	{
 		id: 'seafood',
 		label: 'Seafood',
 		emoji: '🦐',
-		gradient: 'from-cyan-400 to-blue-500',
+		gradient: 'from-accent-teal to-info',
 	},
 ] as const
 
@@ -211,7 +211,7 @@ export function InterestPicker({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4'
 					>
 						<motion.div
 							initial={{ scale: 0.9, opacity: 0 }}

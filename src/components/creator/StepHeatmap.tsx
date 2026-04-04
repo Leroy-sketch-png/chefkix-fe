@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -203,7 +203,7 @@ export function StepHeatmap({
 							{step.skipRate > 0 && (
 								<div className='flex items-center gap-1' title='Skip rate'>
 									<SkipForward className='size-3 text-streak' />
-									<span className='text-[10px] text-text-muted'>
+									<span className='text-2xs text-text-muted'>
 										{step.skipRate}%
 									</span>
 								</div>
@@ -211,7 +211,7 @@ export function StepHeatmap({
 							{step.avgTimeSeconds !== null && (
 								<div className='flex items-center gap-1' title='Avg time'>
 									<Clock className='size-3 text-text-muted' />
-									<span className='text-[10px] text-text-muted'>
+									<span className='text-2xs text-text-muted'>
 										{formatTime(step.avgTimeSeconds)}
 										{step.estimatedTimeSeconds
 											? ` / ${formatTime(step.estimatedTimeSeconds)}`
@@ -225,7 +225,7 @@ export function StepHeatmap({
 									title='Sessions abandoned here'
 								>
 									<AlertTriangle className='size-3 text-error' />
-									<span className='text-[10px] text-error'>
+									<span className='text-2xs text-error'>
 										{step.abandonedAtCount}
 									</span>
 								</div>

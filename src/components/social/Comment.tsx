@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useCallback, useRef } from 'react'
 import { Comment as CommentType, Reply } from '@/lib/types'
@@ -563,7 +563,7 @@ export const Comment = ({
 								if (!requireAuth('reply to this comment')) return
 								setShowReplyInput(!showReplyInput)
 							}}
-							className='flex items-center gap-1 transition-colors hover:text-primary'
+							className='flex items-center gap-1 transition-colors hover:text-brand'
 							aria-label='Reply to comment'
 						>
 							<MessageSquare className='size-3' />
@@ -594,7 +594,7 @@ export const Comment = ({
 									<button
 										onClick={handleSubmitReply}
 										disabled={!replyContent.trim() || isSubmittingReply}
-										className='grid size-9 place-items-center rounded-lg bg-primary text-white transition-colors hover:bg-primary/90 disabled:opacity-50'
+										className='grid size-9 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 									>
 										{isSubmittingReply ? (
 											<Loader2 className='size-4 animate-spin' />
@@ -614,7 +614,7 @@ export const Comment = ({
 					{replyCount > 0 && (
 						<button
 							onClick={handleToggleReplies}
-							className='mt-1 flex items-center gap-1 px-2 text-xs font-medium text-primary hover:underline'
+							className='mt-1 flex items-center gap-1 px-2 text-xs font-medium text-brand hover:underline'
 						>
 							{isLoadingReplies ? (
 								<Loader2 className='size-3 animate-spin' />

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
@@ -38,37 +38,37 @@ export function CreatorStatsWidget({
 	className,
 }: CreatorStatsWidgetProps) {
 	return (
-		<div className={cn('bg-panel-bg rounded-2xl p-5', className)}>
+		<div className={cn('bg-bg-card rounded-2xl p-5', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-2 mb-4'>
-				<span className='text-xl'>📝</span>
+				<span className='text-xl'>??</span>
 				<span className='flex-1 text-base font-bold text-text'>
 					Creator Stats
 				</span>
 				<Link
 					href={dashboardUrl}
-					className='w-7 h-7 flex items-center justify-center bg-bg rounded-lg text-text-secondary hover:text-text transition-colors'
+					className='size-7 flex items-center justify-center bg-bg rounded-lg text-text-secondary hover:text-text transition-colors'
 				>
-					<ArrowRight className='w-4 h-4' />
+					<ArrowRight className='size-4' />
 				</Link>
 			</div>
 
 			{/* Stats Row */}
 			<div className='flex gap-3 mb-4'>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
-					<span className='text-lg font-extrabold text-text'>
+					<span className='text-lg font-display font-extrabold text-text'>
 						{recipesCount}
 					</span>
 					<span className='text-2xs text-text-secondary'>Recipes</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
-					<span className='text-lg font-extrabold text-text'>
+					<span className='text-lg font-display font-extrabold text-text'>
 						{totalCooks.toLocaleString()}
 					</span>
 					<span className='text-2xs text-text-secondary'>Cooks</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-success/10 rounded-lg'>
-					<span className='text-lg font-extrabold text-success'>
+					<span className='text-lg font-display font-extrabold text-success'>
 						+{xpEarned.toLocaleString()}
 					</span>
 					<span className='text-2xs text-text-secondary'>XP Earned</span>
@@ -79,11 +79,11 @@ export function CreatorStatsWidget({
 			{topRecipe && (
 				<div className='flex items-center gap-3 p-3 bg-bg rounded-xl'>
 					<Image
-						src={topRecipe.imageUrl || '/images/recipe-placeholder.jpg'}
+						src={topRecipe.imageUrl || '/placeholder-recipe.svg'}
 						alt={topRecipe.title}
 						width={40}
 						height={40}
-						className='w-10 h-10 rounded-lg object-cover'
+						className='size-10 rounded-lg object-cover'
 					/>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xs text-text-secondary'>Top Recipe</span>
@@ -91,7 +91,7 @@ export function CreatorStatsWidget({
 							{topRecipe.title}
 						</span>
 					</div>
-					<span className='text-sm font-semibold text-primary'>
+					<span className='text-sm font-semibold text-brand'>
 						{topRecipe.cookCount} cooks
 					</span>
 				</div>
@@ -137,18 +137,18 @@ export function CreatorXPNotification({
 				{cookerAvatars.slice(0, 2).map((avatar, index) => (
 					<Image
 						key={index}
-						src={avatar || '/images/default-avatar.png'}
+						src={avatar || '/placeholder-avatar.svg'}
 						alt=''
 						width={32}
 						height={32}
 						className={cn(
-							'w-8 h-8 rounded-full border-3 border-panel-bg',
+							'size-8 rounded-full border-3 border-bg-card',
 							index > 0 && '-ml-2.5',
 						)}
 					/>
 				))}
 				{remainingCount > 0 && (
-					<div className='w-8 h-8 flex items-center justify-center bg-xp rounded-full border-3 border-panel-bg -ml-2.5 text-xs font-bold text-white'>
+					<div className='size-8 flex items-center justify-center bg-xp rounded-full border-3 border-bg-card -ml-2.5 text-xs font-bold text-white'>
 						+{remainingCount}
 					</div>
 				)}

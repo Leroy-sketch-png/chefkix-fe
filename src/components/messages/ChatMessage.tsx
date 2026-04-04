@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -72,7 +72,7 @@ const getStatusIcon = (status: Message['status']) => {
 		case 'sending':
 			return (
 				<motion.div
-					className='h-3 w-3 rounded-full bg-text-muted/30'
+					className='size-3 rounded-full bg-text-muted/30'
 					animate={{ scale: [1, 1.2, 1] }}
 					transition={{ duration: 1, repeat: Infinity }}
 				/>
@@ -81,13 +81,13 @@ const getStatusIcon = (status: Message['status']) => {
 			return <Check className='h-3.5 w-3.5 text-text-muted' />
 		case 'delivered':
 		case 'read':
-			// Backend doesn't track read receipts yet — show delivered for both
+			// Backend doesn't track read receipts yet â€” show delivered for both
 			return <CheckCheck className='h-3.5 w-3.5 text-text-muted' />
 	}
 }
 
 // Quick reactions
-const QUICK_REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏']
+const QUICK_REACTIONS = ['â¤ï¸', 'ðŸ‘', 'ðŸ˜‚', 'ðŸ˜®', 'ðŸ˜¢', 'ðŸ™']
 
 // =============================================================================
 // REACTION PICKER
@@ -114,7 +114,7 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 				<motion.button
 					key={emoji}
 					onClick={() => onSelect(emoji)}
-					className='flex h-9 w-9 items-center justify-center rounded-full text-lg transition-all hover:scale-125 hover:bg-bg-hover'
+					className='flex size-9 items-center justify-center rounded-full text-lg transition-all hover:scale-125 hover:bg-bg-hover'
 					initial={{ opacity: 0, scale: 0 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ delay: i * 0.05 }}
@@ -165,7 +165,7 @@ const MessageActions = ({
 				whileTap={{ scale: 0.95 }}
 				aria-label='React to message'
 			>
-				<Heart className='h-4 w-4' />
+				<Heart className='size-4' />
 			</motion.button>
 			<motion.button
 				onClick={onReply}
@@ -174,7 +174,7 @@ const MessageActions = ({
 				whileTap={{ scale: 0.95 }}
 				aria-label='Reply to message'
 			>
-				<Reply className='h-4 w-4' />
+				<Reply className='size-4' />
 			</motion.button>
 			<motion.button
 				onClick={onCopy}
@@ -183,7 +183,7 @@ const MessageActions = ({
 				whileTap={{ scale: 0.95 }}
 				aria-label='Copy message'
 			>
-				<Copy className='h-4 w-4' />
+				<Copy className='size-4' />
 			</motion.button>
 			{isOwn && onDelete && (
 				<motion.button
@@ -193,7 +193,7 @@ const MessageActions = ({
 					whileTap={{ scale: 0.95 }}
 					aria-label='Delete message'
 				>
-					<Trash2 className='h-4 w-4' />
+					<Trash2 className='size-4' />
 				</motion.button>
 			)}
 		</motion.div>
@@ -282,7 +282,7 @@ export const ChatMessage = ({
 							animate={{ scale: 1 }}
 							transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 						>
-							<Avatar className='h-9 w-9 flex-shrink-0 ring-2 ring-bg-card'>
+							<Avatar className='size-9 flex-shrink-0 ring-2 ring-bg-card'>
 								<AvatarImage src={senderAvatar} alt={senderName} />
 								<AvatarFallback className='bg-brand/10 text-xs font-semibold text-brand'>
 									{senderName?.slice(0, 2).toUpperCase() || 'U'}
@@ -331,7 +331,7 @@ export const ChatMessage = ({
 									<div className='flex items-start gap-3 p-3.5'>
 										{/* Thumbnail */}
 										{message.sharedPostImage && (
-											<div className='relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
+											<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
 												<Image
 													src={message.sharedPostImage}
 													alt='Shared post'
@@ -354,14 +354,14 @@ export const ChatMessage = ({
 												>
 													<Share2
 														className={cn(
-															'h-3 w-3',
+															'size-3',
 															message.isOwn ? 'text-brand' : 'text-text-muted',
 														)}
 													/>
 												</div>
 												<span
 													className={cn(
-														'text-[10px] font-bold uppercase tracking-wider',
+														'text-2xs font-bold uppercase tracking-wider',
 														message.isOwn ? 'text-brand' : 'text-text-muted',
 													)}
 												>
@@ -391,7 +391,7 @@ export const ChatMessage = ({
 														message.isOwn ? 'text-brand' : 'text-text-muted',
 													)}
 												>
-													Tap to view →
+													Tap to view â†’
 												</motion.div>
 											</div>
 										</div>
@@ -411,7 +411,7 @@ export const ChatMessage = ({
 										: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
 								)}
 							>
-								<p className='text-[15px] leading-relaxed whitespace-pre-wrap break-words'>
+								<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>
 									{message.content}
 								</p>
 							</motion.div>
@@ -515,7 +515,7 @@ export const TypingIndicator = ({
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, y: 10 }}
 		>
-			<Avatar className='h-9 w-9 flex-shrink-0 ring-2 ring-bg-card'>
+			<Avatar className='size-9 flex-shrink-0 ring-2 ring-bg-card'>
 				<AvatarImage src={senderAvatar} alt={senderName} />
 				<AvatarFallback className='bg-brand/10 text-xs font-semibold text-brand'>
 					{senderName?.slice(0, 2).toUpperCase() || 'U'}
@@ -537,7 +537,7 @@ export const TypingIndicator = ({
 					{[0, 1, 2].map(i => (
 						<motion.span
 							key={i}
-							className='h-2 w-2 rounded-full bg-brand'
+							className='size-2 rounded-full bg-brand'
 							animate={{
 								y: [0, -6, 0],
 								opacity: [0.5, 1, 0.5],

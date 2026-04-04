@@ -167,8 +167,8 @@ const transformToSocialNotification = (
 const NotificationBadge = ({ type }: { type: NotificationType }) => {
 	const iconMap = {
 		like: { icon: Heart, bg: 'bg-destructive' },
-		comment: { icon: MessageCircle, bg: 'bg-primary' },
-		follow: { icon: UserPlus, bg: 'bg-accent' },
+		comment: { icon: MessageCircle, bg: 'bg-brand' },
+		follow: { icon: UserPlus, bg: 'bg-accent-purple' },
 		cook: { icon: ChefHat, bg: 'bg-gold' },
 		achievement: { icon: ChefHat, bg: 'bg-gradient-gold' },
 	}
@@ -301,14 +301,14 @@ export const NotificationsPopup = () => {
 					<div className='flex items-center gap-2'>
 						<h3 className='text-lg font-bold text-foreground'>Notifications</h3>
 						{unreadCount > 0 && (
-							<span className='rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white'>
+							<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white'>
 								{unreadCount}
 							</span>
 						)}
 					</div>
 					<button
 						onClick={handleMarkAllRead}
-						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary/10'
+						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 					>
 						<CheckCheck className='size-4' />
 						Mark all read
@@ -364,7 +364,7 @@ export const NotificationsPopup = () => {
 										.catch(() => setFetchError(true))
 										.finally(() => setIsLoading(false))
 								}}
-								className='text-sm font-semibold text-primary hover:text-primary/80'
+								className='text-sm font-semibold text-brand hover:text-brand/80'
 							>
 								Try again
 							</button>
@@ -485,7 +485,7 @@ export const NotificationsPopup = () => {
 										onClick={handleClick}
 										className={cn(
 											'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-muted/50',
-											!notif.read && 'bg-primary/5',
+											!notif.read && 'bg-brand/5',
 										)}
 									>
 										{/* Avatar with badge */}
@@ -523,7 +523,7 @@ export const NotificationsPopup = () => {
 												{notif.target && (
 													<>
 														{' '}
-														<span className='font-medium text-primary'>
+														<span className='font-medium text-brand'>
 															&ldquo;{notif.target}&rdquo;
 														</span>
 													</>
@@ -535,13 +535,13 @@ export const NotificationsPopup = () => {
 										</div>
 										{/* Unread dot */}
 										{!notif.read && (
-											<div className='absolute right-4 top-5 size-2 rounded-full bg-primary shadow-glow' />
+											<div className='absolute right-4 top-5 size-2 rounded-full bg-brand shadow-glow' />
 										)}{' '}
 										{/* Follow back button - functional */}
 										{notif.type === 'follow' && !notif.read && (
 											<button
 												onClick={handleFollowBack}
-												className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-primary/90'
+												className='flex-shrink-0 rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-brand/90'
 											>
 												Follow Back
 											</button>
@@ -557,7 +557,7 @@ export const NotificationsPopup = () => {
 				<div className='border-t border-border p-3 text-center'>
 					<Link
 						href='/notifications'
-						className='text-sm font-semibold text-primary transition-colors hover:text-primary/80'
+						className='text-sm font-semibold text-brand transition-colors hover:text-brand/80'
 					>
 						View All Notifications
 					</Link>

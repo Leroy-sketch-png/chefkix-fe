@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -163,7 +163,7 @@ const RewardRowComponent = ({
 		)}
 	>
 		{/* Icon */}
-		<div className='flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-panel-bg'>
+		<div className='flex size-11 shrink-0 items-center justify-center rounded-xl bg-bg-card'>
 			{reward.icon}
 		</div>
 
@@ -202,7 +202,7 @@ const AchievementBanner = ({ achievement }: AchievementBannerProps) => (
 		className='mb-5 flex items-center gap-3.5 rounded-2xl border border-accent-purple/30 bg-gradient-to-r from-accent-purple/10 to-accent-purple/5 p-3.5'
 	>
 		{/* Badge icon */}
-		<div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
+		<div className='flex size-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
 			{achievement.iconEmoji}
 		</div>
 
@@ -308,7 +308,7 @@ export const ImmediateRewards = ({
 			description: 'Earned for completing',
 			xpAmount: immediateXp,
 			isLocked: false,
-			icon: <Zap className='h-6 w-6 text-success' />,
+			icon: <Zap className='size-6 text-success' />,
 		},
 	]
 
@@ -319,7 +319,7 @@ export const ImmediateRewards = ({
 			description: 'Cooking streak bonus',
 			xpAmount: streakBonus,
 			isLocked: false,
-			icon: <Flame className='h-6 w-6 text-warning' />,
+			icon: <Flame className='size-6 text-warning' />,
 		})
 	}
 
@@ -330,7 +330,7 @@ export const ImmediateRewards = ({
 		description: 'Share your creation to unlock',
 		xpAmount: pendingXp,
 		isLocked: true,
-		icon: <Lock className='h-5 w-5 text-text-muted' />,
+		icon: <Lock className='size-5 text-text-muted' />,
 	})
 
 	if (creatorTipXp > 0 && creatorHandle) {
@@ -340,7 +340,7 @@ export const ImmediateRewards = ({
 			description: `4% to @${creatorHandle}`,
 			xpAmount: creatorTipXp,
 			isLocked: true,
-			icon: <Gift className='h-5 w-5 text-text-muted' />,
+			icon: <Gift className='size-5 text-text-muted' />,
 		})
 	}
 
@@ -364,15 +364,15 @@ export const ImmediateRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative w-full max-w-md overflow-hidden rounded-2xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-modal max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
+							className='relative w-full max-w-md overflow-hidden rounded-2xl bg-bg-card p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-modal max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close button */}
 							<button
 								onClick={onClose}
 								aria-label='Close'
-								className='absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+								className='absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
-								<X className='h-5 w-5' />
+								<X className='size-5' />
 							</button>
 
 							{/* Header */}
@@ -382,9 +382,9 @@ export const ImmediateRewards = ({
 									transition={{ duration: 0.6, repeat: Infinity }}
 									className='mb-4 inline-block text-6xl max-md:text-5xl'
 								>
-									👨‍🍳
+									ðŸ‘¨â€ðŸ³
 								</motion.div>
-								<h1 className='mb-2 bg-gradient-to-r from-success to-success/80 bg-clip-text text-3xl font-extrabold text-transparent max-md:text-2xl'>
+								<h1 className='mb-2 bg-gradient-to-r from-success to-success/80 bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
 									Nice Work, Chef!
 								</h1>
 								<p className='text-text-muted'>
@@ -414,7 +414,7 @@ export const ImmediateRewards = ({
 										transition={{ delay: 0.4, ...TRANSITION_SPRING }}
 										className='mx-2 mb-1 rounded-xl bg-bg px-3 py-2'
 									>
-										<span className='mb-1.5 block text-[10px] font-medium uppercase tracking-wider text-text-muted'>
+										<span className='mb-1.5 block text-2xs font-medium uppercase tracking-wider text-text-muted'>
 											Recipe XP Breakdown
 										</span>
 										<div className='space-y-1'>
@@ -517,7 +517,7 @@ export const ImmediateRewards = ({
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
 										Earned Now
 									</span>
-									<span className='block text-2xl font-extrabold text-success'>
+									<span className='block text-2xl font-display font-extrabold text-success'>
 										{earnedNow} XP
 									</span>
 								</div>
@@ -525,7 +525,7 @@ export const ImmediateRewards = ({
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
 										Pending
 									</span>
-									<span className='block text-2xl font-extrabold text-text-muted'>
+									<span className='block text-2xl font-display font-extrabold text-text-muted'>
 										{pendingTotal} XP
 									</span>
 								</div>
@@ -533,7 +533,7 @@ export const ImmediateRewards = ({
 
 							{/* Deadline warning */}
 							<div className='mb-4 flex items-center justify-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning'>
-								<Clock className='h-4 w-4' />
+								<Clock className='size-4' />
 								<span>
 									Post within{' '}
 									<strong>
@@ -554,7 +554,7 @@ export const ImmediateRewards = ({
 							<div className='mb-4'>
 								<div className='mb-2 flex items-center justify-between'>
 									<span className='text-sm font-medium text-text'>
-										📸 Capture your dish
+										ðŸ“¸ Capture your dish
 									</span>
 									<span className='text-xs text-text-muted'>
 										{capturedPhotos.length}/5 photos
@@ -569,7 +569,7 @@ export const ImmediateRewards = ({
 											key={index}
 											initial={{ opacity: 0, scale: 0.8 }}
 											animate={{ opacity: 1, scale: 1 }}
-											className='group relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl'
+											className='group relative size-20 flex-shrink-0 overflow-hidden rounded-xl'
 										>
 											<Image
 												src={url}
@@ -581,16 +581,16 @@ export const ImmediateRewards = ({
 												onClick={() => removePhoto(index)}
 												className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'
 											>
-												<Trash2 className='h-5 w-5 text-white' />
+												<Trash2 className='size-5 text-white' />
 											</button>
 										</motion.div>
 									))}
 
 									{/* Add photo button */}
 									{capturedPhotos.length < 5 && (
-										<label className='flex h-20 w-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-primary hover:bg-bg-hover'>
+										<label className='flex size-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-brand hover:bg-bg-hover'>
 											<div className='flex flex-col items-center gap-1'>
-												<Camera className='h-5 w-5 text-text-muted' />
+												<Camera className='size-5 text-text-muted' />
 												<span className='text-xs text-text-muted'>Add</span>
 											</div>
 											<input
@@ -608,7 +608,7 @@ export const ImmediateRewards = ({
 
 								{capturedPhotos.length === 0 && (
 									<p className='mt-2 text-xs text-text-muted'>
-										Snap a photo now! 2+ photos = 100% bonus XP 📷
+										Snap a photo now! 2+ photos = 100% bonus XP ðŸ“·
 									</p>
 								)}
 								{capturedPhotos.length === 1 && (
@@ -618,7 +618,7 @@ export const ImmediateRewards = ({
 								)}
 								{capturedPhotos.length >= 2 && (
 									<p className='mt-2 text-xs text-success'>
-										✓ Full photo bonus unlocked!
+										âœ“ Full photo bonus unlocked!
 									</p>
 								)}
 							</div>
@@ -659,9 +659,9 @@ export const ImmediateRewards = ({
 								>
 									<div className='flex items-center gap-2.5'>
 										{isNavigating ? (
-											<Loader2 className='h-5 w-5 shrink-0 animate-spin' />
+											<Loader2 className='size-5 shrink-0 animate-spin' />
 										) : (
-											<Camera className='h-5 w-5 shrink-0' />
+											<Camera className='size-5 shrink-0' />
 										)}
 										<span className='text-lg font-bold'>
 											{isNavigating
@@ -714,10 +714,10 @@ export const RewardsToast = ({
 		animate={{ opacity: 1, y: 0 }}
 		exit={{ opacity: 0, y: 20 }}
 		transition={TRANSITION_SPRING}
-		className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-panel-bg p-1 shadow-xl md:bottom-6'
+		className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-bg-card p-1 shadow-xl md:bottom-6'
 	>
 		<div className='flex items-center gap-3 px-4 py-3'>
-			<span className='text-xl'>✅</span>
+			<span className='text-xl'>âœ…</span>
 			<span className='text-sm font-semibold'>
 				+{Math.round(earnedXp)} XP earned! Post to unlock +
 				{Math.round(pendingXp)} more

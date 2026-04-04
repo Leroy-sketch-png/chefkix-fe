@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -105,7 +105,7 @@ export const FollowSuggestionCard = ({
 						</AvatarFallback>
 					</Avatar>
 					<div>
-						<h3 className='font-semibold text-text-primary transition-colors group-hover:text-primary'>
+						<h3 className='font-semibold text-text-primary transition-colors group-hover:text-brand'>
 							{displayName}
 						</h3>
 						<p className='text-sm text-text-secondary'>@{profile.username}</p>

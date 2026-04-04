@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -121,7 +121,7 @@ export function SubstitutionButton({
 											key={r}
 											onClick={() => handleFetch(r)}
 											disabled={loading}
-											className={`rounded-md px-2 py-1 text-[11px] font-medium capitalize transition-colors disabled:opacity-50 ${
+											className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors disabled:opacity-50 ${
 												reason === r
 													? 'bg-brand/15 text-brand'
 													: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
@@ -153,7 +153,7 @@ export function SubstitutionButton({
 														{sub.name}
 													</span>
 													<span
-														className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+														className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
 															sub.confidenceScore >= 0.8
 																? 'bg-success/15 text-success'
 																: sub.confidenceScore >= 0.5
@@ -164,11 +164,11 @@ export function SubstitutionButton({
 														{Math.round(sub.confidenceScore * 100)}%
 													</span>
 												</div>
-												<p className='mt-0.5 text-[11px] text-brand/80'>
+												<p className='mt-0.5 text-xs text-brand/80'>
 													{sub.ratio}
 												</p>
 												{sub.notes && (
-													<p className='mt-0.5 text-[11px] text-text-muted'>
+													<p className='mt-0.5 text-xs text-text-muted'>
 														{sub.notes}
 													</p>
 												)}

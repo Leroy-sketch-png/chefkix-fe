@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -195,7 +195,7 @@ const LevelRing = ({
 				</svg>
 				<span
 					className={cn(
-						'absolute inset-0 flex items-center justify-center font-extrabold text-white',
+						'absolute inset-0 flex items-center justify-center font-display font-extrabold text-white',
 						size === 'default' ? 'text-lg' : 'text-base',
 					)}
 				>
@@ -227,9 +227,9 @@ const StreakBadge = ({ count }: { count: number }) => {
 		<motion.div
 			initial={{ scale: 0.8, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
-			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-streak px-4 py-2.5 font-bold text-white shadow-lg shadow-streak/40'
+			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-streak px-4 py-2.5 font-display font-bold text-white shadow-lg shadow-streak/40'
 		>
-			<span className='text-xl'>🔥</span>
+			<span className='text-xl'>ðŸ”¥</span>
 			<span className='text-xl'>{count}</span>
 			<span className='text-xs opacity-90'>day streak</span>
 		</motion.div>
@@ -270,14 +270,14 @@ const StatsRow = ({
 					href='/profile/followers?tab=followers'
 					className='flex flex-col transition-opacity hover:opacity-70'
 				>
-					<span className='text-xl font-extrabold'>
+					<span className='text-xl font-display font-extrabold'>
 						{formatNumber(social.followers)}
 					</span>
 					<span className='text-xs text-text-muted'>Followers</span>
 				</Link>
 			) : (
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold'>
+					<span className='text-xl font-display font-extrabold'>
 						{formatNumber(social.followers)}
 					</span>
 					<span className='text-xs text-text-muted'>Followers</span>
@@ -288,14 +288,14 @@ const StatsRow = ({
 					href='/profile/followers?tab=following'
 					className='flex flex-col transition-opacity hover:opacity-70'
 				>
-					<span className='text-xl font-extrabold'>
+					<span className='text-xl font-display font-extrabold'>
 						{formatNumber(social.following)}
 					</span>
 					<span className='text-xs text-text-muted'>Following</span>
 				</Link>
 			) : (
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold'>
+					<span className='text-xl font-display font-extrabold'>
 						{formatNumber(social.following)}
 					</span>
 					<span className='text-xs text-text-muted'>Following</span>
@@ -309,7 +309,7 @@ const StatsRow = ({
 		{/* Cooking Stats */}
 		<div className='flex gap-8'>
 			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold text-success'>
+				<span className='text-xl font-display font-extrabold text-success'>
 					{formatNumber(cooking.recipesCooked)}
 				</span>
 				<span className='text-xs font-semibold text-success'>
@@ -319,7 +319,7 @@ const StatsRow = ({
 				</span>
 			</div>
 			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold'>
+				<span className='text-xl font-display font-extrabold'>
 					{formatNumber(cooking.recipesCreated)}
 				</span>
 				<span className='text-xs text-text-muted'>
@@ -330,7 +330,7 @@ const StatsRow = ({
 			</div>
 			{cooking.mastered !== undefined && (
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold'>
+					<span className='text-xl font-display font-extrabold'>
 						{formatNumber(cooking.mastered)}
 					</span>
 					<span className='text-xs text-text-muted'>Mastered</span>
@@ -366,7 +366,7 @@ const XPProgressBar = ({
 			</div>
 		</div>
 		<div className='flex justify-between text-sm'>
-			<span className='font-semibold text-success'>
+			<span className='font-display font-semibold text-success'>
 				{formatNumber(currentXP)} XP
 			</span>
 			<span className='text-text-muted'>
@@ -399,7 +399,7 @@ const BadgesShowcase = ({
 						href='/profile/badges'
 						className='text-sm font-semibold text-brand hover:underline'
 					>
-						View all {totalBadges} →
+						View all {totalBadges} â†’
 					</Link>
 				) : (
 					<span className='text-sm text-text-muted'>
@@ -414,7 +414,7 @@ const BadgesShowcase = ({
 					href='/profile/badges'
 					className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-4 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
 				>
-					<span className='text-lg'>🏅</span>
+					<span className='text-lg'>ðŸ…</span>
 					Cook a recipe to earn your first badge!
 				</Link>
 			) : badges.length === 0 ? (
@@ -528,8 +528,10 @@ const OwnProfileHeader = ({
 }: OwnProfileProps) => {
 	// Platform detection for keyboard shortcuts
 	const isMac =
-		typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
-	const modKey = isMac ? '⌘' : 'Ctrl'
+		typeof navigator !== 'undefined' &&
+		((navigator as any).userAgentData?.platform === 'macOS' ||
+			/Mac/i.test(navigator.userAgent))
+	const modKey = isMac ? 'âŒ˜' : 'Ctrl'
 
 	// Keyboard shortcut: Ctrl/Cmd+E to edit profile
 	useEffect(() => {
@@ -561,7 +563,7 @@ const OwnProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-panel-bg shadow-lg'>
+		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-lg'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -592,14 +594,14 @@ const OwnProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='size-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
 
 				{/* Info */}
 				<div className='flex-1 pt-14'>
-					<h1 className='text-2xl font-extrabold'>{user.displayName}</h1>
+					<h1 className='text-2xl font-display font-extrabold'>{user.displayName}</h1>
 					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
 					{user.bio && (
 						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
@@ -617,7 +619,7 @@ const OwnProfileHeader = ({
 					>
 						<Settings className='size-4' />
 						Edit Profile
-						<kbd className='ml-1.5 hidden rounded bg-bg px-1.5 py-0.5 font-mono text-[10px] text-text-muted group-hover:inline'>
+						<kbd className='ml-1.5 hidden rounded bg-bg px-1.5 py-0.5 font-mono text-2xs text-text-muted group-hover:inline'>
 							{modKey}+E
 						</kbd>
 					</motion.button>
@@ -735,7 +737,7 @@ const OtherUserProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-panel-bg shadow-lg'>
+		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-lg'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -766,7 +768,7 @@ const OtherUserProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='size-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
@@ -774,7 +776,7 @@ const OtherUserProfileHeader = ({
 				{/* Info */}
 				<div className='flex-1 pt-14'>
 					<div className='flex items-center gap-2'>
-						<h1 className='text-2xl font-extrabold'>{user.displayName}</h1>
+						<h1 className='text-2xl font-display font-extrabold'>{user.displayName}</h1>
 						{user.isVerified && <VerifiedBadge className='text-info' />}
 					</div>
 					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
@@ -837,7 +839,7 @@ const OtherUserProfileHeader = ({
 						)}
 						title={isBlocked ? 'Unblock user' : 'Block user'}
 					>
-						<ShieldBan className='h-4 w-4' />
+						<ShieldBan className='size-4' />
 					</motion.button>
 				</div>
 			</div>
@@ -890,7 +892,7 @@ const MiniProfileHeader = ({
 	const config = titleConfig[title]
 
 	return (
-		<div className='flex items-center gap-3 rounded-xl border border-border bg-panel-bg p-3'>
+		<div className='flex items-center gap-3 rounded-xl border border-border bg-bg-card p-3'>
 			{/* Avatar with Level */}
 			<div className='relative flex-shrink-0'>
 				<Image
@@ -898,9 +900,9 @@ const MiniProfileHeader = ({
 					alt={user.displayName}
 					width={48}
 					height={48}
-					className='h-12 w-12 rounded-full object-cover'
+					className='size-12 rounded-full object-cover'
 				/>
-				<span className='absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-panel-bg bg-success text-2xs font-extrabold text-white'>
+				<span className='absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border-2 border-bg-card bg-success text-2xs font-display font-extrabold text-white'>
 					{level}
 				</span>
 			</div>
@@ -923,8 +925,8 @@ const MiniProfileHeader = ({
 					<span>{formatNumber(user.stats.followers)} followers</span>
 					{streakCount !== undefined && streakCount > 0 && (
 						<>
-							<span className='text-border'>•</span>
-							<span>🔥 {streakCount} day streak</span>
+							<span className='text-border'>â€¢</span>
+							<span>ðŸ”¥ {streakCount} day streak</span>
 						</>
 					)}
 				</div>

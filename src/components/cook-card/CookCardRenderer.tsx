@@ -431,7 +431,7 @@ export default function CookCardRenderer({
 			{/* Preview Card */}
 			<div className='relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'>
 				{/* Coral header */}
-				<div className='relative h-32 bg-gradient-to-br from-brand to-orange-400'>
+				<div className='relative h-32 bg-gradient-to-br from-brand to-streak'>
 					<div
 						className='absolute bottom-0 left-0 right-0 h-8'
 						style={{
@@ -465,7 +465,7 @@ export default function CookCardRenderer({
 
 				{/* Content */}
 				<div className='px-5 pb-5 pt-3 text-center'>
-					<h3 className='text-lg font-bold text-text'>{data.recipeTitle}</h3>
+					<h3 className='text-lg font-serif font-bold text-text'>{data.recipeTitle}</h3>
 					<p className='mt-1 text-sm text-text-secondary'>
 						by {data.displayName || 'Chef'}
 					</p>

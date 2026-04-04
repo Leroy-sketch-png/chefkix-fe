@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+﻿import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 interface PostCardSkeletonProps {
@@ -39,7 +39,7 @@ export const PostCardSkeleton = ({
 					<div className='mb-4 flex items-center justify-between'>
 						<div className='flex items-center gap-3'>
 							{/* Avatar */}
-							<Skeleton className='h-11 w-11 rounded-full' />
+							<Skeleton className='size-11 rounded-full' />
 
 							{/* Name and timestamp */}
 							<div className='space-y-2'>
@@ -49,7 +49,7 @@ export const PostCardSkeleton = ({
 						</div>
 
 						{/* Menu button */}
-						<Skeleton className='h-9 w-9 rounded-sm' />
+						<Skeleton className='size-9 rounded-sm' />
 					</div>
 
 					{/* Content text - 3 lines */}

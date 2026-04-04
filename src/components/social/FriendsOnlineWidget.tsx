@@ -70,8 +70,7 @@ export function FriendsOnlineWidget() {
 					Friends Online
 				</div>
 				<p className='text-xs leading-relaxed text-text-muted'>
-					None of your friends are online right now. Follow more chefs to see
-					who&apos;s cooking!
+					See who&apos;s cooking live — follow more chefs to fill this up!
 				</p>
 			</div>
 		)
@@ -104,7 +103,7 @@ export function FriendsOnlineWidget() {
 							transition={TRANSITION_SPRING}
 						>
 							<Link
-								href={`/profile/${friend.userId}`}
+								href={`/${friend.userId}`}
 								className='flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
 								<div className='relative'>
@@ -124,7 +123,7 @@ export function FriendsOnlineWidget() {
 									<p className='truncate text-xs font-medium text-text-primary'>
 										{friend.displayName || friend.username}
 									</p>
-									<p className='flex items-center gap-1 truncate text-[10px] text-brand'>
+									<p className='flex items-center gap-1 truncate text-2xs text-brand'>
 										<ChefHat className='size-2.5' />
 										{friend.recipeTitle
 											? `Cooking ${friend.recipeTitle}`
@@ -145,7 +144,7 @@ export function FriendsOnlineWidget() {
 							transition={TRANSITION_SPRING}
 						>
 							<Link
-								href={`/profile/${friend.userId}`}
+								href={`/${friend.userId}`}
 								className='flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
 								<div className='relative'>

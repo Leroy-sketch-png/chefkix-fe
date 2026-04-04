@@ -341,7 +341,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							disabled={disabled}
 							rows={rows}
 							className={cn(
-								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30',
+								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand/30',
 								className,
 							)}
 						/>
@@ -356,7 +356,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							placeholder={placeholder}
 							disabled={disabled}
 							className={cn(
-								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30',
+								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand/30',
 								className,
 							)}
 						/>
@@ -408,7 +408,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 													className={cn(
 														'flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors',
 														index === selectedIndex
-															? 'bg-primary/10 text-primary'
+															? 'bg-brand/10 text-brand'
 															: 'text-text-primary hover:bg-bg-hover',
 													)}
 												>

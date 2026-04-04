@@ -1,14 +1,14 @@
-'use client'
+﻿'use client'
 
 /**
- * RecipeCreateAiFlow — The recipe creation orchestrator.
+ * RecipeCreateAiFlow â€” The recipe creation orchestrator.
  *
- * This component manages the multi-step creation flow (input → parsing → preview → xp-preview)
+ * This component manages the multi-step creation flow (input â†’ parsing â†’ preview â†’ xp-preview)
  * and delegates rendering to extracted sub-components. All pure helpers live in recipeCreateUtils.
  *
  * Architecture:
- *   Types         → @/lib/types/recipeCreate
- *   Pure helpers  → @/lib/recipeCreateUtils
+ *   Types         â†’ @/lib/types/recipeCreate
+ *   Pure helpers  â†’ @/lib/recipeCreateUtils
  *   Sub-components: MethodCard, PasteArea, RecipeParsingOverlay, IngredientItem, StepItem, XpPreviewModal
  */
 
@@ -47,11 +47,11 @@ import {
 import { toast } from 'sonner'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
 
-// ── Hooks ───────────────────────────────────────────────────────────
+// â”€â”€ Hooks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { useAutoSave, type SaveStatus } from '@/hooks/useAutoSave'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 
-// ── Services & stores ───────────────────────────────────────────────
+// â”€â”€ Services & stores â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { processRecipe, calculateMetas, validateRecipe } from '@/services/ai'
 import {
 	createDraft,
@@ -65,7 +65,7 @@ import { useUiStore } from '@/store/uiStore'
 import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
 import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
 
-// ── Types ───────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { Recipe } from '@/lib/types/recipe'
 import type { Difficulty } from '@/lib/types/gamification'
 import { resolveBadge } from '@/lib/data/badgeRegistry'
@@ -78,7 +78,7 @@ import type {
 	RecipeStep,
 } from '@/lib/types/recipeCreate'
 
-// ── Extracted utilities ─────────────────────────────────────────────
+// â”€â”€ Extracted utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import {
 	modKey,
 	RECALCULATION_THRESHOLD,
@@ -88,7 +88,7 @@ import {
 	transformProcessedRecipe,
 } from '@/lib/recipeCreateUtils'
 
-// ── Extracted sub-components ────────────────────────────────────────
+// â”€â”€ Extracted sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
 import { MethodCard } from './MethodCard'
 import { PasteArea } from './PasteArea'
@@ -108,9 +108,9 @@ interface RecipeCreateAiFlowProps {
 	onBack?: () => void
 	onPublishSuccess?: (recipeId: string) => void
 	className?: string
-	/** Optional initial draft to load (from draft listing) — server-saved AI-parsed draft */
+	/** Optional initial draft to load (from draft listing) â€” server-saved AI-parsed draft */
 	initialDraft?: Recipe
-	/** Optional initial manual draft to load (from localStorage) — manually entered draft */
+	/** Optional initial manual draft to load (from localStorage) â€” manually entered draft */
 	initialManualDraft?: RecipeFormData
 }
 
@@ -173,7 +173,7 @@ function AutoSaveIndicator({
 					className='flex items-center gap-1.5 text-xs text-destructive'
 				>
 					<AlertTriangle className='size-3' />
-					Save failed — retrying...
+					Save failed â€” retrying...
 				</motion.span>
 			)}
 			{status === 'idle' && lastSavedAt && (
@@ -232,7 +232,7 @@ export const RecipeCreateAiFlow = ({
 	const coverImageRef = React.useRef<HTMLInputElement>(null)
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
 
-	// ── Auto-save ────────────────────────────────────────────────────
+	// â”€â”€ Auto-save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const autoSavePayload = useMemo(() => {
 		if (!recipe) return null
 		return {
@@ -273,7 +273,7 @@ export const RecipeCreateAiFlow = ({
 		isAutoSaveEnabled,
 	)
 
-	// ── Derived state ───────────────────────────────────────────────
+	// â”€â”€ Derived state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const changePercent = calculateRecipeChangePercent(originalRecipe, recipe)
 	const needsRecalculation =
 		forceRecalculate || changePercent >= RECALCULATION_THRESHOLD
@@ -284,7 +284,7 @@ export const RecipeCreateAiFlow = ({
 		return (recipe.steps || []).some(step => isLocalPreviewUrl(step.imageUrl))
 	}, [recipe])
 
-	// ── Warn before unload if recipe creation is in progress ────────
+	// â”€â”€ Warn before unload if recipe creation is in progress â”€â”€â”€â”€â”€â”€â”€â”€
 	const hasUnsavedWork =
 		(rawText.trim().length > 0 || recipe !== null) && !isPublishing
 	useBeforeUnloadWarning(
@@ -292,7 +292,7 @@ export const RecipeCreateAiFlow = ({
 		'You have an unfinished recipe. Are you sure you want to leave?',
 	)
 
-	// ── Load initial draft ──────────────────────────────────────────
+	// â”€â”€ Load initial draft â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	useEffect(() => {
 		if (initialDraft) {
 			const parsedRecipe: ParsedRecipe = {
@@ -321,7 +321,7 @@ export const RecipeCreateAiFlow = ({
 				detectedBadges: (initialDraft.rewardBadges || []).map(b => {
 					const resolved = resolveBadge(b)
 					return {
-						emoji: resolved?.icon || '🏆',
+						emoji: resolved?.icon || 'ðŸ†',
 						name: b,
 					}
 				}),
@@ -351,7 +351,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [initialDraft])
 
-	// ── Clipboard paste ─────────────────────────────────────────────
+	// â”€â”€ Clipboard paste â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handlePaste = useCallback(async () => {
 		try {
 			const text = await navigator.clipboard.readText()
@@ -361,7 +361,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [])
 
-	// ── Cover image upload ──────────────────────────────────────────
+	// â”€â”€ Cover image upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handleCoverImageUpload = useCallback(
 		async (e: React.ChangeEvent<HTMLInputElement>) => {
 			const file = e.target.files?.[0]
@@ -415,7 +415,7 @@ export const RecipeCreateAiFlow = ({
 		[recipe],
 	)
 
-	// ── Build save payload (shared between save-draft and publish) ──
+	// â”€â”€ Build save payload (shared between save-draft and publish) â”€â”€
 	const buildSavePayload = useCallback(
 		(targetRecipe: ParsedRecipe) => ({
 			title: targetRecipe.title,
@@ -463,7 +463,7 @@ export const RecipeCreateAiFlow = ({
 		[xpBreakdown],
 	)
 
-	// ── Save draft ──────────────────────────────────────────────────
+	// â”€â”€ Save draft â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handleSaveDraft = useCallback(
 		async (targetRecipe?: ParsedRecipe) => {
 			const recipeToSave = targetRecipe || recipe
@@ -572,7 +572,7 @@ export const RecipeCreateAiFlow = ({
 		[recipe, draftId, buildSavePayload, hasUnpersistedMedia],
 	)
 
-	// ── AI parse ────────────────────────────────────────────────────
+	// â”€â”€ AI parse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handleParse = useCallback(async () => {
 		diag.action('recipe', 'AI_PARSE clicked', { textLength: rawText.length })
 
@@ -655,7 +655,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [rawText])
 
-	// ── XP preview ──────────────────────────────────────────────────
+	// â”€â”€ XP preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handlePreviewXp = useCallback(async () => {
 		diag.action('recipe', 'PREVIEW_XP clicked', {
 			hasRecipe: !!recipe,
@@ -689,7 +689,7 @@ export const RecipeCreateAiFlow = ({
 			return
 		}
 
-		// User edited or manual entry — recalculate via AI
+		// User edited or manual entry â€” recalculate via AI
 		setIsCalculatingXp(true)
 
 		const metasRequest = {
@@ -735,7 +735,7 @@ export const RecipeCreateAiFlow = ({
 						return {
 							...currentRecipe,
 							detectedBadges: data.badges.map(badge => ({
-								emoji: '🏆',
+								emoji: 'ðŸ†',
 								name: badge,
 							})),
 							xpReward: data.xpReward,
@@ -794,7 +794,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [recipe, hasEdited, method, isCalculatingXp])
 
-	// ── Publish flow: Save Draft → Validate → Publish ───────────────
+	// â”€â”€ Publish flow: Save Draft â†’ Validate â†’ Publish â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const handlePublish = useCallback(
 		async (recipeToPublish?: ParsedRecipe) => {
 			const targetRecipe = recipeToPublish || recipe
@@ -865,12 +865,12 @@ export const RecipeCreateAiFlow = ({
 			)
 			diag.inspectLocalStorage('recipe', 'recipe-draft')
 
-			// ── STEP 0: Pre-publish FE validation ───────────────────
+			// â”€â”€ STEP 0: Pre-publish FE validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 			const validationErrors = validateRecipeForPublish(finalRecipe)
 			if (validationErrors.length > 0) {
 				diag.warn('recipe', 'PUBLISH validation failed', validationErrors)
 				const primaryError = validationErrors[0]
-				const allHints = validationErrors.map(e => `• ${e.hint}`).join('\n')
+				const allHints = validationErrors.map(e => `â€¢ ${e.hint}`).join('\n')
 
 				toast.error(primaryError.message, {
 					description:
@@ -1023,19 +1023,25 @@ export const RecipeCreateAiFlow = ({
 				)
 
 				if (publishResponse.success) {
-					diag.action('recipe', 'PUBLISH SUCCESS! 🎉', {
+					const publishData = publishResponse.data
+					diag.action('recipe', 'PUBLISH SUCCESS! ðŸŽ‰', {
 						recipeId: currentDraftId,
 						title: finalRecipe.title,
 						xpReward: finalRecipe.xpReward,
+						qualityScore: publishData?.qualityScore,
+						qualityTier: publishData?.qualityTier,
 					})
 
 					triggerRecipeCompleteConfetti()
 
-					toast.success('Recipe published! 🎉', {
-						description: `"${finalRecipe.title}" is now live! You earned ${finalRecipe.xpReward || 0} XP`,
+					const qualityMsg = publishData?.qualityTier
+						? ` Quality: ${publishData.qualityTier}${publishData.qualityScore ? ` (${publishData.qualityScore}/100)` : ''}`
+						: ''
+					toast.success('Recipe published! ðŸŽ‰', {
+						description: `"${finalRecipe.title}" is now live! You earned ${finalRecipe.xpReward || 0} XP.${qualityMsg}`,
 					})
 
-					// NOTE: Do NOT setIsPublishing(false) — leave button disabled until navigation
+					// NOTE: Do NOT setIsPublishing(false) â€” leave button disabled until navigation
 					diag.action('recipe', 'Calling onPublishSuccess callback', {
 						recipeId: currentDraftId,
 					})
@@ -1075,7 +1081,7 @@ export const RecipeCreateAiFlow = ({
 		],
 	)
 
-	// ── Keyboard shortcuts ──────────────────────────────────────────
+	// â”€â”€ Keyboard shortcuts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -1122,7 +1128,7 @@ export const RecipeCreateAiFlow = ({
 		draftId,
 	])
 
-	// ── Ingredient CRUD ─────────────────────────────────────────────
+	// â”€â”€ Ingredient CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const removeIngredient = (id: string) => {
 		if (!recipe) return
 		setRecipe({
@@ -1153,7 +1159,7 @@ export const RecipeCreateAiFlow = ({
 		})
 	}
 
-	// ── Step CRUD ───────────────────────────────────────────────────
+	// â”€â”€ Step CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const removeStep = (id: string) => {
 		if (!recipe) return
 		setRecipe({
@@ -1181,7 +1187,7 @@ export const RecipeCreateAiFlow = ({
 		})
 	}
 
-	// ── JSX ─────────────────────────────────────────────────────────
+	// â”€â”€ JSX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	return (
 		<div className={cn('mx-auto max-w-3xl space-y-5 p-5', className)}>
 			{/* Header */}
@@ -1189,12 +1195,12 @@ export const RecipeCreateAiFlow = ({
 				{onBack && (
 					<button
 						onClick={onBack}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-panel-bg text-text'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text'
 					>
 						<ArrowLeft className='size-5' />
 					</button>
 				)}
-				<h1 className='flex-1 text-2xl font-extrabold text-text'>
+				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
 					{step === 'preview' ? 'Review Recipe' : 'Create Recipe'}
 				</h1>
 				{step === 'preview' && (
@@ -1204,11 +1210,11 @@ export const RecipeCreateAiFlow = ({
 						<button
 							onClick={() => handleSaveDraft()}
 							disabled={isSaving || saveStatus === 'saving'}
-							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:opacity-50'
+							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:opacity-50'
 						>
 							{isSaving || saveStatus === 'saving' ? 'Saving...' : 'Save Draft'}
 							{!isSaving && saveStatus !== 'saving' && (
-								<kbd className='hidden rounded bg-bg-elevated px-1.5 py-0.5 text-[10px] font-normal md:inline-block'>
+								<kbd className='hidden rounded bg-bg-elevated px-1.5 py-0.5 text-2xs font-normal md:inline-block'>
 									{modKey}+S
 								</kbd>
 							)}
@@ -1217,9 +1223,9 @@ export const RecipeCreateAiFlow = ({
 				)}
 			</div>
 
-			{/* Step Content — Animated transitions */}
+			{/* Step Content â€” Animated transitions */}
 			<AnimatePresence mode='wait'>
-				{/* ── Input Step ──────────────────────────────────── */}
+				{/* â”€â”€ Input Step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 				{step === 'input' && (
 					<motion.div
 						key='input-step'
@@ -1238,7 +1244,7 @@ export const RecipeCreateAiFlow = ({
 								title='Paste & Parse'
 								description='AI extracts recipe from text'
 								isActive={method === 'ai'}
-								badge='✨ Recommended'
+								badge='âœ¨ Recommended'
 								onClick={() => setMethod('ai')}
 							/>
 							<MethodCard
@@ -1262,7 +1268,7 @@ export const RecipeCreateAiFlow = ({
 									animate='animate'
 									exit='exit'
 									transition={CONTENT_SWITCH_TRANSITION}
-									className='rounded-2xl bg-panel-bg p-6'
+									className='rounded-2xl bg-bg-card p-6'
 								>
 									<div className='mb-4'>
 										<h3 className='text-lg font-bold text-text'>
@@ -1298,7 +1304,7 @@ export const RecipeCreateAiFlow = ({
 										Parse Recipe
 										{rawText.trim() && (
 											<kbd className='ml-2 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline-block'>
-												{modKey}+↵
+												{modKey}+â†µ
 											</kbd>
 										)}
 									</motion.button>
@@ -1395,7 +1401,7 @@ export const RecipeCreateAiFlow = ({
 					</motion.div>
 				)}
 
-				{/* ── Preview Step ────────────────────────────────── */}
+				{/* â”€â”€ Preview Step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 				{step === 'preview' && recipe && (
 					<motion.div
 						key='preview-step'
@@ -1407,18 +1413,18 @@ export const RecipeCreateAiFlow = ({
 						className='space-y-5'
 					>
 						{/* Success Banner */}
-						<div className='flex items-center justify-between gap-3.5 rounded-2xl border border-success/20 bg-gradient-to-r from-success/10 to-emerald-500/5 px-5 py-4'>
+						<div className='flex items-center justify-between gap-3.5 rounded-2xl border border-success/20 bg-gradient-to-r from-success/10 to-success/5 px-5 py-4'>
 							<div className='flex items-center gap-3.5'>
-								<span className='text-3xl'>✨</span>
+								<span className='text-3xl'>âœ¨</span>
 								<div>
 									<strong className='text-sm text-success'>
 										Recipe parsed successfully!
 									</strong>
 									<span className='block text-xs text-text-secondary'>
 										{needsRecalculation
-											? `Significant changes detected (${changePercent}%) — recalculate XP`
+											? `Significant changes detected (${changePercent}%) â€” recalculate XP`
 											: changePercent > 0
-												? `Minor edits (${changePercent}%) — no recalculation needed`
+												? `Minor edits (${changePercent}%) â€” no recalculation needed`
 												: 'Review and edit below, then publish'}
 									</span>
 								</div>
@@ -1430,7 +1436,7 @@ export const RecipeCreateAiFlow = ({
 									transition={TRANSITION_SPRING}
 									className='flex items-center gap-2 rounded-xl bg-xp/10 px-4 py-2'
 								>
-									<span className='text-lg'>⭐</span>
+									<span className='text-lg'>â­</span>
 									<div className='text-right'>
 										<div className='text-lg font-bold text-xp'>
 											+{recipe.xpReward} XP
@@ -1453,7 +1459,7 @@ export const RecipeCreateAiFlow = ({
 						</div>
 
 						{/* Recipe Card */}
-						<div className='rounded-2xl bg-panel-bg p-6'>
+						<div className='rounded-2xl bg-bg-card p-6'>
 							{/* Cover Image */}
 							<div className='mb-5'>
 								{recipe.coverImageUrl ? (
@@ -1495,7 +1501,7 @@ export const RecipeCreateAiFlow = ({
 									<button
 										onClick={() => coverImageRef.current?.click()}
 										disabled={isUploadingCover}
-										className='flex h-44 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-bg text-text-secondary transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50'
+										className='flex h-44 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-bg text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
 									>
 										{isUploadingCover ? (
 											<>
@@ -1534,7 +1540,7 @@ export const RecipeCreateAiFlow = ({
 									onChange={e =>
 										setRecipe({ ...recipe, title: e.target.value })
 									}
-									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text focus:border-primary focus:outline-none'
+									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text focus:border-brand focus:outline-none'
 								/>
 							</div>
 
@@ -1552,7 +1558,7 @@ export const RecipeCreateAiFlow = ({
 									onChange={e =>
 										setRecipe({ ...recipe, description: e.target.value })
 									}
-									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-primary focus:outline-none'
+									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
 								/>
 							</div>
 
@@ -1600,7 +1606,7 @@ export const RecipeCreateAiFlow = ({
 									</span>
 								</div>
 								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
-									<span>🌏</span>
+									<span>ðŸŒ</span>
 									<input
 										type='text'
 										value={recipe.cuisine}
@@ -1625,7 +1631,7 @@ export const RecipeCreateAiFlow = ({
 										animate={{ opacity: 1, scale: 1 }}
 										transition={{ delay: i * 0.1, ...TRANSITION_SPRING }}
 										whileHover={{ scale: 1.05 }}
-										className='rounded-lg border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary cursor-default'
+										className='rounded-lg border border-brand/20 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand cursor-default'
 									>
 										{badge.emoji} {badge.name}
 									</motion.span>
@@ -1634,17 +1640,17 @@ export const RecipeCreateAiFlow = ({
 						</div>
 
 						{/* Ingredients Section */}
-						<div className='rounded-2xl bg-panel-bg p-6'>
+						<div className='rounded-2xl bg-bg-card p-6'>
 							<div className='mb-4 flex items-center justify-between'>
 								<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>
-									<ShoppingBasket className='size-5 text-primary' />
+									<ShoppingBasket className='size-5 text-brand' />
 									Ingredients
 								</h3>
 								<motion.button
 									onClick={addIngredient}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
+									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 								>
 									<Plus className='size-4' />
 									Add
@@ -1672,11 +1678,11 @@ export const RecipeCreateAiFlow = ({
 						</div>
 
 						{/* Steps Section */}
-						<div className='rounded-2xl bg-panel-bg p-6'>
+						<div className='rounded-2xl bg-bg-card p-6'>
 							<div className='mb-4 flex items-center justify-between'>
 								<div className='flex items-center gap-4'>
 									<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>
-										<ListOrdered className='size-5 text-primary' />
+										<ListOrdered className='size-5 text-brand' />
 										Instructions
 									</h3>
 									{recipe && recipe.steps.length > 0 && (
@@ -1700,7 +1706,7 @@ export const RecipeCreateAiFlow = ({
 									onClick={addStep}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-primary hover:text-primary'
+									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 								>
 									<Plus className='size-4' />
 									Add Step
@@ -1758,14 +1764,14 @@ export const RecipeCreateAiFlow = ({
 												: 'Preview XP & Publish'}
 										</span>
 										{recipe.xpReward && !hasEdited ? (
-											<span className='rounded-lg bg-white/20 px-3 py-1 text-sm font-extrabold text-white'>
+											<span className='rounded-lg bg-white/20 px-3 py-1 text-sm font-display font-extrabold text-white'>
 												{recipe.xpReward} XP
 											</span>
 										) : (
 											<Sparkles className='size-5 text-white' />
 										)}
 										<kbd className='hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal text-white/80 md:inline-block'>
-											{modKey}+↵
+											{modKey}+â†µ
 										</kbd>
 									</>
 								)}

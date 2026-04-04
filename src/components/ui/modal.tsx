@@ -72,7 +72,7 @@ export const Modal = ({
 			>
 				<div
 					className={cn(
-						'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-glow',
+						'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-bg-card shadow-glow',
 						sizeClasses[size],
 						className,
 					)}
@@ -225,9 +225,9 @@ export const ConfirmModal = ({
 					className={cn(
 						'h-11 rounded-lg px-4 text-sm font-semibold leading-normal transition-all hover:-translate-y-0.5 disabled:opacity-50',
 						variant === 'default' &&
-							'bg-primary text-primary-foreground hover:shadow-md',
+							'bg-brand text-white hover:shadow-md',
 						variant === 'danger' &&
-							'bg-destructive text-destructive-foreground hover:shadow-md',
+							'bg-error text-white hover:shadow-md',
 					)}
 				>
 					{isLoading ? 'Processing...' : confirmText}
@@ -259,10 +259,10 @@ export const AlertModal = ({
 	buttonText = 'OK',
 }: AlertModalProps) => {
 	const typeColors = {
-		info: 'text-primary',
-		success: 'text-accent',
-		error: 'text-destructive',
-		warning: 'text-gold',
+		info: 'text-brand',
+		success: 'text-success',
+		error: 'text-error',
+		warning: 'text-warning',
 	}
 
 	return (
@@ -278,7 +278,7 @@ export const AlertModal = ({
 			<ModalFooter>
 				<button
 					onClick={onClose}
-					className='h-11 rounded-lg bg-primary px-4 text-sm font-semibold leading-normal text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-md'
+					className='h-11 rounded-lg bg-brand px-4 text-sm font-semibold leading-normal text-white transition-all hover:-translate-y-0.5 hover:shadow-md'
 				>
 					{buttonText}
 				</button>

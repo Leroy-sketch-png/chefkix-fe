@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import {
@@ -189,13 +189,13 @@ function MyRankBanner({
 			{/* Stats */}
 			<div className='flex gap-5'>
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold text-text'>
+					<span className='text-xl font-display font-extrabold text-text'>
 						{myRank.xpThisWeek}
 					</span>
 					<span className='text-xs text-text-muted'>XP this week</span>
 				</div>
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold text-text'>
+					<span className='text-xl font-display font-extrabold text-text'>
 						{myRank.recipesCooked}
 					</span>
 					<span className='text-xs text-text-muted'>Recipes cooked</span>
@@ -292,7 +292,7 @@ export function LeaderboardPage({
 						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
-				<h1 className='flex-1 text-2xl font-extrabold text-text'>
+				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
 					Leaderboard
 				</h1>
 				{onShare && (
@@ -399,8 +399,8 @@ export function LeaderboardPage({
 					</motion.div>
 					<h3 className='text-lg font-bold text-text mb-2'>
 						{type === 'friends'
-							? 'Start the Rivalry! 🔥'
-							: 'Claim Your Throne! 👑'}
+							? 'Start the Rivalry! ðŸ”¥'
+							: 'Claim Your Throne! ðŸ‘‘'}
 					</h3>
 					<p className='text-sm text-text-secondary max-w-xs'>
 						{type === 'friends'

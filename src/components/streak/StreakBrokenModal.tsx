@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Flame } from 'lucide-react'
@@ -49,18 +49,18 @@ export function StreakBrokenModal({
 							animate={{ opacity: 1, y: 0, scale: 1 }}
 							exit={{ opacity: 0, y: 30, scale: 0.95 }}
 							transition={TRANSITION_SPRING}
-							className='w-full max-w-modal-md bg-panel-bg rounded-2xl p-10 text-center'
+							className='w-full max-w-modal-md bg-bg-card rounded-2xl p-10 text-center'
 						>
 							{/* Sad Icon */}
 							<div className='relative mb-6'>
-								<span className='text-icon-emoji-xl block'>😢</span>
+								<span className='text-icon-emoji-xl block'>ðŸ˜¢</span>
 								<div className='absolute top-[-10px] right-[30%]'>
-									<span className='text-2xl opacity-30 grayscale'>🔥</span>
+									<span className='text-2xl opacity-30 grayscale'>ðŸ”¥</span>
 								</div>
 							</div>
 
 							{/* Title */}
-							<h2 className='text-2xl font-extrabold text-text mb-2'>
+							<h2 className='text-2xl font-display font-extrabold text-text mb-2'>
 								Your streak ended
 							</h2>
 							<p className='text-sm text-text-secondary mb-6'>
@@ -89,9 +89,9 @@ export function StreakBrokenModal({
 
 							{/* Motivation */}
 							<div className='mb-5 space-y-2 text-sm text-text-secondary'>
-								<p>Don&apos;t worry — every great chef has off days.</p>
+								<p>Don&apos;t worry â€” every great chef has off days.</p>
 								<p>
-									Your skills and XP are still there. Let&apos;s start fresh! 💪
+									Your skills and XP are still there. Let&apos;s start fresh! ðŸ’ª
 								</p>
 							</div>
 
@@ -121,7 +121,7 @@ export function StreakBrokenModal({
 										'text-base font-bold shadow-lg shadow-streak/30',
 									)}
 								>
-									<Flame className='w-5 h-5' />
+									<Flame className='size-5' />
 									Start New Streak
 								</motion.button>
 								<button

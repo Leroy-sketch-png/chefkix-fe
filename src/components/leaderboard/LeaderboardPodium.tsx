@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -177,7 +177,7 @@ function PodiumSpot({
 					}}
 					className='text-icon-lg mb-0.5'
 				>
-					👑
+					ðŸ‘‘
 				</motion.div>
 			)}
 
@@ -208,7 +208,7 @@ function PodiumSpot({
 
 				{/* Rank Badge - with inline gradient styling */}
 				<div
-					className='absolute -bottom-1 left-1/2 -translate-x-1/2 flex size-6 items-center justify-center rounded-full text-xs font-extrabold text-white border-2 border-bg-card'
+					className='absolute -bottom-1 left-1/2 -translate-x-1/2 flex size-6 items-center justify-center rounded-full text-xs font-display font-extrabold text-white border-2 border-bg-card'
 					style={{
 						...config.rankBadge,
 						textShadow: '0 1px 2px rgba(0,0,0,0.4)',
@@ -236,7 +236,7 @@ function PodiumSpot({
 
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
-				<span className='text-lg font-extrabold text-text'>
+				<span className='text-lg font-display font-extrabold text-text'>
 					{entry.xp.toLocaleString()}
 				</span>
 				<span className='text-xs text-text-tertiary'>XP</span>
@@ -302,7 +302,7 @@ export function LeaderboardPodiumSkeleton({
 		>
 			{/* 2nd place */}
 			<div className='flex flex-col items-center' style={{ order: 1 }}>
-				<div className='w-16 h-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
+				<div className='size-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
 				<div className='w-14 h-4 bg-bg-elevated rounded animate-pulse mb-1' />
 				<div className='w-10 h-5 bg-bg-elevated rounded animate-pulse mb-3' />
 				<div className='w-16 h-14 bg-bg-elevated rounded-t-xl animate-pulse' />
@@ -310,16 +310,16 @@ export function LeaderboardPodiumSkeleton({
 
 			{/* 1st place */}
 			<div className='flex flex-col items-center' style={{ order: 2 }}>
-				<div className='w-7 h-7 bg-bg-elevated rounded animate-pulse mb-2' />
-				<div className='w-20 h-20 bg-bg-elevated rounded-full animate-pulse mb-2' />
+				<div className='size-7 bg-bg-elevated rounded animate-pulse mb-2' />
+				<div className='size-20 bg-bg-elevated rounded-full animate-pulse mb-2' />
 				<div className='w-16 h-4 bg-bg-elevated rounded animate-pulse mb-1' />
 				<div className='w-12 h-5 bg-bg-elevated rounded animate-pulse mb-3' />
-				<div className='w-20 h-20 bg-bg-elevated rounded-t-xl animate-pulse' />
+				<div className='size-20 bg-bg-elevated rounded-t-xl animate-pulse' />
 			</div>
 
 			{/* 3rd place */}
 			<div className='flex flex-col items-center' style={{ order: 3 }}>
-				<div className='w-16 h-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
+				<div className='size-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
 				<div className='w-14 h-4 bg-bg-elevated rounded animate-pulse mb-1' />
 				<div className='w-10 h-5 bg-bg-elevated rounded animate-pulse mb-3' />
 				<div className='w-16 h-10 bg-bg-elevated rounded-t-xl animate-pulse' />

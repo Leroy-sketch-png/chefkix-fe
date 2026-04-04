@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -114,7 +114,7 @@ const GlowBar = ({ isComplete = false }: { isComplete?: boolean }) => (
 		className={cn(
 			'absolute left-0 right-0 top-0 h-0.5',
 			isComplete
-				? 'bg-gradient-to-r from-success via-emerald-500 to-success'
+				? 'bg-gradient-to-r from-success via-success to-success'
 				: 'bg-gradient-party',
 		)}
 		style={{ backgroundSize: '200% 100%' }}
@@ -137,10 +137,10 @@ const ChallengeIcon = ({
 			className={cn(
 				'flex items-center justify-center',
 				isComplete
-					? 'bg-gradient-to-br from-success to-emerald-500'
+					? 'bg-gradient-to-br from-success to-success'
 					: 'bg-gradient-xp',
 				size === 'large'
-					? 'h-16 w-16 rounded-2xl'
+					? 'size-16 rounded-2xl'
 					: 'size-thumbnail-sm rounded-radius',
 			)}
 		>
@@ -156,8 +156,8 @@ const ChallengeIcon = ({
 			/>
 		)}
 		{isComplete && (
-			<div className='absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border-4 border-panel-bg bg-success text-sm text-white'>
-				✓
+			<div className='absolute -bottom-2 -right-2 flex size-8 items-center justify-center rounded-full border-4 border-bg-card bg-success text-sm text-white'>
+				âœ“
 			</div>
 		)}
 	</div>
@@ -178,7 +178,7 @@ const ActiveChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, y: -10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='relative mb-5 overflow-hidden rounded-2xl bg-panel-bg shadow-lg'
+			className='relative mb-5 overflow-hidden rounded-2xl bg-bg-card shadow-lg'
 		>
 			<GlowBar />
 
@@ -190,7 +190,7 @@ const ActiveChallengeBanner = ({
 						<span className='text-xs font-bold uppercase tracking-wide text-accent-purple'>
 							Daily Challenge
 						</span>
-						<h3 className='text-xl font-extrabold'>{challenge.title}</h3>
+						<h3 className='text-xl font-display font-extrabold'>{challenge.title}</h3>
 					</div>
 				</div>
 
@@ -202,14 +202,14 @@ const ActiveChallengeBanner = ({
 				{/* Meta Row */}
 				<div className='mb-4 flex gap-6'>
 					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/20 to-xp/20 px-3.5 py-2 shadow-card shadow-bonus/20'>
-						<span>⚡</span>
-						<span className='text-base font-extrabold text-xp'>
+						<span>âš¡</span>
+						<span className='text-base font-display font-extrabold text-xp'>
 							+{challenge.bonusXp} XP
 						</span>
 						<span className='text-xs text-bonus'>bonus</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-text-muted'>
-						<Clock className='h-4 w-4' />
+						<Clock className='size-4' />
 						<span className='font-semibold text-text'>{timeRemaining}</span>
 						<span>remaining</span>
 					</div>
@@ -233,7 +233,7 @@ const ActiveChallengeBanner = ({
 										alt={recipe.title}
 										width={28}
 										height={28}
-										className='h-7 w-7 rounded-full object-cover'
+										className='size-7 rounded-full object-cover'
 									/>
 									<span>{recipe.title}</span>
 								</Link>
@@ -257,7 +257,7 @@ const ActiveChallengeBanner = ({
 					whileTap={LIST_ITEM_TAP}
 					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-base font-bold text-white shadow-lg shadow-xp/40'
 				>
-					<ChefHat className='h-5 w-5' />
+					<ChefHat className='size-5' />
 					Find Recipe
 				</motion.button>
 			</div>
@@ -265,9 +265,9 @@ const ActiveChallengeBanner = ({
 			{/* Minimize Button */}
 			<button
 				onClick={onMinimize}
-				className='absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted transition-colors hover:bg-border'
+				className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted transition-colors hover:bg-border'
 			>
-				<ChevronUp className='h-4 w-4' />
+				<ChevronUp className='size-4' />
 			</button>
 		</motion.div>
 	)
@@ -286,13 +286,13 @@ const CompletedChallengeBanner = ({
 	<motion.div
 		initial={{ opacity: 0, y: -10 }}
 		animate={{ opacity: 1, y: 0 }}
-		className='relative mb-5 overflow-hidden rounded-2xl border-2 border-success/30 bg-gradient-to-r from-success/10 to-emerald-500/5 shadow-lg'
+		className='relative mb-5 overflow-hidden rounded-2xl border-2 border-success/30 bg-gradient-to-r from-success/10 to-success/5 shadow-lg'
 	>
 		<GlowBar isComplete />
 
 		{/* Confetti */}
 		<div className='pointer-events-none absolute inset-0 overflow-hidden'>
-			{['🎉', '✨'].map((emoji, i) => (
+			{['ðŸŽ‰', 'âœ¨'].map((emoji, i) => (
 				<motion.span
 					key={i}
 					className='absolute text-2xl'
@@ -309,24 +309,24 @@ const CompletedChallengeBanner = ({
 		<div className='p-5'>
 			{/* Header */}
 			<div className='mb-4 flex items-center gap-3.5'>
-				<ChallengeIcon icon='✅' isComplete />
+				<ChallengeIcon icon='âœ…' isComplete />
 				<div className='flex-1'>
 					<span className='text-xs font-bold uppercase tracking-wide text-success'>
 						Challenge Complete!
 					</span>
-					<h3 className='text-xl font-extrabold'>{challenge.title}</h3>
+					<h3 className='text-xl font-display font-extrabold'>{challenge.title}</h3>
 				</div>
 			</div>
 
 			{/* Completed With */}
-			<div className='mb-3 flex items-center justify-between rounded-xl bg-panel-bg p-3.5'>
+			<div className='mb-3 flex items-center justify-between rounded-xl bg-bg-card p-3.5'>
 				<div className='flex items-center gap-3'>
 					<Image
 						src={completedWith.recipeImageUrl}
 						alt={completedWith.recipeTitle}
 						width={48}
 						height={48}
-						className='h-12 w-12 rounded-lg object-cover'
+						className='size-12 rounded-lg object-cover'
 					/>
 					<div className='flex flex-col'>
 						<span className='text-xs text-text-muted'>Completed with</span>
@@ -336,7 +336,7 @@ const CompletedChallengeBanner = ({
 					</div>
 				</div>
 				<div className='text-right'>
-					<span className='block text-xl font-extrabold text-xp'>
+					<span className='block text-xl font-display font-extrabold text-xp'>
 						+{challenge.bonusXp} XP
 					</span>
 					<span className='text-xs text-text-muted'>bonus earned</span>
@@ -346,7 +346,7 @@ const CompletedChallengeBanner = ({
 			{/* Streak Teaser */}
 			{streakCount > 0 && (
 				<div className='flex items-center justify-center gap-2 rounded-lg bg-streak/10 px-3 py-2.5'>
-					<span className='text-lg'>🔥</span>
+					<span className='text-lg'>ðŸ”¥</span>
 					<span className='text-sm font-semibold text-streak'>
 						{streakCount} day challenge streak!
 					</span>
@@ -360,7 +360,7 @@ const CompletedChallengeBanner = ({
 			className='absolute right-4 top-4 flex items-center gap-1 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 		>
 			View History
-			<ChevronRight className='h-4 w-4' />
+			<ChevronRight className='size-4' />
 		</button>
 	</motion.div>
 )
@@ -379,7 +379,7 @@ const CompactChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, y: -5 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='mb-5 flex items-center justify-between rounded-2xl bg-panel-bg p-3 shadow-card'
+			className='mb-5 flex items-center justify-between rounded-2xl bg-bg-card p-3 shadow-card'
 		>
 			<div className='flex items-center gap-3'>
 				<span className='text-2xl'>{challenge.icon}</span>
@@ -398,9 +398,9 @@ const CompactChallengeBanner = ({
 				</span>
 				<button
 					onClick={onExpand}
-					className='flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:bg-bg-elevated'
+					className='flex size-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:bg-bg-elevated'
 				>
-					<ChevronDown className='h-4 w-4' />
+					<ChevronDown className='size-4' />
 				</button>
 			</div>
 		</motion.div>
@@ -436,7 +436,7 @@ const FeaturedChallengeBanner = ({
 			{/* Event Badge */}
 			{challenge.eventLabel && (
 				<div className='absolute left-4 top-4 z-10 rounded-full bg-gradient-gold px-3.5 py-2 text-xs font-bold text-white'>
-					🌟 {challenge.eventLabel}
+					ðŸŒŸ {challenge.eventLabel}
 				</div>
 			)}
 
@@ -444,14 +444,14 @@ const FeaturedChallengeBanner = ({
 			<div className='relative z-10 flex h-full flex-col justify-end p-6 pt-16'>
 				{/* Header */}
 				<div className='mb-3 flex items-center gap-3.5'>
-					<div className='flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-lg'>
+					<div className='flex size-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-lg'>
 						<span className='text-3xl'>{challenge.icon}</span>
 					</div>
 					<div>
 						<span className='text-xs font-bold uppercase tracking-wide text-white/70'>
 							Weekend Challenge
 						</span>
-						<h2 className='text-2xl font-extrabold text-white'>
+						<h2 className='text-2xl font-display font-extrabold text-white'>
 							{challenge.title}
 						</h2>
 					</div>
@@ -463,14 +463,14 @@ const FeaturedChallengeBanner = ({
 				{/* Meta Row */}
 				<div className='mb-5 flex gap-6'>
 					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/30 to-xp/30 px-4 py-2.5 shadow-card shadow-bonus/30'>
-						<span>⚡</span>
-						<span className='text-xl font-extrabold text-xp drop-shadow-glow'>
+						<span>âš¡</span>
+						<span className='text-xl font-display font-extrabold text-xp drop-shadow-glow'>
 							+{challenge.bonusXp} XP
 						</span>
 						<span className='text-xs text-bonus'>bonus</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-white/70'>
-						<Calendar className='h-4 w-4' />
+						<Calendar className='size-4' />
 						<span className='font-semibold text-white'>{timeRemaining}</span>
 						<span>remaining</span>
 					</div>
@@ -501,7 +501,7 @@ const FeaturedChallengeBanner = ({
 					whileTap={LIST_ITEM_TAP}
 					className='inline-flex w-fit items-center gap-2 rounded-xl bg-bg-card px-7 py-4 text-base font-bold text-accent-purple shadow-xl'
 				>
-					<ChefHat className='h-5 w-5' />
+					<ChefHat className='size-5' />
 					Browse Italian Recipes
 				</motion.button>
 			</div>

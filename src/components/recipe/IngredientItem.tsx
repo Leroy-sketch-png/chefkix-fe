@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { X } from 'lucide-react'
 import type { Ingredient } from '@/lib/types/recipeCreate'
@@ -24,7 +24,7 @@ export const IngredientItem = ({
 			value={ingredient.quantity}
 			onChange={e => onUpdate({ quantity: e.target.value })}
 			placeholder='Qty'
-			className='min-w-24 w-auto max-w-40 bg-transparent text-sm font-bold text-primary outline-none placeholder:text-text-secondary/50'
+			className='min-w-24 w-auto max-w-40 bg-transparent text-sm font-bold text-brand outline-none placeholder:text-text-secondary/50'
 		/>
 		<input
 			type='text'

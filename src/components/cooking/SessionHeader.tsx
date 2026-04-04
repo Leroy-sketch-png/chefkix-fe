@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -163,7 +163,7 @@ export const SessionHeader = ({
 					state === 'IN_PROGRESS' && 'bg-gradient-brand',
 					state === 'PAUSED' && 'bg-gradient-streak',
 					state === 'IDLE_WARNING' &&
-						'bg-gradient-to-r from-red-500 to-orange-500',
+						'bg-gradient-to-r from-error to-streak',
 				)}
 			/>
 
@@ -173,7 +173,7 @@ export const SessionHeader = ({
 				<div className='flex items-start justify-between'>
 					{/* Recipe info */}
 					<div className='flex items-center gap-3'>
-						<div className='relative h-12 w-12 overflow-hidden rounded-xl ring-2 ring-white/20'>
+						<div className='relative size-12 overflow-hidden rounded-xl ring-2 ring-white/20'>
 							<Image
 								src={session.recipe.imageUrl}
 								alt={session.recipe.title}
@@ -189,7 +189,7 @@ export const SessionHeader = ({
 								<span>
 									Step {session.currentStep} of {session.recipe.totalSteps}
 								</span>
-								<span>•</span>
+								<span>â€¢</span>
 								<span>~{session.recipe.estimatedTime} min</span>
 							</div>
 						</div>
@@ -215,7 +215,7 @@ export const SessionHeader = ({
 							onClick={isPaused ? onResume : onPause}
 							disabled={hasActiveTimers && !isPaused}
 							className={cn(
-								'flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors',
+								'flex size-10 items-center justify-center rounded-full text-white transition-colors',
 								isPaused
 									? 'bg-success hover:bg-success/90'
 									: hasActiveTimers
@@ -242,7 +242,7 @@ export const SessionHeader = ({
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onClose}
-							className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30'
+							className='flex size-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30'
 							aria-label='Close cooking header'
 						>
 							<X className='size-5' />
@@ -326,7 +326,7 @@ export const SessionHeader = ({
 				{/* XP Preview */}
 				<div className='mt-3 flex items-center justify-center gap-4 text-sm text-white/80'>
 					<div className='flex items-center gap-1.5'>
-						<span className='text-lg'>⚡</span>
+						<span className='text-lg'>âš¡</span>
 						<span>
 							<span className='font-bold text-white'>
 								+{session.baseXP + session.bonusXP}
@@ -336,7 +336,7 @@ export const SessionHeader = ({
 					</div>
 					{session.challengeId && (
 						<div className='flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5'>
-							<span>🎯</span>
+							<span>ðŸŽ¯</span>
 							<span className='font-semibold'>Challenge</span>
 						</div>
 					)}
@@ -373,7 +373,7 @@ export const SessionHeaderCompact = ({
 			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-lg'
 		>
 			{/* Mini progress ring */}
-			<div className='relative h-10 w-10'>
+			<div className='relative size-10'>
 				<svg className='h-full w-full -rotate-90' viewBox='0 0 36 36'>
 					<circle
 						cx='18'
@@ -409,7 +409,7 @@ export const SessionHeaderCompact = ({
 			{hasActiveTimers && (
 				<motion.div
 					animate={GLOW_PULSE.animate}
-					className='flex h-8 w-8 items-center justify-center rounded-full bg-warning'
+					className='flex size-8 items-center justify-center rounded-full bg-warning'
 				>
 					<Clock className='size-4 text-white' />
 				</motion.div>

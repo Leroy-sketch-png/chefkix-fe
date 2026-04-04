@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { Upload, Clock, AlertTriangle, ChefHat, Search } from 'lucide-react'
+import { Upload, Clock, AlertTriangle, ChefHat, Search, Sun, Apple } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, LIST_ITEM_HOVER } from '@/lib/motion'
@@ -23,6 +23,8 @@ type NotificationType =
 	| 'streak_warning'
 	| 'streak_lost'
 	| 'challenge_reminder'
+	| 'weekend_nudge'
+	| 'pantry_expiring'
 
 interface BaseNotification {
 	id: string
@@ -122,6 +124,19 @@ interface ChallengeReminderNotification extends BaseNotification {
 	onSeeRecipes?: () => void
 }
 
+interface WeekendNudgeNotification extends BaseNotification {
+	type: 'weekend_nudge'
+	content: string
+	onExplore?: () => void
+}
+
+interface PantryExpiringNotification extends BaseNotification {
+	type: 'pantry_expiring'
+	content: string
+	daysRemaining: number
+	onViewPantry?: () => void
+}
+
 type GamifiedNotification =
 	| XPAwardedNotification
 	| XPAwardedFullNotification
@@ -134,6 +149,8 @@ type GamifiedNotification =
 	| StreakWarningNotification
 	| StreakLostNotification
 	| ChallengeReminderNotification
+	| WeekendNudgeNotification
+	| PantryExpiringNotification
 
 // ============================================
 // HELPER FUNCTIONS
@@ -271,8 +288,8 @@ const XPAwardedItem = ({
 }: XPAwardedNotification) => (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-cyan-400'>
-			<span className='relative z-10 text-2xl'>⚡</span>
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-accent-teal'>
+			<span className='relative z-10 text-2xl'>âš¡</span>
 			<div className='absolute -inset-1 rounded-full border-2 border-xp/30' />
 		</div>
 
@@ -287,7 +304,7 @@ const XPAwardedItem = ({
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-xp/15 text-xp'>30% instant</MetaTag>
 				<span className='text-xs text-text-muted'>
-					{pendingXp} XP pending • Post to unlock
+					{pendingXp} XP pending â€¢ Post to unlock
 				</span>
 			</div>
 		</div>
@@ -297,7 +314,7 @@ const XPAwardedItem = ({
 			onClick={onPost}
 			className='flex-shrink-0 bg-xp text-white shadow-card shadow-xp/30'
 		>
-			<Upload className='h-4 w-4' />
+			<Upload className='size-4' />
 			Post
 		</ActionButton>
 	</NotifWrapper>
@@ -313,8 +330,8 @@ const XPAwardedFullItem = ({
 }: XPAwardedFullNotification) => (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
-			<span className='relative z-10 text-2xl'>✨</span>
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
+			<span className='relative z-10 text-2xl'>âœ¨</span>
 			<motion.div
 				className='absolute -inset-1 rounded-full border-2 border-bonus/30'
 				animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
@@ -356,9 +373,9 @@ const LevelUpItem = ({
 		className='bg-gradient-to-r from-rare/10 to-combo/5'
 	>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
-			<span className='absolute -right-2 -top-2 z-10 text-lg'>🎉</span>
-			<span className='text-lg font-extrabold text-white drop-shadow-sm'>
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
+			<span className='absolute -right-2 -top-2 z-10 text-lg'>ðŸŽ‰</span>
+			<span className='text-lg font-display font-extrabold text-white drop-shadow-sm'>
 				{newLevel ?? '?'}
 			</span>
 			<motion.div
@@ -428,7 +445,7 @@ const BadgeUnlockedItem = ({
 	return (
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
-			<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
+			<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
 				<span className='text-icon-lg'>{badgeIcon}</span>
 				<div className='absolute -inset-1.5 rounded-full bg-bonus/20 blur-sm' />
 			</div>
@@ -476,7 +493,7 @@ const BadgeSurpriseItem = ({
 		className='bg-gradient-to-r from-rare/10 to-combo/5'
 	>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
 			<span className='text-icon-lg'>{badgeIcon}</span>
 			<motion.div
 				className='absolute -inset-2.5 rounded-full bg-rare/30 blur-md'
@@ -529,10 +546,10 @@ const CreatorBonusItem = ({
 				alt={cookerName}
 				width={48}
 				height={48}
-				className='h-12 w-12 rounded-full object-cover'
+				className='size-12 rounded-full object-cover'
 			/>
-			<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-panel-bg bg-info text-white'>
-				<ChefHat className='h-3 w-3' />
+			<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-bg-card bg-info text-white'>
+				<ChefHat className='size-3' />
 			</div>
 		</div>
 
@@ -578,8 +595,8 @@ const PostDeadlineItem = ({
 }: PostDeadlineNotification) => (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted text-white'>
-			<Clock className='relative z-10 h-6 w-6' />
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted text-white'>
+			<Clock className='relative z-10 size-6' />
 			<div className='absolute -inset-1 rounded-full border-2 border-text-muted/30' />
 		</div>
 
@@ -624,8 +641,8 @@ const PostDeadlineUrgentItem = ({
 		className='border-l-4 border-l-error bg-error/10'
 	>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-error text-white'>
-			<AlertTriangle className='relative z-10 h-6 w-6' />
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-error text-white'>
+			<AlertTriangle className='relative z-10 size-6' />
 			<motion.div
 				className='absolute -inset-1 rounded-full border-2 border-error/40'
 				animate={{ scale: [1, 1.1, 1] }}
@@ -636,7 +653,7 @@ const PostDeadlineUrgentItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='⚠️ Deadline Soon!'
+				type='âš ï¸ Deadline Soon!'
 				time={timestamp}
 				className='text-error'
 			/>
@@ -682,8 +699,8 @@ const StreakWarningItem = ({
 		className='border-l-4 border-l-streak bg-streak/10'
 	>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-streak to-streak/90'>
-			<span className='relative z-10 text-2xl'>🔥</span>
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-streak to-streak/90'>
+			<span className='relative z-10 text-2xl'>ðŸ”¥</span>
 			<motion.div
 				className='absolute -inset-1.5 rounded-full bg-streak/30 blur-sm'
 				animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
@@ -715,7 +732,7 @@ const StreakWarningItem = ({
 			onClick={onFindRecipe}
 			className='flex-shrink-0 bg-streak text-white'
 		>
-			<Search className='h-4 w-4' />
+			<Search className='size-4' />
 			Find Recipe
 		</ActionButton>
 	</NotifWrapper>
@@ -731,8 +748,8 @@ const StreakLostItem = ({
 }: StreakLostNotification) => (
 	<NotifWrapper isRead={isRead} className='opacity-80'>
 		{/* Icon */}
-		<div className='flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
-			<span className='text-2xl'>😢</span>
+		<div className='flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
+			<span className='text-2xl'>ðŸ˜¢</span>
 		</div>
 
 		{/* Content */}
@@ -778,8 +795,8 @@ const ChallengeReminderItem = ({
 }: ChallengeReminderNotification) => (
 	<NotifWrapper isRead={isRead} className='bg-xp/10'>
 		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-rare'>
-			<span className='relative z-10 text-2xl'>🎯</span>
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-rare'>
+			<span className='relative z-10 text-2xl'>ðŸŽ¯</span>
 			<motion.div
 				className='absolute -inset-1 rounded-full border-2 border-dashed border-xp/40'
 				animate={{ rotate: 360 }}
@@ -816,6 +833,92 @@ const ChallengeReminderItem = ({
 	</NotifWrapper>
 )
 
+// Weekend Nudge
+const WeekendNudgeItem = ({
+	content,
+	timestamp,
+	isRead,
+	onExplore,
+}: WeekendNudgeNotification) => (
+	<NotifWrapper isRead={isRead} className='bg-bonus/5'>
+		{/* Icon */}
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-streak'>
+			<Sun className='relative z-10 size-6 text-white' />
+			<motion.div
+				className='absolute -inset-1 rounded-full border-2 border-bonus/30'
+				animate={{ rotate: 360 }}
+				transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+			/>
+		</div>
+
+		{/* Content */}
+		<div className='min-w-0 flex-1'>
+			<NotifHeader
+				type='Weekend Cooking'
+				time={timestamp}
+				className='text-bonus'
+			/>
+			<p className='text-sm'>{content}</p>
+			<div className='mt-2 flex items-center gap-2.5'>
+				<MetaTag className='bg-bonus/15 text-bonus'>Weekend Bonus</MetaTag>
+				<span className='text-xs text-text-muted'>Time to get cooking!</span>
+			</div>
+		</div>
+
+		{/* Action */}
+		<ActionButton
+			onClick={onExplore}
+			className='flex-shrink-0 bg-bonus text-white shadow-card shadow-bonus/30'
+		>
+			<Search className='size-4' />
+			Explore
+		</ActionButton>
+	</NotifWrapper>
+)
+
+// Pantry Expiring
+const PantryExpiringItem = ({
+	content,
+	daysRemaining,
+	timestamp,
+	isRead,
+	onViewPantry,
+}: PantryExpiringNotification) => (
+	<NotifWrapper isRead={isRead} className='bg-streak/5'>
+		{/* Icon */}
+		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-streak to-error/80'>
+			<Apple className='relative z-10 size-6 text-white' />
+			<div className='absolute -inset-1 rounded-full border-2 border-streak/30' />
+		</div>
+
+		{/* Content */}
+		<div className='min-w-0 flex-1'>
+			<NotifHeader
+				type='Pantry Alert'
+				time={timestamp}
+				className='text-streak'
+			/>
+			<p className='text-sm'>{content}</p>
+			<div className='mt-2 flex items-center gap-2.5'>
+				<MetaTag className='bg-streak/15 text-streak'>
+					{daysRemaining} days left
+				</MetaTag>
+				<span className='text-xs text-text-muted'>
+					Cook before they expire!
+				</span>
+			</div>
+		</div>
+
+		{/* Action */}
+		<ActionButton
+			onClick={onViewPantry}
+			className='flex-shrink-0 border border-streak/30 bg-streak/10 text-streak hover:bg-streak hover:text-white'
+		>
+			View Pantry
+		</ActionButton>
+	</NotifWrapper>
+)
+
 // ============================================
 // MAIN EXPORT
 // ============================================
@@ -844,6 +947,10 @@ export const NotificationItemGamified = (props: GamifiedNotification) => {
 			return <StreakLostItem {...props} />
 		case 'challenge_reminder':
 			return <ChallengeReminderItem {...props} />
+		case 'weekend_nudge':
+			return <WeekendNudgeItem {...props} />
+		case 'pantry_expiring':
+			return <PantryExpiringItem {...props} />
 		default:
 			return null
 	}
@@ -862,6 +969,8 @@ export {
 	StreakWarningItem,
 	StreakLostItem,
 	ChallengeReminderItem,
+	WeekendNudgeItem,
+	PantryExpiringItem,
 }
 
 // Export types

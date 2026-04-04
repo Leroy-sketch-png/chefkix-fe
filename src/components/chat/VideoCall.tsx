@@ -1,9 +1,10 @@
-'use client' // This tells Next.js this is a Client Component (runs in the browser)
+﻿'use client' // This tells Next.js this is a Client Component (runs in the browser)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { API_ENDPOINTS } from '@/constants/api'
 
 // Define the structure of the signaling message to match the Spring Boot backend
 // data type depends on message type: offer/answer use RTCSessionDescriptionInit,
@@ -90,6 +91,11 @@ export default function VideoCall({
 
 			setIsCameraOn(videoEnabled)
 			setIsMicOn(true)
+
+			// Connect WebSocket for signaling (if not already connected)
+			if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+				connectWebSocket()
+			}
 		} catch (error) {
 			logDevError('Error accessing media devices.', error)
 
@@ -103,6 +109,11 @@ export default function VideoCall({
 				if (localVideoRef.current) localVideoRef.current.srcObject = audioStream
 				setIsCameraOn(false)
 				setIsMicOn(true)
+
+				// Connect WebSocket for signaling (if not already connected)
+				if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+					connectWebSocket()
+				}
 			} catch (audioError) {
 				logDevError('Error accessing audio device.', audioError)
 				toast.error(
@@ -139,10 +150,9 @@ export default function VideoCall({
 
 	// --- Phase 2: Signaling Client (WebSocket) ---
 	const connectWebSocket = () => {
-		// Connect to the Spring Boot endpoint we just created
 		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
 		const wsBase = apiBase.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}/api/v1/ws/video-signaling`
+		const wsUrl = `${wsBase}${API_ENDPOINTS.CHAT.VIDEO_SIGNALING_WS}`
 		const ws = new WebSocket(wsUrl)
 
 		ws.onopen = () => {
@@ -469,7 +479,7 @@ export default function VideoCall({
 				</div>
 			)}
 
-			<h2 className='text-2xl font-semibold text-primary mb-2'>Video Call</h2>
+			<h2 className='text-2xl font-semibold text-brand mb-2'>Video Call</h2>
 
 			{/* Media Stage */}
 			<div className='relative w-full aspect-video bg-bg-inverse rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>

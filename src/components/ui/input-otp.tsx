@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import * as React from 'react'
 import { OTPInput, OTPInputContext } from 'input-otp'
@@ -51,7 +51,7 @@ function InputOTPSlot({
 			data-slot='input-otp-slot'
 			data-active={isActive}
 			className={cn(
-				'data-[active=true]:border-brand data-[active=true]:ring-brand/30 data-[active=true]:aria-invalid:ring-error/20 aria-invalid:border-error data-[active=true]:aria-invalid:border-error bg-bg-input border-border-medium relative flex h-12 w-12 items-center justify-center border-y border-r text-sm shadow-sm transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md data-[active=true]:z-10 data-[active=true]:ring-3',
+				'data-[active=true]:border-brand data-[active=true]:ring-brand/30 data-[active=true]:aria-invalid:ring-error/20 aria-invalid:border-error data-[active=true]:aria-invalid:border-error bg-bg-input border-border-medium relative flex size-12 items-center justify-center border-y border-r text-sm shadow-sm transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md data-[active=true]:z-10 data-[active=true]:ring-3',
 				className,
 			)}
 			{...props}
@@ -59,7 +59,7 @@ function InputOTPSlot({
 			{char}
 			{hasFakeCaret && (
 				<div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
-					<div className='animate-caret-blink bg-text-primary h-4 w-px duration-1000' />
+					<div className='animate-caret-blink bg-text-brand h-4 w-px duration-1000' />
 				</div>
 			)}
 		</div>

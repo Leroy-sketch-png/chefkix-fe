@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { z } from 'zod'
@@ -212,7 +212,7 @@ export const ForgotPasswordDialog = ({
 							onClick={handleBack}
 							className='mb-2 w-fit gap-2'
 						>
-							<ArrowLeft className='h-4 w-4' />
+							<ArrowLeft className='size-4' />
 							Back
 						</Button>
 						<Form {...resetForm}>

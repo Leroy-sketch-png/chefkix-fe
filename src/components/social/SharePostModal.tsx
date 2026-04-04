@@ -244,7 +244,7 @@ export const SharePostModal = ({
 							{/* Enhanced Post Preview */}
 							{(postImage || postTitle || postContent) && (
 								<motion.div
-									className='mx-3 my-3 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-amber-50/50 to-transparent p-3 shadow-card dark:from-amber-950/10 sm:mx-4 sm:my-4 sm:p-4'
+									className='mx-3 my-3 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-warning/50 to-transparent p-3 shadow-card dark:from-warning/10 sm:mx-4 sm:my-4 sm:p-4'
 									initial={{ opacity: 0, y: -10 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.1 }}

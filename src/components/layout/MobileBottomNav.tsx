@@ -131,12 +131,12 @@ export const MobileBottomNav = () => {
 							aria-current={active ? 'page' : undefined}
 							className={cn(
 								'group relative flex flex-1 max-w-20 flex-col items-center justify-center gap-1 rounded-radius px-3 py-2',
-								active ? 'text-primary' : 'text-text-secondary',
+								active ? 'text-brand' : 'text-text-secondary',
 							)}
 						>
 							{/* Active indicator dot */}
 							<motion.div
-								className='absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary'
+								className='absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand'
 								initial={false}
 								animate={{ scale: active ? 1 : 0, opacity: active ? 1 : 0 }}
 								transition={TRANSITION_SPRING}
@@ -165,11 +165,11 @@ export const MobileBottomNav = () => {
 					onClick={() => setShowMore(true)}
 					className={cn(
 						'group relative flex flex-1 max-w-20 flex-col items-center justify-center gap-1 rounded-radius px-3 py-2',
-						isMoreActive ? 'text-primary' : 'text-text-secondary',
+						isMoreActive ? 'text-brand' : 'text-text-secondary',
 					)}
 				>
 					<motion.div
-						className='absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary'
+						className='absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand'
 						initial={false}
 						animate={{
 							scale: isMoreActive ? 1 : 0,
@@ -298,7 +298,7 @@ export const MobileTabBar = ({
 						className={cn(
 							'flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-colors',
 							activeTab === tab.id
-								? 'bg-primary text-white'
+								? 'bg-brand text-white'
 								: 'text-text-secondary hover:bg-bg-elevated',
 						)}
 					>

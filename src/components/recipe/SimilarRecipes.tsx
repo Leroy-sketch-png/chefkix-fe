@@ -112,7 +112,7 @@ function SimilarRecipeCard({ recipe }: { recipe: Recipe }) {
 					/>
 				</div>
 				<div className='p-4'>
-					<h3 className='line-clamp-2 text-base font-bold text-text transition-colors group-hover:text-brand'>
+					<h3 className='line-clamp-2 text-base font-serif font-bold text-text transition-colors group-hover:text-brand'>
 						{recipe.title}
 					</h3>
 					<div className='mt-2 flex flex-wrap items-center gap-3 text-xs text-text-muted'>

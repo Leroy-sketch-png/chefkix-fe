@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -92,25 +92,25 @@ interface AiAssistantProps {
 const QUICK_ACTIONS: QuickAction[] = [
 	{
 		id: 'substitute',
-		icon: <span>🔄</span>,
+		icon: <span>ðŸ”„</span>,
 		label: "I'm missing an ingredient",
 		prompt: "I'm missing an ingredient. What can I substitute?",
 	},
 	{
 		id: 'technique',
-		icon: <span>🔪</span>,
+		icon: <span>ðŸ”ª</span>,
 		label: 'How do I do this technique?',
 		prompt: 'Can you explain this cooking technique in more detail?',
 	},
 	{
 		id: 'timing',
-		icon: <span>⏱️</span>,
+		icon: <span>â±ï¸</span>,
 		label: 'Is this done yet?',
 		prompt: 'How do I know when this step is complete? What should I look for?',
 	},
 	{
 		id: 'troubleshoot',
-		icon: <span>🆘</span>,
+		icon: <span>ðŸ†˜</span>,
 		label: 'Something went wrong',
 		prompt: 'Something went wrong with my dish. Can you help me fix it?',
 	},
@@ -137,11 +137,11 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 			{/* Avatar */}
 			<div
 				className={cn(
-					'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm',
+					'flex size-8 shrink-0 items-center justify-center rounded-full text-sm',
 					isUser ? 'bg-brand text-white' : 'bg-gradient-indigo text-white',
 				)}
 			>
-				{isUser ? '👤' : '✨'}
+				{isUser ? 'ðŸ‘¤' : 'âœ¨'}
 			</div>
 
 			{/* Message content */}
@@ -181,7 +181,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 							<span className='font-medium line-through opacity-60'>
 								{message.metadata.substitution.original}
 							</span>
-							<span>→</span>
+							<span>â†’</span>
 							<span className='font-bold text-success'>
 								{message.metadata.substitution.replacement}
 							</span>
@@ -208,8 +208,8 @@ const TypingIndicator = () => (
 		exit={{ opacity: 0, scale: 0.8 }}
 		className='flex gap-2'
 	>
-		<div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-indigo text-white'>
-			✨
+		<div className='flex size-8 items-center justify-center rounded-full bg-gradient-indigo text-white'>
+			âœ¨
 		</div>
 		<div className='flex items-center gap-1.5 rounded-2xl bg-bg-elevated px-4 py-3'>
 			{[0, 1, 2].map(i => (
@@ -221,7 +221,7 @@ const TypingIndicator = () => (
 						repeat: Infinity,
 						delay: i * 0.15,
 					}}
-					className='h-2 w-2 rounded-full bg-text-tertiary'
+					className='size-2 rounded-full bg-text-tertiary'
 				/>
 			))}
 		</div>
@@ -244,13 +244,13 @@ export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => (
 		whileTap={ICON_BUTTON_TAP}
 		animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
 		className={cn(
-			'fixed bottom-24 right-4 z-popover flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-6',
+			'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-lg md:bottom-6',
 			'bg-gradient-indigo text-white',
 		)}
 	>
-		<Sparkles className='h-6 w-6' />
+		<Sparkles className='size-6' />
 		{hasUnreadSuggestion && (
-			<span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-error text-xs font-bold'>
+			<span className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-error text-xs font-bold'>
 				1
 			</span>
 		)}
@@ -357,7 +357,7 @@ export const AiAssistant = ({
 					id: `tip-${Date.now()}`,
 					role: 'assistant',
 					type: 'tip',
-					content: response.data.tips.join('\n• '),
+					content: response.data.tips.join('\nâ€¢ '),
 					timestamp: new Date(),
 				}
 				setMessages(prev => [...prev, tipMessage])
@@ -449,18 +449,18 @@ export const AiAssistant = ({
 						initial='hidden'
 						animate='visible'
 						exit='exit'
-						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
+						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-bg-card shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border bg-gradient-indigo p-4 text-white'>
 							<div className='flex items-center gap-3'>
-								<div className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20'>
-									<Sparkles className='h-5 w-5' />
+								<div className='flex size-10 items-center justify-center rounded-full bg-white/20'>
+									<Sparkles className='size-5' />
 								</div>
 								<div>
 									<h3 className='font-bold'>AI Cooking Assistant</h3>
 									<p className='text-sm text-white/80'>
-										Step {currentStep} • {recipeTitle}
+										Step {currentStep} â€¢ {recipeTitle}
 									</p>
 								</div>
 							</div>
@@ -470,7 +470,7 @@ export const AiAssistant = ({
 									aria-label='Close AI assistant'
 									className='rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white'
 								>
-									<X className='h-5 w-5' />
+									<X className='size-5' />
 								</button>
 							</div>
 						</div>
@@ -530,16 +530,16 @@ export const AiAssistant = ({
 											isListening ? 'Stop listening' : 'Start voice input'
 										}
 										className={cn(
-											'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors',
+											'flex size-10 shrink-0 items-center justify-center rounded-full transition-colors',
 											isListening
 												? 'bg-error text-white'
 												: 'bg-bg-elevated text-text-tertiary hover:bg-bg-hover',
 										)}
 									>
 										{isListening ? (
-											<Mic className='h-5 w-5 animate-pulse' />
+											<Mic className='size-5 animate-pulse' />
 										) : (
-											<MicOff className='h-5 w-5' />
+											<MicOff className='size-5' />
 										)}
 									</button>
 								)}
@@ -558,7 +558,7 @@ export const AiAssistant = ({
 										onClick={() => handleSend()}
 										disabled={!inputValue.trim() || isTyping}
 										className={cn(
-											'absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors',
+											'absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors',
 											inputValue.trim()
 												? 'bg-brand text-white'
 												: 'text-text-tertiary',
@@ -567,7 +567,7 @@ export const AiAssistant = ({
 										{isTyping ? (
 											<Loader2 className='size-4 animate-spin' />
 										) : (
-											<Send className='h-4 w-4' />
+											<Send className='size-4' />
 										)}
 									</button>
 								</div>

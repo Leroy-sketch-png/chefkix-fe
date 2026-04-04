@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { exploreGroups } from '@/services/group'
@@ -110,7 +110,7 @@ export const GroupsExploreGrid = ({
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.98 }}
 						>
-							<Plus className='w-5 h-5' />
+							<Plus className='size-5' />
 							Create Group
 						</motion.button>
 					)}
@@ -121,7 +121,7 @@ export const GroupsExploreGrid = ({
 			<div className='flex flex-col gap-4'>
 				{/* Search Bar - Facebook Style */}
 				<div className='relative'>
-					<Search className='absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-secondary' />
+					<Search className='absolute left-4 top-1/2 transform -translate-y-1/2 size-5 text-text-secondary' />
 					<Input
 						placeholder='Search for groups by name, interests, or topics...'
 						value={searchTerm}
@@ -175,7 +175,7 @@ export const GroupsExploreGrid = ({
 			{isLoading && groups.length === 0 ? (
 				<div className='flex justify-center py-20'>
 					<div className='text-center'>
-						<Loader2 className='w-10 h-10 animate-spin text-brand mx-auto mb-4' />
+						<Loader2 className='size-10 animate-spin text-brand mx-auto mb-4' />
 						<p className='text-text-secondary'>Loading groups...</p>
 					</div>
 				</div>
@@ -185,7 +185,7 @@ export const GroupsExploreGrid = ({
 					initial={{ opacity: 0, y: 10 }}
 					animate={{ opacity: 1, y: 0 }}
 				>
-					<Users className='w-16 h-16 text-text-muted mx-auto mb-4 opacity-50' />
+					<Users className='size-16 text-text-muted mx-auto mb-4 opacity-50' />
 					<p className='text-lg font-semibold text-text mb-2'>
 						No groups found
 					</p>
@@ -199,7 +199,7 @@ export const GroupsExploreGrid = ({
 							onClick={() => setShowCreateModal(true)}
 							className='bg-brand hover:bg-brand/90 text-white'
 						>
-							<Plus className='w-4 h-4 mr-2' />
+							<Plus className='size-4 mr-2' />
 							Create First Group
 						</Button>
 					)}
@@ -260,7 +260,7 @@ export const GroupsExploreGrid = ({
 					>
 						{isLoading ? (
 							<>
-								<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+								<Loader2 className='size-4 mr-2 animate-spin' />
 								Loading...
 							</>
 						) : (

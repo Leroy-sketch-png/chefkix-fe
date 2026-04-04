@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -102,7 +102,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 							</AvatarFallback>
 						</Avatar>
 						<div className='flex-1'>
-							<h3 className='font-semibold text-text-primary transition-colors group-hover:text-primary'>
+							<h3 className='font-semibold text-text-primary transition-colors group-hover:text-brand'>
 								{displayName}
 							</h3>
 							<p className='text-sm text-text-secondary'>@{profile.username}</p>
@@ -128,7 +128,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 							variant='ghost'
 							size='sm'
 							asChild
-							className='hover:bg-primary/10 hover:text-primary'
+							className='hover:bg-brand/10 hover:text-brand'
 						>
 							<Link href={`/messages?userId=${profile.userId}`}>
 								<MessageCircle className='size-4' />

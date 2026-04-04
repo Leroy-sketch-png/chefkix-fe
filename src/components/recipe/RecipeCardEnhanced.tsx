@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
@@ -36,7 +36,9 @@ import {
 // ============================================
 
 import type { Difficulty } from '@/lib/types/gamification'
+import type { QualityTier } from '@/lib/types/recipe'
 import { resolveBadgesWithFallback } from '@/lib/data/badgeRegistry'
+import { QualityBadge } from './QualityBadge'
 
 interface RecipeAuthor {
 	id: string
@@ -58,8 +60,10 @@ interface RecipeCardBase {
 	cookCount: number
 	rating: number
 	// Gamification fields
-	skillTags?: string[] // Skills you'll learn (e.g., "Knife Skills", "Sauté")
+	skillTags?: string[] // Skills you'll learn (e.g., "Knife Skills", "SautÃ©")
 	badges?: string[] // Badges you can earn (e.g., "First Pasta", "Spice Master")
+	// Recipe Quality Score
+	qualityTier?: QualityTier // Show Foolproof badge when present
 }
 
 interface RecipeCardMastery {
@@ -129,7 +133,7 @@ const XPBadge = ({
 				size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-sm',
 			)}
 		>
-			<span className={size === 'large' ? 'text-lg' : 'text-sm'}>⚡</span>
+			<span className={size === 'large' ? 'text-lg' : 'text-sm'}>âš¡</span>
 			<span className='tabular-nums'>{xp} XP</span>
 		</div>
 	)
@@ -243,10 +247,10 @@ const MasteryBadge = ({
 	level: 'novice' | 'apprentice' | 'expert' | 'master'
 }) => {
 	const config = {
-		novice: { emoji: '🥉', gradient: 'from-slate-500 to-slate-600' },
-		apprentice: { emoji: '🥈', gradient: 'from-blue-500 to-blue-600' },
-		expert: { emoji: '🥇', gradient: 'from-gold to-level' },
-		master: { emoji: '👑', gradient: 'from-xp to-bonus' },
+		novice: { emoji: 'ðŸ¥‰', gradient: 'from-text-muted to-text-muted' },
+		apprentice: { emoji: 'ðŸ¥ˆ', gradient: 'from-info to-info' },
+		expert: { emoji: 'ðŸ¥‡', gradient: 'from-gold to-level' },
+		master: { emoji: 'ðŸ‘‘', gradient: 'from-xp to-bonus' },
 	}
 
 	return (
@@ -330,7 +334,7 @@ const BadgePreview = ({
 
 	return (
 		<div className='flex items-center gap-1'>
-			<span className='text-2xs'>🏆</span>
+			<span className='text-2xs'>ðŸ†</span>
 			<div className='flex items-center gap-1'>
 				{visibleBadges.map(badge => (
 					<span
@@ -371,12 +375,13 @@ const FeedCard = ({
 	rating,
 	skillTags,
 	badges,
+	qualityTier,
 	onCookNow,
 }: FeedCardProps) => (
 	<motion.article
 		whileHover={CARD_FEED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='relative overflow-hidden rounded-2xl bg-panel-bg shadow-card hover:shadow-xl'
+		className='relative overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
@@ -394,11 +399,23 @@ const FeedCard = ({
 				/>
 				<XPBadge xp={xpReward} />
 				<DifficultyIndicator difficulty={difficulty} />
+				{/* Quality badge - only show Foolproof tier */}
+				{qualityTier === 'Foolproof' && (
+					<div className='absolute right-3 top-3'>
+						<QualityBadge
+							tier='Foolproof'
+							size='sm'
+							showLabel
+							showScore={false}
+							animate={false}
+						/>
+					</div>
+				)}
 			</motion.div>
 
 			{/* Content */}
 			<div className='p-4'>
-				<h3 className='mb-2 text-lg font-bold'>{title}</h3>
+				<h3 className='mb-2 text-lg font-serif font-bold'>{title}</h3>
 
 				{/* Skills you'll learn */}
 				{skillTags && skillTags.length > 0 && (
@@ -420,7 +437,7 @@ const FeedCard = ({
 								/>
 								{author.name}
 							</span>
-							<span className='text-border'>•</span>
+							<span className='text-border'>â€¢</span>
 						</>
 					)}
 					<span className='flex items-center gap-1'>
@@ -483,6 +500,7 @@ const GridCard = ({
 	rating,
 	skillTags,
 	badges,
+	qualityTier,
 	onCook,
 	onSave,
 	isSaved,
@@ -490,7 +508,7 @@ const GridCard = ({
 	<motion.article
 		whileHover={CARD_GRID_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-2xl bg-panel-bg shadow-card hover:shadow-xl'
+		className='overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-xl'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
@@ -509,11 +527,23 @@ const GridCard = ({
 				<XPBadge xp={xpReward} />
 				{/* Difficulty indicator - subtle pill instead of ribbon per design feedback */}
 				<DifficultyIndicator difficulty={difficulty} showLabel />
+				{/* Quality badge - only show Foolproof tier */}
+				{qualityTier === 'Foolproof' && (
+					<div className='absolute right-3 top-3'>
+						<QualityBadge
+							tier='Foolproof'
+							size='sm'
+							showLabel
+							showScore={false}
+							animate={false}
+						/>
+					</div>
+				)}
 			</motion.div>
 
 			{/* Content */}
 			<div className='p-4'>
-				<h3 className='mb-1.5 text-base font-bold'>{title}</h3>
+				<h3 className='mb-1.5 text-base font-serif font-bold'>{title}</h3>
 				{description && (
 					<p className='mb-2 line-clamp-2 text-sm leading-relaxed text-text-muted'>
 						{description}
@@ -551,7 +581,7 @@ const GridCard = ({
 					{/* Only show rating if it exists and > 0 */}
 					{rating > 0 && (
 						<span className='flex items-center gap-1 text-warning'>
-							⭐ {rating.toFixed(1)}
+							â­ {rating.toFixed(1)}
 						</span>
 					)}
 				</div>
@@ -569,7 +599,7 @@ const GridCard = ({
 						<span>{author.name}</span>
 						{author.isVerified && (
 							<span className='rounded-full bg-success px-1.5 py-0.5 text-2xs text-white'>
-								✓
+								âœ“
 							</span>
 						)}
 					</div>
@@ -664,7 +694,7 @@ const FeaturedCard = ({
 				<div className='absolute right-5 top-5 flex flex-col items-end gap-2.5'>
 					{xpReward != null && xpReward > 0 && (
 						<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-lg shadow-success/40'>
-							<span className='text-lg'>⚡</span>
+							<span className='text-lg'>âš¡</span>
 							<span className='tabular-nums'>{xpReward} XP</span>
 						</div>
 					)}
@@ -681,7 +711,7 @@ const FeaturedCard = ({
 
 				{/* Content overlay */}
 				<div className='absolute inset-x-0 bottom-0 z-10 p-6 md:p-8'>
-					<h3 className='mb-3 text-2xl font-extrabold text-white drop-shadow-md md:text-3xl'>
+					<h3 className='mb-3 text-2xl font-display font-extrabold text-white drop-shadow-md md:text-3xl'>
 						{title}
 					</h3>
 					{description && (
@@ -707,7 +737,7 @@ const FeaturedCard = ({
 					{/* Badges you can unlock */}
 					{badges && badges.length > 0 && (
 						<div className='mb-4 flex items-center gap-2'>
-							<span className='text-sm'>🏆</span>
+							<span className='text-sm'>ðŸ†</span>
 							<div className='flex gap-1.5'>
 								{badges.slice(0, 2).map(badge => (
 									<span
@@ -808,7 +838,7 @@ const CookedCard = ({
 	<motion.article
 		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
-		className='overflow-hidden rounded-2xl border-2 border-xp/30 bg-panel-bg shadow-card hover:border-xp/50 hover:shadow-xp/15'
+		className='overflow-hidden rounded-2xl border-2 border-xp/30 bg-bg-card shadow-card hover:border-xp/50 hover:shadow-xp/15'
 	>
 		<Link href={`/recipes/${id}`} className='block'>
 			{/* Image */}
@@ -822,13 +852,13 @@ const CookedCard = ({
 				/>
 				<MasteryBadge level={mastery.masteryLevel} />
 				<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white'>
-					{mastery.personalCookCount}× cooked
+					{mastery.personalCookCount}Ã— cooked
 				</div>
 			</div>
 
 			{/* Content */}
 			<div className='p-4'>
-				<h3 className='mb-4 text-lg font-bold'>{title}</h3>
+				<h3 className='mb-4 text-lg font-serif font-bold'>{title}</h3>
 
 				{/* Mastery progress */}
 				<div className='mb-4'>
@@ -918,7 +948,7 @@ const MiniCard = ({
 	<motion.article
 		whileHover={CARD_HOVER}
 		transition={TRANSITION_SPRING}
-		className='flex items-center gap-3.5 rounded-xl border border-border bg-panel-bg p-3 hover:border-brand'
+		className='flex items-center gap-3.5 rounded-xl border border-border bg-bg-card p-3 hover:border-brand'
 	>
 		<Link href={`/recipes/${id}`} className='flex flex-1 items-center gap-3.5'>
 			<Image
@@ -932,7 +962,7 @@ const MiniCard = ({
 				<h4 className='mb-1 truncate text-sm font-semibold'>{title}</h4>
 				<div className='flex items-center gap-2.5 text-xs'>
 					{xpReward != null && xpReward > 0 && (
-						<span className='font-semibold tabular-nums text-success'>⚡ {xpReward} XP</span>
+						<span className='font-semibold tabular-nums text-success'>âš¡ {xpReward} XP</span>
 					)}
 					<span className='text-text-muted'>{cookTimeMinutes} min</span>
 					<span

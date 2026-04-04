@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -133,19 +133,19 @@ export const PostDeadlineCard = ({
 
 	const stateConfig = {
 		normal: {
-			icon: '📸',
+			icon: 'ðŸ“¸',
 			label: 'Unlock your reward!',
 			borderClass: 'border-border',
 			bgClass: '',
-			labelClass: 'text-primary',
+			labelClass: 'text-brand',
 			deadlineClass: 'text-text-secondary',
 			xpBgClass: 'bg-success/10',
 			xpTextClass: 'text-success',
-			buttonClass: 'bg-primary hover:bg-primary/90',
+			buttonClass: 'bg-brand hover:bg-brand/90',
 			ClockIcon: Clock,
 		},
 		warning: {
-			icon: '⏰',
+			icon: 'â°',
 			label: 'Time running out!',
 			borderClass: 'border-gold/40',
 			bgClass: 'bg-gold/5',
@@ -157,7 +157,7 @@ export const PostDeadlineCard = ({
 			ClockIcon: AlertCircle,
 		},
 		urgent: {
-			icon: '🚨',
+			icon: 'ðŸš¨',
 			label: 'LAST CHANCE!',
 			borderClass: 'border-error/40',
 			bgClass: '',
@@ -169,7 +169,7 @@ export const PostDeadlineCard = ({
 			ClockIcon: Timer,
 		},
 		expired: {
-			icon: '😢',
+			icon: 'ðŸ˜¢',
 			label: 'XP Expired',
 			borderClass: 'border-border',
 			bgClass: 'opacity-70',
@@ -191,7 +191,7 @@ export const PostDeadlineCard = ({
 			exit={{ opacity: 0, y: -10 }}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'overflow-hidden rounded-2xl border bg-panel-bg',
+				'overflow-hidden rounded-2xl border bg-bg-card',
 				config.borderClass,
 				config.bgClass,
 				state === 'urgent' && 'animate-pulse-subtle',
@@ -203,7 +203,7 @@ export const PostDeadlineCard = ({
 				<motion.div
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
-					className='flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-red-600 px-4 py-2.5 text-sm font-semibold text-white'
+					className='flex items-center justify-center gap-2 bg-gradient-to-r from-error to-error px-4 py-2.5 text-sm font-semibold text-white'
 				>
 					<AlertTriangle className='size-4' />
 					<span>XP expires soon! Post now to claim.</span>
@@ -224,12 +224,12 @@ export const PostDeadlineCard = ({
 						/>
 					) : (
 						<div className='flex size-full items-center justify-center rounded-xl bg-bg-elevated text-2xl'>
-							🍳
+							ðŸ³
 						</div>
 					)}
 					<motion.span
 						className={cn(
-							'absolute -bottom-1 -right-1 rounded-full bg-panel-bg p-0.5 text-lg',
+							'absolute -bottom-1 -right-1 rounded-full bg-bg-card p-0.5 text-lg',
 							state === 'warning' && 'animate-pulse',
 							state === 'urgent' && 'animate-bounce',
 						)}
@@ -278,7 +278,7 @@ export const PostDeadlineCard = ({
 				>
 					<span
 						className={cn(
-							'block text-xl font-extrabold leading-none',
+							'block text-xl font-display font-extrabold leading-none',
 							config.xpTextClass,
 						)}
 					>
@@ -346,7 +346,7 @@ export const PostDeadlineStack = ({
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'overflow-hidden rounded-2xl border border-border bg-panel-bg',
+				'overflow-hidden rounded-2xl border border-border bg-bg-card',
 				className,
 			)}
 		>
@@ -355,7 +355,7 @@ export const PostDeadlineStack = ({
 				onClick={() => setIsExpanded(!isExpanded)}
 				className='flex w-full items-center gap-2.5 border-b border-border px-4 py-3.5 hover:bg-muted/30'
 			>
-				<span className='text-lg'>📸</span>
+				<span className='text-lg'>ðŸ“¸</span>
 				<span className='flex-1 text-left text-sm font-semibold'>
 					{pendingPosts.length} recipes waiting
 				</span>
@@ -399,7 +399,7 @@ export const PostDeadlineStack = ({
 											/>
 										) : (
 											<div className='flex size-10 items-center justify-center rounded-lg bg-bg-elevated text-lg'>
-												🍳
+												ðŸ³
 											</div>
 										)}
 										<span className='min-w-0 flex-1 truncate text-sm font-semibold'>
@@ -423,7 +423,7 @@ export const PostDeadlineStack = ({
 											whileHover={BUTTON_SUBTLE_HOVER}
 											whileTap={BUTTON_SUBTLE_TAP}
 											transition={TRANSITION_SPRING}
-											className='rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white'
+											className='rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white'
 										>
 											Post
 										</motion.button>
@@ -455,12 +455,12 @@ export const PostDeadlineBadge = ({
 			whileTap={BUTTON_SUBTLE_TAP}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs hover:bg-primary/15',
+				'inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3.5 py-2 text-xs hover:bg-brand/15',
 				className,
 			)}
 		>
-			<span className='size-2 animate-pulse rounded-full bg-primary' />
-			<span className='font-bold text-primary'>{count}</span>
+			<span className='size-2 animate-pulse rounded-full bg-brand' />
+			<span className='font-bold text-brand'>{count}</span>
 			<span className='text-text-secondary'>pending posts</span>
 			<span className='font-bold text-success'>+{Math.round(totalXp)} XP</span>
 		</motion.button>
@@ -498,12 +498,12 @@ export const PostDeadlineMobileStrip = ({
 				state === 'warning' && 'border-gold/30 bg-gold/10',
 				state === 'urgent' &&
 					'border-error/30 bg-gradient-to-r from-error/10 to-transparent',
-				state === 'normal' && 'border-border bg-panel-bg',
+				state === 'normal' && 'border-border bg-bg-card',
 				className,
 			)}
 		>
 			<span className='text-base'>
-				{state === 'urgent' ? '🚨' : state === 'warning' ? '⏰' : '📸'}
+				{state === 'urgent' ? 'ðŸš¨' : state === 'warning' ? 'â°' : 'ðŸ“¸'}
 			</span>
 			<span className='flex-1 truncate text-xs font-medium'>
 				{recipeName}: {timeRemaining} to claim +{Math.round(pendingXp)} XP
@@ -512,7 +512,7 @@ export const PostDeadlineMobileStrip = ({
 				onClick={onPost}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
-				className='rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-white'
+				className='rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white'
 			>
 				Post
 			</motion.button>

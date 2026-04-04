@@ -47,7 +47,7 @@ export function StarRating({
 						className={cn(
 							sizeMap[size],
 							star <= displayValue
-								? 'fill-amber-400 text-amber-400'
+								? 'fill-level text-level'
 								: 'fill-transparent text-text-muted',
 						)}
 					/>
