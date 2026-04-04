@@ -684,3 +684,72 @@ export const CHECKMARK_DRAW = {
 		},
 	},
 }
+
+// ============================================
+// REDUCED MOTION UTILITIES
+// ============================================
+
+/** Instant transition for reduced-motion users */
+const INSTANT = { duration: 0 } as const
+
+/** No-op hover/tap states */
+const NO_MOTION = {} as const
+
+/**
+ * Returns motion-appropriate variants based on user preference.
+ * Usage: const hover = useMotionVariant(BUTTON_HOVER)
+ *
+ * For components that use the motion system, call this with any
+ * motion constant and it returns either the original or a static no-op.
+ */
+export function getReducedMotionProps(shouldReduce: boolean) {
+	if (!shouldReduce) return {}
+
+	return {
+		// Disable all spring/tween transitions
+		transition: INSTANT,
+		// Disable layout animations
+		layout: false,
+	} as const
+}
+
+/**
+ * Get hover/tap props that respect reduced motion.
+ * Usage: <motion.div {...getMotionHoverTap(shouldReduce, BUTTON_HOVER, BUTTON_TAP)}>
+ */
+export function getMotionHoverTap(
+	shouldReduce: boolean,
+	hover: Record<string, unknown> = BUTTON_HOVER,
+	tap: Record<string, unknown> = BUTTON_TAP,
+) {
+	if (shouldReduce) return { whileHover: NO_MOTION, whileTap: NO_MOTION }
+	return { whileHover: hover, whileTap: tap }
+}
+
+/**
+ * Get variants with reduced-motion alternative.
+ * Reduced: visible state applied instantly, no hidden→visible animation.
+ */
+export function getMotionVariants(
+	shouldReduce: boolean,
+	variants: { hidden?: Record<string, unknown>; visible?: Record<string, unknown>; exit?: Record<string, unknown> },
+) {
+	if (!shouldReduce) return variants
+
+	return {
+		hidden: { opacity: 1 },
+		visible: { opacity: 1, transition: INSTANT },
+		...(variants.exit ? { exit: { opacity: 0, transition: INSTANT } } : {}),
+	}
+}
+
+/**
+ * Get transition that respects reduced motion.
+ * Reduced: instant transition, no spring/bounce.
+ */
+export function getMotionTransition(
+	shouldReduce: boolean,
+	transition: Record<string, unknown> = TRANSITION_SPRING,
+) {
+	return shouldReduce ? INSTANT : transition
+}

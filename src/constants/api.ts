@@ -102,6 +102,8 @@ export const API_ENDPOINTS = {
 		VOTE_BATTLE: (postId: string) =>
 			`${POST_SERVICE_PREFIX}/battles/${postId}/vote`,
 		GET_ACTIVE_BATTLES: `${POST_SERVICE_PREFIX}/battles/active`,
+		// Taste Profile (Sprint 7)
+		TASTE_PROFILE: `${POST_SERVICE_PREFIX}/taste-profile`,
 	},
 	// Recipe endpoints per spec (07-recipes.txt): /api/v1/recipe/* (singular)
 	RECIPES: {
@@ -217,6 +219,7 @@ export const API_ENDPOINTS = {
 		CREATE_MESSAGE: `${API_PREFIX}/chat/messages/create`,
 		GET_MESSAGES: `${API_PREFIX}/chat/messages`,
 		GET_MESSAGES_PAGINATED: `${API_PREFIX}/chat/messages/paginated`,
+		VIDEO_SIGNALING_WS: `${API_PREFIX}/ws/video-signaling`,
 	},
 	// AI Integration per spec (14-ai-integration.txt)
 	AI: {
@@ -253,6 +256,7 @@ export const API_ENDPOINTS = {
 		// Push notification token management (matches BE DeviceController at /devices/push-token)
 		REGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
 		UNREGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
+		UNREGISTER_ALL_PUSH_TOKENS: `${API_PREFIX}/devices/push-tokens`,
 	},
 	// Pantry Management per spec (23-pantry-and-meal-planning.txt)
 	PANTRY: {
@@ -386,5 +390,12 @@ export const API_ENDPOINTS = {
 			`${COLLECTIONS_PREFIX}/${collectionId}/posts/${postId}`,
 		REMOVE_POST: (collectionId: string, postId: string) =>
 			`${COLLECTIONS_PREFIX}/${collectionId}/posts/${postId}`,
+		// Learning Path V2 endpoints
+		ENROLL: (id: string) => `${COLLECTIONS_PREFIX}/${id}/enroll`,
+		GET_PROGRESS: (id: string) => `${COLLECTIONS_PREFIX}/${id}/progress`,
+		UPDATE_PROGRESS: (id: string, recipeId: string, xpEarned: number = 0) =>
+			`${COLLECTIONS_PREFIX}/${id}/progress?recipeId=${recipeId}&xpEarned=${xpEarned}`,
+		// Featured / Seasonal
+		FEATURED: `${COLLECTIONS_PREFIX}/featured`,
 	},
 } as const

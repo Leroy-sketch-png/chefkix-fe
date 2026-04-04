@@ -38,6 +38,7 @@ export interface Post {
 	postUrl: string
 	tags: string[]
 	postType?: PostType
+	groupId?: string // Group this post belongs to (null for non-group posts)
 	likes: number // BE: Integer (nullable), but FE defaults to 0
 	commentCount: number
 	createdAt: string

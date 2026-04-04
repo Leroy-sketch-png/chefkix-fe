@@ -6,6 +6,7 @@ import {
 	RecipeCreateRequest,
 	RecipeUpdateRequest,
 	RecipeQueryParams,
+	RecommendationResponse,
 } from '@/lib/types/recipe'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination, toBackendRecipeParams } from '@/lib/apiUtils'
@@ -19,6 +20,8 @@ import { logDevError } from '@/lib/dev-log'
 export interface PublishResponse {
 	isPublished: boolean
 	moderationStatus: 'approved' | 'pending' | 'rejected'
+	qualityScore?: number
+	qualityTier?: 'Foolproof' | 'Good' | 'Needs Work' | 'Draft Quality'
 }
 
 /**
@@ -154,16 +157,17 @@ export const getTrendingRecipes = async (
 /**
  * Get tonight's personalized recipe recommendation.
  * Uses cooking history + trending for taste-based picks.
+ * Returns RecommendationResponse with recipe + whyRecommended + matchSignals + confidenceScore
  */
-export const getTonightsPick = async (): Promise<ApiResponse<Recipe>> => {
+export const getTonightsPick = async (): Promise<ApiResponse<RecommendationResponse>> => {
 	try {
-		const response = await api.get<ApiResponse<Recipe>>(
+		const response = await api.get<ApiResponse<RecommendationResponse>>(
 			API_ENDPOINTS.RECIPES.TONIGHT_PICK,
 		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		const axiosError = error as AxiosError<ApiResponse<RecommendationResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,

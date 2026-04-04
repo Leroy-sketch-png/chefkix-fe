@@ -25,6 +25,12 @@ export type RecipeStatus = 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'ARCHIVED'
  */
 export type RecipeVisibility = 'PUBLIC' | 'PRIVATE' | 'PENDING' | 'FRIENDS_ONLY'
 
+/**
+ * Quality tier from Recipe Quality Score (RQS)
+ * BE sends Title Case via @JsonValue
+ */
+export type QualityTier = 'Foolproof' | 'Good' | 'Needs Work' | 'Draft Quality'
+
 // ============================================
 // SUB-TYPES - Match BE inner DTOs exactly
 // ============================================
@@ -40,8 +46,9 @@ export interface Ingredient {
 }
 
 /**
- * Step - matches BE StepResponse
+ * Step - matches BE StepResponse (19 fields total)
  * Note: BE uses 'description', not 'instruction'
+ * Updated: 2026-04-03 — Added 8 enriched fields from ALPHA C3
  */
 export interface Step {
 	stepNumber: number
@@ -55,6 +62,16 @@ export interface Step {
 	videoThumbnailUrl?: string
 	videoDurationSec?: number
 	tips?: string
+	// === Enriched fields (from AI enrichment) ===
+	chefTip?: string
+	techniqueExplanation?: string
+	commonMistake?: string
+	estimatedHandsOnTime?: number // seconds
+	equipmentNeeded?: string[]
+	visualCues?: string
+	// === V2 Step fields (goal-oriented cooking) ===
+	goal?: string // What this step achieves
+	microSteps?: string[] // Breakdown into atomic actions
 }
 
 /**
@@ -187,6 +204,10 @@ export interface Recipe {
 	xpBreakdown?: XpBreakdown
 	validation?: ValidationMetadata
 	enrichment?: EnrichmentMetadata
+
+	// === Recipe Quality Score (RQS) ===
+	qualityScore?: number // 0-100
+	qualityTier?: QualityTier // "Foolproof" | "Good" | "Needs Work" | "Draft Quality"
 }
 
 // ============================================
@@ -217,6 +238,9 @@ export interface RecipeSummary {
 	author: Author
 	isLiked?: boolean
 	isSaved?: boolean
+	// === Recipe Quality Score (RQS) ===
+	qualityScore?: number // 0-100
+	qualityTier?: QualityTier // "Foolproof" | "Good" | "Needs Work" | "Draft Quality"
 }
 
 // ============================================
@@ -326,6 +350,22 @@ export interface CreatorInsights {
 // RecipeMastery is defined in gamification.ts - import from there
 // Re-export for convenience from recipe context
 export type { RecipeMastery } from './gamification'
+
+// ============================================
+// RECOMMENDATION RESPONSE
+// ============================================
+
+/**
+ * RecommendationResponse - matches BE RecommendationResponse.java
+ * Wraps a recipe with recommendation metadata for "Picked for You" / Tonight's Pick
+ * Added: 2026-04-03 — ALPHA B3
+ */
+export interface RecommendationResponse {
+	recipe: Recipe // Full recipe detail (RecipeDetailResponse)
+	whyRecommended: string // "Matches your taste preferences and 2 more reasons"
+	matchSignals: string[] // ["Matches your taste preferences", "Trending in the community", ...]
+	confidenceScore: number // 0.0-1.0 computed score from 5-signal algorithm
+}
 
 // ============================================
 // UTILITY FUNCTIONS

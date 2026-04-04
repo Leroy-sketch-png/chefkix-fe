@@ -29,6 +29,7 @@ import {
 	leaveRoom as apiLeaveRoom,
 	getRoom as apiGetRoom,
 } from '@/services/cookingRoom'
+import type { StepRenderMode } from '@/components/cooking/StepV2Renderer'
 
 // ============================================
 // TYPES
@@ -117,6 +118,10 @@ interface CookingState {
 	toggleIngredient: (id: string) => void
 	clearCheckedIngredients: () => void
 
+	// Step render mode preference (persisted)
+	stepRenderMode: StepRenderMode
+	setStepRenderMode: (mode: StepRenderMode) => void
+
 	// Timer management
 	tickTimers: () => void
 	getTimerRemaining: (stepNumber: number) => number | null
@@ -145,6 +150,7 @@ export const useCookingStore = create<CookingState>()(
 			isPreviewMode: false,
 			localTimers: new Map(),
 			checkedIngredients: {},
+			stepRenderMode: 'full' as StepRenderMode,
 			roomCode: null,
 			participants: [],
 			isInRoom: false,
@@ -152,6 +158,10 @@ export const useCookingStore = create<CookingState>()(
 
 			setInteractionMode: (mode: KitchenInteractionMode) => {
 				set({ interactionMode: mode })
+			},
+
+			setStepRenderMode: (mode: StepRenderMode) => {
+				set({ stepRenderMode: mode })
 			},
 
 			startCooking: async (recipeId: string) => {
@@ -1050,7 +1060,7 @@ export const useCookingStore = create<CookingState>()(
 		}),
 		{
 			name: 'chefkix-cooking-session',
-			// Persist session IDs, checklist state, and active timers
+			// Persist session IDs, checklist state, active timers, and render mode preference
 			partialize: state => ({
 				session: state.session
 					? {
@@ -1060,6 +1070,7 @@ export const useCookingStore = create<CookingState>()(
 					: null,
 				checkedIngredients: state.checkedIngredients,
 				localTimers: Array.from(state.localTimers.entries()),
+				stepRenderMode: state.stepRenderMode,
 			}),
 			merge: (persisted: unknown, currentState: CookingState) => {
 				const p = persisted as Partial<CookingState & { localTimers: [number, { initialDuration: number; startedAt: number; remaining: number }][] }>
@@ -1077,6 +1088,7 @@ export const useCookingStore = create<CookingState>()(
 					...currentState,
 					...p,
 					localTimers: rehydratedTimers,
+					stepRenderMode: (p?.stepRenderMode as StepRenderMode) || 'full',
 				}
 			},
 		},

@@ -77,13 +77,13 @@ export type ShoppingCategory = (typeof SHOPPING_CATEGORIES)[number]
 // Category icons/colors for UI display
 export const CATEGORY_CONFIG: Record<string, { icon: string; color: string }> =
 	{
-		Produce: { icon: '🥬', color: 'text-green-600' },
-		Dairy: { icon: '🥛', color: 'text-blue-500' },
-		Protein: { icon: '🥩', color: 'text-red-500' },
-		Grains: { icon: '🌾', color: 'text-amber-600' },
-		Spices: { icon: '🧂', color: 'text-orange-500' },
-		Condiments: { icon: '🫙', color: 'text-yellow-600' },
-		Canned: { icon: '🥫', color: 'text-slate-500' },
-		Baking: { icon: '🧁', color: 'text-pink-500' },
+		Produce: { icon: '🥬', color: 'text-success' },
+		Dairy: { icon: '🥛', color: 'text-info' },
+		Protein: { icon: '🥩', color: 'text-error' },
+		Grains: { icon: '🌾', color: 'text-warning' },
+		Spices: { icon: '🧂', color: 'text-streak' },
+		Condiments: { icon: '🫙', color: 'text-warning-vivid' },
+		Canned: { icon: '🥫', color: 'text-text-muted' },
+		Baking: { icon: '🧁', color: 'text-brand' },
 		Other: { icon: '📦', color: 'text-text-muted' },
 	}

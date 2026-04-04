@@ -15,6 +15,7 @@ import {
 	RecipeReviewStatsResponse,
 	BattleVoteResponse,
 } from '@/lib/types/post'
+import type { TasteProfileResponse } from '@/lib/types/social'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
 import { AxiosError } from 'axios'
@@ -704,5 +705,19 @@ export const getActiveBattles = async (
 		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) return axiosError.response.data
 		return { success: false, message: 'Failed to load battles', statusCode: 500 }
+	}
+}
+
+export const getTasteProfile = async (): Promise<ApiResponse<TasteProfileResponse>> => {
+	try {
+		const response = await api.get<ApiResponse<TasteProfileResponse>>(
+			API_ENDPOINTS.POST.TASTE_PROFILE,
+		)
+		return response.data
+	} catch (error) {
+		logDevError('getTasteProfile failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<TasteProfileResponse>>
+		if (axiosError.response) return axiosError.response.data
+		return { success: false, message: 'Failed to load taste profile', statusCode: 500 }
 	}
 }
