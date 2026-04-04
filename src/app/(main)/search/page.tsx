@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
+import { useState, useEffect, useRef, useMemo, Suspense, useTransition } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -48,7 +48,7 @@ import {
 	PostSearchDoc,
 } from '@/lib/types/search'
 import { logDevError } from '@/lib/dev-log'
-import { trackEvent } from '@/lib/eventTracker'
+import { trackEvent, trackSearch } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -224,8 +224,8 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 							className={cn(
 								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
 								saved
-									? 'bg-primary/10 text-primary'
-									: 'text-text-secondary hover:bg-bg-hover hover:text-primary',
+									? 'bg-brand/10 text-brand'
+									: 'text-text-secondary hover:bg-bg-hover hover:text-brand',
 							)}
 						>
 							<Bookmark className={cn('size-4', saved && 'fill-current')} />
@@ -345,7 +345,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors',
 					following
 						? 'border-2 border-border-subtle bg-bg-elevated text-text hover:border-error hover:bg-error/5 hover:text-error'
-						: 'bg-primary text-white',
+						: 'bg-brand text-white',
 				)}
 			>
 				{following ? 'Following' : 'Follow'}
@@ -451,6 +451,7 @@ function SearchContent() {
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
 	const [recentSearches, setRecentSearches] = useState<string[]>([])
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [results, setResults] = useState<{
 		recipes: RecipeResult[]
 		people: PersonResult[]
@@ -523,8 +524,13 @@ function SearchContent() {
 					const posts =
 						res.data.posts?.hits?.map(h => transformPostDoc(h.document)) ?? []
 					setResults({ recipes, people, posts })
+
+					// Track search query for taste vector building
+					const totalCount = recipes.length + people.length + posts.length
+					trackSearch(query, totalCount)
 				} else {
 					setResults({ recipes: [], people: [], posts: [] })
+					trackSearch(query, 0)
 				}
 			} catch (err) {
 				if (cancelled) return
@@ -688,6 +694,28 @@ function SearchContent() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<motion.div
+								animate={{ rotate: 360 }}
+								transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+							>
+								<Search className='size-4' />
+							</motion.div>
+							Loading...
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='lg'>
 				{/* Header - Secondary page pattern with back button */}
 				<div className='mb-6'>
@@ -782,10 +810,13 @@ function SearchContent() {
 												onClick={() => {
 													isInternalNav.current = true
 													setSearchInput(suggestion)
-													router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+													startNavigationTransition(() => {
+														router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+													})
 												}}
+												disabled={isNavigating}
 												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80'
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50'
 											>
 												{suggestion}
 											</motion.button>
@@ -835,10 +866,13 @@ function SearchContent() {
 												onClick={() => {
 													isInternalNav.current = true
 													setSearchInput(suggestion)
-													router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+													startNavigationTransition(() => {
+														router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+													})
 												}}
+												disabled={isNavigating}
 												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80'
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50'
 											>
 												{suggestion}
 											</motion.button>
@@ -888,10 +922,13 @@ function SearchContent() {
 												onClick={() => {
 													isInternalNav.current = true
 													setSearchInput(suggestion)
-													router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+													startNavigationTransition(() => {
+														router.push(`/search?q=${encodeURIComponent(suggestion)}`)
+													})
 												}}
+												disabled={isNavigating}
 												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80'
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50'
 											>
 												{suggestion}
 											</motion.button>

@@ -68,7 +68,7 @@ function buildRecapCards(stats: {
 					: stats.completionCount >= 5
 						? 'Getting into your groove'
 						: 'Every journey starts with one dish',
-			gradient: 'from-brand to-orange-400',
+			gradient: 'from-brand to-streak',
 			icon: <ChefHat className='size-8' />,
 		})
 	}
@@ -81,7 +81,7 @@ function buildRecapCards(stats: {
 			title: 'Total XP Earned',
 			value: stats.currentXP.toLocaleString(),
 			subtitle: `Reached Level ${stats.currentLevel} — ${stats.title}`,
-			gradient: 'from-gaming-xp to-purple-400',
+			gradient: 'from-gaming-xp to-accent-purple',
 			icon: <Zap className='size-8' />,
 		})
 	}
@@ -100,7 +100,7 @@ function buildRecapCards(stats: {
 					: stats.streakCount >= 7
 						? 'A full week of cooking!'
 						: 'Building the habit',
-			gradient: 'from-gaming-streak to-red-400',
+			gradient: 'from-gaming-streak to-error',
 			icon: <Flame className='size-8' />,
 		})
 	}
@@ -117,7 +117,7 @@ function buildRecapCards(stats: {
 				: stats.recipeCount >= 5
 					? 'Your collection is growing'
 					: 'Your first creations',
-			gradient: 'from-emerald-500 to-teal-400',
+			gradient: 'from-success to-accent-teal',
 			icon: <Star className='size-8' />,
 		})
 	}
@@ -134,7 +134,7 @@ function buildRecapCards(stats: {
 				: stats.postCount >= 10
 					? 'Sharing the love'
 					: 'Getting started',
-			gradient: 'from-pink-500 to-rose-400',
+			gradient: 'from-brand to-brand/70',
 			icon: <Heart className='size-8' />,
 		})
 	}
@@ -147,7 +147,7 @@ function buildRecapCards(stats: {
 			title: 'Your Community',
 			value: `${stats.followerCount} followers`,
 			subtitle: `Following ${stats.followingCount} amazing chefs`,
-			gradient: 'from-blue-500 to-indigo-400',
+			gradient: 'from-info to-accent-purple',
 			icon: <TrendingUp className='size-8' />,
 		})
 	}
@@ -164,7 +164,7 @@ function buildRecapCards(stats: {
 				: stats.badges.length >= 5
 					? 'Building your collection'
 					: 'First achievements unlocked',
-			gradient: 'from-amber-500 to-yellow-400',
+			gradient: 'from-warning to-warning',
 			icon: <Award className='size-8' />,
 		})
 	}
@@ -176,7 +176,7 @@ function buildRecapCards(stats: {
 		title: 'Your Chef Title',
 		value: stats.title,
 		subtitle: `Level ${stats.currentLevel} — Keep climbing!`,
-		gradient: 'from-gaming-level to-amber-400',
+		gradient: 'from-gaming-level to-warning',
 		icon: <Trophy className='size-8' />,
 	})
 

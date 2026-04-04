@@ -201,7 +201,7 @@ function CookTogetherContent() {
 					className='group rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 				>
 					<div className='mb-6 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500'>
+						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-info to-accent-purple'>
 							<Share2 className='size-5 text-white' />
 						</div>
 						<div>
@@ -266,7 +266,7 @@ function CookTogetherContent() {
 					className='mt-6 rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 				>
 					<div className='mb-6 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500'>
+						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-streak'>
 							<Sparkles className='size-5 text-white' />
 						</div>
 						<h2 className='text-xl font-bold text-text'>How It Works</h2>

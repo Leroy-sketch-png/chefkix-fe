@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -15,8 +15,8 @@ import {
 	CreatorPerformanceResponse,
 	RecentCooksResponse,
 } from '@/services/creator'
-import { motion } from 'framer-motion'
-import { ArrowLeft, ChefHat, BookOpen } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, ChefHat, BookOpen, Loader2 } from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
@@ -43,6 +43,7 @@ const getDateRangeThisWeek = (): string => {
 export default function CreatorRoute() {
 	const { user } = useAuth()
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [isLoading, setIsLoading] = useState(true)
 	const [fetchError, setFetchError] = useState(false)
 	const [stats, setStats] = useState<CreatorStats | null>(null)
@@ -260,13 +261,33 @@ export default function CreatorRoute() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							Loading...
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='xl'>
 				{/* Header with back button using PageHeader */}
 				<div className='mb-6 flex items-center gap-3'>
 					<motion.button
-						onClick={() => router.push('/dashboard')}
+						onClick={() => startNavigationTransition(() => {
+							router.push('/dashboard')
+						})}
+						disabled={isNavigating}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50'
 						aria-label='Go to dashboard'
 					>
 						<ArrowLeft className='size-5' />
@@ -289,10 +310,18 @@ export default function CreatorRoute() {
 					topRecipe={topRecipe}
 					recipePerformance={recipePerformance}
 					recentCooks={recentCooks}
-					onBack={() => router.push('/dashboard')}
-					onCreateRecipe={() => router.push('/create')}
-					onRecipeClick={id => router.push(`/recipes/${id}`)}
-					onViewAllRecipes={() => router.push('/creator/recipes')}
+					onBack={() => startNavigationTransition(() => {
+						router.push('/dashboard')
+					})}
+					onCreateRecipe={() => startNavigationTransition(() => {
+						router.push('/create')
+					})}
+					onRecipeClick={id => startNavigationTransition(() => {
+						router.push(`/recipes/${id}`)
+					})}
+					onViewAllRecipes={() => startNavigationTransition(() => {
+						router.push('/creator/recipes')
+					})}
 					onViewStepAnalytics={id =>
 						setHeatmapRecipeId(prev => (prev === id ? null : id))
 					}

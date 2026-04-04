@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import {
 	ArrowLeft,
@@ -89,6 +89,7 @@ const RecipeManageCard = ({
 	isDuplicating,
 }: RecipeManageCardProps) => {
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 
 	return (
 		<motion.div
@@ -143,7 +144,7 @@ const RecipeManageCard = ({
 			{/* Content */}
 			<div className='p-4'>
 				<Link href={`/recipes/${recipe.id}`}>
-					<h3 className='mb-1 line-clamp-1 text-lg font-bold text-text group-hover:text-brand'>
+					<h3 className='mb-1 line-clamp-1 text-lg font-serif font-bold text-text group-hover:text-brand'>
 						{recipe.title}
 					</h3>
 				</Link>
@@ -174,12 +175,15 @@ const RecipeManageCard = ({
 				{/* Actions */}
 				<div className='flex items-center gap-2'>
 					<Button
-						onClick={() => router.push(`/create?draftId=${recipe.id}`)}
+						onClick={() => startNavigationTransition(() => {
+							router.push(`/create?draftId=${recipe.id}`)
+						})}
 						variant='outline'
 						size='sm'
+						disabled={isNavigating}
 						className='flex-1 gap-1'
 					>
-						<Edit3 className='size-4' />
+						{isNavigating ? <Loader2 className='size-4 animate-spin' /> : <Edit3 className='size-4' />}
 						Edit
 					</Button>
 					<Button
@@ -243,6 +247,7 @@ const RecipeManageCard = ({
 export default function MyRecipesPage() {
 	const router = useRouter()
 	const { user } = useAuthStore()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [recipes, setRecipes] = useState<Recipe[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -308,7 +313,9 @@ export default function MyRecipesPage() {
 			const response = await duplicateRecipe(recipeId)
 			if (response.success && response.data) {
 				toast.success('Recipe duplicated as draft')
-				router.push(`/create?draftId=${response.data.id}`)
+				startNavigationTransition(() => {
+					router.push(`/create?draftId=${response.data.id}`)
+				})
 			} else {
 				toast.error(response.message || 'Failed to duplicate recipe')
 			}
@@ -364,6 +371,23 @@ export default function MyRecipesPage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							Loading...
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='2xl'>
 				{/* Header with PageHeader + back button + create action */}
 				<div className='mb-8 flex items-center gap-3'>
@@ -383,8 +407,11 @@ export default function MyRecipesPage() {
 							className='mb-0'
 							rightAction={
 								<Button
-									onClick={() => router.push('/create')}
-									className='gap-2 bg-gradient-hero text-white shadow-lg shadow-brand/30'
+									onClick={() => startNavigationTransition(() => {
+										router.push('/create')
+									})}
+									disabled={isNavigating}
+									className='gap-2 bg-gradient-hero text-white shadow-lg shadow-brand/30 disabled:opacity-50'
 								>
 									<Plus className='size-4' />
 									Create Recipe
@@ -442,8 +469,11 @@ export default function MyRecipesPage() {
 							Share your culinary creations with the world!
 						</p>
 						<Button
-							onClick={() => router.push('/create')}
-							className='gap-2 bg-gradient-hero text-white'
+							onClick={() => startNavigationTransition(() => {
+								router.push('/create')
+							})}
+							disabled={isNavigating}
+							className='gap-2 bg-gradient-hero text-white disabled:opacity-50'
 						>
 							<Plus className='size-4' />
 							Create Your First Recipe

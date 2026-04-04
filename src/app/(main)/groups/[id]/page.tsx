@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
 import { PATHS } from '@/constants'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageContainer } from '@/components/layout/PageContainer'
 
 /**
  * Group Detail Page - Facebook Style
@@ -137,7 +138,7 @@ export default function GroupDetailPage() {
 	// Show loading state
 	if (isLoadingGroup) {
 		return (
-			<div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8'>
+			<PageContainer maxWidth='xl' className='py-8'>
 				{/* Header skeleton */}
 				<div className='mb-8 space-y-4'>
 					<div className='h-48 w-full animate-pulse rounded-2xl bg-bg-elevated/40' />
@@ -161,7 +162,7 @@ export default function GroupDetailPage() {
 						</div>
 					))}
 				</div>
-			</div>
+			</PageContainer>
 		)
 	}
 
@@ -183,8 +184,7 @@ export default function GroupDetailPage() {
 
 	return (
 		<PageTransition>
-			<main className='min-h-screen py-8 pb-48'>
-			<div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12'>
+			<PageContainer maxWidth='xl' className='py-8 pb-48'>
 				{/* Group Header */}
 				<motion.div
 					initial={{ opacity: 0, y: -20 }}
@@ -350,8 +350,7 @@ export default function GroupDetailPage() {
 						}}
 					/>
 				)}
-			</div>
-		</main>
+			</PageContainer>
 		</PageTransition>
 	)
 }

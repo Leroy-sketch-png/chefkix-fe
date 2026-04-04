@@ -12,7 +12,10 @@ import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
 import { NetworkStatusProvider } from '@/components/providers/NetworkStatusProvider'
 import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvider'
 import { LiveAnnouncerProvider } from '@/components/a11y/LiveAnnouncer'
+import { ReducedMotionProvider } from '@/components/providers/ReducedMotionProvider'
 import { FirstVisitHintsProvider } from '@/components/onboarding/FirstVisitHints'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 import { Toaster } from 'sonner'
 
 // Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
@@ -83,7 +86,6 @@ export const metadata: Metadata = {
 			{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
 			{ url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
 		],
-		apple: [{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' }],
 	},
 }
 
@@ -96,11 +98,13 @@ export const viewport: Viewport = {
 	],
 }
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: {
 	children: React.ReactNode
 }) {
+	const messages = await getMessages()
+
 	return (
 		<html lang='en' suppressHydrationWarning>
 			<head>
@@ -121,20 +125,24 @@ export default function RootLayout({
 					Skip to main content
 				</a>
 				<GoogleOAuthWrapper>
+				<NextIntlClientProvider messages={messages}>
 					<AuthProvider>
 						<TokenRefreshProvider>
 							<BlockedUsersProvider>
 								<CelebrationProvider>
 									<LiveAnnouncerProvider>
-										<FirstVisitHintsProvider>
-											{children}
-										</FirstVisitHintsProvider>
+										<ReducedMotionProvider>
+											<FirstVisitHintsProvider>
+												{children}
+											</FirstVisitHintsProvider>
+										</ReducedMotionProvider>
 									</LiveAnnouncerProvider>
 								</CelebrationProvider>
 							</BlockedUsersProvider>
 						</TokenRefreshProvider>
 					</AuthProvider>
-				</GoogleOAuthWrapper>
+				</NextIntlClientProvider>
+			</GoogleOAuthWrapper>
 				<NetworkStatusProvider />
 				<Toaster position='bottom-center' />
 			</body>

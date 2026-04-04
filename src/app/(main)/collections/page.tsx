@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FolderHeart, Plus, Trash2, Globe, Lock, Image } from 'lucide-react'
+import { FolderHeart, Plus, Trash2, Globe, Lock, Image as ImageIcon } from 'lucide-react'
+import NextImage from 'next/image'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -191,14 +192,16 @@ export default function CollectionsPage() {
 									{/* Cover image or placeholder */}
 									<div className='relative h-32 bg-bg-elevated'>
 										{collection.coverImageUrl ? (
-											<img
-												src={collection.coverImageUrl}
-												alt={collection.name}
-												className='size-full object-cover'
-											/>
+											<NextImage
+														src={collection.coverImageUrl}
+														alt={collection.name}
+														fill
+														className='object-cover'
+														unoptimized
+														/>
 										) : (
 											<div className='flex size-full items-center justify-center'>
-												<Image className='size-10 text-text-muted/20' />
+												<ImageIcon className='size-10 text-text-muted/20' />
 											</div>
 										)}
 										<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent' />
@@ -207,7 +210,7 @@ export default function CollectionsPage() {
 											<span
 												className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
 													collection.isPublic
-														? 'bg-green-500/20 text-green-200'
+														? 'bg-success/100/20 text-success'
 														: 'bg-white/20 text-white'
 												}`}
 											>

@@ -228,7 +228,7 @@ function CreateRecipeContent() {
 								<motion.div
 									initial={{ opacity: 0, y: -10 }}
 									animate={{ opacity: 1, y: 0 }}
-									className='mb-6 overflow-hidden rounded-2xl border-2 border-dashed border-streak/40 bg-gradient-to-r from-streak/10 to-orange-500/5 p-5'
+									className='mb-6 overflow-hidden rounded-2xl border-2 border-dashed border-streak/40 bg-gradient-to-r from-streak/10 to-streak/5 p-5'
 								>
 									<div className='flex items-start gap-4'>
 										<div className='flex size-12 items-center justify-center rounded-xl bg-streak/20'>

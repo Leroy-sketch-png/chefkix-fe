@@ -92,7 +92,7 @@ const ProfileContent = () => {
 
 	return (
 		<>
-			<div className='mx-auto max-w-4xl px-4 pt-4'>
+			<div className='mx-auto w-full max-w-container-xl pt-4'>
 				<button
 					onClick={() => router.back()}
 					className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'

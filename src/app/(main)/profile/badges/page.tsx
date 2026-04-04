@@ -404,7 +404,7 @@ export default function BadgeCatalogPage() {
 										placeholder='Search badges...'
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
-										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
+										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
 									/>
 								</div>
 
@@ -414,7 +414,7 @@ export default function BadgeCatalogPage() {
 									onChange={e =>
 										setSelectedCategory(e.target.value as BadgeCategory | 'ALL')
 									}
-									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
+									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
 								>
 									<option value='ALL'>All Categories</option>
 									{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
@@ -431,7 +431,7 @@ export default function BadgeCatalogPage() {
 									onChange={e =>
 										setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
 									}
-									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
+									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
 								>
 									<option value='ALL'>All Rarities</option>
 									{RARITY_ORDER.map(rarity => (

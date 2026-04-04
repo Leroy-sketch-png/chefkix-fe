@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -46,9 +46,9 @@ const MEAL_TYPES = ['breakfast', 'lunch', 'dinner'] as const
 type MealType = (typeof MEAL_TYPES)[number]
 
 const MEAL_LABELS: Record<MealType, { label: string; emoji: string }> = {
-	breakfast: { label: 'Breakfast', emoji: '🌅' },
-	lunch: { label: 'Lunch', emoji: '☀️' },
-	dinner: { label: 'Dinner', emoji: '🌙' },
+	breakfast: { label: 'Breakfast', emoji: 'ðŸŒ…' },
+	lunch: { label: 'Lunch', emoji: 'â˜€ï¸' },
+	dinner: { label: 'Dinner', emoji: 'ðŸŒ™' },
 }
 
 export default function MealPlannerPage() {
@@ -80,7 +80,7 @@ export default function MealPlannerPage() {
 	useEscapeKey(confirmingDelete, () => setConfirmingDelete(false))
 	useEscapeKey(!!swapping, () => setSwapping(null))
 
-	// ── Fetch current plan ────────────────────────────────
+	// â”€â”€ Fetch current plan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const fetchPlan = useCallback(async () => {
 		setFetchError(false)
@@ -104,7 +104,7 @@ export default function MealPlannerPage() {
 		fetchPlan()
 	}, [fetchPlan])
 
-	// ── Generate ──────────────────────────────────────────
+	// â”€â”€ Generate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const handleGenerate = async () => {
 		setGenerating(true)
@@ -119,7 +119,7 @@ export default function MealPlannerPage() {
 		}
 	}
 
-	// ── Delete ────────────────────────────────────────────
+	// â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const handleDelete = async () => {
 		if (!plan || isDeleting) return
@@ -136,7 +136,7 @@ export default function MealPlannerPage() {
 		}
 	}
 
-	// ── Shopping List ─────────────────────────────────────
+	// â”€â”€ Shopping List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const handleShowShopping = async () => {
 		if (!plan) return
@@ -157,7 +157,7 @@ export default function MealPlannerPage() {
 		const text = shoppingList
 			.map(
 				item =>
-					`${item.ingredient}${item.quantity ? ` (${item.quantity})` : ''} — ${item.recipes.join(', ')}`,
+					`${item.ingredient}${item.quantity ? ` (${item.quantity})` : ''} â€” ${item.recipes.join(', ')}`,
 			)
 			.join('\n')
 		try {
@@ -178,7 +178,7 @@ export default function MealPlannerPage() {
 		})
 	}
 
-	// ── Swap Meal ─────────────────────────────────────────
+	// â”€â”€ Swap Meal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const handleSwapClick = (day: string, type: MealType) => {
 		setSwapping({ day, type })
@@ -234,13 +234,13 @@ export default function MealPlannerPage() {
 		}
 	}
 
-	// ── Helpers ───────────────────────────────────────────
+	// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const getMeal = (day: PlannedDay, type: MealType): PlannedMeal | null => {
 		return day[type] ?? null
 	}
 
-	// ── Skeleton ──────────────────────────────────────────
+	// â”€â”€ Skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	if (loading) {
 		return (
@@ -281,7 +281,7 @@ export default function MealPlannerPage() {
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
 				<div className='space-y-6 py-6'>
-					{/* ── Header with PageHeader ────────────────────────── */}
+					{/* â”€â”€ Header with PageHeader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 					<PageHeader
 						icon={CalendarDays}
 						title='Meal Planner'
@@ -340,7 +340,7 @@ export default function MealPlannerPage() {
 						}
 					/>
 
-					{/* ── AI Mode Notice ─────────────────── */}
+					{/* â”€â”€ AI Mode Notice â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 					{useAI && !plan?.reasoning && (
 						<p className='text-xs text-text-muted'>
 							<Sparkles className='mr-1 inline size-3 text-brand' />
@@ -349,7 +349,7 @@ export default function MealPlannerPage() {
 						</p>
 					)}
 
-					{/* ── AI Reasoning Banner ───────────── */}
+					{/* â”€â”€ AI Reasoning Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 					{plan?.reasoning && (
 						<motion.div
 							initial={{ opacity: 0, y: -10 }}
@@ -370,7 +370,7 @@ export default function MealPlannerPage() {
 						</motion.div>
 					)}
 
-					{/* ── No Plan State ─────────────────── */}
+					{/* â”€â”€ No Plan State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 					{!plan ? (
 						<motion.div
 							initial={{ opacity: 0 }}
@@ -387,7 +387,7 @@ export default function MealPlannerPage() {
 							</p>
 						</motion.div>
 					) : (
-						/* ── 7-Day Grid ──────────────────── */
+						/* â”€â”€ 7-Day Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 						<div className='overflow-x-auto'>
 							<div className='min-w-[900px]'>
 								{/* Day Headers */}
@@ -435,7 +435,7 @@ export default function MealPlannerPage() {
 																<p className='line-clamp-2 text-xs font-medium text-text'>
 																	{meal.title}
 																</p>
-																<div className='mt-1.5 flex items-center gap-1.5 text-[10px] text-text-muted'>
+																<div className='mt-1.5 flex items-center gap-1.5 text-2xs text-text-muted'>
 																	<Clock className='size-3' />
 																	{meal.totalTimeMinutes}m
 																	{meal.aiGenerated && (
@@ -446,7 +446,7 @@ export default function MealPlannerPage() {
 																</div>
 															</>
 														) : (
-															<p className='text-xs text-text-muted/50'>—</p>
+															<p className='text-xs text-text-muted/50'>â€”</p>
 														)}
 													</button>
 													{/* Swap button */}
@@ -469,7 +469,7 @@ export default function MealPlannerPage() {
 						</div>
 					)}
 
-					{/* ── Shopping List Drawer ──────────── */}
+					{/* â”€â”€ Shopping List Drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
 					<AnimatePresence>
 						{showShopping && (
 							<motion.div
@@ -564,7 +564,7 @@ export default function MealPlannerPage() {
 													{item.recipes.map(recipe => (
 														<span
 															key={recipe}
-															className='rounded bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-muted'
+															className='rounded bg-bg-elevated px-1.5 py-0.5 text-2xs text-text-muted'
 														>
 															{recipe}
 														</span>
@@ -579,7 +579,7 @@ export default function MealPlannerPage() {
 					</AnimatePresence>
 				</div>
 
-				{/* ── Swap Meal Modal ── */}
+				{/* â”€â”€ Swap Meal Modal â”€â”€ */}
 				<AnimatePresence>
 					{swapping && (
 						<Portal>
@@ -677,7 +677,7 @@ export default function MealPlannerPage() {
 					)}
 				</AnimatePresence>
 
-				{/* ── Delete Confirmation Dialog ── */}
+				{/* â”€â”€ Delete Confirmation Dialog â”€â”€ */}
 				<AnimatePresence>
 					{confirmingDelete && (
 						<Portal>

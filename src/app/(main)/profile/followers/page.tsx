@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -200,7 +200,7 @@ function FollowersContent() {
 							{tab.label}
 							<span
 								className={cn(
-									'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+									'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold',
 									activeTab === tab.key
 										? 'bg-brand/15 text-brand'
 										: 'bg-bg-elevated text-text-muted',
@@ -273,7 +273,7 @@ export default function FollowersPage() {
 			fallback={
 				<PageContainer maxWidth='lg'>
 					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-primary' />
+						<Loader2 className='size-8 animate-spin text-brand' />
 					</div>
 				</PageContainer>
 			}

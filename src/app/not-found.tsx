@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Home, Search } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 /**
@@ -18,11 +19,18 @@ export default function NotFound() {
 				<div className='mb-6 flex justify-center'>
 					<div className='relative'>
 						{/* Large 404 text */}
-						<span className='text-9xl font-black text-brand/20'>404</span>
-						{/* Overlapping chef hat emoji */}
-						<span className='absolute inset-0 flex items-center justify-center text-6xl'>
-							👨‍🍳
-						</span>
+						<span className='text-9xl font-display font-black text-brand/20'>404</span>
+						{/* Chef illustration overlay */}
+						<div className='absolute inset-0 flex items-center justify-center'>
+							<Image
+								src='/404-chef.svg'
+								alt=''
+								width={120}
+								height={120}
+								className='opacity-80'
+								priority
+							/>
+						</div>
 					</div>
 				</div>
 

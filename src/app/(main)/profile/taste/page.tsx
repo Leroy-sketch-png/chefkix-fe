@@ -25,9 +25,11 @@ import { EmptyStateGamified } from '@/components/shared'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/useAuth'
 import { getCookingPreferences } from '@/services/settings'
+import { getTasteProfile } from '@/services/post'
 import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import type { CookingPreferences } from '@/lib/types/settings'
 import type { Profile, Statistics } from '@/lib/types/profile'
+import type { TasteProfileResponse } from '@/lib/types/social'
 import { TasteDNAShareCard } from '@/components/profile/TasteDNAShareCard'
 import { LearningNarrative } from '@/components/profile/LearningNarrative'
 
@@ -226,14 +228,19 @@ export default function TasteProfilePage() {
 	const router = useRouter()
 	const { user: profile } = useAuth()
 	const [cookingPrefs, setCookingPrefs] = useState<CookingPreferences | null>(null)
+	const [tasteProfile, setTasteProfile] = useState<TasteProfileResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(() => {
 		let cancelled = false
-		getCookingPreferences()
-			.then((res) => {
-				if (!cancelled && res.success && res.data) {
-					setCookingPrefs(res.data)
+		Promise.all([
+			getCookingPreferences(),
+			getTasteProfile(),
+		])
+			.then(([prefsRes, tasteRes]) => {
+				if (!cancelled) {
+					if (prefsRes.success && prefsRes.data) setCookingPrefs(prefsRes.data)
+					if (tasteRes.success && tasteRes.data) setTasteProfile(tasteRes.data)
 				}
 			})
 			.catch(() => {})
@@ -397,6 +404,50 @@ export default function TasteProfilePage() {
 						</motion.div>
 					))}
 				</div>
+				)}
+
+				{/* Cuisine DNA — Real behavioral data from 5-signal taste vector */}
+				{tasteProfile && tasteProfile.cuisineDistribution && tasteProfile.cuisineDistribution.length > 0 && (
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.7 }}
+						className='mt-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+					>
+						<h2 className='mb-4 flex items-center gap-2 font-semibold text-text'>
+							<Globe className='size-5 text-brand' />
+							Your Cuisine DNA
+						</h2>
+						<p className='mb-4 text-xs text-text-muted'>
+							Based on {tasteProfile.totalInteractions ?? 0} interactions — likes, saves, views, and cooks
+						</p>
+						<div className='space-y-3'>
+							{tasteProfile.cuisineDistribution.map((item, i) => (
+								<motion.div
+									key={item.cuisine}
+									initial={{ opacity: 0, x: -10 }}
+									animate={{ opacity: 1, x: 0 }}
+									transition={{ delay: 0.8 + i * 0.05 }}
+									className='flex items-center gap-3'
+								>
+									<span className='w-24 shrink-0 text-sm font-medium text-text'>
+										{item.cuisine}
+									</span>
+									<div className='h-2.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
+										<motion.div
+											className='h-full rounded-full bg-gradient-to-r from-brand to-brand/60'
+											initial={{ width: 0 }}
+											animate={{ width: `${item.percentage}%` }}
+											transition={{ delay: 0.9 + i * 0.05, duration: 0.5, ease: 'easeOut' }}
+										/>
+									</div>
+									<span className='w-12 shrink-0 text-right text-xs font-bold text-brand'>
+										{item.percentage.toFixed(0)}%
+									</span>
+								</motion.div>
+							))}
+						</div>
+					</motion.div>
 				)}
 
 				{/* Learning Narrative */}

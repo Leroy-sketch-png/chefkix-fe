@@ -81,12 +81,15 @@ import {
 	type VerificationStatus,
 } from '@/services/verification'
 import { playTimerChime } from '@/hooks/useTimerNotifications'
+import { setAudioEnabled } from '@/lib/audio'
 import {
 	requestNotificationPermission,
 	isNotificationSupported,
 	getNotificationPermission,
 	setTimerAlertsEnabled,
 } from '@/lib/pushNotifications'
+import { getFCMToken } from '@/lib/firebase'
+import { registerPushToken, unregisterPushToken } from '@/services/push'
 import {
 	UserSettings,
 	PrivacySettings,
@@ -100,6 +103,7 @@ import {
 	MeasurementUnits,
 } from '@/lib/types/settings'
 import { isTrackingOptedOut, setTrackingOptOut } from '@/lib/eventTracker'
+import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
 
 // ============================================
 // TYPES
@@ -354,7 +358,7 @@ const ChipSelect = ({
 					className={cn(
 						'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
 						isSelected
-							? 'bg-primary text-white shadow-card'
+							? 'bg-brand text-white shadow-card'
 							: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
@@ -395,7 +399,7 @@ const ButtonGroup = <T extends string>({
 						option.disabled
 							? 'cursor-not-allowed opacity-40 bg-bg-elevated text-text-secondary'
 							: value === option.value
-								? 'bg-primary text-white shadow-card'
+								? 'bg-brand text-white shadow-card'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
 					)}
 				>
@@ -418,6 +422,7 @@ const ButtonGroup = <T extends string>({
 export default function SettingsPage() {
 	const { user, setUser, logout } = useAuth()
 	const router = useRouter()
+	const { setMotionPreference } = useReducedMotionPreference()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
@@ -509,6 +514,8 @@ export default function SettingsPage() {
 					setTimerAlertsEnabled(
 						response.data.notifications?.push?.timerAlerts ?? true,
 					)
+					// Sync sound effects setting to localStorage for audio.ts
+					setAudioEnabled(response.data.app?.soundEffects ?? true)
 				} else {
 					setSettings({
 						userId: user?.userId || '',
@@ -936,14 +943,14 @@ export default function SettingsPage() {
 									className={cn(
 										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all',
 										isActive
-											? 'bg-primary/10 text-primary font-semibold'
+											? 'bg-brand/10 text-brand font-semibold'
 											: 'text-text-secondary hover:bg-bg-hover hover:text-text',
 									)}
 								>
 									<Icon
 										className={cn(
 											'size-5',
-											isActive ? 'text-primary' : 'text-text-secondary',
+											isActive ? 'text-brand' : 'text-text-secondary',
 										)}
 									/>
 									<div className='hidden lg:block'>
@@ -1021,7 +1028,7 @@ export default function SettingsPage() {
 														)}
 														{isUploadingCover && (
 															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
-																<Loader2 className='size-6 animate-spin text-primary' />
+																<Loader2 className='size-6 animate-spin text-brand' />
 															</div>
 														)}
 													</div>
@@ -1076,7 +1083,7 @@ export default function SettingsPage() {
 														)}
 														{isUploadingAvatar && (
 															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
-																<Loader2 className='size-5 animate-spin text-primary' />
+																<Loader2 className='size-5 animate-spin text-brand' />
 															</div>
 														)}
 													</div>
@@ -1677,7 +1684,15 @@ export default function SettingsPage() {
 															)
 															return
 														}
-													}
+														// Register FCM token with backend for real push delivery
+														const fcmToken = await getFCMToken()
+														if (fcmToken) {
+														await registerPushToken(fcmToken)
+														}
+														} else {
+														// Unregister FCM token when disabling push
+														await unregisterPushToken()
+														}
 													handleUpdateNotifications({
 														push: {
 															...settings.notifications.push,
@@ -1993,7 +2008,7 @@ export default function SettingsPage() {
 																setVerificationReason(e.target.value)
 															}
 															placeholder='Tell us about your cooking journey, content, or community presence...'
-															className='min-h-[80px] resize-none'
+															className='min-h-20 resize-none'
 															maxLength={500}
 														/>
 														<p className='mt-1 text-right text-xs text-text-muted'>
@@ -2097,9 +2112,10 @@ export default function SettingsPage() {
 												description='Timer dings, XP sounds, celebrations'
 												icon={Volume2}
 												checked={settings.app.soundEffects}
-												onCheckedChange={checked =>
-													handleUpdateApp({ soundEffects: checked })
-												}
+												onCheckedChange={checked => {
+													setAudioEnabled(checked)
+																															handleUpdateApp({ soundEffects: checked })
+												}}
 											/>
 											{/* Test Timer Sound Button */}
 											<div className='flex items-center justify-between border-b border-border-subtle py-3'>
@@ -2138,9 +2154,10 @@ export default function SettingsPage() {
 												description='Disable animations for accessibility'
 												icon={Eye}
 												checked={settings.app.reducedMotion}
-												onCheckedChange={checked =>
+												onCheckedChange={checked => {
+													setMotionPreference(checked ? 'reduced' : 'auto')
 													handleUpdateApp({ reducedMotion: checked })
-												}
+												}}
 											/>
 											<ToggleRow
 												label='Auto-play Videos'

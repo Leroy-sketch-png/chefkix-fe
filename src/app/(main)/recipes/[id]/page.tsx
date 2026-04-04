@@ -701,7 +701,7 @@ function RecipeDetailContent() {
 								initial={{ opacity: 0, y: 10 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: 0.2 }}
-								className='mb-3 text-3xl font-bold text-text md:text-4xl'
+								className='mb-3 text-3xl font-serif font-bold text-text md:text-4xl'
 							>
 								{recipe.title}
 							</motion.h1>

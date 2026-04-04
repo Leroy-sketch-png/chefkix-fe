@@ -377,22 +377,22 @@ function CreatePostContent() {
 							<PageHeader
 								icon={session ? ChefHat : PenSquare}
 								title={session ? 'Share Your Creation' : 'Create Post'}
-								subtitle={
-									session
-										? 'Post your cooking photos to unlock XP'
-										: 'Share what you made with the community'
-								}
-								gradient='orange'
-								marginBottom='sm'
-								className='mb-0'
-							/>
+							subtitle={
+								session
+									? 'Post your cooking photos to unlock XP'
+									: 'Share what you made with the community'
+							}
+							gradient='pink'
+							marginBottom='sm'
+							className='mb-0'
+						/>
 						</div>
 					</div>
 
 					{/* Session Info Card (if linking to session) */}
 					{isLoadingSession && (
 						<div className='mb-6 flex items-center justify-center rounded-2xl border border-border-subtle bg-bg-card p-8'>
-							<Loader2 className='size-6 animate-spin text-primary' />
+							<Loader2 className='size-6 animate-spin text-brand' />
 							<span className='ml-3 text-text-secondary'>
 								Loading session...
 							</span>
@@ -404,7 +404,7 @@ function CreatePostContent() {
 							variants={fadeInUp}
 							initial='hidden'
 							animate='visible'
-							className='mb-6 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent'
+							className='mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 to-transparent'
 						>
 							<div className='flex items-center gap-4 p-4'>
 								{session.recipeImage && (
@@ -418,7 +418,7 @@ function CreatePostContent() {
 								)}
 								<div className='flex-1'>
 									<div className='mb-1 flex items-center gap-2'>
-										<ChefHat className='size-4 text-primary' />
+										<ChefHat className='size-4 text-brand' />
 										<span className='text-sm font-medium text-text-secondary'>
 											Cooked
 										</span>
@@ -440,8 +440,8 @@ function CreatePostContent() {
 									</div>
 								</div>
 							</div>
-							<div className='border-t border-primary/10 bg-primary/5 px-4 py-2.5'>
-								<p className='flex items-center gap-2 text-sm text-primary'>
+							<div className='border-t border-brand/10 bg-brand/5 px-4 py-2.5'>
+								<p className='flex items-center gap-2 text-sm text-brand'>
 									<Sparkles className='size-4' />
 									Add photos of your creation to unlock the XP bonus!
 								</p>
@@ -456,10 +456,10 @@ function CreatePostContent() {
 							initial='hidden'
 							animate='visible'
 							transition={{ delay: 0.05 }}
-							className='mb-6 overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent'
+							className='mb-6 overflow-hidden rounded-2xl border border-warning/30/20 bg-gradient-to-br from-warning/5 to-transparent'
 						>
 							<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
-								<Star className='size-5 text-amber-500' />
+								<Star className='size-5 text-warning' />
 								<div>
 									<h4 className='text-sm font-bold text-text'>Rate this Recipe</h4>
 									<p className='text-xs text-text-muted'>
@@ -477,7 +477,7 @@ function CreatePostContent() {
 									<motion.span
 										initial={{ opacity: 0, x: -10 }}
 										animate={{ opacity: 1, x: 0 }}
-										className='text-sm font-medium text-amber-600'
+										className='text-sm font-medium text-warning'
 									>
 										{reviewRating === 5 ? 'Amazing!' : reviewRating === 4 ? 'Great!' : reviewRating === 3 ? 'Good' : reviewRating === 2 ? 'Okay' : 'Poor'}
 									</motion.span>
@@ -496,7 +496,7 @@ function CreatePostContent() {
 					>
 						{/* Author header */}
 						<div className='flex items-center gap-3 border-b border-border-subtle p-4'>
-							<Avatar className='size-12 ring-2 ring-primary/10'>
+							<Avatar className='size-12 ring-2 ring-brand/10'>
 								<AvatarImage
 									src={user?.avatarUrl}
 									alt={user?.displayName || 'You'}
@@ -589,7 +589,7 @@ function CreatePostContent() {
 						<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
 							<label
 								className={cn(
-									'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-card hover:text-primary',
+									'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-card hover:text-brand',
 									photoFiles.length >= 5 && 'cursor-not-allowed opacity-50',
 								)}
 							>
@@ -614,7 +614,7 @@ function CreatePostContent() {
 									'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
 									session
 										? 'bg-gradient-hero text-white shadow-lg shadow-primary/30'
-										: 'bg-primary text-white',
+										: 'bg-brand text-white',
 								)}
 							>
 								{isSubmitting ? (

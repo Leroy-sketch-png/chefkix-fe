@@ -1,4 +1,4 @@
-import { PageContainer } from '@/components/layout/PageContainer'
+﻿import { PageContainer } from '@/components/layout/PageContainer'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Loading() {
@@ -31,7 +31,7 @@ export default function Loading() {
 				<div className='flex flex-col items-center gap-2'>
 					<Skeleton className='size-20 rounded-full' />
 					<Skeleton className='h-4 w-24' />
-					<Skeleton className='h-28 w-28 rounded-t-lg' />
+					<Skeleton className='size-28 rounded-t-lg' />
 				</div>
 				<div className='flex flex-col items-center gap-2'>
 					<Skeleton className='size-16 rounded-full' />

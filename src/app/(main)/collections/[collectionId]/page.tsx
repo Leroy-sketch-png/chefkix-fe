@@ -17,6 +17,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
 import { PostCard } from '@/components/social/PostCard'
+import { LearningPathView } from '@/components/collections'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { Collection, UpdateCollectionRequest } from '@/lib/types/collection'
 import { Post } from '@/lib/types'
@@ -176,100 +177,109 @@ export default function CollectionDetailPage({
 		)
 	}
 
+	const isLearningPath = collection.collectionType === 'LEARNING_PATH'
+
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
-					{/* Back + Header */}
-					<div>
-						<button
-							onClick={() => router.back()}
-							className='mb-4 flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
-						>
-							<ArrowLeft className='size-4' />
-							Back
-						</button>
-						<div className='flex items-start justify-between'>
-							<div>
-								<div className='flex items-center gap-2'>
-									<h1 className='text-2xl font-bold text-text'>
-										{collection.name}
-									</h1>
-									<span
-										className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-											collection.isPublic
-												? 'bg-green-500/10 text-green-600'
-												: 'bg-text-muted/10 text-text-muted'
-										}`}
-									>
-										{collection.isPublic ? (
-											<Globe className='size-3' />
-										) : (
-											<Lock className='size-3' />
-										)}
-										{collection.isPublic ? 'Public' : 'Private'}
-									</span>
-								</div>
-								{collection.description && (
-									<p className='mt-1 text-sm text-text-muted'>
-										{collection.description}
+					{/* Back button */}
+					<button
+						onClick={() => router.back()}
+						className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
+					>
+						<ArrowLeft className='size-4' />
+						Back
+					</button>
+
+					{/* Learning Path View - completely different layout */}
+					{isLearningPath ? (
+						<LearningPathView collection={collection} isOwner={isOwner} />
+					) : (
+						<>
+							{/* BOOKMARK Collection Header */}
+							<div className='flex items-start justify-between'>
+								<div>
+									<div className='flex items-center gap-2'>
+										<h1 className='text-2xl font-bold text-text'>
+											{collection.name}
+										</h1>
+										<span
+											className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+												collection.isPublic
+													? 'bg-success/100/10 text-success'
+													: 'bg-text-muted/10 text-text-muted'
+											}`}
+										>
+											{collection.isPublic ? (
+												<Globe className='size-3' />
+											) : (
+												<Lock className='size-3' />
+											)}
+											{collection.isPublic ? 'Public' : 'Private'}
+										</span>
+									</div>
+									{collection.description && (
+										<p className='mt-1 text-sm text-text-muted'>
+											{collection.description}
+										</p>
+									)}
+									<p className='mt-1 text-xs text-text-muted'>
+										{collection.itemCount}{' '}
+										{collection.itemCount === 1 ? 'post' : 'posts'}
 									</p>
+								</div>
+								{isOwner && (
+									<div className='flex gap-2'>
+										<button
+											onClick={() => setShowEditModal(true)}
+											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+										>
+											<Pencil className='size-4' />
+										</button>
+										<button
+											onClick={() => setShowDeleteConfirm(true)}
+											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
+										>
+											<Trash2 className='size-4' />
+										</button>
+									</div>
 								)}
-								<p className='mt-1 text-xs text-text-muted'>
-									{collection.itemCount}{' '}
-									{collection.itemCount === 1 ? 'post' : 'posts'}
-								</p>
 							</div>
-							{isOwner && (
-								<div className='flex gap-2'>
-									<button
-										onClick={() => setShowEditModal(true)}
-										className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-									>
-										<Pencil className='size-4' />
-									</button>
-									<button
-										onClick={() => setShowDeleteConfirm(true)}
-										className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
-									>
-										<Trash2 className='size-4' />
-									</button>
+
+							{/* Posts */}
+							{posts.length === 0 ? (
+								<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
+									<FolderHeart className='mx-auto mb-4 size-12 text-text-muted/30' />
+									<h2 className='mb-1 text-base font-semibold text-text'>
+										No posts in this collection
+									</h2>
+									<p className='text-sm text-text-muted'>
+										Save posts and add them to this collection
+									</p>
+								</div>
+							) : (
+								<div className='space-y-4'>
+									{posts.map(post => (
+										<div key={post.id} className='relative'>
+											<PostCard
+												post={post}
+												currentUserId={currentUser?.userId}
+											/>
+											{isOwner && (
+												<button
+													onClick={() => handleRemovePost(post.id)}
+													className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
+													title='Remove from collection'
+												>
+													<Trash2 className='size-3.5' />
+												</button>
+											)}
+										</div>
+									))}
 								</div>
 							)}
-						</div>
-					</div>
-
-					{/* Posts */}
-					{posts.length === 0 ? (
-						<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
-							<FolderHeart className='mx-auto mb-4 size-12 text-text-muted/30' />
-							<h2 className='mb-1 text-base font-semibold text-text'>
-								No posts in this collection
-							</h2>
-							<p className='text-sm text-text-muted'>
-								Save posts and add them to this collection
-							</p>
-						</div>
-					) : (
-						<div className='space-y-4'>
-							{posts.map(post => (
-								<div key={post.id} className='relative'>
-									<PostCard
-										post={post}
-										currentUserId={currentUser?.userId}
-									/>
-									{isOwner && (
-										<button
-											onClick={() => handleRemovePost(post.id)}
-											className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
-											title='Remove from collection'
-										>
-											<Trash2 className='size-3.5' />
-										</button>
-									)}
-								</div>
-							))}
-						</div>
+						</>
 					)}
 				</div>
 			</PageContainer>

@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PageHeader } from '@/components/layout/PageHeader'
 
 export default function BansPage() {
 	const [userId, setUserId] = useState('')
@@ -94,25 +96,33 @@ export default function BansPage() {
 	}
 
 	return (
-		<div className='space-y-6'>
-			{/* Search bar */}
-			<div className='flex gap-2'>
-				<div className='relative flex-1'>
-					<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-					<input
-						type='text'
-						value={userId}
-						onChange={e => setUserId(e.target.value)}
-						onKeyDown={e => e.key === 'Enter' && searchBans()}
-						placeholder='Enter user ID to look up bans...'
-						className='w-full rounded-xl border border-border-subtle bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
-					/>
+		<PageContainer maxWidth='2xl'>
+			<PageHeader
+				icon={Shield}
+				title='User Bans'
+				subtitle='Search and manage banned users'
+				gradient='gray'
+				marginBottom='md'
+			/>
+			<div className='space-y-6'>
+				{/* Search bar */}
+				<div className='flex gap-2'>
+					<div className='relative flex-1'>
+						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+						<input
+							type='text'
+							value={userId}
+							onChange={e => setUserId(e.target.value)}
+							onKeyDown={e => e.key === 'Enter' && searchBans()}
+							placeholder='Enter user ID to look up bans...'
+							className='w-full rounded-xl border border-border-subtle bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
+						/>
+					</div>
+					<Button onClick={searchBans} disabled={loading} className='gap-1.5'>
+						<Search className='size-4' />
+						Search
+					</Button>
 				</div>
-				<Button onClick={searchBans} disabled={loading} className='gap-1.5'>
-					<Search className='size-4' />
-					Search
-				</Button>
-			</div>
 
 			{/* Results */}
 			{loading ? (
@@ -300,6 +310,7 @@ export default function BansPage() {
 					</p>
 				</div>
 			)}
-		</div>
+			</div>
+		</PageContainer>
 	)
 }

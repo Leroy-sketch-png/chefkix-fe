@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -27,6 +27,7 @@ import {
 	Search,
 	Sparkles,
 	UsersRound,
+	Loader2,
 } from 'lucide-react'
 import {
 	InputGroup,
@@ -46,6 +47,7 @@ import { toast } from 'sonner'
 export default function CommunityPage() {
 	const { user } = useAuth()
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [activeTab, setActiveTab] = useState('discover')
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [followers, setFollowers] = useState<Profile[]>([])
@@ -165,7 +167,9 @@ export default function CommunityPage() {
 
 	const handleLeaderboardUserClick = (entry: LeaderboardEntry) => {
 		if (!entry.isCurrentUser) {
-			router.push(`/${entry.userId}`)
+			startNavigationTransition(() => {
+				router.push(`/${entry.userId}`)
+			})
 		}
 	}
 
@@ -194,6 +198,23 @@ export default function CommunityPage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							Loading...
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='xl'>
 				{/* Header */}
 				<PageHeader
@@ -352,7 +373,9 @@ export default function CommunityPage() {
 							closestCompetitor={closestCompetitor}
 							onUserClick={handleLeaderboardUserClick}
 							onInviteFriends={() => setActiveTab('discover')}
-							onCookToDefend={() => router.push('/explore')}
+							onCookToDefend={() => startNavigationTransition(() => {
+								router.push('/explore')
+							})}
 						/>
 					</TabsContent>
 				</Tabs>

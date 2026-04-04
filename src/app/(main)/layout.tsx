@@ -14,6 +14,7 @@ import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
 import { CommandPalette } from '@/components/shared/CommandPalette'
 import { EventTrackerProvider } from '@/components/providers/EventTrackerProvider'
 import { NotificationSocketProvider } from '@/components/providers/NotificationSocketProvider'
+import { PushNotificationProvider } from '@/components/providers/PushNotificationProvider'
 import { DemoWidget } from '@/components/dev/DemoWidget'
 
 export default function MainAppLayout({
@@ -69,7 +70,8 @@ export default function MainAppLayout({
 		<ErrorBoundary>
 			<NotificationSocketProvider />
 		</ErrorBoundary>
-		<DemoWidget />
+		<PushNotificationProvider />
+			<DemoWidget />
 		</div>
 	)
 }

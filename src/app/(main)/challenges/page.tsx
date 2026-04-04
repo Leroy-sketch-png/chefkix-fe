@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Trophy,
 	Sparkles,
@@ -12,6 +12,7 @@ import {
 	Clock,
 	ChevronRight,
 	History,
+	Loader2,
 } from 'lucide-react'
 import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -52,6 +53,7 @@ const formatTimeRemaining = (dateStr: string): string => {
 
 export default function ChallengesPage() {
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [dailyChallenge, setDailyChallenge] = useState<{
 		id: string
 		title: string
@@ -104,7 +106,7 @@ export default function ChallengesPage() {
 					id: data.id,
 					title: data.title,
 					description: data.description,
-					icon: data.icon || '🎯',
+					icon: data.icon || 'ðŸŽ¯',
 					bonusXp: data.bonusXp,
 					endsAt: new Date(data.endsAt),
 				})
@@ -160,6 +162,23 @@ export default function ChallengesPage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							Loading...
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='lg'>
 				{/* Header */}
 				<PageHeader
@@ -169,7 +188,7 @@ export default function ChallengesPage() {
 					gradient="yellow"
 				/>
 
-				{/* Cooking Duels — 1v1 friend challenges */}
+				{/* Cooking Duels â€” 1v1 friend challenges */}
 				<DuelsSection />
 
 				{loading ? (
@@ -195,7 +214,7 @@ export default function ChallengesPage() {
 									<div className='size-11 shrink-0 animate-pulse rounded-xl bg-bg-elevated/40' />
 									<div className='flex-1 space-y-1.5'>
 										<div className='h-4 w-2/5 animate-pulse rounded bg-bg-elevated/40' />
-										<div className='h-3 w-3/5 animate-pulse rounded bg-bg-elevated/40' />
+										<div className='size-3/5 animate-pulse rounded bg-bg-elevated/40' />
 									</div>
 								</div>
 							</div>
@@ -229,9 +248,11 @@ export default function ChallengesPage() {
 								variant='active'
 								challenge={dailyChallenge}
 								onFindRecipe={() =>
-									router.push(
-										`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
-									)
+									startNavigationTransition(() => {
+										router.push(
+											`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
+										)
+									})
 								}
 							/>
 						)}
@@ -268,7 +289,7 @@ export default function ChallengesPage() {
 											</span>
 											{weeklyChallenge.completed && (
 												<p className='text-xs font-semibold text-success'>
-													✓ +{weeklyChallenge.bonusXp} XP Awarded
+													âœ“ +{weeklyChallenge.bonusXp} XP Awarded
 												</p>
 											)}
 										</div>
@@ -319,11 +340,14 @@ export default function ChallengesPage() {
 										weeklyChallenge.matchingRecipes.length > 0 && (
 											<button
 												onClick={() =>
-													router.push(
-														`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
-													)
+													startNavigationTransition(() => {
+														router.push(
+															`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
+														)
+													})
 												}
-												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80'
+												disabled={isNavigating}
+												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 											>
 												Find Matching Recipes
 												<ChevronRight className='size-4' />
@@ -357,7 +381,7 @@ export default function ChallengesPage() {
 											<div className='mb-3 flex items-center justify-between'>
 												<div className='flex items-center gap-3'>
 													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
-														{ch.emoji || '👥'}
+														{ch.emoji || 'ðŸ‘¥'}
 													</div>
 													<div>
 														<h3 className='text-lg font-bold text-text'>
@@ -410,16 +434,19 @@ export default function ChallengesPage() {
 												</span>
 												{ch.hasContributed ? (
 													<span className='font-medium text-success'>
-														✓ You contributed
+														âœ“ You contributed
 													</span>
 												) : (
 													<button
 														onClick={() =>
-															router.push(
-																`/explore?q=${encodeURIComponent(ch.title)}`,
-															)
+															startNavigationTransition(() => {
+																router.push(
+																	`/explore?q=${encodeURIComponent(ch.title)}`,
+																)
+															})
 														}
-														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80'
+														disabled={isNavigating}
+														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 													>
 														Cook to contribute!
 														<ChevronRight className='size-3.5' />
@@ -453,7 +480,7 @@ export default function ChallengesPage() {
 											}}
 											className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:shadow-warm'
 										>
-											{/* Hero header — accent color or image */}
+											{/* Hero header â€” accent color or image */}
 											{ev.heroImageUrl ? (
 												<div
 													className='relative h-28 bg-cover bg-center'
@@ -475,7 +502,7 @@ export default function ChallengesPage() {
 															: undefined,
 													}}
 												>
-													<span className='text-3xl'>{ev.emoji || '🌿'}</span>
+													<span className='text-3xl'>{ev.emoji || 'ðŸŒ¿'}</span>
 													<h3 className='text-lg font-bold text-text'>
 														{ev.title}
 													</h3>
@@ -526,8 +553,8 @@ export default function ChallengesPage() {
 													</span>
 													<div className='flex items-center gap-2'>
 														{ev.rewardBadgeName && (
-															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning'>
-																🏅 {ev.rewardBadgeName}
+															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-2xs font-semibold text-warning'>
+																ðŸ… {ev.rewardBadgeName}
 															</span>
 														)}
 														<span className='font-bold text-xp'>
@@ -541,9 +568,12 @@ export default function ChallengesPage() {
 													ev.featuredRecipes.length > 0 && (
 														<button
 															onClick={() =>
-																router.push(`/explore?seasonal=${ev.id}`)
+																startNavigationTransition(() => {
+																	router.push(`/explore?seasonal=${ev.id}`)
+																})
 															}
-															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80'
+															disabled={isNavigating}
+															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 														>
 															{ev.featuredRecipes.length} featured recipes
 															<ChevronRight className='size-3.5' />
@@ -552,7 +582,7 @@ export default function ChallengesPage() {
 
 												{ev.userCompleted && (
 													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-														✓ +{ev.rewardXp} XP Awarded
+														âœ“ +{ev.rewardXp} XP Awarded
 													</div>
 												)}
 											</div>

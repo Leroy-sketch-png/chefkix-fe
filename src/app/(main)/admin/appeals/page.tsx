@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PageHeader } from '@/components/layout/PageHeader'
 
 const STATUS_CONFIG: Record<
 	string,
@@ -80,44 +82,70 @@ export default function AppealsPage() {
 
 	if (loading) {
 		return (
-			<div className='space-y-3'>
-				{Array.from({ length: 4 }).map((_, i) => (
-					<Skeleton key={i} className='h-24 w-full rounded-xl' />
-				))}
-			</div>
+			<PageContainer maxWidth='2xl'>
+				<PageHeader
+					icon={Scale}
+					title='Appeals'
+					subtitle='Review ban appeals from users'
+					gradient='blue'
+					marginBottom='md'
+				/>
+				<div className='space-y-3'>
+					{Array.from({ length: 4 }).map((_, i) => (
+						<Skeleton key={i} className='h-24 w-full rounded-xl' />
+					))}
+				</div>
+			</PageContainer>
 		)
 	}
 
 	if (appeals.length === 0) {
 		return (
-			<div className='flex flex-col items-center gap-3 py-16 text-center'>
-				<div className='grid size-12 place-items-center rounded-full bg-success/10'>
-					<Scale className='size-6 text-success' />
+			<PageContainer maxWidth='2xl'>
+				<PageHeader
+					icon={Scale}
+					title='Appeals'
+					subtitle='Review ban appeals from users'
+					gradient='blue'
+					marginBottom='md'
+				/>
+				<div className='flex flex-col items-center gap-3 py-16 text-center'>
+					<div className='grid size-12 place-items-center rounded-full bg-success/10'>
+						<Scale className='size-6 text-success' />
+					</div>
+					<p className='text-sm font-medium text-text'>No pending appeals</p>
+					<p className='text-xs text-text-muted'>
+						All appeals have been reviewed. Check back later.
+					</p>
+					<Button
+						variant='outline'
+						size='sm'
+						onClick={fetchAppeals}
+						className='mt-2'
+					>
+						Refresh
+					</Button>
 				</div>
-				<p className='text-sm font-medium text-text'>No pending appeals</p>
-				<p className='text-xs text-text-muted'>
-					All appeals have been reviewed. Check back later.
-				</p>
-				<Button
-					variant='outline'
-					size='sm'
-					onClick={fetchAppeals}
-					className='mt-2'
-				>
-					Refresh
-				</Button>
-			</div>
+			</PageContainer>
 		)
 	}
 
 	return (
-		<div className='space-y-3'>
-			<div className='mb-4 flex items-center justify-between'>
-				<p className='text-sm text-text-muted'>
-					{appeals.length} pending appeal{appeals.length !== 1 ? 's' : ''}
-				</p>
-				<Button
-					variant='outline'
+		<PageContainer maxWidth='2xl'>
+			<PageHeader
+				icon={Scale}
+				title='Appeals'
+				subtitle='Review ban appeals from users'
+				gradient='blue'
+				marginBottom='md'
+			/>
+			<div className='space-y-3'>
+				<div className='mb-4 flex items-center justify-between'>
+					<p className='text-sm text-text-muted'>
+						{appeals.length} pending appeal{appeals.length !== 1 ? 's' : ''}
+					</p>
+					<Button
+						variant='outline'
 					size='sm'
 					onClick={fetchAppeals}
 					disabled={loading}
@@ -291,6 +319,7 @@ export default function AppealsPage() {
 					</div>
 				)
 			})}
-		</div>
+			</div>
+		</PageContainer>
 	)
 }

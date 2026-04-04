@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
@@ -22,6 +22,8 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { RecipeCardEnhanced } from '@/components/recipe'
 import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
+import { TonightsPick } from '@/components/dashboard/TonightsPick'
+import { SeasonsBest } from '@/components/explore/SeasonsBest'
 import { RecipeFiltersSheet } from '@/components/shared/RecipeFiltersSheet'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
@@ -82,6 +84,7 @@ interface RecipeFilters {
 	difficulty: string[]
 	cookingTimeMax: number
 	rating: number | null
+	foolproofOnly: boolean
 }
 
 // ============================================
@@ -145,6 +148,7 @@ interface HeroRecipeProps {
 
 function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 
 	return (
 		<motion.div
@@ -199,7 +203,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						</Badge>
 					</div>
 
-					<h2 className='mb-3 text-2xl font-bold text-text md:text-3xl'>
+					<h2 className='mb-3 text-2xl font-serif font-bold text-text md:text-3xl'>
 						{recipe.title}
 					</h2>
 
@@ -241,12 +245,22 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							Start Cooking
 						</motion.button>
 						<motion.button
-							onClick={() => router.push(`/recipes/${recipe.id}`)}
+							onClick={() => startNavigationTransition(() => {
+								router.push(`/recipes/${recipe.id}`)
+							})}
+							disabled={isNavigating}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='rounded-xl border-2 border-border-medium bg-bg-card px-6 py-3 font-semibold text-text transition-all hover:border-brand hover:text-brand'
+							className='rounded-xl border-2 border-border-medium bg-bg-card px-6 py-3 font-semibold text-text transition-all hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed'
 						>
-							View Recipe
+							{isNavigating ? (
+								<>
+									<Loader2 className='inline size-5 animate-spin mr-2' />
+									Loading...
+								</>
+							) : (
+								'View Recipe'
+							)}
 						</motion.button>
 					</div>
 				</div>
@@ -308,6 +322,13 @@ function FilterChips({
 			type: 'rating',
 			value: String(filters.rating),
 			label: `${filters.rating}+ stars`,
+		})
+	}
+	if (filters.foolproofOnly) {
+		activeFilters.push({
+			type: 'foolproofOnly',
+			value: 'true',
+			label: 'First-Timer Friendly',
 		})
 	}
 
@@ -376,6 +397,7 @@ export default function ExplorePage() {
 	const initialQuery = searchParams.get('q') || ''
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
+	const [isNavigating, startNavigationTransition] = useTransition()
 
 	// Onboarding hints
 	useOnboardingOrchestrator({ delay: 1000 })
@@ -401,6 +423,7 @@ export default function ExplorePage() {
 		difficulty: [],
 		cookingTimeMax: 120,
 		rating: null,
+		foolproofOnly: false,
 	})
 	const [focusedCardIndex, setFocusedCardIndex] = useState(-1)
 	const [retryCount, setRetryCount] = useState(0)
@@ -492,7 +515,9 @@ export default function ExplorePage() {
 				focusedCardIndex < recipes.length
 			) {
 				e.preventDefault()
-				router.push(`/recipes/${recipes[focusedCardIndex].id}`)
+				startNavigationTransition(() => {
+					router.push(`/recipes/${recipes[focusedCardIndex].id}`)
+				})
 			}
 
 			// Escape to unfocus
@@ -620,6 +645,9 @@ export default function ExplorePage() {
 					if (filters.cookingTimeMax < 120) {
 						filterParams.maxTime = filters.cookingTimeMax
 					}
+					if (filters.foolproofOnly) {
+						filterParams.qualityTier = 'Foolproof'
+					}
 					if (sortBy && viewMode !== 'trending') {
 						filterParams.sortBy = sortBy
 					}
@@ -722,6 +750,9 @@ export default function ExplorePage() {
 			}
 			if (filters.cookingTimeMax < 120) {
 				filterParams.maxTime = filters.cookingTimeMax
+			}
+			if (filters.foolproofOnly) {
+				filterParams.qualityTier = 'Foolproof'
 			}
 			if (sortBy && viewMode !== 'trending') {
 				filterParams.sortBy = sortBy
@@ -875,6 +906,8 @@ export default function ExplorePage() {
 				updated.cookingTimeMax = 120
 			} else if (type === 'rating') {
 				updated.rating = null
+			} else if (type === 'foolproofOnly') {
+				updated.foolproofOnly = false
 			}
 			return updated
 		})
@@ -888,6 +921,7 @@ export default function ExplorePage() {
 			difficulty: [],
 			cookingTimeMax: 120,
 			rating: null,
+			foolproofOnly: false,
 		})
 		setSearchQuery('')
 		setPage(1)
@@ -926,7 +960,9 @@ export default function ExplorePage() {
 
 		if (e.key === 'Enter' && searchQuery.trim()) {
 			setShowAutocomplete(false)
-			router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+			startNavigationTransition(() => {
+				router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+			})
 		}
 	}
 
@@ -947,7 +983,8 @@ export default function ExplorePage() {
 			filters.cuisine.length +
 			filters.difficulty.length +
 			(filters.cookingTimeMax < 120 ? 1 : 0) +
-			(filters.rating !== null ? 1 : 0),
+			(filters.rating !== null ? 1 : 0) +
+			(filters.foolproofOnly ? 1 : 0),
 		[filters],
 	)
 
@@ -957,13 +994,30 @@ export default function ExplorePage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							Loading...
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='xl'>
 				{/* Header */}
 				<PageHeader
 					icon={Compass}
 					title='Explore Recipes'
 					subtitle='Discover new dishes and flavors from around the world.'
-					gradient='orange'
+					gradient='warm'
 				/>
 
 				{/* Hero/Featured Recipe (only when not searching) */}
@@ -972,6 +1026,14 @@ export default function ExplorePage() {
 						<HeroRecipe recipe={featuredRecipe} onCook={handleCook} />
 					)}
 				</AnimatePresence>
+
+				{/* Tonight's Pick — Personalized recommendation (only when not searching) */}
+				{!debouncedSearch && (
+					<TonightsPick className='mb-6' />
+				)}
+
+				{/* Season's Best — Curated featured collections (only when not searching) */}
+				{!debouncedSearch && <SeasonsBest className='mb-6' />}
 
 				{/* Search & Filter Bar */}
 				<motion.div

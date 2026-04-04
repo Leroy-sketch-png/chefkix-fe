@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -181,6 +181,23 @@ const transformToGamifiedNotification = (
 				timestamp,
 				isRead: notif.isRead,
 			}
+		case 'WEEKEND_NUDGE':
+			return {
+				id: notif.id,
+				type: 'weekend_nudge',
+				content: notif.content || (data.content as string) || 'It\'s the weekend — perfect time to try a new recipe!',
+				timestamp,
+				isRead: notif.isRead,
+			}
+		case 'PANTRY_EXPIRING':
+			return {
+				id: notif.id,
+				type: 'pantry_expiring',
+				content: notif.content || (data.content as string) || 'Some ingredients are expiring soon',
+				daysRemaining: (data.daysRemaining as number) || 3,
+				timestamp,
+				isRead: notif.isRead,
+			}
 		default:
 			return null
 	}
@@ -204,7 +221,10 @@ const transformToSocialNotification = (
 		CO_CHEF_TAGGED: 'mention',
 		DUEL_INVITE: 'cook',
 		DUEL_ACCEPTED: 'cook',
+		DUEL_DECLINED: 'cook',
 		DUEL_COMPLETED: 'achievement',
+		DUEL_EXPIRED: 'cook',
+		JOIN_REQUESTED: 'follow',
 		MEMBER_JOINED: 'follow',
 		JOIN_REQUEST_APPROVED: 'follow',
 	}
@@ -361,6 +381,7 @@ const SocialNotificationItem = ({
 	onMarkRead,
 }: SocialNotificationItemProps) => {
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const { icon: Icon, color, bg } = getNotificationIcon(type)
 
 	const handleClick = () => {
@@ -368,18 +389,20 @@ const SocialNotificationItem = ({
 			onMarkRead(id)
 		}
 		// Navigate based on type — use targetEntityUrl first, then derive from type
-		if (targetEntityUrl) {
-			router.push(targetEntityUrl)
-		} else if (type === 'follow' && userId) {
-			router.push(`/${userId}`)
-		} else if (
-			(type === 'like' || type === 'comment' || type === 'mention') &&
-			targetEntityId
-		) {
-			router.push(`/post/${targetEntityId}`)
-		} else if (type === 'cook' || type === 'achievement') {
-			router.push('/dashboard')
-		}
+		startNavigationTransition(() => {
+			if (targetEntityUrl) {
+				router.push(targetEntityUrl)
+			} else if (type === 'follow' && userId) {
+				router.push(`/${userId}`)
+			} else if (
+				(type === 'like' || type === 'comment' || type === 'mention') &&
+				targetEntityId
+			) {
+				router.push(`/post/${targetEntityId}`)
+			} else if (type === 'cook' || type === 'achievement') {
+				router.push('/dashboard')
+			}
+		})
 		// No fallback navigation for unresolvable notifications — mark as read is sufficient
 	}
 
@@ -394,8 +417,15 @@ const SocialNotificationItem = ({
 				read
 					? 'border-transparent bg-bg-card'
 					: 'border-brand/20 bg-brand/5 hover:border-brand/30',
+				isNavigating && 'opacity-50 pointer-events-none',
 			)}
 		>
+			{/* Loading indicator */}
+			{isNavigating && (
+				<div className='absolute inset-0 grid place-items-center rounded-xl bg-bg-card/50'>
+					<Loader2 className='size-5 animate-spin text-brand' />
+				</div>
+			)}
 			{/* Unread indicator */}
 			{!read && (
 				<div className='absolute left-2 top-1/2 size-2 -translate-y-1/2 rounded-full bg-brand' />
@@ -452,6 +482,7 @@ export default function NotificationsPage() {
 	const { user } = useAuth()
 	const router = useRouter()
 	const { setUnreadCount, fetchUnreadCount } = useNotificationStore()
+	const [isNavigating, startNavigationTransition] = useTransition()
 
 	const [gamifiedNotifications, setGamifiedNotifications] = useState<
 		GamifiedNotification[]
@@ -618,15 +649,32 @@ export default function NotificationsPage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							Loading...
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='lg'>
-				{/* Header - PRIMARY page (in LeftSidebar), no back button */}
-				<PageHeader
-					icon={Bell}
-					title="Notifications"
-					subtitle="Stay updated with your cooking journey"
-					gradient="orange"
-					marginBottom="md"
-					rightAction={
+			{/* Header - PRIMARY page (in LeftSidebar), no back button */}
+			<PageHeader
+				icon={Bell}
+				title="Notifications"
+				subtitle="Stay updated with your cooking journey"
+				gradient="blue"
+				marginBottom="md"
+				rightAction={
 						counts.unread > 0 ? (
 							<Button
 								variant='ghost'
@@ -721,10 +769,14 @@ export default function NotificationsPage() {
 									// Add callbacks based on notification type
 									const extraProps: Record<string, unknown> = {}
 									if (notif.type === 'xp_awarded') {
-										extraProps.onPost = () => router.push('/create')
+										extraProps.onPost = () => startNavigationTransition(() => {
+											router.push('/create')
+										})
 									}
 									if (notif.type === 'streak_warning') {
-										extraProps.onFindRecipe = () => router.push('/explore')
+										extraProps.onFindRecipe = () => startNavigationTransition(() => {
+											router.push('/explore')
+										})
 									}
 									return (
 										<NotificationItemGamified

@@ -24,6 +24,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PageHeader } from '@/components/layout/PageHeader'
 
 const REASON_LABELS: Record<string, string> = {
 	fraud: 'Fraud',
@@ -117,7 +119,14 @@ export default function ReportsPage() {
 	const reports = activeTab === 'pending' ? pendingReports : allReports
 
 	return (
-		<div>
+		<PageContainer maxWidth='2xl'>
+			<PageHeader
+				icon={AlertTriangle}
+				title='Reports'
+				subtitle='Review community reports and moderate content'
+				gradient='orange'
+				marginBottom='md'
+			/>
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
 				<div className='mb-4 flex items-center justify-between'>
 					<TabsList>
@@ -168,7 +177,7 @@ export default function ReportsPage() {
 					/>
 				</TabsContent>
 			</Tabs>
-		</div>
+		</PageContainer>
 	)
 }
 

@@ -763,7 +763,7 @@ function MessagesContent() {
 										<Button
 											variant='ghost'
 											size='icon'
-											className='absolute -top-3 -right-3 z-[60] bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
+											className='absolute -top-3 -right-3 z-dropdown bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
 											onClick={() => setIsVideoCallActive(false)}
 											aria-label='End video call'
 										>

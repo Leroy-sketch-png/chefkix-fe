@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -54,7 +54,7 @@ import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { toast } from 'sonner'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
-// ── Source badge colors ──────────────────────────────────────────────
+// â”€â”€ Source badge colors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const SOURCE_CONFIG: Record<
 	string,
@@ -66,7 +66,7 @@ const SOURCE_CONFIG: Record<
 }
 
 export default function ShoppingListsPage() {
-	// ── State ──────────────────────────────────────────────────────────
+	// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 	const [lists, setLists] = useState<ShoppingListSummary[]>([])
 	const [selectedList, setSelectedList] = useState<ShoppingListResponse | null>(
 		null,
@@ -95,7 +95,7 @@ export default function ShoppingListsPage() {
 
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
 
-	// ── Ingredient autocomplete via Typesense ──────────────────────────
+	// â”€â”€ Ingredient autocomplete via Typesense â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const fetchIngredientOptions = useCallback(
 		async (query: string): Promise<AsyncComboboxOption[]> => {
@@ -112,7 +112,7 @@ export default function ShoppingListsPage() {
 		[],
 	)
 
-	// ── Fetch lists ────────────────────────────────────────────────────
+	// â”€â”€ Fetch lists â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const fetchLists = useCallback(async () => {
 		setFetchError(false)
@@ -131,7 +131,7 @@ export default function ShoppingListsPage() {
 		fetchLists()
 	}, [fetchLists])
 
-	// ── List operations ────────────────────────────────────────────────
+	// â”€â”€ List operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const handleOpenList = async (id: string) => {
 		setIsDetailLoading(true)
@@ -170,7 +170,7 @@ export default function ShoppingListsPage() {
 			fetchLists()
 			toast.success('Shopping list created from meal plan!')
 		} catch {
-			toast.error('No meal plan found — generate one first')
+			toast.error('No meal plan found â€” generate one first')
 		} finally {
 			setIsCreating(false)
 		}
@@ -194,7 +194,7 @@ export default function ShoppingListsPage() {
 		}
 	}
 
-	// ── Item operations ────────────────────────────────────────────────
+	// â”€â”€ Item operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const handleToggleItem = async (itemId: string) => {
 		if (!selectedList) return
@@ -277,20 +277,20 @@ export default function ShoppingListsPage() {
 		}
 	}
 
-	// ── Copy & Share ───────────────────────────────────────────────────
+	// â”€â”€ Copy & Share â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const handleCopyList = async () => {
 		if (!selectedList) return
 		const text = selectedList.items
 			.map(item => {
 				const qty = item.quantity ? ` (${item.quantity})` : ''
-				const check = item.checked ? '✓' : '○'
+				const check = item.checked ? 'âœ“' : 'â—‹'
 				return `${check} ${item.ingredient}${qty}`
 			})
 			.join('\n')
 		try {
 			await navigator.clipboard.writeText(
-				`${selectedList.name}\n${'─'.repeat(30)}\n${text}`,
+				`${selectedList.name}\n${'â”€'.repeat(30)}\n${text}`,
 			)
 			setCopySuccess(true)
 			setTimeout(() => setCopySuccess(false), 2000)
@@ -313,7 +313,7 @@ export default function ShoppingListsPage() {
 		}
 	}
 
-	// ── Group items by category ────────────────────────────────────────
+	// â”€â”€ Group items by category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const groupedItems = useMemo(() => {
 		if (!selectedList) return {}
@@ -333,7 +333,7 @@ export default function ShoppingListsPage() {
 		return sorted
 	}, [selectedList])
 
-	// ── Progress ───────────────────────────────────────────────────────
+	// â”€â”€ Progress â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	const progress = selectedList
 		? selectedList.totalItems > 0
@@ -350,7 +350,7 @@ export default function ShoppingListsPage() {
 		[selectedList],
 	)
 
-	// ── Loading skeleton ───────────────────────────────────────────────
+	// â”€â”€ Loading skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	if (isLoading) {
 		return (
@@ -389,7 +389,7 @@ export default function ShoppingListsPage() {
 		)
 	}
 
-	// ── Detail View ────────────────────────────────────────────────────
+	// â”€â”€ Detail View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	if (selectedList) {
 		return (
@@ -460,7 +460,7 @@ export default function ShoppingListsPage() {
 									</p>
 									<p className='text-xs text-text-muted'>
 										{uncheckedItems.length} item
-										{uncheckedItems.length !== 1 ? 's' : ''} remaining — opens
+										{uncheckedItems.length !== 1 ? 's' : ''} remaining â€” opens
 										Instacart with your items
 									</p>
 								</div>
@@ -481,7 +481,7 @@ export default function ShoppingListsPage() {
 													'noopener,noreferrer',
 												)
 												toast.success(
-													`Checkout started — ${result.itemCount} items`,
+													`Checkout started â€” ${result.itemCount} items`,
 												)
 											} else {
 												toast.success(
@@ -496,7 +496,7 @@ export default function ShoppingListsPage() {
 									}}
 									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
 								>
-									{isCheckingOut ? 'Processing…' : 'Shop Now'}
+									{isCheckingOut ? 'Processingâ€¦' : 'Shop Now'}
 								</button>
 							</motion.div>
 						)}
@@ -606,7 +606,7 @@ export default function ShoppingListsPage() {
 						{selectedList.items.length === 0 ? (
 							<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
 								<Package className='mx-auto mb-3 size-12 text-text-muted/40' />
-								<p className='text-text-muted'>Empty list — add items above</p>
+								<p className='text-text-muted'>Empty list â€” add items above</p>
 							</div>
 						) : (
 							<div className='space-y-4'>
@@ -669,7 +669,7 @@ export default function ShoppingListsPage() {
 																	{item.recipes.map(recipe => (
 																		<span
 																			key={recipe}
-																			className='inline-block rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium text-brand'
+																			className='inline-block rounded-full bg-brand/10 px-2 py-0.5 text-2xs font-medium text-brand'
 																		>
 																			{recipe}
 																		</span>
@@ -677,7 +677,7 @@ export default function ShoppingListsPage() {
 																</div>
 															)}
 															{item.addedManually && (
-																<span className='ml-1 text-[10px] text-text-muted'>
+																<span className='ml-1 text-2xs text-text-muted'>
 																	(custom)
 																</span>
 															)}
@@ -704,7 +704,7 @@ export default function ShoppingListsPage() {
 		)
 	}
 
-	// ── List View (default) ────────────────────────────────────────────
+	// â”€â”€ List View (default) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 	return (
 		<PageTransition>
@@ -865,7 +865,7 @@ export default function ShoppingListsPage() {
 
 										{/* Stats */}
 										<p className='mb-3 text-xs text-text-muted'>
-											{list.checkedItems}/{list.totalItems} items ·{' '}
+											{list.checkedItems}/{list.totalItems} items Â·{' '}
 											{new Date(list.createdAt).toLocaleDateString()}
 										</p>
 
@@ -893,7 +893,7 @@ export default function ShoppingListsPage() {
 					)}
 				</div>
 
-				{/* ── Delete Confirmation Dialog ── */}
+				{/* â”€â”€ Delete Confirmation Dialog â”€â”€ */}
 				<AnimatePresence>
 					{confirmingDeleteId && (
 						<Portal>

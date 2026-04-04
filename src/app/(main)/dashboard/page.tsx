@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useTransition } from 'react'
 import { motion } from 'framer-motion'
 import { Post } from '@/lib/types'
 import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
@@ -46,7 +46,6 @@ import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { ResumeCookingBanner } from '@/components/cooking'
-import { FriendsCookingNow } from '@/components/cooking'
 import { SinceLastVisitCard } from '@/components/dashboard'
 import { TonightsPick } from '@/components/dashboard'
 import { SeasonalBanner } from '@/components/dashboard'
@@ -147,6 +146,7 @@ export default function DashboardPage() {
 	const [retryCount, setRetryCount] = useState(0)
 	const [isColdStartFallback, setIsColdStartFallback] = useState(false)
 	const [feedRefreshKey, setFeedRefreshKey] = useState(0)
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
 	// Onboarding hints - show after initial load completes
@@ -445,7 +445,9 @@ export default function DashboardPage() {
 
 	const handlePostFromPending = (sessionId: string) => {
 		// Navigate to dedicated post composer with session context for XP unlock
-		router.push(`/post/new?session=${sessionId}`)
+		startNavigationTransition(() => {
+			router.push(`/post/new?session=${sessionId}`)
+		})
 	}
 
 	const handleDismissPending = () => {
@@ -480,7 +482,21 @@ export default function DashboardPage() {
 
 	return (
 		<>
+			{/* Global navigation loading indicator */}
 			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							Loading...
+						</div>
+					</motion.div>
+				)}
 				{showInterestPicker && !interestPickerDismissed && (
 					<InterestPicker
 						onComplete={() => {
@@ -501,78 +517,105 @@ export default function DashboardPage() {
 				{/* Active Challenges Widget — only shown for users with some activity */}
 				{!isNewUser && <ActiveChallengesWidget className='mb-6' />}
 
-				{/* New User Welcome — shown when user has never cooked or created a recipe */}
-				{stats &&
-					(stats.currentXP ?? 0) === 0 &&
-					(stats.recipeCount ?? 0) === 0 && (
-						<motion.div
-							initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={TRANSITION_SPRING}
-							className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
-						>
-							<h2 className='text-lg font-bold text-text'>
-								Welcome to ChefKix,{' '}
-								{user?.displayName || user?.firstName || user?.username}!
-							</h2>
-							<p className='mt-1 text-sm text-text-secondary'>
-								Here&apos;s how to get the most out of ChefKix:
-							</p>
-							<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
-								<Link
-									href='/explore'
-									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-								>
-									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 transition-colors group-hover:bg-brand/20'>
-										<BookOpen className='size-5 text-brand' />
-									</div>
-									<div>
-										<span className='text-sm font-medium text-text'>
-											Browse recipes
-										</span>
-										<p className='text-xs text-text-muted'>
-											Hundreds of dishes to discover
-										</p>
-									</div>
-								</Link>
-								<Link
-									href='/explore?difficulty=Beginner'
-									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-								>
-									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
-										<ChefHat className='size-5 text-xp' />
-									</div>
-									<div>
-										<span className='text-sm font-medium text-text'>
-											Try your first recipe
-										</span>
-										<p className='text-xs text-text-muted'>
-											Easy recipes to get started
-										</p>
-									</div>
-								</Link>
-								<Link
-									href='/community'
-									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-								>
-									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 transition-colors group-hover:bg-streak/20'>
-										<Users className='size-5 text-streak' />
-									</div>
-									<div>
-										<span className='text-sm font-medium text-text'>
-											Join the community
-										</span>
-										<p className='text-xs text-text-muted'>
-											Follow chefs you love
-										</p>
-									</div>
-								</Link>
-							</div>
-						</motion.div>
-					)}
-
-				{/* Complete Your Profile — nudge users who haven't set avatar or bio */}
-				{user &&
+				{/* Onboarding Card — welcome for new users, profile nudge for incomplete profiles */}
+				{isNewUser ? (
+					<motion.div
+						initial={{ opacity: 0, y: 12 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={TRANSITION_SPRING}
+						className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
+					>
+						<h2 className='text-lg font-bold text-text'>
+							Welcome to ChefKix,{' '}
+							{user?.displayName || user?.firstName || user?.username}!
+						</h2>
+						<p className='mt-1 text-sm text-text-secondary'>
+							Here&apos;s how to get the most out of ChefKix:
+						</p>
+						<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+							<Link
+								href='/explore'
+								className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+							>
+								<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 transition-colors group-hover:bg-brand/20'>
+									<BookOpen className='size-5 text-brand' />
+								</div>
+								<div>
+									<span className='text-sm font-medium text-text'>
+										Browse recipes
+									</span>
+									<p className='text-xs text-text-muted'>
+										Hundreds of dishes to discover
+									</p>
+								</div>
+							</Link>
+							<Link
+								href='/explore?difficulty=Beginner'
+								className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+							>
+								<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
+									<ChefHat className='size-5 text-xp' />
+								</div>
+								<div>
+									<span className='text-sm font-medium text-text'>
+										Try your first recipe
+									</span>
+									<p className='text-xs text-text-muted'>
+										Easy recipes to get started
+									</p>
+								</div>
+							</Link>
+							<Link
+								href='/community'
+								className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+							>
+								<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 transition-colors group-hover:bg-streak/20'>
+									<Users className='size-5 text-streak' />
+								</div>
+								<div>
+									<span className='text-sm font-medium text-text'>
+										Join the community
+									</span>
+									<p className='text-xs text-text-muted'>
+										Follow chefs you love
+									</p>
+								</div>
+							</Link>
+						</div>
+						{/* Profile completion nudge — inline for new users */}
+						{user &&
+							(!user.avatarUrl ||
+								user.avatarUrl === '/placeholder-avatar.svg' ||
+								!user.bio) && (
+								<div className='mt-4 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-3'>
+									<span className='text-xs font-medium text-text-muted'>
+										Quick wins:
+									</span>
+									{(!user.avatarUrl ||
+										user.avatarUrl === '/placeholder-avatar.svg') && (
+										<Link
+											href='/settings'
+											className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+										>
+											<Camera className='size-3.5' />
+											Add a photo
+										</Link>
+									)}
+									{!user.bio && (
+										<Link
+											href='/settings'
+											className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+										>
+											<PenLine className='size-3.5' />
+											Write a bio
+										</Link>
+									)}
+								</div>
+							)}
+					</motion.div>
+				) : (
+					/* Returning users — compact profile completion nudge only */
+					user &&
 					(!user.avatarUrl ||
 						user.avatarUrl === '/placeholder-avatar.svg' ||
 						!user.bio) && (
@@ -580,40 +623,34 @@ export default function DashboardPage() {
 							initial={{ opacity: 0, y: 12 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-							className='mb-6 rounded-radius border border-border-subtle bg-bg-card p-5 shadow-card'
+							className='mb-6 flex flex-wrap items-center gap-3 rounded-radius border border-border-subtle bg-bg-card px-4 py-3 shadow-card'
 						>
-							<h3 className='text-sm font-bold text-text'>
-								Complete your profile
-							</h3>
-							<p className='mt-1 text-xs text-text-muted'>
+							<span className='text-xs font-semibold text-text-secondary'>
 								Profiles with photos get 5x more followers
-							</p>
-							<div className='mt-3 flex flex-wrap gap-2'>
-								{(!user.avatarUrl ||
-									user.avatarUrl === '/placeholder-avatar.svg') && (
-									<Link
-										href='/settings'
-										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-									>
-										<Camera className='size-3.5' />
-										Add a photo
-									</Link>
-								)}
-								{!user.bio && (
-									<Link
-										href='/settings'
-										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-									>
-										<PenLine className='size-3.5' />
-										Write a bio
-									</Link>
-								)}
-							</div>
+							</span>
+							{(!user.avatarUrl ||
+								user.avatarUrl === '/placeholder-avatar.svg') && (
+								<Link
+									href='/settings'
+									className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+								>
+									<Camera className='size-3.5' />
+									Add a photo
+								</Link>
+							)}
+							{!user.bio && (
+								<Link
+									href='/settings'
+									className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+								>
+									<PenLine className='size-3.5' />
+									Write a bio
+								</Link>
+							)}
 						</motion.div>
-					)}
+					)
+				)}
 
-				{/* Since Last Visit Summary - only for returning users */}
-				{!isNewUser && <SinceLastVisitCard className='mb-6' />}
 				{hasPendingXpSync && (
 					<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
 						<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
@@ -640,15 +677,15 @@ export default function DashboardPage() {
 				)}
 				{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
 				<ResumeCookingBanner className='mb-6' />
-				{/* Friends Cooking Now — live activity from followed users' rooms */}
-				{!isNewUser && <FriendsCookingNow className='mb-6' />}
 				{/* Streak Risk Banner - only shown for users with an active streak at risk */}
 				{!isNewUser && hasStreakAtRisk && showStreakBanner && (
 					<StreakRiskBanner
 						currentStreak={stats?.streakCount ?? 0}
 						timeRemaining={{ hours: hoursUntilBreak, minutes: 0 }}
 						isUrgent={isUrgent}
-						onQuickCook={() => router.push('/explore')}
+						onQuickCook={() => startNavigationTransition(() => {
+							router.push('/explore')
+						})}
 						onDismiss={() => setShowStreakBanner(false)}
 						className='mb-6'
 					/>
@@ -659,7 +696,9 @@ export default function DashboardPage() {
 						sessions={pendingSessions}
 						onPost={handlePostFromPending}
 						onDismiss={handleDismissPending}
-						onViewAll={() => router.push(`/${user?.userId}?tab=cooking`)}
+						onViewAll={() => startNavigationTransition(() => {
+							router.push(`/${user?.userId}?tab=cooking`)
+						})}
 						className='mb-6'
 					/>
 				)}
@@ -676,6 +715,8 @@ export default function DashboardPage() {
 					onModeChange={setFeedMode}
 					className="mb-6"
 				/>
+				{/* Since Last Visit Summary - compact recap for returning users */}
+				{!isNewUser && <SinceLastVisitCard className='mb-6' />}
 				{/* Create Post Form */}
 				<div className='mb-4 md:mb-6'>
 					<CreatePostForm
