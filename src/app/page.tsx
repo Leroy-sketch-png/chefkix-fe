@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -22,7 +23,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import { TRANSITION_SPRING, ICON_BUTTON_HOVER, staggerContainer, staggerItem } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { getTrendingRecipes } from '@/services/recipe'
 import { Recipe } from '@/lib/types/recipe'
@@ -35,8 +36,8 @@ import { logDevError } from '@/lib/dev-log'
 
 interface FeatureHighlight {
 	icon: typeof Timer
-	title: string
-	description: string
+	titleKey: string
+	descriptionKey: string
 }
 
 // ============================================
@@ -46,18 +47,18 @@ interface FeatureHighlight {
 const featureHighlights: FeatureHighlight[] = [
 	{
 		icon: Timer,
-		title: 'Smart Timers',
-		description: 'Auto-synced timers for every step. Never burn dinner again.',
+		titleKey: 'smartTimersTitle',
+		descriptionKey: 'smartTimersDesc',
 	},
 	{
 		icon: Trophy,
-		title: 'Earn XP & Badges',
-		description: 'Level up your cooking skills with real achievements.',
+		titleKey: 'earnXpTitle',
+		descriptionKey: 'earnXpDesc',
 	},
 	{
 		icon: Zap,
-		title: 'Step-by-Step',
-		description: 'Interactive cook mode guides you through each recipe.',
+		titleKey: 'stepByStepTitle',
+		descriptionKey: 'stepByStepDesc',
 	},
 ]
 
@@ -65,25 +66,16 @@ const featureHighlights: FeatureHighlight[] = [
 // COMPONENTS
 // ============================================
 
-const FloatingOrb = ({
-	className,
-	delay,
-}: {
-	className: string
-	delay: number
-}) => (
-	<div
-		className={cn('animate-float-orb opacity-30', className)}
-		style={{ animationDelay: `${delay}s` }}
-	/>
-)
-
 const FeatureCard = ({
 	feature,
 	index,
+	title,
+	description,
 }: {
 	feature: FeatureHighlight
 	index: number
+	title: string
+	description: string
 }) => {
 	const Icon = feature.icon
 	return (
@@ -97,9 +89,9 @@ const FeatureCard = ({
 				<Icon className='size-5 text-brand' />
 			</div>
 			<div>
-				<h3 className='font-semibold text-text'>{feature.title}</h3>
+				<h3 className='font-semibold text-text'>{title}</h3>
 				<p className='mt-0.5 text-sm text-text-secondary'>
-					{feature.description}
+					{description}
 				</p>
 			</div>
 		</motion.div>
@@ -109,9 +101,11 @@ const FeatureCard = ({
 interface TrendingRecipeCardProps {
 	recipe: Recipe
 	index: number
+	byLabel: string
+	cookedLabel: string
 }
 
-const TrendingRecipeCard = ({ recipe, index }: TrendingRecipeCardProps) => {
+const TrendingRecipeCard = ({ recipe, index, byLabel, cookedLabel }: TrendingRecipeCardProps) => {
 	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.svg'
 	const difficulty = difficultyToDisplay(recipe.difficulty)
 	const totalTime =
@@ -136,12 +130,12 @@ const TrendingRecipeCard = ({ recipe, index }: TrendingRecipeCardProps) => {
 						sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
 					/>
 					{/* Gradient overlay */}
-					<div className='absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0' />
-					{/* Cook CTA on hover */}
+					<div className='pointer-events-none absolute inset-0 bg-gradient-scrim' />
+					{/* Cook CTA — always visible on mobile, hover-revealed on desktop */}
 					<div className='absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20'>
 						<motion.div
-							className='rounded-full bg-brand p-3 opacity-0 shadow-lg transition-opacity group-hover:opacity-100'
-							whileHover={{ scale: 1.1 }}
+							className='rounded-full bg-brand p-3 opacity-80 shadow-card transition-opacity sm:opacity-0 sm:group-hover:opacity-100'
+							whileHover={ICON_BUTTON_HOVER}
 						>
 							<Play className='size-5 text-white' fill='white' />
 						</motion.div>
@@ -170,12 +164,12 @@ const TrendingRecipeCard = ({ recipe, index }: TrendingRecipeCardProps) => {
 						{recipe.title}
 					</h3>
 					<p className='mt-1 line-clamp-1 text-sm text-text-secondary'>
-						by {recipe.author?.displayName || 'ChefKix'}
+						{byLabel}
 					</p>
 					{recipe.cookCount > 0 && (
 						<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
 							<ChefHat className='size-3' />
-							<span>{recipe.cookCount} people cooked this</span>
+							<span>{cookedLabel}</span>
 						</div>
 					)}
 				</div>
@@ -191,6 +185,7 @@ const TrendingRecipeCard = ({ recipe, index }: TrendingRecipeCardProps) => {
 // ============================================
 
 export default function HomePage() {
+	const t = useTranslations('landing')
 	const router = useRouter()
 	const { user, isLoading } = useAuth()
 	const [trendingRecipes, setTrendingRecipes] = useState<Recipe[]>([])
@@ -213,17 +208,17 @@ export default function HomePage() {
 				if (res.success && res.data) {
 					setTrendingRecipes(res.data.slice(0, 4))
 				} else {
-					setRecipesError(res.message || 'Could not load trending recipes')
+					setRecipesError(res.message || t('couldNotLoadDefault'))
 				}
 			} catch (err) {
 				logDevError('Landing page: failed to fetch trending recipes', err)
-				setRecipesError('Could not connect to server')
+				setRecipesError(t('couldNotConnect'))
 			} finally {
 				setRecipesLoading(false)
 			}
 		}
 		fetchTrending()
-	}, [])
+	}, [t])
 
 	// Authenticated users get redirected
 	if (isLoading || user) {
@@ -242,21 +237,7 @@ export default function HomePage() {
 	}
 
 	return (
-		<div className='relative min-h-screen overflow-hidden bg-bg'>
-			{/* Ambient background */}
-			<div className='absolute inset-0 bg-gradient-to-br from-brand/5 via-bg to-xp/5' />
-			<FloatingOrb
-				className='absolute -left-32 top-1/4 size-64 rounded-full bg-gradient-to-br from-brand/20 to-brand/5 blur-3xl'
-				delay={0}
-			/>
-			<FloatingOrb
-				className='absolute -right-32 top-1/2 size-80 rounded-full bg-gradient-to-br from-xp/20 to-xp/5 blur-3xl'
-				delay={2}
-			/>
-			<FloatingOrb
-				className='absolute -bottom-20 left-1/3 size-48 rounded-full bg-gradient-to-br from-streak/20 to-streak/5 blur-3xl'
-				delay={4}
-			/>
+		<div className='relative min-h-screen bg-bg'>
 
 			{/* Content */}
 			<div className='relative'>
@@ -273,13 +254,13 @@ export default function HomePage() {
 							href='/auth/sign-in'
 							className='rounded-radius px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:text-text'
 						>
-							Sign In
+							{t('signIn')}
 						</Link>
 						<Link
 							href='/auth/sign-up'
 							className='rounded-radius bg-gradient-hero px-5 py-2 text-sm font-bold text-white shadow-card shadow-brand/25 transition-all hover:shadow-warm'
 						>
-							Get Started
+							{t('getStarted')}
 						</Link>
 					</div>
 				</nav>
@@ -306,10 +287,10 @@ export default function HomePage() {
 						variants={staggerItem}
 						className='mb-4 text-4xl font-extrabold leading-tight text-text md:text-5xl lg:text-6xl'
 					>
-						What are you
+						{t('heroTitle1')}
 						<br />
-						<span className='bg-gradient-to-r from-brand via-streak to-xp bg-clip-text text-transparent'>
-							cooking tonight?
+						<span className='bg-gradient-hero-text bg-clip-text text-transparent'>
+							{t('heroTitle2')}
 						</span>
 					</motion.h1>
 
@@ -317,8 +298,7 @@ export default function HomePage() {
 						variants={staggerItem}
 						className='mx-auto mb-6 max-w-xl text-lg text-text-secondary'
 					>
-						Discover recipes, track your cooking journey, earn XP, and
-						fall back in love with your kitchen.
+						{t('heroDescription')}
 					</motion.p>
 
 					<motion.div
@@ -327,16 +307,16 @@ export default function HomePage() {
 					>
 						<Link
 							href='/auth/sign-up'
-							className='group flex items-center gap-2 rounded-radius bg-gradient-hero px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-brand/30 transition-all hover:shadow-xl hover:shadow-brand/40'
+							className='group flex items-center gap-2 rounded-radius bg-gradient-hero px-8 py-3.5 text-base font-bold text-white shadow-card shadow-brand/30 transition-all hover:shadow-warm hover:shadow-brand/40'
 						>
-							Start Cooking Free
+							{t('startCookingFree')}
 							<ArrowRight className='size-4 transition-transform group-hover:translate-x-1' />
 						</Link>
 						<Link
 							href='/explore'
 							className='flex items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text shadow-card transition-all hover:shadow-warm'
 						>
-							Browse Recipes
+							{t('browseRecipes')}
 						</Link>
 					</motion.div>
 				</motion.section>
@@ -346,13 +326,13 @@ export default function HomePage() {
 					<div className='mb-6 flex items-center justify-between'>
 						<div className='flex items-center gap-2'>
 							<TrendingUp className='size-5 text-brand' />
-							<h2 className='text-xl font-bold text-text'>Trending Tonight</h2>
+							<h2 className='text-xl font-bold text-text'>{t('trendingTonight')}</h2>
 						</div>
 						<Link
 							href='/explore'
 							className='flex items-center gap-1 text-sm font-semibold text-brand hover:underline'
 						>
-							See all
+							{t('seeAll')}
 							<ArrowRight className='size-3.5' />
 						</Link>
 					</div>
@@ -376,12 +356,13 @@ export default function HomePage() {
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
 							<AlertTriangle className='mx-auto mb-3 size-10 text-warning' />
 							<p className='mb-2 font-medium text-text'>
-								Couldn&apos;t load trending recipes
+								{t('couldntLoadRecipes')}
 							</p>
 							<p className='mb-4 text-sm text-text-secondary'>
 								{recipesError}
 							</p>
 							<button
+								type='button'
 								onClick={() => {
 									setRecipesLoading(true)
 									setRecipesError(null)
@@ -390,35 +371,41 @@ export default function HomePage() {
 											if (res.success && res.data) {
 												setTrendingRecipes(res.data.slice(0, 4))
 											} else {
-												setRecipesError(res.message || 'Could not load recipes')
+												setRecipesError(res.message || t('couldNotLoadDefault'))
 											}
 										})
-										.catch(() => setRecipesError('Could not connect to server'))
+										.catch(() => setRecipesError(t('couldNotConnect')))
 										.finally(() => setRecipesLoading(false))
 								}}
 								className='inline-flex items-center gap-2 rounded-lg bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
 							>
 								<RefreshCw className='size-4' />
-								Try again
+								{t('tryAgain')}
 							</button>
 						</div>
 					) : trendingRecipes.length > 0 ? (
 						<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
 							{trendingRecipes.map((recipe, i) => (
-								<TrendingRecipeCard key={recipe.id} recipe={recipe} index={i} />
+								<TrendingRecipeCard
+									key={recipe.id}
+									recipe={recipe}
+									index={i}
+									byLabel={t('by', { name: recipe.author?.displayName || 'ChefKix' })}
+									cookedLabel={t('peopleCookedThis', { count: recipe.cookCount })}
+								/>
 							))}
 						</div>
 					) : (
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
 							<ChefHat className='mx-auto mb-3 size-10 text-text-muted' />
 							<p className='text-text-secondary'>
-								Be the first to cook and trend!
+								{t('beFirstToTrend')}
 							</p>
 							<Link
 								href='/auth/sign-up'
 								className='mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline'
 							>
-								Create your first recipe
+								{t('createFirstRecipe')}
 								<ArrowRight className='size-3.5' />
 							</Link>
 						</div>
@@ -432,17 +419,23 @@ export default function HomePage() {
 							<div className='mb-2 flex items-center justify-center gap-1.5'>
 								<Sparkles className='size-4 text-streak' />
 								<span className='text-sm font-bold uppercase tracking-wider text-streak'>
-									Built for Home Cooks
+									{t('builtForHomeCooks')}
 								</span>
 							</div>
 							<h2 className='text-2xl font-bold text-text md:text-3xl'>
-								Everything you need to cook better
+								{t('everythingYouNeed')}
 							</h2>
 						</div>
 
 						<div className='grid gap-4 md:grid-cols-3'>
 							{featureHighlights.map((feature, i) => (
-								<FeatureCard key={feature.title} feature={feature} index={i} />
+								<FeatureCard
+									key={feature.titleKey}
+									feature={feature}
+									index={i}
+									title={t(feature.titleKey)}
+									description={t(feature.descriptionKey)}
+								/>
 							))}
 						</div>
 					</div>
@@ -455,14 +448,14 @@ export default function HomePage() {
 							<div className='mb-2 flex items-center justify-center gap-1.5'>
 								<Play className='size-4 text-brand' />
 								<span className='text-sm font-bold uppercase tracking-wider text-brand'>
-									See How It Works
+									{t('seeHowItWorks')}
 								</span>
 							</div>
 							<h2 className='mb-2 text-2xl font-bold text-text md:text-3xl'>
-								Cook mode guides you step by step
+								{t('cookModeGuides')}
 							</h2>
 							<p className='text-text-secondary'>
-								Never lose your place or miss a step. Try it out:
+								{t('neverLosePlaceDesc')}
 							</p>
 						</div>
 
@@ -481,13 +474,13 @@ export default function HomePage() {
 										<ChefHat className='size-5 text-brand' />
 									</div>
 									<div>
-										<h3 className='font-bold text-text'>Classic Pasta Demo</h3>
-										<p className='text-xs text-text-muted'>Step 2 of 4</p>
+										<h3 className='font-bold text-text'>{t('classicPastaDemo')}</h3>
+										<p className='text-xs text-text-muted'>{t('stepOf', { current: 2, total: 4 })}</p>
 									</div>
 								</div>
 								<div className='flex items-center gap-2'>
 									<span className='rounded-full bg-xp/10 px-2.5 py-1 text-xs font-bold text-xp'>
-										+15 XP
+										{t('xpReward', { xp: 15 })}
 									</span>
 								</div>
 							</div>
@@ -500,11 +493,11 @@ export default function HomePage() {
 											2
 										</span>
 										<span className='text-sm font-medium text-text-secondary'>
-											Current Step
+											{t('currentStep')}
 										</span>
 									</div>
 									<p className='text-lg text-text'>
-										Bring a large pot of salted water to a boil. Add the pasta and cook according to package directions until al dente.
+										{t('demoInstruction')}
 									</p>
 								</div>
 
@@ -514,24 +507,25 @@ export default function HomePage() {
 										<Timer className='size-6 text-brand' />
 									</div>
 									<div className='flex-1'>
-										<p className='text-sm font-medium text-text-secondary'>Timer</p>
+										<p className='text-sm font-medium text-text-secondary'>{t('timer')}</p>
 										<p className='text-2xl font-bold tabular-nums text-text'>
 											8:00
 										</p>
 									</div>
 									<button
+										type='button'
 										onClick={() => setShowCookModeDemo(true)}
 										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-brand/90'
 									>
 										<Play className='size-4' fill='white' />
-										Start Timer
+										{t('startTimer')}
 									</button>
 								</div>
 
 								{/* Step Navigation Demo */}
 								<div className='flex items-center justify-between'>
-									<button className='rounded-lg border border-border-subtle px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'>
-										Previous
+									<button type='button' className='rounded-lg border border-border-subtle px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'>
+										{t('previous')}
 									</button>
 									<div className='flex gap-1.5'>
 										<div className='size-2 rounded-full bg-brand' />
@@ -539,8 +533,8 @@ export default function HomePage() {
 										<div className='size-2 rounded-full bg-border-subtle' />
 										<div className='size-2 rounded-full bg-border-subtle' />
 									</div>
-									<button className='flex items-center gap-2 rounded-lg bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'>
-										Next Step
+									<button type='button' className='flex items-center gap-2 rounded-lg bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'>
+										{t('nextStep')}
 										<ArrowRight className='size-4' />
 									</button>
 								</div>
@@ -552,7 +546,7 @@ export default function HomePage() {
 								href='/auth/sign-up'
 								className='inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline'
 							>
-								Sign up to start cooking for real
+								{t('signUpToCook')}
 								<ArrowRight className='size-4' />
 							</Link>
 						</div>
@@ -566,7 +560,7 @@ export default function HomePage() {
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm'
+							className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm'
 							onClick={() => setShowCookModeDemo(false)}
 						>
 							<motion.div
@@ -577,6 +571,7 @@ export default function HomePage() {
 								className='w-full max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-xl'
 							>
 								<button
+									type='button'
 									onClick={() => setShowCookModeDemo(false)}
 									className='absolute right-4 top-4 rounded-full p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 								>
@@ -585,9 +580,9 @@ export default function HomePage() {
 								<div className='mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-brand/10'>
 									<Timer className='size-8 text-brand' />
 								</div>
-								<h3 className='mb-2 text-xl font-bold text-text'>Timer Started!</h3>
+								<h3 className='mb-2 text-xl font-bold text-text'>{t('timerStarted')}</h3>
 								<p className='mb-6 text-text-secondary'>
-									In the real app, this timer would count down and notify you when your pasta is ready.
+									{t('timerModalDesc')}
 								</p>
 								<div className='mb-6 rounded-xl bg-bg-elevated py-6'>
 									<p className='text-4xl font-bold tabular-nums text-brand'>
@@ -596,14 +591,14 @@ export default function HomePage() {
 								</div>
 								<div className='flex items-center justify-center gap-2 text-sm text-success'>
 									<CheckCircle2 className='size-4' />
-									<span>You&apos;ll never forget a timer again</span>
+									<span>{t('neverForgetTimer')}</span>
 								</div>
 								<Link
 									href='/auth/sign-up'
 									className='mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 font-semibold text-white transition-colors hover:bg-brand/90'
 								>
 									<ChefHat className='size-5' />
-									Try Cook Mode Free
+									{t('tryCookModeFree')}
 								</Link>
 							</motion.div>
 						</motion.div>
@@ -618,26 +613,25 @@ export default function HomePage() {
 							whileInView={{ scale: 1 }}
 							viewport={{ once: true }}
 							transition={TRANSITION_SPRING}
-							className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-streak to-brand shadow-lg shadow-brand/20'
+							className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-warm shadow-card shadow-brand/20'
 						>
 							<Flame className='size-8 text-white' />
 						</motion.div>
 						<h2 className='mb-3 text-2xl font-bold text-text md:text-3xl'>
-							Your kitchen is waiting
+							{t('kitchenWaiting')}
 						</h2>
 						<p className='mb-6 text-text-secondary'>
-							Pick a recipe. Cook something new. See how good it feels to make a
-							real meal.
+							{t('bottomCtaDesc')}
 						</p>
 						<Link
 							href='/auth/sign-up'
-							className='inline-flex items-center gap-2 rounded-radius bg-gradient-hero px-8 py-3.5 font-bold text-white shadow-lg shadow-brand/30 transition-all hover:shadow-xl'
+							className='inline-flex items-center gap-2 rounded-radius bg-gradient-hero px-8 py-3.5 font-bold text-white shadow-card shadow-brand/30 transition-all hover:shadow-warm'
 						>
 							<ChefHat className='size-5' />
-							Get Started Free
+							{t('startCookingFree')}
 						</Link>
 						<p className='mt-4 text-xs text-text-muted'>
-							No credit card required. Cook your first recipe in 5 minutes.
+							{t('noCreditCard')}
 						</p>
 					</div>
 				</section>
@@ -660,25 +654,25 @@ export default function HomePage() {
 									href='/explore'
 									className='text-text-muted transition-colors hover:text-text'
 								>
-									Browse Recipes
+									{t('browseRecipes')}
 								</Link>
 								<Link
 									href='/auth/sign-up'
 									className='text-text-muted transition-colors hover:text-text'
 								>
-									Create Account
+									{t('createAccount')}
 								</Link>
 								<Link
 									href='/auth/sign-in'
 									className='text-text-muted transition-colors hover:text-text'
 								>
-									Sign In
+									{t('signIn')}
 								</Link>
 							</div>
 						</div>
 
 						<div className='mt-6 border-t border-border-subtle pt-6 text-center text-sm text-text-muted md:text-left'>
-							© {new Date().getFullYear()} ChefKix. Made with love and butter.
+							{t('copyright', { year: new Date().getFullYear() })}
 						</div>
 					</div>
 				</footer>

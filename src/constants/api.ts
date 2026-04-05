@@ -7,6 +7,7 @@ const POST_REPLIES_BASE = `${API_PREFIX}/posts` // Replies are under /posts/comm
 const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
 const SOCIAL_PREFIX = `${API_PREFIX}/social`
 const COLLECTIONS_PREFIX = `${API_PREFIX}/collections`
+const TIPS_PREFIX = `${API_PREFIX}/tips`
 
 export const API_ENDPOINTS = {
 	AUTH: {
@@ -293,6 +294,7 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/shopping-lists/${id}/items/${itemId}`,
 		DELETE: (id: string) => `${API_PREFIX}/shopping-lists/${id}`,
 		SHARE: (id: string) => `${API_PREFIX}/shopping-lists/${id}/share`,
+		INGREDIENT_LINKS: `${API_PREFIX}/shopping-lists/ingredient-links`,
 	},
 	// User Settings (identity module)
 	SETTINGS: {
@@ -397,5 +399,13 @@ export const API_ENDPOINTS = {
 			`${COLLECTIONS_PREFIX}/${id}/progress?recipeId=${recipeId}&xpEarned=${xpEarned}`,
 		// Featured / Seasonal
 		FEATURED: `${COLLECTIONS_PREFIX}/featured`,
+	},
+	TIPS: {
+		MY_SETTINGS: `${TIPS_PREFIX}/settings`,
+		UPDATE_SETTINGS: `${TIPS_PREFIX}/settings`,
+		CREATOR_SETTINGS: (creatorId: string) => `${TIPS_PREFIX}/creator/${creatorId}`,
+		SEND: `${TIPS_PREFIX}/send`,
+		RECEIVED: `${TIPS_PREFIX}/received`,
+		SENT: `${TIPS_PREFIX}/sent`,
 	},
 } as const

@@ -151,3 +151,32 @@ export async function checkoutShoppingList(
 	)
 	return res.data.data!
 }
+
+// ── Per-Ingredient Buy Links ─────────────────────────────────────
+
+export interface IngredientLinkRequest {
+	itemId: string
+	name: string
+	quantity?: string
+	unit?: string
+	category?: string
+}
+
+/**
+ * Get per-ingredient affiliate buy links for recipe detail page.
+ * Returns map of ingredientName → affiliate URL.
+ */
+export async function getIngredientBuyLinks(
+	ingredients: IngredientLinkRequest[],
+	provider: string = 'affiliate',
+): Promise<Record<string, string>> {
+	try {
+		const res = await api.post<ApiResponse<Record<string, string>>>(
+			`${API_ENDPOINTS.SHOPPING_LISTS.INGREDIENT_LINKS}?provider=${encodeURIComponent(provider)}`,
+			ingredients,
+		)
+		return res.data.data ?? {}
+	} catch {
+		return {} // Graceful degradation — no buy links if service unavailable
+	}
+}

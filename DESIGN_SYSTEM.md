@@ -138,8 +138,9 @@ Content needs space to breathe. Dense ≠ Professional. Dense = Overwhelming.
 
 | Token          | Value     | Usage                            |
 | -------------- | --------- | -------------------------------- |
-| `brand`        | `#ff5a36` | Primary CTAs, key actions, links |
+| `brand`        | `#ff5a36` | Primary CTAs, key actions        |
 | `brand-hover`  | `#e64a2e` | Hover states                     |
+| `brand-text`   | `#bc3518` | Accessible text on light bg      |
 | `brand-subtle` | `#fff0eb` | Light backgrounds, tags          |
 
 ### Gaming Palette (XP, Streaks, Levels)
@@ -221,8 +222,40 @@ Use `style={{ background: 'var(--gradient-medal-gold)' }}` for reliability.
 | ----------------------- | --------- | ---------------------------------- |
 | `text` / `text-primary` | `#2c2420` | Primary content (espresso)         |
 | `text-secondary`        | `#524840` | Secondary content (dark chocolate) |
-| `text-tertiary`         | `#7a6f65` | Tertiary content (cocoa)           |
-| `text-muted`            | `#a89f94` | Muted content (latte)              |
+| `text-tertiary`         | `#6b5f55` | Tertiary content (cocoa)           |
+| `text-muted`            | `#6f665e` | Muted content (latte)              |
+
+### Accessible Text Variants (WCAG AA)
+
+For colors that serve double-duty as backgrounds AND text, use `-text` variants for inline text to meet WCAG AA (4.5:1 contrast ratio on all light surfaces).
+
+| Token          | Value     | Contrast on `bg` | Use for                    |
+| -------------- | --------- | ----------------- | -------------------------- |
+| `brand-text`   | `#bc3518` | 5.24:1            | Brand-colored inline text  |
+| `xp-text`      | `#8b2fd0` | 5.62:1            | XP text on light surfaces  |
+| `streak-text`  | `#ad5008` | 4.88:1            | Streak text                |
+| `level-text`   | `#856200` | 5.12:1            | Level/gold text            |
+| `badge-text`   | `#067a97` | 4.52:1            | Badge text                 |
+
+**Rules:**
+- Use `text-brand` for large/bold text (≥18px bold or ≥24px regular)
+- Use `text-brand-text` for small/normal-weight text on light backgrounds
+- Use `bg-brand text-white` for buttons (3.1:1 passes AA for large text up to 18px bold)
+- Gaming color base variants (`text-xp`, `text-streak`, etc.) are fine for icons, badges with colored backgrounds, and large bold text
+- In dark mode, `-text` variants resolve to the same values as base variants (already WCAG AAA)
+
+### Contrast Reference (Light Mode)
+
+| Combination               | Ratio | WCAG | Notes                           |
+| ------------------------- | ----- | ---- | ------------------------------- |
+| `text` on `bg`            | 15.3  | AAA  | Primary body text               |
+| `text-secondary` on `bg`  | 8.13  | AAA  | Descriptions, metadata          |
+| `text-tertiary` on `bg`   | 5.65  | AA   | Labels, captions                |
+| `text-muted` on `bg`      | 5.13  | AA   | Hints, placeholders             |
+| `text-muted` on `bg-card` | 5.44  | AA   | Card muted text                 |
+| `text-muted` on `elevated`| 4.83  | AA   | Elevated surface muted text     |
+| `white` on `brand`        | 3.1   | AA18 | Large/bold button text only     |
+| `brand-text` on `bg`      | 5.24  | AA   | Small brand-colored text        |
 
 ---
 

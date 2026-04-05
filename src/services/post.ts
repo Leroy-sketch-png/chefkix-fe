@@ -164,6 +164,19 @@ export const createPost = async (
 			formData.append('pollOptionB', data.pollOptionB)
 		}
 
+		// Review fields (only when postType === 'RECIPE_REVIEW')
+		if (data.reviewRating) {
+			formData.append('reviewRating', String(data.reviewRating))
+		}
+
+		// Battle fields (only when postType === 'RECIPE_BATTLE')
+		if (data.battleRecipeIdA) {
+			formData.append('battleRecipeIdA', data.battleRecipeIdA)
+		}
+		if (data.battleRecipeIdB) {
+			formData.append('battleRecipeIdB', data.battleRecipeIdB)
+		}
+
 		const response = await api.post<ApiResponse<Post | PostWithXpResponse>>(
 			API_ENDPOINTS.POST.CREATE,
 			formData,

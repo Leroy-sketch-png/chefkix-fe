@@ -3,6 +3,15 @@ import { API_ENDPOINTS } from '@/constants/api'
 import { ApiResponse } from '@/lib/types'
 import { DuelResponse, CreateDuelRequest } from '@/lib/types/duel'
 import { logDevError } from '@/lib/dev-log'
+import { AxiosError } from 'axios'
+
+function extractErrorMessage(
+	error: unknown,
+	fallback: string,
+): string {
+	const axiosError = error as AxiosError<ApiResponse<unknown>>
+	return axiosError.response?.data?.message || fallback
+}
 
 // ============================================
 // MUTATIONS
@@ -10,58 +19,58 @@ import { logDevError } from '@/lib/dev-log'
 
 export async function createDuel(
 	request: CreateDuelRequest,
-): Promise<DuelResponse | null> {
+): Promise<DuelResponse> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.CREATE,
 			request,
 		)
-		return res.data.data ?? null
+		return res.data.data!
 	} catch (error) {
 		logDevError('Failed to create duel:', error)
-		return null
+		throw new Error(extractErrorMessage(error, 'Failed to send challenge'))
 	}
 }
 
 export async function acceptDuel(
 	duelId: string,
-): Promise<DuelResponse | null> {
+): Promise<DuelResponse> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.ACCEPT(duelId),
 		)
-		return res.data.data ?? null
+		return res.data.data!
 	} catch (error) {
 		logDevError('Failed to accept duel:', error)
-		return null
+		throw new Error(extractErrorMessage(error, 'Failed to accept duel'))
 	}
 }
 
 export async function declineDuel(
 	duelId: string,
-): Promise<DuelResponse | null> {
+): Promise<DuelResponse> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.DECLINE(duelId),
 		)
-		return res.data.data ?? null
+		return res.data.data!
 	} catch (error) {
 		logDevError('Failed to decline duel:', error)
-		return null
+		throw new Error(extractErrorMessage(error, 'Failed to decline duel'))
 	}
 }
 
 export async function cancelDuel(
 	duelId: string,
-): Promise<DuelResponse | null> {
+): Promise<DuelResponse> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.CANCEL(duelId),
 		)
-		return res.data.data ?? null
+		return res.data.data!
 	} catch (error) {
 		logDevError('Failed to cancel duel:', error)
-		return null
+		throw new Error(extractErrorMessage(error, 'Failed to cancel duel'))
 	}
 }
 

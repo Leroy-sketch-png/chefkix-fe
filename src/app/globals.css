@@ -14,6 +14,7 @@
 	/* Primary Brand - Energetic Coral/Orange-Red */
 	--color-brand: #ff5a36; /* More vibrant coral - CTAs, primary actions */
 	--color-brand-hover: #e64a2e; /* Darker for hover */
+	--color-brand-text: #bc3518; /* Accessible coral for text on light bg (WCAG AA ≥4.5:1) */
 	--color-brand-subtle: #fff0eb; /* Soft background tint */
 
 	/* Secondary Brand - Electric Purple (for variety & gaming feel) */
@@ -38,12 +39,16 @@
 
 	/* Gaming Colors - XP, Streaks, Levels, Rarity */
 	--color-streak: #f97316; /* Fire orange - streaks */
+	--color-streak-text: #ad5008; /* Accessible orange for text (WCAG AA ≥4.5:1) */
 	--color-streak-urgent: #dc2626; /* Deep red - about to lose streak */
 	--color-xp: #a855f7; /* Purple - XP gains */
+	--color-xp-text: #8b2fd0; /* Accessible purple for text (WCAG AA ≥4.5:1) */
 	--color-bonus: #c084fc; /* Lighter purple - bonus XP, rewards */
 	--color-level: #eab308; /* Gold - level ups */
+	--color-level-text: #856200; /* Accessible gold for text (WCAG AA ≥4.5:1) */
 	--color-level-glow: #fde047; /* Bright gold glow */
 	--color-badge: #06b6d4; /* Cyan - badges earned */
+	--color-badge-text: #067a97; /* Accessible cyan for text (WCAG AA ≥4.5:1) */
 
 	/* Rarity Colors - Gaming RPG style */
 	--color-rare: #3b82f6; /* Blue - rare items/achievements */
@@ -110,7 +115,7 @@
 	--text-primary: #2c2420;
 	--text-secondary: #524840; /* Dark chocolate - readable warmth */
 	--text-tertiary: #6b5f55; /* Cocoa - medium emphasis (WCAG AA ≥4.5:1 on --bg) */
-	--text-muted: #766b62; /* Latte - soft muted (WCAG AA ≥4.5:1 on --bg) */
+	--text-muted: #6f665e; /* Latte - soft muted (WCAG AA ≥4.5:1 on all light surfaces) */
 
 	/* Borders - Warm stone/terracotta undertones */
 	--border: #e5ddd5; /* Warm sand border */
@@ -217,6 +222,12 @@
 		#1e1b4b 50%,
 		#581c87 100%
 	);
+
+	/* Image scrim overlay (card images, recipe covers) */
+	--gradient-scrim: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+
+	/* Hero text gradient (brand → streak → XP) */
+	--gradient-hero-text: linear-gradient(to right, #ff5a36, #f97316, #a855f7);
 
 	/* ============ BORDER WIDTHS ============ */
 	/* Emphasis borders for avatars, badges, indicators */
@@ -358,6 +369,10 @@
 		0 16px 48px rgba(44, 36, 32, 0.14), 0 8px 16px rgba(44, 36, 32, 0.08);
 	--shadow-2xl:
 		0 24px 64px rgba(44, 36, 32, 0.18), 0 12px 24px rgba(44, 36, 32, 0.1);
+	--shadow-modal:
+		0 25px 50px rgba(44, 36, 32, 0.2), 0 12px 24px rgba(44, 36, 32, 0.1); /* Modal/dialog elevation */
+	--shadow-badge:
+		0 2px 8px rgba(44, 36, 32, 0.15); /* Floating badges, chips */
 
 	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -495,6 +510,7 @@
 	/* ============ DARK MODE BRAND - EXTRA VIBRANT ============ */
 	--color-brand: #ff6b4a; /* Brighter on dark */
 	--color-brand-hover: #ff8566;
+	--color-brand-text: #ff6b4a; /* Same as brand on dark (already accessible) */
 	--color-brand-subtle: #2d1810;
 
 	/* Secondary Accent - Purple glows on dark */
@@ -519,12 +535,16 @@
 
 	/* Gaming colors - GLOW on dark */
 	--color-streak: #fb923c;
+	--color-streak-text: #fb923c; /* Same on dark (already accessible) */
 	--color-streak-urgent: #ef4444;
 	--color-xp: #c084fc;
+	--color-xp-text: #c084fc; /* Same on dark */
 	--color-bonus: #d8b4fe;
 	--color-level: #fbbf24;
+	--color-level-text: #fbbf24; /* Same on dark */
 	--color-level-glow: #fef08a;
 	--color-badge: #22d3ee;
+	--color-badge-text: #22d3ee; /* Same on dark */
 
 	/* Rarity Colors - Glow on dark */
 	--color-rare: #60a5fa; /* Brighter blue */
@@ -542,6 +562,8 @@
 		0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
 	--shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
 	--shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
+	--shadow-modal: 0 25px 50px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
+	--shadow-badge: 0 2px 8px rgba(0, 0, 0, 0.5);
 
 	/* ============ DARK MODE GRADIENTS - RICH ============ */
 	--gradient-brand: linear-gradient(
@@ -926,21 +948,6 @@ img[alt]:after {
 	animation: glow-pulse 2s ease-in-out infinite;
 }
 
-/* Auth page floating orbs — gentle vertical drift with subtle scale breath */
-@keyframes float-orb {
-	0%,
-	100% {
-		transform: translateY(0) scale(1);
-	}
-	50% {
-		transform: translateY(-20px) scale(1.05);
-	}
-}
-
-.animate-float-orb {
-	animation: float-orb 8s ease-in-out infinite;
-}
-
 /* Subtle urgency pulse for deadline/expiring cards */
 @keyframes pulse-subtle {
 	0%,
@@ -1175,4 +1182,12 @@ select {
 		#1e1b4b 50%,
 		#581c87 100%
 	);
+}
+
+@utility bg-gradient-scrim {
+	background-image: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+}
+
+@utility bg-gradient-hero-text {
+	background-image: linear-gradient(to right, #ff5a36, #f97316, #a855f7);
 }

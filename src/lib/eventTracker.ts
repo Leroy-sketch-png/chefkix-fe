@@ -112,14 +112,16 @@ export function trackPageView(path: string) {
 // ─── Dwell Tracking ──────────────────────────────────────────────────
 
 const dwellTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const dwellStartTimes = new Map<string, number>()
 
 export function startDwellTracking(entityId: string, entityType: string) {
 	if (dwellTimers.has(entityId)) return
 
+	// Record when the user started dwelling
+	dwellStartTimes.set(entityId, Date.now())
+
 	const timer = setTimeout(() => {
-		trackEvent('POST_DWELLED', entityId, entityType, {
-			dwellMs: DWELL_THRESHOLD_MS,
-		})
+		// After threshold, keep tracking — actual dwell will be sent on stop
 		dwellTimers.delete(entityId)
 	}, DWELL_THRESHOLD_MS)
 
@@ -131,6 +133,17 @@ export function stopDwellTracking(entityId: string) {
 	if (timer) {
 		clearTimeout(timer)
 		dwellTimers.delete(entityId)
+	}
+
+	const startTime = dwellStartTimes.get(entityId)
+	if (startTime) {
+		const dwellMs = Date.now() - startTime
+		dwellStartTimes.delete(entityId)
+
+		// Only track if user dwelled longer than threshold
+		if (dwellMs >= DWELL_THRESHOLD_MS) {
+			trackEvent('POST_DWELLED', entityId, 'post', { dwellMs })
+		}
 	}
 }
 
