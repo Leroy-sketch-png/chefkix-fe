@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	CalendarCheck,
@@ -116,6 +118,7 @@ const StatCard = ({
 // ============================================
 
 const DayColumn = ({ day }: { day: ChallengeDay }) => {
+	const t = useTranslations('challenge')
 	const isCurrentDay = isToday(day.date)
 	const statusConfig = {
 		completed: {
@@ -207,7 +210,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			</span>
 			<span className={cn('text-2xs font-bold', config.xpClass)}>
 				{day.status === 'missed'
-					? 'Missed'
+					? t('missed')
 					: day.status === 'upcoming' || day.status === 'future'
 						? `+${day.challenge?.xp ?? 0} XP`
 						: `+${day.challenge?.xp ?? 0} XP`}
@@ -230,6 +233,7 @@ export const ChallengeHistorySection = ({
 	// Show last 7 days
 	const weekDays = days.slice(0, 7)
 	const daysToNextBadge = 7 - stats.currentStreak
+	const t = useTranslations('challenge')
 
 	return (
 		<div className={cn('rounded-2xl bg-bg-card p-6', className)}>
@@ -238,18 +242,19 @@ export const ChallengeHistorySection = ({
 				<div className='flex items-center gap-3'>
 					<h3 className='flex items-center gap-2 text-lg font-bold text-text'>
 						<CalendarCheck className='size-5 text-brand' />
-						Challenge History
+						{t('challengeHistory')}
 					</h3>
 					<span className='rounded-xl bg-bg px-2.5 py-1 text-xs text-text-secondary'>
-						Last 7 Days
+						{t('last7Days')}
 					</span>
 				</div>
 				{onViewAll && (
 					<button
+						type='button'
 						onClick={onViewAll}
 						className='flex items-center gap-1 text-xs font-semibold text-brand hover:underline'
 					>
-						View All
+						{t('viewAll')}
 						<ChevronRight className='size-4' />
 					</button>
 				)}
@@ -260,25 +265,25 @@ export const ChallengeHistorySection = ({
 				<StatCard
 					icon='ðŸ”¥'
 					value={String(stats.currentStreak)}
-					label='Current Streak'
+					label={t('currentStreak')}
 					colorClass='text-streak'
 				/>
 				<StatCard
 					icon='âœ…'
 					value={`${stats.completedThisWeek}/${stats.totalDays}`}
-					label='Completed'
+					label={t('completedStat')}
 					colorClass='text-success'
 				/>
 				<StatCard
 					icon='âš¡'
 					value={`+${stats.bonusXpEarned}`}
-					label='Bonus XP'
+					label={t('bonusXP')}
 					colorClass='text-brand'
 				/>
 				<StatCard
 					icon='ðŸ†'
 					value={String(stats.bestStreak)}
-					label='Best Streak'
+					label={t('bestStreak')}
 					colorClass='text-warning'
 				/>
 			</div>
@@ -297,7 +302,7 @@ export const ChallengeHistorySection = ({
 						<span className='text-3xl'>ðŸŽ¯</span>
 						<div className='text-sm text-text'>
 							<strong className='text-streak'>
-								{daysToNextBadge} more day{daysToNextBadge > 1 ? 's' : ''}
+								{daysToNextBadge > 1 ? t('unlockBadgePlural', { n: daysToNextBadge }) : t('unlockBadgeSingle', { n: daysToNextBadge })}
 							</strong>{' '}
 							to unlock &quot;Weekly Champion&quot; badge!
 							<span className='mt-0.5 block text-xs text-text-secondary'>
@@ -312,7 +317,7 @@ export const ChallengeHistorySection = ({
 							whileTap={BUTTON_TAP}
 							className='flex items-center gap-1.5 rounded-lg bg-streak px-4 py-2.5 text-xs font-semibold text-white'
 						>
-							Preview Tomorrow
+							{t('previewTomorrow')}
 							<ArrowRight className='size-4' />
 						</motion.button>
 					)}
@@ -334,6 +339,7 @@ const HistoryItem = ({
 	showTodayBadge?: boolean
 }) => {
 	const isCompleted = day.status === 'completed' || day.status === 'today'
+	const t = useTranslations('challenge')
 
 	return (
 		<div className='flex gap-4 border-b border-border py-4 last:border-b-0'>
@@ -369,7 +375,7 @@ const HistoryItem = ({
 
 				<div className='flex flex-1 flex-col gap-1'>
 					<span className='text-sm font-bold text-text'>
-						{day.challenge?.title ?? 'No Challenge'}
+						{day.challenge?.title ?? t('noChallenge')}
 					</span>
 					<span className='text-xs text-text-secondary'>
 						{day.challenge?.title
@@ -400,7 +406,7 @@ const HistoryItem = ({
 							isCompleted ? 'text-success' : 'text-text-secondary',
 						)}
 					>
-						{isCompleted ? `+${day.challenge?.xp ?? 0} XP` : 'Missed'}
+						{isCompleted ? `+${day.challenge?.xp ?? 0} XP` : t('missed')}
 					</span>
 				</div>
 			</div>
@@ -428,6 +434,7 @@ export const ChallengeHistoryPage = ({
 
 	// Group days by "recent" (last 7) and rest
 	const recentDays = days.filter(d => d.status !== 'future').slice(0, 10)
+	const t = useTranslations('challenge')
 
 	return (
 		<div className={cn('mx-auto max-w-3xl space-y-6 p-6', className)}>
@@ -435,7 +442,9 @@ export const ChallengeHistoryPage = ({
 			<div className='flex items-center gap-4'>
 				{onBack && (
 					<button
+						type='button'
 						onClick={onBack}
+						aria-label={t('goBack')}
 						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text'
 					>
 						<ArrowLeft className='size-5' />
@@ -455,7 +464,7 @@ export const ChallengeHistoryPage = ({
 							{stats.totalCompleted}
 						</span>
 						<span className='mt-2 text-sm text-text-secondary'>
-							Challenges Completed
+							{t('challengesCompleted')}
 						</span>
 					</div>
 
@@ -483,7 +492,7 @@ export const ChallengeHistoryPage = ({
 								{stats.totalBonusXp.toLocaleString()}
 							</span>
 							<span className='text-xs text-text-secondary'>
-								Total Bonus XP
+								{t('totalBonusXP')}
 							</span>
 						</div>
 					</div>
@@ -493,7 +502,7 @@ export const ChallengeHistoryPage = ({
 				<div className='border-t border-border pt-4'>
 					<div className='mb-2.5 flex justify-between'>
 						<span className='text-xs text-text-secondary'>
-							This Week&apos;s Completion
+							{t('thisWeekCompletion')}
 						</span>
 						<span className='text-sm font-bold text-success'>
 							{stats.completedThisWeek}/{stats.totalDays} ({completionRate}%)
@@ -514,6 +523,7 @@ export const ChallengeHistoryPage = ({
 			<div className='rounded-2xl bg-bg-card p-6'>
 				<div className='mb-5 flex items-center justify-center gap-6'>
 					<button
+						type='button'
 						onClick={() => onMonthChange?.('prev')}
 						className='flex size-8 items-center justify-center rounded-lg border border-border bg-bg text-text'
 					>
@@ -526,6 +536,7 @@ export const ChallengeHistoryPage = ({
 						})}
 					</span>
 					<button
+						type='button'
 						onClick={() => onMonthChange?.('next')}
 						className='flex size-8 items-center justify-center rounded-lg border border-border bg-bg text-text'
 					>
@@ -535,12 +546,20 @@ export const ChallengeHistoryPage = ({
 
 				{/* Simple calendar grid placeholder - would be expanded for full implementation */}
 				<div className='grid grid-cols-7 gap-1'>
-					{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+					{([
+					{ key: 'dayMon', label: t('dayMon') },
+					{ key: 'dayTue', label: t('dayTue') },
+					{ key: 'dayWed', label: t('dayWed') },
+					{ key: 'dayThu', label: t('dayThu') },
+					{ key: 'dayFri', label: t('dayFri') },
+					{ key: 'daySat', label: t('daySat') },
+					{ key: 'daySun', label: t('daySun') },
+				] as Array<{ key: string; label: string }>).map(({ key, label }) => (
 						<div
-							key={day}
+							key={key}
 							className='py-2 text-center text-xs font-semibold text-text-secondary'
 						>
-							{day}
+							{label}
 						</div>
 					))}
 				</div>
@@ -565,7 +584,7 @@ export const ChallengeHistoryPage = ({
 						whileTap={BUTTON_TAP}
 						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-muted/30'
 					>
-						{isLoadingMore ? 'Loading...' : 'Load More'}
+						{isLoadingMore ? t('loading') : t('loadMore')}
 						<ChevronDown className='size-4' />
 					</motion.button>
 				)}

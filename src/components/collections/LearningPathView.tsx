@@ -19,7 +19,7 @@ import {
 	Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { Collection, CollectionProgress, DifficultyStep } from '@/lib/types/collection'
 import {
 	enrollInCollection,
@@ -164,14 +164,14 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 				<div className='mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4'>
 					<div className='flex items-center gap-2'>
 						<ChefHat className='size-4 text-text-muted' />
-						<span className='text-sm text-text-secondary'>
+						<span className='text-sm tabular-nums text-text-secondary'>
 							{totalRecipes} recipes
 						</span>
 					</div>
 					{collection.estimatedTotalMinutes && (
 						<div className='flex items-center gap-2'>
 							<Clock className='size-4 text-text-muted' />
-							<span className='text-sm text-text-secondary'>
+							<span className='text-sm tabular-nums text-text-secondary'>
 								{Math.round(collection.estimatedTotalMinutes / 60)}h total
 							</span>
 						</div>
@@ -179,7 +179,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 					{collection.totalXp && (
 						<div className='flex items-center gap-2'>
 							<Zap className='size-4 text-xp' />
-							<span className='text-sm text-text-secondary'>
+							<span className='text-sm tabular-nums text-text-secondary'>
 								{collection.totalXp.toLocaleString()} XP
 							</span>
 						</div>
@@ -187,7 +187,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 					{collection.enrolledCount !== undefined && (
 						<div className='flex items-center gap-2'>
 							<Users className='size-4 text-text-muted' />
-							<span className='text-sm text-text-secondary'>
+							<span className='text-sm tabular-nums text-text-secondary'>
 								{collection.enrolledCount.toLocaleString()} enrolled
 							</span>
 						</div>
@@ -223,7 +223,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 					<div className='rounded-xl bg-bg-elevated p-4'>
 						<div className='mb-3 flex items-center justify-between'>
 							<span className='text-sm font-medium text-text'>Your Progress</span>
-							<span className='text-sm text-text-muted'>
+							<span className='text-sm tabular-nums text-text-muted'>
 								{completedCount} of {totalRecipes} complete
 							</span>
 						</div>
@@ -257,8 +257,8 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 					</div>
 				) : (
 					<motion.button
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={handleEnroll}
 						disabled={isEnrolling}
 						className='w-full rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand-hover disabled:opacity-50'
@@ -359,6 +359,7 @@ function StageCard({
 		>
 			{/* Stage header */}
 			<button
+				type='button'
 				onClick={onToggle}
 				className='flex w-full items-center justify-between p-4 text-left'
 			>
@@ -469,6 +470,7 @@ function RecipeRow({ recipeId, index, isCompleted, isLocked, onStart, recipeName
 			</div>
 			{!isLocked && !isCompleted && (
 				<button
+					type='button'
 					onClick={e => {
 						e.stopPropagation()
 						onStart()

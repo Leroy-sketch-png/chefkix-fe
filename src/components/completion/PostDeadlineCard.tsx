@@ -1,5 +1,6 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Clock,
@@ -115,6 +116,7 @@ export const PostDeadlineCard = ({
 	onDismiss,
 	className,
 }: PostDeadlineCardProps) => {
+	const t = useTranslations('completion')
 	const [timeRemaining, setTimeRemaining] = useState(
 		formatTimeRemaining(deadlineAt),
 	)
@@ -134,7 +136,7 @@ export const PostDeadlineCard = ({
 	const stateConfig = {
 		normal: {
 			icon: 'ðŸ“¸',
-			label: 'Unlock your reward!',
+			label: t('unlockYourReward'),
 			borderClass: 'border-border',
 			bgClass: '',
 			labelClass: 'text-brand',
@@ -146,7 +148,7 @@ export const PostDeadlineCard = ({
 		},
 		warning: {
 			icon: 'â°',
-			label: 'Time running out!',
+			label: t('timeRunningOut'),
 			borderClass: 'border-gold/40',
 			bgClass: 'bg-gold/5',
 			labelClass: 'text-gold',
@@ -158,7 +160,7 @@ export const PostDeadlineCard = ({
 		},
 		urgent: {
 			icon: 'ðŸš¨',
-			label: 'LAST CHANCE!',
+			label: t('lastChance'),
 			borderClass: 'border-error/40',
 			bgClass: '',
 			labelClass: 'text-error animate-pulse',
@@ -170,7 +172,7 @@ export const PostDeadlineCard = ({
 		},
 		expired: {
 			icon: 'ðŸ˜¢',
-			label: 'XP Expired',
+			label: t('xpExpired'),
 			borderClass: 'border-border',
 			bgClass: 'opacity-70',
 			labelClass: 'text-text-secondary',
@@ -206,7 +208,7 @@ export const PostDeadlineCard = ({
 					className='flex items-center justify-center gap-2 bg-gradient-to-r from-error to-error px-4 py-2.5 text-sm font-semibold text-white'
 				>
 					<AlertTriangle className='size-4' />
-					<span>XP expires soon! Post now to claim.</span>
+					<span>{t('xpExpiresSoon')}</span>
 				</motion.div>
 			)}
 
@@ -264,7 +266,7 @@ export const PostDeadlineCard = ({
 					)}
 					{state === 'expired' && (
 						<span className='text-xs text-text-secondary'>
-							Deadline passed
+							{t('deadlinePassed')}
 						</span>
 					)}
 				</div>
@@ -286,7 +288,7 @@ export const PostDeadlineCard = ({
 						{Math.round(pendingXp)}
 					</span>
 					<span className={cn('text-2xs font-semibold', config.xpTextClass)}>
-						{state === 'expired' ? 'XP lost' : 'XP'}
+						{state === 'expired' ? t('xpLost') : t('xpLabel')}
 					</span>
 				</div>
 
@@ -303,15 +305,16 @@ export const PostDeadlineCard = ({
 					>
 						<Upload className='size-4' />
 						{state === 'urgent'
-							? 'POST NOW'
+							? t('postNowUrgent')
 							: state === 'warning'
-								? 'Post Now'
-								: 'Post'}
+								? t('postNowWarning')
+								: t('postAction')}
 					</motion.button>
 				) : (
 					<button
+						type='button'
 						onClick={onDismiss}
-						aria-label='Dismiss'
+						aria-label={t('dismiss')}
 						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-muted/50 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
 					>
 						<X className='size-4' />
@@ -331,6 +334,7 @@ export const PostDeadlineStack = ({
 	onPost,
 	className,
 }: PostDeadlineStackProps) => {
+	const t = useTranslations('completion')
 	const [isExpanded, setIsExpanded] = useState(false)
 
 	const totalXp = pendingPosts.reduce((sum, p) => sum + p.pendingXp, 0)
@@ -352,15 +356,16 @@ export const PostDeadlineStack = ({
 		>
 			{/* Header */}
 			<button
+				type='button'
 				onClick={() => setIsExpanded(!isExpanded)}
 				className='flex w-full items-center gap-2.5 border-b border-border px-4 py-3.5 hover:bg-muted/30'
 			>
 				<span className='text-lg'>ðŸ“¸</span>
 				<span className='flex-1 text-left text-sm font-semibold'>
-					{pendingPosts.length} recipes waiting
+					{t('recipesWaiting', { count: pendingPosts.length })}
 				</span>
 				<span className='text-sm font-bold text-success'>
-					+{totalXp} XP pending
+					{t('xpPending', { amount: totalXp })}
 				</span>
 				<div className='flex size-7 items-center justify-center rounded-full bg-bg-elevated'>
 					{isExpanded ? (
@@ -425,7 +430,7 @@ export const PostDeadlineStack = ({
 											transition={TRANSITION_SPRING}
 											className='rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white'
 										>
-											Post
+											{t('postAction')}
 										</motion.button>
 									</div>
 								)
@@ -448,6 +453,7 @@ export const PostDeadlineBadge = ({
 	onClick,
 	className,
 }: PostDeadlineBadgeProps) => {
+	const t = useTranslations('completion')
 	return (
 		<motion.button
 			onClick={onClick}
@@ -461,7 +467,7 @@ export const PostDeadlineBadge = ({
 		>
 			<span className='size-2 animate-pulse rounded-full bg-brand' />
 			<span className='font-bold text-brand'>{count}</span>
-			<span className='text-text-secondary'>pending posts</span>
+			<span className='text-text-secondary'>{t('pendingPosts')}</span>
 			<span className='font-bold text-success'>+{Math.round(totalXp)} XP</span>
 		</motion.button>
 	)
@@ -478,6 +484,7 @@ export const PostDeadlineMobileStrip = ({
 	onPost,
 	className,
 }: PostDeadlineMobileStripProps) => {
+	const t = useTranslations('completion')
 	const [timeRemaining, setTimeRemaining] = useState(
 		formatTimeRemaining(deadlineAt),
 	)
@@ -506,7 +513,7 @@ export const PostDeadlineMobileStrip = ({
 				{state === 'urgent' ? 'ðŸš¨' : state === 'warning' ? 'â°' : 'ðŸ“¸'}
 			</span>
 			<span className='flex-1 truncate text-xs font-medium'>
-				{recipeName}: {timeRemaining} to claim +{Math.round(pendingXp)} XP
+				{t('mobileStripText', { recipe: recipeName, time: timeRemaining, xp: Math.round(pendingXp) })}
 			</span>
 			<motion.button
 				onClick={onPost}
@@ -514,7 +521,7 @@ export const PostDeadlineMobileStrip = ({
 				transition={TRANSITION_SPRING}
 				className='rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white'
 			>
-				Post
+				{t('postAction')}
 			</motion.button>
 		</div>
 	)

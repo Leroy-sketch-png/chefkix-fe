@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { BUTTON_SUBTLE_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { Star, MessageSquare, ChevronDown, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { StarRating } from '@/components/ui/star-rating'
@@ -11,12 +12,14 @@ import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { useTranslations } from 'next-intl'
 
 interface RecipeReviewsProps {
 	recipeId: string
 }
 
 export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
+	const t = useTranslations('recipe')
 	const [stats, setStats] = useState<RecipeReviewStatsResponse | null>(null)
 	const [reviews, setReviews] = useState<Post[]>([])
 	const [isLoading, setIsLoading] = useState(true)
@@ -105,7 +108,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 			<div className='mb-6 flex items-center justify-between'>
 				<h2 className='flex items-center gap-2 text-xl font-bold text-text'>
 					<Star className='size-5 text-warning' />
-					Reviews
+					{t('reviewsHeading')}
 				</h2>
 				{stats && (
 					<div className='flex items-center gap-3'>
@@ -116,7 +119,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 						/>
 						<span className='text-sm font-medium text-text-secondary'>
 							{stats.averageRating.toFixed(1)} ({stats.totalReviews}{' '}
-							{stats.totalReviews === 1 ? 'review' : 'reviews'})
+							{stats.totalReviews === 1 ? t('reviewSingular') : t('reviewPlural')})
 						</span>
 					</div>
 				)}
@@ -156,7 +159,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 										</AvatarFallback>
 									</Avatar>
 									<span className='text-sm font-semibold text-text'>
-										{review.displayName || 'User'}
+										{review.displayName || t('reviewUserFallback')}
 									</span>
 								</Link>
 								<div className='flex items-center gap-2'>
@@ -182,7 +185,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 							{review.likes != null && review.likes > 0 && (
 								<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
 									<MessageSquare className='size-3' />
-									{review.commentCount ?? 0} comments
+							{review.commentCount ?? 0} {t('commentsLabel')}
 								</div>
 							)}
 						</motion.div>
@@ -195,8 +198,8 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 				<motion.button
 					onClick={handleLoadMore}
 					disabled={isLoadingMore}
-					whileHover={{ y: -1 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={BUTTON_TAP}
 					className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 				>
 					{isLoadingMore ? (
@@ -204,7 +207,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 					) : (
 						<ChevronDown className='size-4' />
 					)}
-					{isLoadingMore ? 'Loading...' : 'Show more reviews'}
+					{isLoadingMore ? t('loadingMore') : t('showMoreReviews')}
 				</motion.button>
 			)}
 		</motion.div>

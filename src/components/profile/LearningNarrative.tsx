@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { BookOpen, TrendingUp, Star, Zap, Flame, Award } from 'lucide-react'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import type { Statistics } from '@/lib/types/profile'
+import { useTranslations } from 'next-intl'
 
 interface LearningNarrativeProps {
 	statistics: Statistics
@@ -21,6 +22,7 @@ interface NarrativeStep {
 function buildNarrative(
 	stats: Statistics,
 	displayName: string,
+	t: (key: string, params?: Record<string, string | number>) => string,
 	memberSince?: string,
 ): NarrativeStep[] {
 	const steps: NarrativeStep[] = []
@@ -36,36 +38,36 @@ function buildNarrative(
 			: `${months} month${months > 1 ? 's' : ''}`
 		steps.push({
 			icon: <BookOpen className='size-4' />,
-			text: `${name} joined ChefKix ${timeText} ago`,
+			text: t('narrativeJoined', { name, time: timeText }),
 			highlight: timeText,
 		})
 	}
 
 	// 2. Title progression
 	const titleMap: Record<string, string> = {
-		BEGINNER: "started as a curious Beginner, learning the basics",
-		AMATEUR: "has grown into an Amateur, building confidence in the kitchen",
-		SEMIPRO: "has reached Semi-Pro status — serious skills!",
-		PRO: "has achieved Pro status — a true culinary master",
+		BEGINNER: t('narrativeBeginner'),
+		AMATEUR: t('narrativeAmateur'),
+		SEMIPRO: t('narrativeSemiPro'),
+		PRO: t('narrativePro'),
 	}
 	steps.push({
 		icon: <Award className='size-4' />,
-		text: `${name} ${titleMap[stats.title] ?? 'is on a cooking journey'}`,
+		text: `${name} ${titleMap[stats.title] ?? t('narrativeFallback')}`,
 		highlight: stats.title,
 	})
 
 	// 3. Volume
 	if (stats.completionCount > 0) {
 		const adj = stats.completionCount >= 50
-			? 'an incredible'
+			? t('sessionsAdjIncredible')
 			: stats.completionCount >= 20
-				? 'an impressive'
+				? t('sessionsAdjImpressive')
 				: stats.completionCount >= 5
-					? 'a solid'
-					: 'a growing'
+					? t('sessionsAdjSolid')
+					: t('sessionsAdjGrowing')
 		steps.push({
 			icon: <TrendingUp className='size-4' />,
-			text: `Completed ${adj} ${stats.completionCount} cooking session${stats.completionCount > 1 ? 's' : ''}`,
+			text: t('narrativeSessions', { adj, count: stats.completionCount }),
 			highlight: `${stats.completionCount}`,
 		})
 	}
@@ -74,7 +76,7 @@ function buildNarrative(
 	if (stats.currentLevel > 1) {
 		steps.push({
 			icon: <Zap className='size-4' />,
-			text: `Climbed to Level ${stats.currentLevel} with ${stats.currentXP.toLocaleString()} XP`,
+			text: t('narrativeLevel', { level: stats.currentLevel, xp: stats.currentXP.toLocaleString() }),
 			highlight: `Level ${stats.currentLevel}`,
 		})
 	}
@@ -82,15 +84,15 @@ function buildNarrative(
 	// 5. Streak story
 	if (stats.streakCount > 0) {
 		const streakAdj = stats.streakCount >= 30
-			? 'legendary'
+			? t('streakLegendary')
 			: stats.streakCount >= 14
-				? 'remarkable'
+				? t('streakRemarkable')
 				: stats.streakCount >= 7
-					? 'impressive'
-					: 'growing'
+					? t('streakImpressive')
+					: t('streakGrowing')
 		steps.push({
 			icon: <Flame className='size-4' />,
-			text: `Built a ${streakAdj} ${stats.streakCount}-day cooking streak`,
+			text: t('narrativeStreak', { adj: streakAdj, count: stats.streakCount }),
 			highlight: `${stats.streakCount}-day`,
 		})
 	}
@@ -99,7 +101,7 @@ function buildNarrative(
 	if (stats.recipeCount > 0) {
 		steps.push({
 			icon: <Star className='size-4' />,
-			text: `Created ${stats.recipeCount} original recipe${stats.recipeCount > 1 ? 's' : ''} for the community`,
+			text: t('narrativeRecipes', { count: stats.recipeCount }),
 			highlight: `${stats.recipeCount}`,
 		})
 	}
@@ -108,7 +110,7 @@ function buildNarrative(
 	if (stats.badges && stats.badges.length > 0) {
 		steps.push({
 			icon: <Award className='size-4' />,
-			text: `Earned ${stats.badges.length} badge${stats.badges.length > 1 ? 's' : ''} along the way`,
+			text: t('narrativeBadges', { count: stats.badges.length }),
 			highlight: `${stats.badges.length} badge${stats.badges.length > 1 ? 's' : ''}`,
 		})
 	}
@@ -117,9 +119,10 @@ function buildNarrative(
 }
 
 export function LearningNarrative({ statistics, displayName, memberSince }: LearningNarrativeProps) {
+	const t = useTranslations('profile')
 	const steps = useMemo(
-		() => buildNarrative(statistics, displayName, memberSince),
-		[statistics, displayName, memberSince],
+		() => buildNarrative(statistics, displayName, t, memberSince),
+		[statistics, displayName, t, memberSince],
 	)
 
 	// Don't render for totally blank profiles
@@ -134,7 +137,7 @@ export function LearningNarrative({ statistics, displayName, memberSince }: Lear
 		>
 			<h3 className='mb-4 flex items-center gap-2 font-semibold text-text'>
 				<BookOpen className='size-5 text-gaming-xp' />
-				Cooking Journey
+				{t('cookingJourney')}
 			</h3>
 
 			{/* Timeline */}
@@ -164,7 +167,7 @@ export function LearningNarrative({ statistics, displayName, memberSince }: Lear
 										j < arr.length - 1 ? (
 											<span key={j}>
 												{part}
-												<span className='font-semibold text-text'>{step.highlight}</span>
+												<span className='font-semibold text-text tabular-nums'>{step.highlight}</span>
 											</span>
 										) : (
 											<span key={j}>{part}</span>

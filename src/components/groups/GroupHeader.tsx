@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { Group, MemberRole } from '@/lib/types/group'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -46,6 +48,7 @@ export const GroupHeader = ({
 	onLeaveGroup,
 }: GroupHeaderProps) => {
 	const [isLeaving, setIsLeaving] = useState(false)
+	const t = useTranslations('groups')
 	const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 	const menuTriggerRef = useRef<HTMLButtonElement>(null)
 
@@ -60,10 +63,10 @@ export const GroupHeader = ({
 		setIsLeaving(true)
 		try {
 			await leaveGroup(group.id)
-			toast.success('You left the group')
+			toast.success(t('ghLeftGroup'))
 			onLeaveGroup?.()
 		} catch (error) {
-			toast.error('Failed to leave group')
+			toast.error(t('ghLeaveFailed'))
 		} finally {
 			setIsLeaving(false)
 			setShowLeaveConfirm(false)
@@ -84,6 +87,7 @@ export const GroupHeader = ({
 						src={group.coverImageUrl}
 						alt={group.name}
 						fill
+						sizes='100vw'
 						className='object-cover'
 						priority
 					/>
@@ -103,14 +107,14 @@ export const GroupHeader = ({
 							<>
 								<Lock className='size-4 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
-									Private
+									{t('gcPrivate')}
 								</span>
 							</>
 						) : (
 							<>
 								<Globe className='size-4 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
-									Public
+									{t('gcPublic')}
 								</span>
 							</>
 						)}
@@ -132,12 +136,12 @@ export const GroupHeader = ({
 								{(isOwner || isAdmin) && (
 									<DropdownMenuItem onClick={onSettingsClick}>
 										<Settings className='size-4 mr-2' />
-										Group Settings
+									{t('ghGroupSettings')}
 									</DropdownMenuItem>
 								)}
 								<DropdownMenuItem>
 									<Share2 className='size-4 mr-2' />
-									Share Group
+								{t('ghShareGroup')}
 								</DropdownMenuItem>
 								{!isOwner && (
 									<DropdownMenuItem
@@ -145,7 +149,7 @@ export const GroupHeader = ({
 										className='text-error focus:text-error'
 									>
 										<LogOut className='size-4 mr-2' />
-										Leave Group
+									{t('ghLeaveGroup')}
 									</DropdownMenuItem>
 								)}
 							</DropdownMenuContent>
@@ -163,24 +167,24 @@ export const GroupHeader = ({
 						<div className='flex items-center gap-4 mt-3 flex-wrap'>
 							<div className='flex items-center gap-1 text-text-secondary'>
 								<Users className='size-4' />
-								<span className='text-sm'>{group.memberCount} members</span>
+								<span className='text-sm'>{t('ghMembersCount', { count: group.memberCount })}</span>
 							</div>
 
 							{group.privacyType === 'PRIVATE' && (
 								<div className='text-xs text-text-muted px-2 py-1 bg-bg rounded-full'>
-									Private Group
+								{t('ghPrivateGroup')}
 								</div>
 							)}
 
 							{isOwner && (
 								<div className='text-xs text-brand px-2 py-1 bg-brand/10 rounded-full'>
-									You&apos;re the owner
+									{t('ghOwner')}
 								</div>
 							)}
 
 							{isAdmin && !isOwner && (
 								<div className='text-xs text-brand px-2 py-1 bg-brand/10 rounded-full'>
-									Admin
+									{t('ghAdmin')}
 								</div>
 							)}
 						</div>
@@ -210,9 +214,9 @@ export const GroupHeader = ({
 			<ConfirmDialog
 				open={showLeaveConfirm}
 				onOpenChange={setShowLeaveConfirm}
-				title='Leave Group?'
-				description={`You will leave "${group.name}". If it's a private group, you may need to request to join again.`}
-				confirmLabel='Leave'
+				title={t('ghLeaveTitle')}
+				description={t('ghLeaveDesc', { name: group.name })}
+				confirmLabel={t('ghLeave')}
 				cancelLabel='Cancel'
 				variant='destructive'
 				onConfirm={handleLeaveGroup}

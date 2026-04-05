@@ -11,6 +11,7 @@ import { difficultyToDisplay } from '@/lib/apiUtils'
 import { TRANSITION_SPRING, CARD_HOVER, staggerContainer, staggerItem } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
+import { useTranslations } from 'next-intl'
 
 interface SimilarRecipesProps {
 	recipeId: string
@@ -20,6 +21,7 @@ interface SimilarRecipesProps {
 export const SimilarRecipes = ({ recipeId, className }: SimilarRecipesProps) => {
 	const [recipes, setRecipes] = useState<Recipe[]>([])
 	const [isLoading, setIsLoading] = useState(true)
+	const t = useTranslations('recipe')
 
 	useEffect(() => {
 		const fetchSimilar = async () => {
@@ -42,7 +44,7 @@ export const SimilarRecipes = ({ recipeId, className }: SimilarRecipesProps) => 
 			<div className={cn('mt-10', className)}>
 				<div className='mb-6 flex items-center gap-2'>
 					<Sparkles className='size-5 text-brand' />
-					<h2 className='text-2xl font-bold text-text'>You Might Also Like</h2>
+				<h2 className='text-2xl font-bold text-text'>{t('youMightAlsoLike')}</h2>
 				</div>
 				<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
 					{[1, 2, 3].map(i => (
@@ -72,7 +74,7 @@ export const SimilarRecipes = ({ recipeId, className }: SimilarRecipesProps) => 
 		<div className={cn('mt-10', className)}>
 			<div className='mb-6 flex items-center gap-2'>
 				<Sparkles className='size-5 text-brand' />
-				<h2 className='text-2xl font-bold text-text'>You Might Also Like</h2>
+				<h2 className='text-2xl font-bold text-text'>{t('youMightAlsoLike')}</h2>
 			</div>
 			<motion.div
 				variants={staggerContainer}
@@ -115,7 +117,7 @@ function SimilarRecipeCard({ recipe }: { recipe: Recipe }) {
 					<h3 className='line-clamp-2 text-base font-serif font-bold text-text transition-colors group-hover:text-brand'>
 						{recipe.title}
 					</h3>
-					<div className='mt-2 flex flex-wrap items-center gap-3 text-xs text-text-muted'>
+					<div className='mt-2 flex flex-wrap items-center gap-3 text-xs tabular-nums text-text-muted'>
 						{totalTime > 0 && (
 							<span className='flex items-center gap-1'>
 								<Clock className='size-3.5' />

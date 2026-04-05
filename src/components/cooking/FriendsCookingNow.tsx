@@ -11,6 +11,7 @@ import type { ActiveFriend } from '@/lib/types/heartbeat'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface FriendsCookingNowProps {
 	className?: string
@@ -27,6 +28,7 @@ export function FriendsCookingNow({
 	className,
 	pollInterval = 30000,
 }: FriendsCookingNowProps) {
+	const t = useTranslations('cooking')
 	const router = useRouter()
 	const [rooms, setRooms] = useState<FriendsActiveRoom[]>([])
 	const [soloFriends, setSoloFriends] = useState<ActiveFriend[]>([])
@@ -84,7 +86,7 @@ export function FriendsCookingNow({
 				<div className='flex size-8 items-center justify-center rounded-xl bg-success/20'>
 					<ChefHat className='size-4 text-success' />
 				</div>
-				<h3 className='text-sm font-bold text-text'>Friends Cooking Now</h3>
+				<h3 className='text-sm font-bold text-text'>{t('friendsCookingNow')}</h3>
 				<span className='ml-auto flex size-5 items-center justify-center rounded-full bg-brand/15 text-2xs font-bold text-brand'>
 					{totalActive}
 				</span>
@@ -113,10 +115,7 @@ export function FriendsCookingNow({
 									{formatParticipantNames(room.participantNames)}
 								</p>
 								<p className='truncate text-xs text-text-secondary'>
-									Cooking{' '}
-									<span className='font-medium text-text'>
-										{room.recipeTitle}
-									</span>
+									{t('friendCooking', { recipe: room.recipeTitle })}
 								</p>
 								<p className='text-2xs text-text-muted'>
 									Started {formatMinutesAgo(room.startedMinutesAgo)} ago
@@ -128,28 +127,30 @@ export function FriendsCookingNow({
 
 							<div className='flex shrink-0 gap-1'>
 								<button
+									type='button'
 									onClick={() =>
 										router.push(
 											`/cook-together?roomCode=${room.roomCode}&role=SPECTATOR`,
 										)
 									}
 									className='flex items-center gap-1 rounded-lg bg-bg-elevated px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80 hover:text-text'
-									title='Watch'
-									aria-label={`Watch ${formatParticipantNames(room.participantNames)} cook`}
+									title={t('friendWatch')}
+									aria-label={t('friendWatchAria', { names: formatParticipantNames(room.participantNames) })}
 								>
 									<Eye className='size-3' />
-									Watch
+									{t('friendWatch')}
 								</button>
 								<button
+									type='button'
 									onClick={() =>
 										router.push(`/cook-together?roomCode=${room.roomCode}`)
 									}
 									className='flex items-center gap-1 rounded-lg bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/20'
-									title='Join as cook'
-									aria-label={`Join ${formatParticipantNames(room.participantNames)} to cook ${room.recipeTitle}`}
+									title={t('friendJoin')}
+									aria-label={t('friendJoinAria', { names: formatParticipantNames(room.participantNames), recipe: room.recipeTitle })}
 								>
 									<ArrowRight className='size-3' />
-									Join
+									{t('friendJoin')}
 								</button>
 							</div>
 						</motion.div>
@@ -190,10 +191,7 @@ export function FriendsCookingNow({
 										{friend.displayName ?? friend.username ?? 'Friend'}
 									</p>
 									<p className='truncate text-xs text-text-secondary'>
-										Cooking{' '}
-										<span className='font-medium text-text'>
-											{friend.recipeTitle}
-										</span>
+										{t('friendCooking', { recipe: friend.recipeTitle })}
 									</p>
 									<div className='mt-1 flex items-center gap-2'>
 										{/* Step progress bar */}
@@ -206,7 +204,7 @@ export function FriendsCookingNow({
 											/>
 										</div>
 										<span className='text-2xs text-text-muted'>
-											Step {friend.currentStep}/{friend.totalSteps}
+											{t('friendStep', { current: friend.currentStep, total: friend.totalSteps })}
 										</span>
 									</div>
 								</div>

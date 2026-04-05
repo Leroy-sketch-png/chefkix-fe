@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import {
 	useState,
 	useRef,
@@ -62,7 +64,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 			value,
 			onChange,
 			onTaggedUsersChange,
-			placeholder = 'Write a reply...',
+			placeholder: placeholderProp,
 			disabled = false,
 			className,
 			onKeyDown,
@@ -73,6 +75,8 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		},
 		ref,
 	) => {
+		const t = useTranslations('shared')
+		const placeholder = placeholderProp ?? t('miDefaultPlaceholder')
 		const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 		const containerRef = useRef<HTMLDivElement>(null)
 		const [showSuggestions, setShowSuggestions] = useState(false)
@@ -391,7 +395,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 								{isLoading ? (
 									<div className='flex items-center justify-center gap-2 p-3 text-sm text-text-secondary'>
 										<Loader2 className='size-4 animate-spin' />
-										<span>Loading suggestions...</span>
+										<span>{t('miLoading')}</span>
 									</div>
 								) : filteredSuggestions.length === 0 ? (
 									<div className='p-3 text-center text-sm text-text-muted'>
@@ -441,11 +445,11 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 									<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
 										↑↓
 									</kbd>{' '}
-									to navigate,{' '}
+									{t('miNavHint')}{' '}
 									<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
 										Enter
 									</kbd>{' '}
-									to select
+									{t('miSelectHint')}
 								</div>
 							</motion.div>
 						</Portal>

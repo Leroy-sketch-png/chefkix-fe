@@ -25,13 +25,15 @@ import {
 	TRANSITION_SPRING,
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
+	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
+import { useTranslations } from '@/i18n/hooks'
 
 interface NavItem {
 	href: string
 	icon: React.ComponentType<{ className?: string }>
-	label: string
+	labelKey: string
 	isCreate?: boolean
 }
 
@@ -48,41 +50,42 @@ const navItems: NavItem[] = [
 	{
 		href: '/dashboard',
 		icon: Home,
-		label: 'Home',
+		labelKey: 'home',
 	},
 	{
 		href: '/explore',
 		icon: Compass,
-		label: 'Explore',
+		labelKey: 'explore',
 	},
 	{
 		href: '/create',
 		icon: PlusSquare,
-		label: 'Create',
+		labelKey: 'create',
 		isCreate: true,
 	},
 	{
 		href: '/profile',
 		icon: User,
-		label: 'Profile',
+		labelKey: 'profile',
 	},
 ]
 
 const moreMenuItems: NavItem[] = [
-	{ href: '/challenges', icon: Target, label: 'Challenges' },
-	{ href: '/community', icon: Users, label: 'Community' },
-	{ href: '/cook-together', icon: ChefHat, label: 'Cook Together' },
-	{ href: '/messages', icon: MessageCircle, label: 'Messages' },
-	{ href: '/pantry', icon: Package, label: 'Pantry' },
-	{ href: '/meal-planner', icon: CalendarDays, label: 'Meal Plan' },
-	{ href: '/shopping-lists', icon: ShoppingCart, label: 'Shopping' },
-	{ href: '/settings', icon: Settings, label: 'Settings' },
+	{ href: '/challenges', icon: Target, labelKey: 'challenges' },
+	{ href: '/community', icon: Users, labelKey: 'community' },
+	{ href: '/cook-together', icon: ChefHat, labelKey: 'cookTogether' },
+	{ href: '/messages', icon: MessageCircle, labelKey: 'messages' },
+	{ href: '/pantry', icon: Package, labelKey: 'pantry' },
+	{ href: '/meal-planner', icon: CalendarDays, labelKey: 'mealPlan' },
+	{ href: '/shopping-lists', icon: ShoppingCart, labelKey: 'shopping' },
+	{ href: '/settings', icon: Settings, labelKey: 'settings' },
 ]
 
 export const MobileBottomNav = () => {
 	const pathname = usePathname()
 	const router = useRouter()
 	const [showMore, setShowMore] = useState(false)
+	const t = useTranslations('nav')
 
 	const isActive = (href: string) => {
 		if (href === '/dashboard') return pathname === '/dashboard'
@@ -103,6 +106,7 @@ export const MobileBottomNav = () => {
 				{navItems.map(item => {
 					const Icon = item.icon
 					const active = isActive(item.href)
+					const label = t(item.labelKey)
 
 					// Special handling for the Create button (center elevated button)
 					if (item.isCreate) {
@@ -155,13 +159,14 @@ export const MobileBottomNav = () => {
 									)}
 								/>
 							</motion.div>
-							<span className='text-xs font-semibold'>{item.label}</span>
+							<span className='text-xs font-semibold'>{label}</span>
 						</Link>
 					)
 				})}
 
 				{/* More button */}
 				<button
+					type='button'
 					onClick={() => setShowMore(true)}
 					className={cn(
 						'group relative flex flex-1 max-w-20 flex-col items-center justify-center gap-1 rounded-radius px-3 py-2',
@@ -189,7 +194,7 @@ export const MobileBottomNav = () => {
 							)}
 						/>
 					</motion.div>
-					<span className='text-xs font-semibold'>More</span>
+					<span className='text-xs font-semibold'>{t('more')}</span>
 				</button>
 			</nav>
 
@@ -215,8 +220,9 @@ export const MobileBottomNav = () => {
 						>
 							{/* Handle */}
 							<div className='flex items-center justify-between px-5 py-4'>
-								<span className='text-lg font-bold text-text'>More</span>
+								<span className='text-lg font-bold text-text'>{t('more')}</span>
 								<button
+									type='button'
 									onClick={() => setShowMore(false)}
 									aria-label='Close menu'
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
@@ -231,6 +237,7 @@ export const MobileBottomNav = () => {
 									const active = isActive(item.href)
 									return (
 										<button
+											type='button'
 											key={item.href}
 											onClick={() => {
 												setShowMore(false)
@@ -244,7 +251,7 @@ export const MobileBottomNav = () => {
 											)}
 										>
 											<Icon className='size-6' />
-											<span className='text-xs font-medium'>{item.label}</span>
+											<span className='text-xs font-medium'>{t(item.labelKey)}</span>
 										</button>
 									)
 								})}
@@ -293,7 +300,7 @@ export const MobileTabBar = ({
 					<motion.button
 						key={tab.id}
 						onClick={() => onTabChange(tab.id)}
-						whileTap={{ scale: 0.95 }}
+						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className={cn(
 							'flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-colors',

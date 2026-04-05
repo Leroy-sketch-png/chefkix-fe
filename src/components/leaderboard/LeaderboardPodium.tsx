@@ -5,7 +5,8 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { ChefHat } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, DURATIONS, BUTTON_SUBTLE_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATIONS, BUTTON_SUBTLE_HOVER, CROWN_BOUNCE, PODIUM_RISE } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -154,12 +155,10 @@ function PodiumSpot({
 
 	return (
 		<motion.div
-			initial={{ opacity: 0, y: 30 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{
-				delay: entry.rank === 1 ? 0.2 : entry.rank === 2 ? 0.4 : 0.6,
-				...TRANSITION_SPRING,
-			}}
+			variants={PODIUM_RISE}
+			initial='hidden'
+			animate='visible'
+			custom={entry.rank === 1 ? 0.2 : entry.rank === 2 ? 0.4 : 0.6}
 			className='flex flex-col items-center relative cursor-pointer'
 			style={{ order: config.order }}
 			onClick={() => onUserClick?.(entry)}
@@ -167,14 +166,7 @@ function PodiumSpot({
 			{/* Crown for 1st place - TIGHTENED spacing */}
 			{config.showCrown && (
 				<motion.div
-					animate={{
-						y: [0, -3, 0],
-					}}
-					transition={{
-						duration: DURATIONS.slow / 1000,
-						repeat: Infinity,
-						ease: 'easeInOut',
-					}}
+					animate={CROWN_BOUNCE.animate}
 					className='text-icon-lg mb-0.5'
 				>
 					ðŸ‘‘
@@ -237,7 +229,7 @@ function PodiumSpot({
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
 				<span className='text-lg font-display font-extrabold text-text'>
-					{entry.xp.toLocaleString()}
+					<AnimatedNumber value={entry.xp} format={n => n.toLocaleString()} duration={1} />
 				</span>
 				<span className='text-xs text-text-tertiary'>XP</span>
 			</div>

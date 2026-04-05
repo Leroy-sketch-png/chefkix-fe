@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import {
 	Clock,
@@ -29,6 +30,7 @@ import {
 	IMAGE_ZOOM_LARGE_HOVER,
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
+	BOOKMARK_SLIDE,
 } from '@/lib/motion'
 
 // ============================================
@@ -129,7 +131,7 @@ const XPBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 font-bold text-white shadow-lg shadow-success/40',
+				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 font-bold text-white shadow-card shadow-success/40',
 				size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-sm',
 			)}
 		>
@@ -377,13 +379,15 @@ const FeedCard = ({
 	badges,
 	qualityTier,
 	onCookNow,
-}: FeedCardProps) => (
+}: FeedCardProps) => {
+	const t = useTranslations('recipe')
+	return (
 	<motion.article
 		whileHover={CARD_FEED_HOVER}
 		transition={TRANSITION_SPRING}
 		className='relative overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-xl'
 	>
-		<Link href={`/recipes/${id}`} className='block'>
+		<Link href={`/recipes/${id}`} className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'>
 			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
 			<motion.div
 				className='relative aspect-video overflow-hidden'
@@ -442,21 +446,21 @@ const FeedCard = ({
 					)}
 					<span className='flex items-center gap-1'>
 						<Clock className='size-3.5' />
-						{cookTimeMinutes} min
+						{cookTimeMinutes} {t('minUnit')}
 					</span>
 				</div>
 
 				<div className='flex items-center justify-between gap-4'>
 					<div className='flex gap-4'>
-						<span className='flex items-center gap-1.5 text-sm text-success'>
+						<span className='flex items-center gap-1.5 text-sm text-success tabular-nums'>
 							<ChefHat className='size-4' />
 							{cookCount >= 1000
 								? `${(cookCount / 1000).toFixed(1)}k`
 								: cookCount}{' '}
-							cooked
+							{t('cookedCount')}
 						</span>
 						{rating > 0 && (
-							<span className='flex items-center gap-1.5 text-sm text-warning'>
+							<span className='flex items-center gap-1.5 text-sm text-warning tabular-nums'>
 								<Star className='size-4' />
 								{rating.toFixed(1)}
 							</span>
@@ -478,10 +482,11 @@ const FeedCard = ({
 			className='absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white'
 		>
 			<Play className='size-4' />
-			Cook Now
+			{t('cookNow')}
 		</motion.button>
 	</motion.article>
-)
+	)
+}
 
 // ============================================
 // VARIANT: GRID CARD
@@ -504,13 +509,15 @@ const GridCard = ({
 	onCook,
 	onSave,
 	isSaved,
-}: GridCardProps) => (
+}: GridCardProps) => {
+	const t = useTranslations('recipe')
+	return (
 	<motion.article
 		whileHover={CARD_GRID_HOVER}
 		transition={TRANSITION_SPRING}
 		className='overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-xl'
 	>
-		<Link href={`/recipes/${id}`} className='block'>
+		<Link href={`/recipes/${id}`} className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'>
 			{/* Image - using Next.js Image wrapped in motion.div for optimization */}
 			<motion.div
 				className='relative aspect-[4/3] overflow-hidden'
@@ -570,7 +577,7 @@ const GridCard = ({
 							{cookTimeMinutes} min
 						</span>
 						{cookCount > 0 && (
-							<span className='flex items-center gap-1 text-success'>
+							<span className='flex items-center gap-1 text-success tabular-nums'>
 								<ChefHat className='size-3.5' />
 								{cookCount >= 1000
 									? `${(cookCount / 1000).toFixed(1)}k`
@@ -580,7 +587,7 @@ const GridCard = ({
 					</div>
 					{/* Only show rating if it exists and > 0 */}
 					{rating > 0 && (
-						<span className='flex items-center gap-1 text-warning'>
+						<span className='flex items-center gap-1 text-warning tabular-nums'>
 							â­ {rating.toFixed(1)}
 						</span>
 					)}
@@ -620,7 +627,7 @@ const GridCard = ({
 				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white'
 			>
 				<Play className='size-4' />
-				Start Cooking
+				{t('startCooking')}
 			</motion.button>
 			<motion.button
 				onClick={e => {
@@ -631,7 +638,7 @@ const GridCard = ({
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
-				aria-label={isSaved ? 'Remove from saved' : 'Save recipe'}
+				aria-label={isSaved ? t('removeFromSaved') : t('saveRecipe')}
 				className={cn(
 					'flex size-10 items-center justify-center rounded-lg border',
 					isSaved
@@ -639,11 +646,18 @@ const GridCard = ({
 						: 'border-border bg-bg-elevated text-text-muted hover:border-brand hover:bg-brand/10 hover:text-brand',
 				)}
 			>
+				<motion.div
+					variants={BOOKMARK_SLIDE}
+					animate={isSaved ? 'saved' : 'unsaved'}
+					initial={false}
+				>
 				<Bookmark className={cn('size-5', isSaved && 'fill-current')} />
+				</motion.div>
 			</motion.button>
 		</div>
 	</motion.article>
-)
+	)
+}
 
 // ============================================
 // VARIANT: FEATURED CARD
@@ -664,13 +678,15 @@ const FeaturedCard = ({
 	badges,
 	isTrending,
 	onCook,
-}: FeaturedCardProps) => (
+}: FeaturedCardProps) => {
+	const t = useTranslations('recipe')
+	return (
 	<motion.article
 		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
 		className='overflow-hidden rounded-2xl shadow-2xl'
 	>
-		<Link href={`/recipes/${id}`} className='block'>
+		<Link href={`/recipes/${id}`} className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'>
 			<div className='relative aspect-video min-h-panel-md'>
 				<Image
 					src={imageUrl}
@@ -686,7 +702,7 @@ const FeaturedCard = ({
 				{isTrending && (
 					<div className='absolute left-5 top-5 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-error to-error/80 px-4 py-2.5 text-sm font-bold text-white'>
 						<TrendingUp className='size-4' />
-						Trending
+						{t('trending')}
 					</div>
 				)}
 
@@ -705,7 +721,7 @@ const FeaturedCard = ({
 								.bgColor,
 						)}
 					>
-						{difficulty || 'Beginner'} Challenge
+						{t('difficultyChallenge', { difficulty: difficulty || 'Beginner' })}
 					</div>
 				</div>
 
@@ -763,7 +779,7 @@ const FeaturedCard = ({
 							{cookCount >= 1000
 								? `${(cookCount / 1000).toFixed(1)}k`
 								: cookCount}{' '}
-							cooked
+							{t('cookedCount')}
 						</span>
 						{rating > 0 && (
 							<span className='flex items-center gap-1.5 text-sm text-white/90'>
@@ -810,10 +826,10 @@ const FeaturedCard = ({
 						className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-xl shadow-brand/40 md:px-8 md:text-lg'
 					>
 						<Play className='size-5 md:size-6' />
-						Start Cooking
+						{t('startCooking')}
 						{xpReward != null && xpReward > 0 && (
 							<span className='rounded-full bg-white/20 px-3 py-1 text-sm font-semibold max-md:hidden'>
-								Earn {xpReward} XP
+								{t('earnXp', { xp: xpReward })}
 							</span>
 						)}
 					</motion.button>
@@ -821,7 +837,8 @@ const FeaturedCard = ({
 			</div>
 		</Link>
 	</motion.article>
-)
+	)
+}
 
 // ============================================
 // VARIANT: COOKED CARD (With Mastery)
@@ -834,13 +851,15 @@ const CookedCard = ({
 	mastery,
 	onCookAgain,
 	onViewHistory,
-}: CookedCardProps) => (
+}: CookedCardProps) => {
+	const t = useTranslations('recipe')
+	return (
 	<motion.article
 		whileHover={CARD_FEATURED_HOVER}
 		transition={TRANSITION_SPRING}
 		className='overflow-hidden rounded-2xl border-2 border-xp/30 bg-bg-card shadow-card hover:border-xp/50 hover:shadow-xp/15'
 	>
-		<Link href={`/recipes/${id}`} className='block'>
+		<Link href={`/recipes/${id}`} className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'>
 			{/* Image */}
 			<div className='relative aspect-video overflow-hidden'>
 				<Image
@@ -851,8 +870,8 @@ const CookedCard = ({
 					className='object-cover'
 				/>
 				<MasteryBadge level={mastery.masteryLevel} />
-				<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white'>
-					{mastery.personalCookCount}Ã— cooked
+				<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold tabular-nums text-white'>
+					{t('cookedTimes', { count: mastery.personalCookCount })}
 				</div>
 			</div>
 
@@ -863,9 +882,9 @@ const CookedCard = ({
 				{/* Mastery progress */}
 				<div className='mb-4'>
 					<div className='mb-2 flex items-center justify-between text-xs'>
-						<span className='font-semibold text-xp'>Mastery</span>
+						<span className='font-semibold text-xp'>{t('mastery')}</span>
 						<span className='text-text-muted'>
-							{mastery.cooksToNextMilestone} more to next milestone
+							{t('moreCooksToMilestone', { count: mastery.cooksToNextMilestone })}
 						</span>
 					</div>
 					<div className='relative mb-2 h-2 overflow-hidden rounded-full bg-border'>
@@ -897,11 +916,11 @@ const CookedCard = ({
 
 				{/* XP summary */}
 				<div className='mb-4 flex items-center justify-between rounded-lg bg-success/10 px-3 py-2.5 text-sm'>
-					<span className='font-bold text-success'>
-						+{mastery.totalXpEarned} XP earned
+					<span className='font-bold tabular-nums text-success'>
+						{t('xpEarned', { xp: mastery.totalXpEarned })}
 					</span>
-					<span className='text-text-muted'>
-						Next cook: +{mastery.nextCookXp} XP ({mastery.nextCookPercent}%)
+					<span className='tabular-nums text-text-muted'>
+						{t('nextCookXp', { xp: mastery.nextCookXp, percent: mastery.nextCookPercent })}
 					</span>
 				</div>
 			</div>
@@ -916,7 +935,7 @@ const CookedCard = ({
 				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-xp py-3 text-sm font-semibold text-white'
 			>
 				<RefreshCw className='size-4' />
-				Cook Again
+				{t('cookAgain')}
 			</motion.button>
 			<motion.button
 				onClick={onViewHistory}
@@ -924,13 +943,14 @@ const CookedCard = ({
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
 				className='flex size-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp'
-				aria-label='View cooking history'
+				aria-label={t('viewCookingHistory')}
 			>
 				<History className='size-5' />
 			</motion.button>
 		</div>
 	</motion.article>
-)
+	)
+}
 
 // ============================================
 // VARIANT: MINI CARD (Horizontal)
@@ -944,13 +964,15 @@ const MiniCard = ({
 	cookTimeMinutes,
 	difficulty,
 	onCook,
-}: MiniCardProps) => (
+}: MiniCardProps) => {
+	const t = useTranslations('recipe')
+	return (
 	<motion.article
 		whileHover={CARD_HOVER}
 		transition={TRANSITION_SPRING}
 		className='flex items-center gap-3.5 rounded-xl border border-border bg-bg-card p-3 hover:border-brand'
 	>
-		<Link href={`/recipes/${id}`} className='flex flex-1 items-center gap-3.5'>
+		<Link href={`/recipes/${id}`} className='flex flex-1 items-center gap-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg'>
 			<Image
 				src={imageUrl}
 				alt={title}
@@ -984,13 +1006,14 @@ const MiniCard = ({
 			whileHover={ICON_BUTTON_HOVER}
 			whileTap={ICON_BUTTON_TAP}
 			transition={TRANSITION_SPRING}
-			aria-label='Start cooking'
+			aria-label={t('startCookingLabel')}
 			className='flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white'
 		>
 			<Play className='size-4' />
 		</motion.button>
 	</motion.article>
-)
+	)
+}
 
 // ============================================
 // MAIN EXPORT

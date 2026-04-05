@@ -1,9 +1,11 @@
 ﻿'use client'
 
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Share2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { triggerAchievementConfetti } from '@/lib/confetti'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -93,7 +95,14 @@ export const ChallengeComplete = ({
 	milestoneReward,
 	onContinue,
 	onShare,
-}: ChallengeCompleteProps) => (
+}: ChallengeCompleteProps) => {
+	// Fire gold confetti burst on mount
+	useEffect(() => {
+		const timer = setTimeout(() => triggerAchievementConfetti(), 200)
+		return () => clearTimeout(timer)
+	}, [])
+
+	return (
 	<AnimatePresence>
 		<Portal>
 			<motion.div
@@ -264,7 +273,8 @@ export const ChallengeComplete = ({
 			</motion.div>
 		</Portal>
 	</AnimatePresence>
-)
+	)
+}
 
 // ============================================
 // CHALLENGE COMPLETE INLINE (Alternative)

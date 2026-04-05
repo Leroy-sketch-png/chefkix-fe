@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState, useEffect, useCallback } from 'react'
 import { exploreGroups } from '@/services/group'
 import { Group, GroupExploreQuery, PrivacyType } from '@/lib/types/group'
@@ -15,7 +17,9 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Plus, Search, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { BUTTON_HOVER, BUTTON_TAP, TRANSITION_SPRING } from '@/lib/motion'
 import { CreateGroupModal } from './CreateGroupModal'
+import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 
@@ -47,6 +51,7 @@ export const GroupsExploreGrid = ({
 	// Modal state
 	const [showCreateModal, setShowCreateModal] = useState(false)
 	const user = useAuthStore((state) => state.user)
+	const t = useTranslations('groups')
 
 	// Load groups
 	const loadGroups = useCallback(
@@ -68,7 +73,7 @@ export const GroupsExploreGrid = ({
 				setPage(pageNum)
 				setHasMore(pageNum < response.totalPages - 1)
 			} catch (error) {
-				toast.error('Failed to load groups')
+				toast.error(t('geLoadFailed'))
 			} finally {
 				setIsLoading(false)
 			}
@@ -97,9 +102,9 @@ export const GroupsExploreGrid = ({
 			<div className='bg-gradient-to-r from-brand/10 to-brand/5 rounded-xl border border-brand/20 p-6'>
 				<div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 					<div>
-						<h1 className='text-4xl font-bold text-text'>Groups</h1>
+						<h1 className='text-4xl font-bold text-text'>{t('geTitle')}</h1>
 						<p className='text-text-secondary mt-2 text-lg'>
-							Connect, explore, and join communities around your cooking interests
+							{t('geDescription')}
 						</p>
 					</div>
 
@@ -107,11 +112,12 @@ export const GroupsExploreGrid = ({
 						<motion.button
 							onClick={() => setShowCreateModal(true)}
 							className='flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-semibold shadow-lg shadow-brand/30 transition-all duration-300 whitespace-nowrap'
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.98 }}
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
+						transition={TRANSITION_SPRING}
 						>
 							<Plus className='size-5' />
-							Create Group
+						{t('geCreateGroup')}
 						</motion.button>
 					)}
 				</div>
@@ -123,7 +129,7 @@ export const GroupsExploreGrid = ({
 				<div className='relative'>
 					<Search className='absolute left-4 top-1/2 transform -translate-y-1/2 size-5 text-text-secondary' />
 					<Input
-						placeholder='Search for groups by name, interests, or topics...'
+						placeholder={t('geSearchPlaceholder')}
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
 						className='pl-12 py-3 text-base rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand transition-colors'
@@ -145,9 +151,9 @@ export const GroupsExploreGrid = ({
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value='ALL'>All Groups</SelectItem>
-							<SelectItem value='PUBLIC'>Public Only</SelectItem>
-							<SelectItem value='PRIVATE'>Private Only</SelectItem>
+							<SelectItem value='ALL'>{t('geAllGroups')}</SelectItem>
+							<SelectItem value='PUBLIC'>{t('gePublicOnly')}</SelectItem>
+							<SelectItem value='PRIVATE'>{t('gePrivateOnly')}</SelectItem>
 						</SelectContent>
 					</Select>
 
@@ -163,9 +169,9 @@ export const GroupsExploreGrid = ({
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value='LATEST'>Latest Groups</SelectItem>
-							<SelectItem value='MEMBERS'>Most Members</SelectItem>
-							<SelectItem value='TRENDING'>Trending</SelectItem>
+							<SelectItem value='LATEST'>{t('geLatestGroups')}</SelectItem>
+							<SelectItem value='MEMBERS'>{t('geMostMembers')}</SelectItem>
+							<SelectItem value='TRENDING'>{t('geTrending')}</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -176,39 +182,32 @@ export const GroupsExploreGrid = ({
 				<div className='flex justify-center py-20'>
 					<div className='text-center'>
 						<Loader2 className='size-10 animate-spin text-brand mx-auto mb-4' />
-						<p className='text-text-secondary'>Loading groups...</p>
+						<p className='text-text-secondary'>{t('geLoading')}</p>
 					</div>
 				</div>
 			) : groups.length === 0 ? (
-				<motion.div
-					className='text-center py-20 bg-bg-card rounded-xl border-2 border-dashed border-border-subtle'
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-				>
-					<Users className='size-16 text-text-muted mx-auto mb-4 opacity-50' />
-					<p className='text-lg font-semibold text-text mb-2'>
-						No groups found
-					</p>
-					<p className='text-text-secondary mb-6'>
-						{searchTerm
-							? 'Try adjusting your search or filters'
-							: 'Start by creating your first group or exploring existing ones'}
-					</p>
-					{currentUserId && (
-						<Button
-							onClick={() => setShowCreateModal(true)}
-							className='bg-brand hover:bg-brand/90 text-white'
-						>
-							<Plus className='size-4 mr-2' />
-							Create First Group
-						</Button>
-					)}
-				</motion.div>
+				<EmptyState
+					variant='custom'
+					title={t('geNoGroups')}
+					description={searchTerm
+						? t('geNoGroupsSearchDesc')
+						: t('geNoGroupsDesc')}
+					emoji='👥'
+					primaryAction={currentUserId ? {
+						label: t('geCreateFirst'),
+						onClick: () => setShowCreateModal(true),
+						icon: <Plus className='size-4' />,
+					} : undefined}
+					searchSuggestions={searchTerm ? [t('geSuggestionItalian'), t('geSuggestionBaking'), t('geSuggestionMealPrep')] : undefined}
+					onSuggestionClick={searchTerm ? (suggestion) => {
+						setSearchTerm(suggestion)
+					} : undefined}
+				/>
 			) : (
 				<>
 					{/* Results Count */}
 					<div className='text-text-secondary text-sm'>
-						Showing {groups.length} group{groups.length !== 1 ? 's' : ''}
+						{t('geShowingGroups', { count: groups.length })}
 					</div>
 
 					{/* Groups Grid */}
@@ -261,10 +260,10 @@ export const GroupsExploreGrid = ({
 						{isLoading ? (
 							<>
 								<Loader2 className='size-4 mr-2 animate-spin' />
-								Loading...
+							{t('geLoadingMore')}
 							</>
 						) : (
-							'Load More Groups'
+							t('geLoadMore')
 						)}
 					</Button>
 				</div>

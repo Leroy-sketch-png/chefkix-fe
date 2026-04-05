@@ -13,6 +13,7 @@ import {
 	Clock,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { useTranslations } from 'next-intl'
 import { useUiStore } from '@/store/uiStore'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -20,7 +21,7 @@ import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, BELL_SHAKE, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -33,6 +34,7 @@ import { getRecentSearches, addRecentSearch } from '@/lib/recentSearches'
 
 export const Topbar = () => {
 	const { user } = useAuth()
+	const t = useTranslations('topbar')
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [showUserMenu, setShowUserMenu] = useState(false)
@@ -312,9 +314,9 @@ export const Topbar = () => {
 				<input
 					ref={inputRef}
 					type='text'
-					placeholder='Search...'
+					placeholder={t('tbSearch')}
 					role='combobox'
-					aria-label='Search recipes and people'
+					aria-label={t('tbSearchLabel')}
 					aria-expanded={showSuggestions}
 					aria-autocomplete='list'
 					aria-controls='search-suggestions-dropdown'
@@ -356,7 +358,7 @@ export const Topbar = () => {
 							{isSearching && (
 								<div className='flex items-center gap-2 px-4 py-3 text-sm text-text-muted'>
 									<div className='size-4 animate-spin rounded-full border-2 border-text-muted border-t-brand' />
-									Searching...
+									{t('tbSearching')}
 								</div>
 							)}
 
@@ -364,7 +366,7 @@ export const Topbar = () => {
 							{searchQuery.trim().length < 2 && recentSearches.length > 0 && !isSearching && (
 								<div>
 									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-										Recent
+										{t('tbRecent')}
 									</div>
 									{recentSearches.slice(0, 5).map((term, idx) => {
 										const itemIdx = idx
@@ -394,7 +396,7 @@ export const Topbar = () => {
 							{searchQuery.trim().length >= 2 && !isSearching && suggestions.recipes.length > 0 && (
 								<div>
 									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-										Recipes
+										{t('tbRecipes')}
 									</div>
 									{suggestions.recipes.map((r, idx) => {
 										const itemIdx = idx
@@ -432,7 +434,7 @@ export const Topbar = () => {
 							{searchQuery.trim().length >= 2 && !isSearching && suggestions.people.length > 0 && (
 								<div>
 									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-										People
+										{t('tbPeople')}
 									</div>
 									{suggestions.people.map((p, idx) => {
 										const itemIdx = suggestions.recipes.length + idx
@@ -477,8 +479,8 @@ export const Topbar = () => {
 								suggestions.recipes.length === 0 &&
 								suggestions.people.length === 0 && (
 									<div className='px-4 py-4 text-center text-sm text-text-muted'>
-										No results for &quot;{searchQuery.trim()}&quot;
-									</div>
+									{t('tbNoResults', { query: searchQuery.trim() })}
+								</div>
 								)}
 
 							{/* See all results */}
@@ -496,7 +498,7 @@ export const Topbar = () => {
 									)}
 								>
 									<Search className='size-4' />
-									See all results for &quot;{searchQuery.trim()}&quot;
+									{t('tbSeeAll', { query: searchQuery.trim() })}
 								</button>
 							)}
 						</div>
@@ -520,7 +522,8 @@ export const Topbar = () => {
 			{/* Level Badge - desktop only */}
 			{user && (
 				<motion.div
-					whileHover={{ scale: 1.05 }}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					transition={TRANSITION_SPRING}
 					className='relative hidden overflow-hidden rounded-radius bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-card lg:flex lg:items-center lg:gap-2'
 				>
 					<span className='relative z-10'>
@@ -554,8 +557,8 @@ export const Topbar = () => {
 							}
 							setShowUserMenu(!showUserMenu)
 						}}
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.98 }}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						aria-haspopup='true'
 					aria-expanded={showUserMenu}
@@ -661,14 +664,15 @@ export const Topbar = () => {
 									className='flex h-11 items-center gap-3 px-4 text-sm text-text-primary transition-colors hover:bg-bg-hover'
 								>
 									<Settings className='size-4' />
-									<span>Settings</span>
+									<span>{t('tbSettings')}</span>
 								</Link>
 								<button
+									type='button'
 									onClick={handleLogout}
 									className='flex h-11 w-full items-center gap-3 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 								>
 									<LogOut className='size-4' />
-									<span>Sign Out</span>
+									<span>{t('tbSignOut')}</span>
 								</button>
 							</div>
 						</Portal>
@@ -682,13 +686,13 @@ export const Topbar = () => {
 						href={PATHS.AUTH.SIGN_IN}
 						className='rounded-radius px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 					>
-						Sign In
+						{t('tbSignIn')}
 					</Link>
 					<Link
 						href={PATHS.AUTH.SIGN_UP}
 						className='rounded-radius bg-brand px-4 py-2 text-sm font-bold text-white shadow-card transition-all hover:shadow-warm'
 					>
-						Get Started
+						{t('tbGetStarted')}
 					</Link>
 				</div>
 			)}
@@ -698,18 +702,30 @@ export const Topbar = () => {
 			<div className='flex gap-2 md:gap-3'>
 				<motion.button
 					onClick={toggleNotificationsPopup}
-					whileHover={{ scale: 1.1 }}
-					whileTap={{ scale: 0.95 }}
+					whileHover={ICON_BUTTON_HOVER}
+					whileTap={ICON_BUTTON_TAP}
+					transition={TRANSITION_SPRING}
 					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand'
-					aria-label='Notifications'
+					aria-label={
+						unreadNotifications > 0
+							? t('tbNotificationsUnread', { count: unreadNotifications })
+							: t('tbNotifications')
+					}
 				>
-					<Bell className='size-5' />
+					<motion.div
+						key={unreadNotifications}
+						animate={unreadNotifications > 0 ? BELL_SHAKE.animate : undefined}
+					>
+						<Bell className='size-5' />
+					</motion.div>
 					{unreadNotifications > 0 && (
 						<motion.span
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
 							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+							aria-live='polite'
+							aria-atomic='true'
 						>
 							{unreadNotifications > 99 ? '99+' : unreadNotifications}
 						</motion.span>
@@ -717,10 +733,15 @@ export const Topbar = () => {
 				</motion.button>
 				<motion.button
 					onClick={toggleMessagesDrawer}
-					whileHover={{ scale: 1.1 }}
-					whileTap={{ scale: 0.95 }}
+					whileHover={ICON_BUTTON_HOVER}
+					whileTap={ICON_BUTTON_TAP}
+					transition={TRANSITION_SPRING}
 					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp'
-					aria-label='Messages'
+					aria-label={
+						unreadMessages > 0
+							? `Messages, ${unreadMessages} unread`
+							: 'Messages'
+					}
 				>
 					<MessageCircle className='size-5' />
 					{unreadMessages > 0 && (
@@ -729,6 +750,8 @@ export const Topbar = () => {
 							animate={{ scale: 1 }}
 							transition={TRANSITION_SPRING}
 							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+							aria-live='polite'
+							aria-atomic='true'
 						>
 							{unreadMessages > 99 ? '99+' : unreadMessages}
 						</motion.span>

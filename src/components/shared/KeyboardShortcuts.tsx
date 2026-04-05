@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -12,21 +14,22 @@ import {
 import { PATHS } from '@/constants/paths'
 
 const shortcuts = [
-	{ keys: ['?'], description: 'Show keyboard shortcuts', action: 'toggle' },
+	{ keys: ['?'], description: 'ksShowShortcuts', action: 'toggle' },
 	{
 		keys: ['Ctrl/⌘', 'K'],
-		description: 'Open command palette',
+		description: 'ksCommandPalette',
 		action: 'palette',
 	},
-	{ keys: ['/'], description: 'Focus search', action: 'search' },
-	{ keys: ['g', 'd'], description: 'Go to Dashboard', path: PATHS.DASHBOARD },
-	{ keys: ['g', 'e'], description: 'Go to Explore', path: PATHS.EXPLORE },
-	{ keys: ['g', 'f'], description: 'Go to Discover', path: PATHS.DISCOVER },
-	{ keys: ['n'], description: 'New post', action: 'newPost' },
-	{ keys: ['Esc'], description: 'Close dialogs', action: 'escape' },
+	{ keys: ['/'], description: 'ksFocusSearch', action: 'search' },
+	{ keys: ['g', 'd'], description: 'ksGoDashboard', path: PATHS.DASHBOARD },
+	{ keys: ['g', 'e'], description: 'ksGoExplore', path: PATHS.EXPLORE },
+	{ keys: ['g', 'f'], description: 'ksGoDiscover', path: PATHS.DISCOVER },
+	{ keys: ['n'], description: 'ksNewPost', action: 'newPost' },
+	{ keys: ['Esc'], description: 'ksCloseDialogs', action: 'escape' },
 ]
 
 export const KeyboardShortcuts = () => {
+	const t = useTranslations('shared')
 	const [open, setOpen] = useState(false)
 	const [sequence, setSequence] = useState<string[]>([])
 	const router = useRouter()
@@ -104,7 +107,7 @@ export const KeyboardShortcuts = () => {
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogContent className='max-w-2xl'>
 				<DialogHeader>
-					<DialogTitle>Keyboard Shortcuts</DialogTitle>
+					<DialogTitle>{t('ksTitle')}</DialogTitle>
 					<DialogDescription>
 						Navigate faster with these keyboard shortcuts
 					</DialogDescription>
@@ -116,7 +119,7 @@ export const KeyboardShortcuts = () => {
 							className='flex items-center justify-between rounded-lg border border-border-subtle bg-bg-subtle p-3'
 						>
 							<span className='text-sm text-text-primary'>
-								{shortcut.description}
+								{t(shortcut.description)}
 							</span>
 							<div className='flex gap-2'>
 								{shortcut.keys.map((key, i) => (
@@ -132,8 +135,9 @@ export const KeyboardShortcuts = () => {
 					))}
 				</div>
 				<div className='mt-4 text-center text-xs text-text-secondary'>
-					Press <kbd className='rounded bg-bg-subtle px-2 py-1'>?</kbd> anytime
-					to toggle this menu
+					{t.rich('ksToggleHint', {
+						key: (chunks) => <kbd className='rounded bg-bg-subtle px-2 py-1'>{chunks}</kbd>,
+					})}
 				</div>
 			</DialogContent>
 		</Dialog>

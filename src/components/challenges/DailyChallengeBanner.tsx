@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -173,6 +175,7 @@ const ActiveChallengeBanner = ({
 	onMinimize,
 }: ActiveChallengeProps) => {
 	const timeRemaining = formatTimeRemaining(challenge.endsAt)
+	const t = useTranslations('challenge')
 
 	return (
 		<motion.div
@@ -188,7 +191,7 @@ const ActiveChallengeBanner = ({
 					<ChallengeIcon icon={challenge.icon} />
 					<div className='flex-1'>
 						<span className='text-xs font-bold uppercase tracking-wide text-accent-purple'>
-							Daily Challenge
+							{t('dailyChallenge')}
 						</span>
 						<h3 className='text-xl font-display font-extrabold'>{challenge.title}</h3>
 					</div>
@@ -219,7 +222,7 @@ const ActiveChallengeBanner = ({
 				{challenge.matchingRecipes && challenge.matchingRecipes.length > 0 && (
 					<div className='mb-1'>
 						<span className='mb-2 block text-xs text-text-muted'>
-							Try these:
+							{t('tryThese')}
 						</span>
 						<div className='-mr-5 flex gap-2 overflow-x-auto pb-1 pr-5'>
 							{challenge.matchingRecipes.slice(0, 2).map(recipe => (
@@ -258,13 +261,15 @@ const ActiveChallengeBanner = ({
 					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-base font-bold text-white shadow-lg shadow-xp/40'
 				>
 					<ChefHat className='size-5' />
-					Find Recipe
+					{t('findRecipe')}
 				</motion.button>
 			</div>
 
 			{/* Minimize Button */}
 			<button
+				type='button'
 				onClick={onMinimize}
+				aria-label={t('minimize')}
 				className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted transition-colors hover:bg-border'
 			>
 				<ChevronUp className='size-4' />
@@ -282,7 +287,9 @@ const CompletedChallengeBanner = ({
 	completedWith,
 	streakCount,
 	onViewHistory,
-}: CompletedChallengeProps) => (
+}: CompletedChallengeProps) => {
+	const t = useTranslations('challenge')
+	return (
 	<motion.div
 		initial={{ opacity: 0, y: -10 }}
 		animate={{ opacity: 1, y: 0 }}
@@ -312,7 +319,7 @@ const CompletedChallengeBanner = ({
 				<ChallengeIcon icon='âœ…' isComplete />
 				<div className='flex-1'>
 					<span className='text-xs font-bold uppercase tracking-wide text-success'>
-						Challenge Complete!
+						{t('challengeComplete')}
 					</span>
 					<h3 className='text-xl font-display font-extrabold'>{challenge.title}</h3>
 				</div>
@@ -329,7 +336,7 @@ const CompletedChallengeBanner = ({
 						className='size-12 rounded-lg object-cover'
 					/>
 					<div className='flex flex-col'>
-						<span className='text-xs text-text-muted'>Completed with</span>
+						<span className='text-xs text-text-muted'>{t('completedWith')}</span>
 						<span className='text-sm font-semibold'>
 							{completedWith.recipeTitle}
 						</span>
@@ -339,7 +346,7 @@ const CompletedChallengeBanner = ({
 					<span className='block text-xl font-display font-extrabold text-xp'>
 						+{challenge.bonusXp} XP
 					</span>
-					<span className='text-xs text-text-muted'>bonus earned</span>
+					<span className='text-xs text-text-muted'>{t('bonusEarned')}</span>
 				</div>
 			</div>
 
@@ -348,7 +355,7 @@ const CompletedChallengeBanner = ({
 				<div className='flex items-center justify-center gap-2 rounded-lg bg-streak/10 px-3 py-2.5'>
 					<span className='text-lg'>ðŸ”¥</span>
 					<span className='text-sm font-semibold text-streak'>
-						{streakCount} day challenge streak!
+						{t('streakDays', { n: streakCount })}
 					</span>
 				</div>
 			)}
@@ -356,14 +363,16 @@ const CompletedChallengeBanner = ({
 
 		{/* View History */}
 		<button
+			type='button'
 			onClick={onViewHistory}
 			className='absolute right-4 top-4 flex items-center gap-1 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 		>
-			View History
+			{t('viewHistory')}
 			<ChevronRight className='size-4' />
 		</button>
 	</motion.div>
 )
+}
 
 // ============================================
 // VARIANT: COMPACT CHALLENGE
@@ -374,6 +383,7 @@ const CompactChallengeBanner = ({
 	onExpand,
 }: CompactChallengeProps) => {
 	const timeRemaining = formatTimeRemaining(challenge.endsAt)
+	const t = useTranslations('challenge')
 
 	return (
 		<motion.div
@@ -385,10 +395,10 @@ const CompactChallengeBanner = ({
 				<span className='text-2xl'>{challenge.icon}</span>
 				<div className='flex flex-col'>
 					<span className='text-sm font-semibold'>
-						Daily: {challenge.title}
+						{t('dailyCompact', { title: challenge.title })}
 					</span>
 					<span className='text-xs font-semibold text-xp'>
-						+{challenge.bonusXp} XP bonus
+						{t('xpBonus', { n: challenge.bonusXp })}
 					</span>
 				</div>
 			</div>
@@ -397,7 +407,9 @@ const CompactChallengeBanner = ({
 					{timeRemaining}
 				</span>
 				<button
+					type='button'
 					onClick={onExpand}
+					aria-label={t('expand')}
 					className='flex size-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:bg-bg-elevated'
 				>
 					<ChevronDown className='size-4' />

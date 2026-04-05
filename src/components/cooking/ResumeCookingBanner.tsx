@@ -142,6 +142,7 @@ export const ResumeCookingBanner = ({
 			>
 				{/* Dismiss button */}
 				<button
+					type='button'
 					onClick={handleDismiss}
 					className='absolute right-3 top-3 z-10 rounded-full p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text transition-colors'
 					aria-label='Dismiss'
@@ -157,11 +158,12 @@ export const ResumeCookingBanner = ({
 								src={recipeImage}
 								alt={recipeName}
 								fill
+								sizes='(max-width: 768px) 64px, 80px'
 								className='object-cover'
 							/>
 							{/* Progress ring overlay */}
 							<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
-								<div className='flex size-10 items-center justify-center rounded-full bg-white/90 text-xs font-bold text-brand'>
+							<div className='flex size-10 items-center justify-center rounded-full bg-white/90 text-xs font-bold text-brand tabular-nums'>
 									{progressPercent}%
 								</div>
 							</div>
@@ -181,11 +183,11 @@ export const ResumeCookingBanner = ({
 							</h3>
 						</div>
 						<p className='text-sm text-text-secondary'>
-							{recipeName || 'Your recipe'} — Step {pendingSession.currentStep}{' '}
-							of {totalSteps}
+							{recipeName || 'Your recipe'} — <span className='tabular-nums'>Step {pendingSession.currentStep}{' '}
+							of {totalSteps}</span>
 						</p>
 						<div className='flex items-center gap-3 text-xs text-text-muted'>
-							<span className='flex items-center gap-1'>
+							<span className='flex items-center gap-1 tabular-nums'>
 								<Clock className='size-3' />
 								{completedSteps} steps completed
 							</span>

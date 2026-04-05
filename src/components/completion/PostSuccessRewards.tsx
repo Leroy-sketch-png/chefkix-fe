@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Lock, Unlock, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
@@ -177,6 +178,7 @@ export const PostSuccessRewards = ({
 	onDone,
 	nextActions,
 }: PostSuccessRewardsProps) => {
+	const t = useTranslations('completion')
 	return (
 		<AnimatePresence>
 			{isOpen && (
@@ -207,6 +209,7 @@ export const PostSuccessRewards = ({
 						>
 							{/* Close */}
 							<button
+								type='button'
 								onClick={onClose}
 								aria-label='Close'
 								className='absolute right-4 top-4 z-10 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
@@ -233,8 +236,8 @@ export const PostSuccessRewards = ({
 										<Check className='size-5 text-white' />
 									</motion.div>
 								</div>
-								<h1 className='mb-2 text-3xl font-display font-extrabold'>Posted! ðŸŽ‰</h1>
-								<p className='text-text-muted'>Your {recipeName} is now live</p>
+								<h1 className='mb-2 text-3xl font-display font-extrabold'>{t('posted')}</h1>
+								<p className='text-text-muted'>{t('yourRecipeIsLive', { recipeName })}</p>
 							</div>
 
 							{/* XP unlocked section */}
@@ -267,7 +270,7 @@ export const PostSuccessRewards = ({
 
 									{/* Total */}
 									<div className='mt-2 flex items-center justify-between border-t border-border pt-3'>
-										<span className='font-semibold'>Total Earned</span>
+										<span className='font-semibold'>{t('totalEarned')}</span>
 										<motion.span
 											initial={{ scale: 0.5, opacity: 0 }}
 											animate={{ scale: 1, opacity: 1 }}
@@ -283,9 +286,9 @@ export const PostSuccessRewards = ({
 							{/* Level progress */}
 							<div className='mb-4 rounded-xl bg-bg-elevated p-4'>
 								<div className='mb-2 flex items-center justify-between'>
-									<span className='font-bold'>Level {currentLevel}</span>
+									<span className='font-bold'>{t('levelLabel', { level: currentLevel })}</span>
 									<span className='text-sm text-text-muted'>
-										{xpToNextLevel} XP to Level {currentLevel + 1}
+										{t('xpToLevel', { amount: xpToNextLevel, level: currentLevel + 1 })}
 									</span>
 								</div>
 								<ProgressBar
@@ -301,7 +304,7 @@ export const PostSuccessRewards = ({
 									<div className='mb-3 flex items-center gap-2.5'>
 										<span className='text-xl'>{mastery.cuisineEmoji}</span>
 										<span className='font-semibold'>
-											{mastery.cuisineName} Mastery
+											{t('cuisineMastery', { cuisine: mastery.cuisineName })}
 										</span>
 									</div>
 									<div className='flex items-center gap-3'>
@@ -317,8 +320,7 @@ export const PostSuccessRewards = ({
 										</span>
 									</div>
 									<p className='mt-2 text-sm text-text-muted'>
-										Keep cooking {mastery.cuisineName.toLowerCase()} recipes to
-										master this cuisine!
+										{t('keepCookingCuisine', { cuisine: mastery.cuisineName.toLowerCase() })}
 									</p>
 								</div>
 							)}
@@ -328,15 +330,16 @@ export const PostSuccessRewards = ({
 								<div className='mb-5 rounded-xl bg-bg-elevated p-4'>
 									<div className='mb-3 flex items-center justify-between'>
 										<span className='font-semibold'>
-											Your post is now live!
-										</span>
+										{t('yourPostIsLive')}
+									</span>
 										{onViewPost && (
 											<button
+												type='button'
 												onClick={onViewPost}
 												className='flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 											>
-												View Post
-												<ArrowRight className='size-4' />
+											{t('viewPost')}
+											<ArrowRight className='size-4' />
 											</button>
 										)}
 									</div>
@@ -352,11 +355,11 @@ export const PostSuccessRewards = ({
 											<span className='flex-1 text-sm font-semibold'>
 												{postPreview.authorName}
 											</span>
-											<span className='text-xs text-text-muted'>Just now</span>
+											<span className='text-xs text-text-muted'>{t('justNow')}</span>
 										</div>
 										<Image
 											src={postPreview.imageUrl}
-											alt='Your creation'
+											alt={t('yourCreation')}
 											width={400}
 											height={300}
 											className='aspect-[4/3] w-full object-cover'
@@ -369,11 +372,12 @@ export const PostSuccessRewards = ({
 							{/* What's next */}
 							<div className='mb-5'>
 								<h3 className='mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted'>
-									What&apos;s Next?
+									{t('whatsNext')}
 								</h3>
 								<div className='grid grid-cols-3 gap-2.5'>
 									{nextActions.map(action => (
 										<button
+											type='button'
 											key={action.id}
 											onClick={action.onClick}
 											className='flex flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-3 py-4 transition-colors hover:border-brand hover:bg-brand/5'
@@ -392,10 +396,11 @@ export const PostSuccessRewards = ({
 
 							{/* Done button */}
 							<button
+								type='button'
 								onClick={onDone}
 								className='w-full rounded-xl bg-brand py-4 text-base font-bold text-white transition-opacity hover:opacity-90'
 							>
-								Done
+								{t('done')}
 							</button>
 						</motion.div>
 					</motion.div>

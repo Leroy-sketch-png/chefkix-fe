@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useCookingStore } from '@/store/cookingStore'
@@ -16,7 +17,7 @@ import { useStepPhotos } from '@/hooks/useStepPhotos'
 import { useClapDetection } from '@/hooks/useClapDetection'
 import { useVoiceMode } from '@/lib/voice'
 import { isAudioEnabled } from '@/lib/audio'
-import { TRANSITION_SPRING, BUTTON_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_TAP, BUTTON_HOVER, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -66,12 +67,13 @@ const MiniTimer = ({
 
 	return (
 		<button
+			type='button'
 			onClick={onToggle}
 			role='timer'
 			aria-live='polite'
 			aria-label={`Timer: ${minutes} minutes ${secs} seconds, ${isRunning ? 'running' : 'paused'}`}
 			className={cn(
-				'flex items-center gap-2 rounded-xl px-3 py-2 font-mono text-lg font-bold transition-all',
+				'flex items-center gap-2 rounded-xl px-3 py-2 font-mono tabular-nums text-lg font-bold transition-all',
 				isRunning
 					? isUrgent
 						? 'animate-pulse bg-error/20 text-error'
@@ -109,6 +111,7 @@ const CompactStepDots = ({
 
 			return (
 				<button
+					type='button'
 					key={stepNum}
 					onClick={() => onStepClick(stepNum)}
 					className={cn(
@@ -132,6 +135,7 @@ const CompactStepDots = ({
 // ============================================
 
 export const CookingPanel = () => {
+	const t = useTranslations('cooking')
 	const { cookingMode, closeCookingPanel, expandCookingPanel } = useUiStore()
 	const {
 		session,
@@ -254,7 +258,7 @@ export const CookingPanel = () => {
 		try {
 			await completeStep(currentStepNumber)
 
-			// Show photo capture prompt — capture step number NOW before navigation changes it
+			// Show photo capture prompt â€” capture step number NOW before navigation changes it
 			setPhotoStepNumber(currentStepNumber)
 			setShowPhotoPrompt(true)
 			setTimeout(() => setShowPhotoPrompt(false), 4000)
@@ -272,7 +276,7 @@ export const CookingPanel = () => {
 					}, 100)
 				}
 			} else {
-				// Session complete in docked mode — persist photos then expand for rating
+				// Session complete in docked mode â€” persist photos then expand for rating
 				await stepPhotos.persistForPostCreation()
 			}
 		} finally {
@@ -346,16 +350,18 @@ export const CookingPanel = () => {
 				{/* Controls */}
 				<div className='absolute right-2 top-2 flex gap-1'>
 					<button
+						type='button'
 						onClick={() => setKitchenMode((k) => !k)}
 						className={cn(
 							'grid size-8 place-items-center rounded-lg transition-colors',
 							kitchenMode ? 'bg-white/40' : 'bg-white/20 hover:bg-white/30',
 						)}
-						title={kitchenMode ? 'Kitchen display: ON' : 'Kitchen display: OFF'}
+						title={kitchenMode ? t('cpKitchenOn') : t('cpKitchenOff')}
 					>
 						{kitchenMode ? <ZoomOut className='size-4' /> : <ZoomIn className='size-4' />}
 					</button>
 					<button
+						type='button'
 						onClick={cycleInstructionDetail}
 						className={cn(
 							'grid size-8 place-items-center rounded-lg transition-colors',
@@ -365,21 +371,24 @@ export const CookingPanel = () => {
 									? 'bg-warning/40'
 									: 'bg-white/20 hover:bg-white/30',
 						)}
-						title={`Instructions: ${instructionDetail}`}
+						title={t('cpInstructions', { detail: instructionDetail })}
 					>
 						<BookOpen className='size-4' />
 					</button>
 					<button
+						type='button'
 						onClick={expandCookingPanel}
 						className='grid size-8 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
-						title='Expand to fullscreen'
+						title={t('cpExpand')}
 					>
 						<Maximize2 className='size-4' />
 					</button>
 					<button
+						type='button'
 						onClick={closeCookingPanel}
 						className='grid size-8 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
-						title='Close cooking panel'
+						title={t('cpClose')}
+						aria-label={t('cpClose')}
 					>
 						<X className='size-4' />
 					</button>
@@ -394,10 +403,10 @@ export const CookingPanel = () => {
 						<h3 className='truncate text-sm font-bold'>{recipe.title}</h3>
 						<div className='flex items-center gap-2 text-xs opacity-80'>
 							<Clock className='size-3' />
-							<span>{recipe.totalTimeMinutes} min</span>
-							<span>•</span>
+							<span>{recipe.totalTimeMinutes} {t('cpMin')}</span>
+							<span>â€¢</span>
 							<Zap className='size-3' />
-							<span>+{recipe.xpReward} XP</span>
+							<span>{t('cpXp', { xp: recipe.xpReward })}</span>
 						</div>
 					</div>
 				</div>
@@ -416,7 +425,7 @@ export const CookingPanel = () => {
 				{/* Progress Bar */}
 				<div className='mt-3'>
 					<div className='mb-1 flex items-center justify-between text-xs'>
-						<span>Progress</span>
+						<span>{t('cpProgress')}</span>
 						<span>{Math.round(progress)}%</span>
 					</div>
 					<div className='h-1.5 overflow-hidden rounded-full bg-white/30'>
@@ -444,12 +453,12 @@ export const CookingPanel = () => {
 			{/* Current Step Content */}
 			<div className='flex-1 overflow-y-auto p-4'>
 				<div className='mb-3 flex items-center justify-between'>
-					<span className={cn('font-medium uppercase tracking-wide text-text-secondary', kitchenMode ? 'text-sm' : 'text-xs')}>
-						Step {currentStepNumber} of {totalSteps}
+					<span className={cn('tabular-nums font-medium uppercase tracking-wide text-text-secondary', kitchenMode ? 'text-sm' : 'text-xs')}>
+						{t('cpStep', { current: currentStepNumber, total: totalSteps })}
 					</span>
 					{completedSteps.has(currentStepNumber) && (
 						<span className={cn('flex items-center gap-1 font-medium text-success', kitchenMode ? 'text-sm' : 'text-xs')}>
-							<Check className='size-3' /> Done
+							<Check className='size-3' /> {t('cpDone')}
 						</span>
 					)}
 				</div>
@@ -477,6 +486,7 @@ export const CookingPanel = () => {
 							src={step.imageUrl}
 							alt={step.title || `Step ${currentStepNumber}`}
 							fill
+							sizes='(max-width: 768px) 100vw, 50vw'
 							className='object-cover'
 						/>
 					</div>
@@ -486,14 +496,14 @@ export const CookingPanel = () => {
 					{step?.description}
 				</p>
 
-				{/* Tips — Adaptive: hidden in condensed mode */}
+				{/* Tips â€” Adaptive: hidden in condensed mode */}
 				{step?.tips && instructionDetail !== 'condensed' && (
 					<div className={cn(
 						'mb-4 rounded-xl p-3',
 						instructionDetail === 'detailed' ? 'border border-bonus/30 bg-bonus/15' : 'bg-bonus/10',
 						kitchenMode ? 'text-base' : 'text-sm',
 					)}>
-						<span className='mr-2'>💡</span>
+						<span className='mr-2'>ðŸ’¡</span>
 						<span className='text-bonus'>{step.tips}</span>
 					</div>
 				)}
@@ -513,7 +523,7 @@ export const CookingPanel = () => {
 				{step?.ingredients && step.ingredients.length > 0 && (
 					<div className='rounded-xl border border-border-subtle bg-bg-card p-3'>
 						<h5 className='mb-2 flex items-center gap-2 text-sm font-semibold'>
-							<span>🧾</span> Ingredients
+							<span>ðŸ§¾</span> {t('cpIngredients')}
 						</h5>
 						<div className='flex flex-col gap-1.5'>
 							{step.ingredients.map((ing, idx) => {
@@ -541,7 +551,7 @@ export const CookingPanel = () => {
 					{liveAnnouncement}
 				</div>
 
-				{/* Step Photo Capture — hidden input + compact prompt (Wave 2: Kitchen Protocol) */}
+				{/* Step Photo Capture â€” hidden input + compact prompt (Wave 2: Kitchen Protocol) */}
 				<input
 					ref={stepPhotos.fileInputRef}
 					type='file'
@@ -565,7 +575,7 @@ export const CookingPanel = () => {
 							className='mx-auto mt-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm text-brand transition-colors hover:bg-brand/20'
 						>
 							<Camera className='size-4' />
-							<span>Snap!</span>
+							<span>{t('cpSnap')}</span>
 							{stepPhotos.totalCount > 0 && (
 								<span className='rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white'>
 									{stepPhotos.totalCount}
@@ -586,9 +596,10 @@ export const CookingPanel = () => {
 							className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white shadow-lg shadow-brand/30'
 						>
 							<Check className='size-5' />
-							Complete Cooking
+							{t('cpCompleteCooking')}
 						</motion.button>
 						<button
+							type='button'
 							onClick={handleExitRequest}
 							className='w-full py-2 text-sm text-text-secondary hover:text-error'
 						>
@@ -598,6 +609,7 @@ export const CookingPanel = () => {
 				) : (
 					<div className='flex gap-2'>
 						<button
+							type='button'
 							onClick={handlePrevStep}
 							disabled={currentStepNumber <= 1 || isNavigating}
 							className={cn(
@@ -611,7 +623,8 @@ export const CookingPanel = () => {
 						<motion.button
 							onClick={handleNextStep}
 							disabled={isNavigating}
-							whileTap={isNavigating ? undefined : BUTTON_TAP}
+						whileHover={isNavigating ? undefined : BUTTON_HOVER}
+						whileTap={isNavigating ? undefined : BUTTON_TAP}
 							className={cn(
 								'flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero font-bold text-white transition-opacity',
 								kitchenMode ? 'py-4 text-base' : 'py-3',
@@ -621,16 +634,16 @@ export const CookingPanel = () => {
 							{isNavigating ? (
 								<>
 									<Loader2 className='size-5 animate-spin' />
-									Processing...
+									{t('cpProcessing')}
 								</>
 							) : currentStepNumber === totalSteps ? (
 								<>
 									<Check className='size-5' />
-									Finish
+									{t('cpFinish')}
 								</>
 							) : (
 								<>
-									Next Step
+									{t('cpNextStep')}
 									<ChevronRight className='size-5' />
 								</>
 							)}
@@ -647,25 +660,26 @@ export const CookingPanel = () => {
 							<AlertTriangle className='size-6 text-error' />
 						</div>
 						<DialogTitle className='text-center'>
-							Exit Cooking Session?
+							{t('cpExitTitle')}
 						</DialogTitle>
 						<DialogDescription className='text-center'>
-							Your progress will not be saved and you won&apos;t earn XP for
-							this session.
+							{t('cpExitDesc')}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className='flex-col gap-2 sm:flex-col'>
 						<button
+							type='button'
 							onClick={handleExitConfirm}
 							className='w-full rounded-xl bg-error py-3 font-semibold text-white transition-colors hover:bg-error/90'
 						>
-							Exit Session
+							{t('cpExitSession')}
 						</button>
 						<button
+							type='button'
 							onClick={() => setShowExitConfirm(false)}
 							className='w-full rounded-xl border border-border-subtle bg-bg-elevated py-3 font-semibold text-text transition-colors hover:bg-bg-hover'
 						>
-							Continue Cooking
+							{t('cpContinueCooking')}
 						</button>
 					</DialogFooter>
 				</DialogContent>

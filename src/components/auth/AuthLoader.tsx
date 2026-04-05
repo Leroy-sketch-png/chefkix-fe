@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { LazyLottie } from '@/components/shared/LazyLottie'
+import { useTranslations } from 'next-intl'
 
 /**
  * Spinner fallback shown while Lottie is loading.
@@ -14,20 +15,20 @@ const SpinnerFallback = () => (
 	</div>
 )
 
-// Cooking-themed loading messages for variety and delight
-const LOADING_MESSAGES = [
-	'Prepping your kitchen...',
-	'Gathering ingredients...',
-	'Warming up the stove...',
-	'Setting the table...',
-	'Almost ready to cook...',
+// Cooking-themed loading message keys
+const LOADING_MESSAGE_KEYS = [
+	'loadingPrepping',
+	'loadingGathering',
+	'loadingWarming',
+	'loadingTable',
+	'loadingReady',
 ] as const
 
-// Type for loading messages
-type LoadingMessage = (typeof LOADING_MESSAGES)[number]
+// Type for loading message keys
+type LoadingMessageKey = (typeof LOADING_MESSAGE_KEYS)[number]
 
-// Default message used for SSR to ensure hydration match
-const DEFAULT_MESSAGE: LoadingMessage = LOADING_MESSAGES[0]
+// Default key used for SSR to ensure hydration match
+const DEFAULT_KEY: LoadingMessageKey = LOADING_MESSAGE_KEYS[0]
 
 /**
  * AuthLoader - A warm, on-brand loading screen for authentication states
@@ -48,13 +49,14 @@ const DEFAULT_MESSAGE: LoadingMessage = LOADING_MESSAGES[0]
  * React hydration mismatch errors. SSR always uses the default message.
  */
 export const AuthLoader = () => {
-	// Start with default message for SSR, randomize on client mount
-	const [message, setMessage] = useState<LoadingMessage>(DEFAULT_MESSAGE)
+	const t = useTranslations('auth')
+	// Start with default key for SSR, randomize on client mount
+	const [messageKey, setMessageKey] = useState<LoadingMessageKey>(DEFAULT_KEY)
 
 	useEffect(() => {
-		// Client-only: pick a random message after hydration
-		const randomIndex = Math.floor(Math.random() * LOADING_MESSAGES.length)
-		setMessage(LOADING_MESSAGES[randomIndex])
+		// Client-only: pick a random key after hydration
+		const randomIndex = Math.floor(Math.random() * LOADING_MESSAGE_KEYS.length)
+		setMessageKey(LOADING_MESSAGE_KEYS[randomIndex])
 	}, [])
 
 	return (
@@ -81,7 +83,7 @@ export const AuthLoader = () => {
 				</div>
 
 				{/* Cooking-themed message */}
-				<p className='text-sm font-medium text-text-secondary'>{message}</p>
+				<p className='text-sm font-medium text-text-secondary'>{t(messageKey)}</p>
 			</div>
 		</div>
 	)

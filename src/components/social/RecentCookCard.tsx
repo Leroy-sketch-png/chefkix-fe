@@ -1,6 +1,7 @@
 'use client'
 
 import { Post } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { ChefHat, Clock, ArrowRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -15,6 +16,7 @@ interface RecentCookCardProps {
 }
 
 export const RecentCookCard = ({ post }: RecentCookCardProps) => {
+	const t = useTranslations('social')
 	// Extract duration from content (format: "Name cooked Title 🍳 X min")
 	const durationMatch = post.content?.match(/(\d+)\s*min/)
 	const durationMinutes = durationMatch ? parseInt(durationMatch[1], 10) : null
@@ -35,7 +37,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 					>
 						<Image
 							src={coverImage}
-							alt={post.recipeTitle ?? 'Recipe'}
+							alt={post.recipeTitle ?? t('recipeFallback')}
 							fill
 							className='object-cover transition-transform duration-300 group-hover:scale-105'
 							sizes='64px'
@@ -84,7 +86,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 							href={`/recipes/${post.recipeId}`}
 							className='truncate text-sm font-semibold text-text hover:text-brand'
 						>
-							{post.recipeTitle ?? 'Unknown Recipe'}
+							{post.recipeTitle ?? t('unknownRecipe')}
 						</Link>
 						{durationMinutes != null && (
 							<span className='flex flex-shrink-0 items-center gap-1 rounded-full bg-bg-elevated px-2 py-0.5 text-xs text-text-secondary'>
@@ -95,7 +97,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 					</div>
 
 					{/* Activity label */}
-					<span className='text-xs text-text-muted'>🍳 Cooked this recipe</span>
+					<span className='text-xs text-text-muted'>🍳 {t('cookedThisRecipe')}</span>
 				</div>
 
 				{/* Arrow link to recipe */}

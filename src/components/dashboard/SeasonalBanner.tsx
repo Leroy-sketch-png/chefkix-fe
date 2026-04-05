@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, ChevronRight, Trophy, X } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -82,18 +82,20 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 		return () => { mounted = false }
 	}, [])
 
-	if (!challenge || dismissed) return null
+	const showBanner = !!challenge && !dismissed
 
-	const progressPercent = challenge.targetCount > 0
+	const progressPercent = challenge && challenge.targetCount > 0
 		? Math.min(100, Math.round((challenge.userProgress / challenge.targetCount) * 100))
 		: 0
 
 	const handleDismiss = () => {
-		dismissBanner(challenge.id)
+		if (challenge) dismissBanner(challenge.id)
 		setDismissed(true)
 	}
 
 	return (
+		<AnimatePresence>
+			{showBanner && challenge && (
 		<motion.div
 			initial={{ opacity: 0, y: 12 }}
 			animate={{ opacity: 1, y: 0 }}
@@ -106,6 +108,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 		>
 			{/* Dismiss button */}
 			<button
+				type='button'
 				onClick={handleDismiss}
 				className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 				aria-label='Dismiss seasonal banner'
@@ -143,10 +146,10 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 					{challenge.targetCount > 0 && (
 						<div className='mt-3'>
 							<div className='mb-1 flex items-center justify-between text-xs'>
-								<span className='text-text-secondary'>
+								<span className='tabular-nums text-text-secondary'>
 									{challenge.userProgress} / {challenge.targetCount} {challenge.targetUnit}
 								</span>
-								<span className='font-semibold text-brand'>
+								<span className='font-semibold tabular-nums text-brand'>
 									{progressPercent}%
 								</span>
 							</div>
@@ -190,5 +193,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 			{/* Subtle decorative glow */}
 			<div className='pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-brand/5 blur-2xl' />
 		</motion.div>
+			)}
+		</AnimatePresence>
 	)
 }

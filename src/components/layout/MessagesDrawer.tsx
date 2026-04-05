@@ -330,6 +330,7 @@ export const MessagesDrawer = () => {
 							<div className='flex flex-col gap-1'>
 								{filteredConversations.map(conv => (
 									<button
+										type='button'
 										key={conv.id}
 										onClick={() => setSelectedConversation(conv)}
 										className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-bg-hover'

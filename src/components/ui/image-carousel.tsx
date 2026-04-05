@@ -19,13 +19,13 @@ interface ImageCarouselProps {
 }
 
 /**
- * ImageCarousel — Multi-image viewer with arrows, dots, swipe, and keyboard nav.
+ * ImageCarousel â€” Multi-image viewer with arrows, dots, swipe, and keyboard nav.
  *
  * Features:
  * - Left/right arrows (hidden on single image)
  * - Dot indicators
  * - Swipe gesture support (mobile)
- * - Keyboard navigation (← →)
+ * - Keyboard navigation (â† â†’)
  * - Accessible: aria labels, focus management
  */
 export function ImageCarousel({
@@ -170,12 +170,13 @@ export function ImageCarousel({
 			{showControls && hasMultiple && (
 				<>
 					<button
+						type='button'
 						onClick={goToPrev}
 						className={cn(
 							'absolute left-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
 							'bg-bg-card border border-border-subtle text-text',
-							'opacity-0 transition-opacity duration-200 group-hover:opacity-100',
+							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
 							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
 						)}
 						aria-label='Previous image'
@@ -183,12 +184,13 @@ export function ImageCarousel({
 						<ChevronLeft className='size-5' />
 					</button>
 					<button
+						type='button'
 						onClick={goToNext}
 						className={cn(
 							'absolute right-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
 							'bg-bg-card border border-border-subtle text-text',
-							'opacity-0 transition-opacity duration-200 group-hover:opacity-100',
+							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
 							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
 						)}
 						aria-label='Next image'
@@ -210,6 +212,7 @@ export function ImageCarousel({
 				>
 					{images.map((_, index) => (
 						<button
+							type='button'
 							key={index}
 							onClick={() => goToIndex(index)}
 							className={cn(

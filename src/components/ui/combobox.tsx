@@ -11,6 +11,8 @@ import {
 	KeyboardEvent,
 } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 import { Portal } from '@/components/ui/portal'
 import { cn } from '@/lib/utils'
 import { Search, Loader2 } from 'lucide-react'
@@ -49,11 +51,11 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 			onChange,
 			onSelect,
 			options,
-			placeholder = 'Search...',
+			placeholder,
 			disabled = false,
 			className,
 			isLoading = false,
-			emptyMessage = 'No results found',
+			emptyMessage,
 			maxResults = 8,
 			onKeyDown,
 			icon,
@@ -61,8 +63,12 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 		},
 		ref,
 	) => {
+		const t = useTranslations('common')
+		const resolvedPlaceholder = placeholder ?? `${t('search')}...`
+		const resolvedEmptyMessage = emptyMessage ?? t('noResults')
 		const inputRef = useRef<HTMLInputElement>(null)
 		const containerRef = useRef<HTMLDivElement>(null)
+		const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 		const listboxId = useId()
 		const [isOpen, setIsOpen] = useState(false)
 		const [selectedIndex, setSelectedIndex] = useState(0)
@@ -110,6 +116,13 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 		useEffect(() => {
 			setSelectedIndex(0)
 		}, [value])
+
+		// Cleanup blur timeout on unmount
+		useEffect(() => {
+			return () => {
+				if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
+			}
+		}, [])
 
 		const selectOption = useCallback(
 			(option: ComboboxOption) => {
@@ -166,7 +179,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 
 		const handleBlur = () => {
 			// Delay to allow click on option
-			setTimeout(() => setIsOpen(false), 150)
+			blurTimeoutRef.current = setTimeout(() => setIsOpen(false), 150)
 		}
 
 		return (
@@ -186,7 +199,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 						onKeyDown={handleKeyDown}
 						onFocus={handleFocus}
 						onBlur={handleBlur}
-						placeholder={placeholder}
+						placeholder={resolvedPlaceholder}
 						disabled={disabled}
 						className={cn(
 							'w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand',
@@ -208,7 +221,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 								initial={{ opacity: 0, y: 4 }}
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 4 }}
-								transition={{ duration: 0.12 }}
+								transition={{ duration: DURATION_S.instant }}
 								className='fixed z-dropdown overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
 								style={{
 									top: `${dropdownPosition.top}px`,
@@ -219,11 +232,11 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 								{isLoading ? (
 									<div className='flex items-center justify-center gap-2 p-3 text-sm text-text-secondary'>
 										<Loader2 className='size-4 animate-spin' />
-										<span>Loading...</span>
+										<span>{t('loading')}</span>
 									</div>
 								) : filtered.length === 0 ? (
 									<div className='p-3 text-center text-sm text-text-muted'>
-										{emptyMessage}
+										{resolvedEmptyMessage}
 									</div>
 								) : (
 									<ul

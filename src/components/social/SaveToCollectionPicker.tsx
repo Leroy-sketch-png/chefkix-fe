@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { Collection, CreateCollectionRequest } from '@/lib/types/collection'
 import {
 	getMyCollections,
@@ -34,6 +35,7 @@ export const SaveToCollectionPicker = ({
 	onClose,
 	anchorPosition,
 }: SaveToCollectionPickerProps) => {
+	const t = useTranslations('social')
 	const [collections, setCollections] = useState<Collection[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [addingToId, setAddingToId] = useState<string | null>(null)
@@ -57,7 +59,7 @@ export const SaveToCollectionPicker = ({
 				}
 			} catch (error) {
 				logDevError('Failed to load collections:', error)
-				toast.error('Failed to load collections')
+				toast.error(t('failedLoadCollections'))
 			} finally {
 				setIsLoading(false)
 			}
@@ -80,14 +82,14 @@ export const SaveToCollectionPicker = ({
 			const response = await addPostToCollection(collectionId, postId)
 			if (response.success) {
 				const col = collections.find((c) => c.id === collectionId)
-				toast.success(`Added to "${col?.name ?? 'collection'}"`)
+				toast.success(t('addedToCollection', { name: col?.name ?? 'collection' }))
 				onClose()
 			} else {
-				toast.error(response.message || 'Failed to add to collection')
+				toast.error(response.message || t('failedAddToCollection'))
 			}
 		} catch (error) {
 			logDevError('Failed to add post to collection:', error)
-			toast.error('Failed to add to collection')
+			toast.error(t('failedAddToCollection'))
 		} finally {
 			setAddingToId(null)
 		}
@@ -111,20 +113,20 @@ export const SaveToCollectionPicker = ({
 					postId,
 				)
 				if (addResponse.success) {
-					toast.success(`Created "${trimmed}" and added post`)
+					toast.success(t('createdCollection', { name: trimmed }))
 					onClose()
 				} else {
 					// Collection was created but add failed — still close
-					toast.success(`Created "${trimmed}"`)
-					toast.error('Could not add post — try from the collection page')
+					toast.success(t('createdCollectionOnly', { name: trimmed }))
+					toast.error(t('couldNotAddPost'))
 					onClose()
 				}
 			} else {
-				toast.error(createResponse.message || 'Failed to create collection')
+				toast.error(createResponse.message || t('failedCreateCollection'))
 			}
 		} catch (error) {
 			logDevError('Failed to create collection:', error)
-			toast.error('Failed to create collection')
+			toast.error(t('failedCreateCollection'))
 		} finally {
 			setIsCreating(false)
 			setNewName('')
@@ -158,11 +160,12 @@ export const SaveToCollectionPicker = ({
 					{/* Header */}
 					<div className='flex items-center justify-between border-b border-border-subtle px-3 py-2'>
 						<span className='text-sm font-semibold text-text'>
-							Save to Collection
+							{t('saveToCollection')}
 						</span>
 						<button
 							type='button'
 							onClick={onClose}
+							aria-label={t('close')}
 							className='rounded p-0.5 text-text-muted hover:bg-bg-hover hover:text-text'
 						>
 							<X className='size-4' />
@@ -177,7 +180,7 @@ export const SaveToCollectionPicker = ({
 							</div>
 						) : collections.length === 0 && !showCreate ? (
 							<div className='px-3 py-4 text-center text-sm text-text-muted'>
-								No collections yet
+								{t('noCollectionsYet')}
 							</div>
 						) : (
 							collections.map((col) => {
@@ -228,7 +231,7 @@ export const SaveToCollectionPicker = ({
 											setNewName('')
 										}
 									}}
-									placeholder='Collection name...'
+									placeholder={t('collectionNamePlaceholder')}
 									maxLength={60}
 									className='flex-1 rounded border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 								/>
@@ -252,7 +255,7 @@ export const SaveToCollectionPicker = ({
 								className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-brand transition-colors hover:bg-bg-hover'
 							>
 								<Plus className='size-4' />
-								<span>New Collection</span>
+								<span>{t('newCollection')}</span>
 							</button>
 						)}
 					</div>

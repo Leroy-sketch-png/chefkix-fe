@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { Group } from '@/lib/types/group'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -46,6 +48,7 @@ export const GroupCard = ({
 	isJoinable = true,
 }: GroupCardProps) => {
 	const [isJoining, setIsJoining] = useState(false)
+	const t = useTranslations('groups')
 	const [hasJoined, setHasJoined] = useState(group.isJoined ?? false)
 	const [requestPending, setRequestPending] = useState(
 		group.hasPendingRequest ?? false,
@@ -61,13 +64,13 @@ export const GroupCard = ({
 
 			if (response.status === 'PENDING') {
 				setRequestPending(true)
-				toast.info('Your request to join has been sent to group admins')
+				toast.info(t('gcJoinRequestSent'))
 			} else {
-				toast.success('Successfully joined group!')
+				toast.success(t('gcJoinedSuccess'))
 				onJoinSuccess?.(group)
 			}
 		} catch (error) {
-			toast.error('Failed to join group')
+			toast.error(t('gcJoinFailed'))
 		} finally {
 			setIsJoining(false)
 		}
@@ -77,7 +80,7 @@ export const GroupCard = ({
 		return (
 			<motion.div
 				className='bg-bg-card rounded-lg p-4 border border-border-subtle hover:border-brand transition-colors'
-				whileHover={{ scale: 1.02 }}
+				whileHover={CARD_HOVER}
 				transition={TRANSITION_SPRING}
 			>
 				<Link href={PATHS.GROUPS.DETAIL(group.id)}>
@@ -99,8 +102,8 @@ export const GroupCard = ({
 							<h3 className='font-semibold text-sm text-text truncate'>
 								{group.name}
 							</h3>
-							<p className='text-xs text-text-secondary'>
-								{group.memberCount} members
+							<p className='text-xs tabular-nums text-text-secondary'>
+								{t('gcMembers', { count: group.memberCount })}
 							</p>
 						</div>
 						<ChevronRight className='size-4 text-text-muted flex-shrink-0' />
@@ -114,7 +117,7 @@ export const GroupCard = ({
 		return (
 			<motion.div
 				className='bg-bg-card rounded-lg p-3 border border-border-subtle flex items-center gap-3'
-				whileHover={{ scale: 1.02 }}
+				whileHover={CARD_HOVER}
 				transition={TRANSITION_SPRING}
 			>
 				{group.coverImageUrl ? (
@@ -139,8 +142,8 @@ export const GroupCard = ({
 						) : (
 							<Globe className='size-3 text-text-muted' />
 						)}
-						<span className='text-xs text-text-secondary'>
-							{group.memberCount} members
+						<span className='text-xs tabular-nums text-text-secondary'>
+							{t('gcMembers', { count: group.memberCount })}
 						</span>
 					</div>
 				</div>
@@ -148,14 +151,14 @@ export const GroupCard = ({
 				{hasJoined && (
 					<div className='text-xs font-medium text-brand flex items-center gap-1'>
 						<Check className='size-3' />
-						Joined
+						{t('gcJoined')}
 					</div>
 				)}
 
 				{requestPending && (
 					<div className='text-xs font-medium text-warning flex items-center gap-1'>
 						<Clock className='size-3' />
-						Pending
+						{t('gcPending')}
 					</div>
 				)}
 
@@ -167,7 +170,7 @@ export const GroupCard = ({
 						disabled={isJoining}
 						className='flex-shrink-0'
 					>
-						{isJoining ? <Loader2 className='size-3 animate-spin' /> : 'Join'}
+						{isJoining ? <Loader2 className='size-3 animate-spin' /> : t('gcJoin')}
 					</Button>
 				)}
 			</motion.div>
@@ -178,7 +181,7 @@ export const GroupCard = ({
 	return (
 		<motion.div
 			className='bg-bg-card rounded-xl border border-border-subtle overflow-hidden hover:border-brand transition-colors h-full flex flex-col pb-8'
-			whileHover={{ scale: 1.02 }}
+			whileHover={CARD_HOVER}
 			transition={TRANSITION_SPRING}
 		>
 			{/* Cover Image */}
@@ -188,6 +191,7 @@ export const GroupCard = ({
 						src={group.coverImageUrl}
 						alt={group.name}
 						fill
+						sizes='(max-width: 768px) 100vw, 50vw'
 						className='object-cover'
 					/>
 				) : (
@@ -203,14 +207,14 @@ export const GroupCard = ({
 							<>
 								<Lock className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
-									Private
+								{t('gcPrivate')}
 								</span>
 							</>
 						) : (
 							<>
 								<Globe className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
-									Public
+								{t('gcPublic')}
 								</span>
 							</>
 						)}
@@ -230,7 +234,7 @@ export const GroupCard = ({
 				</Link>
 
 				<p className='text-sm text-text-secondary mt-2 line-clamp-2 flex-1'>
-					{group.description || 'No description provided'}
+					{group.description || t('gcNoDescription')}
 				</p>
 
 				{/* Tags */}
@@ -253,9 +257,9 @@ export const GroupCard = ({
 				)}
 
 				{/* Member Count */}
-				<div className='flex items-center gap-2 mt-3 text-sm text-text-secondary'>
+				<div className='flex items-center gap-2 mt-3 text-sm tabular-nums text-text-secondary'>
 					<Users className='size-4' />
-					<span>{group.memberCount} members</span>
+					<span>{t('gcMembers', { count: group.memberCount })}</span>
 				</div>
 			</div>
 
@@ -264,13 +268,13 @@ export const GroupCard = ({
 				{hasJoined ? (
 					<Link href={PATHS.GROUPS.DETAIL(group.id)} className='block'>
 						<Button className='w-full bg-brand hover:bg-brand/90 text-white'>
-							View Group
+							{t('gcViewGroup')}
 						</Button>
 					</Link>
 				) : requestPending ? (
 					<div className='text-center py-2'>
 						<p className='text-xs text-warning font-medium'>
-							Request pending approval
+							{t('gcRequestPending')}
 						</p>
 					</div>
 				) : isJoinable && currentUserId ? (
@@ -282,16 +286,16 @@ export const GroupCard = ({
 						{isJoining ? (
 							<>
 								<Loader2 className='size-4 mr-2 animate-spin' />
-								Joining...
+								{t('gcJoining')}
 							</>
 						) : (
-							'Join Group'
+							t('gcJoinGroup')
 						)}
 					</Button>
 				) : (
 					<Link href={PATHS.AUTH.SIGN_IN} className='block'>
 						<Button variant='outline' className='w-full'>
-							Sign in to Join
+							{t('gcSignInToJoin')}
 						</Button>
 					</Link>
 				)}

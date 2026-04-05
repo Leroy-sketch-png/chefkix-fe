@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { getProfileByUserId } from '@/services/profile'
 import { toggleFollow } from '@/services/social'
@@ -40,6 +41,7 @@ export const UserHoverCard = ({
 }: UserHoverCardProps) => {
 	const router = useRouter()
 	const requireAuth = useAuthGate()
+	const t = useTranslations('social')
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [hasError, setHasError] = useState(false)
@@ -62,7 +64,7 @@ export const UserHoverCard = ({
 	}
 
 	const handleFollowToggle = useCallback(async () => {
-		if (!requireAuth('follow this chef')) return
+		if (!requireAuth(t('hoverCardFollowGate'))) return
 		if (followLockRef.current || !profile) return
 		followLockRef.current = true
 		setIsFollowLoading(true)
@@ -80,7 +82,7 @@ export const UserHoverCard = ({
 	}, [userId, profile, requireAuth])
 
 	const handleSendMessage = useCallback(() => {
-		if (!requireAuth('message this chef')) return
+		if (!requireAuth(t('hoverCardMessageGate'))) return
 		router.push(`/messages?userId=${userId}`)
 	}, [router, userId, requireAuth])
 
@@ -97,7 +99,7 @@ export const UserHoverCard = ({
 					</div>
 				) : hasError ? (
 					<div className='p-6 text-center text-sm text-text-secondary'>
-						Failed to load profile
+						{t('hoverCardLoadError')}
 					</div>
 				) : profile ? (
 					<div className='p-6 space-y-4'>
@@ -129,7 +131,7 @@ export const UserHoverCard = ({
 										size='sm'
 										variant='outline'
 										className='size-8 p-0'
-										aria-label='Send message'
+										aria-label={t('hoverCardSendMessage')}
 										onClick={handleSendMessage}
 									>
 										<MessageCircle className='size-4' />
@@ -146,12 +148,12 @@ export const UserHoverCard = ({
 										) : profile.isFollowing ? (
 											<>
 												<UserCheck className='size-4 mr-1' />
-												Following
+												{t('hoverCardFollowing')}
 											</>
 										) : (
 											<>
 												<UserPlus className='size-4 mr-1' />
-												Follow
+												{t('hoverCardFollow')}
 											</>
 										)}
 									</Button>
@@ -185,19 +187,19 @@ export const UserHoverCard = ({
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.followerCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>Followers</span>
+								<span className='ml-1 text-text-secondary'>{t('hoverCardFollowers')}</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.followingCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>Following</span>
+								<span className='ml-1 text-text-secondary'>{t('hoverCardFollowingLabel')}</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.recipeCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>Recipes</span>
+								<span className='ml-1 text-text-secondary'>{t('hoverCardRecipes')}</span>
 							</div>
 						</div>
 					</div>

@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { motion } from 'framer-motion'
 import { Clock, Users, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -11,6 +13,7 @@ import {
 	STAT_ITEM_HOVER,
 	LIST_ITEM_TAP,
 } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================
 // TYPES
@@ -61,27 +64,31 @@ const formatTimeRemaining = (date: Date): string => {
 
 const typeConfig: Record<
 	ChallengeType,
-	{ gradient: string; label: string; labelColor: string }
+	{ gradient: string; label: string; labelColor: string; labelKey: string }
 > = {
 	daily: {
 		gradient: 'from-xp via-accent-teal to-info',
-		label: 'ðŸŽ¯ Daily Challenge',
+		label: '\uD83C\uDFAF Daily Challenge',
 		labelColor: 'text-xp',
+		labelKey: 'dailyChallenge',
 	},
 	weekly: {
 		gradient: 'from-rare via-accent-purple to-brand',
-		label: 'ðŸ“… Weekly Challenge',
+		label: '\uD83D\uDCC5 Weekly Challenge',
 		labelColor: 'text-rare',
+		labelKey: 'weeklyChallenge',
 	},
 	community: {
 		gradient: 'from-combo via-brand to-brand',
-		label: 'ðŸ‘¥ Community Challenge',
+		label: '\uD83D\uDC65 Community Challenge',
 		labelColor: 'text-combo',
+		labelKey: 'communityChallenge',
 	},
 	seasonal: {
 		gradient: 'from-legendary via-warning to-bonus',
-		label: 'ðŸŒŸ Seasonal Event',
+		label: '\uD83C\uDF1F Seasonal Event',
 		labelColor: 'text-legendary',
+		labelKey: 'seasonalEvent',
 	},
 }
 
@@ -109,6 +116,7 @@ export const ChallengeCard = ({
 		: 0
 	const isCompleted = status === 'completed'
 	const isExpired = status === 'expired'
+	const t = useTranslations('challenge')
 
 	return (
 		<motion.div
@@ -137,7 +145,7 @@ export const ChallengeCard = ({
 							config.labelColor,
 						)}
 					>
-						{config.label}
+						{t(config.labelKey as Parameters<typeof t>[0])}
 					</span>
 					<span className='text-3xl'>{icon}</span>
 				</div>
@@ -156,9 +164,9 @@ export const ChallengeCard = ({
 				{progress && (
 					<div className='mb-4'>
 						<div className='mb-1.5 flex justify-between text-xs'>
-							<span className='opacity-80'>Progress</span>
-							<span className='font-semibold'>
-								{progress.current}/{progress.total}
+							<span className='opacity-80'>{t('progress')}</span>
+						<span className='font-semibold tabular-nums'>
+							<AnimatedNumber value={progress.current} />/{progress.total}
 							</span>
 						</div>
 						<div className='h-2.5 overflow-hidden rounded-full bg-white/20'>
@@ -177,7 +185,7 @@ export const ChallengeCard = ({
 					{/* Bonus XP */}
 					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-card shadow-bonus/20'>
 						<span>âš¡</span>
-						<span className='font-bold text-bonus'>+{bonusXp} XP</span>
+						<span className='font-bold text-bonus'>+<AnimatedNumber value={bonusXp} /> XP</span>
 					</div>
 
 					{/* Time Remaining */}
@@ -226,7 +234,7 @@ export const ChallengeCard = ({
 								: 'bg-bg-card text-info hover:bg-bg-card/90',
 						)}
 					>
-						{isJoined ? 'View Challenge' : 'Join Challenge'}
+						{isJoined ? t('viewChallenge') : t('joinChallenge')}
 					</motion.button>
 				)}
 			</div>

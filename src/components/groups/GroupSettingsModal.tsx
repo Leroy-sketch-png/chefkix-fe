@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 import { Group } from '@/lib/types/group'
 import { Button } from '@/components/ui/button'
@@ -46,6 +48,7 @@ export function GroupSettingsModal({
 }: GroupSettingsModalProps) {
 	// Form state
 	const [name, setName] = useState(group.name)
+	const t = useTranslations('groups')
 	const [description, setDescription] = useState(group.description || '')
 	const [privacy, setPrivacy] = useState<'PUBLIC' | 'PRIVATE'>(
 		group.privacyType as 'PUBLIC' | 'PRIVATE',
@@ -57,7 +60,7 @@ export function GroupSettingsModal({
 	// Handle save changes
 	const handleSaveChanges = async () => {
 		if (!name.trim()) {
-			toast.error('Group name cannot be empty')
+			toast.error(t('gsNameEmpty'))
 			return
 		}
 
@@ -74,11 +77,11 @@ export function GroupSettingsModal({
 				await changeGroupPrivacy(group.id, privacy)
 			}
 
-			toast.success('Group updated successfully!')
+			toast.success(t('gsUpdated'))
 			onSettingsUpdated?.(updatedGroup)
 			onOpenChange(false)
 		} catch (error) {
-			toast.error('Failed to update group')
+			toast.error(t('gsUpdateFailed'))
 		} finally {
 			setIsLoading(false)
 		}
@@ -88,20 +91,20 @@ export function GroupSettingsModal({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className='max-w-md'>
 				<DialogHeader>
-					<DialogTitle>Group Settings</DialogTitle>
-					<DialogDescription>Update your group information</DialogDescription>
+					<DialogTitle>{t('gsTitle')}</DialogTitle>
+					<DialogDescription>{t('gsDescription')}</DialogDescription>
 				</DialogHeader>
 
 				<div className='space-y-4'>
 					{/* Group Name */}
 					<div>
 						<label className='block text-sm font-medium text-text mb-2'>
-							Group Name
+							{t('gsNameLabel')}
 						</label>
 						<Input
 							value={name}
 							onChange={e => setName(e.target.value)}
-							placeholder='Enter group name'
+							placeholder={t('gsNamePlaceholder')}
 							className='bg-bg border-border-subtle'
 							maxLength={50}
 						/>
@@ -110,18 +113,18 @@ export function GroupSettingsModal({
 					{/* Description */}
 					<div>
 						<label className='block text-sm font-medium text-text mb-2'>
-							Description
+							{t('gsDescLabel')}
 						</label>
 						<Textarea
 							value={description}
 							onChange={e => setDescription(e.target.value)}
-							placeholder='Enter group description (optional)'
+							placeholder={t('gsDescPlaceholder')}
 							className='bg-bg border-border-subtle resize-none'
 							rows={4}
 							maxLength={500}
 						/>
 						{description.length > 0 && (
-							<p className='mt-1 text-right text-xs text-text-muted'>
+						<p className={`mt-1 text-right text-xs ${description.length > 400 ? (description.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
 								{description.length}/500
 							</p>
 						)}
@@ -130,7 +133,7 @@ export function GroupSettingsModal({
 					{/* Privacy */}
 					<div>
 						<label className='block text-sm font-medium text-text mb-2'>
-							Privacy
+							{t('gsPrivacyLabel')}
 						</label>
 						<Select
 							value={privacy}
@@ -141,9 +144,9 @@ export function GroupSettingsModal({
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value='PUBLIC'>
-									Public - Anyone can find and join
+									{t('gsPublicOption')}
 								</SelectItem>
-								<SelectItem value='PRIVATE'>Private - Members only</SelectItem>
+								<SelectItem value='PRIVATE'>{t('gsPrivateOption')}</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -157,10 +160,10 @@ export function GroupSettingsModal({
 						{isLoading ? (
 							<>
 								<Loader2 className='size-4 mr-2 animate-spin' />
-								Saving...
+								{t('gsSaving')}
 							</>
 						) : (
-							'Save Changes'
+							t('gsSaveChanges')
 						)}
 					</Button>
 				</div>

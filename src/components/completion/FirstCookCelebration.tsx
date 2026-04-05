@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, Share2, ChefHat, Lock } from 'lucide-react'
 import Image from 'next/image'
@@ -51,56 +52,57 @@ const buildUnlocks = (
 	immediateXp: number,
 	pendingXp: number,
 	postDeadlineDays: number,
+	t: (key: string, values?: Record<string, unknown>) => string,
 ): UnlockItem[] => [
 	{
 		id: 'badge',
 		emoji: 'ðŸŽ–ï¸',
-		name: 'First Dish Badge',
-		description: 'Your first of many!',
+		name: t('firstDishBadge'),
+		description: t('yourFirstOfMany'),
 		glowColor: 'rgba(255, 215, 0, 0.3)',
 	},
 	{
 		id: 'xp',
 		emoji: 'âš¡',
-		name: `+${Math.round(immediateXp)} XP`,
-		description: 'Earned immediately for finishing the cook',
+		name: t('plusXp', { amount: Math.round(immediateXp) }),
+		description: t('earnedImmediately'),
 		glowColor: 'rgba(0, 212, 255, 0.3)',
 	},
 	{
 		id: 'share-bonus',
 		emoji: 'ðŸ“¸',
-		name: `+${Math.round(pendingXp)} XP waiting`,
-		description: `Post your dish within ${postDeadlineDays} days to claim it`,
+		name: t('xpWaiting', { amount: Math.round(pendingXp) }),
+		description: t('postToClaimDays', { days: postDeadlineDays }),
 		glowColor: 'rgba(52, 211, 153, 0.3)',
 	},
 	{
 		id: 'challenges',
 		emoji: 'ðŸŽ¯',
-		name: 'Daily Challenges',
-		description: 'Bonus XP rotates in every day',
+		name: t('dailyChallenges'),
+		description: t('bonusXpRotates'),
 		glowColor: 'rgba(168, 85, 247, 0.3)',
 	},
 ]
 
-const buildJourney = (pendingXp: number): JourneyNode[] => [
-	{ id: '1', label: 'First Dish', status: 'done', statusText: 'Completed' },
+const buildJourney = (pendingXp: number, t: (key: string, values?: Record<string, unknown>) => string): JourneyNode[] => [
+	{ id: '1', label: t('firstDish'), status: 'done', statusText: t('completedLabel') },
 	{
 		id: '2',
-		label: 'Share Your Dish',
+		label: t('shareYourDishNode'),
 		status: 'upcoming',
-		statusText: `+${Math.round(pendingXp)} XP`,
+		statusText: t('plusXp', { amount: Math.round(pendingXp) }),
 	},
 	{
 		id: '3',
-		label: 'Keep Cooking',
+		label: t('keepCooking'),
 		status: 'locked',
-		statusText: 'Build your streak',
+		statusText: t('buildYourStreak'),
 	},
 	{
 		id: '4',
-		label: 'More Badges',
+		label: t('moreBadges'),
 		status: 'locked',
-		statusText: 'Cook and post more',
+		statusText: t('cookAndPostMore'),
 	},
 ]
 
@@ -247,8 +249,9 @@ export const FirstCookCelebration = ({
 	onShareAchievement,
 	onContinueCooking,
 }: FirstCookCelebrationProps) => {
-	const unlocks = buildUnlocks(immediateXp, pendingXp, postDeadlineDays)
-	const journey = buildJourney(pendingXp)
+	const t = useTranslations('completion')
+	const unlocks = buildUnlocks(immediateXp, pendingXp, postDeadlineDays, t)
+	const journey = buildJourney(pendingXp, t)
 
 	return (
 		<AnimatePresence>
@@ -305,10 +308,10 @@ export const FirstCookCelebration = ({
 							{/* Title */}
 							<div className='mb-7 text-center'>
 								<h1 className='mb-2 bg-gradient-gold bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
-									You&apos;re a Chef Now!
+									{t('youreAChefNow')}
 								</h1>
 								<p className='text-text-muted'>
-									Your first dish is complete. The journey begins.
+									{t('firstDishComplete')}
 								</p>
 							</div>
 
@@ -326,7 +329,7 @@ export const FirstCookCelebration = ({
 								</div>
 								<div>
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
-										Your First Creation
+										{t('yourFirstCreation')}
 									</span>
 									<span className='block text-lg font-bold'>{recipeName}</span>
 								</div>
@@ -335,7 +338,7 @@ export const FirstCookCelebration = ({
 							{/* Unlocked section */}
 							<div className='mb-6'>
 								<h3 className='mb-4 text-xs font-bold uppercase tracking-wide text-text-muted'>
-									You just unlocked:
+									{t('youJustUnlocked')}
 								</h3>
 								<div className='grid grid-cols-2 gap-3 max-md:grid-cols-1'>
 									{unlocks.map((item, i) => (
@@ -351,21 +354,21 @@ export const FirstCookCelebration = ({
 								</div>
 								<div className='flex-1'>
 									<span className='block text-sm font-bold text-xp'>
-										+{Math.round(pendingXp)} XP waiting
+										{t('xpWaiting', { amount: Math.round(pendingXp) })}
 									</span>
 									<span className='block text-xs text-text-muted'>
-										Post a photo of your dish to unlock
+										{t('postPhotoToUnlock')}
 									</span>
 								</div>
 								<span className='whitespace-nowrap text-xs text-text-muted'>
-									{postDeadlineDays} days to post
+									{t('daysToPost', { days: postDeadlineDays })}
 								</span>
 							</div>
 
 							{/* Journey preview */}
 							<div className='mb-7'>
 								<h3 className='mb-4 text-xs font-bold uppercase tracking-wide text-text-muted'>
-									Your Chef Journey:
+									{t('yourChefJourney')}
 								</h3>
 								<div className='-mx-6 flex items-start gap-0 overflow-x-auto px-6 py-2 max-md:-mx-6'>
 									{journey.map((node, i) => (
@@ -390,34 +393,35 @@ export const FirstCookCelebration = ({
 									<Camera className='size-7' />
 									<div className='flex flex-col items-start gap-0.5'>
 										<span className='text-lg font-bold'>
-											Share Your Creation
+											{t('shareYourCreation')}
 										</span>
 										<span className='text-xs opacity-85'>
-											Unlock +{Math.round(pendingXp)} XP
+											{t('unlockXp', { amount: Math.round(pendingXp) })}
 										</span>
 									</div>
 								</motion.button>{' '}
 								<div className='flex gap-2.5'>
 									<button
+										type='button'
 										onClick={onShareAchievement}
 										className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-bg-hover'
 									>
 										<Share2 className='size-4' />
-										Share Achievement
+										{t('shareAchievement')}
 									</button>
 									<button
+										type='button'
 										onClick={onContinueCooking}
 										className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-bg-hover'
 									>
-										Continue Cooking
+										{t('continueCooking')}
 									</button>
 								</div>
 							</div>
 
 							{/* Motivational footer */}
 							<div className='rounded-xl bg-warning/10 p-3.5 text-center text-sm'>
-								ðŸ³ <strong>Tip:</strong> Complete a challenge today for bonus
-								XP!
+								{t('firstCookTip')}
 							</div>
 						</motion.div>
 					</motion.div>

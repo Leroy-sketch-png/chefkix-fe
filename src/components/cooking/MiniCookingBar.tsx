@@ -7,6 +7,7 @@ import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { ChevronUp, Pause, Play, X, Timer, ChefHat } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import {
 	Dialog,
 	DialogContent,
@@ -25,6 +26,7 @@ import { toast } from 'sonner'
 // ============================================
 
 export const MiniCookingBar = () => {
+	const t = useTranslations('cooking')
 	const { cookingMode, setCookingMode, closeCookingPanel } = useUiStore()
 	const {
 		session,
@@ -35,6 +37,7 @@ export const MiniCookingBar = () => {
 		abandonCooking,
 	} = useCookingStore()
 	const [showExitConfirm, setShowExitConfirm] = useState(false)
+	const [isAbandoning, setIsAbandoning] = useState(false)
 
 	// Show on non-xl screens when cooking (mini or docked mode)
 	// On xl+ screens, docked mode uses CookingPanel instead
@@ -76,7 +79,7 @@ export const MiniCookingBar = () => {
 				await pauseCooking()
 			}
 		} catch {
-			toast.error('Failed to update cooking session. Please try again.')
+			toast.error(t('failedUpdate'))
 		}
 	}
 
@@ -96,6 +99,7 @@ export const MiniCookingBar = () => {
 							<div className='flex items-center gap-3 px-4 py-3'>
 								{/* Recipe Info */}
 								<button
+									type='button'
 									onClick={handleExpand}
 									className='flex min-w-0 flex-1 items-center gap-3'
 								>
@@ -124,8 +128,10 @@ export const MiniCookingBar = () => {
 								<div className='flex items-center gap-2'>
 									{/* Play/Pause */}
 									<button
+										type='button'
 										onClick={handlePlayPause}
-										title={isPaused ? 'Resume cooking' : 'Pause cooking'}
+										title={isPaused ? t('resumeCooking') : t('pauseSession')}
+										aria-label={isPaused ? t('resumeCooking') : t('pauseSession')}
 										className={cn(
 											'grid size-10 place-items-center rounded-full transition-all',
 											isPaused
@@ -142,8 +148,10 @@ export const MiniCookingBar = () => {
 
 									{/* Expand */}
 									<button
+										type='button'
 										onClick={handleExpand}
-										title='Expand to full screen'
+										title={t('expandFull')}
+										aria-label={t('expandFull')}
 										className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-bg-hover'
 									>
 										<ChevronUp className='size-5' />
@@ -151,8 +159,10 @@ export const MiniCookingBar = () => {
 
 									{/* Close - Shows confirmation dialog */}
 									<button
+										type='button'
 										onClick={() => setShowExitConfirm(true)}
-										title='End cooking session'
+										title={t('endSession')}
+										aria-label={t('endSession')}
 										className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-all hover:bg-error/20 hover:text-error'
 									>
 										<X className='size-5' />
@@ -183,10 +193,9 @@ export const MiniCookingBar = () => {
 			<Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
 				<DialogContent className='sm:max-w-md'>
 					<DialogHeader>
-						<DialogTitle>Leave cooking session?</DialogTitle>
+						<DialogTitle>{t('leaveSession')}</DialogTitle>
 						<DialogDescription>
-							You have an active cooking session for &quot;{recipe?.title}
-							&quot;. What would you like to do?
+						{t('leaveDescription', { title: recipe?.title || '' })}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className='flex flex-col gap-2 sm:flex-row'>
@@ -198,18 +207,24 @@ export const MiniCookingBar = () => {
 							}}
 							className='w-full sm:w-auto'
 						>
-							Minimize (Keep Session)
+							{t('minimize')}
 						</Button>
 						<Button
 							variant='destructive'
+							disabled={isAbandoning}
 							onClick={async () => {
-								await abandonCooking()
-								closeCookingPanel()
-								setShowExitConfirm(false)
+								setIsAbandoning(true)
+								try {
+									await abandonCooking()
+									closeCookingPanel()
+									setShowExitConfirm(false)
+								} catch {
+									setIsAbandoning(false)
+								}
 							}}
 							className='w-full sm:w-auto'
 						>
-							Abandon Session
+							{t('abandonSession')}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

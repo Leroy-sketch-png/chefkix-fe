@@ -1,6 +1,7 @@
 'use client'
 
 import { memo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	CheckCircle2,
@@ -14,7 +15,7 @@ import {
 	Target,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, TRANSITION_SMOOTH } from '@/lib/motion'
+import { TRANSITION_SPRING, TRANSITION_SMOOTH, ICON_BUTTON_HOVER, ICON_BUTTON_TAP, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
 import { Button } from '@/components/ui/button'
 import type { Step } from '@/lib/types/recipe'
 
@@ -179,6 +180,32 @@ const LEVEL_CONFIG: Record<
 	},
 }
 
+const QUALITY_CHECK_LABEL_KEYS: Record<string, string> = {
+	title: 'sqiStepTitle',
+	description: 'sqiInstructions',
+	timerSeconds: 'sqiTimer',
+	visualCues: 'sqiVisualCues',
+	chefTip: 'sqiChefTip',
+	commonMistake: 'sqiCommonMistake',
+	goal: 'sqiStepGoal',
+}
+
+const QUALITY_CHECK_SUGGESTION_KEYS: Record<string, string> = {
+	title: 'sqiAddTitle',
+	description: 'sqiAddInstructions',
+	timerSeconds: 'sqiAddTimer',
+	visualCues: 'sqiAddVisualCues',
+	chefTip: 'sqiAddChefTip',
+	commonMistake: 'sqiAddCommonMistake',
+	goal: 'sqiAddStepGoal',
+}
+
+const LEVEL_LABEL_KEYS: Record<QualityLevel, string> = {
+	complete: 'sqiComplete',
+	partial: 'sqiNeedsPolish',
+	incomplete: 'sqiIncomplete',
+}
+
 const StepQualityIndicatorComponent = ({
 	step,
 	stepIndex,
@@ -186,6 +213,7 @@ const StepQualityIndicatorComponent = ({
 	className,
 	compact = false,
 }: StepQualityIndicatorProps) => {
+	const t = useTranslations('recipe')
 	const [isExpanded, setIsExpanded] = useState(false)
 	const { level, score, failed } = calculateQuality(step)
 	const config = LEVEL_CONFIG[level]
@@ -199,8 +227,8 @@ const StepQualityIndicatorComponent = ({
 		return (
 			<motion.button
 				onClick={() => setIsExpanded(!isExpanded)}
-				whileHover={{ scale: 1.2 }}
-				whileTap={{ scale: 0.9 }}
+				whileHover={ICON_BUTTON_HOVER}
+				whileTap={ICON_BUTTON_TAP}
 				className={cn(
 					'relative size-3 rounded-full transition-colors',
 				level === 'complete' && 'bg-success',
@@ -208,7 +236,7 @@ const StepQualityIndicatorComponent = ({
 				level === 'incomplete' && 'bg-error',
 					className,
 				)}
-				aria-label={`Step quality: ${config.label} (${score}%)`}
+				aria-label={t('sqiStepQuality', { label: t(LEVEL_LABEL_KEYS[level]), score })}
 			>
 				{level !== 'complete' && (
 					<motion.span
@@ -232,8 +260,8 @@ const StepQualityIndicatorComponent = ({
 			{/* Main indicator button */}
 			<motion.button
 				onClick={() => setIsExpanded(!isExpanded)}
-				whileHover={{ scale: 1.02 }}
-				whileTap={{ scale: 0.98 }}
+				whileHover={LIST_ITEM_HOVER}
+				whileTap={LIST_ITEM_TAP}
 				className={cn(
 					'flex items-center gap-2 rounded-lg border px-3 py-2 transition-all',
 					config.bgColor,
@@ -246,7 +274,7 @@ const StepQualityIndicatorComponent = ({
 			>
 				<Icon className={cn('size-4', config.color)} />
 				<span className={cn('text-xs font-medium', config.color)}>
-					{config.label}
+					{t(LEVEL_LABEL_KEYS[level])}
 				</span>
 				<span className='ml-auto font-display text-xs text-text-muted'>
 					{score}%
@@ -264,7 +292,7 @@ const StepQualityIndicatorComponent = ({
 						className='mt-2 overflow-hidden rounded-lg border border-border bg-bg-card p-3 shadow-card'
 					>
 						<p className='mb-2 text-xs font-medium text-text-secondary'>
-							Suggestions to improve:
+							{t('sqiSuggestionsToImprove')}
 						</p>
 						<div className='space-y-2'>
 							{sortedFailed.slice(0, 3).map(check => {
@@ -277,7 +305,7 @@ const StepQualityIndicatorComponent = ({
 										<CheckIcon className='mt-0.5 size-4 shrink-0 text-text-muted' />
 										<div className='flex-1'>
 											<p className='text-xs text-text'>
-												{check.suggestion}
+												{t(QUALITY_CHECK_SUGGESTION_KEYS[check.field] || check.field)}
 											</p>
 										</div>
 										{onSuggestFix && (
@@ -303,7 +331,7 @@ const StepQualityIndicatorComponent = ({
 						</div>
 						{sortedFailed.length > 3 && (
 							<p className='mt-2 text-2xs text-text-muted'>
-								+{sortedFailed.length - 3} more suggestions
+								{t('sqiMoreSuggestions', { count: sortedFailed.length - 3 })}
 							</p>
 						)}
 					</motion.div>
@@ -324,6 +352,7 @@ export const StepQualityDot = memo(
 		step: Partial<Step>
 		className?: string
 	}) => {
+		const t = useTranslations('recipe')
 		const { level, score } = calculateQuality(step)
 
 		return (
@@ -338,7 +367,7 @@ export const StepQualityDot = memo(
 					level === 'incomplete' && 'bg-error',
 					className,
 				)}
-				title={`Step quality: ${score}%`}
+				title={t('sqiStepQualityScore', { score })}
 			/>
 		)
 	},

@@ -25,13 +25,18 @@ import {
 	AsyncCombobox,
 	AsyncComboboxOption,
 } from '@/components/ui/async-combobox'
+import {
+	Combobox,
+	type ComboboxOption,
+} from '@/components/ui/combobox'
 import { autocompleteSearch } from '@/services/search'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, DURATION_S } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { formDataToRecipe } from '@/lib/recipeTransforms'
 import type { Difficulty } from '@/lib/types/gamification'
 import { calibrateDifficulty } from '@/services/ml'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // TYPES
@@ -127,6 +132,11 @@ const CATEGORIES = [
 	'Quick & Easy',
 ]
 
+const CATEGORY_OPTIONS: ComboboxOption[] = CATEGORIES.map(cat => ({
+	value: cat,
+	label: cat,
+}))
+
 const SUGGESTED_TAGS = [
 	'vegetarian',
 	'vegan',
@@ -177,6 +187,7 @@ const ImageUpload = ({
 	onChange: (file: File | null) => void
 	label: string
 }) => {
+	const t = useTranslations('recipe')
 	const [preview, setPreview] = useState<string | undefined>(value)
 	const blobUrlRef = React.useRef<string | null>(null)
 
@@ -226,7 +237,7 @@ const ImageUpload = ({
 				<div className='relative aspect-video w-full overflow-hidden rounded-2xl'>
 					<Image
 						src={preview}
-						alt='Preview'
+						alt={t('formPreviewAlt')}
 						fill
 						sizes='(max-width: 768px) 100vw, 50vw'
 						className='object-cover'
@@ -234,6 +245,7 @@ const ImageUpload = ({
 					<button
 						type='button'
 						onClick={handleRemove}
+						aria-label={t('formRemoveCoverImage')}
 						className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70'
 					>
 						<X className='size-4' />
@@ -246,7 +258,7 @@ const ImageUpload = ({
 					</div>
 					<div className='text-center'>
 						<p className='font-semibold text-text'>{label}</p>
-						<p className='text-sm text-text-secondary'>JPG, PNG up to 10MB</p>
+						<p className='text-sm text-text-secondary'>{t('formImageHint')}</p>
 					</div>
 					<input
 						type='file'
@@ -264,13 +276,17 @@ const ImageUpload = ({
 const fetchIngredientOptions = async (
 	query: string,
 ): Promise<AsyncComboboxOption[]> => {
-	const res = await autocompleteSearch(query, 'ingredients', 8)
-	if (res.success && res.data?.ingredients?.hits) {
-		return res.data.ingredients.hits.map(h => ({
-			value: h.document.id,
-			label: h.document.name,
-			category: h.document.category,
-		}))
+	try {
+		const res = await autocompleteSearch(query, 'ingredients', 8)
+		if (res.success && res.data?.ingredients?.hits) {
+			return res.data.ingredients.hits.map(h => ({
+				value: h.document.id,
+				label: h.document.name,
+				category: h.document.category,
+			}))
+		}
+	} catch {
+		// Autocomplete is non-critical — degrade to empty suggestions
 	}
 	return []
 }
@@ -283,14 +299,16 @@ const IngredientRow = ({
 	ingredient: Ingredient
 	onChange: (updated: Ingredient) => void
 	onRemove: () => void
-}) => (
+}) => {
+	const t = useTranslations('recipe')
+	return (
 	<div className='group flex items-center gap-3'>
 		<div className='flex flex-1 items-center gap-3'>
 			<input
 				type='text'
 				value={ingredient.amount}
 				onChange={e => onChange({ ...ingredient, amount: e.target.value })}
-				placeholder='Amount'
+				placeholder={t('formAmountPlaceholder')}
 				className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
 			/>
 			<select
@@ -311,7 +329,7 @@ const IngredientRow = ({
 				onChange={val => onChange({ ...ingredient, name: val })}
 				onSelect={opt => onChange({ ...ingredient, name: opt.label })}
 				fetchOptions={fetchIngredientOptions}
-				placeholder='Ingredient name'
+				placeholder={t('formIngredientPlaceholder')}
 				minChars={1}
 				className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
 			/>
@@ -319,12 +337,14 @@ const IngredientRow = ({
 		<button
 			type='button'
 			onClick={onRemove}
-			className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
+			aria-label={t('formDeleteIngredient')}
+			className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
 		>
 			<Trash2 className='size-4' />
 		</button>
 	</div>
-)
+	)
+}
 
 // Step Row
 const StepRow = ({
@@ -338,6 +358,7 @@ const StepRow = ({
 	onChange: (updated: RecipeStep) => void
 	onRemove: () => void
 }) => {
+	const t = useTranslations('recipe')
 	const [showTimerInput, setShowTimerInput] = useState(!!step.timerSeconds)
 	const fileInputRef = React.useRef<HTMLInputElement>(null)
 	const blobUrlRef = React.useRef<string | null>(null)
@@ -390,7 +411,7 @@ const StepRow = ({
 				<textarea
 					value={step.instruction}
 					onChange={e => onChange({ ...step, instruction: e.target.value })}
-					placeholder='Describe this cooking step in detail...'
+					placeholder={t('formStepPlaceholder')}
 					rows={3}
 					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
 				/>
@@ -399,13 +420,15 @@ const StepRow = ({
 					<div className='relative aspect-video w-full max-w-xs overflow-hidden rounded-xl border-2 border-border'>
 						<Image
 							src={step.imageUrl}
-							alt={`Step ${index + 1}`}
+							alt={t('formStepAlt', { num: index + 1 })}
 							fill
+							sizes='(max-width: 768px) 100vw, 320px'
 							className='object-cover'
 						/>
 						<button
 							type='button'
 							onClick={handleRemoveImage}
+							aria-label={t('formRemoveStepImage')}
 							className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70'
 						>
 							<X className='size-4' />
@@ -426,7 +449,7 @@ const StepRow = ({
 						className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 					>
 						<ImageIcon className='size-3.5' />
-						{step.imageUrl ? 'Change Photo' : 'Add Photo'}
+						{step.imageUrl ? t('formChangePhoto') : t('formAddPhoto')}
 					</button>
 					{showTimerInput ? (
 						<div className='flex items-center gap-2'>
@@ -435,6 +458,7 @@ const StepRow = ({
 								{/* Hours */}
 								<input
 									type='number'
+									aria-label={t('formTimerHoursLabel')}
 									value={hours || ''}
 									onChange={e => {
 										const h = parseInt(e.target.value) || 0
@@ -446,10 +470,11 @@ const StepRow = ({
 									min={0}
 									max={23}
 								/>
-								<span className='text-xs font-semibold text-brand'>h</span>
+								<span className='text-xs font-semibold text-brand'>{t('formTimerH')}</span>
 								{/* Minutes */}
 								<input
 									type='number'
+									aria-label={t('formTimerMinutesLabel')}
 									value={minutes || ''}
 									onChange={e => {
 										const m = parseInt(e.target.value) || 0
@@ -461,10 +486,11 @@ const StepRow = ({
 									min={0}
 									max={59}
 								/>
-								<span className='text-xs font-semibold text-brand'>m</span>
+								<span className='text-xs font-semibold text-brand'>{t('formTimerM')}</span>
 								{/* Seconds */}
 								<input
 									type='number'
+									aria-label={t('formTimerSecondsLabel')}
 									value={seconds || ''}
 									onChange={e => {
 										const s = parseInt(e.target.value) || 0
@@ -476,7 +502,7 @@ const StepRow = ({
 									min={0}
 									max={59}
 								/>
-								<span className='text-xs font-semibold text-brand'>s</span>
+								<span className='text-xs font-semibold text-brand'>{t('formTimerS')}</span>
 							</div>
 							<button
 								type='button'
@@ -496,7 +522,7 @@ const StepRow = ({
 							className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Timer className='size-3.5' />
-							Add Timer
+							{t('formAddTimer')}
 						</button>
 					)}
 				</div>
@@ -504,7 +530,8 @@ const StepRow = ({
 			<button
 				type='button'
 				onClick={onRemove}
-				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 hover:bg-error/10 hover:text-error'
+				aria-label={t('formDeleteStep')}
+				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
 			>
 				<Trash2 className='size-4' />
 			</button>
@@ -520,6 +547,7 @@ const TagInput = ({
 	tags: string[]
 	onChange: (tags: string[]) => void
 }) => {
+	const t = useTranslations('recipe')
 	const [input, setInput] = useState('')
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -554,6 +582,7 @@ const TagInput = ({
 						<button
 							type='button'
 							onClick={() => removeTag(tag)}
+							aria-label={t('formDeleteTag')}
 							className='flex size-4 items-center justify-center rounded-full transition-colors hover:bg-white/20'
 						>
 							Ã—
@@ -565,7 +594,7 @@ const TagInput = ({
 					value={input}
 					onChange={e => setInput(e.target.value)}
 					onKeyDown={handleKeyDown}
-					placeholder={tags.length === 0 ? 'Type and press Enter' : ''}
+					placeholder={tags.length === 0 ? t('formTagPlaceholder') : ''}
 					className='min-w-search flex-1 bg-transparent py-1.5 text-sm text-text focus:outline-none'
 				/>
 			</div>
@@ -598,12 +627,13 @@ export const RecipeFormDetailed = ({
 	onCancel,
 	isSubmitting = false,
 	isSaving = false,
-	submitLabel = 'Review & Calculate XP',
-	submittingLabel = 'Processing...',
-	saveDraftLabel = 'Save to Cloud',
-	savingLabel = 'Saving...',
+	submitLabel,
+	submittingLabel,
+	saveDraftLabel,
+	savingLabel,
 	className,
 }: RecipeFormDetailedProps) => {
+	const t = useTranslations('recipe')
 	const [formData, setFormData] = useState<RecipeFormData>({
 		title: initialData?.title || '',
 		description: initialData?.description || '',
@@ -700,21 +730,21 @@ export const RecipeFormDetailed = ({
 
 		// Title is required (min 3 chars)
 		if (!formData.title.trim()) {
-			newErrors.title = 'Recipe title is required'
+			newErrors.title = t('formErrTitleRequired')
 		} else if (formData.title.trim().length < 3) {
-			newErrors.title = 'Title must be at least 3 characters'
+			newErrors.title = t('formErrTitleMinLen')
 		}
 
 		// Description is required (min 10 chars)
 		if (!formData.description.trim()) {
-			newErrors.description = 'Description is required'
+			newErrors.description = t('formErrDescRequired')
 		} else if (formData.description.trim().length < 10) {
-			newErrors.description = 'Description must be at least 10 characters'
+			newErrors.description = t('formErrDescMinLen')
 		}
 
 		// Cover image is required
 		if (!formData.coverImageUrl && !formData.coverImageFile) {
-			newErrors.coverImage = 'Cover image is required'
+			newErrors.coverImage = t('formErrCoverRequired')
 		}
 
 		// At least one valid ingredient
@@ -723,18 +753,18 @@ export const RecipeFormDetailed = ({
 		)
 		if (validIngredients.length === 0) {
 			newErrors.ingredients =
-				'At least one ingredient with name and amount is required'
+				t('formErrIngredientRequired')
 		}
 
 		// At least one step with instruction
 		const validSteps = formData.steps.filter(s => s.instruction.trim())
 		if (validSteps.length === 0) {
-			newErrors.steps = 'At least one step with instructions is required'
+			newErrors.steps = t('formErrStepRequired')
 		}
 
 		// Category is recommended but we'll make it required for discoverability
 		if (!formData.category) {
-			newErrors.category = 'Please select a category'
+			newErrors.category = t('formErrCategoryRequired')
 		}
 
 		setErrors(newErrors)
@@ -834,16 +864,20 @@ export const RecipeFormDetailed = ({
 		if (difficultyTimerRef.current) clearTimeout(difficultyTimerRef.current)
 
 		difficultyTimerRef.current = setTimeout(async () => {
-			const result = await calibrateDifficulty({
-				ingredient_count: ingredientCount,
-				step_count: stepCount,
-				techniques: [],
-				estimated_time_minutes: totalTime || 30,
-				equipment_count: 0,
-			})
-			if (result.success && result.data) {
-				setPredictedDifficulty(result.data.predictedDifficulty)
-				setDifficultyConfidence(result.data.confidence)
+			try {
+				const result = await calibrateDifficulty({
+					ingredient_count: ingredientCount,
+					step_count: stepCount,
+					techniques: [],
+					estimated_time_minutes: totalTime || 30,
+					equipment_count: 0,
+				})
+				if (result.success && result.data) {
+					setPredictedDifficulty(result.data.predictedDifficulty)
+					setDifficultyConfidence(result.data.confidence)
+				}
+			} catch {
+				// ML calibration is non-critical — silently skip
 			}
 		}, 1200)
 
@@ -862,10 +896,10 @@ export const RecipeFormDetailed = ({
 			{/* Header */}
 			<div className='mb-10'>
 				<h1 className='text-3xl font-display font-extrabold text-text md:text-4xl'>
-					Create Your Recipe
+					{t('formCreateTitle')}
 				</h1>
 				<p className='mt-2 text-text-secondary'>
-					Share your culinary creation with the community
+					{t('formCreateSubtitle')}
 				</p>
 			</div>
 
@@ -876,7 +910,7 @@ export const RecipeFormDetailed = ({
 				{/* Basic Info Section */}
 				<section className='mb-12 border-b-2 border-border pb-12'>
 					<h2 className='mb-6 text-xl font-bold text-text'>
-						Basic Information
+						{t('formBasicInfo')}
 					</h2>
 
 					{/* Title */}
@@ -885,14 +919,14 @@ export const RecipeFormDetailed = ({
 							htmlFor='recipe-title'
 							className='mb-2 block text-sm font-semibold text-text'
 						>
-							Recipe Title <span className='text-error'>*</span>
+							{t('formRecipeTitle')} <span className='text-error'>*</span>
 						</label>
 						<input
 							id='recipe-title'
 							type='text'
 							value={formData.title}
 							onChange={e => updateFieldWithClearError('title', e.target.value)}
-							placeholder='e.g., Classic Italian Carbonara'
+							placeholder={t('formTitlePlaceholder')}
 							maxLength={100}
 							className={cn(
 								'w-full rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none',
@@ -904,9 +938,14 @@ export const RecipeFormDetailed = ({
 						{errors.title ? (
 							<p className='mt-1.5 text-sm text-error'>{errors.title}</p>
 						) : (
-							<p className='mt-1.5 text-sm text-text-secondary'>
-								Give your recipe a catchy, descriptive name
-							</p>
+							<div className='mt-1.5 flex items-center justify-between'>
+								<p className='text-sm text-text-secondary'>
+									{t('formTitleHint')}
+								</p>
+								<p className={`tabular-nums text-xs ${formData.title.length > 80 ? (formData.title.length >= 100 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+									{formData.title.length}/100
+								</p>
+							</div>
 						)}
 					</div>
 
@@ -916,7 +955,7 @@ export const RecipeFormDetailed = ({
 							htmlFor='recipe-description'
 							className='mb-2 block text-sm font-semibold text-text'
 						>
-							Description <span className='text-error'>*</span>
+							{t('formDescription')} <span className='text-error'>*</span>
 						</label>
 						<textarea
 							id='recipe-description'
@@ -924,7 +963,7 @@ export const RecipeFormDetailed = ({
 							onChange={e =>
 								updateFieldWithClearError('description', e.target.value)
 							}
-							placeholder='Tell us about your recipe. What makes it special?'
+							placeholder={t('formDescPlaceholder')}
 							rows={4}
 							maxLength={500}
 							className={cn(
@@ -937,8 +976,8 @@ export const RecipeFormDetailed = ({
 						{errors.description ? (
 							<p className='mt-1.5 text-sm text-error'>{errors.description}</p>
 						) : (
-							<p className='mt-1.5 text-sm text-text-secondary'>
-								{formData.description.length} / 500 characters
+							<p className={`tabular-nums mt-1.5 text-sm ${formData.description.length > 400 ? (formData.description.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-secondary'}`}>
+								{t('formDescCharCount', { count: formData.description.length })}
 							</p>
 						)}
 					</div>
@@ -949,7 +988,7 @@ export const RecipeFormDetailed = ({
 							id='recipe-cover-image-label'
 							className='mb-2 block text-sm font-semibold text-text'
 						>
-							Cover Image <span className='text-error'>*</span>
+							{t('formCoverImage')} <span className='text-error'>*</span>
 						</label>
 						<div
 							aria-labelledby='recipe-cover-image-label'
@@ -965,7 +1004,7 @@ export const RecipeFormDetailed = ({
 									if (hasAttemptedSubmit)
 										setErrors(prev => ({ ...prev, coverImage: undefined }))
 								}}
-								label='Drop your image here or click to browse'
+								label={t('formCoverLabel')}
 							/>
 						</div>
 						{errors.coverImage && (
@@ -980,7 +1019,7 @@ export const RecipeFormDetailed = ({
 								htmlFor='recipe-prep-time'
 								className='mb-2 block text-sm font-semibold text-text'
 							>
-								Prep Time
+								{t('formPrepTime')}
 							</label>
 							<div className='relative'>
 								<input
@@ -998,7 +1037,7 @@ export const RecipeFormDetailed = ({
 									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
-									min
+									{t('formMinUnit')}
 								</span>
 							</div>
 						</div>
@@ -1007,7 +1046,7 @@ export const RecipeFormDetailed = ({
 								htmlFor='recipe-cook-time'
 								className='mb-2 block text-sm font-semibold text-text'
 							>
-								Cook Time
+								{t('formCookTime')}
 							</label>
 							<div className='relative'>
 								<input
@@ -1025,7 +1064,7 @@ export const RecipeFormDetailed = ({
 									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
-									min
+									{t('formMinUnit')}
 								</span>
 							</div>
 						</div>
@@ -1034,7 +1073,7 @@ export const RecipeFormDetailed = ({
 								htmlFor='recipe-servings'
 								className='mb-2 block text-sm font-semibold text-text'
 							>
-								Servings
+								{t('formServings')}
 							</label>
 							<input
 								id='recipe-servings'
@@ -1057,12 +1096,12 @@ export const RecipeFormDetailed = ({
 								id='recipe-difficulty-label'
 								className='mb-2 block text-sm font-semibold text-text'
 							>
-								Difficulty
+								{t('formDifficulty')}
 							</label>
 							<div
 								aria-labelledby='recipe-difficulty-label'
 								className='flex items-center gap-2 rounded-xl border-2 border-border bg-bg-card px-4 py-3 cursor-help'
-								title='Difficulty will be determined by AI based on techniques and complexity. This ensures fair XP calculation.'
+								title={t('formDifficultyTitle')}
 							>
 								<Signal
 									className={cn(
@@ -1080,10 +1119,10 @@ export const RecipeFormDetailed = ({
 											: 'text-text-secondary',
 									)}
 								>
-									{predictedDifficulty || 'Determined by AI'}
+									{predictedDifficulty || t('formDeterminedByAi')}
 								</span>
 								{predictedDifficulty && difficultyConfidence > 0 && (
-									<span className='text-xs text-text-secondary'>
+									<span className='tabular-nums text-xs text-text-secondary'>
 										{Math.round(difficultyConfidence * 100)}%
 									</span>
 								)}
@@ -1091,8 +1130,8 @@ export const RecipeFormDetailed = ({
 							</div>
 							<p className='mt-1.5 text-xs text-text-secondary'>
 								{predictedDifficulty
-									? 'AI prediction based on your recipe structure'
-									: 'Add ingredients and steps to see AI prediction'}
+									? t('formAiPrediction')
+									: t('formAiPredictionHint')}
 							</p>
 						</div>
 						<div data-error={!!errors.category}>
@@ -1100,34 +1139,22 @@ export const RecipeFormDetailed = ({
 								htmlFor='recipe-category'
 								className='mb-2 block text-sm font-semibold text-text'
 							>
-								Category <span className='text-error'>*</span>
+								{t('formCategory')} <span className='text-error'>*</span>
 							</label>
-							<select
+							<Combobox
 								id='recipe-category'
 								value={formData.category}
-								onChange={e =>
-									updateFieldWithClearError('category', e.target.value)
-								}
+								onChange={val => updateFieldWithClearError('category', val)}
+								onSelect={opt => updateFieldWithClearError('category', opt.value)}
+								options={CATEGORY_OPTIONS}
+								placeholder={t('formSelectCategory')}
 								className={cn(
 									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text focus:outline-none',
 									errors.category
 										? 'border-error focus:border-error'
 										: 'border-border focus:border-brand',
 								)}
-							>
-								<option value='' className='bg-bg-card text-text'>
-									Select category
-								</option>
-								{CATEGORIES.map(cat => (
-									<option
-										key={cat}
-										value={cat}
-										className='bg-bg-card text-text'
-									>
-										{cat}
-									</option>
-								))}
-							</select>
+							/>
 							{errors.category && (
 								<p className='mt-1.5 text-sm text-error'>{errors.category}</p>
 							)}
@@ -1142,7 +1169,7 @@ export const RecipeFormDetailed = ({
 				>
 					<div className='mb-6 flex items-center justify-between'>
 						<div>
-							<h2 className='text-xl font-bold text-text'>Ingredients</h2>
+							<h2 className='text-xl font-bold text-text'>{t('formIngredientsSection')}</h2>
 							{errors.ingredients && (
 								<p className='mt-1 text-sm text-error'>{errors.ingredients}</p>
 							)}
@@ -1159,18 +1186,18 @@ export const RecipeFormDetailed = ({
 							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Plus className='size-4' />
-							Add Ingredient
+							{t('formAddIngredient')}
 						</motion.button>
 					</div>
-					<div className='space-y-4'>
+					<ul className='space-y-4'>
 						<AnimatePresence mode='popLayout'>
 							{formData.ingredients.map(ing => (
-								<motion.div
+								<motion.li
 									key={ing.id}
 									initial={{ opacity: 0, height: 0 }}
 									animate={{ opacity: 1, height: 'auto' }}
 									exit={{ opacity: 0, height: 0 }}
-									transition={{ duration: 0.2 }}
+									transition={{ duration: DURATION_S.normal }}
 								>
 									<IngredientRow
 										ingredient={ing}
@@ -1181,10 +1208,10 @@ export const RecipeFormDetailed = ({
 										}}
 										onRemove={() => removeIngredient(ing.id)}
 									/>
-								</motion.div>
+								</motion.li>
 							))}
 						</AnimatePresence>
-					</div>
+					</ul>
 				</section>
 
 				{/* Instructions Section */}
@@ -1195,7 +1222,7 @@ export const RecipeFormDetailed = ({
 					<div className='mb-6 flex items-center justify-between'>
 						<div>
 							<div className='flex items-center gap-4'>
-								<h2 className='text-xl font-bold text-text'>Instructions</h2>
+								<h2 className='text-xl font-bold text-text'>{t('formInstructionsSection')}</h2>
 								{formData.steps.length > 0 && (
 									<button
 										type='button'
@@ -1209,7 +1236,7 @@ export const RecipeFormDetailed = ({
 										className='flex items-center gap-1.5 text-sm font-medium text-brand/70 transition-colors hover:text-brand'
 									>
 										<Rocket className='size-3.5' />
-										Test Play
+										{t('formTestPlay')}
 									</button>
 								)}
 							</div>
@@ -1229,18 +1256,18 @@ export const RecipeFormDetailed = ({
 							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Plus className='size-4' />
-							Add Step
+							{t('formAddStep')}
 						</motion.button>
 					</div>
-					<div className='space-y-5'>
+					<ol className='space-y-5'>
 						<AnimatePresence mode='popLayout'>
 							{formData.steps.map((step, i) => (
-								<motion.div
+								<motion.li
 									key={step.id}
 									initial={{ opacity: 0, height: 0 }}
 									animate={{ opacity: 1, height: 'auto' }}
 									exit={{ opacity: 0, height: 0 }}
-									transition={{ duration: 0.2 }}
+									transition={{ duration: DURATION_S.normal }}
 								>
 									<StepRow
 										step={step}
@@ -1252,21 +1279,21 @@ export const RecipeFormDetailed = ({
 										}}
 										onRemove={() => removeStep(step.id)}
 									/>
-								</motion.div>
+								</motion.li>
 							))}
 						</AnimatePresence>
-					</div>
+					</ol>
 				</section>
 
 				{/* Tips Section */}
 				<section className='mb-12 border-b-2 border-border pb-12'>
 					<h2 className='mb-6 text-xl font-bold text-text'>
-						Tips & Notes (Optional)
+						{t('formTipsSection')}
 					</h2>
 					<textarea
 						value={formData.tips}
 						onChange={e => updateField('tips', e.target.value)}
-						placeholder='Share any helpful tips, substitutions, or notes about your recipe...'
+						placeholder={t('formTipsPlaceholder')}
 						rows={4}
 						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
 					/>
@@ -1274,9 +1301,9 @@ export const RecipeFormDetailed = ({
 
 				{/* Tags Section */}
 				<section className='mb-8'>
-					<h2 className='mb-6 text-xl font-bold text-text'>Tags</h2>
+					<h2 className='mb-6 text-xl font-bold text-text'>{t('formTagsSection')}</h2>
 					<p className='mb-3 text-sm text-text-secondary'>
-						Add tags to help people discover your recipe
+						{t('formTagsHint')}
 					</p>
 					<TagInput
 						tags={formData.tags}
@@ -1299,7 +1326,7 @@ export const RecipeFormDetailed = ({
 						) : (
 							<Cloud className='size-4' />
 						)}
-						{isSaving ? savingLabel : saveDraftLabel}
+						{isSaving ? (savingLabel ?? t('formSaving')) : (saveDraftLabel ?? t('formSaveToCloud'))}
 						{!isSaving && (
 							<kbd className='ml-1 hidden rounded bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand/70 sm:inline-block'>
 								{modKey}+S
@@ -1314,7 +1341,7 @@ export const RecipeFormDetailed = ({
 								disabled={isSubmitting || isSaving}
 								className='flex-1 rounded-xl border border-border bg-bg px-5 py-3 font-semibold text-text-secondary disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none'
 							>
-								Cancel
+								{t('formCancel')}
 							</button>
 						)}
 						<motion.button
@@ -1329,7 +1356,7 @@ export const RecipeFormDetailed = ({
 							) : (
 								<Send className='size-4' />
 							)}
-							{isSubmitting ? submittingLabel : submitLabel}
+							{isSubmitting ? (submittingLabel ?? t('formProcessing')) : (submitLabel ?? t('formReviewXp'))}
 							{!isSubmitting && (
 								<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-medium text-white/80 sm:inline-block'>
 									{modKey}+â†µ

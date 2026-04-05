@@ -6,6 +6,7 @@ import { LucideIcon, Sparkles, ArrowLeft } from 'lucide-react'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 // ─────────────────────────────────────────────────────────────────
 // Types
@@ -112,6 +113,7 @@ export function PageHeader({
 	showBack = false,
 }: PageHeaderProps) {
 	const router = useRouter()
+	const t = useTranslations('pageHeader')
 	const { bg, shadow } = gradientMap[gradient]
 	const ActualSubtitleIcon = SubtitleIcon ?? (showSparkles ? Sparkles : null)
 
@@ -124,11 +126,12 @@ export function PageHeader({
 		>
 			{showBack && (
 				<button
+					type='button'
 					onClick={() => router.back()}
 					className='mb-3 flex items-center gap-1 text-sm text-text-secondary transition-colors hover:text-text'
 				>
 					<ArrowLeft className='size-4' />
-					<span>Back</span>
+					<span>{t('back')}</span>
 				</button>
 			)}
 			<div className="mb-2 flex items-center justify-between">

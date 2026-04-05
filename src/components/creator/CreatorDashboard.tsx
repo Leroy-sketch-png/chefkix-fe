@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { motion } from 'framer-motion'
 import {
 	ArrowLeft,
@@ -26,6 +28,7 @@ import {
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -136,7 +139,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 					<span className='text-icon-lg'>ðŸ‘¨â€ðŸ³</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-display font-extrabold text-success'>
-							+{data.newCooks}
+							+<AnimatedNumber value={data.newCooks} className='tabular-nums' />
 						</span>
 						<span className='text-xs text-text-secondary'>New Cooks</span>
 					</div>
@@ -163,7 +166,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 					<span className='text-icon-lg'>âš¡</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-display font-extrabold text-text'>
-							+{data.xpEarned}
+							+<AnimatedNumber value={data.xpEarned} className='tabular-nums' />
 						</span>
 						<span className='text-xs text-text-secondary'>XP Earned</span>
 					</div>
@@ -194,40 +197,40 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 // ============================================================================
 
 function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
+	const t = useTranslations('creator')
 	return (
 		<div className='bg-bg-card rounded-xl p-6 mb-6'>
-			<h3 className='text-lg font-bold text-text mb-4'>Lifetime Stats</h3>
+			<h3 className='text-lg font-bold text-text mb-4'>{t('lifetimeStats')}</h3>
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
 				{/* Recipes Published - Large */}
 				<div className='col-span-2 sm:col-span-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-bg rounded-xl text-center'>
 					<div className='flex items-center gap-2'>
 						<span className='text-4xl font-black text-brand'>
-							{stats.recipesPublished}
+						<AnimatedNumber value={stats.recipesPublished} duration={0.8} />
 						</span>
 						<span className='text-icon-lg'>ðŸ“–</span>
 					</div>
-					<span className='text-sm text-text-secondary'>Recipes Published</span>
+					<span className='text-sm text-text-secondary'>{t('recipesPublished')}</span>
 				</div>
 
-				{/* Total Cooks */}
 				<StatCard
-					icon='ðŸ‘¨â€ðŸ³'
+					icon='👨‍🍳'
 					value={stats.totalCooks.toLocaleString()}
-					label='Total Cooks'
+					label={t('totalCooks')}
 				/>
 
 				{/* Creator XP */}
 				<StatCard
-					icon='âš¡'
+					icon='⚡'
 					value={stats.creatorXpEarned.toLocaleString()}
-					label='Creator XP Earned'
+					label={t('creatorXpEarned')}
 				/>
 
 				{/* Avg Rating */}
 				<StatCard
-					icon='â­'
-					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : 'â€”'}
-					label='Avg Rating'
+					icon='⭐'
+					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : '—'}
+					label={t('avgRating')}
 				/>
 			</div>
 		</div>
@@ -259,6 +262,7 @@ function StatCard({
 // ============================================================================
 
 function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
+	const t = useTranslations('creator')
 	const earnedCount = badges.filter(b => b.isEarned).length
 
 	return (
@@ -324,6 +328,7 @@ function TopRecipeSection({
 				<h3 className='text-lg font-bold text-text'>ðŸ† Top Recipe</h3>
 				{onViewAllRecipes && (
 					<button
+						type='button'
 						onClick={onViewAllRecipes}
 						className='text-sm font-semibold text-brand'
 					>
@@ -360,13 +365,13 @@ function TopRecipeSection({
 					<div className='flex gap-6 mt-auto justify-center sm:justify-start'>
 						<div className='flex flex-col'>
 							<span className='text-xl font-display font-extrabold text-brand'>
-								{recipe.cookCount}
+								<AnimatedNumber value={recipe.cookCount} className='tabular-nums' />
 							</span>
 							<span className='text-xs text-text-secondary'>Cooks</span>
 						</div>
 						<div className='flex flex-col'>
 							<span className='text-xl font-display font-extrabold text-brand'>
-								{recipe.xpGenerated.toLocaleString()}
+								<AnimatedNumber value={recipe.xpGenerated} format={n => n.toLocaleString()} className='tabular-nums' />
 							</span>
 							<span className='text-xs text-text-secondary'>XP Generated</span>
 						</div>
@@ -473,13 +478,13 @@ function RecipePerformanceSection({
 							<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
 									<span className='text-base font-display font-extrabold text-text'>
-										{recipe.cookCount}
-									</span>
-									<span className='text-2xs text-text-secondary'>Cooks</span>
-								</div>
-								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-									<span className='text-base font-display font-extrabold text-text'>
-										+{recipe.xpGenerated}
+									<AnimatedNumber value={recipe.cookCount} className='tabular-nums' />
+								</span>
+								<span className='text-2xs text-text-secondary'>Cooks</span>
+							</div>
+							<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
+								<span className='text-base font-display font-extrabold text-text'>
+									+<AnimatedNumber value={recipe.xpGenerated} className='tabular-nums' />
 									</span>
 									<span className='text-2xs text-text-secondary'>XP</span>
 								</div>
@@ -537,6 +542,7 @@ function RecentCooksSection({
 				<h3 className='text-lg font-bold text-text'>Recent Cooks</h3>
 				{onViewAll && (
 					<button
+						type='button'
 						onClick={onViewAll}
 						className='text-sm font-semibold text-brand'
 					>
@@ -587,7 +593,7 @@ function RecentCooksSection({
 							</div>
 							<div className='text-right'>
 								<span className='block text-base font-display font-extrabold text-success'>
-									+{cook.xpEarned}
+									+<AnimatedNumber value={cook.xpEarned} className='tabular-nums' />
 								</span>
 								<span className='text-2xs text-text-secondary'>XP</span>
 							</div>
@@ -604,6 +610,7 @@ function RecentCooksSection({
 // ============================================================================
 
 function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
+	const t = useTranslations('creator')
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}

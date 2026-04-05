@@ -79,7 +79,7 @@ const transformToGamifiedNotification = (
 			return {
 				id: notif.id,
 				type: 'badge_unlocked',
-				badgeIcon: (data.badgeIcon as string) || '🏆',
+				badgeIcon: (data.badgeIcon as string) || 'ðŸ†',
 				badgeName: (data.badgeName as string) || 'Badge',
 				badgeRarity:
 					(data.badgeRarity as 'common' | 'rare' | 'epic' | 'legendary') ||
@@ -307,6 +307,7 @@ export const NotificationsPopup = () => {
 						)}
 					</div>
 					<button
+						type='button'
 						onClick={handleMarkAllRead}
 						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 					>
@@ -337,6 +338,7 @@ export const NotificationsPopup = () => {
 						<div className='px-4 py-12 text-center'>
 							<p className='mb-2 text-sm text-text-muted'>Couldn&apos;t load notifications</p>
 							<button
+								type='button'
 								onClick={() => {
 									setFetchError(false)
 									setIsLoading(true)
@@ -540,6 +542,7 @@ export const NotificationsPopup = () => {
 										{/* Follow back button - functional */}
 										{notif.type === 'follow' && !notif.read && (
 											<button
+												type='button'
 												onClick={handleFollowBack}
 												className='flex-shrink-0 rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-brand/90'
 											>

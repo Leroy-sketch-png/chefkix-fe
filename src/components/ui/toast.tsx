@@ -128,6 +128,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 				{/* Action - inline, subtle */}
 				{action && (
 					<button
+						type='button'
 						onClick={action.onClick}
 						className='flex-shrink-0 font-medium text-brand hover:underline'
 					>
@@ -138,6 +139,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 				{/* Close - tiny, appears on hover */}
 				{onClose && (
 					<button
+						type='button'
 						onClick={handleClose}
 						className='flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100'
 						aria-label='Close'

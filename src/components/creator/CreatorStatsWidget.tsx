@@ -1,11 +1,14 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -37,6 +40,7 @@ export function CreatorStatsWidget({
 	dashboardUrl = '/creator/dashboard',
 	className,
 }: CreatorStatsWidgetProps) {
+	const t = useTranslations('creator')
 	return (
 		<div className={cn('bg-bg-card rounded-2xl p-5', className)}>
 			{/* Header */}
@@ -57,19 +61,19 @@ export function CreatorStatsWidget({
 			<div className='flex gap-3 mb-4'>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
 					<span className='text-lg font-display font-extrabold text-text'>
-						{recipesCount}
+						<AnimatedNumber value={recipesCount} className='tabular-nums' />
 					</span>
 					<span className='text-2xs text-text-secondary'>Recipes</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
 					<span className='text-lg font-display font-extrabold text-text'>
-						{totalCooks.toLocaleString()}
+						<AnimatedNumber value={totalCooks} format={n => n.toLocaleString()} className='tabular-nums' />
 					</span>
 					<span className='text-2xs text-text-secondary'>Cooks</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-success/10 rounded-lg'>
 					<span className='text-lg font-display font-extrabold text-success'>
-						+{xpEarned.toLocaleString()}
+						+<AnimatedNumber value={xpEarned} format={n => n.toLocaleString()} className='tabular-nums' />
 					</span>
 					<span className='text-2xs text-text-secondary'>XP Earned</span>
 				</div>
@@ -92,7 +96,7 @@ export function CreatorStatsWidget({
 						</span>
 					</div>
 					<span className='text-sm font-semibold text-brand'>
-						{topRecipe.cookCount} cooks
+						<AnimatedNumber value={topRecipe.cookCount} className='tabular-nums' /> cooks
 					</span>
 				</div>
 			)}
@@ -119,6 +123,7 @@ export function CreatorXPNotification({
 	onView,
 	className,
 }: CreatorXPNotificationProps) {
+	const t = useTranslations('creator')
 	const remainingCount = cookersCount - cookerAvatars.length
 
 	return (

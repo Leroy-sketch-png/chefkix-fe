@@ -20,7 +20,9 @@ import {
 	BUTTON_TAP,
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
+	STREAK_FLAME,
 } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 // ============================================================================
 // TYPES
@@ -72,6 +74,7 @@ export function StreakRiskBanner({
 	onDismiss,
 	className,
 }: StreakRiskBannerProps) {
+	const t = useTranslations('streak')
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: -10 }}
@@ -91,12 +94,7 @@ export function StreakRiskBanner({
 				{/* Fire Icon */}
 				<div className='relative flex-shrink-0'>
 					<motion.span
-						animate={isUrgent ? { x: [-3, 3, -3] } : { rotate: [-5, 5, -5] }}
-						transition={{
-							duration: isUrgent ? 0.3 : 1,
-							repeat: Infinity,
-							ease: 'easeInOut',
-						}}
+						animate={isUrgent ? { x: [-3, 3, -3], transition: { duration: 0.3, repeat: Infinity, ease: 'easeInOut' as const } } : STREAK_FLAME.animate}
 						className='text-icon-xl block'
 					>
 						ðŸ”¥
@@ -115,15 +113,15 @@ export function StreakRiskBanner({
 				<div className='flex flex-col text-center sm:text-left'>
 					<span className='text-base font-display font-bold text-text'>
 						{isUrgent ? (
-							<>âš ï¸ LAST CHANCE! {currentStreak}-day streak ending soon</>
+							<>âš ï¸ LAST CHANCE! <span className='tabular-nums'>{currentStreak}</span>-day streak ending soon</>
 						) : (
-							<>Your {currentStreak}-day streak is at risk!</>
+							<>Your <span className='tabular-nums'>{currentStreak}</span>-day streak is at risk!</>
 						)}
 					</span>
 					<span className='text-sm text-text-secondary'>
 						{isUrgent
-							? `Don't lose ${currentStreak} days of progress!`
-							: 'Cook something today to keep it alive'}
+						? t('srDontLose', { count: currentStreak })
+						: t('srCookToday')}
 					</span>
 				</div>
 
@@ -137,10 +135,10 @@ export function StreakRiskBanner({
 					)}
 				>
 					<Clock className='size-4' />
-					<span className='font-bold'>
+					<span className='font-bold tabular-nums'>
 						{timeRemaining.hours}h {timeRemaining.minutes}m
 					</span>
-					{!isUrgent && <span className='text-xs opacity-80'>left today</span>}
+					{!isUrgent && <span className='text-xs opacity-80'>{t('srLeftToday')}</span>}
 				</div>
 			</div>
 
@@ -163,14 +161,15 @@ export function StreakRiskBanner({
 				) : (
 					<ChefHat className='size-icon-sm' />
 				)}
-				{isUrgent ? 'Save Streak Now!' : 'Quick Cook'}
+				{isUrgent ? t('srSaveNow') : t('srQuickCook')}
 			</motion.button>
 
 			{/* Dismiss Button */}
 			{onDismiss && !isUrgent && (
 				<button
+					type='button'
 					onClick={onDismiss}
-					aria-label='Dismiss'
+					aria-label={t('srDismiss')}
 					className='absolute top-2 right-2 size-7 flex items-center justify-center text-text-secondary opacity-60 hover:opacity-100 transition-opacity'
 				>
 					<X className='size-4' />
@@ -191,6 +190,7 @@ export function StreakSavedToast({
 	isVisible,
 	onClose,
 }: StreakSavedToastProps) {
+	const t = useTranslations('streak')
 	return (
 		<AnimatePresence>
 			{isVisible && (
@@ -230,14 +230,14 @@ export function StreakSavedToast({
 						{/* Content */}
 						<div className='flex flex-col'>
 							<span className='text-base font-display font-extrabold text-success'>
-								{isNewStreak ? 'New Streak Started!' : 'Streak Saved!'}
+							{isNewStreak ? t('stNewStarted') : t('stSaved')}
 							</span>
 							<span className='text-sm text-text'>
 								{isNewStreak ? (
-									<>Day 1 â€” Let&apos;s go!</>
+									<>{t('stDay1')}</>
 								) : (
 									<>
-										<strong>{newStreak} days</strong> and counting
+										{t('stDaysAndCounting', { count: newStreak })}
 									</>
 								)}
 							</span>
@@ -247,10 +247,10 @@ export function StreakSavedToast({
 						{!isNewStreak && bonusXp > 0 && (
 							<div className='flex flex-col items-center rounded-lg bg-success/10 px-4 py-2.5'>
 								<span className='text-2xs text-text-secondary uppercase tracking-wide'>
-									Streak Bonus
+									{t('stBonus')}
 								</span>
 								<span className='text-base font-display font-extrabold text-success'>
-									+{bonusXp} XP
+									{t('sbBonusXp', { count: bonusXp })}
 								</span>
 							</div>
 						)}
@@ -273,6 +273,7 @@ export function StreakMilestoneCard({
 	onShare,
 	className,
 }: StreakMilestoneCardProps) {
+	const t = useTranslations('streak')
 	return (
 		<motion.div
 			initial={{ opacity: 0, scale: 0.95 }}
@@ -301,11 +302,10 @@ export function StreakMilestoneCard({
 			{/* Content */}
 			<div className='flex-1 text-center sm:text-left'>
 				<h3 className='text-lg font-display font-extrabold text-text mb-1'>
-					{days}-Day Streak! ðŸŽ‰
+					{t('smTitle', { count: days })}
 				</h3>
 				<p className='text-sm text-text-secondary mb-3'>
-					You cooked every day for{' '}
-					{days === 7 ? 'a week' : days === 14 ? 'two weeks' : `${days} days`}!
+					{days === 7 ? t('smCookedWeek') : days === 14 ? t('smCookedTwoWeeks') : t('smCookedDays', { count: days })}
 				</p>
 
 				{/* Badge Reward */}
@@ -314,7 +314,7 @@ export function StreakMilestoneCard({
 					<div className='flex flex-col'>
 						<span className='text-sm font-bold text-text'>{badgeName}</span>
 						<span className='text-xs text-text-secondary'>
-							Added to your collection
+						{t('smAddedToCollection')}
 						</span>
 					</div>
 				</div>
@@ -322,9 +322,9 @@ export function StreakMilestoneCard({
 				{/* Next Milestone */}
 				{nextMilestone && (
 					<div className='text-xs text-text-secondary'>
-						<span>Next milestone: </span>
+						<span>{t('smNextMilestone')} </span>
 						<span className='text-streak font-semibold'>
-							{nextMilestone.days}-day streak â†’ {nextMilestone.badgeName}
+							{t('smNextMilestoneDetail', { count: nextMilestone.days, badge: nextMilestone.badgeName })}
 						</span>
 					</div>
 				)}
@@ -360,6 +360,7 @@ export function StreakMilestoneMini({
 	onViewBadge?: () => void
 	className?: string
 }) {
+	const t = useTranslations('streak')
 	return (
 		<motion.div
 			initial={{ opacity: 0, x: -10 }}
@@ -374,14 +375,15 @@ export function StreakMilestoneMini({
 				ðŸ”¥ {days}
 			</span>
 			<span className='flex-1 text-sm font-semibold text-text'>
-				{days}-day streak! You&apos;re on fire!
+				{t('smiOnFire', { count: days })}
 			</span>
 			{onViewBadge && (
 				<button
+					type='button'
 					onClick={onViewBadge}
 					className='py-2 px-3.5 bg-bg-card border border-border rounded-lg text-xs font-semibold text-text hover:bg-border transition-colors'
 				>
-					View Badge
+					{t('smiViewBadge')}
 				</button>
 			)}
 		</motion.div>
@@ -399,6 +401,7 @@ export function StreakWidget({
 	status,
 	className,
 }: StreakWidgetProps) {
+	const t = useTranslations('streak')
 	const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
 	return (
@@ -410,7 +413,7 @@ export function StreakWidget({
 		>
 			{/* Header */}
 			<div className='flex justify-between items-center mb-4'>
-				<span className='text-sm font-bold text-text'>Cooking Streak</span>
+				<span className='text-sm font-bold text-text'>{t('swCookingStreak')}</span>
 				<span
 					className={cn(
 						'py-1 px-2.5 rounded-full text-xs font-bold uppercase tracking-wide',
@@ -419,25 +422,25 @@ export function StreakWidget({
 							: 'bg-streak/15 text-streak',
 					)}
 				>
-					{status === 'active' ? 'Active' : 'At Risk'}
+					{status === 'active' ? t('swActive') : t('swAtRisk')}
 				</span>
 			</div>
 
 			{/* Streak Display */}
 			<div className='flex items-baseline justify-center gap-2 mb-5'>
-				<span className='text-4xl'>ðŸ”¥</span>
+				<motion.span animate={STREAK_FLAME.animate} className='text-4xl'>ðŸ"¥</motion.span>
 				<span className='text-5xl font-black text-streak leading-none'>
 					{currentStreak}
 				</span>
 				<span className='text-base font-semibold text-text-secondary'>
-					days
+					{t('swDays')}
 				</span>
 			</div>
 
 			{/* Week Progress */}
 			<div className='mb-4'>
 				<span className='block text-xs text-text-secondary uppercase tracking-wide mb-2.5 text-center'>
-					This Week
+					{t('swThisWeek')}
 				</span>
 				<div className='flex justify-between gap-1.5'>
 					{weekProgress.map((day, index) => (
@@ -473,12 +476,12 @@ export function StreakWidget({
 					{isActiveToday ? (
 						<>
 							<CheckCircle2 className='size-icon-sm' />
-							Cooked today âœ“
+							{t('swCookedToday')} ✓
 						</>
 					) : (
 						<>
 							<AlertCircle className='size-icon-sm' />
-							Cook today to extend streak
+							{t('swCookToExtend')}
 						</>
 					)}
 				</div>

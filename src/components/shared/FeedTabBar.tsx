@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { LucideIcon, Sparkles, TrendingUp, Users2, Clock } from 'lucide-react'
@@ -104,24 +106,41 @@ export function FeedTabBar<T extends string = string>({
 						aria-selected={isActive}
 						aria-controls={`tabpanel-${tab.key}`}
 						className={cn(
-							'relative flex shrink-0 items-center gap-2 font-semibold transition-all duration-200',
+							'relative flex shrink-0 items-center gap-2 font-semibold transition-colors duration-200',
 							sizes.tab,
 							// Pill variant styles
 							isPill && [
 								'rounded-radius',
 								isActive
-									? 'bg-gradient-brand text-white shadow-card'
+									? 'text-white'
 									: 'text-text-secondary hover:bg-bg-elevated hover:text-text',
 							],
 							// Underline variant styles
 							!isPill && [
 								'-mb-[2px] whitespace-nowrap border-b-[3px]',
 								isActive
-									? 'border-brand text-brand'
+									? 'border-transparent text-brand'
 									: 'border-transparent text-text-secondary hover:bg-bg-hover hover:text-text',
 							],
 						)}
 					>
+						{/* Animated pill background */}
+						{isPill && isActive && (
+							<motion.div
+								layoutId="feed-tab-pill"
+								className='absolute inset-0 rounded-radius bg-gradient-brand shadow-card'
+								transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+							/>
+						)}
+						{/* Animated underline indicator */}
+						{!isPill && isActive && (
+							<motion.div
+								layoutId="feed-tab-underline"
+								className='absolute inset-x-0 -bottom-[2px] h-[3px] rounded-full bg-brand'
+								transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+							/>
+						)}
+						<span className='relative z-10 flex items-center gap-2'>
 						{Icon && <Icon className={sizes.icon} />}
 						{tab.label}
 
@@ -129,7 +148,7 @@ export function FeedTabBar<T extends string = string>({
 						{tab.count !== undefined && (
 							<span
 								className={cn(
-									'rounded-full font-bold',
+									'rounded-full font-bold tabular-nums',
 									sizes.count,
 									isPill
 										? isActive
@@ -146,6 +165,7 @@ export function FeedTabBar<T extends string = string>({
 
 						{/* Custom badge */}
 						{tab.badge}
+						</span>
 					</motion.button>
 				)
 			})}
@@ -173,11 +193,12 @@ export function FeedModeTabBar({
 	onModeChange,
 	className,
 }: FeedModeTabBarProps) {
+	const t = useTranslations('shared')
 	const tabs: TabItem<FeedMode>[] = [
-		{ key: 'forYou', label: 'For You', icon: Sparkles },
-		{ key: 'trending', label: 'Trending', icon: TrendingUp },
-		{ key: 'following', label: 'Following', icon: Users2 },
-		{ key: 'latest', label: 'Latest', icon: Clock },
+		{ key: 'forYou', label: t('ftForYou'), icon: Sparkles },
+		{ key: 'trending', label: t('ftTrending'), icon: TrendingUp },
+		{ key: 'following', label: t('ftFollowing'), icon: Users2 },
+		{ key: 'latest', label: t('ftLatest'), icon: Clock },
 	]
 
 	return (

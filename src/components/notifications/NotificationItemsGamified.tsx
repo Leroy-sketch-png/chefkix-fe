@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Upload, Clock, AlertTriangle, ChefHat, Search, Sun, Apple } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, LIST_ITEM_HOVER } from '@/lib/motion'
 
@@ -156,17 +157,17 @@ type GamifiedNotification =
 // HELPER FUNCTIONS
 // ============================================
 
-const formatTimeAgo = (date: Date): string => {
+const formatTimeAgo = (date: Date, t: ReturnType<typeof useTranslations<'notifications'>>): string => {
 	const now = new Date()
 	const diffMs = now.getTime() - date.getTime()
 	const diffMins = Math.floor(diffMs / 60000)
 	const diffHours = Math.floor(diffMs / 3600000)
 	const diffDays = Math.floor(diffMs / 86400000)
 
-	if (diffMins < 1) return 'Just now'
-	if (diffMins < 60) return `${diffMins} min ago`
-	if (diffHours < 24) return `${diffHours}h ago`
-	if (diffDays === 1) return 'Yesterday'
+	if (diffMins < 1) return t('timeJustNow')
+	if (diffMins < 60) return t('timeMinAgo', { count: diffMins })
+	if (diffHours < 24) return t('timeHAgo', { count: diffHours })
+	if (diffDays === 1) return t('timeYesterday')
 	return `${diffDays}d ago`
 }
 
@@ -220,7 +221,9 @@ const NotifHeader = ({
 	type: string
 	time: Date
 	className?: string
-}) => (
+}) => {
+	const t = useTranslations('notifications')
+	return (
 	<div className='mb-1 flex items-center justify-between'>
 		<span
 			className={cn(
@@ -230,9 +233,10 @@ const NotifHeader = ({
 		>
 			{type}
 		</span>
-		<span className='text-xs text-text-muted'>{formatTimeAgo(time)}</span>
+		<span className='text-xs text-text-muted'>{formatTimeAgo(time, t)}</span>
 	</div>
-)
+	)
+}
 
 const MetaTag = ({
 	children,
@@ -285,7 +289,9 @@ const XPAwardedItem = ({
 	timestamp,
 	isRead,
 	onPost,
-}: XPAwardedNotification) => (
+}: XPAwardedNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-accent-teal'>
@@ -295,16 +301,16 @@ const XPAwardedItem = ({
 
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
-			<NotifHeader type='XP Earned' time={timestamp} />
+			<NotifHeader type={t('typeXPEarned')} time={timestamp} />
 			<p className='text-sm'>
-				You earned <strong className='font-bold text-xp'>+{xpAmount} XP</strong>{' '}
+				You earned <strong className='tabular-nums font-bold text-xp'>+{xpAmount.toLocaleString()} XP</strong>{' '}
 				for completing{' '}
 				<span className='font-semibold text-brand'>{recipeName}</span>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-xp/15 text-xp'>30% instant</MetaTag>
+				<MetaTag className='bg-xp/15 text-xp'>{t('xpInstant')}</MetaTag>
 				<span className='text-xs text-text-muted'>
-					{pendingXp} XP pending â€¢ Post to unlock
+					{t('xpPendingPost', { xp: pendingXp })}
 				</span>
 			</div>
 		</div>
@@ -315,10 +321,11 @@ const XPAwardedItem = ({
 			className='flex-shrink-0 bg-xp text-white shadow-card shadow-xp/30'
 		>
 			<Upload className='size-4' />
-			Post
+			{t('post')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // XP Awarded Full (After Post)
 const XPAwardedFullItem = ({
@@ -327,7 +334,9 @@ const XPAwardedFullItem = ({
 	photoCount,
 	timestamp,
 	isRead,
-}: XPAwardedFullNotification) => (
+}: XPAwardedFullNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
@@ -342,23 +351,24 @@ const XPAwardedFullItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Full XP Unlocked!'
+				type={t('typeFullXP')}
 				time={timestamp}
 				className='text-bonus'
 			/>
 			<p className='text-sm'>
-				<strong className='text-lg font-bold text-xp'>+{xpAmount} XP</strong>{' '}
+				<strong className='tabular-nums text-lg font-bold text-xp'>+{xpAmount.toLocaleString()} XP</strong>{' '}
 				from <span className='font-semibold text-brand'>{recipeName}</span>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-level/15 text-level'>100% earned</MetaTag>
+				<MetaTag className='bg-level/15 text-level'>{t('xp100Earned')}</MetaTag>
 				<span className='text-xs text-text-muted'>
-					Posted with {photoCount} photos
+					{t('postedWithPhotos', { count: photoCount })}
 				</span>
 			</div>
 		</div>
 	</NotifWrapper>
-)
+	)
+}
 
 // Level Up
 const LevelUpItem = ({
@@ -367,7 +377,9 @@ const LevelUpItem = ({
 	recipesToNextLevel,
 	timestamp,
 	isRead,
-}: LevelUpNotification) => (
+}: LevelUpNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper
 		isRead={isRead}
 		className='bg-gradient-to-r from-rare/10 to-combo/5'
@@ -388,23 +400,22 @@ const LevelUpItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Level Up!'
+				type={t('typeLevelUp')}
 				time={timestamp}
 				className='text-sm text-rare'
 			/>
 			<p className='text-sm'>
-				Congratulations! You&apos;ve reached{' '}
-				<strong className='font-bold'>Level {newLevel ?? '?'}</strong>
+				{t('levelUpCongrats', { level: newLevel ?? '?' })}
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				{newGoalXp != null && (
 					<MetaTag className='bg-rare/15 text-rare'>
-						New goal: {newGoalXp.toLocaleString()} XP
+						{t('levelNewGoal', { xp: newGoalXp.toLocaleString() })}
 					</MetaTag>
 				)}
 				{recipesToNextLevel != null && newLevel != null && (
 					<span className='text-xs text-text-muted'>
-						{recipesToNextLevel} recipes to Level {newLevel + 1}
+						{t('levelRecipesToNext', { count: recipesToNextLevel, next: (newLevel ?? 0) + 1 })}
 					</span>
 				)}
 			</div>
@@ -428,7 +439,8 @@ const LevelUpItem = ({
 			))}
 		</div>
 	</NotifWrapper>
-)
+	)
+}
 
 // Badge Unlocked
 const BadgeUnlockedItem = ({
@@ -440,6 +452,7 @@ const BadgeUnlockedItem = ({
 	isRead,
 	onViewBadge,
 }: BadgeUnlockedNotification) => {
+	const t = useTranslations('notifications')
 	const rarity = rarityConfig[badgeRarity]
 
 	return (
@@ -453,7 +466,7 @@ const BadgeUnlockedItem = ({
 			{/* Content */}
 			<div className='min-w-0 flex-1'>
 				<NotifHeader
-					type='New Badge!'
+					type={t('typeNewBadge')}
 					time={timestamp}
 					className='text-bonus'
 				/>
@@ -463,7 +476,7 @@ const BadgeUnlockedItem = ({
 				</p>
 				<div className='mt-2 flex items-center gap-2.5'>
 					<MetaTag className={cn(rarity.bg, rarity.text)}>
-						{rarity.label}
+						{t(`rarity${badgeRarity.charAt(0).toUpperCase() + badgeRarity.slice(1)}`)}
 					</MetaTag>
 					<span className='text-xs text-text-muted'>{requirement}</span>
 				</div>
@@ -474,7 +487,7 @@ const BadgeUnlockedItem = ({
 				onClick={onViewBadge}
 				className='flex-shrink-0 border border-bonus/30 bg-bonus/10 text-legendary hover:bg-bonus/20'
 			>
-				View Badge
+				{t('viewBadge')}
 			</ActionButton>
 		</NotifWrapper>
 	)
@@ -487,7 +500,9 @@ const BadgeSurpriseItem = ({
 	percentOwned,
 	timestamp,
 	isRead,
-}: BadgeSurpriseNotification) => (
+}: BadgeSurpriseNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper
 		isRead={isRead}
 		className='bg-gradient-to-r from-rare/10 to-combo/5'
@@ -506,7 +521,7 @@ const BadgeSurpriseItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Surprise Badge!'
+				type={t('typeSurpriseBadge')}
 				time={timestamp}
 				className='text-rare'
 			/>
@@ -516,15 +531,16 @@ const BadgeSurpriseItem = ({
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-gradient-to-r from-rare to-combo text-white'>
-					Ultra Rare
+					{t('rarityUltraRare')}
 				</MetaTag>
 				<span className='text-xs text-text-muted'>
-					Only {percentOwned}% of cooks have this
+					{t('badgePercentOwned', { percent: percentOwned })}
 				</span>
 			</div>
 		</div>
 	</NotifWrapper>
-)
+	)
+}
 
 // Creator Bonus
 const CreatorBonusItem = ({
@@ -537,7 +553,9 @@ const CreatorBonusItem = ({
 	timestamp,
 	isRead,
 	onViewPost,
-}: CreatorBonusNotification) => (
+}: CreatorBonusNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead} className='bg-info/5'>
 		{/* Avatar */}
 		<div className='relative flex-shrink-0'>
@@ -556,19 +574,19 @@ const CreatorBonusItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Recipe Cooked!'
+				type={t('typeRecipeCooked')}
 				time={timestamp}
 				className='text-info'
 			/>
 			<p className='text-sm'>
-				<strong className='font-bold'>@{cookerUsername}</strong> cooked your{' '}
+				{t('creatorCookedYour', { username: cookerUsername })}{' '}
 				<span className='font-semibold text-brand'>{recipeName}</span>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-xp/15 text-xp'>+{xpBonus} XP bonus</MetaTag>
+				<MetaTag className='bg-xp/15 text-xp'>{t('xpBonus', { amount: xpBonus })}</MetaTag>
 				{totalCookRewards != null && (
 					<span className='text-xs text-text-muted'>
-						Your {totalCookRewards}th cook reward
+						{t('creatorCookReward', { count: totalCookRewards })}
 					</span>
 				)}
 			</div>
@@ -579,10 +597,11 @@ const CreatorBonusItem = ({
 			onClick={onViewPost}
 			className='flex-shrink-0 border border-info/30 bg-info/10 text-info hover:bg-info/20'
 		>
-			See Their Post
+			{t('seeTheirPost')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // Post Deadline Normal
 const PostDeadlineItem = ({
@@ -592,7 +611,9 @@ const PostDeadlineItem = ({
 	timestamp,
 	isRead,
 	onPostNow,
-}: PostDeadlineNotification) => (
+}: PostDeadlineNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted text-white'>
@@ -602,16 +623,15 @@ const PostDeadlineItem = ({
 
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
-			<NotifHeader type='Post Reminder' time={timestamp} />
+			<NotifHeader type={t('typePostReminder')} time={timestamp} />
 			<p className='text-sm'>
-				<span className='font-semibold text-brand'>{recipeName}</span> is
-				waiting to be posted
+				{t('postWaiting', { name: recipeName })}
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-text-secondary/15 text-text-secondary'>
-					{daysRemaining} days left
+					{t('daysLeft', { count: daysRemaining })}
 				</MetaTag>
-				<span className='text-xs text-text-muted'>{pendingXp} XP at stake</span>
+				<span className='text-xs text-text-muted'>{t('xpAtStake', { xp: pendingXp })}</span>
 			</div>
 		</div>
 
@@ -620,10 +640,11 @@ const PostDeadlineItem = ({
 			onClick={onPostNow}
 			className='flex-shrink-0 bg-brand text-white'
 		>
-			Post Now
+			{t('postNow')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // Post Deadline Urgent
 const PostDeadlineUrgentItem = ({
@@ -635,7 +656,9 @@ const PostDeadlineUrgentItem = ({
 	timestamp,
 	isRead,
 	onPostNow,
-}: PostDeadlineUrgentNotification) => (
+}: PostDeadlineUrgentNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper
 		isRead={isRead}
 		className='border-l-4 border-l-error bg-error/10'
@@ -653,21 +676,20 @@ const PostDeadlineUrgentItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='âš ï¸ Deadline Soon!'
+				type={t('typeDeadlineSoon')}
 				time={timestamp}
 				className='text-error'
 			/>
 			<p className='text-sm'>
-				<span className='font-semibold text-brand'>{recipeName}</span> expires
-				in{' '}
-				<strong className='font-bold text-error'>{daysRemaining} days</strong>
+				{t('deadlineExpires', { name: recipeName })}{' '}
+				<strong className='font-bold text-error'>{t('daysCount', { count: daysRemaining })}</strong>
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-error/15 text-error'>
-					{decayPercent}% decay active
+					{t('decayActive', { percent: decayPercent })}
 				</MetaTag>
 				<span className='text-xs text-text-muted'>
-					Only {pendingXp} XP remaining of {originalXp}
+					{t('xpRemainingOf', { pending: pendingXp, original: originalXp })}
 				</span>
 			</div>
 		</div>
@@ -681,10 +703,11 @@ const PostDeadlineUrgentItem = ({
 			transition={{ duration: 1, repeat: Infinity }}
 			className='flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white'
 		>
-			Post Now!
+			{t('postNowUrgent')}
 		</motion.button>
 	</NotifWrapper>
-)
+	)
+}
 
 // Streak Warning
 const StreakWarningItem = ({
@@ -693,7 +716,9 @@ const StreakWarningItem = ({
 	timestamp,
 	isRead,
 	onFindRecipe,
-}: StreakWarningNotification) => (
+}: StreakWarningNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper
 		isRead={isRead}
 		className='border-l-4 border-l-streak bg-streak/10'
@@ -711,19 +736,18 @@ const StreakWarningItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Streak at Risk!'
+				type={t('typeStreakRisk')}
 				time={timestamp}
 				className='text-streak'
 			/>
 			<p className='text-sm'>
-				Cook something today to keep your{' '}
-				<strong className='font-bold'>{streakCount}-day streak</strong> alive!
+				{t('streakKeepAlive', { count: streakCount })}
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-streak/15 text-streak'>
-					{hoursRemaining} hours left
+					{t('hoursLeft', { count: hoursRemaining })}
 				</MetaTag>
-				<span className='text-xs text-text-muted'>Quick recipes available</span>
+				<span className='text-xs text-text-muted'>{t('quickRecipesAvailable')}</span>
 			</div>
 		</div>
 
@@ -733,10 +757,11 @@ const StreakWarningItem = ({
 			className='flex-shrink-0 bg-streak text-white'
 		>
 			<Search className='size-4' />
-			Find Recipe
+			{t('findRecipe')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // Streak Lost
 const StreakLostItem = ({
@@ -745,7 +770,9 @@ const StreakLostItem = ({
 	timestamp,
 	isRead,
 	onStartNewStreak,
-}: StreakLostNotification) => (
+}: StreakLostNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead} className='opacity-80'>
 		{/* Icon */}
 		<div className='flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
@@ -755,20 +782,19 @@ const StreakLostItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Streak Lost'
+				type={t('typeStreakLost')}
 				time={timestamp}
 				className='text-text-secondary'
 			/>
 			<p className='text-sm'>
-				Your {lostStreakCount}-day streak has ended. Don&apos;t worry, start
-				fresh!
+				{t('streakLostMsg', { count: lostStreakCount })}
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-text-secondary/15 text-text-secondary'>
-					Best: {bestStreak} days
+					{t('streakBest', { count: bestStreak })}
 				</MetaTag>
 				<span className='text-xs text-text-muted'>
-					New streak starts with your next cook
+					{t('streakNewStarts')}
 				</span>
 			</div>
 		</div>
@@ -778,10 +804,11 @@ const StreakLostItem = ({
 			onClick={onStartNewStreak}
 			className='flex-shrink-0 border border-streak/30 bg-streak/10 text-streak hover:bg-streak hover:text-white'
 		>
-			Start New Streak
+			{t('startNewStreak')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // Challenge Reminder
 const ChallengeReminderItem = ({
@@ -792,7 +819,9 @@ const ChallengeReminderItem = ({
 	timestamp,
 	isRead,
 	onSeeRecipes,
-}: ChallengeReminderNotification) => (
+}: ChallengeReminderNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead} className='bg-xp/10'>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-rare'>
@@ -807,7 +836,7 @@ const ChallengeReminderItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Daily Challenge'
+				type={t('typeDailyChallenge')}
 				time={timestamp}
 				className='text-xp'
 			/>
@@ -816,9 +845,9 @@ const ChallengeReminderItem = ({
 				{challengeDescription}
 			</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-xp/15 text-xp'>+{xpBonusPercent}% XP</MetaTag>
+				<MetaTag className='bg-xp/15 text-xp'>{t('challengeXPBonus', { percent: xpBonusPercent })}</MetaTag>
 				<span className='text-xs text-text-muted'>
-					Ends in {hoursRemaining} hours
+					{t('endsInHours', { count: hoursRemaining })}
 				</span>
 			</div>
 		</div>
@@ -828,10 +857,11 @@ const ChallengeReminderItem = ({
 			onClick={onSeeRecipes}
 			className='flex-shrink-0 bg-xp text-white shadow-card shadow-xp/30'
 		>
-			See Recipes
+			{t('seeRecipes')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // Weekend Nudge
 const WeekendNudgeItem = ({
@@ -839,7 +869,9 @@ const WeekendNudgeItem = ({
 	timestamp,
 	isRead,
 	onExplore,
-}: WeekendNudgeNotification) => (
+}: WeekendNudgeNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead} className='bg-bonus/5'>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-streak'>
@@ -854,14 +886,14 @@ const WeekendNudgeItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Weekend Cooking'
+				type={t('typeWeekendCooking')}
 				time={timestamp}
 				className='text-bonus'
 			/>
 			<p className='text-sm'>{content}</p>
 			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-bonus/15 text-bonus'>Weekend Bonus</MetaTag>
-				<span className='text-xs text-text-muted'>Time to get cooking!</span>
+				<MetaTag className='bg-bonus/15 text-bonus'>{t('weekendBonus')}</MetaTag>
+				<span className='text-xs text-text-muted'>{t('timeToGetCooking')}</span>
 			</div>
 		</div>
 
@@ -871,10 +903,11 @@ const WeekendNudgeItem = ({
 			className='flex-shrink-0 bg-bonus text-white shadow-card shadow-bonus/30'
 		>
 			<Search className='size-4' />
-			Explore
+			{t('explore')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // Pantry Expiring
 const PantryExpiringItem = ({
@@ -883,7 +916,9 @@ const PantryExpiringItem = ({
 	timestamp,
 	isRead,
 	onViewPantry,
-}: PantryExpiringNotification) => (
+}: PantryExpiringNotification) => {
+	const t = useTranslations('notifications')
+	return (
 	<NotifWrapper isRead={isRead} className='bg-streak/5'>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-streak to-error/80'>
@@ -894,17 +929,17 @@ const PantryExpiringItem = ({
 		{/* Content */}
 		<div className='min-w-0 flex-1'>
 			<NotifHeader
-				type='Pantry Alert'
+				type={t('typePantryAlert')}
 				time={timestamp}
 				className='text-streak'
 			/>
 			<p className='text-sm'>{content}</p>
 			<div className='mt-2 flex items-center gap-2.5'>
 				<MetaTag className='bg-streak/15 text-streak'>
-					{daysRemaining} days left
+					{t('daysLeft', { count: daysRemaining })}
 				</MetaTag>
 				<span className='text-xs text-text-muted'>
-					Cook before they expire!
+					{t('cookBeforeExpire')}
 				</span>
 			</div>
 		</div>
@@ -914,10 +949,11 @@ const PantryExpiringItem = ({
 			onClick={onViewPantry}
 			className='flex-shrink-0 border border-streak/30 bg-streak/10 text-streak hover:bg-streak hover:text-white'
 		>
-			View Pantry
+			{t('viewPantry')}
 		</ActionButton>
 	</NotifWrapper>
-)
+	)
+}
 
 // ============================================
 // MAIN EXPORT

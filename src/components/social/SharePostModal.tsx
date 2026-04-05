@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	X,
@@ -33,6 +34,7 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 	CARD_HOVER,
+	LIST_ITEM_TAP,
 } from '@/lib/motion'
 
 interface SharePostModalProps {
@@ -75,6 +77,7 @@ export const SharePostModal = ({
 	>(new Set())
 	const [isSending, setIsSending] = useState(false)
 	const [customMessage, setCustomMessage] = useState('')
+	const t = useTranslations('social')
 
 	useEscapeKey(isOpen, onClose)
 
@@ -91,7 +94,7 @@ export const SharePostModal = ({
 				}
 			} catch (error) {
 				logDevError('Failed to fetch share suggestions:', error)
-				toast.error('Failed to load conversations')
+				toast.error(t('shareLoadFailed'))
 			} finally {
 				setIsLoading(false)
 			}
@@ -203,7 +206,7 @@ export const SharePostModal = ({
 					onClick={onClose}
 				>
 					<motion.div
-						className='relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-bg-card shadow-2xl sm:max-h-[90vh] sm:rounded-2xl'
+						className='relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-bg-card shadow-modal sm:max-h-[90vh] sm:rounded-2xl'
 						variants={modalVariants}
 						initial='hidden'
 						animate='visible'
@@ -232,7 +235,7 @@ export const SharePostModal = ({
 									className='grid size-8 flex-shrink-0 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9'
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
-									aria-label='Close share modal'
+									aria-label={t('shareCloseLabel')}
 								>
 									<X className='size-4 sm:size-5' />
 								</motion.button>
@@ -254,8 +257,9 @@ export const SharePostModal = ({
 											<div className='relative size-16 flex-shrink-0 overflow-hidden rounded-lg ring-2 ring-brand/20 sm:size-20'>
 												<Image
 													src={postImage}
-													alt='Post preview'
+													alt={t('sharePostPreviewAlt')}
 													fill
+													sizes='(max-width: 640px) 64px, 80px'
 													className='object-cover'
 												/>
 											</div>
@@ -281,7 +285,7 @@ export const SharePostModal = ({
 								<div className='relative'>
 									<Search className='absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-text-muted sm:size-4' />
 									<Input
-										placeholder='Search by name...'
+										placeholder={t('shareSearchPlaceholder')}
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
 										className='h-10 bg-bg-elevated pl-9 text-sm placeholder:text-text-muted sm:h-auto sm:pl-10'
@@ -295,7 +299,7 @@ export const SharePostModal = ({
 									<div className='flex flex-col items-center justify-center gap-3 py-12 sm:py-16'>
 										<Loader2 className='size-7 animate-spin text-brand sm:size-8' />
 										<p className='text-xs text-text-secondary sm:text-sm'>
-											Loading conversations...
+										{t('shareLoadingConversations')}
 										</p>
 									</div>
 								) : filteredConversations.length === 0 ? (
@@ -305,12 +309,12 @@ export const SharePostModal = ({
 										</div>
 										<div>
 											<p className='text-sm font-semibold text-text sm:text-base'>
-												{searchQuery ? 'No matches found' : 'No recent chats'}
-											</p>
-											<p className='text-xs text-text-muted sm:text-sm'>
-												{searchQuery
-													? 'Try a different search term'
-													: 'Start a conversation first!'}
+											{searchQuery ? t('shareNoMatches') : t('shareNoRecentChats')}
+										</p>
+										<p className='text-xs text-text-muted sm:text-sm'>
+											{searchQuery
+												? t('shareTryDifferentSearch')
+												: t('shareStartConversation')}
 											</p>
 										</div>
 									</div>
@@ -346,7 +350,7 @@ export const SharePostModal = ({
 													)}
 													variants={listItemVariants}
 													whileHover={CARD_HOVER}
-													whileTap={{ scale: 0.98 }}
+													whileTap={LIST_ITEM_TAP}
 												>
 													{/* Selection glow effect */}
 													{isSelected && (
@@ -456,7 +460,7 @@ export const SharePostModal = ({
 							<div className='border-t border-border-subtle p-3 sm:p-4'>
 								<div className='relative'>
 									<Input
-										placeholder='Add a personal message (optional)...'
+										placeholder={t('sharePersonalMessagePlaceholder')}
 										value={customMessage}
 										onChange={e => setCustomMessage(e.target.value)}
 										maxLength={200}
@@ -475,7 +479,7 @@ export const SharePostModal = ({
 								</div>
 								<p className='mt-2 flex items-center gap-1.5 text-xs text-text-muted'>
 									<Sparkles className='size-3' />
-									Leave empty for auto-generated caption
+							{t('shareAutoCaption')}
 								</p>
 							</div>
 						</div>
@@ -493,13 +497,13 @@ export const SharePostModal = ({
 											</div>
 											<p className='text-xs font-medium text-text sm:text-sm'>
 												{selectedConversations.size === 1
-													? 'conversation selected'
-													: 'conversations selected'}
+													? t('shareConversationSelected')
+													: t('shareConversationsSelected')}
 											</p>
 										</>
 									) : (
 										<p className='text-xs text-text-muted sm:text-sm'>
-											Select who to share with
+											{t('shareSelectWho')}
 										</p>
 									)}
 								</div>
@@ -511,13 +515,13 @@ export const SharePostModal = ({
 									{isSending ? (
 										<>
 											<Loader2 className='size-4 animate-spin' />
-											<span className='text-sm'>Sharing...</span>
+									<span className='text-sm'>{t('shareSharing')}</span>
 										</>
 									) : (
 										<>
 											<Send className='size-4' />
 											<span className='text-sm'>
-												Share ({selectedConversations.size})
+												{t('shareButton', { count: selectedConversations.size })}
 											</span>
 										</>
 									)}

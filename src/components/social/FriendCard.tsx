@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { Profile, getProfileDisplayName } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { UserMinus, MessageCircle, Loader2, Trophy, Book } from 'lucide-react'
@@ -27,6 +28,7 @@ interface FriendCardProps {
  * "Unfriend" = unfollow them (breaks the mutual connection).
  */
 export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
+	const t = useTranslations('social')
 	const [isUnfollowing, setIsUnfollowing] = useState(false)
 	const [showUnfollowConfirm, setShowUnfollowConfirm] = useState(false)
 	const displayName = getProfileDisplayName(profile)
@@ -43,13 +45,13 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 			const response = await toggleFollow(profile.userId)
 
 			if (response.success) {
-				toast.success(`You unfollowed ${displayName}`)
+				toast.success(t('unfollowSuccess', { name: displayName }))
 				onUnfollow?.(profile.userId)
 			} else {
-				toast.error(response.message || 'Failed to unfollow user')
+				toast.error(response.message || t('failedUnfollow'))
 			}
 		} catch {
-			toast.error('Network error. Please check your connection and try again.')
+			toast.error(t('networkErrorConnection'))
 		} finally {
 			setIsUnfollowing(false)
 		}
@@ -61,10 +63,10 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 			<ConfirmDialog
 				open={showUnfollowConfirm}
 				onOpenChange={setShowUnfollowConfirm}
-				title={`Unfollow ${displayName}?`}
-				description='This will remove them from your friends list.'
-				confirmLabel='Unfollow'
-				cancelLabel='Cancel'
+				title={t('unfollowTitle', { name: displayName })}
+				description={t('unfollowDescription')}
+				confirmLabel={t('unfollow')}
+				cancelLabel={t('commentDeleteCancel')}
 				variant='destructive'
 				onConfirm={handleConfirmUnfollow}
 			/>
@@ -110,12 +112,12 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 								<div className='mt-1 flex gap-md text-xs text-text-secondary'>
 									<span className='flex items-center gap-xs'>
 										<Book className='size-3' />
-										{profile.statistics.recipeCount} recipes
+										{t('recipesCount', { count: profile.statistics.recipeCount })}
 									</span>
 									{profile.statistics.currentXP !== undefined && (
 										<span className='flex items-center gap-xs'>
 											<Trophy className='size-3' />
-											{profile.statistics.currentXP} XP
+											{t('xpCount', { count: profile.statistics.currentXP })}
 										</span>
 									)}
 								</div>
@@ -140,7 +142,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 							onClick={handleUnfollow}
 							disabled={isUnfollowing}
 							className='hover:bg-destructive/10 hover:text-destructive'
-							aria-label='Unfollow user'
+							aria-label={t('unfollowUser')}
 						>
 							{isUnfollowing ? (
 								<Loader2 className='size-4 animate-spin' />

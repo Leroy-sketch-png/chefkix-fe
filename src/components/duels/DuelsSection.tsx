@@ -38,6 +38,7 @@ import type { Recipe } from '@/lib/types/recipe'
 import { getProfileDisplayName } from '@/lib/types/profile'
 import { TRANSITION_SPRING, CARD_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // STATUS HELPERS
@@ -121,6 +122,7 @@ function DuelCard({
 		? duel.opponentAvatar
 		: duel.challengerAvatar
 	const meta = STATUS_META[duel.status] ?? STATUS_META.Pending
+	const t = useTranslations('duels')
 
 	const myScore = isChallenger ? duel.challengerScore : duel.opponentScore
 	const theirScore = isChallenger ? duel.opponentScore : duel.challengerScore
@@ -129,38 +131,41 @@ function DuelCard({
 
 	const handleAccept = async () => {
 		setActing(true)
-		const result = await acceptDuel(duel.id)
-		if (result) {
-			toast.success('Duel accepted! Time to cook!')
+		try {
+			await acceptDuel(duel.id)
+			toast.success(t('toastAccepted'))
 			onAction()
-		} else {
-			toast.error('Failed to accept duel')
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : t('toastFailed'))
+		} finally {
+			setActing(false)
 		}
-		setActing(false)
 	}
 
 	const handleDecline = async () => {
 		setActing(true)
-		const result = await declineDuel(duel.id)
-		if (result) {
-			toast.success('Duel declined')
+		try {
+			await declineDuel(duel.id)
+			toast.success(t('toastDeclined'))
 			onAction()
-		} else {
-			toast.error('Failed to decline duel')
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : t('toastFailed'))
+		} finally {
+			setActing(false)
 		}
-		setActing(false)
 	}
 
 	const handleCancel = async () => {
 		setActing(true)
-		const result = await cancelDuel(duel.id)
-		if (result) {
-			toast.success('Duel cancelled')
+		try {
+			await cancelDuel(duel.id)
+			toast.success(t('toastCancelled'))
 			onAction()
-		} else {
-			toast.error('Failed to cancel duel')
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : t('toastFailed'))
+		} finally {
+			setActing(false)
 		}
-		setActing(false)
 	}
 
 	return (
@@ -214,7 +219,7 @@ function DuelCard({
 				<div className='mb-3 rounded-xl bg-bg-elevated p-3'>
 					<div className='flex items-center justify-between'>
 						<div className='text-center'>
-							<p className='text-xs text-text-muted'>You</p>
+							<p className='text-xs text-text-muted'>{t('youLabel')}</p>
 							<p
 								className={`text-2xl font-bold ${isWinner ? 'text-medal-gold' : 'text-text'}`}
 							>
@@ -224,15 +229,15 @@ function DuelCard({
 						<div className='text-center'>
 							{isDraw ? (
 								<span className='rounded-full bg-warning/10 px-3 py-1 text-sm font-bold text-warning'>
-									Draw
+									{t('draw')}
 								</span>
 							) : isWinner ? (
 								<span className='rounded-full bg-success/10 px-3 py-1 text-sm font-bold text-success'>
-									Won!
+									{t('won')}
 								</span>
 							) : (
 								<span className='rounded-full bg-error/10 px-3 py-1 text-sm font-bold text-error'>
-									Lost
+									{t('lost')}
 								</span>
 							)}
 						</div>
@@ -247,7 +252,7 @@ function DuelCard({
 					</div>
 					{duel.bonusXp > 0 && isWinner && (
 						<p className='mt-2 text-center text-sm font-semibold text-xp'>
-							+{duel.bonusXp} bonus XP
+							{t('bonusXP', {n: duel.bonusXp})}
 						</p>
 					)}
 				</div>
@@ -264,14 +269,14 @@ function DuelCard({
 			{duel.status === 'Pending' && duel.acceptDeadline && (
 				<p className='mb-3 flex items-center gap-1.5 text-xs text-text-muted'>
 					<Clock className='size-3.5' />
-					Accept within {formatDeadline(duel.acceptDeadline)}
+					{t('acceptWithin', {time: formatDeadline(duel.acceptDeadline)})}
 				</p>
 			)}
 			{(duel.status === 'Accepted' || duel.status === 'In Progress') &&
 				duel.cookDeadline && (
 					<p className='mb-3 flex items-center gap-1.5 text-xs text-text-muted'>
 						<Clock className='size-3.5' />
-						Cook within {formatDeadline(duel.cookDeadline)}
+						{t('cookWithin', {time: formatDeadline(duel.cookDeadline)})}
 					</p>
 				)}
 
@@ -357,6 +362,7 @@ function CreateDuelModal({
 	onClose: () => void
 	onCreated: () => void
 }) {
+	const t = useTranslations('duels')
 	const [step, setStep] = useState<'friend' | 'recipe' | 'confirm'>('friend')
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [friendSearch, setFriendSearch] = useState('')
@@ -429,22 +435,23 @@ function CreateDuelModal({
 	const handleSubmit = async () => {
 		if (!selectedFriend || !selectedRecipe) return
 		setSubmitting(true)
-		const request: CreateDuelRequest = {
-			opponentId: selectedFriend.userId,
-			recipeId: selectedRecipe.id,
-			...(message.trim() && { message: message.trim() }),
-		}
-		const result = await createDuel(request)
-		if (result) {
+		try {
+			const request: CreateDuelRequest = {
+				opponentId: selectedFriend.userId,
+				recipeId: selectedRecipe.id,
+				...(message.trim() && { message: message.trim() }),
+			}
+			await createDuel(request)
 			toast.success(
 				`Challenge sent to ${getProfileDisplayName(selectedFriend)}!`,
 			)
 			onCreated()
 			onClose()
-		} else {
-			toast.error('Failed to send challenge')
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : t('toastFailedSend'))
+		} finally {
+			setSubmitting(false)
 		}
-		setSubmitting(false)
 	}
 
 	if (!isOpen) return null
@@ -472,7 +479,9 @@ function CreateDuelModal({
 							</h2>
 						</div>
 						<button
+							type='button'
 							onClick={onClose}
+							aria-label={t('closeModal')}
 							className='rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-elevated'
 						>
 							<X className='size-5' />
@@ -501,7 +510,7 @@ function CreateDuelModal({
 									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 									<input
 										type='text'
-										placeholder='Search friends...'
+										placeholder={t('searchFriends')}
 										value={friendSearch}
 										onChange={e => setFriendSearch(e.target.value)}
 										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
@@ -573,7 +582,7 @@ function CreateDuelModal({
 									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 									<input
 										type='text'
-										placeholder='Search recipes...'
+										placeholder={t('searchRecipes')}
 										value={recipeSearch}
 										onChange={e => setRecipeSearch(e.target.value)}
 										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
@@ -638,10 +647,11 @@ function CreateDuelModal({
 									</div>
 								)}
 								<button
+									type='button'
 									onClick={() => setStep('friend')}
 									className='text-sm font-medium text-brand hover:underline'
 								>
-									&larr; Back to friends
+									{t('backToFriends')}
 								</button>
 							</div>
 						)}
@@ -659,20 +669,20 @@ function CreateDuelModal({
 									</div>
 									<div className='space-y-2 text-sm'>
 										<div className='flex items-center justify-between'>
-											<span className='text-text-secondary'>Opponent</span>
+											<span className='text-text-secondary'>{t('opponent')}</span>
 											<span className='font-medium text-text'>
 												{getProfileDisplayName(selectedFriend)}
 											</span>
 										</div>
 										<div className='flex items-center justify-between'>
-											<span className='text-text-secondary'>Recipe</span>
+											<span className='text-text-secondary'>{t('recipe')}</span>
 											<span className='font-medium text-text'>
 												{selectedRecipe.title}
 											</span>
 										</div>
 										<div className='flex items-center justify-between'>
-											<span className='text-text-secondary'>Bonus XP</span>
-											<span className='font-semibold text-xp'>+50 XP</span>
+											<span className='text-text-secondary'>{t('bonusXpLabel')}</span>
+											<span className='font-semibold text-xp'>{t('bonusXpValue')}</span>
 										</div>
 									</div>
 								</div>
@@ -684,7 +694,7 @@ function CreateDuelModal({
 									</label>
 									<input
 										type='text'
-										placeholder='Think you can beat me?'
+										placeholder={t('trashTalkPlaceholder')}
 										value={message}
 										onChange={e => setMessage(e.target.value)}
 										maxLength={200}
@@ -695,6 +705,7 @@ function CreateDuelModal({
 								{/* Actions */}
 								<div className='flex gap-2'>
 									<button
+										type='button'
 										onClick={() => setStep('recipe')}
 										className='flex-1 rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated'
 									>
@@ -731,6 +742,7 @@ export function DuelsSection() {
 	const [loading, setLoading] = useState(true)
 	const [showCreate, setShowCreate] = useState(false)
 	const [showHistory, setShowHistory] = useState(false)
+	const t = useTranslations('duels')
 
 	const loadDuels = async () => {
 		setLoading(true)
@@ -771,7 +783,7 @@ export function DuelsSection() {
 			<div className='mb-4 flex items-center justify-between'>
 				<div className='flex items-center gap-2'>
 					<Swords className='size-5 text-brand' />
-					<h2 className='text-lg font-bold text-text'>Cooking Duels</h2>
+					<h2 className='text-lg font-bold text-text'>{t('title')}</h2>
 					{invites.length > 0 && (
 						<span className='flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
 							{invites.length}
@@ -798,7 +810,7 @@ export function DuelsSection() {
 			  history.length === 0 ? (
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
 					<Swords className='mx-auto mb-3 size-10 text-text-muted' />
-					<p className='mb-1 font-semibold text-text'>No duels yet</p>
+					<p className='mb-1 font-semibold text-text'>{t('noDuels')}</p>
 					<p className='mb-4 text-sm text-text-secondary'>
 						Challenge a friend to a 1v1 cooking battle!
 					</p>
@@ -817,7 +829,7 @@ export function DuelsSection() {
 					{invites.length > 0 && (
 						<div>
 							<p className='mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-								Incoming Challenges
+								{t('incomingChallenges')}
 							</p>
 							<div className='space-y-3'>
 								{invites.map(duel => (
@@ -836,7 +848,7 @@ export function DuelsSection() {
 					{activeDuels.length > 0 && (
 						<div>
 							<p className='mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-								Active Duels
+								{t('activeDuels')}
 							</p>
 							<div className='space-y-3'>
 								{activeDuels.map(duel => (
@@ -855,11 +867,12 @@ export function DuelsSection() {
 					{history.length > 0 && (
 						<div>
 							<button
+								type='button'
 								onClick={() => setShowHistory(v => !v)}
 								className='mb-2 flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text'
 							>
 								<Trophy className='size-4' />
-								Past Duels ({history.length})
+								{t('pastDuels')} ({history.length})
 								<ChevronRight
 									className={`size-4 transition-transform ${showHistory ? 'rotate-90' : ''}`}
 								/>

@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import {
 	ChevronUp,
 	ChevronDown,
@@ -94,6 +95,7 @@ function LeagueHeader({
 	leagueInfo: LeagueInfo
 	onLeagueInfo?: () => void
 }) {
+	const t = useTranslations('leaderboard')
 	const config = leagueConfig[leagueInfo.tier]
 
 	return (
@@ -116,10 +118,10 @@ function LeagueHeader({
 							config.textColor,
 						)}
 					>
-						{leagueInfo.tier} League
+						{t('leagueTier', {tier: leagueInfo.tier})}
 					</span>
 					<span className='text-xs text-text-tertiary'>
-						Week {leagueInfo.week}
+						{t('leagueWeek', {n: leagueInfo.week})}
 					</span>
 				</div>
 			</motion.div>
@@ -143,6 +145,7 @@ function LeagueHeader({
 // ============================================================================
 
 function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
+	const t = useTranslations('leaderboard')
 	const config = leagueConfig[leagueInfo.tier]
 
 	return (
@@ -151,19 +154,19 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-success/10 rounded-lg text-xs font-semibold text-success'>
 					<ChevronUp className='size-3.5' />
 					<span>
-						Top {leagueInfo.promotionRanks} promote to {leagueInfo.nextTier}
+						{t('topNPromote', {n: leagueInfo.promotionRanks, tier: leagueInfo.nextTier})}
 					</span>
 				</div>
 			)}
 			<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-info/10 rounded-lg text-xs font-semibold text-info'>
 				<Shield className='size-3.5' />
-				<span>Safe zone</span>
+				<span>{t('safeZone')}</span>
 			</div>
 			{leagueInfo.prevTier && (
 				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-error/10 rounded-lg text-xs font-semibold text-error'>
 					<ChevronDown className='size-3.5' />
 					<span>
-						Bottom {leagueInfo.demotionRanks} demote to {leagueInfo.prevTier}
+						{t('bottomNDemote', {n: leagueInfo.demotionRanks, tier: leagueInfo.prevTier})}
 					</span>
 				</div>
 			)}
@@ -253,6 +256,7 @@ function ZoneSection({
 // ============================================================================
 
 function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
+	const t = useTranslations('leaderboard')
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -260,7 +264,7 @@ function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 			className='flex items-center justify-center gap-2 py-3 bg-error/10 rounded-lg text-sm text-error'
 		>
 			<AlertTriangle className='size-4' />
-			<span>+{xpNeeded} XP needed to leave demotion zone</span>
+			<span>{t('xpToLeave', {xp: xpNeeded})}</span>
 		</motion.div>
 	)
 }
@@ -278,6 +282,7 @@ export function LeagueLeaderboard({
 	onLeagueInfo,
 	className,
 }: LeagueLeaderboardProps) {
+	const t = useTranslations('leaderboard')
 	const totalEntries = entries.length
 	const promotionThreshold = leagueInfo.promotionRanks
 	const demotionThreshold = totalEntries - leagueInfo.demotionRanks

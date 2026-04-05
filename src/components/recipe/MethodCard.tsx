@@ -27,6 +27,7 @@ export const MethodCard = ({
 	onClick,
 }: MethodCardProps) => (
 	<button
+		type='button'
 		onClick={onClick}
 		className={cn(
 			'relative flex items-center gap-3.5 rounded-2xl border-2 p-5 text-left transition-all',

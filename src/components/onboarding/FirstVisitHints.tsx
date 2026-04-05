@@ -217,6 +217,7 @@ function HintOverlay() {
 							{/* Header */}
 							<div className='relative bg-gradient-to-br from-brand/10 to-streak/10 px-5 py-4'>
 								<button
+									type='button'
 									onClick={dismissHint}
 									className='absolute right-3 top-3 flex size-7 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 									aria-label='Close hint'
@@ -246,6 +247,7 @@ function HintOverlay() {
 							{/* Footer */}
 							<div className='flex items-center justify-between border-t border-border-subtle px-5 py-3'>
 								<button
+									type='button'
 									onClick={dismissAllHints}
 									className='text-xs text-text-muted transition-colors hover:text-text-secondary'
 								>
@@ -254,6 +256,7 @@ function HintOverlay() {
 
 								{activeHint.action ? (
 									<button
+										type='button'
 										onClick={() => {
 											activeHint.action?.onClick()
 											dismissHint()
@@ -265,6 +268,7 @@ function HintOverlay() {
 									</button>
 								) : (
 									<button
+										type='button'
 										onClick={dismissHint}
 										className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90'
 									>

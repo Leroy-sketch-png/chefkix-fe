@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useTranslations } from 'next-intl'
 
 // ============================================================================
 // TYPES
@@ -32,6 +33,7 @@ export function StreakBrokenModal({
 	onStartNewStreak,
 	onDismiss,
 }: StreakBrokenModalProps) {
+	const t = useTranslations('streak')
 	useEscapeKey(isOpen, onDismiss ?? (() => {}))
 
 	return (
@@ -61,37 +63,37 @@ export function StreakBrokenModal({
 
 							{/* Title */}
 							<h2 className='text-2xl font-display font-extrabold text-text mb-2'>
-								Your streak ended
+								{t('sbTitle')}
 							</h2>
 							<p className='text-sm text-text-secondary mb-6'>
-								Your {lostStreak}-day cooking streak has reset to 0
+								{t('sbDescription', { count: lostStreak })}
 							</p>
 
 							{/* Stats Lost */}
 							<div className='flex justify-center gap-6 py-5 px-6 bg-bg rounded-xl mb-5'>
 								<div className='flex flex-col gap-1'>
 									<span className='text-xs text-text-secondary'>
-										Streak Length
+										{t('sbStreakLength')}
 									</span>
 									<span className='text-lg font-bold text-text'>
-										{lostStreak} days
+										{t('sbDays', { count: lostStreak })}
 									</span>
 								</div>
 								<div className='flex flex-col gap-1'>
 									<span className='text-xs text-text-secondary'>
-										Streak Bonuses Earned
+										{t('sbBonusesEarned')}
 									</span>
 									<span className='text-lg font-bold text-text'>
-										+{totalBonusXpEarned} XP
+										{t('sbBonusXp', { count: totalBonusXpEarned })}
 									</span>
 								</div>
 							</div>
 
 							{/* Motivation */}
 							<div className='mb-5 space-y-2 text-sm text-text-secondary'>
-								<p>Don&apos;t worry â€” every great chef has off days.</p>
+								<p>{t('sbMotivation1')}</p>
 								<p>
-									Your skills and XP are still there. Let&apos;s start fresh! ðŸ’ª
+									{t('sbMotivation2')} 💪
 								</p>
 							</div>
 
@@ -99,12 +101,12 @@ export function StreakBrokenModal({
 							{bestStreak && bestStreak > lostStreak && (
 								<div className='mb-6 flex items-center justify-center gap-2 rounded-lg bg-success/10 px-4 py-3'>
 									<span className='text-xs text-text-secondary'>
-										Your best streak:
+										{t('sbBestStreak')}
 									</span>
 									<span className='text-sm font-bold text-success'>
-										{bestStreak} days
+										{t('sbDays', { count: bestStreak })}
 									</span>
-									<span className='text-xs text-success'>You can beat it!</span>
+									<span className='text-xs text-success'>{t('sbCanBeatIt')}</span>
 								</div>
 							)}
 
@@ -122,13 +124,14 @@ export function StreakBrokenModal({
 									)}
 								>
 									<Flame className='size-5' />
-									Start New Streak
+									{t('sbStartNew')}
 								</motion.button>
 								<button
+									type='button'
 									onClick={onDismiss}
 									className='py-3.5 text-sm text-text-secondary hover:text-text transition-colors'
 								>
-									Maybe Later
+									{t('sbMaybeLater')}
 								</button>
 							</div>
 						</motion.div>

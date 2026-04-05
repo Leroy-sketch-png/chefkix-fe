@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useEffect, useState } from 'react'
 import { getMyGroups } from '@/services/group'
 import { Group } from '@/lib/types/group'
@@ -23,6 +25,7 @@ export const MyGroupsSidebar = ({
 	currentUserId,
 	maxGroups = 5,
 }: MyGroupsSidebarProps) => {
+	const t = useTranslations('groups')
 	const [groups, setGroups] = useState<Group[]>([])
 	const [isLoading, setIsLoading] = useState(false)
 
@@ -58,7 +61,7 @@ export const MyGroupsSidebar = ({
 			<div className='flex items-center justify-between'>
 				<h3 className='font-bold text-text flex items-center gap-2'>
 					<Users className='size-4 text-brand' />
-					My Groups
+					{t('msMyGroups')}
 				</h3>
 				<Link href={PATHS.GROUPS.EXPLORE}>
 					<Button
@@ -78,14 +81,14 @@ export const MyGroupsSidebar = ({
 			) : groups.length === 0 ? (
 				<div className='text-center py-4'>
 					<p className='text-xs text-text-secondary mb-3'>
-						No groups yet
+						{t('msNoGroups')}
 					</p>
 					<Link href={PATHS.GROUPS.EXPLORE} className='block'>
 						<Button
 							size='sm'
 							className='w-full bg-brand hover:bg-brand/90 text-white text-xs h-7'
 						>
-							Explore Groups
+							{t('msExploreGroups')}
 						</Button>
 					</Link>
 				</div>
@@ -110,7 +113,7 @@ export const MyGroupsSidebar = ({
 								variant='ghost'
 								className='w-full text-xs text-brand hover:bg-brand/5'
 							>
-								View All â†’
+								{t('msViewAll')}
 							</Button>
 						</Link>
 					)}

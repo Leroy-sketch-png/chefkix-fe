@@ -1,10 +1,14 @@
 ﻿'use client' // This tells Next.js this is a Client Component (runs in the browser)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { API_ENDPOINTS } from '@/constants/api'
+import { Portal } from '@/components/ui/portal'
+import { BUTTON_HOVER, BUTTON_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 // Define the structure of the signaling message to match the Spring Boot backend
 // data type depends on message type: offer/answer use RTCSessionDescriptionInit,
@@ -28,6 +32,7 @@ export default function VideoCall({
 	currentUserId,
 	onClose,
 }: VideoCallProps) {
+	const t = useTranslations('messages')
 	// --- Phase 1: Refs for Media and Connections ---
 	// We use useRef instead of useState for things that don't need to trigger a re-render when they change
 	const localVideoRef = useRef<HTMLVideoElement>(null)
@@ -116,9 +121,7 @@ export default function VideoCall({
 				}
 			} catch (audioError) {
 				logDevError('Error accessing audio device.', audioError)
-				toast.error(
-					'Could not access your microphone. Please check browser permissions.',
-				)
+				toast.error(t('toastMicDenied'))
 			}
 		}
 	}
@@ -194,14 +197,14 @@ export default function VideoCall({
 					case 'leave':
 						stopRingtone()
 						endCall()
-						toast.info('The other person left the call.')
+						toast.info(t('toastOtherLeft'))
 						break
 					default:
 						logDevError('Unknown WebSocket message type:', message.type)
 				}
 			} catch (error) {
 				logDevError('Error processing WebSocket message', error)
-				toast.error('Call connection error. Please try again.')
+				toast.error(t('toastConnectionError'))
 			}
 		}
 
@@ -289,7 +292,7 @@ export default function VideoCall({
 		} catch (error) {
 			logDevError('Failed to initiate call', error)
 			stopRingtone()
-			toast.error('Failed to start call. Please try again.')
+			toast.error(t('toastStartFailed'))
 		}
 	}
 
@@ -309,7 +312,7 @@ export default function VideoCall({
 			}
 		} catch (error) {
 			logDevError('Failed to accept call', error)
-			toast.error('Failed to connect. Please try again.')
+			toast.error(t('toastConnectFailed'))
 		}
 	}
 
@@ -340,7 +343,7 @@ export default function VideoCall({
 			setIsCallActive(true)
 		} catch (error) {
 			logDevError('Failed to handle incoming offer', error)
-			toast.error('Failed to establish connection.')
+			toast.error(t('toastEstablishFailed'))
 		}
 	}
 
@@ -418,15 +421,22 @@ export default function VideoCall({
 		}
 	}, [endCall])
 
-	// Escape key dismisses the incoming call overlay (same as Decline)
+	// Escape key dismisses the incoming call overlay (same as {t('decline')})
 	useEscapeKey(isReceivingCall && !isCallActive, rejectCall)
 
 	// --- Render UI ---
 	return (
 		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-card border border-border-subtle w-full max-w-4xl mx-auto relative'>
 			{/* Incoming Call Overlay */}
+			<AnimatePresence>
 			{isReceivingCall && !isCallActive && (
-				<div className='absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl'>
+				<Portal>
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					className='fixed inset-0 z-modal flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm'
+				>
 					<div className='size-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
 						<div className='size-16 bg-brand rounded-full flex items-center justify-center'>
 							<svg
@@ -446,18 +456,22 @@ export default function VideoCall({
 						</div>
 					</div>
 					<h2 className='text-white text-2xl font-bold mb-8'>
-						Incoming Call...
+						{t('incomingCall')}
 					</h2>
 					<div className='flex gap-6'>
-						<button
+						<motion.button
+							whileHover={BUTTON_HOVER}
+							whileTap={BUTTON_TAP}
 							onClick={rejectCall}
-							className='px-6 py-3 bg-error hover:bg-error-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105'
+							className='px-6 py-3 bg-error text-white rounded-full font-medium shadow-lg'
 						>
 							Decline
-						</button>
-						<button
+						</motion.button>
+						<motion.button
+							whileHover={BUTTON_HOVER}
+							whileTap={BUTTON_TAP}
 							onClick={acceptCall}
-							className='px-6 py-3 bg-success hover:bg-success-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2'
+							className='px-6 py-3 bg-success text-white rounded-full font-medium shadow-lg flex items-center gap-2'
 						>
 							<svg
 								xmlns='http://www.w3.org/2000/svg'
@@ -474,15 +488,17 @@ export default function VideoCall({
 								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
 							</svg>
 							Answer
-						</button>
+						</motion.button>
 					</div>
-				</div>
+				</motion.div>
+				</Portal>
 			)}
+			</AnimatePresence>
 
-			<h2 className='text-2xl font-semibold text-brand mb-2'>Video Call</h2>
+			<h2 className='text-2xl font-semibold text-brand mb-2'>{t('videoCallTitle')}</h2>
 
 			{/* Media Stage */}
-			<div className='relative w-full aspect-video bg-bg-inverse rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
+			<div className='relative w-full aspect-video bg-bg-elevated rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
 				{/* Remote Video (Large / Background) */}
 				<video
 					ref={remoteVideoRef}
@@ -504,55 +520,69 @@ export default function VideoCall({
 
 				{/* Fallback text when there's no call active */}
 				{!isCallActive && (
-					<div className='absolute inset-0 flex items-center justify-center text-text-muted font-medium'>
-						Waiting for video connection...
-					</div>
+					<motion.div
+						className='absolute inset-0 flex items-center justify-center text-text-muted font-medium'
+						animate={{ opacity: [1, 0.4, 1] }}
+						transition={{ duration: 2, repeat: Infinity }}
+					>
+						{t('waitingForConnection')}
+					</motion.div>
 				)}
 			</div>
 
 			{/* Control Buttons */}
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
-				<button
+				<motion.button
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={() => startMedia()}
-					className='px-4 py-2 bg-info text-white rounded-md hover:bg-info-vivid'
+					className='px-4 py-2 bg-brand text-white rounded-lg'
 				>
-					{isCameraOn ? 'Camera On ✅' : '1. Turn On Camera'}
-				</button>
+					{isCameraOn ? t('cameraOn') + ' ✅' : '1. ' + t('turnOnCamera')}
+				</motion.button>
 
-				<button
+				<motion.button
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={toggleVideo}
-					className='px-4 py-2 bg-warning text-white rounded-md hover:bg-warning-vivid'
+					className='px-4 py-2 bg-warning text-white rounded-lg'
 				>
-					{isCameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
-				</button>
+					{isCameraOn ? t('turnOffCamera') : t('turnOnCamera')}
+				</motion.button>
 
-				<button
+				<motion.button
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={toggleAudio}
-					className='px-4 py-2 bg-accent-purple text-white rounded-md hover:bg-accent-purple-hover'
+					className='px-4 py-2 bg-bg-elevated text-text border border-border-subtle rounded-lg'
 				>
-					{isMicOn ? 'Mute Mic' : 'Unmute Mic'}
-				</button>
+					{isMicOn ? t('muteMic') : t('unmuteMic')}
+				</motion.button>
 
 				{!isCallActive && (
-					<button
+					<motion.button
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
 						onClick={makeCall}
 						disabled={!isCameraOn || !isJoined}
 						className={`px-4 py-2 text-white rounded-md transition-colors ${
 							!isCameraOn || !isJoined
 								? 'bg-bg-elevated text-text-muted cursor-not-allowed opacity-50'
-								: 'bg-success hover:bg-success-vivid'
+								: 'bg-success hover:opacity-90'
 						}`}
 					>
-						2. Call the other person
-					</button>
+						{t('callOtherPerson')}
+					</motion.button>
 				)}
 
-				<button
+				<motion.button
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={endCall}
-					className='px-4 py-2 bg-error text-white rounded-md hover:bg-error-vivid'
+					className='px-4 py-2 bg-error text-white rounded-lg'
 				>
 					End Call
-				</button>
+				</motion.button>
 			</div>
 		</div>
 	)

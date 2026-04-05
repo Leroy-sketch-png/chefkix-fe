@@ -14,10 +14,12 @@ import {
 	BUTTON_HOVER,
 	BUTTON_TAP,
 	TRANSITION_SPRING,
+	FOLLOW_PULSE,
 } from '@/lib/motion'
 import { UserCheck, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface FollowUserCardProps {
 	profile: Profile
@@ -34,6 +36,7 @@ export function FollowUserCard({
 	const router = useRouter()
 	const { user } = useAuth()
 	const requireAuth = useAuthGate()
+	const t = useTranslations('profile')
 	const [isFollowing, setIsFollowing] = useState(profile.isFollowing ?? false)
 	const [isLoading, setIsLoading] = useState(false)
 	const followLockRef = useRef(false)
@@ -55,13 +58,13 @@ export function FollowUserCard({
 			const response = await toggleFollow(profile.userId)
 			if (!response.success) {
 				setIsFollowing(previousState) // Revert
-				toast.error('Failed to update follow status')
+				toast.error(t('failedFollowUpdate'))
 			} else {
 				onFollowChange?.(profile.userId, !previousState)
 			}
 		} catch {
 			setIsFollowing(previousState)
-			toast.error('Failed to update follow status')
+			toast.error(t('failedFollowUpdate'))
 		} finally {
 			followLockRef.current = false
 			setIsLoading(false)
@@ -91,7 +94,7 @@ export function FollowUserCard({
 					</p>
 					{isMutual && (
 						<span className='shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-2xs font-bold text-brand'>
-							Mutual
+							{t('mutual')}
 						</span>
 					)}
 				</div>
@@ -104,7 +107,12 @@ export function FollowUserCard({
 			</div>
 
 			{!isOwnProfile && (
-				<motion.div whileHover={BUTTON_HOVER} whileTap={BUTTON_TAP}>
+				<motion.div
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
+					animate={isFollowing ? FOLLOW_PULSE.followed : undefined}
+					initial={false}
+				>
 					<Button
 						size='sm'
 						variant={isFollowing ? 'outline' : 'default'}
@@ -119,12 +127,12 @@ export function FollowUserCard({
 						{isFollowing ? (
 							<>
 								<UserCheck className='size-3.5' />
-								Following
+								{t('following')}
 							</>
 						) : (
 							<>
 								<UserPlus className='size-3.5' />
-								Follow
+								{t('follow')}
 							</>
 						)}
 					</Button>

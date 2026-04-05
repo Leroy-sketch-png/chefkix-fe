@@ -78,7 +78,7 @@ export const CookingIndicator = () => {
 				</span>
 
 				{/* Step indicator */}
-				<span className='text-xs opacity-70'>
+				<span className='tabular-nums text-xs opacity-70'>
 					{currentStep}/{totalSteps}
 				</span>
 
@@ -86,7 +86,7 @@ export const CookingIndicator = () => {
 				{hasActiveTimer && (
 					<span
 						className={cn(
-							'flex items-center gap-1 font-mono text-xs',
+							'flex items-center gap-1 font-mono tabular-nums text-xs',
 							isUrgent && 'font-bold',
 						)}
 					>

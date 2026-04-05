@@ -11,6 +11,7 @@ import {
 	ChefHat,
 } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -128,10 +129,11 @@ export const SessionHeader = ({
 	className,
 }: SessionHeaderProps) => {
 	// API status uses lowercase per spec 08-cooking-sessions.txt
+	const t = useTranslations('cooking')
 	const isPaused = session.status === 'paused'
 	const isIdleWarning = session.idleWarningShown
-	const hasActiveTimers = activeTimers.some(t => t.isRunning)
-	const urgentTimer = activeTimers.find(t => t.isRunning && t.remaining < 30)
+	const hasActiveTimers = activeTimers.some(tmr => tmr.isRunning)
+	const urgentTimer = activeTimers.find(tmr => tmr.isRunning && tmr.remaining < 30)
 
 	// Determine visual state
 	const getState = (): SessionState => {
@@ -178,6 +180,7 @@ export const SessionHeader = ({
 								src={session.recipe.imageUrl}
 								alt={session.recipe.title}
 								fill
+								sizes='48px'
 								className='object-cover'
 							/>
 						</div>
@@ -187,10 +190,10 @@ export const SessionHeader = ({
 							</h2>
 							<div className='flex items-center gap-2 text-sm text-white/80'>
 								<span>
-									Step {session.currentStep} of {session.recipe.totalSteps}
-								</span>
-								<span>â€¢</span>
-								<span>~{session.recipe.estimatedTime} min</span>
+								{t('stepOf', { current: session.currentStep, total: session.recipe.totalSteps })}
+							</span>
+							<span>â€¢</span>
+							<span>{t('estTime', { minutes: session.recipe.estimatedTime })}</span>
 							</div>
 						</div>
 					</div>
@@ -205,7 +208,7 @@ export const SessionHeader = ({
 							className='flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30'
 						>
 							<Sparkles className='size-4' />
-							<span className='hidden sm:inline'>AI Help</span>
+							<span className='hidden sm:inline'>{t('aiHelp')}</span>
 						</motion.button>
 
 						{/* Pause/Resume Button */}
@@ -243,7 +246,7 @@ export const SessionHeader = ({
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onClose}
 							className='flex size-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30'
-							aria-label='Close cooking header'
+							aria-label={t('closeAria')}
 						>
 							<X className='size-5' />
 						</motion.button>
@@ -269,12 +272,12 @@ export const SessionHeader = ({
 								{state === 'PAUSED' ? (
 									<>
 										<Pause className='size-4' />
-										<span>Session Paused</span>
+									<span>{t('sessionPaused')}</span>
 									</>
 								) : (
 									<>
 										<AlertTriangle className='size-4' />
-										<span>Still there? Session will auto-pause soon</span>
+									<span>{t('stillThere')}</span>
 									</>
 								)}
 							</div>
@@ -305,7 +308,7 @@ export const SessionHeader = ({
 						{/* Active timer badges */}
 						<div className='flex items-center gap-2'>
 							{activeTimers
-								.filter(t => t.isRunning)
+								.filter(tmr => tmr.isRunning)
 								.slice(0, 2)
 								.map(timer => (
 									<ActiveTimerBadge
@@ -314,9 +317,9 @@ export const SessionHeader = ({
 										isUrgent={timer.remaining < 30}
 									/>
 								))}
-							{activeTimers.filter(t => t.isRunning).length > 2 && (
+							{activeTimers.filter(tmr => tmr.isRunning).length > 2 && (
 								<span className='text-sm text-white/70'>
-									+{activeTimers.filter(t => t.isRunning).length - 2} more
+									{t('moreTimers', { count: activeTimers.filter(tmr => tmr.isRunning).length - 2 })}
 								</span>
 							)}
 						</div>
@@ -331,13 +334,13 @@ export const SessionHeader = ({
 							<span className='font-bold text-white'>
 								+{session.baseXP + session.bonusXP}
 							</span>{' '}
-							XP on completion
+						{t('xpOnCompletion')}
 						</span>
 					</div>
 					{session.challengeId && (
 						<div className='flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5'>
 							<span>ðŸŽ¯</span>
-							<span className='font-semibold'>Challenge</span>
+							<span className='font-semibold'>{t('challengeLabel')}</span>
 						</div>
 					)}
 				</div>
@@ -361,9 +364,10 @@ export const SessionHeaderCompact = ({
 	activeTimers,
 	onExpand,
 }: SessionHeaderCompactProps) => {
+	const t = useTranslations('cooking')
 	const progress =
 		(session.completedSteps.length / session.recipe.totalSteps) * 100
-	const hasActiveTimers = activeTimers.some(t => t.isRunning)
+	const hasActiveTimers = activeTimers.some(tmr => tmr.isRunning)
 
 	return (
 		<motion.button
@@ -401,7 +405,7 @@ export const SessionHeaderCompact = ({
 			<div className='min-w-0 flex-1'>
 				<p className='truncate font-semibold'>{session.recipe.title}</p>
 				<p className='text-sm text-white/80'>
-					Step {session.currentStep}/{session.recipe.totalSteps}
+					{t('stepOf', { current: session.currentStep, total: session.recipe.totalSteps })}
 				</p>
 			</div>
 

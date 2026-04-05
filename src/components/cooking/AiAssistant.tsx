@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Sparkles,
@@ -72,8 +73,8 @@ interface Message {
 interface QuickAction {
 	id: string
 	icon: React.ReactNode
-	label: string
-	prompt: string
+	labelKey: string
+	promptKey: string
 }
 
 interface AiAssistantProps {
@@ -92,30 +93,29 @@ interface AiAssistantProps {
 const QUICK_ACTIONS: QuickAction[] = [
 	{
 		id: 'substitute',
-		icon: <span>ðŸ”„</span>,
-		label: "I'm missing an ingredient",
-		prompt: "I'm missing an ingredient. What can I substitute?",
+		icon: <span>🔄</span>,
+		labelKey: 'qaMissingIngredient',
+		promptKey: 'qaMissingPrompt',
 	},
 	{
 		id: 'technique',
-		icon: <span>ðŸ”ª</span>,
-		label: 'How do I do this technique?',
-		prompt: 'Can you explain this cooking technique in more detail?',
+		icon: <span>🔪</span>,
+		labelKey: 'qaTechnique',
+		promptKey: 'qaTechniquePrompt',
 	},
 	{
 		id: 'timing',
-		icon: <span>â±ï¸</span>,
-		label: 'Is this done yet?',
-		prompt: 'How do I know when this step is complete? What should I look for?',
+		icon: <span>⏱️</span>,
+		labelKey: 'qaDoneYet',
+		promptKey: 'qaDonePrompt',
 	},
 	{
 		id: 'troubleshoot',
-		icon: <span>ðŸ†˜</span>,
-		label: 'Something went wrong',
-		prompt: 'Something went wrong with my dish. Can you help me fix it?',
+		icon: <span>🆘</span>,
+		labelKey: 'qaWentWrong',
+		promptKey: 'qaWrongPrompt',
 	},
 ]
-
 // ============================================
 // SUB-COMPONENTS
 // ============================================
@@ -125,6 +125,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
+	const t = useTranslations('cooking')
 	const isUser = message.role === 'user'
 
 	return (
@@ -161,13 +162,13 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 				{message.type === 'warning' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-warning'>
 						<AlertTriangle className='size-4' />
-						<span className='text-xs font-semibold uppercase'>Warning</span>
+						<span className='text-xs font-semibold uppercase'>{t('aiWarning')}</span>
 					</div>
 				)}
 				{message.type === 'tip' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-success'>
 						<Lightbulb className='size-4' />
-						<span className='text-xs font-semibold uppercase'>Pro Tip</span>
+						<span className='text-xs font-semibold uppercase'>{t('aiProTip')}</span>
 					</div>
 				)}
 
@@ -188,7 +189,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 						</div>
 						{message.metadata.substitution.ratio && (
 							<p className='mt-1 text-sm text-text-secondary'>
-								Ratio: {message.metadata.substitution.ratio}
+								{t('aiRatio', { ratio: message.metadata.substitution.ratio })}
 							</p>
 						)}
 					</div>
@@ -269,6 +270,7 @@ export const AiAssistant = ({
 	onClose,
 	isOpen,
 }: AiAssistantProps) => {
+	const t = useTranslations('cooking')
 	const [messages, setMessages] = useState<Message[]>([])
 	const [inputValue, setInputValue] = useState('')
 	const [isTyping, setIsTyping] = useState(false)
@@ -289,9 +291,9 @@ export const AiAssistant = ({
 
 	// Focus input when opened
 	useEffect(() => {
-		if (isOpen) {
-			setTimeout(() => inputRef.current?.focus(), 300)
-		}
+		if (!isOpen) return
+		const id = setTimeout(() => inputRef.current?.focus(), 300)
+		return () => clearTimeout(id)
 	}, [isOpen])
 
 	// Initial welcome message
@@ -302,7 +304,7 @@ export const AiAssistant = ({
 					id: 'welcome',
 					role: 'assistant',
 					type: 'text',
-					content: `Hi! I'm your cooking assistant for "${recipeTitle}". Ask me anything about this recipe - substitutions, techniques, timing, or if something goes wrong!`,
+					content: t('aiWelcome', { recipe: recipeTitle }),
 					timestamp: new Date(),
 				},
 			])
@@ -337,7 +339,7 @@ export const AiAssistant = ({
 				content:
 					response.success && response.data
 						? response.data.answer
-						: "Sorry, I couldn't process your question. Please try again.",
+						: t('aiSorryRetry'),
 				timestamp: new Date(),
 				metadata: text.toLowerCase().includes('substitute')
 					? {
@@ -368,7 +370,7 @@ export const AiAssistant = ({
 				role: 'assistant',
 				type: 'warning',
 				content:
-					'Unable to reach the AI assistant. Please check your connection and try again.',
+					t('aiErrorReach'),
 				timestamp: new Date(),
 			}
 			setMessages(prev => [...prev, errorResponse])
@@ -378,7 +380,7 @@ export const AiAssistant = ({
 	}
 
 	const handleQuickAction = (action: QuickAction) => {
-		handleSend(action.prompt)
+		handleSend(t(action.promptKey))
 	}
 
 	const toggleListening = () => {
@@ -458,16 +460,17 @@ export const AiAssistant = ({
 									<Sparkles className='size-5' />
 								</div>
 								<div>
-									<h3 className='font-bold'>AI Cooking Assistant</h3>
+									<h3 className='font-bold'>{t('aiCookingAssistant')}</h3>
 									<p className='text-sm text-white/80'>
-										Step {currentStep} â€¢ {recipeTitle}
+										{t('aiStepDot', { step: currentStep, recipe: recipeTitle })}
 									</p>
 								</div>
 							</div>
 							<div className='flex items-center gap-2'>
 								<button
+									type='button'
 									onClick={onClose}
-									aria-label='Close AI assistant'
+									aria-label={t('cpClose')}
 									className='rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white'
 								>
 									<X className='size-5' />
@@ -478,7 +481,7 @@ export const AiAssistant = ({
 						{/* Current step context */}
 						<div className='border-b border-border bg-bg-elevated px-4 py-3'>
 							<p className='text-xs font-medium uppercase text-text-tertiary'>
-								Current Step
+								{t('aiCurrentStep')}
 							</p>
 							<p className='mt-1 line-clamp-2 text-sm text-text-secondary'>
 								{currentStepInstruction}
@@ -502,17 +505,18 @@ export const AiAssistant = ({
 						{messages.length <= 1 && (
 							<div className='border-t border-border bg-bg-elevated p-4'>
 								<p className='mb-2 text-xs font-medium uppercase text-text-tertiary'>
-									Quick Actions
+									{t('aiQuickActions')}
 								</p>
 								<div className='grid grid-cols-2 gap-2'>
 									{QUICK_ACTIONS.map(action => (
 										<button
+											type='button'
 											key={action.id}
 											onClick={() => handleQuickAction(action)}
 											className='flex items-center gap-2 rounded-lg bg-bg-card p-3 text-left text-sm transition-colors hover:bg-bg-hover'
 										>
 											<span className='text-lg'>{action.icon}</span>
-											<span className='font-medium'>{action.label}</span>
+											<span className='font-medium'>{t(action.labelKey)}</span>
 										</button>
 									))}
 								</div>
@@ -525,9 +529,10 @@ export const AiAssistant = ({
 								{/* Voice input button - only shown when Web Speech API is available */}
 								{speechSupported && (
 									<button
+										type='button'
 										onClick={toggleListening}
 										aria-label={
-											isListening ? 'Stop listening' : 'Start voice input'
+											isListening ? t('aiStopListening') : t('aiStartVoice')
 										}
 										className={cn(
 											'flex size-10 shrink-0 items-center justify-center rounded-full transition-colors',
@@ -551,10 +556,11 @@ export const AiAssistant = ({
 										value={inputValue}
 										onChange={e => setInputValue(e.target.value)}
 										onKeyDown={e => e.key === 'Enter' && handleSend()}
-										placeholder='Ask me anything...'
+										placeholder={t('aiAskAnything')}
 										className='w-full rounded-full bg-bg-elevated px-4 py-2.5 pr-12 text-sm outline-none placeholder:text-text-muted focus:ring-2 focus:ring-brand/30'
 									/>
 									<button
+										type='button'
 										onClick={() => handleSend()}
 										disabled={!inputValue.trim() || isTyping}
 										className={cn(

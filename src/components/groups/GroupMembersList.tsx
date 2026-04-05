@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { GroupMember, MemberRole } from '@/lib/types/group'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -42,6 +44,7 @@ export const GroupMembersList = ({
 	isLoading = false,
 	onMemberRemoved,
 }: GroupMembersListProps) => {
+	const t = useTranslations('groups')
 	const [kickingUserId, setKickingUserId] = useState<string | null>(null)
 
 	const handleKickMember = useCallback(
@@ -49,10 +52,10 @@ export const GroupMembersList = ({
 			setKickingUserId(userId)
 			try {
 				await kickMember(groupId, userId)
-				toast.success(`${displayName} has been removed from the group`)
+				toast.success(t('gmRemoved', { name: displayName }))
 				onMemberRemoved?.(userId)
 			} catch (error) {
-				toast.error('Failed to remove member')
+				toast.error(t('gmRemoveFailed'))
 			} finally {
 				setKickingUserId(null)
 			}
@@ -74,7 +77,13 @@ export const GroupMembersList = ({
 	}
 
 	const getRoleLabel = (role: MemberRole) => {
-		return role === 'MEMBER' ? '' : role
+		if (role === 'MEMBER') return ''
+		switch (role) {
+			case 'OWNER': return t('gmRoleOwner')
+			case 'ADMIN': return t('gmRoleAdmin')
+			case 'MODERATOR': return t('gmRoleModerator')
+			default: return role
+		}
 	}
 
 	if (isLoading) {
@@ -88,7 +97,7 @@ export const GroupMembersList = ({
 	if (members.length === 0) {
 		return (
 			<div className='text-center py-8'>
-				<p className='text-text-secondary'>No members yet</p>
+				<p className='text-text-secondary'>{t('gmNoMembers')}</p>
 			</div>
 		)
 	}
@@ -128,7 +137,7 @@ export const GroupMembersList = ({
 									)}
 								</div>
 								<p className='text-xs text-text-muted'>
-									Joined {new Date(member.joinedAt).toLocaleDateString()}
+									{t('gmJoined', { date: new Date(member.joinedAt).toLocaleDateString() })}
 								</p>
 							</div>
 						</div>
@@ -156,7 +165,7 @@ export const GroupMembersList = ({
 										) : (
 											<UserMinus className='size-4 mr-2' />
 										)}
-										Remove Member
+										{t('gmRemoveMember')}
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>

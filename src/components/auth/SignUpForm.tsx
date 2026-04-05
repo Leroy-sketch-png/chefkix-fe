@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
@@ -22,10 +22,11 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { signUp, googleSignIn, checkUsernameAvailability } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
-import { PATHS, SIGN_UP_MESSAGES } from '@/constants'
+import { PATHS } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
+import { useTranslations } from '@/i18n/hooks'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { CheckCircle2, XCircle, Loader2, Info, AlertCircle } from 'lucide-react'
@@ -49,12 +50,30 @@ const formSchema = z.object({
 
 export function SignUpForm() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
+	const returnTo = searchParams.get('returnTo')
 	const { login, setUser, setLoading, logout } = useAuth()
+	const t = useTranslations('auth')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	
 	// Username availability check state
 	const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle')
 	const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null)
+
+	// Password strength
+	const getPasswordStrength = (pw: string): { score: number; label: string; color: string } => {
+		if (!pw) return { score: 0, label: '', color: '' }
+		let score = 0
+		if (pw.length >= 6) score++
+		if (pw.length >= 10) score++
+		if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++
+		if (/\d/.test(pw)) score++
+		if (/[^A-Za-z0-9]/.test(pw)) score++
+		if (score <= 1) return { score: 1, label: t('passwordWeak'), color: 'bg-error' }
+		if (score <= 2) return { score: 2, label: t('passwordFair'), color: 'bg-warning' }
+		if (score <= 3) return { score: 3, label: t('passwordGood'), color: 'bg-brand' }
+		return { score: 4, label: t('passwordStrong'), color: 'bg-success' }
+	}
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -69,6 +88,8 @@ export function SignUpForm() {
 
 	// Watch username for live availability check
 	const usernameValue = form.watch('username')
+	const passwordValue = form.watch('password')
+	const passwordStrength = getPasswordStrength(passwordValue)
 	
 	// Debounced username availability check
 	useEffect(() => {
@@ -115,26 +136,25 @@ export function SignUpForm() {
 
 			if (response.success) {
 				toast.success(
-					'Account created! Please check your email for the verification code.',
+					t('accountCreatedCheckEmail'),
 				)
-				router.push(
-					`${PATHS.AUTH.VERIFY_OTP}?email=${encodeURIComponent(values.email)}`,
-				)
+				const otpUrl = `${PATHS.AUTH.VERIFY_OTP}?email=${encodeURIComponent(values.email)}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`
+				router.push(otpUrl)
 				// Don't reset isSubmitting on success — navigation is async
 			} else {
 				if (response.error) {
 					Object.keys(response.error).forEach(key => {
 						const field = key as keyof z.infer<typeof formSchema>
 						const message =
-							response.error?.[field]?.join(', ') || SIGN_UP_MESSAGES.ERROR
+							response.error?.[field]?.join(', ') || t('signUpFormError')
 						form.setError(field, {
 							type: 'manual',
 							message: message,
 						})
 					})
-					toast.error('Please fix the errors in the form.')
+					toast.error(t('fixFormErrors'))
 				} else {
-					const errorMsg = response.message || SIGN_UP_MESSAGES.FAILED
+					const errorMsg = response.message || t('signUpFailed')
 					form.setError('root', {
 						type: 'manual',
 						message: errorMsg,
@@ -144,7 +164,7 @@ export function SignUpForm() {
 				setIsSubmitting(false)
 			}
 		} catch {
-			toast.error('An unexpected error occurred. Please try again.')
+			toast.error(t('unexpectedError'))
 			setIsSubmitting(false)
 		}
 	}
@@ -174,10 +194,10 @@ export function SignUpForm() {
 							name='firstName'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>First Name</FormLabel>
+									<FormLabel className='text-text'>{t('firstName')}</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='John'
+											placeholder={t('firstNamePlaceholder')}
 											autoComplete='given-name'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
@@ -192,10 +212,10 @@ export function SignUpForm() {
 							name='lastName'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Last Name</FormLabel>
+									<FormLabel className='text-text'>{t('lastName')}</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='Doe'
+											placeholder={t('lastNamePlaceholder')}
 											autoComplete='family-name'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
@@ -212,11 +232,11 @@ export function SignUpForm() {
 							name='username'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Username</FormLabel>
+									<FormLabel className='text-text'>{t('username')}</FormLabel>
 									<FormControl>
 										<div className='relative'>
 											<Input
-												placeholder='your_username'
+												placeholder={t('usernamePlaceholder')}
 												autoComplete='username'
 												autoCapitalize='none'
 												autoCorrect='off'
@@ -271,10 +291,10 @@ export function SignUpForm() {
 							name='email'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Email</FormLabel>
+									<FormLabel className='text-text'>{t('email')}</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='chef@email.com'
+											placeholder={t('emailPlaceholder')}
 											autoComplete='email'
 											inputMode='email'
 											autoCapitalize='none'
@@ -295,20 +315,47 @@ export function SignUpForm() {
 							name='password'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Password</FormLabel>
+									<FormLabel className='text-text'>{t('password')}</FormLabel>
 									<FormControl>
 										<PasswordInput
-											placeholder='Create a secure password'
+											placeholder={t('createSecurePassword')}
 											autoComplete='new-password'
 											{...field}
 											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
 										/>
 									</FormControl>
-									{/* Password requirements hint */}
-									<div className='flex items-center gap-1.5 text-xs text-text-muted'>
-										<Info className='size-3' />
-										<span>At least 6 characters</span>
-									</div>
+									{/* Password strength meter */}
+									{passwordValue && (
+										<div className='space-y-1.5'>
+											<div className='flex gap-1'>
+												{[1, 2, 3, 4].map(i => (
+													<div
+														key={i}
+														className={cn(
+															'h-1 flex-1 rounded-full transition-all duration-300',
+															i <= passwordStrength.score
+																? passwordStrength.color
+																: 'bg-border-subtle',
+														)}
+													/>
+												))}
+											</div>
+											<p className={cn(
+												'text-xs font-medium',
+												passwordStrength.score <= 1 ? 'text-error' :
+												passwordStrength.score <= 2 ? 'text-warning' :
+												passwordStrength.score <= 3 ? 'text-brand' : 'text-success',
+											)}>
+												{passwordStrength.label}
+											</p>
+										</div>
+									)}
+									{!passwordValue && (
+										<div className='flex items-center gap-1.5 text-xs text-text-muted'>
+											<Info className='size-3' />
+									<span>{t('passwordHint')}</span>
+										</div>
+									)}
 									<FormMessage />
 								</FormItem>
 							)}
@@ -317,12 +364,12 @@ export function SignUpForm() {
 					<motion.div variants={staggerItem}>
 						<AnimatedButton
 							type='submit'
-							className='h-12 w-full rounded-xl bg-gradient-xp text-base font-bold shadow-lg shadow-xp/30 transition-shadow hover:shadow-xl hover:shadow-xp/40'
+							className='h-12 w-full rounded-xl bg-gradient-xp text-base font-bold shadow-card shadow-xp/30 transition-shadow hover:shadow-warm hover:shadow-xp/40'
 							isLoading={isSubmitting}
-							loadingText='Creating account...'
+							loadingText={t('creatingAccount')}
 							shine
 						>
-							{SIGN_UP_MESSAGES.FORM_TITLE}
+							{t('getStarted')}
 						</AnimatedButton>
 					</motion.div>
 					<motion.div
@@ -331,7 +378,7 @@ export function SignUpForm() {
 					>
 						<span className='flex-1 border-t border-border-subtle'></span>
 						<span className='mx-4 text-xs leading-normal text-text-muted'>
-							or
+							{t('or')}
 						</span>
 						<span className='flex-1 border-t border-border-subtle'></span>
 					</motion.div>
@@ -344,17 +391,22 @@ export function SignUpForm() {
 									const profileResponse = await getMyProfile()
 									if (profileResponse.success && profileResponse.data) {
 										setUser(profileResponse.data)
-										toast.success('Signed in with Google successfully!')
-										// Let AuthProvider handle redirect - prevents race condition
+										toast.success(t('googleSignInSuccess'))
 										setLoading(true)
+										// Redirect to returnTo or let AuthProvider handle default
+										if (returnTo && returnTo.startsWith('/')) {
+											router.push(returnTo)
+										} else {
+											router.push('/dashboard')
+										}
 									} else {
 										// Profile fetch failed - clean up auth state
 										logout()
-										toast.error('Failed to fetch profile. Please try again.')
+										toast.error(t('profileFetchFailed'))
 									}
 								} else {
 									const errorMsg =
-										response.message || 'Failed to sign in with Google.'
+										response.message || t('googleSignInFailed')
 								form.setError('root', {
 										type: 'manual',
 										message: errorMsg,
@@ -363,10 +415,10 @@ export function SignUpForm() {
 								}
 							}}
 							onFailure={error => {
-								toast.error('Failed to sign in with Google. Please try again.')
+								toast.error(t('googleSignInFailedRetry'))
 								logDevError(error)
 							}}
-							text='Sign up with Google'
+							text={t('signUpWithGoogle')}
 						/>
 					</motion.div>
 				</form>
@@ -375,12 +427,12 @@ export function SignUpForm() {
 				variants={staggerItem}
 				className='text-center text-sm leading-normal text-text-secondary'
 			>
-				{SIGN_UP_MESSAGES.ALREADY_HAVE_ACCOUNT}{' '}
+				{t('hasAccount')}{' '}
 				<Link
-					href={PATHS.AUTH.SIGN_IN}
+					href={returnTo ? `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(returnTo)}` : PATHS.AUTH.SIGN_IN}
 					className='font-semibold text-brand transition-colors hover:text-brand/80'
 				>
-					Sign In
+					{t('signInLink')}
 				</Link>
 			</motion.div>
 		</motion.div>

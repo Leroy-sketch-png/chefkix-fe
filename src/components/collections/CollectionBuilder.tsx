@@ -14,6 +14,7 @@ import {
 	Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { DifficultyStep, CollectionType } from '@/lib/types/collection'
 
@@ -87,6 +88,7 @@ export function CollectionBuilder({
 	onCancel,
 	isSaving = false,
 }: CollectionBuilderProps) {
+	const t = useTranslations('collections')
 	const [name, setName] = useState(initialName)
 	const [description, setDescription] = useState(initialDescription)
 	const [collectionType, setCollectionType] = useState<CollectionType>(initialType)
@@ -96,7 +98,7 @@ export function CollectionBuilder({
 			? initialStages
 			: [
 					{
-						label: 'Getting Started',
+						label: t('builderGettingStarted'),
 						difficulty: 'Beginner',
 						recipeIds: initialRecipeIds,
 						order: 0,
@@ -113,7 +115,7 @@ export function CollectionBuilder({
 
 	const handleAddStage = useCallback(() => {
 		if (!newStageName.trim()) {
-			toast.error('Stage name is required')
+			toast.error(t('builderStageNameRequired'))
 			return
 		}
 		const newStage: DifficultyStep = {
@@ -126,7 +128,7 @@ export function CollectionBuilder({
 		setNewStageName('')
 		setNewStageDifficulty('Beginner')
 		setShowAddStage(false)
-		toast.success('Stage added')
+		toast.success(t('builderStageAdded'))
 	}, [newStageName, newStageDifficulty, stages])
 
 	const handleRemoveStage = useCallback((stageIndex: number) => {
@@ -168,11 +170,11 @@ export function CollectionBuilder({
 
 	const handleSave = async () => {
 		if (!name.trim()) {
-			toast.error('Collection name is required')
+			toast.error(t('builderCollectionNameRequired'))
 			return
 		}
 		if (totalRecipes === 0) {
-			toast.error('Add at least one recipe to your learning path')
+			toast.error(t('builderAddRecipe'))
 			return
 		}
 
@@ -196,11 +198,13 @@ export function CollectionBuilder({
 				<div className='flex items-center gap-3'>
 					<BookOpen className='size-6 text-brand' />
 					<h1 className='text-xl font-bold text-text'>
-						{initialName ? 'Edit Learning Path' : 'Create Learning Path'}
+						{initialName ? t('editLearningPath') : t('createLearningPath')}
 					</h1>
 				</div>
 				<button
+					type='button'
 					onClick={onCancel}
+					aria-label={t('builderClose')}
 					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 				>
 					<X className='size-5' />
@@ -217,7 +221,7 @@ export function CollectionBuilder({
 						type='text'
 						value={name}
 						onChange={e => setName(e.target.value)}
-						placeholder='e.g., "Master Italian Pasta"'
+						placeholder={t('builderNamePlaceholder')}
 						maxLength={80}
 						className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 					/>
@@ -229,7 +233,7 @@ export function CollectionBuilder({
 					<textarea
 						value={description}
 						onChange={e => setDescription(e.target.value)}
-						placeholder='What will learners achieve by completing this path?'
+						placeholder={t('builderDescriptionPlaceholder')}
 						maxLength={500}
 						rows={3}
 						className='w-full resize-none rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
@@ -243,7 +247,7 @@ export function CollectionBuilder({
 						className='size-4 rounded border-border-subtle accent-brand'
 					/>
 					<span className='text-sm text-text'>
-						Make this learning path public
+						{t('builderMakePublic')}
 					</span>
 				</label>
 			</div>
@@ -253,30 +257,31 @@ export function CollectionBuilder({
 				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
 					<ChefHat className='mx-auto mb-1.5 size-5 text-text-muted' />
 					<p className='text-xl font-bold text-text'>{totalRecipes}</p>
-					<p className='text-xs text-text-muted'>Recipes</p>
+					<p className='text-xs text-text-muted'>{t('builderRecipes')}</p>
 				</div>
 				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
 					<Clock className='mx-auto mb-1.5 size-5 text-text-muted' />
 					<p className='text-xl font-bold text-text'>{stages.length}</p>
-					<p className='text-xs text-text-muted'>Stages</p>
+					<p className='text-xs text-text-muted'>{t('builderStages')}</p>
 				</div>
 				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
 					<Zap className='mx-auto mb-1.5 size-5 text-xp' />
 					<p className='text-xl font-bold text-xp'>{totalXp}</p>
-					<p className='text-xs text-text-muted'>Total XP</p>
+					<p className='text-xs text-text-muted'>{t('builderTotalXp')}</p>
 				</div>
 			</div>
 
 			{/* Stages (Reorderable) */}
 			<div className='space-y-3'>
 				<div className='flex items-center justify-between'>
-					<h2 className='text-lg font-semibold text-text'>Learning Stages</h2>
+					<h2 className='text-lg font-semibold text-text'>{t('builderLearningStages')}</h2>
 					<button
+						type='button'
 						onClick={() => setShowAddStage(true)}
 						className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
 					>
 						<Plus className='size-4' />
-						Add Stage
+						{t('builderAddStage')}
 					</button>
 				</div>
 
@@ -303,7 +308,7 @@ export function CollectionBuilder({
 				{stages.length === 0 && (
 					<div className='rounded-xl border border-dashed border-border-subtle py-12 text-center'>
 						<p className='text-sm text-text-muted'>
-							No stages yet. Add a stage to organize your recipes.
+							{t('builderNoStages')}
 						</p>
 					</div>
 				)}
@@ -324,7 +329,7 @@ export function CollectionBuilder({
 						className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
 						onClick={e => e.stopPropagation()}
 					>
-						<h3 className='mb-4 text-lg font-bold text-text'>Add Stage</h3>
+						<h3 className='mb-4 text-lg font-bold text-text'>{t('builderAddStageTitle')}</h3>
 						<div className='space-y-4'>
 							<div>
 								<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
@@ -334,7 +339,7 @@ export function CollectionBuilder({
 									type='text'
 									value={newStageName}
 									onChange={e => setNewStageName(e.target.value)}
-									placeholder='e.g., "Knife Skills"'
+										placeholder={t('builderStageNamePlaceholder')}
 									className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 									autoFocus
 								/>
@@ -360,16 +365,18 @@ export function CollectionBuilder({
 						</div>
 						<div className='mt-6 flex justify-end gap-3'>
 							<button
+								type='button'
 								onClick={() => setShowAddStage(false)}
 								className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
 							>
-								Cancel
+								{t('cancel')}
 							</button>
 							<button
+								type='button'
 								onClick={handleAddStage}
 								className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover'
 							>
-								Add Stage
+								{t('builderAddStage')}
 							</button>
 						</div>
 					</motion.div>
@@ -379,27 +386,29 @@ export function CollectionBuilder({
 			{/* Save button */}
 			<div className='flex justify-end gap-3 border-t border-border-subtle pt-6'>
 				<button
+					type='button'
 					onClick={onCancel}
 					className='rounded-xl px-6 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
 				>
-					Cancel
+					{t('cancel')}
 				</button>
 				<button
+					type='button'
 					onClick={handleSave}
 					disabled={isSaving || !name.trim()}
 					className='flex items-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand-hover disabled:opacity-50'
 				>
 					<Save className='size-4' />
-					{isSaving ? 'Saving...' : 'Save Learning Path'}
+					{isSaving ? t('builderSaving') : t('builderSaveLearningPath')}
 				</button>
 			</div>
 		</div>
 	)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // StageItem Sub-component
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface StageItemProps {
 	stage: DifficultyStep
@@ -420,6 +429,7 @@ function StageItem({
 	onRemoveRecipe,
 	getDifficultyColor,
 }: StageItemProps) {
+	const t = useTranslations('collections')
 	const controls = useDragControls()
 	const [isEditing, setIsEditing] = useState(false)
 
@@ -452,6 +462,7 @@ function StageItem({
 						/>
 					) : (
 						<button
+							type='button'
 							onClick={() => setIsEditing(true)}
 							className='text-left font-semibold text-text hover:text-brand'
 						>
@@ -475,6 +486,7 @@ function StageItem({
 				</select>
 
 				<button
+					type='button'
 					onClick={() => onRemove(stageIndex)}
 					className='rounded-lg p-1.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
 				>
@@ -495,6 +507,7 @@ function StageItem({
 									Recipe {idx + 1}: {recipeId.slice(0, 8)}...
 								</span>
 								<button
+									type='button'
 									onClick={() => onRemoveRecipe(stageIndex, recipeId)}
 									className='rounded p-1 text-text-muted hover:bg-destructive/10 hover:text-destructive'
 								>
@@ -507,7 +520,7 @@ function StageItem({
 			) : (
 				<div className='border-t border-border-subtle px-4 py-3'>
 					<p className='text-center text-xs text-text-muted'>
-						No recipes in this stage. Add recipes from the recipe browser.
+					{t('builderNoRecipes')}
 					</p>
 				</div>
 			)}

@@ -6,6 +6,7 @@ import { Shield, ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { QualityTier } from '@/lib/types/recipe'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 /**
  * QualityBadge — Displays Recipe Quality Score tier
@@ -30,6 +31,13 @@ interface QualityBadgeProps {
 	showLabel?: boolean
 	className?: string
 	animate?: boolean
+}
+
+const TIER_LABEL_KEYS: Record<QualityTier, string> = {
+	Foolproof: 'tierFoolproof',
+	Good: 'tierGood',
+	'Needs Work': 'tierNeedsWork',
+	'Draft Quality': 'tierDraft',
 }
 
 const TIER_CONFIG: Record<
@@ -99,6 +107,7 @@ const QualityBadgeComponent = ({
 	const config = TIER_CONFIG[tier]
 	const sizeConfig = SIZE_CONFIG[size]
 	const Icon = config.icon
+	const t = useTranslations('recipe')
 
 	const badge = (
 		<div
@@ -111,7 +120,7 @@ const QualityBadgeComponent = ({
 			)}
 		>
 			<Icon className={cn(sizeConfig.icon, config.iconColor)} />
-			{showLabel && <span>{config.label}</span>}
+			{showLabel && <span>{t(TIER_LABEL_KEYS[tier])}</span>}
 			{showScore && score !== undefined && (
 				<span className='font-display opacity-75'>({score})</span>
 			)}

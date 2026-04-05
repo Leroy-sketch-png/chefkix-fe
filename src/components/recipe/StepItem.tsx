@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { GripVertical, ImagePlus, Timer, Trash2, Video, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -33,6 +34,7 @@ export const StepItem = ({
 	onRemove,
 	onUpdate,
 }: StepItemProps) => {
+	const t = useTranslations('recipe')
 	const [isEditingTimer, setIsEditingTimer] = useState(false)
 	const [timerValue, setTimerValue] = useState('')
 	const [timerUnit, setTimerUnit] = useState<TimeUnit>('minutes')
@@ -127,16 +129,14 @@ export const StepItem = ({
 				URL.revokeObjectURL(localPreviewUrl)
 			} else {
 				diag.image('recipe', 'upload-fail', { stepIndex: index, response })
-				toast.error('Image upload failed', {
-					description:
-						"Using local preview. Image won't persist after page refresh.",
+				toast.error(t('imageUploadFailed'), {
+					description: t('imageUploadFailedDesc'),
 				})
 			}
 		} catch (error) {
 			diag.image('recipe', 'upload-fail', { stepIndex: index, error })
-			toast.error('Image upload failed', {
-				description:
-					"Using local preview. Image won't persist after page refresh.",
+			toast.error(t('imageUploadFailed'), {
+				description: t('imageUploadFailedDesc'),
 			})
 		} finally {
 			setIsUploadingImage(false)
@@ -150,15 +150,15 @@ export const StepItem = ({
 
 		const validTypes = ['video/mp4', 'video/webm']
 		if (!validTypes.includes(file.type)) {
-			toast.error('Invalid video format', {
-				description: 'Only MP4 and WebM are supported.',
+			toast.error(t('invalidVideoFormat'), {
+				description: t('invalidVideoFormatDesc'),
 			})
 			return
 		}
 
 		const maxSize = 50 * 1024 * 1024 // 50MB
 		if (file.size > maxSize) {
-			toast.error('Video too large', { description: 'Maximum size is 50MB.' })
+			toast.error(t('videoTooLarge'), { description: t('videoTooLargeDesc') })
 			return
 		}
 
@@ -171,12 +171,12 @@ export const StepItem = ({
 					videoThumbnailUrl: response.data.thumbnailUrl,
 					videoDurationSec: response.data.durationSec,
 				})
-				toast.success('Video uploaded')
+				toast.success(t('videoUploaded'))
 			} else {
-				toast.error('Video upload failed')
+				toast.error(t('videoUploadFailed'))
 			}
 		} catch {
-			toast.error('Video upload failed')
+			toast.error(t('videoUploadFailed'))
 		} finally {
 			setIsUploadingVideo(false)
 			if (videoInputRef.current) videoInputRef.current.value = ''
@@ -211,6 +211,7 @@ export const StepItem = ({
 							</div>
 						)}
 						<button
+							type='button'
 							onClick={() => {
 								diag.image('recipe', 'remove', { stepIndex: index })
 								onUpdate({ imageUrl: undefined })
@@ -223,6 +224,7 @@ export const StepItem = ({
 					</div>
 				) : (
 					<button
+						type='button'
 						onClick={() => fileInputRef.current?.click()}
 						disabled={isUploadingImage}
 						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
@@ -230,12 +232,12 @@ export const StepItem = ({
 						{isUploadingImage ? (
 							<>
 								<div className='size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-								Uploading...
+								{t('uploading')}
 							</>
 						) : (
 							<>
 								<ImagePlus className='size-4' />
-								Add step photo
+								{t('addStepPhoto')}
 							</>
 						)}
 					</button>
@@ -260,6 +262,7 @@ export const StepItem = ({
 							className='h-32 w-full rounded-lg object-cover'
 						/>
 						<button
+							type='button'
 							onClick={() =>
 								onUpdate({
 									videoUrl: undefined,
@@ -274,6 +277,7 @@ export const StepItem = ({
 					</div>
 				) : (
 					<button
+						type='button'
 						onClick={() => videoInputRef.current?.click()}
 						disabled={isUploadingVideo}
 						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
@@ -281,12 +285,12 @@ export const StepItem = ({
 						{isUploadingVideo ? (
 							<>
 								<div className='size-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-								Uploading video...
+								{t('uploadingVideo')}
 							</>
 						) : (
 							<>
 								<Video className='size-4' />
-								Add step video
+								{t('addStepVideo')}
 							</>
 						)}
 					</button>
@@ -303,7 +307,7 @@ export const StepItem = ({
 				<textarea
 					defaultValue={step.instruction}
 					onChange={e => onUpdate({ instruction: e.target.value })}
-					placeholder='Describe this step...'
+					placeholder={t('describeStepPlaceholder')}
 					className='min-h-16 w-full resize-none rounded-lg border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none'
 				/>
 
@@ -341,6 +345,7 @@ export const StepItem = ({
 								</option>
 							</select>
 							<button
+								type='button'
 								onClick={handleTimerSave}
 								className='ml-1 rounded bg-brand px-2 py-0.5 text-xs font-semibold text-white'
 							>
@@ -350,6 +355,7 @@ export const StepItem = ({
 					) : timerSeconds ? (
 						<div className='flex items-center gap-1 rounded-lg bg-brand/10 px-3 py-1.5'>
 							<button
+								type='button'
 								onClick={openTimerEditor}
 								className='flex items-center gap-1.5 text-xs font-semibold text-brand transition-colors hover:text-brand/80'
 							>
@@ -357,8 +363,9 @@ export const StepItem = ({
 								{formatTimer(timerSeconds)}
 							</button>
 							<button
+								type='button'
 								onClick={handleClearTimer}
-								aria-label='Clear timer'
+								aria-label={t('clearTimer')}
 								className='ml-1 flex size-4 items-center justify-center rounded-full text-brand/60 hover:bg-brand/20 hover:text-brand'
 							>
 								<X className='size-3' />
@@ -366,11 +373,12 @@ export const StepItem = ({
 						</div>
 					) : (
 						<button
+							type='button'
 							onClick={openTimerEditor}
 							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Timer className='size-3.5' />
-							Add Timer
+						{t('addTimer')}
 						</button>
 					)}
 					{step.technique && (
@@ -382,14 +390,16 @@ export const StepItem = ({
 			</div>
 			<div className='flex flex-col gap-2'>
 				<button
-					aria-label='Drag to reorder'
+					type='button'
+					aria-label={t('dragToReorder')}
 					className='flex size-8 cursor-grab items-center justify-center rounded-lg text-text-secondary/70 transition-colors hover:bg-muted/30 hover:text-text-secondary active:cursor-grabbing'
 				>
 					<GripVertical className='size-4' />
 				</button>
 				<button
+					type='button'
 					onClick={onRemove}
-					aria-label='Remove step'
+					aria-label={t('removeStep')}
 					className='flex size-8 items-center justify-center rounded-lg text-text-secondary/50 transition-colors hover:bg-error/10 hover:text-error'
 				>
 					<Trash2 className='size-4' />

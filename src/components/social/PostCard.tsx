@@ -40,7 +40,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { CommentList } from '@/components/social/CommentList'
-import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_FEED_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_FEED_HOVER, BUTTON_SUBTLE_TAP, HEART_POP, BOOKMARK_SLIDE, SEND_WHOOSH } from '@/lib/motion'
 import { ImageCarousel } from '@/components/ui/image-carousel'
 import {
 	ReportModal,
@@ -50,11 +50,13 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuthGate } from '@/hooks/useAuthGate'
+import { useTranslations } from 'next-intl'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPicker'
 import { StarRating } from '@/components/ui/star-rating'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
@@ -78,12 +80,14 @@ function EditCountdown({ createdAt }: { createdAt: Date }) {
 		return () => clearInterval(interval)
 	}, [createdAt])
 
+	const t = useTranslations('post')
+
 	if (minutesLeft <= 0) return null
 
 	return (
 		<span className='inline-flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'>
 			<Pencil className='size-3' />
-			{minutesLeft}m left to edit
+			{t('minutesLeftToEdit', { minutes: minutesLeft })}
 		</span>
 	)
 }
@@ -138,6 +142,7 @@ export const PostCard = ({
 	const isOwner = currentUserId === post.userId
 	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
 	const requireAuth = useAuthGate()
+	const t = useTranslations('post')
 
 	// Dwell tracking â€” fire POST_DWELLED when card is visible for 2+ seconds
 	useEffect(() => {
@@ -288,7 +293,7 @@ export const PostCard = ({
 				setIsSaved(previousSaved)
 				toast.error(
 					response.message ||
-						(previousSaved ? 'Failed to unsave post' : 'Failed to save post'),
+						(previousSaved ? t('unsavePostFailed') : t('savePostFailed')),
 				)
 			}
 		} catch (error) {
@@ -296,7 +301,7 @@ export const PostCard = ({
 			setIsSaved(previousSaved)
 			logDevError('Failed to save post:', error)
 			toast.error(
-				previousSaved ? 'Failed to unsave post' : 'Failed to save post',
+				previousSaved ? t('unsavePostFailed') : t('savePostFailed'),
 			)
 		} finally {
 			setIsSaving(false)
@@ -355,7 +360,7 @@ export const PostCard = ({
 					fireCount: prevFire,
 					cringeCount: prevCringe,
 				}))
-				toast.error('Failed to rate post')
+				toast.error(t('failedRate'))
 			}
 		} catch {
 			setPost(prev => ({
@@ -364,7 +369,7 @@ export const PostCard = ({
 				fireCount: prevFire,
 				cringeCount: prevCringe,
 			}))
-			toast.error('Failed to rate post')
+			toast.error(t('failedRate'))
 		} finally {
 			setIsRatingPlate(false)
 		}
@@ -443,15 +448,15 @@ export const PostCard = ({
 			if (response.success) {
 				toast.success(
 					response.data?.reviewTriggered
-						? 'Report submitted - content is under review'
-						: 'Report submitted - thank you for keeping ChefKix safe',
+						? t('reportUnderReview')
+						: t('reportThankYou'),
 				)
 			} else {
-				toast.error(response.message || 'Failed to submit report')
+				toast.error(response.message || t('failedReport'))
 			}
 		} catch {
 			logDevError('Failed to submit post report:', post.id)
-			toast.error('Failed to submit report')
+			toast.error(t('failedReport'))
 		}
 	}
 
@@ -459,7 +464,7 @@ export const PostCard = ({
 		setShowShareMenu(false)
 		const postUrl = `${window.location.origin}/post/${post.id}`
 		const shareData = {
-			title: `Post by ${post.displayName || 'ChefKix User'}`,
+			title: t('nativeShareTitle', { name: post.displayName || t('chefkixUser') }),
 			text:
 				post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
 			url: postUrl,
@@ -474,9 +479,9 @@ export const PostCard = ({
 					logDevError('Native share failed, falling back to clipboard:', err)
 					try {
 						await navigator.clipboard.writeText(postUrl)
-						toast.success('Link copied to clipboard!')
+						toast.success(t('linkCopied'))
 					} catch {
-						toast.error('Failed to copy link')
+						toast.error(t('failedCopyLink'))
 					}
 				}
 			}
@@ -484,9 +489,9 @@ export const PostCard = ({
 			// Fallback: copy to clipboard
 			try {
 				await navigator.clipboard.writeText(postUrl)
-				toast.success('Link copied to clipboard!')
+				toast.success(t('linkCopied'))
 			} catch {
-				toast.error('Failed to copy link')
+				toast.error(t('failedCopyLink'))
 			}
 		}
 	}
@@ -522,7 +527,7 @@ export const PostCard = ({
 		preview:
 			post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
 		author: {
-			username: post.displayName || 'Unknown User',
+			username: post.displayName || t('unknownUser'),
 			avatarUrl: post.avatarUrl || '/placeholder-avatar.svg',
 		},
 	}
@@ -533,10 +538,10 @@ export const PostCard = ({
 			<ConfirmDialog
 				open={showDeleteConfirm}
 				onOpenChange={setShowDeleteConfirm}
-				title='Delete post?'
+				title={t('deleteTitle')}
 				description={POST_MESSAGES.DELETE_CONFIRM}
-				confirmLabel='Delete'
-				cancelLabel='Cancel'
+				confirmLabel={t('delete')}
+				cancelLabel={t('cancel')}
 				variant='destructive'
 				onConfirm={handleConfirmDelete}
 			/>
@@ -593,13 +598,13 @@ export const PostCard = ({
 									<div className='flex items-center gap-2 text-sm leading-normal text-text-secondary'>
 										{post.postType && post.postType !== 'PERSONAL' && (
 											<span className='inline-flex items-center gap-1 rounded-full bg-bg-elevated px-1.5 py-0.5 text-xs font-medium text-text-muted'>
-												{post.postType === 'QUICK' && <><Zap className='size-3' />Quick</>}
-												{post.postType === 'POLL' && <><BarChart3 className='size-3' />Poll</>}
-												{post.postType === 'RECENT_COOK' && <><ChefHat className='size-3' />Cook</>}
-												{post.postType === 'GROUP' && <><Users className='size-3' />Group</>}
-												{post.postType === 'RECIPE_REVIEW' && <><Star className='size-3' />Review</>}
-												{post.postType === 'QUICK_TIP' && <><Lightbulb className='size-3' />Tip</>}
-												{post.postType === 'RECIPE_BATTLE' && <><Swords className='size-3' />Battle</>}
+												{post.postType === 'QUICK' && <><Zap className='size-3' />{t('typeQuickShort')}</>}
+												{post.postType === 'POLL' && <><BarChart3 className='size-3' />{t('typePollShort')}</>}
+												{post.postType === 'RECENT_COOK' && <><ChefHat className='size-3' />{t('typeCookShort')}</>}
+												{post.postType === 'GROUP' && <><Users className='size-3' />{t('typeGroupShort')}</>}
+												{post.postType === 'RECIPE_REVIEW' && <><Star className='size-3' />{t('typeReviewShort')}</>}
+												{post.postType === 'QUICK_TIP' && <><Lightbulb className='size-3' />{t('typeTipShort')}</>}
+												{post.postType === 'RECIPE_BATTLE' && <><Swords className='size-3' />{t('typeBattleShort')}</>}
 											</span>
 										)}
 										{formatDistanceToNow(new Date(post.createdAt), {
@@ -619,7 +624,7 @@ export const PostCard = ({
 									ref={menuButtonRef}
 									onClick={handleMenuToggle}
 									whileTap={BUTTON_SUBTLE_TAP}
-									aria-label='Open post actions'
+									aria-label={t('openActions')}
 									className='size-11 rounded-full transition-colors hover:bg-bg-hover'
 								>
 									<MoreVertical className='mx-auto size-5 text-text-secondary' />
@@ -660,7 +665,7 @@ export const PostCard = ({
 																className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 															>
 																<Pencil className='size-4' />
-																Edit post
+																{t('editPost')}
 															</motion.button>
 														)}
 														<motion.button
@@ -671,7 +676,7 @@ export const PostCard = ({
 															className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-destructive transition-colors hover:bg-destructive/10'
 														>
 															<Trash2 className='size-4' />
-															Delete post
+															{t('deletePost')}
 														</motion.button>
 													</>
 												)}
@@ -688,7 +693,7 @@ export const PostCard = ({
 														className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 													>
 														<Flag className='size-4' />
-														Report post
+														{t('reportPost')}
 													</motion.button>
 												)}
 											</motion.div>
@@ -706,11 +711,11 @@ export const PostCard = ({
 								value={editContent}
 								onChange={e => setEditContent(e.target.value)}
 								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
-								placeholder='Edit your post...'
+								placeholder={t('editPostPlaceholder')}
 								maxLength={2000}
 							/>
 							{editContent.length > 0 && (
-								<p className='text-right text-xs text-text-muted'>
+								<p className={`text-right text-xs ${editContent.length > 1600 ? (editContent.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
 									{editContent.length}/2000
 								</p>
 							)}
@@ -718,7 +723,7 @@ export const PostCard = ({
 								value={editTags}
 								onChange={e => setEditTags(e.target.value)}
 								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
-								placeholder='Tags (comma-separated)'
+								placeholder={t('tagsPlaceholder')}
 								maxLength={200}
 							/>
 							<div className='flex gap-2'>
@@ -728,7 +733,7 @@ export const PostCard = ({
 									whileTap={BUTTON_SUBTLE_TAP}
 									className='h-11 flex-1 rounded-lg bg-brand px-4 font-medium text-white transition-colors hover:bg-brand/90'
 								>
-									Save
+									{t('save')}
 								</motion.button>
 								<motion.button
 									type='button'
@@ -740,7 +745,7 @@ export const PostCard = ({
 									whileTap={BUTTON_SUBTLE_TAP}
 									className='h-11 flex-1 rounded-lg border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover'
 								>
-									Cancel
+									{t('cancel')}
 								</motion.button>
 							</div>
 						</div>
@@ -781,14 +786,14 @@ export const PostCard = ({
 											<Link href={`/recipes/${post.battleRecipeIdA}`} className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'>
 												{post.battleRecipeImageA && (
 													<div className='relative size-16 overflow-hidden rounded-lg'>
-														<Image src={post.battleRecipeImageA} alt={post.battleRecipeTitleA ?? 'Recipe A'} fill unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
+														<Image src={post.battleRecipeImageA} alt={post.battleRecipeTitleA ?? t('recipeAFallback')} fill sizes='64px' unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
 													</div>
 												)}
 												<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
-													{post.battleRecipeTitleA ?? 'Recipe A'}
+													{post.battleRecipeTitleA ?? t('recipeAFallback')}
 												</span>
 												<span className='text-xs font-bold tabular-nums text-brand'>
-													{post.battleVotesA ?? 0} votes
+													{t('votesCount', { count: post.battleVotesA ?? 0 })}
 												</span>
 											</Link>
 
@@ -799,7 +804,7 @@ export const PostCard = ({
 												</span>
 												{post.battleEndsAt && (
 													<span className='text-2xs text-text-muted'>
-														{new Date(post.battleEndsAt) > new Date() ? 'Active' : 'Ended'}
+														{new Date(post.battleEndsAt) > new Date() ? t('battleActive') : t('battleEnded')}
 													</span>
 												)}
 											</div>
@@ -808,14 +813,14 @@ export const PostCard = ({
 											<Link href={`/recipes/${post.battleRecipeIdB}`} className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'>
 												{post.battleRecipeImageB && (
 													<div className='relative size-16 overflow-hidden rounded-lg'>
-														<Image src={post.battleRecipeImageB} alt={post.battleRecipeTitleB ?? 'Recipe B'} fill unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
+														<Image src={post.battleRecipeImageB} alt={post.battleRecipeTitleB ?? t('recipeBFallback')} fill sizes='64px' unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
 													</div>
 												)}
 												<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
-													{post.battleRecipeTitleB ?? 'Recipe B'}
+													{post.battleRecipeTitleB ?? t('recipeBFallback')}
 												</span>
 												<span className='text-xs font-bold tabular-nums text-brand'>
-													{post.battleVotesB ?? 0} votes
+													{t('votesCount', { count: post.battleVotesB ?? 0 })}
 												</span>
 											</Link>
 										</div>
@@ -839,7 +844,7 @@ export const PostCard = ({
 									<div className='flex items-start gap-3 rounded-xl border border-warning/20 bg-gradient-to-r from-warning/5 to-level/5 px-4 py-3'>
 										<Lightbulb className='mt-0.5 size-5 flex-shrink-0 text-warning' />
 										<span className='text-sm font-medium leading-relaxed text-text-primary'>
-											Quick Tip
+											{t('quickTipLabel')}
 										</span>
 									</div>
 								)}
@@ -853,7 +858,7 @@ export const PostCard = ({
 									>
 										<ChefHat className='size-4 text-brand' />
 										<span>
-											Cooked:{' '}
+											{t('cookedLabel')}{' '}
 											<span className='font-bold text-text-primary'>
 												{post.recipeTitle}
 											</span>
@@ -871,7 +876,7 @@ export const PostCard = ({
 									<div className='flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/5 to-accent-purple/5 px-3 py-2'>
 										<Users className='size-4 flex-shrink-0 text-brand' />
 										<span className='text-sm text-text-secondary'>
-											Cooked with{' '}
+											{t('cookedWith')}{' '}
 										</span>
 										<div className='flex flex-wrap items-center gap-1'>
 											{post.coChefs.map((chef, i) => (
@@ -919,7 +924,7 @@ export const PostCard = ({
 													? [post.photoUrl]
 													: []
 										}
-										alt={`Post by ${post.displayName}`}
+										alt={t('postByUser', { name: post.displayName })}
 										aspectRatio='video'
 										showControls={true}
 										showIndicators={true}
@@ -965,7 +970,7 @@ export const PostCard = ({
 						post.userId !== currentUserId && (
 							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated/50 px-4 py-2'>
 								<span className='text-xs font-medium text-text-muted'>
-									Rate this plate
+									{t('rateThisPlate')}
 								</span>
 								<div className='flex items-center gap-2'>
 									<motion.button
@@ -981,9 +986,7 @@ export const PostCard = ({
 									>
 										<span>ðŸ”¥</span>
 										{(post.fireCount ?? 0) > 0 && (
-											<span className='text-xs font-semibold tabular-nums'>
-												{post.fireCount}
-											</span>
+											<AnimatedNumber value={post.fireCount!} className='text-xs font-semibold tabular-nums' />
 										)}
 									</motion.button>
 									<motion.button
@@ -999,9 +1002,7 @@ export const PostCard = ({
 									>
 										<span>ðŸ˜¬</span>
 										{(post.cringeCount ?? 0) > 0 && (
-											<span className='text-xs font-semibold tabular-nums'>
-												{post.cringeCount}
-											</span>
+											<AnimatedNumber value={post.cringeCount!} className='text-xs font-semibold tabular-nums' />
 										)}
 									</motion.button>
 								</div>
@@ -1016,32 +1017,38 @@ export const PostCard = ({
 							onClick={handleLike}
 							disabled={isLiking}
 							whileTap={BUTTON_SUBTLE_TAP}
-							aria-label={post.isLiked ? 'Unlike post' : 'Like post'}
+							aria-label={post.isLiked ? t('unlikePostLabel') : t('likePostLabel')}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								post.isLiked
 									? 'text-brand'
 									: 'text-text-secondary hover:bg-bg-hover hover:text-brand'
 							}`}
 						>
+							<motion.div
+								variants={HEART_POP}
+								animate={post.isLiked ? 'liked' : 'unliked'}
+								initial={false}
+							>
 							<Heart
 								className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
 									post.isLiked
-										? 'animate-heart-beat fill-destructive stroke-destructive'
+										? 'fill-destructive stroke-destructive'
 										: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
 								}`}
 							/>
-							<span className='tabular-nums'>{post.likes ?? 0}</span>
+							</motion.div>
+							<AnimatedNumber value={post.likes ?? 0} className='tabular-nums' />
 						</motion.button>
 
 						<motion.button
 							type='button'
 							onClick={() => setShowComments(!showComments)}
 							whileTap={BUTTON_SUBTLE_TAP}
-							aria-label={showComments ? 'Hide comments' : 'Show comments'}
+							aria-label={showComments ? t('hideCommentsLabel') : t('showCommentsLabel')}
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-brand'
 						>
 							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-brand group-hover/btn:stroke-brand' />
-							<span className='tabular-nums'>{post.commentCount ?? 0}</span>
+							<AnimatedNumber value={post.commentCount ?? 0} className='tabular-nums' />
 						</motion.button>
 
 						{/* Share button with dropdown menu */}
@@ -1051,11 +1058,17 @@ export const PostCard = ({
 								ref={shareButtonRef}
 								onClick={handleShareMenuToggle}
 								whileTap={BUTTON_SUBTLE_TAP}
-								aria-label='Share post'
+								aria-label={t('sharePost')}
 								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-brand'
 							>
-								<Send className='size-5 transition-all duration-300 group-hover/btn:scale-125' />
-								<span>Share</span>
+								<motion.div
+									variants={SEND_WHOOSH}
+									animate={showShareMenu ? 'sending' : 'initial'}
+									initial={false}
+								>
+									<Send className='size-5' />
+								</motion.div>
+								<span>{t('share')}</span>
 							</motion.button>
 
 							{/* Share options menu */}
@@ -1086,7 +1099,7 @@ export const PostCard = ({
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
 												<MessageSquare className='size-4' />
-												Send in chat
+												{t('sendInChat')}
 											</motion.button>
 											<motion.button
 												type='button'
@@ -1096,7 +1109,7 @@ export const PostCard = ({
 												className='flex h-11 w-full items-center gap-2 px-4 text-left text-sm text-text-primary transition-colors hover:bg-bg-hover'
 											>
 												<Send className='size-4' />
-												Share externally
+												{t('shareExternally')}
 											</motion.button>
 										</motion.div>
 									</Portal>
@@ -1110,13 +1123,18 @@ export const PostCard = ({
 							onClick={handleSave}
 							disabled={isSaving}
 							whileTap={BUTTON_SUBTLE_TAP}
-							aria-label={isSaved ? 'Remove saved post' : 'Save post'}
+							aria-label={isSaved ? t('removeSavedPostLabel') : t('savePostLabel')}
 							className={`group/btn flex h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all ${
 								isSaved
 									? 'flex-1 text-brand'
 									: 'flex-1 text-text-secondary hover:bg-bg-hover hover:text-brand'
 							}`}
 						>
+							<motion.div
+								variants={BOOKMARK_SLIDE}
+								animate={isSaved ? 'saved' : 'unsaved'}
+								initial={false}
+							>
 							<Bookmark
 								className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
 									isSaved
@@ -1124,6 +1142,7 @@ export const PostCard = ({
 										: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
 								}`}
 							/>
+							</motion.div>
 						</motion.button>
 						{/* Add to Collection button â€” appears when post is saved */}
 						<AnimatePresence>
@@ -1145,7 +1164,7 @@ export const PostCard = ({
 										setShowCollectionPicker(true)
 									}}
 									whileTap={BUTTON_SUBTLE_TAP}
-									aria-label='Add to collection'
+									aria-label={t('addToCollection')}
 									className='flex h-11 items-center justify-center overflow-hidden rounded-lg px-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand'
 								>
 									<FolderPlus className='size-4' />

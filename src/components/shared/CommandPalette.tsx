@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Command } from 'cmdk'
@@ -50,13 +52,14 @@ interface CommandItem {
 
 function useNavigationItems(): CommandItem[] {
 	const router = useRouter()
+	const t = useTranslations('shared')
 	const nav = useCallback((path: string) => () => router.push(path), [router])
 
 	return [
 		{
 			id: 'nav-dashboard',
-			label: 'Dashboard',
-			description: 'Home feed and activity',
+			label: t('cpDashboard'),
+			description: t('cpDashboardDesc'),
 			icon: <Home className='size-4' />,
 			action: nav(PATHS.DASHBOARD),
 			keywords: ['home', 'feed', 'main'],
@@ -64,8 +67,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-explore',
-			label: 'Explore',
-			description: 'Discover recipes and creators',
+			label: t('cpExplore'),
+			description: t('cpExploreDesc'),
 			icon: <Compass className='size-4' />,
 			action: nav(PATHS.EXPLORE),
 			keywords: ['discover', 'browse', 'find'],
@@ -73,8 +76,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-community',
-			label: 'Community',
-			description: 'Leaderboards and people',
+			label: t('cpCommunity'),
+			description: t('cpCommunityDesc'),
 			icon: <Users className='size-4' />,
 			action: nav(PATHS.COMMUNITY),
 			keywords: ['leaderboard', 'people', 'social'],
@@ -82,8 +85,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-challenges',
-			label: 'Challenges',
-			description: 'Daily, weekly and seasonal challenges',
+			label: t('cpChallenges'),
+			description: t('cpChallengesDesc'),
 			icon: <Trophy className='size-4' />,
 			action: nav('/challenges'),
 			keywords: ['daily', 'weekly', 'seasonal', 'quest'],
@@ -91,8 +94,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-messages',
-			label: 'Messages',
-			description: 'Chat with other cooks',
+			label: t('cpMessages'),
+			description: t('cpMessagesDesc'),
 			icon: <MessageSquare className='size-4' />,
 			action: nav(PATHS.MESSAGES),
 			keywords: ['chat', 'dm', 'inbox'],
@@ -100,8 +103,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-notifications',
-			label: 'Notifications',
-			description: 'Activity alerts',
+			label: t('cpNotifications'),
+			description: t('cpNotificationsDesc'),
 			icon: <Bell className='size-4' />,
 			action: nav('/notifications'),
 			keywords: ['alerts', 'updates'],
@@ -109,8 +112,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-profile',
-			label: 'My Profile',
-			description: 'View your profile and stats',
+			label: t('cpMyProfile'),
+			description: t('cpMyProfileDesc'),
 			icon: <User className='size-4' />,
 			action: nav('/profile'),
 			keywords: ['me', 'account', 'stats'],
@@ -118,8 +121,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-settings',
-			label: 'Settings',
-			description: 'Account and preferences',
+			label: t('cpSettings'),
+			description: t('cpSettingsDesc'),
 			icon: <Settings className='size-4' />,
 			action: nav(PATHS.SETTINGS),
 			keywords: ['preferences', 'account', 'config'],
@@ -127,8 +130,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-pantry',
-			label: 'My Pantry',
-			description: 'Manage your ingredients',
+			label: t('cpMyPantry'),
+			description: t('cpMyPantryDesc'),
 			icon: <ShoppingBag className='size-4' />,
 			action: nav('/pantry'),
 			keywords: ['ingredients', 'fridge', 'inventory'],
@@ -136,8 +139,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-meal-planner',
-			label: 'Meal Planner',
-			description: 'Plan your weekly meals',
+			label: t('cpMealPlanner'),
+			description: t('cpMealPlannerDesc'),
 			icon: <CalendarDays className='size-4' />,
 			action: nav('/meal-planner'),
 			keywords: ['plan', 'schedule', 'weekly'],
@@ -145,8 +148,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-shopping-lists',
-			label: 'Shopping Lists',
-			description: 'Your grocery lists',
+			label: t('cpShoppingLists'),
+			description: t('cpShoppingListsDesc'),
 			icon: <BookOpen className='size-4' />,
 			action: nav('/shopping-lists'),
 			keywords: ['grocery', 'buy', 'list'],
@@ -154,8 +157,8 @@ function useNavigationItems(): CommandItem[] {
 		},
 		{
 			id: 'nav-creator',
-			label: 'Creator Studio',
-			description: 'Analytics and recipe management',
+			label: t('cpCreatorStudio'),
+			description: t('cpCreatorStudioDesc'),
 			icon: <BarChart2 className='size-4' />,
 			action: nav('/creator'),
 			keywords: ['analytics', 'studio', 'manage'],
@@ -170,12 +173,13 @@ function useNavigationItems(): CommandItem[] {
 
 function useActionItems(): CommandItem[] {
 	const router = useRouter()
+	const t = useTranslations('shared')
 
 	return [
 		{
 			id: 'action-create-recipe',
-			label: 'Create Recipe',
-			description: 'Start a new recipe',
+			label: t('cpCreateRecipe'),
+			description: t('cpCreateRecipeDesc'),
 			icon: <PlusCircle className='size-4' />,
 			action: () => router.push('/create'),
 			keywords: ['new', 'add', 'write'],
@@ -183,8 +187,8 @@ function useActionItems(): CommandItem[] {
 		},
 		{
 			id: 'action-new-post',
-			label: 'New Post',
-			description: 'Share something with the community',
+			label: t('cpNewPost'),
+			description: t('cpNewPostDesc'),
 			icon: <Utensils className='size-4' />,
 			action: () => router.push('/post/new'),
 			keywords: ['share', 'publish', 'post'],
@@ -192,8 +196,8 @@ function useActionItems(): CommandItem[] {
 		},
 		{
 			id: 'action-search',
-			label: 'Search Recipes',
-			description: 'Find recipes by name or ingredient',
+			label: t('cpSearchRecipes'),
+			description: t('cpSearchRecipesDesc'),
 			icon: <Search className='size-4' />,
 			action: () => router.push('/search'),
 			keywords: ['find', 'lookup', 'query'],
@@ -220,6 +224,7 @@ function useSearchResults(
 	isOpen: boolean,
 ): { results: SearchResult[]; isSearching: boolean } {
 	const router = useRouter()
+	const t = useTranslations('shared')
 	const [results, setResults] = useState<SearchResult[]>([])
 	const [isSearching, setIsSearching] = useState(false)
 	const abortRef = useRef<AbortController | null>(null)
@@ -250,7 +255,7 @@ function useSearchResults(
 					.map((r: { id: string; title: string; difficulty?: string }) => ({
 						id: `recipe-${r.id}`,
 						label: r.title,
-						description: r.difficulty ? `${r.difficulty} recipe` : 'Recipe',
+						description: r.difficulty ? `${r.difficulty} recipe` : t('cpRecipeFallback'),
 						icon: <ChefHat className='size-4' />,
 						action: () => router.push(`/recipes/${r.id}`),
 						group: 'Recipes',
@@ -329,6 +334,7 @@ function addRecentItem(id: string) {
 // ============================================
 
 export function CommandPalette() {
+	const t = useTranslations('shared')
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const isAuthenticated = useAuthStore(s => s.isAuthenticated)
@@ -381,7 +387,7 @@ export function CommandPalette() {
 			<Command.Dialog
 				open={open}
 				onOpenChange={setOpen}
-				label='Command Palette'
+				label={t('cpDialogLabel')}
 				className={cn(
 					'fixed inset-0 z-modal flex items-start justify-center pt-[15vh]',
 					// Backdrop
@@ -408,7 +414,7 @@ export function CommandPalette() {
 						<Command.Input
 							value={query}
 							onValueChange={setQuery}
-							placeholder='Search pages, recipes, people, actions...'
+							placeholder={t('cpPlaceholder')}
 							className='flex-1 bg-transparent py-4 text-base text-text outline-none placeholder:text-text-muted'
 						/>
 						<kbd className='hidden rounded-md border border-border-subtle bg-bg-elevated px-2 py-0.5 text-xs text-text-muted sm:inline-block'>
@@ -422,18 +428,18 @@ export function CommandPalette() {
 							{isSearching ? (
 								<span className='flex items-center justify-center gap-2'>
 									<Loader2 className='size-4 animate-spin' />
-									Searching...
+									{t('cpSearching')}
 								</span>
 							) : query.length > 0 ? (
-								'No results found.'
+								t('cpNoResults')
 							) : (
-								'Start typing to search...'
+								t('cpStartTyping')
 							)}
 						</Command.Empty>
 
 						{/* Recent */}
 						{recentItems.length > 0 && !query && (
-							<Command.Group heading='Recent'>
+							<Command.Group heading={t('cpRecent')}>
 								{recentItems.map(item => (
 									<CommandRow
 										key={item.id}
@@ -452,7 +458,7 @@ export function CommandPalette() {
 									const items = searchResults.filter(r => r.group === group)
 									if (items.length === 0) return null
 									return (
-										<Command.Group key={group} heading={group}>
+										<Command.Group key={group} heading={group === 'Recipes' ? t('cpRecipesGroup') : t('cpPeopleGroup')}>
 											{items.map(item => (
 												<CommandRow
 													key={item.id}
@@ -470,7 +476,7 @@ export function CommandPalette() {
 
 						{/* Navigation */}
 						{!query && (
-							<Command.Group heading='Go to'>
+							<Command.Group heading={t('cpGoTo')}>
 								{navItems.map(item => (
 									<CommandRow
 										key={item.id}
@@ -482,7 +488,7 @@ export function CommandPalette() {
 						)}
 
 						{/* Actions */}
-						<Command.Group heading='Actions'>
+						<Command.Group heading={t('cpActions')}>
 							{actionItems.map(item => (
 								<CommandRow
 									key={item.id}
@@ -497,15 +503,15 @@ export function CommandPalette() {
 					<div className='flex items-center justify-between border-t border-border-subtle px-4 py-2 text-xs text-text-muted'>
 						<span>
 							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>↑↓</kbd>
-							Navigate
+							{t('cpNavigate')}
 						</span>
 						<span>
 							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>↵</kbd>
-							Select
+							{t('cpSelect')}
 						</span>
 						<span>
 							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>Esc</kbd>
-							Close
+							{t('cpClose')}
 						</span>
 					</div>
 				</div>

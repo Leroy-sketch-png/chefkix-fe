@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
@@ -60,6 +62,7 @@ export function StepHeatmap({
 	const [data, setData] = useState<StepHeatmapResponse | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [expanded, setExpanded] = useState(false)
+	const t = useTranslations('creator')
 
 	useEffect(() => {
 		const fetch = async () => {
@@ -135,8 +138,7 @@ export function StepHeatmap({
 						<div className='flex items-center gap-1.5 rounded-full bg-error/10 px-2.5 py-1'>
 							<AlertTriangle className='size-3.5 text-error' />
 							<span className='text-xs font-medium text-error'>
-								{struggleSteps.length} struggle point
-								{struggleSteps.length !== 1 ? 's' : ''}
+								{struggleSteps.length !== 1 ? t('strugglePointsPlural', { n: struggleSteps.length }) : t('strugglePoints', { n: struggleSteps.length })}
 							</span>
 						</div>
 					)}
@@ -241,12 +243,13 @@ export function StepHeatmap({
 			{/* Expand/collapse */}
 			{data.steps.length > 5 && (
 				<button
+					type='button'
 					onClick={() => setExpanded(!expanded)}
 					className='flex w-full items-center justify-center gap-1 border-t border-border-subtle py-2.5 text-xs font-medium text-text-secondary transition-colors hover:text-text'
 				>
 					{expanded ? (
 						<>
-							Show less <ChevronUp className='size-3.5' />
+							{t('showLess')} <ChevronUp className='size-3.5' />
 						</>
 					) : (
 						<>

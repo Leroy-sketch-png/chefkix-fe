@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -34,12 +36,13 @@ export function ConfirmDialog({
 	onOpenChange,
 	title,
 	description,
-	confirmLabel = 'Confirm',
-	cancelLabel = 'Cancel',
+	confirmLabel,
+	cancelLabel,
 	variant = 'default',
 	onConfirm,
 	onCancel,
 }: ConfirmDialogProps) {
+	const t = useTranslations('shared')
 	const handleConfirm = () => {
 		onConfirm()
 		onOpenChange(false)
@@ -64,7 +67,7 @@ export function ConfirmDialog({
 						onClick={handleCancel}
 						className='rounded-lg border-border bg-bg-elevated hover:bg-bg-hover'
 					>
-						{cancelLabel}
+						{cancelLabel ?? t('cdCancel')}
 					</AlertDialogCancel>
 					<AlertDialogAction
 						onClick={handleConfirm}
@@ -74,7 +77,7 @@ export function ConfirmDialog({
 								: 'rounded-lg bg-brand text-white hover:bg-brand/90'
 						}
 					>
-						{confirmLabel}
+						{confirmLabel ?? t('cdConfirm')}
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>

@@ -87,6 +87,7 @@ const CollapsibleSection = ({
 			)}
 		>
 			<button
+				type='button'
 				onClick={() => setIsOpen(!isOpen)}
 				className='flex w-full items-center justify-between p-3 text-left'
 			>
@@ -176,6 +177,7 @@ const FullModeRenderer = ({
 						src={step.imageUrl}
 						alt={step.title ?? `Step ${step.stepNumber}`}
 						fill
+						sizes='(max-width: 768px) 100vw, 672px'
 						className='object-cover'
 					/>
 				</motion.div>

@@ -1,8 +1,11 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { Group } from '@/lib/types/group'
 import { Users, Clock, Globe, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
 import { Button } from '@/components/ui/button'
 
 interface GroupAboutSectionProps {
@@ -16,6 +19,7 @@ interface GroupAboutSectionProps {
  * Similar to Facebook group About tab
  */
 export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionProps) {
+	const t = useTranslations('groups')
 	const createdDate = new Date(group.createdAt)
 	const formattedDate = createdDate.toLocaleDateString('en-US', {
 		year: 'numeric',
@@ -33,7 +37,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			{/* Description */}
 			{group.description && (
 				<div className='bg-bg-card rounded-lg p-6 border border-border'>
-					<h3 className='font-bold text-lg text-text mb-3'>Description</h3>
+					<h3 className='font-bold text-lg text-text mb-3'>{t('gaDescription')}</h3>
 					<p className='text-text-secondary leading-relaxed'>
 						{group.description}
 					</p>
@@ -45,8 +49,8 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				{/* Members Card - Clickable */}
 				<motion.button
 					onClick={onViewMembers}
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+				whileHover={LIST_ITEM_HOVER}
+				whileTap={LIST_ITEM_TAP}
 					className='bg-bg-card rounded-lg p-6 border border-border hover:border-brand/50 transition-all text-left'
 				>
 					<div className='flex items-start gap-4'>
@@ -54,11 +58,11 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 							<Users className='size-6 text-brand' />
 						</div>
 						<div>
-							<p className='text-sm text-text-secondary mb-1'>Members</p>
+							<p className='text-sm text-text-secondary mb-1'>{t('gaMembers')}</p>
 							<p className='text-2xl font-bold text-text'>
 								{group.memberCount.toLocaleString()}
 							</p>
-							<p className='text-xs text-brand mt-2'>Click to view members â†’</p>
+							<p className='text-xs text-brand mt-2'>{t('gaViewMembers')}</p>
 						</div>
 					</div>
 				</motion.button>
@@ -70,7 +74,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 							<Clock className='size-6 text-brand' />
 						</div>
 						<div>
-							<p className='text-sm text-text-secondary mb-1'>Created</p>
+							<p className='text-sm text-text-secondary mb-1'>{t('gaCreated')}</p>
 							<p className='font-semibold text-text'>{formattedDate}</p>
 						</div>
 					</div>
@@ -91,13 +95,13 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 						<p className='text-sm text-text-secondary mb-1'>Privacy</p>
 						<p className='font-semibold text-text'>
 							{group.privacyType === 'PRIVATE'
-								? 'Private Group'
-								: 'Public Group'}
+								? t('gaPrivateGroup')
+								: t('gaPublicGroup')}
 						</p>
 						<p className='text-xs text-text-secondary mt-2'>
 							{group.privacyType === 'PRIVATE'
-								? 'Only members can see posts and members list'
-								: 'Anyone can see posts and members list'}
+								? t('gaPrivateDesc')
+								: t('gaPublicDesc')}
 						</p>
 					</div>
 				</div>
@@ -106,7 +110,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			{/* Tags */}
 			{group.tags && group.tags.length > 0 && (
 				<div className='bg-bg-card rounded-lg p-6 border border-border'>
-					<h3 className='font-bold text-text mb-4'>Tags</h3>
+					<h3 className='font-bold text-text mb-4'>{t('gaTags')}</h3>
 					<div className='flex flex-wrap gap-2'>
 						{group.tags.map((tag) => (
 							<span
@@ -123,7 +127,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			{/* Rules Section - Will be populated from backend later */}
 			{group.rules && group.rules.length > 0 && (
 				<div className='bg-bg-card rounded-lg p-6 border border-border'>
-					<h3 className='font-bold text-lg text-text mb-4'>Group Rules</h3>
+					<h3 className='font-bold text-lg text-text mb-4'>{t('gaGroupRules')}</h3>
 					<div className='space-y-3'>
 						{group.rules.map((rule, index) => (
 							<div key={index} className='flex gap-3'>

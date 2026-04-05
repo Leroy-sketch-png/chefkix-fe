@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import type { RoomParticipant } from '@/lib/types/room'
+import { useTranslations } from 'next-intl'
 
 interface RoomParticipantsBarProps {
 	participants: RoomParticipant[]
@@ -29,6 +30,7 @@ export function RoomParticipantsBar({
 	compact = false,
 	className,
 }: RoomParticipantsBarProps) {
+	const t = useTranslations('cooking')
 	if (!participants.length) return null
 
 	return (
@@ -59,8 +61,7 @@ export function RoomParticipantsBar({
 							participant={participant}
 							isSelf={participant.userId === currentUserId}
 							totalSteps={totalSteps}
-							compact={compact}
-						/>
+							compact={compact}						participantTitle={t('participantTitle', { name: participant.displayName, current: participant.currentStep, total: totalSteps })}						/>
 					))}
 				</AnimatePresence>
 			</div>
@@ -80,11 +81,13 @@ function ParticipantAvatar({
 	isSelf,
 	totalSteps,
 	compact,
+	participantTitle,
 }: {
 	participant: RoomParticipant
 	isSelf: boolean
 	totalSteps: number
 	compact: boolean
+	participantTitle: string
 }) {
 	const progress =
 		totalSteps > 0 ? (participant.currentStep / totalSteps) * 100 : 0
@@ -97,7 +100,7 @@ function ParticipantAvatar({
 			exit={{ scale: 0, opacity: 0 }}
 			transition={TRANSITION_SPRING}
 			className='relative'
-			title={`${participant.displayName} â€” Step ${participant.currentStep}/${totalSteps}`}
+			title={participantTitle}
 		>
 			{/* Progress ring */}
 			<svg

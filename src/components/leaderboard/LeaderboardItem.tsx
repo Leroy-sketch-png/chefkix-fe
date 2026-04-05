@@ -12,6 +12,8 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, LIST_ITEM_TAP } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -101,6 +103,7 @@ export function LeaderboardItem({
 	const isLeading = variant === 'leading'
 	const isPromotion = variant === 'promotion'
 	const isDemotion = variant === 'demotion'
+	const t = useTranslations('leaderboard')
 
 	return (
 		<motion.div
@@ -158,7 +161,7 @@ export function LeaderboardItem({
 				</div>
 				<div className='flex flex-col'>
 					<span className='text-base font-bold text-text'>
-						{isCurrentUser ? 'You' : entry.displayName}
+						{isCurrentUser ? t('you') : entry.displayName}
 					</span>
 					<span className='text-xs text-text-tertiary'>
 						Level {entry.level}
@@ -198,11 +201,11 @@ export function LeaderboardItem({
 				<div className='hidden gap-3 sm:flex'>
 					<div className='flex items-center gap-1 text-sm text-streak'>
 						<Flame className='size-3.5' />
-						<span>{entry.streak}</span>
+						<AnimatedNumber value={entry.streak} className='tabular-nums' />
 					</div>
 					<div className='flex items-center gap-1 text-sm text-text-secondary'>
 						<Utensils className='size-3.5' />
-						<span>{entry.recipesCooked}</span>
+						<AnimatedNumber value={entry.recipesCooked} className='tabular-nums' />
 					</div>
 				</div>
 			)}
@@ -210,9 +213,9 @@ export function LeaderboardItem({
 			{/* XP */}
 			<div className='min-w-thumbnail-md text-right'>
 				<span className='block text-base font-display font-extrabold text-text'>
-					{entry.xpThisWeek.toLocaleString()}
+					<AnimatedNumber value={entry.xpThisWeek} format={n => n.toLocaleString()} className='tabular-nums' />
 				</span>
-				<span className='text-xs text-text-muted'>XP</span>
+				<span className='text-xs text-text-muted'>{t('xp')}</span>
 				{xpDiff !== undefined && xpDiff < 0 && (
 					<span className='block text-xs text-error'>
 						{Math.round(xpDiff).toLocaleString()}

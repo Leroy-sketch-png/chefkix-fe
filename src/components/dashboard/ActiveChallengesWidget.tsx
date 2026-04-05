@@ -6,6 +6,7 @@ import { Trophy, Clock, Flame, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import {
 	getTodaysChallenge,
 	getWeeklyChallenge,
@@ -13,6 +14,7 @@ import {
 	WeeklyChallenge,
 } from '@/services/challenge'
 import { logDevError } from '@/lib/dev-log'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // HELPERS
@@ -43,6 +45,8 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 	const [daily, setDaily] = useState<DailyChallenge | null>(null)
 	const [weekly, setWeekly] = useState<WeeklyChallenge | null>(null)
 	const [loaded, setLoaded] = useState(false)
+	const [hasError, setHasError] = useState(false)
+	const t = useTranslations('challengeWidget')
 
 	useEffect(() => {
 		let mounted = true
@@ -55,14 +59,20 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 				])
 				if (!mounted) return
 
-				if (dailyRes?.success && dailyRes.data && !dailyRes.data.completed) {
-					setDaily(dailyRes.data)
-				}
-				if (weeklyRes?.success && weeklyRes.data && !weeklyRes.data.completed) {
-					setWeekly(weeklyRes.data)
+				// If both returned null, the API is down
+				if (!dailyRes && !weeklyRes) {
+					setHasError(true)
+				} else {
+					if (dailyRes?.success && dailyRes.data && !dailyRes.data.completed) {
+						setDaily(dailyRes.data)
+					}
+					if (weeklyRes?.success && weeklyRes.data && !weeklyRes.data.completed) {
+						setWeekly(weeklyRes.data)
+					}
 				}
 			} catch (err) {
 				logDevError('Failed to fetch challenges for widget:', err)
+				if (mounted) setHasError(true)
 			} finally {
 				if (mounted) setLoaded(true)
 			}
@@ -72,8 +82,26 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 		return () => { mounted = false }
 	}, [])
 
-	// Don't render if no active challenges or still loading
-	if (!loaded || (!daily && !weekly)) return null
+	// Don't render if still loading
+	if (!loaded) return null
+
+	// Error state — API is down
+	if (hasError) {
+		return (
+			<div
+				className={cn(
+					'flex items-center gap-2 rounded-radius border border-border-subtle bg-bg-card p-4 text-sm text-text-muted shadow-card',
+					className,
+				)}
+			>
+				<Trophy className='size-4 text-text-muted' />
+				<span>{t('unavailable')}</span>
+			</div>
+		)
+	}
+
+	// No active challenges
+	if (!daily && !weekly) return null
 
 	return (
 		<motion.div
@@ -88,13 +116,13 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 			<div className='mb-3 flex items-center justify-between'>
 				<h3 className='flex items-center gap-2 text-sm font-bold text-text'>
 					<Trophy className='size-4 text-brand' />
-					Active Challenges
+					{t('activeChallenges')}
 				</h3>
 				<Link
 					href='/challenges'
 					className='flex items-center gap-0.5 text-xs font-medium text-brand transition-colors hover:text-brand/80'
 				>
-					View all
+					{t('viewAll')}
 					<ChevronRight className='size-3.5' />
 				</Link>
 			</div>
@@ -115,9 +143,9 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 							</p>
 							<p className='flex items-center gap-1 text-xs text-text-muted'>
 								<Clock className='size-3' />
-								{formatCountdown(daily.endsAt)} remaining
-								<span className='ml-auto font-semibold text-xp'>
-									+{daily.bonusXp} XP
+								{t('remaining', { time: formatCountdown(daily.endsAt) })}
+								<span className='ml-auto font-semibold tabular-nums text-xp'>
+									+<AnimatedNumber value={daily.bonusXp} className='tabular-nums' /> XP
 								</span>
 							</p>
 						</div>
@@ -147,8 +175,8 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 										}}
 									/>
 								</div>
-								<span className='text-xs font-medium text-text-muted'>
-									{weekly.progress}/{weekly.target}
+							<span className='text-xs font-medium tabular-nums text-text-muted'>
+								<AnimatedNumber value={weekly.progress} className='tabular-nums' />/{weekly.target}
 								</span>
 							</div>
 						</div>

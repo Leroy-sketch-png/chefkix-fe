@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, TrendingUp, Award, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
+import { triggerAchievementConfetti } from '@/lib/confetti'
 import { TasteDetector, TasteProfile } from './TasteDetector'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // CONSTANTS
@@ -79,24 +81,24 @@ function clearColdStartState() {
 const CURATED_CATEGORIES = [
 	{
 		id: 'beginner-friendly',
-		title: 'Perfect for Beginners',
-		description: '97% of first-time cooks completed these',
+		titleKey: 'csPerfectForBeginners' as const,
+		descriptionKey: 'csBeginnersDesc' as const,
 		icon: Award,
 		href: '/explore?filter=beginner&quality=foolproof',
 		gradient: 'from-success to-accent-teal',
 	},
 	{
 		id: 'trending',
-		title: 'Trending This Week',
-		description: 'What the community is cooking',
+		titleKey: 'csTrendingThisWeek' as const,
+		descriptionKey: 'csTrendingDesc' as const,
 		icon: TrendingUp,
 		href: '/explore?sort=trending',
 		gradient: 'from-streak to-error',
 	},
 	{
 		id: 'quick-wins',
-		title: 'Quick Wins',
-		description: 'Under 20 minutes, maximum satisfaction',
+		titleKey: 'csQuickWins' as const,
+		descriptionKey: 'csQuickWinsDesc' as const,
 		icon: Sparkles,
 		href: '/explore?filter=quick&maxTime=20',
 		gradient: 'from-warning to-warning',
@@ -135,32 +137,32 @@ export const ColdStartExperience = ({
 	onColdStartComplete,
 	className,
 }: ColdStartExperienceProps) => {
-	const [phase, setPhase] = useState<ColdStartPhase>('personalized')
-	const [interactionCount, setInteractionCount] = useState(0)
+	const t = useTranslations('onboarding')
+	const [phase, setPhase] = useState<ColdStartPhase>(() => {
+		if (typeof window === 'undefined') return 'personalized'
+		const state = getColdStartState()
+		if (!state) return 'curated'
+		if (state.dismissed || state.interactionCount >= INTERACTION_THRESHOLD) return 'personalized'
+		return 'curated'
+	})
+	const [interactionCount, setInteractionCount] = useState(() => {
+		if (typeof window === 'undefined') return 0
+		return getColdStartState()?.interactionCount ?? 0
+	})
 	const [showTransitionMessage, setShowTransitionMessage] = useState(false)
 
-	// Initialize state from storage
+	// Initialize storage for brand new users
 	useEffect(() => {
 		const state = getColdStartState()
 
 		if (!state) {
-			// Brand new user — start in curated phase
+			// Brand new user — create storage entry
 			const newState: ColdStartState = {
 				interactionCount: 0,
 				dismissed: false,
 				firstSeenAt: new Date().toISOString(),
 			}
 			setColdStartState(newState)
-			setPhase('curated')
-			setInteractionCount(0)
-		} else if (state.dismissed || state.interactionCount >= INTERACTION_THRESHOLD) {
-			// Already past cold-start
-			setPhase('personalized')
-			setInteractionCount(state.interactionCount)
-		} else {
-			// Still in cold-start
-			setPhase('curated')
-			setInteractionCount(state.interactionCount)
 		}
 	}, [])
 
@@ -178,6 +180,7 @@ export const ColdStartExperience = ({
 			if (newCount >= INTERACTION_THRESHOLD && phase === 'curated') {
 				setPhase('transitioning')
 				setShowTransitionMessage(true)
+				triggerAchievementConfetti()
 
 				// Auto-transition to personalized after showing message
 				setTimeout(() => {
@@ -225,7 +228,7 @@ export const ColdStartExperience = ({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className='fixed inset-0 z-50 flex items-center justify-center bg-bg/80 backdrop-blur-sm'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-bg/80 backdrop-blur-sm'
 					>
 						<motion.div
 							initial={{ scale: 0.9, opacity: 0 }}
@@ -243,10 +246,10 @@ export const ColdStartExperience = ({
 								<Sparkles className='size-8 text-brand' />
 							</motion.div>
 							<h3 className='mb-2 text-lg font-bold text-text'>
-								Taste Profile Ready!
-							</h3>
-							<p className='text-sm text-text-secondary'>
-								Your feed is now personalized based on your preferences.
+							{t('csTasteProfileReady')}
+						</h3>
+						<p className='text-sm text-text-secondary'>
+							{t('csFeedPersonalized')}
 							</p>
 						</motion.div>
 					</motion.div>
@@ -271,7 +274,7 @@ export const ColdStartExperience = ({
 							compact
 						/>
 						<span className='text-xs text-text-muted'>
-							Browse to personalize
+							{t('csBrowseToPersonalize')}
 						</span>
 					</div>
 
@@ -279,7 +282,7 @@ export const ColdStartExperience = ({
 					<div className='space-y-3'>
 						<h3 className='flex items-center gap-2 text-sm font-bold text-text'>
 							<Sparkles className='size-4 text-brand' />
-							Start Here
+						{t('csStartHere')}
 						</h3>
 						<div className='grid gap-3 sm:grid-cols-3'>
 							{CURATED_CATEGORIES.map((category) => (
@@ -301,13 +304,13 @@ export const ColdStartExperience = ({
 											<category.icon className='size-5' />
 										</div>
 										<h4 className='mb-1 font-bold text-text transition-colors group-hover:text-brand'>
-											{category.title}
-										</h4>
-										<p className='text-xs text-text-secondary'>
-											{category.description}
+										{t(category.titleKey)}
+									</h4>
+									<p className='text-xs text-text-secondary'>
+										{t(category.descriptionKey)}
 										</p>
-										<div className='mt-2 flex items-center gap-1 text-xs font-medium text-brand opacity-0 transition-opacity group-hover:opacity-100'>
-											Explore <ChevronRight className='size-3' />
+										<div className='mt-2 flex items-center gap-1 text-xs font-medium text-brand opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100'>
+											{t('csExplore')} <ChevronRight className='size-3' />
 										</div>
 									</Link>
 								</motion.div>

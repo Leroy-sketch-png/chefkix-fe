@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { createPost } from '@/services/post'
 import { Post } from '@/lib/types'
 import { POST_MESSAGES } from '@/constants/messages'
@@ -8,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Image as ImageIcon, Video, X, Tag, Send } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { triggerSuccessConfetti } from '@/lib/confetti'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import {
@@ -38,6 +40,7 @@ export const CreatePostForm = ({
 }: CreatePostFormProps) => {
 	const MAX_PHOTO_COUNT = 5
 	const MAX_PHOTO_SIZE = 10 * 1024 * 1024
+	const t = useTranslations('social')
 	const [content, setContent] = useState('')
 	const [videoUrl, setVideoUrl] = useState('')
 	const [tags, setTags] = useState('')
@@ -58,15 +61,15 @@ export const CreatePostForm = ({
 		if (invalidFile) {
 			toast.error(
 				!invalidFile.type.startsWith('image/')
-					? 'Only image files can be attached to a post'
-					: 'Each photo must be under 10MB',
+					? t('createPostInvalidFileType')
+					: t('createPostFileTooLarge'),
 			)
 			e.currentTarget.value = ''
 			return
 		}
 
 		if (photoFiles.length >= MAX_PHOTO_COUNT) {
-			toast.error('You can attach up to 5 photos per post')
+			toast.error(t('createPostMaxPhotos'))
 			e.currentTarget.value = ''
 			return
 		}
@@ -75,7 +78,7 @@ export const CreatePostForm = ({
 		const remainingSlots = MAX_PHOTO_COUNT - photoFiles.length
 		const selectedFiles = files.slice(0, remainingSlots)
 		if (selectedFiles.length < files.length) {
-			toast.warning('Only the first 5 photos were added')
+			toast.warning(t('createPostPhotosLimited'))
 		}
 		setPhotoFiles(prev => [...prev, ...selectedFiles])
 
@@ -139,7 +142,7 @@ export const CreatePostForm = ({
 			diag.warn('social', 'MODERATION_API_FAILED', {
 				message: 'API failure - fail-closed blocking post',
 			})
-			toast.error('Unable to verify content. Please try again.')
+			toast.error(t('createPostModerationFailed'))
 			setIsSubmitting(false)
 			return
 		}
@@ -151,7 +154,7 @@ export const CreatePostForm = ({
 				})
 				toast.error(
 					moderationResult.data.reason ||
-						'Your post contains content that violates our community guidelines.',
+						t('createPostBlocked'),
 				)
 				setIsSubmitting(false)
 				return
@@ -162,7 +165,7 @@ export const CreatePostForm = ({
 				})
 				toast.warning(
 					moderationResult.data.reason ||
-						'Your post may contain sensitive content. It will still be published, but it may be reviewed by moderation.',
+						t('createPostFlagged'),
 				)
 			}
 		}
@@ -198,6 +201,7 @@ export const CreatePostForm = ({
 				true,
 			)
 			toast.success(POST_MESSAGES.CREATE_SUCCESS)
+			triggerSuccessConfetti()
 			setContent('')
 			setVideoUrl('')
 			setTags('')
@@ -211,7 +215,7 @@ export const CreatePostForm = ({
 			diag.error('social', 'POST_CREATE_FAILED', {
 				message: response.message,
 			})
-			toast.error(response.message || 'Failed to create post')
+			toast.error(response.message || t('createPostFailed'))
 		}
 
 		setIsSubmitting(false)
@@ -245,7 +249,7 @@ export const CreatePostForm = ({
 							{currentUser?.displayName || 'You'}
 						</div>
 						<div className='text-sm leading-normal text-text-secondary'>
-							Share what you&apos;re cooking!
+						{t('createPostSubtitle')}
 						</div>
 					</div>
 				</div>
@@ -260,7 +264,7 @@ export const CreatePostForm = ({
 						multiline
 						rows={4}
 						maxLength={500}
-						placeholder="What's cooking? Share your culinary journey... (@ to mention)"
+						placeholder={t('createPostPlaceholder')}
 						disabled={isSubmitting}
 						className='bg-bg-card p-3 caret-brand placeholder-text-secondary focus:ring-brand/10'
 						onSubmit={() => {
@@ -301,13 +305,14 @@ export const CreatePostForm = ({
 											src={url}
 											alt={`Preview ${index + 1}`}
 											fill
+											sizes='120px'
 											className='object-cover'
 										/>
 										<button
 											type='button'
 											onClick={() => removePhoto(index)}
 											aria-label={`Remove photo ${index + 1}`}
-											className='absolute right-1 top-1 size-8 rounded-full bg-text-brand/60 text-bg-card opacity-0 transition-opacity group-hover:opacity-100'
+											className='absolute right-1 top-1 size-8 rounded-full bg-text-brand/60 text-bg-card opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 										>
 											<X className='mx-auto size-4' />
 										</button>
@@ -331,7 +336,7 @@ export const CreatePostForm = ({
 										htmlFor='post-video-url'
 										className='mb-1 block text-sm font-medium leading-normal text-text-primary'
 									>
-										Video URL (optional)
+										{t('createPostVideoUrlLabel')}
 									</label>
 									<input
 										id='post-video-url'
@@ -347,7 +352,7 @@ export const CreatePostForm = ({
 										htmlFor='post-tags'
 										className='mb-1 block text-sm font-medium leading-normal text-text-primary'
 									>
-										Tags (comma-separated)
+										{t('createPostTagsLabel')}
 									</label>
 									<input
 										id='post-tags'
@@ -366,9 +371,20 @@ export const CreatePostForm = ({
 				{/* Footer Actions */}
 				<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
 					<div className='flex gap-2'>
-						<label className='group size-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
-							<span className='sr-only'>Add photos</span>
+						<label className='group relative size-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
+							<span className='sr-only'>{t('createPostAddPhotos')}</span>
 							<ImageIcon className='mx-auto mt-2.5 size-5 text-text-secondary transition-colors group-hover:text-brand' />
+							{photoFiles.length > 0 && (
+								<span
+									className={`absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${
+										photoFiles.length >= MAX_PHOTO_COUNT
+											? 'bg-error'
+											: 'bg-brand'
+									}`}
+								>
+									{photoFiles.length}
+								</span>
+							)}
 							<input
 								type='file'
 								accept='image/*'
@@ -382,7 +398,7 @@ export const CreatePostForm = ({
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
-							aria-label='Toggle video options'
+							aria-label={t('createPostToggleVideo')}
 							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-brand/10 text-brand'
@@ -395,7 +411,7 @@ export const CreatePostForm = ({
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
-							aria-label='Toggle tag options'
+							aria-label={t('createPostToggleTags')}
 							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
 								showAdvanced
 									? 'bg-brand/10 text-brand'
@@ -414,18 +430,18 @@ export const CreatePostForm = ({
 										type='submit'
 										disabled={!content.trim()}
 										isLoading={isSubmitting}
-										loadingText='Posting...'
+										loadingText={t('createPostPosting')}
 										className='shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
 										shine
 									>
 										<Send className='mr-2 size-4' />
-										Post
+										{t('createPostSubmit')}
 									</AnimatedButton>
 								</span>
 							</TooltipTrigger>
 							{!content.trim() && (
 								<TooltipContent>
-									<p>Write something to post</p>
+								<p>{t('createPostWriteSomething')}</p>
 								</TooltipContent>
 							)}
 						</Tooltip>

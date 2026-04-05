@@ -8,10 +8,12 @@ import Link from 'next/link'
 import { Recipe, RecommendationResponse } from '@/lib/types/recipe'
 import { getTonightsPick } from '@/services/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
-import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_FEED_HOVER, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
 import { QualityBadge } from '@/components/recipe/QualityBadge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface TonightsPickProps {
 	className?: string
@@ -36,6 +38,7 @@ interface TonightsPickProps {
  * Degrades gracefully: unauthenticated â†’ trending + seasonal + quality only.
  */
 export const TonightsPick = ({ className }: TonightsPickProps) => {
+	const t = useTranslations('dashboard')
 	const [recommendation, setRecommendation] = useState<RecommendationResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasError, setHasError] = useState(false)
@@ -61,19 +64,19 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		return (
 			<div
 				className={cn(
-					'animate-pulse rounded-2xl border border-border-subtle bg-bg-card',
+					'rounded-2xl border border-border-subtle bg-bg-card',
 					className,
 				)}
 			>
 				<div className='flex gap-4 p-4 md:p-5'>
-					<div className='size-28 flex-shrink-0 rounded-xl bg-bg-elevated md:h-32 md:w-32' />
+					<Skeleton className='size-28 flex-shrink-0 rounded-xl md:h-32 md:w-32' />
 					<div className='flex flex-1 flex-col justify-between gap-2'>
-						<div className='h-4 w-24 rounded bg-bg-elevated' />
-						<div className='h-5 w-full rounded bg-bg-elevated' />
-						<div className='size-3/4 rounded bg-bg-elevated' />
+						<Skeleton className='h-3 w-24' />
+						<Skeleton className='h-5 w-full' />
+						<Skeleton className='h-4 w-3/4' />
 						<div className='flex gap-3'>
-							<div className='h-3 w-16 rounded bg-bg-elevated' />
-							<div className='h-3 w-16 rounded bg-bg-elevated' />
+							<Skeleton className='h-3 w-16' />
+							<Skeleton className='h-3 w-16' />
 						</div>
 					</div>
 				</div>
@@ -92,20 +95,20 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 				<div className='flex items-center gap-1.5'>
 					<Sparkles className='size-3.5 text-streak' />
 					<span className='text-xs font-bold uppercase tracking-wider text-streak'>
-						Tonight&apos;s Pick
+						{t('tpLabel')}
 					</span>
 				</div>
 				<p className='mt-2 text-sm text-text-secondary'>
 					{hasError
-						? "Couldn't load tonight's suggestion â€” try refreshing the page."
-						: 'No trending recipe yet \u2014 be the first to cook and inspire the community!'}
+						? t('tpErrorMsg')
+						: t('tpEmptyMsg')}
 				</p>
 				<Link
 					href='/explore'
 					className='mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline'
 				>
 					<ChefHat className='size-4' />
-					Explore recipes
+					{t('tpExplore')}
 				</Link>
 			</div>
 		)
@@ -140,8 +143,10 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 						{/* Cook CTA overlay */}
 						<div className='absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/30'>
 							<motion.div
-								className='rounded-full bg-brand p-2 opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100'
-								whileHover={{ scale: 1.1 }}
+								className='rounded-full bg-brand p-2 opacity-100 shadow-lg transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100'
+								whileHover={ICON_BUTTON_HOVER}
+								whileTap={ICON_BUTTON_TAP}
+								transition={TRANSITION_SPRING}
 							>
 								<Play className='size-4 text-white' fill='white' />
 							</motion.div>
@@ -166,13 +171,13 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 							<div className='flex items-center gap-1.5'>
 								<Sparkles className='size-3.5 text-streak' />
 								<span className='text-xs font-bold uppercase tracking-wider text-streak'>
-									Tonight&apos;s Pick
+									{t('tpLabel')}
 								</span>
 							</div>
 							{confidenceScore >= 0.8 && (
 								<span className='flex items-center gap-1 text-xs text-success'>
 									<TrendingUp className='size-3' />
-									Great match
+									{t('tpGreatMatch')}
 								</span>
 							)}
 						</div>
@@ -204,7 +209,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 						)}
 
 						{/* Stats row */}
-						<div className='flex flex-wrap items-center gap-3 text-xs text-text-muted'>
+						<div className='flex flex-wrap items-center gap-3 text-xs tabular-nums text-text-muted'>
 							{totalTime > 0 && (
 								<span className='flex items-center gap-1'>
 									<Clock className='size-3.5' />
@@ -224,7 +229,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 							{recipe.cookCount > 0 && (
 								<span className='flex items-center gap-1'>
 									<ChefHat className='size-3.5' />
-									{recipe.cookCount} cooked
+									{t('tpCooked', { count: recipe.cookCount })}
 								</span>
 							)}
 						</div>

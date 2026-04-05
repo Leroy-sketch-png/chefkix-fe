@@ -15,6 +15,7 @@ import { triggerSaveConfetti } from '@/lib/confetti'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { useAuthGate } from '@/hooks/useAuthGate'
+import { useTranslations } from 'next-intl'
 import { QualityBadge } from './QualityBadge'
 
 interface RecipeCardProps {
@@ -32,6 +33,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 	const [isSaveLoading, setIsSaveLoading] = useState(false)
 	const saveButtonRef = useRef<HTMLButtonElement>(null)
+	const t = useTranslations('recipe')
 
 	const totalTime = getTotalTime(recipe)
 
@@ -98,7 +100,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 				setSaveCount(response.data.saveCount)
 
 				toast.success(
-					response.data.isSaved ? 'Recipe saved!' : 'Recipe unsaved',
+					response.data.isSaved ? t('recipeSaved') : t('recipeUnsaved'),
 				)
 				if (onUpdate) {
 					onUpdate({
@@ -133,7 +135,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			>
 				<Link
 					href={`/recipes/${recipe.id}`}
-					className='group block overflow-hidden rounded-radius border border-border-subtle bg-bg-card transition-all duration-300 hover:border-brand/50 hover:bg-bg-elevated'
+					className='group block overflow-hidden rounded-radius border border-border-subtle bg-bg-card transition-all duration-300 hover:border-brand/50 hover:bg-bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 				>
 					{/* Gradient overlay on hover */}
 					<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-brand/10 to-accent-purple/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
@@ -143,6 +145,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							src={getRecipeImage(recipe)}
 							alt={recipe.title}
 							fill
+							sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 							className='object-cover brightness-95 transition-all duration-500 group-hover:scale-105 group-hover:brightness-105 group-hover:saturate-110'
 						/>
 						{/* Difficulty badge */}
@@ -161,10 +164,11 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						</div>
 						{/* Save button */}
 						<button
+							type='button'
 							ref={saveButtonRef}
 							onClick={handleSaveClick}
 							disabled={isSaveLoading}
-							aria-label={isSaved ? 'Unsave recipe' : 'Save recipe'}
+							aria-label={isSaved ? t('unsaveRecipe') : t('saveRecipe')}
 							className={`absolute right-2 top-2 grid size-11 place-items-center rounded-sm border-none transition-all duration-300 ${
 								isSaved
 									? 'bg-gold/10 text-gold'
@@ -194,11 +198,12 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							{recipe.description}
 						</p>
 						<div className='flex items-center justify-between text-sm text-text-secondary'>
-							<span>By {recipe.author?.displayName || 'Unknown'}</span>
-							<span>⭐ {likeCount} likes</span>
+							<span>{t('byAuthor', { name: recipe.author?.displayName || 'Unknown' })}</span>
+							<span className='tabular-nums'>â­ {t('likesCount', { count: likeCount })}</span>
 						</div>
 						<div className='flex gap-4'>
 							<button
+								type='button'
 								onClick={e => {
 									e.preventDefault()
 									e.stopPropagation()
@@ -206,7 +211,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 								}}
 								className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent-purple to-accent-purple-hover font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
 							>
-								Cook Recipe
+								{t('cookRecipe')}
 							</button>
 						</div>
 					</div>

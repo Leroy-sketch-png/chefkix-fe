@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { motion } from 'framer-motion'
 import {
 	ArrowLeft,
@@ -95,6 +97,7 @@ const FilterChip = ({
 	onClick: () => void
 }) => (
 	<button
+		type='button'
 		onClick={onClick}
 		className={cn(
 			'rounded-full border px-4 py-2 text-xs font-medium transition-all',
@@ -120,6 +123,7 @@ const ChallengeRecipeCard = ({
 }) => {
 	const difficulty = difficultyConfig[recipe.difficulty]
 	const totalXp = recipe.baseXp + recipe.bonusXp
+	const t = useTranslations('challenge')
 
 	return (
 		<motion.article
@@ -136,13 +140,14 @@ const ChallengeRecipeCard = ({
 						src={recipe.imageUrl}
 						alt={recipe.title}
 						fill
+						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
 					/>
 
 					{/* Qualifies Badge */}
 					<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-success px-3 py-1.5 text-xs font-bold text-white shadow-lg'>
 						<CheckCircle className='size-3.5' />
-						Qualifies
+						{t('qualifies')}
 					</div>
 
 					{/* XP Badge */}
@@ -159,7 +164,7 @@ const ChallengeRecipeCard = ({
 					{recipe.isQuickPick && (
 						<div className='absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-gradient-gold px-3 py-1.5 text-2xs font-bold text-white'>
 							<Zap className='size-3' />
-							Quick Pick
+							{t('quickPick')}
 						</div>
 					)}
 
@@ -253,6 +258,7 @@ export const ChallengeRecipeGrid = ({
 }: ChallengeRecipeGridProps) => {
 	const [activeFilter, setActiveFilter] = useState<FilterOption>('all')
 	const [sortBy, setSortBy] = useState<SortOption>('xp')
+	const t = useTranslations('challenge')
 
 	// Filter recipes
 	const filteredRecipes = recipes.filter(recipe => {
@@ -292,11 +298,12 @@ export const ChallengeRecipeGrid = ({
 			<div className='rounded-2xl bg-bg-card p-5'>
 				{onBack && (
 					<button
+						type='button'
 						onClick={onBack}
 						className='mb-4 flex items-center gap-1.5 text-xs text-text-secondary transition-colors hover:text-text'
 					>
 						<ArrowLeft className='size-4' />
-						Back to Feed
+						{t('backToFeed')}
 					</button>
 				)}
 
@@ -360,6 +367,7 @@ export const ChallengeRecipeGrid = ({
 					</div>
 
 					<button
+						type='button'
 						onClick={() =>
 							setSortBy(prev =>
 								prev === 'xp' ? 'time' : prev === 'time' ? 'rating' : 'xp',
@@ -396,7 +404,7 @@ export const ChallengeRecipeGrid = ({
 				<div className='rounded-xl bg-bg-card px-5 py-4'>
 					<div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
 						<span className='text-text-secondary'>
-							Top pick XP potential:
+							{t('topPickXp')}
 						</span>
 						<span className='font-semibold text-text'>
 							{topPick.baseXp} XP base

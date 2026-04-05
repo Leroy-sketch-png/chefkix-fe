@@ -10,6 +10,8 @@ import { getFeaturedCollections } from '@/services/collection'
 import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useTranslations } from 'next-intl'
 
 interface SeasonsBestProps {
 	className?: string
@@ -29,6 +31,7 @@ interface SeasonsBestProps {
  * Degrades gracefully: if no featured collections exist, renders nothing.
  */
 export const SeasonsBest = ({ className }: SeasonsBestProps) => {
+	const t = useTranslations('explore')
 	const [collections, setCollections] = useState<Collection[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 
@@ -56,14 +59,14 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 		return (
 			<div className={cn('mb-6', className)}>
 				<div className='mb-3 flex items-center gap-2'>
-					<div className='size-5 animate-pulse rounded bg-bg-elevated' />
-					<div className='h-5 w-32 animate-pulse rounded bg-bg-elevated' />
+					<Skeleton className='size-5 rounded' />
+					<Skeleton className='h-5 w-32 rounded' />
 				</div>
 				<div className='flex gap-4 overflow-hidden'>
 					{[1, 2, 3].map(i => (
-						<div
+						<Skeleton
 							key={i}
-							className='h-48 w-72 flex-shrink-0 animate-pulse rounded-2xl bg-bg-elevated'
+							className='h-48 w-72 flex-shrink-0 rounded-2xl'
 						/>
 					))}
 				</div>
@@ -77,19 +80,19 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
 			className={cn('mb-6', className)}
-			aria-label="Season's Best Collections"
+			aria-label={t('seasonsBestTitle')}
 		>
 			{/* Section header */}
 			<div className='mb-3 flex items-center justify-between'>
 				<div className='flex items-center gap-2'>
 					<Sparkles className='size-5 text-brand' />
-					<h2 className='text-lg font-bold text-text'>Season&apos;s Best</h2>
+					<h2 className='text-lg font-bold text-text'>{t('seasonsBestTitle')}</h2>
 				</div>
 				<Link
 					href='/explore?view=collections'
 					className='flex items-center gap-1 text-sm font-medium text-text-secondary transition-colors hover:text-brand'
 				>
-					View all
+					{t('seasonsBestViewAll')}
 					<ArrowRight className='size-3.5' />
 				</Link>
 			</div>
@@ -123,6 +126,7 @@ interface FeaturedCollectionCardProps {
 }
 
 function FeaturedCollectionCard({ collection, index }: FeaturedCollectionCardProps) {
+	const t = useTranslations('explore')
 	const itemCount = (collection.recipeIds?.length || 0) + (collection.postIds?.length || 0)
 
 	return (
@@ -156,7 +160,7 @@ function FeaturedCollectionCard({ collection, index }: FeaturedCollectionCardPro
 
 					{/* Emoji badge (top-left) */}
 					{collection.emoji && (
-						<div className='absolute left-3 top-3 flex size-10 items-center justify-center rounded-xl bg-white/90 text-lg shadow-sm backdrop-blur-sm'>
+						<div className='absolute left-3 top-3 flex size-10 items-center justify-center rounded-xl bg-bg-card/90 text-lg shadow-sm backdrop-blur-sm'>
 							{collection.emoji}
 						</div>
 					)}
@@ -182,13 +186,13 @@ function FeaturedCollectionCard({ collection, index }: FeaturedCollectionCardPro
 							{itemCount > 0 && (
 								<span className='flex items-center gap-1'>
 									<BookOpen className='size-3' />
-									{itemCount} {itemCount === 1 ? 'recipe' : 'recipes'}
+									<span className='tabular-nums'>{itemCount}</span> {itemCount === 1 ? t('recipeCountSingle') : t('recipeCountPlural')}
 								</span>
 							)}
 							{collection.totalXp && collection.totalXp > 0 && (
-								<span className='flex items-center gap-1'>
+								<span className='flex items-center gap-1 tabular-nums'>
 									<ChefHat className='size-3' />
-									{collection.totalXp} XP
+									{t('xpLabel', { xp: collection.totalXp })}
 								</span>
 							)}
 						</div>

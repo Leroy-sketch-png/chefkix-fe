@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Compass, BookOpen, ChefHat, Check } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 
@@ -740,6 +741,7 @@ export function EmptyState({
 					<div className='flex gap-2 justify-center flex-wrap'>
 						{searchSuggestions.map((suggestion, index) => (
 							<button
+								type='button'
 								key={index}
 								onClick={() => onSuggestionClick?.(suggestion)}
 								className='py-2 px-4 bg-bg border border-border rounded-full text-sm text-text hover:bg-brand hover:border-brand hover:text-white transition-colors'
@@ -768,6 +770,7 @@ export function EmptyState({
 						</Link>
 					) : (
 						<button
+							type='button'
 							onClick={primaryAction.onClick}
 							className={cn(
 								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
@@ -798,6 +801,7 @@ export function EmptyState({
 							</Link>
 						) : (
 							<button
+								type='button'
 								key={index}
 								onClick={action.onClick}
 								className='inline-flex items-center gap-2 py-3 px-5 bg-bg border border-border rounded-xl text-sm font-semibold text-text hover:bg-border transition-colors'
@@ -834,6 +838,7 @@ export function EmptyState({
 
 						return (
 							<button
+								type='button'
 								key={index}
 								onClick={action.onClick}
 								className={className}
@@ -862,20 +867,21 @@ export function EmptyFeed({
 	onDiscoverChefs?: () => void
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='feed'
-			title='Your feed is hungry!'
-			description='Follow chefs to fill it with delicious inspiration'
+			title={t('feedTitle')}
+			description={t('feedDesc')}
 			primaryAction={{
-				label: 'Discover Chefs',
+				label: t('discoverChefs'),
 				onClick: onDiscoverChefs,
 				icon: <Compass className='size-icon-sm' />,
 			}}
 			quickActions={[
-				{ label: 'Italian', emoji: 'ðŸ‡®ðŸ‡¹', href: '/explore?category=italian' },
-				{ label: 'Asian', emoji: 'ðŸ¥¢', href: '/explore?category=asian' },
-				{ label: 'Quick Meals', emoji: 'â±ï¸', href: '/explore?category=quick' },
+				{ label: t('catItalian'), emoji: 'ðŸ‡®ðŸ‡¹', href: '/explore?category=italian' },
+				{ label: t('catAsian'), emoji: 'ðŸ¥¢', href: '/explore?category=asian' },
+				{ label: t('catQuickMeals'), emoji: 'â±ï¸', href: '/explore?category=quick' },
 			]}
 			className={className}
 		/>
@@ -897,13 +903,14 @@ export function EmptyCookingHistory({
 	}
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='cooking'
-			title='Time to cook something!'
-			description='Your cooking journey starts with a single dish'
+			title={t('cookingTitle')}
+			description={t('cookingDesc')}
 			primaryAction={{
-				label: 'Start Your First Cook',
+				label: t('startFirstCook'),
 				onClick: onStartCooking,
 				icon: <ChefHat className='size-icon-sm' />,
 			}}
@@ -913,15 +920,15 @@ export function EmptyCookingHistory({
 			<div className='flex flex-col gap-2.5 p-4 bg-bg rounded-xl mb-6 max-w-xs mx-auto text-left'>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>âš¡</span>
-					Earn <strong>30+ XP</strong> on your first cook
+					{t.rich('earnXp', { strong: (chunks) => <strong>{chunks}</strong> })}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>ðŸŽ–ï¸</span>
-					Unlock the <strong>First Dish</strong> badge
+					{t.rich('unlockBadge', { strong: (chunks) => <strong>{chunks}</strong> })}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>ðŸ”¥</span>
-					Start your <strong>cooking streak</strong>
+					{t.rich('startStreak', { strong: (chunks) => <strong>{chunks}</strong> })}
 				</div>
 			</div>
 
@@ -929,7 +936,7 @@ export function EmptyCookingHistory({
 			{beginnerRecipe && (
 				<div className='pt-6 border-t border-border'>
 					<span className='block text-xs text-text-muted mb-3'>
-						Great for beginners:
+						{t('greatForBeginners')}
 					</span>
 					<Link
 						href={beginnerRecipe.href}
@@ -964,13 +971,14 @@ export function EmptySaved({
 	onBrowseRecipes?: () => void
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='saved'
-			title='No saved recipes yet'
-			description='Bookmark recipes you want to cook later'
+			title={t('savedTitle')}
+			description={t('savedDesc')}
 			primaryAction={{
-				label: 'Browse Recipes',
+				label: t('browseRecipes'),
 				onClick: onBrowseRecipes,
 				icon: <BookOpen className='size-icon-sm' />,
 			}}
@@ -979,9 +987,9 @@ export function EmptySaved({
 			{/* How To */}
 			<div className='flex items-center justify-center gap-2.5 mb-6 flex-wrap'>
 				{[
-					'Find a recipe you like',
-					'Tap the bookmark icon',
-					'Cook when ready!',
+					t('savedStep1'),
+					t('savedStep2'),
+					t('savedStep3'),
 				].map((step, index) => (
 					<div key={index} className='flex items-center gap-2'>
 						<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-lg'>
@@ -1001,15 +1009,16 @@ export function EmptySaved({
 }
 
 export function EmptyNotifications({ className }: { className?: string }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='notifications'
-			title='No notifications yet'
-			description="When someone interacts with your content, you'll see it here"
+			title={t('notifTitle')}
+			description={t('notifDesc')}
 			className={className}
 		>
 			<div className='flex gap-2 justify-center flex-wrap mt-2'>
-				{['â¤ï¸ Likes', 'ðŸ’¬ Comments', 'ðŸ‘¤ Follows', 'ðŸ† Achievements'].map(
+				{[`❤️ ${t('notifLikes')}`, `💬 ${t('notifComments')}`, `👤 ${t('notifFollows')}`, `🏆 ${t('notifAchievements')}`].map(
 					type => (
 						<span
 							key={type}
@@ -1031,29 +1040,32 @@ export function AllCaughtUp({
 	onCookNow?: () => void
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='pending'
-			title='All caught up! ðŸŽ‰'
-			description="No pending posts. You've claimed all your XP!"
+			title={t('caughtUpTitle')}
+			description={t('caughtUpDesc')}
 			isPositive
 			className={className}
 		>
 			{/* Next Goal */}
 			<div className='mt-5 max-w-xs mx-auto text-left'>
-				<span className='block text-xs text-text-muted mb-2.5'>Next goal:</span>
+				<span className='block text-xs text-text-muted mb-2.5'>{t('nextGoal')}</span>
 				<div className='flex items-center gap-3 p-3.5 bg-bg border border-border rounded-xl'>
 					<span className='text-icon-lg'>ðŸ³</span>
 					<div className='flex-1'>
 						<span className='block text-sm font-semibold text-text'>
-							Cook something new
+							{t('cookSomethingNew')}
 						</span>
 						<span className='text-xs text-text-muted'>
-							Earn more XP to level up!
+							{t('earnMoreXp')}
 						</span>
 					</div>
 					<button
+						type='button'
 						onClick={onCookNow}
+						aria-label={t('startCooking')}
 						className='size-10 flex items-center justify-center bg-brand rounded-lg text-white hover:bg-brand/90 transition-colors'
 					>
 						<ChefHat className='size-5' />

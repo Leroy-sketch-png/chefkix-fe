@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 import {
 	Filter,
@@ -88,15 +90,16 @@ export const FilterBar = ({
 	onFilterClick,
 	className,
 }: FilterSortProps) => {
+	const t = useTranslations('shared')
 	const sortOptions = [
-		{ value: 'popular', label: 'Most Popular' },
-		{ value: 'newest', label: 'Newest First' },
-		{ value: 'rating', label: 'Highest Rated' },
-		{ value: 'quickest', label: 'Quickest' },
+		{ value: 'popular', label: t('fsSortPopular') },
+		{ value: 'newest', label: t('fsSortNewest') },
+		{ value: 'rating', label: t('fsSortRated') },
+		{ value: 'quickest', label: t('fsSortQuickest') },
 	]
 
 	const selectedSort =
-		sortOptions.find(opt => opt.value === sortValue)?.label || 'Most Popular'
+		sortOptions.find(opt => opt.value === sortValue)?.label || t('fsSortPopular')
 
 	return (
 		<div
@@ -107,11 +110,12 @@ export const FilterBar = ({
 		>
 			{/* Filter Button */}
 			<button
+				type='button'
 				onClick={onFilterClick}
 				className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-brand hover:bg-bg-elevated'
 			>
 				<Filter className='size-4.5 text-text-secondary' />
-				<span>Filters</span>
+				<span>{t('fsFilters')}</span>
 				{activeFiltersCount > 0 && (
 					<span className='min-w-4.5 rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white'>
 						{activeFiltersCount}
@@ -121,7 +125,7 @@ export const FilterBar = ({
 
 			{/* Sort Dropdown - Simplified for now, can be enhanced with Radix UI dropdown */}
 			<div className='relative'>
-				<button className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-brand hover:bg-bg-elevated'>
+				<button type='button' className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-brand hover:bg-bg-elevated'>
 					<ArrowUpDown className='size-4.5 text-text-secondary' />
 					<span>{selectedSort}</span>
 					<ChevronDown className='size-4.5 text-text-secondary' />
@@ -131,6 +135,7 @@ export const FilterBar = ({
 			{/* View Toggle */}
 			<div className='flex gap-1 rounded-[var(--radius)] border border-border-subtle bg-bg-hover p-1'>
 				<button
+					type='button'
 					onClick={() => onViewModeChange?.('grid')}
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
@@ -138,11 +143,12 @@ export const FilterBar = ({
 							? 'bg-bg-card text-brand'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
-					aria-label='Grid view'
+					aria-label={t('fsGridView')}
 				>
 					<Grid className='size-4.5' />
 				</button>
 				<button
+					type='button'
 					onClick={() => onViewModeChange?.('list')}
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
@@ -150,7 +156,7 @@ export const FilterBar = ({
 							? 'bg-bg-card text-brand'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
-					aria-label='List view'
+					aria-label={t('fsListView')}
 				>
 					<List className='size-4.5' />
 				</button>
@@ -158,7 +164,7 @@ export const FilterBar = ({
 
 			{/* Results Count */}
 			<div className='ml-auto text-sm leading-normal text-text-secondary'>
-				Showing {currentStart}-{currentEnd} of {totalResults} recipes
+				{t('fsShowing', { start: currentStart, end: currentEnd, total: totalResults })}
 			</div>
 		</div>
 	)
@@ -181,6 +187,7 @@ export const ActiveFilters = ({
 	onClearAll,
 	className,
 }: ActiveFiltersProps) => {
+	const t = useTranslations('shared')
 	if (filters.length === 0) return null
 
 	return (
@@ -196,9 +203,10 @@ export const ActiveFilters = ({
 				>
 					<span>{filter}</span>
 					<button
+						type='button'
 						onClick={() => onRemove?.(filter)}
 						className='grid size-6 place-items-center rounded-full p-0.5 transition-colors hover:bg-brand/20'
-						aria-label={`Remove ${filter} filter`}
+						aria-label={t('fsRemoveFilter', { filter })}
 					>
 						<X className='h-3.5 w-3.5' />
 					</button>
@@ -207,6 +215,7 @@ export const ActiveFilters = ({
 
 			{filters.length > 1 && (
 				<button
+					type='button'
 					onClick={onClearAll}
 					className='h-11 rounded-lg px-3 text-xs font-semibold leading-normal text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary'
 				>
@@ -238,6 +247,7 @@ export const FilterPanel = ({
 	children,
 	className,
 }: FilterPanelProps) => {
+	const t = useTranslations('shared')
 	return (
 		<div
 			className={cn(
@@ -248,10 +258,11 @@ export const FilterPanel = ({
 		>
 			{/* Header */}
 			<div className='flex items-center justify-between border-b border-border p-5'>
-				<h3 className='text-lg font-bold text-text'>Filters</h3>
+				<h3 className='text-lg font-bold text-text'>{t('fsFilters')}</h3>
 				<button
+					type='button'
 					onClick={onClose}
-					aria-label='Close filters'
+					aria-label={t('fsCloseFilters')}
 					className='rounded-md p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
 				>
 					<X className='size-5' />
@@ -264,10 +275,10 @@ export const FilterPanel = ({
 			{/* Footer */}
 			<div className='flex gap-3 border-t border-border p-5'>
 				<Button variant='outline' onClick={onReset} className='flex-1'>
-					Reset
+					{t('fsReset')}
 				</Button>
 				<Button onClick={onApply} className='flex-1'>
-					Apply Filters
+					{t('fsApplyFilters')}
 				</Button>
 			</div>
 		</div>
@@ -452,6 +463,7 @@ export const CuisinePill = ({
 }: CuisinePillProps) => {
 	return (
 		<button
+			type='button'
 			onClick={onClick}
 			className={cn(
 				'rounded-full border px-4 py-2 text-xs font-semibold transition-all',

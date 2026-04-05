@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -40,10 +40,12 @@ import { RecipeCard } from '@/components/recipe/RecipeCard'
 import { SkillTree } from '@/components/achievements/SkillTree'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { EmptyStateGamified } from '@/components/shared'
 import { TasteCompatibility } from '@/components/profile/TasteCompatibility'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { logDevError } from '@/lib/dev-log'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // ADAPTER: Profile â†’ ProfileUser
@@ -264,6 +266,11 @@ export const UserProfile = ({
 	const [savedPosts, setSavedPosts] = useState<Post[]>([])
 	const [isLoadingSaved, setIsLoadingSaved] = useState(false)
 	const [isLoadingSavedPosts, setIsLoadingSavedPosts] = useState(false)
+
+	// Memoized handler to prevent PostCard re-renders
+	const handleSavedPostDelete = useCallback((id: string) => {
+		setSavedPosts(prev => prev.filter(p => p.id !== id))
+	}, [])
 	const [savedSubTab, setSavedSubTab] = useState<'recipes' | 'posts'>('recipes')
 	const [cookingSessions, setCookingSessions] = useState<PendingSession[]>([])
 	const [cookingStats, setCookingStats] = useState({
@@ -279,6 +286,7 @@ export const UserProfile = ({
 	const requireAuth = useAuthGate()
 	const router = useRouter()
 	const isOwnProfile = profile.userId === currentUserId
+	const t = useTranslations('profile')
 
 	// Fetch user's recipes when recipes tab is active
 	useEffect(() => {
@@ -296,7 +304,7 @@ export const UserProfile = ({
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch user recipes:', err)
-				toast.error('Failed to load recipes')
+				toast.error(t('failedLoadRecipes'))
 			} finally {
 				if (!cancelled) setIsLoadingRecipes(false)
 			}
@@ -354,7 +362,7 @@ export const UserProfile = ({
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch cooking sessions:', err)
-				toast.error('Failed to load cooking sessions')
+				toast.error(t('failedLoadSessions'))
 			}
 		}
 
@@ -384,7 +392,7 @@ export const UserProfile = ({
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch user posts:', err)
-				toast.error('Failed to load posts')
+				toast.error(t('failedLoadPosts'))
 			} finally {
 				if (!cancelled) setIsLoadingPosts(false)
 			}
@@ -412,7 +420,7 @@ export const UserProfile = ({
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch saved recipes:', err)
-				toast.error('Failed to load saved recipes')
+				toast.error(t('failedLoadSaved'))
 			} finally {
 				if (!cancelled) setIsLoadingSaved(false)
 			}
@@ -445,7 +453,7 @@ export const UserProfile = ({
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch saved posts:', err)
-				toast.error('Failed to load saved posts')
+				toast.error(t('failedLoadSavedPosts'))
 			} finally {
 				if (!cancelled) setIsLoadingSavedPosts(false)
 			}
@@ -523,7 +531,7 @@ export const UserProfile = ({
 			})
 		} else {
 			navigator.clipboard.writeText(window.location.href)
-			toast.success('Profile link copied to clipboard!')
+			toast.success(t('profileLinkCopied'))
 		}
 	}
 
@@ -592,10 +600,10 @@ export const UserProfile = ({
 			<ConfirmDialog
 				open={showBlockConfirm}
 				onOpenChange={setShowBlockConfirm}
-				title={`Block ${getProfileDisplayName(profile)}?`}
-				description='This will remove any follow relationships between you, hide their content from you, and hide your content from them. You can unblock them later from Settings.'
-				confirmLabel='Block'
-				cancelLabel='Cancel'
+				title={t('blockTitle', { name: getProfileDisplayName(profile) })}
+				description={t('blockDesc')}
+				confirmLabel={t('block')}
+				cancelLabel={t('cancel')}
 				variant='destructive'
 				onConfirm={handleConfirmBlock}
 			/>
@@ -617,7 +625,7 @@ export const UserProfile = ({
 							className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
 						>
 							<Sparkles className='size-4' />
-							View Your Taste DNA
+							{t('viewTasteDNA')}
 						</Link>
 					</div>
 				</>
@@ -658,35 +666,25 @@ export const UserProfile = ({
 								{[1, 2, 3].map(i => (
 									<div
 										key={i}
-										className='animate-pulse overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
+										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
 									>
-										<div className='h-48 w-full bg-bg-elevated' />
+										<Skeleton className='h-48 w-full' />
 										<div className='space-y-3 p-4'>
-											<div className='h-5 w-3/4 rounded bg-bg-elevated' />
-											<div className='h-4 w-1/2 rounded bg-bg-elevated' />
-											<div className='h-11 w-full rounded bg-bg-elevated' />
+											<Skeleton className='h-5 w-3/4' />
+											<Skeleton className='h-4 w-1/2' />
+											<Skeleton className='h-11 w-full rounded-radius' />
 										</div>
 									</div>
 								))}
 							</div>
 						) : userRecipes.length === 0 ? (
-							<div className='flex h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
-								<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
-									<ChefHat className='size-7 text-brand' />
-								</div>
-								<p className='font-medium text-text-secondary'>
-									{isOwnProfile
-										? "You haven't created any recipes yet"
-										: 'No recipes created yet'}
-								</p>
-								{isOwnProfile && (
-									<Link href='/create'>
-										<Button size='sm' className='mt-1'>
-											Create Your First Recipe
-										</Button>
-									</Link>
-								)}
-							</div>
+							<EmptyStateGamified
+								variant='cooking'
+								title={isOwnProfile ? t('noRecipesOwn') : t('noRecipesOther')}
+								description={isOwnProfile ? 'Share your first recipe with the community!' : 'This chef hasn\'t published any recipes yet.'}
+								emoji='👨‍🍳'
+								primaryAction={isOwnProfile ? { label: t('createFirstRecipe'), href: '/create' } : undefined}
+							/>
 						) : (
 							<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
 								{userRecipes.map(recipe => (
@@ -701,6 +699,7 @@ export const UserProfile = ({
 												}
 												alt={recipe.title}
 												fill
+												sizes='(max-width: 768px) 100vw, 50vw'
 												className='object-cover'
 											/>
 										</div>
@@ -709,11 +708,11 @@ export const UserProfile = ({
 												{recipe.title}
 											</h3>
 											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
-												<span className='flex items-center gap-1'>
+												<span className='flex items-center gap-1 tabular-nums'>
 													<Clock className='size-4' /> {getTotalTime(recipe)}{' '}
 													min
 												</span>
-												<span className='flex items-center gap-1'>
+												<span className='flex items-center gap-1 tabular-nums'>
 													<Heart className='size-4' />{' '}
 													{recipe.likeCount >= 1000
 														? `${(recipe.likeCount / 1000).toFixed(1)}k`
@@ -724,7 +723,7 @@ export const UserProfile = ({
 												className='h-11 w-full'
 												onClick={() => router.push(`/recipes/${recipe.id}`)}
 											>
-												Cook Now
+												{t('cookNow')}
 											</Button>
 										</div>
 									</div>
@@ -755,23 +754,13 @@ export const UserProfile = ({
 								))}
 							</div>
 						) : userPosts.length === 0 ? (
-							<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
-								<ImageOff className='size-8 text-text-muted' />
-								<p className='mt-2 text-text-muted'>
-									{isOwnProfile
-										? 'No posts yet. Complete a cooking session to share!'
-										: 'No posts yet.'}
-								</p>
-								{isOwnProfile && (
-									<Button
-										variant='outline'
-										className='mt-4'
-										onClick={() => router.push('/explore')}
-									>
-										Find Recipes to Cook
-									</Button>
-								)}
-							</div>
+							<EmptyStateGamified
+								variant='feed'
+								title={isOwnProfile ? t('noPostsOwn') : t('noPostsOther')}
+								description={isOwnProfile ? 'Cook a recipe and share your experience!' : 'This chef hasn\'t shared any posts yet.'}
+								emoji='📸'
+								primaryAction={isOwnProfile ? { label: t('findRecipes'), href: '/explore' } : undefined}
+							/>
 						) : (
 							<div className='space-y-4'>
 								{userPosts.map(post => (
@@ -814,7 +803,7 @@ export const UserProfile = ({
 					<>
 						{!isOwnProfile ? (
 							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border-subtle'>
-								<p className='text-text-muted'>Saved items are private</p>
+								<p className='text-text-muted'>{t('savedPrivate')}</p>
 							</div>
 						) : (
 							<div className='space-y-4'>
@@ -829,8 +818,7 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Recipes
-										{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
+										{t('recipesTab')}{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
 									</motion.button>
 									<motion.button
 										onClick={() => setSavedSubTab('posts')}
@@ -841,7 +829,7 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										Posts
+										{t('postsTab')}
 										{savedSubTab === 'posts' && savedPosts.length > 0
 											? ` (${savedPosts.length})`
 											: ''}
@@ -867,19 +855,13 @@ export const UserProfile = ({
 												))}
 											</div>
 										) : savedRecipes.length === 0 ? (
-											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
-												<Bookmark className='size-8 text-text-muted' />
-												<p className='mt-2 text-text-muted'>
-													No saved recipes yet
-												</p>
-												<Button
-													variant='outline'
-													className='mt-4'
-													onClick={() => router.push('/explore')}
-												>
-													Explore Recipes
-												</Button>
-											</div>
+											<EmptyStateGamified
+												variant='saved'
+												title={t('noSavedRecipes')}
+												description='Save recipes from explore to build your personal cookbook!'
+												emoji='🔖'
+												primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
+											/>
 										) : (
 											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
 												{savedRecipes.map(recipe => (
@@ -896,6 +878,7 @@ export const UserProfile = ({
 																}
 																alt={recipe.title}
 																fill
+																sizes='(max-width: 768px) 100vw, 50vw'
 																className='object-cover transition-transform group-hover:scale-105'
 															/>
 														</div>
@@ -904,11 +887,11 @@ export const UserProfile = ({
 																{recipe.title}
 															</h3>
 															<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
-																<span className='flex items-center gap-1'>
+																<span className='flex items-center gap-1 tabular-nums'>
 																	<Clock className='size-4' />
 																	{getTotalTime(recipe)} min
 																</span>
-																<span className='flex items-center gap-1'>
+																<span className='flex items-center gap-1 tabular-nums'>
 																	<Heart className='size-4' />
 																	{recipe.likeCount}
 																</span>
@@ -943,19 +926,13 @@ export const UserProfile = ({
 												))}
 											</div>
 										) : savedPosts.length === 0 ? (
-											<div className='flex h-48 flex-col items-center justify-center rounded-lg border border-dashed border-border-subtle'>
-												<MessageCircle className='size-8 text-text-muted' />
-												<p className='mt-2 text-text-muted'>
-													No saved posts yet
-												</p>
-												<Button
-													variant='outline'
-													className='mt-4'
-													onClick={() => router.push('/')}
-												>
-													Explore Feed
-												</Button>
-											</div>
+											<EmptyStateGamified
+												variant='saved'
+												title={t('noSavedPosts')}
+												description='Save posts from your feed to revisit later!'
+												emoji='💾'
+												primaryAction={{ label: t('exploreFeed'), href: '/' }}
+											/>
 										) : (
 											<div className='space-y-4'>
 												{savedPosts.map(post => (
@@ -963,12 +940,7 @@ export const UserProfile = ({
 														key={post.id}
 														post={post}
 														currentUserId={currentUserId}
-														onDelete={id => {
-															// Remove from saved list when unsaved
-															setSavedPosts(prev =>
-																prev.filter(p => p.id !== id),
-															)
-														}}
+														onDelete={handleSavedPostDelete}
 													/>
 												))}
 											</div>
@@ -989,7 +961,7 @@ export const UserProfile = ({
 						<div>
 							<h3 className='mb-4 flex items-center gap-2 text-lg font-bold text-text'>
 								<Trophy className='size-5 text-xp' />
-								Earned Badges ({profileUser.badges.length})
+								{t('earnedBadges', { count: profileUser.badges.length })}
 							</h3>
 							{profileUser.badges.length === 0 ? (
 								<div className='flex h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
@@ -998,14 +970,14 @@ export const UserProfile = ({
 									</div>
 									<p className='font-medium text-text-secondary'>
 										{isOwnProfile
-											? 'Cook recipes to earn badges!'
-											: 'No badges earned yet.'}
+											? t('noBadgesOwn')
+											: t('noBadgesOther')}
 									</p>
 									{isOwnProfile && (
 										<Link href='/explore'>
 											<Button variant='outline' size='sm' className='mt-1'>
 												<ChefHat className='mr-1.5 size-4' />
-												Explore Recipes
+												{t('exploreRecipes')}
 											</Button>
 										</Link>
 									)}
@@ -1050,7 +1022,7 @@ export const UserProfile = ({
 									className='flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-card'
 								>
 									<Trophy className='size-5' />
-									View Full Badge Catalog ({getAllBadges().length} badges)
+									{t('viewBadgeCatalog', { count: getAllBadges().length })}
 								</Link>
 							</div>
 						)}

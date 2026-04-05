@@ -28,6 +28,7 @@ import { getMySkillTree, getUserSkillTree } from '@/services/achievement'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // CATEGORY META
@@ -69,7 +70,7 @@ const CATEGORY_META: Record<
 	},
 }
 
-const TIER_LABELS = ['', 'Bronze', 'Silver', 'Gold', 'Diamond'] as const
+const TIER_LABEL_KEYS = ['', 'bronzeTier', 'silverTier', 'goldTier', 'diamondTier'] as const
 
 const TIER_COLORS: Record<number, string> = {
 	1: 'from-warning to-warning',
@@ -88,6 +89,7 @@ interface SkillTreeProps {
 }
 
 export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
+	const t = useTranslations('achievements')
 	const [data, setData] = useState<SkillTreeResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasError, setHasError] = useState(false)
@@ -106,13 +108,13 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 				setData(result)
 			} catch {
 				setHasError(true)
-				toast.error('Failed to load skill tree')
+				toast.error(t('failedToLoadSkillTree'))
 			} finally {
 				setIsLoading(false)
 			}
 		}
 		load()
-	}, [userId])
+	}, [userId, t])
 
 	if (isLoading) return <SkillTreeSkeleton />
 
@@ -120,8 +122,9 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 		return (
 			<div className='flex h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border'>
 				<AlertTriangle className='size-8 text-color-error' />
-				<p className='mt-2 text-text-muted'>Failed to load achievements</p>
+				<p className='mt-2 text-text-muted'>{t('failedToLoadAchievements')}</p>
 				<button
+					type='button'
 					onClick={() => {
 						setIsLoading(true)
 						setHasError(false)
@@ -133,7 +136,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 								setData(result)
 							} catch {
 								setHasError(true)
-								toast.error('Failed to load skill tree')
+								toast.error(t('failedToLoadSkillTree'))
 							} finally {
 								setIsLoading(false)
 							}
@@ -143,7 +146,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 					className='mt-2 flex items-center gap-1 text-sm text-brand hover:underline'
 				>
 					<RefreshCw className='size-3' />
-					Retry
+					{t('retry')}
 				</button>
 			</div>
 		)
@@ -155,8 +158,8 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 				<Trophy className='size-8 text-text-muted' />
 				<p className='mt-2 text-text-muted'>
 					{isOwnProfile
-						? 'Start cooking to unlock achievements!'
-						: 'No achievements yet.'}
+					? t('startCooking')
+					: t('noAchievements')}
 				</p>
 			</div>
 		)
@@ -185,7 +188,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 								/ {data.totalAchievements}
 							</span>
 						</p>
-						<p className='text-xs text-text-muted'>Achievements Unlocked</p>
+						<p className='text-xs text-text-muted'>{t('unlocked')}</p>
 					</div>
 				</div>
 				<div className='flex items-center gap-1'>
@@ -206,6 +209,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 			{/* Category Filter Chips */}
 			<div className='flex flex-wrap gap-2'>
 				<button
+					type='button'
 					onClick={() => setFilterCategory(null)}
 					className={cn(
 						'rounded-full px-3 py-1.5 text-xs font-semibold transition-all',
@@ -214,13 +218,14 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 							: 'bg-bg-elevated text-text-secondary hover:bg-bg-card',
 					)}
 				>
-					All ({data.paths.length})
+					{t('tabAll', { n: data.paths.length })}
 				</button>
 				{categories.map(cat => {
 					const meta = CATEGORY_META[cat]
 					const count = data.paths.filter(p => p.category === cat).length
 					return (
 						<button
+							type='button'
 							key={cat}
 							onClick={() =>
 								setFilterCategory(filterCategory === cat ? null : cat)
@@ -232,7 +237,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 									: 'bg-bg-elevated text-text-secondary hover:bg-bg-card',
 							)}
 						>
-							{meta.icon} {cat} ({count})
+							{meta.icon} {t(`category${cat}`)} ({count})
 						</button>
 					)
 				})}
@@ -279,6 +284,7 @@ function SkillPathCard({
 	isExpanded: boolean
 	onToggle: () => void
 }) {
+	const t = useTranslations('achievements')
 	const meta = CATEGORY_META[path.category]
 	const progressPercent =
 		path.totalCount > 0
@@ -297,6 +303,7 @@ function SkillPathCard({
 		>
 			{/* Header - always visible */}
 			<button
+				type='button'
 				onClick={onToggle}
 				className='flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-bg-elevated/50'
 			>
@@ -319,7 +326,7 @@ function SkillPathCard({
 						{isComplete && (
 							<span className='flex items-center gap-0.5 rounded-full bg-success/15 px-2 py-0.5 text-2xs font-bold text-success'>
 								<Crown className='size-3' />
-								Complete
+							{t('complete')}
 							</span>
 						)}
 					</div>
@@ -394,6 +401,7 @@ function AchievementNodeCard({
 	index: number
 	isLast: boolean
 }) {
+	const t = useTranslations('achievements')
 	const isLocked = !node.unlocked && !node.prerequisiteMet
 	const isInProgress = !node.unlocked && node.prerequisiteMet
 	const progressPercent =
@@ -412,8 +420,8 @@ function AchievementNodeCard({
 					<Lock className='size-4' />
 				</div>
 				<div>
-					<p className='text-sm font-semibold text-text-muted'>???</p>
-					<p className='text-xs text-text-muted'>Hidden achievement</p>
+					<p className='text-sm font-semibold text-text-muted'>{t('hiddenAchievement')}</p>
+					<p className='text-xs text-text-muted'>{t('hiddenAchievementDesc')}</p>
 				</div>
 			</div>
 		)
@@ -472,7 +480,7 @@ function AchievementNodeCard({
 					)}
 					{node.tier > 1 && (
 						<span className='shrink-0 text-2xs font-bold text-text-muted'>
-							{TIER_LABELS[node.tier]}
+						{TIER_LABEL_KEYS[node.tier] ? t(TIER_LABEL_KEYS[node.tier]) : ''}
 						</span>
 					)}
 				</div>
@@ -505,11 +513,12 @@ function AchievementNodeCard({
 				{/* Unlocked date */}
 				{node.unlocked && node.unlockedAt && (
 					<p className='mt-0.5 text-2xs text-text-muted'>
-						Unlocked{' '}
-						{new Date(node.unlockedAt).toLocaleDateString(undefined, {
-							month: 'short',
-							day: 'numeric',
-							year: 'numeric',
+						{t('unlockedDate', {
+							date: new Date(node.unlockedAt).toLocaleDateString(undefined, {
+								month: 'short',
+								day: 'numeric',
+								year: 'numeric',
+							})
 						})}
 					</p>
 				)}

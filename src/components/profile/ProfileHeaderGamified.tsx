@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
+import { TipJarButton } from '@/components/tip/TipJarButton'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -28,7 +29,11 @@ import {
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
 	STAT_ITEM_HOVER,
+	FOLLOW_PULSE,
+	DURATION_S,
 } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -128,13 +133,13 @@ const formatNumber = (num: number): string => {
 	return num.toString()
 }
 
-const titleConfig: Record<UserTitle, { gradient: string; label: string }> = {
-	BEGINNER: { gradient: 'bg-text-muted', label: 'Beginner' },
-	AMATEUR: { gradient: 'bg-info', label: 'Amateur' },
-	SEMIPRO: { gradient: 'bg-warning', label: 'Semi-Pro' },
+const titleConfig: Record<UserTitle, { gradient: string; labelKey: string }> = {
+	BEGINNER: { gradient: 'bg-text-muted', labelKey: 'titleBeginner' },
+	AMATEUR: { gradient: 'bg-info', labelKey: 'titleAmateur' },
+	SEMIPRO: { gradient: 'bg-warning', labelKey: 'titleSemiPro' },
 	PRO: {
 		gradient: 'bg-gradient-xp',
-		label: 'Pro',
+		labelKey: 'titlePro',
 	},
 }
 
@@ -151,9 +156,10 @@ const LevelRing = ({
 }: {
 	level: number
 	progressPercent: number
-	xpText: string
+	xpText: React.ReactNode
 	size?: 'default' | 'small'
 }) => {
+	const t = useTranslations('profile')
 	const circumference = 2 * Math.PI * 45
 	const strokeDashoffset =
 		circumference - (progressPercent / 100) * circumference
@@ -190,7 +196,7 @@ const LevelRing = ({
 						strokeDasharray={circumference}
 						initial={{ strokeDashoffset: circumference }}
 						animate={{ strokeDashoffset }}
-						transition={{ duration: 0.8 }}
+						transition={{ duration: DURATION_S.verySlow }}
 					/>
 				</svg>
 				<span
@@ -204,7 +210,7 @@ const LevelRing = ({
 			</div>
 			<div className='flex flex-col'>
 				<span className='text-xs uppercase tracking-wide text-white/70'>
-					Level
+					{t('levelLabel')}
 				</span>
 				<span
 					className={cn(
@@ -221,6 +227,7 @@ const LevelRing = ({
 
 // Streak Badge
 const StreakBadge = ({ count }: { count: number }) => {
+	const t = useTranslations('profile')
 	if (count === 0) return null
 
 	return (
@@ -230,25 +237,29 @@ const StreakBadge = ({ count }: { count: number }) => {
 			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-streak px-4 py-2.5 font-display font-bold text-white shadow-lg shadow-streak/40'
 		>
 			<span className='text-xl'>ðŸ”¥</span>
-			<span className='text-xl'>{count}</span>
-			<span className='text-xs opacity-90'>day streak</span>
+			<span className='text-xl tabular-nums'>{count}</span>
+			<span className='text-xs opacity-90'>{t('dayStreak')}</span>
 		</motion.div>
 	)
 }
 
 // Title Badge
 const TitleBadge = ({ title }: { title: UserTitle }) => {
+	const t = useTranslations('profile')
 	const config = titleConfig[title]
 
 	return (
-		<div
+		<motion.div
+			initial={{ opacity: 0, y: 6, scale: 0.9 }}
+			animate={{ opacity: 1, y: 0, scale: 1 }}
+			transition={TRANSITION_SPRING}
 			className={cn(
 				'absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white',
 				config.gradient,
 			)}
 		>
-			{config.label}
-		</div>
+			{t(config.labelKey)}
+		</motion.div>
 	)
 }
 
@@ -261,7 +272,9 @@ const StatsRow = ({
 	social: { followers: number; following: number }
 	cooking: { recipesCooked: number; recipesCreated: number; mastered?: number }
 	isOwnProfile?: boolean
-}) => (
+}) => {
+	const t = useTranslations('profile')
+	return (
 	<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
 		{/* Social Stats */}
 		<div className='flex gap-8'>
@@ -271,16 +284,16 @@ const StatsRow = ({
 					className='flex flex-col transition-opacity hover:opacity-70'
 				>
 					<span className='text-xl font-display font-extrabold'>
-						{formatNumber(social.followers)}
+						<AnimatedNumber value={social.followers} format={formatNumber} />
 					</span>
-					<span className='text-xs text-text-muted'>Followers</span>
+					<span className='text-xs text-text-muted'>{t('followersLabel')}</span>
 				</Link>
 			) : (
 				<div className='flex flex-col'>
 					<span className='text-xl font-display font-extrabold'>
-						{formatNumber(social.followers)}
+						<AnimatedNumber value={social.followers} format={formatNumber} />
 					</span>
-					<span className='text-xs text-text-muted'>Followers</span>
+					<span className='text-xs text-text-muted'>{t('followersLabel')}</span>
 				</div>
 			)}
 			{isOwnProfile ? (
@@ -289,16 +302,16 @@ const StatsRow = ({
 					className='flex flex-col transition-opacity hover:opacity-70'
 				>
 					<span className='text-xl font-display font-extrabold'>
-						{formatNumber(social.following)}
+						<AnimatedNumber value={social.following} format={formatNumber} />
 					</span>
-					<span className='text-xs text-text-muted'>Following</span>
+					<span className='text-xs text-text-muted'>{t('followingLabel')}</span>
 				</Link>
 			) : (
 				<div className='flex flex-col'>
 					<span className='text-xl font-display font-extrabold'>
-						{formatNumber(social.following)}
+						<AnimatedNumber value={social.following} format={formatNumber} />
 					</span>
-					<span className='text-xs text-text-muted'>Following</span>
+					<span className='text-xs text-text-muted'>{t('followingLabel')}</span>
 				</div>
 			)}
 		</div>
@@ -309,36 +322,37 @@ const StatsRow = ({
 		{/* Cooking Stats */}
 		<div className='flex gap-8'>
 			<div className='flex flex-col'>
-				<span className='text-xl font-display font-extrabold text-success'>
-					{formatNumber(cooking.recipesCooked)}
+				<span className='text-xl font-display font-extrabold text-success tabular-nums'>
+					<AnimatedNumber value={cooking.recipesCooked} format={formatNumber} />
 				</span>
 				<span className='text-xs font-semibold text-success'>
 					{cooking.recipesCooked === 0 && isOwnProfile
-						? 'Start cooking!'
-						: 'Recipes Cooked'}
+						? t('startCooking')
+						: t('recipesCooked')}
 				</span>
 			</div>
 			<div className='flex flex-col'>
-				<span className='text-xl font-display font-extrabold'>
-					{formatNumber(cooking.recipesCreated)}
+				<span className='text-xl font-display font-extrabold tabular-nums'>
+					<AnimatedNumber value={cooking.recipesCreated} format={formatNumber} />
 				</span>
 				<span className='text-xs text-text-muted'>
 					{cooking.recipesCreated === 0 && isOwnProfile
-						? 'Share a recipe!'
-						: 'Recipes Created'}
+						? t('shareRecipe')
+						: t('recipesCreated')}
 				</span>
 			</div>
 			{cooking.mastered !== undefined && (
 				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold'>
-						{formatNumber(cooking.mastered)}
+					<span className='text-xl font-display font-extrabold tabular-nums'>
+						<AnimatedNumber value={cooking.mastered} format={formatNumber} />
 					</span>
-					<span className='text-xs text-text-muted'>Mastered</span>
+					<span className='text-xs text-text-muted'>{t('mastered')}</span>
 				</div>
 			)}
 		</div>
 	</div>
 )
+}
 
 // XP Progress Bar
 const XPProgressBar = ({
@@ -351,14 +365,16 @@ const XPProgressBar = ({
 	xpToNext: number
 	progressPercent: number
 	nextLevel: number
-}) => (
+}) => {
+	const t = useTranslations('profile')
+	return (
 	<div className='px-6 py-4'>
 		<div className='relative mb-2 h-2.5 overflow-hidden rounded-full bg-border'>
 			<motion.div
 				className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
 				initial={{ width: 0 }}
 				animate={{ width: `${progressPercent}%` }}
-				transition={{ duration: 0.5 }}
+				transition={{ duration: DURATION_S.slow }}
 			/>
 			{/* Next level milestone marker */}
 			<div className='absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
@@ -367,14 +383,15 @@ const XPProgressBar = ({
 		</div>
 		<div className='flex justify-between text-sm'>
 			<span className='font-display font-semibold text-success'>
-				{formatNumber(currentXP)} XP
+				{t('xpLabel', { xp: formatNumber(currentXP) })}
 			</span>
 			<span className='text-text-muted'>
-				{formatNumber(xpToNext)} XP to Level {nextLevel}
+				{t('xpToLevel', { xp: formatNumber(xpToNext), level: nextLevel })}
 			</span>
 		</div>
 	</div>
 )
+}
 
 // Badges Showcase
 const BadgesShowcase = ({
@@ -389,21 +406,23 @@ const BadgesShowcase = ({
 	compact?: boolean
 	userId?: string // For linking to other user's badge pages (future feature)
 	isOwnProfile?: boolean // Only show "View all" link for own profile
-}) => (
+}) => {
+	const t = useTranslations('profile')
+	return (
 	<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
 		{!compact && (
 			<div className='mb-4 flex items-center justify-between'>
-				<h3 className='text-sm font-bold'>Badges</h3>
+				<h3 className='text-sm font-bold'>{t('badgesTitle')}</h3>
 				{isOwnProfile ? (
 					<Link
 						href='/profile/badges'
 						className='text-sm font-semibold text-brand hover:underline'
 					>
-						View all {totalBadges} â†’
+						{t('viewAllBadges', { count: totalBadges })}
 					</Link>
 				) : (
 					<span className='text-sm text-text-muted'>
-						{totalBadges} badges earned
+						{t('badgesEarned', { count: totalBadges })}
 					</span>
 				)}
 			</div>
@@ -415,11 +434,11 @@ const BadgesShowcase = ({
 					className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-4 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
 				>
 					<span className='text-lg'>ðŸ…</span>
-					Cook a recipe to earn your first badge!
+					{t('earnFirstBadge')}
 				</Link>
 			) : badges.length === 0 ? (
 				<p className='py-4 text-center text-sm text-text-muted'>
-					No badges yet
+					{t('noBadgesYet')}
 				</p>
 			) : (
 				badges.slice(0, compact ? 3 : 5).map((badge, index) => (
@@ -448,7 +467,7 @@ const BadgesShowcase = ({
 						</span>
 						{!compact && badge.rarity === 'RARE' && (
 							<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
-								Rare
+								{t('badgeRare')}
 							</span>
 						)}
 					</motion.div>
@@ -462,6 +481,7 @@ const BadgesShowcase = ({
 		</div>
 	</div>
 )
+}
 
 // Profile Tabs
 const ProfileTabs = ({
@@ -482,6 +502,7 @@ const ProfileTabs = ({
 	<div className='flex gap-1 overflow-x-auto border-t border-border px-4'>
 		{tabs.map(tab => (
 			<button
+				type='button'
 				key={tab.id}
 				onClick={() => onTabChange?.(tab.id)}
 				className={cn(
@@ -501,11 +522,11 @@ const ProfileTabs = ({
 				{tab.count !== undefined && (
 					<span
 						className={cn(
-							'text-xs',
+							'text-xs tabular-nums',
 							activeTab === tab.id ? 'text-brand' : 'text-text-muted',
 						)}
 					>
-						{formatNumber(tab.count)}
+						<AnimatedNumber value={tab.count} format={formatNumber} />
 					</span>
 				)}
 			</button>
@@ -529,9 +550,12 @@ const OwnProfileHeader = ({
 	// Platform detection for keyboard shortcuts
 	const isMac =
 		typeof navigator !== 'undefined' &&
-		((navigator as any).userAgentData?.platform === 'macOS' ||
+		('userAgentData' in navigator &&
+			(navigator.userAgentData as { platform?: string })?.platform === 'macOS' ||
 			/Mac/i.test(navigator.userAgent))
 	const modKey = isMac ? 'âŒ˜' : 'Ctrl'
+
+	const t = useTranslations('profile')
 
 	// Keyboard shortcut: Ctrl/Cmd+E to edit profile
 	useEffect(() => {
@@ -546,18 +570,18 @@ const OwnProfileHeader = ({
 	}, [onEditProfile])
 
 	const tabs = [
-		{ id: 'recipes', label: 'Recipes', icon: <Utensils className='size-4' /> },
-		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='size-4' /> },
+		{ id: 'recipes', label: t('tabRecipes'), icon: <Utensils className='size-4' /> },
+		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'cooking',
-			label: 'Cooking',
+			label: t('tabCooking'),
 			icon: <ChefHat className='size-4' />,
 			badge: pendingPosts?.count,
 		},
-		{ id: 'saved', label: 'Saved', icon: <Bookmark className='size-4' /> },
+		{ id: 'saved', label: t('tabSaved'), icon: <Bookmark className='size-4' /> },
 		{
 			id: 'achievements',
-			label: 'Achievements',
+			label: t('tabAchievements'),
 			icon: <Trophy className='size-4' />,
 		},
 	]
@@ -568,8 +592,9 @@ const OwnProfileHeader = ({
 			<div className='relative h-48 overflow-hidden'>
 				<Image
 					src={user.coverUrl || '/default-cover.svg'}
-					alt='Cover'
+					alt={t('coverAlt')}
 					fill
+					sizes='100vw'
 					className='object-cover'
 				/>
 				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
@@ -578,7 +603,7 @@ const OwnProfileHeader = ({
 				<LevelRing
 					level={user.gamification.currentLevel}
 					progressPercent={user.gamification.progressPercent}
-					xpText={`${formatNumber(user.gamification.currentXP)} / ${formatNumber(user.gamification.currentXPGoal)} XP`}
+					xpText={<><AnimatedNumber value={user.gamification.currentXP} format={formatNumber} /> / <AnimatedNumber value={user.gamification.currentXPGoal} format={formatNumber} /> XP</>}
 				/>
 
 				{/* Streak Badge */}
@@ -611,25 +636,27 @@ const OwnProfileHeader = ({
 				{/* Actions */}
 				<div className='flex gap-2 pt-14'>
 					<motion.button
+						type='button'
 						onClick={onEditProfile}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border'
-						title={`Edit Profile (${modKey}+E)`}
+						title={`${t('phEditProfile')} (${modKey}+E)`}
 					>
 						<Settings className='size-4' />
-						Edit Profile
+						{t('phEditProfile')}
 						<kbd className='ml-1.5 hidden rounded bg-bg px-1.5 py-0.5 font-mono text-2xs text-text-muted group-hover:inline'>
 							{modKey}+E
 						</kbd>
 					</motion.button>
 					<motion.button
+						type='button'
 						onClick={onShareProfile}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
-						aria-label='Share profile'
+						aria-label={t('shareProfileAria')}
 					>
 						<Share2 className='size-4' />
 					</motion.button>
@@ -675,20 +702,20 @@ const OwnProfileHeader = ({
 					</div>
 					<div className='flex flex-1 flex-col gap-0.5'>
 						<span className='text-sm font-semibold'>
-							{pendingPosts.count} recipes waiting to be posted
+							{t('pendingRecipesWaiting', { count: pendingPosts.count })}
 						</span>
 						<span className='text-xs text-text-muted'>
-							Don&apos;t lose {formatNumber(pendingPosts.totalPendingXP)} XP!
-							Post before deadlines expire
+							{t('pendingDontLose', { xp: formatNumber(pendingPosts.totalPendingXP) })}
 						</span>
 					</div>
 					<motion.button
+						type='button'
 						onClick={onPostPending}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className='rounded-lg bg-error px-4 py-2.5 text-sm font-semibold text-white'
 					>
-						Post Now
+						{t('postNow')}
 					</motion.button>
 				</div>
 			)}
@@ -720,17 +747,18 @@ const OtherUserProfileHeader = ({
 	activeTab,
 	onTabChange,
 }: OtherUserProfileProps) => {
+	const t = useTranslations('profile')
 	const tabs = [
 		{
 			id: 'recipes',
-			label: 'Recipes',
+			label: t('tabRecipes'),
 			icon: <Utensils className='size-4' />,
 			count: user.stats.recipesCreated,
 		},
-		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='size-4' /> },
+		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'achievements',
-			label: 'Achievements',
+			label: t('tabAchievements'),
 			icon: <Trophy className='size-4' />,
 			count: user.totalBadges,
 		},
@@ -742,8 +770,9 @@ const OtherUserProfileHeader = ({
 			<div className='relative h-48 overflow-hidden'>
 				<Image
 					src={user.coverUrl || '/default-cover.svg'}
-					alt='Cover'
+					alt={t('coverAlt')}
 					fill
+					sizes='100vw'
 					className='object-cover'
 				/>
 				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
@@ -752,7 +781,7 @@ const OtherUserProfileHeader = ({
 				<LevelRing
 					level={user.gamification.currentLevel}
 					progressPercent={user.gamification.progressPercent}
-					xpText='Top 5%'
+					xpText={t('topPercent')}
 				/>
 
 				{/* Streak Badge */}
@@ -788,6 +817,7 @@ const OtherUserProfileHeader = ({
 				{/* Actions */}
 				<div className='flex gap-2 pt-14'>
 					<motion.button
+						type='button'
 						onClick={onFollow}
 						disabled={isFollowLoading}
 						whileHover={BUTTON_HOVER}
@@ -812,10 +842,11 @@ const OtherUserProfileHeader = ({
 					{isMutualFollow && (
 						<div className='flex items-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm font-semibold text-success'>
 							<Users className='size-4' />
-							Friends
+						{t('friends')}
 						</div>
 					)}
 					<motion.button
+						type='button'
 						onClick={onMessage}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -824,8 +855,14 @@ const OtherUserProfileHeader = ({
 					>
 						<MessageCircle className='size-4' />
 					</motion.button>
+					<TipJarButton
+						creatorId={user.id}
+						creatorName={user.displayName || user.username}
+						variant='profile'
+					/>
 					{/* Block/Unblock Button */}
 					<motion.button
+						type='button'
 						onClick={onBlock}
 						disabled={isBlockLoading}
 						whileHover={BUTTON_SUBTLE_HOVER}
@@ -837,7 +874,7 @@ const OtherUserProfileHeader = ({
 								? 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
 								: 'border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-destructive',
 						)}
-						title={isBlocked ? 'Unblock user' : 'Block user'}
+						title={isBlocked ? t('unblockUser') : t('blockUser')}
 					>
 						<ShieldBan className='size-4' />
 					</motion.button>
@@ -889,6 +926,7 @@ const MiniProfileHeader = ({
 	isFollowing,
 	onFollow,
 }: MiniHeaderProps) => {
+	const t = useTranslations('profile')
 	const config = titleConfig[title]
 
 	return (
@@ -918,15 +956,15 @@ const MiniProfileHeader = ({
 							config.gradient,
 						)}
 					>
-						{config.label}
-					</span>
-				</div>
+					{t(config.labelKey)}
+				</span>
+			</div>
 				<div className='mt-0.5 flex items-center gap-1.5 text-xs text-text-muted'>
-					<span>{formatNumber(user.stats.followers)} followers</span>
+					<span><AnimatedNumber value={user.stats.followers} format={formatNumber} /> {t('followersCount')}</span>
 					{streakCount !== undefined && streakCount > 0 && (
 						<>
 							<span className='text-border'>â€¢</span>
-							<span>ðŸ”¥ {streakCount} day streak</span>
+							<span>ðŸ”¥ {streakCount} {t('dayStreak')}</span>
 						</>
 					)}
 				</div>
@@ -934,9 +972,11 @@ const MiniProfileHeader = ({
 
 			{/* Follow Button */}
 			<motion.button
+				type='button'
 				onClick={onFollow}
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
+				animate={isFollowing ? FOLLOW_PULSE.followed : undefined}
 				transition={TRANSITION_SPRING}
 				className={cn(
 					'rounded-lg px-4 py-2 text-sm font-semibold',
@@ -945,7 +985,7 @@ const MiniProfileHeader = ({
 						: 'bg-brand text-white',
 				)}
 			>
-				{isFollowing ? 'Following' : 'Follow'}
+				{isFollowing ? t('phFollowing') : t('phFollow')}
 			</motion.button>
 		</div>
 	)

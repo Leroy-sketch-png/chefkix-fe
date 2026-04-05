@@ -30,40 +30,41 @@ import {
 } from '@/lib/motion'
 import type { LucideIcon } from 'lucide-react'
 import { useNotificationStore } from '@/store/notificationStore'
+import { useTranslations } from '@/i18n/hooks'
 
 interface NavItem {
 	href: string | ((userId?: string) => string)
 	icon: LucideIcon
-	label: string
+	labelKey: string
 	showBadge?: boolean // Whether this item can show a notification badge
 }
 
 // Primary nav: the 7 items users need most (serves 80% scrollers + 15% cooks)
 const primaryNavItems: NavItem[] = [
-	{ href: '/dashboard', icon: Home, label: 'Home' },
-	{ href: '/explore', icon: Compass, label: 'Explore' },
-	{ href: '/create', icon: PlusSquare, label: 'Create' },
-	{ href: '/messages', icon: MessageCircle, label: 'Messages' },
-	{ href: '/notifications', icon: Bell, label: 'Notifs', showBadge: true },
-	{ href: '/profile', icon: User, label: 'Profile' },
+	{ href: '/dashboard', icon: Home, labelKey: 'home' },
+	{ href: '/explore', icon: Compass, labelKey: 'explore' },
+	{ href: '/create', icon: PlusSquare, labelKey: 'create' },
+	{ href: '/messages', icon: MessageCircle, labelKey: 'messages' },
+	{ href: '/notifications', icon: Bell, labelKey: 'notifs', showBadge: true },
+	{ href: '/profile', icon: User, labelKey: 'profile' },
 ]
 
 // Secondary nav: kitchen tools, social features, settings (under "More")
 const secondaryNavItems: NavItem[] = [
-	{ href: '/challenges', icon: Target, label: 'Challenges' },
-	{ href: '/community', icon: Users, label: 'Community' },
-	{ href: '/cook-together', icon: ChefHat, label: 'Cook Together' },
-	{ href: '/pantry', icon: Package, label: 'Pantry' },
-	{ href: '/meal-planner', icon: CalendarDays, label: 'Meal Plan' },
-	{ href: '/shopping-lists', icon: ShoppingCart, label: 'Shopping' },
-	{ href: '/collections', icon: FolderHeart, label: 'Collections' },
-	{ href: '/settings', icon: Settings, label: 'Settings' },
+	{ href: '/challenges', icon: Target, labelKey: 'challenges' },
+	{ href: '/community', icon: Users, labelKey: 'community' },
+	{ href: '/cook-together', icon: ChefHat, labelKey: 'cookTogether' },
+	{ href: '/pantry', icon: Package, labelKey: 'pantry' },
+	{ href: '/meal-planner', icon: CalendarDays, labelKey: 'mealPlan' },
+	{ href: '/shopping-lists', icon: ShoppingCart, labelKey: 'shopping' },
+	{ href: '/collections', icon: FolderHeart, labelKey: 'collections' },
+	{ href: '/settings', icon: Settings, labelKey: 'settings' },
 ]
 
 const adminNavItem: NavItem = {
 	href: '/admin',
 	icon: Shield,
-	label: 'Admin',
+	labelKey: 'admin',
 }
 
 export const LeftSidebar = () => {
@@ -71,6 +72,7 @@ export const LeftSidebar = () => {
 	const { user, isAuthenticated } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
 	const [showMore, setShowMore] = useState(false)
+	const t = useTranslations('nav')
 
 	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
 	const isSecondaryActive = useMemo(() => {
@@ -123,14 +125,15 @@ export const LeftSidebar = () => {
 		const href = getHref(item)
 		const active = isActive(item)
 		const Icon = item.icon
+		const label = t(item.labelKey)
 		return (
 			<Link
-				key={item.label}
+				key={item.labelKey}
 				href={href}
 				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-brand'
 				data-active={active}
 				aria-current={active ? 'page' : undefined}
-				title={item.label}
+				title={label}
 			>
 				{/* Active indicator bar */}
 				<motion.div
@@ -170,7 +173,7 @@ export const LeftSidebar = () => {
 						</span>
 					)}
 				</motion.div>
-				<div>{item.label}</div>
+				<div>{label}</div>
 			</Link>
 		)
 	}
@@ -185,9 +188,10 @@ export const LeftSidebar = () => {
 
 			{/* More toggle */}
 			<button
+				type='button'
 				onClick={() => setShowMore(prev => !prev)}
 				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary'
-				title={showMore ? 'Show less' : 'More'}
+				title={showMore ? t('showLess') : t('more')}
 				aria-expanded={showMore}
 			>
 				<motion.div
@@ -200,7 +204,7 @@ export const LeftSidebar = () => {
 				>
 					<MoreHorizontal className='size-6' />
 				</motion.div>
-				<div>{showMore ? 'Less' : 'More'}</div>
+				<div>{showMore ? t('less') : t('more')}</div>
 			</button>
 
 			{/* Secondary navigation (collapsible) */}

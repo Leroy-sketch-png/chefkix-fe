@@ -1,6 +1,7 @@
-﻿'use client'
+'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { Comment as CommentType, Reply } from '@/lib/types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
@@ -18,6 +19,7 @@ import {
 	MoreHorizontal,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { HEART_POP, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, TRANSITION_SPRING, SEND_WHOOSH, DURATION_S } from '@/lib/motion'
 import {
 	getRepliesByCommentId,
 	createReply,
@@ -35,6 +37,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { diag } from '@/lib/diagnostics'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 interface CommentProps {
 	comment: CommentType
@@ -115,13 +118,14 @@ const ReplyItem = ({
 	reply: Reply
 	currentUserId?: string
 }) => {
+	const t = useTranslations('social')
 	const [likes, setLikes] = useState(reply.likes)
 	const [isLiked, setIsLiked] = useState(reply.isLiked ?? false)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
 	const requireAuth = useAuthGate()
 
 	const handleLike = async () => {
-		if (!requireAuth('like this reply')) return
+		if (!requireAuth(t('likeThisReplyAuth'))) return
 		if (isLikeLoading) return
 
 		// Optimistic update
@@ -140,13 +144,13 @@ const ReplyItem = ({
 				// Revert on failure
 				setIsLiked(previousLiked)
 				setLikes(previousLikes)
-				toast.error('Failed to like reply')
+				toast.error(t('failedLikeReply'))
 			}
 		} catch {
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikes(previousLikes)
-			toast.error('Failed to like reply')
+			toast.error(t('failedLikeReply'))
 		} finally {
 			setIsLikeLoading(false)
 		}
@@ -190,15 +194,18 @@ const ReplyItem = ({
 				<div className='flex items-center gap-3 px-2 text-2xs text-text-secondary'>
 					<span>{timeAgo}</span>
 					<button
+						type='button'
 						onClick={handleLike}
 						disabled={isLikeLoading}
 						className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
-						aria-label={isLiked ? 'Unlike reply' : 'Like reply'}
+						aria-label={isLiked ? t('unlikeReply') : t('likeReply')}
 					>
-						<Heart
-							className={`size-2.5 transition-all ${isLiked ? 'fill-color-error text-color-error scale-110' : 'text-text-muted hover:text-color-error'}`}
-						/>
-						{likes > 0 && <span>{likes}</span>}
+						<motion.div variants={HEART_POP} animate={isLiked ? 'liked' : 'unliked'} initial={false}>
+							<Heart
+								className={`size-2.5 transition-all ${isLiked ? 'fill-color-error text-color-error' : 'text-text-muted hover:text-color-error'}`}
+							/>
+						</motion.div>
+						{likes > 0 && <AnimatedNumber value={likes} className='tabular-nums' />}
 					</button>
 				</div>
 			</div>
@@ -217,6 +224,7 @@ export const Comment = ({
 	onReply,
 	onDelete,
 }: CommentProps) => {
+	const t = useTranslations('social')
 	const [likes, setLikes] = useState(comment.likes)
 	const [isLiked, setIsLiked] = useState(comment.isLiked ?? false)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
@@ -237,7 +245,7 @@ export const Comment = ({
 	const isOwnComment = currentUserId === comment.userId
 
 	const handleLike = async () => {
-		if (!requireAuth('like this comment')) return
+		if (!requireAuth(t('likeThisCommentAuth'))) return
 		if (isLikeLoading) return
 
 		diag.action('social', 'COMMENT_LIKE_TOGGLE', {
@@ -273,14 +281,14 @@ export const Comment = ({
 				// Revert on failure
 				setIsLiked(previousLiked)
 				setLikes(previousLikes)
-				toast.error('Failed to like comment')
+				toast.error(t('failedLikeComment'))
 			}
 		} catch {
 			diag.error('social', 'COMMENT_LIKE_ERROR', { error: 'Network error' })
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikes(previousLikes)
-			toast.error('Failed to like comment')
+			toast.error(t('failedLikeComment'))
 		} finally {
 			setIsLikeLoading(false)
 		}
@@ -302,17 +310,17 @@ export const Comment = ({
 			const response = await deleteComment(postId, comment.id)
 			if (response.success) {
 				diag.response('social', 'deleteComment', { success: true }, true)
-				toast.success('Comment deleted')
+				toast.success(t('commentDeleted'))
 				onDelete?.(comment.id)
 			} else {
 				diag.error('social', 'COMMENT_DELETE_FAILED', {
 					message: response.message,
 				})
-				toast.error(response.message || 'Failed to delete comment')
+				toast.error(response.message || t('failedDeleteComment'))
 			}
 		} catch {
 			diag.error('social', 'COMMENT_DELETE_ERROR', { error: 'Network error' })
-			toast.error('Network error. Please try again.')
+			toast.error(t('networkErrorRetry'))
 		} finally {
 			setIsDeleting(false)
 		}
@@ -331,10 +339,10 @@ export const Comment = ({
 			if (response.success && response.data) {
 				setReplies(response.data)
 			} else {
-				toast.error('Failed to load replies')
+				toast.error(t('failedLoadReplies'))
 			}
 		} catch {
-			toast.error('Failed to load replies')
+			toast.error(t('failedLoadReplies'))
 		} finally {
 			isLoadingRepliesRef.current = false
 			setIsLoadingReplies(false)
@@ -351,7 +359,7 @@ export const Comment = ({
 
 	// Submit reply
 	const handleSubmitReply = async () => {
-		if (!requireAuth('reply to this comment')) return
+		if (!requireAuth(t('replyToThisCommentAuth'))) return
 		if (!replyContent.trim() || isSubmittingReply) return
 
 		diag.action('social', 'REPLY_SUBMIT', {
@@ -390,7 +398,7 @@ export const Comment = ({
 			diag.warn('social', 'REPLY_MODERATION_API_FAILED', {
 				message: 'API failure - fail-closed blocking reply',
 			})
-			toast.error('Unable to verify content. Please try again.')
+			toast.error(t('moderationVerifyFailed'))
 			setIsSubmittingReply(false)
 			return
 		}
@@ -402,7 +410,7 @@ export const Comment = ({
 				})
 				toast.error(
 					moderationResult.data.reason ||
-						'Your reply contains content that violates our community guidelines.',
+						t('moderationBlockReply'),
 				)
 				setIsSubmittingReply(false)
 				return
@@ -413,7 +421,7 @@ export const Comment = ({
 				})
 				toast.warning(
 					moderationResult.data.reason ||
-						'Your reply may contain sensitive content and will be reviewed.',
+						t('moderationFlagReply'),
 				)
 			}
 		}
@@ -447,15 +455,15 @@ export const Comment = ({
 			mentionInputRef.current?.clear()
 			setShowReplyInput(false)
 			setShowReplies(true)
-			toast.success('Reply posted!')
+			toast.success(t('replyPosted'))
 		} else {
 			diag.error('social', 'REPLY_CREATE_FAILED', {
 				message: response.message,
 			})
-			toast.error(response.message || 'Failed to post reply')
+			toast.error(response.message || t('failedPostReply'))
 		}
 		} catch {
-			toast.error('Failed to post reply')
+			toast.error(t('failedPostReply'))
 		} finally {
 			setIsSubmittingReply(false)
 		}
@@ -467,10 +475,10 @@ export const Comment = ({
 			<ConfirmDialog
 				open={showDeleteConfirm}
 				onOpenChange={setShowDeleteConfirm}
-				title='Delete comment?'
-				description='This action cannot be undone. Your comment will be permanently removed.'
-				confirmLabel='Delete'
-				cancelLabel='Cancel'
+				title={t('commentDeleteTitle')}
+				description={t('commentDeleteDescription')}
+				confirmLabel={t('commentDeleteConfirm')}
+				cancelLabel={t('commentDeleteCancel')}
 				variant='destructive'
 				onConfirm={handleConfirmDelete}
 			/>
@@ -519,8 +527,9 @@ export const Comment = ({
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<button
-											className='flex size-10 items-center justify-center rounded-full text-text-muted md:opacity-0 transition-opacity hover:bg-bg-hover hover:text-text-secondary md:group-hover:opacity-100'
-											aria-label='Comment options'
+											type='button'
+											className='flex size-10 items-center justify-center rounded-full text-text-muted md:opacity-0 transition-opacity hover:bg-bg-hover hover:text-text-secondary md:group-hover:opacity-100 focus-visible:opacity-100'
+											aria-label={t('commentOptions')}
 										>
 											<MoreHorizontal className='size-4' />
 										</button>
@@ -536,7 +545,7 @@ export const Comment = ({
 											) : (
 												<Trash2 className='mr-2 size-4' />
 											)}
-											Delete
+											{t('commentDeleteConfirm')}
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
@@ -548,26 +557,30 @@ export const Comment = ({
 					<div className='flex items-center gap-4 px-2 text-xs text-text-secondary'>
 						<span>{timeAgo}</span>
 						<button
+							type='button'
 							onClick={handleLike}
 							disabled={isLikeLoading}
 							className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
-							aria-label={isLiked ? 'Unlike comment' : 'Like comment'}
+							aria-label={isLiked ? t('unlikeComment') : t('likeComment')}
 						>
-							<Heart
-								className={`size-3 transition-all ${isLiked ? 'fill-color-error text-color-error scale-110' : 'text-text-muted hover:text-color-error'}`}
-							/>
-							{likes > 0 && <span>{likes}</span>}
+							<motion.div variants={HEART_POP} animate={isLiked ? 'liked' : 'unliked'} initial={false}>
+								<Heart
+									className={`size-3 transition-all ${isLiked ? 'fill-color-error text-color-error' : 'text-text-muted hover:text-color-error'}`}
+								/>
+							</motion.div>
+							{likes > 0 && <AnimatedNumber value={likes} className='tabular-nums' />}
 						</button>
 						<button
+							type='button'
 							onClick={() => {
-								if (!requireAuth('reply to this comment')) return
+								if (!requireAuth(t('replyToThisCommentAuth'))) return
 								setShowReplyInput(!showReplyInput)
 							}}
 							className='flex items-center gap-1 transition-colors hover:text-brand'
-							aria-label='Reply to comment'
+							aria-label={t('replyToComment')}
 						>
 							<MessageSquare className='size-3' />
-							<span>Reply</span>
+							<span>{t('reply')}</span>
 						</button>
 					</div>
 
@@ -587,13 +600,16 @@ export const Comment = ({
 										onChange={setReplyContent}
 										onTaggedUsersChange={setTaggedUserIds}
 										onSubmit={handleSubmitReply}
-										placeholder='Write a reply... (use @ to mention)'
+										placeholder={t('replyPlaceholder')}
 										disabled={isSubmittingReply}
 										maxLength={500}
 									/>
-									<button
+									<motion.button
 										onClick={handleSubmitReply}
 										disabled={!replyContent.trim() || isSubmittingReply}
+										whileHover={isSubmittingReply ? undefined : BUTTON_SUBTLE_HOVER}
+										whileTap={isSubmittingReply ? undefined : BUTTON_SUBTLE_TAP}
+										transition={TRANSITION_SPRING}
 										className='grid size-9 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 									>
 										{isSubmittingReply ? (
@@ -601,10 +617,10 @@ export const Comment = ({
 										) : (
 											<Send className='size-4' />
 										)}
-									</button>
+									</motion.button>
 								</div>
 								{replyContent.length > 0 && (
-									<p className='mt-1 text-right text-xs text-text-muted'>{replyContent.length}/500</p>
+									<p className={`mt-1 text-right text-xs tabular-nums ${replyContent.length > 400 ? (replyContent.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>{replyContent.length}/500</p>
 								)}
 							</motion.div>
 						)}
@@ -613,6 +629,7 @@ export const Comment = ({
 					{/* View Replies Toggle */}
 					{replyCount > 0 && (
 						<button
+							type='button'
 							onClick={handleToggleReplies}
 							className='mt-1 flex items-center gap-1 px-2 text-xs font-medium text-brand hover:underline'
 						>
@@ -624,8 +641,8 @@ export const Comment = ({
 								<ChevronDown className='size-3' />
 							)}
 							<span>
-								{showReplies ? 'Hide' : 'View'} {replyCount}{' '}
-								{replyCount === 1 ? 'reply' : 'replies'}
+								{showReplies ? t('hideReplies') : t('viewReplies')} {replyCount}{' '}
+								{replyCount === 1 ? t('reply') : t('reply')}
 							</span>
 						</button>
 					)}
@@ -639,12 +656,18 @@ export const Comment = ({
 								exit={{ height: 0, opacity: 0 }}
 								className='ml-4 mt-2 overflow-hidden border-l-2 border-border-subtle pl-3'
 							>
-								{replies.map(reply => (
-									<ReplyItem
+								{replies.map((reply, i) => (
+									<motion.div
 										key={reply.id}
-										reply={reply}
-										currentUserId={currentUserId}
-									/>
+										initial={{ opacity: 0, x: -8 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: i * 0.05, duration: DURATION_S.normal }}
+									>
+										<ReplyItem
+											reply={reply}
+											currentUserId={currentUserId}
+										/>
+									</motion.div>
 								))}
 							</motion.div>
 						)}

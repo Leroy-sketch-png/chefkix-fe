@@ -117,6 +117,7 @@ export const ModalHeader = ({
 			{children}
 			{showCloseButton && onClose && (
 				<button
+					type='button'
 					onClick={onClose}
 					className='grid size-9 place-items-center rounded-full bg-bg-hover text-text-secondary transition-all hover:bg-bg-card hover:text-text-primary'
 					aria-label='Close modal'
@@ -213,6 +214,7 @@ export const ConfirmModal = ({
 			</ModalBody>
 			<ModalFooter>
 				<button
+					type='button'
 					onClick={onClose}
 					disabled={isLoading}
 					className='h-11 rounded-lg px-4 text-sm font-semibold leading-normal text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50'
@@ -220,6 +222,7 @@ export const ConfirmModal = ({
 					{cancelText}
 				</button>
 				<button
+					type='button'
 					onClick={onConfirm}
 					disabled={isLoading}
 					className={cn(
@@ -277,6 +280,7 @@ export const AlertModal = ({
 			</ModalBody>
 			<ModalFooter>
 				<button
+					type='button'
 					onClick={onClose}
 					className='h-11 rounded-lg bg-brand px-4 text-sm font-semibold leading-normal text-white transition-all hover:-translate-y-0.5 hover:shadow-md'
 				>

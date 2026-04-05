@@ -5,6 +5,7 @@ import { CheckCircle, Circle, Wand2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useTranslations } from 'next-intl'
 
 // ── Props ───────────────────────────────────────────────────────────
 interface RecipeParsingOverlayProps {
@@ -14,11 +15,11 @@ interface RecipeParsingOverlayProps {
 	onCancel?: () => void
 }
 
-const PARSING_STEPS = [
-	'Reading text',
-	'Extracting ingredients',
-	'Parsing steps',
-	'Calculating XP',
+const PARSING_STEP_KEYS = [
+	'parsingStepReading',
+	'parsingStepExtracting',
+	'parsingStepParsing',
+	'parsingStepCalculating',
 ] as const
 
 /**
@@ -30,6 +31,7 @@ export const RecipeParsingOverlay = ({
 	onCancel,
 }: RecipeParsingOverlayProps) => {
 	useEscapeKey(!!onCancel, () => onCancel?.())
+	const t = useTranslations('recipe')
 
 	return (
 		<Portal>
@@ -70,13 +72,13 @@ export const RecipeParsingOverlay = ({
 				</div>
 
 				<h3 className='mb-6 text-xl font-bold text-text'>
-					Parsing your recipe...
+					{t('parsingYourRecipe')}
 				</h3>
 
 				<div className='space-y-4 text-left'>
-					{PARSING_STEPS.map((step, i) => (
+					{PARSING_STEP_KEYS.map((stepKey, i) => (
 						<div
-							key={step}
+							key={stepKey}
 							className={cn(
 								'flex items-center gap-3 text-sm',
 								i < currentStep && 'text-success',
@@ -91,7 +93,7 @@ export const RecipeParsingOverlay = ({
 							) : (
 								<Circle className='size-5' />
 							)}
-							<span>{step}</span>
+							<span>{t(stepKey)}</span>
 						</div>
 					))}
 				</div>

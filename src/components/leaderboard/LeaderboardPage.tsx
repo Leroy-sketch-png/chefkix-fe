@@ -11,6 +11,7 @@ import {
 	ChefHat,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -144,6 +145,7 @@ function TimeframeToggle({
 
 			{timeframes.map(({ value, label }) => (
 				<button
+					type='button'
 					key={value}
 					onClick={() => onTimeframeChange?.(value)}
 					className={cn(
@@ -169,6 +171,7 @@ function MyRankBanner({
 	myRank: MyRankInfo
 	onCookNow?: () => void
 }) {
+	const t = useTranslations('leaderboard')
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -192,20 +195,20 @@ function MyRankBanner({
 					<span className='text-xl font-display font-extrabold text-text'>
 						{myRank.xpThisWeek}
 					</span>
-					<span className='text-xs text-text-muted'>XP this week</span>
+					<span className='text-xs text-text-muted'>{t('xpThisWeek')}</span>
 				</div>
 				<div className='flex flex-col'>
 					<span className='text-xl font-display font-extrabold text-text'>
 						{myRank.recipesCooked}
 					</span>
-					<span className='text-xs text-text-muted'>Recipes cooked</span>
+					<span className='text-xs text-text-muted'>{t('recipesCooked')}</span>
 				</div>
 			</div>
 
 			{/* Goal & CTA */}
 			<div className='flex-1 flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto'>
 				<span className='text-xs text-text-muted'>
-					+{myRank.xpToNextRank} XP to reach #{myRank.nextRankPosition}
+					{t('xpToNext', {xp: myRank.xpToNextRank, rank: myRank.nextRankPosition})}
 				</span>
 				<motion.button
 					whileHover={LIST_ITEM_HOVER}
@@ -229,6 +232,7 @@ function MyRankBanner({
 // ============================================================================
 
 function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
+	const t = useTranslations('leaderboard')
 	return (
 		<div className='flex items-center justify-center gap-2 py-3.5 bg-bg-card rounded-xl mt-4 text-sm text-text-muted'>
 			<Clock className='size-icon-sm' />
@@ -399,8 +403,8 @@ export function LeaderboardPage({
 					</motion.div>
 					<h3 className='text-lg font-bold text-text mb-2'>
 						{type === 'friends'
-							? 'Start the Rivalry! ðŸ”¥'
-							: 'Claim Your Throne! ðŸ‘‘'}
+							? 'Start the Rivalry! 🔥'
+							: 'Claim Your Throne! 👑'}
 					</h3>
 					<p className='text-sm text-text-secondary max-w-xs'>
 						{type === 'friends'

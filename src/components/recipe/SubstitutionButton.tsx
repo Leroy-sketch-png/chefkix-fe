@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeftRight, Loader2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
@@ -20,6 +21,7 @@ export function SubstitutionButton({
 	ingredientName,
 	recipeTitle,
 }: SubstitutionButtonProps) {
+	const t = useTranslations('recipe')
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [substitutions, setSubstitutions] = useState<Substitution[] | null>(
@@ -29,6 +31,13 @@ export function SubstitutionButton({
 	const [error, setError] = useState<string | null>(null)
 	const buttonRef = useRef<HTMLButtonElement>(null)
 	const [pos, setPos] = useState({ top: 0, left: 0 })
+
+	const REASON_LABEL_KEYS: Record<SubstitutionReason, string> = {
+		unavailable: 'reasonUnavailable',
+		allergy: 'reasonAllergy',
+		dietary: 'reasonDietary',
+		preference: 'reasonPreference',
+	}
 
 	useEscapeKey(open, () => setOpen(false))
 
@@ -55,10 +64,10 @@ export function SubstitutionButton({
 			if (res.success && res.data) {
 				setSubstitutions(res.data.substitutions)
 			} else {
-				setError(res.message || 'Failed to get suggestions')
+				setError(res.message || t('failedToGetSuggestions'))
 			}
 		} catch {
-			setError('Failed to get suggestions')
+			setError(t('failedToGetSuggestions'))
 		} finally {
 			setLoading(false)
 		}
@@ -74,11 +83,12 @@ export function SubstitutionButton({
 	return (
 		<>
 			<button
+				type='button'
 				ref={buttonRef}
 				onClick={handleOpen}
-				className='rounded-md p-1 text-text-muted opacity-0 transition-all hover:bg-brand/10 hover:text-brand group-hover:opacity-100'
-				title={`Find substitute for ${ingredientName}`}
-				aria-label={`Find substitute for ${ingredientName}`}
+				className='rounded-md p-1 text-text-muted opacity-70 transition-all hover:bg-brand/10 hover:text-brand md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+				title={t('findSubstituteFor', { ingredient: ingredientName })}
+				aria-label={t('findSubstituteFor', { ingredient: ingredientName })}
 			>
 				<ArrowLeftRight className='size-3.5' />
 			</button>
@@ -102,9 +112,10 @@ export function SubstitutionButton({
 								{/* Header */}
 								<div className='mb-3 flex items-center justify-between'>
 									<h4 className='text-sm font-semibold text-text'>
-										Swap: {ingredientName}
+									{t('swapIngredient', { ingredient: ingredientName })}
 									</h4>
 									<button
+										type='button'
 										onClick={() => setOpen(false)}
 										className='rounded-md p-1 text-text-muted hover:bg-bg-elevated'
 									>
@@ -118,6 +129,7 @@ export function SubstitutionButton({
 										['unavailable', 'allergy', 'dietary', 'preference'] as const
 									).map(r => (
 										<button
+											type='button'
 											key={r}
 											onClick={() => handleFetch(r)}
 											disabled={loading}
@@ -127,7 +139,7 @@ export function SubstitutionButton({
 													: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
 											}`}
 										>
-											{r}
+											{t(REASON_LABEL_KEYS[r])}
 										</button>
 									))}
 								</div>
@@ -177,7 +189,7 @@ export function SubstitutionButton({
 									</ul>
 								) : (
 									<p className='py-4 text-center text-xs text-text-muted'>
-										No substitutions found
+										{t('noSubstitutionsFound')}
 									</p>
 								)}
 							</motion.div>

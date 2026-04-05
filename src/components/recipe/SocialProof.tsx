@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/tooltip'
 import { getRecipeSocialProof } from '@/services/heartbeat'
 import type { RecipeSocialProofResponse } from '@/lib/types/heartbeat'
+import { useTranslations } from 'next-intl'
 
 interface SocialProofProps {
 	recipeId: string
@@ -47,6 +48,7 @@ function formatTimeAgo(iso: string): string {
 
 export function SocialProof({ recipeId }: SocialProofProps) {
 	const [data, setData] = useState<RecipeSocialProofResponse | null>(null)
+	const t = useTranslations('recipe')
 
 	useEffect(() => {
 		let cancelled = false
@@ -77,7 +79,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 			{/* Header */}
 			<div className='mb-4 flex items-center gap-2'>
 				<TrendingUp className='size-5 text-brand' />
-				<h3 className='text-lg font-bold text-text'>Community Activity</h3>
+				<h3 className='text-lg font-bold text-text'>{t('communityActivity')}</h3>
 			</div>
 
 			{/* Stats row */}
@@ -88,11 +90,11 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<ChefHat className='size-4 text-success' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text'>
+							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
 								{data.cookCount}
 							</p>
 							<p className='text-xs text-text-muted'>
-								{data.cookCount === 1 ? 'person cooked this' : 'people cooked this'}
+								{data.cookCount === 1 ? t('personCookedThis', { count: 1 }) : t('personCookedThis', { count: data.cookCount })}
 							</p>
 						</div>
 					</div>
@@ -103,11 +105,11 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<MessageSquare className='size-4 text-brand' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text'>
+							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
 								{data.postCount}
 							</p>
 							<p className='text-xs text-text-muted'>
-								{data.postCount === 1 ? 'post shared' : 'posts shared'}
+								{data.postCount === 1 ? t('postShared', { count: 1 }) : t('postShared', { count: data.postCount })}
 							</p>
 						</div>
 					</div>
@@ -118,10 +120,10 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<Star className='size-4 text-xp' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text'>
+							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
 								{data.averageRating.toFixed(1)}
 							</p>
-							<p className='text-xs text-text-muted'>avg rating</p>
+							<p className='text-xs text-text-muted'>{t('avgRating')}</p>
 						</div>
 					</div>
 				)}
@@ -152,7 +154,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 														alt={
 															cooker.displayName ??
 															cooker.username ??
-															'Cooker'
+															t('cookerFallback')
 														}
 													/>
 												)}
@@ -167,10 +169,10 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 									</TooltipTrigger>
 									<TooltipContent side='bottom' className='p-2'>
 										<p className='text-sm font-medium'>
-											{cooker.displayName ?? cooker.username ?? 'Chef'}
+											{cooker.displayName ?? cooker.username ?? t('chefFallback')}
 										</p>
 										<p className='text-xs text-text-muted'>
-											Cooked {formatTimeAgo(cooker.completedAt)}
+											{t('cookedTimeAgo', { time: formatTimeAgo(cooker.completedAt) })}
 										</p>
 									</TooltipContent>
 								</Tooltip>
@@ -194,17 +196,14 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 						<span className='font-medium text-text'>
 							{visibleCookers[0]?.displayName ??
 								visibleCookers[0]?.username ??
-								'Someone'}
+								t('someoneFallback')}
 						</span>
 						{visibleCookers.length > 1 && (
 							<>
-								{' '}and{' '}
-								<span className='font-medium text-text'>
-									{data.cookCount - 1} other{data.cookCount - 1 !== 1 ? 's' : ''}
-								</span>
+								{' '}{t('andOthers', { count: data.cookCount - 1 })}
 							</>
 						)}
-						{' '}cooked this
+						{' '}{t('cookedThis')}
 					</p>
 				</div>
 			)}

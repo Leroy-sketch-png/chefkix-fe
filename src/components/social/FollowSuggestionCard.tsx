@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { Profile, getProfileDisplayName } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { UserPlus, X, Loader2 } from 'lucide-react'
@@ -37,27 +38,28 @@ export const FollowSuggestionCard = ({
 	onDismiss,
 	variant = 'follow-back',
 }: FollowSuggestionCardProps) => {
+	const t = useTranslations('social')
 	const [isFollowing, setIsFollowing] = useState(false)
 	const [isDismissing, setIsDismissing] = useState(false)
 	const displayName = getProfileDisplayName(profile)
 	const requireAuth = useAuthGate()
 
 	const handleFollowBack = async () => {
-		if (!requireAuth('follow this chef')) return
+		if (!requireAuth(t('followThisChefAuth'))) return
 		setIsFollowing(true)
 
 		try {
 			const response = await toggleFollow(profile.userId)
 
 			if (response.success) {
-				toast.success(`You are now following ${displayName}!`)
+				toast.success(t('nowFollowing', { name: displayName }))
 				triggerLikeConfetti() // Celebrate new mutual connection!
 				onFollowBack?.(profile.userId)
 			} else {
-				toast.error(response.message || 'Failed to follow user')
+				toast.error(response.message || t('failedFollowUser'))
 			}
 		} catch {
-			toast.error('Network error. Please check your connection and try again.')
+			toast.error(t('networkErrorConnection'))
 		} finally {
 			setIsFollowing(false)
 		}
@@ -110,7 +112,7 @@ export const FollowSuggestionCard = ({
 						</h3>
 						<p className='text-sm text-text-secondary'>@{profile.username}</p>
 						<p className='text-xs text-text-tertiary'>
-							{variant === 'follow-back' ? 'Follows you' : 'Suggested for you'}
+							{variant === 'follow-back' ? t('followsYou') : t('suggestedForYou')}
 						</p>
 					</div>
 				</Link>
@@ -127,7 +129,7 @@ export const FollowSuggestionCard = ({
 						) : (
 							<>
 								<UserPlus className='mr-1 size-4' />
-								{variant === 'follow-back' ? 'Follow Back' : 'Follow'}
+								{variant === 'follow-back' ? t('followBack') : t('follow')}
 							</>
 						)}
 					</Button>
@@ -136,7 +138,7 @@ export const FollowSuggestionCard = ({
 						size='sm'
 						onClick={handleDismiss}
 						disabled={isFollowing || isDismissing}
-						aria-label='Dismiss suggestion'
+						aria-label={t('dismissSuggestion')}
 					>
 						{isDismissing ? (
 							<Loader2 className='size-4 animate-spin' />

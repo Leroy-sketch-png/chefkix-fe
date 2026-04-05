@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 import {
 	Sheet,
@@ -53,6 +55,7 @@ export const RecipeFiltersSheet = ({
 	initialFilters,
 	showFirstTimerPromo = false,
 }: RecipeFiltersSheetProps) => {
+	const t = useTranslations('shared')
 	const [isOpen, setIsOpen] = useState(false)
 	const [filters, setFilters] = useState<RecipeFilters>(
 		initialFilters || {
@@ -95,7 +98,7 @@ export const RecipeFiltersSheet = ({
 			<SheetTrigger asChild>
 				<Button variant='outline' className='relative'>
 					<Filter className='size-4' />
-					Filters
+					{t('fsFilters')}
 					{activeFiltersCount > 0 && (
 						<span className='ml-2 flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
 							{activeFiltersCount}
@@ -110,9 +113,10 @@ export const RecipeFiltersSheet = ({
 			>
 				<SheetHeader>
 					<SheetTitle className='flex items-center justify-between'>
-						<span>Recipe Filters</span>
+						<span>{t('rfTitle')}</span>
 						{activeFiltersCount > 0 && (
 							<button
+								type='button'
 								onClick={handleReset}
 								className='mr-8 text-sm font-normal text-text-secondary hover:text-text-primary'
 							>
@@ -147,14 +151,14 @@ export const RecipeFiltersSheet = ({
 								<div className='flex items-center gap-2'>
 									<Shield className='size-4 text-warning' />
 									<span className='font-semibold text-text'>
-										First-Timer Friendly
+										{t('rfFirstTimer')}
 									</span>
 								</div>
 								<p className='mt-1 text-xs text-text-muted'>
-									Show only Foolproof recipes with detailed guidance.
+									{t('rfFirstTimerDesc')}
 									{showFirstTimerPromo && (
 										<span className='ml-1 font-medium text-warning'>
-											97% success rate for new cooks!
+											{t('rfFirstTimerSuccess')}
 										</span>
 									)}
 								</p>
@@ -165,7 +169,7 @@ export const RecipeFiltersSheet = ({
 					{/* Dietary Restrictions */}
 					<div className='space-y-2'>
 						<label className='text-sm font-semibold text-text-primary'>
-							Dietary Restrictions
+							{t('rfDietary')}
 						</label>
 						<MultiSelect
 							options={DIETARY_OPTIONS}
@@ -177,7 +181,7 @@ export const RecipeFiltersSheet = ({
 					{/* Cuisine */}
 					<div className='space-y-2'>
 						<label className='text-sm font-semibold text-text-primary'>
-							Cuisine Type
+							{t('rfCuisine')}
 						</label>
 						<MultiSelect
 							options={CUISINE_OPTIONS}
@@ -189,7 +193,7 @@ export const RecipeFiltersSheet = ({
 					{/* Difficulty */}
 					<div className='space-y-2'>
 						<label className='text-sm font-semibold text-text-primary'>
-							Difficulty Level
+							{t('rfDifficulty')}
 						</label>
 						<MultiSelect
 							options={DIFFICULTY_OPTIONS}
@@ -203,7 +207,7 @@ export const RecipeFiltersSheet = ({
 					{/* Cooking Time */}
 					<div className='space-y-3'>
 						<label className='text-sm font-semibold text-text-primary'>
-							Max Cooking Time
+							{t('rfMaxTime')}
 						</label>
 						<RangeSlider
 							min={0}
@@ -227,7 +231,7 @@ export const RecipeFiltersSheet = ({
 					{/* Rating */}
 					<div className='space-y-2'>
 						<label className='text-sm font-semibold text-text-primary'>
-							Minimum Rating
+							{t('rfMinRating')}
 						</label>
 						<RatingSelector
 							value={filters.rating ?? undefined}
@@ -242,10 +246,10 @@ export const RecipeFiltersSheet = ({
 						onClick={() => setIsOpen(false)}
 						className='flex-1'
 					>
-						Cancel
+						{t('rfCancel')}
 					</Button>
 					<Button onClick={handleApply} className='flex-1'>
-						Apply Filters
+						{t('rfApply')}
 						{activeFiltersCount > 0 && ` (${activeFiltersCount})`}
 					</Button>
 				</SheetFooter>

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Download, Share2, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 interface TasteDimension {
 	label: string
@@ -18,6 +19,12 @@ interface TasteDNAShareCardProps {
 	topTrait: string
 	level: number
 	title: string
+}
+
+interface CanvasLabels {
+	tasteDnaTitle: string
+	tasteDnaStrongest: string
+	tasteDnaFooter: string
 }
 
 // Brand colors (must match globals.css tokens)
@@ -106,6 +113,7 @@ function drawRadarToCanvas(
 function generateCanvas(
 	canvas: HTMLCanvasElement,
 	props: TasteDNAShareCardProps,
+	labels: CanvasLabels,
 ) {
 	const dpr = 2 // High DPI for crisp sharing
 	const W = 600
@@ -144,7 +152,7 @@ function generateCanvas(
 	ctx.fillStyle = '#ffffff'
 	ctx.font = 'bold 24px Inter, system-ui, sans-serif'
 	ctx.textAlign = 'left'
-	ctx.fillText('🧬 My Taste DNA', 24, 48)
+	ctx.fillText(labels.tasteDnaTitle, 24, 48)
 
 	// User name + level
 	ctx.fillStyle = 'rgba(255,255,255,0.85)'
@@ -164,7 +172,7 @@ function generateCanvas(
 	ctx.textAlign = 'center'
 	ctx.fillStyle = TEXT_PRIMARY
 	ctx.font = 'bold 18px Inter, system-ui, sans-serif'
-	ctx.fillText(`Strongest: ${props.topTrait}`, W / 2, 460)
+	ctx.fillText(labels.tasteDnaStrongest, W / 2, 460)
 
 	// Dimension bars
 	const barStartY = 490
@@ -209,24 +217,31 @@ function generateCanvas(
 	ctx.textAlign = 'center'
 	ctx.fillStyle = TEXT_SECONDARY
 	ctx.font = '400 11px Inter, system-ui, sans-serif'
-	ctx.fillText('chefkix.com · Discover your cooking personality', W / 2, footerY)
+	ctx.fillText(labels.tasteDnaFooter, W / 2, footerY)
 }
 
 export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const [isGenerating, setIsGenerating] = useState(false)
 	const [isCopied, setIsCopied] = useState(false)
+	const t = useTranslations('profile')
+
+	const canvasLabels: CanvasLabels = {
+		tasteDnaTitle: t('tasteDnaTitle'),
+		tasteDnaStrongest: t('tasteDnaStrongest', { trait: props.topTrait }),
+		tasteDnaFooter: t('tasteDnaFooter'),
+	}
 
 	const generate = useCallback(() => {
 		if (!canvasRef.current) return
-		generateCanvas(canvasRef.current, props)
-	}, [props])
+		generateCanvas(canvasRef.current, props, canvasLabels)
+	}, [props, canvasLabels])
 
 	const handleDownload = useCallback(async () => {
 		if (!canvasRef.current) return
 		setIsGenerating(true)
 		try {
-			generateCanvas(canvasRef.current, props)
+			generateCanvas(canvasRef.current, props, canvasLabels)
 			const blob = await new Promise<Blob | null>(resolve =>
 				canvasRef.current!.toBlob(resolve, 'image/png'),
 			)
@@ -238,19 +253,19 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 			a.download = `chefkix-taste-dna-${Date.now()}.png`
 			a.click()
 			URL.revokeObjectURL(url)
-			toast.success('Taste DNA card downloaded!')
+			toast.success(t('tasteDnaDownloaded'))
 		} catch {
-			toast.error('Failed to generate image')
+			toast.error(t('tasteDnaFailedGenerate'))
 		} finally {
 			setIsGenerating(false)
 		}
-	}, [props])
+	}, [props, canvasLabels, t])
 
 	const handleShare = useCallback(async () => {
 		if (!canvasRef.current) return
 		setIsGenerating(true)
 		try {
-			generateCanvas(canvasRef.current, props)
+			generateCanvas(canvasRef.current, props, canvasLabels)
 			const blob = await new Promise<Blob | null>(resolve =>
 				canvasRef.current!.toBlob(resolve, 'image/png'),
 			)
@@ -258,8 +273,8 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 
 			if (navigator.share && navigator.canShare?.({ files: [new File([blob], 'taste-dna.png', { type: 'image/png' })] })) {
 				await navigator.share({
-					title: 'My ChefKix Taste DNA',
-					text: `Check out my cooking personality on ChefKix! My strongest trait: ${props.topTrait}`,
+					title: t('tasteDnaTitle'),
+					text: t('tasteDnaShareText', { trait: props.topTrait }),
 					files: [new File([blob], 'chefkix-taste-dna.png', { type: 'image/png' })],
 				})
 			} else {
@@ -269,16 +284,16 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 				])
 				setIsCopied(true)
 				setTimeout(() => setIsCopied(false), 2000)
-				toast.success('Image copied to clipboard!')
+				toast.success(t('tasteDnaCopied'))
 			}
 		} catch (err) {
 			// User cancelled share — not an error
 			if (err instanceof Error && err.name === 'AbortError') return
-			toast.error('Failed to share')
+			toast.error(t('tasteDnaFailedShare'))
 		} finally {
 			setIsGenerating(false)
 		}
-	}, [props])
+	}, [props, canvasLabels, t])
 
 	return (
 		<div className='space-y-4'>
@@ -294,9 +309,9 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 			>
 				{/* Use the SVG radar from the page as visual preview */}
 				<div className='border-b border-border-subtle bg-gradient-to-r from-brand to-accent-purple p-4'>
-					<h3 className='text-lg font-bold text-white'>🧬 Share Your Taste DNA</h3>
+					<h3 className='text-lg font-bold text-white'>🧬 {t('tasteDnaShareTitle')}</h3>
 					<p className='text-sm text-white/70'>
-						Download or share your unique cooking personality card
+						{t('tasteDnaShareDesc')}
 					</p>
 				</div>
 
@@ -312,7 +327,7 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 						) : (
 							<Download className='size-4' />
 						)}
-						Download
+						{t('tasteDnaDownload')}
 					</motion.button>
 
 					<motion.button
@@ -324,12 +339,12 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 						{isCopied ? (
 							<>
 								<Check className='size-4 text-success' />
-								Copied!
+								{t('tasteDnaCopied')}
 							</>
 						) : (
 							<>
 								<Share2 className='size-4' />
-								Share
+								{t('tasteDnaShare')}
 							</>
 						)}
 					</motion.button>

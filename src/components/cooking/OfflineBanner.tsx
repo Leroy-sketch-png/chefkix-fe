@@ -4,6 +4,7 @@ import { memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { WifiOff, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import { TRANSITION_SPRING } from '@/lib/motion'
 
 interface OfflineBannerProps {
@@ -21,6 +22,7 @@ export const OfflineBanner = memo(function OfflineBanner({
 	className,
 	variant = 'subtle',
 }: OfflineBannerProps) {
+	const t = useTranslations('cooking')
 	const showBanner = isOffline || isSyncing
 
 	return (
@@ -52,17 +54,12 @@ export const OfflineBanner = memo(function OfflineBanner({
 						{isSyncing ? (
 							<>
 								<Loader2 className='size-4 animate-spin' aria-hidden='true' />
-								<span>
-									Syncing {pendingCount} pending action
-									{pendingCount !== 1 ? 's' : ''}...
-								</span>
+								<span>{t('offlineSyncing', { count: pendingCount })}</span>
 							</>
 						) : (
 							<>
 								<WifiOff className='size-4' aria-hidden='true' />
-								<span>
-									Offline — your progress will sync when you reconnect
-								</span>
+								<span>{t('offlineMessage')}</span>
 							</>
 						)}
 					</div>

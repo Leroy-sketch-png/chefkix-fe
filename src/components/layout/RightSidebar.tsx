@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakWidget } from '@/components/streak'
@@ -19,6 +20,7 @@ import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
 import { usePresence } from '@/hooks/usePresence'
 import { toast } from 'sonner'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { FOLLOW_PULSE, TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
 // HELPER: Compute week progress from cooking session history
@@ -219,6 +221,7 @@ export const RightSidebar = () => {
 					<AlertTriangle className='size-5 text-text-muted' />
 					<p className='text-xs text-text-secondary'>Failed to load sidebar</p>
 					<button
+						type='button'
 						onClick={() => setRetryCount(c => c + 1)}
 						className='flex items-center gap-1.5 rounded-lg bg-bg-card px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-bg-hover'
 					>
@@ -282,9 +285,12 @@ export const RightSidebar = () => {
 											@{suggestion.username}
 										</span>
 									</div>
-									<button
+									<motion.button
 										onClick={() => handleFollow(suggestion.userId)}
 										aria-pressed={isFollowed}
+										animate={isFollowed ? FOLLOW_PULSE.followed : undefined}
+										initial={false}
+										transition={TRANSITION_SPRING}
 										className={cn(
 											'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95',
 											isFollowed
@@ -293,7 +299,7 @@ export const RightSidebar = () => {
 										)}
 									>
 										{isFollowed ? 'Following' : 'Follow'}
-									</button>
+									</motion.button>
 								</div>
 							)
 						})}

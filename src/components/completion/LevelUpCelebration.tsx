@@ -1,10 +1,12 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Share2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { triggerAchievementConfetti } from '@/lib/confetti'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -231,6 +233,16 @@ export const LevelUpCelebration = ({
 	onShare,
 	onContinue,
 }: LevelUpCelebrationProps) => {
+	const t = useTranslations('completion')
+	// Fire gold confetti burst when the celebration opens
+	useEffect(() => {
+		if (isOpen) {
+			// Slight delay to let the modal animate in first
+			const timer = setTimeout(() => triggerAchievementConfetti(), 300)
+			return () => clearTimeout(timer)
+		}
+	}, [isOpen])
+
 	return (
 		<AnimatePresence>
 			{isOpen && (
@@ -281,29 +293,28 @@ export const LevelUpCelebration = ({
 									transition={{ duration: 1.5, repeat: Infinity }}
 									className='mb-3 bg-gradient-gold bg-clip-text text-4xl font-black text-transparent max-md:text-3xl'
 								>
-									Level Up!
+									{t('levelUp')}
 								</motion.h1>
 								<p className='text-lg text-white/80'>
-									You&apos;re now{' '}
-									<strong className='text-white'>Level {newLevel}</strong>
+									{t('youreNowLevel', { level: newLevel })}
 								</p>
 							</div>
 
 							{/* Stats */}
 							<div className='mb-6 flex justify-center gap-5 rounded-2xl bg-white/5 px-5 py-5 max-md:flex-col max-md:items-start max-md:gap-3'>
 								<StatCard
-									emoji='ðŸ“Š'
-									label='Total XP'
+									emoji='📊'
+									label={t('totalXpStat')}
 									value={stats.totalXp.toLocaleString()}
 								/>
 								<StatCard
-									emoji='ðŸ³'
-									label='Recipes Cooked'
+									emoji='🳏'
+									label={t('recipesCooked')}
 									value={stats.recipesCooked.toString()}
 								/>
 								<StatCard
-									emoji='ðŸ“¸'
-									label='Posts Shared'
+									emoji='📸'
+									label={t('postsShared')}
 									value={stats.postsShared.toString()}
 								/>
 							</div>
@@ -334,13 +345,13 @@ export const LevelUpCelebration = ({
 										/>
 									</div>
 									<span className='text-sm text-white/60'>
-										{xpToNextLevel.toLocaleString()} XP to Level {newLevel + 1}
+										{t('xpToNextLevel', { amount: xpToNextLevel.toLocaleString(), level: newLevel + 1 })}
 									</span>
 								</div>
 								{nextLevelPerk && (
 									<div className='flex items-center justify-center gap-2'>
 										<span className='text-xs text-white/50'>
-											At Level {newLevel + 1}:
+											{t('atNextLevel', { level: newLevel + 1 })}:
 										</span>
 										<span className='text-sm font-semibold text-bonus'>
 											{nextLevelPerk}
@@ -352,11 +363,12 @@ export const LevelUpCelebration = ({
 							{/* Actions */}
 							<div className='flex justify-center gap-3 max-md:flex-col'>
 								<button
+									type='button'
 									onClick={onShare}
 									className='flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 font-semibold text-white transition-colors hover:bg-white/15'
 								>
 									<Share2 className='size-5' />
-									Share Achievement
+									{t('shareAchievement')}
 								</button>
 								<motion.button
 									onClick={onContinue}
@@ -364,7 +376,7 @@ export const LevelUpCelebration = ({
 									whileTap={LIST_ITEM_TAP}
 									className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60'
 								>
-									Continue
+									{t('continue')}
 								</motion.button>
 							</div>
 						</motion.div>
@@ -389,7 +401,9 @@ export const LevelUpToast = ({
 	level,
 	onView,
 	onDismiss,
-}: LevelUpToastProps) => (
+}: LevelUpToastProps) => {
+	const t = useTranslations('completion')
+	return (
 	<motion.div
 		role='alert'
 		aria-live='assertive'
@@ -406,20 +420,22 @@ export const LevelUpToast = ({
 
 		{/* Content */}
 		<div className='flex flex-col'>
-			<span className='text-base font-display font-extrabold'>Level {level}!</span>
+			<span className='text-base font-display font-extrabold'>{t('levelToast', { level })}</span>
 			<span className='text-sm text-text-muted'>
-				You&apos;re making progress ðŸ”¥
+				{t('youreProgressing')}
 			</span>
 		</div>
 
 		{/* Actions */}
 		<button
+			type='button'
 			onClick={onView}
 			className='rounded-lg bg-gradient-celebration px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
 		>
-			View
+			{t('viewAction')}
 		</button>
 		<button
+			type='button'
 			onClick={onDismiss}
 			aria-label='Dismiss'
 			className='flex size-8 items-center justify-center text-text-muted hover:text-text'
@@ -428,3 +444,5 @@ export const LevelUpToast = ({
 		</button>
 	</motion.div>
 )
+
+}

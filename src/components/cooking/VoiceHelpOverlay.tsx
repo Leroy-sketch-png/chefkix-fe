@@ -1,6 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { COMMANDS } from '@/lib/voice'
 
@@ -17,6 +18,7 @@ export function VoiceHelpOverlay({
 	show: boolean
 	onClose: () => void
 }) {
+	const t = useTranslations('cooking')
 	return (
 		<AnimatePresence>
 			{show && (
@@ -24,7 +26,7 @@ export function VoiceHelpOverlay({
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
-					className='absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm'
+					className='absolute inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm'
 					onClick={onClose}
 				>
 					<motion.div
@@ -35,10 +37,11 @@ export function VoiceHelpOverlay({
 						className='mx-4 w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
 					>
 						<div className='mb-4 flex items-center justify-between'>
-							<h3 className='text-lg font-bold text-text'>Voice Commands</h3>
+							<h3 className='text-lg font-bold text-text'>{t('voiceCommands')}</h3>
 							<button
+								type='button'
 								onClick={onClose}
-								aria-label='Close voice help'
+								aria-label={t('closeVoiceHelp')}
 								className='flex size-8 items-center justify-center rounded-full text-text-muted hover:bg-bg-elevated'
 							>
 								<X className='size-4' />
@@ -54,7 +57,7 @@ export function VoiceHelpOverlay({
 											{cmd.label}
 										</p>
 										<p className='text-xs text-text-muted'>
-											Say: {cmd.keywords.map(k => `"${k}"`).join(', ')}
+											{t('voiceSay', { keywords: cmd.keywords.map(k => `"${k}"`).join(', ') })}
 										</p>
 									</div>
 								</div>
@@ -62,7 +65,7 @@ export function VoiceHelpOverlay({
 						</div>
 
 						<p className='mt-4 text-center text-xs text-text-muted'>
-							Tip: Speak clearly and wait for the confirmation toast
+							{t('voiceTip')}
 						</p>
 					</motion.div>
 				</motion.div>

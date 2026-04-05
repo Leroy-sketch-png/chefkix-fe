@@ -3,8 +3,9 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, Heart } from 'lucide-react'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
 import type { Profile, Statistics } from '@/lib/types/profile'
+import { useTranslations } from 'next-intl'
 
 interface TasteCompatibilityProps {
 	myProfile: Profile
@@ -65,15 +66,16 @@ function preferenceOverlap(a: string[], b: string[]): number {
 	return union > 0 ? overlap / union : 0
 }
 
-function getCompatibilityLabel(score: number): { text: string; emoji: string; color: string } {
-	if (score >= 85) return { text: 'Kitchen Soulmates', emoji: '💕', color: 'text-brand' }
-	if (score >= 70) return { text: 'Great Match', emoji: '🔥', color: 'text-brand' }
-	if (score >= 50) return { text: 'Compatible', emoji: '👍', color: 'text-success' }
-	if (score >= 30) return { text: 'Different Styles', emoji: '🌶️', color: 'text-warning' }
-	return { text: 'Opposites Attract', emoji: '🎭', color: 'text-accent-purple' }
+function getCompatibilityLabel(score: number, t: (key: string) => string): { text: string; emoji: string; color: string } {
+	if (score >= 85) return { text: t('kitchenSoulmates'), emoji: '💕', color: 'text-brand' }
+	if (score >= 70) return { text: t('greatMatch'), emoji: '🔥', color: 'text-brand' }
+	if (score >= 50) return { text: t('compatible'), emoji: '👍', color: 'text-success' }
+	if (score >= 30) return { text: t('differentStyles'), emoji: '🌶️', color: 'text-warning' }
+	return { text: t('oppositesAttract'), emoji: '🎭', color: 'text-accent-purple' }
 }
 
 export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibilityProps) {
+	const t = useTranslations('profile')
 	const { score, label } = useMemo(() => {
 		const myDims = computeDimensions(myProfile)
 		const theirDims = computeDimensions(theirProfile)
@@ -87,8 +89,8 @@ export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibili
 			) * 100
 
 		const finalScore = Math.round(dimScore * 0.6 + prefScore * 0.4)
-		return { score: finalScore, label: getCompatibilityLabel(finalScore) }
-	}, [myProfile, theirProfile])
+		return { score: finalScore, label: getCompatibilityLabel(finalScore, t) }
+	}, [myProfile, theirProfile, t])
 
 	// Don't render if either user has zero cooking activity
 	const myStats = myProfile.statistics
@@ -132,17 +134,17 @@ export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibili
 							strokeDasharray={`${(score / 100) * 125.6} 125.6`}
 							initial={{ strokeDashoffset: 125.6 }}
 							animate={{ strokeDashoffset: 0 }}
-							transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
+						transition={{ duration: DURATION_S.dramatic, delay: 0.3, ease: 'easeOut' }}
 							transform='rotate(-90 24 24)'
 						/>
 					</svg>
-					<span className='text-xs font-display font-bold text-text'>{score}%</span>
+					<span className='text-xs font-display font-bold text-text tabular-nums'>{score}%</span>
 				</div>
 
 				<div className='flex-1'>
 					<div className='flex items-center gap-1.5'>
 						<Sparkles className='size-3.5 text-gaming-xp' />
-						<span className='text-sm font-semibold text-text'>Taste Compatibility</span>
+						<span className='text-sm font-semibold text-text'>{t('tasteCompatibility')}</span>
 					</div>
 					<p className={`text-sm font-medium ${label.color}`}>
 						{label.emoji} {label.text}

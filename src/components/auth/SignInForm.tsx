@@ -17,7 +17,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form'
-import { useRouter } from 'next/navigation' // <-- Thêm dòng này
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { ApiResponse, LoginSuccessResponse } from '@/lib/types'
@@ -30,6 +30,7 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
 import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
+import { useTranslations } from '@/i18n/hooks'
 
 const formSchema = z.object({
 	emailOrUsername: z
@@ -71,6 +72,7 @@ export function SignInForm() {
 	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 	// Separate loading state for the button - form.isSubmitting doesn't track async properly
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const t = useTranslations('auth')
 
 	// Check if user just verified their email — pre-fill to reduce friction
 	const verifiedEmail =
@@ -92,6 +94,12 @@ export function SignInForm() {
 		},
 	})
 	const router = useRouter()
+	const searchParams = useSearchParams()
+	const returnTo = searchParams.get('returnTo')
+
+	// Determine the redirect target after login
+	// Only allow relative paths to prevent open redirect attacks
+	const postLoginPath = returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard'
 
 	async function handleSuccessfulLogin(
 		response: ApiResponse<LoginSuccessResponse>,
@@ -118,11 +126,11 @@ export function SignInForm() {
 			if (isNewSignup) {
 				toast.success('Welcome to ChefKix! Let\u2019s get cooking 🎉')
 				setLoading(true)
-				router.push('/dashboard')
+				router.push(postLoginPath)
 			} else {
 				toast.success('Welcome back! Signed in successfully.')
 				setLoading(true)
-				router.push('/dashboard')
+				router.push(postLoginPath)
 			}
 			return true
 		} else {
@@ -205,10 +213,10 @@ export function SignInForm() {
 							name='emailOrUsername'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Email or Username</FormLabel>
+									<FormLabel className='text-text'>{t('emailOrUsername')}</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='yourname or chef@email.com'
+											placeholder={t('emailOrUsernamePlaceholder')}
 											autoComplete='username'
 											autoCapitalize='none'
 											autoCorrect='off'
@@ -228,10 +236,10 @@ export function SignInForm() {
 							name='password'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Password</FormLabel>
+									<FormLabel className='text-text'>{t('password')}</FormLabel>
 									<FormControl>
 										<PasswordInput
-											placeholder='password'
+											placeholder={t('passwordPlaceholder')}
 											autoComplete='current-password'
 											{...field}
 											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
@@ -255,12 +263,12 @@ export function SignInForm() {
 					<motion.div variants={staggerItem}>
 						<AnimatedButton
 							type='submit'
-							className='h-12 w-full rounded-xl bg-gradient-hero text-base font-bold shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
+							className='h-12 w-full rounded-xl bg-gradient-hero text-base font-bold shadow-card shadow-brand/30 transition-shadow hover:shadow-warm hover:shadow-brand/40'
 							isLoading={isSubmitting}
-							loadingText='Signing in...'
+							loadingText={t('signingIn')}
 							shine
 						>
-							Sign In
+							{t('signIn')}
 						</AnimatedButton>
 					</motion.div>
 					<motion.div
@@ -269,13 +277,13 @@ export function SignInForm() {
 					>
 						<span className='flex-1 border-t border-border-subtle'></span>
 						<span className='mx-4 text-xs leading-normal text-text-muted'>
-							or
+							{t('or')}
 						</span>
 						<span className='flex-1 border-t border-border-subtle'></span>
 					</motion.div>
 					<motion.div variants={staggerItem}>
 						<GoogleSignInButton
-							text='Sign in with Google'
+						text={t('google')}
 							onSuccess={async code => {
 								try {
 									const response = await googleSignIn({ code })
@@ -312,10 +320,10 @@ export function SignInForm() {
 			>
 				{SIGN_IN_MESSAGES.NO_ACCOUNT}{' '}
 				<Link
-					href={PATHS.AUTH.SIGN_UP}
+					href={returnTo ? `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(returnTo)}` : PATHS.AUTH.SIGN_UP}
 					className='font-semibold text-brand transition-colors hover:text-brand/80'
 				>
-					Create account
+					{t('createAccount')}
 				</Link>
 			</motion.div>
 			<ForgotPasswordDialog

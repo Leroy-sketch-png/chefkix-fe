@@ -103,6 +103,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		const isAuthRoute = AUTH_ROUTES.includes(pathname)
 
 		// Protected route access without auth - redirect to sign in
+		// Preserve the intended destination so user returns after auth
 		if (!isAuthenticated && !isPublicRoute) {
 			if (!redirectTriggeredRef.current) {
 				redirectTriggeredRef.current = true
@@ -110,7 +111,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				logDevWarn(
 					`[AuthProvider] 🚨 Unauthorized access to ${pathname}, redirecting to sign-in`,
 				)
-				router.push(PATHS.AUTH.SIGN_IN)
+				const returnTo = encodeURIComponent(pathname)
+				router.push(`${PATHS.AUTH.SIGN_IN}?returnTo=${returnTo}`)
 			}
 			return
 		}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Post } from '@/lib/types'
 import { votePoll } from '@/services/post'
 import { toast } from 'sonner'
@@ -25,6 +26,7 @@ export const PollCard = ({
 	onUpdate,
 	currentUserId,
 }: PollCardProps) => {
+	const t = useTranslations('social')
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isVoting, setIsVoting] = useState(false)
 
@@ -49,11 +51,11 @@ export const PollCard = ({
 					setPost(updatedPost)
 					onUpdate?.(updatedPost)
 				} else {
-					toast.error(response.message || 'Failed to vote')
+					toast.error(response.message || t('failedVote'))
 				}
 			} catch (error) {
 				logDevError('Failed to vote:', error)
-				toast.error('An error occurred while voting')
+				toast.error(t('voteError'))
 			} finally {
 				setIsVoting(false)
 			}
@@ -108,7 +110,7 @@ export const PollCard = ({
 				</div>
 				<div className='flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand'>
 					<BarChart3 className='size-3.5' />
-					Poll
+					{t('pollBadge')}
 				</div>
 			</div>
 
@@ -142,9 +144,9 @@ export const PollCard = ({
 			{/* Footer */}
 			<div className='mt-3 flex items-center justify-between text-xs text-text-muted'>
 				<span className='tabular-nums'>
-					{totalVotes} vote{totalVotes !== 1 ? 's' : ''}
+					{t('voteCount', { count: totalVotes })}
 				</span>
-				{isOwner && <span className='italic'>Your poll</span>}
+				{isOwner && <span className='italic'>{t('yourPoll')}</span>}
 			</div>
 		</motion.div>
 	)

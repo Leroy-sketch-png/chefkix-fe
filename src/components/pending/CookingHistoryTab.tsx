@@ -1,7 +1,8 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Clock,
@@ -21,7 +22,9 @@ import {
 	BUTTON_TAP,
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
+	DURATION_S,
 } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import type { PendingSession } from './PendingPostsSection'
 
 // =============================================================================
@@ -55,22 +58,22 @@ interface HistoryFilter {
 // HELPERS
 // =============================================================================
 
-const getTimeLeft = (expiresAt: Date): string => {
+const getTimeLeft = (expiresAt: Date, t: (key: string, values?: Record<string, unknown>) => string): string => {
 	const now = new Date()
 	const diff = expiresAt.getTime() - now.getTime()
 
-	if (diff <= 0) return 'Expired'
+	if (diff <= 0) return t('getTimeExpired')
 
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
 	const days = Math.floor(hours / 24)
 
-	if (days > 0) return `${days}d left`
-	if (hours > 0) return `${hours}h ${minutes}m left`
-	return `${minutes}m left`
+	if (days > 0) return t('getTimeDays', { days })
+	if (hours > 0) return t('getTimeHours', { hours, minutes })
+	return t('getTimeMinutes', { minutes })
 }
 
-const getTimeSinceCook = (cookedAt: Date): string => {
+const getTimeSinceCook = (cookedAt: Date, t: (key: string, values?: Record<string, unknown>) => string): string => {
 	const now = new Date()
 	const diff = now.getTime() - cookedAt.getTime()
 
@@ -78,10 +81,10 @@ const getTimeSinceCook = (cookedAt: Date): string => {
 	const days = Math.floor(hours / 24)
 	const weeks = Math.floor(days / 7)
 
-	if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''} ago`
-	if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`
-	if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`
-	return 'Just now'
+	if (weeks > 0) return t('timeSinceWeeks', { weeks })
+	if (days > 0) return t('timeSinceDays', { days })
+	if (hours > 0) return t('timeSinceHours', { hours })
+	return t('timeSinceJustNow')
 }
 
 const formatDuration = (minutes: number): string => {
@@ -102,16 +105,17 @@ interface StatsBannerProps {
 }
 
 const StatsBanner = ({ stats }: StatsBannerProps) => {
+	const t = useTranslations('history')
 	const statItems = [
-		{ label: 'Total Sessions', value: stats.totalSessions },
-		{ label: 'Unique Recipes', value: stats.uniqueRecipes },
+		{ label: t('totalSessions'), value: stats.totalSessions },
+		{ label: t('uniqueRecipes'), value: stats.uniqueRecipes },
 		{
-			label: 'Pending Posts',
+			label: t('pendingPosts'),
 			value: stats.pendingPosts,
 			highlight: stats.pendingPosts > 0,
 		},
 		{
-			label: 'XP Earned',
+			label: t('xpEarned'),
 			value: stats.totalXPEarned.toLocaleString(),
 		},
 	]
@@ -121,7 +125,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 			className='grid grid-cols-2 md:grid-cols-4 gap-4 bg-bg-card rounded-2xl p-5 border border-border mb-6'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.4, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 		>
 			{statItems.map((stat, index) => (
 				<motion.div
@@ -132,7 +136,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 					)}
 					initial={{ opacity: 0, scale: 0.8 }}
 					animate={{ opacity: 1, scale: 1 }}
-					transition={{ delay: index * 0.05, duration: 0.3 }}
+					transition={{ delay: index * 0.05, duration: DURATION_S.smooth }}
 				>
 					<span
 						className={cn(
@@ -161,6 +165,7 @@ interface PendingItemProps {
 }
 
 const PendingItem = ({ session, onPost }: PendingItemProps) => {
+	const t = useTranslations('history')
 	const isUrgent = session.status === 'urgent'
 	const isWarning = session.status === 'warning'
 	const decayPercent =
@@ -179,7 +184,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 			)}
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
 		>
 			{/* Expiry Badge */}
 			{(isUrgent || isWarning) && (
@@ -191,7 +196,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 							: 'bg-gradient-to-r from-warning to-warning/80',
 					)}
 				>
-					{getTimeLeft(session.expiresAt)}
+					{getTimeLeft(session.expiresAt, t)}
 				</div>
 			)}
 
@@ -210,9 +215,9 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 						{session.recipeName}
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
-						<span>Cooked {getTimeSinceCook(session.cookedAt)}</span>
+						<span>{t('cookedAgo', { time: getTimeSinceCook(session.cookedAt, t) })}</span>
 						<span className='opacity-50'>â€¢</span>
-						<span>{formatDuration(session.duration)} session</span>
+						<span>{t('sessionDuration', { duration: formatDuration(session.duration) })}</span>
 					</span>
 
 					{/* XP Decay Indicator - ONLY shown when actual time-based decay has occurred */}
@@ -228,7 +233,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 								/>
 							</div>
 							<span className='text-xs text-error font-semibold'>
-								{Math.round(decayPercent)}% time decay â€” post soon!
+								{t('timeDecay', { percent: Math.round(decayPercent) })}
 							</span>
 						</div>
 					)}
@@ -237,12 +242,12 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0 min-w-thumbnail-lg'>
 					<span className='block text-xl font-display font-extrabold text-success'>
-						+{session.currentXP}
+						+<AnimatedNumber value={session.currentXP} className='tabular-nums' />
 					</span>
 					{/* Only show original XP if there's actual time-based decay */}
 					{session.currentXP < session.baseXP && session.currentXP > 0 && (
 						<span className='block text-xs text-error line-through'>
-							was +{session.baseXP}
+							{t('wasXp', { xp: session.baseXP })}
 						</span>
 					)}
 				</div>
@@ -265,7 +270,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 							: undefined
 					}
 				>
-					{isUrgent ? 'POST NOW' : 'Post'}
+					{isUrgent ? t('postNow') : t('post')}
 				</motion.button>
 			</div>
 		</motion.div>
@@ -287,6 +292,7 @@ const CompletedItem = ({
 	onViewPost,
 	onCookAgain,
 }: CompletedItemProps) => {
+	const t = useTranslations('history')
 	const isMastered = session.cookCount && session.cookCount >= 5
 	const isReduced = session.cookCount && session.cookCount > 2
 
@@ -295,7 +301,7 @@ const CompletedItem = ({
 			className='bg-muted/30 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
 		>
 			<div className='flex items-center gap-4 p-4'>
 				{/* Image Stack */}
@@ -304,6 +310,7 @@ const CompletedItem = ({
 						src={session.recipeImage}
 						alt={session.recipeName}
 						fill
+						sizes='64px'
 						className='rounded-xl object-cover'
 					/>
 					{session.postId && (
@@ -322,23 +329,17 @@ const CompletedItem = ({
 						{session.recipeName}
 						{isMastered && (
 							<span className='rounded-md bg-accent-purple/10 px-2 py-0.5 text-xs font-semibold text-accent-purple'>
-								ðŸ¥‡ Mastered
+								🥇 {t('mastered')}
 							</span>
 						)}
 						{!isMastered && session.cookCount && session.cookCount > 1 && (
 							<span className='text-xs font-semibold text-text-secondary bg-bg-elevated px-2 py-0.5 rounded-md'>
-								{session.cookCount}
-								{session.cookCount === 2
-									? 'nd'
-									: session.cookCount === 3
-										? 'rd'
-										: 'th'}{' '}
-								cook
+								{t('nthCook', { count: session.cookCount, suffix: session.cookCount === 2 ? 'nd' : session.cookCount === 3 ? 'rd' : 'th' })}
 							</span>
 						)}
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
-						<span>{getTimeSinceCook(session.cookedAt)}</span>
+						<span>{getTimeSinceCook(session.cookedAt, t)}</span>
 						<span className='opacity-50'>â€¢</span>
 						<span>{formatDuration(session.duration)}</span>
 						{session.rating && (
@@ -356,15 +357,14 @@ const CompletedItem = ({
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0'>
 					<span className='block text-xl font-display font-extrabold text-success'>
-						+{session.currentXP}
+						+<AnimatedNumber value={session.currentXP} className='tabular-nums' />
 					</span>
 					{!isReduced && (
-						<span className='block text-xs text-success'>Full XP!</span>
+						<span className='block text-xs text-success'>{t('fullXp')}</span>
 					)}
 					{isReduced && (
 						<span className='block text-xs text-text-secondary'>
-							25% ({session.cookCount}
-							{session.cookCount === 2 ? 'nd' : 'rd'}+ cook)
+							{t('reducedXp', { count: session.cookCount, suffix: session.cookCount === 2 ? 'nd' : 'rd' })}
 						</span>
 					)}
 				</div>
@@ -379,7 +379,7 @@ const CompletedItem = ({
 						transition={TRANSITION_SPRING}
 					>
 						<ExternalLink className='h-3.5 w-3.5' />
-						View Post
+						{t('viewPost')}
 					</motion.button>
 				)}
 
@@ -393,7 +393,7 @@ const CompletedItem = ({
 						transition={TRANSITION_SPRING}
 					>
 						<Play className='h-3.5 w-3.5 fill-current' />
-						Cook Again
+						{t('cookAgain')}
 					</motion.button>
 				)}
 			</div>
@@ -411,6 +411,7 @@ interface ExpiredItemProps {
 }
 
 const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
+	const t = useTranslations('history')
 	const isAbandoned = session.status === 'abandoned'
 
 	return (
@@ -418,7 +419,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 			className='bg-muted/30 rounded-2xl overflow-hidden'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 0.6, y: 0 }}
-			transition={{ duration: 0.3, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
 		>
 			<div className='flex items-center gap-4 p-4'>
 				<Image
@@ -435,7 +436,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 					</span>
 					<span className='flex items-center gap-2 text-sm'>
 						<span className='text-text-secondary'>
-							{getTimeSinceCook(session.cookedAt)}
+							{getTimeSinceCook(session.cookedAt, t)}
 						</span>
 						<span className='opacity-50'>â€¢</span>
 						<span
@@ -446,9 +447,9 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						>
 							{isAbandoned
 								? session.abandonedAtStep
-									? `Abandoned at Step ${session.abandonedAtStep}`
-									: 'Abandoned'
-								: 'Expired'}
+								? t('abandonedAtStep', { step: session.abandonedAtStep })
+								: t('abandoned')
+							: t('expired')}
 						</span>
 					</span>
 				</div>
@@ -457,15 +458,15 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				<div className='text-right flex-shrink-0'>
 					{isAbandoned ? (
 						<span className='text-base font-semibold text-text-secondary'>
-							0 XP
+							{t('zeroXp')}
 						</span>
 					) : (
 						<>
 							<span className='block text-lg font-bold text-text-secondary'>
-								+{session.currentXP}
+								+<AnimatedNumber value={session.currentXP} className='tabular-nums' />
 							</span>
 							<span className='block text-xs text-error'>
-								-{session.baseXP - session.currentXP} lost
+								{t('xpLost', { amount: session.baseXP - session.currentXP })}
 							</span>
 						</>
 					)}
@@ -481,11 +482,11 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						transition={TRANSITION_SPRING}
 					>
 						<RefreshCw className='h-3.5 w-3.5' />
-						Try Again
+						{t('tryAgain')}
 					</motion.button>
 				) : (
 					<span className='text-xs text-text-secondary px-4 py-2.5 bg-muted/50 rounded-lg'>
-						Not posted
+						{t('notPosted')}
 					</span>
 				)}
 			</div>
@@ -507,6 +508,7 @@ export const CookingHistoryTab = ({
 	onFilterChange,
 	className,
 }: CookingHistoryTabProps) => {
+	const t = useTranslations('history')
 	const [filter, setFilter] = useState<HistoryFilter>({
 		timeRange: 'all',
 		sortBy: 'recent',
@@ -552,16 +554,16 @@ export const CookingHistoryTab = ({
 					className='bg-bg-card rounded-2xl p-5 border border-border border-l-4 border-l-primary mb-6'
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.4, ease: 'easeOut' }}
+				transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 				>
 					{/* Section Header */}
 					<div className='flex items-center justify-between mb-4'>
 						<h3 className='flex items-center gap-2 text-lg font-bold'>
 							<span>ðŸ“¸</span>
-							Pending Posts
+							{t('pendingPostsTitle')}
 						</h3>
 						<span className='text-base font-bold text-success bg-success/10 px-3 py-1.5 rounded-full'>
-							+{Math.round(totalPendingXP)} XP available
+							{t('xpAvailable', { xp: Math.round(totalPendingXP) })}
 						</span>
 					</div>
 
@@ -569,8 +571,7 @@ export const CookingHistoryTab = ({
 					{urgentCount > 0 && (
 						<div className='flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-error/10 to-error/5 border border-error/20 rounded-xl mb-4 text-sm font-semibold text-error'>
 							<span>âš ï¸</span>
-							{urgentCount} recipe{urgentCount > 1 ? 's' : ''} expire within 24
-							hours!
+							{t('urgentAlert', { count: urgentCount })}
 						</div>
 					)}
 
@@ -584,10 +585,11 @@ export const CookingHistoryTab = ({
 					{/* Show More */}
 					{hiddenPendingCount > 0 && (
 						<button
+							type='button'
 							className='flex items-center justify-center gap-2 w-full mt-4 py-3 border border-dashed border-border rounded-xl text-sm font-semibold text-text-secondary hover:bg-muted/50 hover:border-solid hover:text-foreground transition-all'
 							onClick={() => setShowMorePending(true)}
 						>
-							Show {hiddenPendingCount} more pending
+							{t('showMore', { count: hiddenPendingCount })}
 							<ChevronDown className='size-4' />
 						</button>
 					)}
@@ -599,16 +601,17 @@ export const CookingHistoryTab = ({
 				className='bg-bg-card rounded-2xl p-5 border border-border mb-6'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
+				transition={{ duration: DURATION_S.slow, ease: 'easeOut', delay: 0.1 }}
 			>
 				{/* Section Header */}
 				<div className='flex items-center justify-between mb-4'>
 					<h3 className='flex items-center gap-2 text-lg font-bold'>
 						<span>âœ…</span>
-						Cooking History
+						{t('cookingHistory')}
 					</h3>
 					<div className='flex gap-2'>
 						<select
+							aria-label={t('filterTimeRange')}
 							className='px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm cursor-pointer'
 							value={filter.timeRange}
 							onChange={e =>
@@ -617,12 +620,13 @@ export const CookingHistoryTab = ({
 								})
 							}
 						>
-							<option value='all'>All Time</option>
-							<option value='week'>This Week</option>
-							<option value='month'>This Month</option>
-							<option value='year'>This Year</option>
+							<option value='all'>{t('filterAll')}</option>
+							<option value='week'>{t('filterWeek')}</option>
+							<option value='month'>{t('filterMonth')}</option>
+							<option value='year'>{t('filterYear')}</option>
 						</select>
 						<select
+							aria-label={t('filterSortBy')}
 							className='px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm cursor-pointer'
 							value={filter.sortBy}
 							onChange={e =>
@@ -631,9 +635,9 @@ export const CookingHistoryTab = ({
 								})
 							}
 						>
-							<option value='recent'>Most Recent</option>
-							<option value='xp'>Highest XP</option>
-							<option value='rating'>Highest Rated</option>
+							<option value='recent'>{t('sortRecent')}</option>
+							<option value='xp'>{t('sortXp')}</option>
+							<option value='rating'>{t('sortRating')}</option>
 						</select>
 					</div>
 				</div>
@@ -657,8 +661,8 @@ export const CookingHistoryTab = ({
 
 				{completedSessions.length === 0 && expiredSessions.length === 0 && (
 					<div className='text-center py-8 text-text-secondary'>
-						<p className='text-lg'>No cooking history yet</p>
-						<p className='text-sm'>Start cooking to build your history!</p>
+						<p className='text-lg'>{t('noHistory')}</p>
+						<p className='text-sm'>{t('noHistoryDesc')}</p>
 					</div>
 				)}
 			</motion.section>

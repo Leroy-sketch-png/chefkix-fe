@@ -3,12 +3,14 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
+import { Button } from '@/components/ui/button'
 import { Check, ChevronRight, Sparkles, X, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { updateProfile } from '@/services/profile'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // STORAGE KEY
@@ -23,73 +25,73 @@ const INTEREST_PICKER_DISMISSED_KEY = 'chefkix:interest-picker-dismissed'
 const INTEREST_TILES = [
 	{
 		id: 'italian',
-		label: 'Italian',
+		labelKey: 'ipItalian' as const,
 		emoji: '🍝',
 		gradient: 'from-error to-success',
 	},
 	{
 		id: 'asian',
-		label: 'Asian',
+		labelKey: 'ipAsian' as const,
 		emoji: '🍜',
 		gradient: 'from-warning to-error',
 	},
 	{
 		id: 'mexican',
-		label: 'Mexican',
+		labelKey: 'ipMexican' as const,
 		emoji: '🌮',
 		gradient: 'from-success to-error',
 	},
 	{
 		id: 'bbq',
-		label: 'BBQ & Grilling',
+		labelKey: 'ipBBQ' as const,
 		emoji: '🔥',
 		gradient: 'from-streak to-error',
 	},
 	{
 		id: 'vegan',
-		label: 'Plant-Based',
+		labelKey: 'ipPlantBased' as const,
 		emoji: '🥗',
 		gradient: 'from-success to-success',
 	},
 	{
 		id: 'quick-meals',
-		label: 'Quick Meals',
+		labelKey: 'ipQuickMeals' as const,
 		emoji: '⚡',
 		gradient: 'from-warning to-streak',
 	},
 	{
 		id: 'baking',
-		label: 'Baking',
+		labelKey: 'ipBaking' as const,
 		emoji: '🥐',
 		gradient: 'from-warning to-warning',
 	},
 	{
 		id: 'comfort-food',
-		label: 'Comfort Food',
+		labelKey: 'ipComfortFood' as const,
 		emoji: '🍲',
 		gradient: 'from-streak to-warning',
 	},
 	{
 		id: 'healthy',
-		label: 'Healthy',
+		labelKey: 'ipHealthy' as const,
 		emoji: '🥬',
 		gradient: 'from-success to-success',
 	},
 	{
 		id: 'indian',
-		label: 'Indian',
+		labelKey: 'ipIndian' as const,
 		emoji: '🍛',
 		gradient: 'from-streak to-warning',
 	},
 	{
 		id: 'mediterranean',
-		label: 'Mediterranean',
+		labelKey: 'ipMediterranean' as const,
 		emoji: '🫒',
 		gradient: 'from-info to-accent-teal',
 	},
 	{
 		id: 'seafood',
-		label: 'Seafood',
+		labelKey: 'ipSeafood' as const,
 		emoji: '🦐',
 		gradient: 'from-accent-teal to-info',
 	},
@@ -117,6 +119,31 @@ export function InterestPicker({
 	const [showSkipConfirm, setShowSkipConfirm] = useState(false)
 	const setUser = useAuthStore(s => s.setUser)
 	const user = useAuthStore(s => s.user)
+	const t = useTranslations('onboarding')
+
+	// Escape key handling for the whole modal
+	useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key !== 'Escape') return
+			if (showSkipConfirm) {
+				setShowSkipConfirm(false)
+				return
+			}
+			if (dismissible) {
+				// Same behavior as clicking the X button
+				if (editMode) {
+					onComplete()
+				} else if (selected.size === 0) {
+					setShowSkipConfirm(true)
+				} else {
+					localStorage.setItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+					onComplete()
+				}
+			}
+		}
+		window.addEventListener('keydown', handleEscape)
+		return () => window.removeEventListener('keydown', handleEscape)
+	}, [showSkipConfirm, dismissible, editMode, onComplete, selected.size])
 
 	// Pre-select user's existing preferences if any
 	useEffect(() => {
@@ -186,21 +213,21 @@ export function InterestPicker({
 				if (dismissible && !editMode) {
 					localStorage.setItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
 				}
-				toast.success(editMode ? 'Preferences updated!' : `Great taste! We'll personalize your feed.`)
+				toast.success(editMode ? t('ipToastUpdated') : t('ipToastPersonalize'))
 				onComplete()
 			} else {
 				// API returned but unsuccessful — keep picker open for retry
 				toast.error(
-					response.message || 'Failed to save preferences. Tap Continue to try again.',
+					response.message || t('ipToastSaveError'),
 				)
 			}
 		} catch {
 			// Network/unexpected error — keep picker open for retry
-			toast.error('Failed to save preferences. Check your connection and try again.')
+			toast.error(t('ipToastConnectionError'))
 		} finally {
 			setIsSaving(false)
 		}
-	}, [selected, onComplete, setUser, dismissible, editMode])
+	}, [selected, onComplete, setUser, dismissible, editMode, t])
 
 	return (
 		<Portal>
@@ -211,35 +238,37 @@ export function InterestPicker({
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
 					>
 						<motion.div
 							initial={{ scale: 0.9, opacity: 0 }}
 							animate={{ scale: 1, opacity: 1 }}
 							exit={{ scale: 0.9, opacity: 0 }}
-							className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-xl'
+							className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
 						>
 							<div className='mb-4 flex items-center gap-3'>
 								<div className='flex size-10 items-center justify-center rounded-full bg-warning/10'>
 									<AlertTriangle className='size-5 text-warning' />
 								</div>
-								<h3 className='text-lg font-semibold text-text'>Skip personalization?</h3>
+								<h3 className='text-lg font-semibold text-text'>{t('ipSkipConfirmTitle')}</h3>
 							</div>
 							<p className='mb-6 text-sm text-text-secondary'>
-								Without your preferences, your recipe feed won&apos;t be personalized. You can always set them later in <strong>Settings &rarr; Cooking Preferences</strong>.
+								{t.rich('ipSkipConfirmDesc', { settingsPath: () => <strong>Settings &rarr; Cooking Preferences</strong> })}
 							</p>
 							<div className='flex gap-3'>
 								<button
+									type='button'
 									onClick={() => setShowSkipConfirm(false)}
-									className='flex-1 rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated'
+									className='flex-1 rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 								>
-									Go back
+									{t('ipGoBack')}
 								</button>
 								<button
+									type='button'
 									onClick={handleConfirmSkip}
-									className='flex-1 rounded-xl bg-warning/10 px-4 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-warning/20'
+									className='flex-1 rounded-xl bg-warning/10 px-4 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-warning/20 focus-visible:ring-2 focus-visible:ring-warning focus-visible:ring-offset-2'
 								>
-									Skip anyway
+									{t('ipSkipAnyway')}
 								</button>
 							</div>
 						</motion.div>
@@ -257,14 +286,15 @@ export function InterestPicker({
 					initial={{ opacity: 0, scale: 0.9, y: 30 }}
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='relative w-full max-w-2xl overflow-hidden rounded-3xl bg-bg-card shadow-xl'
+					className='relative w-full max-w-2xl overflow-hidden rounded-3xl bg-bg-card shadow-warm'
 				>
 					{/* Dismiss X button */}
 					{dismissible && (
 						<button
+							type='button'
 							onClick={handleDismiss}
-							className='absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted backdrop-blur-sm transition-colors hover:bg-bg-hover hover:text-text'
-							aria-label='Dismiss'
+							className='absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted backdrop-blur-sm transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+							aria-label={t('ipDismiss')}
 						>
 							<X className='size-4' />
 						</button>
@@ -275,18 +305,18 @@ export function InterestPicker({
 						<motion.div
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
 							className='mx-auto mb-3 flex size-16 items-center justify-center rounded-2xl bg-brand/15'
 						>
 							<Sparkles className='size-8 text-brand' />
 						</motion.div>
 						<h2 className='text-2xl font-bold text-text'>
-							{editMode ? 'Update your preferences' : 'What do you love to cook?'}
+							{editMode ? t('ipTitleEdit') : t('ipTitleNew')}
 						</h2>
 						<p className='mt-2 text-sm text-text-secondary'>
 							{editMode 
-								? 'Select your favorite cuisines to personalize your recipe feed.'
-								: 'Pick a few cuisines to personalize your recipe feed. You can always change these later in settings.'}
+								? t('ipSubtitleEdit')
+								: t('ipSubtitleNew')}
 						</p>
 					</div>
 
@@ -298,6 +328,7 @@ export function InterestPicker({
 
 								return (
 									<motion.button
+										type='button'
 										key={tile.id}
 										initial={{ opacity: 0, y: 10 }}
 										animate={{ opacity: 1, y: 0 }}
@@ -306,7 +337,7 @@ export function InterestPicker({
 										className={cn(
 											'group relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all',
 											isSelected
-												? 'border-brand shadow-md shadow-brand/20'
+												? 'border-brand shadow-card shadow-brand/20'
 												: 'border-transparent hover:border-border-medium',
 										)}
 									>
@@ -336,7 +367,7 @@ export function InterestPicker({
 										</div>
 
 										{/* Gradient overlay for text readability */}
-										<div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent' />
+										<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent' />
 
 										{/* Selection checkmark */}
 										{isSelected && (
@@ -352,7 +383,7 @@ export function InterestPicker({
 										{/* Label */}
 										<div className='absolute inset-x-0 bottom-0 p-2'>
 											<span className='text-xs font-semibold text-white drop-shadow-md sm:text-sm'>
-												{tile.label}
+												{t(tile.labelKey)}
 											</span>
 										</div>
 									</motion.button>
@@ -364,32 +395,30 @@ export function InterestPicker({
 					{/* Footer */}
 					<div className='flex items-center justify-between border-t border-border-subtle px-6 py-4'>
 						<button
+							type='button'
 							onClick={handleDismiss}
 							className='text-sm font-medium text-text-muted transition-colors hover:text-text-secondary'
 						>
-							{editMode ? 'Cancel' : 'Skip for now'}
+							{editMode ? t('ipCancel') : t('ipSkipForNow')}
 						</button>
-						<motion.button
+						<Button
+							type='button'
 							onClick={handleContinue}
 							disabled={isSaving}
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-							className={cn(
-								'flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition-colors',
-								selected.size > 0 ? 'bg-brand hover:bg-brand/90' : 'bg-text-muted',
-							)}
+							variant={selected.size > 0 ? 'brand' : 'secondary'}
+							className='gap-2'
 						>
 							{isSaving ? (
-								'Saving...'
+								t('ipSaving')
 							) : (
 								<>
 									{editMode 
-										? (selected.size > 0 ? `Save (${selected.size})` : 'Save')
-										: (selected.size > 0 ? `Continue (${selected.size})` : 'Continue')}
+										? (selected.size > 0 ? t('ipSaveCount', { count: selected.size }) : t('ipSave'))
+										: (selected.size > 0 ? t('ipContinueCount', { count: selected.size }) : t('ipContinue'))}
 									<ChevronRight className='size-4' />
 								</>
 							)}
-						</motion.button>
+						</Button>
 					</div>
 				</motion.div>
 			</motion.div>

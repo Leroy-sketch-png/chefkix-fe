@@ -194,6 +194,7 @@ export const PopoverTrigger = React.forwardRef<
 
 	return (
 		<button
+			type='button'
 			ref={node => {
 				;(triggerRef as React.MutableRefObject<HTMLElement | null>).current =
 					node
