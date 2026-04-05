@@ -11,17 +11,20 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { ErrorState } from '@/components/ui/error-state'
+import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Portal } from '@/components/ui/portal'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { Collection, CreateCollectionRequest } from '@/lib/types/collection'
 import {
 	getMyCollections,
 	createCollection,
 	deleteCollection,
 } from '@/services/collection'
+import { useTranslations } from 'next-intl'
 
 export default function CollectionsPage() {
 	const router = useRouter()
+	const t = useTranslations('collections')
 	const [collections, setCollections] = useState<Collection[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [showCreateModal, setShowCreateModal] = useState(false)
@@ -62,7 +65,7 @@ export default function CollectionsPage() {
 
 	const handleCreate = async () => {
 		if (!newName.trim()) {
-			toast.error('Collection name is required')
+			toast.error(t('nameRequired'))
 			return
 		}
 		setIsCreating(true)
@@ -78,9 +81,9 @@ export default function CollectionsPage() {
 			setNewName('')
 			setNewDescription('')
 			setNewIsPublic(false)
-			toast.success('Collection created!')
+			toast.success(t('created'))
 		} else {
-			toast.error(response.message || 'Failed to create collection')
+			toast.error(response.message || t('createFailed'))
 		}
 		setIsCreating(false)
 	}
@@ -90,9 +93,9 @@ export default function CollectionsPage() {
 		const response = await deleteCollection(id)
 		if (response.success) {
 			setCollections(prev => prev.filter(c => c.id !== id))
-			toast.success('Collection deleted')
+			toast.success(t('deleted'))
 		} else {
-			toast.error(response.message || 'Failed to delete collection')
+			toast.error(response.message || t('deleteFailed'))
 		}
 		setConfirmingDeleteId(null)
 		setIsDeleting(false)
@@ -123,8 +126,8 @@ export default function CollectionsPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<ErrorState
-						title='Failed to load collections'
-						message='Something went wrong loading your collections. Please try again.'
+						title={t('loadFailed')}
+						message={t('loadFailedMessage')}
 						onRetry={() => {
 							setIsLoading(true)
 							setFetchError(false)
@@ -143,18 +146,18 @@ export default function CollectionsPage() {
 					{/* Header */}
 					<PageHeader
 						icon={FolderHeart}
-						title='My Collections'
-						subtitle='Organize your saved posts into collections'
+						title={t('myCollections')}
+						subtitle={t('myCollectionsSubtitle')}
 						gradient='pink'
 						rightAction={
 							<motion.button
 								onClick={() => setShowCreateModal(true)}
 								className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm'
-								whileHover={{ scale: 1.02 }}
-								whileTap={{ scale: 0.98 }}
+							whileHover={BUTTON_SUBTLE_HOVER}
+							whileTap={BUTTON_SUBTLE_TAP}
 							>
 								<Plus className='size-4' />
-								New Collection
+								{t('newCollection')}
 							</motion.button>
 						}
 						marginBottom='sm'
@@ -162,21 +165,17 @@ export default function CollectionsPage() {
 
 					{/* Collections Grid */}
 					{collections.length === 0 ? (
-						<div className='rounded-xl border border-border-subtle bg-bg-card py-20 text-center shadow-card'>
-							<FolderHeart className='mx-auto mb-4 size-16 text-text-muted/30' />
-							<h2 className='mb-2 text-lg font-semibold text-text'>
-								No collections yet
-							</h2>
-							<p className='mb-6 text-sm text-text-muted'>
-								Create a collection to organize your saved posts
-							</p>
-							<button
-								onClick={() => setShowCreateModal(true)}
-								className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
-							>
-								Create Your First Collection
-							</button>
-						</div>
+						<EmptyState
+							variant='saved'
+							title={t('noCollections')}
+							description={t('noCollectionsDesc')}
+							emoji='📁'
+							primaryAction={{
+								label: t('createFirst'),
+								onClick: () => setShowCreateModal(true),
+								icon: <Plus className='size-4' />,
+							}}
+						/>
 					) : (
 						<div className='grid gap-4 sm:grid-cols-2'>
 							{collections.map(collection => (
@@ -196,6 +195,7 @@ export default function CollectionsPage() {
 														src={collection.coverImageUrl}
 														alt={collection.name}
 														fill
+														sizes='(max-width: 768px) 100vw, 50vw'
 														className='object-cover'
 														unoptimized
 														/>
@@ -219,7 +219,7 @@ export default function CollectionsPage() {
 												) : (
 													<Lock className='size-3' />
 												)}
-												{collection.isPublic ? 'Public' : 'Private'}
+												{collection.isPublic ? t('public') : t('private')}
 											</span>
 										</div>
 									</div>
@@ -238,19 +238,19 @@ export default function CollectionsPage() {
 												)}
 											</div>
 											<button
+												type='button'
 												onClick={e => {
 													e.stopPropagation()
 													setConfirmingDeleteId(collection.id)
 												}}
-												className='ml-2 flex-shrink-0 rounded-md p-1 text-text-muted transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100'
+												className='ml-2 flex-shrink-0 rounded-md p-1 text-text-muted transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 											>
 												<Trash2 className='size-4' />
 											</button>
 										</div>
 										<p className='mt-2 text-xs text-text-muted'>
-											{collection.itemCount}{' '}
-											{collection.itemCount === 1 ? 'post' : 'posts'}
-										</p>
+										{t('postCount', { count: collection.itemCount })}
+									</p>
 									</div>
 								</motion.div>
 							))}
@@ -279,18 +279,18 @@ export default function CollectionsPage() {
 								onClick={e => e.stopPropagation()}
 							>
 								<h2 className='mb-4 text-lg font-bold text-text'>
-									New Collection
+									{t('newCollection')}
 								</h2>
 								<div className='space-y-4'>
 									<div>
 										<label className='mb-1 block text-sm font-medium text-text-secondary'>
-											Name
+											{t('nameLabel')}
 										</label>
 										<input
 											type='text'
 											value={newName}
 											onChange={e => setNewName(e.target.value)}
-											placeholder='e.g. Weeknight Dinners'
+											placeholder={t('namePlaceholder')}
 											maxLength={60}
 											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 											autoFocus
@@ -298,14 +298,14 @@ export default function CollectionsPage() {
 									</div>
 									<div>
 										<label className='mb-1 block text-sm font-medium text-text-secondary'>
-											Description{' '}
-											<span className='text-text-muted'>(optional)</span>
+											{t('descriptionLabel')}{' '}
+											<span className='text-text-muted'>{t('descriptionOptional')}</span>
 										</label>
 										<input
 											type='text'
 											value={newDescription}
 											onChange={e => setNewDescription(e.target.value)}
-											placeholder='What is this collection about?'
+											placeholder={t('descriptionPlaceholder')}
 											maxLength={200}
 											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 										/>
@@ -318,23 +318,25 @@ export default function CollectionsPage() {
 											className='size-4 rounded border-border-subtle accent-brand'
 										/>
 										<span className='text-sm text-text'>
-											Make this collection public
+											{t('makePublic')}
 										</span>
 									</label>
 								</div>
 								<div className='mt-6 flex justify-end gap-3'>
 									<button
-										onClick={() => setShowCreateModal(false)}
-										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
-									>
-										Cancel
-									</button>
-									<button
+									type='button'
+									onClick={() => setShowCreateModal(false)}
+									className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
+								>
+									{t('cancel')}
+								</button>
+								<button
+									type='button'
 										onClick={handleCreate}
 										disabled={isCreating || !newName.trim()}
 										className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-50'
 									>
-										{isCreating ? 'Creating...' : 'Create'}
+										{isCreating ? t('creating') : t('create')}
 									</button>
 								</div>
 							</motion.div>
@@ -363,25 +365,26 @@ export default function CollectionsPage() {
 								onClick={e => e.stopPropagation()}
 							>
 								<h3 className='mb-2 text-lg font-bold text-text'>
-									Delete Collection?
+									{t('deleteTitle')}
 								</h3>
 								<p className='mb-6 text-sm text-text-muted'>
-									This will permanently delete this collection. Posts inside
-									won&apos;t be affected.
+									{t('deleteMessage')}
 								</p>
 								<div className='flex justify-end gap-3'>
 									<button
-										onClick={() => setConfirmingDeleteId(null)}
-										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
-									>
-										Cancel
-									</button>
-									<button
+									type='button'
+									onClick={() => setConfirmingDeleteId(null)}
+									className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
+								>
+									{t('cancel')}
+								</button>
+								<button
+									type='button'
 										onClick={() => handleDelete(confirmingDeleteId)}
 										disabled={isDeleting}
 										className='rounded-xl bg-destructive px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
 									>
-										{isDeleting ? 'Deleting...' : 'Delete'}
+										{isDeleting ? t('deleting') : t('delete')}
 									</button>
 								</div>
 							</motion.div>

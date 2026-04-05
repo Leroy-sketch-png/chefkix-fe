@@ -33,6 +33,7 @@ import type {
 	BadgeRarity,
 } from '@/lib/types/gamification'
 import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // BADGE CATALOG PAGE
@@ -43,40 +44,40 @@ import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 // Category display config
 const CATEGORY_CONFIG: Record<
 	BadgeCategory,
-	{ label: string; icon: React.ReactNode; color: string }
+	{ labelKey: string; icon: React.ReactNode; color: string }
 > = {
 	COOKING: {
-		label: 'Cooking',
+		labelKey: 'catCooking',
 		icon: <ChefHat className='size-4' />,
 		color: 'text-brand',
 	},
 	CUISINE: {
-		label: 'Cuisine',
+		labelKey: 'catCuisine',
 		icon: <Globe className='size-4' />,
 		color: 'text-info',
 	},
 	STREAK: {
-		label: 'Streaks',
+		labelKey: 'catStreaks',
 		icon: <Flame className='size-4' />,
 		color: 'text-streak',
 	},
 	SPECIAL: {
-		label: 'Special',
+		labelKey: 'catSpecial',
 		icon: <Sparkles className='size-4' />,
 		color: 'text-xp',
 	},
 	SOCIAL: {
-		label: 'Social',
+		labelKey: 'catSocial',
 		icon: <Users className='size-4' />,
 		color: 'text-success',
 	},
 	CHALLENGE: {
-		label: 'Challenges',
+		labelKey: 'catChallenges',
 		icon: <Target className='size-4' />,
 		color: 'text-warning',
 	},
 	CREATOR: {
-		label: 'Creator',
+		labelKey: 'catCreator',
 		icon: <Award className='size-4' />,
 		color: 'text-combo',
 	},
@@ -85,34 +86,34 @@ const CATEGORY_CONFIG: Record<
 // Rarity display config
 const RARITY_CONFIG: Record<
 	BadgeRarity,
-	{ label: string; bgClass: string; textClass: string; borderClass: string }
+	{ labelKey: string; bgClass: string; textClass: string; borderClass: string }
 > = {
 	COMMON: {
-		label: 'Common',
+		labelKey: 'rarCommon',
 		bgClass: 'bg-text-secondary/10',
 		textClass: 'text-text-secondary',
 		borderClass: 'border-text-secondary/20',
 	},
 	UNCOMMON: {
-		label: 'Uncommon',
+		labelKey: 'rarUncommon',
 		bgClass: 'bg-success/10',
 		textClass: 'text-success',
 		borderClass: 'border-success/30',
 	},
 	RARE: {
-		label: 'Rare',
+		labelKey: 'rarRare',
 		bgClass: 'bg-info/10',
 		textClass: 'text-info',
 		borderClass: 'border-info/30',
 	},
 	EPIC: {
-		label: 'Epic',
+		labelKey: 'rarEpic',
 		bgClass: 'bg-accent-purple/10',
 		textClass: 'text-accent-purple',
 		borderClass: 'border-accent-purple/30',
 	},
 	LEGENDARY: {
-		label: 'Legendary',
+		labelKey: 'rarLegendary',
 		bgClass: 'bg-gradient-to-r from-warning/10 to-brand/10',
 		textClass: 'text-warning',
 		borderClass: 'border-warning/30',
@@ -139,6 +140,7 @@ interface BadgeCardProps {
 }
 
 const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
+	const t = useTranslations('badges')
 	const rarityConfig = RARITY_CONFIG[badge.rarity]
 	const isHidden = badge.isHidden && !isEarned
 
@@ -220,7 +222,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 							rarityConfig.textClass,
 						)}
 					>
-						{rarityConfig.label}
+						{t(rarityConfig.labelKey)}
 					</span>
 
 					{/* Unlock criteria (for locked badges) */}
@@ -233,12 +235,11 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 					{/* Earned date (for earned badges) */}
 					{isEarned && earnedAt && (
 						<p className='text-2xs text-text-muted'>
-							Earned{' '}
-							{new Date(earnedAt).toLocaleDateString('en-US', {
+							{t('earnedDate', { date: new Date(earnedAt).toLocaleDateString('en-US', {
 								month: 'short',
 								day: 'numeric',
 								year: 'numeric',
-							})}
+							}) })}
 						</p>
 					)}
 				</>
@@ -254,6 +255,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 export default function BadgeCatalogPage() {
 	const { user } = useAuth()
 	const router = useRouter()
+	const t = useTranslations('badges')
 	const [searchQuery, setSearchQuery] = useState('')
 	const [selectedCategory, setSelectedCategory] = useState<
 		BadgeCategory | 'ALL'
@@ -401,7 +403,7 @@ export default function BadgeCatalogPage() {
 									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 									<input
 										type='text'
-										placeholder='Search badges...'
+										placeholder={t('searchPlaceholder')}
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
 										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
@@ -416,10 +418,10 @@ export default function BadgeCatalogPage() {
 									}
 									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
 								>
-									<option value='ALL'>All Categories</option>
+									<option value='ALL'>{t('allCategories')}</option>
 									{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
 										<option key={key} value={key}>
-											{config.label} ({categoryCounts[key]?.earned ?? 0}/
+											{t(config.labelKey)} ({categoryCounts[key]?.earned ?? 0}/
 											{categoryCounts[key]?.total ?? 0})
 										</option>
 									))}
@@ -433,16 +435,17 @@ export default function BadgeCatalogPage() {
 									}
 									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
 								>
-									<option value='ALL'>All Rarities</option>
+									<option value='ALL'>{t('allRarities')}</option>
 									{RARITY_ORDER.map(rarity => (
 										<option key={rarity} value={rarity}>
-											{RARITY_CONFIG[rarity].label}
+											{t(RARITY_CONFIG[rarity].labelKey)}
 										</option>
 									))}
 								</select>
 
 								{/* Earned Only Toggle */}
 								<button
+									type='button'
 									onClick={() => setShowEarnedOnly(!showEarnedOnly)}
 									className={cn(
 										'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
@@ -472,9 +475,9 @@ export default function BadgeCatalogPage() {
 							<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
 								<Search className='size-8 text-text-muted' />
 							</div>
-							<p className='mt-4 font-semibold text-text'>No badges found</p>
-							<p className='mt-1 text-sm text-text-muted'>
-								Try adjusting your filters or search query
+						<p className='mt-4 font-semibold text-text'>{t('noBadgesFound')}</p>
+						<p className='mt-1 text-sm text-text-muted'>
+							{t('noBadgesHint')}
 							</p>
 						</motion.div>
 					) : (
@@ -518,7 +521,7 @@ export default function BadgeCatalogPage() {
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
 					<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
 						<Star className='size-4 text-xp' />
-						Rarity Guide
+						{t('rarityGuide')}
 					</h3>
 					<div className='flex flex-wrap gap-2'>
 						{RARITY_ORDER.map(rarity => {
@@ -535,7 +538,7 @@ export default function BadgeCatalogPage() {
 									<span
 										className={cn('text-xs font-semibold', config.textClass)}
 									>
-										{config.label}
+										{t(config.labelKey)}
 									</span>
 								</div>
 							)

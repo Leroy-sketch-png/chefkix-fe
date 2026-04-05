@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	ChefHat,
@@ -25,6 +26,7 @@ import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	CARD_HOVER,
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
@@ -35,6 +37,7 @@ import { cn } from '@/lib/utils'
 // ============================================
 
 const HeroSection = () => {
+	const t = useTranslations('welcome')
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
 
@@ -70,25 +73,23 @@ const HeroSection = () => {
 					{/* Logo + Brand */}
 					<div className='mb-6 inline-flex items-center gap-3 rounded-full border border-brand/30 bg-brand/10 px-6 py-3 text-sm font-semibold text-brand shadow-card'>
 						<Sparkles className='size-4' />
-						Level up your cooking game
+						{t('heroTagline')}
 					</div>
 
 					<h1 className='mb-6 text-5xl font-bold leading-tight text-text md:text-7xl'>
-						Cook like a{' '}
+						{t('heroTitle1')}{' '}
 						<span className='bg-gradient-hero bg-clip-text text-transparent'>
-							pro
+							{t('heroTitlePro')}
 						</span>
 						,<br />
-						play like a{' '}
+						{t('heroTitle2')}{' '}
 						<span className='bg-gradient-xp bg-clip-text text-transparent'>
-							gamer
+							{t('heroTitleGamer')}
 						</span>
 					</h1>
 
 					<p className='mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-text-secondary md:text-xl'>
-						ChefKix turns every recipe into an adventure. Earn XP, unlock
-						badges, build streaks, and compete with friends — all while mastering
-						real cooking skills.
+						{t('heroDescription')}
 					</p>
 
 					{/* CTA Buttons */}
@@ -105,7 +106,7 @@ const HeroSection = () => {
 								className='group relative overflow-hidden bg-gradient-hero px-8 py-6 text-lg font-bold text-white shadow-warm shadow-brand/40 disabled:opacity-50'
 							>
 								<span className='relative z-10 flex items-center gap-2'>
-									Start Cooking
+									{t('startCooking')}
 									<ArrowRight className='size-5 transition-transform group-hover:translate-x-1' />
 								</span>
 							</Button>
@@ -124,7 +125,7 @@ const HeroSection = () => {
 								className='border-2 border-border-medium bg-bg-card px-8 py-6 text-lg font-semibold text-text transition-all hover:border-brand hover:text-brand disabled:opacity-50'
 							>
 								<PlayCircle className='mr-2 size-5' />
-								Explore Recipes
+								{t('exploreRecipes')}
 							</Button>
 						</motion.div>
 					</div>
@@ -138,15 +139,15 @@ const HeroSection = () => {
 					>
 						<div className='flex items-center gap-2'>
 							<Users className='size-4 text-brand' />
-							<span>50K+ home chefs</span>
+							<span>{t('socialProofChefs')}</span>
 						</div>
 						<div className='flex items-center gap-2'>
 							<BookOpen className='size-4 text-xp' />
-							<span>10K+ recipes</span>
+							<span>{t('socialProofRecipes')}</span>
 						</div>
 						<div className='flex items-center gap-2'>
 							<Trophy className='size-4 text-combo' />
-							<span>500K+ meals cooked</span>
+							<span>{t('socialProofMeals')}</span>
 						</div>
 					</motion.div>
 				</motion.div>
@@ -163,13 +164,13 @@ const HeroSection = () => {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
-		</section>
-	)
+						{t('loading')}
+					</div>
+				</motion.div>
+			)}
+		</AnimatePresence>
+	</section>
+)
 }
 
 // ============================================
@@ -179,55 +180,49 @@ const HeroSection = () => {
 const features = [
 	{
 		icon: Trophy,
-		title: 'XP & Leveling System',
-		description:
-			'Every dish you cook earns XP. Level up from Kitchen Newbie to Master Chef and unlock exclusive recipes and badges.',
+		titleKey: 'featureXpTitle',
+		descriptionKey: 'featureXpDesc',
 		gradient: 'from-brand to-brand/60',
 		color: 'text-brand',
 	},
 	{
 		icon: Flame,
-		title: 'Daily Streaks',
-		description:
-			'Cook consistently to build epic streaks. Lose them and everyone on your leaderboard knows — pressure creates diamonds.',
+		titleKey: 'featureStreaksTitle',
+		descriptionKey: 'featureStreaksDesc',
 		gradient: 'from-streak to-streak/60',
 		color: 'text-streak',
 	},
 	{
 		icon: Target,
-		title: 'Guided Cooking Mode',
-		description:
-			'Step-by-step HUD with hands-free voice navigation. Chef tips, timing cues, and visual guides keep you on track.',
+		titleKey: 'featureCookingTitle',
+		descriptionKey: 'featureCookingDesc',
 		gradient: 'from-xp to-xp/60',
 		color: 'text-xp',
 	},
 	{
 		icon: Users,
-		title: 'Friend Challenges',
-		description:
-			'Challenge friends to cook-offs, climb the weekly leaderboard, and show off your culinary achievements.',
+		titleKey: 'featureFriendsTitle',
+		descriptionKey: 'featureFriendsDesc',
 		gradient: 'from-combo to-combo/60',
 		color: 'text-combo',
 	},
 	{
 		icon: Sparkles,
-		title: 'Recipe Quality Score',
-		description:
-			'AI-powered quality ratings from Foolproof to Expert. Find your level and grow at your own pace.',
+		titleKey: 'featureQualityTitle',
+		descriptionKey: 'featureQualityDesc',
 		gradient: 'from-accent-purple to-accent-purple/60',
 		color: 'text-accent-purple',
 	},
 	{
 		icon: TrendingUp,
-		title: 'Creator Dashboard',
-		description:
-			'Share your recipes and track performance. See who is cooking your dishes and earn XP when they succeed.',
-		gradient: 'from-brand to-brand/60',
+		titleKey: 'featureCreatorTitle',
+		descriptionKey: 'featureCreatorDesc',
 		color: 'text-brand',
 	},
 ]
 
 const FeaturesSection = () => {
+	const t = useTranslations('welcome')
 	return (
 		<section className='bg-bg py-24'>
 			<div className='container mx-auto max-w-7xl px-6'>
@@ -239,11 +234,10 @@ const FeaturesSection = () => {
 					className='mb-16 text-center'
 				>
 					<h2 className='mb-4 text-4xl font-bold text-text md:text-5xl'>
-						Why ChefKix is Different
+						{t('whyDifferentTitle')}
 					</h2>
 					<p className='mx-auto max-w-2xl text-lg text-text-secondary'>
-						Not another recipe app. A complete cooking RPG where your skills actually
-						matter.
+						{t('whyDifferentSubtitle')}
 					</p>
 				</motion.div>
 
@@ -258,9 +252,9 @@ const FeaturesSection = () => {
 						const Icon = feature.icon
 						return (
 							<motion.div
-								key={feature.title}
+								key={feature.titleKey}
 								variants={staggerItem}
-								whileHover={{ y: -4, scale: 1.02 }}
+								whileHover={CARD_HOVER}
 								className='group rounded-2xl border border-border-subtle bg-bg-card p-8 shadow-card transition-all hover:shadow-warm'
 							>
 								<div
@@ -272,10 +266,10 @@ const FeaturesSection = () => {
 									<Icon className='size-7 text-white' />
 								</div>
 								<h3 className='mb-3 text-xl font-bold text-text'>
-									{feature.title}
-								</h3>
-								<p className='leading-relaxed text-text-secondary'>
-									{feature.description}
+								{t(feature.titleKey)}
+							</h3>
+							<p className='leading-relaxed text-text-secondary'>
+								{t(feature.descriptionKey)}
 								</p>
 							</motion.div>
 						)
@@ -291,33 +285,30 @@ const FeaturesSection = () => {
 // ============================================
 
 const HowItWorksSection = () => {
+	const t = useTranslations('welcome')
 	const steps = [
 		{
 			number: '01',
-			title: 'Choose Your Recipe',
-			description:
-				'Browse 10K+ recipes filtered by difficulty, time, and your taste profile. Every recipe shows its quality score.',
+			titleKey: 'step01Title' as const,
+			descriptionKey: 'step01Desc' as const,
 			icon: BookOpen,
 		},
 		{
 			number: '02',
-			title: 'Enter Cooking Mode',
-			description:
-				'Hands-free HUD guides you through each step. Voice commands, timers, and chef tips keep you on track.',
+			titleKey: 'step02Title' as const,
+			descriptionKey: 'step02Desc' as const,
 			icon: ChefHat,
 		},
 		{
 			number: '03',
-			title: 'Earn XP & Badges',
-			description:
-				'Complete the recipe to earn XP, build your streak, and unlock badges. Share your creation with the community.',
+			titleKey: 'step03Title' as const,
+			descriptionKey: 'step03Desc' as const,
 			icon: Trophy,
 		},
 		{
 			number: '04',
-			title: 'Level Up',
-			description:
-				'Track your progress, compete on leaderboards, and unlock harder recipes as you master techniques.',
+			titleKey: 'step04Title' as const,
+			descriptionKey: 'step04Desc' as const,
 			icon: Zap,
 		},
 	]
@@ -333,10 +324,10 @@ const HowItWorksSection = () => {
 					className='mb-16 text-center'
 				>
 					<h2 className='mb-4 text-4xl font-bold text-text md:text-5xl'>
-						How It Works
+						{t('howItWorksTitle')}
 					</h2>
 					<p className='mx-auto max-w-2xl text-lg text-text-secondary'>
-						Four simple steps to transform your kitchen into a gaming arena
+						{t('howItWorksSubtitle')}
 					</p>
 				</motion.div>
 
@@ -365,9 +356,9 @@ const HowItWorksSection = () => {
 										</span>
 									</div>
 									<h3 className='mb-3 text-xl font-bold text-text'>
-										{step.title}
+										{t(step.titleKey)}
 									</h3>
-									<p className='text-text-secondary'>{step.description}</p>
+									<p className='text-text-secondary'>{t(step.descriptionKey)}</p>
 								</div>
 							</motion.div>
 						)
@@ -383,6 +374,7 @@ const HowItWorksSection = () => {
 // ============================================
 
 const CTASection = () => {
+	const t = useTranslations('welcome')
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
 
@@ -396,11 +388,10 @@ const CTASection = () => {
 					transition={TRANSITION_SPRING}
 				>
 					<h2 className='mb-6 text-4xl font-bold text-white md:text-5xl'>
-						Ready to Level Up?
+						{t('readyToLevelUp')}
 					</h2>
 					<p className='mb-10 text-lg text-white/90'>
-						Join 50,000+ home chefs turning every meal into an achievement. Free
-						forever.
+						{t('ctaDescription')}
 					</p>
 
 					<div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
@@ -415,7 +406,7 @@ const CTASection = () => {
 								size='lg'
 								className='bg-white px-8 py-6 text-lg font-bold text-brand shadow-warm hover:bg-white/90 disabled:opacity-50'
 							>
-								Create Free Account
+								{t('createFreeAccount')}
 								<ArrowRight className='ml-2 size-5' />
 							</Button>
 						</motion.div>
@@ -432,13 +423,13 @@ const CTASection = () => {
 								size='lg'
 								className='border-2 border-white bg-transparent px-8 py-6 text-lg font-semibold text-white hover:bg-white/10 disabled:opacity-50'
 							>
-								Sign In
+								{t('signIn')}
 							</Button>
 						</motion.div>
 					</div>
 
 					<p className='mt-6 text-sm text-white/70'>
-						No credit card required • Free forever • Cancel anytime
+						{t('ctaDisclaimer')}
 					</p>
 				</motion.div>
 			</div>
@@ -454,7 +445,7 @@ const CTASection = () => {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}

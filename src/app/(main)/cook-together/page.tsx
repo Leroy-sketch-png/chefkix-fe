@@ -170,6 +170,7 @@ function CookTogetherContent() {
 								</div>
 								<div className='flex gap-2'>
 									<button
+										type='button'
 										onClick={handleCopyRoomCode}
 										className='flex items-center gap-2 rounded-xl bg-bg-card px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg-elevated'
 									>
@@ -181,6 +182,7 @@ function CookTogetherContent() {
 										{copied ? 'Copied' : 'Share Code'}
 									</button>
 									<button
+										type='button'
 										onClick={() => router.push('/cook-together/room')}
 										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
 									>
@@ -230,6 +232,7 @@ function CookTogetherContent() {
 							disabled={isJoining}
 						/>
 						<button
+							type='button'
 							onClick={handleJoin}
 							disabled={isJoining || roomCodeInput.trim().length < 6}
 							className='flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50'

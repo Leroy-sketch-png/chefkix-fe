@@ -51,6 +51,7 @@ import { changePassword } from '@/services/auth'
 import { deleteAccount, exportUserData } from '@/services/profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { logDevError } from '@/lib/dev-log'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -61,6 +62,9 @@ import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+	NAV_ITEM_HOVER,
 	staggerContainer,
 } from '@/lib/motion'
 import ReferralCard from '@/components/referral/ReferralCard'
@@ -104,6 +108,7 @@ import {
 } from '@/lib/types/settings'
 import { isTrackingOptedOut, setTrackingOptOut } from '@/lib/eventTracker'
 import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
+import { useTranslations } from '@/i18n/hooks'
 
 // ============================================
 // TYPES
@@ -121,9 +126,9 @@ type SettingsTab =
 
 interface TabConfig {
 	id: SettingsTab
-	label: string
+	labelKey: string
 	icon: typeof User
-	description: string
+	descriptionKey: string
 }
 
 // ============================================
@@ -133,75 +138,75 @@ interface TabConfig {
 const TABS: TabConfig[] = [
 	{
 		id: 'account',
-		label: 'Account',
+		labelKey: 'tabAccount',
 		icon: User,
-		description: 'Profile and account info',
+		descriptionKey: 'tabAccountDesc',
 	},
 	{
 		id: 'privacy',
-		label: 'Privacy',
+		labelKey: 'tabPrivacy',
 		icon: Shield,
-		description: 'Control who sees your content',
+		descriptionKey: 'tabPrivacyDesc',
 	},
 	{
 		id: 'notifications',
-		label: 'Notifications',
+		labelKey: 'tabNotifications',
 		icon: Bell,
-		description: 'Email, in-app, and push alerts',
+		descriptionKey: 'tabNotificationsDesc',
 	},
 	{
 		id: 'cooking',
-		label: 'Cooking',
+		labelKey: 'tabCooking',
 		icon: ChefHat,
-		description: 'Dietary and cooking preferences',
+		descriptionKey: 'tabCookingDesc',
 	},
 	{
 		id: 'appearance',
-		label: 'Appearance',
+		labelKey: 'tabAppearance',
 		icon: Palette,
-		description: 'Theme, sounds, and accessibility',
+		descriptionKey: 'tabAppearanceDesc',
 	},
 	{
 		id: 'premium',
-		label: 'Premium',
+		labelKey: 'tabPremium',
 		icon: Crown,
-		description: 'Upgrade to ChefKix Premium',
+		descriptionKey: 'tabPremiumDesc',
 	},
 	{
 		id: 'referral',
-		label: 'Referral',
+		labelKey: 'tabReferral',
 		icon: Gift,
-		description: 'Invite friends and earn XP',
+		descriptionKey: 'tabReferralDesc',
 	},
 	{
 		id: 'verification',
-		label: 'Verification',
+		labelKey: 'tabVerification',
 		icon: BadgeCheck,
-		description: 'Get the verified creator badge',
+		descriptionKey: 'tabVerificationDesc',
 	},
 ]
 
 const VISIBILITY_OPTIONS: {
 	value: ProfileVisibility
-	label: string
+	labelKey: string
 	icon: typeof Globe
 }[] = [
-	{ value: 'public', label: 'Public', icon: Globe },
-	{ value: 'friends_only', label: 'Friends Only', icon: Users },
-	{ value: 'private', label: 'Private', icon: EyeOff },
+	{ value: 'public', labelKey: 'visibilityPublic', icon: Globe },
+	{ value: 'friends_only', labelKey: 'visibilityFriendsOnly', icon: Users },
+	{ value: 'private', labelKey: 'visibilityPrivate', icon: EyeOff },
 ]
 
-const MESSAGE_OPTIONS: { value: AllowMessagesFrom; label: string }[] = [
-	{ value: 'everyone', label: 'Everyone' },
-	{ value: 'friends', label: 'Friends only' },
-	{ value: 'nobody', label: 'Nobody' },
+const MESSAGE_OPTIONS: { value: AllowMessagesFrom; labelKey: string }[] = [
+	{ value: 'everyone', labelKey: 'messagesEveryone' },
+	{ value: 'friends', labelKey: 'messagesFriendsOnly' },
+	{ value: 'nobody', labelKey: 'messagesNobody' },
 ]
 
-const SKILL_LEVELS: { value: SkillLevel; label: string; emoji: string }[] = [
-	{ value: 'beginner', label: 'Beginner', emoji: '🥄' },
-	{ value: 'intermediate', label: 'Intermediate', emoji: '🍳' },
-	{ value: 'advanced', label: 'Advanced', emoji: '👨‍🍳' },
-	{ value: 'expert', label: 'Expert', emoji: '⭐' },
+const SKILL_LEVELS: { value: SkillLevel; labelKey: string; emoji: string }[] = [
+	{ value: 'beginner', labelKey: 'skillBeginner', emoji: '🥄' },
+	{ value: 'intermediate', labelKey: 'skillIntermediate', emoji: '🍳' },
+	{ value: 'advanced', labelKey: 'skillAdvanced', emoji: '👨‍🍳' },
+	{ value: 'expert', labelKey: 'skillExpert', emoji: '⭐' },
 ]
 
 const DIETARY_OPTIONS = [
@@ -352,8 +357,8 @@ const ChipSelect = ({
 			return (
 				<motion.button
 					key={option}
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
+					whileHover={LIST_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					onClick={() => onToggle(option)}
 					className={cn(
 						'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
@@ -423,6 +428,7 @@ export default function SettingsPage() {
 	const { user, setUser, logout } = useAuth()
 	const router = useRouter()
 	const { setMotionPreference } = useReducedMotionPreference()
+	const t = useTranslations('settings')
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
@@ -873,16 +879,13 @@ export default function SettingsPage() {
 				<PageContainer maxWidth='lg'>
 					{/* Settings skeleton */}
 					<div className='mb-8 flex items-center gap-3'>
-						<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
-						<div className='h-7 w-28 animate-pulse rounded bg-bg-elevated/40' />
+						<Skeleton className='size-12 rounded-2xl' />
+						<Skeleton className='h-7 w-28' />
 					</div>
 					{/* Tab bar skeleton */}
 					<div className='mb-6 flex gap-2'>
 						{Array.from({ length: 4 }).map((_, i) => (
-							<div
-								key={i}
-								className='h-10 w-24 animate-pulse rounded-xl bg-bg-elevated/40'
-							/>
+							<Skeleton key={i} className='h-10 w-24 rounded-xl' />
 						))}
 					</div>
 					{/* Settings cards skeleton */}
@@ -892,15 +895,15 @@ export default function SettingsPage() {
 								key={i}
 								className='rounded-2xl border border-border-subtle bg-bg-card p-6'
 							>
-								<div className='mb-4 h-5 w-1/4 animate-pulse rounded bg-bg-elevated/40' />
+								<Skeleton className='mb-4 h-5 w-1/4' />
 								<div className='space-y-4'>
 									<div className='flex items-center justify-between'>
-										<div className='h-4 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
-										<div className='h-6 w-11 animate-pulse rounded-full bg-bg-elevated/40' />
+										<Skeleton className='h-4 w-1/3' />
+										<Skeleton className='h-6 w-11 rounded-full' />
 									</div>
 									<div className='flex items-center justify-between'>
-										<div className='h-4 w-2/5 animate-pulse rounded bg-bg-elevated/40' />
-										<div className='h-6 w-11 animate-pulse rounded-full bg-bg-elevated/40' />
+										<Skeleton className='h-4 w-2/5' />
+										<Skeleton className='h-6 w-11 rounded-full' />
 									</div>
 								</div>
 							</div>
@@ -917,8 +920,8 @@ export default function SettingsPage() {
 				{/* Header - Unified icon-box pattern */}
 				<PageHeader
 					icon={Settings}
-					title="Settings"
-					subtitle="Customize your ChefKix experience"
+					title={t('title')}
+					subtitle={t('subtitle')}
 					gradient="gray"
 					iconAnimation={{ rotate: 45 }}
 				/>
@@ -937,8 +940,8 @@ export default function SettingsPage() {
 							return (
 								<motion.button
 									key={tab.id}
-									whileHover={{ x: 4 }}
-									whileTap={{ scale: 0.98 }}
+									whileHover={NAV_ITEM_HOVER}
+									whileTap={LIST_ITEM_TAP}
 									onClick={() => setActiveTab(tab.id)}
 									className={cn(
 										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all',
@@ -954,7 +957,7 @@ export default function SettingsPage() {
 										)}
 									/>
 									<div className='hidden lg:block'>
-										<p className='text-sm'>{tab.label}</p>
+										<p className='text-sm'>{t(tab.labelKey)}</p>
 									</div>
 								</motion.button>
 							)
@@ -963,16 +966,20 @@ export default function SettingsPage() {
 						{/* Divider + Sign Out */}
 						<div className='my-1 h-px bg-border-subtle' />
 						<motion.button
-							whileHover={isLoggingOut ? {} : { x: 4 }}
-							whileTap={isLoggingOut ? {} : { scale: 0.98 }}
+							whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
+							whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
 							onClick={handleLogout}
 							disabled={isLoggingOut}
 							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full disabled:opacity-50'
 						>
-							<LogOut className='size-5 flex-shrink-0' />
+							{isLoggingOut ? (
+								<Loader2 className='size-5 flex-shrink-0 animate-spin' />
+							) : (
+								<LogOut className='size-5 flex-shrink-0' />
+							)}
 							<div className='hidden lg:block'>
 								<p className='text-sm font-medium'>
-									{isLoggingOut ? 'Signing out...' : 'Sign Out'}
+									{isLoggingOut ? t('signingOut') : t('signOut')}
 								</p>
 							</div>
 						</motion.button>
@@ -997,13 +1004,13 @@ export default function SettingsPage() {
 									className='space-y-6'
 								>
 									<SettingsCard
-										title='Profile Information'
-										description='This is how others see you on ChefKix'
+										title={t('profileInfo')}
+										description={t('profileInfoDesc')}
 									>
 										<div className='space-y-4'>
 											{/* Cover Photo Upload */}
 											<div className='grid gap-2'>
-												<Label id='settings-cover-label'>Cover Photo</Label>
+												<Label id='settings-cover-label'>{t('coverPhoto')}</Label>
 												<div
 													className='relative'
 													aria-labelledby='settings-cover-label'
@@ -1019,6 +1026,7 @@ export default function SettingsPage() {
 																src={coverImageUrl}
 																alt='Cover'
 																fill
+																sizes='100vw'
 																className='object-cover'
 															/>
 														) : (
@@ -1058,7 +1066,7 @@ export default function SettingsPage() {
 
 											{/* Avatar Upload */}
 											<div className='grid gap-2'>
-												<Label id='settings-avatar-label'>Profile Photo</Label>
+												<Label id='settings-avatar-label'>{t('profilePhoto')}</Label>
 												<div
 													className='flex items-center gap-4'
 													aria-labelledby='settings-avatar-label'
@@ -1074,6 +1082,7 @@ export default function SettingsPage() {
 																src={avatarUrl}
 																alt='Avatar'
 																fill
+																sizes='80px'
 																className='object-cover'
 															/>
 														) : (
@@ -1097,10 +1106,10 @@ export default function SettingsPage() {
 															disabled={isUploadingAvatar}
 														>
 															<Camera className='size-4' />
-															{avatarUrl ? 'Change Photo' : 'Upload Photo'}
+															{avatarUrl ? t('changePhoto') : t('uploadPhoto')}
 														</Button>
 														<p className='text-xs text-text-muted'>
-															Square image, max 5MB
+															{t('photoHint')}
 														</p>
 													</div>
 													<input
@@ -1114,16 +1123,16 @@ export default function SettingsPage() {
 											</div>
 
 											<div className='grid gap-2'>
-												<Label htmlFor='displayName'>Display Name</Label>
+												<Label htmlFor='displayName'>{t('displayName')}</Label>
 												<Input
 													id='displayName'
 													value={displayName}
 													onChange={e => setDisplayName(e.target.value)}
-													placeholder='Your display name'
+													placeholder={t('displayNamePlaceholder')}
 												/>
 											</div>
 											<div className='grid gap-2'>
-												<Label htmlFor='email'>Email</Label>
+												<Label htmlFor='email'>{t('emailLabel')}</Label>
 												<Input
 													id='email'
 													value={user?.email || ''}
@@ -1131,25 +1140,25 @@ export default function SettingsPage() {
 													className='bg-bg-elevated'
 												/>
 												<p className='text-xs text-text-muted'>
-													Email cannot be changed in-app.
+													{t('emailCannotChange')}
 												</p>
 												<a
 													href='mailto:support@chefkix.com?subject=Email%20Change%20Request'
 													className='inline-flex w-fit items-center text-xs font-semibold text-brand hover:underline'
 												>
-													Need to change it? Contact support.
+													{t('contactSupport')}
 												</a>
 											</div>
 											<div className='grid gap-2'>
-												<Label htmlFor='bio'>Bio</Label>
+												<Label htmlFor='bio'>{t('bio')}</Label>
 												<Textarea
 													id='bio'
 													value={bio}
 													onChange={e => setBio(e.target.value)}
-													placeholder='Tell us about yourself...'
+													placeholder={t('bioPlaceholder')}
 													maxLength={160}
 												/>
-												<p className='text-xs text-text-muted text-right'>
+												<p className={cn('tabular-nums text-xs text-right', bio.length >= 160 ? 'font-semibold text-error' : bio.length > 128 ? 'text-warning' : 'text-text-muted')}>
 													{bio.length}/160
 												</p>
 											</div>
@@ -1165,15 +1174,15 @@ export default function SettingsPage() {
 													<Save className='mr-2 size-4' />
 												)}
 												{isUploadingAvatar || isUploadingCover
-													? 'Uploading...'
-													: 'Save Profile'}
+													? t('uploading')
+													: t('saveProfile')}
 											</Button>
 										</div>
 									</SettingsCard>
 
 									<SettingsCard
-										title='Account Security'
-										description='Change your password'
+										title={t('accountSecurity')}
+										description={t('accountSecurityDesc')}
 									>
 										{!showPasswordForm ? (
 											<Button
@@ -1182,18 +1191,18 @@ export default function SettingsPage() {
 												onClick={() => setShowPasswordForm(true)}
 											>
 												<Shield className='mr-2 size-4' />
-												Change Password
+												{t("changePassword")}
 											</Button>
 										) : (
 											<div className='space-y-4'>
 												<div className='space-y-2'>
-													<Label htmlFor='oldPassword'>Current Password</Label>
+													<Label htmlFor='oldPassword'>{t('currentPassword')}</Label>
 													<Input
 														id='oldPassword'
 														type='password'
 														value={oldPassword}
 														onChange={e => setOldPassword(e.target.value)}
-														placeholder='Enter current password'
+														placeholder={t('currentPasswordPlaceholder')}
 														autoComplete='current-password'
 													/>
 												</div>
@@ -1204,7 +1213,7 @@ export default function SettingsPage() {
 														type='password'
 														value={newPassword}
 														onChange={e => setNewPassword(e.target.value)}
-														placeholder='At least 8 characters'
+														placeholder={t('newPasswordPlaceholder')}
 														autoComplete='new-password'
 													/>
 												</div>
@@ -1215,12 +1224,12 @@ export default function SettingsPage() {
 														type='password'
 														value={confirmPassword}
 														onChange={e => setConfirmPassword(e.target.value)}
-														placeholder='Repeat new password'
+														placeholder={t('confirmPasswordPlaceholder')}
 														autoComplete='new-password'
 													/>
 												</div>
 												{newPassword && confirmPassword && newPassword !== confirmPassword && (
-													<p className='text-xs text-destructive'>Passwords do not match</p>
+													<p className='text-xs text-destructive'>{t("passwordsDoNotMatch")}</p>
 												)}
 												<div className='flex gap-2'>
 													<Button
@@ -1256,7 +1265,7 @@ export default function SettingsPage() {
 														) : (
 															<Save className='mr-2 size-4' />
 														)}
-														{isChangingPassword ? 'Changing...' : 'Update Password'}
+														{isChangingPassword ? t('changingPassword') : t('updatePassword')}
 													</Button>
 													<Button
 														variant='outline'
@@ -1276,17 +1285,17 @@ export default function SettingsPage() {
 
 									{/* Data & Account Management */}
 									<SettingsCard
-										title='Your Data'
-										description='Download or manage your personal data'
+										title={t('yourData')}
+										description={t('yourDataDesc')}
 									>
 										<div className='space-y-4'>
 											<div className='flex items-center justify-between'>
 												<div>
 													<p className='text-sm font-medium text-text'>
-														Export Your Data
+														{t('exportYourData')}
 													</p>
 													<p className='text-xs text-text-secondary'>
-														Download all your personal data as JSON
+														{t('exportDataDesc')}
 													</p>
 												</div>
 												<Button
@@ -1301,8 +1310,8 @@ export default function SettingsPage() {
 														<Download className='mr-2 size-4' />
 													)}
 													{isExportingData
-														? 'Exporting...'
-														: 'Export Data'}
+														? t('exporting')
+														: t('exportData')}
 												</Button>
 											</div>
 										</div>
@@ -1310,13 +1319,13 @@ export default function SettingsPage() {
 
 									{/* Danger Zone */}
 									<SettingsCard
-										title='Danger Zone'
-										description='Irreversible account actions'
+										title={t('dangerZone')}
+										description={t('dangerZoneDesc')}
 										className='border-error/30'
 									>
 										<div className='space-y-4'>
 											<p className='text-sm text-text-secondary'>
-												Deleting your account will permanently remove your
+												{t("deleteWarning")}
 												profile, statistics, and social connections. Your posts
 												will show as &quot;Deleted User&quot;. This action
 												cannot be undone.
@@ -1330,12 +1339,12 @@ export default function SettingsPage() {
 													}
 												>
 													<Trash2 className='mr-2 size-4' />
-													Delete Account
+													{t("deleteAccount")}
 												</Button>
 											) : (
 												<div className='space-y-3 rounded-radius border border-error/30 bg-error/5 p-4'>
 													<p className='text-sm font-medium text-error'>
-														Type DELETE to confirm account deletion
+														{t("deleteConfirmInstruction")}
 													</p>
 													<Input
 														value={deleteConfirmText}
@@ -1344,7 +1353,7 @@ export default function SettingsPage() {
 																e.target.value,
 															)
 														}
-														placeholder='Type DELETE'
+														placeholder={t('deleteConfirmPlaceholder')}
 														className='max-w-xs'
 													/>
 													<div className='flex gap-2'>
@@ -1372,7 +1381,7 @@ export default function SettingsPage() {
 															className='bg-error text-white hover:bg-error/90 disabled:opacity-50'
 														>
 															<Trash2 className='mr-2 size-4' />
-															Permanently Delete
+															{t('permanentlyDelete')}
 														</Button>
 													</div>
 												</div>
@@ -1391,8 +1400,8 @@ export default function SettingsPage() {
 									className='space-y-6'
 								>
 									<SettingsCard
-										title='Profile Visibility'
-										description='Control who can see your profile and content'
+										title={t('profileVisibility')}
+										description={t('profileVisibilityDesc')}
 									>
 										<div className='space-y-4'>
 											<div
@@ -1403,10 +1412,10 @@ export default function SettingsPage() {
 													id='settings-visibility-label'
 													className='mb-3 block'
 												>
-													Who can see your profile?
+													{t('whoCanSeeProfile')}
 												</Label>
 												<ButtonGroup
-													options={VISIBILITY_OPTIONS}
+													options={VISIBILITY_OPTIONS.map(o => ({ ...o, label: t(o.labelKey) }))}
 													value={settings.privacy.profileVisibility}
 													onChange={v =>
 														handleUpdatePrivacy({ profileVisibility: v })
@@ -1421,10 +1430,10 @@ export default function SettingsPage() {
 													id='settings-messaging-label'
 													className='mb-3 block'
 												>
-													Who can message you?
+													{t('whoCanMessage')}
 												</Label>
 												<ButtonGroup
-													options={MESSAGE_OPTIONS}
+													options={MESSAGE_OPTIONS.map(o => ({ ...o, label: t(o.labelKey) }))}
 													value={settings.privacy.allowMessagesFrom}
 													onChange={v =>
 														handleUpdatePrivacy({ allowMessagesFrom: v })
@@ -1434,11 +1443,11 @@ export default function SettingsPage() {
 										</div>
 									</SettingsCard>
 
-									<SettingsCard title='Privacy Toggles'>
+									<SettingsCard title={t('privacyToggles')}>
 										<div>
 											<ToggleRow
-												label='Show on Leaderboard'
-												description='Appear in global rankings'
+												label={t('showOnLeaderboard')}
+												description={t('showOnLeaderboardDesc')}
 												icon={Trophy}
 												checked={settings.privacy.showOnLeaderboard}
 												onCheckedChange={checked =>
@@ -1446,8 +1455,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Allow Followers'
-												description='Let others follow your cooking journey'
+												label={t('allowFollowers')}
+												description={t('allowFollowersDesc')}
 												icon={Users}
 												checked={settings.privacy.allowFollowers}
 												onCheckedChange={checked =>
@@ -1455,8 +1464,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Show Cooking Activity'
-												description='Auto-share when you finish cooking & show activity status'
+												label={t('showCookingActivity')}
+												description={t('showCookingActivityDesc')}
 												icon={ChefHat}
 												checked={settings.privacy.showCookingActivity}
 												onCheckedChange={checked =>
@@ -1468,13 +1477,13 @@ export default function SettingsPage() {
 
 									{/* Data & Analytics Card */}
 									<SettingsCard
-										title='Data & Analytics'
-										description='Control how your data is used'
+										title={t('dataAndAnalytics')}
+										description={t('dataAndAnalyticsDesc')}
 									>
 										<div>
 											<ToggleRow
-												label='Usage Analytics'
-												description='Help improve ChefKix by sharing anonymous usage data'
+												label={t('usageAnalytics')}
+												description={t('usageAnalyticsDesc')}
 												icon={Eye}
 												checked={!isTrackingOptedOut()}
 												onCheckedChange={checked => {
@@ -1499,13 +1508,13 @@ export default function SettingsPage() {
 									className='space-y-6'
 								>
 									<SettingsCard
-										title='Email Notifications'
-										description='Choose what emails you receive'
+										title={t('emailNotifications')}
+										description={t('emailNotificationsDesc')}
 									>
 										<div>
 											<ToggleRow
-												label='Weekly Digest'
-												description='Summary of your activity'
+												label={t('weeklyDigest')}
+												description={t('weeklyDigestDesc')}
 												icon={Mail}
 												checked={settings.notifications.email.weeklyDigest}
 												onCheckedChange={checked =>
@@ -1518,8 +1527,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='New Follower'
-												description='When someone follows you'
+												label={t('newFollower')}
+												description={t('newFollowerDesc')}
 												icon={Users}
 												checked={settings.notifications.email.newFollower}
 												onCheckedChange={checked =>
@@ -1532,8 +1541,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Recipe Milestones'
-												description='When your recipe hits 10/50/100 cooks'
+												label={t('recipeMilestones')}
+												description={t('recipeMilestonesDesc')}
 												icon={Trophy}
 												checked={settings.notifications.email.recipeMilestone}
 												onCheckedChange={checked =>
@@ -1549,13 +1558,13 @@ export default function SettingsPage() {
 									</SettingsCard>
 
 									<SettingsCard
-										title='In-App Notifications'
-										description='Bell notifications within ChefKix'
+										title={t('inAppNotifications')}
+										description={t('inAppNotificationsDesc')}
 									>
 										<div>
 											<ToggleRow
-												label='XP & Level Ups'
-												description='Progress notifications'
+												label={t('xpAndLevelUps')}
+												description={t('xpAndLevelUpsDesc')}
 												icon={Sparkles}
 												checked={settings.notifications.inApp.xpAndLevelUps}
 												onCheckedChange={checked =>
@@ -1568,8 +1577,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Badges'
-												description='Badge unlock notifications'
+												label={t('badges')}
+												description={t('badgesDesc')}
 												icon={Trophy}
 												checked={settings.notifications.inApp.badges}
 												onCheckedChange={checked =>
@@ -1582,8 +1591,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Social Activity'
-												description='Likes and comments'
+												label={t('socialActivity')}
+												description={t('socialActivityDesc')}
 												icon={MessageSquare}
 												checked={settings.notifications.inApp.social}
 												onCheckedChange={checked =>
@@ -1596,8 +1605,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='New Followers'
-												description='When someone follows you'
+												label={t('newFollowers')}
+												description={t('newFollowerDesc')}
 												icon={Users}
 												checked={settings.notifications.inApp.followers}
 												onCheckedChange={checked =>
@@ -1610,8 +1619,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Post Reminders'
-												description='Remind to post cooking attempts'
+												label={t('postReminders')}
+												description={t('postRemindersDesc')}
 												icon={Clock}
 												checked={settings.notifications.inApp.postDeadline}
 												onCheckedChange={checked =>
@@ -1624,8 +1633,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Streak Warnings'
-												description='Before your streak expires'
+												label={t('streakWarnings')}
+												description={t('streakWarningsDesc')}
 												icon={AlertTriangle}
 												checked={settings.notifications.inApp.streakWarning}
 												onCheckedChange={checked =>
@@ -1638,8 +1647,8 @@ export default function SettingsPage() {
 												}
 											/>
 											<ToggleRow
-												label='Daily Challenge'
-												description='Todays challenge notification'
+												label={t('dailyChallenge')}
+												description={t('dailyChallengeDesc')}
 												icon={ChefHat}
 												checked={settings.notifications.inApp.dailyChallenge}
 												onCheckedChange={checked =>
@@ -1655,18 +1664,18 @@ export default function SettingsPage() {
 									</SettingsCard>
 
 									<SettingsCard
-										title='Push Notifications'
-										description='Mobile and browser notifications'
+										title={t('pushNotifications')}
+										description={t('pushNotificationsDesc')}
 									>
 										<div>
 											<ToggleRow
-												label='Enable Push Notifications'
+												label={t('enablePush')}
 												description={
 													!isNotificationSupported()
-														? 'Not supported in this browser'
+														? t('pushNotSupported')
 														: getNotificationPermission() === 'denied'
-															? 'Blocked by browser — reset in browser settings'
-															: 'Receive notifications even when not using ChefKix'
+															? t('pushBlocked')
+															: t('pushDefault')
 												}
 												icon={Smartphone}
 												checked={settings.notifications.push.enabled}
@@ -1680,7 +1689,7 @@ export default function SettingsPage() {
 															await requestNotificationPermission()
 														if (permission !== 'granted') {
 															toast.error(
-																'Notification permission was not granted',
+																t('pushPermissionDenied'),
 															)
 															return
 														}
@@ -1702,8 +1711,8 @@ export default function SettingsPage() {
 												}}
 											/>
 											<ToggleRow
-												label='Timer Alerts'
-												description='When cooking timers complete'
+												label={t('timerAlerts')}
+												description={t('timerAlertsDesc')}
 												icon={Timer}
 												checked={settings.notifications.push.timerAlerts}
 												onCheckedChange={checked => {
@@ -1730,19 +1739,19 @@ export default function SettingsPage() {
 									className='space-y-6'
 								>
 									<SettingsCard
-										title='Skill Level'
-										description='This helps us recommend appropriate recipes'
+										title={t('skillLevel')}
+										description={t('skillLevelDesc')}
 									>
 										<ButtonGroup
-											options={SKILL_LEVELS}
+											options={SKILL_LEVELS.map(o => ({ ...o, label: t(o.labelKey) }))}
 											value={settings.cooking.skillLevel}
 											onChange={v => handleUpdateCooking({ skillLevel: v })}
 										/>
 									</SettingsCard>
 
 									<SettingsCard
-										title='Dietary Restrictions'
-										description='We will filter recipes based on your diet'
+										title={t('dietaryRestrictions')}
+										description={t('dietaryRestrictionsDesc')}
 									>
 										<ChipSelect
 											options={DIETARY_OPTIONS}
@@ -1759,8 +1768,8 @@ export default function SettingsPage() {
 									</SettingsCard>
 
 									<SettingsCard
-										title='Allergies'
-										description='We will warn you about recipes containing these'
+										title={t('allergies')}
+										description={t('allergiesDesc')}
 									>
 										<ChipSelect
 											options={ALLERGY_OPTIONS}
@@ -1786,8 +1795,8 @@ export default function SettingsPage() {
 									</SettingsCard>
 
 									<SettingsCard
-										title='Preferred Cuisines'
-										description='We will prioritize these in your feed'
+										title={t('preferredCuisines')}
+										description={t('preferredCuisinesDesc')}
 									>
 										<ChipSelect
 											options={CUISINE_OPTIONS}
@@ -1803,10 +1812,10 @@ export default function SettingsPage() {
 										/>
 									</SettingsCard>
 
-									<SettingsCard title='Cuisine Preferences'>
+									<SettingsCard title={t('cuisinePreferences')}>
 										<div className='space-y-4'>
 											<p className='text-sm text-text-secondary'>
-												Your selected cuisines help us personalize your recipe feed and recommendations.
+												{t('cuisinePreferencesInfo')}
 											</p>
 											{user?.preferences && user.preferences.length > 0 ? (
 												<div className='flex flex-wrap gap-2'>
@@ -1821,31 +1830,31 @@ export default function SettingsPage() {
 												</div>
 											) : (
 												<p className='text-sm text-text-muted italic'>
-													No preferences set yet
+													{t('noPreferencesYet')}
 												</p>
 											)}
 											<motion.button
 												onClick={() => setShowInterestPicker(true)}
-												whileHover={{ scale: 1.02 }}
-												whileTap={{ scale: 0.98 }}
+												whileHover={LIST_ITEM_HOVER}
+												whileTap={LIST_ITEM_TAP}
 												className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
 											>
 												<Sparkles className='size-4' />
 												{user?.preferences && user.preferences.length > 0 
-													? 'Edit Cuisine Preferences' 
-													: 'Set Cuisine Preferences'}
+													? t('editCuisinePreferences') 
+													: t('setCuisinePreferences')}
 											</motion.button>
 										</div>
 									</SettingsCard>
 
-									<SettingsCard title='Cooking Preferences'>
+									<SettingsCard title={t('cookingPreferences')}>
 										<div className='space-y-6'>
 											<div>
 												<Label
 													htmlFor='settings-default-servings'
 													className='mb-3 block'
 												>
-													Default Servings
+													{t('defaultServings')}
 												</Label>
 												<div className='flex items-center gap-4'>
 													<Input
@@ -1871,7 +1880,7 @@ export default function SettingsPage() {
 													htmlFor='settings-max-cooking-time'
 													className='mb-3 block'
 												>
-													Max Cooking Time
+													{t('maxCookingTime')}
 												</Label>
 												<div className='flex items-center gap-4'>
 													<Input
@@ -1891,23 +1900,23 @@ export default function SettingsPage() {
 														className='w-24'
 													/>
 													<span className='text-sm text-text-secondary'>
-														minutes (leave empty for no limit)
+														{t('maxCookingTimeHint')}
 													</span>
 												</div>
 											</div>
 											<div role='group' aria-labelledby='settings-units-label'>
 												<Label id='settings-units-label' className='mb-3 block'>
-													Measurement Units
+													{t('measurementUnits')}
 												</Label>
 												<ButtonGroup
 													options={[
 														{
 															value: 'metric' as MeasurementUnits,
-															label: 'Metric (g, ml)',
+															label: t('metric'),
 														},
 														{
 															value: 'imperial' as MeasurementUnits,
-															label: 'Imperial (oz, cups)',
+															label: t('imperial'),
 														},
 													]}
 													value={settings.cooking.measurementUnits}
@@ -1945,15 +1954,15 @@ export default function SettingsPage() {
 									className='space-y-6'
 								>
 									<SettingsCard
-										title='Creator Verification'
-										description='Get the verified badge next to your name'
+										title={t('creatorVerification')}
+										description={t('creatorVerificationDesc')}
 									>
 										<div className='space-y-4'>
 											{verificationStatus ? (
 												<div className='space-y-3'>
 													<div className='flex items-center gap-2'>
 														<span className='text-sm font-medium text-text-secondary'>
-															Status:
+															{t('statusLabel')}
 														</span>
 														<span
 															className={cn(
@@ -1973,45 +1982,44 @@ export default function SettingsPage() {
 														<div className='flex items-center gap-2 rounded-lg bg-success/5 p-3'>
 															<BadgeCheck className='size-5 text-info' />
 															<p className='text-sm font-medium text-success'>
-																You&apos;re a verified creator!
+																{t('verifiedSuccess')}
 															</p>
 														</div>
 													)}
 													{verificationStatus.status === 'REJECTED' &&
 														verificationStatus.adminNotes && (
 															<p className='text-sm text-text-secondary'>
-																<span className='font-medium'>Feedback:</span>{' '}
+																<span className='font-medium'>{t('feedbackLabel')}</span>{' '}
 																{verificationStatus.adminNotes}
 															</p>
 														)}
 													{verificationStatus.status === 'PENDING' && (
 														<p className='text-sm text-text-muted'>
-															Your application is being reviewed. This usually
-															takes 1-3 business days.
+															{t('verificationPending')}
 														</p>
 													)}
 												</div>
 											) : (
 												<div className='space-y-4'>
 													<p className='text-sm leading-relaxed text-text-secondary'>
-														The verified badge shows you&apos;re a recognized
+														{t('verificationInfo')}
 														creator. Share recipes, build your following, and
 														apply when you&apos;re ready.
 													</p>
 													<div>
 														<Label className='mb-1.5 block text-sm font-medium'>
-															Why should you be verified? (optional)
+															{t('whyVerified')}
 														</Label>
 														<Textarea
 															value={verificationReason}
 															onChange={e =>
 																setVerificationReason(e.target.value)
 															}
-															placeholder='Tell us about your cooking journey, content, or community presence...'
+															placeholder={t('whyVerifiedPlaceholder')}
 															className='min-h-20 resize-none'
 															maxLength={500}
 														/>
-														<p className='mt-1 text-right text-xs text-text-muted'>
+														<p className={cn('mt-1 tabular-nums text-right text-xs', verificationReason.length >= 500 ? 'font-semibold text-error' : verificationReason.length > 400 ? 'text-warning' : 'text-text-muted')}>
 															{verificationReason.length}/500
 														</p>
 													</div>
@@ -2024,7 +2032,7 @@ export default function SettingsPage() {
 																)
 																if (res.success && res.data) {
 																	setVerificationStatus(res.data)
-																	toast.success('Application submitted!')
+																	toast.success(t('applicationSubmitted'))
 																} else {
 																	toast.error(
 																		res.message ||
@@ -2032,7 +2040,7 @@ export default function SettingsPage() {
 																	)
 																}
 															} catch {
-																toast.error('Something went wrong')
+																toast.error(t('verificationFailed'))
 															} finally {
 																setVerificationLoading(false)
 															}
@@ -2045,7 +2053,7 @@ export default function SettingsPage() {
 														) : (
 															<BadgeCheck className='mr-2 size-4' />
 														)}
-														Apply for Verification
+														{t('applyForVerification')}
 													</Button>
 												</div>
 											)}
@@ -2063,8 +2071,8 @@ export default function SettingsPage() {
 									className='space-y-6'
 								>
 									<SettingsCard
-										title='Theme'
-										description='Choose your visual theme.'
+										title={t('theme')}
+										description={t('themeDesc')}
 									>
 										<div className='flex gap-3'>
 											{(
@@ -2072,21 +2080,22 @@ export default function SettingsPage() {
 													{
 														mode: 'light' as ThemeMode,
 														icon: Sun,
-														label: 'Light',
+														label: t('themeLight'),
 													},
 													{
 														mode: 'dark' as ThemeMode,
 														icon: Moon,
-														label: 'Dark',
+														label: t('themeDark'),
 													},
 													{
 														mode: 'system' as ThemeMode,
 														icon: Monitor,
-														label: 'System',
+														label: t('themeSystem'),
 													},
 												] as const
 											).map(({ mode, icon: ThemeIcon, label }) => (
 												<button
+													type='button'
 													key={mode}
 													onClick={() => setTheme(mode)}
 													className={cn(
@@ -2108,8 +2117,8 @@ export default function SettingsPage() {
 									<SettingsCard title='Sound & Motion'>
 										<div>
 											<ToggleRow
-												label='Sound Effects'
-												description='Timer dings, XP sounds, celebrations'
+												label={t('soundEffects')}
+												description={t('soundEffectsDesc')}
 												icon={Volume2}
 												checked={settings.app.soundEffects}
 												onCheckedChange={checked => {
@@ -2123,10 +2132,10 @@ export default function SettingsPage() {
 													<Timer className='size-4 text-text-secondary' />
 													<div>
 														<p className='text-sm font-medium text-text'>
-															Timer Notification Sound
+															{t('timerNotificationSound')}
 														</p>
 														<p className='text-xs text-text-secondary'>
-															Preview the sound that plays when timers complete
+															{t('timerNotificationSoundDesc')}
 														</p>
 													</div>
 												</div>
@@ -2136,12 +2145,12 @@ export default function SettingsPage() {
 													onClick={() => {
 														if (!settings?.app.soundEffects) {
 															toast.info(
-																'Sound effects are disabled. Enable them above to hear the timer.',
+																t('soundDisabledHint'),
 															)
 															return
 														}
 														playTimerChime()
-														toast.success('🔔 Timer sound played!')
+														toast.success(t('timerSoundPlayed'))
 													}}
 													className='shrink-0'
 												>
@@ -2150,8 +2159,8 @@ export default function SettingsPage() {
 												</Button>
 											</div>
 											<ToggleRow
-												label='Reduced Motion'
-												description='Disable animations for accessibility'
+												label={t('reducedMotion')}
+												description={t('reducedMotionDesc')}
 												icon={Eye}
 												checked={settings.app.reducedMotion}
 												onCheckedChange={checked => {
@@ -2160,8 +2169,8 @@ export default function SettingsPage() {
 												}}
 											/>
 											<ToggleRow
-												label='Auto-play Videos'
-												description='Automatically play recipe step videos'
+												label={t('autoPlayVideos')}
+												description={t('autoPlayVideosDesc')}
 												icon={Smartphone}
 												checked={settings.app.autoPlayVideos}
 												onCheckedChange={checked =>
@@ -2171,11 +2180,11 @@ export default function SettingsPage() {
 										</div>
 									</SettingsCard>
 
-									<SettingsCard title='Cooking Session'>
+									<SettingsCard title={t('cookingSession')}>
 										<div>
 											<ToggleRow
-												label='Keep Screen On'
-												description='Prevent screen sleep during cooking'
+												label={t('keepScreenOn')}
+												description={t('keepScreenOnDesc')}
 												icon={Smartphone}
 												checked={settings.app.keepScreenOn}
 												onCheckedChange={checked =>

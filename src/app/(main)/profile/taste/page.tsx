@@ -26,7 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/useAuth'
 import { getCookingPreferences } from '@/services/settings'
 import { getTasteProfile } from '@/services/post'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, CARD_FEATURED_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import type { CookingPreferences } from '@/lib/types/settings'
 import type { Profile, Statistics } from '@/lib/types/profile'
 import type { TasteProfileResponse } from '@/lib/types/social'
@@ -537,7 +537,7 @@ export default function TasteProfilePage() {
 					>
 						<Link href='/profile/year-in-cooking'>
 							<motion.div
-								whileHover={{ scale: 1.01 }}
+								whileHover={CARD_FEATURED_HOVER}
 								whileTap={BUTTON_SUBTLE_TAP}
 								className='group flex items-center gap-4 rounded-2xl border border-border-subtle bg-gradient-to-r from-brand/5 to-gaming-xp/5 p-5 shadow-card transition-all hover:shadow-warm'
 							>

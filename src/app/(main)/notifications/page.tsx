@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
@@ -23,6 +24,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -307,15 +309,16 @@ const FilterTabs = ({
 	onFilterChange,
 	counts,
 }: FilterTabsProps) => {
+	const t = useTranslations('notifications')
 	const filters: {
 		id: NotificationFilter
 		label: string
 		icon: typeof Bell
 	}[] = [
-		{ id: 'all', label: 'All', icon: Bell },
-		{ id: 'gamified', label: 'Activity', icon: Sparkles },
-		{ id: 'social', label: 'Social', icon: Heart },
-		{ id: 'unread', label: 'Unread', icon: Filter },
+		{ id: 'all', label: t('filterAll'), icon: Bell },
+		{ id: 'gamified', label: t('filterActivity'), icon: Sparkles },
+		{ id: 'social', label: t('filterSocial'), icon: Heart },
+		{ id: 'unread', label: t('filterUnread'), icon: Filter },
 	]
 
 	return (
@@ -342,7 +345,7 @@ const FilterTabs = ({
 						{count > 0 && (
 							<span
 								className={cn(
-									'rounded-full px-1.5 py-0.5 text-xs font-bold',
+									'tabular-nums rounded-full px-1.5 py-0.5 text-xs font-bold',
 									isActive ? 'bg-white/20' : 'bg-brand/10 text-brand',
 								)}
 							>
@@ -382,6 +385,7 @@ const SocialNotificationItem = ({
 }: SocialNotificationItemProps) => {
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
+	const t = useTranslations('notifications')
 	const { icon: Icon, color, bg } = getNotificationIcon(type)
 
 	const handleClick = () => {
@@ -389,21 +393,28 @@ const SocialNotificationItem = ({
 			onMarkRead(id)
 		}
 		// Navigate based on type — use targetEntityUrl first, then derive from type
+		let resolved = false
 		startNavigationTransition(() => {
 			if (targetEntityUrl) {
 				router.push(targetEntityUrl)
+				resolved = true
 			} else if (type === 'follow' && userId) {
 				router.push(`/${userId}`)
+				resolved = true
 			} else if (
 				(type === 'like' || type === 'comment' || type === 'mention') &&
 				targetEntityId
 			) {
 				router.push(`/post/${targetEntityId}`)
+				resolved = true
 			} else if (type === 'cook' || type === 'achievement') {
 				router.push('/dashboard')
+				resolved = true
 			}
 		})
-		// No fallback navigation for unresolvable notifications — mark as read is sufficient
+		if (!resolved) {
+			toast.error(t('navigationUnavailable'))
+		}
 	}
 
 	return (
@@ -480,6 +491,7 @@ const SocialNotificationItem = ({
 
 export default function NotificationsPage() {
 	const { user } = useAuth()
+	const t = useTranslations('notifications')
 	const router = useRouter()
 	const { setUnreadCount, fetchUnreadCount } = useNotificationStore()
 	const [isNavigating, startNavigationTransition] = useTransition()
@@ -565,11 +577,11 @@ export default function NotificationsPage() {
 				setSocialNotifications(prev => prev.map(n => ({ ...n, read: true })))
 				setUnreadCount(0)
 			} else {
-				toast.error('Failed to mark notifications as read')
+				toast.error(t('failedToMarkRead'))
 			}
 		} catch (err) {
 			logDevError('Failed to mark all as read:', err)
-			toast.error('Failed to mark notifications as read')
+			toast.error(t('failedToMarkRead'))
 		} finally {
 			setIsMarkingAllRead(false)
 		}
@@ -598,7 +610,7 @@ export default function NotificationsPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to mark notification as read:', err)
-			toast.error('Failed to update notification')
+			toast.error(t('failedToUpdate'))
 		}
 	}
 
@@ -634,8 +646,8 @@ export default function NotificationsPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<ErrorState
-						title='Failed to load notifications'
-						message="We couldn't load your notifications. Please try again."
+						title={t('failedToLoad')}
+						message={t('failedToLoadDesc')}
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)
@@ -660,7 +672,7 @@ export default function NotificationsPage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -670,8 +682,8 @@ export default function NotificationsPage() {
 			{/* Header - PRIMARY page (in LeftSidebar), no back button */}
 			<PageHeader
 				icon={Bell}
-				title="Notifications"
-				subtitle="Stay updated with your cooking journey"
+				title={t('title')}
+				subtitle={t('subtitle')}
 				gradient="blue"
 				marginBottom="md"
 				rightAction={
@@ -688,7 +700,7 @@ export default function NotificationsPage() {
 								) : (
 									<CheckCheck className='size-4' />
 								)}
-								Mark all read
+								{t('markAllRead')}
 							</Button>
 						) : null
 					}
@@ -711,12 +723,12 @@ export default function NotificationsPage() {
 								key={i}
 								className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
 							>
-								<div className='size-10 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+								<Skeleton className='size-10 shrink-0 rounded-full' />
 								<div className='flex-1 space-y-2'>
-									<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated/40' />
-									<div className='h-3 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
+									<Skeleton className='h-4 w-3/4' />
+									<Skeleton className='h-3 w-1/2' />
 								</div>
-								<div className='h-3 w-12 animate-pulse rounded bg-bg-elevated/40' />
+								<Skeleton className='h-3 w-12' />
 							</div>
 						))}
 					</div>
@@ -726,20 +738,20 @@ export default function NotificationsPage() {
 				{!isLoading && !hasNotifications && (
 					<EmptyState
 						variant='notifications'
-						title='No notifications yet'
+						title={t('noNotificationsYet')}
 						description={
 							activeFilter === 'unread'
-								? "You're all caught up! No unread notifications."
-								: 'Your notification feed will fill up as you cook and interact with others.'
+								? t('noUnread')
+								: t('noNotificationsDesc')
 						}
 						primaryAction={
 							activeFilter !== 'all'
 								? {
-										label: 'View All',
+										label: t('viewAll'),
 										onClick: () => setActiveFilter('all'),
 									}
 								: {
-										label: 'Explore Recipes',
+										label: t('exploreRecipes'),
 										href: '/explore',
 									}
 						}
@@ -761,7 +773,7 @@ export default function NotificationsPage() {
 									<div className='flex items-center gap-2 py-2'>
 										<Sparkles className='size-4 text-xp' />
 										<span className='text-sm font-semibold text-text-secondary'>
-											Activity
+											{t('activitySection')}
 										</span>
 									</div>
 								)}
@@ -796,7 +808,7 @@ export default function NotificationsPage() {
 									<div className='flex items-center gap-2 py-2'>
 										<Heart className='size-4 text-error' />
 										<span className='text-sm font-semibold text-text-secondary'>
-											Social
+											{t('socialSection')}
 										</span>
 									</div>
 								)}
@@ -812,6 +824,8 @@ export default function NotificationsPage() {
 						)}
 					</motion.div>
 				)}
+				{/* Bottom breathing room */}
+				<div className='pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

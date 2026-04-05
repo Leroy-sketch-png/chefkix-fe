@@ -1,4 +1,6 @@
-﻿'use client'
+'use client'
+
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
@@ -21,6 +23,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { DailyChallengeBanner } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
 	getTodaysChallenge,
 	getWeeklyChallenge,
@@ -52,6 +55,7 @@ const formatTimeRemaining = (dateStr: string): string => {
 // ============================================
 
 export default function ChallengesPage() {
+	const t = useTranslations('challenges')
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [dailyChallenge, setDailyChallenge] = useState<{
@@ -149,8 +153,8 @@ export default function ChallengesPage() {
 		return (
 			<PageContainer maxWidth='lg'>
 				<ErrorState
-					title='Failed to load challenges'
-					message='We could not load challenge data. Please try again.'
+					title={t('failedToLoad')}
+					message={t('failedToLoadDesc')}
 					onRetry={() => {
 						setError(false)
 						setRetryKey(k => k + 1)
@@ -183,8 +187,8 @@ export default function ChallengesPage() {
 				{/* Header */}
 				<PageHeader
 					icon={Trophy}
-					title="Challenges"
-					subtitle="Test your skills, earn bonus XP, and unlock exclusive badges!"
+					title={t("title")}
+					subtitle={t("subtitle")}
 					gradient="yellow"
 				/>
 
@@ -196,12 +200,12 @@ export default function ChallengesPage() {
 						{/* Daily challenge skeleton */}
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 							<div className='flex items-center gap-4'>
-								<div className='size-12 shrink-0 animate-pulse rounded-2xl bg-bg-elevated/40' />
+								<Skeleton className='size-12 shrink-0 rounded-2xl' />
 								<div className='flex-1 space-y-2'>
-									<div className='h-5 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
-									<div className='h-4 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+									<Skeleton className='h-5 w-1/3' />
+									<Skeleton className='h-4 w-2/3' />
 								</div>
-								<div className='h-8 w-20 animate-pulse rounded-full bg-bg-elevated/40' />
+								<Skeleton className='h-8 w-20 rounded-full' />
 							</div>
 						</div>
 						{/* Weekly + community skeletons */}
@@ -211,10 +215,10 @@ export default function ChallengesPage() {
 								className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
 							>
 								<div className='flex items-center gap-3'>
-									<div className='size-11 shrink-0 animate-pulse rounded-xl bg-bg-elevated/40' />
+									<Skeleton className='size-11 shrink-0 rounded-xl' />
 									<div className='flex-1 space-y-1.5'>
-										<div className='h-4 w-2/5 animate-pulse rounded bg-bg-elevated/40' />
-										<div className='size-3/5 animate-pulse rounded bg-bg-elevated/40' />
+										<Skeleton className='h-4 w-2/5' />
+										<Skeleton className='h-3 w-3/5' />
 									</div>
 								</div>
 							</div>
@@ -223,19 +227,19 @@ export default function ChallengesPage() {
 				) : hasNoChallenges ? (
 					<EmptyStateGamified
 						variant='challenges'
-						title='No Active Challenges Right Now'
-						description='New challenges drop daily! In the meantime, check your past challenges or explore recipes.'
+						title={t('noChallenges')}
+						description={t('noChallengesDesc')}
 						primaryAction={{
-							label: 'Refresh',
+							label: t('refresh'),
 							onClick: () => router.refresh(),
 						}}
 						secondaryActions={[
 							{
-								label: 'View History',
+								label: t('viewHistory'),
 								href: '/challenges/history',
 							},
 							{
-								label: 'Explore Recipes',
+								label: t('exploreRecipes'),
 								href: '/explore',
 							},
 						]}
@@ -261,7 +265,7 @@ export default function ChallengesPage() {
 						{weeklyChallenge && (
 							<section className='mb-8'>
 								<h2 className='mb-4 text-lg font-bold text-text-primary'>
-									Weekly Challenge
+									{t('weeklyChallenge')}
 								</h2>
 								<motion.div
 									initial={{ opacity: 0, y: 10 }}
@@ -289,7 +293,7 @@ export default function ChallengesPage() {
 											</span>
 											{weeklyChallenge.completed && (
 												<p className='text-xs font-semibold text-success'>
-													âœ“ +{weeklyChallenge.bonusXp} XP Awarded
+													âœ“ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
 												</p>
 											)}
 										</div>
@@ -339,6 +343,7 @@ export default function ChallengesPage() {
 										weeklyChallenge.matchingRecipes &&
 										weeklyChallenge.matchingRecipes.length > 0 && (
 											<button
+												type='button'
 												onClick={() =>
 													startNavigationTransition(() => {
 														router.push(
@@ -349,7 +354,7 @@ export default function ChallengesPage() {
 												disabled={isNavigating}
 												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 											>
-												Find Matching Recipes
+												{t("findMatchingRecipes")}
 												<ChevronRight className='size-4' />
 											</button>
 										)}
@@ -363,7 +368,7 @@ export default function ChallengesPage() {
 								<div className='mb-4 flex items-center gap-2'>
 									<Users className='size-5 text-combo' />
 									<h2 className='text-lg font-bold text-text'>
-										Community Challenges
+										{t("communityChallenges")}
 									</h2>
 								</div>
 								<div className='space-y-4'>
@@ -434,10 +439,11 @@ export default function ChallengesPage() {
 												</span>
 												{ch.hasContributed ? (
 													<span className='font-medium text-success'>
-														âœ“ You contributed
+														âœ“ {t('youContributed')}
 													</span>
 												) : (
 													<button
+														type='button'
 														onClick={() =>
 															startNavigationTransition(() => {
 																router.push(
@@ -448,7 +454,7 @@ export default function ChallengesPage() {
 														disabled={isNavigating}
 														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 													>
-														Cook to contribute!
+														{t('cookToContribute')}
 														<ChevronRight className='size-3.5' />
 													</button>
 												)}
@@ -465,7 +471,7 @@ export default function ChallengesPage() {
 								<div className='mb-4 flex items-center gap-2'>
 									<Leaf className='size-5 text-streak' />
 									<h2 className='text-lg font-bold text-text'>
-										Seasonal Events
+										{t("seasonalEvents")}
 									</h2>
 								</div>
 								<div className='space-y-4'>
@@ -567,6 +573,7 @@ export default function ChallengesPage() {
 												{ev.featuredRecipes &&
 													ev.featuredRecipes.length > 0 && (
 														<button
+															type='button'
 															onClick={() =>
 																startNavigationTransition(() => {
 																	router.push(`/explore?seasonal=${ev.id}`)
@@ -582,7 +589,7 @@ export default function ChallengesPage() {
 
 												{ev.userCompleted && (
 													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-														âœ“ +{ev.rewardXp} XP Awarded
+														âœ“ +{ev.rewardXp} {t('xpAwarded')}
 													</div>
 												)}
 											</div>
@@ -604,10 +611,10 @@ export default function ChallengesPage() {
 									</div>
 									<div>
 										<h3 className='font-semibold text-text'>
-											Challenge History
+											{t("challengeHistory")}
 										</h3>
 										<p className='text-sm text-text-muted'>
-											View your past challenges and achievements
+											{t("challengeHistoryDesc")}
 										</p>
 									</div>
 								</div>

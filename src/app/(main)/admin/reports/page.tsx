@@ -26,14 +26,15 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { useTranslations } from 'next-intl'
 
-const REASON_LABELS: Record<string, string> = {
-	fraud: 'Fraud',
-	spam: 'Spam',
-	inappropriate: 'Inappropriate',
-	harassment: 'Harassment',
-	copyright: 'Copyright',
-	other: 'Other',
+const REASON_LABEL_KEYS: Record<string, string> = {
+	fraud: 'reasonFraud',
+	spam: 'reasonSpam',
+	inappropriate: 'reasonInappropriate',
+	harassment: 'reasonHarassment',
+	copyright: 'reasonCopyright',
+	other: 'reasonOther',
 }
 
 const TARGET_ICONS: Record<string, typeof FileText> = {
@@ -45,18 +46,19 @@ const TARGET_ICONS: Record<string, typeof FileText> = {
 const STATUS_CONFIG: Record<
 	string,
 	{
-		label: string
+		labelKey: string
 		variant: 'default' | 'secondary' | 'destructive' | 'outline'
 		icon: typeof Clock
 	}
 > = {
-	pending: { label: 'Pending', variant: 'destructive', icon: Clock },
-	reviewed: { label: 'Reviewed', variant: 'secondary', icon: Eye },
-	resolved: { label: 'Resolved', variant: 'default', icon: CheckCircle },
-	dismissed: { label: 'Dismissed', variant: 'outline', icon: XCircle },
+	pending: { labelKey: 'statusPending', variant: 'destructive', icon: Clock },
+	reviewed: { labelKey: 'statusReviewed', variant: 'secondary', icon: Eye },
+	resolved: { labelKey: 'statusResolved', variant: 'default', icon: CheckCircle },
+	dismissed: { labelKey: 'statusDismissed', variant: 'outline', icon: XCircle },
 }
 
 export default function ReportsPage() {
+	const t = useTranslations('admin')
 	const [pendingReports, setPendingReports] = useState<Report[]>([])
 	const [allReports, setAllReports] = useState<Report[]>([])
 	const [loading, setLoading] = useState(true)
@@ -75,7 +77,7 @@ export default function ReportsPage() {
 			if (pendingRes.success) setPendingReports(pendingRes.data ?? [])
 			if (allRes.success) setAllReports(allRes.data ?? [])
 		} catch {
-			toast.error('Failed to load reports')
+			toast.error(t('toastLoadReportsFailed'))
 		} finally {
 			setLoading(false)
 		}
@@ -100,17 +102,17 @@ export default function ReportsPage() {
 			if (res.success) {
 				toast.success(
 					decision === 'resolved'
-						? 'Report resolved'
+						? t('toastResolved')
 						: decision === 'dismissed'
-							? 'Report dismissed'
-							: 'User banned & report resolved',
+							? t('toastDismissed')
+							: t('toastBanned'),
 				)
 				setExpandedId(null)
 				setReviewNotes('')
 				await fetchReports()
 			}
 		} catch {
-			toast.error('Failed to review report')
+			toast.error(t('toastReviewFailed'))
 		} finally {
 			setReviewingId(null)
 		}
@@ -122,8 +124,8 @@ export default function ReportsPage() {
 		<PageContainer maxWidth='2xl'>
 			<PageHeader
 				icon={AlertTriangle}
-				title='Reports'
-				subtitle='Review community reports and moderate content'
+				title={t('reportsTitle')}
+				subtitle={t('reportsSubtitle')}
 				gradient='orange'
 				marginBottom='md'
 			/>
@@ -131,14 +133,14 @@ export default function ReportsPage() {
 				<div className='mb-4 flex items-center justify-between'>
 					<TabsList>
 						<TabsTrigger value='pending'>
-							Pending
+							{t('tabPending')}
 							{pendingReports.length > 0 && (
 								<Badge variant='destructive' className='ml-2 text-xs'>
 									{pendingReports.length}
 								</Badge>
 							)}
 						</TabsTrigger>
-						<TabsTrigger value='all'>All Reports</TabsTrigger>
+						<TabsTrigger value='all'>{t('tabAllReports')}</TabsTrigger>
 					</TabsList>
 					<Button
 						variant='outline'
@@ -146,7 +148,7 @@ export default function ReportsPage() {
 						onClick={fetchReports}
 						disabled={loading}
 					>
-						Refresh
+						{t('refresh')}
 					</Button>
 				</div>
 
@@ -202,6 +204,7 @@ function ReportList({
 	onReview: (id: string, decision: ReviewDecision, banScope?: BanScope) => void
 	showActions: boolean
 }) {
+	const t = useTranslations('admin')
 	if (loading) {
 		return (
 			<div className='space-y-3'>
@@ -216,8 +219,8 @@ function ReportList({
 		return (
 			<div className='flex flex-col items-center gap-3 py-16 text-center'>
 				<CheckCircle className='size-12 text-success' />
-				<p className='text-sm font-medium text-text'>No reports to review</p>
-				<p className='text-xs text-text-muted'>All clear! Check back later.</p>
+				<p className='text-sm font-medium text-text'>{t('noReportsTitle')}</p>
+				<p className='text-xs text-text-muted'>{t('noReportsSubtitle')}</p>
 			</div>
 		)
 	}
@@ -249,24 +252,24 @@ function ReportList({
 								<div>
 									<div className='flex items-center gap-2'>
 										<span className='text-sm font-semibold text-text capitalize'>
-											{report.targetType} Report
+											{t('reportLabel', { type: report.targetType })}
 										</span>
 										<Badge
 											variant={statusConfig?.variant ?? 'outline'}
 											className='text-xs'
 										>
-											{statusConfig?.label ?? report.status}
+											{statusConfig?.labelKey ? t(statusConfig.labelKey) : report.status}
 										</Badge>
 									</div>
 									<p className='text-xs text-text-muted'>
-										Reason: {REASON_LABELS[report.reason] ?? report.reason}
+										{t('reasonLabel', { reason: REASON_LABEL_KEYS[report.reason] ? t(REASON_LABEL_KEYS[report.reason]) : report.reason })}
 										{' \u00b7 '}
 										{new Date(report.createdAt).toLocaleDateString()}
 									</p>
 								</div>
 							</div>
 							<div className='text-xs text-text-muted'>
-								ID: {report.targetId.slice(0, 8)}...
+								{t('idLabel', { id: report.targetId.slice(0, 8) + '...' })}
 							</div>
 						</div>
 
@@ -276,7 +279,7 @@ function ReportList({
 								<div className='grid grid-cols-2 gap-3 text-xs'>
 									<div>
 										<span className='font-medium text-text-muted'>
-											Reporter ID
+											{t('reporterIdLabel')}
 										</span>
 										<p className='mt-0.5 font-mono text-text'>
 											{report.reporterId}
@@ -284,7 +287,7 @@ function ReportList({
 									</div>
 									<div>
 										<span className='font-medium text-text-muted'>
-											Target ID
+											{t('targetIdLabel')}
 										</span>
 										<p className='mt-0.5 font-mono text-text'>
 											{report.targetId}
@@ -294,7 +297,7 @@ function ReportList({
 
 								{report.details && (
 									<div className='text-xs'>
-										<span className='font-medium text-text-muted'>Details</span>
+										<span className='font-medium text-text-muted'>{t('detailsLabel')}</span>
 										<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
 											{report.details}
 										</p>
@@ -305,7 +308,7 @@ function ReportList({
 									<div className='grid grid-cols-2 gap-3 text-xs'>
 										<div>
 											<span className='font-medium text-text-muted'>
-												Reviewed by
+											{t('reviewedByLabel')}
 											</span>
 											<p className='mt-0.5 font-mono text-text'>
 												{report.reviewedBy}
@@ -314,7 +317,7 @@ function ReportList({
 										{report.reviewedAt && (
 											<div>
 												<span className='font-medium text-text-muted'>
-													Reviewed at
+												{t('reviewedAtLabel')}
 												</span>
 												<p className='mt-0.5 text-text'>
 													{new Date(report.reviewedAt).toLocaleString()}
@@ -327,7 +330,7 @@ function ReportList({
 								{report.reviewNotes && (
 									<div className='text-xs'>
 										<span className='font-medium text-text-muted'>
-											Review notes
+										{t('reviewNotesLabel')}
 										</span>
 										<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
 											{report.reviewNotes}
@@ -341,7 +344,7 @@ function ReportList({
 										<textarea
 											value={reviewNotes}
 											onChange={e => setReviewNotes(e.target.value)}
-											placeholder='Review notes (optional)...'
+											placeholder={t('reviewNotesPlaceholder')}
 											maxLength={1000}
 											className='w-full resize-none rounded-lg border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
 											rows={2}
@@ -355,7 +358,7 @@ function ReportList({
 												className='gap-1.5'
 											>
 												<CheckCircle className='size-3.5' />
-												Resolve (Unhide)
+											{t('resolveUnhide')}
 											</Button>
 											<Button
 												size='sm'
@@ -365,7 +368,7 @@ function ReportList({
 												className='gap-1.5'
 											>
 												<XCircle className='size-3.5' />
-												Dismiss
+											{t('dismiss')}
 											</Button>
 											<Button
 												size='sm'
@@ -375,7 +378,7 @@ function ReportList({
 												className='gap-1.5'
 											>
 												<Ban className='size-3.5' />
-												Ban User
+											{t('banUser')}
 											</Button>
 										</div>
 									</div>

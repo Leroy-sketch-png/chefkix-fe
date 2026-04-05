@@ -24,6 +24,13 @@ export default function MainAppLayout({
 }) {
 	return (
 		<div className='flex h-screen w-full flex-col overflow-hidden bg-background'>
+			{/* Skip to main content — first focusable element for keyboard users */}
+			<a
+				href='#main-content'
+				className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-tooltip focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:text-white focus:shadow-lg'
+			>
+				Skip to main content
+			</a>
 			{/* Topbar fixed at top, spans full width */}
 			<ErrorBoundary>
 				<Topbar />

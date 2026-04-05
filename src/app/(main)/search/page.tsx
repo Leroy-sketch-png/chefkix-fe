@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useRef, useMemo, Suspense, useTransition } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -52,6 +53,7 @@ import { trackEvent, trackSearch } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { useAuthGate } from '@/hooks/useAuthGate'
 
@@ -171,6 +173,7 @@ function findSuggestion(query: string): string | null {
 const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
 	const requireAuth = useAuthGate()
+	const t = useTranslations('search')
 
 	const handleSave = async (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -182,14 +185,15 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 			const res = await toggleSaveRecipe(recipe.id)
 			if (res.success && res.data) {
 				setSaved(res.data.isSaved)
-				toast.success(res.data.isSaved ? 'Recipe saved' : 'Recipe unsaved')
+				if (res.data.isSaved) triggerSaveConfetti()
+				toast.success(res.data.isSaved ? t('recipeSaved') : t('recipeUnsaved'))
 			} else {
 				setSaved(prev)
-				toast.error('Failed to save recipe')
+				toast.error(t('failedToSave'))
 			}
 		} catch {
 			setSaved(prev)
-			toast.error('Failed to save recipe')
+			toast.error(t('failedToSave'))
 		}
 	}
 
@@ -208,6 +212,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 						src={recipe.imageUrl || '/placeholder-recipe.svg'}
 						alt={recipe.title}
 						fill
+						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
 					/>
 				</div>
@@ -220,7 +225,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 							onClick={handleSave}
 							whileHover={ICON_BUTTON_HOVER}
 							whileTap={ICON_BUTTON_TAP}
-							aria-label={saved ? 'Unsave recipe' : 'Save recipe'}
+							aria-label={saved ? t('unsaveRecipe') : t('saveRecipe')}
 							className={cn(
 								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
 								saved
@@ -266,7 +271,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 								@{recipe.author.username}
 							</span>
 						</div>
-						<span className='text-xs font-semibold text-text-secondary'>
+						<span className='tabular-nums text-xs font-semibold text-text-secondary'>
 							{recipe.cookCount >= 1000
 								? `${(recipe.cookCount / 1000).toFixed(1)}k cooks`
 								: `${recipe.cookCount} cooks`}
@@ -282,6 +287,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const [following, setFollowing] = useState(person.isFollowing)
 	const followLockRef = useRef(false)
 	const requireAuth = useAuthGate()
+	const t = useTranslations('search')
 
 	const handleFollow = async () => {
 		if (!requireAuth('follow this chef')) return
@@ -296,16 +302,16 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 				setFollowing(res.data.isFollowing)
 				toast.success(
 					res.data.isFollowing
-						? `Following @${person.username}`
-						: `Unfollowed @${person.username}`,
+						? t('nowFollowing', { username: person.username })
+						: t('unfollowed', { username: person.username }),
 				)
 			} else {
 				setFollowing(prev)
-				toast.error('Failed to follow user')
+				toast.error(t('failedToFollow'))
 			}
 		} catch {
 			setFollowing(prev)
-			toast.error('Failed to follow user')
+			toast.error(t('failedToFollow'))
 		} finally {
 			followLockRef.current = false
 		}
@@ -348,7 +354,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 						: 'bg-brand text-white',
 				)}
 			>
-				{following ? 'Following' : 'Follow'}
+				{following ? t('following') : t('follow')}
 			</motion.button>
 		</motion.div>
 	)
@@ -366,6 +372,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 						src={post.imageUrl || '/placeholder-recipe.svg'}
 						alt={`Post by ${post.author.username}${post.caption ? `: ${post.caption.slice(0, 80)}` : ''}`}
 						fill
+						sizes='80px'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
 					/>
 				</div>
@@ -387,7 +394,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 					<p className='line-clamp-2 text-caption text-text-secondary'>
 						{post.caption}
 					</p>
-					<p className='mt-1 text-xs text-text-secondary'>
+					<p className='mt-1 tabular-nums text-xs text-text-secondary'>
 						â¤ï¸ {post.likeCount} likes
 					</p>
 				</div>
@@ -443,6 +450,7 @@ const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
 function SearchContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const t = useTranslations('search')
 	const query = searchParams.get('q') || ''
 	const [searchInput, setSearchInput] = useState(query)
 	const isInternalNav = useRef(false)
@@ -553,19 +561,19 @@ function SearchContent() {
 	const tabs: TabItem<SearchTab>[] = [
 		{
 			key: 'recipes',
-			label: 'Recipes',
+			label: t('tabRecipes'),
 			icon: BookOpen,
 			count: results.recipes.length,
 		},
 		{
 			key: 'people',
-			label: 'People',
+			label: t('tabPeople'),
 			icon: Users,
 			count: results.people.length,
 		},
 		{
 			key: 'posts',
-			label: 'Posts',
+			label: t('tabPosts'),
 			icon: ImageIcon,
 			count: results.posts.length,
 		},
@@ -576,8 +584,8 @@ function SearchContent() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<ErrorState
-						title='Search failed'
-						message="We couldn't complete your search. Please try again."
+						title={t('searchFailed')}
+						message={t('searchFailedDesc')}
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)
@@ -633,7 +641,7 @@ function SearchContent() {
 						<div className='mx-auto mb-8 max-w-xl'>
 							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
 								<History className='size-4' />
-								<span className='text-sm font-semibold'>Recent Searches</span>
+								<span className='text-sm font-semibold'>{t('recentSearches')}</span>
 							</div>
 							<div className='flex flex-wrap gap-2'>
 								{recentSearches.map(term => (
@@ -657,7 +665,7 @@ function SearchContent() {
 													handleRemoveRecent(term)
 												}
 											}}
-											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-0 transition-opacity hover:bg-bg-hover hover:text-text group-hover:opacity-100'
+											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-70 transition-opacity hover:bg-bg-hover hover:text-text md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 											aria-label={`Remove "${term}" from recent searches`}
 										>
 											<X className='size-3' />
@@ -672,7 +680,7 @@ function SearchContent() {
 					<div className='mx-auto mb-8 max-w-xl'>
 						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
 							<TrendingUp className='size-4' />
-							<span className='text-sm font-semibold'>Suggestions</span>
+							<span className='text-sm font-semibold'>{t('suggestions')}</span>
 						</div>
 						<div className='flex flex-wrap gap-2'>
 							{SEARCH_SUGGESTIONS.map(term => (
@@ -710,7 +718,7 @@ function SearchContent() {
 							>
 								<Search className='size-4' />
 							</motion.div>
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -763,7 +771,7 @@ function SearchContent() {
 							Results for &quot;{query}&quot;
 						</h1>
 					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
+					<p className='flex items-center gap-2 tabular-nums text-text-secondary'>
 						<Sparkles className='size-4 text-streak' />
 						{totalResults} results found
 					</p>
@@ -781,6 +789,67 @@ function SearchContent() {
 
 				{/* Results */}
 				<AnimatePresence mode='wait'>
+					{isLoading ? (
+						<motion.div
+							key='loading-skeleton'
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ duration: 0.15 }}
+						>
+							{activeTab === 'recipes' && (
+								<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+									{Array.from({ length: 6 }).map((_, i) => (
+										<div
+											key={i}
+											className='overflow-hidden rounded-radius border border-border-subtle bg-bg-card'
+										>
+											<Skeleton className='aspect-[4/3] w-full' />
+											<div className='space-y-3 p-4'>
+												<Skeleton className='h-5 w-full' />
+												<Skeleton className='h-5 w-3/4' />
+												<Skeleton className='h-4 w-24' />
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+							{activeTab === 'people' && (
+								<div className='space-y-4'>
+									{Array.from({ length: 4 }).map((_, i) => (
+										<div key={i} className='flex items-center gap-4 rounded-2xl bg-bg-card p-4'>
+											<Skeleton className='size-14 shrink-0 rounded-full' />
+											<div className='flex-1 space-y-2'>
+												<Skeleton className='h-5 w-32' />
+												<Skeleton className='h-4 w-24' />
+												<Skeleton className='h-4 w-48' />
+											</div>
+											<Skeleton className='h-9 w-24 rounded-xl' />
+										</div>
+									))}
+								</div>
+							)}
+							{activeTab === 'posts' && (
+								<div className='space-y-3'>
+									{Array.from({ length: 4 }).map((_, i) => (
+										<div key={i} className='rounded-2xl bg-bg-card p-4 space-y-3'>
+											<div className='flex items-center gap-3'>
+												<Skeleton className='size-10 rounded-full' />
+												<div className='flex-1 space-y-1'>
+													<Skeleton className='h-4 w-28' />
+													<Skeleton className='h-3 w-20' />
+												</div>
+											</div>
+											<Skeleton className='h-4 w-full' />
+											<Skeleton className='h-4 w-3/4' />
+											<Skeleton className='aspect-video w-full rounded-xl' />
+										</div>
+									))}
+								</div>
+							)}
+						</motion.div>
+					) : (
+					<>
 					{activeTab === 'recipes' && (
 						<motion.div
 							key='recipes'
@@ -825,10 +894,10 @@ function SearchContent() {
 									)}
 									<EmptyStateGamified
 										variant='search'
-										title='No recipes found'
-										description={`We couldn't find any recipes matching "${query}"`}
+										title={t('noRecipes')}
+										description={t('noRecipesDesc', { query })}
 										primaryAction={{
-											label: 'Explore All',
+											label: t('exploreAll'),
 											href: '/explore',
 										}}
 									/>
@@ -881,10 +950,10 @@ function SearchContent() {
 									)}
 									<EmptyStateGamified
 										variant='search'
-										title='No people found'
-										description={`We couldn't find anyone matching "${query}"`}
+										title={t('noPeople')}
+										description={t('noPeopleDesc', { query })}
 										primaryAction={{
-											label: 'Discover People',
+											label: t('discoverPeople'),
 											href: '/community',
 										}}
 									/>
@@ -937,16 +1006,18 @@ function SearchContent() {
 									)}
 									<EmptyStateGamified
 										variant='search'
-										title='No posts found'
-										description={`We couldn't find any posts matching "${query}"`}
+										title={t('noPosts')}
+										description={t('noPostsDesc', { query })}
 										primaryAction={{
-											label: 'View Feed',
+											label: t('viewFeed'),
 											href: '/dashboard',
 										}}
 									/>
 								</>
 							)}
 						</motion.div>
+					)}
+					</>
 					)}
 				</AnimatePresence>
 			</PageContainer>

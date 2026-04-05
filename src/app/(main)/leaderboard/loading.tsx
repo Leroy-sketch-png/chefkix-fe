@@ -7,18 +7,18 @@ export default function Loading() {
 			{/* Header skeleton */}
 			<div className='mb-6'>
 				<div className='mb-2 flex items-center gap-3'>
-					<div className='size-10 animate-pulse rounded-xl bg-bg-elevated/40' />
-					<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
-					<div className='h-9 w-40 animate-pulse rounded-lg bg-bg-elevated/40' />
+					<Skeleton className='size-10 rounded-xl' />
+					<Skeleton className='size-12 rounded-2xl' />
+					<Skeleton className='h-9 w-40 rounded-lg' />
 				</div>
-				<div className='h-6 w-48 animate-pulse rounded-lg bg-bg-elevated/40' />
+				<Skeleton className='h-6 w-48 rounded-lg' />
 			</div>
 
 			{/* Tabs skeleton */}
 			<div className='mb-6 flex gap-2'>
-				<div className='h-10 w-24 animate-pulse rounded-full bg-bg-elevated/40' />
-				<div className='h-10 w-24 animate-pulse rounded-full bg-bg-elevated/40' />
-				<div className='h-10 w-24 animate-pulse rounded-full bg-bg-elevated/40' />
+				<Skeleton className='h-10 w-24 rounded-full' />
+				<Skeleton className='h-10 w-24 rounded-full' />
+				<Skeleton className='h-10 w-24 rounded-full' />
 			</div>
 
 			{/* Top 3 podium skeleton */}

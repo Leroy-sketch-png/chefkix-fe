@@ -1,10 +1,12 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState, useEffect, useTransition } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { CreatorDashboard, StepHeatmap } from '@/components/creator'
+import { CreatorDashboard, StepHeatmap, TipHistory } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import {
@@ -41,6 +43,7 @@ const getDateRangeThisWeek = (): string => {
 // ============================================
 
 export default function CreatorRoute() {
+	const t = useTranslations('creator')
 	const { user } = useAuth()
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
@@ -211,8 +214,8 @@ export default function CreatorRoute() {
 			<PageTransition>
 				<PageContainer maxWidth='xl'>
 					<ErrorState
-						title='Failed to load creator analytics'
-						message='Something went wrong loading your data. Please try again.'
+						title={t('failedToLoadAnalytics')}
+						message={t('failedToLoadAnalyticsMessage')}
 						onRetry={() => {
 							setFetchError(false)
 							setIsLoading(true)
@@ -242,10 +245,10 @@ export default function CreatorRoute() {
 					<EmptyStateGamified
 						variant='custom'
 						emoji='👨‍🍳'
-						title='Your Creator Studio is ready!'
-						description='Publish your first recipe and watch the analytics roll in. Track who cooks your recipes, earn creator XP, and unlock exclusive badges.'
+						title={t('creatorStudioReady')}
+						description={t('creatorStudioReadyDesc')}
 						primaryAction={{
-							label: 'Create Your First Recipe',
+							label: t('createYourFirstRecipe'),
 							href: '/create',
 							icon: <BookOpen className='size-4' />,
 						}}
@@ -272,7 +275,7 @@ export default function CreatorRoute() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -335,6 +338,7 @@ export default function CreatorRoute() {
 						className='mt-6'
 					/>
 				)}
+				<TipHistory className='mt-6' />
 			</PageContainer>
 		</PageTransition>
 	)

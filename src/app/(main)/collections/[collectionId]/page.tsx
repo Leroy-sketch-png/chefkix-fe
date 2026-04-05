@@ -17,6 +17,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
 import { PostCard } from '@/components/social/PostCard'
+import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { LearningPathView } from '@/components/collections'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { Collection, UpdateCollectionRequest } from '@/lib/types/collection'
@@ -29,6 +30,7 @@ import {
 	removePostFromCollection,
 } from '@/services/collection'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslations } from 'next-intl'
 
 export default function CollectionDetailPage({
 	params,
@@ -37,6 +39,7 @@ export default function CollectionDetailPage({
 }) {
 	const { collectionId } = use(params)
 	const router = useRouter()
+	const t = useTranslations('collections')
 	const currentUser = useAuthStore(state => state.user)
 	const [collection, setCollection] = useState<Collection | null>(null)
 	const [posts, setPosts] = useState<Post[]>([])
@@ -72,7 +75,7 @@ export default function CollectionDetailPage({
 				setPosts(postsRes.data)
 			}
 		} catch {
-			toast.error('Failed to load collection')
+			toast.error(t('detailLoadFailed'))
 		} finally {
 			setIsLoading(false)
 		}
@@ -84,7 +87,7 @@ export default function CollectionDetailPage({
 
 	const handleUpdate = async () => {
 		if (!editName.trim()) {
-			toast.error('Collection name is required')
+			toast.error(t('nameRequired'))
 			return
 		}
 		setIsUpdating(true)
@@ -97,9 +100,9 @@ export default function CollectionDetailPage({
 		if (response.success && response.data) {
 			setCollection(response.data)
 			setShowEditModal(false)
-			toast.success('Collection updated')
+			toast.success(t('detailUpdated'))
 		} else {
-			toast.error(response.message || 'Failed to update')
+			toast.error(response.message || t('detailUpdateFailed'))
 		}
 		setIsUpdating(false)
 	}
@@ -108,10 +111,10 @@ export default function CollectionDetailPage({
 		setIsDeleting(true)
 		const response = await deleteCollection(collectionId)
 		if (response.success) {
-			toast.success('Collection deleted')
+			toast.success(t('detailDeleted'))
 			router.push('/collections')
 		} else {
-			toast.error(response.message || 'Failed to delete')
+			toast.error(response.message || t('detailDeleteFailed'))
 			setIsDeleting(false)
 		}
 	}
@@ -129,9 +132,9 @@ export default function CollectionDetailPage({
 						}
 					: null,
 			)
-			toast.success('Post removed from collection')
+			toast.success(t('detailRemoved'))
 		} else {
-			toast.error(response.message || 'Failed to remove post')
+			toast.error(response.message || t('detailRemoveFailed'))
 		}
 	}
 
@@ -163,13 +166,14 @@ export default function CollectionDetailPage({
 					<div className='py-20 text-center'>
 						<FolderHeart className='mx-auto mb-4 size-16 text-text-muted/30' />
 						<h2 className='text-lg font-semibold text-text'>
-							Collection not found
+							{t('detailNotFound')}
 						</h2>
 						<button
+							type='button'
 							onClick={() => router.push('/collections')}
 							className='mt-4 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white'
 						>
-							Back to Collections
+							{t('detailBackToCollections')}
 						</button>
 					</div>
 				</PageContainer>
@@ -185,11 +189,12 @@ export default function CollectionDetailPage({
 				<div className='space-y-6 py-6'>
 					{/* Back button */}
 					<button
+						type='button'
 						onClick={() => router.back()}
 						className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
 					>
 						<ArrowLeft className='size-4' />
-						Back
+						{t('detailBack')}
 					</button>
 
 					{/* Learning Path View - completely different layout */}
@@ -216,7 +221,7 @@ export default function CollectionDetailPage({
 											) : (
 												<Lock className='size-3' />
 											)}
-											{collection.isPublic ? 'Public' : 'Private'}
+											{collection.isPublic ? t('public') : t('private')}
 										</span>
 									</div>
 									{collection.description && (
@@ -226,18 +231,24 @@ export default function CollectionDetailPage({
 									)}
 									<p className='mt-1 text-xs text-text-muted'>
 										{collection.itemCount}{' '}
-										{collection.itemCount === 1 ? 'post' : 'posts'}
+									{collection.itemCount === 1 ? t('postSingle') : t('postPlural')}
 									</p>
 								</div>
 								{isOwner && (
 									<div className='flex gap-2'>
 										<button
+
+											type='button'
+
 											onClick={() => setShowEditModal(true)}
 											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 										>
 											<Pencil className='size-4' />
 										</button>
 										<button
+
+											type='button'
+
 											onClick={() => setShowDeleteConfirm(true)}
 											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
 										>
@@ -249,15 +260,16 @@ export default function CollectionDetailPage({
 
 							{/* Posts */}
 							{posts.length === 0 ? (
-								<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
-									<FolderHeart className='mx-auto mb-4 size-12 text-text-muted/30' />
-									<h2 className='mb-1 text-base font-semibold text-text'>
-										No posts in this collection
-									</h2>
-									<p className='text-sm text-text-muted'>
-										Save posts and add them to this collection
-									</p>
-								</div>
+								<EmptyState
+									variant='saved'
+									title='No posts in this collection'
+									description='Save posts from your feed and add them to this collection to build your cookbook!'
+									emoji='📖'
+									primaryAction={{
+										label: 'Explore Feed',
+										href: '/dashboard',
+									}}
+								/>
 							) : (
 								<div className='space-y-4'>
 									{posts.map(post => (
@@ -268,6 +280,7 @@ export default function CollectionDetailPage({
 											/>
 											{isOwner && (
 												<button
+													type='button'
 													onClick={() => handleRemovePost(post.id)}
 													className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
 													title='Remove from collection'
@@ -292,7 +305,7 @@ export default function CollectionDetailPage({
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
 							onClick={() => setShowEditModal(false)}
 						>
 							<motion.div
@@ -304,12 +317,12 @@ export default function CollectionDetailPage({
 								onClick={e => e.stopPropagation()}
 							>
 								<h2 className='mb-4 text-lg font-bold text-text'>
-									Edit Collection
+								{t('detailEditTitle')}
 								</h2>
 								<div className='space-y-4'>
 									<div>
 										<label className='mb-1 block text-sm font-medium text-text-secondary'>
-											Name
+											{t('nameLabel')}
 										</label>
 										<input
 											type='text'
@@ -322,7 +335,7 @@ export default function CollectionDetailPage({
 									</div>
 									<div>
 										<label className='mb-1 block text-sm font-medium text-text-secondary'>
-											Description
+											{t('descriptionLabel')}
 										</label>
 										<input
 											type='text'
@@ -340,23 +353,25 @@ export default function CollectionDetailPage({
 											className='size-4 rounded border-border-subtle accent-brand'
 										/>
 										<span className='text-sm text-text'>
-											Make this collection public
+										{t('makePublic')}
 										</span>
 									</label>
 								</div>
 								<div className='mt-6 flex justify-end gap-3'>
 									<button
+										type='button'
 										onClick={() => setShowEditModal(false)}
 										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
 									>
-										Cancel
+										{t('cancel')}
 									</button>
 									<button
+										type='button'
 										onClick={handleUpdate}
 										disabled={isUpdating || !editName.trim()}
 										className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-50'
 									>
-										{isUpdating ? 'Saving...' : 'Save Changes'}
+										{isUpdating ? t('detailSaving') : t('detailSaveChanges')}
 									</button>
 								</div>
 							</motion.div>
@@ -373,7 +388,7 @@ export default function CollectionDetailPage({
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
-							className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
 							onClick={() => setShowDeleteConfirm(false)}
 						>
 							<motion.div
@@ -385,25 +400,26 @@ export default function CollectionDetailPage({
 								onClick={e => e.stopPropagation()}
 							>
 								<h3 className='mb-2 text-lg font-bold text-text'>
-									Delete Collection?
-								</h3>
-								<p className='mb-6 text-sm text-text-muted'>
-									This will permanently delete &ldquo;{collection.name}&rdquo;.
-									Posts inside won&apos;t be affected.
+								{t('detailDeleteTitle')}
+							</h3>
+							<p className='mb-6 text-sm text-text-muted'>
+								{t('detailDeleteMessage', { name: collection.name })}
 								</p>
 								<div className='flex justify-end gap-3'>
 									<button
+										type='button'
 										onClick={() => setShowDeleteConfirm(false)}
 										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
 									>
-										Cancel
+										{t('cancel')}
 									</button>
 									<button
+										type='button'
 										onClick={handleDelete}
 										disabled={isDeleting}
 										className='rounded-xl bg-destructive px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
 									>
-										{isDeleting ? 'Deleting...' : 'Delete'}
+										{isDeleting ? t('detailDeleting') : t('detailDelete')}
 									</button>
 								</div>
 							</motion.div>

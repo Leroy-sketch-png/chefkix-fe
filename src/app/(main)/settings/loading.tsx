@@ -7,10 +7,10 @@ export default function Loading() {
 			{/* Header skeleton */}
 			<div className='mb-8'>
 				<div className='mb-2 flex items-center gap-3'>
-					<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
-					<div className='h-9 w-32 animate-pulse rounded-lg bg-bg-elevated/40' />
+					<Skeleton className='size-12 rounded-2xl' />
+					<Skeleton className='h-9 w-32 rounded-lg' />
 				</div>
-				<div className='h-6 w-56 animate-pulse rounded-lg bg-bg-elevated/40' />
+				<Skeleton className='h-6 w-56 rounded-lg' />
 			</div>
 
 			<div className='grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]'>

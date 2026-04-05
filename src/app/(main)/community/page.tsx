@@ -43,9 +43,11 @@ import { useAuth } from '@/hooks/useAuth'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 export default function CommunityPage() {
 	const { user } = useAuth()
+	const t = useTranslations('community')
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [activeTab, setActiveTab] = useState('discover')
@@ -125,7 +127,7 @@ export default function CommunityPage() {
 			} catch {
 				if (!cancelled) {
 					setError(true)
-					toast.error('Failed to load community data')
+					toast.error(t('failedToLoadData'))
 				}
 			} finally {
 				if (!cancelled) setLoading(false)
@@ -177,8 +179,8 @@ export default function CommunityPage() {
 		return (
 			<PageContainer maxWidth='xl'>
 				<ErrorState
-					title='Failed to load community'
-					message='We could not load community data. Please try again.'
+					title={t('failedToLoad')}
+					message={t('failedToLoadMessage')}
 					onRetry={() => {
 						setError(false)
 						setRetryKey(k => k + 1)
@@ -209,7 +211,7 @@ export default function CommunityPage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -219,8 +221,8 @@ export default function CommunityPage() {
 				{/* Header */}
 				<PageHeader
 					icon={Users}
-					title="Community Hub"
-					subtitle="Connect with fellow chefs, discover talent, and climb the ranks."
+					title={t('title')}
+					subtitle={t('subtitle')}
 					gradient="pink"
 					marginBottom="md"
 				/>
@@ -229,24 +231,24 @@ export default function CommunityPage() {
 					<TabsList className='mb-6 grid w-full grid-cols-4 lg:w-auto'>
 						<TabsTrigger value='discover' className='gap-2'>
 							<Search className='size-4' />
-							<span className='hidden sm:inline'>Discover</span>
+							<span className='hidden sm:inline'>{t('discover')}</span>
 						</TabsTrigger>
 						<TabsTrigger value='friends' className='gap-2'>
 							<Users className='size-4' />
-							<span className='hidden sm:inline'>Friends</span>
+							<span className='hidden sm:inline'>{t('friends')}</span>
 							{friends.length > 0 && (
-								<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium text-brand'>
+								<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium tabular-nums text-brand'>
 									{friends.length}
 								</span>
 							)}
 						</TabsTrigger>
 						<TabsTrigger value='groups' className='gap-2'>
 							<UsersRound className='size-4' />
-							<span className='hidden sm:inline'>Groups</span>
+							<span className='hidden sm:inline'>{t('groups')}</span>
 						</TabsTrigger>
 						<TabsTrigger value='leaderboard' className='gap-2'>
 							<Trophy className='size-4' />
-							<span className='hidden sm:inline'>Leaderboard</span>
+							<span className='hidden sm:inline'>{t('leaderboard')}</span>
 						</TabsTrigger>
 					</TabsList>
 
@@ -263,18 +265,18 @@ export default function CommunityPage() {
 							<div className='mb-4 flex items-center gap-2'>
 								<UserPlus className='size-5 text-xp' />
 								<h2 className='text-xl font-semibold'>
-									Follow Back Suggestions{' '}
+									{t('followBackSuggestions')}{' '}
 									{followers.length > 0 && `(${followers.length})`}
 								</h2>
 							</div>
 							{followers.length === 0 ? (
 								<EmptyStateGamified
 									variant='feed'
-									title='No follow requests'
-									description='Keep cooking and sharing — chefs will discover you!'
+									title={t('noFollowRequests')}
+									description={t('noFollowRequestsDesc')}
 									quickActions={[
 										{
-											label: 'Browse Discover',
+											label: t('browseDiscover'),
 											emoji: '🔍',
 											onClick: () => setActiveTab('discover'),
 										},
@@ -298,7 +300,7 @@ export default function CommunityPage() {
 							)}
 						</section>
 
-						{/* Suggested For You — AI-powered user discovery */}
+						{/* {t('suggestedForYou')} — AI-powered user discovery */}
 						{suggestedFollows.length > 0 && (
 							<section>
 								<div className='mb-4 flex items-center gap-2'>
@@ -329,17 +331,17 @@ export default function CommunityPage() {
 							<div className='mb-4 flex items-center gap-2'>
 								<Users className='size-5 text-xp' />
 								<h2 className='text-xl font-semibold'>
-									My Friends {friends.length > 0 && `(${friends.length})`}
+									{t('myFriends')} {friends.length > 0 && `(${friends.length})`}
 								</h2>
 							</div>
 							{friends.length === 0 ? (
 								<EmptyStateGamified
 									variant='feed'
-									title='No friends yet'
-									description='Start connecting by following people in the Discover tab!'
+									title={t('noFriendsYet')}
+									description={t('noFriendsDesc')}
 									quickActions={[
 										{
-											label: 'Browse Discover',
+											label: t('browseDiscover'),
 											emoji: '🔍',
 											onClick: () => setActiveTab('discover'),
 										},

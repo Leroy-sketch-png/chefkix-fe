@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
@@ -17,6 +18,8 @@ import {
 	Package,
 	Sparkles,
 	Filter,
+	ShoppingCart,
+	Loader2,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -47,6 +50,7 @@ import {
 } from '@/components/ui/async-combobox'
 import { autocompleteSearch } from '@/services/search'
 import { suggestCategory } from '@/lib/data/ingredients'
+import { createFromRecipe } from '@/services/shoppingList'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
 // ── Category Config ─────────────────────────────────────
@@ -84,6 +88,7 @@ const FRESHNESS_STYLES: Record<
 export default function PantryPage() {
 	const router = useRouter()
 	const [items, setItems] = useState<PantryItem[]>([])
+	const t = useTranslations('pantry')
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [filterCategory, setFilterCategory] = useState<string | null>(null)
@@ -135,6 +140,7 @@ export default function PantryPage() {
 	const [isClearingExpired, setIsClearingExpired] = useState(false)
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
 	useEscapeKey(showClearExpiredConfirm, () => setShowClearExpiredConfirm(false))
+	const [addingToListId, setAddingToListId] = useState<string | null>(null)
 	// ── Fetch ─────────────────────────────────────────────
 
 	const fetchItems = useCallback(async () => {
@@ -143,7 +149,7 @@ export default function PantryPage() {
 			setItems(data)
 		} catch {
 			setError(true)
-			toast.error('Failed to load pantry items', {
+			toast.error(t('failedToLoadItems'), {
 				action: {
 					label: 'Retry',
 					onClick: () => {
@@ -175,7 +181,7 @@ export default function PantryPage() {
 			}
 			// Validate parsed number
 			if (req.quantity !== undefined && isNaN(req.quantity)) {
-				toast.error('Invalid quantity — enter a number')
+				toast.error(t('invalidQuantity'))
 				setIsAdding(false)
 				return
 			}
@@ -186,9 +192,9 @@ export default function PantryPage() {
 			setQuickAddUnit('')
 			setQuickAddExpiry('')
 			quickAddRef.current?.focus()
-			toast.success('Added to pantry')
+			toast.success(t('addedToPantry'))
 		} catch {
-			toast.error('Failed to add pantry item', {
+			toast.error(t('failedToAdd'), {
 				action: {
 					label: 'Retry',
 					onClick: () => {
@@ -220,9 +226,9 @@ export default function PantryPage() {
 			const updated = await updatePantryItem(editingId, editForm)
 			setItems(prev => prev.map(i => (i.id === editingId ? updated : i)))
 			setEditingId(null)
-			toast.success('Item updated')
+			toast.success(t('itemUpdated'))
 		} catch {
-			toast.error('Failed to update item', {
+			toast.error(t('failedToUpdate'), {
 				action: {
 					label: 'Retry',
 					onClick: () => {
@@ -242,7 +248,7 @@ export default function PantryPage() {
 			setItems(prev => prev.filter(i => i.id !== id))
 			setConfirmingDeleteId(null)
 		} catch {
-			toast.error('Failed to delete item')
+			toast.error(t('failedToDelete'))
 		} finally {
 			setIsDeletingId(null)
 		}
@@ -254,11 +260,11 @@ export default function PantryPage() {
 			const count = await clearExpiredItems()
 			if (count > 0) {
 				setItems(prev => prev.filter(i => i.freshness !== 'expired'))
-				toast.success(`Removed ${count} expired item${count > 1 ? 's' : ''}`)
+				toast.success(t('removedExpired', { count }))
 			}
 			setShowClearExpiredConfirm(false)
 		} catch {
-			toast.error('Failed to clear expired items', {
+			toast.error(t('failedToClearExpired'), {
 				action: {
 					label: 'Retry',
 					onClick: () => {
@@ -281,7 +287,7 @@ export default function PantryPage() {
 			setMatchedRecipes(data)
 		} catch {
 			setShowSuggestions(false)
-			toast.error('Failed to load recipe suggestions', {
+			toast.error(t('failedToLoadSuggestions'), {
 				action: {
 					label: 'Retry',
 					onClick: () => {
@@ -291,6 +297,26 @@ export default function PantryPage() {
 			})
 		} finally {
 			setLoadingRecipes(false)
+		}
+	}
+
+	const handleAddToShoppingList = async (recipeId: string, e: React.MouseEvent) => {
+		e.stopPropagation()
+		if (addingToListId) return
+		setAddingToListId(recipeId)
+		try {
+			const shoppingList = await createFromRecipe({ recipeId })
+			toast.success(t('shoppingListCreated'), {
+				description: `${shoppingList.totalItems} missing ingredients`,
+				action: {
+					label: 'View',
+					onClick: () => router.push('/shopping-lists'),
+				},
+			})
+		} catch {
+			toast.error(t('failedToCreateShoppingList'))
+		} finally {
+			setAddingToListId(null)
 		}
 	}
 
@@ -317,8 +343,8 @@ export default function PantryPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<ErrorState
-						title='Failed to load pantry'
-						message="We couldn't load your pantry items. Please try again."
+						title={t('failedToLoad')}
+						message={t('failedToLoadDesc')}
 						onRetry={() => {
 							setError(false)
 							setLoading(true)
@@ -360,8 +386,8 @@ export default function PantryPage() {
 					{/* ── Header ────────────────────────── */}
 					<PageHeader
 						icon={Package}
-						title="My Pantry"
-						subtitle={`Track your ingredients and reduce food waste`}
+						title={t('title')}
+						subtitle={t('subtitle')}
 						gradient="green"
 						marginBottom="sm"
 						rightAction={
@@ -440,7 +466,7 @@ export default function PantryPage() {
 									onKeyDown={e => {
 										if (e.key === 'Enter') handleQuickAdd()
 									}}
-									placeholder='e.g. Tomatoes'
+									placeholder={t('ingredientPlaceholder')}
 								/>
 							</div>
 							<div className='w-20'>
@@ -534,7 +560,7 @@ export default function PantryPage() {
 							<input
 								value={searchQuery}
 								onChange={e => setSearchQuery(e.target.value)}
-								placeholder='Search pantry...'
+								placeholder={t('searchPlaceholder')}
 								className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-10 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
 							/>
 						</div>
@@ -577,7 +603,7 @@ export default function PantryPage() {
 						<EmptyStateGamified
 							variant='custom'
 							emoji='🧅'
-							title='Your pantry awaits!'
+							title={t('emptyTitle')}
 							description='Add the ingredients you have at home. We&apos;ll suggest recipes you can cook right now — no grocery run needed.'
 							primaryAction={{
 								label: 'Add Your First Ingredient',
@@ -823,8 +849,20 @@ export default function PantryPage() {
 															{match.expiringIngredientsUsed.join(', ')}
 														</p>
 													)}
-												</div>
-											</motion.button>
+												</div>													<span
+														role='button'
+														tabIndex={0}
+														onClick={(e) => handleAddToShoppingList(match.recipeId, e)}
+														onKeyDown={(e) => { if (e.key === 'Enter') handleAddToShoppingList(match.recipeId, e as unknown as React.MouseEvent) }}
+														className='grid size-10 flex-shrink-0 place-items-center rounded-lg border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
+														title='Create shopping list (missing ingredients only)'
+													>
+														{addingToListId === match.recipeId ? (
+															<Loader2 className='size-4 animate-spin text-text-muted' />
+														) : (
+															<ShoppingCart className='size-4 text-text-secondary' />
+														)}
+													</span>											</motion.button>
 										))}
 									</div>
 								)}

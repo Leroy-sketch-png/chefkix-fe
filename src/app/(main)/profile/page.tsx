@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -16,6 +17,7 @@ import { ErrorState } from '@/components/ui/error-state'
  */
 const ProfilePage = () => {
 	const router = useRouter()
+	const t = useTranslations('profile')
 	const { user, isAuthenticated, isLoading } = useAuth()
 	const [timedOut, setTimedOut] = useState(false)
 
@@ -42,8 +44,8 @@ const ProfilePage = () => {
 		return (
 			<div className='flex min-h-[50vh] items-center justify-center p-6'>
 				<ErrorState
-					title='Could not load profile'
-					message='We had trouble loading your profile. Please try logging in again.'
+					title={t('couldNotLoadProfile')}
+					message={t('profileLoadError')}
 					onRetry={() => router.replace(PATHS.DASHBOARD)}
 				/>
 			</div>

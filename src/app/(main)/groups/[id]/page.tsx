@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import {
 	getGroupDetails,
@@ -10,6 +11,8 @@ import {
 } from '@/services/group'
 import { Group, GroupMember } from '@/lib/types/group'
 import { Post } from '@/lib/types'
+import { TRANSITION_SPRING } from '@/lib/motion'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
 	GroupHeader,
 	GroupMembersList,
@@ -18,7 +21,6 @@ import {
 	GroupSettingsModal,
 } from '@/components/groups'
 import { PostCard } from '@/components/social/PostCard'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
@@ -29,6 +31,7 @@ import Link from 'next/link'
 import { PATHS } from '@/constants'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageContainer } from '@/components/layout/PageContainer'
+import { EmptyState } from '@/components/shared/EmptyStateGamified'
 
 /**
  * Group Detail Page - Facebook Style
@@ -40,6 +43,7 @@ export default function GroupDetailPage() {
 	const router = useRouter()
 	const params = useParams()
 	const groupId = params?.id as string
+	const t = useTranslations('groups')
 
 	// Get current user from auth hook
 	const { user, isAuthenticated } = useAuth()
@@ -53,6 +57,15 @@ export default function GroupDetailPage() {
 	const [isLoadingPosts, setIsLoadingPosts] = useState(false)
 	const [activeTab, setActiveTab] = useState('about')
 	const [showSettings, setShowSettings] = useState(false)
+
+	// Memoized post handlers to prevent unnecessary PostCard re-renders
+	const handleGroupPostUpdate = useCallback((updatedPost: Post) => {
+		setPosts(prev => prev.map(p => (p.id === updatedPost.id ? updatedPost : p)))
+	}, [])
+
+	const handleGroupPostDelete = useCallback((deletedPostId: string) => {
+		setPosts(prev => prev.filter(p => p.id !== deletedPostId))
+	}, [])
 
 	// Check authentication
 	useEffect(() => {
@@ -73,7 +86,7 @@ export default function GroupDetailPage() {
 				setGroup(groupData)
 			} catch (error) {
 				if (cancelled) return
-				toast.error('Failed to load group')
+				toast.error(t('failedLoadGroup'))
 				router.push('/groups')
 			} finally {
 				if (!cancelled) setIsLoadingGroup(false)
@@ -97,7 +110,7 @@ export default function GroupDetailPage() {
 				const response = await getGroupMembers(groupId, 0, 50)
 				if (!cancelled) setMembers(response.content)
 			} catch (error) {
-				if (!cancelled) toast.error('Failed to load members')
+				if (!cancelled) toast.error(t('failedLoadMembers'))
 			} finally {
 				if (!cancelled) setIsLoadingMembers(false)
 			}
@@ -121,7 +134,7 @@ export default function GroupDetailPage() {
 				if (!cancelled) setPosts(response.content || [])
 			} catch (error) {
 				if (!cancelled) {
-					toast.error('Failed to load posts')
+					toast.error(t('failedLoadPosts'))
 					logDevError('Post loading error:', error)
 				}
 			} finally {
@@ -141,12 +154,12 @@ export default function GroupDetailPage() {
 			<PageContainer maxWidth='xl' className='py-8'>
 				{/* Header skeleton */}
 				<div className='mb-8 space-y-4'>
-					<div className='h-48 w-full animate-pulse rounded-2xl bg-bg-elevated/40' />
+					<Skeleton className='h-48 w-full rounded-2xl' />
 					<div className='flex items-center gap-4'>
-						<div className='size-20 shrink-0 animate-pulse rounded-2xl bg-bg-elevated/40' />
+						<Skeleton className='size-20 shrink-0 rounded-2xl' />
 						<div className='flex-1 space-y-2'>
-							<div className='h-6 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
-							<div className='h-4 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
+							<Skeleton className='h-6 w-1/3' />
+							<Skeleton className='h-4 w-1/2' />
 						</div>
 					</div>
 				</div>
@@ -157,8 +170,8 @@ export default function GroupDetailPage() {
 							key={i}
 							className='rounded-2xl border border-border-subtle bg-bg-card p-5'
 						>
-							<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated/40' />
-							<div className='mt-2 h-3 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
+							<Skeleton className='h-4 w-3/4' />
+							<Skeleton className='mt-2 h-3 w-1/2' />
 						</div>
 					))}
 				</div>
@@ -170,9 +183,9 @@ export default function GroupDetailPage() {
 	if (!group) {
 		return (
 			<div className='flex flex-col items-center justify-center min-h-screen gap-4'>
-				<p className='text-text-secondary'>Group not found</p>
+				<p className='text-text-secondary'>{t('groupNotFound')}</p>
 				<Link href='/groups'>
-					<Button>Back to Groups</Button>
+					<Button>{t('backToGroups')}</Button>
 				</Link>
 			</div>
 		)
@@ -189,7 +202,7 @@ export default function GroupDetailPage() {
 				<motion.div
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3 }}
+					transition={TRANSITION_SPRING}
 					className='mb-8'
 				>
 					<GroupHeader
@@ -204,7 +217,7 @@ export default function GroupDetailPage() {
 				<motion.div
 					initial={{ opacity: 0, y: 10 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3, delay: 0.1 }}
+					transition={TRANSITION_SPRING}
 					className='mb-20'
 				>
 					<Tabs
@@ -214,11 +227,11 @@ export default function GroupDetailPage() {
 					>
 						{/* Tab Navigation */}
 						<TabsList className='mb-6 grid w-full grid-cols-3'>
-							<TabsTrigger value='about'>About</TabsTrigger>
+							<TabsTrigger value='about'>{t('tabAbout')}</TabsTrigger>
 							<TabsTrigger value='members'>
-								Members ({group.memberCount})
+								{t('tabMembers', { count: group.memberCount })}
 							</TabsTrigger>
-							<TabsTrigger value='posts'>Posts</TabsTrigger>
+							<TabsTrigger value='posts'>{t('tabPosts')}</TabsTrigger>
 						</TabsList>
 						{/* About Tab - Shows rich group information */}
 						<TabsContent value='about' className='space-y-4'>
@@ -290,49 +303,40 @@ export default function GroupDetailPage() {
 													key={post.id}
 													initial={{ opacity: 0, y: 10 }}
 													animate={{ opacity: 1, y: 0 }}
-													transition={{ duration: 0.2 }}
+													transition={TRANSITION_SPRING}
 												>
 													<PostCard
 														post={post}
 														currentUserId={user?.userId}
-														onDelete={deletedPostId => {
-															setPosts(prev =>
-																prev.filter(p => p.id !== deletedPostId),
-															)
-														}}
-														onUpdate={updatedPost => {
-															setPosts(prev =>
-																prev.map(p =>
-																	p.id === updatedPost.id ? updatedPost : p,
-																),
-															)
-														}}
+														onDelete={handleGroupPostDelete}
+														onUpdate={handleGroupPostUpdate}
 													/>
 												</motion.div>
 											))}
 										</div>
 									) : (
-										<div className='bg-bg-card rounded-lg p-8 border border-border text-center'>
-											<p className='text-text-secondary mb-4'>
-												No posts yet. Be the first to share something!
-											</p>
-											<Button
-												onClick={() => {
-													// Focus on post box when clicked
-												}}
-												className='bg-brand hover:bg-brand/90 text-white'
-											>
-												Create First Post
-											</Button>
-										</div>
+									<EmptyState
+											variant='feed'
+										title={t('noPostsYet')}
+										description={t('beFirstToPost')}
+											emoji='🍳'
+											primaryAction={{
+												label: t('createFirstPost'),
+												onClick: () => {
+													const postBox = document.querySelector('[data-group-post-box]')
+													if (postBox) postBox.scrollIntoView({ behavior: 'smooth' })
+												},
+											}}
+										/>
 									)}
 								</>
 							) : (
-								<div className='bg-bg-card rounded-lg p-8 border border-border text-center'>
-									<p className='text-text-secondary'>
-										Join the group to see and create posts
-									</p>
-								</div>
+							<EmptyState
+										variant='custom'
+											title={t('joinConversation')}
+											description={t('joinConversationDesc')}
+										emoji='👋'
+									/>
 							)}
 						</TabsContent>
 					</Tabs>
@@ -346,7 +350,7 @@ export default function GroupDetailPage() {
 						group={group}
 						onSettingsUpdated={updatedGroup => {
 							setGroup(updatedGroup)
-							toast.success('Group updated!')
+							toast.success(t('groupUpdated'))
 						}}
 					/>
 				)}

@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -24,6 +25,7 @@ import { ErrorState } from '@/components/ui/error-state'
 
 export default function LeaderboardRoute() {
 	const { user } = useAuth()
+	const t = useTranslations('leaderboard')
 	const router = useRouter()
 	const [type, setType] = useState<LeaderboardType>('global')
 	const [timeframe, setTimeframe] = useState<Timeframe>('weekly')
@@ -119,8 +121,8 @@ export default function LeaderboardRoute() {
 			<PageTransition>
 				<PageContainer maxWidth='xl'>
 					<ErrorState
-						title='Failed to load leaderboard'
-						message="We couldn't load the leaderboard rankings. Please try again."
+						title={t('failedToLoad')}
+						message={t('failedToLoadDesc')}
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)

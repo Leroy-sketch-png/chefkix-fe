@@ -31,10 +31,13 @@ import { guardContent } from '@/services/ml'
 import { trackEvent } from '@/lib/eventTracker'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import { triggerSuccessConfetti } from '@/lib/confetti'
 import {
 	TRANSITION_SPRING,
 	fadeInUp,
 	BUTTON_SUBTLE_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 
@@ -319,6 +322,7 @@ function CreatePostContent() {
 
 				// Show success with XP if earned
 				if (xpAwarded > 0) {
+					triggerSuccessConfetti()
 					toast.success(`Post shared! +${xpAwarded} XP unlocked! 🎉`, {
 						description: session?.recipeTitle
 							? `Your ${session.recipeTitle} post is now live`
@@ -336,7 +340,7 @@ function CreatePostContent() {
 			}
 		} catch (error) {
 			logDevError('Post creation error:', error)
-			toast.error('Something went wrong. Please try again.')
+			toast.error('Failed to create post — check your connection and try again.')
 			setIsSubmitting(false)
 		}
 		// NOTE: Do NOT reset isSubmitting on success — router.push() is async.
@@ -350,13 +354,15 @@ function CreatePostContent() {
 		const now = new Date()
 		const diff = deadline.getTime() - now.getTime()
 
-		if (diff <= 0) return 'Expired'
+		if (diff <= 0) return { text: 'Expired', urgent: true }
 
 		const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+		const urgent = days < 2
+		const warning = days < 5
 
-		if (days > 0) return `${days}d ${hours}h left`
-		return `${hours}h left`
+		if (days > 0) return { text: `${days}d ${hours}h left`, urgent, warning }
+		return { text: `${hours}h left`, urgent: true, warning: true }
 	}
 
 	return (
@@ -432,9 +438,15 @@ function CreatePostContent() {
 											{Math.round(session.pendingXp)} XP
 										</span>
 										{getTimeLeft() && (
-											<span className='flex items-center gap-1.5 text-sm text-text-secondary'>
+											<span className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${
+												getTimeLeft()!.urgent
+													? 'bg-error/10 text-error'
+													: getTimeLeft()!.warning
+														? 'bg-warning/10 text-warning'
+														: 'text-text-secondary'
+											}`}>
 												<Clock className='size-3.5' />
-												{getTimeLeft()}
+												{getTimeLeft()!.text}
 											</span>
 										)}
 									</div>
@@ -542,7 +554,7 @@ function CreatePostContent() {
 								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none'
 								autoFocus
 							/>
-							<p className='mt-1 text-right text-xs text-text-muted'>
+							<p className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
 								{content.length}/2000
 							</p>
 
@@ -567,13 +579,14 @@ function CreatePostContent() {
 													src={url}
 													alt={`Preview ${index + 1}`}
 													fill
+													sizes='120px'
 													className='object-cover'
 												/>
 												<motion.button
 													onClick={() => removePhoto(index)}
-													className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100'
-													whileHover={{ scale: 1.1 }}
-													whileTap={{ scale: 0.9 }}
+													className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+													whileHover={ICON_BUTTON_HOVER}
+													whileTap={ICON_BUTTON_TAP}
 													aria-label={`Remove photo ${index + 1}`}
 												>
 													<X className='size-4' />

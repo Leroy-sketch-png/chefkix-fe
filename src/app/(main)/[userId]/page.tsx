@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
@@ -22,6 +23,7 @@ const ProfileContent = () => {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const userId = params.userId as string
+	const t = useTranslations('profile')
 	const initialTab = searchParams.get('tab') || undefined
 	const { user: currentUser, isLoading: isAuthLoading } = useAuth()
 
@@ -52,7 +54,7 @@ const ProfileContent = () => {
 				setNotFound(true)
 			} else {
 				setServerError(true)
-				toast.error('Failed to load profile')
+				toast.error(t('failedToLoadProfile'))
 			}
 
 			setIsLoading(false)
@@ -74,13 +76,14 @@ const ProfileContent = () => {
 		return (
 			<div className='flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center'>
 				<p className='text-lg text-text-secondary'>
-					Something went wrong loading this profile.
+					{t('somethingWentWrong')}
 				</p>
 				<button
+					type='button'
 					onClick={() => setRetryCount(c => c + 1)}
 					className='rounded-lg bg-brand px-4 py-2 text-white transition-colors hover:bg-brand/90'
 				>
-					Try again
+					{t('tryAgain')}
 				</button>
 			</div>
 		)
@@ -94,12 +97,15 @@ const ProfileContent = () => {
 		<>
 			<div className='mx-auto w-full max-w-container-xl pt-4'>
 				<button
+
+					type='button'
+
 					onClick={() => router.back()}
 					className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 					aria-label='Go back'
 				>
 					<ArrowLeft className='size-4' />
-					<span>Back</span>
+					<span>{t('back')}</span>
 				</button>
 			</div>
 			<UserProfile

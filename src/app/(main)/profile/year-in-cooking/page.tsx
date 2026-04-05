@@ -479,6 +479,7 @@ export default function YearInCookingPage() {
 					<div className='mb-4 flex justify-center gap-1.5'>
 						{cards.map((c, i) => (
 							<button
+								type='button'
 								key={c.id}
 								onClick={() => setPage([i, i > page ? 1 : -1])}
 								className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -537,7 +538,7 @@ export default function YearInCookingPage() {
 						<motion.button
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(-1)}
-							className='absolute left-2 top-1/2 z-20 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white'
+							className='absolute left-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white'
 							aria-label='Previous'
 						>
 							<ChevronLeft className='size-5' />
@@ -547,7 +548,7 @@ export default function YearInCookingPage() {
 						<motion.button
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(1)}
-							className='absolute right-2 top-1/2 z-20 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white'
+							className='absolute right-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white'
 							aria-label='Next'
 						>
 							<ChevronRight className='size-5' />

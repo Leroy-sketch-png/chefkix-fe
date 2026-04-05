@@ -7,26 +7,40 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { FollowUserCard } from '@/components/profile/FollowUserCard'
+import { FollowSuggestionCard } from '@/components/social/FollowSuggestionCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
-import { getFollowers, getFollowing, getFriends } from '@/services/social'
+import {
+	getFollowers,
+	getFollowing,
+	getFriends,
+	getSuggestedFollows,
+} from '@/services/social'
 import { Profile } from '@/lib/types/profile'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import { Users, UserCheck, Heart, ArrowLeft, Loader2 } from 'lucide-react'
+import {
+	Users,
+	UserCheck,
+	Heart,
+	ArrowLeft,
+	Loader2,
+	Sparkles,
+} from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 type Tab = 'followers' | 'following' | 'friends'
 
-const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-	{ key: 'followers', label: 'Followers', icon: <Users className='size-4' /> },
+const TABS: { key: Tab; labelKey: string; icon: React.ReactNode }[] = [
+	{ key: 'followers', labelKey: 'tabFollowers', icon: <Users className='size-4' /> },
 	{
 		key: 'following',
-		label: 'Following',
+		labelKey: 'tabFollowing',
 		icon: <UserCheck className='size-4' />,
 	},
-	{ key: 'friends', label: 'Friends', icon: <Heart className='size-4' /> },
+	{ key: 'friends', labelKey: 'tabFriends', icon: <Heart className='size-4' /> },
 ]
 
 function FollowersSkeleton() {
@@ -52,6 +66,7 @@ function FollowersSkeleton() {
 function FollowersContent() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
+	const t = useTranslations('followers')
 	const initialTab = (searchParams.get('tab') as Tab) || 'followers'
 	const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 	const [data, setData] = useState<Record<Tab, Profile[]>>({
@@ -70,6 +85,12 @@ function FollowersContent() {
 		friends: null,
 	})
 
+	// Suggested follows state
+	const [suggestions, setSuggestions] = useState<Profile[]>([])
+	const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+	const [suggestionsLoaded, setSuggestionsLoaded] = useState(false)
+	const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+
 	const fetchTab = useCallback(async (tab: Tab) => {
 		setLoading(prev => ({ ...prev, [tab]: true }))
 		setErrors(prev => ({ ...prev, [tab]: null }))
@@ -87,11 +108,11 @@ function FollowersContent() {
 			} else {
 				setErrors(prev => ({
 					...prev,
-					[tab]: response.message || `Failed to load ${tab}`,
+					[tab]: response.message || t('failedToLoad', { tab }),
 				}))
 			}
 		} catch {
-			setErrors(prev => ({ ...prev, [tab]: `Failed to load ${tab}` }))
+			setErrors(prev => ({ ...prev, [tab]: t('failedToLoad', { tab }) }))
 		} finally {
 			setLoading(prev => ({ ...prev, [tab]: false }))
 		}
@@ -116,17 +137,21 @@ function FollowersContent() {
 				if (cancelled) return
 				if (response.success && response.data) {
 					setData(prev => ({ ...prev, [activeTab]: response.data! }))
+					// Fetch suggestions if the list is empty and we haven't loaded them yet
+					if (response.data.length === 0 && !suggestionsLoaded) {
+						fetchSuggestions()
+					}
 				} else {
 					setErrors(prev => ({
 						...prev,
-						[activeTab]: response.message || `Failed to load ${activeTab}`,
+						[activeTab]: response.message || t('failedToLoad', { tab: activeTab }),
 					}))
 				}
 			} catch {
 				if (!cancelled) {
 					setErrors(prev => ({
 						...prev,
-						[activeTab]: `Failed to load ${activeTab}`,
+						[activeTab]: t('failedToLoad', { tab: activeTab }),
 					}))
 				}
 			} finally {
@@ -138,7 +163,44 @@ function FollowersContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [activeTab])
+	}, [activeTab, suggestionsLoaded])
+
+	const fetchSuggestions = useCallback(async () => {
+		if (suggestionsLoaded || suggestionsLoading) return
+		setSuggestionsLoading(true)
+		try {
+			const response = await getSuggestedFollows(8)
+			if (response.success && response.data) {
+				setSuggestions(response.data)
+			}
+		} catch {
+			// Silent fail — suggestions are non-critical
+		} finally {
+			setSuggestionsLoading(false)
+			setSuggestionsLoaded(true)
+		}
+	}, [suggestionsLoaded, suggestionsLoading])
+
+	const handleSuggestionFollowed = (userId: string) => {
+		// Move from suggestions to following list
+		const followed = suggestions.find(p => p.userId === userId)
+		if (followed) {
+			setSuggestions(prev => prev.filter(p => p.userId !== userId))
+			setData(prev => ({
+				...prev,
+				following: [...prev.following, { ...followed, isFollowing: true }],
+			}))
+		}
+	}
+
+	const handleSuggestionDismissed = (userId: string) => {
+		setDismissedIds(prev => new Set(prev).add(userId))
+		setSuggestions(prev => prev.filter(p => p.userId !== userId))
+	}
+
+	const visibleSuggestions = suggestions.filter(
+		s => !dismissedIds.has(s.userId),
+	)
 
 	const handleFollowChange = (userId: string, isNowFollowing: boolean) => {
 		// Update local state when follow status changes
@@ -174,8 +236,8 @@ function FollowersContent() {
 					<div className='flex-1'>
 						<PageHeader
 							icon={Users}
-							title='Your Network'
-							subtitle='Followers, following, and friends'
+						title={t('networkTitle')}
+						subtitle={t('networkSubtitle')}
 							gradient='purple'
 							marginBottom='sm'
 							className='mb-0'
@@ -187,6 +249,7 @@ function FollowersContent() {
 				<div className='mb-6 flex gap-2 rounded-radius border border-border-subtle bg-bg-elevated p-1'>
 					{TABS.map(tab => (
 						<button
+							type='button'
 							key={tab.key}
 							onClick={() => setActiveTab(tab.key)}
 							className={cn(
@@ -197,7 +260,7 @@ function FollowersContent() {
 							)}
 						>
 							{tab.icon}
-							{tab.label}
+							{t(tab.labelKey)}
 							<span
 								className={cn(
 									'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold',
@@ -225,26 +288,58 @@ function FollowersContent() {
 							<FollowersSkeleton />
 						) : error ? (
 							<ErrorState
-								title={`Failed to load ${activeTab}`}
+								title={t('failedToLoad', { tab: activeTab })}
 								message={error}
 								onRetry={() => fetchTab(activeTab)}
 							/>
 						) : currentList.length === 0 ? (
-							<EmptyStateGamified
-								title={`No ${activeTab} yet`}
-								description={
-									activeTab === 'followers'
-										? 'Share your culinary creations to attract followers!'
-										: activeTab === 'following'
-											? 'Find chefs you admire and follow them for inspiration.'
-											: 'Mutual follows become friends. Start by following chefs you love!'
-								}
-								illustration={
-									TABS.find(t => t.key === activeTab)?.icon || (
-										<Users className='size-6' />
-									)
-								}
-							/>
+							<div className='space-y-6'>
+								{/* Suggested follows section — shown on empty following/friends tabs */}
+								{(activeTab === 'following' || activeTab === 'friends') &&
+								suggestionsLoading ? (
+									<FollowersSkeleton />
+								) : (activeTab === 'following' ||
+										activeTab === 'friends') &&
+								  visibleSuggestions.length > 0 ? (
+									<div className='space-y-4'>
+										<div className='flex items-center gap-2 text-text-secondary'>
+											<Sparkles className='size-4 text-brand' />
+											<h3 className='text-sm font-semibold'>
+												{activeTab === 'following'
+												? t('chefsYouMightLike')
+												: t('followChefsToMakeFriends')}
+											</h3>
+										</div>
+										<StaggerContainer className='space-y-3'>
+											{visibleSuggestions.map(profile => (
+												<FollowSuggestionCard
+													key={profile.userId}
+													profile={profile}
+													variant='suggested'
+													onFollowBack={handleSuggestionFollowed}
+													onDismiss={handleSuggestionDismissed}
+												/>
+											))}
+										</StaggerContainer>
+									</div>
+								) : (
+									<EmptyStateGamified
+										title={t('noFollowersYet', { tab: activeTab })}
+										description={
+											activeTab === 'followers'
+												? t('followersEmptyDesc')
+												: activeTab === 'following'
+													? t('followingEmptyDesc')
+													: t('friendsEmptyDesc')
+										}
+										illustration={
+											TABS.find(t => t.key === activeTab)?.icon || (
+												<Users className='size-6' />
+											)
+										}
+									/>
+								)}
+							</div>
 						) : (
 							<StaggerContainer className='space-y-3'>
 								{currentList.map(profile => (

@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -57,6 +59,7 @@ import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	CARD_FEED_HOVER,
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
@@ -90,11 +93,12 @@ const RecipeManageCard = ({
 }: RecipeManageCardProps) => {
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
+	const t = useTranslations('creator')
 
 	return (
 		<motion.div
 			variants={staggerItem}
-			whileHover={{ y: -4 }}
+			whileHover={CARD_FEED_HOVER}
 			className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-warm'
 		>
 			{/* Image */}
@@ -104,6 +108,7 @@ const RecipeManageCard = ({
 						src={getRecipeImage(recipe)}
 						alt={recipe.title}
 						fill
+						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-500 group-hover:scale-105'
 					/>
 					<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
@@ -217,14 +222,14 @@ const RecipeManageCard = ({
 						</AlertDialogTrigger>
 						<AlertDialogContent>
 							<AlertDialogHeader>
-								<AlertDialogTitle>Delete Recipe?</AlertDialogTitle>
+								<AlertDialogTitle>{t('deleteRecipeTitle')}</AlertDialogTitle>
 								<AlertDialogDescription>
 									This will permanently delete &ldquo;{recipe.title}&rdquo;.
 									This action cannot be undone.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
 								<AlertDialogAction
 									onClick={() => onDelete(recipe.id)}
 									className='bg-error text-white hover:bg-error/90'
@@ -245,6 +250,7 @@ const RecipeManageCard = ({
 // ============================================
 
 export default function MyRecipesPage() {
+	const t = useTranslations('creator')
 	const router = useRouter()
 	const { user } = useAuthStore()
 	const [isNavigating, startNavigationTransition] = useTransition()
@@ -294,12 +300,12 @@ export default function MyRecipesPage() {
 			const response = await deleteRecipe(recipeId)
 			if (response.success) {
 				setRecipes(prev => prev.filter(r => r.id !== recipeId))
-				toast.success('Recipe deleted')
+				toast.success(t('recipeDeleted'))
 			} else {
-				toast.error(response.message || 'Failed to delete recipe')
+				toast.error(response.message || t('failedToDeleteRecipe'))
 			}
 		} catch {
-			toast.error('Failed to delete recipe')
+			toast.error(t('failedToDeleteRecipe'))
 		} finally {
 			setDeletingId(null)
 		}
@@ -312,15 +318,15 @@ export default function MyRecipesPage() {
 		try {
 			const response = await duplicateRecipe(recipeId)
 			if (response.success && response.data) {
-				toast.success('Recipe duplicated as draft')
+				toast.success(t('recipeDuplicated'))
 				startNavigationTransition(() => {
 					router.push(`/create?draftId=${response.data.id}`)
 				})
 			} else {
-				toast.error(response.message || 'Failed to duplicate recipe')
+				toast.error(response.message || t('failedToDuplicateRecipe'))
 			}
 		} catch {
-			toast.error('Failed to duplicate recipe')
+			toast.error(t('failedToDuplicateRecipe'))
 		} finally {
 			setDuplicatingId(null)
 		}
@@ -382,7 +388,7 @@ export default function MyRecipesPage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+					{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -392,6 +398,7 @@ export default function MyRecipesPage() {
 				{/* Header with PageHeader + back button + create action */}
 				<div className='mb-8 flex items-center gap-3'>
 					<button
+						type='button'
 						onClick={() => router.back()}
 						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 					>
@@ -446,9 +453,9 @@ export default function MyRecipesPage() {
 								<SelectValue placeholder='Sort by' />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value='newest'>Newest</SelectItem>
-								<SelectItem value='popular'>Most Liked</SelectItem>
-								<SelectItem value='views'>Most Viewed</SelectItem>
+								<SelectItem value='newest'>{t('sortNewest')}</SelectItem>
+								<SelectItem value='popular'>{t('sortMostLiked')}</SelectItem>
+								<SelectItem value='views'>{t('sortMostViewed')}</SelectItem>
 							</SelectContent>
 						</Select>
 					</motion.div>
@@ -464,9 +471,9 @@ export default function MyRecipesPage() {
 						<div className='mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-brand/10'>
 							<ChefHat className='size-8 text-brand' />
 						</div>
-						<h3 className='mb-2 text-xl font-bold text-text'>No recipes yet</h3>
+						<h3 className='mb-2 text-xl font-bold text-text'>{t('noRecipesYet')}</h3>
 						<p className='mb-6 text-text-muted'>
-							Share your culinary creations with the world!
+							{t('noRecipesYetDesc')}
 						</p>
 						<Button
 							onClick={() => startNavigationTransition(() => {

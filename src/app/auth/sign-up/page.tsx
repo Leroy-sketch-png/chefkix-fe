@@ -3,49 +3,16 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { SignUpForm } from '@/components/auth/SignUpForm'
-import { SIGN_UP_MESSAGES } from '@/constants/messages'
+import { useTranslations } from '@/i18n/hooks'
 import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
 import { ChefHat, Sparkles, Zap, Trophy, Users } from 'lucide-react'
 import { LazyLottie } from '@/components/shared/LazyLottie'
-import { cn } from '@/lib/utils'
-
-/**
- * Floating gradient orbs - purely decorative ambient effects
- * Uses CSS animations (GPU-accelerated, zero JS overhead) instead of Framer Motion
- * Animation is subtle and stops after 3 cycles to save CPU
- */
-const FloatingOrb = ({
-	className,
-	delay,
-}: {
-	className: string
-	delay: number
-}) => (
-	<div
-		className={cn('animate-float-orb opacity-30', className)}
-		style={{ animationDelay: `${delay}s` }}
-	/>
-)
-
 const SignUpPage = () => {
+	const t = useTranslations('auth')
 	return (
 		<div className='relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-bg px-4 py-8'>
 			{/* Warm gradient background */}
 			<div className='absolute inset-0 bg-gradient-to-br from-xp/5 via-bg to-brand/5' />
-
-			{/* Floating decorative orbs */}
-			<FloatingOrb
-				className='absolute -right-32 top-1/4 size-64 rounded-full bg-gradient-to-br from-xp/20 to-xp/5 blur-3xl'
-				delay={0}
-			/>
-			<FloatingOrb
-				className='absolute -left-32 bottom-1/4 size-80 rounded-full bg-gradient-to-br from-brand/20 to-brand/5 blur-3xl'
-				delay={2}
-			/>
-			<FloatingOrb
-				className='absolute -top-20 right-1/3 size-48 rounded-full bg-gradient-to-br from-level/20 to-level/5 blur-3xl'
-				delay={4}
-			/>
 
 			{/* Background Lottie Animation - lazy loaded with theatrical entrance */}
 			<div className='pointer-events-none absolute inset-0 flex items-center justify-center opacity-10'>
@@ -83,7 +50,7 @@ const SignUpPage = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2 }}
 					>
-						Join ChefKix
+						{t('signUpTitle')}
 					</motion.h1>
 					<motion.p
 						className='flex items-center gap-1 text-sm text-text-muted'
@@ -92,7 +59,7 @@ const SignUpPage = () => {
 						transition={{ delay: 0.3 }}
 					>
 						<Sparkles className='size-3.5 text-level' />
-						Start your culinary adventure
+						{t('signUpSubtitle')}
 					</motion.p>
 				</motion.div>
 
@@ -102,15 +69,15 @@ const SignUpPage = () => {
 					className='mb-6 flex flex-wrap justify-center gap-2'
 				>
 					{[
-						{ icon: Zap, label: 'Earn XP', color: 'bg-xp/10 text-xp' },
+						{ icon: Zap, label: t('earnXp'), color: 'bg-xp/10 text-xp' },
 						{
 							icon: Trophy,
-							label: 'Level Up',
+							label: t('levelUp'),
 							color: 'bg-level/10 text-level',
 						},
 						{
 							icon: Users,
-							label: 'Join Community',
+							label: t('joinCommunity'),
 							color: 'bg-brand/10 text-brand',
 						},
 					].map((benefit, i) => (
@@ -138,7 +105,7 @@ const SignUpPage = () => {
 						transition={{ delay: 0.3 }}
 						className='mb-2 text-center text-2xl font-bold text-text'
 					>
-						{SIGN_UP_MESSAGES.PAGE_TITLE}
+						{t('signUpPageTitle')}
 					</motion.h2>
 					<motion.p
 						initial={{ opacity: 0 }}
@@ -146,7 +113,7 @@ const SignUpPage = () => {
 						transition={{ delay: 0.4 }}
 						className='mb-6 text-center text-text-secondary'
 					>
-						{SIGN_UP_MESSAGES.PAGE_SUBTITLE}
+						{t('signUpPageSubtitle')}
 					</motion.p>
 					<SignUpForm />
 				</motion.div>

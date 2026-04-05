@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -41,7 +42,9 @@ import {
 import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { EmptyState } from '@/components/shared/EmptyStateGamified'
+import { TRANSITION_SPRING, LIST_ITEM_HOVER, LIST_ITEM_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
 
@@ -103,11 +106,15 @@ function ConversationItem({
 	const hasUnread = conversation.unreadCount && conversation.unreadCount > 0
 
 	return (
-		<button
+		<motion.button
 			onClick={onClick}
-			className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-all duration-200 ${
-				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated'
-			}`}
+			whileHover={LIST_ITEM_HOVER}
+			whileTap={LIST_ITEM_TAP}
+			transition={TRANSITION_SPRING}
+			className={cn(
+				'group flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-all duration-200',
+				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated',
+			)}
 		>
 			{/* Avatar */}
 			<div className='relative size-12 flex-shrink-0'>
@@ -115,6 +122,7 @@ function ConversationItem({
 					src={avatar}
 					alt={name}
 					fill
+					sizes='48px'
 					className='rounded-full object-cover'
 				/>
 			</div>
@@ -123,23 +131,25 @@ function ConversationItem({
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center justify-between gap-2'>
 					<span
-						className={`truncate font-semibold ${
-							hasUnread ? 'text-text' : 'text-text-secondary'
-						}`}
+						className={cn(
+							'truncate font-semibold',
+							hasUnread ? 'text-text' : 'text-text-secondary',
+						)}
 					>
 						{name}
 					</span>
 					{conversation.lastMessage && (
-						<span className='flex-shrink-0 text-xs text-text-muted'>
+						<span className='tabular-nums flex-shrink-0 text-xs text-text-muted'>
 							{formatMessageTime(conversation.lastMessage.createdDate)}
 						</span>
 					)}
 				</div>
 				{conversation.lastMessage && (
 					<p
-						className={`mt-0.5 truncate text-sm ${
-							hasUnread ? 'font-medium text-text' : 'text-text-muted'
-						}`}
+						className={cn(
+							'mt-0.5 truncate text-sm',
+							hasUnread ? 'font-medium text-text' : 'text-text-muted',
+						)}
 					>
 						{conversation.lastMessage.message}
 					</p>
@@ -148,11 +158,11 @@ function ConversationItem({
 
 			{/* Unread badge */}
 			{hasUnread && (
-				<span className='flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
+				<span className='flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold tabular-nums text-white'>
 					{conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount}
 				</span>
 			)}
-		</button>
+		</motion.button>
 	)
 }
 
@@ -203,23 +213,18 @@ function MessageBubble({
 
 function EmptyConversations() {
 	return (
-		<div className='flex h-full flex-col items-center justify-center gap-4 p-6 text-center'>
-			<div className='grid size-16 place-items-center rounded-2xl bg-brand/10'>
-				<MessageCircle className='size-8 text-brand' />
-			</div>
-			<div>
-				<h3 className='font-semibold text-text'>No conversations yet</h3>
-				<p className='mt-1 text-sm text-text-muted'>
-					Find chefs in the community and start chatting!
-				</p>
-			</div>
-			<Link
-				href='/community'
-				className='mt-2 inline-flex items-center gap-2 rounded-radius bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-card transition-shadow hover:shadow-warm'
-			>
-				<Users className='size-4' />
-				Discover Chefs
-			</Link>
+		<div className='flex h-full items-center justify-center p-6'>
+			<EmptyState
+				variant='custom'
+				title='No conversations yet'
+				description='Find chefs in the community and start chatting about recipes, techniques, and food!'
+				emoji='💬'
+				primaryAction={{
+					label: 'Discover Chefs',
+					href: '/community',
+					icon: <Users className='size-4' />,
+				}}
+			/>
 		</div>
 	)
 }
@@ -254,11 +259,12 @@ function ConnectionStatus({
 	isConnected: boolean
 	error: string | null
 }) {
+	const t = useTranslations('messages')
 	if (isConnected) {
 		return (
 			<div className='flex items-center gap-1.5 text-xs text-success'>
 				<Wifi className='size-3' />
-				<span>Connected</span>
+				<span>{t('connected')}</span>
 			</div>
 		)
 	}
@@ -278,6 +284,7 @@ function ConnectionStatus({
 function MessagesContent() {
 	const { user } = useAuth()
 	const searchParams = useSearchParams()
+	const t = useTranslations('messages')
 	const targetUserId = searchParams.get('userId')
 
 	// State
@@ -439,7 +446,7 @@ function MessagesContent() {
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch messages:', err)
-				toast.error('Could not load messages')
+				toast.error(t('couldNotLoadMessages'))
 			} finally {
 				if (!cancelled) setIsLoadingMessages(false)
 			}
@@ -498,12 +505,12 @@ function MessagesContent() {
 					setMessages(prev => [...prev, response.data!])
 				} else {
 					setNewMessage(messageText)
-					toast.error('Failed to send message')
+					toast.error(t('failedToSend'))
 				}
 			} catch (err) {
 				logDevError('Failed to send message:', err)
 				setNewMessage(messageText)
-				toast.error('Failed to send message')
+				toast.error(t('failedToSend'))
 			} finally {
 				setIsSending(false)
 			}
@@ -528,10 +535,10 @@ function MessagesContent() {
 					prev.map(m => (m.id === messageId ? response.data! : m)),
 				)
 			} else {
-				toast.error('Failed to react to message')
+				toast.error(t('failedToReact'))
 			}
 		} catch {
-			toast.error('Failed to react to message')
+			toast.error(t('failedToReact'))
 		} finally {
 			reactingRef.current.delete(messageId)
 		}
@@ -549,10 +556,10 @@ function MessagesContent() {
 					prev.map(m => (m.id === messageId ? response.data! : m)),
 				)
 			} else {
-				toast.error('Failed to delete message')
+				toast.error(t('failedToDelete'))
 			}
 		} catch {
-			toast.error('Failed to delete message')
+			toast.error(t('failedToDelete'))
 		} finally {
 			deletingRef.current.delete(messageId)
 		}
@@ -569,7 +576,7 @@ function MessagesContent() {
 		try {
 			await navigator.clipboard.writeText(content)
 		} catch {
-			toast.error('Failed to copy message')
+			toast.error(t('failedToCopy'))
 		}
 	}, [])
 
@@ -628,8 +635,8 @@ function MessagesContent() {
 				<header className='flex-shrink-0 border-b border-border-subtle p-4'>
 					<PageHeader
 						icon={MessageCircle}
-						title='Messages'
-						subtitle='Chat with fellow chefs'
+						title={t('title')}
+						subtitle={t('subtitle')}
 						gradient='blue'
 						marginBottom='sm'
 						className='mb-0'
@@ -638,7 +645,7 @@ function MessagesContent() {
 					<div className='relative mt-3'>
 						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 						<Input
-							placeholder='Search conversations...'
+							placeholder={t('searchConversations')}
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							className='bg-bg-elevated pl-9'
@@ -652,12 +659,12 @@ function MessagesContent() {
 						<div className='space-y-2 px-2'>
 							{Array.from({ length: 5 }).map((_, i) => (
 								<div key={i} className='flex items-center gap-3 rounded-xl p-3'>
-									<div className='size-11 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+									<Skeleton className='size-11 shrink-0 rounded-full' />
 									<div className='flex-1 space-y-1.5'>
-										<div className='h-4 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
-										<div className='h-3 w-full animate-pulse rounded bg-bg-elevated/40' />
+										<Skeleton className='h-4 w-2/3' />
+										<Skeleton className='h-3 w-full' />
 									</div>
-									<div className='h-3 w-8 animate-pulse rounded bg-bg-elevated/40' />
+									<Skeleton className='h-3 w-8' />
 								</div>
 							))}
 						</div>
@@ -731,6 +738,7 @@ function MessagesContent() {
 									src={selectedInfo.avatar}
 									alt={selectedInfo.name}
 									fill
+									sizes='40px'
 									className='rounded-full object-cover'
 								/>
 							</div>
@@ -793,25 +801,25 @@ function MessagesContent() {
 											className={`flex gap-2 ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}
 										>
 											{i % 2 === 0 && (
-												<div className='size-8 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+												<Skeleton className='size-8 shrink-0 rounded-full' />
 											)}
 											<div
 												className={`space-y-1.5 rounded-2xl p-3 ${i % 2 === 0 ? 'w-2/3 bg-bg-elevated/20' : 'w-1/2 bg-brand/10'}`}
 											>
-												<div className='h-3 w-full animate-pulse rounded bg-bg-elevated/40' />
-												<div className='h-3 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+												<Skeleton className='h-3 w-full' />
+												<Skeleton className='h-3 w-2/3' />
 											</div>
 										</div>
 									))}
 								</div>
 							) : messages.length === 0 ? (
-								<div className='flex h-full flex-col items-center justify-center gap-3 text-center'>
-									<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
-										<MessageCircle className='size-7 text-text-muted' />
-									</div>
-									<p className='text-text-secondary'>
-										No messages yet. Say hello! 👋
-									</p>
+								<div className='flex h-full items-center justify-center'>
+									<EmptyState
+										variant='custom'
+										title='No messages yet'
+										description='Start the conversation with a warm greeting!'
+										emoji='💬'
+									/>
 								</div>
 							) : (
 								<div className='flex flex-col gap-3'>
@@ -881,7 +889,7 @@ function MessagesContent() {
 							<div className='flex items-center gap-3'>
 								<MentionInput
 									ref={inputRef}
-									placeholder='Type a message... (use @ to mention)'
+									placeholder={t('typeMessage')}
 									value={newMessage}
 									onChange={setNewMessage}
 									onTaggedUsersChange={ids => {
@@ -914,9 +922,18 @@ function MessagesContent() {
 					</>
 				) : isCreatingConversation ? (
 					<div className='flex h-full items-center justify-center'>
-						<div className='flex flex-col items-center gap-3'>
-							<Loader2 className='size-8 animate-spin text-brand' />
-							<p className='text-text-secondary'>Starting conversation...</p>
+						<div className='flex flex-col items-center gap-4'>
+							<div className='flex items-center gap-1.5'>
+								{[0, 1, 2].map(i => (
+									<motion.div
+										key={i}
+										className='size-3 rounded-full bg-brand'
+										animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
+										transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+									/>
+								))}
+							</div>
+							<p className='text-text-secondary'>{t('startingConversation')}</p>
 						</div>
 					</div>
 				) : (

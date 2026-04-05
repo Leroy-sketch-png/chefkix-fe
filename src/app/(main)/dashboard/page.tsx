@@ -22,7 +22,7 @@ import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { FeedModeTabBar, type FeedMode } from '@/components/shared/FeedTabBar'
 import Link from 'next/link'
-import { StaggerContainer } from '@/components/ui/stagger-animation'
+import { StaggerContainer, staggerItemVariants } from '@/components/ui/stagger-animation'
 import {
 	Users,
 	Users2,
@@ -51,11 +51,13 @@ import { TonightsPick } from '@/components/dashboard'
 import { SeasonalBanner } from '@/components/dashboard'
 import { ActiveChallengesWidget } from '@/components/dashboard'
 import { InterestPicker } from '@/components/onboarding/InterestPicker'
+import { ColdStartExperience } from '@/components/onboarding/ColdStartExperience'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
+import { useTranslations } from '@/i18n/hooks'
 
 // ============================================
 // CONSTANTS
@@ -132,6 +134,7 @@ const transformToPendingSession = (
 export default function DashboardPage() {
 	const { user } = useAuth()
 	const router = useRouter()
+	const t = useTranslations('dashboard')
 	const [posts, setPosts] = useState<Post[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -456,19 +459,19 @@ export default function DashboardPage() {
 		sessionStorage.setItem('chefkix_pending_dismissed', 'true')
 	}
 
-	const handlePostUpdate = (updatedPost: Post) => {
+	const handlePostUpdate = useCallback((updatedPost: Post) => {
 		setPosts(prev =>
 			Array.isArray(prev)
 				? prev.map(p => (p.id === updatedPost.id ? updatedPost : p))
 				: [],
 		)
-	}
+	}, [])
 
-	const handlePostDelete = (postId: string) => {
+	const handlePostDelete = useCallback((postId: string) => {
 		setPosts(prev =>
 			Array.isArray(prev) ? prev.filter(p => p.id !== postId) : [],
 		)
-	}
+	}, [])
 
 	// Interest picker for first-time users
 	const showInterestPicker =
@@ -704,8 +707,8 @@ export default function DashboardPage() {
 				)}
 				<PageHeader
 					icon={Home}
-					title="Your Feed"
-					subtitle="Share your culinary journey and see what people you follow are cooking"
+					title={t('title')}
+					subtitle={t('subtitle')}
 					gradient="orange"
 					marginBottom="md"
 				/>
@@ -732,6 +735,11 @@ export default function DashboardPage() {
 						}
 					/>
 				</div>
+				{/* Cold-Start Experience — wraps feed with curated categories for new users */}
+				<ColdStartExperience
+					isAuthenticated={!!user}
+					onColdStartComplete={() => setFeedRefreshKey(k => k + 1)}
+				>
 				{/* Content */}
 				{isLoading && (
 					<div className='space-y-4 md:space-y-6'>
@@ -740,7 +748,7 @@ export default function DashboardPage() {
 				)}
 				{error && (
 					<ErrorState
-						title='Failed to load feed'
+						title={t('failedToLoad')}
 						message={error}
 						onRetry={() => {
 							setError(null)
@@ -756,9 +764,9 @@ export default function DashboardPage() {
 						<div className='mb-4 flex items-center gap-3 rounded-radius border border-brand/20 bg-brand/5 p-3 text-sm text-text-secondary'>
 							<TrendingUp className='size-4 shrink-0 text-brand' />
 							<span>
-								Showing <strong className='text-text'>trending posts</strong>{' '}
-								while your personalized feed warms up. Like and save posts to
-								teach the algorithm your taste!
+								{t.rich('coldStartBanner', {
+									strong: (chunks) => <strong className='text-text'>{chunks}</strong>,
+								})}
 							</span>
 						</div>
 					)}
@@ -768,10 +776,10 @@ export default function DashboardPage() {
 					feedMode === 'following' && (
 						<EmptyStateGamified
 							variant='feed'
-							title='Your following feed is empty'
-							description='Follow people to see their posts here!'
-							primaryAction={{
-								label: 'Discover People',
+						title={t('emptyFollowing')}
+						description={t('emptyFollowingDesc')}
+						primaryAction={{
+							label: t('discoverPeople'),
 								href: '/community',
 								icon: <Users className='size-4' />,
 							}}
@@ -783,10 +791,10 @@ export default function DashboardPage() {
 					feedMode === 'forYou' && (
 						<EmptyStateGamified
 							variant='feed'
-							title='Your personalized feed is warming up'
-							description='Like and save posts to teach the algorithm your taste. The more you interact, the better your feed gets!'
-							primaryAction={{
-								label: 'Explore Trending',
+						title={t('emptyForYou')}
+						description={t('emptyForYouDesc')}
+						primaryAction={{
+							label: t('exploreTrending'),
 								href: '/explore',
 								icon: <TrendingUp className='size-4' />,
 							}}
@@ -799,16 +807,16 @@ export default function DashboardPage() {
 					feedMode !== 'forYou' && (
 						<EmptyStateGamified
 							variant='feed'
-							title='Your feed is empty'
-							description='Follow chefs to see their latest posts here!'
-							primaryAction={{
-								label: 'Discover People',
+						title={t('emptyFeed')}
+						description={t('emptyFeedDesc')}
+						primaryAction={{
+							label: t('discoverPeople'),
 								href: '/community',
 								icon: <Users className='size-4' />,
 							}}
 							secondaryActions={[
 								{
-									label: 'Explore Posts',
+									label: t('explorePosts'),
 									href: '/explore',
 									icon: <MessageSquare className='size-4' />,
 								},
@@ -820,8 +828,11 @@ export default function DashboardPage() {
 						<StaggerContainer className='space-y-4 md:space-y-6'>
 							<AnimatePresence mode='popLayout'>
 								{filteredPosts.map((post, i) => (
-									<div
-										key={post.id}
+								<motion.div
+									key={post.id}
+									variants={staggerItemVariants}
+									exit={{ opacity: 0, y: -10 }}
+									layout
 										data-post-index={i}
 										className={cn(
 											'rounded-2xl transition-shadow',
@@ -845,7 +856,7 @@ export default function DashboardPage() {
 												currentUserId={user?.userId}
 											/>
 										)}
-									</div>
+									</motion.div>
 								))}
 							</AnimatePresence>
 						</StaggerContainer>
@@ -860,18 +871,19 @@ export default function DashboardPage() {
 								>
 									<Loader2 className='size-5 animate-spin text-brand' />
 									<span className='text-sm font-medium'>
-										Loading more posts...
+									{t('loadingMore')}
 									</span>
 								</motion.div>
 							)}
 							{!hasMore && filteredPosts.length > POSTS_PER_PAGE && (
 								<p className='text-sm text-text-muted'>
-									You&apos;ve reached the end of the feed
+									{t('endOfFeed')}
 								</p>
 							)}
 						</div>
 					</>
 				)}
+				</ColdStartExperience>
 			</PageContainer>
 			<QuickPostFAB onPostCreated={handlePostCreated} />
 		</PageTransition>

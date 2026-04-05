@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 /**
  * Post Detail Page
@@ -32,6 +33,7 @@ export default function PostDetailPage() {
 	const params = useParams()
 	const router = useRouter()
 	const { user } = useAuth()
+	const t = useTranslations('post')
 	const postId = params.id as string
 
 	const [post, setPost] = useState<Post | null>(null)
@@ -112,7 +114,7 @@ export default function PostDetailPage() {
 						className='gap-2 text-text-secondary hover:text-text'
 					>
 						<ArrowLeft className='size-4' />
-						<span>Back</span>
+					<span>{t('backLabel')}</span>
 					</Button>
 				</motion.div>
 

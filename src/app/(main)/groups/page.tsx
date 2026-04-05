@@ -9,6 +9,7 @@ import { Users } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { useTranslations } from 'next-intl'
 
 /**
  * Groups explore page
@@ -17,6 +18,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 export default function GroupsExplorePage() {
 	const { user, isAuthenticated } = useAuth()
 	const router = useRouter()
+	const t = useTranslations('groups')
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -34,8 +36,8 @@ export default function GroupsExplorePage() {
 				{/* Header */}
 				<PageHeader
 					icon={Users}
-					title='Groups'
-					subtitle='Discover cooking groups and cook together with others'
+					title={t('groupsTitle')}
+					subtitle={t('groupsSubtitle')}
 					gradient='green'
 				/>
 

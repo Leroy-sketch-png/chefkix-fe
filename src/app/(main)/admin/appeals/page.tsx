@@ -18,20 +18,22 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { useTranslations } from 'next-intl'
 
 const STATUS_CONFIG: Record<
 	string,
 	{
-		label: string
+		labelKey: string
 		variant: 'default' | 'secondary' | 'destructive' | 'outline'
 	}
 > = {
-	pending: { label: 'Pending', variant: 'destructive' },
-	approved: { label: 'Approved', variant: 'default' },
-	rejected: { label: 'Rejected', variant: 'outline' },
+	pending: { labelKey: 'statusPending', variant: 'destructive' },
+	approved: { labelKey: 'statusApproved', variant: 'default' },
+	rejected: { labelKey: 'statusRejected', variant: 'outline' },
 }
 
 export default function AppealsPage() {
+	const t = useTranslations('admin')
 	const [appeals, setAppeals] = useState<Appeal[]>([])
 	const [loading, setLoading] = useState(true)
 	const [reviewingId, setReviewingId] = useState<string | null>(null)
@@ -46,7 +48,7 @@ export default function AppealsPage() {
 				setAppeals(res.data ?? [])
 			}
 		} catch {
-			toast.error('Failed to load appeals')
+			toast.error(t('toastLoadAppealsFailed'))
 		} finally {
 			setLoading(false)
 		}
@@ -66,15 +68,15 @@ export default function AppealsPage() {
 			if (res.success) {
 				toast.success(
 					decision === 'approved'
-						? 'Appeal approved — ban has been revoked'
-						: 'Appeal rejected',
+						? t('toastApproved')
+						: t('toastRejected'),
 				)
 				setExpandedId(null)
 				setReviewNotes('')
 				await fetchAppeals()
 			}
 		} catch {
-			toast.error('Failed to review appeal')
+			toast.error(t('toastReviewAppealFailed'))
 		} finally {
 			setReviewingId(null)
 		}
@@ -85,8 +87,8 @@ export default function AppealsPage() {
 			<PageContainer maxWidth='2xl'>
 				<PageHeader
 					icon={Scale}
-					title='Appeals'
-					subtitle='Review ban appeals from users'
+					title={t('appealsTitle')}
+					subtitle={t('appealsSubtitle')}
 					gradient='blue'
 					marginBottom='md'
 				/>
@@ -104,8 +106,8 @@ export default function AppealsPage() {
 			<PageContainer maxWidth='2xl'>
 				<PageHeader
 					icon={Scale}
-					title='Appeals'
-					subtitle='Review ban appeals from users'
+					title={t('appealsTitle')}
+					subtitle={t('appealsSubtitle')}
 					gradient='blue'
 					marginBottom='md'
 				/>
@@ -113,10 +115,8 @@ export default function AppealsPage() {
 					<div className='grid size-12 place-items-center rounded-full bg-success/10'>
 						<Scale className='size-6 text-success' />
 					</div>
-					<p className='text-sm font-medium text-text'>No pending appeals</p>
-					<p className='text-xs text-text-muted'>
-						All appeals have been reviewed. Check back later.
-					</p>
+					<p className='text-sm font-medium text-text'>{t('noAppealsTitle')}</p>
+					<p className='text-xs text-text-muted'>{t('noAppealsSubtitle')}</p>
 					<Button
 						variant='outline'
 						size='sm'
@@ -134,15 +134,15 @@ export default function AppealsPage() {
 		<PageContainer maxWidth='2xl'>
 			<PageHeader
 				icon={Scale}
-				title='Appeals'
-				subtitle='Review ban appeals from users'
+				title={t('appealsTitle')}
+				subtitle={t('appealsSubtitle')}
 				gradient='blue'
 				marginBottom='md'
 			/>
 			<div className='space-y-3'>
 				<div className='mb-4 flex items-center justify-between'>
 					<p className='text-sm text-text-muted'>
-						{appeals.length} pending appeal{appeals.length !== 1 ? 's' : ''}
+						{t('pendingAppealsCount', { count: appeals.length })}
 					</p>
 					<Button
 						variant='outline'
@@ -184,7 +184,7 @@ export default function AppealsPage() {
 											variant={statusConfig?.variant ?? 'outline'}
 											className='text-xs'
 										>
-											{statusConfig?.label ?? appeal.status}
+											{statusConfig?.labelKey ? t(statusConfig.labelKey) : appeal.status}
 										</Badge>
 									</div>
 									<p className='text-xs text-text-muted'>
@@ -228,7 +228,7 @@ export default function AppealsPage() {
 								{appeal.evidenceUrls.length > 0 && (
 									<div className='text-xs'>
 										<span className='font-medium text-text-muted'>
-											Evidence ({appeal.evidenceUrls.length})
+											{t('evidenceLabel', { count: appeal.evidenceUrls.length })}
 										</span>
 										<div className='mt-1 space-y-1'>
 											{appeal.evidenceUrls.map((url, i) => (
@@ -250,18 +250,14 @@ export default function AppealsPage() {
 								{appeal.reviewedBy && (
 									<div className='grid grid-cols-2 gap-3 text-xs'>
 										<div>
-											<span className='font-medium text-text-muted'>
-												Reviewed by
-											</span>
+											<span className='font-medium text-text-muted'>{t('reviewedByLabel')}</span>
 											<p className='mt-0.5 font-mono text-text'>
 												{appeal.reviewedBy}
 											</p>
 										</div>
 										{appeal.reviewedAt && (
 											<div>
-												<span className='font-medium text-text-muted'>
-													Reviewed at
-												</span>
+												<span className='font-medium text-text-muted'>{t('reviewedAtLabel')}</span>
 												<p className='mt-0.5 text-text'>
 													{new Date(appeal.reviewedAt).toLocaleString()}
 												</p>
@@ -272,9 +268,7 @@ export default function AppealsPage() {
 
 								{appeal.reviewNotes && (
 									<div className='text-xs'>
-										<span className='font-medium text-text-muted'>
-											Review notes
-										</span>
+										<span className='font-medium text-text-muted'>{t('reviewNotesLabel')}</span>
 										<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
 											{appeal.reviewNotes}
 										</p>
@@ -287,7 +281,7 @@ export default function AppealsPage() {
 										<textarea
 											value={reviewNotes}
 											onChange={e => setReviewNotes(e.target.value)}
-											placeholder='Review notes (optional)...'
+											placeholder={t('reviewNotesPlaceholder')}
 											className='w-full resize-none rounded-lg border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
 											rows={2}
 										/>

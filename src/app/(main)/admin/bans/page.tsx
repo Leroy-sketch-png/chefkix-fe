@@ -19,8 +19,10 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { useTranslations } from 'next-intl'
 
 export default function BansPage() {
+	const t = useTranslations('admin')
 	const [userId, setUserId] = useState('')
 	const [bans, setBans] = useState<BanResponse[]>([])
 	const [loading, setLoading] = useState(false)
@@ -34,7 +36,7 @@ export default function BansPage() {
 
 	const searchBans = useCallback(async () => {
 		if (!userId.trim()) {
-			toast.error('Enter a user ID')
+			toast.error(t('toastEnterUserId'))
 			return
 		}
 		setLoading(true)
@@ -45,7 +47,7 @@ export default function BansPage() {
 				setBans(res.data ?? [])
 			}
 		} catch {
-			toast.error('Failed to fetch bans')
+			toast.error(t('toastFetchBansFailed'))
 			setBans([])
 		} finally {
 			setLoading(false)
@@ -57,11 +59,11 @@ export default function BansPage() {
 		try {
 			const res = await revokeBan(banId)
 			if (res.success) {
-				toast.success('Ban revoked')
+				toast.success(t('toastBanRevoked'))
 				await searchBans()
 			}
 		} catch {
-			toast.error('Failed to revoke ban')
+			toast.error(t('toastRevokeFailed'))
 		} finally {
 			setActionLoading(null)
 		}
@@ -69,7 +71,7 @@ export default function BansPage() {
 
 	const handleBan = async () => {
 		if (!banReason.trim()) {
-			toast.error('Enter a ban reason')
+			toast.error(t('toastBanReasonRequired'))
 			return
 		}
 		setActionLoading('ban-new')
@@ -89,7 +91,7 @@ export default function BansPage() {
 				await searchBans()
 			}
 		} catch {
-			toast.error('Failed to ban user')
+			toast.error(t('toastBanFailed'))
 		} finally {
 			setActionLoading(null)
 		}
@@ -99,8 +101,8 @@ export default function BansPage() {
 		<PageContainer maxWidth='2xl'>
 			<PageHeader
 				icon={Shield}
-				title='User Bans'
-				subtitle='Search and manage banned users'
+				title={t('bansTitle')}
+				subtitle={t('bansSubtitle')}
 				gradient='gray'
 				marginBottom='md'
 			/>
@@ -114,7 +116,7 @@ export default function BansPage() {
 							value={userId}
 							onChange={e => setUserId(e.target.value)}
 							onKeyDown={e => e.key === 'Enter' && searchBans()}
-							placeholder='Enter user ID to look up bans...'
+							placeholder={t('searchPlaceholder')}
 							className='w-full rounded-xl border border-border-subtle bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
 						/>
 					</div>
@@ -137,8 +139,8 @@ export default function BansPage() {
 					<div className='flex items-center justify-between'>
 						<p className='text-sm text-text-muted'>
 							{bans.length === 0
-								? 'No active bans for this user'
-								: `${bans.length} active ban${bans.length > 1 ? 's' : ''}`}
+								? t('noActiveBansUser')
+								: t('activeBansCount', { count: bans.length })}
 						</p>
 						{userId.trim() && (
 							<Button
@@ -148,7 +150,7 @@ export default function BansPage() {
 								className='gap-1.5'
 							>
 								<Ban className='size-3.5' />
-								{showBanForm ? 'Cancel' : 'Issue New Ban'}
+								{showBanForm ? t('cancelBan') : t('issueNewBan')}
 							</Button>
 						)}
 					</div>
@@ -157,25 +159,25 @@ export default function BansPage() {
 					{showBanForm && (
 						<div className='rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3'>
 							<p className='text-sm font-semibold text-text'>
-								Ban user: <span className='font-mono'>{userId.trim()}</span>
+								{t('banUserLabel', { userId: userId.trim() })}
 							</p>
 							<p className='text-xs text-text-muted'>
-								Escalating penalties: 1st = 3 days, 2nd = 7 days, 3rd = 14 days,
-								4th+ = permanent
+								{t('escalatingPenalties')}
 							</p>
 							<textarea
 								value={banReason}
 								onChange={e => setBanReason(e.target.value)}
-								placeholder='Reason for ban...'
+								placeholder={t('banReasonPlaceholder')}
 								className='w-full resize-none rounded-lg border border-border-subtle bg-bg-card p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
 								rows={2}
 							/>
 							<div className='flex items-center gap-3'>
 								<label className='text-xs font-medium text-text-muted'>
-									Scope:
+									{t('scopeLabel')}
 								</label>
 								{(['all', 'post', 'comment'] as BanScope[]).map(scope => (
 									<button
+										type='button'
 										key={scope}
 										onClick={() => setBanScope(scope)}
 										className={cn(
@@ -197,7 +199,7 @@ export default function BansPage() {
 								className='gap-1.5'
 							>
 								<Ban className='size-3.5' />
-								Confirm Ban
+								{t('confirmBan')}
 							</Button>
 						</div>
 					)}
@@ -232,13 +234,13 @@ export default function BansPage() {
 											<div>
 												<div className='flex items-center gap-2'>
 													<span className='text-sm font-semibold text-text'>
-														Offense #{ban.offenseNumber}
+														{t('offenseLabel', { number: ban.offenseNumber })}
 													</span>
 													<Badge
 														variant={ban.active ? 'destructive' : 'outline'}
 														className='text-xs'
 													>
-														{ban.active ? 'Active' : 'Revoked'}
+														{ban.active ? t('activeStatus') : t('revokedStatus')}
 													</Badge>
 													<Badge
 														variant='secondary'
@@ -279,7 +281,7 @@ export default function BansPage() {
 										)}
 									</div>
 									<p className='mt-2 text-xs text-text-muted'>
-										<span className='font-medium'>Reason:</span> {ban.reason}
+										<span className='font-medium'>{t('reasonPrefix')}</span> {ban.reason}
 									</p>
 								</div>
 							))}
@@ -292,10 +294,8 @@ export default function BansPage() {
 							<div className='grid size-12 place-items-center rounded-full bg-success/10'>
 								<Shield className='size-6 text-success' />
 							</div>
-							<p className='text-sm font-medium text-text'>No active bans</p>
-							<p className='text-xs text-text-muted'>
-								This user has a clean record
-							</p>
+							<p className='text-sm font-medium text-text'>{t('noActiveBansTitle')}</p>
+							<p className='text-xs text-text-muted'>{t('cleanRecord')}</p>
 						</div>
 					)}
 				</>
@@ -304,7 +304,7 @@ export default function BansPage() {
 					<div className='grid size-12 place-items-center rounded-full bg-bg-elevated'>
 						<Search className='size-6 text-text-muted' />
 					</div>
-					<p className='text-sm font-medium text-text'>Look up user bans</p>
+					<p className='text-sm font-medium text-text'>{t('lookUpTitle')}</p>
 					<p className='text-xs text-text-muted'>
 						Enter a user ID to view their ban history and manage bans
 					</p>
