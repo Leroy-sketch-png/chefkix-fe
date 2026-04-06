@@ -150,6 +150,15 @@ export const ICON_BUTTON_TAP = {
 	scale: 0.95,
 } as const
 
+// For rating stars / gamification selection (slightly punchy)
+export const RATING_STAR_HOVER = {
+	scale: 1.2,
+} as const
+
+export const RATING_STAR_TAP = {
+	scale: 0.9,
+} as const
+
 // For subtle lift on stat items or cards
 export const STAT_ITEM_HOVER = {
 	y: -2,

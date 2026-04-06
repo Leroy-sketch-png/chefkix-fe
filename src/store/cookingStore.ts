@@ -20,6 +20,7 @@ import {
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
 import { toast } from 'sonner'
+import messages from '../../messages/en.json'
 import { diag } from '@/lib/diagnostics'
 import type { RoomParticipant, CookingRoom, RoomEvent } from '@/lib/types/room'
 import { useAuthStore } from '@/store/authStore'
@@ -30,6 +31,9 @@ import {
 	getRoom as apiGetRoom,
 } from '@/services/cookingRoom'
 import type { StepRenderMode } from '@/components/cooking/StepV2Renderer'
+
+/** Non-hook i18n lookup for Zustand stores (single-locale) */
+const ct = (key: keyof typeof messages.cooking) => messages.cooking[key]
 
 // ============================================
 // TYPES
@@ -484,7 +488,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					logDevError('Failed to navigate step:', error)
-					toast.error('Failed to navigate step. Please try again.')
+					toast.error(ct('toastNavigateStepFailed'))
 				}
 			},
 
@@ -517,7 +521,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					logDevError('Failed to complete step:', error)
-					toast.error('Failed to mark step as complete. Please try again.')
+					toast.error(ct('toastCompleteStepFailed'))
 				}
 			},
 
@@ -554,7 +558,7 @@ export const useCookingStore = create<CookingState>()(
 					set({ localTimers: newTimers })
 				} catch (error) {
 					logDevError('Failed to start timer:', error)
-					toast.error('Failed to start timer. Please try again.')
+					toast.error(ct('toastStartTimerFailed'))
 				}
 			},
 
@@ -579,7 +583,7 @@ export const useCookingStore = create<CookingState>()(
 					set({ localTimers: newTimers })
 				} catch (error) {
 					logDevError('Failed to skip timer:', error)
-					toast.error('Failed to skip timer. Please try again.')
+					toast.error(ct('toastSkipTimerFailed'))
 				}
 			},
 
@@ -605,7 +609,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					diag.error('cooking', 'PAUSE_SESSION exception', error)
-					toast.error('Failed to pause session. Please try again.')
+					toast.error(ct('toastPauseSessionFailed'))
 				}
 			},
 
@@ -643,7 +647,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					diag.error('cooking', 'RESUME_COOKING exception', error)
-					toast.error('Failed to resume session. Please try again.')
+					toast.error(ct('toastResumeSessionFailed'))
 				}
 			},
 
@@ -739,14 +743,14 @@ export const useCookingStore = create<CookingState>()(
 					const response = await apiAbandonSession(session.sessionId)
 					if (response.success) {
 						set({ session: null, recipe: null, localTimers: new Map(), checkedIngredients: {}, interactionMode: null })
-						toast.info('Session abandoned')
+						toast.info(ct('toastSessionAbandoned'))
 					} else {
 						logDevError('Failed to abandon session:', response.message)
-						toast.error('Failed to abandon session. Please try again.')
+						toast.error(ct('toastAbandonSessionFailed'))
 					}
 				} catch (error) {
 					logDevError('Failed to abandon session:', error)
-					toast.error('Failed to abandon session. Please try again.')
+					toast.error(ct('toastAbandonSessionFailed'))
 				}
 			},
 

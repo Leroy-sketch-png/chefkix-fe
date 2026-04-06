@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 import { useAuth } from './useAuth'
+import { useTranslations } from '@/i18n/hooks'
 
 /**
  * Returns a gate function that checks auth before performing an action.
@@ -19,20 +20,21 @@ export function useAuthGate() {
 	const { isAuthenticated } = useAuth()
 	const router = useRouter()
 	const pathname = usePathname()
+	const t = useTranslations('auth')
 
 	return useCallback(
 		(action?: string): boolean => {
 			if (isAuthenticated) return true
 
 			const message = action
-				? `Sign up to ${action}`
-				: 'Sign up to continue'
+				? t('signUpTo', { action })
+				: t('signUpToContinue')
 
 			const returnTo = encodeURIComponent(pathname)
 
 			toast(message, {
 				action: {
-					label: 'Sign Up',
+					label: t('signUpAction'),
 					onClick: () => router.push(`/auth/sign-up?returnTo=${returnTo}`),
 				},
 				duration: 5000,
@@ -40,6 +42,6 @@ export function useAuthGate() {
 
 			return false
 		},
-		[isAuthenticated, router, pathname],
+		[isAuthenticated, router, pathname, t],
 	)
 }

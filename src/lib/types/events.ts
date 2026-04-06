@@ -19,6 +19,7 @@ export type TrackingEventType =
 	| 'PAGE_VIEWED'
 	| 'POST_CREATED'
 	| 'RECIPE_CREATED'
+	| 'BATTLE_VOTE'
 
 export interface TrackingEvent {
 	eventType: TrackingEventType
