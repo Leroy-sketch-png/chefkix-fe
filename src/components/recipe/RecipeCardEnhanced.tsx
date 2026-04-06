@@ -31,6 +31,7 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 	BOOKMARK_SLIDE,
+	DURATION_S,
 } from '@/lib/motion'
 
 // ============================================
@@ -62,7 +63,7 @@ interface RecipeCardBase {
 	cookCount: number
 	rating: number
 	// Gamification fields
-	skillTags?: string[] // Skills you'll learn (e.g., "Knife Skills", "SautÃ©")
+	skillTags?: string[] // Skills you'll learn (e.g., "Knife Skills", "Sauté")
 	badges?: string[] // Badges you can earn (e.g., "First Pasta", "Spice Master")
 	// Recipe Quality Score
 	qualityTier?: QualityTier // Show Foolproof badge when present
@@ -135,7 +136,7 @@ const XPBadge = ({
 				size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-sm',
 			)}
 		>
-			<span className={size === 'large' ? 'text-lg' : 'text-sm'}>âš¡</span>
+			<span className={size === 'large' ? 'text-lg' : 'text-sm'}>⚡</span>
 			<span className='tabular-nums'>{xp} XP</span>
 		</div>
 	)
@@ -249,10 +250,10 @@ const MasteryBadge = ({
 	level: 'novice' | 'apprentice' | 'expert' | 'master'
 }) => {
 	const config = {
-		novice: { emoji: 'ðŸ¥‰', gradient: 'from-text-muted to-text-muted' },
-		apprentice: { emoji: 'ðŸ¥ˆ', gradient: 'from-info to-info' },
-		expert: { emoji: 'ðŸ¥‡', gradient: 'from-gold to-level' },
-		master: { emoji: 'ðŸ‘‘', gradient: 'from-xp to-bonus' },
+		novice: { emoji: '🥉', gradient: 'from-text-muted to-text-muted' },
+		apprentice: { emoji: '🥈', gradient: 'from-info to-info' },
+		expert: { emoji: '🥇', gradient: 'from-gold to-level' },
+		master: { emoji: '👑', gradient: 'from-xp to-bonus' },
 	}
 
 	return (
@@ -441,7 +442,7 @@ const FeedCard = ({
 								/>
 								{author.name}
 							</span>
-							<span className='text-border'>â€¢</span>
+							<span className='text-border'>•</span>
 						</>
 					)}
 					<span className='flex items-center gap-1'>
@@ -476,10 +477,11 @@ const FeedCard = ({
 
 		{/* Cook now button */}
 		<motion.button
+			type='button'
 			onClick={onCookNow}
 			whileHover={BUTTON_HOVER}
 			whileTap={BUTTON_TAP}
-			className='absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white'
+			className='absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 		>
 			<Play className='size-4' />
 			{t('cookNow')}
@@ -606,7 +608,7 @@ const GridCard = ({
 						<span>{author.name}</span>
 						{author.isVerified && (
 							<span className='rounded-full bg-success px-1.5 py-0.5 text-2xs text-white'>
-								âœ“
+								✓
 							</span>
 						)}
 					</div>
@@ -617,6 +619,7 @@ const GridCard = ({
 		{/* Actions - more subtle, card is already clickable */}
 		<div className='flex gap-2 px-4 pb-4'>
 			<motion.button
+				type='button'
 				onClick={e => {
 					e.preventDefault()
 					e.stopPropagation()
@@ -624,12 +627,13 @@ const GridCard = ({
 				}}
 				whileHover={BUTTON_HOVER}
 				whileTap={BUTTON_TAP}
-				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white'
+				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				<Play className='size-4' />
 				{t('startCooking')}
 			</motion.button>
 			<motion.button
+				type='button'
 				onClick={e => {
 					e.preventDefault()
 					e.stopPropagation()
@@ -640,7 +644,7 @@ const GridCard = ({
 				transition={TRANSITION_SPRING}
 				aria-label={isSaved ? t('removeFromSaved') : t('saveRecipe')}
 				className={cn(
-					'flex size-10 items-center justify-center rounded-lg border',
+					'flex size-10 items-center justify-center rounded-lg border focus-visible:ring-2 focus-visible:ring-brand/50',
 					isSaved
 						? 'border-brand bg-brand/10 text-brand'
 						: 'border-border bg-bg-elevated text-text-muted hover:border-brand hover:bg-brand/10 hover:text-brand',
@@ -710,7 +714,7 @@ const FeaturedCard = ({
 				<div className='absolute right-5 top-5 flex flex-col items-end gap-2.5'>
 					{xpReward != null && xpReward > 0 && (
 						<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-lg shadow-success/40'>
-							<span className='text-lg'>âš¡</span>
+							<span className='text-lg'>⚡</span>
 							<span className='tabular-nums'>{xpReward} XP</span>
 						</div>
 					)}
@@ -816,6 +820,7 @@ const FeaturedCard = ({
 
 					{/* CTA */}
 					<motion.button
+						type='button'
 						onClick={e => {
 							e.preventDefault()
 							onCook?.()
@@ -823,7 +828,7 @@ const FeaturedCard = ({
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						transition={TRANSITION_SPRING}
-						className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-xl shadow-brand/40 md:px-8 md:text-lg'
+						className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-xl shadow-brand/40 md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<Play className='size-5 md:size-6' />
 						{t('startCooking')}
@@ -891,7 +896,7 @@ const CookedCard = ({
 						<motion.div
 							initial={{ width: 0 }}
 							animate={{ width: `${mastery.masteryPercent}%` }}
-							transition={{ duration: 0.5 }}
+							transition={{ duration: DURATION_S.slow }}
 							className='h-full rounded-full bg-gradient-xp'
 						/>
 					</div>
@@ -929,20 +934,22 @@ const CookedCard = ({
 		{/* Actions */}
 		<div className='flex gap-2 px-4 pb-4'>
 			<motion.button
+				type='button'
 				onClick={onCookAgain}
 				whileHover={BUTTON_HOVER}
 				whileTap={BUTTON_TAP}
-				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-xp py-3 text-sm font-semibold text-white'
+				className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-xp py-3 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				<RefreshCw className='size-4' />
 				{t('cookAgain')}
 			</motion.button>
 			<motion.button
+				type='button'
 				onClick={onViewHistory}
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
-				className='flex size-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp'
+				className='flex size-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50'
 				aria-label={t('viewCookingHistory')}
 			>
 				<History className='size-5' />
@@ -984,7 +991,7 @@ const MiniCard = ({
 				<h4 className='mb-1 truncate text-sm font-semibold'>{title}</h4>
 				<div className='flex items-center gap-2.5 text-xs'>
 					{xpReward != null && xpReward > 0 && (
-						<span className='font-semibold tabular-nums text-success'>âš¡ {xpReward} XP</span>
+						<span className='font-semibold tabular-nums text-success'>⚡ {xpReward} XP</span>
 					)}
 					<span className='text-text-muted'>{cookTimeMinutes} min</span>
 					<span
@@ -1002,12 +1009,13 @@ const MiniCard = ({
 			</div>
 		</Link>
 		<motion.button
+			type='button'
 			onClick={onCook}
 			whileHover={ICON_BUTTON_HOVER}
 			whileTap={ICON_BUTTON_TAP}
 			transition={TRANSITION_SPRING}
 			aria-label={t('startCookingLabel')}
-			className='flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white'
+			className='flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 		>
 			<Play className='size-4' />
 		</motion.button>

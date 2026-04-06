@@ -24,17 +24,19 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { resendOtp, verifyOtp } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
-import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { PATHS } from '@/constants'
+import { useState, useEffect, useCallback, useRef , useMemo } from 'react'
 import { toast } from 'sonner'
 import { triggerSuccessConfetti } from '@/lib/confetti'
 import { Clock, AlertTriangle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { LazyLottie } from '@/components/shared/LazyLottie'
 
-const formSchema = z.object({
-	otp: z.string().min(6, { message: 'Your OTP must be 6 characters.' }),
-})
+function createOtpSchema(t: (key: string) => string) {
+	return z.object({
+		otp: z.string().min(6, { message: t('validationOtpMin') }),
+	})
+}
 
 // OTP expires after 10 minutes (from spec)
 const OTP_EXPIRY_SECONDS = 10 * 60 // 600 seconds
@@ -51,6 +53,7 @@ function formatTime(seconds: number): string {
 export const VerifyOtpForm = () => {
 	const router = useRouter()
 	const t = useTranslations('auth')
+	const formSchema = useMemo(() => createOtpSchema(t), [t])
 	const searchParams = useSearchParams()
 	const email = searchParams.get('email')
 	const returnTo = searchParams.get('returnTo')
@@ -116,7 +119,7 @@ export const VerifyOtpForm = () => {
 		}
 
 		if (!email) {
-			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND
+			const errorMsg = t('emailNotFound')
 			setError(errorMsg)
 			toast.error(errorMsg)
 			return
@@ -130,7 +133,7 @@ export const VerifyOtpForm = () => {
 				clearInterval(timerRef.current)
 			}
 
-			setSuccess(VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS)
+			setSuccess(t('verificationSuccess'))
 			setError(null)
 			triggerSuccessConfetti()
 
@@ -142,9 +145,7 @@ export const VerifyOtpForm = () => {
 				const profileResponse = await getMyProfile()
 				if (profileResponse.success && profileResponse.data) {
 					setUser(profileResponse.data)
-					toast.success(
-						'Welcome to ChefKix! Let\u2019s get cooking \uD83C\uDF89',
-					)
+					toast.success(t('toastWelcomeNew'))
 					setLoading(true)
 					router.push(postLoginPath)
 					return
@@ -152,14 +153,14 @@ export const VerifyOtpForm = () => {
 			}
 
 			// Fallback: if auto-login fails, redirect to sign-in with pre-filled email
-			toast.success('Email verified! Just enter your password to jump in.')
+			toast.success(t('toastEmailVerified'))
 			if (email) {
 				sessionStorage.setItem('verified-email', email)
 				sessionStorage.setItem('just-registered', 'true')
 			}
 			router.push(PATHS.AUTH.SIGN_IN)
 		} else {
-			const errorMsg = response.message || VERIFY_OTP_MESSAGES.INVALID_OTP
+			const errorMsg = response.message || t('invalidOtp')
 			setError(errorMsg)
 			setSuccess(null)
 			toast.error(errorMsg)
@@ -168,14 +169,14 @@ export const VerifyOtpForm = () => {
 
 	const handleResendOtp = async () => {
 		if (!email) {
-			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND_FOR_RESEND
+			const errorMsg = t('emailNotFoundForResend')
 			setError(errorMsg)
 			toast.error(errorMsg)
 			return
 		}
 		const response = await resendOtp({ email })
 		if (response.success) {
-			const successMsg = VERIFY_OTP_MESSAGES.RESEND_SUCCESS
+			const successMsg = t('resendSuccess')
 			setSuccess(null)
 			setError(null)
 			toast.success(successMsg)
@@ -184,7 +185,7 @@ export const VerifyOtpForm = () => {
 			// Clear the OTP input
 			form.reset()
 		} else {
-			const errorMsg = response.message || VERIFY_OTP_MESSAGES.RESEND_FAILED
+			const errorMsg = response.message || t('resendFailed')
 			setError(errorMsg)
 			setSuccess(null)
 			toast.error(errorMsg)
@@ -197,7 +198,7 @@ export const VerifyOtpForm = () => {
 			toast.error(t('signUpFirst'))
 			router.push(PATHS.AUTH.SIGN_UP)
 		}
-	}, [email, router])
+	}, [email, router, t])
 
 	// While redirecting due to no email, show nothing
 	if (!email) {

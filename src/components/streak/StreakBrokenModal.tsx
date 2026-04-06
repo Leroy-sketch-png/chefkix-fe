@@ -55,9 +55,9 @@ export function StreakBrokenModal({
 						>
 							{/* Sad Icon */}
 							<div className='relative mb-6'>
-								<span className='text-icon-emoji-xl block'>ðŸ˜¢</span>
+								<span className='text-icon-emoji-xl block'>😢</span>
 								<div className='absolute top-[-10px] right-[30%]'>
-									<span className='text-2xl opacity-30 grayscale'>ðŸ”¥</span>
+									<span className='text-2xl opacity-30 grayscale'>🔥</span>
 								</div>
 							</div>
 
@@ -113,12 +113,13 @@ export function StreakBrokenModal({
 							{/* Actions */}
 							<div className='flex flex-col gap-2.5'>
 								<motion.button
+									type='button'
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									transition={TRANSITION_SPRING}
 									onClick={onStartNewStreak}
 									className={cn(
-										'flex items-center justify-center gap-2 py-4 px-6 rounded-xl',
+										'flex items-center justify-center gap-2 py-4 px-6 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
 										'bg-gradient-streak text-white',
 										'text-base font-bold shadow-lg shadow-streak/30',
 									)}

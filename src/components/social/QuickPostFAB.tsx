@@ -72,7 +72,7 @@ export const QuickPostFAB = ({
 	const battleSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const { user } = useAuthStore()
 
-	// Dismissible hint â€” show on first visit
+	// Dismissible hint — show on first visit
 	const [showHint, setShowHint] = useState(false)
 	useEffect(() => {
 		const dismissed = localStorage.getItem('fab-hint-dismissed')
@@ -416,12 +416,13 @@ export const QuickPostFAB = ({
 				<AnimatePresence>
 					{showHint && !isOpen && (
 						<motion.button
+							type='button'
 							initial={{ opacity: 0, x: 20, scale: 0.9 }}
 							animate={{ opacity: 1, x: 0, scale: 1 }}
 							exit={{ opacity: 0, x: 20, scale: 0.9 }}
 							transition={TRANSITION_SPRING}
 							onClick={() => { dismissHint(); handleOpen() }}
-							className='flex items-center gap-2 rounded-full border border-brand/20 bg-bg-card px-4 py-2.5 text-sm font-medium text-text shadow-warm transition-colors hover:bg-bg-elevated'
+							className='flex items-center gap-2 rounded-full border border-brand/20 bg-bg-card px-4 py-2.5 text-sm font-medium text-text shadow-warm transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Camera className='size-4 text-brand' />
 						{t('fabHintText')}
@@ -434,9 +435,10 @@ export const QuickPostFAB = ({
 				</AnimatePresence>
 
 				<motion.button
+					type='button'
 					onClick={() => { dismissHint(); handleOpen() }}
 					className={cn(
-						'group relative flex size-14 items-center justify-center rounded-full bg-gradient-brand transition-all duration-300 hover:opacity-90',
+						'group relative flex size-14 items-center justify-center rounded-full bg-gradient-brand transition-all duration-300 hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50',
 						className,
 					)}
 					whileHover={BUTTON_SUBTLE_HOVER}
@@ -795,6 +797,7 @@ export const QuickPostFAB = ({
 															<button
 																type='button'
 																onClick={() => removePhoto(index)}
+																aria-label={t('removePhoto')}
 															className='absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 															>
 																<X className='size-3.5' />
@@ -854,6 +857,7 @@ export const QuickPostFAB = ({
 
 								{/* Submit */}
 								<motion.button
+									type='button'
 									onClick={handleSubmit}
 									disabled={
 										isSubmitting ||
@@ -868,7 +872,7 @@ export const QuickPostFAB = ({
 									whileHover={isSubmitting ? undefined : BUTTON_HOVER}
 									whileTap={isSubmitting ? undefined : BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3 font-semibold text-white transition-all disabled:opacity-50'
+									className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3 font-semibold text-white transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{isSubmitting ? (
 										<>

@@ -181,7 +181,7 @@ export const LeftSidebar = () => {
 	return (
 		<nav
 			className='hidden border-r border-border-subtle bg-bg-card px-3 py-6 md:flex md:w-nav md:flex-col md:items-center md:gap-4'
-			aria-label='Main navigation'
+			aria-label={t('ariaMainNavigation')}
 		>
 			{/* Primary navigation */}
 			{primaryNavItems.map(renderNavItem)}

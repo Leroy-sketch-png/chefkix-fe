@@ -112,8 +112,9 @@ const SettingsNavItem = ({ item, isActive, onClick }: SettingsNavItemProps) => {
 	const t = useTranslations('settings')
 	return (
 		<motion.button
+			type='button'
 			className={cn(
-				'flex items-center gap-3 w-full p-3 rounded-xl text-left',
+				'flex items-center gap-3 w-full p-3 rounded-xl text-left focus-visible:ring-2 focus-visible:ring-brand/50',
 				isActive
 					? 'bg-brand/10 text-brand'
 					: 'text-text-secondary hover:bg-muted/50 hover:text-foreground',
@@ -164,8 +165,9 @@ export const SettingsNav = ({
 			{/* Logout Button */}
 			{onLogout && (
 				<motion.button
+					type='button'
 					className={cn(
-						'flex items-center gap-3 w-full p-3 rounded-xl text-left',
+						'flex items-center gap-3 w-full p-3 rounded-xl text-left focus-visible:ring-2 focus-visible:ring-brand/50',
 						'text-error hover:bg-error/10',
 					)}
 					onClick={onLogout}
@@ -206,9 +208,10 @@ export const SettingsNavCompact = ({
 		>
 			{navItems.map(item => (
 				<motion.button
+					type='button'
 					key={item.id}
 					className={cn(
-						'flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap',
+						'flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand/50',
 						'text-sm font-medium',
 						activeSection === item.id
 							? 'bg-brand text-white'

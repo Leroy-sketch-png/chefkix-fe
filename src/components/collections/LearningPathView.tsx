@@ -19,7 +19,8 @@ import {
 	Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { useTranslations } from '@/i18n/hooks'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
 import { Collection, CollectionProgress, DifficultyStep } from '@/lib/types/collection'
 import {
 	enrollInCollection,
@@ -39,6 +40,7 @@ interface LearningPathViewProps {
  */
 export function LearningPathView({ collection, isOwner }: LearningPathViewProps) {
 	const router = useRouter()
+	const t = useTranslations('collections')
 	const [progress, setProgress] = useState<CollectionProgress | null>(null)
 	const [isLoadingProgress, setIsLoadingProgress] = useState(true)
 	const [isEnrolling, setIsEnrolling] = useState(false)
@@ -98,7 +100,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 		const res = await enrollInCollection(collection.id)
 		if (res.success && res.data) {
 			setProgress(res.data)
-			toast.success('Enrolled! Start your learning journey')
+			toast.success(t('toastEnrolled'))
 		} else {
 			toast.error(res.message || 'Failed to enroll')
 		}
@@ -222,7 +224,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 				) : isEnrolled ? (
 					<div className='rounded-xl bg-bg-elevated p-4'>
 						<div className='mb-3 flex items-center justify-between'>
-							<span className='text-sm font-medium text-text'>Your Progress</span>
+							<span className='text-sm font-medium text-text'>{t('yourProgress')}</span>
 							<span className='text-sm tabular-nums text-text-muted'>
 								{completedCount} of {totalRecipes} complete
 							</span>
@@ -232,21 +234,21 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 							<motion.div
 								initial={{ width: 0 }}
 								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: 0.5, ease: 'easeOut' }}
+								transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 								className='absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-brand to-brand-hover'
 							/>
 						</div>
 						<div className='flex items-center justify-between'>
 							<div className='flex items-center gap-2'>
 								<Flame className='size-4 text-xp' />
-								<span className='text-sm font-medium text-xp'>
+								<span className='text-sm font-medium tabular-nums text-xp'>
 									{progress?.totalXpEarned.toLocaleString() ?? 0} XP earned
 								</span>
 							</div>
 							{progressPercent === 100 ? (
 								<div className='flex items-center gap-1.5 text-success'>
 									<CheckCircle2 className='size-4' />
-									<span className='text-sm font-medium'>Completed!</span>
+									<span className='text-sm font-medium'>{t('completed')}</span>
 								</div>
 							) : (
 								<span className='text-xs text-text-muted'>
@@ -257,11 +259,12 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 					</div>
 				) : (
 					<motion.button
+						type='button'
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={handleEnroll}
 						disabled={isEnrolling}
-						className='w-full rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand-hover disabled:opacity-50'
+						className='w-full rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isEnrolling ? 'Enrolling...' : 'Start Learning Path'}
 					</motion.button>
@@ -271,7 +274,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 			{/* Difficulty Progression Stages */}
 			{collection.difficultyProgression && collection.difficultyProgression.length > 0 && (
 				<div className='space-y-3'>
-					<h2 className='text-lg font-semibold text-text'>Learning Stages</h2>
+					<h2 className='text-lg font-semibold text-text'>{t('learningStages')}</h2>
 					<div className='space-y-3'>
 						{collection.difficultyProgression
 							.sort((a, b) => a.order - b.order)
@@ -301,7 +304,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 				collection.recipeIds &&
 				collection.recipeIds.length > 0 && (
 					<div className='space-y-3'>
-						<h2 className='text-lg font-semibold text-text'>Recipes</h2>
+						<h2 className='text-lg font-semibold text-text'>{t('recipesLabel')}</h2>
 						<div className='space-y-2'>
 							{collection.recipeIds.map((recipeId, idx) => (
 								<RecipeRow

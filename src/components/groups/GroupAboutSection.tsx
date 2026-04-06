@@ -48,10 +48,11 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 				{/* Members Card - Clickable */}
 				<motion.button
+					type='button'
 					onClick={onViewMembers}
 				whileHover={LIST_ITEM_HOVER}
 				whileTap={LIST_ITEM_TAP}
-					className='bg-bg-card rounded-lg p-6 border border-border hover:border-brand/50 transition-all text-left'
+					className='bg-bg-card rounded-lg p-6 border border-border hover:border-brand/50 transition-all text-left focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<div className='flex items-start gap-4'>
 						<div className='p-3 bg-brand/10 rounded-lg'>
@@ -59,7 +60,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 						</div>
 						<div>
 							<p className='text-sm text-text-secondary mb-1'>{t('gaMembers')}</p>
-							<p className='text-2xl font-bold text-text'>
+							<p className='text-2xl font-bold tabular-nums text-text'>
 								{group.memberCount.toLocaleString()}
 							</p>
 							<p className='text-xs text-brand mt-2'>{t('gaViewMembers')}</p>
@@ -92,7 +93,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 						)}
 					</div>
 					<div>
-						<p className='text-sm text-text-secondary mb-1'>Privacy</p>
+						<p className='text-sm text-text-secondary mb-1'>{t('privacyLabel')}</p>
 						<p className='font-semibold text-text'>
 							{group.privacyType === 'PRIVATE'
 								? t('gaPrivateGroup')

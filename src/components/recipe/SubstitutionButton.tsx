@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { ArrowLeftRight, Loader2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -104,7 +105,7 @@ export function SubstitutionButton({
 								initial={{ opacity: 0, y: -4, scale: 0.96 }}
 								animate={{ opacity: 1, y: 0, scale: 1 }}
 								exit={{ opacity: 0, y: -4, scale: 0.96 }}
-								transition={{ duration: 0.15 }}
+								transition={{ duration: DURATION_S.fast }}
 								className='fixed w-[300px] rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
 								style={{ top: pos.top, left: pos.left }}
 								onMouseDown={e => e.stopPropagation()}
@@ -117,6 +118,7 @@ export function SubstitutionButton({
 									<button
 										type='button'
 										onClick={() => setOpen(false)}
+										aria-label={t('subClose')}
 										className='rounded-md p-1 text-text-muted hover:bg-bg-elevated'
 									>
 										<X className='size-3.5' />

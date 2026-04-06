@@ -27,6 +27,7 @@ import {
 } from '@/services/notification'
 import { toggleFollow } from '@/services/social'
 import { toast } from 'sonner'
+import { useTranslations } from '@/i18n/hooks'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 
@@ -188,6 +189,7 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 }
 
 export const NotificationsPopup = () => {
+	const t = useTranslations('notifications')
 	const { isNotificationsPopupOpen, toggleNotificationsPopup } = useUiStore()
 	const { user } = useAuth()
 	const router = useRouter()
@@ -241,7 +243,7 @@ export const NotificationsPopup = () => {
 									action:
 										notif.content ||
 										notif.body ||
-										'You have a new notification',
+										t('newNotification'),
 									time: formatTimeAgo(new Date(notif.createdAt)),
 									read: notif.isRead,
 								})
@@ -277,7 +279,7 @@ export const NotificationsPopup = () => {
 			}
 		} catch (err) {
 			logDevError('Failed to mark all as read:', err)
-			toast.error('Failed to mark notifications as read')
+			toast.error(t('toastMarkReadFailed'))
 		}
 	}
 
@@ -299,7 +301,7 @@ export const NotificationsPopup = () => {
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border p-4'>
 					<div className='flex items-center gap-2'>
-						<h3 className='text-lg font-bold text-foreground'>Notifications</h3>
+						<h3 className='text-lg font-bold text-foreground'>{t('title')}</h3>
 						{unreadCount > 0 && (
 							<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white'>
 								{unreadCount}
@@ -312,7 +314,7 @@ export const NotificationsPopup = () => {
 						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 					>
 						<CheckCheck className='size-4' />
-						Mark all read
+						{t('markAllRead')}
 					</button>
 				</div>
 
@@ -336,7 +338,7 @@ export const NotificationsPopup = () => {
 					{/* Error state */}
 					{!isLoading && fetchError && (
 						<div className='px-4 py-12 text-center'>
-							<p className='mb-2 text-sm text-text-muted'>Couldn&apos;t load notifications</p>
+							<p className='mb-2 text-sm text-text-muted'>{t('failedToLoad')}</p>
 							<button
 								type='button'
 								onClick={() => {
@@ -368,7 +370,7 @@ export const NotificationsPopup = () => {
 								}}
 								className='text-sm font-semibold text-brand hover:text-brand/80'
 							>
-								Try again
+							{t('tryAgain')}
 							</button>
 						</div>
 					)}
@@ -379,8 +381,8 @@ export const NotificationsPopup = () => {
 							<div className='mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-bg-elevated'>
 								<Bell className='size-5 text-text-muted' />
 							</div>
-							<p className='text-sm font-medium text-text-secondary'>All caught up!</p>
-							<p className='mt-1 text-xs text-text-muted'>New activity will appear here</p>
+<p className='text-sm font-medium text-text-secondary'>{t('allCaughtUp')}</p>
+						<p className='mt-1 text-xs text-text-muted'>{t('newActivityHere')}</p>
 						</div>
 					)}
 					{/* Gamified Notifications (XP, levels, streaks) */}
@@ -460,13 +462,13 @@ export const NotificationsPopup = () => {
 								const handleFollowBack = async (e: React.MouseEvent) => {
 									e.stopPropagation() // Prevent triggering the parent onClick
 									if (!notif.userId) {
-										toast.error('Cannot follow back: user not found')
+										toast.error(t('toastFollowBackNotFound'))
 										return
 									}
 									try {
 										const response = await toggleFollow(notif.userId)
 										if (response.success) {
-											toast.success(`Following ${notif.user}!`)
+											toast.success(t('toastFollowSuccess', { user: notif.user }))
 											// Mark this notification as read locally
 											setSocialNotifications(prev =>
 												prev.map(n =>
@@ -474,10 +476,10 @@ export const NotificationsPopup = () => {
 												),
 											)
 										} else {
-											toast.error(response.message || 'Failed to follow')
+											toast.error(response.message || t('toastFollowFailed'))
 										}
 									} catch {
-										toast.error('Failed to follow. Please try again.')
+										toast.error(t('toastFollowFailed'))
 									}
 								}
 

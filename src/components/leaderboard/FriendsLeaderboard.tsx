@@ -138,11 +138,12 @@ function LeaderboardSummary({
 			<span className='text-sm text-text-secondary'>{getMessage()}</span>
 			{onInviteFriends && (
 				<motion.button
+					type='button'
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onInviteFriends}
 					className={cn(
-						'flex items-center gap-1.5 py-2 px-3.5',
+						'flex items-center gap-1.5 py-2 px-3.5 focus-visible:ring-2 focus-visible:ring-brand/50',
 						'bg-gradient-xp',
 						'rounded-lg text-sm font-semibold text-white',
 					)}
@@ -192,10 +193,11 @@ function CatchingUpAlert({
 			</div>
 			{onCookToDefend && (
 				<motion.button
+					type='button'
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onCookToDefend}
-					className='py-2 px-3.5 bg-streak rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto'
+					className='py-2 px-3.5 bg-streak rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					Cook to defend 🍳
 				</motion.button>
@@ -360,11 +362,12 @@ export function FriendsLeaderboard({
 					</p>
 					{onInviteFriends && (
 						<motion.button
+							type='button'
 							whileHover={LIST_ITEM_HOVER}
 							whileTap={LIST_ITEM_TAP}
 							onClick={onInviteFriends}
 							className={cn(
-								'flex items-center gap-2 py-2.5 px-5',
+								'flex items-center gap-2 py-2.5 px-5 focus-visible:ring-2 focus-visible:ring-brand/50',
 								'bg-gradient-xp',
 								'rounded-xl text-sm font-semibold text-white',
 							)}

@@ -347,7 +347,7 @@ export const Comment = ({
 			isLoadingRepliesRef.current = false
 			setIsLoadingReplies(false)
 		}
-	}, [comment.id])
+	}, [comment.id, t])
 
 	// Toggle replies view
 	const handleToggleReplies = async () => {
@@ -605,12 +605,13 @@ export const Comment = ({
 										maxLength={500}
 									/>
 									<motion.button
+										type='button'
 										onClick={handleSubmitReply}
 										disabled={!replyContent.trim() || isSubmittingReply}
 										whileHover={isSubmittingReply ? undefined : BUTTON_SUBTLE_HOVER}
 										whileTap={isSubmittingReply ? undefined : BUTTON_SUBTLE_TAP}
 										transition={TRANSITION_SPRING}
-										className='grid size-9 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+										className='grid size-9 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{isSubmittingReply ? (
 											<Loader2 className='size-4 animate-spin' />

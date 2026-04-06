@@ -70,7 +70,7 @@ export const XpPreviewModal = ({
 						<h2 className='text-xl font-display font-extrabold text-text'>{t('xpPreview')}</h2>
 						<button
 							type='button'
-							onClick={onBack}						aria-label='Close'							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
+							onClick={onBack}						aria-label={t('ariaClose')}							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
 						>
 							<X className='size-5' />
 						</button>
@@ -214,7 +214,7 @@ export const XpPreviewModal = ({
 							onClick={onBack}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Edit3 className='size-4' />
 						{t('editRecipe')}
@@ -224,7 +224,7 @@ export const XpPreviewModal = ({
 							onClick={() => setShowConfirm(true)}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg'
+							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Send className='size-4' />
 						{t('publishRecipe')}

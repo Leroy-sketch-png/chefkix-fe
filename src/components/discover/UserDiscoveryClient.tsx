@@ -9,8 +9,10 @@ import {
 	InputGroupInput,
 } from '@/components/ui/input-group'
 import { EmptyStateGamified } from '@/components/shared'
-import { Search, X, Loader2, AlertCircle } from 'lucide-react'
+import { Search, X, AlertCircle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
+import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TRANSITION_SPRING, staggerContainer } from '@/lib/motion'
 import { getProfilesPaginated } from '@/services/profile'
@@ -24,6 +26,7 @@ type Props = {
 }
 
 export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
+	const t = useTranslations('discover')
 	const [profiles, setProfiles] = useState<Profile[]>(initialProfiles ?? [])
 	const [searchTerm, setSearchTerm] = useState('')
 	const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -66,11 +69,11 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 					}
 				} else {
 					setLoadError(true)
-					toast.error('Failed to load users. Please try again.')
+					toast.error(t('toastLoadUsersFailed'))
 				}
 			} catch {
 				setLoadError(true)
-				toast.error('Failed to load users. Please try again.')
+				toast.error(t('toastLoadUsersFailed'))
 			} finally {
 				setIsLoading(false)
 			}
@@ -84,7 +87,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 			setProfiles(initialProfiles)
 			setHasMore(false) // Initial profiles are the complete list
 		}
-	}, [debouncedSearch, initialProfiles])
+	}, [debouncedSearch, initialProfiles, t])
 
 	// Load more callback
 	const handleLoadMore = useCallback(async () => {
@@ -113,14 +116,14 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 					setHasMore(response.data.length >= PROFILES_PER_PAGE)
 				}
 			} else {
-				toast.error('Failed to load more users.')
+				toast.error(t('toastLoadMoreUsersFailed'))
 			}
 		} catch {
-			toast.error('Failed to load more users.')
+			toast.error(t('toastLoadMoreUsersFailed'))
 		} finally {
 			setIsLoadingMore(false)
 		}
-	}, [isLoadingMore, hasMore, page, debouncedSearch])
+	}, [isLoadingMore, hasMore, page, debouncedSearch, t])
 
 	// Infinite scroll observer
 	useEffect(() => {
@@ -164,7 +167,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 							<Search className='size-4 text-text-muted' />
 						</InputGroupAddon>
 						<InputGroupInput
-							placeholder='Search by name or username...'
+							placeholder={t('searchPlaceholder')}
 							value={searchTerm}
 							onChange={e => setSearchTerm(e.target.value)}
 						/>
@@ -173,10 +176,10 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 				<EmptyStateGamified
 					variant='custom'
 					emoji='⚠️'
-					title='Failed to load users'
-					description='We couldn&apos;t fetch the user list. Please check your connection and try again.'
+					title={t('errorLoadUsers')}
+					description={t('errorLoadUsersDesc')}
 					primaryAction={{
-						label: 'Try Again',
+						label: t('tryAgain'),
 						onClick: handleRetry,
 					}}
 				/>
@@ -193,15 +196,27 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 							<Search className='size-4 text-text-muted' />
 						</InputGroupAddon>
 						<InputGroupInput
-							placeholder='Search by name or username...'
+							placeholder={t('searchPlaceholder')}
 							value=''
 							disabled
 							readOnly
 						/>
 					</InputGroup>
 				</div>
-				<div className='flex items-center justify-center py-12'>
-					<Loader2 className='size-6 animate-spin text-brand' />
+				<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+					{Array.from({ length: 8 }).map((_, i) => (
+						<div key={i} className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'>
+							<div className='flex items-center gap-3'>
+								<Skeleton className='size-10 rounded-full' />
+								<div className='flex-1 space-y-1.5'>
+									<Skeleton className='h-4 w-24' />
+									<Skeleton className='h-3 w-16' />
+								</div>
+							</div>
+							<Skeleton className='h-3 w-full' />
+							<Skeleton className='h-8 w-full rounded-md' />
+						</div>
+					))}
 				</div>
 			</div>
 		)
@@ -216,7 +231,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 						<Search className='size-4 text-text-muted' />
 					</InputGroupAddon>
 					<InputGroupInput
-						placeholder='Search by name or username...'
+						placeholder={t('searchPlaceholder')}
 						value={searchTerm}
 						onChange={e => setSearchTerm(e.target.value)}
 					/>
@@ -226,7 +241,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 								type='button'
 								onClick={handleClearSearch}
 								className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-								aria-label='Clear search'
+								aria-label={t('ariaClearSearch')}
 							>
 								<X className='size-4' />
 							</button>
@@ -240,18 +255,18 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 				searchTerm ? (
 					<EmptyStateGamified
 						variant='search'
-						title='No users found'
-						description={`No results for "${searchTerm}". Try a different search term.`}
+						title={t('noUsersFound')}
+						description={t('noUsersFoundDesc', { term: searchTerm })}
 						primaryAction={{
-							label: 'Clear Search',
+							label: t('clearSearch'),
 							onClick: handleClearSearch,
 						}}
 					/>
 				) : (
 					<EmptyStateGamified
 						variant='feed'
-						title='No users yet'
-						description='Be the first to join the community!'
+						title={t('noUsersYet')}
+						description={t('noUsersYetDesc')}
 					/>
 				)
 			) : (
@@ -274,13 +289,20 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 
 					{/* Loading indicator */}
 					{isLoadingMore && (
-						<div className='flex justify-center py-6'>
-							<div className='flex items-center gap-3 text-text-secondary'>
-								<Loader2 className='size-5 animate-spin text-brand' />
-								<span className='text-sm font-medium'>
-									Loading more users...
-								</span>
-							</div>
+						<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 py-6'>
+							{Array.from({ length: 4 }).map((_, i) => (
+								<div key={i} className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'>
+									<div className='flex items-center gap-3'>
+										<Skeleton className='size-10 rounded-full' />
+										<div className='flex-1 space-y-1.5'>
+											<Skeleton className='h-4 w-24' />
+											<Skeleton className='h-3 w-16' />
+										</div>
+									</div>
+									<Skeleton className='h-3 w-full' />
+									<Skeleton className='h-8 w-full rounded-md' />
+								</div>
+							))}
 						</div>
 					)}
 

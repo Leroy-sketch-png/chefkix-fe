@@ -73,6 +73,7 @@ import {
 	TIMER_URGENT,
 	OVERLAY_BACKDROP,
 	CELEBRATION_MODAL,
+	DURATION_S,
 } from '@/lib/motion'
 
 // ============================================
@@ -91,7 +92,7 @@ const modalVariants = {
 		opacity: 0,
 		scale: 0.95,
 		y: 20,
-		transition: { duration: 0.2 },
+		transition: { duration: DURATION_S.normal },
 	},
 }
 
@@ -111,7 +112,7 @@ const stepVariants = {
 		x: direction < 0 ? 300 : -300,
 		opacity: 0,
 		scale: 0.9,
-		transition: { duration: 0.2 },
+		transition: { duration: DURATION_S.normal },
 	}),
 }
 
@@ -130,11 +131,13 @@ const StepDots = ({
 	currentStep: number
 	completedSteps: Set<number>
 	onStepClick?: (stepNumber: number) => void
-}) => (
+}) => {
+	const t = useTranslations('cooking')
+	return (
 	<div
 		className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide max-w-step-dots md:max-w-step-dots-lg px-1'
 		role='tablist'
-		aria-label='Recipe steps'
+		aria-label={t('ariaRecipeSteps')}
 	>
 		{Array.from({ length: totalSteps }, (_, i) => {
 			const stepNum = i + 1
@@ -143,10 +146,11 @@ const StepDots = ({
 
 			return (
 				<motion.button
+					type='button'
 					key={stepNum}
 					role='tab'
 					aria-selected={isCurrent}
-					aria-label={`Step ${stepNum}${isCompleted ? ', completed' : ''}`}
+					aria-label={t(isCompleted ? 'stepNumCompleted' : 'stepNum', { step: stepNum })}
 					onClick={() => onStepClick?.(stepNum)}
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
@@ -156,7 +160,7 @@ const StepDots = ({
 					}}
 					transition={TRANSITION_SPRING}
 					className={cn(
-						'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors',
+						'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
 						// 44px minimum touch targets for accessibility
 						isCurrent
 							? 'h-11 w-14 bg-white text-brand shadow-card'
@@ -164,14 +168,15 @@ const StepDots = ({
 								? 'size-11 bg-success text-white'
 								: 'size-11 bg-white/20 text-white/70 hover:bg-white/30 hover:text-white',
 					)}
-					title={`Step ${stepNum}${isCompleted ? ' ✓' : ''}`}
+					title={t(isCompleted ? 'stepNumCompleted' : 'stepNum', { step: stepNum })}
 				>
 					{isCompleted && !isCurrent ? <Check className='size-4' /> : stepNum}
 				</motion.button>
 			)
 		})}
 	</div>
-)
+	)
+}
 
 // Animated Timer with Audio Notifications
 const StepTimer = ({
@@ -249,7 +254,7 @@ const StepTimer = ({
 			animate={isUrgent && isRunning ? TIMER_URGENT.animate : undefined}
 			role='timer'
 			aria-live='polite'
-			aria-label={`Timer: ${display}. ${isComplete ? 'Complete' : isRunning ? 'Running' : 'Paused'}`}
+			aria-label={`${t('cpTimerLabel')}: ${display}. ${isComplete ? t('cpTimerComplete') : isRunning ? t('cpTimerRunning') : t('cpTimerPaused')}`}
 			className={cn(
 				'relative mx-auto flex flex-col items-center gap-2 rounded-2xl px-8 py-4',
 				isComplete
@@ -283,11 +288,12 @@ const StepTimer = ({
 
 			<div className='relative z-10 flex items-center gap-4'>
 				<motion.button
+					type='button'
 					onClick={onToggle}
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					className={cn(
-						'grid place-items-center rounded-full transition-colors',
+						'grid place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 						kitchenMode ? 'size-16' : 'size-12',
 						isComplete
 							? 'bg-success text-white'
@@ -319,11 +325,12 @@ const StepTimer = ({
 
 				{/* Audio toggle button */}
 				<motion.button
+					type='button'
 					onClick={toggleAudio}
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					title={audioEnabled ? t('muteTimer') : t('unmuteTimer')}
-					className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-colors hover:bg-bg-hover'
+					className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{audioEnabled ? (
 						<Volume2 className='size-5' />
@@ -462,6 +469,7 @@ const ActiveTimersBadge = ({
 				const isUrgent = timer.remaining <= 30
 				return (
 					<motion.button
+						type='button'
 						key={stepNum}
 						onClick={() => onJumpToStep(stepNum)}
 						whileHover={BUTTON_SUBTLE_HOVER}
@@ -470,7 +478,7 @@ const ActiveTimersBadge = ({
 							isUrgent
 								? {
 										backgroundColor: [
-											'rgba(239,68,68,0.2)',
+											'rgba(239,68,68,0.2) focus-visible:ring-2 focus-visible:ring-brand/50',
 											'rgba(239,68,68,0.4)',
 											'rgba(239,68,68,0.2)',
 										],
@@ -481,12 +489,12 @@ const ActiveTimersBadge = ({
 							isUrgent ? { duration: 0.8, repeat: Infinity } : undefined
 						}
 						className={cn(
-							'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-colors',
+							'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 							isUrgent
 								? 'bg-error/20 text-error hover:bg-error/30'
 								: 'bg-white/20 text-white hover:bg-white/30',
 						)}
-						title={`Jump to Step ${stepNum}`}
+						title={t('titleJumpToStep', { step: stepNum })}
 					>
 						<Clock className='size-3' />
 						<span>{t('step', { stepNum })}</span>
@@ -560,7 +568,7 @@ export const CookingPlayer = () => {
 		session?.status === 'in_progress' && isOpen && !isPreviewMode
 	useBeforeUnloadWarning(
 		hasActiveSession,
-		'You have an active cooking session. Progress will be saved but timers will reset.',
+		t('beforeUnloadWarning'),
 	)
 
 	// Local UI state
@@ -838,7 +846,7 @@ export const CookingPlayer = () => {
 			messyHandsTimeoutRef.current = setTimeout(() => {
 				const store = useCookingStore.getState()
 				if (store.interactionMode === 'ACTIVE') {
-					toast('🙌 Hands busy?', {
+					toast(t('handsBusyTitle'), {
 						description: t('handsBusyDesc'),
 						action: {
 							label: t('enableVoiceMode'),
@@ -851,7 +859,7 @@ export const CookingPlayer = () => {
 				}
 			}, 45_000)
 		}
-	}, [interactionMode])
+	}, [interactionMode, t])
 
 	useEffect(() => {
 		if (!isOpen || interactionMode !== 'ACTIVE') {
@@ -866,7 +874,7 @@ export const CookingPlayer = () => {
 		messyHandsTimeoutRef.current = setTimeout(() => {
 			const store = useCookingStore.getState()
 			if (store.interactionMode === 'ACTIVE') {
-				toast('🙌 Hands busy?', {
+				toast(t('handsBusyTitle'), {
 					description: t('handsBusyDesc'),
 					duration: 6000,
 					action: {
@@ -892,7 +900,7 @@ export const CookingPlayer = () => {
 			document.removeEventListener('pointerdown', handler)
 			document.removeEventListener('touchstart', handler)
 		}
-	}, [isOpen, interactionMode, setInteractionMode, resetMessyHandsTimer])
+	}, [isOpen, interactionMode, setInteractionMode, resetMessyHandsTimer, t])
 
 	// Handlers - defined before useEffects that reference them
 	const handleNextStep = useCallback(async () => {
@@ -1002,6 +1010,7 @@ export const CookingPlayer = () => {
 		isPreviewMode,
 		exitPreview,
 		closeCookingPanel,
+		t,
 	])
 
 	const handlePrevStep = useCallback(async () => {
@@ -1266,7 +1275,7 @@ export const CookingPlayer = () => {
 				diag.modal('cooking', 'REWARDS_MODAL', true, 'session_completed')
 				showImmediateRewards({
 					sessionId: session?.sessionId ?? '',
-					recipeName: recipe?.title ?? 'Recipe',
+					recipeName: recipe?.title ?? t('recipeFallback'),
 					recipeImageUrl: recipe?.coverImageUrl?.[0],
 					immediateXp: completionResult.baseXpAwarded,
 					pendingXp: completionResult.pendingXp,
@@ -1296,6 +1305,7 @@ export const CookingPlayer = () => {
 			isPreviewMode,
 			exitPreview,
 			totalSteps,
+			t,
 		],
 	)
 
@@ -1384,10 +1394,11 @@ export const CookingPlayer = () => {
 								{t('startFromRecipePage')}
 							</p>
 							<motion.button
+								type='button'
 								onClick={closeCookingPanel}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='rounded-full bg-gradient-hero px-8 py-3 font-bold text-white'
+								className='rounded-full bg-gradient-hero px-8 py-3 font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{t('close')}
 							</motion.button>
@@ -1450,10 +1461,11 @@ export const CookingPlayer = () => {
 											<span>{t('messyHandsActive')}</span>
 										</div>
 										<motion.button
+											type='button'
 											onClick={() => setInteractionMode('ACTIVE')}
 											whileHover={BUTTON_HOVER}
 											whileTap={BUTTON_TAP}
-											className='flex items-center gap-1.5 rounded-full bg-warning/20 px-3 py-1 text-xs font-semibold text-warning hover:bg-warning/30'
+											className='flex items-center gap-1.5 rounded-full bg-warning/20 px-3 py-1 text-xs font-semibold text-warning hover:bg-warning/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<Hand className='size-3.5' /> {t('cleanHands')}
 										</motion.button>
@@ -1480,10 +1492,11 @@ export const CookingPlayer = () => {
 								{/* AI Assist Button + Mode Indicator */}
 								<div className='absolute left-4 top-4 flex items-center gap-2'>
 									<motion.button
+										type='button'
 										onClick={() => setShowAiAssist(true)}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40'
+										className='flex items-center gap-2 rounded-full bg-white/25 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<Sparkles className='size-4' /> {t('aiAssist')}
 									</motion.button>
@@ -1494,19 +1507,20 @@ export const CookingPlayer = () => {
 								<div className='absolute right-4 top-4 flex items-center gap-2'>
 									{/* Kitchen-Distance Mode Toggle (Wave 2: Kitchen Protocol) */}
 									<motion.button
+										type='button'
 										onClick={() => setKitchenMode(k => !k)}
 										whileHover={ICON_BUTTON_HOVER}
 										whileTap={ICON_BUTTON_TAP}
 										className={cn(
-											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors',
+											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
 											kitchenMode
 												? 'bg-white/40 text-white'
 												: 'bg-white/20 text-white/70 hover:bg-white/30',
 										)}
 										title={
 											kitchenMode
-												? 'Kitchen display: ON (large text) [M]'
-												: 'Kitchen display: OFF [M]'
+												? t('titleKitchenDisplayOn')
+												: t('titleKitchenDisplayOff')
 										}
 									>
 										{kitchenMode ? (
@@ -1519,41 +1533,44 @@ export const CookingPlayer = () => {
 									{/* Adaptive Instructions Toggle (Wave 2: Kitchen Protocol) */}
 									{/* Cycles: Detailed → Standard → Condensed based on user skill */}
 									<motion.button
+										type='button'
 										onClick={cycleInstructionDetail}
 										whileHover={ICON_BUTTON_HOVER}
 										whileTap={ICON_BUTTON_TAP}
 										className={cn(
-											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors',
+											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 											instructionDetail === 'detailed'
 												? 'bg-success/40 text-white'
 												: instructionDetail === 'condensed'
 													? 'bg-warning/40 text-white'
 													: 'bg-white/20 text-white/70 hover:bg-white/30',
 										)}
-										title={`View mode: ${instructionDetail === 'detailed' ? 'Detailed (tips shown + read)' : instructionDetail === 'standard' ? 'Standard' : 'Condensed (expert mode)'} [M]`}
+										title={t(`titleViewMode_${instructionDetail}`)}
 									>
 										<BookOpen className='size-5' />
 									</motion.button>
 
 									{/* Exit Session Button */}
 									<motion.button
+										type='button'
 										onClick={() => setShowAbandonConfirm(true)}
 										whileHover={ICON_BUTTON_HOVER}
 										whileTap={ICON_BUTTON_TAP}
-										className='grid size-10 place-items-center rounded-full bg-error/20 backdrop-blur-sm transition-colors hover:bg-error/40'
-										title='Exit and abandon session'
+										className='grid size-10 place-items-center rounded-full bg-error/20 backdrop-blur-sm transition-colors hover:bg-error/40 focus-visible:ring-2 focus-visible:ring-brand/50'
+										title={t('exitAbandonSession')}
 									>
 										<LogOut className='size-5' />
 									</motion.button>
 
 									{/* Minimize Button */}
 									<motion.button
+										type='button'
 										onClick={closeCookingPanel}
 										whileHover={ICON_BUTTON_HOVER}
 										whileTap={ICON_BUTTON_TAP}
-										className='grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30'
-										title='Minimize to mini-bar (Esc)'
-										aria-label='Minimize to mini-bar'
+										className='grid size-10 place-items-center rounded-full bg-white/20 backdrop-blur-sm transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+										title={t('minimizeToMiniBar')}
+										aria-label={t('minimizeToMiniBar')}
 									>
 										<X className='size-5' />
 									</motion.button>
@@ -1607,7 +1624,7 @@ export const CookingPlayer = () => {
 								<div className='mb-3 flex items-center justify-between'>
 									<span
 										className={cn(
-											'font-medium text-text-secondary',
+											'font-medium tabular-nums text-text-secondary',
 											kitchenMode ? 'text-base' : 'text-sm',
 										)}
 									>
@@ -1648,7 +1665,7 @@ export const CookingPlayer = () => {
 											initial={{ opacity: 0 }}
 											animate={{ opacity: 1 }}
 											exit={{ opacity: 0 }}
-											transition={{ duration: 0.3 }}
+											transition={{ duration: DURATION_S.smooth }}
 											className='absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-bg-card/95 p-6 backdrop-blur-sm'
 										>
 											<span className='text-5xl'>📋</span>
@@ -1690,10 +1707,11 @@ export const CookingPlayer = () => {
 													</div>
 												)}
 											<motion.button
+												type='button'
 												onClick={() => setInteractionMode('ACTIVE')}
 												whileHover={BUTTON_HOVER}
 												whileTap={BUTTON_TAP}
-												className='rounded-full bg-gradient-hero px-10 py-3 font-bold text-white shadow-card shadow-brand/30'
+												className='rounded-full bg-gradient-hero px-10 py-3 font-bold text-white shadow-card shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{t('letsCook')}
 											</motion.button>
@@ -1716,10 +1734,11 @@ export const CookingPlayer = () => {
 												<span className='font-semibold'>{t('monitoringTimer')}</span>
 											</div>
 											<motion.button
+												type='button'
 												onClick={() => setInteractionMode('ACTIVE')}
 												whileHover={BUTTON_SUBTLE_HOVER}
 												whileTap={BUTTON_SUBTLE_TAP}
-												className='rounded-full bg-streak/20 px-3 py-1 text-xs font-semibold text-streak hover:bg-streak/30'
+												className='rounded-full bg-streak/20 px-3 py-1 text-xs font-semibold text-streak hover:bg-streak/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{t('backToSteps')}
 											</motion.button>
@@ -1814,6 +1833,7 @@ export const CookingPlayer = () => {
 							<AnimatePresence>
 								{showPhotoPrompt && !showCompletion && (
 									<motion.button
+										type='button'
 										initial={{ opacity: 0, y: 20, scale: 0.9 }}
 										animate={{ opacity: 1, y: 0, scale: 1 }}
 										exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -1823,14 +1843,14 @@ export const CookingPlayer = () => {
 											setShowPhotoPrompt(false)
 										}}
 										className={cn(
-											'mx-auto mb-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-4 py-2 text-brand transition-colors hover:bg-brand/20',
+											'mx-auto mb-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-4 py-2 text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
 											kitchenMode ? 'px-6 py-3 text-base' : 'text-sm',
 										)}
 									>
 										<Camera className={kitchenMode ? 'size-5' : 'size-4'} />
 										<span>{t('snapProgress')}</span>
 										{stepPhotos.totalCount > 0 && (
-											<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white'>
+											<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold tabular-nums text-white'>
 												{stepPhotos.totalCount}
 											</span>
 										)}
@@ -1848,6 +1868,7 @@ export const CookingPlayer = () => {
 							{/* Navigation */}
 							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated p-4'>
 								<motion.button
+									type='button'
 									onClick={handlePrevStep}
 									disabled={currentStepNumber === 1 || isNavigating}
 									whileHover={
@@ -1861,7 +1882,7 @@ export const CookingPlayer = () => {
 											: undefined
 									}
 									className={cn(
-										'flex items-center gap-2 rounded-full font-bold transition-all',
+										'flex items-center gap-2 rounded-full font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
 										kitchenMode || interactionMode === 'MESSY_HANDS'
 											? 'min-h-16 px-8 py-4 text-lg'
 											: 'px-6 py-3',
@@ -1869,7 +1890,7 @@ export const CookingPlayer = () => {
 											? 'cursor-not-allowed bg-border/50 text-text-muted'
 											: 'bg-border text-text hover:bg-border-medium',
 									)}
-									title='Previous step (←)'
+									title={t('previousStepShortcut')}
 								>
 									<ChevronLeft className='size-5' /> {t('back')}
 									<kbd className='ml-1 hidden rounded bg-black/10 px-1.5 py-0.5 text-xs font-normal md:inline'>
@@ -1882,6 +1903,7 @@ export const CookingPlayer = () => {
 
 								{/* Messy Hands toggle (Kitchen Protocol: Task 8) */}
 								<motion.button
+									type='button'
 									onClick={() =>
 										setInteractionMode(
 											interactionMode === 'MESSY_HANDS'
@@ -1893,11 +1915,11 @@ export const CookingPlayer = () => {
 									whileTap={ICON_BUTTON_TAP}
 									title={
 										interactionMode === 'MESSY_HANDS'
-											? 'Clean hands — restore touch mode'
-											: 'Messy hands — switch to voice-primary mode'
+											? t('titleCleanHands')
+											: t('titleMessyHands')
 									}
 									className={cn(
-										'grid place-items-center rounded-full transition-colors',
+										'grid place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
 										kitchenMode ? 'size-14' : 'size-10',
 										interactionMode === 'MESSY_HANDS'
 											? 'bg-warning/30 text-warning ring-2 ring-warning/50'
@@ -1908,12 +1930,13 @@ export const CookingPlayer = () => {
 								</motion.button>
 
 								<motion.button
+									type='button'
 									onClick={handleNextStep}
 									disabled={isNavigating}
 									whileHover={isNavigating ? undefined : BUTTON_HOVER}
 									whileTap={isNavigating ? undefined : BUTTON_TAP}
 									className={cn(
-										'flex items-center gap-2 rounded-full bg-gradient-hero font-bold text-white shadow-lg shadow-brand/30 transition-opacity',
+										'flex items-center gap-2 rounded-full bg-gradient-hero font-bold text-white shadow-lg shadow-brand/30 transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
 										kitchenMode || interactionMode === 'MESSY_HANDS'
 											? 'min-h-16 px-10 py-4 text-lg'
 											: 'px-8 py-3',
@@ -1921,8 +1944,8 @@ export const CookingPlayer = () => {
 									)}
 									title={
 										currentStepNumber === totalSteps
-											? 'Complete recipe'
-											: 'Next step (→)'
+											? t('titleCompleteRecipe')
+											: t('titleNextStep')
 									}
 								>
 									{isNavigating ? (
@@ -1988,7 +2011,7 @@ export const CookingPlayer = () => {
 			<AiAssistPanel
 				isOpen={showAiAssist}
 				onClose={() => setShowAiAssist(false)}
-				recipeTitle={recipe?.title ?? 'Recipe'}
+				recipeTitle={recipe?.title ?? t('recipeFallback')}
 				currentStep={step?.description ?? ''}
 				stepNumber={currentStepNumber}
 			/>
@@ -2031,18 +2054,20 @@ export const CookingPlayer = () => {
 								</p>
 								<div className='flex gap-3'>
 									<motion.button
+										type='button'
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
 										onClick={() => setShowAbandonConfirm(false)}
-										className='flex-1 rounded-full border border-border bg-bg-card px-6 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated'
+										className='flex-1 rounded-full border border-border bg-bg-card px-6 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{t('keepCooking')}
 									</motion.button>
 									<motion.button
+										type='button'
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
 										onClick={handleAbandon}
-										className='flex-1 rounded-full bg-error px-6 py-3 font-semibold text-white transition-colors hover:bg-error/90'
+										className='flex-1 rounded-full bg-error px-6 py-3 font-semibold text-white transition-colors hover:bg-error/90 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{t('abandon')}
 									</motion.button>

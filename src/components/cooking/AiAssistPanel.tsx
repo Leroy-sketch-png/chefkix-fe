@@ -119,7 +119,7 @@ export function AiAssistPanel({
 							<button
 								type='button'
 								onClick={onClose}
-								aria-label='Close AI assistant'
+								aria-label={t('ariaCloseAiAssistant')}
 								className='grid size-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
 								<X className='size-4' />
@@ -217,6 +217,7 @@ export function AiAssistPanel({
 										type='button'
 										onClick={handleAsk}
 										disabled={!query.trim() || isLoading}
+										aria-label={t('aiSendMessage')}
 										className={cn(
 											'grid size-9 place-items-center rounded-lg transition-colors',
 											query.trim() && !isLoading
@@ -231,7 +232,7 @@ export function AiAssistPanel({
 									<kbd className='rounded bg-bg-elevated px-1 py-0.5 font-mono'>
 										Enter
 									</kbd>{' '}
-									to ask Â·{' '}
+									to ask ·{' '}
 									<kbd className='rounded bg-bg-elevated px-1 py-0.5 font-mono'>
 										Esc
 									</kbd>{' '}

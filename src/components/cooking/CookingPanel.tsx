@@ -176,7 +176,7 @@ export const CookingPanel = () => {
 		!isPreviewMode
 	useBeforeUnloadWarning(
 		hasActiveSession,
-		'You have an active cooking session. Progress will be saved but timers will reset.',
+		t('cpBeforeUnloadWarning'),
 	)
 
 	// Keep screen awake during cooking (Wave 2: Kitchen Protocol)
@@ -258,7 +258,7 @@ export const CookingPanel = () => {
 		try {
 			await completeStep(currentStepNumber)
 
-			// Show photo capture prompt â€” capture step number NOW before navigation changes it
+			// Show photo capture prompt — capture step number NOW before navigation changes it
 			setPhotoStepNumber(currentStepNumber)
 			setShowPhotoPrompt(true)
 			setTimeout(() => setShowPhotoPrompt(false), 4000)
@@ -276,7 +276,7 @@ export const CookingPanel = () => {
 					}, 100)
 				}
 			} else {
-				// Session complete in docked mode â€” persist photos then expand for rating
+				// Session complete in docked mode — persist photos then expand for rating
 				await stepPhotos.persistForPostCreation()
 			}
 		} finally {
@@ -404,7 +404,7 @@ export const CookingPanel = () => {
 						<div className='flex items-center gap-2 text-xs opacity-80'>
 							<Clock className='size-3' />
 							<span>{recipe.totalTimeMinutes} {t('cpMin')}</span>
-							<span>â€¢</span>
+							<span>•</span>
 							<Zap className='size-3' />
 							<span>{t('cpXp', { xp: recipe.xpReward })}</span>
 						</div>
@@ -464,7 +464,7 @@ export const CookingPanel = () => {
 				</div>
 
 				<h4 className={cn('mb-2 font-bold text-text', kitchenMode ? 'text-xl' : 'text-lg')}>
-					{step?.title || `Step ${currentStepNumber}`}
+					{step?.title || t('cpStepFallback', { step: currentStepNumber })}
 				</h4>
 
 				{/* Step Video (priority) or Image - Critical for visual guidance */}
@@ -484,7 +484,7 @@ export const CookingPanel = () => {
 					<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 						<Image
 							src={step.imageUrl}
-							alt={step.title || `Step ${currentStepNumber}`}
+							alt={step.title || t('cpStepFallback', { step: currentStepNumber })}
 							fill
 							sizes='(max-width: 768px) 100vw, 50vw'
 							className='object-cover'
@@ -496,14 +496,14 @@ export const CookingPanel = () => {
 					{step?.description}
 				</p>
 
-				{/* Tips â€” Adaptive: hidden in condensed mode */}
+				{/* Tips — Adaptive: hidden in condensed mode */}
 				{step?.tips && instructionDetail !== 'condensed' && (
 					<div className={cn(
 						'mb-4 rounded-xl p-3',
 						instructionDetail === 'detailed' ? 'border border-bonus/30 bg-bonus/15' : 'bg-bonus/10',
 						kitchenMode ? 'text-base' : 'text-sm',
 					)}>
-						<span className='mr-2'>ðŸ’¡</span>
+						<span className='mr-2'>💡</span>
 						<span className='text-bonus'>{step.tips}</span>
 					</div>
 				)}
@@ -523,7 +523,7 @@ export const CookingPanel = () => {
 				{step?.ingredients && step.ingredients.length > 0 && (
 					<div className='rounded-xl border border-border-subtle bg-bg-card p-3'>
 						<h5 className='mb-2 flex items-center gap-2 text-sm font-semibold'>
-							<span>ðŸ§¾</span> {t('cpIngredients')}
+							<span>🧾</span> {t('cpIngredients')}
 						</h5>
 						<div className='flex flex-col gap-1.5'>
 							{step.ingredients.map((ing, idx) => {
@@ -551,7 +551,7 @@ export const CookingPanel = () => {
 					{liveAnnouncement}
 				</div>
 
-				{/* Step Photo Capture â€” hidden input + compact prompt (Wave 2: Kitchen Protocol) */}
+				{/* Step Photo Capture — hidden input + compact prompt (Wave 2: Kitchen Protocol) */}
 				<input
 					ref={stepPhotos.fileInputRef}
 					type='file'
@@ -564,6 +564,7 @@ export const CookingPanel = () => {
 				<AnimatePresence>
 					{showPhotoPrompt && (
 						<motion.button
+							type='button'
 							initial={{ opacity: 0, y: 10, scale: 0.95 }}
 							animate={{ opacity: 1, y: 0, scale: 1 }}
 							exit={{ opacity: 0, y: 5, scale: 0.95 }}
@@ -572,7 +573,7 @@ export const CookingPanel = () => {
 								stepPhotos.captureForStep(photoStepNumber)
 								setShowPhotoPrompt(false)
 							}}
-							className='mx-auto mt-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm text-brand transition-colors hover:bg-brand/20'
+							className='mx-auto mt-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Camera className='size-4' />
 							<span>{t('cpSnap')}</span>
@@ -591,9 +592,10 @@ export const CookingPanel = () => {
 				{allStepsComplete ? (
 					<div className='space-y-2'>
 						<motion.button
+							type='button'
 							onClick={handleComplete}
 							whileTap={BUTTON_TAP}
-							className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white shadow-lg shadow-brand/30'
+							className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white shadow-lg shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Check className='size-5' />
 							{t('cpCompleteCooking')}
@@ -603,7 +605,7 @@ export const CookingPanel = () => {
 							onClick={handleExitRequest}
 							className='w-full py-2 text-sm text-text-secondary hover:text-error'
 						>
-							Exit Without Saving
+							{t('cpExitNoSave')}
 						</button>
 					</div>
 				) : (
@@ -621,12 +623,13 @@ export const CookingPanel = () => {
 						</button>
 						<VoiceModeButton voice={voice} />
 						<motion.button
+							type='button'
 							onClick={handleNextStep}
 							disabled={isNavigating}
 						whileHover={isNavigating ? undefined : BUTTON_HOVER}
 						whileTap={isNavigating ? undefined : BUTTON_TAP}
 							className={cn(
-								'flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero font-bold text-white transition-opacity',
+								'flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero font-bold text-white transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
 								kitchenMode ? 'py-4 text-base' : 'py-3',
 								isNavigating && 'cursor-wait opacity-80',
 							)}

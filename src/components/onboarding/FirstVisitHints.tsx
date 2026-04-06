@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -187,6 +188,7 @@ export function useFirstVisitHints() {
 // ============================================
 
 function HintOverlay() {
+	const t = useTranslations('onboarding')
 	const context = useContext(FirstVisitHintsContext)
 	if (!context) return null
 
@@ -220,7 +222,7 @@ function HintOverlay() {
 									type='button'
 									onClick={dismissHint}
 									className='absolute right-3 top-3 flex size-7 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
-									aria-label='Close hint'
+									aria-label={t('ariaCloseHint')}
 								>
 									<X className='size-4' />
 								</button>
@@ -230,17 +232,19 @@ function HintOverlay() {
 										<Sparkles className='size-4 text-brand' />
 									</div>
 									<span className='text-xs font-bold uppercase tracking-wider text-brand'>
-										Quick Tip
+									{t('hintQuickTip')}
 									</span>
 								</div>
 
-								<h3 className='mt-2 text-lg font-bold text-text'>{activeHint.title}</h3>
+								<h3 className='mt-2 text-lg font-bold text-text'>
+									{t(`hint_${activeHint.id.replace(/-/g, '_')}_title`)}
+								</h3>
 							</div>
 
 							{/* Content */}
 							<div className='px-5 py-4'>
 								<p className='text-sm leading-relaxed text-text-secondary'>
-									{activeHint.description}
+									{t(`hint_${activeHint.id.replace(/-/g, '_')}_desc`)}
 								</p>
 							</div>
 
@@ -251,7 +255,7 @@ function HintOverlay() {
 									onClick={dismissAllHints}
 									className='text-xs text-text-muted transition-colors hover:text-text-secondary'
 								>
-									Don&apos;t show tips
+									{t('hintDontShowTips')}
 								</button>
 
 								{activeHint.action ? (
@@ -272,7 +276,7 @@ function HintOverlay() {
 										onClick={dismissHint}
 										className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90'
 									>
-										Got it
+										{t('hintGotIt')}
 										<ChevronRight className='size-4' />
 									</button>
 								)}

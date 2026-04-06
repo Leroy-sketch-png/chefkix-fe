@@ -54,7 +54,7 @@ export const CommentList = ({
 		}
 
 		setLoading(false)
-	}, [postId])
+	}, [postId, t])
 
 	useEffect(() => {
 		fetchComments()

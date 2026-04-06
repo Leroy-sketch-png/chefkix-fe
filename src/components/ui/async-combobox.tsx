@@ -11,6 +11,7 @@ import {
 	type KeyboardEvent,
 } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { cn } from '@/lib/utils'
 import { Search, Loader2 } from 'lucide-react'
@@ -36,6 +37,10 @@ export interface AsyncComboboxProps {
 	disabled?: boolean
 	className?: string
 	emptyMessage?: string
+	/** Message shown while searching */
+	searchingMessage?: string
+	/** Message shown when search fails */
+	errorMessage?: string
 	maxResults?: number
 	/** Debounce delay in ms */
 	debounceMs?: number
@@ -62,6 +67,8 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 			disabled = false,
 			className,
 			emptyMessage = 'No results found',
+			searchingMessage = 'Searching...',
+			errorMessage = 'Search temporarily unavailable. Try typing again.',
 			maxResults = 8,
 			debounceMs = 300,
 			minChars = 2,
@@ -246,7 +253,7 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 									initial={{ opacity: 0, y: 4 }}
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: 4 }}
-									transition={{ duration: 0.12 }}
+									transition={{ duration: DURATION_S.fast }}
 									className='fixed z-dropdown overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
 									style={{
 										top: `${dropdownPosition.top}px`,
@@ -257,11 +264,11 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 									{isLoading && displayed.length === 0 ? (
 										<div className='flex items-center justify-center gap-2 p-3 text-sm text-text-secondary'>
 											<Loader2 className='size-4 animate-spin' />
-											<span>Searching...</span>
+											<span>{searchingMessage}</span>
 										</div>
 									) : hasError ? (
 										<div className='p-3 text-center text-sm text-text-muted'>
-											Search temporarily unavailable. Try typing again.
+											{errorMessage}
 										</div>
 									) : displayed.length === 0 &&
 									  value.trim().length >= minChars ? (

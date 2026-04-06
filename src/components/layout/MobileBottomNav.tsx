@@ -101,7 +101,7 @@ export const MobileBottomNav = () => {
 		<>
 			<nav
 				className='fixed bottom-0 left-0 right-0 z-sticky flex h-18 items-center justify-around border-t border-border-subtle bg-bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'
-				aria-label='Mobile navigation'
+				aria-label={t('ariaMobileNavigation')}
 			>
 				{navItems.map(item => {
 					const Icon = item.icon
@@ -224,7 +224,7 @@ export const MobileBottomNav = () => {
 								<button
 									type='button'
 									onClick={() => setShowMore(false)}
-									aria-label='Close menu'
+									aria-label={t('ariaCloseMenu')}
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 								>
 									<X className='size-5' />
@@ -298,12 +298,13 @@ export const MobileTabBar = ({
 				const Icon = tab.icon
 				return (
 					<motion.button
+						type='button'
 						key={tab.id}
 						onClick={() => onTabChange(tab.id)}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className={cn(
-							'flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-colors',
+							'flex flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 							activeTab === tab.id
 								? 'bg-brand text-white'
 								: 'text-text-secondary hover:bg-bg-elevated',

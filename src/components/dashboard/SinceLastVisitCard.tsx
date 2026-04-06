@@ -201,12 +201,13 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 						<div className='flex flex-wrap gap-3'>
 							{stats.map(({ icon: Icon, value, label, color, href }) => (
 								<motion.button
+									type='button'
 									key={label}
 										whileHover={BUTTON_SUBTLE_HOVER}
 										whileTap={BUTTON_SUBTLE_TAP}
 										transition={TRANSITION_SPRING}
 									onClick={() => router.push(href)}
-									className='flex items-center gap-1.5 rounded-lg bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated'
+									className='flex items-center gap-1.5 rounded-lg bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Icon className={cn('size-4', color)} />
 									<span className='text-sm font-semibold text-text tabular-nums'>

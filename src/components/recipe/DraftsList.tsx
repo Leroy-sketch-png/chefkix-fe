@@ -101,7 +101,7 @@ export function DraftsList({
 			}
 		}
 		fetchDrafts()
-	}, [])
+	}, [t])
 
 	const handleDuplicate = async (draftId: string) => {
 		if (duplicatingId) return
@@ -177,11 +177,12 @@ export function DraftsList({
 			>
 				{/* New Recipe CTA */}
 				<motion.button
+					type='button'
 					variants={staggerItem}
 					onClick={onNewRecipe}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-brand/30 bg-brand/5 p-6 text-left transition-colors hover:border-brand hover:bg-brand/10'
+					className='flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-brand/30 bg-brand/5 p-6 text-left transition-colors hover:border-brand hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-hero text-white'>
 						<Edit3 className='size-5' />
@@ -252,6 +253,7 @@ export function DraftsList({
 									<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
 										{/* Duplicate Button */}
 										<motion.button
+											type='button'
 											onClick={e => {
 												e.stopPropagation()
 												handleDuplicate(draft.id)
@@ -260,7 +262,7 @@ export function DraftsList({
 											whileTap={ICON_BUTTON_TAP}
 											disabled={duplicatingId === draft.id}
 											title={t('duplicateDraft')}
-											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50'
+											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<Copy
 												className={cn(
@@ -271,6 +273,7 @@ export function DraftsList({
 										</motion.button>
 										{/* Delete Button */}
 										<motion.button
+											type='button'
 											onClick={e => {
 												e.stopPropagation()
 												setDeleteTarget(draft)
@@ -278,7 +281,7 @@ export function DraftsList({
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											title={t('deleteDraft')}
-											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-error/10 hover:text-error'
+											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<Trash2 className='size-4' />
 										</motion.button>

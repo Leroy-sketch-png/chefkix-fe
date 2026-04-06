@@ -74,7 +74,7 @@ export const GroupCard = ({
 		} finally {
 			setIsJoining(false)
 		}
-	}, [group, isJoinable, currentUserId, onJoinSuccess])
+	}, [group, isJoinable, currentUserId, onJoinSuccess, t])
 
 	if (variant === 'compact') {
 		return (

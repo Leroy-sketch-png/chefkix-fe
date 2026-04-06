@@ -133,7 +133,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 						<DollarSign className='size-5 text-gaming-xp' />
 					</div>
 					<div>
-						<h3 className='font-semibold text-text'>Tip History</h3>
+						<h3 className='font-semibold text-text'>{t('tipHistory')}</h3>
 						<p className='text-sm text-text-muted'>
 							{receivedTips.length > 0
 								? `${formatCents(totalReceived)} received · ${formatCents(totalSent)} sent`

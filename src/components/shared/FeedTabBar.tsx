@@ -99,6 +99,7 @@ export function FeedTabBar<T extends string = string>({
 
 				return (
 					<motion.button
+						type='button'
 						key={tab.key}
 						onClick={() => onTabChange(tab.key)}
 						whileTap={isPill ? BUTTON_SUBTLE_TAP : BUTTON_TAP}
@@ -106,7 +107,7 @@ export function FeedTabBar<T extends string = string>({
 						aria-selected={isActive}
 						aria-controls={`tabpanel-${tab.key}`}
 						className={cn(
-							'relative flex shrink-0 items-center gap-2 font-semibold transition-colors duration-200',
+							'relative flex shrink-0 items-center gap-2 font-semibold transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
 							sizes.tab,
 							// Pill variant styles
 							isPill && [

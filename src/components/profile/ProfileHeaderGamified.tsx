@@ -15,6 +15,7 @@ import {
 	ChefHat,
 	Bookmark,
 	Trophy,
+	Heart,
 	ShieldBan,
 	MoreHorizontal,
 } from 'lucide-react'
@@ -214,7 +215,7 @@ const LevelRing = ({
 				</span>
 				<span
 					className={cn(
-						'font-semibold text-white',
+						'font-semibold tabular-nums text-white',
 						size === 'default' ? 'text-sm' : 'text-xs',
 					)}
 				>
@@ -236,7 +237,7 @@ const StreakBadge = ({ count }: { count: number }) => {
 			animate={{ scale: 1, opacity: 1 }}
 			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-streak px-4 py-2.5 font-display font-bold text-white shadow-lg shadow-streak/40'
 		>
-			<span className='text-xl'>ðŸ”¥</span>
+			<span className='text-xl'>🔥</span>
 			<span className='text-xl tabular-nums'>{count}</span>
 			<span className='text-xs opacity-90'>{t('dayStreak')}</span>
 		</motion.div>
@@ -283,14 +284,14 @@ const StatsRow = ({
 					href='/profile/followers?tab=followers'
 					className='flex flex-col transition-opacity hover:opacity-70'
 				>
-					<span className='text-xl font-display font-extrabold'>
+					<span className='text-xl font-display font-extrabold tabular-nums'>
 						<AnimatedNumber value={social.followers} format={formatNumber} />
 					</span>
 					<span className='text-xs text-text-muted'>{t('followersLabel')}</span>
 				</Link>
 			) : (
 				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold'>
+					<span className='text-xl font-display font-extrabold tabular-nums'>
 						<AnimatedNumber value={social.followers} format={formatNumber} />
 					</span>
 					<span className='text-xs text-text-muted'>{t('followersLabel')}</span>
@@ -301,14 +302,14 @@ const StatsRow = ({
 					href='/profile/followers?tab=following'
 					className='flex flex-col transition-opacity hover:opacity-70'
 				>
-					<span className='text-xl font-display font-extrabold'>
+					<span className='text-xl font-display font-extrabold tabular-nums'>
 						<AnimatedNumber value={social.following} format={formatNumber} />
 					</span>
 					<span className='text-xs text-text-muted'>{t('followingLabel')}</span>
 				</Link>
 			) : (
 				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold'>
+					<span className='text-xl font-display font-extrabold tabular-nums'>
 						<AnimatedNumber value={social.following} format={formatNumber} />
 					</span>
 					<span className='text-xs text-text-muted'>{t('followingLabel')}</span>
@@ -506,7 +507,7 @@ const ProfileTabs = ({
 				key={tab.id}
 				onClick={() => onTabChange?.(tab.id)}
 				className={cn(
-					'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-4 py-4 text-sm font-semibold transition-colors',
+					'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-4 py-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 					activeTab === tab.id
 						? 'border-brand text-brand'
 						: 'border-transparent text-text-muted hover:text-text',
@@ -515,7 +516,7 @@ const ProfileTabs = ({
 				{tab.icon}
 				{tab.label}
 				{tab.badge !== undefined && (
-					<span className='rounded-full bg-error px-2 py-0.5 text-xs font-bold text-white'>
+					<span className='rounded-full bg-error px-2 py-0.5 text-xs font-bold tabular-nums text-white'>
 						{tab.badge}
 					</span>
 				)}
@@ -553,7 +554,7 @@ const OwnProfileHeader = ({
 		('userAgentData' in navigator &&
 			(navigator.userAgentData as { platform?: string })?.platform === 'macOS' ||
 			/Mac/i.test(navigator.userAgent))
-	const modKey = isMac ? 'âŒ˜' : 'Ctrl'
+	const modKey = isMac ? '⌘' : 'Ctrl'
 
 	const t = useTranslations('profile')
 
@@ -579,6 +580,7 @@ const OwnProfileHeader = ({
 			badge: pendingPosts?.count,
 		},
 		{ id: 'saved', label: t('tabSaved'), icon: <Bookmark className='size-4' /> },
+		{ id: 'liked', label: t('tabLiked'), icon: <Heart className='size-4' /> },
 		{
 			id: 'achievements',
 			label: t('tabAchievements'),
@@ -640,7 +642,7 @@ const OwnProfileHeader = ({
 						onClick={onEditProfile}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border'
+						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border focus-visible:ring-2 focus-visible:ring-brand/50'
 						title={`${t('phEditProfile')} (${modKey}+E)`}
 					>
 						<Settings className='size-4' />
@@ -655,7 +657,7 @@ const OwnProfileHeader = ({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
+						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 						aria-label={t('shareProfileAria')}
 					>
 						<Share2 className='size-4' />
@@ -713,7 +715,7 @@ const OwnProfileHeader = ({
 						onClick={onPostPending}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='rounded-lg bg-error px-4 py-2.5 text-sm font-semibold text-white'
+						className='rounded-lg bg-error px-4 py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{t('postNow')}
 					</motion.button>
@@ -823,7 +825,7 @@ const OtherUserProfileHeader = ({
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className={cn(
-							'flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50',
+							'flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 							isFollowing
 								? 'border border-border bg-bg-elevated hover:bg-border'
 								: 'bg-brand text-white',
@@ -848,10 +850,11 @@ const OtherUserProfileHeader = ({
 					<motion.button
 						type='button'
 						onClick={onMessage}
+						aria-label={t('ariaSendMessage')}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
+						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageCircle className='size-4' />
 					</motion.button>
@@ -869,7 +872,7 @@ const OtherUserProfileHeader = ({
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className={cn(
-							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
+							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 							isBlocked
 								? 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
 								: 'border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-destructive',
@@ -960,11 +963,11 @@ const MiniProfileHeader = ({
 				</span>
 			</div>
 				<div className='mt-0.5 flex items-center gap-1.5 text-xs text-text-muted'>
-					<span><AnimatedNumber value={user.stats.followers} format={formatNumber} /> {t('followersCount')}</span>
+					<span className='tabular-nums'><AnimatedNumber value={user.stats.followers} format={formatNumber} /> {t('followersCount')}</span>
 					{streakCount !== undefined && streakCount > 0 && (
 						<>
-							<span className='text-border'>â€¢</span>
-							<span>ðŸ”¥ {streakCount} {t('dayStreak')}</span>
+							<span className='text-border'>•</span>
+							<span>🔥 {streakCount} {t('dayStreak')}</span>
 						</>
 					)}
 				</div>
@@ -979,7 +982,7 @@ const MiniProfileHeader = ({
 				animate={isFollowing ? FOLLOW_PULSE.followed : undefined}
 				transition={TRANSITION_SPRING}
 				className={cn(
-					'rounded-lg px-4 py-2 text-sm font-semibold',
+					'rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 					isFollowing
 						? 'border border-border bg-bg-elevated hover:bg-border'
 						: 'bg-brand text-white',

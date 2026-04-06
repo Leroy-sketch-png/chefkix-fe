@@ -220,7 +220,7 @@ export const ReportModal = ({
 										onClick={handleClose}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='w-full rounded-lg bg-gradient-xp py-3 text-sm font-bold text-white'
+										className='w-full rounded-lg bg-gradient-xp py-3 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{t('rmDone')}
 									</motion.button>
@@ -233,7 +233,7 @@ export const ReportModal = ({
 										<motion.button										type='button'											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 											aria-label={t('rmCloseAriaLabel')}
 										>
 											<X className='size-4' />
@@ -340,6 +340,7 @@ export const ReportModal = ({
 
 										{/* Submit */}
 										<motion.button
+											type='button'
 											onClick={handleSubmit}
 											disabled={!selectedReason || isSubmitting}
 											whileHover={
@@ -348,7 +349,7 @@ export const ReportModal = ({
 											whileTap={
 												selectedReason && !isSubmitting ? { scale: 0.98 } : {}
 											}
-											className='flex w-full items-center justify-center gap-2 rounded-lg bg-error py-3 text-sm font-bold text-white disabled:opacity-50'
+											className='flex w-full items-center justify-center gap-2 rounded-lg bg-error py-3 text-sm font-bold text-white disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{isSubmitting ? (
 												<Loader2 className='size-4 animate-spin' />
@@ -421,10 +422,11 @@ export const ReportLimitModal = ({
 								</span>
 							</div>
 							<motion.button
+								type='button'
 								onClick={onClose}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
+								className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{t('rlOkay')}
 							</motion.button>
@@ -567,20 +569,22 @@ export const AccountRestrictedNotice = ({
 			{/* Actions */}
 			<div className='flex gap-3 px-6 pb-6'>
 				<motion.button
+					type='button'
 					onClick={onAppeal}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted'
+					className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<MessageCircle className='size-icon-sm' />
 					{isPermanent ? t('arFinalAppeal') : t('arAppealDecision')}
 				</motion.button>
 				{!isPermanent && (
 					<motion.button
+						type='button'
 						onClick={onDismiss}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='flex-1 rounded-xl bg-warning py-3.5 text-sm font-bold text-white'
+						className='flex-1 rounded-xl bg-warning py-3.5 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{t('arUnderstand')}
 					</motion.button>
@@ -690,10 +694,11 @@ export const AppealModal = ({
 									</div>
 
 									<motion.button
+										type='button'
 										onClick={handleClose}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
+										className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{t('apGotIt')}
 									</motion.button>
@@ -704,10 +709,11 @@ export const AppealModal = ({
 									<div className='flex items-center justify-between border-b border-border p-7'>
 										<h2 className='text-xl font-extrabold'>{t('apTitle')}</h2>
 										<motion.button
+											type='button'
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
+											className='flex size-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 											aria-label={t('apCloseAriaLabel')}
 										>
 											<X className='size-5' />
@@ -769,14 +775,16 @@ export const AppealModal = ({
 										{/* Actions */}
 										<div className='flex gap-3'>
 											<motion.button
+												type='button'
 												onClick={handleClose}
 												whileHover={BUTTON_HOVER}
 												whileTap={BUTTON_TAP}
-												className='flex-1 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted'
+												className='flex-1 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 											{t('apCancel')}
 											</motion.button>
 											<motion.button
+												type='button'
 												onClick={handleSubmit}
 												disabled={!appealText.trim() || isSubmitting}
 												whileHover={
@@ -787,7 +795,7 @@ export const AppealModal = ({
 														? { scale: 0.98 }
 														: {}
 												}
-												className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-sm font-bold text-white disabled:opacity-50'
+												className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-sm font-bold text-white disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{isSubmitting ? (
 													<Loader2 className='size-icon-sm animate-spin' />
@@ -878,18 +886,20 @@ export const ContentRemovedNotice = ({
 			{/* Actions */}
 			<div className='flex gap-2.5 border-t border-border px-5 py-4'>
 				<motion.button
+					type='button'
 					onClick={onLearnGuidelines}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex-1 rounded-lg border border-border py-3 text-sm font-semibold text-text-muted'
+					className='flex-1 rounded-lg border border-border py-3 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{t('crLearnGuidelines')}
 				</motion.button>
 				<motion.button
+					type='button'
 					onClick={onDismiss}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex-1 rounded-lg bg-bg-elevated py-3 text-sm font-semibold'
+					className='flex-1 rounded-lg bg-bg-elevated py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{t('crDismiss')}
 				</motion.button>

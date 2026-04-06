@@ -1,6 +1,7 @@
 'use client'
 
 import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { ErrorState } from '@/components/ui/error-state'
 
 interface Props {
@@ -12,6 +13,19 @@ interface Props {
 interface State {
 	hasError: boolean
 	error?: Error
+}
+
+function ErrorBoundaryFallback({ error, onReset }: { error?: Error; onReset: () => void }) {
+	const t = useTranslations('common')
+	return (
+		<div className='flex min-h-panel-md items-center justify-center p-6'>
+			<ErrorState
+				title={t('somethingWentWrong')}
+				message={error?.message || t('unexpectedError')}
+				onRetry={onReset}
+			/>
+		</div>
+	)
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -38,18 +52,7 @@ export class ErrorBoundary extends Component<Props, State> {
 				return this.props.fallback
 			}
 
-			return (
-				<div className='flex min-h-panel-md items-center justify-center p-6'>
-					<ErrorState
-						title='Something went wrong'
-						message={
-							this.state.error?.message ||
-							'An unexpected error occurred. Please try again.'
-						}
-						onRetry={this.handleReset}
-					/>
-				</div>
-			)
+			return <ErrorBoundaryFallback error={this.state.error} onReset={this.handleReset} />
 		}
 
 		return this.props.children

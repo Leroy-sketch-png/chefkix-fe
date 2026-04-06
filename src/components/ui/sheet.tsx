@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { X } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
@@ -151,6 +152,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 		{ className, children, side = 'right', showClose = true, ...props },
 		ref,
 	) => {
+		const t = useTranslations('common')
 		const { open, onOpenChange } = useSheet()
 		const contentRef = React.useRef<HTMLDivElement>(null)
 
@@ -203,7 +205,7 @@ export const SheetContent = React.forwardRef<HTMLDivElement, SheetContentProps>(
 								type='button'
 								onClick={() => onOpenChange(false)}
 								className='absolute right-4 top-4 rounded-sm opacity-70 ring-offset-bg transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2'
-								aria-label='Close'
+								aria-label={t('ariaClose')}
 							>
 								<X className='size-5' />
 							</button>

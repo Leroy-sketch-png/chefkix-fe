@@ -18,10 +18,10 @@ import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { CHAT_MESSAGES } from '@/constants/messages'
 import {
 	getShareSuggestions,
 	sharePostToConversation,
@@ -35,6 +35,7 @@ import {
 	ICON_BUTTON_TAP,
 	CARD_HOVER,
 	LIST_ITEM_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 
 interface SharePostModalProps {
@@ -101,7 +102,7 @@ export const SharePostModal = ({
 		}
 
 		fetchSuggestions()
-	}, [isOpen])
+	}, [isOpen, t])
 
 	// Reset state when modal closes
 	useEffect(() => {
@@ -131,7 +132,7 @@ export const SharePostModal = ({
 
 	const handleShare = async () => {
 		if (selectedConversations.size === 0) {
-			toast.error(CHAT_MESSAGES.SELECT_CONVERSATION)
+			toast.error(t('toastSelectConversation'))
 			return
 		}
 
@@ -174,13 +175,13 @@ export const SharePostModal = ({
 			if (successCount > 0) {
 				toast.success(
 					successCount === 1
-						? CHAT_MESSAGES.SHARE_SUCCESS
-						: CHAT_MESSAGES.SHARE_MULTIPLE_SUCCESS(successCount),
+						? t('toastShareSuccess')
+						: t('toastShareMultipleSuccess', { count: successCount }),
 				)
 			}
 
 			if (failCount > 0) {
-				toast.error(CHAT_MESSAGES.SHARE_PARTIAL_FAIL(failCount))
+				toast.error(t('toastSharePartialFail', { count: failCount }))
 			}
 
 			if (successCount > 0) {
@@ -231,8 +232,9 @@ export const SharePostModal = ({
 									</div>
 								</div>
 								<motion.button
+									type='button'
 									onClick={onClose}
-									className='grid size-8 flex-shrink-0 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9'
+									className='grid size-8 flex-shrink-0 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9 focus-visible:ring-2 focus-visible:ring-brand/50'
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									aria-label={t('shareCloseLabel')}
@@ -296,11 +298,16 @@ export const SharePostModal = ({
 							{/* Conversation List */}
 							<div className='px-3 sm:px-4'>
 								{isLoading ? (
-									<div className='flex flex-col items-center justify-center gap-3 py-12 sm:py-16'>
-										<Loader2 className='size-7 animate-spin text-brand sm:size-8' />
-										<p className='text-xs text-text-secondary sm:text-sm'>
-										{t('shareLoadingConversations')}
-										</p>
+									<div className='space-y-2 py-2'>
+										{Array.from({ length: 4 }).map((_, i) => (
+											<div key={i} className='flex items-center gap-3 rounded-xl p-3'>
+												<Skeleton className='size-10 rounded-full sm:size-11' />
+												<div className='flex-1 space-y-1.5'>
+													<Skeleton className='h-4 w-28' />
+													<Skeleton className='h-3 w-40' />
+												</div>
+											</div>
+										))}
 									</div>
 								) : filteredConversations.length === 0 ? (
 									<div className='flex flex-col items-center justify-center gap-3 py-12 text-center sm:py-16'>
@@ -338,12 +345,13 @@ export const SharePostModal = ({
 
 											return (
 												<motion.button
+													type='button'
 													key={conv.conversationId}
 													onClick={() =>
 														toggleConversation(conv.conversationId)
 													}
 													className={cn(
-														'group relative flex w-full items-center gap-2.5 overflow-hidden rounded-xl p-2.5 text-left transition-all sm:gap-3 sm:p-3',
+														'group relative flex w-full items-center gap-2.5 overflow-hidden rounded-xl p-2.5 text-left transition-all sm:gap-3 sm:p-3 focus-visible:ring-2 focus-visible:ring-brand/50',
 														isSelected
 															? 'bg-brand/10 shadow-card ring-2 ring-brand/50'
 															: 'hover:bg-bg-hover active:bg-bg-hover',
@@ -358,7 +366,7 @@ export const SharePostModal = ({
 															className='absolute inset-0 bg-gradient-to-r from-brand/10 to-transparent'
 															initial={{ opacity: 0 }}
 															animate={{ opacity: 1 }}
-															transition={{ duration: 0.3 }}
+															transition={{ duration: DURATION_S.smooth }}
 														/>
 													)}
 

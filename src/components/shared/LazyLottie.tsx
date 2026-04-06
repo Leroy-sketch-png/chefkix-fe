@@ -5,6 +5,7 @@ import Lottie, { LottieComponentProps } from 'lottie-react'
 import { useDeviceSize } from '@/hooks/useDeviceSize'
 import { logDevError } from '@/lib/dev-log'
 import { useInView, motion, type Variants } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { useRef } from 'react'
 
 interface LazyLottieProps
@@ -69,7 +70,7 @@ const entranceVariants: Record<'fade' | 'scale' | 'none', Variants> = {
 		hidden: { opacity: 0 },
 		visible: {
 			opacity: 1,
-			transition: { duration: 0.6, ease: 'easeOut' as const },
+			transition: { duration: DURATION_S.verySlow, ease: 'easeOut' as const },
 		},
 	},
 	scale: {

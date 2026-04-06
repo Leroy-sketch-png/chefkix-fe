@@ -46,9 +46,7 @@ import {
 
 interface FeatureConfig {
 	icon: typeof Crown
-	label: string
 	labelKey: string
-	description: string
 	free: boolean
 	premium: boolean
 }
@@ -56,113 +54,85 @@ interface FeatureConfig {
 const FEATURES: FeatureConfig[] = [
 	{
 		icon: ChefHat,
-		label: 'Cooking Sessions & XP',
-		labelKey: 'cookingSessions',
-		description: 'Cook recipes and earn experience points',
+		labelKey: 'CookingSessions',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Camera,
-		label: 'Post Your Creations',
-		labelKey: 'postCreations',
-		description: 'Share cooking photos with the community',
+		labelKey: 'PostCreations',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: BookOpen,
-		label: 'Browse All Recipes',
-		labelKey: 'browseRecipes',
-		description: 'Access the full recipe library',
+		labelKey: 'BrowseRecipes',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Users,
-		label: 'Social Features',
-		labelKey: 'socialFeatures',
-		description: 'Follow friends, like, comment, and chat',
+		labelKey: 'Social',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Bookmark,
-		label: 'Saved Recipes',
-		labelKey: 'savedRecipes',
-		description: 'Save your favorite recipes for quick access',
+		labelKey: 'Saved',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Shield,
-		label: 'Ad-Free Experience',
-		labelKey: 'adFree',
-		description: 'Browse without interruptions',
+		labelKey: 'AdFree',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Gem,
-		label: 'Premium Badges',
-		labelKey: 'premiumBadges',
-		description: 'Exclusive badges to show off your status',
+		labelKey: 'Badges',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Palette,
-		label: 'Custom Profile Themes',
-		labelKey: 'customThemes',
-		description: 'Stand out with unique profile designs',
+		labelKey: 'Themes',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Volume2,
-		label: 'Custom Timer Sounds',
-		labelKey: 'customTimerSounds',
-		description: 'Personalize your cooking timer alerts',
+		labelKey: 'TimerSounds',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: BarChart3,
-		label: 'Advanced Analytics',
-		labelKey: 'advancedAnalytics',
-		description: 'Deep insights into your cooking journey',
+		labelKey: 'Analytics',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: HeadphonesIcon,
-		label: 'Priority Support',
-		labelKey: 'prioritySupport',
-		description: 'Get help faster when you need it',
+		labelKey: 'Support',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Zap,
-		label: 'Early Access',
-		labelKey: 'earlyAccess',
-		description: 'Try new features before everyone else',
+		labelKey: 'EarlyAccess',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Trophy,
-		label: 'Exclusive Challenges',
-		labelKey: 'exclusiveChallenges',
-		description: 'Premium-only challenges with rare badges',
+		labelKey: 'ExclusiveChallenges',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Sparkles,
-		label: 'Premium Cosmetics',
-		labelKey: 'premiumCosmetics',
-		description: 'Unique visual effects and profile flair',
+		labelKey: 'Cosmetics',
 		free: false,
 		premium: true,
 	},
@@ -194,7 +164,7 @@ export default function PremiumUpgradeCard() {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		fetchSubscription()
@@ -300,11 +270,11 @@ export default function PremiumUpgradeCard() {
 						<p className='mt-1 text-sm text-text-secondary'>
 							{isPremium
 								? isTrialActive
-									? 'Trial active — enjoying all premium features!'
+									? t('statusTrialActive')
 									: cancelledAtPeriodEnd
-										? `Cancelled — access until ${subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : 'end of period'}`
-										: 'Full premium access — thank you for your support!'
-								: 'Upgrade to unlock exclusive features and enhance your cooking journey.'}
+										? t('statusCancelled', { date: subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : t('endOfPeriod') })
+										: t('statusActive')
+								: t('statusFree')}
 						</p>
 					</div>
 					{isPremium && (
@@ -333,10 +303,10 @@ export default function PremiumUpgradeCard() {
 				<div className='flex items-center gap-3 px-4 py-2'>
 					<div className='flex-1' />
 					<span className='w-14 shrink-0 text-center text-xs font-semibold uppercase text-text-muted'>
-						Free
+						{t('columnFree')}
 					</span>
 					<span className='w-14 shrink-0 text-center text-xs font-semibold uppercase text-level'>
-						Pro
+						{t('columnPro')}
 					</span>
 				</div>
 
@@ -367,7 +337,7 @@ export default function PremiumUpgradeCard() {
 								</div>
 								<div className='min-w-0 flex-1'>
 									<p className='text-sm font-medium text-text'>
-										{feature.label}
+										{t(`feature${feature.labelKey}Label`)}
 									</p>
 								</div>
 								<div className='w-14 shrink-0 flex justify-center'>
@@ -411,8 +381,8 @@ export default function PremiumUpgradeCard() {
 						)}
 						<p className='text-center text-xs text-text-muted'>
 							{trialUsed
-								? 'Your free trial has been used. Paid subscriptions are coming soon — we\'ll notify you when they\'re available!'
-								: 'No credit card required. Cancel anytime during trial.'}
+								? t('trialUsedNote')
+								: t('trialNote')}
 						</p>
 					</>
 				)}
@@ -437,11 +407,10 @@ export default function PremiumUpgradeCard() {
 									className='overflow-hidden rounded-lg border border-error/20 bg-error/5 p-4'
 								>
 									<p className='text-sm font-medium text-error'>
-										Are you sure you want to cancel?
-									</p>
-									<p className='mt-1 text-xs text-error/70'>
-										You&apos;ll retain premium access until the end of your
-										current billing period.
+									{t('cancelConfirmTitle')}
+								</p>
+								<p className='mt-1 text-xs text-error/70'>
+									{t('cancelConfirmBody')}
 									</p>
 									<div className='mt-3 flex gap-2'>
 										<Button
@@ -471,11 +440,7 @@ export default function PremiumUpgradeCard() {
 
 				{isPremium && cancelledAtPeriodEnd && (
 					<p className='text-center text-sm text-warning'>
-						Your subscription is cancelled but active until{' '}
-						{subscription?.endDate
-							? new Date(subscription.endDate).toLocaleDateString()
-							: 'end of period'}
-						.
+						{t('cancelledActiveNote', { date: subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : t('endOfPeriod') })}
 					</p>
 				)}
 			</motion.div>

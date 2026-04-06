@@ -196,11 +196,12 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 			{/* Load more */}
 			{hasMore && (
 				<motion.button
+					type='button'
 					onClick={handleLoadMore}
 					disabled={isLoadingMore}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_TAP}
-					className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+					className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{isLoadingMore ? (
 						<Loader2 className='size-4 animate-spin' />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Download, Share2, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
@@ -226,11 +226,11 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 	const [isCopied, setIsCopied] = useState(false)
 	const t = useTranslations('profile')
 
-	const canvasLabels: CanvasLabels = {
+	const canvasLabels: CanvasLabels = useMemo(() => ({
 		tasteDnaTitle: t('tasteDnaTitle'),
 		tasteDnaStrongest: t('tasteDnaStrongest', { trait: props.topTrait }),
 		tasteDnaFooter: t('tasteDnaFooter'),
-	}
+	}), [t, props.topTrait])
 
 	const generate = useCallback(() => {
 		if (!canvasRef.current) return
@@ -317,10 +317,11 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 
 				<div className='flex gap-3 p-4'>
 					<motion.button
+						type='button'
 						onClick={handleDownload}
 						disabled={isGenerating}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isGenerating ? (
 							<Loader2 className='size-4 animate-spin' />
@@ -331,10 +332,11 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 					</motion.button>
 
 					<motion.button
+						type='button'
 						onClick={handleShare}
 						disabled={isGenerating}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isCopied ? (
 							<>

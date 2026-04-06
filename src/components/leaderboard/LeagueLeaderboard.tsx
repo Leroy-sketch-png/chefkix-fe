@@ -53,13 +53,13 @@ const leagueConfig: Record<
 	{ icon: string; gradient: string; borderColor: string; textColor: string }
 > = {
 	bronze: {
-		icon: 'ðŸ¥‰',
+		icon: '🥉',
 		gradient: 'from-medal-bronze/20 to-medal-bronze/8',
 		borderColor: 'border-medal-bronze/40',
 		textColor: 'text-medal-bronze',
 	},
 	silver: {
-		icon: 'ðŸ¥ˆ',
+		icon: '🥈',
 		gradient: 'from-medal-silver/25 to-medal-silver/10',
 		borderColor: 'border-medal-silver/50',
 		textColor: 'text-medal-silver',
@@ -71,13 +71,13 @@ const leagueConfig: Record<
 		textColor: 'text-medal-gold',
 	},
 	diamond: {
-		icon: 'ðŸ’Ž',
+		icon: '💎',
 		gradient: 'from-rare/20 to-rare/8',
 		borderColor: 'border-rare/40',
 		textColor: 'text-rare',
 	},
 	legendary: {
-		icon: 'ðŸ‘‘',
+		icon: '👑',
 		gradient: 'from-xp/20 to-xp/8',
 		borderColor: 'border-xp/40',
 		textColor: 'text-xp',
@@ -128,10 +128,11 @@ function LeagueHeader({
 
 			{onLeagueInfo && (
 				<motion.button
+					type='button'
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					onClick={onLeagueInfo}
-					className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-tertiary'
+					className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-tertiary focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Info className='size-5' />
 				</motion.button>
@@ -225,7 +226,7 @@ function ZoneSection({
 				<span>{label}</span>
 				{destination && (
 					<span className='ml-auto font-normal opacity-80'>
-						â†’ {destination}
+						→ {destination}
 					</span>
 				)}
 			</div>
@@ -335,8 +336,8 @@ export function LeagueLeaderboard({
 
 			{/* Abbreviated indicator for safe zone */}
 			{safeEntries.length > 3 && (
-				<div className='text-center py-3 text-xs text-text-muted'>
-					Ranks {promotionThreshold + 4}-{demotionThreshold} â€¢{' '}
+				<div className='text-center py-3 text-xs tabular-nums text-text-muted'>
+					Ranks {promotionThreshold + 4}-{demotionThreshold} •{' '}
 					{safeEntries[3]?.xpThisWeek?.toLocaleString()}-
 					{safeEntries[safeEntries.length - 1]?.xpThisWeek?.toLocaleString()} XP
 				</div>

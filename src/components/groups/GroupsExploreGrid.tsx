@@ -16,8 +16,9 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { Loader2, Plus, Search, Users } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { motion } from 'framer-motion'
-import { BUTTON_HOVER, BUTTON_TAP, TRANSITION_SPRING } from '@/lib/motion'
+import { BUTTON_HOVER, BUTTON_TAP, TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
 import { CreateGroupModal } from './CreateGroupModal'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { useAuthStore } from '@/store/authStore'
@@ -78,13 +79,13 @@ export const GroupsExploreGrid = ({
 				setIsLoading(false)
 			}
 		},
-		[searchTerm, privacyFilter, sortBy]
+		[searchTerm, privacyFilter, sortBy, t]
 	)
 
 	// Initial load and filter changes
 	useEffect(() => {
 		loadGroups(0, false)
-	}, [searchTerm, privacyFilter, sortBy, loadGroups])
+	}, [searchTerm, privacyFilter, sortBy, loadGroups, t])
 
 	const handleLoadMore = () => {
 		loadGroups(page + 1, true)
@@ -110,8 +111,9 @@ export const GroupsExploreGrid = ({
 
 					{currentUserId && (
 						<motion.button
+							type='button'
 							onClick={() => setShowCreateModal(true)}
-							className='flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-semibold shadow-lg shadow-brand/30 transition-all duration-300 whitespace-nowrap'
+							className='flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-semibold shadow-lg shadow-brand/30 transition-all duration-300 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand/50'
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						transition={TRANSITION_SPRING}
@@ -179,11 +181,20 @@ export const GroupsExploreGrid = ({
 
 			{/* Groups Grid */}
 			{isLoading && groups.length === 0 ? (
-				<div className='flex justify-center py-20'>
-					<div className='text-center'>
-						<Loader2 className='size-10 animate-spin text-brand mx-auto mb-4' />
-						<p className='text-text-secondary'>{t('geLoading')}</p>
-					</div>
+				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+					{Array.from({ length: 6 }).map((_, i) => (
+						<div key={i} className='rounded-radius border border-border-subtle bg-bg-card shadow-card overflow-hidden'>
+							<Skeleton className='h-32 w-full' />
+							<div className='p-4 space-y-3'>
+								<Skeleton className='h-5 w-3/4' />
+								<Skeleton className='h-3 w-full' />
+								<div className='flex items-center gap-2'>
+									<Skeleton className='h-3 w-16' />
+									<Skeleton className='h-5 w-14 rounded-full' />
+								</div>
+							</div>
+						</div>
+					))}
 				</div>
 			) : groups.length === 0 ? (
 				<EmptyState
@@ -215,7 +226,7 @@ export const GroupsExploreGrid = ({
 						className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
-						transition={{ duration: 0.3 }}
+						transition={{ duration: DURATION_S.smooth }}
 					>
 						{groups.map((group, idx) => (
 							<motion.div

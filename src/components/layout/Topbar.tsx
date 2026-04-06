@@ -21,7 +21,7 @@ import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
-import { TRANSITION_SPRING, BELL_SHAKE, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, BELL_SHAKE, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP, DURATION_S } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -251,7 +251,7 @@ export const Topbar = () => {
 			await logoutService()
 		} catch (error) {
 			logDevError('Logout error:', error)
-			toast.error('Could not fully sign out — clearing local session')
+			toast.error(t('toastSignOutFailed'))
 		} finally {
 			// Always clear local state and redirect (security: never leave stale session)
 			logout()
@@ -527,7 +527,7 @@ export const Topbar = () => {
 					className='relative hidden overflow-hidden rounded-radius bg-gradient-gold px-4 py-2 text-sm font-bold text-text shadow-card lg:flex lg:items-center lg:gap-2'
 				>
 					<span className='relative z-10'>
-						Lv. {user.statistics?.currentLevel || 1}
+						{t('tbLevel', { level: user.statistics?.currentLevel || 1 })}
 					</span>
 					{/* XP Progress bar inside */}
 					<div className='relative z-10 hidden h-1.5 w-16 overflow-hidden rounded-full bg-text/10 xl:block'>
@@ -535,7 +535,7 @@ export const Topbar = () => {
 							className='h-full rounded-full bg-text/25'
 							initial={{ width: 0 }}
 							animate={{ width: `${xpProgress}%` }}
-							transition={{ duration: 1, ease: 'easeOut' }}
+							transition={{ duration: DURATION_S.dramatic, ease: 'easeOut' }}
 						/>
 					</div>
 					<div className='pointer-events-none absolute inset-0 animate-shine bg-gradient-to-r from-transparent via-white/30 to-transparent' />
@@ -546,6 +546,7 @@ export const Topbar = () => {
 			{user && (
 				<div className='relative'>
 					<motion.button
+						type='button'
 						ref={avatarButtonRef}
 						onClick={() => {
 							if (!showUserMenu && avatarButtonRef.current) {
@@ -562,7 +563,7 @@ export const Topbar = () => {
 						transition={TRANSITION_SPRING}
 						aria-haspopup='true'
 					aria-expanded={showUserMenu}
-					className='group relative cursor-pointer'
+					className='group relative cursor-pointer focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{/* XP Progress Ring - hidden on mobile for compactness */}
 						<svg
@@ -701,11 +702,12 @@ export const Topbar = () => {
 			{user && (
 			<div className='flex gap-2 md:gap-3'>
 				<motion.button
+					type='button'
 					onClick={toggleNotificationsPopup}
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					transition={TRANSITION_SPRING}
-					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand'
+					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 					aria-label={
 						unreadNotifications > 0
 							? t('tbNotificationsUnread', { count: unreadNotifications })
@@ -732,15 +734,16 @@ export const Topbar = () => {
 					)}
 				</motion.button>
 				<motion.button
+					type='button'
 					onClick={toggleMessagesDrawer}
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					transition={TRANSITION_SPRING}
-					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp'
+					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50'
 					aria-label={
 						unreadMessages > 0
-							? `Messages, ${unreadMessages} unread`
-							: 'Messages'
+							? t('tbMessagesUnread', { count: unreadMessages })
+							: t('tbMessages')
 					}
 				>
 					<MessageCircle className='size-5' />

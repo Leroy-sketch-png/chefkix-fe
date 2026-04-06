@@ -1,14 +1,14 @@
 ﻿'use client'
 
 /**
- * RecipeCreateAiFlow â€” The recipe creation orchestrator.
+ * RecipeCreateAiFlow — The recipe creation orchestrator.
  *
- * This component manages the multi-step creation flow (input â†’ parsing â†’ preview â†’ xp-preview)
+ * This component manages the multi-step creation flow (input → parsing → preview → xp-preview)
  * and delegates rendering to extracted sub-components. All pure helpers live in recipeCreateUtils.
  *
  * Architecture:
- *   Types         â†’ @/lib/types/recipeCreate
- *   Pure helpers  â†’ @/lib/recipeCreateUtils
+ *   Types         → @/lib/types/recipeCreate
+ *   Pure helpers  → @/lib/recipeCreateUtils
  *   Sub-components: MethodCard, PasteArea, RecipeParsingOverlay, IngredientItem, StepItem, XpPreviewModal
  */
 
@@ -51,11 +51,11 @@ import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
 
-// â”€â”€ Hooks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Hooks ───────────────────────────────────────────────────────────
 import { useAutoSave, type SaveStatus } from '@/hooks/useAutoSave'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 
-// â”€â”€ Services & stores â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Services & stores ───────────────────────────────────────────────
 import { processRecipe, calculateMetas, validateRecipe } from '@/services/ai'
 import {
 	createDraft,
@@ -69,7 +69,7 @@ import { useUiStore } from '@/store/uiStore'
 import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
 import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
 
-// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Types ───────────────────────────────────────────────────────────
 import { Recipe } from '@/lib/types/recipe'
 import type { Difficulty } from '@/lib/types/gamification'
 import { resolveBadge } from '@/lib/data/badgeRegistry'
@@ -82,7 +82,7 @@ import type {
 	RecipeStep,
 } from '@/lib/types/recipeCreate'
 
-// â”€â”€ Extracted utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Extracted utilities ─────────────────────────────────────────────
 import {
 	modKey,
 	RECALCULATION_THRESHOLD,
@@ -92,7 +92,7 @@ import {
 	transformProcessedRecipe,
 } from '@/lib/recipeCreateUtils'
 
-// â”€â”€ Extracted sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Extracted sub-components ────────────────────────────────────────
 import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
 import { MethodCard } from './MethodCard'
 import { PasteArea } from './PasteArea'
@@ -123,9 +123,9 @@ interface RecipeCreateAiFlowProps {
 	onBack?: () => void
 	onPublishSuccess?: (recipeId: string) => void
 	className?: string
-	/** Optional initial draft to load (from draft listing) â€” server-saved AI-parsed draft */
+	/** Optional initial draft to load (from draft listing) — server-saved AI-parsed draft */
 	initialDraft?: Recipe
-	/** Optional initial manual draft to load (from localStorage) â€” manually entered draft */
+	/** Optional initial manual draft to load (from localStorage) — manually entered draft */
 	initialManualDraft?: RecipeFormData
 }
 
@@ -249,7 +249,7 @@ export const RecipeCreateAiFlow = ({
 	const coverImageRef = React.useRef<HTMLInputElement>(null)
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
 
-	// â”€â”€ Auto-save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Auto-save ────────────────────────────────────────────────────
 	const autoSavePayload = useMemo(() => {
 		if (!recipe) return null
 		return {
@@ -290,7 +290,7 @@ export const RecipeCreateAiFlow = ({
 		isAutoSaveEnabled,
 	)
 
-	// â”€â”€ Derived state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Derived state ───────────────────────────────────────────────
 	const changePercent = calculateRecipeChangePercent(originalRecipe, recipe)
 	const needsRecalculation =
 		forceRecalculate || changePercent >= RECALCULATION_THRESHOLD
@@ -301,15 +301,15 @@ export const RecipeCreateAiFlow = ({
 		return (recipe.steps || []).some(step => isLocalPreviewUrl(step.imageUrl))
 	}, [recipe])
 
-	// â”€â”€ Warn before unload if recipe creation is in progress â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Warn before unload if recipe creation is in progress ────────
 	const hasUnsavedWork =
 		(rawText.trim().length > 0 || recipe !== null) && !isPublishing
 	useBeforeUnloadWarning(
 		hasUnsavedWork,
-		'You have an unfinished recipe. Are you sure you want to leave?',
+		t('unfinishedRecipeWarning'),
 	)
 
-	// â”€â”€ Load initial draft â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Load initial draft ──────────────────────────────────────────
 	useEffect(() => {
 		if (initialDraft) {
 			const parsedRecipe: ParsedRecipe = {
@@ -368,7 +368,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [initialDraft])
 
-	// â”€â”€ Clipboard paste â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Clipboard paste ─────────────────────────────────────────────
 	const handlePaste = useCallback(async () => {
 		try {
 			const text = await navigator.clipboard.readText()
@@ -378,7 +378,7 @@ export const RecipeCreateAiFlow = ({
 		}
 	}, [])
 
-	// â”€â”€ Cover image upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Cover image upload ──────────────────────────────────────────
 	const handleCoverImageUpload = useCallback(
 		async (e: React.ChangeEvent<HTMLInputElement>) => {
 			const file = e.target.files?.[0]
@@ -427,10 +427,10 @@ export const RecipeCreateAiFlow = ({
 				}
 			}
 		},
-		[recipe],
+		[recipe, t],
 	)
 
-	// â”€â”€ Build save payload (shared between save-draft and publish) â”€â”€
+	// ── Build save payload (shared between save-draft and publish) ──
 	const buildSavePayload = useCallback(
 		(targetRecipe: ParsedRecipe) => ({
 			title: targetRecipe.title,
@@ -469,7 +469,7 @@ export const RecipeCreateAiFlow = ({
 						steps: xpBreakdown.steps,
 						time: xpBreakdown.time,
 						techniques:
-							xpBreakdown.techniques?.reduce((sum, t) => sum + t.xp, 0) || 0,
+							xpBreakdown.techniques?.reduce((sum, tech) => sum + tech.xp, 0) || 0,
 						total: xpBreakdown.total,
 					}
 				: targetRecipe.xpBreakdown,
@@ -478,7 +478,7 @@ export const RecipeCreateAiFlow = ({
 		[xpBreakdown],
 	)
 
-	// â”€â”€ Save draft â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Save draft ──────────────────────────────────────────────────
 	const handleSaveDraft = useCallback(
 		async (targetRecipe?: ParsedRecipe) => {
 			const recipeToSave = targetRecipe || recipe
@@ -582,10 +582,10 @@ export const RecipeCreateAiFlow = ({
 				setIsSaving(false)
 			}
 		},
-		[recipe, draftId, buildSavePayload, hasUnpersistedMedia],
+		[recipe, draftId, buildSavePayload, hasUnpersistedMedia, t],
 	)
 
-	// â”€â”€ AI parse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── AI parse ────────────────────────────────────────────────────
 	const handleParse = useCallback(async () => {
 		diag.action('recipe', 'AI_PARSE clicked', { textLength: rawText.length })
 
@@ -666,9 +666,9 @@ export const RecipeCreateAiFlow = ({
 			})
 			setStep('input')
 		}
-	}, [rawText])
+	}, [rawText, t])
 
-	// â”€â”€ XP preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── XP preview ──────────────────────────────────────────────────
 	const handlePreviewXp = useCallback(async () => {
 		diag.action('recipe', 'PREVIEW_XP clicked', {
 			hasRecipe: !!recipe,
@@ -702,7 +702,7 @@ export const RecipeCreateAiFlow = ({
 			return
 		}
 
-		// User edited or manual entry â€” recalculate via AI
+		// User edited or manual entry — recalculate via AI
 		setIsCalculatingXp(true)
 
 		const metasRequest = {
@@ -805,9 +805,9 @@ export const RecipeCreateAiFlow = ({
 		} finally {
 			setIsCalculatingXp(false)
 		}
-	}, [recipe, hasEdited, method, isCalculatingXp])
+	}, [recipe, hasEdited, method, isCalculatingXp, t])
 
-	// â”€â”€ Publish flow: Save Draft â†’ Validate â†’ Publish â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Publish flow: Save Draft → Validate → Publish ───────────────
 	const handlePublish = useCallback(
 		async (recipeToPublish?: ParsedRecipe) => {
 			const targetRecipe = recipeToPublish || recipe
@@ -877,12 +877,12 @@ export const RecipeCreateAiFlow = ({
 			)
 			diag.inspectLocalStorage('recipe', 'recipe-draft')
 
-			// â”€â”€ STEP 0: Pre-publish FE validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+			// ── STEP 0: Pre-publish FE validation ───────────────────
 			const validationErrors = validateRecipeForPublish(finalRecipe)
 			if (validationErrors.length > 0) {
 				diag.warn('recipe', 'PUBLISH validation failed', validationErrors)
 				const primaryError = validationErrors[0]
-				const allHints = validationErrors.map(e => `â€¢ ${e.hint}`).join('\n')
+				const allHints = validationErrors.map(e => `• ${e.hint}`).join('\n')
 
 				toast.error(primaryError.message, {
 					description:
@@ -1036,7 +1036,7 @@ export const RecipeCreateAiFlow = ({
 
 				if (publishResponse.success) {
 					const publishData = publishResponse.data
-					diag.action('recipe', 'PUBLISH SUCCESS! ðŸŽ‰', {
+					diag.action('recipe', 'PUBLISH SUCCESS! 🎉', {
 						recipeId: currentDraftId,
 						title: finalRecipe.title,
 						xpReward: finalRecipe.xpReward,
@@ -1053,7 +1053,7 @@ export const RecipeCreateAiFlow = ({
 						description: t('aiFlowPublishedDesc', { title: finalRecipe.title, xp: finalRecipe.xpReward || 0, quality: qualityMsg }),
 					})
 
-					// NOTE: Do NOT setIsPublishing(false) â€” leave button disabled until navigation
+					// NOTE: Do NOT setIsPublishing(false) — leave button disabled until navigation
 					diag.action('recipe', 'Calling onPublishSuccess callback', {
 						recipeId: currentDraftId,
 					})
@@ -1090,10 +1090,11 @@ export const RecipeCreateAiFlow = ({
 			hasUnpersistedMedia,
 			onPublishSuccess,
 			buildSavePayload,
+			t,
 		],
 	)
 
-	// â”€â”€ Keyboard shortcuts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Keyboard shortcuts ──────────────────────────────────────────
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -1140,7 +1141,7 @@ export const RecipeCreateAiFlow = ({
 		draftId,
 	])
 
-	// â”€â”€ Ingredient CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Ingredient CRUD ─────────────────────────────────────────────
 	const removeIngredient = (id: string) => {
 		if (!recipe) return
 		setRecipe({
@@ -1171,7 +1172,7 @@ export const RecipeCreateAiFlow = ({
 		})
 	}
 
-	// â”€â”€ Step CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Step CRUD ───────────────────────────────────────────────────
 	const removeStep = (id: string) => {
 		if (!recipe) return
 		setRecipe({
@@ -1199,18 +1200,19 @@ export const RecipeCreateAiFlow = ({
 		})
 	}
 
-	// â”€â”€ JSX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── JSX ─────────────────────────────────────────────────────────
 	return (
 		<div className={cn('mx-auto max-w-3xl space-y-5 p-5', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-4'>
 				{onBack && (
 					<motion.button
+						type='button'
 						onClick={onBack}
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
@@ -1223,11 +1225,12 @@ export const RecipeCreateAiFlow = ({
 						{/* Auto-save status indicator */}
 						<AutoSaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
 						<motion.button
+							type='button'
 							onClick={() => handleSaveDraft()}
 							disabled={isSaving || saveStatus === 'saving'}
 							whileHover={isSaving ? undefined : BUTTON_HOVER}
 							whileTap={isSaving ? undefined : BUTTON_TAP}
-							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:opacity-50'
+							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isSaving || saveStatus === 'saving' ? t('aiFlowSaving') : t('aiFlowSaveDraft')}
 							{!isSaving && saveStatus !== 'saving' && (
@@ -1306,12 +1309,13 @@ export const RecipeCreateAiFlow = ({
 									</div>
 
 									<motion.button
+										type='button'
 										onClick={handleParse}
 										disabled={!rawText.trim()}
 										whileHover={rawText.trim() ? BUTTON_HOVER : undefined}
 										whileTap={rawText.trim() ? BUTTON_TAP : undefined}
 										className={cn(
-											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white transition-all',
+											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											rawText.trim()
 												? 'bg-gradient-hero shadow-lg hover:shadow-xl'
 												: 'cursor-not-allowed bg-muted/50',
@@ -1321,7 +1325,7 @@ export const RecipeCreateAiFlow = ({
 										{t('aiFlowParseRecipe')}
 										{rawText.trim() && (
 											<kbd className='ml-2 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline-block'>
-												{modKey}+â†µ
+												{modKey}+↵
 											</kbd>
 										)}
 									</motion.button>
@@ -1418,7 +1422,7 @@ export const RecipeCreateAiFlow = ({
 					</motion.div>
 				)}
 
-				{/* â”€â”€ Preview Step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+				{/* ── Preview Step ────────────────────────────────── */}
 				{step === 'preview' && recipe && (
 					<motion.div
 						key='preview-step'
@@ -1432,7 +1436,7 @@ export const RecipeCreateAiFlow = ({
 						{/* Success Banner */}
 						<div className='flex items-center justify-between gap-3.5 rounded-2xl border border-success/20 bg-gradient-to-r from-success/10 to-success/5 px-5 py-4'>
 							<div className='flex items-center gap-3.5'>
-								<span className='text-3xl'>âœ¨</span>
+								<span className='text-3xl'>✨</span>
 								<div>
 									<strong className='text-sm text-success'>
 										{t('aiFlowParsedSuccess')}
@@ -1665,10 +1669,11 @@ export const RecipeCreateAiFlow = ({
 									{t('aiFlowIngredients')}
 								</h3>
 								<motion.button
+									type='button'
 									onClick={addIngredient}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
+									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Plus className='size-4' />
 									{t('aiFlowAdd')}
@@ -1721,10 +1726,11 @@ export const RecipeCreateAiFlow = ({
 									)}
 								</div>
 								<motion.button
+									type='button'
 									onClick={addStep}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
+									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Plus className='size-4' />
 									{t('aiFlowAddStep')}
@@ -1761,11 +1767,12 @@ export const RecipeCreateAiFlow = ({
 						{/* Publish Action */}
 						<div className='sticky bottom-5 pt-4'>
 							<motion.button
+								type='button'
 								onClick={handlePreviewXp}
 								disabled={isCalculatingXp}
 								whileHover={isCalculatingXp ? {} : BUTTON_HOVER}
 								whileTap={isCalculatingXp ? {} : BUTTON_TAP}
-								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-xl disabled:opacity-70 disabled:cursor-not-allowed'
+								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-xl disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{isCalculatingXp ? (
 									<>
@@ -1789,7 +1796,7 @@ export const RecipeCreateAiFlow = ({
 											<Sparkles className='size-5 text-white' />
 										)}
 										<kbd className='hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal text-white/80 md:inline-block'>
-											{modKey}+â†µ
+											{modKey}+↵
 										</kbd>
 									</>
 								)}

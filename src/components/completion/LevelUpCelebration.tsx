@@ -14,6 +14,7 @@ import {
 	LEVEL_UP_VARIANTS,
 	STAT_ITEM_HOVER,
 	LIST_ITEM_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 
 // ============================================
@@ -127,7 +128,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 				strokeDasharray='339'
 				initial={{ strokeDashoffset: 339 }}
 				animate={{ strokeDashoffset: 0 }}
-				transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
+				transition={{ duration: DURATION_S.dramatic, delay: 0.3, ease: 'easeOut' }}
 			/>
 		</svg>
 
@@ -137,7 +138,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 			<motion.span
 				initial={{ y: 0, scale: 1, opacity: 1 }}
 				animate={{ y: '-100%', scale: 0.5, opacity: 0 }}
-				transition={{ duration: 0.5, delay: 0.5 }}
+				transition={{ duration: DURATION_S.slow, delay: 0.5 }}
 				className='absolute text-5xl font-black text-white drop-shadow-lg'
 			>
 				{oldLevel}
@@ -169,7 +170,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 			transition={{ ...TRANSITION_BOUNCY, delay: 1.1 }}
 			className='absolute -right-4 top-5 text-2xl'
 		>
-			âœ¨
+			✨
 		</motion.span>
 		<motion.span
 			initial={{ scale: 0, rotate: -45, opacity: 0 }}
@@ -196,7 +197,7 @@ const StatCard = ({
 		<span className='text-2xl'>{emoji}</span>
 		<div className='flex flex-col text-left'>
 			<span className='text-xs text-white/60'>{label}</span>
-			<span className='font-bold text-white'>{value}</span>
+			<span className='font-bold tabular-nums text-white'>{value}</span>
 		</div>
 	</div>
 )
@@ -340,7 +341,7 @@ export const LevelUpCelebration = ({
 										<motion.div
 											initial={{ width: 0 }}
 											animate={{ width: '0%' }}
-											transition={{ duration: 1, delay: 1.5 }}
+											transition={{ duration: DURATION_S.dramatic, delay: 1.5 }}
 											className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
 										/>
 									</div>
@@ -371,10 +372,11 @@ export const LevelUpCelebration = ({
 									{t('shareAchievement')}
 								</button>
 								<motion.button
+									type='button'
 									onClick={onContinue}
 									whileHover={STAT_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
-									className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60'
+									className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{t('continue')}
 								</motion.button>
@@ -437,7 +439,7 @@ export const LevelUpToast = ({
 		<button
 			type='button'
 			onClick={onDismiss}
-			aria-label='Dismiss'
+			aria-label={t('ariaDismiss')}
 			className='flex size-8 items-center justify-center text-text-muted hover:text-text'
 		>
 			<X className='size-5' />

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, TrendingUp, Award, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_FEED_HOVER, DURATION_S } from '@/lib/motion'
 import { triggerAchievementConfetti } from '@/lib/confetti'
 import { TasteDetector, TasteProfile } from './TasteDetector'
 import Link from 'next/link'
@@ -240,7 +240,7 @@ export const ColdStartExperience = ({
 							<motion.div
 								initial={{ scale: 0 }}
 								animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
-								transition={{ delay: 0.2, duration: 0.5 }}
+								transition={{ delay: 0.2, duration: DURATION_S.slow }}
 								className='mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-brand/10'
 							>
 								<Sparkles className='size-8 text-brand' />

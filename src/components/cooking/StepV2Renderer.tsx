@@ -1,6 +1,7 @@
 'use client'
 
 import { memo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Lightbulb,
@@ -144,6 +145,7 @@ const FullModeRenderer = ({
 	timerComponent?: React.ReactNode
 	ingredientChecklistComponent?: React.ReactNode
 }) => {
+	const t = useTranslations('cooking')
 	const hasEnrichments = hasV2Fields(step)
 
 	return (
@@ -318,7 +320,7 @@ const FullModeRenderer = ({
 					{/* Technique Explanation */}
 					{step.techniqueExplanation && (
 						<CollapsibleSection
-							title='Technique deep-dive'
+							title={t('techniqueDeepDive')}
 							icon={ChefHat}
 							variant='tip'
 						>
@@ -330,7 +332,7 @@ const FullModeRenderer = ({
 
 					{/* Equipment Needed */}
 					{step.equipmentNeeded && step.equipmentNeeded.length > 0 && (
-						<CollapsibleSection title='Equipment needed' icon={Wrench}>
+						<CollapsibleSection title={t('equipmentNeeded')} icon={Wrench}>
 							<div className='flex flex-wrap gap-2'>
 								{step.equipmentNeeded.map((item, idx) => (
 									<span

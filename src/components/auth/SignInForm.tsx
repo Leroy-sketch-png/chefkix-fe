@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -25,44 +25,43 @@ import { signIn, googleSignIn } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
-import { SIGN_IN_MESSAGES } from '@/constants/messages'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
 import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { useTranslations } from '@/i18n/hooks'
 
-const formSchema = z.object({
-	emailOrUsername: z
-		.string()
-		.min(3, { message: 'Email or username must be at least 3 characters.' }),
-	password: z.string().min(6, {
-		message: 'Password must be at least 6 characters.',
-	}),
-})
-
-// User-friendly error messages for common authentication failures
-const AUTH_ERROR_MAP: Record<string, string> = {
-	'Invalid credentials':
-		'Incorrect email/username or password. Please try again.',
-	'User not found': 'No account found with that email or username.',
-	'Account locked': 'Your account has been locked. Please contact support.',
-	'Account disabled': 'Your account has been disabled. Please contact support.',
-	'Email not verified': 'Please verify your email before signing in.',
-	'Too many attempts': 'Too many failed attempts. Please try again later.',
-	'Network Error': 'Unable to connect to server. Please check your connection.',
+function createFormSchema(t: (key: string) => string) {
+	return z.object({
+		emailOrUsername: z
+			.string()
+			.min(3, { message: t('validationEmailOrUsernameMin') }),
+		password: z.string().min(6, {
+			message: t('validationPasswordMin'),
+		}),
+	})
 }
 
-function getReadableErrorMessage(message: string): string {
-	// Check if we have a mapped error
-	for (const [key, value] of Object.entries(AUTH_ERROR_MAP)) {
+function createAuthErrorMap(t: (key: string) => string): Record<string, string> {
+	return {
+		'Invalid credentials': t('errorInvalidCredentials'),
+		'User not found': t('errorUserNotFound'),
+		'Account locked': t('errorAccountLocked'),
+		'Account disabled': t('errorAccountDisabled'),
+		'Email not verified': t('errorEmailNotVerified'),
+		'Too many attempts': t('errorTooManyAttempts'),
+		'Network Error': t('errorNetworkError'),
+	}
+}
+
+function getReadableErrorMessage(message: string, errorMap: Record<string, string>, fallback: string): string {
+	for (const [key, value] of Object.entries(errorMap)) {
 		if (message.toLowerCase().includes(key.toLowerCase())) {
 			return value
 		}
 	}
-	// If no mapping found, return original or a generic message
 	if (!message || message === 'An unknown error occurred.') {
-		return 'Sign in failed. Please check your credentials and try again.'
+		return fallback
 	}
 	return message
 }
@@ -73,6 +72,8 @@ export function SignInForm() {
 	// Separate loading state for the button - form.isSubmitting doesn't track async properly
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const t = useTranslations('auth')
+	const formSchema = useMemo(() => createFormSchema(t), [t])
+	const authErrorMap = useMemo(() => createAuthErrorMap(t), [t])
 
 	// Check if user just verified their email — pre-fill to reduce friction
 	const verifiedEmail =
@@ -106,9 +107,8 @@ export function SignInForm() {
 	): Promise<boolean> {
 		// Correctly access the nested 'data' property from the standardized ApiResponse
 		const payload = response.data
-		if (!payload || !payload.accessToken) {
-			const errorMsg =
-				'Authentication failed: no access token received from server.'
+		if (!payload?.accessToken) {
+			const errorMsg = t('errorNoAccessToken')
 			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
@@ -124,11 +124,11 @@ export function SignInForm() {
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
 			if (isNewSignup) {
-				toast.success('Welcome to ChefKix! Let\u2019s get cooking 🎉')
+				toast.success(t('toastWelcomeNew'))
 				setLoading(true)
 				router.push(postLoginPath)
 			} else {
-				toast.success('Welcome back! Signed in successfully.')
+				toast.success(t('toastWelcomeBack'))
 				setLoading(true)
 				router.push(postLoginPath)
 			}
@@ -136,9 +136,7 @@ export function SignInForm() {
 		} else {
 			// Profile fetch failed - logout completely and show error
 			logout()
-			const errorMsg =
-				profileResponse.message ||
-				'Login successful, but failed to fetch your profile. Please try again.'
+			const errorMsg = t('errorProfileFetchFailed')
 			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
@@ -168,7 +166,7 @@ export function SignInForm() {
 				// If success, keep spinner going until redirect happens
 			} else {
 				// Login failed - show user-friendly error
-				const readableError = getReadableErrorMessage(response.message || '')
+				const readableError = getReadableErrorMessage(response.message || '', authErrorMap, t('errorSignInFailed'))
 				form.setError('root', {
 					type: 'manual',
 					message: readableError,
@@ -178,7 +176,7 @@ export function SignInForm() {
 			}
 		} catch (error) {
 			// Unexpected error
-			const errorMsg = 'An unexpected error occurred. Please try again.'
+			const errorMsg = t('errorUnexpected')
 			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
@@ -257,7 +255,7 @@ export function SignInForm() {
 							onClick={() => setForgotPasswordOpen(true)}
 							className='h-auto p-0 font-medium text-brand transition-colors hover:text-brand/80'
 						>
-							{SIGN_IN_MESSAGES.FORGOT_PASSWORD}
+							{t('forgotPassword')}
 						</Button>
 					</motion.div>
 					<motion.div variants={staggerItem}>
@@ -291,7 +289,7 @@ export function SignInForm() {
 										await handleSuccessfulLogin(response)
 									} else {
 										const errorMessage =
-											response.message || 'Google sign-in failed.'
+											response.message || t('googleSignInFailed')
 										form.setError('root', {
 											type: 'manual',
 											message: errorMessage,
@@ -300,14 +298,14 @@ export function SignInForm() {
 								} catch {
 									form.setError('root', {
 										type: 'manual',
-										message: 'Google sign-in failed. Please try again.',
+										message: t('googleSignInFailedRetry'),
 									})
 								}
 							}}
 							onFailure={error => {
 								form.setError('root', {
 									type: 'manual',
-									message: error.message || 'Google sign-in failed.',
+									message: error.message || t('googleSignInFailed'),
 								})
 							}}
 						/>
@@ -318,7 +316,7 @@ export function SignInForm() {
 				variants={staggerItem}
 				className='text-center text-sm leading-normal text-text-secondary'
 			>
-				{SIGN_IN_MESSAGES.NO_ACCOUNT}{' '}
+				{t('noAccount')}{' '}
 				<Link
 					href={returnTo ? `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(returnTo)}` : PATHS.AUTH.SIGN_UP}
 					className='font-semibold text-brand transition-colors hover:text-brand/80'

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
@@ -104,6 +105,7 @@ export const ModalHeader = ({
 	children,
 	className,
 }: ModalHeaderProps) => {
+	const t = useTranslations('common')
 	return (
 		<div
 			className={cn(
@@ -120,7 +122,7 @@ export const ModalHeader = ({
 					type='button'
 					onClick={onClose}
 					className='grid size-9 place-items-center rounded-full bg-bg-hover text-text-secondary transition-all hover:bg-bg-card hover:text-text-primary'
-					aria-label='Close modal'
+					aria-label={t('ariaCloseModal')}
 				>
 					<X className='size-5' />
 				</button>

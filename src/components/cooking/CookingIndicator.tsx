@@ -51,13 +51,14 @@ export const CookingIndicator = () => {
 	return (
 		<AnimatePresence>
 			<motion.button
+				type='button'
 				initial={{ opacity: 0, scale: 0.9 }}
 				animate={{ opacity: 1, scale: 1 }}
 				exit={{ opacity: 0, scale: 0.9 }}
 				transition={TRANSITION_SPRING}
 				onClick={handleClick}
 				className={cn(
-					'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-all hover:scale-105',
+					'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-all hover:scale-105 focus-visible:ring-2 focus-visible:ring-brand/50',
 					hasActiveTimer
 						? isUrgent
 							? 'animate-pulse bg-error/20 text-error'

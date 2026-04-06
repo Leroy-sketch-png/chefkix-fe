@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakWidget } from '@/components/streak'
 import { ExpandableDailyChallengeBanner } from '@/components/challenges'
@@ -81,6 +82,7 @@ function computeWeekProgress(
 // ============================================
 
 export const RightSidebar = () => {
+	const t = useTranslations('common')
 	const { user } = useAuth()
 	const router = useRouter()
 	usePresence() // Send heartbeat while sidebar is mounted
@@ -166,7 +168,7 @@ export const RightSidebar = () => {
 							? prev.filter(id => id !== userId)
 							: [...prev, userId],
 					)
-					toast.error(wasFollowed ? 'Failed to unfollow' : 'Failed to follow')
+					toast.error(wasFollowed ? t('failedToUnfollow') : t('failedToFollow'))
 				}
 			} catch (err) {
 				// Revert on error
@@ -178,8 +180,8 @@ export const RightSidebar = () => {
 				logDevError('Failed to toggle follow:', err)
 				toast.error(
 					wasFollowed
-						? 'Failed to unfollow. Please try again.'
-						: 'Failed to follow. Please try again.',
+						? t('failedToUnfollow')
+						: t('failedToFollow'),
 				)
 			} finally {
 				followingLockRef.current.delete(userId)
@@ -213,13 +215,13 @@ export const RightSidebar = () => {
 	return (
 		<aside
 			className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-5 xl:flex xl:flex-col xl:gap-5'
-			aria-label='Complementary content'
+			aria-label={t('ariaComplementaryContent')}
 		>
 			{/* Sidebar error state — shown when data fetch fails entirely */}
 			{sidebarError && (
 				<div className='flex flex-col items-center gap-3 rounded-radius border border-border-subtle bg-bg-elevated p-4 text-center'>
 					<AlertTriangle className='size-5 text-text-muted' />
-					<p className='text-xs text-text-secondary'>Failed to load sidebar</p>
+					<p className='text-xs text-text-secondary'>{t('sidebarLoadFailed')}</p>
 					<button
 						type='button'
 						onClick={() => setRetryCount(c => c + 1)}
@@ -286,13 +288,14 @@ export const RightSidebar = () => {
 										</span>
 									</div>
 									<motion.button
+										type='button'
 										onClick={() => handleFollow(suggestion.userId)}
 										aria-pressed={isFollowed}
 										animate={isFollowed ? FOLLOW_PULSE.followed : undefined}
 										initial={false}
 										transition={TRANSITION_SPRING}
 										className={cn(
-											'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95',
+											'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
 											isFollowed
 												? 'border border-border-medium bg-bg-card text-text-secondary hover:border-error/50 hover:text-error'
 												: 'border-none bg-gradient-primary text-white hover:shadow-card',

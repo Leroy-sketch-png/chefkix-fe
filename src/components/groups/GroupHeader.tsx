@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Group, MemberRole } from '@/lib/types/group'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import {
 	Users,
 	Lock,
@@ -78,7 +79,7 @@ export const GroupHeader = ({
 			className='bg-bg-card rounded-xl border border-border overflow-hidden'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3 }}
+			transition={{ duration: DURATION_S.smooth }}
 		>
 			{/* Cover Image */}
 			<div className='relative w-full h-64 bg-gradient-to-br from-brand/10 to-brand/5 overflow-hidden'>

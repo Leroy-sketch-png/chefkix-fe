@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useTranslations } from '@/i18n/hooks'
 import {
 	LevelUpCelebration,
 	LevelUpToast,
@@ -40,11 +41,14 @@ import type { Badge } from '@/lib/types/gamification'
 /**
  * Cross-browser share with clipboard fallback
  */
-async function shareWithFallback(data: {
-	title: string
-	text: string
-	url: string
-}) {
+async function shareWithFallback(
+	data: {
+		title: string
+		text: string
+		url: string
+	},
+	t: (key: string) => string
+) {
 	// Try native share API first
 	if (navigator.share) {
 		try {
@@ -59,9 +63,9 @@ async function shareWithFallback(data: {
 	const shareText = `${data.text} ${data.url}`
 	try {
 		await navigator.clipboard.writeText(shareText)
-		toast.success('Link copied to clipboard!')
+		toast.success(t('toastLinkCopied'))
 	} catch {
-		toast.error('Could not share. Try copying the link manually.')
+		toast.error(t('toastShareFailed'))
 	}
 }
 
@@ -229,6 +233,7 @@ interface CelebrationProviderProps {
 
 export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const router = useRouter()
+	const t = useTranslations('social')
 
 	// Level Up state
 	const [levelUpOpen, setLevelUpOpen] = useState(false)
@@ -358,10 +363,10 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 
 	const handleLevelUpShare = () => {
 		shareWithFallback({
-			title: `I reached Level ${levelUpData?.newLevel}!`,
-			text: `Just leveled up to Level ${levelUpData?.newLevel} on ChefKix! 🎉`,
+			title: t('shareLevelUpTitle', { level: levelUpData?.newLevel }),
+			text: t('shareLevelUpText', { level: levelUpData?.newLevel }),
 			url: window.location.origin,
-		})
+		}, t)
 	}
 
 	const handleLevelUpToastDismiss = () => {
@@ -447,10 +452,10 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const handleStreakMilestoneShare = () => {
 		if (streakMilestoneData) {
 			shareWithFallback({
-				title: `${streakMilestoneData.days}-Day Streak!`,
-				text: `I just hit a ${streakMilestoneData.days}-day cooking streak on ChefKix! 🔥`,
+				title: t('shareStreakTitle', { days: streakMilestoneData.days }),
+				text: t('shareStreakText', { days: streakMilestoneData.days }),
 				url: window.location.origin,
-			})
+			}, t)
 		}
 	}
 
@@ -472,10 +477,10 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const handleChallengeCompleteShare = () => {
 		if (challengeCompleteData) {
 			shareWithFallback({
-				title: `Challenge Complete: ${challengeCompleteData.challengeTitle}!`,
-				text: `I just completed "${challengeCompleteData.challengeTitle}" on ChefKix and earned ${challengeCompleteData.bonusXp} bonus XP! 🎯`,
+				title: t('shareChallengeTitle', { title: challengeCompleteData.challengeTitle }),
+				text: t('shareChallengeText', { title: challengeCompleteData.challengeTitle, xp: challengeCompleteData.bonusXp }),
 				url: window.location.origin,
-			})
+			}, t)
 		}
 	}
 
@@ -551,8 +556,8 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 						{
 							id: 'cook',
 							emoji: '🍳',
-							label: 'Cook Again',
-							sublabel: 'Try another recipe',
+							label: t('celebrationCookAgain'),
+							sublabel: t('celebrationCookAgainSub'),
 							onClick: () => {
 								handlePostSuccessClose()
 								router.push('/explore')
@@ -561,8 +566,8 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 						{
 							id: 'challenge',
 							emoji: '🎯',
-							label: 'Daily Challenge',
-							sublabel: 'Earn bonus XP',
+							label: t('celebrationChallenge'),
+							sublabel: t('celebrationChallengeSub'),
 							onClick: () => {
 								handlePostSuccessClose()
 								router.push('/challenges')
@@ -571,14 +576,14 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 						{
 							id: 'share',
 							emoji: '📤',
-							label: 'Share',
-							sublabel: 'Tell friends',
+							label: t('celebrationShare'),
+							sublabel: t('celebrationShareSub'),
 							onClick: () => {
 								shareWithFallback({
-									title: 'Check out my creation!',
-									text: `I just made ${postSuccessData.recipeName} on ChefKix!`,
+									title: t('celebrationShareTitle'),
+									text: t('celebrationShareText', { recipe: postSuccessData.recipeName }),
 									url: window.location.origin,
-								})
+								}, t)
 							},
 						},
 					]}
@@ -601,10 +606,10 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					}}
 					onShareAchievement={() => {
 						shareWithFallback({
-							title: 'I just cooked my first recipe!',
-							text: `Just made ${firstCookData.recipeName} on ChefKix! 🎉`,
+							title: t('celebrationFirstCookTitle'),
+							text: t('celebrationFirstCookText', { recipe: firstCookData.recipeName }),
 							url: window.location.origin,
-						})
+						}, t)
 					}}
 					onContinueCooking={() => {
 						handleFirstCookClose()

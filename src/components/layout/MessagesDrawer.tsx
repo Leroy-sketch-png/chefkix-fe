@@ -1,6 +1,7 @@
 'use client'
 
 import { Send, X, Search, Loader2, MessageSquare } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import {
 	InputGroup,
@@ -24,6 +25,7 @@ import { PATHS } from '@/constants/paths'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 export const MessagesDrawer = () => {
+	const t = useTranslations('messages')
 	const { user } = useAuth()
 	const { isMessagesDrawerOpen, toggleMessagesDrawer } = useUiStore()
 
@@ -218,12 +220,12 @@ export const MessagesDrawer = () => {
 			</div>
 
 			<div className='flex items-center justify-between border-b p-3'>
-				<h3 className='font-semibold'>Messages</h3>
+				<h3 className='font-semibold'>{t('drawerTitle')}</h3>
 				<Button
 					variant='ghost'
 					size='icon'
 					onClick={toggleMessagesDrawer}
-					aria-label='Close messages'
+					aria-label={t('ariaCloseMessages')}
 				>
 					<X className='size-4' />
 				</Button>
@@ -236,7 +238,7 @@ export const MessagesDrawer = () => {
 						<Search className='size-4 text-text-muted' />
 					</InputGroupAddon>
 					<InputGroupInput
-						placeholder='Search conversations...'
+						placeholder={t('searchConversations')}
 						value={searchTerm}
 						onChange={e => setSearchTerm(e.target.value)}
 					/>
@@ -277,8 +279,9 @@ export const MessagesDrawer = () => {
 									<Loader2 className='size-5 animate-spin text-text-secondary' />
 								</div>
 							) : messages.length === 0 ? (
-								<div className='flex h-full items-center justify-center text-sm text-text-secondary'>
-									No messages yet
+									<div className='flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-text-secondary'>
+										<MessageSquare className='size-8 text-text-muted' />
+										{t('noMessagesYet')}
 								</div>
 							) : (
 								<div className='flex flex-col gap-2'>
@@ -315,15 +318,15 @@ export const MessagesDrawer = () => {
 								<MessageSquare className='size-8' />
 								<p className='text-sm'>
 									{searchTerm
-										? 'No conversations found'
-										: 'No conversations yet'}
+										? t('noConversationsFound')
+										: t('noConversationsYet')}
 								</p>
 								<Link
 									href={PATHS.COMMUNITY}
 									onClick={toggleMessagesDrawer}
 									className='text-xs text-brand hover:underline'
 								>
-									Find people to chat with
+									{t('findPeopleToChat')}
 								</Link>
 							</div>
 						) : (
@@ -371,7 +374,7 @@ export const MessagesDrawer = () => {
 					<>
 						<InputGroup className='flex-1'>
 							<InputGroupInput
-								placeholder='Type a message...'
+								placeholder={t('typeMessage')}
 								value={newMessage}
 								onChange={e => setNewMessage(e.target.value)}
 								onKeyDown={handleKeyPress}

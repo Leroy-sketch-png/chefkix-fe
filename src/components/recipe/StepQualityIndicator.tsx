@@ -226,11 +226,12 @@ const StepQualityIndicatorComponent = ({
 		// Just the dot
 		return (
 			<motion.button
+				type='button'
 				onClick={() => setIsExpanded(!isExpanded)}
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				className={cn(
-					'relative size-3 rounded-full transition-colors',
+					'relative size-3 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 				level === 'complete' && 'bg-success',
 				level === 'partial' && 'bg-warning',
 				level === 'incomplete' && 'bg-error',
@@ -259,11 +260,12 @@ const StepQualityIndicatorComponent = ({
 		<div className={cn('relative', className)}>
 			{/* Main indicator button */}
 			<motion.button
+				type='button'
 				onClick={() => setIsExpanded(!isExpanded)}
 				whileHover={LIST_ITEM_HOVER}
 				whileTap={LIST_ITEM_TAP}
 				className={cn(
-					'flex items-center gap-2 rounded-lg border px-3 py-2 transition-all',
+					'flex items-center gap-2 rounded-lg border px-3 py-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 					config.bgColor,
 					config.borderColor,
 					isExpanded && 'ring-2 ring-offset-1',
@@ -322,7 +324,7 @@ const StepQualityIndicatorComponent = ({
 													)
 												}}
 											>
-												Add
+												{t('sqiAdd')}
 											</Button>
 										)}
 									</div>

@@ -36,7 +36,7 @@ import type { DuelResponse, CreateDuelRequest } from '@/lib/types/duel'
 import type { Profile } from '@/lib/types/profile'
 import type { Recipe } from '@/lib/types/recipe'
 import { getProfileDisplayName } from '@/lib/types/profile'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_HOVER, BUTTON_TAP, LIST_ITEM_HOVER } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
 
@@ -44,62 +44,63 @@ import { useTranslations } from 'next-intl'
 // STATUS HELPERS
 // ============================================
 
-const STATUS_META: Record<
-	string,
-	{ label: string; color: string; bgColor: string; icon: React.ReactNode }
-> = {
-	Pending: {
-		label: 'Pending',
-		color: 'text-warning',
-		bgColor: 'bg-warning/10',
-		icon: <Hourglass className='size-3.5' />,
-	},
-	Accepted: {
-		label: 'Accepted',
-		color: 'text-info',
-		bgColor: 'bg-info/10',
-		icon: <Check className='size-3.5' />,
-	},
-	'In Progress': {
-		label: 'In Progress',
-		color: 'text-accent-purple',
-		bgColor: 'bg-accent-purple/10',
-		icon: <ChefHat className='size-3.5' />,
-	},
-	Completed: {
-		label: 'Completed',
-		color: 'text-success',
-		bgColor: 'bg-success/10',
-		icon: <Trophy className='size-3.5' />,
-	},
-	Declined: {
-		label: 'Declined',
-		color: 'text-error',
-		bgColor: 'bg-error/10',
-		icon: <X className='size-3.5' />,
-	},
-	Expired: {
-		label: 'Expired',
-		color: 'text-text-muted',
-		bgColor: 'bg-bg-elevated',
-		icon: <Clock className='size-3.5' />,
-	},
-	Cancelled: {
-		label: 'Cancelled',
-		color: 'text-text-muted',
-		bgColor: 'bg-bg-elevated',
-		icon: <Ban className='size-3.5' />,
-	},
+type StatusMeta = { label: string; color: string; bgColor: string; icon: React.ReactNode }
+
+function getStatusMeta(t: (key: string) => string): Record<string, StatusMeta> {
+	return {
+		Pending: {
+			label: t('statusPending'),
+			color: 'text-warning',
+			bgColor: 'bg-warning/10',
+			icon: <Hourglass className='size-3.5' />,
+		},
+		Accepted: {
+			label: t('statusAccepted'),
+			color: 'text-info',
+			bgColor: 'bg-info/10',
+			icon: <Check className='size-3.5' />,
+		},
+		'In Progress': {
+			label: t('statusInProgress'),
+			color: 'text-accent-purple',
+			bgColor: 'bg-accent-purple/10',
+			icon: <ChefHat className='size-3.5' />,
+		},
+		Completed: {
+			label: t('statusCompleted'),
+			color: 'text-success',
+			bgColor: 'bg-success/10',
+			icon: <Trophy className='size-3.5' />,
+		},
+		Declined: {
+			label: t('statusDeclined'),
+			color: 'text-error',
+			bgColor: 'bg-error/10',
+			icon: <X className='size-3.5' />,
+		},
+		Expired: {
+			label: t('statusExpired'),
+			color: 'text-text-muted',
+			bgColor: 'bg-bg-elevated',
+			icon: <Clock className='size-3.5' />,
+		},
+		Cancelled: {
+			label: t('statusCancelled'),
+			color: 'text-text-muted',
+			bgColor: 'bg-bg-elevated',
+			icon: <Ban className='size-3.5' />,
+		},
+	}
 }
 
-function formatDeadline(iso: string | null): string {
+function formatDeadline(iso: string | null, t: (key: string, values?: Record<string, string | number>) => string): string {
 	if (!iso) return ''
 	const diff = new Date(iso).getTime() - Date.now()
-	if (diff <= 0) return 'Expired'
+	if (diff <= 0) return t('expired')
 	const hours = Math.floor(diff / 3600000)
-	if (hours >= 24) return `${Math.floor(hours / 24)}d ${hours % 24}h left`
+	if (hours >= 24) return t('daysHoursLeft', { days: Math.floor(hours / 24), hours: hours % 24 })
 	const mins = Math.floor((diff % 3600000) / 60000)
-	return `${hours}h ${mins}m left`
+	return t('hoursMinutesLeft', { hours, mins })
 }
 
 // ============================================
@@ -121,8 +122,9 @@ function DuelCard({
 	const opponentAvatar = isChallenger
 		? duel.opponentAvatar
 		: duel.challengerAvatar
-	const meta = STATUS_META[duel.status] ?? STATUS_META.Pending
 	const t = useTranslations('duels')
+	const statusMeta = getStatusMeta(t)
+	const meta = statusMeta[duel.status] ?? statusMeta.Pending
 
 	const myScore = isChallenger ? duel.challengerScore : duel.opponentScore
 	const theirScore = isChallenger ? duel.opponentScore : duel.challengerScore
@@ -200,8 +202,8 @@ function DuelCard({
 					<div>
 						<p className='font-semibold text-text'>
 							{isChallenger
-								? `vs ${opponentName}`
-								: `${duel.challengerName} challenged you`}
+							? t('vsOpponent', { name: opponentName })
+							: t('challengedYou', { name: duel.challengerName })}
 						</p>
 						<p className='text-sm text-text-secondary'>{duel.recipeTitle}</p>
 					</div>
@@ -221,7 +223,7 @@ function DuelCard({
 						<div className='text-center'>
 							<p className='text-xs text-text-muted'>{t('youLabel')}</p>
 							<p
-								className={`text-2xl font-bold ${isWinner ? 'text-medal-gold' : 'text-text'}`}
+								className={`tabular-nums text-2xl font-bold ${isWinner ? 'text-medal-gold' : 'text-text'}`}
 							>
 								{myScore}
 							</p>
@@ -244,7 +246,7 @@ function DuelCard({
 						<div className='text-center'>
 							<p className='text-xs text-text-muted'>{opponentName}</p>
 							<p
-								className={`text-2xl font-bold ${!isWinner && !isDraw ? 'text-medal-gold' : 'text-text'}`}
+								className={`tabular-nums text-2xl font-bold ${!isWinner && !isDraw ? 'text-medal-gold' : 'text-text'}`}
 							>
 								{theirScore}
 							</p>
@@ -269,14 +271,14 @@ function DuelCard({
 			{duel.status === 'Pending' && duel.acceptDeadline && (
 				<p className='mb-3 flex items-center gap-1.5 text-xs text-text-muted'>
 					<Clock className='size-3.5' />
-					{t('acceptWithin', {time: formatDeadline(duel.acceptDeadline)})}
+					{t('acceptWithin', {time: formatDeadline(duel.acceptDeadline, t)})}
 				</p>
 			)}
 			{(duel.status === 'Accepted' || duel.status === 'In Progress') &&
 				duel.cookDeadline && (
 					<p className='mb-3 flex items-center gap-1.5 text-xs text-text-muted'>
 						<Clock className='size-3.5' />
-						{t('cookWithin', {time: formatDeadline(duel.cookDeadline)})}
+						{t('cookWithin', {time: formatDeadline(duel.cookDeadline, t)})}
 					</p>
 				)}
 
@@ -284,33 +286,39 @@ function DuelCard({
 			{duel.status === 'Pending' && !isChallenger && (
 				<div className='flex gap-2'>
 					<motion.button
+						type='button'
+						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						disabled={acting}
 						onClick={handleAccept}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 disabled:opacity-50'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
 					>
 						<Check className='size-4' />
-						Accept
+						{t('accept')}
 					</motion.button>
 					<motion.button
+						type='button'
+						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						disabled={acting}
 						onClick={handleDecline}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated disabled:opacity-50'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
 					>
 						<X className='size-4' />
-						Decline
+						{t('decline')}
 					</motion.button>
 				</div>
 			)}
 			{duel.status === 'Pending' && isChallenger && (
 				<motion.button
+					type='button'
+					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
 					disabled={acting}
 					onClick={handleCancel}
-					className='w-full rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated disabled:opacity-50'
+					className='w-full rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
 				>
-					Cancel Challenge
+					{t('cancelChallenge')}
 				</motion.button>
 			)}
 			{(duel.status === 'Accepted' || duel.status === 'In Progress') && (
@@ -319,7 +327,7 @@ function DuelCard({
 					className='flex items-center justify-center gap-2 rounded-xl bg-gradient-streak px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-opacity hover:opacity-90'
 				>
 					<ChefHat className='size-4' />
-					Start Cooking
+					{t('startCooking')}
 					<ChevronRight className='size-4' />
 				</a>
 			)}
@@ -333,7 +341,7 @@ function DuelCard({
 
 function DuelCardSkeleton() {
 	return (
-		<div className='animate-pulse rounded-2xl border border-border-subtle bg-bg-card p-4 md:p-5'>
+		<div className='animate-pulse rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card md:p-5'>
 			<div className='mb-3 flex items-center justify-between'>
 				<div className='flex items-center gap-3'>
 					<div className='size-10 rounded-full bg-bg-elevated' />
@@ -343,6 +351,19 @@ function DuelCardSkeleton() {
 					</div>
 				</div>
 				<div className='h-6 w-20 rounded-full bg-bg-elevated' />
+			</div>
+			<div className='mb-3 rounded-xl bg-bg-elevated p-3'>
+				<div className='flex items-center justify-between'>
+					<div className='space-y-1 text-center'>
+						<div className='mx-auto h-3 w-8 rounded bg-border' />
+						<div className='mx-auto h-7 w-10 rounded bg-border' />
+					</div>
+					<div className='h-6 w-12 rounded-full bg-border' />
+					<div className='space-y-1 text-center'>
+						<div className='mx-auto h-3 w-12 rounded bg-border' />
+						<div className='mx-auto h-7 w-10 rounded bg-border' />
+					</div>
+				</div>
 			</div>
 			<div className='h-9 w-full rounded-xl bg-bg-elevated' />
 		</div>
@@ -443,7 +464,7 @@ function CreateDuelModal({
 			}
 			await createDuel(request)
 			toast.success(
-				`Challenge sent to ${getProfileDisplayName(selectedFriend)}!`,
+				t('toastSent', { name: getProfileDisplayName(selectedFriend) }),
 			)
 			onCreated()
 			onClose()
@@ -458,7 +479,12 @@ function CreateDuelModal({
 
 	return (
 		<Portal>
-			<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'>
+			<div
+				role='dialog'
+				aria-modal='true'
+				aria-labelledby='create-duel-title'
+				className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'
+			>
 				<motion.div
 					initial={{ opacity: 0, scale: 0.95 }}
 					animate={{ opacity: 1, scale: 1 }}
@@ -470,12 +496,12 @@ function CreateDuelModal({
 					<div className='flex items-center justify-between border-b border-border-subtle px-5 py-4'>
 						<div className='flex items-center gap-2'>
 							<Swords className='size-5 text-brand' />
-							<h2 className='text-lg font-bold text-text'>
+							<h2 id='create-duel-title' className='text-lg font-bold text-text'>
 								{step === 'friend'
-									? 'Pick a Friend'
-									: step === 'recipe'
-										? 'Pick a Recipe'
-										: 'Confirm Challenge'}
+								? t('stepPickFriend')
+								: step === 'recipe'
+									? t('stepPickRecipe')
+									: t('stepConfirm')}
 							</h2>
 						</div>
 						<button
@@ -531,20 +557,21 @@ function CreateDuelModal({
 								) : filteredFriends.length === 0 ? (
 									<p className='py-8 text-center text-sm text-text-muted'>
 										{friends.length === 0
-											? 'Follow some people to challenge them!'
-											: 'No friends match your search'}
+											? t('noFriendsToChallenge')
+											: t('noFriendsMatch')}
 									</p>
 								) : (
 									<div className='space-y-1'>
 										{filteredFriends.map(friend => (
 											<motion.button
+												type='button'
 												key={friend.userId}
 												whileTap={BUTTON_TAP}
 												onClick={() => {
 													setSelectedFriend(friend)
 													setStep('recipe')
 												}}
-												className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
+												className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{friend.avatarUrl ? (
 													<Image
@@ -605,19 +632,20 @@ function CreateDuelModal({
 									</div>
 								) : filteredRecipes.length === 0 ? (
 									<p className='py-8 text-center text-sm text-text-muted'>
-										No recipes found
+										{t('noRecipesFound')}
 									</p>
 								) : (
 									<div className='space-y-1'>
 										{filteredRecipes.map(recipe => (
 											<motion.button
+												type='button'
 												key={recipe.id}
 												whileTap={BUTTON_TAP}
 												onClick={() => {
 													setSelectedRecipe(recipe)
 													setStep('confirm')
 												}}
-												className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated'
+												className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{recipe.coverImageUrl?.[0] ? (
 													<Image
@@ -638,7 +666,7 @@ function CreateDuelModal({
 													</p>
 													<p className='text-xs text-text-secondary'>
 														{recipe.difficulty} &middot;{' '}
-														{recipe.steps?.length ?? 0} steps
+														{t('stepsCount', { count: recipe.steps?.length ?? 0 })}
 													</p>
 												</div>
 												<ChevronRight className='size-4 flex-shrink-0 text-text-muted' />
@@ -664,7 +692,7 @@ function CreateDuelModal({
 									<div className='mb-3 flex items-center gap-3'>
 										<Swords className='size-5 text-brand' />
 										<span className='font-semibold text-text'>
-											Challenge Summary
+											{t('challengeSummary')}
 										</span>
 									</div>
 									<div className='space-y-2 text-sm'>
@@ -690,7 +718,7 @@ function CreateDuelModal({
 								{/* Optional message */}
 								<div>
 									<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
-										Trash talk (optional)
+										{t('trashTalk')}
 									</label>
 									<input
 										type='text'
@@ -709,16 +737,18 @@ function CreateDuelModal({
 										onClick={() => setStep('recipe')}
 										className='flex-1 rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated'
 									>
-										Back
+										{t('back')}
 									</button>
 									<motion.button
-										whileTap={BUTTON_TAP}
-										disabled={submitting}
-										onClick={handleSubmit}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 disabled:opacity-50'
+									type='button'
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									disabled={submitting}
+									onClick={handleSubmit}
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
 									>
 										<Send className='size-4' />
-										{submitting ? 'Sending...' : 'Send Challenge'}
+								{submitting ? t('sending') : t('sendChallenge')}
 									</motion.button>
 								</div>
 							</div>
@@ -791,12 +821,14 @@ export function DuelsSection() {
 					)}
 				</div>
 				<motion.button
+					type='button'
+					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
 					onClick={() => setShowCreate(true)}
-					className='flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90'
+					className='flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 				>
 					<Swords className='size-4' />
-					Challenge
+					{t('challenge')}
 				</motion.button>
 			</div>
 
@@ -812,15 +844,17 @@ export function DuelsSection() {
 					<Swords className='mx-auto mb-3 size-10 text-text-muted' />
 					<p className='mb-1 font-semibold text-text'>{t('noDuels')}</p>
 					<p className='mb-4 text-sm text-text-secondary'>
-						Challenge a friend to a 1v1 cooking battle!
+						{t('noDuelsSubtitle')}
 					</p>
 					<motion.button
+						type='button'
+						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						onClick={() => setShowCreate(true)}
-						className='inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90'
+						className='inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 					>
 						<Swords className='size-4' />
-						Send First Challenge
+					{t('sendFirstChallenge')}
 					</motion.button>
 				</div>
 			) : (

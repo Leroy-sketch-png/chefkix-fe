@@ -157,7 +157,7 @@ const SUGGESTED_TAGS = [
 // Platform detection for keyboard shortcuts
 const isMac =
 	typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
-const modKey = isMac ? 'âŒ˜' : 'Ctrl'
+const modKey = isMac ? '⌘' : 'Ctrl'
 
 const generateId = () => Math.random().toString(36).substring(2, 9)
 
@@ -510,6 +510,7 @@ const StepRow = ({
 									setShowTimerInput(false)
 									onChange({ ...step, timerSeconds: undefined })
 								}}
+								aria-label={t('formClearTimer')}
 								className='text-text-secondary hover:text-error'
 							>
 								<X className='size-4' />
@@ -585,7 +586,7 @@ const TagInput = ({
 							aria-label={t('formDeleteTag')}
 							className='flex size-4 items-center justify-center rounded-full transition-colors hover:bg-white/20'
 						>
-							Ã—
+							×
 						</button>
 					</span>
 				))}
@@ -769,7 +770,7 @@ export const RecipeFormDetailed = ({
 
 		setErrors(newErrors)
 		return Object.keys(newErrors).length === 0
-	}, [formData])
+	}, [formData, t])
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
@@ -807,18 +808,18 @@ export const RecipeFormDetailed = ({
 		}
 	}
 
-	// Keyboard shortcuts: Ctrl/âŒ˜+S = save draft, Ctrl/âŒ˜+Enter = publish
+	// Keyboard shortcuts: Ctrl/⌘+S = save draft, Ctrl/⌘+Enter = publish
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			const isMod = isMac ? e.metaKey : e.ctrlKey
 
-			// Ctrl/âŒ˜ + S = Save Draft
+			// Ctrl/⌘ + S = Save Draft
 			if (isMod && e.key === 's') {
 				e.preventDefault()
 				handleSaveDraft()
 			}
 
-			// Ctrl/âŒ˜ + Enter = Submit/Publish
+			// Ctrl/⌘ + Enter = Submit/Publish
 			if (isMod && e.key === 'Enter') {
 				e.preventDefault()
 				setHasAttemptedSubmit(true)
@@ -1183,7 +1184,7 @@ export const RecipeFormDetailed = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
+							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Plus className='size-4' />
 							{t('formAddIngredient')}
@@ -1253,7 +1254,7 @@ export const RecipeFormDetailed = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
+							className='flex items-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Plus className='size-4' />
 							{t('formAddStep')}
@@ -1319,7 +1320,7 @@ export const RecipeFormDetailed = ({
 						disabled={isSaving}
 						whileHover={isSaving ? undefined : BUTTON_HOVER}
 						whileTap={isSaving ? undefined : BUTTON_TAP}
-						className='flex items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand/5 px-5 py-3 font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand/5 px-5 py-3 font-semibold text-brand disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isSaving ? (
 							<Loader2 className='size-4 animate-spin' />
@@ -1349,7 +1350,7 @@ export const RecipeFormDetailed = ({
 							disabled={isSubmitting || isSaving}
 							whileHover={isSubmitting ? undefined : BUTTON_HOVER}
 							whileTap={isSubmitting ? undefined : BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isSubmitting ? (
 								<Loader2 className='size-4 animate-spin' />
@@ -1359,7 +1360,7 @@ export const RecipeFormDetailed = ({
 							{isSubmitting ? (submittingLabel ?? t('formProcessing')) : (submitLabel ?? t('formReviewXp'))}
 							{!isSubmitting && (
 								<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-medium text-white/80 sm:inline-block'>
-									{modKey}+â†µ
+									{modKey}+↵
 								</kbd>
 							)}
 						</motion.button>

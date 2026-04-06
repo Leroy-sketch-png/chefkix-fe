@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -36,24 +36,28 @@ import { ArrowLeft } from 'lucide-react'
 
 type Step = 'email' | 'reset'
 
-const emailSchema = z.object({
-	email: z.string().email({ message: 'forgotEmailInvalid' }),
-})
+function createEmailSchema(t: (key: string) => string) {
+	return z.object({
+		email: z.string().email({ message: t('forgotEmailInvalid') }),
+	})
+}
 
-const resetSchema = z
-	.object({
-		otp: z.string().min(6, { message: 'forgotCodeInvalid' }),
-		newPassword: z.string().min(6, {
-			message: 'forgotPasswordMin',
-		}),
-		confirmPassword: z.string().min(6, {
-			message: 'forgotPasswordMin',
-		}),
-	})
-	.refine(values => values.newPassword === values.confirmPassword, {
-		message: 'forgotPasswordMismatch',
-		path: ['confirmPassword'],
-	})
+function createResetSchema(t: (key: string) => string) {
+	return z
+		.object({
+			otp: z.string().min(6, { message: t('forgotCodeInvalid') }),
+			newPassword: z.string().min(6, {
+				message: t('forgotPasswordMin'),
+			}),
+			confirmPassword: z.string().min(6, {
+				message: t('forgotPasswordMin'),
+			}),
+		})
+		.refine(values => values.newPassword === values.confirmPassword, {
+			message: t('forgotPasswordMismatch'),
+			path: ['confirmPassword'],
+		})
+}
 
 interface ForgotPasswordDialogProps {
 	open: boolean
@@ -65,6 +69,8 @@ export const ForgotPasswordDialog = ({
 	onOpenChange,
 }: ForgotPasswordDialogProps) => {
 	const t = useTranslations('auth')
+	const emailSchema = useMemo(() => createEmailSchema(t), [t])
+	const resetSchema = useMemo(() => createResetSchema(t), [t])
 	const [step, setStep] = useState<Step>('email')
 	const [email, setEmail] = useState('')
 

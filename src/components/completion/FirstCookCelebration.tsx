@@ -56,28 +56,28 @@ const buildUnlocks = (
 ): UnlockItem[] => [
 	{
 		id: 'badge',
-		emoji: 'ðŸŽ–ï¸',
+		emoji: '🎖ï¸',
 		name: t('firstDishBadge'),
 		description: t('yourFirstOfMany'),
 		glowColor: 'rgba(255, 215, 0, 0.3)',
 	},
 	{
 		id: 'xp',
-		emoji: 'âš¡',
+		emoji: '⚡',
 		name: t('plusXp', { amount: Math.round(immediateXp) }),
 		description: t('earnedImmediately'),
 		glowColor: 'rgba(0, 212, 255, 0.3)',
 	},
 	{
 		id: 'share-bonus',
-		emoji: 'ðŸ“¸',
+		emoji: '📸',
 		name: t('xpWaiting', { amount: Math.round(pendingXp) }),
 		description: t('postToClaimDays', { days: postDeadlineDays }),
 		glowColor: 'rgba(52, 211, 153, 0.3)',
 	},
 	{
 		id: 'challenges',
-		emoji: 'ðŸŽ¯',
+		emoji: '🎯',
 		name: t('dailyChallenges'),
 		description: t('bonusXpRotates'),
 		glowColor: 'rgba(168, 85, 247, 0.3)',
@@ -301,7 +301,7 @@ export const FirstCookCelebration = ({
 									transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
 									className='absolute inset-0 flex items-center justify-center rounded-full bg-gradient-gold shadow-lg shadow-gold/40'
 								>
-									<span className='text-5xl max-md:text-4xl'>ðŸ‘¨â€ðŸ³</span>
+									<span className='text-5xl max-md:text-4xl'>👨‍🍳</span>
 								</motion.div>
 							</div>
 
@@ -385,10 +385,11 @@ export const FirstCookCelebration = ({
 							{/* Actions */}
 							<div className='mb-5'>
 								<motion.button
+									type='button'
 									onClick={onPostNow}
 									whileHover={STAT_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
-									className='mb-3.5 flex w-full items-center justify-center gap-3.5 rounded-2xl bg-gradient-to-r from-brand to-brand/85 px-7 py-5 text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
+									className='mb-3.5 flex w-full items-center justify-center gap-3.5 rounded-2xl bg-gradient-to-r from-brand to-brand/85 px-7 py-5 text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Camera className='size-7' />
 									<div className='flex flex-col items-start gap-0.5'>

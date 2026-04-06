@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { Toast, type ToastProps } from '@/components/ui/toast'
 import { Portal } from '@/components/ui/portal'
 import { cn } from '@/lib/utils'
@@ -199,6 +200,7 @@ export const Toaster = ({
 	position = 'bottom-right',
 	maxToasts = 3,
 }: ToasterProps) => {
+	const t = useTranslations('common')
 	const [currentToasts, setCurrentToasts] = React.useState<ToastConfig[]>([])
 
 	React.useEffect(() => {
@@ -228,7 +230,7 @@ export const Toaster = ({
 			<div
 				role='status'
 				aria-live='polite'
-				aria-label='Notifications'
+				aria-label={t('ariaNotifications')}
 				className={cn(
 					'pointer-events-none fixed z-notification flex max-h-screen w-full gap-3 p-4 md:max-w-sm',
 					positionClasses[position],

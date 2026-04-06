@@ -14,6 +14,7 @@ import {
 	CheckCircle2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useTranslations } from '@/i18n/hooks'
 import { Button } from '@/components/ui/button'
 import { FADE_IN_VARIANTS } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -294,6 +295,7 @@ export default function CookCardRenderer({
 	sessionId,
 	compact = false,
 }: CookCardRendererProps) {
+	const t = useTranslations('cookCard')
 	const [data, setData] = useState<CookCardData | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [isGenerating, setIsGenerating] = useState(false)
@@ -307,7 +309,7 @@ export default function CookCardRenderer({
 				setData(response.data)
 			}
 		} catch {
-			setError('Failed to load cook card data')
+			setError(t('errorLoadCookCard'))
 		} finally {
 			setIsLoading(false)
 		}
@@ -323,7 +325,7 @@ export default function CookCardRenderer({
 		try {
 			const blob = await renderCardToCanvas(data)
 			if (!blob) {
-				toast.error('Failed to generate card image')
+				toast.error(t('toastGenerateFailed'))
 				return
 			}
 
@@ -335,9 +337,9 @@ export default function CookCardRenderer({
 			link.click()
 			document.body.removeChild(link)
 			URL.revokeObjectURL(url)
-			toast.success('Cook card downloaded!')
+			toast.success(t('toastCardDownloaded'))
 		} catch {
-			toast.error('Failed to download cook card')
+			toast.error(t('toastCardDownloadFailed'))
 		} finally {
 			setIsGenerating(false)
 		}
@@ -356,8 +358,8 @@ export default function CookCardRenderer({
 				})
 				try {
 					await navigator.share({
-						title: `I cooked ${data.recipeTitle} on ChefKix!`,
-						text: `Just finished cooking ${data.recipeTitle} and earned ${data.xpEarned} XP!`,
+						title: t('shareTitle', { recipe: data.recipeTitle }),
+						text: t('shareText', { recipe: data.recipeTitle, xp: data.xpEarned }),
 						files: [file],
 					})
 					return
@@ -369,13 +371,13 @@ export default function CookCardRenderer({
 			// Fallback: share link or copy
 			if (navigator.share) {
 				await navigator.share({
-					title: `I cooked ${data.recipeTitle} on ChefKix!`,
-					text: `Just finished cooking ${data.recipeTitle} and earned ${data.xpEarned} XP!`,
+					title: t('shareTitle', { recipe: data.recipeTitle }),
+					text: t('shareText', { recipe: data.recipeTitle, xp: data.xpEarned }),
 					url: data.shareUrl,
 				})
 			} else {
 				await navigator.clipboard.writeText(data.shareUrl)
-				toast.success('Link copied to clipboard!')
+				toast.success(t('toastLinkCopied'))
 			}
 		} catch {
 			// User cancelled share — not an error
@@ -480,7 +482,7 @@ export default function CookCardRenderer({
 										+{data.xpEarned}
 									</span>
 								</div>
-								<p className='text-xs text-text-muted'>XP Earned</p>
+								<p className='text-xs text-text-muted'>{t('xpEarned')}</p>
 							</div>
 						)}
 						{cookTimeStr && (
@@ -491,7 +493,7 @@ export default function CookCardRenderer({
 										{cookTimeStr}
 									</span>
 								</div>
-								<p className='text-xs text-text-muted'>Cook Time</p>
+								<p className='text-xs text-text-muted'>{t('cookTime')}</p>
 							</div>
 						)}
 						{data.totalSteps != null && (
@@ -502,7 +504,7 @@ export default function CookCardRenderer({
 										{data.stepsCompleted}/{data.totalSteps}
 									</span>
 								</div>
-								<p className='text-xs text-text-muted'>Steps</p>
+								<p className='text-xs text-text-muted'>{t('stepsLabel')}</p>
 							</div>
 						)}
 						{data.difficulty && (
@@ -513,7 +515,7 @@ export default function CookCardRenderer({
 										{data.difficulty}
 									</span>
 								</div>
-								<p className='text-xs text-text-muted'>Difficulty</p>
+								<p className='text-xs text-text-muted'>{t('difficultyLabel')}</p>
 							</div>
 						)}
 					</div>
@@ -548,8 +550,8 @@ export default function CookCardRenderer({
 
 					{/* Branding */}
 					<div className='mt-4 border-t border-border-subtle pt-3'>
-						<p className='text-sm font-bold text-brand'>ChefKix</p>
-						<p className='text-xs text-text-muted'>Cook. Share. Level Up.</p>
+						<p className='text-sm font-bold text-brand'>{t('brandName')}</p>
+						<p className='text-xs text-text-muted'>{t('tagline')}</p>
 					</div>
 				</div>
 			</div>

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Loader2, X, DollarSign, Send } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { toast } from 'sonner'
+import { useTranslations } from '@/i18n/hooks'
 import { getCreatorTipSettings, sendTip } from '@/services/tips'
 import { CreatorTipSettings } from '@/lib/types/tips'
 import { Portal } from '@/components/ui/portal'
@@ -25,6 +26,7 @@ export function TipJarButton({
 	recipeId,
 	variant = 'recipe',
 }: TipJarButtonProps) {
+	const t = useTranslations('tip')
 	const [settings, setSettings] = useState<CreatorTipSettings | null>(null)
 	const [loaded, setLoaded] = useState(false)
 	const [showModal, setShowModal] = useState(false)
@@ -56,7 +58,7 @@ export function TipJarButton({
 
 	const handleSend = async () => {
 		if (effectiveAmountCents <= 0) {
-			toast.error('Please select or enter a tip amount')
+			toast.error(t('toastSelectAmount'))
 			return
 		}
 		setIsSending(true)
@@ -77,7 +79,7 @@ export function TipJarButton({
 			setCustomAmount('')
 			setMessage('')
 		} catch {
-			toast.error('Failed to send tip. Please try again.')
+			toast.error(t('toastSendFailed'))
 		} finally {
 			setIsSending(false)
 		}
@@ -88,11 +90,12 @@ export function TipJarButton({
 	return (
 		<>
 			<motion.button
+				type='button'
 				onClick={() => setShowModal(true)}
 				whileHover={BUTTON_HOVER}
 				whileTap={BUTTON_TAP}
 				className={cn(
-					'transition-colors',
+					'transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 					isRecipe
 						? 'grid size-14 place-items-center rounded-xl border-2 border-border-medium hover:border-brand hover:bg-brand/10'
 						: 'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-brand/10 hover:text-brand hover:border-brand/30',
@@ -128,7 +131,7 @@ export function TipJarButton({
 									type='button'
 									onClick={() => setShowModal(false)}
 									className='absolute right-4 top-4 text-text-muted hover:text-text'
-									aria-label='Close'
+									aria-label={t('ariaClose')}
 								>
 									<X className='size-5' />
 								</button>
@@ -150,6 +153,7 @@ export function TipJarButton({
 								<div className='mb-4 flex justify-center gap-3'>
 									{amounts.map(amt => (
 										<motion.button
+											type='button'
 											key={amt}
 										whileHover={BUTTON_SUBTLE_HOVER}
 										whileTap={BUTTON_SUBTLE_TAP}
@@ -160,7 +164,7 @@ export function TipJarButton({
 												setCustomAmount('')
 											}}
 											className={cn(
-												'rounded-xl px-5 py-3 text-base font-bold transition-all',
+												'rounded-xl px-5 py-3 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 												selectedAmount === amt
 													? 'bg-brand text-white shadow-glow'
 													: 'border border-border bg-bg-elevated text-text hover:border-brand/50',
@@ -177,7 +181,7 @@ export function TipJarButton({
 										type='number'
 										min='0.50'
 										step='0.50'
-										placeholder='Custom amount ($)'
+										placeholder={t('customAmountPlaceholder')}
 										value={customAmount}
 										onChange={e => {
 											setCustomAmount(e.target.value)
@@ -190,7 +194,7 @@ export function TipJarButton({
 								{/* Message */}
 								<div className='mb-4'>
 									<textarea
-										placeholder='Add a message (optional)'
+										placeholder={t('addMessagePlaceholder')}
 										value={message}
 										onChange={e => setMessage(e.target.value)}
 										maxLength={200}
@@ -201,6 +205,7 @@ export function TipJarButton({
 
 								{/* Send Button */}
 								<motion.button
+									type='button'
 									onClick={handleSend}
 									disabled={
 										isSending || effectiveAmountCents <= 0
@@ -216,7 +221,7 @@ export function TipJarButton({
 											: undefined
 									}
 									className={cn(
-										'flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-base font-bold transition-all',
+										'flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 										effectiveAmountCents > 0
 											? 'bg-brand text-white hover:bg-brand/90'
 											: 'cursor-not-allowed bg-border text-text-muted',
@@ -237,8 +242,8 @@ export function TipJarButton({
 								{/* Payment note */}
 								<p className='mt-3 text-center text-xs text-text-muted'>
 									{settings.payoutAccountId
-										? 'Tips are processed securely via our payment provider.'
-										: 'Payment processing coming soon. Your tip will be recorded and the creator will be notified when payouts go live.'}
+										? t('secureNote')
+										: t('comingSoonNote')}
 								</p>
 							</motion.div>
 						</motion.div>

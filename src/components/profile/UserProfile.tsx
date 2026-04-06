@@ -22,7 +22,7 @@ import {
 	getSessionHistory,
 	SessionHistoryItem,
 } from '@/services/cookingSession'
-import { getRecipesByUserId, getSavedRecipes } from '@/services/recipe'
+import { getRecipesByUserId, getSavedRecipes, getLikedRecipes } from '@/services/recipe'
 import { getPostsByUser, getSavedPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
@@ -48,7 +48,7 @@ import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
 
 // ============================================
-// ADAPTER: Profile â†’ ProfileUser
+// ADAPTER: Profile → ProfileUser
 // ============================================
 
 interface ProfileUser {
@@ -111,9 +111,9 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		stats: {
 			followers: statistics.followerCount,
 			following: statistics.followingCount,
-			recipesCooked: statistics.completionCount ?? 0, // completionCount = total cooking completions from BE
+			recipesCooked: statistics.recipesCooked ?? statistics.completionCount ?? 0, // Distinct recipes cooked (fallback to completionCount for existing users)
 			recipesCreated: statistics.recipeCount,
-			mastered: statistics.recipesMastered ?? 0, // From BE when user cooks recipe 5+ times
+			mastered: statistics.recipesMastered ?? 0,
 		},
 		gamification: {
 			currentLevel: Math.max(1, statistics.currentLevel), // Min level 1
@@ -196,7 +196,7 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 	//
 	// IMPORTANT: baseXP here is NOT "total XP ever possible", it's specifically
 	// the post bonus. The cooking completion XP (baseXpAwarded) was already given
-	// and is NOT shown here â€” that's "XP Earned" in the stats.
+	// and is NOT shown here — that's "XP Earned" in the stats.
 	const isPending = !item.postId && item.status === 'completed'
 	const isPosted = !!item.postId
 
@@ -266,6 +266,8 @@ export const UserProfile = ({
 	const [savedPosts, setSavedPosts] = useState<Post[]>([])
 	const [isLoadingSaved, setIsLoadingSaved] = useState(false)
 	const [isLoadingSavedPosts, setIsLoadingSavedPosts] = useState(false)
+	const [likedRecipes, setLikedRecipes] = useState<Recipe[]>([])
+	const [isLoadingLiked, setIsLoadingLiked] = useState(false)
 
 	// Memoized handler to prevent PostCard re-renders
 	const handleSavedPostDelete = useCallback((id: string) => {
@@ -314,7 +316,7 @@ export const UserProfile = ({
 		return () => {
 			cancelled = true
 		}
-	}, [profile.userId, activeTab])
+	}, [profile.userId, activeTab, t])
 
 	// Fetch cooking session history when tab is active (for own profile only)
 	useEffect(() => {
@@ -370,7 +372,7 @@ export const UserProfile = ({
 		return () => {
 			cancelled = true
 		}
-	}, [isOwnProfile, activeTab])
+	}, [isOwnProfile, activeTab, t])
 
 	// Fetch user's posts when posts tab is active
 	useEffect(() => {
@@ -402,7 +404,7 @@ export const UserProfile = ({
 		return () => {
 			cancelled = true
 		}
-	}, [profile.userId, activeTab])
+	}, [profile.userId, activeTab, t])
 
 	// Fetch saved recipes when saved tab is active (own profile only)
 	useEffect(() => {
@@ -430,7 +432,35 @@ export const UserProfile = ({
 		return () => {
 			cancelled = true
 		}
-	}, [isOwnProfile, activeTab])
+	}, [isOwnProfile, activeTab, t])
+
+	// Fetch liked recipes when liked tab is active (own profile only)
+	useEffect(() => {
+		if (!isOwnProfile || activeTab !== 'liked') return
+		let cancelled = false
+
+		const fetchLiked = async () => {
+			setIsLoadingLiked(true)
+			try {
+				const response = await getLikedRecipes({ limit: 20 })
+				if (cancelled) return
+				if (response.success && response.data) {
+					setLikedRecipes(response.data as Recipe[])
+				}
+			} catch (err) {
+				if (cancelled) return
+				logDevError('Failed to fetch liked recipes:', err)
+				toast.error(t('failedLoadLiked'))
+			} finally {
+				if (!cancelled) setIsLoadingLiked(false)
+			}
+		}
+
+		fetchLiked()
+		return () => {
+			cancelled = true
+		}
+	}, [isOwnProfile, activeTab, t])
 
 	// Fetch saved posts when saved tab + posts sub-tab is active
 	useEffect(() => {
@@ -463,7 +493,7 @@ export const UserProfile = ({
 		return () => {
 			cancelled = true
 		}
-	}, [isOwnProfile, activeTab, savedSubTab])
+	}, [isOwnProfile, activeTab, savedSubTab, t])
 
 	// Transform Profile to ProfileUser for gamified header
 	const profileUser = transformProfileToProfileUser(profile)
@@ -508,7 +538,7 @@ export const UserProfile = ({
 						: prev.statistics.followerCount - 1,
 				},
 			}))
-			toast.error(response.message || 'Failed to update follow status')
+			toast.error(response.message || t('failedFollowUpdate'))
 		}
 
 		setIsFollowLoading(false)
@@ -556,10 +586,10 @@ export const UserProfile = ({
 			try {
 				const response = await unblockUser(profile.userId)
 				if (response.success) {
-					toast.success(`Unblocked ${displayName}`)
+					toast.success(t('toastUnblocked', { name: displayName }))
 				} else {
 					setIsBlocked(true)
-					toast.error(response.message || 'Failed to unblock user')
+					toast.error(response.message || t('failedUnblock'))
 				}
 			} finally {
 				setIsBlockLoading(false)
@@ -579,7 +609,7 @@ export const UserProfile = ({
 		try {
 			const response = await blockUser(profile.userId)
 			if (response.success) {
-				toast.success(`Blocked ${displayName}`)
+				toast.success(t('toastBlocked', { name: displayName }))
 				// Update profile state to reflect the unfollow
 				setProfile(prev => ({
 					...prev,
@@ -587,7 +617,7 @@ export const UserProfile = ({
 				}))
 			} else {
 				setIsBlocked(false)
-				toast.error(response.message || 'Failed to block user')
+				toast.error(response.message || t('failedBlock'))
 			}
 		} finally {
 			setIsBlockLoading(false)
@@ -810,9 +840,10 @@ export const UserProfile = ({
 								{/* Sub-tabs for Recipes/Posts */}
 								<div className='flex gap-2'>
 									<motion.button
+										type='button'
 										onClick={() => setSavedSubTab('recipes')}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 											savedSubTab === 'recipes'
 												? 'bg-brand text-white'
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
@@ -821,9 +852,10 @@ export const UserProfile = ({
 										{t('recipesTab')}{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
 									</motion.button>
 									<motion.button
+										type='button'
 										onClick={() => setSavedSubTab('posts')}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 											savedSubTab === 'posts'
 												? 'bg-brand text-white'
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
@@ -858,7 +890,7 @@ export const UserProfile = ({
 											<EmptyStateGamified
 												variant='saved'
 												title={t('noSavedRecipes')}
-												description='Save recipes from explore to build your personal cookbook!'
+												description={t('saveRecipesDesc')}
 												emoji='🔖'
 												primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
 											/>
@@ -929,7 +961,7 @@ export const UserProfile = ({
 											<EmptyStateGamified
 												variant='saved'
 												title={t('noSavedPosts')}
-												description='Save posts from your feed to revisit later!'
+												description={t('savePostsDesc')}
 												emoji='💾'
 												primaryAction={{ label: t('exploreFeed'), href: '/' }}
 											/>
@@ -947,6 +979,73 @@ export const UserProfile = ({
 										)}
 									</>
 								)}
+							</div>
+						)}
+					</>
+				)}
+
+				{activeTab === 'liked' && (
+					<>
+						{isLoadingLiked ? (
+							<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+								{[1, 2, 3, 4].map(i => (
+									<div
+										key={i}
+										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
+									>
+										<Skeleton className='h-40 w-full' />
+										<div className='p-4'>
+											<Skeleton className='h-5 w-3/4' />
+											<Skeleton className='mt-2 h-4 w-1/2' />
+										</div>
+									</div>
+								))}
+							</div>
+						) : likedRecipes.length === 0 ? (
+							<EmptyStateGamified
+								variant='liked'
+								title={t('noLikedRecipes')}
+								description={t('likeRecipesDesc')}
+								emoji='❤️'
+								primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
+							/>
+						) : (
+							<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+								{likedRecipes.map(recipe => (
+									<div
+										key={recipe.id}
+										className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-card'
+										onClick={() => router.push(`/recipes/${recipe.id}`)}
+									>
+										<div className='relative h-40 overflow-hidden'>
+											<Image
+												src={
+													getRecipeImage(recipe) ||
+													'/placeholder-recipe.svg'
+												}
+												alt={recipe.title}
+												fill
+												sizes='(max-width: 768px) 100vw, 50vw'
+												className='object-cover transition-transform group-hover:scale-105'
+											/>
+										</div>
+										<div className='p-4'>
+											<h3 className='font-semibold text-text line-clamp-1'>
+												{recipe.title}
+											</h3>
+											<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
+												<span className='flex items-center gap-1 tabular-nums'>
+													<Clock className='size-4' />
+													{getTotalTime(recipe)} min
+												</span>
+												<span className='flex items-center gap-1 tabular-nums'>
+													<Heart className='size-4' />
+													{recipe.likeCount}
+												</span>
+											</div>
+										</div>
+									</div>
+								))}
 							</div>
 						)}
 					</>

@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Share2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -52,7 +53,7 @@ interface ChallengeCompleteInlineProps {
 // ============================================
 
 const Confetti = () => {
-	const emojis = ['ðŸŽ‰', 'âœ¨', 'ðŸŽ¯', 'â­', 'ðŸŽŠ']
+	const emojis = ['🎉', '✨', '🎯', 'â­', '🍊']
 
 	return (
 		<div className='pointer-events-none absolute inset-0 overflow-hidden'>
@@ -96,6 +97,7 @@ export const ChallengeComplete = ({
 	onContinue,
 	onShare,
 }: ChallengeCompleteProps) => {
+	const t = useTranslations('challenge')
 	// Fire gold confetti burst on mount
 	useEffect(() => {
 		const timer = setTimeout(() => triggerAchievementConfetti(), 200)
@@ -154,15 +156,15 @@ export const ChallengeComplete = ({
 					{/* Title */}
 					<div className='mb-4'>
 						<span className='mb-1 block text-xs font-bold uppercase tracking-wider text-xp'>
-							Daily Challenge
+							{t('dailyChallengeTitle')}
 						</span>
-						<h2 className='text-2xl font-display font-extrabold'>Complete! ðŸŽ¯</h2>
+						<h2 className='text-2xl font-display font-extrabold'>{t('completeTitle')} 🎯</h2>
 					</div>
 
 					{/* Challenge Info */}
 					<div className='mb-6 flex flex-col items-center gap-1'>
 						<span className='text-lg font-bold'>{challengeTitle}</span>
-						<span className='text-sm text-text-muted'>completed with</span>
+						<span className='text-sm text-text-muted'>{t('completedWithRecipe')}</span>
 						<span className='text-base font-semibold text-brand'>
 							{recipeName}
 						</span>
@@ -176,7 +178,7 @@ export const ChallengeComplete = ({
 						className='mb-6 flex items-center justify-center gap-4 rounded-2xl bg-gradient-to-r from-success/10 to-success/5 p-5'
 					>
 						<div className='relative flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-success to-success'>
-							<span className='text-2xl'>âš¡</span>
+							<span className='text-2xl'>⚡</span>
 							{/* Particles */}
 							{[0, 1, 2].map(i => (
 								<motion.span
@@ -199,18 +201,18 @@ export const ChallengeComplete = ({
 							))}
 						</div>
 						<div className='text-left'>
-							<span className='block text-3xl font-black leading-none text-success'>
+							<span className='block tabular-nums text-3xl font-black leading-none text-success'>
 								+{bonusXp}
 							</span>
-							<span className='text-sm text-text-muted'>Bonus XP</span>
+							<span className='text-sm text-text-muted'>{t('bonusXP')}</span>
 						</div>
 					</motion.div>
 
 					{/* Streak Progress */}
 					<div className='mb-6 rounded-xl bg-bg-elevated p-4'>
 						<div className='mb-3.5 flex items-center justify-center gap-2'>
-							<span className='text-xl'>ðŸ”¥</span>
-							<span className='text-sm font-bold'>Challenge Streak</span>
+							<span className='text-xl'>🔥</span>
+							<span className='text-sm font-bold'>{t('challengeStreak')}</span>
 						</div>
 
 						{/* Days */}
@@ -228,7 +230,7 @@ export const ChallengeComplete = ({
 											day.isToday && 'ring-3 ring-success/30',
 										)}
 									>
-										{day.isCompleted ? 'âœ“' : day.isMilestone ? 'ðŸ†' : ''}
+										{day.isCompleted ? '✓' : day.isMilestone ? '🏆' : ''}
 									</div>
 									<span
 										className={cn(
@@ -244,29 +246,31 @@ export const ChallengeComplete = ({
 
 						{/* Milestone message */}
 						<p className='text-sm font-semibold text-warning'>
-							{daysToMilestone} more days for {milestoneReward}!
+							{t('milestoneProgress', { days: daysToMilestone, reward: milestoneReward })}
 						</p>
 					</div>
 
 					{/* Actions */}
 					<div className='flex gap-3'>
 						<motion.button
-							onClick={onContinue}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-indigo py-3.5 text-base font-bold text-white shadow-lg shadow-accent-purple/30'
+						type='button'
+						onClick={onContinue}
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-indigo py-3.5 text-base font-bold text-white shadow-lg shadow-accent-purple/30 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 						>
-							Continue
+							{t('continueButton')}
 							<ArrowRight className='size-icon-sm' />
 						</motion.button>
 						<motion.button
-							onClick={onShare}
-							whileHover={BUTTON_SUBTLE_HOVER}
-							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold text-text-muted transition-colors hover:bg-border hover:text-text'
+						type='button'
+						onClick={onShare}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						className='flex items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold text-text-muted transition-colors hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 						>
 							<Share2 className='size-icon-sm' />
-							Share
+							{t('share')}
 						</motion.button>
 					</div>
 				</motion.div>
@@ -287,7 +291,9 @@ export const ChallengeCompleteInline = ({
 	bonusXp,
 	streakCount,
 	daysToMilestone,
-}: ChallengeCompleteInlineProps) => (
+}: ChallengeCompleteInlineProps) => {
+	const t = useTranslations('challenge')
+	return (
 	<motion.div
 		initial={{ opacity: 0, y: 10 }}
 		animate={{ opacity: 1, y: 0 }}
@@ -300,30 +306,31 @@ export const ChallengeCompleteInline = ({
 			</div>
 			<div className='flex-1'>
 				<span className='text-sm font-bold text-xp'>
-					Daily Challenge Complete!
+					{t('dailyChallengeComplete')}
 				</span>
 				<span className='block text-sm text-text-muted'>{challengeTitle}</span>
 			</div>
 			<div className='text-right'>
-				<span className='block text-xl font-display font-extrabold text-success'>
+				<span className='block tabular-nums text-xl font-display font-extrabold text-success'>
 					+{bonusXp} XP
 				</span>
-				<span className='text-xs text-text-muted'>bonus</span>
+				<span className='text-xs text-text-muted'>{t('bonus')}</span>
 			</div>
 		</div>
 
 		{/* Streak Info */}
 		<div className='flex items-center gap-2 rounded-lg bg-streak/10 px-3.5 py-2.5 text-sm'>
-			<span className='text-base'>ðŸ”¥</span>
-			<span className='font-semibold text-streak'>
-				{streakCount} day streak
+			<span className='text-base'>🔥</span>
+			<span className='tabular-nums font-semibold text-streak'>
+				{t('streakCount', { count: streakCount })}
 			</span>
 			<span className='text-text-muted'>
-				â€¢ {daysToMilestone} more for badge
+				• {t('milestoneCompact', { count: daysToMilestone })}
 			</span>
 		</div>
 	</motion.div>
-)
+	)
+}
 
 // Export types
 export type { ChallengeCompleteProps, ChallengeCompleteInlineProps, StreakDay }

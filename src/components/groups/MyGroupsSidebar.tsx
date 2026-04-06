@@ -11,6 +11,7 @@ import { Loader2, Plus, Users } from 'lucide-react'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
 import { motion } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 
 interface MyGroupsSidebarProps {
 	currentUserId?: string
@@ -56,7 +57,7 @@ export const MyGroupsSidebar = ({
 			className='bg-bg-card rounded-lg border border-border p-4 space-y-4'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3 }}
+			transition={{ duration: DURATION_S.smooth }}
 		>
 			<div className='flex items-center justify-between'>
 				<h3 className='font-bold text-text flex items-center gap-2'>

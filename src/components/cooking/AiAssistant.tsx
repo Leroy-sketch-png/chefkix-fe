@@ -142,7 +142,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 					isUser ? 'bg-brand text-white' : 'bg-gradient-indigo text-white',
 				)}
 			>
-				{isUser ? 'ðŸ‘¤' : 'âœ¨'}
+				{isUser ? '👤' : '✨'}
 			</div>
 
 			{/* Message content */}
@@ -182,7 +182,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 							<span className='font-medium line-through opacity-60'>
 								{message.metadata.substitution.original}
 							</span>
-							<span>â†’</span>
+							<span>→</span>
 							<span className='font-bold text-success'>
 								{message.metadata.substitution.replacement}
 							</span>
@@ -210,7 +210,7 @@ const TypingIndicator = () => (
 		className='flex gap-2'
 	>
 		<div className='flex size-8 items-center justify-center rounded-full bg-gradient-indigo text-white'>
-			âœ¨
+			✨
 		</div>
 		<div className='flex items-center gap-1.5 rounded-2xl bg-bg-elevated px-4 py-3'>
 			{[0, 1, 2].map(i => (
@@ -238,16 +238,20 @@ interface AiButtonProps {
 	hasUnreadSuggestion?: boolean
 }
 
-export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => (
+export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => {
+	const t = useTranslations('cooking')
+	return (
 	<motion.button
+		type='button'
 		onClick={onClick}
 		whileHover={ICON_BUTTON_HOVER}
 		whileTap={ICON_BUTTON_TAP}
 		animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
 		className={cn(
-			'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-lg md:bottom-6',
+			'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-lg md:bottom-6 focus-visible:ring-2 focus-visible:ring-brand/50',
 			'bg-gradient-indigo text-white',
 		)}
+		aria-label={t('ariaOpenAiAssistant')}
 	>
 		<Sparkles className='size-6' />
 		{hasUnreadSuggestion && (
@@ -256,7 +260,8 @@ export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => (
 			</span>
 		)}
 	</motion.button>
-)
+	)
+}
 
 // ============================================
 // MAIN COMPONENT
@@ -309,7 +314,7 @@ export const AiAssistant = ({
 				},
 			])
 		}
-	}, [isOpen, recipeTitle, messages.length])
+	}, [isOpen, recipeTitle, messages.length, t])
 
 	const handleSend = async (prompt?: string) => {
 		const text = prompt || inputValue.trim()
@@ -359,7 +364,7 @@ export const AiAssistant = ({
 					id: `tip-${Date.now()}`,
 					role: 'assistant',
 					type: 'tip',
-					content: response.data.tips.join('\nâ€¢ '),
+					content: response.data.tips.join('\n• '),
 					timestamp: new Date(),
 				}
 				setMessages(prev => [...prev, tipMessage])

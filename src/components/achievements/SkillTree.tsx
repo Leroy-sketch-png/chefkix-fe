@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import {
 	Trophy,
 	Lock,
@@ -48,25 +49,25 @@ const CATEGORY_META: Record<
 		color: 'text-info',
 		bgColor: 'bg-info/10',
 		borderColor: 'border-info/30',
-		icon: 'ðŸ”ª',
+		icon: '🔪',
 	},
 	Social: {
 		color: 'text-accent-purple',
 		bgColor: 'bg-accent-purple/10',
 		borderColor: 'border-accent-purple/30',
-		icon: 'ðŸ‘¥',
+		icon: '👥',
 	},
 	Hidden: {
 		color: 'text-warning',
 		bgColor: 'bg-warning/10',
 		borderColor: 'border-warning/30',
-		icon: 'ðŸ”®',
+		icon: '🔮',
 	},
 	Seasonal: {
 		color: 'text-success',
 		bgColor: 'bg-success/10',
 		borderColor: 'border-success/30',
-		icon: 'ðŸŒ¸',
+		icon: '🌸',
 	},
 }
 
@@ -200,7 +201,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 							animate={{
 								width: `${data.totalAchievements > 0 ? (data.totalUnlocked / data.totalAchievements) * 100 : 0}%`,
 							}}
-							transition={{ duration: 0.8, ease: 'easeOut' }}
+							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 						/>
 					</div>
 				</div>
@@ -341,7 +342,7 @@ function SkillPathCard({
 								)}
 								initial={{ width: 0 }}
 								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: 0.6, ease: 'easeOut' }}
+								transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 							/>
 						</div>
 						<span className='shrink-0 text-2xs font-semibold text-text-muted'>
@@ -353,7 +354,7 @@ function SkillPathCard({
 				{/* Expand Arrow */}
 				<motion.div
 					animate={{ rotate: isExpanded ? 90 : 0 }}
-					transition={{ duration: 0.2 }}
+					transition={{ duration: DURATION_S.normal }}
 				>
 					<ChevronRight className='size-4 text-text-muted' />
 				</motion.div>
@@ -366,7 +367,7 @@ function SkillPathCard({
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}
-						transition={{ duration: 0.3, ease: 'easeInOut' }}
+						transition={{ duration: DURATION_S.smooth, ease: 'easeInOut' }}
 						className='overflow-hidden'
 					>
 						<div className='border-t border-border-subtle px-4 pb-4 pt-3'>
@@ -501,7 +502,7 @@ function AchievementNodeCard({
 								className='h-full rounded-full bg-gradient-to-r from-xp to-accent-purple'
 								initial={{ width: 0 }}
 								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: 0.5, ease: 'easeOut' }}
+								transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 							/>
 						</div>
 						<span className='shrink-0 text-2xs font-semibold text-text-muted'>

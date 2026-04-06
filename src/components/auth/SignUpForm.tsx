@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -32,21 +32,23 @@ import { logDevError } from '@/lib/dev-log'
 import { CheckCircle2, XCircle, Loader2, Info, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const formSchema = z.object({
-	firstName: z.string().min(1, {
-		message: 'First name is required.',
-	}),
-	lastName: z.string().min(1, {
-		message: 'Last name is required.',
-	}),
-	username: z.string().min(2, {
-		message: 'Username must be at least 2 characters.',
-	}),
-	email: z.string().email({ message: 'Invalid email address.' }),
-	password: z.string().min(6, {
-		message: 'Password must be at least 6 characters.',
-	}),
-})
+function createSignUpSchema(t: (key: string) => string) {
+	return z.object({
+		firstName: z.string().min(1, {
+			message: t('validationFirstNameRequired'),
+		}),
+		lastName: z.string().min(1, {
+			message: t('validationLastNameRequired'),
+		}),
+		username: z.string().min(2, {
+			message: t('validationUsernameMin'),
+		}),
+		email: z.string().email({ message: t('validationEmailInvalid') }),
+		password: z.string().min(6, {
+			message: t('validationPasswordMin'),
+		}),
+	})
+}
 
 export function SignUpForm() {
 	const router = useRouter()
@@ -54,6 +56,7 @@ export function SignUpForm() {
 	const returnTo = searchParams.get('returnTo')
 	const { login, setUser, setLoading, logout } = useAuth()
 	const t = useTranslations('auth')
+	const formSchema = useMemo(() => createSignUpSchema(t), [t])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	
 	// Username availability check state
@@ -267,17 +270,17 @@ export function SignUpForm() {
 									</FormControl>
 								{usernameStatus === 'taken' && (
 									<p className='text-xs text-destructive'>
-										This username is already taken
+										{t('usernameAlreadyTaken')}
 									</p>
 								)}
 								{usernameStatus === 'available' && (
 									<p className='text-xs text-success'>
-										Username is available
+										{t('usernameAvailable')}
 									</p>
 								)}
 								{usernameStatus === 'error' && (
 									<p className='text-xs text-warning'>
-										Couldn&apos;t check availability - try signing up anyway
+										{t('usernameCheckError')}
 									</p>
 								)}
 									<FormMessage />

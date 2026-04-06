@@ -11,7 +11,7 @@ import { uploadRecipeImages, uploadStepVideo } from '@/services/recipe'
 import { formatTimer, getTimerSeconds } from '@/lib/recipeCreateUtils'
 import type { RecipeStep, TimeUnit } from '@/lib/types/recipeCreate'
 
-// â”€â”€ Props â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Props ───────────────────────────────────────────────────────────
 interface StepItemProps {
 	step: RecipeStep
 	index: number
@@ -43,7 +43,7 @@ export const StepItem = ({
 	const [isUploadingImage, setIsUploadingImage] = useState(false)
 	const [isUploadingVideo, setIsUploadingVideo] = useState(false)
 
-	// â”€â”€ Timer editing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Timer editing ───────────────────────────────────────────────
 	const openTimerEditor = () => {
 		const seconds = getTimerSeconds(step)
 		if (seconds !== undefined) {
@@ -102,7 +102,7 @@ export const StepItem = ({
 		else if (e.key === 'Escape') setIsEditingTimer(false)
 	}
 
-	// â”€â”€ Image upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Image upload ────────────────────────────────────────────────
 	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
@@ -143,7 +143,7 @@ export const StepItem = ({
 		}
 	}
 
-	// â”€â”€ Video upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Video upload ────────────────────────────────────────────────
 	const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
@@ -185,7 +185,7 @@ export const StepItem = ({
 
 	const timerSeconds = getTimerSeconds(step)
 
-	// â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Render ──────────────────────────────────────────────────────
 	return (
 		<div className='group flex gap-3.5 rounded-2xl bg-bg p-4'>
 			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-display font-extrabold text-white shadow-card'>
@@ -349,7 +349,7 @@ export const StepItem = ({
 								onClick={handleTimerSave}
 								className='ml-1 rounded bg-brand px-2 py-0.5 text-xs font-semibold text-white'
 							>
-								âœ“
+								✓
 							</button>
 						</div>
 					) : timerSeconds ? (
@@ -383,7 +383,7 @@ export const StepItem = ({
 					)}
 					{step.technique && (
 						<span className='rounded-lg bg-streak/10 px-3 py-1.5 text-xs font-semibold text-streak'>
-							ðŸ”¥ {step.technique}
+							🔥 {step.technique}
 						</span>
 					)}
 				</div>

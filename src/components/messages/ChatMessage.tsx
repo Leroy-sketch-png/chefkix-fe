@@ -17,6 +17,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { TRANSITION_SPRING, scaleIn, ICON_BUTTON_HOVER, ICON_BUTTON_TAP, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
@@ -81,7 +82,7 @@ const getStatusIcon = (status: Message['status']) => {
 			return <Check className='h-3.5 w-3.5 text-text-muted' />
 		case 'delivered':
 		case 'read':
-			// Backend doesn't track read receipts yet â€” show delivered for both
+			// Backend doesn't track read receipts yet — show delivered for both
 			return <CheckCheck className='h-3.5 w-3.5 text-text-muted' />
 	}
 }
@@ -112,9 +113,10 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 		>
 			{QUICK_REACTIONS.map((emoji, i) => (
 				<motion.button
+					type='button'
 					key={emoji}
 					onClick={() => onSelect(emoji)}
-					className='flex size-9 items-center justify-center rounded-full text-lg hover:bg-bg-hover'
+					className='flex size-9 items-center justify-center rounded-full text-lg hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 					initial={{ opacity: 0, scale: 0 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ delay: i * 0.05 }}
@@ -147,6 +149,7 @@ const MessageActions = ({
 	onCopy,
 	onDelete,
 }: MessageActionsProps) => {
+	const t = useTranslations('chat')
 	return (
 		<motion.div
 			initial={{ opacity: 0, scale: 0.9, y: 5 }}
@@ -159,43 +162,47 @@ const MessageActions = ({
 			)}
 		>
 			<motion.button
+				type='button'
 				onClick={onReact}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand'
+				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
-				aria-label='React to message'
+				aria-label={t('ariaReactToMessage')}
 			>
 				<Heart className='size-4' />
 			</motion.button>
 			<motion.button
+				type='button'
 				onClick={onReply}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
-				aria-label='Reply to message'
+				aria-label={t('ariaReplyToMessage')}
 			>
 				<Reply className='size-4' />
 			</motion.button>
 			<motion.button
+				type='button'
 				onClick={onCopy}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
-				aria-label='Copy message'
+				aria-label={t('ariaCopyMessage')}
 			>
 				<Copy className='size-4' />
 			</motion.button>
 			{isOwn && onDelete && (
 				<motion.button
+					type='button'
 					onClick={onDelete}
-					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
+					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					transition={TRANSITION_SPRING}
-					aria-label='Delete message'
+					aria-label={t('ariaDeleteMessage')}
 				>
 					<Trash2 className='size-4' />
 				</motion.button>
@@ -221,6 +228,7 @@ export const ChatMessage = ({
 	const [showActions, setShowActions] = useState(false)
 	const [showReactionPicker, setShowReactionPicker] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const t = useTranslations('messages')
 
 	const handleReact = (emoji: string) => {
 		onReact?.(message.id, emoji)
@@ -252,8 +260,8 @@ export const ChatMessage = ({
 			<ConfirmDialog
 				open={showDeleteConfirm}
 				onOpenChange={setShowDeleteConfirm}
-				title='Delete message?'
-				description='This message will be permanently deleted. This cannot be undone.'
+				title={t('deleteMessage')}
+				description={t('deleteMessageDesc')}
 				confirmLabel='Delete'
 				cancelLabel='Cancel'
 				variant='destructive'
@@ -396,7 +404,7 @@ export const ChatMessage = ({
 														message.isOwn ? 'text-brand' : 'text-text-muted',
 													)}
 												>
-													Tap to view â†’
+													Tap to view →
 												</motion.div>
 											</div>
 										</div>
@@ -434,10 +442,11 @@ export const ChatMessage = ({
 							>
 								{message.reactions.map((reaction, i) => (
 									<motion.button
+										type='button'
 										key={i}
 										onClick={() => onReact?.(message.id, reaction.emoji)}
 										className={cn(
-											'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-card transition-all',
+											'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-card transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											reaction.userReacted
 												? 'bg-brand/10 text-brand ring-2 ring-brand/20'
 												: 'bg-bg-elevated text-text-secondary ring-1 ring-border hover:bg-bg-hover',

@@ -21,6 +21,7 @@ import {
 	BUTTON_TAP,
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 
 // ============================================
@@ -135,7 +136,7 @@ export const PostDeadlineCard = ({
 
 	const stateConfig = {
 		normal: {
-			icon: 'ðŸ“¸',
+			icon: '📸',
 			label: t('unlockYourReward'),
 			borderClass: 'border-border',
 			bgClass: '',
@@ -159,7 +160,7 @@ export const PostDeadlineCard = ({
 			ClockIcon: AlertCircle,
 		},
 		urgent: {
-			icon: 'ðŸš¨',
+			icon: '🚨',
 			label: t('lastChance'),
 			borderClass: 'border-error/40',
 			bgClass: '',
@@ -171,7 +172,7 @@ export const PostDeadlineCard = ({
 			ClockIcon: Timer,
 		},
 		expired: {
-			icon: 'ðŸ˜¢',
+			icon: '😢',
 			label: t('xpExpired'),
 			borderClass: 'border-border',
 			bgClass: 'opacity-70',
@@ -295,11 +296,12 @@ export const PostDeadlineCard = ({
 				{/* Action Button */}
 				{state !== 'expired' ? (
 					<motion.button
+						type='button'
 						onClick={onPost}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className={cn(
-							'flex flex-shrink-0 items-center gap-1.5 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors',
+							'flex flex-shrink-0 items-center gap-1.5 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 							config.buttonClass,
 						)}
 					>
@@ -360,7 +362,7 @@ export const PostDeadlineStack = ({
 				onClick={() => setIsExpanded(!isExpanded)}
 				className='flex w-full items-center gap-2.5 border-b border-border px-4 py-3.5 hover:bg-muted/30'
 			>
-				<span className='text-lg'>ðŸ“¸</span>
+				<span className='text-lg'>📸</span>
 				<span className='flex-1 text-left text-sm font-semibold'>
 					{t('recipesWaiting', { count: pendingPosts.length })}
 				</span>
@@ -383,7 +385,7 @@ export const PostDeadlineStack = ({
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}
-						transition={{ duration: 0.2 }}
+						transition={{ duration: DURATION_S.normal }}
 						className='overflow-hidden'
 					>
 						<div className='space-y-1 p-2'>
@@ -424,11 +426,12 @@ export const PostDeadlineStack = ({
 											+{Math.round(post.pendingXp)} XP
 										</span>
 										<motion.button
+											type='button'
 											onClick={() => onPost?.(post.id)}
 											whileHover={BUTTON_SUBTLE_HOVER}
 											whileTap={BUTTON_SUBTLE_TAP}
 											transition={TRANSITION_SPRING}
-											className='rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white'
+											className='rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{t('postAction')}
 										</motion.button>
@@ -456,12 +459,13 @@ export const PostDeadlineBadge = ({
 	const t = useTranslations('completion')
 	return (
 		<motion.button
+			type='button'
 			onClick={onClick}
 			whileHover={BUTTON_SUBTLE_HOVER}
 			whileTap={BUTTON_SUBTLE_TAP}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3.5 py-2 text-xs hover:bg-brand/15',
+				'inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3.5 py-2 text-xs hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50',
 				className,
 			)}
 		>
@@ -510,16 +514,17 @@ export const PostDeadlineMobileStrip = ({
 			)}
 		>
 			<span className='text-base'>
-				{state === 'urgent' ? 'ðŸš¨' : state === 'warning' ? 'â°' : 'ðŸ“¸'}
+				{state === 'urgent' ? '🚨' : state === 'warning' ? 'â°' : '📸'}
 			</span>
 			<span className='flex-1 truncate text-xs font-medium'>
 				{t('mobileStripText', { recipe: recipeName, time: timeRemaining, xp: Math.round(pendingXp) })}
 			</span>
 			<motion.button
+				type='button'
 				onClick={onPost}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
-				className='rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white'
+				className='rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				{t('postAction')}
 			</motion.button>

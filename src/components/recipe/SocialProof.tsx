@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { ChefHat, MessageSquare, Star, TrendingUp } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -73,7 +74,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 		<motion.div
 			initial={{ opacity: 0, y: 16 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ delay: 0.55, duration: 0.4 }}
+			transition={{ delay: 0.55, duration: DURATION_S.smooth }}
 			className='mb-8 rounded-2xl border border-brand/15 bg-gradient-to-br from-brand/5 via-transparent to-success/5 p-5 shadow-card'
 		>
 			{/* Header */}

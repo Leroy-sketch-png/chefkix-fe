@@ -137,7 +137,8 @@ const SinglePendingPost = ({
 				</div>
 				{onDismiss && (
 					<motion.button
-						className='p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
+						type='button'
+						className='p-2 rounded-full bg-muted/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={onDismiss}
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
@@ -178,8 +179,9 @@ const SinglePendingPost = ({
 				</div>
 
 				<motion.button
+					type='button'
 					className={cn(
-						'flex items-center gap-2 px-5 py-3 rounded-xl',
+						'flex items-center gap-2 px-5 py-3 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
 						'bg-brand text-white font-semibold',
 						'shadow-lg shadow-primary/30',
 					)}
@@ -246,7 +248,8 @@ const MultiplePendingPosts = ({
 					</span>
 				</div>
 				<motion.button
-					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-lg text-sm font-semibold'
+					type='button'
+					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
@@ -296,8 +299,9 @@ const MultiplePendingPosts = ({
 							+<AnimatedNumber value={session.currentXP} />
 						</span>
 						<motion.button
+							type='button'
 							className={cn(
-								'px-3 py-1.5 rounded-lg text-sm font-semibold',
+								'px-3 py-1.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 								session.status === 'urgent'
 									? 'bg-error text-white'
 									: 'bg-brand text-white',
@@ -377,7 +381,8 @@ const ManyPendingPosts = ({
 				</span>
 
 				<motion.button
-					className='flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold'
+					type='button'
+					className='flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
@@ -507,7 +512,8 @@ export const PendingExpandedModal = ({
 									{t('pdRecipesXpAvailable', { count: pendingSessions.length, xp: totalXP })}
 								</span>
 								<motion.button
-									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
+									type='button'
+									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 									onClick={onClose}
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
@@ -620,8 +626,9 @@ export const PendingExpandedModal = ({
 													)}
 											</div>
 											<motion.button
+												type='button'
 												className={cn(
-													'px-4 py-2.5 rounded-xl text-sm font-semibold',
+													'px-4 py-2.5 rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 													session.status === 'urgent'
 														? 'bg-error text-white'
 														: 'bg-brand text-white',
@@ -644,7 +651,8 @@ export const PendingExpandedModal = ({
 									{t('pdTipFooter')}
 								</p>
 								<motion.button
-									className='w-full py-3 bg-brand text-white rounded-xl font-semibold'
+									type='button'
+									className='w-full py-3 bg-brand text-white rounded-xl font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 									onClick={onClose}
 									whileHover={CARD_FEATURED_HOVER}
 									whileTap={BUTTON_TAP}

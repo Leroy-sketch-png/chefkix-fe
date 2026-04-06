@@ -56,10 +56,11 @@ export function VoiceModeButton({
 
 	return (
 		<motion.button
+			type='button'
 			onClick={handleClick}
 			whileTap={ICON_BUTTON_TAP}
 			className={cn(
-				'relative flex size-10 items-center justify-center rounded-full transition-colors',
+				'relative flex size-10 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 				voice.isListening
 					? voice.isContinuous
 						? 'bg-success text-white shadow-glow'

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Clock, Users, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatCompactTimeRemaining } from '@/lib/challenge-time'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -12,6 +13,7 @@ import {
 	CARD_FEED_HOVER,
 	STAT_ITEM_HOVER,
 	LIST_ITEM_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 
@@ -45,48 +47,29 @@ interface ChallengeCardProps {
 // HELPER FUNCTIONS
 // ============================================
 
-const formatTimeRemaining = (date: Date): string => {
-	const now = new Date()
-	const diffMs = date.getTime() - now.getTime()
 
-	if (diffMs <= 0) return 'Expired'
-
-	const hours = Math.floor(diffMs / 3600000)
-	const mins = Math.floor((diffMs % 3600000) / 60000)
-
-	if (hours >= 24) {
-		const days = Math.floor(hours / 24)
-		return `${days}d`
-	}
-
-	return `${hours}h ${mins}m`
-}
 
 const typeConfig: Record<
 	ChallengeType,
-	{ gradient: string; label: string; labelColor: string; labelKey: string }
+	{ gradient: string; labelColor: string; labelKey: string }
 > = {
 	daily: {
 		gradient: 'from-xp via-accent-teal to-info',
-		label: '\uD83C\uDFAF Daily Challenge',
 		labelColor: 'text-xp',
 		labelKey: 'dailyChallenge',
 	},
 	weekly: {
 		gradient: 'from-rare via-accent-purple to-brand',
-		label: '\uD83D\uDCC5 Weekly Challenge',
 		labelColor: 'text-rare',
 		labelKey: 'weeklyChallenge',
 	},
 	community: {
 		gradient: 'from-combo via-brand to-brand',
-		label: '\uD83D\uDC65 Community Challenge',
 		labelColor: 'text-combo',
 		labelKey: 'communityChallenge',
 	},
 	seasonal: {
 		gradient: 'from-legendary via-warning to-bonus',
-		label: '\uD83C\uDF1F Seasonal Event',
 		labelColor: 'text-legendary',
 		labelKey: 'seasonalEvent',
 	},
@@ -174,7 +157,7 @@ export const ChallengeCard = ({
 								className='h-full rounded-full bg-white'
 								initial={{ width: 0 }}
 								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: 0.5, delay: 0.2 }}
+								transition={{ duration: DURATION_S.slow, delay: 0.2 }}
 							/>
 						</div>
 					</div>
@@ -184,22 +167,22 @@ export const ChallengeCard = ({
 				<div className='mb-4 flex items-center gap-4 text-xs'>
 					{/* Bonus XP */}
 					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-card shadow-bonus/20'>
-						<span>âš¡</span>
-						<span className='font-bold text-bonus'>+<AnimatedNumber value={bonusXp} /> XP</span>
+						<span>⚡</span>
+						<span className='font-bold tabular-nums text-bonus'>+<AnimatedNumber value={bonusXp} /> XP</span>
 					</div>
 
 					{/* Time Remaining */}
 					{endsAt && (
 						<div className='flex items-center gap-1 opacity-80'>
-							<Clock className='h-3.5 w-3.5' />
-							<span>{formatTimeRemaining(endsAt)}</span>
+							<Clock className='size-3.5' />
+							<span>{formatCompactTimeRemaining(endsAt, t)}</span>
 						</div>
 					)}
 
 					{/* Participants */}
 					{participants !== undefined && (
 						<div className='flex items-center gap-1 opacity-80'>
-							<Users className='h-3.5 w-3.5' />
+							<Users className='size-3.5' />
 							<span>
 								{participants >= 1000
 									? `${(participants / 1000).toFixed(1)}k`
@@ -213,14 +196,15 @@ export const ChallengeCard = ({
 				{isCompleted ? (
 					<div className='flex items-center justify-center gap-2 rounded-full bg-white/20 py-2.5 text-sm font-bold'>
 						<Trophy className='size-4' />
-						Completed!
+							{t('completed')}
 					</div>
 				) : isExpired ? (
 					<div className='flex items-center justify-center rounded-full bg-white/10 py-2.5 text-sm font-semibold opacity-60'>
-						Expired
+						{t('expired')}
 					</div>
 				) : (
 					<motion.button
+						type='button'
 						onClick={e => {
 							e.stopPropagation()
 							onJoin?.()
@@ -228,7 +212,7 @@ export const ChallengeCard = ({
 						whileHover={STAT_ITEM_HOVER}
 						whileTap={LIST_ITEM_TAP}
 						className={cn(
-							'w-full rounded-full py-2.5 text-sm font-bold transition-all',
+							'w-full rounded-full py-2.5 text-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 							isJoined
 								? 'bg-white/20 text-white'
 								: 'bg-bg-card text-info hover:bg-bg-card/90',
@@ -243,7 +227,7 @@ export const ChallengeCard = ({
 			{isCompleted && (
 				<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
 					<div className='rounded-full bg-success px-4 py-2 text-sm font-bold shadow-lg'>
-						âœ“ Completed
+						✓ {t('completedOverlay')}
 					</div>
 				</div>
 			)}

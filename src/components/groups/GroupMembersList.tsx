@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { motion } from 'framer-motion'
 import { MoreVertical, Crown, Shield, Loader2, UserMinus } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useState, useCallback } from 'react'
 import { kickMember } from '@/services/group'
 import { toast } from 'sonner'
@@ -60,7 +61,7 @@ export const GroupMembersList = ({
 				setKickingUserId(null)
 			}
 		},
-		[groupId, onMemberRemoved],
+		[groupId, onMemberRemoved, t],
 	)
 
 	const getRoleIcon = (role: MemberRole) => {
@@ -88,8 +89,19 @@ export const GroupMembersList = ({
 
 	if (isLoading) {
 		return (
-			<div className='flex justify-center py-8'>
-				<Loader2 className='size-6 animate-spin text-brand' />
+			<div className='space-y-2'>
+				{Array.from({ length: 5 }).map((_, i) => (
+					<div key={i} className='bg-bg-card rounded-lg p-4 border border-border flex items-center justify-between'>
+						<div className='flex items-center gap-3'>
+							<Skeleton className='size-10 rounded-full' />
+							<div className='space-y-1.5'>
+								<Skeleton className='h-4 w-28' />
+								<Skeleton className='h-3 w-20' />
+							</div>
+						</div>
+						<Skeleton className='size-8 rounded-md' />
+					</div>
+				))}
 			</div>
 		)
 	}

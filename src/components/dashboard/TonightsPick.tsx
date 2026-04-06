@@ -20,7 +20,7 @@ interface TonightsPickProps {
 }
 
 /**
- * "Tonight's Pick" hero card â€” personalized daily recipe recommendation.
+ * "Tonight's Pick" hero card — personalized daily recipe recommendation.
  *
  * BE uses 5-signal scoring (RecipeService.scoreTonightsPick):
  * - Taste match (0.30): user preferences + cuisine history
@@ -35,7 +35,7 @@ interface TonightsPickProps {
  * - matchSignals: string[] (all matching signals)
  * - confidenceScore: number (0-1)
  *
- * Degrades gracefully: unauthenticated â†’ trending + seasonal + quality only.
+ * Degrades gracefully: unauthenticated → trending + seasonal + quality only.
  */
 export const TonightsPick = ({ className }: TonightsPickProps) => {
 	const t = useTranslations('dashboard')
@@ -213,7 +213,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 							{totalTime > 0 && (
 								<span className='flex items-center gap-1'>
 									<Clock className='size-3.5' />
-									{totalTime} min
+									{t('tpMin', { count: totalTime })}
 								</span>
 							)}
 							<span className='flex items-center gap-1'>

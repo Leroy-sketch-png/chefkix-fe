@@ -12,6 +12,7 @@ import {
 	TRANSITION_BOUNCY,
 	CELEBRATION_MODAL,
 	XP_COUNTER_VARIANTS,
+	DURATION_S,
 } from '@/lib/motion'
 
 // ============================================
@@ -140,7 +141,7 @@ const ProgressBar = ({
 		<motion.div
 			initial={{ width: 0 }}
 			animate={{ width: `${fillPercent}%` }}
-			transition={{ duration: 0.5 }}
+			transition={{ duration: DURATION_S.slow }}
 			className={cn('absolute inset-y-0 left-0 rounded-full', color)}
 		/>
 		{/* Gained section highlight */}
@@ -211,7 +212,7 @@ export const PostSuccessRewards = ({
 							<button
 								type='button'
 								onClick={onClose}
-								aria-label='Close'
+								aria-label={t('ariaClose')}
 								className='absolute right-4 top-4 z-10 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
 								<X className='size-5' />

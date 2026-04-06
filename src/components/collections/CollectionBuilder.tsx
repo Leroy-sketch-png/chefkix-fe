@@ -129,7 +129,7 @@ export function CollectionBuilder({
 		setNewStageDifficulty('Beginner')
 		setShowAddStage(false)
 		toast.success(t('builderStageAdded'))
-	}, [newStageName, newStageDifficulty, stages])
+	}, [newStageName, newStageDifficulty, stages, t])
 
 	const handleRemoveStage = useCallback((stageIndex: number) => {
 		setStages(prev => {
@@ -406,9 +406,9 @@ export function CollectionBuilder({
 	)
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 // StageItem Sub-component
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface StageItemProps {
 	stage: DifficultyStep

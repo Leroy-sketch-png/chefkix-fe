@@ -176,7 +176,7 @@ export function LeaderboardItem({
 				)}
 				{isLeading && (
 					<span className='rounded-lg bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-card shadow-medal-gold/30'>
-						ðŸ”¥ Leading!
+						🔥 Leading!
 					</span>
 				)}
 			</div>
@@ -254,7 +254,7 @@ export function LeaderboardItemSkeleton({ className }: { className?: string }) {
 export function ListDivider({ className }: { className?: string }) {
 	return (
 		<div className={cn('py-3 text-center text-xs text-text-muted', className)}>
-			<span>â€¢ â€¢ â€¢</span>
+			<span>• • •</span>
 		</div>
 	)
 }

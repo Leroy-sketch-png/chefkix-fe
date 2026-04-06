@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { useUserOnlineStatus } from '@/hooks/useUserOnlineStatus'
 import { useAuth } from '@/hooks/useAuth'
+import { useTranslations } from 'next-intl'
 
 interface UserAvatarProps extends React.ComponentProps<typeof Avatar> {
 	user?: {
@@ -30,6 +31,7 @@ export function UserAvatar({
 	...props
 }: UserAvatarProps) {
 	const { user: currentUser } = useAuth()
+	const t = useTranslations('common')
 	const activeUserId = userId || user?.id
 
 	// Don't fetch presence for current user (they're always "online" to themselves)
@@ -61,7 +63,7 @@ export function UserAvatar({
 						size === 'xl' && 'size-4',
 						size === '2xl' && 'size-5',
 					)}
-					title="Online"
+					title={t('online')}
 				/>
 			)}
 		</div>

@@ -65,7 +65,7 @@ export const SaveToCollectionPicker = ({
 			}
 		}
 		fetch()
-	}, [isOpen])
+	}, [isOpen, t])
 
 	// Focus input when create mode is shown
 	useEffect(() => {

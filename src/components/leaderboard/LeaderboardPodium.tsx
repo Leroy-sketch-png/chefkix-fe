@@ -169,7 +169,7 @@ function PodiumSpot({
 					animate={CROWN_BOUNCE.animate}
 					className='text-icon-lg mb-0.5'
 				>
-					ðŸ‘‘
+					👑
 				</motion.div>
 			)}
 
@@ -228,7 +228,7 @@ function PodiumSpot({
 
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
-				<span className='text-lg font-display font-extrabold text-text'>
+				<span className='text-lg font-display font-extrabold tabular-nums text-text'>
 					<AnimatedNumber value={entry.xp} format={n => n.toLocaleString()} duration={1} />
 				</span>
 				<span className='text-xs text-text-tertiary'>XP</span>

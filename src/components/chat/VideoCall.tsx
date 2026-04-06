@@ -357,7 +357,7 @@ export default function VideoCall({
 			}
 		} catch (error) {
 			logDevError('Failed to process answer', error)
-			toast.error('Failed to establish connection.')
+			toast.error(t('toastEstablishFailed'))
 		}
 	}
 
@@ -460,18 +460,20 @@ export default function VideoCall({
 					</h2>
 					<div className='flex gap-6'>
 						<motion.button
+							type='button'
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
 							onClick={rejectCall}
-							className='px-6 py-3 bg-error text-white rounded-full font-medium shadow-lg'
+							className='px-6 py-3 bg-error text-white rounded-full font-medium shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							Decline
 						</motion.button>
 						<motion.button
+							type='button'
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
 							onClick={acceptCall}
-							className='px-6 py-3 bg-success text-white rounded-full font-medium shadow-lg flex items-center gap-2'
+							className='px-6 py-3 bg-success text-white rounded-full font-medium shadow-lg flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<svg
 								xmlns='http://www.w3.org/2000/svg'
@@ -533,39 +535,43 @@ export default function VideoCall({
 			{/* Control Buttons */}
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
 				<motion.button
+					type='button'
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
 					onClick={() => startMedia()}
-					className='px-4 py-2 bg-brand text-white rounded-lg'
+					className='px-4 py-2 bg-brand text-white rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{isCameraOn ? t('cameraOn') + ' ✅' : '1. ' + t('turnOnCamera')}
 				</motion.button>
 
 				<motion.button
+					type='button'
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
 					onClick={toggleVideo}
-					className='px-4 py-2 bg-warning text-white rounded-lg'
+					className='px-4 py-2 bg-warning text-white rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{isCameraOn ? t('turnOffCamera') : t('turnOnCamera')}
 				</motion.button>
 
 				<motion.button
+					type='button'
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
 					onClick={toggleAudio}
-					className='px-4 py-2 bg-bg-elevated text-text border border-border-subtle rounded-lg'
+					className='px-4 py-2 bg-bg-elevated text-text border border-border-subtle rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{isMicOn ? t('muteMic') : t('unmuteMic')}
 				</motion.button>
 
 				{!isCallActive && (
 					<motion.button
+						type='button'
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						onClick={makeCall}
 						disabled={!isCameraOn || !isJoined}
-						className={`px-4 py-2 text-white rounded-md transition-colors ${
+						className={`px-4 py-2 text-white rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 							!isCameraOn || !isJoined
 								? 'bg-bg-elevated text-text-muted cursor-not-allowed opacity-50'
 								: 'bg-success hover:opacity-90'
@@ -576,10 +582,11 @@ export default function VideoCall({
 				)}
 
 				<motion.button
+					type='button'
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
 					onClick={endCall}
-					className='px-4 py-2 bg-error text-white rounded-lg'
+					className='px-4 py-2 bg-error text-white rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					End Call
 				</motion.button>

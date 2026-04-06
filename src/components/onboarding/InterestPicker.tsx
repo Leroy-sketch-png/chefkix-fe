@@ -335,7 +335,7 @@ export function InterestPicker({
 										transition={{ delay: 0.03 * i }}
 										onClick={() => toggleInterest(tile.id)}
 										className={cn(
-											'group relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all',
+											'group relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											isSelected
 												? 'border-brand shadow-card shadow-brand/20'
 												: 'border-transparent hover:border-border-medium',

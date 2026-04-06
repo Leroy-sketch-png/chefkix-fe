@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { createPost } from '@/services/post'
 import { Post } from '@/lib/types'
-import { POST_MESSAGES } from '@/constants/messages'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Image as ImageIcon, Video, X, Tag, Send } from 'lucide-react'
 import Image from 'next/image'
@@ -102,7 +101,7 @@ export const CreatePostForm = ({
 		if (isSubmitting) return
 
 		if (!content.trim()) {
-			toast.error(POST_MESSAGES.CREATE_EMPTY)
+			toast.error(t('toastCreateEmpty'))
 			return
 		}
 
@@ -200,7 +199,7 @@ export const CreatePostForm = ({
 				},
 				true,
 			)
-			toast.success(POST_MESSAGES.CREATE_SUCCESS)
+			toast.success(t('toastCreateSuccess'))
 			triggerSuccessConfetti()
 			setContent('')
 			setVideoUrl('')
@@ -359,7 +358,7 @@ export const CreatePostForm = ({
 										type='text'
 										value={tags}
 										onChange={e => setTags(e.target.value)}
-										placeholder='baking, bread, sourdough'
+										placeholder={t('tagsPlaceholder')}
 										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
 									/>
 								</div>

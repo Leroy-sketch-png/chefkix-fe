@@ -22,7 +22,7 @@ interface FriendsCookingNowProps {
 /**
  * "Friends Cooking Now" widget for the dashboard.
  * Shows active rooms where followed users are currently cooking.
- * Per spec: 24-advanced-multiplayer.txt Â§5
+ * Per spec: 24-advanced-multiplayer.txt §5
  */
 export function FriendsCookingNow({
 	className,
@@ -50,7 +50,7 @@ export function FriendsCookingNow({
 				setSoloFriends(soloRes.data.friends.filter(f => !f.roomCode))
 			}
 		} catch {
-			// Silently fail â€” this is a non-critical widget
+			// Silently fail — this is a non-critical widget
 		} finally {
 			setIsLoading(false)
 		}
@@ -70,7 +70,7 @@ export function FriendsCookingNow({
 	if (!isLoading && totalActive === 0) return null
 
 	// Loading skeleton
-	if (isLoading) return null // Don't show skeleton for this widget â€” it appears asynchronously
+	if (isLoading) return null // Don't show skeleton for this widget — it appears asynchronously
 
 	return (
 		<motion.div
@@ -119,7 +119,7 @@ export function FriendsCookingNow({
 								</p>
 								<p className='text-2xs text-text-muted'>
 									Started {formatMinutesAgo(room.startedMinutesAgo)} ago
-									{' Â· '}
+									{' · '}
 									<Users className='mb-0.5 inline size-3' />{' '}
 									{room.participantCount}
 								</p>
@@ -217,7 +217,7 @@ export function FriendsCookingNow({
 	)
 }
 
-// â”€â”€ Helpers â”€â”€
+// ── Helpers ──
 
 function formatParticipantNames(names: string[]): string {
 	if (names.length <= 2) return names.join(' & ')

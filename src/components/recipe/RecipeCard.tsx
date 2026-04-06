@@ -10,7 +10,6 @@ import { useState, memo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
-import { RECIPE_MESSAGES } from '@/constants/messages'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
@@ -67,7 +66,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikeCount(previousCount)
-			toast.error(RECIPE_MESSAGES.LIKE_FAILED)
+			toast.error(t('toastFailedLike'))
 			logDevError('RecipeCard like toggle failed:', error)
 		} finally {
 			setIsLikeLoading(false)
@@ -114,7 +113,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			// Revert on error
 			setIsSaved(previousSaved)
 			setSaveCount(previousCount)
-			toast.error(RECIPE_MESSAGES.SAVE_FAILED)
+			toast.error(t('toastFailedSave'))
 			logDevError('RecipeCard save toggle failed:', error)
 		} finally {
 			setIsSaveLoading(false)
@@ -130,7 +129,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			layout
 		>
 			<motion.div
-				whileHover={{ ...CARD_GRID_HOVER, scale: 1.02 }}
+							whileHover={CARD_GRID_HOVER}
 				transition={TRANSITION_SPRING}
 			>
 				<Link

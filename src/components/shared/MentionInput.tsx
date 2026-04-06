@@ -18,6 +18,7 @@ import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Loader2, AtSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 
 export interface MentionInputProps {
@@ -384,7 +385,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 								initial={{ opacity: 0, y: 4 }}
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 4 }}
-								transition={{ duration: 0.15 }}
+								transition={{ duration: DURATION_S.fast }}
 								className='fixed z-dropdown overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
 								style={{
 									bottom: `calc(100vh - ${dropdownPosition.top}px + 4px)`,
@@ -399,7 +400,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 									</div>
 								) : filteredSuggestions.length === 0 ? (
 									<div className='p-3 text-center text-sm text-text-muted'>
-										No users found
+										{t('miNoUsersFound')}
 									</div>
 								) : (
 									<ul className='max-h-48 overflow-y-auto py-1'>

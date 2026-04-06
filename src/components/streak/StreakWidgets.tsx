@@ -21,6 +21,7 @@ import {
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
 	STREAK_FLAME,
+	DURATION_S,
 } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 
@@ -97,7 +98,7 @@ export function StreakRiskBanner({
 						animate={isUrgent ? { x: [-3, 3, -3], transition: { duration: 0.3, repeat: Infinity, ease: 'easeInOut' as const } } : STREAK_FLAME.animate}
 						className='text-icon-xl block'
 					>
-						ðŸ”¥
+						🔥
 					</motion.span>
 					<div
 						className={cn(
@@ -144,12 +145,13 @@ export function StreakRiskBanner({
 
 			{/* CTA Button */}
 			<motion.button
+				type='button'
 				whileHover={BUTTON_HOVER}
 				whileTap={BUTTON_TAP}
 				transition={TRANSITION_SPRING}
 				onClick={onQuickCook}
 				className={cn(
-					'flex items-center justify-center gap-2 py-3 px-5 rounded-xl',
+					'flex items-center justify-center gap-2 py-3 px-5 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
 					'text-sm font-bold text-white flex-shrink-0 w-full sm:w-auto',
 					isUrgent
 						? 'bg-gradient-to-r from-streak-urgent to-streak-urgent/90 shadow-lg shadow-streak-urgent/30'
@@ -215,13 +217,13 @@ export function StreakSavedToast({
 								transition={{ delay: 0.1, ...TRANSITION_SPRING }}
 								className='text-4xl block'
 							>
-								{isNewStreak ? 'ðŸŒ±' : 'ðŸ”¥'}
+								{isNewStreak ? '🌱' : '🔥'}
 							</motion.span>
 							{!isNewStreak && (
 								<motion.div
 									initial={{ scale: 0.5, opacity: 1 }}
 									animate={{ scale: 2, opacity: 0 }}
-									transition={{ duration: 0.8 }}
+									transition={{ duration: DURATION_S.verySlow }}
 									className='absolute -inset-2.5 bg-streak/30 rounded-full'
 								/>
 							)}
@@ -310,7 +312,7 @@ export function StreakMilestoneCard({
 
 				{/* Badge Reward */}
 				<div className='flex items-center gap-2.5 p-2.5 bg-bg-card rounded-xl mb-2.5 justify-center sm:justify-start'>
-					<span className='text-2xl'>ðŸŽ–ï¸</span>
+					<span className='text-2xl'>🎖ï¸</span>
 					<div className='flex flex-col'>
 						<span className='text-sm font-bold text-text'>{badgeName}</span>
 						<span className='text-xs text-text-secondary'>
@@ -333,11 +335,12 @@ export function StreakMilestoneCard({
 			{/* Share Button */}
 			{onShare && (
 				<motion.button
+					type='button'
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					transition={TRANSITION_SPRING}
 					onClick={onShare}
-					className='flex items-center gap-1.5 py-2.5 px-4 bg-bg-card border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0'
+					className='flex items-center gap-1.5 py-2.5 px-4 bg-bg-card border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Share2 className='size-4' />
 					Share
@@ -372,7 +375,7 @@ export function StreakMilestoneMini({
 			)}
 		>
 			<span className='py-1.5 px-2.5 bg-gradient-to-r from-streak to-streak/90 rounded-lg text-sm font-display font-extrabold text-white'>
-				ðŸ”¥ {days}
+				🔥 {days}
 			</span>
 			<span className='flex-1 text-sm font-semibold text-text'>
 				{t('smiOnFire', { count: days })}
@@ -428,7 +431,7 @@ export function StreakWidget({
 
 			{/* Streak Display */}
 			<div className='flex items-baseline justify-center gap-2 mb-5'>
-				<motion.span animate={STREAK_FLAME.animate} className='text-4xl'>ðŸ"¥</motion.span>
+				<motion.span animate={STREAK_FLAME.animate} className='text-4xl'>🔥</motion.span>
 				<span className='text-5xl font-black text-streak leading-none'>
 					{currentStreak}
 				</span>

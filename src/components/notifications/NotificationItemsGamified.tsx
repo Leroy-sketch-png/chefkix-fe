@@ -6,7 +6,7 @@ import { Upload, Clock, AlertTriangle, ChefHat, Search, Sun, Apple } from 'lucid
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, LIST_ITEM_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, LIST_ITEM_HOVER, DURATION_S } from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -247,7 +247,7 @@ const MetaTag = ({
 }) => (
 	<span
 		className={cn(
-			'rounded-full px-2.5 py-0.5 text-xs font-semibold',
+			'rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums',
 			className,
 		)}
 	>
@@ -265,11 +265,12 @@ const ActionButton = ({
 	className?: string
 }) => (
 	<motion.button
+		type='button'
 		onClick={onClick}
 		whileHover={BUTTON_HOVER}
 		whileTap={BUTTON_TAP}
 		className={cn(
-			'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
+			'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 			className,
 		)}
 	>
@@ -295,7 +296,7 @@ const XPAwardedItem = ({
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-accent-teal'>
-			<span className='relative z-10 text-2xl'>âš¡</span>
+			<span className='relative z-10 text-2xl'>⚡</span>
 			<div className='absolute -inset-1 rounded-full border-2 border-xp/30' />
 		</div>
 
@@ -340,7 +341,7 @@ const XPAwardedFullItem = ({
 	<NotifWrapper isRead={isRead}>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
-			<span className='relative z-10 text-2xl'>âœ¨</span>
+			<span className='relative z-10 text-2xl'>✨</span>
 			<motion.div
 				className='absolute -inset-1 rounded-full border-2 border-bonus/30'
 				animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
@@ -386,7 +387,7 @@ const LevelUpItem = ({
 	>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
-			<span className='absolute -right-2 -top-2 z-10 text-lg'>ðŸŽ‰</span>
+			<span className='absolute -right-2 -top-2 z-10 text-lg'>🎉</span>
 			<span className='text-lg font-display font-extrabold text-white drop-shadow-sm'>
 				{newLevel ?? '?'}
 			</span>
@@ -514,7 +515,7 @@ const BadgeSurpriseItem = ({
 				className='absolute -inset-2.5 rounded-full bg-rare/30 blur-md'
 				initial={{ scale: 0.5, opacity: 1 }}
 				animate={{ scale: 1.5, opacity: 0 }}
-				transition={{ duration: 1 }}
+				transition={{ duration: DURATION_S.dramatic }}
 			/>
 		</div>
 
@@ -696,12 +697,13 @@ const PostDeadlineUrgentItem = ({
 
 		{/* Action */}
 		<motion.button
+			type='button'
 			onClick={onPostNow}
 			whileHover={BUTTON_HOVER}
 			whileTap={BUTTON_TAP}
 			animate={{ scale: [1, 1.02, 1] }}
 			transition={{ duration: 1, repeat: Infinity }}
-			className='flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white'
+			className='flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 		>
 			{t('postNowUrgent')}
 		</motion.button>
@@ -725,7 +727,7 @@ const StreakWarningItem = ({
 	>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-streak to-streak/90'>
-			<span className='relative z-10 text-2xl'>ðŸ”¥</span>
+			<span className='relative z-10 text-2xl'>🔥</span>
 			<motion.div
 				className='absolute -inset-1.5 rounded-full bg-streak/30 blur-sm'
 				animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
@@ -776,7 +778,7 @@ const StreakLostItem = ({
 	<NotifWrapper isRead={isRead} className='opacity-80'>
 		{/* Icon */}
 		<div className='flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
-			<span className='text-2xl'>ðŸ˜¢</span>
+			<span className='text-2xl'>😢</span>
 		</div>
 
 		{/* Content */}
@@ -825,7 +827,7 @@ const ChallengeReminderItem = ({
 	<NotifWrapper isRead={isRead} className='bg-xp/10'>
 		{/* Icon */}
 		<div className='relative flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-rare'>
-			<span className='relative z-10 text-2xl'>ðŸŽ¯</span>
+			<span className='relative z-10 text-2xl'>🎯</span>
 			<motion.div
 				className='absolute -inset-1 rounded-full border-2 border-dashed border-xp/40'
 				animate={{ rotate: 360 }}

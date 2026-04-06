@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Wifi, WifiOff } from 'lucide-react'
 import { installOfflineInterceptor } from '@/lib/offline/offlineInterceptor'
 import { syncQueuedRequests, hasPendingSync } from '@/lib/offline/syncService'
+import { useTranslations } from '@/i18n/hooks'
 
 /**
  * NetworkStatusProvider - Monitors network connectivity and shows toasts
@@ -19,6 +20,7 @@ import { syncQueuedRequests, hasPendingSync } from '@/lib/offline/syncService'
  * Place this component once in your app layout (e.g., in providers).
  */
 export const NetworkStatusProvider = () => {
+	const t = useTranslations('common')
 	const wasOffline = useRef(false)
 	const toastId = useRef<string | number | undefined>(undefined)
 	const interceptorInstalled = useRef(false)
@@ -40,8 +42,8 @@ export const NetworkStatusProvider = () => {
 				toastId.current = undefined
 			}
 
-			toast.success("You're back online!", {
-				description: 'Your connection has been restored.',
+			toast.success(t('toastBackOnline'), {
+				description: t('toastConnectionRestored'),
 				icon: <Wifi className='size-5 text-success' />,
 				duration: 3000,
 			})
@@ -50,11 +52,11 @@ export const NetworkStatusProvider = () => {
 			try {
 				const hasQueued = await hasPendingSync()
 				if (hasQueued) {
-					toast.loading('Syncing offline actions...', { id: 'offline-sync' })
+					toast.loading(t('toastSyncingOffline'), { id: 'offline-sync' })
 					const result = await syncQueuedRequests()
 					if (result.success > 0) {
 						toast.success(
-							`Synced ${result.success} action${result.success !== 1 ? 's' : ''} successfully`,
+							t('toastSyncedActions', { count: result.success }),
 							{ id: 'offline-sync', duration: 3000 },
 						)
 					} else {
@@ -66,17 +68,17 @@ export const NetworkStatusProvider = () => {
 			}
 		}
 		wasOffline.current = false
-	}, [])
+	}, [t])
 
 	const handleOffline = useCallback(() => {
 		wasOffline.current = true
-		toastId.current = toast.warning("You're offline", {
-			description: 'Some features may be unavailable until you reconnect.',
+		toastId.current = toast.warning(t('toastOffline'), {
+			description: t('toastOfflineDesc'),
 			icon: <WifiOff className='size-5 text-warning' />,
 			duration: Infinity, // Keep showing until we're back online
 			id: 'network-offline', // Prevent duplicates
 		})
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		// Check initial state

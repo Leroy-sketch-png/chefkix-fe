@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, ChevronRight, Trophy, X } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, DURATION_S } from '@/lib/motion'
 import {
 	getSeasonalChallenges,
 	SeasonalChallenge,
@@ -54,6 +55,7 @@ interface SeasonalBannerProps {
 }
 
 export function SeasonalBanner({ className }: SeasonalBannerProps) {
+	const t = useTranslations('common')
 	const [challenge, setChallenge] = useState<SeasonalChallenge | null>(null)
 	const [dismissed, setDismissed] = useState(false)
 
@@ -111,7 +113,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 				type='button'
 				onClick={handleDismiss}
 				className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-				aria-label='Dismiss seasonal banner'
+				aria-label={t('ariaDismissSeasonalBanner')}
 			>
 				<X className='size-4' />
 			</button>
@@ -157,7 +159,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 								<motion.div
 									initial={{ width: 0 }}
 									animate={{ width: `${progressPercent}%` }}
-									transition={{ duration: 0.8, ease: 'easeOut' }}
+									transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 									className='h-full rounded-full bg-gradient-brand'
 								/>
 							</div>

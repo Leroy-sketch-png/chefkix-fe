@@ -79,12 +79,12 @@ export const UserHoverCard = ({
 			followLockRef.current = false
 			setIsFollowLoading(false)
 		}
-	}, [userId, profile, requireAuth])
+	}, [userId, profile, requireAuth, t])
 
 	const handleSendMessage = useCallback(() => {
 		if (!requireAuth(t('hoverCardMessageGate'))) return
 		router.push(`/messages?userId=${userId}`)
-	}, [router, userId, requireAuth])
+	}, [router, userId, requireAuth, t])
 
 	const isOwnProfile = userId === currentUserId
 	const displayName = getProfileDisplayName(profile)

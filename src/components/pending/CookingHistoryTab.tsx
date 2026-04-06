@@ -216,7 +216,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
 						<span>{t('cookedAgo', { time: getTimeSinceCook(session.cookedAt, t) })}</span>
-						<span className='opacity-50'>â€¢</span>
+						<span className='opacity-50'>•</span>
 						<span>{t('sessionDuration', { duration: formatDuration(session.duration) })}</span>
 					</span>
 
@@ -229,7 +229,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 									className='h-full bg-gradient-to-r from-error to-warning rounded-full'
 									initial={{ width: 0 }}
 									animate={{ width: `${decayPercent}%` }}
-									transition={{ duration: 0.5 }}
+									transition={{ duration: DURATION_S.slow }}
 								/>
 							</div>
 							<span className='text-xs text-error font-semibold'>
@@ -254,8 +254,9 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 
 				{/* Post Button */}
 				<motion.button
+					type='button'
 					className={cn(
-						'px-5 py-2.5 rounded-xl font-semibold text-sm',
+						'px-5 py-2.5 rounded-xl font-semibold text-sm focus-visible:ring-2 focus-visible:ring-brand/50',
 						isUrgent
 							? 'bg-error text-white shadow-lg shadow-error/30'
 							: 'bg-brand text-white shadow-lg shadow-primary/30',
@@ -340,11 +341,11 @@ const CompletedItem = ({
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
 						<span>{getTimeSinceCook(session.cookedAt, t)}</span>
-						<span className='opacity-50'>â€¢</span>
+						<span className='opacity-50'>•</span>
 						<span>{formatDuration(session.duration)}</span>
 						{session.rating && (
 							<>
-								<span className='opacity-50'>â€¢</span>
+								<span className='opacity-50'>•</span>
 								<span className='flex items-center gap-1'>
 									<Star className='size-3 fill-warning text-warning' />
 									{session.rating.toFixed(1)}
@@ -372,7 +373,8 @@ const CompletedItem = ({
 				{/* View Post Button */}
 				{session.postId && onViewPost && (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover'
+						type='button'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onViewPost(session.postId!)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -386,7 +388,8 @@ const CompletedItem = ({
 				{/* Cook Again Button */}
 				{onCookAgain && session.recipeId && (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-brand/10 border border-brand/30 rounded-xl text-sm font-semibold text-brand hover:bg-brand/20'
+						type='button'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-brand/10 border border-brand/30 rounded-xl text-sm font-semibold text-brand hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onCookAgain(session.recipeId!)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -438,7 +441,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						<span className='text-text-secondary'>
 							{getTimeSinceCook(session.cookedAt, t)}
 						</span>
-						<span className='opacity-50'>â€¢</span>
+						<span className='opacity-50'>•</span>
 						<span
 							className={cn(
 								'font-semibold',
@@ -475,7 +478,8 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				{/* Action */}
 				{isAbandoned && onRetry ? (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover'
+						type='button'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onRetry(session.id)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -559,7 +563,7 @@ export const CookingHistoryTab = ({
 					{/* Section Header */}
 					<div className='flex items-center justify-between mb-4'>
 						<h3 className='flex items-center gap-2 text-lg font-bold'>
-							<span>ðŸ“¸</span>
+							<span>📸</span>
 							{t('pendingPostsTitle')}
 						</h3>
 						<span className='text-base font-bold text-success bg-success/10 px-3 py-1.5 rounded-full'>
@@ -570,7 +574,7 @@ export const CookingHistoryTab = ({
 					{/* Urgent Alert */}
 					{urgentCount > 0 && (
 						<div className='flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-error/10 to-error/5 border border-error/20 rounded-xl mb-4 text-sm font-semibold text-error'>
-							<span>âš ï¸</span>
+							<span>⚠ï¸</span>
 							{t('urgentAlert', { count: urgentCount })}
 						</div>
 					)}
@@ -606,7 +610,7 @@ export const CookingHistoryTab = ({
 				{/* Section Header */}
 				<div className='flex items-center justify-between mb-4'>
 					<h3 className='flex items-center gap-2 text-lg font-bold'>
-						<span>âœ…</span>
+						<span>✅</span>
 						{t('cookingHistory')}
 					</h3>
 					<div className='flex gap-2'>

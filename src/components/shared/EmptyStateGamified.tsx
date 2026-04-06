@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -17,6 +17,7 @@ export type EmptyStateVariant =
 	| 'cooking'
 	| 'search'
 	| 'saved'
+	| 'liked'
 	| 'challenges'
 	| 'pending'
 	| 'notifications'
@@ -466,6 +467,44 @@ function BookmarkIllustration() {
 	)
 }
 
+function HeartIllustration() {
+	return (
+		<div className='relative inline-flex items-center justify-center'>
+			<motion.div
+				className='absolute size-28 rounded-full bg-brand/5'
+				animate={{ scale: [1, 1.1, 1] }}
+				transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+			/>
+			<div className='relative z-10 flex items-end gap-2'>
+				{[0, 1, 2].map(i => (
+					<motion.div
+						key={i}
+						initial={{ opacity: 0, scale: 0.5 }}
+						animate={{
+							opacity: i === 1 ? 1 : 0.4 + i * 0.15,
+							scale: 1,
+						}}
+						transition={{ delay: i * 0.15, type: 'spring', stiffness: 200 }}
+					>
+						<svg
+							width={i === 1 ? '48' : '32'}
+							height={i === 1 ? '44' : '28'}
+							viewBox='0 0 24 24'
+							fill='none'
+							xmlns='http://www.w3.org/2000/svg'
+						>
+							<path
+								d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'
+								className={i === 1 ? 'fill-brand' : 'fill-brand/30'}
+							/>
+						</svg>
+					</motion.div>
+				))}
+			</div>
+		</div>
+	)
+}
+
 function TargetIllustration() {
 	return (
 		<div className='relative inline-flex items-center justify-center'>
@@ -553,7 +592,7 @@ function CheckmarkIllustration() {
 				className='absolute size-24 rounded-full bg-success/10'
 				initial={{ scale: 0 }}
 				animate={{ scale: [0, 1.3, 1] }}
-				transition={{ duration: 0.8, ease: 'easeOut' }}
+				transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 			/>
 			<motion.div
 				initial={{ scale: 0 }}
@@ -577,7 +616,7 @@ function CheckmarkIllustration() {
 						x: [0, (i % 2 === 0 ? 1 : -1) * (20 + i * 8)],
 						y: [0, -(15 + i * 5)],
 					}}
-					transition={{ duration: 1, delay: 0.3 + i * 0.1, ease: 'easeOut' }}
+					transition={{ duration: DURATION_S.dramatic, delay: 0.3 + i * 0.1, ease: 'easeOut' }}
 				/>
 			))}
 		</div>
@@ -677,6 +716,7 @@ const illustrationMap: Record<EmptyStateVariant, React.ReactNode> = {
 	cooking: <ChefWaitingIllustration />,
 	search: <SearchIllustration />,
 	saved: <BookmarkIllustration />,
+	liked: <HeartIllustration />,
 	challenges: <TargetIllustration />,
 	pending: <CheckmarkIllustration />,
 	notifications: <BellIllustration />,
@@ -879,8 +919,8 @@ export function EmptyFeed({
 				icon: <Compass className='size-icon-sm' />,
 			}}
 			quickActions={[
-				{ label: t('catItalian'), emoji: 'ðŸ‡®ðŸ‡¹', href: '/explore?category=italian' },
-				{ label: t('catAsian'), emoji: 'ðŸ¥¢', href: '/explore?category=asian' },
+				{ label: t('catItalian'), emoji: '🇮🇹', href: '/explore?category=italian' },
+				{ label: t('catAsian'), emoji: '🥢', href: '/explore?category=asian' },
 				{ label: t('catQuickMeals'), emoji: 'â±ï¸', href: '/explore?category=quick' },
 			]}
 			className={className}
@@ -919,15 +959,15 @@ export function EmptyCookingHistory({
 			{/* XP Teaser */}
 			<div className='flex flex-col gap-2.5 p-4 bg-bg rounded-xl mb-6 max-w-xs mx-auto text-left'>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
-					<span className='text-lg'>âš¡</span>
+					<span className='text-lg'>⚡</span>
 					{t.rich('earnXp', { strong: (chunks) => <strong>{chunks}</strong> })}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
-					<span className='text-lg'>ðŸŽ–ï¸</span>
+					<span className='text-lg'>🎖ï¸</span>
 					{t.rich('unlockBadge', { strong: (chunks) => <strong>{chunks}</strong> })}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
-					<span className='text-lg'>ðŸ”¥</span>
+					<span className='text-lg'>🔥</span>
 					{t.rich('startStreak', { strong: (chunks) => <strong>{chunks}</strong> })}
 				</div>
 			</div>
@@ -954,7 +994,7 @@ export function EmptyCookingHistory({
 								{beginnerRecipe.title}
 							</span>
 							<span className='text-xs text-text-muted'>
-								{beginnerRecipe.time} â€¢ +{beginnerRecipe.xp} XP
+								{beginnerRecipe.time} • +{beginnerRecipe.xp} XP
 							</span>
 						</div>
 					</Link>
@@ -999,7 +1039,7 @@ export function EmptySaved({
 							<span className='text-sm text-text'>{step}</span>
 						</div>
 						{index < 2 && (
-							<span className='text-text-muted hidden sm:block'>â†’</span>
+							<span className='text-text-muted hidden sm:block'>→</span>
 						)}
 					</div>
 				))}

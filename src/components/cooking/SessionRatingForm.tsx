@@ -8,6 +8,8 @@ import {
 	TRANSITION_BOUNCY,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	RATING_STAR_HOVER,
+	RATING_STAR_TAP,
 	SPRING_BOUNCY,
 	DURATION_S,
 } from '@/lib/motion'
@@ -71,8 +73,8 @@ function StarRating({
 						onClick={() => onRate(star)}
 						onMouseEnter={() => onHover(star)}
 						onTouchStart={() => onHover(star)}
-						whileHover={{ scale: 1.2 }}
-						whileTap={{ scale: 0.9 }}
+						whileHover={RATING_STAR_HOVER}
+						whileTap={RATING_STAR_TAP}
 						className='relative p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 rounded-full'
 						aria-label={starAriaLabel(star)}
 					>
@@ -235,7 +237,7 @@ export function SessionRatingForm({
 						exit={{ opacity: 0 }}
 						type='button'
 						onClick={() => setShowNotes(true)}
-						className='mb-4 flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors'
+						className='mb-4 flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageSquare className='size-4' />
 					{t('addNote')}
@@ -269,12 +271,13 @@ export function SessionRatingForm({
 
 			{/* Submit Button */}
 			<motion.button
+				type='button'
 				onClick={handleSubmit}
 				disabled={rating === 0 || isSubmitting}
 				whileHover={rating > 0 ? BUTTON_HOVER : undefined}
 				whileTap={rating > 0 ? BUTTON_TAP : undefined}
 				className={cn(
-					'w-full rounded-full py-3 font-bold text-white transition-all',
+					'w-full rounded-full py-3 font-bold text-white transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 					rating > 0
 						? 'bg-gradient-hero shadow-card hover:shadow-lg'
 						: 'cursor-not-allowed bg-border text-text-muted',

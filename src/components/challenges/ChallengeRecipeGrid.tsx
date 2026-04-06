@@ -100,7 +100,7 @@ const FilterChip = ({
 		type='button'
 		onClick={onClick}
 		className={cn(
-			'rounded-full border px-4 py-2 text-xs font-medium transition-all',
+			'rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
 			isActive
 				? 'border-brand bg-brand text-white'
 				: 'border-border bg-bg text-text-secondary hover:bg-muted/30 hover:text-text',
@@ -152,10 +152,10 @@ const ChallengeRecipeCard = ({
 
 					{/* XP Badge */}
 					<div className='absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1.5 backdrop-blur-sm'>
-						<span className='text-xs font-bold text-white'>
+						<span className='tabular-nums text-xs font-bold text-white'>
 							{recipe.baseXp} XP
 						</span>
-						<span className='rounded-lg bg-success/20 px-1.5 py-0.5 text-2xs font-bold text-success'>
+						<span className='tabular-nums rounded-lg bg-success/20 px-1.5 py-0.5 text-2xs font-bold text-success'>
 							+{recipe.bonusXp}
 						</span>
 					</div>
@@ -227,16 +227,17 @@ const ChallengeRecipeCard = ({
 							<span className='text-xs text-text'>{recipe.author.name}</span>
 						</div>
 						<motion.button
+							type='button'
 							onClick={e => {
 								e.preventDefault()
 								onCook?.(recipe.id)
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-card transition-shadow hover:shadow-lg'
+							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-card transition-shadow hover:shadow-lg focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Play className='size-4' />
-							Cook
+							{t('cook')}
 						</motion.button>
 					</div>
 				</div>
@@ -327,7 +328,7 @@ export const ChallengeRecipeGrid = ({
 					{/* Reward */}
 					<div className='text-right'>
 						<div className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-4 py-2.5'>
-							<span className='text-lg'>âš¡</span>
+							<span className='text-lg'>⚡</span>
 							<span className='text-xl font-display font-extrabold text-success'>
 								+{challenge.bonusXp} XP
 							</span>
@@ -335,8 +336,7 @@ export const ChallengeRecipeGrid = ({
 						</div>
 						<div className='flex items-center justify-end gap-1.5 text-xs text-text-secondary'>
 							<Clock className='size-3.5' />
-							{challenge.timeRemaining.hours}h {challenge.timeRemaining.minutes}
-							m left
+						{t('hoursMinutes', { hours: challenge.timeRemaining.hours, mins: challenge.timeRemaining.minutes })} {t('remaining')}
 						</div>
 					</div>
 				</div>
@@ -345,22 +345,22 @@ export const ChallengeRecipeGrid = ({
 				<div className='flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4'>
 					<div className='flex flex-wrap gap-2'>
 						<FilterChip
-							label='All'
+							label={t('filterAll')}
 							isActive={activeFilter === 'all'}
 							onClick={() => setActiveFilter('all')}
 						/>
 						<FilterChip
-							label='Quick (< 30min)'
+							label={t('filterQuick')}
 							isActive={activeFilter === 'quick'}
 							onClick={() => setActiveFilter('quick')}
 						/>
 						<FilterChip
-							label='Beginner'
+							label={t('filterBeginner')}
 							isActive={activeFilter === 'beginner'}
 							onClick={() => setActiveFilter('beginner')}
 						/>
 						<FilterChip
-							label='Popular'
+							label={t('filterPopular')}
 							isActive={activeFilter === 'popular'}
 							onClick={() => setActiveFilter('popular')}
 						/>
@@ -373,15 +373,14 @@ export const ChallengeRecipeGrid = ({
 								prev === 'xp' ? 'time' : prev === 'time' ? 'rating' : 'xp',
 							)
 						}
-						className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text'
+						className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 					>
 						<ArrowUpDown className='size-3.5' />
-						Sort:{' '}
 						{sortBy === 'xp'
-							? 'XP Reward'
+							? t('sortXp')
 							: sortBy === 'time'
-								? 'Cook Time'
-								: 'Rating'}
+								? t('sortCookTime')
+								: t('sortRating')}
 					</button>
 				</div>
 			</div>
@@ -406,15 +405,15 @@ export const ChallengeRecipeGrid = ({
 						<span className='text-text-secondary'>
 							{t('topPickXp')}
 						</span>
-						<span className='font-semibold text-text'>
+						<span className='tabular-nums font-semibold text-text'>
 							{topPick.baseXp} XP base
 						</span>
 						<span className='text-text-secondary'>+</span>
-						<span className='font-semibold text-success'>
+						<span className='tabular-nums font-semibold text-success'>
 							{topPick.bonusXp} XP bonus
 						</span>
 						<span className='text-text-secondary'>=</span>
-						<span className='rounded-full bg-brand/10 px-3 py-1 text-lg font-display font-extrabold text-brand'>
+						<span className='tabular-nums rounded-full bg-brand/10 px-3 py-1 text-lg font-display font-extrabold text-brand'>
 							{topPickTotalXp} XP
 						</span>
 					</div>

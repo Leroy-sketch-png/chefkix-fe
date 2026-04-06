@@ -14,7 +14,7 @@ import {
 	ChevronUp,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import { TRANSITION_SPRING, staggerContainer, staggerItem, DURATION_S } from '@/lib/motion'
 import {
 	getStepHeatmap,
 	StepHeatmapResponse,
@@ -128,7 +128,7 @@ export function StepHeatmap({
 			<div className='border-b border-border-subtle p-4'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h3 className='text-sm font-semibold text-text'>Step Heatmap</h3>
+						<h3 className='text-sm font-semibold text-text'>{t('stepHeatmap')}</h3>
 						<p className='text-xs text-text-muted'>
 							{recipeTitle ?? data.recipeTitle} &middot; {data.totalSessions}{' '}
 							cook{data.totalSessions !== 1 ? 's' : ''}
@@ -194,7 +194,7 @@ export function StepHeatmap({
 								<motion.div
 									initial={{ width: 0 }}
 									animate={{ width: getBarWidth(step.completionRate) }}
-									transition={{ duration: 0.6, ease: 'easeOut' }}
+									transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 									className={cn('h-full rounded-full', getBarColor(step))}
 								/>
 							</div>
@@ -203,7 +203,7 @@ export function StepHeatmap({
 						{/* Metrics */}
 						<div className='flex shrink-0 gap-3'>
 							{step.skipRate > 0 && (
-								<div className='flex items-center gap-1' title='Skip rate'>
+								<div className='flex items-center gap-1' title={t('skipRate')}>
 									<SkipForward className='size-3 text-streak' />
 									<span className='text-2xs text-text-muted'>
 										{step.skipRate}%
@@ -211,7 +211,7 @@ export function StepHeatmap({
 								</div>
 							)}
 							{step.avgTimeSeconds !== null && (
-								<div className='flex items-center gap-1' title='Avg time'>
+								<div className='flex items-center gap-1' title={t('avgTime')}>
 									<Clock className='size-3 text-text-muted' />
 									<span className='text-2xs text-text-muted'>
 										{formatTime(step.avgTimeSeconds)}
@@ -224,7 +224,7 @@ export function StepHeatmap({
 							{step.abandonedAtCount > 0 && (
 								<div
 									className='flex items-center gap-1'
-									title='Sessions abandoned here'
+									title={t('sessionsAbandonedHere')}
 								>
 									<AlertTriangle className='size-3 text-error' />
 									<span className='text-2xs text-error'>

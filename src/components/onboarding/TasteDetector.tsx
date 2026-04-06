@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Radar, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -195,7 +195,7 @@ export const TasteDetector = ({
 							strokeWidth={1.5}
 							initial={{ pathLength: 0, opacity: 0 }}
 							animate={{ pathLength: 1, opacity: 1 }}
-							transition={{ duration: 0.8, ease: 'easeOut' }}
+							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 						/>
 					</svg>
 					{isDetecting && (
@@ -294,7 +294,7 @@ export const TasteDetector = ({
 									initial={{ pathLength: 0, opacity: 0 }}
 									animate={{ pathLength: 1, opacity: 1 }}
 									exit={{ opacity: 0 }}
-									transition={{ duration: 1, ease: 'easeOut' }}
+									transition={{ duration: DURATION_S.dramatic, ease: 'easeOut' }}
 								/>
 							)}
 						</AnimatePresence>
@@ -346,7 +346,7 @@ export const TasteDetector = ({
 							className='h-full rounded-full bg-brand'
 							initial={{ width: 0 }}
 							animate={{ width: `${progress}%` }}
-							transition={{ duration: 0.5, ease: 'easeOut' }}
+							transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 						/>
 					</div>
 				</div>

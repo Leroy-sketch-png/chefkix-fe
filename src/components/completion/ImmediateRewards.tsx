@@ -132,7 +132,7 @@ const RewardRowComponent = ({
 			initial='hidden'
 			animate='visible'
 			className={cn(
-				'whitespace-nowrap text-xl font-bold',
+				'whitespace-nowrap text-xl font-bold tabular-nums',
 				reward.isLocked ? 'text-text-muted' : 'text-xp',
 			)}
 		>
@@ -322,7 +322,7 @@ export const ImmediateRewards = ({
 							<button
 								type='button'
 								onClick={onClose}
-								aria-label='Close'
+								aria-label={t('ariaClose')}
 								className='absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
 								<X className='size-5' />
@@ -335,7 +335,7 @@ export const ImmediateRewards = ({
 									transition={shouldReduceMotion ? undefined : { duration: 0.6, repeat: Infinity }}
 									className='mb-4 inline-block text-6xl max-md:text-5xl'
 								>
-									ðŸ‘¨â€ðŸ³
+									👨‍🍳
 								</motion.div>
 								<h1 className='mb-2 bg-gradient-to-r from-success to-success/80 bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
 									{t('niceWorkChef')}
@@ -476,7 +476,7 @@ export const ImmediateRewards = ({
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
 										{t('earnedNow')}
 									</span>
-									<span className='block text-2xl font-display font-extrabold text-success'>
+									<span className='block text-2xl font-display font-extrabold tabular-nums text-success'>
 										<AnimatedNumber value={earnedNow} duration={1.2} /> XP
 									</span>
 								</motion.div>
@@ -489,7 +489,7 @@ export const ImmediateRewards = ({
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
 										{t('pending')}
 									</span>
-									<span className='block text-2xl font-display font-extrabold text-brand/70'>
+									<span className='block text-2xl font-display font-extrabold tabular-nums text-brand/70'>
 										<AnimatedNumber value={pendingTotal} duration={1.2} /> XP
 									</span>
 								</motion.div>
@@ -517,7 +517,7 @@ export const ImmediateRewards = ({
 							<div className='mb-4'>
 								<div className='mb-2 flex items-center justify-between'>
 									<span className='text-sm font-medium text-text'>
-										ðŸ“¸ Capture your dish
+										📸 Capture your dish
 									</span>
 									<span className='text-xs text-text-muted'>
 										{t('photosCount', { count: capturedPhotos.length })}
@@ -573,7 +573,7 @@ export const ImmediateRewards = ({
 
 								{capturedPhotos.length === 0 && (
 									<p className='mt-2 text-xs text-text-muted'>
-										Snap a photo now! 2+ photos = 100% bonus XP ðŸ“·
+										Snap a photo now! 2+ photos = 100% bonus XP 📷
 									</p>
 								)}
 								{capturedPhotos.length === 1 && (
@@ -583,7 +583,7 @@ export const ImmediateRewards = ({
 								)}
 								{capturedPhotos.length >= 2 && (
 									<p className='mt-2 text-xs text-success'>
-										âœ“ Full photo bonus unlocked!
+										✓ Full photo bonus unlocked!
 									</p>
 								)}
 							</div>
@@ -611,12 +611,13 @@ export const ImmediateRewards = ({
 							{/* Actions */}
 							<div className='space-y-2.5'>
 								<motion.button
+									type='button'
 									onClick={handlePostNowClick}
 									disabled={isNavigating}
 									whileHover={isNavigating ? undefined : STAT_ITEM_HOVER}
 									whileTap={isNavigating ? undefined : LIST_ITEM_TAP}
 									className={cn(
-										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow',
+										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow focus-visible:ring-2 focus-visible:ring-brand/50',
 										isNavigating
 											? 'cursor-wait opacity-80'
 											: 'hover:shadow-xl hover:shadow-brand/40',
@@ -643,10 +644,11 @@ export const ImmediateRewards = ({
 									)}
 								</motion.button>
 								<motion.button
+									type='button'
 									onClick={onPostLater}
 									whileHover={BUTTON_SUBTLE_HOVER}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='w-full py-3 text-text-muted transition-colors hover:text-text'
+									className='w-full py-3 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{t('postLater')}
 								</motion.button>
@@ -691,10 +693,11 @@ export const RewardsToast = ({
 				{t('toastEarned', { earned: Math.round(earnedXp), pending: Math.round(pendingXp) })}
 			</span>
 			<motion.button
+				type='button'
 				onClick={onPostNow}
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
-				className='rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
+				className='rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				{t('postNow')}
 			</motion.button>

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { TRANSITION_SPRING, fadeInUp, LIST_ITEM_TAP } from '@/lib/motion'
 
@@ -144,8 +145,8 @@ export const ConversationItem = ({
 
 			{/* Badges */}
 			<div className='flex items-center gap-2 flex-shrink-0'>
-				{isPinned && <span className='text-xs'>ðŸ“Œ</span>}
-				{isMuted && <span className='text-xs opacity-50'>ðŸ”‡</span>}
+				{isPinned && <span className='text-xs'>📌</span>}
+				{isMuted && <span className='text-xs opacity-50'>🔇</span>}
 				{unreadCount > 0 && !isMuted && (
 					<span className='min-size-5 px-1.5 flex items-center justify-center rounded-full bg-brand text-white text-xs font-bold'>
 						{unreadCount > 99 ? '99+' : unreadCount}
@@ -166,6 +167,7 @@ export const ConversationList = ({
 	onConversationClick,
 	className,
 }: ConversationListProps) => {
+	const t = useTranslations('messages')
 	// Sort: pinned first, then by last message time
 	const sortedConversations = [...conversations].sort((a, b) => {
 		if (a.isPinned && !b.isPinned) return -1
@@ -193,10 +195,10 @@ export const ConversationList = ({
 
 			{conversations.length === 0 && (
 				<div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
-					<span className='text-4xl mb-3'>ðŸ’¬</span>
-					<p className='text-foreground font-semibold'>No conversations yet</p>
+					<span className='text-4xl mb-3'>💬</span>
+					<p className='text-foreground font-semibold'>{t('noConversationsYet')}</p>
 					<p className='text-sm text-text-secondary mt-1'>
-						Start a conversation with a friend!
+						{t('startConversationFriend')}
 					</p>
 				</div>
 			)}

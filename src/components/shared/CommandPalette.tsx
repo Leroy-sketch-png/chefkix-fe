@@ -301,7 +301,7 @@ function useSearchResults(
 			clearTimeout(timer)
 			controller.abort()
 		}
-	}, [query, isOpen, router])
+	}, [query, isOpen, router, t])
 
 	return { results, isSearching }
 }

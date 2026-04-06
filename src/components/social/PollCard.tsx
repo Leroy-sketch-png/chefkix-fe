@@ -11,7 +11,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
-import { TRANSITION_SPRING, CARD_FEED_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_FEED_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 
@@ -60,7 +60,7 @@ export const PollCard = ({
 				setIsVoting(false)
 			}
 		},
-		[isVoting, currentUserId, post, poll, onUpdate],
+		[isVoting, currentUserId, post, poll, onUpdate, t],
 	)
 
 	if (!poll) return null
@@ -171,11 +171,12 @@ function PollOption({
 }) {
 	return (
 		<motion.button
+			type='button'
 			onClick={onClick}
 			disabled={disabled}
 			whileTap={disabled ? undefined : BUTTON_SUBTLE_TAP}
 			className={cn(
-				'relative w-full overflow-hidden rounded-lg border p-3 text-left transition-all',
+				'relative w-full overflow-hidden rounded-lg border p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 				isSelected
 					? 'border-brand bg-brand/5 ring-1 ring-brand/30'
 					: 'border-border-subtle hover:border-brand/40',
@@ -187,7 +188,7 @@ function PollOption({
 				<motion.div
 					initial={{ width: 0 }}
 					animate={{ width: `${percent}%` }}
-					transition={{ duration: 0.6, ease: 'easeOut' }}
+					transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 					className={cn(
 						'absolute inset-y-0 left-0 rounded-lg',
 						isSelected ? 'bg-brand/15' : 'bg-bg-elevated/60',

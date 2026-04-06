@@ -192,7 +192,7 @@ export const SessionHeader = ({
 								<span>
 								{t('stepOf', { current: session.currentStep, total: session.recipe.totalSteps })}
 							</span>
-							<span>â€¢</span>
+							<span>•</span>
 							<span>{t('estTime', { minutes: session.recipe.estimatedTime })}</span>
 							</div>
 						</div>
@@ -202,10 +202,11 @@ export const SessionHeader = ({
 					<div className='flex items-center gap-2'>
 						{/* AI Assist Button */}
 						<motion.button
+							type='button'
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onAiAssist}
-							className='flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30'
+							className='flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Sparkles className='size-4' />
 							<span className='hidden sm:inline'>{t('aiHelp')}</span>
@@ -213,12 +214,13 @@ export const SessionHeader = ({
 
 						{/* Pause/Resume Button */}
 						<motion.button
+							type='button'
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={isPaused ? onResume : onPause}
 							disabled={hasActiveTimers && !isPaused}
 							className={cn(
-								'flex size-10 items-center justify-center rounded-full text-white transition-colors',
+								'flex size-10 items-center justify-center rounded-full text-white transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 								isPaused
 									? 'bg-success hover:bg-success/90'
 									: hasActiveTimers
@@ -242,10 +244,11 @@ export const SessionHeader = ({
 
 						{/* Close Button */}
 						<motion.button
+							type='button'
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onClose}
-							className='flex size-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30'
+							className='flex size-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('closeAria')}
 						>
 							<X className='size-5' />
@@ -329,7 +332,7 @@ export const SessionHeader = ({
 				{/* XP Preview */}
 				<div className='mt-3 flex items-center justify-center gap-4 text-sm text-white/80'>
 					<div className='flex items-center gap-1.5'>
-						<span className='text-lg'>âš¡</span>
+						<span className='text-lg'>⚡</span>
 						<span>
 							<span className='font-bold text-white'>
 								+{session.baseXP + session.bonusXP}
@@ -339,7 +342,7 @@ export const SessionHeader = ({
 					</div>
 					{session.challengeId && (
 						<div className='flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5'>
-							<span>ðŸŽ¯</span>
+							<span>🎯</span>
 							<span className='font-semibold'>{t('challengeLabel')}</span>
 						</div>
 					)}
@@ -371,10 +374,11 @@ export const SessionHeaderCompact = ({
 
 	return (
 		<motion.button
+			type='button'
 			onClick={onExpand}
 			whileHover={LIST_ITEM_HOVER}
 			whileTap={LIST_ITEM_TAP}
-			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-lg'
+			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 		>
 			{/* Mini progress ring */}
 			<div className='relative size-10'>
