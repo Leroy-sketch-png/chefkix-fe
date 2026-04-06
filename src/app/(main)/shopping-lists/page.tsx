@@ -55,7 +55,7 @@ import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
-// â”€â”€ Source badge colors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Source badge colors ──────────────────────────────────────────────
 
 const SOURCE_CONFIG: Record<
 	string,
@@ -67,7 +67,7 @@ const SOURCE_CONFIG: Record<
 }
 
 export default function ShoppingListsPage() {
-	// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── State ──────────────────────────────────────────────────────────
 	const [lists, setLists] = useState<ShoppingListSummary[]>([])
 	const [selectedList, setSelectedList] = useState<ShoppingListResponse | null>(
 		null,
@@ -110,7 +110,7 @@ export default function ShoppingListsPage() {
 
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
 
-	// â”€â”€ Ingredient autocomplete via Typesense â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Ingredient autocomplete via Typesense ──────────────────────────
 
 	const fetchIngredientOptions = useCallback(
 		async (query: string): Promise<AsyncComboboxOption[]> => {
@@ -131,7 +131,7 @@ export default function ShoppingListsPage() {
 		[],
 	)
 
-	// â”€â”€ Fetch lists â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Fetch lists ────────────────────────────────────────────────────
 
 	const fetchLists = useCallback(async () => {
 		setFetchError(false)
@@ -144,13 +144,13 @@ export default function ShoppingListsPage() {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		fetchLists()
 	}, [fetchLists])
 
-	// â”€â”€ List operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── List operations ────────────────────────────────────────────────
 
 	const handleOpenList = async (id: string) => {
 		setIsDetailLoading(true)
@@ -213,7 +213,7 @@ export default function ShoppingListsPage() {
 		}
 	}
 
-	// â”€â”€ Item operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Item operations ────────────────────────────────────────────────
 
 	const handleToggleItem = async (itemId: string) => {
 		if (!selectedList) return
@@ -296,20 +296,20 @@ export default function ShoppingListsPage() {
 		}
 	}
 
-	// â”€â”€ Copy & Share â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Copy & Share ───────────────────────────────────────────────────
 
 	const handleCopyList = async () => {
 		if (!selectedList) return
 		const text = selectedList.items
 			.map(item => {
 				const qty = item.quantity ? ` (${item.quantity})` : ''
-				const check = item.checked ? 'âœ“' : 'â—‹'
+				const check = item.checked ? '✓' : '○'
 				return `${check} ${item.ingredient}${qty}`
 			})
 			.join('\n')
 		try {
 			await navigator.clipboard.writeText(
-				`${selectedList.name}\n${'â”€'.repeat(30)}\n${text}`,
+				`${selectedList.name}\n${'─'.repeat(30)}\n${text}`,
 			)
 			setCopySuccess(true)
 		} catch {
@@ -330,7 +330,7 @@ export default function ShoppingListsPage() {
 		}
 	}
 
-	// â”€â”€ Group items by category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Group items by category ────────────────────────────────────────
 
 	const groupedItems = useMemo(() => {
 		if (!selectedList) return {}
@@ -350,7 +350,7 @@ export default function ShoppingListsPage() {
 		return sorted
 	}, [selectedList])
 
-	// â”€â”€ Progress â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Progress ───────────────────────────────────────────────────────
 
 	const progress = selectedList
 		? selectedList.totalItems > 0
@@ -367,7 +367,7 @@ export default function ShoppingListsPage() {
 		[selectedList],
 	)
 
-	// â”€â”€ Loading skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Loading skeleton ───────────────────────────────────────────────
 
 	if (isLoading) {
 		return (
@@ -406,7 +406,7 @@ export default function ShoppingListsPage() {
 		)
 	}
 
-	// â”€â”€ Detail View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── Detail View ────────────────────────────────────────────────────
 
 	if (selectedList) {
 		return (
@@ -440,7 +440,7 @@ export default function ShoppingListsPage() {
 									type='button'
 									onClick={handleCopyList}
 									className='flex items-center gap-1.5 rounded-lg border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-									title='Copy list'
+									title={t('copyList')}
 								>
 									{copySuccess ? (
 										<Check className='size-4 text-success' />
@@ -453,7 +453,7 @@ export default function ShoppingListsPage() {
 									type='button'
 									onClick={handleShare}
 									className='flex items-center gap-1.5 rounded-lg border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-									title='Share list'
+									title={t('shareList')}
 								>
 									{shareSuccess ? (
 										<Check className='size-4 text-success' />
@@ -611,8 +611,9 @@ export default function ShoppingListsPage() {
 								</motion.div>
 							) : (
 								<motion.button
+									type='button'
 									onClick={() => setShowAddItem(true)}
-									className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
+									className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 									whileHover={CARD_FEATURED_HOVER}
 									whileTap={LIST_ITEM_TAP}
 								>
@@ -708,7 +709,7 @@ export default function ShoppingListsPage() {
 															type='button'
 															onClick={() => handleRemoveItem(item.itemId)}
 															className='flex-shrink-0 rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
-															aria-label='Remove item'
+															aria-label={t('ariaRemoveItem')}
 														>
 															<Trash2 className='size-4' />
 														</button>
@@ -726,7 +727,7 @@ export default function ShoppingListsPage() {
 		)
 	}
 
-	// â”€â”€ List View (default) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+	// ── List View (default) ────────────────────────────────────────────
 
 	return (
 		<PageTransition>
@@ -742,8 +743,9 @@ export default function ShoppingListsPage() {
 						rightAction={
 							<div className='relative'>
 								<motion.button
+									type='button'
 									onClick={() => setShowCreateMenu(!showCreateMenu)}
-									className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+									className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
 									whileHover={BUTTON_SUBTLE_HOVER}
 									whileTap={BUTTON_SUBTLE_TAP}
 								>
@@ -879,7 +881,7 @@ export default function ShoppingListsPage() {
 													setConfirmingDeleteId(list.id)
 												}}
 												className='rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
-												aria-label='Delete list'
+												aria-label={t('ariaDeleteList')}
 											>
 												<Trash2 className='size-4' />
 											</button>
@@ -892,7 +894,7 @@ export default function ShoppingListsPage() {
 
 										{/* Stats */}
 										<p className='mb-3 text-xs text-text-muted'>
-											{list.checkedItems}/{list.totalItems} items Â·{' '}
+											{list.checkedItems}/{list.totalItems} items ·{' '}
 											{new Date(list.createdAt).toLocaleDateString()}
 										</p>
 
@@ -920,7 +922,7 @@ export default function ShoppingListsPage() {
 					)}
 				</div>
 
-				{/* â”€â”€ Delete Confirmation Dialog â”€â”€ */}
+				{/* ── Delete Confirmation Dialog ── */}
 				<AnimatePresence>
 					{confirmingDeleteId && (
 						<Portal>

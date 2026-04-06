@@ -38,6 +38,7 @@ import {
 	CARD_FEED_HOVER,
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
 import { unifiedSearch } from '@/services/search'
@@ -222,12 +223,13 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 							{recipe.title}
 						</h4>
 						<motion.button
+							type='button'
 							onClick={handleSave}
 							whileHover={ICON_BUTTON_HOVER}
 							whileTap={ICON_BUTTON_TAP}
 							aria-label={saved ? t('unsaveRecipe') : t('saveRecipe')}
 							className={cn(
-								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
+								'flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 								saved
 									? 'bg-brand/10 text-brand'
 									: 'text-text-secondary hover:bg-bg-hover hover:text-brand',
@@ -344,11 +346,12 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 				</p>
 			</div>
 			<motion.button
+				type='button'
 				onClick={handleFollow}
 				whileHover={BUTTON_HOVER}
 				whileTap={BUTTON_TAP}
 				className={cn(
-					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors',
+					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 					following
 						? 'border-2 border-border-subtle bg-bg-elevated text-text hover:border-error hover:bg-error/5 hover:text-error'
 						: 'bg-brand text-white',
@@ -619,16 +622,17 @@ function SearchContent() {
 								type='text'
 								value={searchInput}
 								onChange={e => handleSearchInputChange(e.target.value)}
-								placeholder='Search recipes, people, posts...'
+								placeholder={t('searchPlaceholder')}
 								autoFocus
 								className='w-full rounded-2xl border border-border-subtle bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
 								<motion.button
+									type='button'
 									onClick={() => handleSearchInputChange('')}
 									whileTap={BUTTON_TAP}
-									className='absolute right-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text'
-									aria-label='Clear search'
+									className='absolute right-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('clearSearch')}
 								>
 									<X className='size-5' />
 								</motion.button>
@@ -646,10 +650,11 @@ function SearchContent() {
 							<div className='flex flex-wrap gap-2'>
 								{recentSearches.map(term => (
 									<motion.button
+										type='button'
 										key={term}
 										onClick={() => handleSuggestionClick(term)}
 										whileTap={BUTTON_TAP}
-										className='group flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5'
+										className='group flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<span>{term}</span>
 										<span
@@ -666,7 +671,7 @@ function SearchContent() {
 												}
 											}}
 											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-70 transition-opacity hover:bg-bg-hover hover:text-text md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
-											aria-label={`Remove "${term}" from recent searches`}
+											aria-label={t('removeRecentSearch', { term })}
 										>
 											<X className='size-3' />
 										</span>
@@ -685,10 +690,11 @@ function SearchContent() {
 						<div className='flex flex-wrap gap-2'>
 							{SEARCH_SUGGESTIONS.map(term => (
 								<motion.button
+									type='button'
 									key={term}
 									onClick={() => handleSuggestionClick(term)}
 									whileTap={BUTTON_TAP}
-									className='rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text'
+									className='rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{term}
 								</motion.button>
@@ -730,10 +736,11 @@ function SearchContent() {
 					{/* Editable search input - users can refine from within the page */}
 					<div className='mb-4 flex items-center gap-3'>
 						<motion.button
+							type='button'
 							onClick={() => router.back()}
 							whileTap={BUTTON_TAP}
-							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-							aria-label='Go back'
+							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('goBack')}
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
@@ -743,15 +750,16 @@ function SearchContent() {
 								type='text'
 								value={searchInput}
 								onChange={e => handleSearchInputChange(e.target.value)}
-								placeholder='Search recipes, people, posts...'
+								placeholder={t('searchPlaceholder')}
 								className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							/>
 							{searchInput && (
 								<motion.button
+									type='button'
 									onClick={() => handleSearchInputChange('')}
 									whileTap={BUTTON_TAP}
-									className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text'
-									aria-label='Clear search'
+									className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('clearSearch')}
 								>
 									<X className='size-4' />
 								</motion.button>
@@ -795,7 +803,7 @@ function SearchContent() {
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
-							transition={{ duration: 0.15 }}
+							transition={{ duration: DURATION_S.fast }}
 						>
 							{activeTab === 'recipes' && (
 								<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
@@ -856,7 +864,7 @@ function SearchContent() {
 							initial={{ opacity: 0, y: 10 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -10 }}
-							transition={{ duration: 0.2 }}
+							transition={{ duration: DURATION_S.normal }}
 						>
 							{results.recipes.length > 0 ? (
 								<StaggerContainer staggerDelay={0.05}>
@@ -876,6 +884,7 @@ function SearchContent() {
 										>
 											Did you mean{' '}
 											<motion.button
+												type='button'
 												onClick={() => {
 													isInternalNav.current = true
 													setSearchInput(suggestion)
@@ -885,7 +894,7 @@ function SearchContent() {
 												}}
 												disabled={isNavigating}
 												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50'
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{suggestion}
 											</motion.button>
@@ -912,7 +921,7 @@ function SearchContent() {
 							initial={{ opacity: 0, y: 10 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -10 }}
-							transition={{ duration: 0.2 }}
+							transition={{ duration: DURATION_S.normal }}
 						>
 							{results.people.length > 0 ? (
 								<StaggerContainer staggerDelay={0.05}>
@@ -932,6 +941,7 @@ function SearchContent() {
 										>
 											Did you mean{' '}
 											<motion.button
+												type='button'
 												onClick={() => {
 													isInternalNav.current = true
 													setSearchInput(suggestion)
@@ -941,7 +951,7 @@ function SearchContent() {
 												}}
 												disabled={isNavigating}
 												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50'
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{suggestion}
 											</motion.button>
@@ -968,7 +978,7 @@ function SearchContent() {
 							initial={{ opacity: 0, y: 10 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -10 }}
-							transition={{ duration: 0.2 }}
+							transition={{ duration: DURATION_S.normal }}
 						>
 							{results.posts.length > 0 ? (
 								<StaggerContainer staggerDelay={0.05}>
@@ -988,6 +998,7 @@ function SearchContent() {
 										>
 											Did you mean{' '}
 											<motion.button
+												type='button'
 												onClick={() => {
 													isInternalNav.current = true
 													setSearchInput(suggestion)
@@ -997,7 +1008,7 @@ function SearchContent() {
 												}}
 												disabled={isNavigating}
 												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50'
+												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{suggestion}
 											</motion.button>

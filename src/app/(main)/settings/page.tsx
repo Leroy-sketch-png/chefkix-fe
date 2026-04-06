@@ -66,6 +66,7 @@ import {
 	LIST_ITEM_TAP,
 	NAV_ITEM_HOVER,
 	staggerContainer,
+	DURATION_S,
 } from '@/lib/motion'
 import ReferralCard from '@/components/referral/ReferralCard'
 import PremiumUpgradeCard from '@/components/premium/PremiumUpgradeCard'
@@ -258,7 +259,7 @@ const tabContentVariants = {
 		x: 0,
 		transition: { type: 'spring' as const, stiffness: 300, damping: 30 },
 	},
-	exit: { opacity: 0, x: -20, transition: { duration: 0.15 } },
+	exit: { opacity: 0, x: -20, transition: { duration: DURATION_S.fast } },
 }
 
 const cardVariants = {
@@ -356,12 +357,13 @@ const ChipSelect = ({
 			const isSelected = selected.includes(option)
 			return (
 				<motion.button
+					type='button'
 					key={option}
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={() => onToggle(option)}
 					className={cn(
-						'rounded-full px-3 py-1.5 text-sm font-medium transition-all',
+						'rounded-full px-3 py-1.5 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 						isSelected
 							? 'bg-brand text-white shadow-card'
 							: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover',
@@ -395,12 +397,13 @@ const ButtonGroup = <T extends string>({
 			const Icon = option.icon
 			return (
 				<motion.button
+					type='button'
 					key={option.value}
 					whileHover={option.disabled ? undefined : BUTTON_HOVER}
 					whileTap={option.disabled ? undefined : BUTTON_TAP}
 					onClick={() => !option.disabled && onChange(option.value)}
 					className={cn(
-						'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
+						'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 						option.disabled
 							? 'cursor-not-allowed opacity-40 bg-bg-elevated text-text-secondary'
 							: value === option.value
@@ -531,7 +534,7 @@ export default function SettingsPage() {
 			} catch (error) {
 				if (cancelled) return
 				logDevError('Failed to load settings:', error)
-				toast.error('Failed to load settings')
+				toast.error(t('toastLoadFailed'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -541,7 +544,7 @@ export default function SettingsPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user])
+	}, [user, t])
 
 	// Fetch verification status when verification tab is opened
 	useEffect(() => {
@@ -572,13 +575,13 @@ export default function SettingsPage() {
 
 		// Validate file type
 		if (!file.type.startsWith('image/')) {
-			toast.error('Please select an image file')
+			toast.error(t('toastSelectImage'))
 			return
 		}
 
 		// Validate file size (max 5MB)
 		if (file.size > 5 * 1024 * 1024) {
-			toast.error('Image must be less than 5MB')
+			toast.error(t('toastImageTooLarge'))
 			return
 		}
 
@@ -603,18 +606,18 @@ export default function SettingsPage() {
 					if (user) {
 						setUser({ ...user, coverImageUrl: uploadedUrl })
 					}
-					toast.success('Cover photo updated!')
+					toast.success(t('toastCoverUpdated'))
 				} else {
-					toast.error('Failed to save cover photo')
+					toast.error(t('toastCoverSaveFailed'))
 					setCoverImageUrl(previousCoverImageUrl)
 				}
 			} else {
-				toast.error('Failed to upload image')
+				toast.error(t('toastUploadFailed'))
 				setCoverImageUrl(previousCoverImageUrl)
 			}
 		} catch (error) {
 			logDevError('Cover upload error:', error)
-			toast.error('Failed to upload cover photo')
+			toast.error(t('toastCoverUploadFailed'))
 			setCoverImageUrl(previousCoverImageUrl)
 		} finally {
 			// Revoke the local blob URL to prevent memory leak
@@ -638,13 +641,13 @@ export default function SettingsPage() {
 				if (user) {
 					setUser({ ...user, displayName, bio })
 				}
-				toast.success('Profile updated!')
+				toast.success(t('toastProfileUpdated'))
 			} else {
-				toast.error(response.message || 'Failed to update profile')
+				toast.error(response.message || t('toastProfileUpdateFailed'))
 			}
 		} catch (error) {
 			logDevError('Failed to update profile:', error)
-			toast.error('Failed to update profile')
+			toast.error(t('toastProfileUpdateFailed'))
 		} finally {
 			setIsSaving(false)
 		}
@@ -656,12 +659,12 @@ export default function SettingsPage() {
 		const previousAvatarUrl = user?.avatarUrl
 
 		if (!file.type.startsWith('image/')) {
-			toast.error('Please select an image file')
+			toast.error(t('toastSelectImage'))
 			return
 		}
 
 		if (file.size > 5 * 1024 * 1024) {
-			toast.error('Image must be less than 5MB')
+			toast.error(t('toastImageTooLarge'))
 			return
 		}
 
@@ -682,18 +685,18 @@ export default function SettingsPage() {
 					if (user) {
 						setUser({ ...user, avatarUrl: uploadedUrl })
 					}
-					toast.success('Avatar updated!')
+					toast.success(t('toastAvatarUpdated'))
 				} else {
-					toast.error('Failed to save avatar')
+					toast.error(t('toastAvatarSaveFailed'))
 					setAvatarUrl(previousAvatarUrl)
 				}
 			} else {
-				toast.error('Failed to upload image')
+				toast.error(t('toastUploadFailed'))
 				setAvatarUrl(previousAvatarUrl)
 			}
 		} catch (error) {
 			logDevError('Avatar upload error:', error)
-			toast.error('Failed to upload avatar')
+			toast.error(t('toastAvatarUploadFailed'))
 			setAvatarUrl(previousAvatarUrl)
 		} finally {
 			// Revoke the local blob URL to prevent memory leak
@@ -717,18 +720,18 @@ export default function SettingsPage() {
 			try {
 				const response = await updatePrivacySettings(updates)
 				if (response.success) {
-					toast.success('Privacy settings updated')
+					toast.success(t('toastPrivacyUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(response.message || 'Failed to update privacy settings')
+					toast.error(response.message || t('toastPrivacyFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update privacy settings:', error)
 				setSettings(previousSettings)
-				toast.error('Failed to update privacy settings')
+				toast.error(t('toastPrivacyFailed'))
 			}
 		},
-		[settings],
+		[settings, t],
 	)
 
 	const handleUpdateNotifications = useCallback(
@@ -746,20 +749,20 @@ export default function SettingsPage() {
 			try {
 				const response = await updateNotificationSettings(updates)
 				if (response.success) {
-					toast.success('Notification settings updated')
+					toast.success(t('toastNotificationsUpdated'))
 				} else {
 					setSettings(previousSettings)
 					toast.error(
-						response.message || 'Failed to update notification settings',
+						response.message || t('toastNotificationsFailed'),
 					)
 				}
 			} catch (error) {
 				logDevError('Failed to update notification settings:', error)
 				setSettings(previousSettings)
-				toast.error('Failed to update notification settings')
+				toast.error(t('toastNotificationsFailed'))
 			}
 		},
-		[settings],
+		[settings, t],
 	)
 
 	const handleUpdateCooking = useCallback(
@@ -772,20 +775,20 @@ export default function SettingsPage() {
 			try {
 				const response = await updateCookingPreferences(updates)
 				if (response.success) {
-					toast.success('Cooking preferences updated')
+					toast.success(t('toastCookingPrefsUpdated'))
 				} else {
 					setSettings(previousSettings)
 					toast.error(
-						response.message || 'Failed to update cooking preferences',
+						response.message || t('toastCookingPrefsFailed'),
 					)
 				}
 			} catch (error) {
 				logDevError('Failed to update cooking preferences:', error)
 				setSettings(previousSettings)
-				toast.error('Failed to update cooking preferences')
+				toast.error(t('toastCookingPrefsFailed'))
 			}
 		},
-		[settings],
+		[settings, t],
 	)
 
 	const handleUpdateApp = useCallback(
@@ -798,18 +801,18 @@ export default function SettingsPage() {
 			try {
 				const response = await updateAppPreferences(updates)
 				if (response.success) {
-					toast.success('App preferences updated')
+					toast.success(t('toastAppPrefsUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(response.message || 'Failed to update app preferences')
+					toast.error(response.message || t('toastAppPrefsFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update app preferences:', error)
 				setSettings(previousSettings)
-				toast.error('Failed to update app preferences')
+				toast.error(t('toastAppPrefsFailed'))
 			}
 		},
-		[settings],
+		[settings, t],
 	)
 
 	const toggleArrayItem = (arr: string[], item: string): string[] =>
@@ -822,7 +825,7 @@ export default function SettingsPage() {
 			await logoutService()
 		} catch (error) {
 			logDevError('Logout error:', error)
-			toast.error('Could not fully sign out — clearing local session')
+			toast.error(t('toastSignOutFailed'))
 		} finally {
 			// Always clear local state and redirect (security: never leave stale session)
 			logout()
@@ -835,14 +838,14 @@ export default function SettingsPage() {
 		try {
 			const res = await deleteAccount()
 			if (res.success) {
-				toast.success('Account deleted. Goodbye!')
+				toast.success(t('toastAccountDeleted'))
 				logout()
 				router.push(PATHS.AUTH.SIGN_IN)
 			} else {
-				toast.error(res.message || 'Failed to delete account')
+				toast.error(res.message || t('toastDeleteFailed'))
 			}
 		} catch {
-			toast.error('Failed to delete account. Please try again.')
+			toast.error(t('toastDeleteFailed'))
 		}
 	}
 
@@ -862,12 +865,12 @@ export default function SettingsPage() {
 				a.click()
 				document.body.removeChild(a)
 				URL.revokeObjectURL(url)
-				toast.success('Data exported successfully!')
+				toast.success(t('toastDataExported'))
 			} else {
-				toast.error(res.message || 'Failed to export data')
+				toast.error(res.message || t('toastExportFailed'))
 			}
 		} catch {
-			toast.error('Failed to export data. Please try again.')
+			toast.error(t('toastExportFailed'))
 		} finally {
 			setIsExportingData(false)
 		}
@@ -939,12 +942,13 @@ export default function SettingsPage() {
 							const isActive = activeTab === tab.id
 							return (
 								<motion.button
+									type='button'
 									key={tab.id}
 									whileHover={NAV_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
 									onClick={() => setActiveTab(tab.id)}
 									className={cn(
-										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all',
+										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 										isActive
 											? 'bg-brand/10 text-brand font-semibold'
 											: 'text-text-secondary hover:bg-bg-hover hover:text-text',
@@ -966,11 +970,12 @@ export default function SettingsPage() {
 						{/* Divider + Sign Out */}
 						<div className='my-1 h-px bg-border-subtle' />
 						<motion.button
+							type='button'
 							whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
 							whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
 							onClick={handleLogout}
 							disabled={isLoggingOut}
-							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full disabled:opacity-50'
+							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isLoggingOut ? (
 								<Loader2 className='size-5 flex-shrink-0 animate-spin' />
@@ -1207,7 +1212,7 @@ export default function SettingsPage() {
 													/>
 												</div>
 												<div className='space-y-2'>
-													<Label htmlFor='newPassword'>New Password</Label>
+													<Label htmlFor='newPassword'>{t('newPasswordLabel')}</Label>
 													<Input
 														id='newPassword'
 														type='password'
@@ -1218,7 +1223,7 @@ export default function SettingsPage() {
 													/>
 												</div>
 												<div className='space-y-2'>
-													<Label htmlFor='confirmPassword'>Confirm New Password</Label>
+													<Label htmlFor='confirmPassword'>{t('confirmPasswordLabel')}</Label>
 													<Input
 														id='confirmPassword'
 														type='password'
@@ -1245,16 +1250,16 @@ export default function SettingsPage() {
 															try {
 																const res = await changePassword({ oldPassword, newPassword })
 																if (res.success) {
-																	toast.success('Password changed successfully')
+																	toast.success(t('toastPasswordChanged'))
 																	setOldPassword('')
 																	setNewPassword('')
 																	setConfirmPassword('')
 																	setShowPasswordForm(false)
 																} else {
-																	toast.error(res.message || 'Failed to change password')
+																	toast.error(res.message || t('toastPasswordFailed'))
 																}
 															} catch {
-																toast.error('Failed to change password')
+																toast.error(t('toastPasswordFailed'))
 															} finally {
 																setIsChangingPassword(false)
 															}
@@ -1834,10 +1839,11 @@ export default function SettingsPage() {
 												</p>
 											)}
 											<motion.button
+												type='button'
 												onClick={() => setShowInterestPicker(true)}
 												whileHover={LIST_ITEM_HOVER}
 												whileTap={LIST_ITEM_TAP}
-												className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
+												className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												<Sparkles className='size-4' />
 												{user?.preferences && user.preferences.length > 0 
@@ -1896,7 +1902,7 @@ export default function SettingsPage() {
 																	: null,
 															})
 														}
-														placeholder='No limit'
+														placeholder={t('noLimit')}
 														className='w-24'
 													/>
 													<span className='text-sm text-text-secondary'>
@@ -2114,7 +2120,7 @@ export default function SettingsPage() {
 										</div>
 									</SettingsCard>
 
-									<SettingsCard title='Sound & Motion'>
+									<SettingsCard title={t('soundAndMotion')}>
 										<div>
 											<ToggleRow
 												label={t('soundEffects')}

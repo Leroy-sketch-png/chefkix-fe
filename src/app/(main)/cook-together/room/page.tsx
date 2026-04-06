@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Users,
@@ -34,6 +35,7 @@ interface ActivityItem {
 
 export default function CookingRoomPage() {
 	const router = useRouter()
+	const t = useTranslations('cooking')
 	const [copied, setCopied] = useState(false)
 	const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([])
 	const [isUpgrading, setIsUpgrading] = useState(false)
@@ -75,54 +77,54 @@ export default function CookingRoomPage() {
 	const eventToActivity = useCallback(
 		(event: RoomEvent): ActivityItem | null => {
 			if (event.userId === currentUserId) return null // Skip own events
-			const name = event.displayName || 'Someone'
+			const name = event.displayName || t('ctSomeone')
 			switch (event.type) {
 				case 'STEP_NAVIGATED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name} moved to step ${event.data?.stepNumber ?? '?'}`,
+						text: t('ctActivityStepNav', { name, step: String(event.data?.stepNumber ?? '?') }),
 						emoji: '👣',
 						timestamp: Date.now(),
 					}
 				case 'STEP_COMPLETED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name} completed step ${event.data?.stepNumber ?? '?'}`,
+						text: t('ctActivityStepDone', { name, step: String(event.data?.stepNumber ?? '?') }),
 						emoji: '✅',
 						timestamp: Date.now(),
 					}
 				case 'TIMER_STARTED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name} started a timer`,
+						text: t('ctActivityTimerStart', { name }),
 						emoji: '⏱️',
 						timestamp: Date.now(),
 					}
 				case 'TIMER_COMPLETED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name}'s timer is done!`,
+						text: t('ctActivityTimerDone', { name }),
 						emoji: '🔔',
 						timestamp: Date.now(),
 					}
 				case 'SESSION_COMPLETED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name} finished cooking!`,
+						text: t('ctActivityFinished', { name }),
 						emoji: '🎉',
 						timestamp: Date.now(),
 					}
 				case 'PARTICIPANT_JOINED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name} joined the room`,
+						text: t('ctActivityJoined', { name }),
 						emoji: '👋',
 						timestamp: Date.now(),
 					}
 				case 'PARTICIPANT_LEFT':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name} left the room`,
+						text: t('ctActivityLeft', { name }),
 						emoji: '🚪',
 						timestamp: Date.now(),
 					}
@@ -130,7 +132,7 @@ export default function CookingRoomPage() {
 					const emoji = (event.data?.emoji as string) || '👍'
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: `${name} reacted ${emoji}`,
+						text: t('ctActivityReacted', { name, emoji }),
 						emoji,
 						timestamp: Date.now(),
 					}
@@ -139,7 +141,7 @@ export default function CookingRoomPage() {
 					return null
 			}
 		},
-		[currentUserId],
+		[currentUserId, t],
 	)
 
 	// Handle incoming room events
@@ -157,21 +159,21 @@ export default function CookingRoomPage() {
 			switch (event.type) {
 				case 'PARTICIPANT_JOINED':
 					if (event.userId !== currentUserId) {
-						toast.success(`${event.displayName} joined the room!`)
+						toast.success(t('ctToastJoined', { name: event.displayName }))
 					}
 					break
 				case 'PARTICIPANT_LEFT':
 					if (event.userId !== currentUserId) {
-						toast(`${event.displayName} left the room`)
+						toast(t('ctToastLeft', { name: event.displayName }))
 					}
 					break
 				case 'HOST_TRANSFERRED':
 					if (event.data?.newHostUserId === currentUserId) {
-						toast.success("You're now the host!")
+						toast.success(t('ctToastNowHost'))
 					}
 					break
 				case 'ROOM_DISSOLVED':
-					toast('Room has been dissolved')
+					toast(t('ctToastRoomDissolved'))
 					router.replace('/cook-together')
 					break
 				case 'REACTION': {
@@ -183,7 +185,7 @@ export default function CookingRoomPage() {
 				}
 			}
 		},
-		[handleRoomEvent, currentUserId, router, eventToActivity],
+		[handleRoomEvent, currentUserId, router, eventToActivity, t],
 	)
 
 	// WebSocket connection
@@ -197,9 +199,9 @@ export default function CookingRoomPage() {
 		if (!roomCode) return
 		await navigator.clipboard.writeText(roomCode)
 		setCopied(true)
-		toast.success('Room code copied!')
+		toast.success(t('toastRoomCodeCopied'))
 		setTimeout(() => setCopied(false), 2000)
-	}, [roomCode])
+	}, [roomCode, t])
 
 	const handleStartCooking = useCallback(() => {
 		const isDesktop = window.innerWidth >= 1280
@@ -214,17 +216,17 @@ export default function CookingRoomPage() {
 			await leaveRoom()
 			const success = await joinRoom(roomCode, 'COOK')
 			if (success) {
-				toast.success("You're now cooking!")
+					toast.success(t('ctToastNowCooking'))
 			} else {
-				toast.error('Failed to join as cook')
+				toast.error(t('toastJoinCookFailed'))
 				router.replace('/cook-together')
 			}
 		} catch {
-			toast.error('Failed to upgrade to cook')
+			toast.error(t('toastUpgradeCookFailed'))
 		} finally {
 			setIsUpgrading(false)
 		}
-	}, [roomCode, isUpgrading, leaveRoom, joinRoom, router])
+	}, [roomCode, isUpgrading, leaveRoom, joinRoom, router, t])
 
 	const handleLeave = useCallback(async () => {
 		await leaveRoom()
@@ -252,18 +254,19 @@ export default function CookingRoomPage() {
 							<div className='flex items-center gap-2'>
 								<Eye className='size-5 text-info' />
 								<span className='text-sm font-semibold text-info'>
-									You&apos;re watching this session
+									{t('ctWatchingBanner')}
 								</span>
 							</div>
 							<motion.button
+								type='button'
 								onClick={handleUpgradeToCook}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								disabled={isUpgrading}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-bold text-white shadow-card transition-all hover:bg-brand/90 disabled:opacity-50'
+								className='flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-bold text-white shadow-card transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<ArrowUpCircle className='size-4' />
-								{isUpgrading ? 'Joining...' : 'Join as Cook'}
+								{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
 							</motion.button>
 						</motion.div>
 					)}
@@ -273,8 +276,8 @@ export default function CookingRoomPage() {
 				<div className='mb-8'>
 					<PageHeader
 						icon={Users}
-						title='Cooking Room'
-						subtitle={`Room ${roomCode}`}
+						title={t('ctCookingRoom')}
+						subtitle={t('ctRoomCode', { code: roomCode })}
 						gradient='orange'
 						marginBottom='sm'
 						showSparkles={false}
@@ -288,14 +291,14 @@ export default function CookingRoomPage() {
 							<span
 								className={`inline-block size-2 rounded-full ${isConnected ? 'bg-success' : 'bg-text-muted'}`}
 							/>
-							{isConnected ? 'Connected' : 'Connecting...'}
+							{isConnected ? t('ctConnected') : t('ctConnecting')}
 						</span>
 						{spectatorCount > 0 && (
 							<>
 								<span>•</span>
 								<span className='flex items-center gap-1 text-sm text-info'>
 									<Eye className='size-3.5' />
-									{spectatorCount} watching
+									{t('ctWatchingCount', { count: spectatorCount })}
 								</span>
 							</>
 						)}
@@ -321,7 +324,7 @@ export default function CookingRoomPage() {
 										{recipe.title}
 									</h2>
 									<p className='text-sm text-text-secondary'>
-										{totalSteps} steps • {recipe.totalTimeMinutes ?? 0} min
+												{t('ctRecipeInfo', { steps: totalSteps, minutes: recipe.totalTimeMinutes ?? 0 })}
 									</p>
 								</div>
 							</div>
@@ -330,11 +333,10 @@ export default function CookingRoomPage() {
 						{/* Participants */}
 						<div className='mb-6'>
 							<h3 className='mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted'>
-								Cooks ({cookCount}/6)
+								{t('ctCooksCount', { count: cookCount })}
 								{spectatorCount > 0 && (
 									<span className='ml-2 font-normal normal-case text-info'>
-										+ {spectatorCount} spectator
-										{spectatorCount > 1 ? 's' : ''}
+										{t('ctPlusSpectators', { count: spectatorCount })}
 									</span>
 								)}
 							</h3>
@@ -383,24 +385,24 @@ export default function CookingRoomPage() {
 													</span>
 													{p.isHost && (
 														<span className='rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning'>
-															Host
+															{t('ctHost')}
 														</span>
 													)}
 													{pIsSpectator && (
 														<span className='rounded-full bg-info/15 px-2 py-0.5 text-xs font-medium text-info'>
-															Watching
+															{t('ctWatchingBadge')}
 														</span>
 													)}
 													{p.userId === currentUserId && (
 														<span className='rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'>
-															You
+															{t('ctYou')}
 														</span>
 													)}
 												</div>
 												<p className='text-xs text-text-muted'>
 													{pIsSpectator
-														? 'Spectating'
-														: `Step ${p.currentStep} of ${totalSteps}`}
+														? t('ctSpectating')
+														: t('ctStepOf', { current: p.currentStep, total: totalSteps })}
 												</p>
 											</div>
 											{/* Progress — only for cooks */}
@@ -426,32 +428,35 @@ export default function CookingRoomPage() {
 						<div className='flex gap-3'>
 							{isSpectator ? (
 								<motion.button
+									type='button'
 									onClick={handleUpgradeToCook}
 									disabled={isUpgrading}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-info/70 py-4 text-lg font-bold text-white shadow-lg shadow-info/30 disabled:opacity-50'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-info/70 py-4 text-lg font-bold text-white shadow-lg shadow-info/30 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<ArrowUpCircle className='size-6' />
-									{isUpgrading ? 'Joining...' : 'Join as Cook'}
+									{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
 								</motion.button>
 							) : (
 								<motion.button
+									type='button'
 									onClick={handleStartCooking}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-lg shadow-brand/30'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-lg shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<ChefHat className='size-6' />
-									{session ? 'Continue Cooking' : 'Start Cooking'}
+									{session ? t('ctContinueCooking') : t('ctStartCooking')}
 								</motion.button>
 							)}
 
 							<motion.button
+								type='button'
 								onClick={handleCopyCode}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='flex items-center gap-2 rounded-xl border-2 border-border-medium px-5 py-4 font-semibold transition-all hover:border-brand hover:bg-brand/5'
+								className='flex items-center gap-2 rounded-xl border-2 border-border-medium px-5 py-4 font-semibold transition-all hover:border-brand hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{copied ? (
 									<Check className='size-5 text-success' />
@@ -459,18 +464,19 @@ export default function CookingRoomPage() {
 									<Copy className='size-5' />
 								)}
 								<span className='hidden sm:inline'>
-									{copied ? 'Copied' : 'Share'}
+									{copied ? t('ctCopied') : t('ctShare')}
 								</span>
 							</motion.button>
 
 							<motion.button
+								type='button'
 								onClick={handleLeave}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='flex items-center gap-2 rounded-xl border-2 border-error/30 px-5 py-4 font-semibold text-error transition-all hover:border-error hover:bg-error/5'
+								className='flex items-center gap-2 rounded-xl border-2 border-error/30 px-5 py-4 font-semibold text-error transition-all hover:border-error hover:bg-error/5 focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<LogOut className='size-5' />
-								<span className='hidden sm:inline'>Leave</span>
+								<span className='hidden sm:inline'>{t('ctLeave')}</span>
 							</motion.button>
 						</div>
 					</motion.div>
@@ -485,7 +491,7 @@ export default function CookingRoomPage() {
 						<div className='mb-3 flex items-center gap-2'>
 							<Activity className='size-4 text-brand' />
 							<h3 className='text-sm font-semibold uppercase tracking-wider text-text-muted'>
-								Live Activity
+								{t('ctLiveActivity')}
 							</h3>
 							{isConnected && (
 								<span className='ml-auto inline-block size-2 animate-pulse rounded-full bg-success' />
@@ -494,7 +500,7 @@ export default function CookingRoomPage() {
 						<div className='max-h-80 space-y-2 overflow-y-auto pr-1 lg:max-h-[28rem]'>
 							{activityFeed.length === 0 ? (
 								<p className='py-8 text-center text-sm text-text-muted'>
-									Waiting for activity...
+									{t('ctWaitingActivity')}
 								</p>
 							) : (
 								activityFeed.map(item => (

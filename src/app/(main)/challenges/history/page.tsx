@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from '@/i18n/hooks'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { ErrorState } from '@/components/ui/error-state'
@@ -47,6 +48,7 @@ const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
 
 export default function ChallengeHistoryPageRoute() {
 	const router = useRouter()
+	const t = useTranslations('challenges')
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
@@ -86,7 +88,7 @@ export default function ChallengeHistoryPageRoute() {
 			} catch (err) {
 				if (!cancelled) {
 					logDevError('Failed to fetch challenge history:', err)
-					toast.error('Failed to load challenge history')
+					toast.error(t('toastLoadHistoryFailed'))
 					setFetchError(true)
 				}
 			} finally {
@@ -98,7 +100,7 @@ export default function ChallengeHistoryPageRoute() {
 		return () => {
 			cancelled = true
 		}
-	}, [currentMonth])
+	}, [currentMonth, t])
 
 	const handleMonthChange = (direction: 'prev' | 'next') => {
 		const newMonth = new Date(currentMonth)
@@ -114,8 +116,8 @@ export default function ChallengeHistoryPageRoute() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<ErrorState
-						title='Failed to load challenge history'
-						message='Something went wrong loading your challenge history. Please try again.'
+						title={t('errorLoadHistory')}
+						message={t('errorLoadHistoryDesc')}
 						onRetry={() => {
 							setIsLoading(true)
 							setFetchError(false)

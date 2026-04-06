@@ -56,30 +56,30 @@ import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 // ── Category Config ─────────────────────────────────────
 
 const CATEGORIES = [
-	{ key: 'produce', label: 'Produce', emoji: '🥬' },
-	{ key: 'protein', label: 'Protein', emoji: '🥩' },
-	{ key: 'dairy', label: 'Dairy', emoji: '🧀' },
-	{ key: 'grains', label: 'Grains', emoji: '🌾' },
-	{ key: 'spices', label: 'Spices', emoji: '🌶️' },
-	{ key: 'condiments', label: 'Condiments', emoji: '🫙' },
-	{ key: 'frozen', label: 'Frozen', emoji: '🧊' },
-	{ key: 'other', label: 'Other', emoji: '📦' },
-]
+	{ key: 'produce', labelKey: 'catProduce', emoji: '🥬' },
+	{ key: 'protein', labelKey: 'catProtein', emoji: '🥩' },
+	{ key: 'dairy', labelKey: 'catDairy', emoji: '🧀' },
+	{ key: 'grains', labelKey: 'catGrains', emoji: '🌾' },
+	{ key: 'spices', labelKey: 'catSpices', emoji: '🌶️' },
+	{ key: 'condiments', labelKey: 'catCondiments', emoji: '🫙' },
+	{ key: 'frozen', labelKey: 'catFrozen', emoji: '🧊' },
+	{ key: 'other', labelKey: 'catOther', emoji: '📦' },
+] as const
 
-const FRESHNESS_STYLES: Record<
+const FRESHNESS_KEYS: Record<
 	string,
-	{ bg: string; text: string; label: string }
+	{ bg: string; text: string; labelKey: string }
 > = {
-	fresh: { bg: 'bg-success/10', text: 'text-success', label: 'Fresh' },
+	fresh: { bg: 'bg-success/10', text: 'text-success', labelKey: 'fresh' },
 	expiring_soon: {
 		bg: 'bg-warning/10',
 		text: 'text-warning',
-		label: 'Expiring Soon',
+		labelKey: 'expiringSoon',
 	},
 	expired: {
 		bg: 'bg-destructive/10',
 		text: 'text-destructive',
-		label: 'Expired',
+		labelKey: 'expired',
 	},
 }
 
@@ -151,7 +151,7 @@ export default function PantryPage() {
 			setError(true)
 			toast.error(t('failedToLoadItems'), {
 				action: {
-					label: 'Retry',
+					label: t('retry'),
 					onClick: () => {
 						void fetchItems()
 					},
@@ -160,7 +160,7 @@ export default function PantryPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [filterCategory])
+	}, [filterCategory, t])
 
 	useEffect(() => {
 		fetchItems()
@@ -196,7 +196,7 @@ export default function PantryPage() {
 		} catch {
 			toast.error(t('failedToAdd'), {
 				action: {
-					label: 'Retry',
+					label: t('retry'),
 					onClick: () => {
 						void handleQuickAdd()
 					},
@@ -230,7 +230,7 @@ export default function PantryPage() {
 		} catch {
 			toast.error(t('failedToUpdate'), {
 				action: {
-					label: 'Retry',
+					label: t('retry'),
 					onClick: () => {
 						void saveEdit()
 					},
@@ -266,7 +266,7 @@ export default function PantryPage() {
 		} catch {
 			toast.error(t('failedToClearExpired'), {
 				action: {
-					label: 'Retry',
+					label: t('retry'),
 					onClick: () => {
 						void handleClearExpired()
 					},
@@ -289,7 +289,7 @@ export default function PantryPage() {
 			setShowSuggestions(false)
 			toast.error(t('failedToLoadSuggestions'), {
 				action: {
-					label: 'Retry',
+					label: t('retry'),
 					onClick: () => {
 						void loadSuggestions()
 					},
@@ -307,9 +307,9 @@ export default function PantryPage() {
 		try {
 			const shoppingList = await createFromRecipe({ recipeId })
 			toast.success(t('shoppingListCreated'), {
-				description: `${shoppingList.totalItems} missing ingredients`,
+				description: t('missingIngredients', { count: shoppingList.totalItems }),
 				action: {
-					label: 'View',
+					label: t('viewShoppingList'),
 					onClick: () => router.push('/shopping-lists'),
 				},
 			})
@@ -393,25 +393,27 @@ export default function PantryPage() {
 						rightAction={
 							<div className='flex items-center gap-2'>
 								<span className='rounded-full bg-bg-elevated px-2.5 py-0.5 text-sm text-text-secondary'>
-									{items.length} items
+									{t('itemCount', { count: items.length })}
 								</span>
 								{expiredCount > 0 && (
 									<motion.button
+										type='button'
 										onClick={() => setShowClearExpiredConfirm(true)}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20'
+										className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<Trash2 className='size-4' />
-										Clear {expiredCount} expired
+										{t('clearExpired', { count: expiredCount })}
 									</motion.button>
 								)}
 								<motion.button
+									type='button'
 									onClick={loadSuggestions}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
+									className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Sparkles className='size-4' />
-									What can I cook?
+									{t('whatCanICook')}
 								</motion.button>
 							</div>
 						}
@@ -427,15 +429,16 @@ export default function PantryPage() {
 							<AlertTriangle className='size-5 text-warning' />
 							<p className='text-sm text-warning'>
 								<strong>
-									{expiringCount} item{expiringCount > 1 ? 's' : ''}
+									{t('expiringItems', { count: expiringCount })}
 								</strong>{' '}
-								expiring soon.
+								{t('expiringSoonMessage')}
 								<motion.button
+									type='button'
 									onClick={loadSuggestions}
 									whileTap={BUTTON_TAP}
-									className='ml-1 font-semibold text-brand underline-offset-2 hover:underline'
+									className='ml-1 font-semibold text-brand underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
-									Find recipes to use them
+									{t('findRecipesToUse')}
 								</motion.button>
 							</p>
 						</motion.div>
@@ -449,7 +452,7 @@ export default function PantryPage() {
 									htmlFor='pantry-ingredient'
 									className='mb-1 block text-xs font-medium text-text-secondary'
 								>
-									Ingredient
+									{t('labelIngredient')}
 								</label>
 								<AsyncCombobox
 									id='pantry-ingredient'
@@ -474,7 +477,7 @@ export default function PantryPage() {
 									htmlFor='pantry-qty'
 									className='mb-1 block text-xs font-medium text-text-secondary'
 								>
-									Qty
+									{t('labelQty')}
 								</label>
 								<input
 									id='pantry-qty'
@@ -491,14 +494,14 @@ export default function PantryPage() {
 									htmlFor='pantry-unit'
 									className='mb-1 block text-xs font-medium text-text-secondary'
 								>
-									Unit
+									{t('labelUnit')}
 								</label>
 								<input
 									id='pantry-unit'
 									value={quickAddUnit}
 									onChange={e => setQuickAddUnit(e.target.value)}
 									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
-									placeholder='kg'
+									placeholder={t('unitPlaceholder')}
 									className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
 								/>
 							</div>
@@ -507,7 +510,7 @@ export default function PantryPage() {
 									htmlFor='pantry-category'
 									className='mb-1 block text-xs font-medium text-text-secondary'
 								>
-									Category
+									{t('labelCategory')}
 								</label>
 								<select
 									id='pantry-category'
@@ -521,7 +524,7 @@ export default function PantryPage() {
 											value={c.key}
 											className='bg-bg-card text-text'
 										>
-											{c.emoji} {c.label}
+											{c.emoji} {t(c.labelKey)}
 										</option>
 									))}
 								</select>
@@ -531,7 +534,7 @@ export default function PantryPage() {
 									htmlFor='pantry-expiry'
 									className='mb-1 block text-xs font-medium text-text-secondary'
 								>
-									Expiry
+									{t('labelExpiry')}
 								</label>
 								<input
 									id='pantry-expiry'
@@ -542,13 +545,14 @@ export default function PantryPage() {
 								/>
 							</div>
 							<motion.button
+								type='button'
 								onClick={handleQuickAdd}
 								whileTap={BUTTON_TAP}
 								disabled={!quickAddName.trim() || isAdding}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<Plus className='size-4' />
-								Add
+								{t('addButton')}
 							</motion.button>
 						</div>
 					</motion.div>
@@ -567,30 +571,32 @@ export default function PantryPage() {
 						<div className='flex items-center gap-1.5'>
 							<Filter className='size-4 text-text-muted' />
 							<motion.button
+								type='button'
 								onClick={() => setFilterCategory(null)}
 								whileTap={BUTTON_SUBTLE_TAP}
-								className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+								className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 									!filterCategory
 										? 'bg-brand text-white'
 										: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
 								}`}
-								aria-label='Show all categories'
+								aria-label={t('showAllCategories')}
 							>
-								All
+								{t('all')}
 							</motion.button>
 							{CATEGORIES.map(c => (
 								<motion.button
+									type='button'
 									key={c.key}
 									onClick={() =>
 										setFilterCategory(filterCategory === c.key ? null : c.key)
 									}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+									className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 										filterCategory === c.key
 											? 'bg-brand text-white'
 											: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
 									}`}
-									aria-label={`Filter by ${c.label}`}
+									aria-label={t('filterBy', { category: t(c.labelKey) })}
 								>
 									{c.emoji}
 								</motion.button>
@@ -604,9 +610,9 @@ export default function PantryPage() {
 							variant='custom'
 							emoji='🧅'
 							title={t('emptyTitle')}
-							description='Add the ingredients you have at home. We&apos;ll suggest recipes you can cook right now — no grocery run needed.'
+							description={t('emptyDescription')}
 							primaryAction={{
-								label: 'Add Your First Ingredient',
+								label: t('addFirstIngredient'),
 								onClick: () => {
 									const input = document.querySelector<HTMLInputElement>('[data-pantry-input]')
 									input?.focus()
@@ -626,7 +632,7 @@ export default function PantryPage() {
 									<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3'>
 										<span className='text-lg'>{group.emoji}</span>
 										<h3 className='text-sm font-semibold text-text'>
-											{group.label}
+											{t(group.labelKey)}
 										</h3>
 										<span className='text-xs text-text-muted'>
 											({group.items.length})
@@ -663,7 +669,7 @@ export default function PantryPage() {
 																}))
 															}
 															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none focus:border-brand focus:outline-none'
-															placeholder='Qty'
+														placeholder={t('labelQty')}
 														/>
 														<input
 															value={editForm.unit ?? ''}
@@ -674,7 +680,7 @@ export default function PantryPage() {
 																}))
 															}
 															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
-															placeholder='Unit'
+														placeholder={t('labelUnit')}
 														/>
 														<input
 															type='date'
@@ -688,17 +694,19 @@ export default function PantryPage() {
 															className='w-36 rounded-md border border-border-subtle bg-bg-card px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
 														/>
 															<motion.button
+															type='button'
 															onClick={saveEdit}
 																whileTap={BUTTON_SUBTLE_TAP}
-															className='rounded-md bg-success/10 p-1.5 text-success hover:bg-success/20'
-															aria-label='Save edit'
+															className='rounded-md bg-success/10 p-1.5 text-success hover:bg-success/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+															aria-label={t('saveChanges')}
 														>
 															<Check className='size-4' />
 															</motion.button>
 															<motion.button
+															type='button'
 															onClick={() => setEditingId(null)}
 																whileTap={BUTTON_SUBTLE_TAP}
-															className='rounded-md bg-bg-elevated p-1.5 text-text-secondary hover:bg-bg-elevated/80'
+															className='rounded-md bg-bg-elevated p-1.5 text-text-secondary hover:bg-bg-elevated/80 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
 															<X className='size-4' />
 															</motion.button>
@@ -729,25 +737,27 @@ export default function PantryPage() {
 														)}
 														<span
 															className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-																FRESHNESS_STYLES[item.freshness]?.bg
-															} ${FRESHNESS_STYLES[item.freshness]?.text}`}
-														>
-															{FRESHNESS_STYLES[item.freshness]?.label}
+															FRESHNESS_KEYS[item.freshness]?.bg
+														} ${FRESHNESS_KEYS[item.freshness]?.text}`}
+													>
+														{FRESHNESS_KEYS[item.freshness]?.labelKey ? t(FRESHNESS_KEYS[item.freshness].labelKey) : item.freshness}
 														</span>
 														<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
 															<motion.button
+																type='button'
 																onClick={() => startEdit(item)}
 																whileTap={BUTTON_SUBTLE_TAP}
-																className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text'
-																aria-label='Edit item'
+																className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+																aria-label={t('editItem')}
 															>
 																<Pencil className='size-3.5' />
 															</motion.button>
 															<motion.button
+																type='button'
 																onClick={() => setConfirmingDeleteId(item.id)}
 																whileTap={BUTTON_SUBTLE_TAP}
-																className='rounded-md p-1.5 text-text-muted hover:bg-destructive/10 hover:text-destructive'
-																aria-label='Delete item'
+																className='rounded-md p-1.5 text-text-muted hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
+																aria-label={t('deleteItem')}
 															>
 																<Trash2 className='size-3.5' />
 															</motion.button>
@@ -776,13 +786,14 @@ export default function PantryPage() {
 									<div className='flex items-center gap-2'>
 										<ChefHat className='size-5 text-brand' />
 										<h2 className='text-lg font-semibold text-text'>
-											Recipes You Can Cook
+											{t('recipesYouCanCook')}
 										</h2>
 									</div>
 									<motion.button
+										type='button'
 										onClick={() => setShowSuggestions(false)}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
+										className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<X className='size-4' />
 									</motion.button>
@@ -799,18 +810,19 @@ export default function PantryPage() {
 									</div>
 								) : matchedRecipes.length === 0 ? (
 									<p className='py-8 text-center text-sm text-text-muted'>
-										No matching recipes found. Try adding more ingredients!
+										{t('noMatchingRecipes')}
 									</p>
 								) : (
 									<div className='grid gap-3'>
 										{matchedRecipes.slice(0, 10).map(match => (
 											<motion.button
+												type='button'
 												key={match.recipeId}
 												whileHover={CARD_HOVER}
 												onClick={() =>
 													router.push(`/recipes/${match.recipeId}`)
 												}
-												className='flex items-center gap-4 rounded-lg border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated'
+												className='flex items-center gap-4 rounded-lg border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{match.coverImageUrl && (
 													<Image
@@ -828,7 +840,7 @@ export default function PantryPage() {
 													</p>
 													<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
 														<span>{match.difficulty}</span>
-														<span>{match.totalTimeMinutes} min</span>
+														<span>{match.totalTimeMinutes} {t('min')}</span>
 													</div>
 													<div className='mt-1.5 flex items-center gap-2'>
 														<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
@@ -845,7 +857,7 @@ export default function PantryPage() {
 													</div>
 													{match.expiringIngredientsUsed.length > 0 && (
 														<p className='mt-1 text-xs text-warning'>
-															Uses expiring:{' '}
+													{t('usesExpiring')}{' '}
 															{match.expiringIngredientsUsed.join(', ')}
 														</p>
 													)}
@@ -855,7 +867,7 @@ export default function PantryPage() {
 														onClick={(e) => handleAddToShoppingList(match.recipeId, e)}
 														onKeyDown={(e) => { if (e.key === 'Enter') handleAddToShoppingList(match.recipeId, e as unknown as React.MouseEvent) }}
 														className='grid size-10 flex-shrink-0 place-items-center rounded-lg border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
-														title='Create shopping list (missing ingredients only)'
+														title={t('addToShoppingList')}
 													>
 														{addingToListId === match.recipeId ? (
 															<Loader2 className='size-4 animate-spin text-text-muted' />
@@ -890,28 +902,30 @@ export default function PantryPage() {
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
 									<h3 className='mb-2 text-lg font-bold text-text'>
-										Delete Pantry Item?
+										{t('deleteItem')}
 									</h3>
 									<p className='mb-6 text-sm text-text-muted'>
-										This item will be permanently removed from your pantry.
+										{t('deleteConfirm', { name: items.find(i => i.id === confirmingDeleteId)?.ingredientName ?? '' })}
 									</p>
 									<div className='flex justify-end gap-3'>
 										<motion.button
+											type='button'
 											onClick={() => setConfirmingDeleteId(null)}
 											whileTap={BUTTON_SUBTLE_TAP}
-											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											Cancel
+											{t('cancelEdit')}
 										</motion.button>
 										<motion.button
+											type='button'
 											onClick={() => handleDelete(confirmingDeleteId)}
 											whileTap={BUTTON_SUBTLE_TAP}
 											disabled={isDeletingId === confirmingDeleteId}
-											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
+											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{isDeletingId === confirmingDeleteId
-												? 'Deleting...'
-												: 'Delete'}
+												? t('deleting')
+												: t('deleteItem')}
 										</motion.button>
 									</div>
 								</motion.div>
@@ -939,28 +953,28 @@ export default function PantryPage() {
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
 									<h3 className='mb-2 text-lg font-bold text-text'>
-										Clear Expired Items?
+										{t('clearExpiredTitle')}
 									</h3>
 									<p className='mb-6 text-sm text-text-muted'>
-										Remove {expiredCount} expired item
-										{expiredCount > 1 ? 's' : ''} from your pantry? This cannot
-										be undone.
+										{t('clearExpiredConfirm', { count: expiredCount })}
 									</p>
 									<div className='flex justify-end gap-3'>
 										<motion.button
+											type='button'
 											onClick={() => setShowClearExpiredConfirm(false)}
 											whileTap={BUTTON_SUBTLE_TAP}
-											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											Cancel
+											{t('cancelEdit')}
 										</motion.button>
 										<motion.button
+											type='button'
 											onClick={handleClearExpired}
 											whileTap={BUTTON_SUBTLE_TAP}
 											disabled={isClearingExpired}
-											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
+											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											{isClearingExpired ? 'Clearing...' : 'Clear All'}
+											{isClearingExpired ? t('clearing') : t('clearAll')}
 										</motion.button>
 									</div>
 								</motion.div>

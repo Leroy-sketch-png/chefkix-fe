@@ -52,7 +52,7 @@ export default function BansPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [userId])
+	}, [userId, t])
 
 	const handleRevoke = async (banId: string) => {
 		setActionLoading(banId)
@@ -83,8 +83,8 @@ export default function BansPage() {
 			if (res.success && res.data) {
 				toast.success(
 					res.data.permanent
-						? 'User permanently banned'
-						: `User banned for ${res.data.durationDays} days (offense #${res.data.offenseNumber})`,
+						? t('toastPermaBanned')
+						: t('toastTempBanned', { days: res.data.durationDays, offense: res.data.offenseNumber }),
 				)
 				setShowBanForm(false)
 				setBanReason('')
@@ -122,7 +122,7 @@ export default function BansPage() {
 					</div>
 					<Button onClick={searchBans} disabled={loading} className='gap-1.5'>
 						<Search className='size-4' />
-						Search
+						{t('search')}
 					</Button>
 				</div>
 
@@ -187,7 +187,7 @@ export default function BansPage() {
 												: 'bg-bg-elevated text-text-muted hover:text-text',
 										)}
 									>
-										{scope.charAt(0).toUpperCase() + scope.slice(1)}
+										{t(`scope_${scope}`)}
 									</button>
 								))}
 							</div>
@@ -246,7 +246,7 @@ export default function BansPage() {
 														variant='secondary'
 														className='text-xs capitalize'
 													>
-														{ban.scope}
+														{t(`scope_${ban.scope}`)}
 													</Badge>
 													{ban.permanent && (
 														<Badge
@@ -254,16 +254,16 @@ export default function BansPage() {
 															className='gap-1 text-xs'
 														>
 															<Infinity className='size-3' />
-															Permanent
+															{t('permanentLabel')}
 														</Badge>
 													)}
 												</div>
 												<p className='text-xs text-text-muted'>
 													{ban.permanent
-														? 'No expiry'
-														: `${ban.durationDays} days \u00b7 Expires ${ban.expiresAt ? new Date(ban.expiresAt).toLocaleDateString() : 'N/A'}`}
-													{' \u00b7 Issued '}
-													{new Date(ban.issuedAt).toLocaleDateString()}
+														? t('noExpiry')
+														: t('daysExpires', { days: ban.durationDays, date: ban.expiresAt ? new Date(ban.expiresAt).toLocaleDateString() : 'N/A' })}
+													{' \u00b7 '}
+													{t('issuedLabel', { date: new Date(ban.issuedAt).toLocaleDateString() })}
 												</p>
 											</div>
 										</div>
@@ -276,7 +276,7 @@ export default function BansPage() {
 												className='gap-1.5'
 											>
 												<ShieldOff className='size-3.5' />
-												Revoke
+												{t('revoke')}
 											</Button>
 										)}
 									</div>
@@ -306,7 +306,7 @@ export default function BansPage() {
 					</div>
 					<p className='text-sm font-medium text-text'>{t('lookUpTitle')}</p>
 					<p className='text-xs text-text-muted'>
-						Enter a user ID to view their ban history and manage bans
+						{t('lookUpSubtitle')}
 					</p>
 				</div>
 			)}

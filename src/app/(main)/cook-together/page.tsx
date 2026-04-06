@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Users,
@@ -22,6 +23,7 @@ import { toast } from 'sonner'
 
 function CookTogetherContent() {
 	const router = useRouter()
+	const t = useTranslations('cooking')
 	const searchParams = useSearchParams()
 	const [roomCodeInput, setRoomCodeInput] = useState('')
 	const [isJoining, setIsJoining] = useState(false)
@@ -63,15 +65,15 @@ function CookTogetherContent() {
 					if (success) {
 						toast.success(
 							urlRole === 'SPECTATOR'
-								? 'Watching the cooking room!'
-								: 'Joined the cooking room!',
+								? t('ctWatching')
+								: t('toastJoinedRoom'),
 						)
 						router.push('/cook-together/room')
 					} else {
-						toast.error('Could not join room. It may be full or dissolved.')
+						toast.error(t('toastJoinRoomFull'))
 					}
 				} catch {
-					if (!cancelled) toast.error('Failed to join room')
+					if (!cancelled) toast.error(t('toastJoinRoomFailed'))
 				} finally {
 					if (!cancelled) setIsJoining(false)
 				}
@@ -81,7 +83,7 @@ function CookTogetherContent() {
 				cancelled = true
 			}
 		}
-	}, [searchParams, isInRoom, isJoining, joinRoom, router])
+	}, [searchParams, isInRoom, isJoining, joinRoom, router, t])
 
 	// Auto-focus the input on mount
 	useEffect(() => {
@@ -93,7 +95,7 @@ function CookTogetherContent() {
 	const handleJoin = useCallback(async () => {
 		const code = roomCodeInput.trim().toUpperCase()
 		if (!code || code.length < 6) {
-			toast.error('Please enter a valid 6-character room code')
+			toast.error(t('toastInvalidRoomCode'))
 			return
 		}
 
@@ -101,29 +103,29 @@ function CookTogetherContent() {
 		try {
 			const success = await joinRoom(code)
 			if (success) {
-				toast.success('Joined the cooking room!')
+				toast.success(t('toastJoinedRoom'))
 				router.push('/cook-together/room')
 			} else {
-				toast.error('Could not join room. Check the code and try again.')
+				toast.error(t('toastJoinCheckCode'))
 			}
 		} catch {
-			toast.error('Failed to join room')
+			toast.error(t('toastJoinRoomFailed'))
 		} finally {
 			setIsJoining(false)
 		}
-	}, [roomCodeInput, joinRoom, router])
+	}, [roomCodeInput, joinRoom, router, t])
 
 	const handleCopyRoomCode = useCallback(async () => {
 		if (!roomCode) return
 		try {
 			await navigator.clipboard.writeText(roomCode)
 			setCopied(true)
-			toast.success('Room code copied!')
+			toast.success(t('toastRoomCodeCopied'))
 			copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch {
-			toast.error('Failed to copy room code')
+			toast.error(t('toastCopyFailed'))
 		}
-	}, [roomCode])
+	}, [roomCode, t])
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
@@ -140,8 +142,8 @@ function CookTogetherContent() {
 				{/* Header */}
 				<PageHeader
 					icon={Users}
-					title='Cook Together'
-					subtitle='Cook the same recipe with friends in real-time'
+					title={t('ctTitle')}
+					subtitle={t('ctSubtitle')}
 					gradient='orange'
 				/>
 
@@ -179,14 +181,14 @@ function CookTogetherContent() {
 										) : (
 											<Copy className='size-4' />
 										)}
-										{copied ? 'Copied' : 'Share Code'}
+										{copied ? t('ctCopied') : t('ctShareCode')}
 									</button>
 									<button
 										type='button'
 										onClick={() => router.push('/cook-together/room')}
 										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
 									>
-										Return to Room
+									{t('ctReturnToRoom')}
 										<ArrowRight className='size-4' />
 									</button>
 								</div>
@@ -208,10 +210,10 @@ function CookTogetherContent() {
 						</div>
 						<div>
 							<h2 className='text-xl font-bold text-text'>
-								Join a Cooking Room
+								{t('ctJoinRoom')}
 							</h2>
 							<p className='text-sm text-text-secondary'>
-								Enter a room code shared by your friend
+								{t('ctJoinRoomDesc')}
 							</p>
 						</div>
 					</div>
@@ -225,9 +227,9 @@ function CookTogetherContent() {
 								setRoomCodeInput(e.target.value.toUpperCase().slice(0, 6))
 							}
 							onKeyDown={handleKeyDown}
-							placeholder='ABCDEF'
+							placeholder={t('ctRoomCodePlaceholder')}
 							maxLength={6}
-							aria-label='Room code'
+							aria-label={t('ctRoomCodeLabel')}
 							className='flex-1 rounded-xl border border-border-subtle bg-bg px-4 py-3 font-mono text-xl tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 							disabled={isJoining}
 						/>
@@ -251,13 +253,12 @@ function CookTogetherContent() {
 							) : (
 								<ArrowRight className='size-5' />
 							)}
-							{isJoining ? 'Joining...' : 'Join'}
+							{isJoining ? t('ctJoining') : t('ctJoin')}
 						</button>
 					</div>
 
 					<p className='mt-3 text-xs text-text-muted'>
-						Room codes are 6 characters. Ask your friend to share theirs from
-						the cooking page.
+						{t('ctRoomCodeHint')}
 					</p>
 				</motion.div>
 
@@ -272,25 +273,25 @@ function CookTogetherContent() {
 						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-streak'>
 							<Sparkles className='size-5 text-white' />
 						</div>
-						<h2 className='text-xl font-bold text-text'>How It Works</h2>
+						<h2 className='text-xl font-bold text-text'>{t('ctHowItWorks')}</h2>
 					</div>
 
 					<div className='grid gap-4 md:grid-cols-3'>
 						{[
 							{
 								step: '1',
-								title: 'Start a Room',
-								desc: 'Open any recipe and tap "Cook Together" to create a room with a unique code.',
+								title: t('ctStep1Title'),
+								desc: t('ctStep1Desc'),
 							},
 							{
 								step: '2',
-								title: 'Invite Friends',
-								desc: 'Share the 6-character room code. Up to 6 people can join and cook the same recipe.',
+								title: t('ctStep2Title'),
+								desc: t('ctStep2Desc'),
 							},
 							{
 								step: '3',
-								title: 'Cook in Sync',
-								desc: "See each other's progress, share reactions, and complete steps together in real-time.",
+								title: t('ctStep3Title'),
+							desc: t('ctStep3Desc'),
 							},
 						].map((item, i) => (
 							<motion.div

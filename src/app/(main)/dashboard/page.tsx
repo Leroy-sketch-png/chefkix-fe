@@ -339,7 +339,7 @@ export default function DashboardPage() {
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to load dashboard feed:', err)
-				setError('Failed to load feed')
+				setError(t('failedToLoadFeed'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -356,9 +356,9 @@ export default function DashboardPage() {
 		setIsRetryingPendingXp(true)
 		const recovered = await retryPendingXpSync()
 		if (recovered) {
-			toast.success('XP sync completed successfully.')
+			toast.success(t('toastXpSyncSuccess'))
 		} else {
-			toast.error('Still syncing XP. Please try again in a moment.')
+			toast.error(t('toastXpSyncBusy'))
 		}
 		setIsRetryingPendingXp(false)
 	}
@@ -410,12 +410,12 @@ export default function DashboardPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to load more posts:', err)
-			toast.error('Failed to load more posts')
+			toast.error(t('toastLoadMoreFailed'))
 			setHasMore(false)
 		} finally {
 			setIsLoadingMore(false)
 		}
-	}, [isLoadingMore, hasMore, currentPage, feedMode, isColdStartFallback])
+	}, [isLoadingMore, hasMore, currentPage, feedMode, isColdStartFallback, t])
 
 	// Intersection Observer for infinite scroll
 	useEffect(() => {
@@ -496,7 +496,7 @@ export default function DashboardPage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}

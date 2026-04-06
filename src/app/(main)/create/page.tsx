@@ -257,18 +257,20 @@ function CreateRecipeContent() {
 									</div>
 									<div className='mt-4 flex gap-3'>
 										<motion.button
+											type='button'
 											onClick={handleResumeLocalDraft}
 											whileHover={BUTTON_HOVER}
 											whileTap={BUTTON_TAP}
-											className='flex-1 rounded-xl bg-streak py-2.5 text-sm font-semibold text-white'
+											className='flex-1 rounded-xl bg-streak py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 												{t('resumeEditing')}
 										</motion.button>
 										<motion.button
+											type='button'
 											onClick={() => setShowDiscardDialog(true)}
 											whileHover={BUTTON_HOVER}
 											whileTap={BUTTON_TAP}
-											className='flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-text-muted hover:border-destructive hover:text-destructive'
+											className='flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-text-muted hover:border-destructive hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<Trash2 className='size-4' />
 										</motion.button>

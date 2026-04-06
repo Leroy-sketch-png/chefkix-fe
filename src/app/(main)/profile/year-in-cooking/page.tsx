@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	ArrowLeft,
@@ -33,9 +34,12 @@ import { getProfileDisplayName } from '@/lib/types/profile'
 interface RecapCard {
 	id: string
 	emoji: string
-	title: string
-	value: string
-	subtitle: string
+	titleKey: string
+	value?: string
+	valueKey?: string
+	valueParams?: Record<string, string | number>
+	subtitleKey: string
+	subtitleParams?: Record<string, string | number>
 	gradient: string // tailwind gradient classes
 	icon: React.ReactNode
 }
@@ -43,6 +47,7 @@ interface RecapCard {
 function buildRecapCards(stats: {
 	completionCount: number
 	streakCount: number
+	longestStreak: number
 	currentLevel: number
 	currentXP: number
 	recipeCount: number
@@ -56,18 +61,13 @@ function buildRecapCards(stats: {
 
 	// 1. Total cooks
 	if (stats.completionCount > 0) {
+		const tier = stats.completionCount >= 50 ? 'warrior' : stats.completionCount >= 20 ? 'dedicated' : stats.completionCount >= 5 ? 'groove' : 'first'
 		cards.push({
 			id: 'cooks',
 			emoji: '🍳',
-			title: 'Dishes Completed',
+			titleKey: 'yicCardTitleCooks',
 			value: stats.completionCount.toLocaleString(),
-			subtitle: stats.completionCount >= 50
-				? "You're a kitchen warrior!"
-				: stats.completionCount >= 20
-					? 'Serious dedication!'
-					: stats.completionCount >= 5
-						? 'Getting into your groove'
-						: 'Every journey starts with one dish',
+			subtitleKey: `yicCardSubCooks_${tier}`,
 			gradient: 'from-brand to-streak',
 			icon: <ChefHat className='size-8' />,
 		})
@@ -78,28 +78,26 @@ function buildRecapCards(stats: {
 		cards.push({
 			id: 'xp',
 			emoji: '⚡',
-			title: 'Total XP Earned',
+			titleKey: 'yicCardTitleXp',
 			value: stats.currentXP.toLocaleString(),
-			subtitle: `Reached Level ${stats.currentLevel} — ${stats.title}`,
+			subtitleKey: 'yicCardSubXp',
+			subtitleParams: { level: stats.currentLevel, title: stats.title },
 			gradient: 'from-gaming-xp to-accent-purple',
 			icon: <Zap className='size-8' />,
 		})
 	}
 
-	// 3. Streak
-	if (stats.streakCount > 0) {
+	// 3. Best streak (historical max, with current streak fallback for older users)
+	const bestStreak = Math.max(stats.longestStreak, stats.streakCount)
+	if (bestStreak > 0) {
+		const tier = bestStreak >= 30 ? 'legendary' : bestStreak >= 14 ? 'twoWeeks' : bestStreak >= 7 ? 'fullWeek' : 'building'
 		cards.push({
 			id: 'streak',
 			emoji: '🔥',
-			title: 'Best Cooking Streak',
-			value: `${stats.streakCount} days`,
-			subtitle: stats.streakCount >= 30
-				? 'Legendary consistency!'
-				: stats.streakCount >= 14
-					? 'Two weeks strong!'
-					: stats.streakCount >= 7
-						? 'A full week of cooking!'
-						: 'Building the habit',
+			titleKey: 'yicCardTitleStreak',
+			valueKey: 'yicCardValueDays',
+			valueParams: { count: bestStreak },
+			subtitleKey: `yicCardSubStreak_${tier}`,
 			gradient: 'from-gaming-streak to-error',
 			icon: <Flame className='size-8' />,
 		})
@@ -107,16 +105,13 @@ function buildRecapCards(stats: {
 
 	// 4. Recipes created
 	if (stats.recipeCount > 0) {
+		const tier = stats.recipeCount >= 20 ? 'author' : stats.recipeCount >= 5 ? 'growing' : 'first'
 		cards.push({
 			id: 'recipes',
 			emoji: '📝',
-			title: 'Recipes Created',
+			titleKey: 'yicCardTitleRecipes',
 			value: stats.recipeCount.toLocaleString(),
-			subtitle: stats.recipeCount >= 20
-				? 'A true recipe author!'
-				: stats.recipeCount >= 5
-					? 'Your collection is growing'
-					: 'Your first creations',
+			subtitleKey: `yicCardSubRecipes_${tier}`,
 			gradient: 'from-success to-accent-teal',
 			icon: <Star className='size-8' />,
 		})
@@ -124,16 +119,13 @@ function buildRecapCards(stats: {
 
 	// 5. Posts shared
 	if (stats.postCount > 0) {
+		const tier = stats.postCount >= 30 ? 'machine' : stats.postCount >= 10 ? 'sharing' : 'started'
 		cards.push({
 			id: 'posts',
 			emoji: '📸',
-			title: 'Posts Shared',
+			titleKey: 'yicCardTitlePosts',
 			value: stats.postCount.toLocaleString(),
-			subtitle: stats.postCount >= 30
-				? 'Content machine!'
-				: stats.postCount >= 10
-					? 'Sharing the love'
-					: 'Getting started',
+			subtitleKey: `yicCardSubPosts_${tier}`,
 			gradient: 'from-brand to-brand/70',
 			icon: <Heart className='size-8' />,
 		})
@@ -144,9 +136,11 @@ function buildRecapCards(stats: {
 		cards.push({
 			id: 'community',
 			emoji: '🤝',
-			title: 'Your Community',
-			value: `${stats.followerCount} followers`,
-			subtitle: `Following ${stats.followingCount} amazing chefs`,
+			titleKey: 'yicCardTitleCommunity',
+			valueKey: 'yicCardValueFollowers',
+			valueParams: { count: stats.followerCount },
+			subtitleKey: 'yicCardSubCommunity',
+			subtitleParams: { count: stats.followingCount },
 			gradient: 'from-info to-accent-purple',
 			icon: <TrendingUp className='size-8' />,
 		})
@@ -154,16 +148,13 @@ function buildRecapCards(stats: {
 
 	// 7. Badges
 	if (stats.badges.length > 0) {
+		const tier = stats.badges.length >= 10 ? 'collector' : stats.badges.length >= 5 ? 'building' : 'first'
 		cards.push({
 			id: 'badges',
 			emoji: '🏅',
-			title: 'Badges Earned',
+			titleKey: 'yicCardTitleBadges',
 			value: stats.badges.length.toLocaleString(),
-			subtitle: stats.badges.length >= 10
-				? 'Serious collector!'
-				: stats.badges.length >= 5
-					? 'Building your collection'
-					: 'First achievements unlocked',
+			subtitleKey: `yicCardSubBadges_${tier}`,
 			gradient: 'from-warning to-warning',
 			icon: <Award className='size-8' />,
 		})
@@ -173,9 +164,10 @@ function buildRecapCards(stats: {
 	cards.push({
 		id: 'level',
 		emoji: '🏆',
-		title: 'Your Chef Title',
+		titleKey: 'yicCardTitleLevel',
 		value: stats.title,
-		subtitle: `Level ${stats.currentLevel} — Keep climbing!`,
+		subtitleKey: 'yicCardSubLevel',
+		subtitleParams: { level: stats.currentLevel },
 		gradient: 'from-gaming-level to-warning',
 		icon: <Trophy className='size-8' />,
 	})
@@ -191,9 +183,18 @@ const BG_WARM = '#fdfbf8'
 const TEXT_PRIMARY = '#2c2420'
 const TEXT_SECONDARY = '#8c7e72'
 
+interface ShareCard {
+	emoji: string
+	title: string
+	value: string
+	subtitle: string
+}
+
 function generateShareCanvas(
-	cards: RecapCard[],
+	cards: ShareCard[],
 	displayName: string,
+	headerTitle: string,
+	footerTitle: string,
 ): HTMLCanvasElement {
 	const canvas = document.createElement('canvas')
 	const dpr = 2
@@ -223,7 +224,7 @@ function generateShareCanvas(
 	ctx.fillStyle = '#ffffff'
 	ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
 	ctx.textAlign = 'center'
-	ctx.fillText(`${displayName}'s Year in Cooking`, SHARE_W / 2, 44)
+	ctx.fillText(headerTitle, SHARE_W / 2, 44)
 
 	// Stats grid — show up to 6 cards in a 2×3 grid
 	const gridCards = cards.slice(0, 6)
@@ -280,7 +281,7 @@ function generateShareCanvas(
 	ctx.fillStyle = TEXT_SECONDARY
 	ctx.font = '12px system-ui, -apple-system, sans-serif'
 	ctx.textAlign = 'center'
-	ctx.fillText('ChefKix — Year in Cooking', SHARE_W / 2, footerY)
+	ctx.fillText(footerTitle, SHARE_W / 2, footerY)
 
 	ctx.fillStyle = BRAND_COLOR
 	ctx.font = 'bold 14px system-ui, -apple-system, sans-serif'
@@ -310,6 +311,7 @@ const slideVariants = {
 
 export default function YearInCookingPage() {
 	const router = useRouter()
+	const t = useTranslations('profile')
 	const { user: profile } = useAuth()
 	const [[page, direction], setPage] = useState([0, 0])
 	const [isGenerating, setIsGenerating] = useState(false)
@@ -321,6 +323,7 @@ export default function YearInCookingPage() {
 		return buildRecapCards({
 			completionCount: s.completionCount ?? 0,
 			streakCount: s.streakCount ?? 0,
+			longestStreak: s.longestStreak ?? 0,
 			currentLevel: s.currentLevel ?? 1,
 			currentXP: s.currentXP ?? 0,
 			recipeCount: s.recipeCount ?? 0,
@@ -344,11 +347,24 @@ export default function YearInCookingPage() {
 		[cards.length],
 	)
 
+	const resolveShareCards = useCallback((): ShareCard[] =>
+		cards.map(c => ({
+			emoji: c.emoji,
+			title: t(c.titleKey),
+			value: c.valueKey ? t(c.valueKey, c.valueParams) : (c.value ?? ''),
+			subtitle: t(c.subtitleKey, c.subtitleParams),
+		})),
+		[cards, t],
+	)
+
 	const handleShare = useCallback(async () => {
 		if (cards.length === 0) return
 		setIsGenerating(true)
 		try {
-			const canvas = generateShareCanvas(cards, displayName)
+			const shareCards = resolveShareCards()
+			const headerTitle = t('yicShareHeader', { name: displayName })
+			const footerTitle = t('yicShareFooter')
+			const canvas = generateShareCanvas(shareCards, displayName, headerTitle, footerTitle)
 			const blob = await new Promise<Blob | null>((res) =>
 				canvas.toBlob(res, 'image/png'),
 			)
@@ -356,8 +372,8 @@ export default function YearInCookingPage() {
 
 			if (navigator.share && navigator.canShare?.({ files: [new File([blob], 'year-in-cooking.png', { type: 'image/png' })] })) {
 				await navigator.share({
-					title: `${displayName}'s Year in Cooking`,
-					text: 'Check out my Year in Cooking on ChefKix!',
+					title: t('yicShareHeader', { name: displayName }),
+					text: t('yicShareText'),
 					files: [new File([blob], 'year-in-cooking.png', { type: 'image/png' })],
 				})
 			} else {
@@ -366,20 +382,23 @@ export default function YearInCookingPage() {
 				])
 				setCopied(true)
 				setTimeout(() => setCopied(false), 2000)
-				toast.success('Copied to clipboard!')
+				toast.success(t('toastCopiedClipboard'))
 			}
 		} catch {
-			toast.error('Sharing failed')
+			toast.error(t('toastShareFailed'))
 		} finally {
 			setIsGenerating(false)
 		}
-	}, [cards, displayName])
+	}, [cards, displayName, t, resolveShareCards])
 
 	const handleDownload = useCallback(async () => {
 		if (cards.length === 0) return
 		setIsGenerating(true)
 		try {
-			const canvas = generateShareCanvas(cards, displayName)
+			const shareCards = resolveShareCards()
+			const headerTitle = t('yicShareHeader', { name: displayName })
+			const footerTitle = t('yicShareFooter')
+			const canvas = generateShareCanvas(shareCards, displayName, headerTitle, footerTitle)
 			const blob = await new Promise<Blob | null>((res) =>
 				canvas.toBlob(res, 'image/png'),
 			)
@@ -390,15 +409,13 @@ export default function YearInCookingPage() {
 			a.download = 'year-in-cooking.png'
 			a.click()
 			URL.revokeObjectURL(url)
-			toast.success('Downloaded!')
+			toast.success(t('toastDownloaded'))
 		} catch {
-			toast.error('Download failed')
+			toast.error(t('toastDownloadFailed'))
 		} finally {
 			setIsGenerating(false)
 		}
-	}, [cards, displayName])
-
-	// Keyboard navigation
+	}, [cards, displayName, t, resolveShareCards])
 	useEffect(() => {
 		const handleKey = (e: KeyboardEvent) => {
 			if (e.key === 'ArrowRight') paginate(1)
@@ -415,9 +432,9 @@ export default function YearInCookingPage() {
 					<EmptyStateGamified
 						variant='custom'
 						emoji='📊'
-						title='Sign in to see your Year'
-						description='Your Year in Cooking recap is built from your cooking activity.'
-						primaryAction={{ label: 'Sign In', href: '/auth/login' }}
+						title={t('signInToSeeYear')}
+						description={t('signInToSeeYearDesc')}
+						primaryAction={{ label: t('signIn'), href: '/auth/login' }}
 					/>
 				</PageContainer>
 			</PageTransition>
@@ -430,20 +447,21 @@ export default function YearInCookingPage() {
 				<PageContainer maxWidth='lg'>
 					<div className='mb-8 flex items-center gap-3'>
 						<motion.button
+							type='button'
 							onClick={() => router.back()}
 							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-							aria-label='Go back'
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoBack')}
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
-						<h1 className='text-xl font-bold text-text'>Year in Cooking</h1>
+						<h1 className='text-xl font-bold text-text'>{t('yearInCooking')}</h1>
 					</div>
 					<EmptyStateGamified
 						variant='cooking'
-						title='Your story is just beginning…'
-						description='Cook your first recipe to start building your Year in Cooking recap.'
-						primaryAction={{ label: 'Explore Recipes', href: '/explore' }}
+						title={t('yearJustBeginning')}
+						description={t('yearJustBeginningDesc')}
+						primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
 					/>
 				</PageContainer>
 			</PageTransition>
@@ -458,15 +476,16 @@ export default function YearInCookingPage() {
 				{/* Header */}
 				<div className='mb-6 flex items-center gap-3'>
 					<motion.button
+						type='button'
 						onClick={() => router.back()}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						aria-label='Go back'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 					<div className='flex-1'>
-						<h1 className='text-xl font-bold text-text'>Your Year in Cooking</h1>
+						<h1 className='text-xl font-bold text-text'>{t('yearInCooking')}</h1>
 						<p className='text-sm text-text-muted'>
 							{page + 1} / {cards.length}
 						</p>
@@ -489,7 +508,7 @@ export default function YearInCookingPage() {
 											? 'w-1.5 bg-brand/40'
 											: 'w-1.5 bg-border'
 								}`}
-								aria-label={`Go to card ${i + 1}`}
+								aria-label={t('yicGoToCard', { num: i + 1 })}
 							/>
 						))}
 					</div>
@@ -520,13 +539,13 @@ export default function YearInCookingPage() {
 								<div className='relative z-10 flex flex-col items-center'>
 									<span className='mb-4 text-6xl'>{currentCard.emoji}</span>
 									<p className='mb-2 text-sm font-medium uppercase tracking-wider text-white/80'>
-										{currentCard.title}
+										{t(currentCard.titleKey)}
 									</p>
 									<p className='mb-3 text-5xl font-black tracking-tight'>
-										{currentCard.value}
+										{currentCard.valueKey ? t(currentCard.valueKey, currentCard.valueParams) : currentCard.value}
 									</p>
 									<p className='max-w-[260px] text-center text-base text-white/90'>
-										{currentCard.subtitle}
+										{t(currentCard.subtitleKey, currentCard.subtitleParams)}
 									</p>
 								</div>
 							</motion.div>
@@ -536,20 +555,22 @@ export default function YearInCookingPage() {
 					{/* Navigation arrows */}
 					{page > 0 && (
 						<motion.button
+							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(-1)}
-							className='absolute left-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white'
-							aria-label='Previous'
+							className='absolute left-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaPrevious')}
 						>
 							<ChevronLeft className='size-5' />
 						</motion.button>
 					)}
 					{page < cards.length - 1 && (
 						<motion.button
+							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(1)}
-							className='absolute right-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white'
-							aria-label='Next'
+							className='absolute right-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaNext')}
 						>
 							<ChevronRight className='size-5' />
 						</motion.button>
@@ -559,23 +580,25 @@ export default function YearInCookingPage() {
 				{/* Share / Download */}
 				<div className='flex justify-center gap-3'>
 					<motion.button
+						type='button'
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={handleDownload}
 						disabled={isGenerating}
-						className='flex items-center gap-2 rounded-xl border border-border bg-bg-card px-5 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+						className='flex items-center gap-2 rounded-xl border border-border bg-bg-card px-5 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isGenerating ? (
 							<Loader2 className='size-4 animate-spin' />
 						) : (
 							<Download className='size-4' />
 						)}
-						Download
+						{t('yicDownload')}
 					</motion.button>
 					<motion.button
+						type='button'
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={handleShare}
 						disabled={isGenerating}
-						className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+						className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{copied ? (
 							<Check className='size-4' />
@@ -584,13 +607,13 @@ export default function YearInCookingPage() {
 						) : (
 							<Share2 className='size-4' />
 						)}
-						{copied ? 'Copied!' : 'Share'}
+						{copied ? t('yicCopied') : t('yicShare')}
 					</motion.button>
 				</div>
 
 				{/* Hint */}
 				<p className='mt-4 text-center text-xs text-text-muted'>
-					Use ← → arrow keys or swipe to navigate
+					{t('yicKeyboardHint')}
 				</p>
 			</PageContainer>
 		</PageTransition>

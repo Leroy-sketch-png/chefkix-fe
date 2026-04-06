@@ -26,12 +26,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/useAuth'
 import { getCookingPreferences } from '@/services/settings'
 import { getTasteProfile } from '@/services/post'
-import { TRANSITION_SPRING, CARD_HOVER, CARD_FEATURED_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, CARD_FEATURED_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
 import type { CookingPreferences } from '@/lib/types/settings'
 import type { Profile, Statistics } from '@/lib/types/profile'
 import type { TasteProfileResponse } from '@/lib/types/social'
 import { TasteDNAShareCard } from '@/components/profile/TasteDNAShareCard'
 import { LearningNarrative } from '@/components/profile/LearningNarrative'
+import { useTranslations } from '@/i18n/hooks'
 
 // ── Taste dimensions derived from user activity + preferences ──
 interface TasteDimension {
@@ -45,6 +46,7 @@ function computeTasteDimensions(
 	profile: Profile,
 	stats: Statistics | null | undefined,
 	prefs: CookingPreferences | null,
+	t: (key: string, values?: Record<string, string | number>) => string,
 ): TasteDimension[] {
 	const hasPrefs = !!prefs
 	const cuisineCount = prefs?.preferredCuisines?.length ?? 0
@@ -67,44 +69,44 @@ function computeTasteDimensions(
 
 	return [
 		{
-			label: 'Adventurousness',
+			label: t('dimAdventurousness'),
 			value: Math.min(100, cuisineCount * 15 + interestCount * 8 + (completionCount > 10 ? 20 : 0)),
 			icon: <Globe className='size-4' />,
-			description: `${cuisineCount} cuisines explored`,
+			description: t('dimCuisinesExplored', { count: cuisineCount }),
 		},
 		{
-			label: 'Dedication',
+			label: t('dimDedication'),
 			value: Math.min(100, streakCount * 8 + completionCount * 3),
 			icon: <Flame className='size-4' />,
-			description: `${streakCount} day streak`,
+			description: t('dimDayStreak', { count: streakCount }),
 		},
 		{
-			label: 'Skill Level',
+			label: t('dimSkillLevel'),
 			value: hasPrefs
 				? { beginner: 20, intermediate: 45, advanced: 70, expert: 95 }[prefs?.skillLevel ?? 'beginner'] ?? 20
 				: Math.min(100, currentLevel * 10),
 			icon: <ChefHat className='size-4' />,
-			description: prefs?.skillLevel ?? `Level ${currentLevel}`,
+			description: prefs?.skillLevel ?? t('dimLevel', { level: currentLevel }),
 		},
 		{
-			label: 'Social Chef',
+			label: t('dimSocialChef'),
 			value: Math.min(100, postCount * 5 + followerCount * 2),
 			icon: <Heart className='size-4' />,
-			description: `${postCount} posts shared`,
+			description: t('dimPostsShared', { count: postCount }),
 		},
 		{
-			label: 'Recipe Creator',
+			label: t('dimRecipeCreator'),
 			value: Math.min(100, recipeCount * 12),
 			icon: <Utensils className='size-4' />,
-			description: `${recipeCount} recipes created`,
+			description: t('dimRecipesCreated', { count: recipeCount }),
 		},
 		{
-			label: 'Speed Cook',
+			label: t('dimSpeedCook'),
 			value: speedCookValue,
 			icon: <Clock className='size-4' />,
 			description: rawMaxTime
-				? `Prefers under ${rawMaxTime}min`
-				: 'Flexible timing',
+				? t('dimPrefersUnder', { minutes: rawMaxTime })
+				: t('dimFlexibleTiming'),
 		},
 	]
 }
@@ -181,7 +183,7 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 					strokeWidth={2}
 					initial={{ opacity: 0, scale: 0.5 }}
 					animate={{ opacity: 1, scale: 1 }}
-					transition={{ duration: 0.6, ease: 'easeOut' }}
+					transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 					style={{ transformOrigin: `${center}px ${center}px` }}
 				/>
 
@@ -227,6 +229,7 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 export default function TasteProfilePage() {
 	const router = useRouter()
 	const { user: profile } = useAuth()
+	const t = useTranslations('profile')
 	const [cookingPrefs, setCookingPrefs] = useState<CookingPreferences | null>(null)
 	const [tasteProfile, setTasteProfile] = useState<TasteProfileResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
@@ -252,8 +255,8 @@ export default function TasteProfilePage() {
 
 	const dimensions = useMemo(() => {
 		if (!profile) return []
-		return computeTasteDimensions(profile, profile.statistics ?? null, cookingPrefs)
-	}, [profile, cookingPrefs])
+		return computeTasteDimensions(profile, profile.statistics ?? null, cookingPrefs, t)
+	}, [profile, cookingPrefs, t])
 
 	const topDimension = useMemo(
 		() => dimensions.length > 0 ? dimensions.reduce((a, b) => (a.value > b.value ? a : b)) : null,
@@ -286,9 +289,9 @@ export default function TasteProfilePage() {
 					<EmptyStateGamified
 						variant='custom'
 						emoji='🧑‍🍳'
-						title='Sign in to see your Taste DNA'
-						description='Your taste profile is built from your cooking activity, preferences, and social engagement.'
-						primaryAction={{ label: 'Sign In', href: '/auth/login' }}
+						title={t('signInTasteDNA')}
+						description={t('signInTasteDNADesc')}
+						primaryAction={{ label: t('signIn'), href: '/auth/login' }}
 					/>
 				</PageContainer>
 			</PageTransition>
@@ -304,18 +307,19 @@ export default function TasteProfilePage() {
 				{/* Header with back button */}
 				<div className='mb-8 flex items-center gap-3'>
 					<motion.button
+						type='button'
 						onClick={() => router.back()}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						aria-label='Go back'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 					<div className='flex-1'>
 						<PageHeader
 							icon={Sparkles}
-							title='Your Taste DNA'
-							subtitle='Your unique cooking personality, built from everything you do on ChefKix'
+						title={t('tasteDNA')}
+						subtitle={t('tasteDNASubtitle')}
 							gradient='purple'
 							marginBottom='sm'
 							className='mb-0'
@@ -333,10 +337,10 @@ export default function TasteProfilePage() {
 					>
 						<EmptyStateGamified
 							variant='cooking'
-							title='Your Taste DNA is forming…'
-							description='Cook your first recipe, follow some chefs, or add cuisine preferences to reveal your unique cooking personality.'
-							primaryAction={{ label: 'Explore Recipes', href: '/explore' }}
-							secondaryActions={[{ label: 'Set Preferences', href: '/settings' }]}
+						title={t('tasteDNAForming')}
+						description={t('tasteDNAFormingDesc')}
+						primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
+						secondaryActions={[{ label: t('setPreferences'), href: '/settings' }]}
 						/>
 					</motion.div>
 				)}
@@ -397,7 +401,7 @@ export default function TasteProfilePage() {
 									className='h-full rounded-full bg-gradient-to-r from-brand to-brand/70'
 									initial={{ width: 0 }}
 									animate={{ width: `${dim.value}%` }}
-									transition={{ delay: 0.6 + i * 0.08, duration: 0.5, ease: 'easeOut' }}
+									transition={{ delay: 0.6 + i * 0.08, duration: DURATION_S.slow, ease: 'easeOut' }}
 								/>
 							</div>
 							<p className='mt-1 text-xs text-text-muted'>{dim.description}</p>
@@ -438,7 +442,7 @@ export default function TasteProfilePage() {
 											className='h-full rounded-full bg-gradient-to-r from-brand to-brand/60'
 											initial={{ width: 0 }}
 											animate={{ width: `${item.percentage}%` }}
-											transition={{ delay: 0.9 + i * 0.05, duration: 0.5, ease: 'easeOut' }}
+											transition={{ delay: 0.9 + i * 0.05, duration: DURATION_S.slow, ease: 'easeOut' }}
 										/>
 									</div>
 									<span className='w-12 shrink-0 text-right text-xs font-bold text-brand'>
@@ -545,9 +549,9 @@ export default function TasteProfilePage() {
 									<Calendar className='size-6' />
 								</div>
 								<div className='flex-1'>
-									<h3 className='font-semibold text-text'>Your Year in Cooking</h3>
+									<h3 className='font-semibold text-text'>{t('yearInCooking')}</h3>
 									<p className='text-sm text-text-muted'>
-										See your Spotify-Wrapped-style cooking recap
+										{t('yearInCookingSubtext')}
 									</p>
 								</div>
 								<ChevronRight className='size-5 text-text-muted transition-transform group-hover:translate-x-1' />

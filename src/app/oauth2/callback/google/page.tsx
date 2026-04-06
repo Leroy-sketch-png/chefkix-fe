@@ -2,15 +2,17 @@
 
 import { useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { googleSignIn } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
-import { AUTH_MESSAGES, PATHS } from '@/constants'
+import { PATHS } from '@/constants'
 import { logDevError } from '@/lib/dev-log'
 
 const GoogleCallbackContent = () => {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const t = useTranslations('auth')
 	const { login, setUser } = useAuth()
 
 	useEffect(() => {
@@ -21,7 +23,7 @@ const GoogleCallbackContent = () => {
 			// Handle error: redirect to sign-in with an error message
 			logDevError(`Google OAuth Error: ${error}`)
 			router.push(
-				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.GOOGLE_SIGN_IN_FAILED)}`,
+				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Google sign-in failed.')}`,
 			)
 			return
 		}
@@ -33,7 +35,7 @@ const GoogleCallbackContent = () => {
 					// Backend returns only accessToken - validate it exists
 					if (!response.data.accessToken) {
 						router.push(
-							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Authentication failed: no access token received from server.')}`,
+							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(t('noAccessToken'))}`,
 						)
 						return
 					}
@@ -48,13 +50,13 @@ const GoogleCallbackContent = () => {
 						router.push(PATHS.HOME)
 					} else {
 						router.push(
-							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Failed to fetch user profile.')}`,
+							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(t('profileFetchFailed'))}`,
 						)
 					}
 				} else {
 					// Handle failure: redirect to sign-in with an error message
 					const errorMessage =
-						response.message || AUTH_MESSAGES.GOOGLE_SIGN_IN_FAILED
+						response.message || 'Google sign-in failed.'
 					router.push(
 						`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(errorMessage)}`,
 					)
@@ -65,16 +67,16 @@ const GoogleCallbackContent = () => {
 		} else {
 			// Fallback if no code or error is present
 			router.push(
-				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.UNKNOWN_ERROR)}`,
+				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('An unexpected error occurred. Please try again later.')}`,
 			)
 		}
-	}, [searchParams, router, login, setUser])
+	}, [searchParams, router, login, setUser, t])
 
 	return (
 		<div className='flex min-h-screen flex-col items-center justify-center'>
-			<p className='text-lg font-semibold'>Signing in with Google...</p>
+			<p className='text-lg font-semibold'>{t('signingInGoogle')}</p>
 			<p className='mt-2 text-sm text-text-secondary'>
-				Please wait, you will be redirected shortly.
+				{t('redirectingShortly')}
 			</p>
 			{/* You can add a spinner here */}
 		</div>
@@ -86,7 +88,7 @@ export default function GoogleCallbackPage() {
 		<Suspense
 			fallback={
 				<div className='flex min-h-screen flex-col items-center justify-center'>
-					<p className='text-lg font-semibold'>Loading...</p>
+					<div className='size-8 animate-spin rounded-full border-4 border-brand border-t-transparent' />
 				</div>
 			}
 		>

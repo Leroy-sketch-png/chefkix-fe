@@ -51,15 +51,15 @@ export default function PostDetailPage() {
 			if (response.success && response.data) {
 				setPost(response.data)
 			} else {
-				setError(response.message || 'Post not found')
+				setError(response.message || t('errorPostNotFound'))
 			}
 		} catch {
-			setError('Failed to load post. Please try again.')
-			toast.error('Failed to load post')
+			setError(t('errorLoadPostFailed'))
+			toast.error(t('toastLoadPostFailed'))
 		} finally {
 			setIsLoading(false)
 		}
-	}, [postId])
+	}, [postId, t])
 
 	useEffect(() => {
 		fetchPost()
@@ -86,7 +86,7 @@ export default function PostDetailPage() {
 		return (
 			<PageContainer maxWidth='md' className='py-6'>
 				<ErrorState
-					title='Post not found'
+					title={t('postNotFound')}
 					message={
 						error || 'This post may have been deleted or is not available.'
 					}

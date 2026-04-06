@@ -79,7 +79,7 @@ export default function CollectionDetailPage({
 		} finally {
 			setIsLoading(false)
 		}
-	}, [collectionId])
+	}, [collectionId, t])
 
 	useEffect(() => {
 		fetchData()
@@ -262,8 +262,8 @@ export default function CollectionDetailPage({
 							{posts.length === 0 ? (
 								<EmptyState
 									variant='saved'
-									title='No posts in this collection'
-									description='Save posts from your feed and add them to this collection to build your cookbook!'
+									title={t('noPostsInCollection')}
+									description={t('noPostsInCollectionDesc')}
 									emoji='📖'
 									primaryAction={{
 										label: 'Explore Feed',
@@ -283,7 +283,7 @@ export default function CollectionDetailPage({
 													type='button'
 													onClick={() => handleRemovePost(post.id)}
 													className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
-													title='Remove from collection'
+													title={t('removeFromCollection')}
 												>
 													<Trash2 className='size-3.5' />
 												</button>

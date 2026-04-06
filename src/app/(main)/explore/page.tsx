@@ -68,11 +68,11 @@ const DIFFICULTY_DISPLAY: Record<string, string> = {
 	expert: 'Expert',
 }
 
-const DIFFICULTY_API_TO_DISPLAY: Record<string, string> = {
-	Beginner: 'Easy',
-	Intermediate: 'Medium',
-	Advanced: 'Hard',
-	Expert: 'Expert',
+const DIFFICULTY_API_TO_DISPLAY_KEYS: Record<string, string> = {
+	Beginner: 'diffEasy',
+	Intermediate: 'diffMedium',
+	Advanced: 'diffHard',
+	Expert: 'diffExpert',
 }
 
 // ============================================
@@ -149,6 +149,7 @@ interface HeroRecipeProps {
 
 function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 	const router = useRouter()
+	const t = useTranslations('explore')
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [isCookNavigating, startCookTransition] = useTransition()
 
@@ -173,7 +174,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 					{/* Featured badge */}
 					<div className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-gradient-hero px-4 py-2 text-sm font-bold text-white shadow-lg'>
 						<Flame className='size-4' />
-						Featured Today
+						{t('featuredToday')}
 					</div>
 				</div>
 
@@ -192,8 +193,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							variant='outline'
 							className='border-border-medium bg-bg-elevated'
 						>
-							{DIFFICULTY_API_TO_DISPLAY[recipe.difficulty] ||
-								recipe.difficulty}
+							{t(DIFFICULTY_API_TO_DISPLAY_KEYS[recipe.difficulty] || recipe.difficulty)}
 						</Badge>
 						{/* Time */}
 						<Badge
@@ -229,7 +229,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 										{recipe.author.displayName}
 									</p>
 									<p className='text-xs text-text-muted'>
-										{recipe.cookCount ?? 0} people cooked this
+										{t('heroCookCount', { count: recipe.cookCount ?? 0 })}
 									</p>
 								</div>
 							</div>
@@ -238,35 +238,37 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 					{/* Actions */}
 					<div className='flex gap-3'>
 						<motion.button
+							type='button'
 							onClick={() => startCookTransition(() => onCook(recipe.id))}
 							disabled={isCookNavigating}
 							whileHover={isCookNavigating ? undefined : BUTTON_HOVER}
 							whileTap={isCookNavigating ? undefined : BUTTON_TAP}
-							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-70 disabled:cursor-not-allowed'
+							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isCookNavigating ? (
 								<Loader2 className='size-5 animate-spin' />
 							) : (
 								<ChefHat className='size-5' />
 							)}
-							{isCookNavigating ? 'Starting...' : 'Start Cooking'}
+							{isCookNavigating ? t('heroStarting') : t('heroStartCooking')}
 						</motion.button>
 						<motion.button
+							type='button'
 							onClick={() => startNavigationTransition(() => {
 								router.push(`/recipes/${recipe.id}`)
 							})}
 							disabled={isNavigating}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='rounded-xl border-2 border-border-medium bg-bg-card px-6 py-3 font-semibold text-text hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed'
+							className='rounded-xl border-2 border-border-medium bg-bg-card px-6 py-3 font-semibold text-text hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isNavigating ? (
 								<>
 									<Loader2 className='inline size-5 animate-spin mr-2' />
-									Loading...
+									{t('loading')}
 								</>
 							) : (
-								'View Recipe'
+								t('viewRecipe')
 							)}
 						</motion.button>
 					</div>
@@ -295,6 +297,7 @@ function FilterChips({
 	resultCount,
 	searchQuery,
 }: FilterChipsProps) {
+	const t = useTranslations('explore')
 	const activeFilters: Array<{
 		type: keyof RecipeFilters
 		value: string
@@ -313,29 +316,28 @@ function FilterChips({
 			type: 'difficulty',
 			value: d,
 			label:
-				DIFFICULTY_API_TO_DISPLAY[DIFFICULTY_DISPLAY[d.toLowerCase()] ?? d] ||
-				d,
+				t(DIFFICULTY_API_TO_DISPLAY_KEYS[DIFFICULTY_DISPLAY[d.toLowerCase()] ?? d] || d),
 		}),
 	)
 	if (filters.cookingTimeMax < 120) {
 		activeFilters.push({
 			type: 'cookingTimeMax',
 			value: String(filters.cookingTimeMax),
-			label: `Under ${filters.cookingTimeMax} min`,
+			label: t('underMinutes', { minutes: filters.cookingTimeMax }),
 		})
 	}
 	if (filters.rating !== null) {
 		activeFilters.push({
 			type: 'rating',
 			value: String(filters.rating),
-			label: `${filters.rating}+ stars`,
+			label: t('starsPlus', { rating: filters.rating }),
 		})
 	}
 	if (filters.foolproofOnly) {
 		activeFilters.push({
 			type: 'foolproofOnly',
 			value: 'true',
-			label: 'First-Timer Friendly',
+			label: t('firstTimerFriendly'),
 		})
 	}
 
@@ -353,12 +355,12 @@ function FilterChips({
 			{/* Result count */}
 			<span className='text-sm font-medium tabular-nums text-text-secondary'>
 				{resultCount === 0
-					? 'No results'
-					: `${resultCount} recipe${resultCount === 1 ? '' : 's'}`}
+					? t('noResults')
+					: resultCount === 1 ? t('recipeCountSingle', { n: resultCount }) : t('recipeCountPlural', { n: resultCount })}
 				{searchQuery && (
 					<span className='text-text-muted'>
 						{' '}
-						for &quot;{searchQuery}&quot;
+						{t('forQuery', { query: searchQuery })}
 					</span>
 				)}
 			</span>
@@ -366,13 +368,14 @@ function FilterChips({
 			{/* Active filter chips */}
 			{activeFilters.map(filter => (
 				<motion.button
+					type='button'
 					key={`${filter.type}-${filter.value}`}
 					initial={{ scale: 0.8, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
 					exit={{ scale: 0.8, opacity: 0 }}
 					whileTap={BUTTON_TAP}
 					onClick={() => onRemove(filter.type, filter.value)}
-					className='group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand hover:bg-brand/20'
+					className='group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{filter.label}
 					<X className='size-3.5 transition-transform group-hover:scale-110' />
@@ -382,11 +385,12 @@ function FilterChips({
 			{/* Clear all button */}
 			{activeFilters.length > 1 && (
 				<motion.button
+					type='button'
 					onClick={onClearAll}
 					whileTap={BUTTON_TAP}
-					className='text-sm font-medium text-text-muted transition-colors hover:text-text'
+					className='text-sm font-medium text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					Clear all
+					{t('clearAllFilters')}
 				</motion.button>
 			)}
 		</motion.div>
@@ -698,7 +702,7 @@ export default function ExplorePage() {
 					}
 				}
 			} catch (err) {
-				if (!cancelled) setError('Failed to load recipes')
+				if (!cancelled) setError(t('failedLoadRecipes'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -708,7 +712,7 @@ export default function ExplorePage() {
 		return () => {
 			cancelled = true
 		}
-	}, [debouncedSearch, viewMode, filters, retryCount, sortBy])
+	}, [debouncedSearch, viewMode, filters, retryCount, sortBy, t])
 
 	// Scroll restoration
 	useEffect(() => {
@@ -879,9 +883,9 @@ export default function ExplorePage() {
 					'recipe',
 				)
 				if (response.data.isSaved) {
-					toast.success('Recipe saved!')
+					toast.success(t('toastRecipeSaved'))
 				} else {
-					toast.success('Recipe unsaved')
+					toast.success(t('toastRecipeUnsaved'))
 				}
 			}
 		} catch (error) {
@@ -895,7 +899,7 @@ export default function ExplorePage() {
 				}
 				return newSet
 			})
-			toast.error('Failed to save recipe')
+			toast.error(t('toastSaveFailed'))
 		}
 	}
 
@@ -1016,7 +1020,7 @@ export default function ExplorePage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -1077,10 +1081,11 @@ export default function ExplorePage() {
 								<Loader2 className='size-5 animate-spin text-brand' />
 							) : searchQuery ? (
 								<motion.button
+									type='button'
 									onClick={handleClearSearch}
 									whileTap={BUTTON_TAP}
-									className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-									aria-label='Clear search'
+									className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaClearSearch')}
 								>
 									<X className='size-4' />
 								</motion.button>
@@ -1135,13 +1140,14 @@ export default function ExplorePage() {
 
 						{/* View Mode Buttons */}
 						<motion.button
+							type='button'
 							onClick={() => {
 								setViewMode('all')
 								setPage(1)
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className={`rounded-xl px-5 py-3 text-sm font-semibold  ${
+							className={`rounded-xl px-5 py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'all'
 									? 'bg-gradient-hero text-white shadow-card shadow-brand/30'
 									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
@@ -1150,13 +1156,14 @@ export default function ExplorePage() {
 							{t('allRecipes')}
 						</motion.button>
 						<motion.button
+							type='button'
 							onClick={() => {
 								setViewMode('trending')
 								setPage(1)
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold  ${
+							className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'trending'
 									? 'bg-gradient-xp text-white shadow-card shadow-xp/30'
 									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
@@ -1211,15 +1218,15 @@ export default function ExplorePage() {
 						<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
 							↑↓←→
 						</kbd>
-						<span>Navigate</span>
+						<span>{t('kbdNavigate')}</span>
 						<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
 							Enter
 						</kbd>
-						<span>Open</span>
+						<span>{t('kbdOpen')}</span>
 						<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
 							Esc
 						</kbd>
-						<span>Cancel</span>
+						<span>{t('kbdCancel')}</span>
 					</motion.div>
 				)}
 
@@ -1249,6 +1256,7 @@ export default function ExplorePage() {
 									]
 							).map(term => (
 								<motion.button
+									type='button'
 									key={term}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
@@ -1256,7 +1264,7 @@ export default function ExplorePage() {
 										setSearchQuery(term)
 										setDebouncedSearch(term)
 									}}
-									className='rounded-full border border-border bg-bg-card px-3 py-1.5 text-sm text-text transition-colors hover:border-brand hover:bg-brand/5 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
+									className='rounded-full border border-border bg-bg-card px-3 py-1.5 text-sm text-text transition-colors hover:border-brand hover:bg-brand/5 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{term}
 								</motion.button>
@@ -1273,7 +1281,7 @@ export default function ExplorePage() {
 				)}
 				{error && (
 					<ErrorState
-						title='Failed to load recipes'
+						title={t('failedLoadRecipes')}
 						message={error}
 						onRetry={() => {
 							setError(null)
@@ -1286,15 +1294,15 @@ export default function ExplorePage() {
 						variant='search'
 						title={
 							activeFiltersCount > 0
-								? 'No matching recipes'
-								: 'No recipes found'
+								? t('noMatchingRecipes')
+								: t('noRecipesFound')
 						}
 						description={
 							activeFiltersCount > 0
-								? 'Try adjusting your filters to see more recipes.'
+								? t('adjustFiltersHint')
 								: debouncedSearch
-									? `No recipes match "${debouncedSearch}". Try a different search.`
-									: 'Be the first to share a recipe!'
+									? t('noSearchResults', { query: debouncedSearch })
+									: t('beFirstToShare')
 						}
 						searchSuggestions={
 							debouncedSearch
@@ -1312,11 +1320,11 @@ export default function ExplorePage() {
 						primaryAction={
 							activeFiltersCount > 0 || debouncedSearch
 								? {
-										label: 'Clear All',
+										label: t('clearAll'),
 										onClick: handleClearAllFilters,
 									}
 								: {
-										label: 'Create Recipe',
+										label: t('createRecipe'),
 										href: '/create',
 									}
 						}
@@ -1380,20 +1388,7 @@ export default function ExplorePage() {
 
 						{/* Loading indicator for infinite scroll */}
 						{isLoadingMore && (
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								className='flex justify-center py-8'
-							>
-								<div className='flex items-center gap-2'>
-									{[0, 1, 2].map(i => (
-										<motion.div key={i} className='size-2 rounded-full bg-brand'
-											animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
-											transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }} />
-									))}
-									<span className='text-sm font-medium tabular-nums'>Loading more recipes...</span>
-								</div>
-							</motion.div>
+							<RecipeCardSkeleton count={3} />
 						)}
 
 						{/* Load more error with retry */}
@@ -1403,12 +1398,13 @@ export default function ExplorePage() {
 								animate={{ opacity: 1, y: 0 }}
 								className='flex flex-col items-center gap-2 py-8'
 							>
-								<span className='text-sm text-text-muted'>Failed to load more recipes</span>
+								<span className='text-sm text-text-muted'>{t('loadMoreFailed')}</span>
 								<motion.button
+									type='button'
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									onClick={handleLoadMore}
-									className='rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10'
+									className='rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									Try again
 								</motion.button>

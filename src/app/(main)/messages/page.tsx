@@ -107,12 +107,13 @@ function ConversationItem({
 
 	return (
 		<motion.button
+			type='button'
 			onClick={onClick}
 			whileHover={LIST_ITEM_HOVER}
 			whileTap={LIST_ITEM_TAP}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'group flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-all duration-200',
+				'group flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
 				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated',
 			)}
 		>
@@ -212,15 +213,16 @@ function MessageBubble({
 }
 
 function EmptyConversations() {
+	const t = useTranslations('messages')
 	return (
 		<div className='flex h-full items-center justify-center p-6'>
 			<EmptyState
 				variant='custom'
-				title='No conversations yet'
-				description='Find chefs in the community and start chatting about recipes, techniques, and food!'
+				title={t('noConversations')}
+				description={t('noConversationsDesc')}
 				emoji='💬'
 				primaryAction={{
-					label: 'Discover Chefs',
+					label: t('discoverChefs'),
 					href: '/community',
 					icon: <Users className='size-4' />,
 				}}
@@ -230,6 +232,7 @@ function EmptyConversations() {
 }
 
 function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
+	const t = useTranslations('messages')
 	return (
 		<div className='flex h-full flex-col items-center justify-center gap-4 p-6 text-center'>
 			<motion.div
@@ -241,11 +244,11 @@ function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
 				<Sparkles className='size-10 text-white' />
 			</motion.div>
 			<div>
-				<h2 className='text-xl font-bold text-text'>Welcome to Messages</h2>
+				<h2 className='text-xl font-bold text-text'>{t('welcomeTitle')}</h2>
 				<p className='mt-2 text-text-secondary'>
 					{hasConversations
-						? 'Select a conversation to continue chatting'
-						: "Start a conversation from any chef's profile"}
+						? t('selectConversation')
+						: t('startConversation')}
 				</p>
 			</div>
 		</div>
@@ -459,7 +462,7 @@ function MessagesContent() {
 			cancelled = true
 			clearTimeout(focusTimer)
 		}
-	}, [selectedConversationId])
+	}, [selectedConversationId, t])
 
 	// Track scroll position to decide auto-scroll behavior
 	useEffect(() => {
@@ -542,7 +545,7 @@ function MessagesContent() {
 		} finally {
 			reactingRef.current.delete(messageId)
 		}
-	}, [])
+	}, [t])
 
 	// Delete a message (own messages only)
 	const deletingRef = useRef(new Set<string>())
@@ -563,7 +566,7 @@ function MessagesContent() {
 		} finally {
 			deletingRef.current.delete(messageId)
 		}
-	}, [])
+	}, [t])
 
 	// Reply to a message - focus input and prepend reply context
 	const handleReply = useCallback((message: Message) => {
@@ -578,7 +581,7 @@ function MessagesContent() {
 		} catch {
 			toast.error(t('failedToCopy'))
 		}
-	}, [])
+	}, [t])
 
 	// Back to list (mobile)
 	const handleBackToList = () => {
@@ -727,7 +730,7 @@ function MessagesContent() {
 								size='icon'
 								onClick={handleBackToList}
 								className='md:hidden'
-								aria-label='Back to conversations'
+								aria-label={t('ariaBackToConversations')}
 							>
 								<ArrowLeft className='size-5' />
 							</Button>
@@ -756,7 +759,7 @@ function MessagesContent() {
 									size='icon'
 									onClick={() => setIsVideoCallActive(true)}
 									className='text-brand hover:bg-brand/10'
-									aria-label='Start video call'
+									aria-label={t('ariaStartVideoCall')}
 								>
 									<Phone className='size-5' />
 								</Button>
@@ -773,7 +776,7 @@ function MessagesContent() {
 											size='icon'
 											className='absolute -top-3 -right-3 z-dropdown bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
 											onClick={() => setIsVideoCallActive(false)}
-											aria-label='End video call'
+											aria-label={t('ariaEndVideoCall')}
 										>
 											<X className='size-5' />
 										</Button>
@@ -816,8 +819,8 @@ function MessagesContent() {
 								<div className='flex h-full items-center justify-center'>
 									<EmptyState
 										variant='custom'
-										title='No messages yet'
-										description='Start the conversation with a warm greeting!'
+									title={t('noMessages')}
+									description={t('noMessagesDesc')}
 										emoji='💬'
 									/>
 								</div>

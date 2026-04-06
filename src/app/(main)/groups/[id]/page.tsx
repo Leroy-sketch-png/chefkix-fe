@@ -97,7 +97,7 @@ export default function GroupDetailPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [groupId, isAuthenticated, router])
+	}, [groupId, isAuthenticated, router, t])
 
 	// Load members when members tab is clicked
 	useEffect(() => {
@@ -120,7 +120,7 @@ export default function GroupDetailPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [activeTab, group, groupId])
+	}, [activeTab, group, groupId, t])
 
 	// Load posts when posts tab is clicked
 	useEffect(() => {
@@ -146,7 +146,7 @@ export default function GroupDetailPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [activeTab, group, groupId])
+	}, [activeTab, group, groupId, t])
 
 	// Show loading state
 	if (isLoadingGroup) {

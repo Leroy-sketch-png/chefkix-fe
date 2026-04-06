@@ -81,7 +81,7 @@ export default function ReportsPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		fetchReports()

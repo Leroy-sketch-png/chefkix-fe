@@ -189,14 +189,14 @@ const RecipeManageCard = ({
 						className='flex-1 gap-1'
 					>
 						{isNavigating ? <Loader2 className='size-4 animate-spin' /> : <Edit3 className='size-4' />}
-						Edit
+						{t('edit')}
 					</Button>
 					<Button
 						onClick={() => onDuplicate(recipe.id)}
 						variant='outline'
 						size='sm'
 						disabled={isDuplicating}
-						title='Duplicate as draft'
+						title={t('duplicateAsDraft')}
 						className='border-brand/30 text-brand hover:bg-brand/10'
 					>
 						{isDuplicating ? (
@@ -224,8 +224,7 @@ const RecipeManageCard = ({
 							<AlertDialogHeader>
 								<AlertDialogTitle>{t('deleteRecipeTitle')}</AlertDialogTitle>
 								<AlertDialogDescription>
-									This will permanently delete &ldquo;{recipe.title}&rdquo;.
-									This action cannot be undone.
+									{t('deleteRecipeDesc', { title: recipe.title })}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
@@ -234,7 +233,7 @@ const RecipeManageCard = ({
 									onClick={() => onDelete(recipe.id)}
 									className='bg-error text-white hover:bg-error/90'
 								>
-									Delete
+									{t('delete')}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>
@@ -278,10 +277,10 @@ export default function MyRecipesPage() {
 				if (response.success && response.data) {
 					setRecipes(response.data)
 				} else {
-					setError(response.message || 'Failed to load recipes')
+					setError(response.message || t('errorLoadRecipes'))
 				}
 			} catch {
-				if (!cancelled) setError('Failed to load recipes')
+				if (!cancelled) setError(t('errorLoadRecipes'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -291,7 +290,7 @@ export default function MyRecipesPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user?.userId, retryCount])
+	}, [user?.userId, retryCount, t])
 
 	// Handle delete
 	const handleDelete = async (recipeId: string) => {
@@ -362,7 +361,7 @@ export default function MyRecipesPage() {
 			<PageTransition>
 				<PageContainer maxWidth='2xl'>
 					<ErrorState
-						title='Failed to load recipes'
+						title={t('errorLoadRecipes')}
 						message={error}
 						onRetry={() => {
 							setError(null)
@@ -407,8 +406,8 @@ export default function MyRecipesPage() {
 					<div className='flex-1'>
 						<PageHeader
 							icon={ChefHat}
-							title='My Recipes'
-							subtitle={`${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} published`}
+							title={t('myRecipes')}
+							subtitle={t('recipeCount', { count: recipes.length })}
 							gradient='purple'
 							marginBottom='sm'
 							className='mb-0'
@@ -421,7 +420,7 @@ export default function MyRecipesPage() {
 									className='gap-2 bg-gradient-hero text-white shadow-lg shadow-brand/30 disabled:opacity-50'
 								>
 									<Plus className='size-4' />
-									Create Recipe
+									{t('createRecipe')}
 								</Button>
 							}
 						/>
@@ -441,7 +440,7 @@ export default function MyRecipesPage() {
 							<Input
 								value={searchQuery}
 								onChange={e => setSearchQuery(e.target.value)}
-								placeholder='Search your recipes...'
+								placeholder={t('searchRecipes')}
 								className='pl-9'
 							/>
 						</div>
@@ -450,7 +449,7 @@ export default function MyRecipesPage() {
 							onValueChange={v => setSortBy(v as typeof sortBy)}
 						>
 							<SelectTrigger className='w-full sm:w-40'>
-								<SelectValue placeholder='Sort by' />
+								<SelectValue placeholder={t('sortBy')} />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value='newest'>{t('sortNewest')}</SelectItem>
@@ -493,7 +492,7 @@ export default function MyRecipesPage() {
 						className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center shadow-card'
 					>
 						<p className='text-text-muted'>
-							No recipes match &ldquo;{searchQuery}&rdquo;
+							{t('noRecipesMatch', { query: searchQuery })}
 						</p>
 					</motion.div>
 				) : (

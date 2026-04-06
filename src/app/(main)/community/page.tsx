@@ -138,7 +138,7 @@ export default function CommunityPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user?.userId, retryKey])
+	}, [user?.userId, retryKey, t])
 
 	const handleFollowBack = (userId: string) => {
 		// User followed back, move them from followers to friends

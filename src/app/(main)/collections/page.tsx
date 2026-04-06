@@ -151,8 +151,9 @@ export default function CollectionsPage() {
 						gradient='pink'
 						rightAction={
 							<motion.button
+								type='button'
 								onClick={() => setShowCreateModal(true)}
-								className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm'
+								className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							>

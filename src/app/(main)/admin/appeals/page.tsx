@@ -52,7 +52,7 @@ export default function AppealsPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		fetchAppeals()
@@ -123,7 +123,7 @@ export default function AppealsPage() {
 						onClick={fetchAppeals}
 						className='mt-2'
 					>
-						Refresh
+						{t('refresh')}
 					</Button>
 				</div>
 			</PageContainer>
@@ -150,7 +150,7 @@ export default function AppealsPage() {
 					onClick={fetchAppeals}
 					disabled={loading}
 				>
-					Refresh
+					{t('refresh')}
 				</Button>
 			</div>
 
@@ -178,7 +178,7 @@ export default function AppealsPage() {
 								<div>
 									<div className='flex items-center gap-2'>
 										<span className='text-sm font-semibold text-text'>
-											Ban Appeal
+											{t('banAppeal')}
 										</span>
 										<Badge
 											variant={statusConfig?.variant ?? 'outline'}
@@ -205,20 +205,20 @@ export default function AppealsPage() {
 							<div className='mt-4 space-y-3 border-t border-border-subtle pt-4'>
 								<div className='grid grid-cols-2 gap-3 text-xs'>
 									<div>
-										<span className='font-medium text-text-muted'>User ID</span>
+										<span className='font-medium text-text-muted'>{t('userIdLabel')}</span>
 										<p className='mt-0.5 font-mono text-text'>
 											{appeal.userId}
 										</p>
 									</div>
 									<div>
-										<span className='font-medium text-text-muted'>Ban ID</span>
+										<span className='font-medium text-text-muted'>{t('banIdLabel')}</span>
 										<p className='mt-0.5 font-mono text-text'>{appeal.banId}</p>
 									</div>
 								</div>
 
 								<div className='text-xs'>
 									<span className='font-medium text-text-muted'>
-										Appeal reason
+										{t('appealReasonLabel')}
 									</span>
 									<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
 										{appeal.reason}
@@ -293,7 +293,7 @@ export default function AppealsPage() {
 												className='gap-1.5'
 											>
 												<CheckCircle className='size-3.5' />
-												Approve (Revoke Ban)
+												{t('approveRevoke')}
 											</Button>
 											<Button
 												size='sm'
@@ -303,7 +303,7 @@ export default function AppealsPage() {
 												className='gap-1.5'
 											>
 												<XCircle className='size-3.5' />
-												Reject
+												{t('reject')}
 											</Button>
 										</div>
 									</div>

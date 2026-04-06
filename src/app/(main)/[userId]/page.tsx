@@ -66,7 +66,7 @@ const ProfileContent = () => {
 		return () => {
 			cancelled = true
 		}
-	}, [userId, isAuthLoading, retryCount])
+	}, [userId, isAuthLoading, retryCount, t])
 
 	if (isLoading || isAuthLoading) {
 		return <UserProfileSkeleton />
@@ -102,7 +102,7 @@ const ProfileContent = () => {
 
 					onClick={() => router.back()}
 					className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-					aria-label='Go back'
+					aria-label={t('ariaGoBack')}
 				>
 					<ArrowLeft className='size-4' />
 					<span>{t('back')}</span>

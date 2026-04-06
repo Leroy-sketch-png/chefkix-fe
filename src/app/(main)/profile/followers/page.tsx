@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -24,7 +24,6 @@ import {
 	UserCheck,
 	Heart,
 	ArrowLeft,
-	Loader2,
 	Sparkles,
 } from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
@@ -116,7 +115,23 @@ function FollowersContent() {
 		} finally {
 			setLoading(prev => ({ ...prev, [tab]: false }))
 		}
-	}, [])
+	}, [t])
+
+	const fetchSuggestions = useCallback(async () => {
+		if (suggestionsLoaded || suggestionsLoading) return
+		setSuggestionsLoading(true)
+		try {
+			const response = await getSuggestedFollows(8)
+			if (response.success && response.data) {
+				setSuggestions(response.data)
+			}
+		} catch {
+			// Silent fail — suggestions are non-critical
+		} finally {
+			setSuggestionsLoading(false)
+			setSuggestionsLoaded(true)
+		}
+	}, [suggestionsLoaded, suggestionsLoading])
 
 	// Fetch active tab on mount and tab change
 	useEffect(() => {
@@ -163,23 +178,7 @@ function FollowersContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [activeTab, suggestionsLoaded])
-
-	const fetchSuggestions = useCallback(async () => {
-		if (suggestionsLoaded || suggestionsLoading) return
-		setSuggestionsLoading(true)
-		try {
-			const response = await getSuggestedFollows(8)
-			if (response.success && response.data) {
-				setSuggestions(response.data)
-			}
-		} catch {
-			// Silent fail — suggestions are non-critical
-		} finally {
-			setSuggestionsLoading(false)
-			setSuggestionsLoaded(true)
-		}
-	}, [suggestionsLoaded, suggestionsLoading])
+	}, [activeTab, suggestionsLoaded, fetchSuggestions, t])
 
 	const handleSuggestionFollowed = (userId: string) => {
 		// Move from suggestions to following list
@@ -226,10 +225,11 @@ function FollowersContent() {
 				{/* Header with PageHeader */}
 				<div className='mb-6 flex items-center gap-3'>
 					<motion.button
+						type='button'
 						onClick={() => router.back()}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						aria-label='Go back'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
@@ -367,8 +367,16 @@ export default function FollowersPage() {
 		<Suspense
 			fallback={
 				<PageContainer maxWidth='lg'>
-					<div className='flex min-h-panel-md items-center justify-center'>
-						<Loader2 className='size-8 animate-spin text-brand' />
+					<div className='space-y-6 py-6'>
+						<div className='space-y-3'>
+							<Skeleton className='h-8 w-48 rounded-lg' />
+							<Skeleton className='h-5 w-72 rounded-lg' />
+						</div>
+						<div className='grid gap-4 sm:grid-cols-2'>
+							{Array.from({ length: 6 }).map((_, i) => (
+								<Skeleton key={i} className='h-40 w-full rounded-xl' />
+							))}
+						</div>
 					</div>
 				</PageContainer>
 			}

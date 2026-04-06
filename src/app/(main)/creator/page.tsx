@@ -93,9 +93,9 @@ export default function CreatorRoute() {
 	// Transform API data to component format
 	// Per vision_and_spec/03-social.txt - using real data from BE
 	const weekHighlight = {
-		newCooks: stats?.thisWeek.newCooks ?? 0,
+		newCooks: stats?.weeklyCreatorCooks ?? stats?.thisWeek.newCooks ?? 0,
 		// Phase 2: newCooksChange, xpEarnedChange (requires historical data storage)
-		xpEarned: stats?.thisWeek.xpEarned ?? 0,
+		xpEarned: stats?.weeklyCreatorXp ?? stats?.thisWeek.xpEarned ?? 0,
 		dateRange: getDateRangeThisWeek(),
 	}
 
@@ -285,21 +285,22 @@ export default function CreatorRoute() {
 				{/* Header with back button using PageHeader */}
 				<div className='mb-6 flex items-center gap-3'>
 					<motion.button
+						type='button'
 						onClick={() => startNavigationTransition(() => {
 							router.push('/dashboard')
 						})}
 						disabled={isNavigating}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50'
-						aria-label='Go to dashboard'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoToDashboard')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 					<div className='flex-1'>
 						<PageHeader
 							icon={ChefHat}
-							title='Creator Dashboard'
-							subtitle='Track your recipe performance and inspire others'
+							title={t('dashboardTitle')}
+							subtitle={t('dashboardSubtitle')}
 							gradient='purple'
 							marginBottom='sm'
 							className='mb-0'

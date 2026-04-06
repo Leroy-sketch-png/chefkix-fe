@@ -32,7 +32,7 @@ import type {
 	BadgeCategory,
 	BadgeRarity,
 } from '@/lib/types/gamification'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 
 // ============================================
@@ -367,18 +367,19 @@ export default function BadgeCatalogPage() {
 							{/* Back + PageHeader */}
 							<div className='mb-4 flex items-center gap-3'>
 								<motion.button
+									type='button'
 									onClick={() => router.back()}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-									aria-label='Go back'
+									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaGoBack')}
 								>
 									<ArrowLeft className='size-5' />
 								</motion.button>
 								<div className='flex-1'>
 									<PageHeader
 										icon={Trophy}
-										title='Badge Collection'
-										subtitle={`${earnedCount} of ${totalBadges} badges earned (${progressPercent}%)`}
+										title={t('badgeCollection')}
+										subtitle={t('badgeProgress', { earned: earnedCount, total: totalBadges, percent: progressPercent })}
 										gradient='warm'
 										marginBottom='sm'
 										className='mb-0'
@@ -391,7 +392,7 @@ export default function BadgeCatalogPage() {
 								<motion.div
 									initial={{ width: 0 }}
 									animate={{ width: `${progressPercent}%` }}
-									transition={{ duration: 1, ease: 'easeOut' }}
+									transition={{ duration: DURATION_S.dramatic, ease: 'easeOut' }}
 									className='h-full rounded-full bg-gradient-to-r from-xp to-brand'
 								/>
 							</div>

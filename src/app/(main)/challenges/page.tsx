@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -20,7 +20,7 @@ import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { DailyChallengeBanner } from '@/components/challenges'
+import { DailyChallengeBanner, ActiveBattlesSection } from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -34,21 +34,9 @@ import {
 	CommunityChallenge,
 	SeasonalChallenge,
 } from '@/services/challenge'
-import { TRANSITION_SPRING } from '@/lib/motion'
-import { logDevError } from '@/lib/dev-log'
-
-// ============================================
-// HELPERS
-// ============================================
-
-const formatTimeRemaining = (dateStr: string): string => {
-	const diffMs = new Date(dateStr).getTime() - Date.now()
-	if (diffMs <= 0) return 'Ended'
-	const hours = Math.floor(diffMs / 3600000)
-	if (hours >= 24) return `${Math.floor(hours / 24)}d left`
-	const mins = Math.floor((diffMs % 3600000) / 60000)
-	return `${hours}h ${mins}m left`
-}
+import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
+import { formatEventTimeRemaining } from '@/lib/challenge-time'
+import { logDevError } from '@/lib/dev-log' 
 
 // ============================================
 // PAGE
@@ -110,7 +98,7 @@ export default function ChallengesPage() {
 					id: data.id,
 					title: data.title,
 					description: data.description,
-					icon: data.icon || 'ðŸŽ¯',
+					icon: data.icon || '🎯',
 					bonusXp: data.bonusXp,
 					endsAt: new Date(data.endsAt),
 				})
@@ -177,7 +165,7 @@ export default function ChallengesPage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading...
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -192,8 +180,11 @@ export default function ChallengesPage() {
 					gradient="yellow"
 				/>
 
-				{/* Cooking Duels â€” 1v1 friend challenges */}
+				{/* Cooking Duels — 1v1 friend challenges */}
 				<DuelsSection />
+
+				{/* Active Recipe Battles — community voting */}
+				<ActiveBattlesSection />
 
 				{loading ? (
 					<div className='space-y-6'>
@@ -288,12 +279,12 @@ export default function ChallengesPage() {
 											</div>
 										</div>
 										<div className='text-right'>
-											<span className='text-lg font-bold text-xp'>
+											<span className='tabular-nums text-lg font-bold text-xp'>
 												+{weeklyChallenge.bonusXp} XP
 											</span>
 											{weeklyChallenge.completed && (
 												<p className='text-xs font-semibold text-success'>
-													âœ“ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
+													✓ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
 												</p>
 											)}
 										</div>
@@ -301,10 +292,9 @@ export default function ChallengesPage() {
 
 									{/* Progress bar */}
 									<div className='mb-2'>
-										<div className='mb-1 flex justify-between text-xs text-text-muted'>
+										<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 											<span>
-												{weeklyChallenge.progress} / {weeklyChallenge.target}{' '}
-												completed
+												{t('progressCount', { progress: weeklyChallenge.progress, target: weeklyChallenge.target })}
 											</span>
 											<span>
 												{weeklyChallenge.target > 0
@@ -323,7 +313,7 @@ export default function ChallengesPage() {
 												animate={{
 													width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
 												}}
-												transition={{ duration: 0.8, ease: 'easeOut' }}
+												transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 												className='h-full rounded-full bg-gradient-indigo'
 											/>
 										</div>
@@ -331,11 +321,7 @@ export default function ChallengesPage() {
 
 									{/* Time remaining */}
 									<p className='text-xs text-text-muted'>
-										Ends{' '}
-										{new Date(weeklyChallenge.endsAt).toLocaleDateString(
-											'en-US',
-											{ weekday: 'long', month: 'short', day: 'numeric' },
-										)}
+										{t('endsOn', { date: new Date(weeklyChallenge.endsAt).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) })}
 									</p>
 
 									{/* CTA: Find matching recipes */}
@@ -386,7 +372,7 @@ export default function ChallengesPage() {
 											<div className='mb-3 flex items-center justify-between'>
 												<div className='flex items-center gap-3'>
 													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
-														{ch.emoji || 'ðŸ‘¥'}
+														{ch.emoji || '👥'}
 													</div>
 													<div>
 														<h3 className='text-lg font-bold text-text'>
@@ -398,23 +384,23 @@ export default function ChallengesPage() {
 													</div>
 												</div>
 												<div className='text-right'>
-													<span className='text-lg font-bold text-xp'>
+													<span className='tabular-nums text-lg font-bold text-xp'>
 														+{ch.rewardXpPerUser} XP
 													</span>
 													<p className='text-xs text-text-muted'>
-														{formatTimeRemaining(ch.endsAt)}
+														{formatEventTimeRemaining(ch.endsAt, t)}
 													</p>
 												</div>
 											</div>
 
 											{/* Global progress bar */}
 											<div className='mb-2'>
-												<div className='mb-1 flex justify-between text-xs text-text-muted'>
+												<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 													<span>
 														{ch.currentProgress.toLocaleString()} /{' '}
 														{ch.targetCount.toLocaleString()} {ch.targetUnit}
 													</span>
-													<span>{Math.round(ch.progressPercent)}%</span>
+													<span className='tabular-nums'>{Math.round(ch.progressPercent)}%</span>
 												</div>
 												<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
 													<motion.div
@@ -423,7 +409,7 @@ export default function ChallengesPage() {
 															width: `${Math.min(ch.progressPercent, 100)}%`,
 														}}
 														transition={{
-															duration: 1,
+															duration: DURATION_S.dramatic,
 															ease: 'easeOut',
 														}}
 														className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
@@ -435,11 +421,11 @@ export default function ChallengesPage() {
 											<div className='flex items-center justify-between text-xs text-text-muted'>
 												<span className='flex items-center gap-1'>
 													<Users className='size-3.5' />
-													{ch.participantCount.toLocaleString()} participants
+													{t('participantsCount', { count: ch.participantCount })}
 												</span>
 												{ch.hasContributed ? (
 													<span className='font-medium text-success'>
-														âœ“ {t('youContributed')}
+														✓ {t('youContributed')}
 													</span>
 												) : (
 													<button
@@ -486,7 +472,7 @@ export default function ChallengesPage() {
 											}}
 											className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:shadow-warm'
 										>
-											{/* Hero header â€” accent color or image */}
+											{/* Hero header — accent color or image */}
 											{ev.heroImageUrl ? (
 												<div
 													className='relative h-28 bg-cover bg-center'
@@ -508,7 +494,7 @@ export default function ChallengesPage() {
 															: undefined,
 													}}
 												>
-													<span className='text-3xl'>{ev.emoji || 'ðŸŒ¿'}</span>
+													<span className='text-3xl'>{ev.emoji || '🌿'}</span>
 													<h3 className='text-lg font-bold text-text'>
 														{ev.title}
 													</h3>
@@ -522,7 +508,7 @@ export default function ChallengesPage() {
 
 												{/* Per-user progress */}
 												<div className='mb-2'>
-													<div className='mb-1 flex justify-between text-xs text-text-muted'>
+													<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 														<span>
 															{ev.userProgress} / {ev.targetCount}{' '}
 															{ev.targetUnit}
@@ -543,7 +529,7 @@ export default function ChallengesPage() {
 																width: `${ev.targetCount > 0 ? Math.min((ev.userProgress / ev.targetCount) * 100, 100) : 0}%`,
 															}}
 															transition={{
-																duration: 1,
+																duration: DURATION_S.dramatic,
 																ease: 'easeOut',
 															}}
 															className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
@@ -555,15 +541,15 @@ export default function ChallengesPage() {
 												<div className='flex items-center justify-between text-xs text-text-muted'>
 													<span className='flex items-center gap-1'>
 														<Clock className='size-3.5' />
-														{formatTimeRemaining(ev.endsAt)}
+														{formatEventTimeRemaining(ev.endsAt, t)}
 													</span>
 													<div className='flex items-center gap-2'>
 														{ev.rewardBadgeName && (
 															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-2xs font-semibold text-warning'>
-																ðŸ… {ev.rewardBadgeName}
+																🏅 {ev.rewardBadgeName}
 															</span>
 														)}
-														<span className='font-bold text-xp'>
+														<span className='tabular-nums font-bold text-xp'>
 															+{ev.rewardXp} XP
 														</span>
 													</div>
@@ -582,14 +568,14 @@ export default function ChallengesPage() {
 															disabled={isNavigating}
 															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 														>
-															{ev.featuredRecipes.length} featured recipes
+															{t('featuredRecipesCount', { count: ev.featuredRecipes.length })}
 															<ChevronRight className='size-3.5' />
 														</button>
 													)}
 
 												{ev.userCompleted && (
 													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-														âœ“ +{ev.rewardXp} {t('xpAwarded')}
+														✓ +{ev.rewardXp} {t('xpAwarded')}
 													</div>
 												)}
 											</div>

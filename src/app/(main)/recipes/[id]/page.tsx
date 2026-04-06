@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getRecipeById,
@@ -61,7 +62,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { RECIPE_MESSAGES } from '@/constants/messages'
 import { SocialProof } from '@/components/recipe/SocialProof'
 import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
 import { RecipeReviews } from '@/components/recipe/RecipeReviews'
@@ -97,39 +97,39 @@ import {
 import { TipJarButton } from '@/components/tip/TipJarButton'
 import { useTranslations } from 'next-intl'
 
-// Difficulty explanations for tooltip
-const DIFFICULTY_EXPLANATIONS: Record<
-	string,
-	{ label: string; description: string; techniques: string }
-> = {
-	Beginner: {
-		label: 'Beginner',
-		description: 'Perfect for first-time cooks',
-		techniques: 'Basic techniques like chopping, stirring, boiling',
-	},
-	Intermediate: {
-		label: 'Intermediate',
-		description: 'Some cooking experience helpful',
-		techniques: 'Sautéing, reduction, timing multiple components',
-	},
-	Advanced: {
-		label: 'Advanced',
-		description: 'Experienced cooks will thrive',
-		techniques: 'Emulsification, tempering, precision timing',
-	},
-	Expert: {
-		label: 'Expert',
-		description: 'Professional-level challenge',
-		techniques: 'Complex techniques, multi-day prep, precise execution',
-	},
-}
-
 function RecipeDetailContent() {
 	const params = useParams()
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const recipeId = params?.id as string
 	const t = useTranslations('recipeDetail')
+
+	// Difficulty explanations for tooltip (must be inside component for i18n hook access)
+	const DIFFICULTY_EXPLANATIONS: Record<
+		string,
+		{ label: string; description: string; techniques: string }
+	> = {
+		Beginner: {
+			label: t('diffBeginner'),
+			description: t('diffBeginnerDesc'),
+			techniques: t('diffBeginnerTech'),
+		},
+		Intermediate: {
+			label: t('diffIntermediate'),
+			description: t('diffIntermediateDesc'),
+			techniques: t('diffIntermediateTech'),
+		},
+		Advanced: {
+			label: t('diffAdvanced'),
+			description: t('diffAdvancedDesc'),
+			techniques: t('diffAdvancedTech'),
+		},
+		Expert: {
+			label: t('diffExpert'),
+			description: t('diffExpertDesc'),
+			techniques: t('diffExpertTech'),
+		},
+	}
 	const shouldAutoStartCooking = searchParams?.get('cook') === 'true'
 	const { openCookingPanel, expandCookingPanel } = useUiStore()
 	const {
@@ -190,10 +190,10 @@ function RecipeDetailContent() {
 				setSaveCount(response.data.saveCount)
 				trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
 			} else {
-				setError('Recipe not found')
+				setError(t('errorRecipeNotFound'))
 			}
 		} catch (err) {
-			setError('Failed to load recipe')
+			setError(t('errorFailedLoadRecipe'))
 		} finally {
 			setIsLoading(false)
 		}
@@ -268,7 +268,7 @@ function RecipeDetailContent() {
 			} else {
 				// Get the error message from the store for better context
 				const errorMsg = useCookingStore.getState().error
-				toast.error(errorMsg || 'Failed to start cooking session')
+				toast.error(errorMsg || t('toastFailedStartCooking'))
 			}
 		}
 		initCooking()
@@ -284,11 +284,12 @@ function RecipeDetailContent() {
 		openCookingPanel,
 		expandCookingPanel,
 		router,
+		t,
 	])
 
 	const handleLike = useCallback(async () => {
 		if (isLikeLoading) return
-		if (!requireAuth('like this recipe')) return
+		if (!requireAuth(t('authActionLike'))) return
 
 		const previousLiked = isLiked
 		const previousCount = likeCount
@@ -313,7 +314,7 @@ function RecipeDetailContent() {
 		} catch (error) {
 			setIsLiked(previousLiked)
 			setLikeCount(previousCount)
-			toast.error(RECIPE_MESSAGES.LIKE_FAILED)
+			toast.error(t('toastFailedLike'))
 		} finally {
 			setIsLikeLoading(false)
 		}
@@ -321,7 +322,7 @@ function RecipeDetailContent() {
 
 	const handleSave = useCallback(async () => {
 		if (isSaveLoading) return
-		if (!requireAuth('save this recipe')) return
+		if (!requireAuth(t('authActionSave'))) return
 
 		const previousSaved = isSaved
 		const previousCount = saveCount
@@ -353,11 +354,11 @@ function RecipeDetailContent() {
 		} catch (error) {
 			setIsSaved(previousSaved)
 			setSaveCount(previousCount)
-			toast.error(RECIPE_MESSAGES.SAVE_FAILED)
+			toast.error(t('toastFailedSave'))
 		} finally {
 			setIsSaveLoading(false)
 		}
-	}, [isSaveLoading, isSaved, recipeId, saveCount, requireAuth])
+	}, [isSaveLoading, isSaved, recipeId, saveCount, requireAuth, t])
 
 	const handleShare = async () => {
 		if (navigator.share) {
@@ -372,7 +373,7 @@ function RecipeDetailContent() {
 					// Share failed for non-cancel reason — fall back to clipboard
 					try {
 						await navigator.clipboard.writeText(window.location.href)
-						toast.success(RECIPE_MESSAGES.LINK_COPIED)
+						toast.success(t('toastLinkCopied'))
 					} catch {
 						toast.error(t('toastFailedShare'))
 					}
@@ -381,7 +382,7 @@ function RecipeDetailContent() {
 		} else {
 			try {
 				await navigator.clipboard.writeText(window.location.href)
-				toast.success(RECIPE_MESSAGES.LINK_COPIED)
+				toast.success(t('toastLinkCopied'))
 			} catch {
 				toast.error(t('toastFailedCopy'))
 			}
@@ -389,12 +390,12 @@ function RecipeDetailContent() {
 	}
 
 	const REMIX_OPTIONS: { type: RemixType; label: string; emoji: string }[] = [
-		{ type: 'vegetarian', label: 'Vegetarian', emoji: '🌿' },
-		{ type: 'vegan', label: 'Vegan', emoji: '🌱' },
-		{ type: 'gluten-free', label: 'Gluten-Free', emoji: '🌾' },
-		{ type: 'spicy', label: 'Spicy', emoji: '🌶️' },
-		{ type: 'healthy', label: 'Healthy', emoji: '💚' },
-		{ type: 'quick', label: 'Quick', emoji: '⚡' },
+		{ type: 'vegetarian', label: t('dietVegetarian'), emoji: '🌿' },
+		{ type: 'vegan', label: t('dietVegan'), emoji: '🌱' },
+		{ type: 'gluten-free', label: t('dietGlutenFree'), emoji: '🌾' },
+		{ type: 'spicy', label: t('remixSpicy'), emoji: '🌶️' },
+		{ type: 'healthy', label: t('remixHealthy'), emoji: '💚' },
+		{ type: 'quick', label: t('remixQuick'), emoji: '⚡' },
 	]
 
 	const handleRemix = async (remixType: RemixType) => {
@@ -412,7 +413,7 @@ function RecipeDetailContent() {
 				toast.success(t('toastRemixCreated'))
 				setRemixResult(response.data)
 			} else {
-				toast.error(response.message || 'Failed to remix recipe')
+				toast.error(response.message || t('toastFailedRemixRecipe'))
 			}
 		} catch {
 			toast.error(t('toastFailedRemix'))
@@ -423,7 +424,7 @@ function RecipeDetailContent() {
 
 	const handleStartCooking = useCallback(async () => {
 		if (isCookingLoading || !recipeId) return
-		if (!requireAuth('start cooking')) return
+		if (!requireAuth(t('authActionCook'))) return
 
 		// If already cooking THIS recipe, just open the panel
 		if (isCurrentlyCooked) {
@@ -451,7 +452,7 @@ function RecipeDetailContent() {
 		} else {
 			// Get the error message from the store for better context
 			const errorMsg = useCookingStore.getState().error
-			toast.error(errorMsg || 'Failed to start cooking session')
+			toast.error(errorMsg || t('toastFailedStartCooking'))
 		}
 	}, [
 		isCookingLoading,
@@ -461,26 +462,28 @@ function RecipeDetailContent() {
 		openCookingPanel,
 		expandCookingPanel,
 		requireAuth,
+		recipe,
+		t,
 	])
 
 	const [isCreatingRoom, setIsCreatingRoom] = useState(false)
 
 	const handleCookTogether = async () => {
 		if (isCreatingRoom || !recipeId) return
-		if (!requireAuth('cook together')) return
+		if (!requireAuth(t('authActionCookTogether'))) return
 		setIsCreatingRoom(true)
 		try {
 			const { createRoom } = useCookingStore.getState()
 			const roomCode = await createRoom(recipeId)
 			if (roomCode) {
-				toast.success(`Room created! Code: ${roomCode}`, {
+				toast.success(t('toastRoomCreated', { roomCode }), {
 					description: t('toastShareCode'),
 					duration: 8000,
 				})
 				router.push('/cook-together')
 			} else {
 				const errorMsg = useCookingStore.getState().error
-				toast.error(errorMsg || 'Failed to create room')
+				toast.error(errorMsg || t('toastFailedCreateRoom'))
 			}
 		} catch {
 			toast.error(t('toastFailedRoom'))
@@ -498,7 +501,7 @@ function RecipeDetailContent() {
 				toast.success(t('toastDeleted'))
 				router.push('/profile')
 			} else {
-				toast.error(response.message || 'Failed to delete recipe')
+				toast.error(response.message || t('toastFailedDeleteRecipe'))
 			}
 		} catch {
 			toast.error(t('toastFailedDelete'))
@@ -506,10 +509,10 @@ function RecipeDetailContent() {
 			setIsDeleting(false)
 			setShowDeleteConfirm(false)
 		}
-	}, [isDeleting, recipeId, router])
+	}, [isDeleting, recipeId, router, t])
 
 	const handleAddToShoppingList = async () => {
-		if (!requireAuth('add to shopping list')) return
+		if (!requireAuth(t('authActionShoppingList'))) return
 		if (isAddingToShoppingList || !recipe) return
 		setIsAddingToShoppingList(true)
 		try {
@@ -517,7 +520,7 @@ function RecipeDetailContent() {
 			toast.success(t('toastShoppingListCreated'), {
 				description: t('toastShoppingListDetails', {n: shoppingList.totalItems}),
 				action: {
-					label: 'View',
+					label: t('viewAction'),
 					onClick: () => router.push('/shopping-lists'),
 				},
 			})
@@ -680,7 +683,7 @@ function RecipeDetailContent() {
 						<motion.div
 							initial={{ scale: 1.1 }}
 							animate={{ scale: 1 }}
-							transition={{ duration: 0.8, ease: 'easeOut' }}
+							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 							className='absolute inset-0'
 						>
 							<Image
@@ -728,6 +731,7 @@ function RecipeDetailContent() {
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<motion.button
+											type='button'
 											onClick={() => {
 												// Get the first video URL from the array
 												const firstVideoUrl = recipe.videoUrl?.[0]
@@ -741,13 +745,13 @@ function RecipeDetailContent() {
 												} else {
 													// Video is embedded in cooking mode
 													handleStartCooking()
-													toast.info('Watch video in cooking mode')
+													toast.info(t('toastWatchVideoInCookingMode'))
 												}
 											}}
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											transition={TRANSITION_SPRING}
-											className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+											className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<div className='grid size-20 place-items-center rounded-full bg-white/90 shadow-2xl transition-all hover:bg-white'>
 												<Play className='ml-1 size-8 fill-brand text-brand' />
@@ -859,7 +863,7 @@ function RecipeDetailContent() {
 								className='flex items-center gap-2 text-text-secondary'
 							>
 								<Users className='size-5 text-brand' />
-								<span className='font-medium'>{recipe.servings} {t('servings')}</span>
+								<span className='font-medium tabular-nums'>{recipe.servings} {t('servings')}</span>
 							</motion.span>
 
 							{/* Difficulty with explanation tooltip */}
@@ -981,7 +985,7 @@ function RecipeDetailContent() {
 								className='flex items-center gap-2 text-text-secondary'
 							>
 								<Eye className='size-5 text-brand' />
-								<span className='font-medium'>
+								<span className='font-medium tabular-nums'>
 									<AnimatedNumber
 										value={recipe.viewCount || 0}
 										format={n => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`}
@@ -1014,17 +1018,18 @@ function RecipeDetailContent() {
 						>
 							{/* Tier 1: Primary CTA — full width, unmissable */}
 							<motion.button
+								type='button'
 								onClick={handleStartCooking}
 								disabled={isCookingLoading || hasOtherSession}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								title={
 									hasOtherSession
-										? `Already cooking: ${activeSession?.recipe?.title || 'another recipe'}`
+										? t('alreadyCookingTitle', { recipe: activeSession?.recipe?.title || t('anotherRecipe') })
 										: undefined
 								}
 								className={cn(
-									'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-lg transition-shadow disabled:opacity-50',
+									'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-lg transition-shadow disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 									isCurrentlyCooked
 										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 										: hasOtherSession
@@ -1035,22 +1040,22 @@ function RecipeDetailContent() {
 								{isCookingLoading ? (
 									<>
 										<Loader2 className='size-6 animate-spin' />
-										Starting...
+										{t('startingCooking')}
 									</>
 								) : isCurrentlyCooked ? (
 									<>
 										<Play className='size-6 fill-white' />
-										Continue Cooking
+										{t('continueCooking')}
 									</>
 								) : hasOtherSession ? (
 									<>
 										<AlertCircle className='size-6' />
-										Already Cooking
+										{t('alreadyCooking')}
 									</>
 								) : (
 									<>
 										<Play className='size-6 fill-white' />
-										Start Cooking
+										{t('startCooking')}
 										<kbd className='ml-2 rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal'>Enter</kbd>
 									</>
 								)}
@@ -1059,12 +1064,13 @@ function RecipeDetailContent() {
 							{/* Tier 2: Social actions — compact inline bar */}
 							<div className='flex items-center gap-2'>
 								<motion.button
+									type='button'
 									onClick={handleLike}
 									disabled={isLikeLoading}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									className={cn(
-										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all',
+										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 										isLiked
 											? 'border-error bg-error/10 text-error'
 											: 'border-border-medium hover:border-error hover:bg-error/5',
@@ -1075,12 +1081,13 @@ function RecipeDetailContent() {
 									<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>L</kbd>
 								</motion.button>
 								<motion.button
+									type='button'
 									onClick={handleSave}
 									disabled={isSaveLoading}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									className={cn(
-										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all',
+										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 										isSaved
 											? 'border-brand bg-brand/10 text-brand'
 											: 'border-border-medium hover:border-brand hover:bg-brand/5',
@@ -1097,26 +1104,28 @@ function RecipeDetailContent() {
 									<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>S</kbd>
 								</motion.button>
 								<motion.button
+									type='button'
 									onClick={handleShare}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-border-medium px-4 py-3 text-sm font-semibold transition-colors hover:border-text-secondary hover:bg-bg-elevated'
-									aria-label='Share recipe'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-border-medium px-4 py-3 text-sm font-semibold transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaShareRecipe')}
 								>
 									<Share2 className='size-4' />
-									Share
+									{t('share')}
 								</motion.button>
 								<motion.button
+									type='button'
 									onClick={handleCookTogether}
 									disabled={isCreatingRoom || hasOtherSession}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									title={
 										hasOtherSession
-											? `Already cooking: ${activeSession?.recipe?.title || 'another recipe'}`
-											: 'Cook together with friends'
+											? t('alreadyCookingTooltip', { recipe: activeSession?.recipe?.title || t('anotherRecipe') })
+											: t('cookTogetherTitle')
 									}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-4 py-3 text-sm font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-4 py-3 text-sm font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{isCreatingRoom ? (
 										<Loader2 className='size-4 animate-spin' />
@@ -1130,19 +1139,20 @@ function RecipeDetailContent() {
 							{/* Tier 3: Secondary actions — condensed row with more-menu */}
 							<div className='flex items-center gap-2'>
 								<motion.button
+									type='button'
 									onClick={handleAddToShoppingList}
 									disabled={isAddingToShoppingList}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-success hover:bg-success/5 hover:text-success'
-									title='Add ingredients to shopping list (excludes pantry items)'
+									className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-success hover:bg-success/5 hover:text-success focus-visible:ring-2 focus-visible:ring-brand/50'
+									title={t('addToShoppingListTitle')}
 								>
 									{isAddingToShoppingList ? (
 										<Loader2 className='size-3.5 animate-spin' />
 									) : (
 										<ShoppingCart className='size-3.5' />
 									)}
-									Shopping List
+									{t('shoppingList')}
 								</motion.button>
 								{/* Remix Dropdown */}
 								<DropdownMenu
@@ -1151,18 +1161,19 @@ function RecipeDetailContent() {
 								>
 									<DropdownMenuTrigger asChild>
 										<motion.button
+											type='button'
 											whileHover={BUTTON_HOVER}
 											whileTap={BUTTON_TAP}
 											disabled={isRemixing}
-											className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-xp hover:bg-xp/5 hover:text-xp disabled:opacity-50'
-											title='Remix Recipe'
+											className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-xp hover:bg-xp/5 hover:text-xp disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+											title={t('remixRecipeTitle')}
 										>
 											{isRemixing ? (
 												<Loader2 className='size-3.5 animate-spin' />
 											) : (
 												<Sparkles className='size-3.5' />
 											)}
-											Remix
+											{t('remix')}
 										</motion.button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align='center' className='w-48'>
@@ -1190,13 +1201,14 @@ function RecipeDetailContent() {
 									<DropdownMenu>
 										<DropdownMenuTrigger asChild>
 											<motion.button
+												type='button'
 												whileHover={BUTTON_HOVER}
 												whileTap={BUTTON_TAP}
-												className='ml-auto flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-text-secondary hover:bg-bg-elevated'
-												title='Recipe actions'
+												className='ml-auto flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+												title={t('recipeActionsTitle')}
 											>
 												<MoreHorizontal className='size-3.5' />
-												Manage
+												{t('manage')}
 											</motion.button>
 										</DropdownMenuTrigger>
 										<DropdownMenuContent align='end' className='w-48'>
@@ -1209,21 +1221,21 @@ function RecipeDetailContent() {
 												className='cursor-pointer gap-2 text-sm'
 											>
 												<Rocket className='size-4' />
-												Test Cook (Preview)
+												{t('testCookPreview')}
 											</DropdownMenuItem>
 											<DropdownMenuItem
 												onClick={() => router.push(`/create?draftId=${recipeId}`)}
 												className='cursor-pointer gap-2 text-sm'
 											>
 												<Edit3 className='size-4' />
-												Edit Recipe
+												{t('editRecipe')}
 											</DropdownMenuItem>
 											<DropdownMenuItem
 												onClick={() => setShowDeleteConfirm(true)}
 												className='cursor-pointer gap-2 text-sm text-error focus:text-error'
 											>
 												<Trash2 className='size-4' />
-												Delete Recipe
+												{t('deleteRecipe')}
 											</DropdownMenuItem>
 										</DropdownMenuContent>
 									</DropdownMenu>
@@ -1278,10 +1290,7 @@ function RecipeDetailContent() {
 									</TooltipTrigger>
 									<TooltipContent className='max-w-xs p-3'>
 										<p className='text-sm text-text-secondary'>
-											Earn XP by completing cooking sessions.{' '}
-											<strong>{t('xp30percentBold')}</strong>{', '}{t('xpAnd')}{' '}
-											<strong>70% is shared when you post</strong> your
-											creation!
+											{t('xpTooltipExplanation')}
 										</p>
 									</TooltipContent>
 								</Tooltip>
@@ -1355,10 +1364,7 @@ function RecipeDetailContent() {
 									</TooltipTrigger>
 									<TooltipContent className='max-w-xs p-3'>
 										<p className='text-sm text-text-secondary'>
-											Earn XP by completing cooking sessions.{' '}
-											<strong>30% is yours to keep</strong>, and{' '}
-											<strong>70% is shared when you post</strong> your
-											creation!
+											{t('xpTooltipExplanation')}
 										</p>
 									</TooltipContent>
 								</Tooltip>
@@ -1367,10 +1373,10 @@ function RecipeDetailContent() {
 						<div className='flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
 							<div>
 								<span className='font-semibold text-white'>
-									Estimated XP Reward
+									{t('estimatedXpReward')}
 								</span>
 								<p className='text-xs text-white/70'>
-									Based on difficulty, steps, and time
+									{t('xpRewardBasis')}
 								</p>
 							</div>
 							<span className='text-2xl font-black text-white'>
@@ -1420,7 +1426,7 @@ function RecipeDetailContent() {
 													target='_blank'
 													rel='noopener noreferrer'
 													className='flex size-8 items-center justify-center rounded-lg text-text-muted opacity-70 transition-all hover:bg-brand/10 hover:text-brand md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
-													title={`Buy ${ingredient.name}`}
+													title={t('buyIngredient', { name: ingredient.name })}
 													onClick={() => trackEvent('INGREDIENT_CHECKED', `ing-${index}`, 'ingredient', { name: ingredient.name, action: 'buy_click' })}
 												>
 													<ShoppingCart className='size-4' />
@@ -1536,7 +1542,7 @@ function RecipeDetailContent() {
 							<div className='mb-4 flex items-start justify-between'>
 								<div>
 									<span className='mb-1 inline-block rounded-full bg-xp/10 px-3 py-1 text-xs font-semibold text-xp'>
-										AI Remix
+										{t('aiRemix')}
 									</span>
 									<h2 className='mt-2 text-xl font-bold text-text'>
 										{remixResult.remix_title}
@@ -1557,7 +1563,7 @@ function RecipeDetailContent() {
 								remixResult.modifications.length > 0 && (
 									<div className='mb-5'>
 										<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-text-secondary'>
-											Changes Made
+											{t('changesMade')}
 										</h3>
 										<ul className='space-y-1'>
 											{remixResult.modifications.map((mod, i) => (
@@ -1583,7 +1589,7 @@ function RecipeDetailContent() {
 										remixResult.new_ingredients.length > 0 && (
 											<div className='flex-1'>
 												<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-brand'>
-													+ Added
+													{t('addedItems')}
 												</h3>
 												<ul className='space-y-1'>
 													{remixResult.new_ingredients.map((ing, i) => (
@@ -1598,7 +1604,7 @@ function RecipeDetailContent() {
 										remixResult.removed_ingredients.length > 0 && (
 											<div className='flex-1'>
 												<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-error'>
-													− Removed
+													{t('removedItems')}
 												</h3>
 												<ul className='space-y-1'>
 													{remixResult.removed_ingredients.map((ing, i) => (
@@ -1664,11 +1670,10 @@ function RecipeDetailContent() {
 							className='mx-4 w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-card'
 						>
 							<h3 className='mb-2 text-lg font-bold text-text'>
-								Delete Recipe?
+								{t('deleteRecipeConfirmTitle')}
 							</h3>
 							<p className='mb-6 text-sm text-text-secondary'>
-								This action cannot be undone. The recipe and all associated data
-								will be permanently deleted.
+								{t('deleteRecipeConfirmDesc')}
 							</p>
 							<div className='flex gap-3'>
 								<Button
@@ -1677,7 +1682,7 @@ function RecipeDetailContent() {
 									onClick={() => setShowDeleteConfirm(false)}
 									disabled={isDeleting}
 								>
-									Cancel
+									{t('cancel')}
 								</Button>
 								<Button
 									variant='destructive'
@@ -1690,7 +1695,7 @@ function RecipeDetailContent() {
 									) : (
 										<Trash2 className='mr-2 size-4' />
 									)}
-									Delete
+									{t('delete')}
 								</Button>
 							</div>
 						</motion.div>
@@ -1708,7 +1713,7 @@ function RecipeDetailSkeleton() {
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.3 }}
+				transition={{ duration: DURATION_S.smooth }}
 				className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 			>
 				<Skeleton className='h-72 w-full md:h-96' />

@@ -10,8 +10,10 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import CookCardRenderer from '@/components/cook-card/CookCardRenderer'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { useTranslations } from '@/i18n/hooks'
 
 function CookCardContent() {
+	const t = useTranslations('cooking')
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const sessionId = searchParams.get('session')
@@ -20,10 +22,10 @@ function CookCardContent() {
 		return (
 			<PageContainer>
 				<div className='flex flex-col items-center gap-4 py-16 text-center'>
-					<p className='text-text-secondary'>No cooking session specified.</p>
+					<p className='text-text-secondary'>{t('noSessionSpecified')}</p>
 					<Button variant='outline' onClick={() => router.back()}>
 						<ArrowLeft className='mr-2 size-4' />
-						Go Back
+						{t('goBack')}
 					</Button>
 				</div>
 			</PageContainer>
@@ -36,18 +38,19 @@ function CookCardContent() {
 				{/* Header with PageHeader */}
 				<div className='mb-6 flex items-center gap-3'>
 					<motion.button
+						type='button'
 						onClick={() => router.back()}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						aria-label='Go back'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 					<div className='flex-1'>
 						<PageHeader
 							icon={Award}
-							title='Your Cook Card'
-							subtitle='A keepsake from your cooking session'
+						title={t('cookCardTitle')}
+						subtitle={t('cookCardSubtitle')}
 							gradient='warm'
 							subtitleIcon={Sparkles}
 							marginBottom='sm'

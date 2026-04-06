@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import {
@@ -61,6 +62,7 @@ const PENDING_POST_LINK_KEY = 'pendingPostLink'
 
 function CreatePostContent() {
 	const router = useRouter()
+	const t = useTranslations('post')
 	const searchParams = useSearchParams()
 	const sessionId = searchParams.get('session')
 
@@ -131,9 +133,9 @@ function CreatePostContent() {
 		} catch (error) {
 			logDevError('Failed to load pending photos:', error)
 			sessionStorage.removeItem('pendingPostPhotos')
-			toast.info('Photos could not be restored. Please re-upload them.')
+			toast.info(t('toastPhotosNotRestored'))
 		}
-	}, [])
+	}, [t])
 
 	// Load session info if sessionId is provided
 	useEffect(() => {
@@ -150,8 +152,8 @@ function CreatePostContent() {
 					// Guard: Check if session was already linked to a post
 					// posted status means XP was already awarded, no point showing it again
 					if (s.status === 'posted') {
-						toast.error('This session was already linked to a post', {
-							description: 'The XP has already been awarded.',
+						toast.error(t('toastSessionAlreadyLinked'), {
+							description: t('xpAlreadyAwarded'),
 						})
 						setIsLoadingSession(false)
 						return // Don't set session - user can still make a regular post
@@ -160,7 +162,7 @@ function CreatePostContent() {
 					// Guard: Check if session is not in completed status
 					// Only completed sessions should be linked to posts
 					if (s.status !== 'completed') {
-						toast.error('Session cannot be linked', {
+						toast.error(t('toastSessionCannotLink'), {
 							description:
 								'Only completed cooking sessions can earn XP from posts.',
 						})
@@ -178,12 +180,12 @@ function CreatePostContent() {
 						postDeadline: s.postDeadline ?? '',
 					})
 				} else {
-					toast.error('Session not found')
+					toast.error(t('toastSessionNotFound'))
 				}
 			} catch (error) {
 				if (cancelled) return
 				logDevError('Failed to load session:', error)
-				toast.error('Failed to load session data')
+				toast.error(t('toastSessionLoadFailed'))
 			} finally {
 				if (!cancelled) setIsLoadingSession(false)
 			}
@@ -193,7 +195,7 @@ function CreatePostContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [sessionId])
+	}, [sessionId, t])
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || [])
@@ -220,7 +222,7 @@ function CreatePostContent() {
 		if (isSubmitting) return
 
 		if (!content.trim() && photoFiles.length === 0) {
-			toast.error('Add some content or photos to share!')
+			toast.error(t('toastAddContent'))
 			return
 		}
 
@@ -232,10 +234,10 @@ function CreatePostContent() {
 			if (guardResult.success && guardResult.data) {
 				if (guardResult.data.action === 'block') {
 					toast.error(
-						'Your post contains content that violates community guidelines.',
+						t('contentGuardBlocked'),
 						{
 							description:
-								guardResult.data.reasons?.[0] || 'Please revise and try again.',
+								guardResult.data.reasons?.[0] || t('contentGuardRevise'),
 						},
 					)
 					setIsSubmitting(false)
@@ -307,7 +309,7 @@ function CreatePostContent() {
 
 						// Post succeeded but XP claim still needs recovery
 						logDevError('Failed to claim XP:', linkResponse?.message)
-						toast.warning('Post shared. Cooking XP is still being claimed.', {
+								toast.warning(t('toastPostXpClaiming'), {
 							description:
 								linkResponse?.message ||
 								'We will retry the XP award on the dashboard.',
@@ -329,18 +331,18 @@ function CreatePostContent() {
 							: undefined,
 					})
 				} else {
-					toast.success('Post shared! 🎉')
+					toast.success(t('toastPostShared'))
 				}
 
 				router.push('/dashboard')
 			} else {
-				toast.error(response.message || 'Failed to create post')
+				toast.error(response.message || t('toastPostFailed'))
 				setIsSubmitting(false)
 				return
 			}
 		} catch (error) {
 			logDevError('Post creation error:', error)
-			toast.error('Failed to create post — check your connection and try again.')
+			toast.error(t('toastPostFailed'))
 			setIsSubmitting(false)
 		}
 		// NOTE: Do NOT reset isSubmitting on success — router.push() is async.
@@ -372,10 +374,11 @@ function CreatePostContent() {
 					{/* Header with PageHeader */}
 					<div className='mb-6 flex items-center gap-3'>
 						<motion.button
+							type='button'
 							onClick={() => router.back()}
 							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-							aria-label='Go back'
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoBack')}
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
@@ -473,9 +476,9 @@ function CreatePostContent() {
 							<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
 								<Star className='size-5 text-warning' />
 								<div>
-									<h4 className='text-sm font-bold text-text'>Rate this Recipe</h4>
+									<h4 className='text-sm font-bold text-text'>{t('rateRecipe')}</h4>
 									<p className='text-xs text-text-muted'>
-										How was {session.recipeTitle}? Your review helps other cooks.
+										{t('rateRecipeSubtext', { recipeName: session.recipeTitle })}
 									</p>
 								</div>
 							</div>
@@ -583,6 +586,7 @@ function CreatePostContent() {
 													className='object-cover'
 												/>
 												<motion.button
+													type='button'
 													onClick={() => removePhoto(index)}
 													className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 													whileHover={ICON_BUTTON_HOVER}
