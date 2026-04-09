@@ -66,32 +66,38 @@ interface PendingPostsSectionProps {
 // HELPERS
 // =============================================================================
 
-const getTimeLeft = (expiresAt: Date): string => {
+const getTimeLeft = (
+	expiresAt: Date,
+	t: (key: string, params?: Record<string, number>) => string,
+): string => {
 	const now = new Date()
 	const diff = expiresAt.getTime() - now.getTime()
 
-	if (diff <= 0) return 'Expired'
+	if (diff <= 0) return t('pdExpired')
 
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	const days = Math.floor(hours / 24)
 
-	if (days > 0) return `${days}d left`
-	if (hours > 0) return `${hours}h left`
+	if (days > 0) return t('pdDaysLeft', { count: days })
+	if (hours > 0) return t('pdHoursLeft', { count: hours })
 
 	const minutes = Math.floor(diff / (1000 * 60))
-	return `${minutes}m left`
+	return t('pdMinutesLeft', { count: minutes })
 }
 
-const getTimeSinceCook = (cookedAt: Date): string => {
+const getTimeSinceCook = (
+	cookedAt: Date,
+	t: (key: string, params?: Record<string, number>) => string,
+): string => {
 	const now = new Date()
 	const diff = now.getTime() - cookedAt.getTime()
 
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	const days = Math.floor(hours / 24)
 
-	if (days > 0) return `Cooked ${days} day${days > 1 ? 's' : ''} ago`
-	if (hours > 0) return `Cooked ${hours} hour${hours > 1 ? 's' : ''} ago`
-	return 'Cooked just now'
+	if (days > 0) return t('pdCookedDaysAgo', { count: days })
+	if (hours > 0) return t('pdCookedHoursAgo', { count: hours })
+	return t('pdCookedJustNow')
 }
 
 const formatDuration = (minutes: number): string => {
@@ -133,7 +139,9 @@ const SinglePendingPost = ({
 			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-brand/5 to-transparent'>
 				<div className='flex items-center gap-2'>
 					<span className='text-lg'>📸</span>
-					<h3 className='text-base font-bold text-text'>{t('pdPostToUnlock')}</h3>
+					<h3 className='text-base font-bold text-text'>
+						{t('pdPostToUnlock')}
+					</h3>
 				</div>
 				{onDismiss && (
 					<motion.button
@@ -165,7 +173,7 @@ const SinglePendingPost = ({
 						{session.recipeName}
 					</span>
 					<span className='block text-sm text-text-secondary mb-2'>
-						{getTimeSinceCook(session.cookedAt)}
+						{getTimeSinceCook(session.cookedAt, t)}
 					</span>
 					<div className='flex items-center gap-3'>
 						<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg tabular-nums'>
@@ -173,7 +181,7 @@ const SinglePendingPost = ({
 						</span>
 						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='h-3.5 w-3.5' />
-							{getTimeLeft(session.expiresAt)}
+							{getTimeLeft(session.expiresAt, t)}
 						</span>
 					</div>
 				</div>
@@ -241,10 +249,10 @@ const MultiplePendingPosts = ({
 						📸
 					</motion.span>
 					<h3 className='text-base font-bold text-text'>
-						{sessions.length} recipes waiting
+						{t('pdRecipesWaiting', { count: sessions.length })}
 					</h3>
 					<span className='text-sm font-semibold text-success bg-success/10 px-2 py-1 rounded-full tabular-nums'>
-						+{totalXP} XP available
+						{t('pdXpAvailable', { xp: totalXP })}
 					</span>
 				</div>
 				<motion.button
@@ -292,7 +300,7 @@ const MultiplePendingPosts = ({
 										: 'text-text-secondary',
 								)}
 							>
-								{getTimeLeft(session.expiresAt)}
+								{getTimeLeft(session.expiresAt, t)}
 							</span>
 						</div>
 						<span className='text-sm font-bold text-success tabular-nums'>
@@ -507,9 +515,14 @@ export const PendingExpandedModal = ({
 						>
 							{/* Header */}
 							<div className='flex items-center gap-3 px-6 py-5 border-b border-border'>
-								<h2 className='text-xl font-bold text-text'>{t('pdPendingPosts')}</h2>
+								<h2 className='text-xl font-bold text-text'>
+									{t('pdPendingPosts')}
+								</h2>
 								<span className='text-sm text-text-secondary'>
-									{t('pdRecipesXpAvailable', { count: pendingSessions.length, xp: totalXP })}
+									{t('pdRecipesXpAvailable', {
+										count: pendingSessions.length,
+										xp: totalXP,
+									})}
 								</span>
 								<motion.button
 									type='button'
@@ -562,8 +575,10 @@ export const PendingExpandedModal = ({
 												)}
 											>
 												{session.status === 'urgent'
-													? `Expires in ${getTimeLeft(session.expiresAt)}`
-													: getTimeLeft(session.expiresAt)}
+													? t('pdExpiresIn', {
+															time: getTimeLeft(session.expiresAt, t),
+														})
+													: getTimeLeft(session.expiresAt, t)}
 											</div>
 										)}
 
@@ -581,7 +596,7 @@ export const PendingExpandedModal = ({
 													{session.recipeName}
 												</span>
 												<span className='block text-sm text-text-secondary'>
-													{getTimeSinceCook(session.cookedAt)}
+													{getTimeSinceCook(session.cookedAt, t)}
 												</span>
 												{/* Decay indicator - only shown when actual time-based decay */}
 												{session.currentXP < session.baseXP &&
@@ -596,12 +611,13 @@ export const PendingExpandedModal = ({
 																/>
 															</div>
 															<span className='text-xs text-error font-semibold tabular-nums'>
-																{Math.round(
-																	((session.baseXP - session.currentXP) /
-																		session.baseXP) *
-																		100,
-																)}
-																% time decay
+																{t('pdTimeDecay', {
+																	percent: Math.round(
+																		((session.baseXP - session.currentXP) /
+																			session.baseXP) *
+																			100,
+																	),
+																})}
 															</span>
 														</div>
 													)}
@@ -621,8 +637,8 @@ export const PendingExpandedModal = ({
 												{session.currentXP < session.baseXP &&
 													session.currentXP > 0 && (
 														<span className='text-xs text-text-secondary line-through'>
-														{t('pdWasXp', { xp: session.baseXP })}
-													</span>
+															{t('pdWasXp', { xp: session.baseXP })}
+														</span>
 													)}
 											</div>
 											<motion.button
@@ -638,7 +654,9 @@ export const PendingExpandedModal = ({
 												whileTap={BUTTON_SUBTLE_TAP}
 												transition={TRANSITION_SPRING}
 											>
-										{session.status === 'urgent' ? t('pdPostNowUrgent') : t('pdPost')}
+												{session.status === 'urgent'
+													? t('pdPostNowUrgent')
+													: t('pdPost')}
 											</motion.button>
 										</div>
 									</motion.div>

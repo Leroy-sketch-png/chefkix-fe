@@ -14,12 +14,17 @@ import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { GroupsExploreGrid } from '@/components/groups'
-import { getFriends, getFollowers, getSuggestedFollows } from '@/services/social'
+import {
+	getFriends,
+	getFollowers,
+	getSuggestedFollows,
+} from '@/services/social'
 import {
 	getLeaderboard,
 	type LeaderboardEntry as LeaderboardServiceEntry,
 } from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
+import { cn } from '@/lib/utils'
 import {
 	Users,
 	UserPlus,
@@ -46,7 +51,7 @@ import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 
 export default function CommunityPage() {
-	const { user } = useAuth()
+	const { user, isAuthenticated } = useAuth()
 	const t = useTranslations('community')
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
@@ -81,32 +86,14 @@ export default function CommunityPage() {
 
 		const fetchData = async () => {
 			try {
-				// Note: getAllProfiles removed - UserDiscoveryClient fetches its own data with pagination
-				// Using 'global' leaderboard to show all users, not just friends
-				const [friendsRes, followersRes, leaderboardRes, suggestedRes] = await Promise.all([
-					getFriends(),
-					getFollowers(),
-					getLeaderboard({ type: 'global', timeframe: 'weekly' }),
-					getSuggestedFollows(12),
-				])
+				// Leaderboard is public — always fetch
+				const leaderboardRes = await getLeaderboard({
+					type: 'global',
+					timeframe: 'weekly',
+				})
 
 				if (cancelled) return
 
-				if (friendsRes.success && friendsRes.data) {
-					setFriends(friendsRes.data)
-				}
-
-				if (followersRes.success && followersRes.data) {
-					// Filter to show only followers who we don't follow back (not yet mutual)
-					// In Instagram model: followers who aren't in friends list = follow back suggestions
-					const friendIds = new Set((friendsRes.data || []).map(f => f.userId))
-					const followBackSuggestions = followersRes.data.filter(
-						f => !friendIds.has(f.userId),
-					)
-					setFollowers(followBackSuggestions)
-				}
-
-				// Use real leaderboard data
 				if (leaderboardRes.success && leaderboardRes.data?.entries) {
 					const entries: LeaderboardEntry[] = leaderboardRes.data.entries.map(
 						entry => ({
@@ -117,12 +104,37 @@ export default function CommunityPage() {
 					setLeaderboardEntries(entries)
 				}
 
-				if (suggestedRes.success && suggestedRes.data) {
-					setSuggestedFollows(suggestedRes.data)
-				}
+				// Auth-only data: friends, followers, suggested follows
+				if (isAuthenticated) {
+					const [friendsRes, followersRes, suggestedRes] = await Promise.all([
+						getFriends(),
+						getFollowers(),
+						getSuggestedFollows(12),
+					])
 
-				if (!friendsRes.success && !followersRes.success) {
-					setError(true)
+					if (cancelled) return
+
+					if (friendsRes.success && friendsRes.data) {
+						setFriends(friendsRes.data)
+					}
+
+					if (followersRes.success && followersRes.data) {
+						const friendIds = new Set(
+							(friendsRes.data || []).map(f => f.userId),
+						)
+						const followBackSuggestions = followersRes.data.filter(
+							f => !friendIds.has(f.userId),
+						)
+						setFollowers(followBackSuggestions)
+					}
+
+					if (suggestedRes.success && suggestedRes.data) {
+						setSuggestedFollows(suggestedRes.data)
+					}
+
+					if (!friendsRes.success && !followersRes.success) {
+						setError(true)
+					}
 				}
 			} catch {
 				if (!cancelled) {
@@ -138,7 +150,7 @@ export default function CommunityPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user?.userId, retryKey, t])
+	}, [user?.userId, isAuthenticated, retryKey, t])
 
 	const handleFollowBack = (userId: string) => {
 		// User followed back, move them from followers to friends
@@ -223,29 +235,38 @@ export default function CommunityPage() {
 					icon={Users}
 					title={t('title')}
 					subtitle={t('subtitle')}
-					gradient="pink"
-					marginBottom="md"
+					gradient='pink'
+					marginBottom='md'
 				/>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-					<TabsList className='mb-6 grid w-full grid-cols-4 lg:w-auto'>
+					<TabsList
+						className={cn(
+							'mb-6 grid w-full lg:w-auto',
+							isAuthenticated ? 'grid-cols-4' : 'grid-cols-2',
+						)}
+					>
 						<TabsTrigger value='discover' className='gap-2'>
 							<Search className='size-4' />
 							<span className='hidden sm:inline'>{t('discover')}</span>
 						</TabsTrigger>
-						<TabsTrigger value='friends' className='gap-2'>
-							<Users className='size-4' />
-							<span className='hidden sm:inline'>{t('friends')}</span>
-							{friends.length > 0 && (
-								<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium tabular-nums text-brand'>
-									{friends.length}
-								</span>
-							)}
-						</TabsTrigger>
-						<TabsTrigger value='groups' className='gap-2'>
-							<UsersRound className='size-4' />
-							<span className='hidden sm:inline'>{t('groups')}</span>
-						</TabsTrigger>
+						{isAuthenticated && (
+							<TabsTrigger value='friends' className='gap-2'>
+								<Users className='size-4' />
+								<span className='hidden sm:inline'>{t('friends')}</span>
+								{friends.length > 0 && (
+									<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium tabular-nums text-brand'>
+										{friends.length}
+									</span>
+								)}
+							</TabsTrigger>
+						)}
+						{isAuthenticated && (
+							<TabsTrigger value='groups' className='gap-2'>
+								<UsersRound className='size-4' />
+								<span className='hidden sm:inline'>{t('groups')}</span>
+							</TabsTrigger>
+						)}
 						<TabsTrigger value='leaderboard' className='gap-2'>
 							<Trophy className='size-4' />
 							<span className='hidden sm:inline'>{t('leaderboard')}</span>
@@ -306,7 +327,7 @@ export default function CommunityPage() {
 								<div className='mb-4 flex items-center gap-2'>
 									<Sparkles className='size-5 text-brand' />
 									<h2 className='text-xl font-semibold'>
-										Suggested For You
+										{t('suggestedForYou')}
 									</h2>
 								</div>
 								<StaggerContainer staggerDelay={0.05}>
@@ -375,9 +396,11 @@ export default function CommunityPage() {
 							closestCompetitor={closestCompetitor}
 							onUserClick={handleLeaderboardUserClick}
 							onInviteFriends={() => setActiveTab('discover')}
-							onCookToDefend={() => startNavigationTransition(() => {
-								router.push('/explore')
-							})}
+							onCookToDefend={() =>
+								startNavigationTransition(() => {
+									router.push('/explore')
+								})
+							}
 						/>
 					</TabsContent>
 				</Tabs>

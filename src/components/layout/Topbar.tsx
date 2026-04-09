@@ -21,7 +21,15 @@ import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
-import { TRANSITION_SPRING, BELL_SHAKE, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BELL_SHAKE,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -40,7 +48,8 @@ export const Topbar = () => {
 	const [showUserMenu, setShowUserMenu] = useState(false)
 
 	useEscapeKey(showUserMenu, () => setShowUserMenu(false))
-	const { unreadCount: unreadNotifications, fetchUnreadCount } = useNotificationStore()
+	const { unreadCount: unreadNotifications, fetchUnreadCount } =
+		useNotificationStore()
 	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
 	const avatarButtonRef = useRef<HTMLButtonElement>(null)
 	const [unreadMessages, setUnreadMessages] = useState(0)
@@ -64,7 +73,11 @@ export const Topbar = () => {
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const searchFormRef = useRef<HTMLFormElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
-	const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
+	const [dropdownPosition, setDropdownPosition] = useState({
+		top: 0,
+		left: 0,
+		width: 0,
+	})
 
 	useEscapeKey(showSuggestions, () => setShowSuggestions(false))
 
@@ -145,7 +158,13 @@ export const Topbar = () => {
 	type SuggestionItem =
 		| { type: 'recent'; value: string }
 		| { type: 'recipe'; id: string; title: string; imageUrl: string }
-		| { type: 'person'; id: string; username: string; displayName: string; avatarUrl: string }
+		| {
+				type: 'person'
+				id: string
+				username: string
+				displayName: string
+				avatarUrl: string
+		  }
 		| { type: 'seeAll' }
 
 	const flatItems: SuggestionItem[] = (() => {
@@ -187,7 +206,7 @@ export const Topbar = () => {
 				case 'person':
 					setSearchQuery('')
 					addRecentSearch(item.displayName)
-					router.push(`/profile/${item.id}`)
+					router.push(`/${item.id}`)
 					break
 				case 'seeAll':
 					addRecentSearch(searchQuery.trim())
@@ -267,7 +286,7 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='relative flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
+			className='relative flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 overflow-hidden border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
 			role='banner'
 		>
 			{/* Animated Logo */}
@@ -330,7 +349,10 @@ export const Topbar = () => {
 						updateDropdownPosition()
 						const q = searchQuery.trim()
 						if (q.length >= 2) {
-							if (suggestions.recipes.length > 0 || suggestions.people.length > 0)
+							if (
+								suggestions.recipes.length > 0 ||
+								suggestions.people.length > 0
+							)
 								setShowSuggestions(true)
 						} else {
 							// Show recent searches
@@ -363,115 +385,123 @@ export const Topbar = () => {
 							)}
 
 							{/* Recent searches — when query is short */}
-							{searchQuery.trim().length < 2 && recentSearches.length > 0 && !isSearching && (
-								<div>
-									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-										{t('tbRecent')}
+							{searchQuery.trim().length < 2 &&
+								recentSearches.length > 0 &&
+								!isSearching && (
+									<div>
+										<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+											{t('tbRecent')}
+										</div>
+										{recentSearches.slice(0, 5).map((term, idx) => {
+											const itemIdx = idx
+											return (
+												<button
+													key={term}
+													type='button'
+													role='option'
+													aria-selected={highlightIndex === itemIdx}
+													onClick={() =>
+														selectItem({ type: 'recent', value: term })
+													}
+													className={cn(
+														'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors',
+														highlightIndex === itemIdx
+															? 'bg-bg-elevated text-text'
+															: 'text-text-secondary hover:bg-bg-elevated',
+													)}
+												>
+													<Clock className='size-4 shrink-0 text-text-muted' />
+													<span className='truncate'>{term}</span>
+												</button>
+											)
+										})}
 									</div>
-									{recentSearches.slice(0, 5).map((term, idx) => {
-										const itemIdx = idx
-										return (
-											<button
-												key={term}
-												type='button'
-												role='option'
-												aria-selected={highlightIndex === itemIdx}
-												onClick={() => selectItem({ type: 'recent', value: term })}
-												className={cn(
-													'flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors',
-													highlightIndex === itemIdx
-														? 'bg-bg-elevated text-text'
-														: 'text-text-secondary hover:bg-bg-elevated',
-												)}
-											>
-												<Clock className='size-4 shrink-0 text-text-muted' />
-												<span className='truncate'>{term}</span>
-											</button>
-										)
-									})}
-								</div>
-							)}
+								)}
 
 							{/* Recipe results */}
-							{searchQuery.trim().length >= 2 && !isSearching && suggestions.recipes.length > 0 && (
-								<div>
-									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-										{t('tbRecipes')}
+							{searchQuery.trim().length >= 2 &&
+								!isSearching &&
+								suggestions.recipes.length > 0 && (
+									<div>
+										<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+											{t('tbRecipes')}
+										</div>
+										{suggestions.recipes.map((r, idx) => {
+											const itemIdx = idx
+											return (
+												<button
+													key={r.id}
+													type='button'
+													role='option'
+													aria-selected={highlightIndex === itemIdx}
+													onClick={() => selectItem({ type: 'recipe', ...r })}
+													className={cn(
+														'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
+														highlightIndex === itemIdx
+															? 'bg-bg-elevated'
+															: 'hover:bg-bg-elevated',
+													)}
+												>
+													<Image
+														src={r.imageUrl}
+														alt={r.title}
+														width={36}
+														height={36}
+														className='size-9 flex-shrink-0 rounded-lg object-cover'
+													/>
+													<span className='truncate text-sm font-medium text-text'>
+														{r.title}
+													</span>
+												</button>
+											)
+										})}
 									</div>
-									{suggestions.recipes.map((r, idx) => {
-										const itemIdx = idx
-										return (
-											<button
-												key={r.id}
-												type='button'
-												role='option'
-												aria-selected={highlightIndex === itemIdx}
-												onClick={() => selectItem({ type: 'recipe', ...r })}
-												className={cn(
-													'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
-													highlightIndex === itemIdx
-														? 'bg-bg-elevated'
-														: 'hover:bg-bg-elevated',
-												)}
-											>
-												<Image
-													src={r.imageUrl}
-													alt={r.title}
-													width={36}
-													height={36}
-													className='size-9 flex-shrink-0 rounded-lg object-cover'
-												/>
-												<span className='truncate text-sm font-medium text-text'>
-													{r.title}
-												</span>
-											</button>
-										)
-									})}
-								</div>
-							)}
+								)}
 
 							{/* People results */}
-							{searchQuery.trim().length >= 2 && !isSearching && suggestions.people.length > 0 && (
-								<div>
-									<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
-										{t('tbPeople')}
+							{searchQuery.trim().length >= 2 &&
+								!isSearching &&
+								suggestions.people.length > 0 && (
+									<div>
+										<div className='px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-text-muted'>
+											{t('tbPeople')}
+										</div>
+										{suggestions.people.map((p, idx) => {
+											const itemIdx = suggestions.recipes.length + idx
+											return (
+												<button
+													key={p.id}
+													type='button'
+													role='option'
+													aria-selected={highlightIndex === itemIdx}
+													onClick={() => selectItem({ type: 'person', ...p })}
+													className={cn(
+														'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
+														highlightIndex === itemIdx
+															? 'bg-bg-elevated'
+															: 'hover:bg-bg-elevated',
+													)}
+												>
+													<Image
+														src={p.avatarUrl}
+														alt={p.username}
+														width={36}
+														height={36}
+														className='size-9 flex-shrink-0 rounded-full object-cover'
+													/>
+													<div className='min-w-0'>
+														<span className='block truncate text-sm font-medium text-text'>
+															{p.displayName}
+														</span>
+														<span className='block truncate text-xs text-text-muted'>
+															@{p.username}
+														</span>
+													</div>
+												</button>
+											)
+										})}
 									</div>
-									{suggestions.people.map((p, idx) => {
-										const itemIdx = suggestions.recipes.length + idx
-										return (
-											<button
-												key={p.id}
-												type='button'
-												role='option'
-												aria-selected={highlightIndex === itemIdx}
-												onClick={() => selectItem({ type: 'person', ...p })}
-												className={cn(
-													'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
-													highlightIndex === itemIdx
-														? 'bg-bg-elevated'
-														: 'hover:bg-bg-elevated',
-												)}
-											>
-												<Image
-													src={p.avatarUrl}
-													alt={p.username}
-													width={36}
-													height={36}
-													className='size-9 flex-shrink-0 rounded-full object-cover'
-												/>
-												<div className='min-w-0'>
-													<span className='block truncate text-sm font-medium text-text'>
-														{p.displayName}
-													</span>
-													<span className='block truncate text-xs text-text-muted'>
-														@{p.username}
-													</span>
-												</div>
-											</button>
-										)
-									})}
-								</div>
-							)}
+								)}
 
 							{/* Empty state */}
 							{searchQuery.trim().length >= 2 &&
@@ -479,8 +509,8 @@ export const Topbar = () => {
 								suggestions.recipes.length === 0 &&
 								suggestions.people.length === 0 && (
 									<div className='px-4 py-4 text-center text-sm text-text-muted'>
-									{t('tbNoResults', { query: searchQuery.trim() })}
-								</div>
+										{t('tbNoResults', { query: searchQuery.trim() })}
+									</div>
 								)}
 
 							{/* See all results */}
@@ -562,37 +592,37 @@ export const Topbar = () => {
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						aria-haspopup='true'
-					aria-expanded={showUserMenu}
-					className='group relative cursor-pointer focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-expanded={showUserMenu}
+						className='group relative cursor-pointer focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{/* XP Progress Ring - hidden on mobile for compactness */}
 						<svg
-							className='absolute -inset-1 hidden md:block'
-							width='56'
-							height='56'
-							viewBox='0 0 56 56'
+							className='absolute -inset-0.5 hidden md:block'
+							width='46'
+							height='46'
+							viewBox='0 0 46 46'
 						>
 							<circle
-								cx='28'
-								cy='28'
-								r='26'
+								cx='23'
+								cy='23'
+								r='21'
 								fill='none'
 								stroke='currentColor'
-								strokeWidth='3'
+								strokeWidth='2.5'
 								className='text-border-subtle'
 							/>
 							<motion.circle
-								cx='28'
-								cy='28'
-								r='26'
+								cx='23'
+								cy='23'
+								r='21'
 								fill='none'
 								stroke='url(#xpGradient)'
-								strokeWidth='3'
+								strokeWidth='2.5'
 								strokeLinecap='round'
-								strokeDasharray={`${2 * Math.PI * 26}`}
-								initial={{ strokeDashoffset: 2 * Math.PI * 26 }}
+								strokeDasharray={`${2 * Math.PI * 21}`}
+								initial={{ strokeDashoffset: 2 * Math.PI * 21 }}
 								animate={{
-									strokeDashoffset: 2 * Math.PI * 26 * (1 - xpProgress / 100),
+									strokeDashoffset: 2 * Math.PI * 21 * (1 - xpProgress / 100),
 								}}
 								transition={{ duration: 1.5, ease: 'easeOut' }}
 								style={{
@@ -613,8 +643,8 @@ export const Topbar = () => {
 								</linearGradient>
 							</defs>
 						</svg>
-						{/* Smaller avatar on mobile, larger on desktop */}
-						<Avatar size='lg' className='hidden shadow-lg md:flex'>
+						{/* Avatar - sm size on all breakpoints to fit inside h-18 nav */}
+						<Avatar size='sm' className='hidden shadow-lg md:flex'>
 							<AvatarImage
 								src={user.avatarUrl || '/placeholder-avatar.svg'}
 								alt={user.displayName || 'User'}
@@ -700,67 +730,67 @@ export const Topbar = () => {
 
 			{/* Communication Icons - authenticated users only */}
 			{user && (
-			<div className='flex gap-2 md:gap-3'>
-				<motion.button
-					type='button'
-					onClick={toggleNotificationsPopup}
-					whileHover={ICON_BUTTON_HOVER}
-					whileTap={ICON_BUTTON_TAP}
-					transition={TRANSITION_SPRING}
-					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
-					aria-label={
-						unreadNotifications > 0
-							? t('tbNotificationsUnread', { count: unreadNotifications })
-							: t('tbNotifications')
-					}
-				>
-					<motion.div
-						key={unreadNotifications}
-						animate={unreadNotifications > 0 ? BELL_SHAKE.animate : undefined}
+				<div className='flex gap-2 md:gap-3'>
+					<motion.button
+						type='button'
+						onClick={toggleNotificationsPopup}
+						whileHover={ICON_BUTTON_HOVER}
+						whileTap={ICON_BUTTON_TAP}
+						transition={TRANSITION_SPRING}
+						className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={
+							unreadNotifications > 0
+								? t('tbNotificationsUnread', { count: unreadNotifications })
+								: t('tbNotifications')
+						}
 					>
-						<Bell className='size-5' />
-					</motion.div>
-					{unreadNotifications > 0 && (
-						<motion.span
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={TRANSITION_SPRING}
-							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
-							aria-live='polite'
-							aria-atomic='true'
+						<motion.div
+							key={unreadNotifications}
+							animate={unreadNotifications > 0 ? BELL_SHAKE.animate : undefined}
 						>
-							{unreadNotifications > 99 ? '99+' : unreadNotifications}
-						</motion.span>
-					)}
-				</motion.button>
-				<motion.button
-					type='button'
-					onClick={toggleMessagesDrawer}
-					whileHover={ICON_BUTTON_HOVER}
-					whileTap={ICON_BUTTON_TAP}
-					transition={TRANSITION_SPRING}
-					className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50'
-					aria-label={
-						unreadMessages > 0
-							? t('tbMessagesUnread', { count: unreadMessages })
-							: t('tbMessages')
-					}
-				>
-					<MessageCircle className='size-5' />
-					{unreadMessages > 0 && (
-						<motion.span
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={TRANSITION_SPRING}
-							className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
-							aria-live='polite'
-							aria-atomic='true'
-						>
-							{unreadMessages > 99 ? '99+' : unreadMessages}
-						</motion.span>
-					)}
-				</motion.button>
-			</div>
+							<Bell className='size-5' />
+						</motion.div>
+						{unreadNotifications > 0 && (
+							<motion.span
+								initial={{ scale: 0 }}
+								animate={{ scale: 1 }}
+								transition={TRANSITION_SPRING}
+								className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+								aria-live='polite'
+								aria-atomic='true'
+							>
+								{unreadNotifications > 99 ? '99+' : unreadNotifications}
+							</motion.span>
+						)}
+					</motion.button>
+					<motion.button
+						type='button'
+						onClick={toggleMessagesDrawer}
+						whileHover={ICON_BUTTON_HOVER}
+						whileTap={ICON_BUTTON_TAP}
+						transition={TRANSITION_SPRING}
+						className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={
+							unreadMessages > 0
+								? t('tbMessagesUnread', { count: unreadMessages })
+								: t('tbMessages')
+						}
+					>
+						<MessageCircle className='size-5' />
+						{unreadMessages > 0 && (
+							<motion.span
+								initial={{ scale: 0 }}
+								animate={{ scale: 1 }}
+								transition={TRANSITION_SPRING}
+								className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+								aria-live='polite'
+								aria-atomic='true'
+							>
+								{unreadMessages > 99 ? '99+' : unreadMessages}
+							</motion.span>
+						)}
+					</motion.button>
+				</div>
 			)}
 		</header>
 	)

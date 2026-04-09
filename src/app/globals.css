@@ -224,7 +224,11 @@
 	);
 
 	/* Image scrim overlay (card images, recipe covers) */
-	--gradient-scrim: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+	--gradient-scrim: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.6) 0%,
+		transparent 100%
+	);
 
 	/* Hero text gradient (brand → streak → XP) */
 	--gradient-hero-text: linear-gradient(to right, #ff5a36, #f97316, #a855f7);
@@ -371,8 +375,7 @@
 		0 24px 64px rgba(44, 36, 32, 0.18), 0 12px 24px rgba(44, 36, 32, 0.1);
 	--shadow-modal:
 		0 25px 50px rgba(44, 36, 32, 0.2), 0 12px 24px rgba(44, 36, 32, 0.1); /* Modal/dialog elevation */
-	--shadow-badge:
-		0 2px 8px rgba(44, 36, 32, 0.15); /* Floating badges, chips */
+	--shadow-badge: 0 2px 8px rgba(44, 36, 32, 0.15); /* Floating badges, chips */
 
 	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -562,7 +565,8 @@
 		0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
 	--shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
 	--shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
-	--shadow-modal: 0 25px 50px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
+	--shadow-modal:
+		0 25px 50px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
 	--shadow-badge: 0 2px 8px rgba(0, 0, 0, 0.5);
 
 	/* ============ DARK MODE GRADIENTS - RICH ============ */
@@ -782,6 +786,66 @@
 	--container-5xl: 64rem; /* 1024px */
 	--container-6xl: 72rem; /* 1152px */
 	--container-7xl: 80rem; /* 1280px */
+
+	/* Modal max-widths - For max-w-modal-* utilities */
+	--container-modal-sm: var(--modal-sm); /* 380px */
+	--container-modal-md: var(--modal-md); /* 420px */
+	--container-modal-lg: var(--modal-lg); /* 480px */
+	--container-modal-xl: var(--modal-xl); /* 600px */
+	--container-modal-2xl: var(--modal-2xl); /* 768px */
+
+	/* Form container */
+	--container-form: 56.25rem; /* 900px */
+
+	/* Bubble max-widths */
+	--container-bubble-sm: var(--bubble-sm); /* 200px */
+	--container-bubble-md: var(--bubble-md); /* 280px */
+	--container-bubble-lg: var(--bubble-lg); /* 400px */
+
+	/* Step dots max-widths */
+	--container-step-dots: var(--step-dots-max-w); /* 280px */
+	--container-step-dots-lg: var(--step-dots-max-w-lg); /* 400px */
+
+	/* Thumbnail max-widths */
+	--container-thumbnail-sm: var(--thumbnail-sm); /* 60px */
+	--container-thumbnail-md: var(--thumbnail-md); /* 80px */
+	--container-thumbnail-lg: var(--thumbnail-lg); /* 80px */
+	--container-thumbnail-xl: var(--thumbnail-xl); /* 100px */
+	--container-thumbnail-2xl: var(--thumbnail-2xl); /* 120px */
+
+	/* ============ SPACING-BASED SIZE TOKENS ============ */
+	/* These generate size-*, w-*, h-* utilities via Tailwind v4 --spacing-* namespace */
+
+	/* Avatar sizes */
+	--spacing-avatar-xs: var(--avatar-xs); /* 32px */
+	--spacing-avatar-sm: var(--avatar-sm); /* 42px */
+	--spacing-avatar-md: var(--avatar-md); /* 72px */
+	--spacing-avatar-lg: var(--avatar-lg); /* 100px */
+	--spacing-avatar-xl: var(--avatar-xl); /* 120px */
+
+	/* Icon sizes */
+	--spacing-icon-2xs: var(--icon-2xs); /* 14px */
+	--spacing-icon-xs: var(--icon-xs); /* 14px */
+	--spacing-icon-sm: var(--icon-sm); /* 18px */
+	--spacing-icon-md: var(--icon-md); /* 22px */
+	--spacing-icon-lg: var(--icon-lg); /* 28px */
+	--spacing-icon-xl: var(--icon-xl); /* 32px */
+	--spacing-icon-2xl: var(--icon-2xl); /* 40px */
+	--spacing-icon-emoji: var(--icon-emoji); /* 28px */
+	--spacing-icon-emoji-lg: var(--icon-emoji-lg); /* 32px */
+	--spacing-icon-emoji-xl: var(--icon-emoji-xl); /* 64px */
+
+	/* Thumbnail sizes */
+	--spacing-thumbnail-sm: var(--thumbnail-sm); /* 60px */
+	--spacing-thumbnail-md: var(--thumbnail-md); /* 80px */
+	--spacing-thumbnail-lg: var(--thumbnail-lg); /* 80px */
+	--spacing-thumbnail-xl: var(--thumbnail-xl); /* 100px */
+	--spacing-thumbnail-2xl: var(--thumbnail-2xl); /* 120px */
+
+	/* Layout sizes */
+	--spacing-nav: var(--nav-w); /* sidebar width */
+	--spacing-right: var(--right-w); /* right sidebar width */
+	--spacing-drawer: var(--drawer-w); /* drawer width */
 }
 
 /* Note: Gradient utilities are defined via @utility directives at the end of this file */
@@ -1185,9 +1249,50 @@ select {
 }
 
 @utility bg-gradient-scrim {
-	background-image: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+	background-image: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.65) 0%,
+		rgba(0, 0, 0, 0.15) 60%,
+		rgba(0, 0, 0, 0.05) 100%
+	);
 }
 
 @utility bg-gradient-hero-text {
 	background-image: linear-gradient(to right, #ff5a36, #f97316, #a855f7);
+}
+
+/* ============ Z-INDEX UTILITIES ============ */
+/* Tailwind v4 has no --z-* namespace, so we define custom @utility directives */
+@utility z-dropdown {
+	z-index: var(--z-dropdown);
+}
+@utility z-sticky {
+	z-index: var(--z-sticky);
+}
+@utility z-modal {
+	z-index: var(--z-modal);
+}
+@utility z-notification {
+	z-index: var(--z-notification);
+}
+@utility z-toast {
+	z-index: var(--z-notification); /* Same level as notification */
+}
+@utility z-tooltip {
+	z-index: var(--z-tooltip);
+}
+
+/* ============ HEIGHT / MAX-HEIGHT UTILITIES ============ */
+/* Custom height utilities not covered by --spacing-* namespace */
+@utility h-panel-md {
+	height: var(--h-panel-md);
+}
+@utility h-panel-xl {
+	height: var(--h-panel-xl);
+}
+@utility h-card-image {
+	height: var(--card-image-height);
+}
+@utility max-h-panel-lg {
+	max-height: var(--h-panel-lg);
 }

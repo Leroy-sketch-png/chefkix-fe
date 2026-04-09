@@ -133,7 +133,9 @@ export const SessionHeader = ({
 	const isPaused = session.status === 'paused'
 	const isIdleWarning = session.idleWarningShown
 	const hasActiveTimers = activeTimers.some(tmr => tmr.isRunning)
-	const urgentTimer = activeTimers.find(tmr => tmr.isRunning && tmr.remaining < 30)
+	const urgentTimer = activeTimers.find(
+		tmr => tmr.isRunning && tmr.remaining < 30,
+	)
 
 	// Determine visual state
 	const getState = (): SessionState => {
@@ -164,8 +166,7 @@ export const SessionHeader = ({
 					'absolute inset-0 transition-colors duration-300',
 					state === 'IN_PROGRESS' && 'bg-gradient-brand',
 					state === 'PAUSED' && 'bg-gradient-streak',
-					state === 'IDLE_WARNING' &&
-						'bg-gradient-to-r from-error to-streak',
+					state === 'IDLE_WARNING' && 'bg-gradient-to-r from-error to-streak',
 				)}
 			/>
 
@@ -190,10 +191,15 @@ export const SessionHeader = ({
 							</h2>
 							<div className='flex items-center gap-2 text-sm text-white/80'>
 								<span>
-								{t('stepOf', { current: session.currentStep, total: session.recipe.totalSteps })}
-							</span>
-							<span>•</span>
-							<span>{t('estTime', { minutes: session.recipe.estimatedTime })}</span>
+									{t('stepOf', {
+										current: session.currentStep,
+										total: session.recipe.totalSteps,
+									})}
+								</span>
+								<span>•</span>
+								<span>
+									{t('estTime', { minutes: session.recipe.estimatedTime })}
+								</span>
 							</div>
 						</div>
 					</div>
@@ -229,10 +235,10 @@ export const SessionHeader = ({
 							)}
 							title={
 								hasActiveTimers && !isPaused
-									? 'Cannot pause while timers are running'
+									? t('tooltipCannotPauseTimers')
 									: isPaused
-										? 'Resume cooking'
-										: 'Pause session'
+										? t('tooltipResumeCooking')
+										: t('tooltipPauseSession')
 							}
 						>
 							{isPaused ? (
@@ -275,12 +281,12 @@ export const SessionHeader = ({
 								{state === 'PAUSED' ? (
 									<>
 										<Pause className='size-4' />
-									<span>{t('sessionPaused')}</span>
+										<span>{t('sessionPaused')}</span>
 									</>
 								) : (
 									<>
 										<AlertTriangle className='size-4' />
-									<span>{t('stillThere')}</span>
+										<span>{t('stillThere')}</span>
 									</>
 								)}
 							</div>
@@ -322,7 +328,9 @@ export const SessionHeader = ({
 								))}
 							{activeTimers.filter(tmr => tmr.isRunning).length > 2 && (
 								<span className='text-sm text-white/70'>
-									{t('moreTimers', { count: activeTimers.filter(tmr => tmr.isRunning).length - 2 })}
+									{t('moreTimers', {
+										count: activeTimers.filter(tmr => tmr.isRunning).length - 2,
+									})}
 								</span>
 							)}
 						</div>
@@ -337,7 +345,7 @@ export const SessionHeader = ({
 							<span className='font-bold text-white'>
 								+{session.baseXP + session.bonusXP}
 							</span>{' '}
-						{t('xpOnCompletion')}
+							{t('xpOnCompletion')}
 						</span>
 					</div>
 					{session.challengeId && (
@@ -409,7 +417,10 @@ export const SessionHeaderCompact = ({
 			<div className='min-w-0 flex-1'>
 				<p className='truncate font-semibold'>{session.recipe.title}</p>
 				<p className='text-sm text-white/80'>
-					{t('stepOf', { current: session.currentStep, total: session.recipe.totalSteps })}
+					{t('stepOf', {
+						current: session.currentStep,
+						total: session.recipe.totalSteps,
+					})}
 				</p>
 			</div>
 

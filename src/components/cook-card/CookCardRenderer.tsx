@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
 	Download,
@@ -86,7 +86,22 @@ function formatCookTime(minutes: number): string {
 	return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 }
 
-async function renderCardToCanvas(data: CookCardData): Promise<Blob | null> {
+interface CanvasLabels {
+	iCookedThis: string
+	byLine: string
+	xpEarned: string
+	cookTime: string
+	stepsLabel: string
+	difficultyLabel: string
+	ratingLabel: string
+	tagline: string
+	brandName: string
+}
+
+async function renderCardToCanvas(
+	data: CookCardData,
+	labels: CanvasLabels,
+): Promise<Blob | null> {
 	const canvas = document.createElement('canvas')
 	canvas.width = CARD_WIDTH
 	canvas.height = CARD_HEIGHT
@@ -114,7 +129,7 @@ async function renderCardToCanvas(data: CookCardData): Promise<Blob | null> {
 	ctx.fillStyle = '#FFFFFF'
 	ctx.font = 'bold 42px system-ui, -apple-system, sans-serif'
 	ctx.textAlign = 'center'
-	ctx.fillText('I COOKED THIS!', CARD_WIDTH / 2, 160)
+	ctx.fillText(labels.iCookedThis, CARD_WIDTH / 2, 160)
 
 	// --- Recipe image ---
 	const imageUrl = data.coverImageUrl?.[0]
@@ -180,7 +195,7 @@ async function renderCardToCanvas(data: CookCardData): Promise<Blob | null> {
 	const nameY = titleY + titleLines.length * 58 + 30
 	ctx.fillStyle = BRAND_TEXT_SECONDARY
 	ctx.font = '32px system-ui, -apple-system, sans-serif'
-	ctx.fillText(`by ${data.displayName || 'Chef'}`, CARD_WIDTH / 2, nameY)
+	ctx.fillText(labels.byLine, CARD_WIDTH / 2, nameY)
 
 	// --- Stats grid ---
 	const statsY = nameY + 80
@@ -188,35 +203,35 @@ async function renderCardToCanvas(data: CookCardData): Promise<Blob | null> {
 
 	if (data.xpEarned > 0) {
 		stats.push({
-			label: 'XP Earned',
+			label: labels.xpEarned,
 			value: `+${data.xpEarned}`,
 			emoji: '\u26A1',
 		})
 	}
 	if (data.cookingTimeMinutes != null && data.cookingTimeMinutes > 0) {
 		stats.push({
-			label: 'Cook Time',
+			label: labels.cookTime,
 			value: formatCookTime(data.cookingTimeMinutes),
 			emoji: '\u23F1\uFE0F',
 		})
 	}
 	if (data.totalSteps) {
 		stats.push({
-			label: 'Steps',
+			label: labels.stepsLabel,
 			value: `${data.stepsCompleted}/${data.totalSteps}`,
 			emoji: '\u2705',
 		})
 	}
 	if (data.difficulty) {
 		stats.push({
-			label: 'Difficulty',
+			label: labels.difficultyLabel,
 			value: data.difficulty,
 			emoji: '\uD83D\uDD25',
 		})
 	}
 	if (data.rating != null && data.rating > 0) {
 		stats.push({
-			label: 'Rating',
+			label: labels.ratingLabel,
 			value: '\u2605'.repeat(data.rating),
 			emoji: '',
 		})
@@ -263,11 +278,11 @@ async function renderCardToCanvas(data: CookCardData): Promise<Blob | null> {
 	ctx.fillStyle = BRAND_CORAL
 	ctx.font = 'bold 36px system-ui, -apple-system, sans-serif'
 	ctx.textAlign = 'center'
-	ctx.fillText('ChefKix', CARD_WIDTH / 2, brandY)
+	ctx.fillText(labels.brandName, CARD_WIDTH / 2, brandY)
 
 	ctx.fillStyle = BRAND_TEXT_SECONDARY
 	ctx.font = '24px system-ui, -apple-system, sans-serif'
-	ctx.fillText('Cook. Share. Level Up.', CARD_WIDTH / 2, brandY + 40)
+	ctx.fillText(labels.tagline, CARD_WIDTH / 2, brandY + 40)
 
 	// --- Date ---
 	if (data.completedAt) {
@@ -313,17 +328,32 @@ export default function CookCardRenderer({
 		} finally {
 			setIsLoading(false)
 		}
-	}, [sessionId])
+	}, [sessionId, t])
 
 	useEffect(() => {
 		fetchData()
 	}, [fetchData])
 
+	const canvasLabels: CanvasLabels = useMemo(
+		() => ({
+			iCookedThis: t('iCookedThis'),
+			byLine: t('byChef', { name: data?.displayName || t('defaultChefName') }),
+			xpEarned: t('xpEarned'),
+			cookTime: t('cookTime'),
+			stepsLabel: t('stepsLabel'),
+			difficultyLabel: t('difficultyLabel'),
+			ratingLabel: t('ratingLabel'),
+			tagline: t('tagline'),
+			brandName: t('brandName'),
+		}),
+		[t, data?.displayName],
+	)
+
 	const handleDownload = async () => {
 		if (!data) return
 		setIsGenerating(true)
 		try {
-			const blob = await renderCardToCanvas(data)
+			const blob = await renderCardToCanvas(data, canvasLabels)
 			if (!blob) {
 				toast.error(t('toastGenerateFailed'))
 				return
@@ -349,7 +379,7 @@ export default function CookCardRenderer({
 		if (!data) return
 		setIsGenerating(true)
 		try {
-			const blob = await renderCardToCanvas(data)
+			const blob = await renderCardToCanvas(data, canvasLabels)
 
 			// Try sharing with image first
 			if (blob && navigator.share) {
@@ -359,7 +389,10 @@ export default function CookCardRenderer({
 				try {
 					await navigator.share({
 						title: t('shareTitle', { recipe: data.recipeTitle }),
-						text: t('shareText', { recipe: data.recipeTitle, xp: data.xpEarned }),
+						text: t('shareText', {
+							recipe: data.recipeTitle,
+							xp: data.xpEarned,
+						}),
 						files: [file],
 					})
 					return
@@ -402,7 +435,7 @@ export default function CookCardRenderer({
 			<div className='flex flex-col items-center gap-3 py-8 text-center'>
 				<AlertTriangle className='size-6 text-text-muted' />
 				<p className='text-sm text-text-secondary'>
-					{error || 'No data available'}
+					{error || t('noDataAvailable')}
 				</p>
 				<Button
 					variant='outline'
@@ -412,7 +445,7 @@ export default function CookCardRenderer({
 						fetchData()
 					}}
 				>
-					Try Again
+					{t('tryAgain')}
 				</Button>
 			</div>
 		)
@@ -442,7 +475,7 @@ export default function CookCardRenderer({
 						}}
 					/>
 					<p className='pt-8 text-center text-lg font-bold text-white'>
-						I COOKED THIS!
+						{t('iCookedThis')}
 					</p>
 				</div>
 
@@ -467,9 +500,11 @@ export default function CookCardRenderer({
 
 				{/* Content */}
 				<div className='px-5 pb-5 pt-3 text-center'>
-					<h3 className='text-lg font-serif font-bold text-text'>{data.recipeTitle}</h3>
+					<h3 className='text-lg font-serif font-bold text-text'>
+						{data.recipeTitle}
+					</h3>
 					<p className='mt-1 text-sm text-text-secondary'>
-						by {data.displayName || 'Chef'}
+						{t('byChef', { name: data.displayName || t('defaultChefName') })}
 					</p>
 
 					{/* Stats */}
@@ -515,7 +550,9 @@ export default function CookCardRenderer({
 										{data.difficulty}
 									</span>
 								</div>
-								<p className='text-xs text-text-muted'>{t('difficultyLabel')}</p>
+								<p className='text-xs text-text-muted'>
+									{t('difficultyLabel')}
+								</p>
 							</div>
 						)}
 					</div>
@@ -569,7 +606,7 @@ export default function CookCardRenderer({
 					) : (
 						<Download className='mr-2 size-4' />
 					)}
-					Download
+					{t('download')}
 				</Button>
 				<Button
 					onClick={handleShare}
@@ -581,7 +618,7 @@ export default function CookCardRenderer({
 					) : (
 						<Share2 className='mr-2 size-4' />
 					)}
-					Share
+					{t('share')}
 				</Button>
 			</div>
 		</motion.div>

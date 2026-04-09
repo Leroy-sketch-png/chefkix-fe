@@ -210,42 +210,42 @@ const SKILL_LEVELS: { value: SkillLevel; labelKey: string; emoji: string }[] = [
 	{ value: 'expert', labelKey: 'skillExpert', emoji: '⭐' },
 ]
 
-const DIETARY_OPTIONS = [
-	'vegetarian',
-	'vegan',
-	'gluten-free',
-	'dairy-free',
-	'keto',
-	'paleo',
-	'halal',
-	'kosher',
+const DIETARY_KEYS = [
+	{ value: 'vegetarian', labelKey: 'dietVegetarian' },
+	{ value: 'vegan', labelKey: 'dietVegan' },
+	{ value: 'gluten-free', labelKey: 'dietGlutenFree' },
+	{ value: 'dairy-free', labelKey: 'dietDairyFree' },
+	{ value: 'keto', labelKey: 'dietKeto' },
+	{ value: 'paleo', labelKey: 'dietPaleo' },
+	{ value: 'halal', labelKey: 'dietHalal' },
+	{ value: 'kosher', labelKey: 'dietKosher' },
 ]
 
-const ALLERGY_OPTIONS = [
-	'nuts',
-	'peanuts',
-	'dairy',
-	'eggs',
-	'shellfish',
-	'fish',
-	'soy',
-	'wheat',
-	'sesame',
+const ALLERGY_KEYS = [
+	{ value: 'nuts', labelKey: 'allergyNuts' },
+	{ value: 'peanuts', labelKey: 'allergyPeanuts' },
+	{ value: 'dairy', labelKey: 'allergyDairy' },
+	{ value: 'eggs', labelKey: 'allergyEggs' },
+	{ value: 'shellfish', labelKey: 'allergyShellfish' },
+	{ value: 'fish', labelKey: 'allergyFish' },
+	{ value: 'soy', labelKey: 'allergySoy' },
+	{ value: 'wheat', labelKey: 'allergyWheat' },
+	{ value: 'sesame', labelKey: 'allergySesame' },
 ]
 
-const CUISINE_OPTIONS = [
-	'Italian',
-	'Japanese',
-	'Mexican',
-	'Chinese',
-	'Indian',
-	'Thai',
-	'Vietnamese',
-	'French',
-	'Korean',
-	'Mediterranean',
-	'American',
-	'Middle Eastern',
+const CUISINE_KEYS = [
+	{ value: 'Italian', labelKey: 'cuisineItalian' },
+	{ value: 'Japanese', labelKey: 'cuisineJapanese' },
+	{ value: 'Mexican', labelKey: 'cuisineMexican' },
+	{ value: 'Chinese', labelKey: 'cuisineChinese' },
+	{ value: 'Indian', labelKey: 'cuisineIndian' },
+	{ value: 'Thai', labelKey: 'cuisineThai' },
+	{ value: 'Vietnamese', labelKey: 'cuisineVietnamese' },
+	{ value: 'French', labelKey: 'cuisineFrench' },
+	{ value: 'Korean', labelKey: 'cuisineKorean' },
+	{ value: 'Mediterranean', labelKey: 'cuisineMediterranean' },
+	{ value: 'American', labelKey: 'cuisineAmerican' },
+	{ value: 'Middle Eastern', labelKey: 'cuisineMiddleEastern' },
 ]
 
 // ============================================
@@ -347,21 +347,21 @@ const ChipSelect = ({
 	onToggle,
 	className,
 }: {
-	options: string[]
+	options: { value: string; label: string }[]
 	selected: string[]
 	onToggle: (option: string) => void
 	className?: string
 }) => (
 	<div className={cn('flex flex-wrap gap-2', className)}>
 		{options.map(option => {
-			const isSelected = selected.includes(option)
+			const isSelected = selected.includes(option.value)
 			return (
 				<motion.button
 					type='button'
-					key={option}
+					key={option.value}
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
-					onClick={() => onToggle(option)}
+					onClick={() => onToggle(option.value)}
 					className={cn(
 						'rounded-full px-3 py-1.5 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 						isSelected
@@ -370,7 +370,7 @@ const ChipSelect = ({
 					)}
 				>
 					{isSelected && <Check className='mr-1 inline size-3' />}
-					{option}
+					{option.label}
 				</motion.button>
 			)
 		})}
@@ -432,6 +432,19 @@ export default function SettingsPage() {
 	const router = useRouter()
 	const { setMotionPreference } = useReducedMotionPreference()
 	const t = useTranslations('settings')
+
+	const dietaryOptions = DIETARY_KEYS.map(d => ({
+		value: d.value,
+		label: t(d.labelKey),
+	}))
+	const allergyOptions = ALLERGY_KEYS.map(a => ({
+		value: a.value,
+		label: t(a.labelKey),
+	}))
+	const cuisineOptions = CUISINE_KEYS.map(c => ({
+		value: c.value,
+		label: t(c.labelKey),
+	}))
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
@@ -752,9 +765,7 @@ export default function SettingsPage() {
 					toast.success(t('toastNotificationsUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(
-						response.message || t('toastNotificationsFailed'),
-					)
+					toast.error(response.message || t('toastNotificationsFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update notification settings:', error)
@@ -778,9 +789,7 @@ export default function SettingsPage() {
 					toast.success(t('toastCookingPrefsUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(
-						response.message || t('toastCookingPrefsFailed'),
-					)
+					toast.error(response.message || t('toastCookingPrefsFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update cooking preferences:', error)
@@ -925,7 +934,7 @@ export default function SettingsPage() {
 					icon={Settings}
 					title={t('title')}
 					subtitle={t('subtitle')}
-					gradient="gray"
+					gradient='gray'
 					iconAnimation={{ rotate: 45 }}
 				/>
 
@@ -935,7 +944,7 @@ export default function SettingsPage() {
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={TRANSITION_SPRING}
-						className='flex flex-col gap-1 rounded-radius border border-border-subtle bg-bg-card p-2 shadow-card h-fit lg:sticky lg:top-24'
+						className='flex gap-1 overflow-x-auto pb-2 lg:pb-0 lg:flex-col rounded-radius border border-border-subtle bg-bg-card p-2 shadow-card h-fit lg:sticky lg:top-24 scrollbar-hide'
 					>
 						{TABS.map(tab => {
 							const Icon = tab.icon
@@ -948,7 +957,7 @@ export default function SettingsPage() {
 									whileTap={LIST_ITEM_TAP}
 									onClick={() => setActiveTab(tab.id)}
 									className={cn(
-										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand/50 whitespace-nowrap flex-shrink-0',
 										isActive
 											? 'bg-brand/10 text-brand font-semibold'
 											: 'text-text-secondary hover:bg-bg-hover hover:text-text',
@@ -956,37 +965,34 @@ export default function SettingsPage() {
 								>
 									<Icon
 										className={cn(
-											'size-5',
+											'size-5 flex-shrink-0',
 											isActive ? 'text-brand' : 'text-text-secondary',
 										)}
 									/>
-									<div className='hidden lg:block'>
-										<p className='text-sm'>{t(tab.labelKey)}</p>
-									</div>
+									<p className='text-sm'>{t(tab.labelKey)}</p>
 								</motion.button>
 							)
 						})}
 
 						{/* Divider + Sign Out */}
-						<div className='my-1 h-px bg-border-subtle' />
+						<div className='hidden lg:block my-1 h-px bg-border-subtle' />
+						<div className='lg:hidden my-1 w-px bg-border-subtle' />
 						<motion.button
 							type='button'
 							whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
 							whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
 							onClick={handleLogout}
 							disabled={isLoggingOut}
-							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all w-full disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all flex-shrink-0 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isLoggingOut ? (
 								<Loader2 className='size-5 flex-shrink-0 animate-spin' />
 							) : (
 								<LogOut className='size-5 flex-shrink-0' />
 							)}
-							<div className='hidden lg:block'>
-								<p className='text-sm font-medium'>
-									{isLoggingOut ? t('signingOut') : t('signOut')}
-								</p>
-							</div>
+							<p className='text-sm font-medium whitespace-nowrap'>
+								{isLoggingOut ? t('signingOut') : t('signOut')}
+							</p>
 						</motion.button>
 					</motion.nav>
 
@@ -1015,7 +1021,9 @@ export default function SettingsPage() {
 										<div className='space-y-4'>
 											{/* Cover Photo Upload */}
 											<div className='grid gap-2'>
-												<Label id='settings-cover-label'>{t('coverPhoto')}</Label>
+												<Label id='settings-cover-label'>
+													{t('coverPhoto')}
+												</Label>
 												<div
 													className='relative'
 													aria-labelledby='settings-cover-label'
@@ -1071,7 +1079,9 @@ export default function SettingsPage() {
 
 											{/* Avatar Upload */}
 											<div className='grid gap-2'>
-												<Label id='settings-avatar-label'>{t('profilePhoto')}</Label>
+												<Label id='settings-avatar-label'>
+													{t('profilePhoto')}
+												</Label>
 												<div
 													className='flex items-center gap-4'
 													aria-labelledby='settings-avatar-label'
@@ -1163,7 +1173,16 @@ export default function SettingsPage() {
 													placeholder={t('bioPlaceholder')}
 													maxLength={160}
 												/>
-												<p className={cn('tabular-nums text-xs text-right', bio.length >= 160 ? 'font-semibold text-error' : bio.length > 128 ? 'text-warning' : 'text-text-muted')}>
+												<p
+													className={cn(
+														'tabular-nums text-xs text-right',
+														bio.length >= 160
+															? 'font-semibold text-error'
+															: bio.length > 128
+																? 'text-warning'
+																: 'text-text-muted',
+													)}
+												>
 													{bio.length}/160
 												</p>
 											</div>
@@ -1196,12 +1215,14 @@ export default function SettingsPage() {
 												onClick={() => setShowPasswordForm(true)}
 											>
 												<Shield className='mr-2 size-4' />
-												{t("changePassword")}
+												{t('changePassword')}
 											</Button>
 										) : (
 											<div className='space-y-4'>
 												<div className='space-y-2'>
-													<Label htmlFor='oldPassword'>{t('currentPassword')}</Label>
+													<Label htmlFor='oldPassword'>
+														{t('currentPassword')}
+													</Label>
 													<Input
 														id='oldPassword'
 														type='password'
@@ -1212,7 +1233,9 @@ export default function SettingsPage() {
 													/>
 												</div>
 												<div className='space-y-2'>
-													<Label htmlFor='newPassword'>{t('newPasswordLabel')}</Label>
+													<Label htmlFor='newPassword'>
+														{t('newPasswordLabel')}
+													</Label>
 													<Input
 														id='newPassword'
 														type='password'
@@ -1223,7 +1246,9 @@ export default function SettingsPage() {
 													/>
 												</div>
 												<div className='space-y-2'>
-													<Label htmlFor='confirmPassword'>{t('confirmPasswordLabel')}</Label>
+													<Label htmlFor='confirmPassword'>
+														{t('confirmPasswordLabel')}
+													</Label>
 													<Input
 														id='confirmPassword'
 														type='password'
@@ -1233,9 +1258,13 @@ export default function SettingsPage() {
 														autoComplete='new-password'
 													/>
 												</div>
-												{newPassword && confirmPassword && newPassword !== confirmPassword && (
-													<p className='text-xs text-destructive'>{t("passwordsDoNotMatch")}</p>
-												)}
+												{newPassword &&
+													confirmPassword &&
+													newPassword !== confirmPassword && (
+														<p className='text-xs text-destructive'>
+															{t('passwordsDoNotMatch')}
+														</p>
+													)}
 												<div className='flex gap-2'>
 													<Button
 														disabled={
@@ -1248,7 +1277,10 @@ export default function SettingsPage() {
 														onClick={async () => {
 															setIsChangingPassword(true)
 															try {
-																const res = await changePassword({ oldPassword, newPassword })
+																const res = await changePassword({
+																	oldPassword,
+																	newPassword,
+																})
 																if (res.success) {
 																	toast.success(t('toastPasswordChanged'))
 																	setOldPassword('')
@@ -1256,7 +1288,9 @@ export default function SettingsPage() {
 																	setConfirmPassword('')
 																	setShowPasswordForm(false)
 																} else {
-																	toast.error(res.message || t('toastPasswordFailed'))
+																	toast.error(
+																		res.message || t('toastPasswordFailed'),
+																	)
 																}
 															} catch {
 																toast.error(t('toastPasswordFailed'))
@@ -1270,7 +1304,9 @@ export default function SettingsPage() {
 														) : (
 															<Save className='mr-2 size-4' />
 														)}
-														{isChangingPassword ? t('changingPassword') : t('updatePassword')}
+														{isChangingPassword
+															? t('changingPassword')
+															: t('updatePassword')}
 													</Button>
 													<Button
 														variant='outline'
@@ -1314,9 +1350,7 @@ export default function SettingsPage() {
 													) : (
 														<Download className='mr-2 size-4' />
 													)}
-													{isExportingData
-														? t('exporting')
-														: t('exportData')}
+													{isExportingData ? t('exporting') : t('exportData')}
 												</Button>
 											</div>
 										</div>
@@ -1330,7 +1364,7 @@ export default function SettingsPage() {
 									>
 										<div className='space-y-4'>
 											<p className='text-sm text-text-secondary'>
-												{t("deleteWarning")}
+												{t('deleteWarning')}
 												profile, statistics, and social connections. Your posts
 												will show as &quot;Deleted User&quot;. This action
 												cannot be undone.
@@ -1339,25 +1373,19 @@ export default function SettingsPage() {
 												<Button
 													variant='outline'
 													className='border-error/50 text-error hover:bg-error/10'
-													onClick={() =>
-														setShowDeleteConfirm(true)
-													}
+													onClick={() => setShowDeleteConfirm(true)}
 												>
 													<Trash2 className='mr-2 size-4' />
-													{t("deleteAccount")}
+													{t('deleteAccount')}
 												</Button>
 											) : (
 												<div className='space-y-3 rounded-radius border border-error/30 bg-error/5 p-4'>
 													<p className='text-sm font-medium text-error'>
-														{t("deleteConfirmInstruction")}
+														{t('deleteConfirmInstruction')}
 													</p>
 													<Input
 														value={deleteConfirmText}
-														onChange={e =>
-															setDeleteConfirmText(
-																e.target.value,
-															)
-														}
+														onChange={e => setDeleteConfirmText(e.target.value)}
 														placeholder={t('deleteConfirmPlaceholder')}
 														className='max-w-xs'
 													/>
@@ -1366,9 +1394,7 @@ export default function SettingsPage() {
 															variant='outline'
 															size='sm'
 															onClick={() => {
-																setShowDeleteConfirm(
-																	false,
-																)
+																setShowDeleteConfirm(false)
 																setDeleteConfirmText('')
 															}}
 														>
@@ -1376,13 +1402,8 @@ export default function SettingsPage() {
 														</Button>
 														<Button
 															size='sm'
-															disabled={
-																deleteConfirmText !==
-																'DELETE'
-															}
-															onClick={
-																handleDeleteAccount
-															}
+															disabled={deleteConfirmText !== 'DELETE'}
+															onClick={handleDeleteAccount}
 															className='bg-error text-white hover:bg-error/90 disabled:opacity-50'
 														>
 															<Trash2 className='mr-2 size-4' />
@@ -1420,7 +1441,10 @@ export default function SettingsPage() {
 													{t('whoCanSeeProfile')}
 												</Label>
 												<ButtonGroup
-													options={VISIBILITY_OPTIONS.map(o => ({ ...o, label: t(o.labelKey) }))}
+													options={VISIBILITY_OPTIONS.map(o => ({
+														...o,
+														label: t(o.labelKey),
+													}))}
 													value={settings.privacy.profileVisibility}
 													onChange={v =>
 														handleUpdatePrivacy({ profileVisibility: v })
@@ -1438,7 +1462,10 @@ export default function SettingsPage() {
 													{t('whoCanMessage')}
 												</Label>
 												<ButtonGroup
-													options={MESSAGE_OPTIONS.map(o => ({ ...o, label: t(o.labelKey) }))}
+													options={MESSAGE_OPTIONS.map(o => ({
+														...o,
+														label: t(o.labelKey),
+													}))}
 													value={settings.privacy.allowMessagesFrom}
 													onChange={v =>
 														handleUpdatePrivacy({ allowMessagesFrom: v })
@@ -1494,9 +1521,7 @@ export default function SettingsPage() {
 												onCheckedChange={checked => {
 													setTrackingOptOut(!checked)
 													// Force re-render
-													setSettings(prev =>
-														prev ? { ...prev } : prev,
-													)
+													setSettings(prev => (prev ? { ...prev } : prev))
 												}}
 											/>
 										</div>
@@ -1693,20 +1718,18 @@ export default function SettingsPage() {
 														const permission =
 															await requestNotificationPermission()
 														if (permission !== 'granted') {
-															toast.error(
-																t('pushPermissionDenied'),
-															)
+															toast.error(t('pushPermissionDenied'))
 															return
 														}
 														// Register FCM token with backend for real push delivery
 														const fcmToken = await getFCMToken()
 														if (fcmToken) {
-														await registerPushToken(fcmToken)
+															await registerPushToken(fcmToken)
 														}
-														} else {
+													} else {
 														// Unregister FCM token when disabling push
 														await unregisterPushToken()
-														}
+													}
 													handleUpdateNotifications({
 														push: {
 															...settings.notifications.push,
@@ -1748,7 +1771,10 @@ export default function SettingsPage() {
 										description={t('skillLevelDesc')}
 									>
 										<ButtonGroup
-											options={SKILL_LEVELS.map(o => ({ ...o, label: t(o.labelKey) }))}
+											options={SKILL_LEVELS.map(o => ({
+												...o,
+												label: t(o.labelKey),
+											}))}
 											value={settings.cooking.skillLevel}
 											onChange={v => handleUpdateCooking({ skillLevel: v })}
 										/>
@@ -1759,7 +1785,7 @@ export default function SettingsPage() {
 										description={t('dietaryRestrictionsDesc')}
 									>
 										<ChipSelect
-											options={DIETARY_OPTIONS}
+											options={dietaryOptions}
 											selected={settings.cooking.dietaryRestrictions}
 											onToggle={opt =>
 												handleUpdateCooking({
@@ -1777,7 +1803,7 @@ export default function SettingsPage() {
 										description={t('allergiesDesc')}
 									>
 										<ChipSelect
-											options={ALLERGY_OPTIONS}
+											options={allergyOptions}
 											selected={settings.cooking.allergies}
 											onToggle={opt =>
 												handleUpdateCooking({
@@ -1792,8 +1818,9 @@ export default function SettingsPage() {
 											<div className='mt-3 flex items-center gap-2 rounded-lg bg-warning/10 p-3 text-warning'>
 												<AlertTriangle className='size-4' />
 												<span className='text-sm'>
-													You will see warnings on recipes containing:{' '}
-													{settings.cooking.allergies.join(', ')}
+													{t('allergyWarning', {
+														allergies: settings.cooking.allergies.join(', '),
+													})}
 												</span>
 											</div>
 										)}
@@ -1804,7 +1831,7 @@ export default function SettingsPage() {
 										description={t('preferredCuisinesDesc')}
 									>
 										<ChipSelect
-											options={CUISINE_OPTIONS}
+											options={cuisineOptions}
 											selected={settings.cooking.preferredCuisines}
 											onToggle={opt =>
 												handleUpdateCooking({
@@ -1824,7 +1851,7 @@ export default function SettingsPage() {
 											</p>
 											{user?.preferences && user.preferences.length > 0 ? (
 												<div className='flex flex-wrap gap-2'>
-													{user.preferences.map((pref) => (
+													{user.preferences.map(pref => (
 														<span
 															key={pref}
 															className='rounded-full bg-brand/10 px-3 py-1 text-sm font-medium text-brand'
@@ -1846,8 +1873,8 @@ export default function SettingsPage() {
 												className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												<Sparkles className='size-4' />
-												{user?.preferences && user.preferences.length > 0 
-													? t('editCuisinePreferences') 
+												{user?.preferences && user.preferences.length > 0
+													? t('editCuisinePreferences')
 													: t('setCuisinePreferences')}
 											</motion.button>
 										</div>
@@ -1995,7 +2022,9 @@ export default function SettingsPage() {
 													{verificationStatus.status === 'REJECTED' &&
 														verificationStatus.adminNotes && (
 															<p className='text-sm text-text-secondary'>
-																<span className='font-medium'>{t('feedbackLabel')}</span>{' '}
+																<span className='font-medium'>
+																	{t('feedbackLabel')}
+																</span>{' '}
 																{verificationStatus.adminNotes}
 															</p>
 														)}
@@ -2025,7 +2054,16 @@ export default function SettingsPage() {
 															className='min-h-20 resize-none'
 															maxLength={500}
 														/>
-														<p className={cn('mt-1 tabular-nums text-right text-xs', verificationReason.length >= 500 ? 'font-semibold text-error' : verificationReason.length > 400 ? 'text-warning' : 'text-text-muted')}>
+														<p
+															className={cn(
+																'mt-1 tabular-nums text-right text-xs',
+																verificationReason.length >= 500
+																	? 'font-semibold text-error'
+																	: verificationReason.length > 400
+																		? 'text-warning'
+																		: 'text-text-muted',
+															)}
+														>
 															{verificationReason.length}/500
 														</p>
 													</div>
@@ -2076,10 +2114,7 @@ export default function SettingsPage() {
 									animate='visible'
 									className='space-y-6'
 								>
-									<SettingsCard
-										title={t('theme')}
-										description={t('themeDesc')}
-									>
+									<SettingsCard title={t('theme')} description={t('themeDesc')}>
 										<div className='flex gap-3'>
 											{(
 												[
@@ -2112,9 +2147,7 @@ export default function SettingsPage() {
 													)}
 												>
 													<ThemeIcon className='size-5' />
-													<span className='text-xs font-medium'>
-														{label}
-													</span>
+													<span className='text-xs font-medium'>{label}</span>
 												</button>
 											))}
 										</div>
@@ -2129,7 +2162,7 @@ export default function SettingsPage() {
 												checked={settings.app.soundEffects}
 												onCheckedChange={checked => {
 													setAudioEnabled(checked)
-																															handleUpdateApp({ soundEffects: checked })
+													handleUpdateApp({ soundEffects: checked })
 												}}
 											/>
 											{/* Test Timer Sound Button */}
@@ -2150,9 +2183,7 @@ export default function SettingsPage() {
 													size='sm'
 													onClick={() => {
 														if (!settings?.app.soundEffects) {
-															toast.info(
-																t('soundDisabledHint'),
-															)
+															toast.info(t('soundDisabledHint'))
 															return
 														}
 														playTimerChime()

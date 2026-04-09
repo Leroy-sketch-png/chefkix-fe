@@ -108,9 +108,7 @@ export const KeyboardShortcuts = () => {
 			<DialogContent className='max-w-2xl'>
 				<DialogHeader>
 					<DialogTitle>{t('ksTitle')}</DialogTitle>
-					<DialogDescription>
-						Navigate faster with these keyboard shortcuts
-					</DialogDescription>
+					<DialogDescription>{t('ksDescription')}</DialogDescription>
 				</DialogHeader>
 				<div className='grid gap-4'>
 					{shortcuts.map((shortcut, index) => (
@@ -136,7 +134,9 @@ export const KeyboardShortcuts = () => {
 				</div>
 				<div className='mt-4 text-center text-xs text-text-secondary'>
 					{t.rich('ksToggleHint', {
-						key: (chunks) => <kbd className='rounded bg-bg-subtle px-2 py-1'>{chunks}</kbd>,
+						key: chunks => (
+							<kbd className='rounded bg-bg-subtle px-2 py-1'>{chunks}</kbd>
+						),
 					})}
 				</div>
 			</DialogContent>

@@ -1,16 +1,27 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { SignUpForm } from '@/components/auth/SignUpForm'
 import { useTranslations } from '@/i18n/hooks'
 import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
-import { ChefHat, Sparkles, Zap, Trophy, Users } from 'lucide-react'
+import { ChefHat, Sparkles, Zap, Trophy, Users, ArrowLeft } from 'lucide-react'
 import { LazyLottie } from '@/components/shared/LazyLottie'
 const SignUpPage = () => {
 	const t = useTranslations('auth')
+	const searchParams = useSearchParams()
+	const returnTo = searchParams.get('returnTo')
 	return (
 		<div className='relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-bg px-4 py-8'>
+			{/* Back to browsing escape hatch — guests must never be trapped */}
+			<Link
+				href={returnTo && returnTo.startsWith('/') ? returnTo : '/explore'}
+				className='absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-radius px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+			>
+				<ArrowLeft className='size-4' />
+				{t('backToBrowsing')}
+			</Link>
 			{/* Warm gradient background */}
 			<div className='absolute inset-0 bg-gradient-to-br from-xp/5 via-bg to-brand/5' />
 

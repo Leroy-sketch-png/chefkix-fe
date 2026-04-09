@@ -26,7 +26,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/useAuth'
 import { getCookingPreferences } from '@/services/settings'
 import { getTasteProfile } from '@/services/post'
-import { TRANSITION_SPRING, CARD_HOVER, CARD_FEATURED_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	CARD_FEATURED_HOVER,
+	BUTTON_SUBTLE_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import type { CookingPreferences } from '@/lib/types/settings'
 import type { Profile, Statistics } from '@/lib/types/profile'
 import type { TasteProfileResponse } from '@/lib/types/social'
@@ -63,14 +69,18 @@ function computeTasteDimensions(
 	// Speed Cook: scale 120min → 0 score, 0min → 100 score (clamped to [0,100])
 	// maxCookingTimeMinutes is typically 15-120. We treat 120+ as "not speed-focused".
 	const rawMaxTime = prefs?.maxCookingTimeMinutes
-	const speedCookValue = hasPrefs && rawMaxTime
-		? Math.max(0, Math.min(100, Math.round((1 - rawMaxTime / 120) * 100)))
-		: 50
+	const speedCookValue =
+		hasPrefs && rawMaxTime
+			? Math.max(0, Math.min(100, Math.round((1 - rawMaxTime / 120) * 100)))
+			: 50
 
 	return [
 		{
 			label: t('dimAdventurousness'),
-			value: Math.min(100, cuisineCount * 15 + interestCount * 8 + (completionCount > 10 ? 20 : 0)),
+			value: Math.min(
+				100,
+				cuisineCount * 15 + interestCount * 8 + (completionCount > 10 ? 20 : 0),
+			),
 			icon: <Globe className='size-4' />,
 			description: t('dimCuisinesExplored', { count: cuisineCount }),
 		},
@@ -83,7 +93,9 @@ function computeTasteDimensions(
 		{
 			label: t('dimSkillLevel'),
 			value: hasPrefs
-				? { beginner: 20, intermediate: 45, advanced: 70, expert: 95 }[prefs?.skillLevel ?? 'beginner'] ?? 20
+				? ({ beginner: 20, intermediate: 45, advanced: 70, expert: 95 }[
+						prefs?.skillLevel ?? 'beginner'
+					] ?? 20)
 				: Math.min(100, currentLevel * 10),
 			icon: <ChefHat className='size-4' />,
 			description: prefs?.skillLevel ?? t('dimLevel', { level: currentLevel }),
@@ -127,13 +139,13 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 		}
 	}
 
-	const dataPath = dimensions
-		.map((d, i) => {
-			const { x, y } = getPoint(i, d.value)
-			return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
-		})
-		.join(' ')
-		+ ' Z'
+	const dataPath =
+		dimensions
+			.map((d, i) => {
+				const { x, y } = getPoint(i, d.value)
+				return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
+			})
+			.join(' ') + ' Z'
 
 	const gridLevels = [25, 50, 75, 100]
 
@@ -141,7 +153,7 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 		<div className='flex items-center justify-center'>
 			<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
 				{/* Grid rings */}
-				{gridLevels.map((level) => {
+				{gridLevels.map(level => {
 					const r = (level / 100) * radius
 					return (
 						<circle
@@ -230,36 +242,50 @@ export default function TasteProfilePage() {
 	const router = useRouter()
 	const { user: profile } = useAuth()
 	const t = useTranslations('profile')
-	const [cookingPrefs, setCookingPrefs] = useState<CookingPreferences | null>(null)
-	const [tasteProfile, setTasteProfile] = useState<TasteProfileResponse | null>(null)
+	const [cookingPrefs, setCookingPrefs] = useState<CookingPreferences | null>(
+		null,
+	)
+	const [tasteProfile, setTasteProfile] = useState<TasteProfileResponse | null>(
+		null,
+	)
 	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(() => {
 		let cancelled = false
-		Promise.all([
-			getCookingPreferences(),
-			getTasteProfile(),
-		])
+		Promise.all([getCookingPreferences(), getTasteProfile()])
 			.then(([prefsRes, tasteRes]) => {
 				if (!cancelled) {
 					if (prefsRes.success && prefsRes.data) setCookingPrefs(prefsRes.data)
 					if (tasteRes.success && tasteRes.data) setTasteProfile(tasteRes.data)
 				}
 			})
-			.catch(() => {})
+			.catch(err => {
+				if (process.env.NODE_ENV === 'development')
+					console.warn('[taste] fetch failed:', err)
+			})
 			.finally(() => {
 				if (!cancelled) setIsLoading(false)
 			})
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	const dimensions = useMemo(() => {
 		if (!profile) return []
-		return computeTasteDimensions(profile, profile.statistics ?? null, cookingPrefs, t)
+		return computeTasteDimensions(
+			profile,
+			profile.statistics ?? null,
+			cookingPrefs,
+			t,
+		)
 	}, [profile, cookingPrefs, t])
 
 	const topDimension = useMemo(
-		() => dimensions.length > 0 ? dimensions.reduce((a, b) => (a.value > b.value ? a : b)) : null,
+		() =>
+			dimensions.length > 0
+				? dimensions.reduce((a, b) => (a.value > b.value ? a : b))
+				: null,
 		[dimensions],
 	)
 
@@ -318,8 +344,8 @@ export default function TasteProfilePage() {
 					<div className='flex-1'>
 						<PageHeader
 							icon={Sparkles}
-						title={t('tasteDNA')}
-						subtitle={t('tasteDNASubtitle')}
+							title={t('tasteDNA')}
+							subtitle={t('tasteDNASubtitle')}
 							gradient='purple'
 							marginBottom='sm'
 							className='mb-0'
@@ -337,38 +363,46 @@ export default function TasteProfilePage() {
 					>
 						<EmptyStateGamified
 							variant='cooking'
-						title={t('tasteDNAForming')}
-						description={t('tasteDNAFormingDesc')}
-						primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
-						secondaryActions={[{ label: t('setPreferences'), href: '/settings' }]}
+							title={t('tasteDNAForming')}
+							description={t('tasteDNAFormingDesc')}
+							primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
+							secondaryActions={[
+								{ label: t('setPreferences'), href: '/settings' },
+							]}
 						/>
 					</motion.div>
 				)}
 
 				{/* Radar Chart — only show when user has actual data */}
 				{!isBlankProfile && (
-				<motion.div
-					initial={{ opacity: 0, scale: 0.9 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-					className='mx-auto mb-8 max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
-				>
-					<TasteRadar dimensions={dimensions} />
-					{topDimension && (
-						<p className='mt-4 text-center text-sm text-text-secondary'>
-							Your strongest trait:{' '}
-							<span className='font-semibold text-brand'>{topDimension.label}</span>
-						</p>
-					)}
-				</motion.div>
+					<motion.div
+						initial={{ opacity: 0, scale: 0.9 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+						className='mx-auto mb-8 max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+					>
+						<TasteRadar dimensions={dimensions} />
+						{topDimension && (
+							<p className='mt-4 text-center text-sm text-text-secondary'>
+								Your strongest trait:{' '}
+								<span className='font-semibold text-brand'>
+									{topDimension.label}
+								</span>
+							</p>
+						)}
+					</motion.div>
 				)}
 
 				{/* Shareable Card */}
 				{!isBlankProfile && (
 					<TasteDNAShareCard
 						dimensions={dimensions}
-						displayName={profile.displayName || profile.username || 'Chef'}
-						topTrait={topDimension?.label ?? 'Explorer'}
+						displayName={
+							profile.displayName ||
+							profile.username ||
+							t('displayNameFallback')
+						}
+						topTrait={topDimension?.label ?? t('tasteFallbackTrait')}
 						level={profile.statistics?.currentLevel ?? 1}
 						title={profile.statistics?.title ?? 'BEGINNER'}
 					/>
@@ -376,83 +410,98 @@ export default function TasteProfilePage() {
 
 				{/* Dimension Breakdown */}
 				{!isBlankProfile && (
-				<div className='space-y-3'>
-					{dimensions.map((dim, i) => (
-						<motion.div
-							key={dim.label}
-							initial={{ opacity: 0, x: -20 }}
-							animate={{ opacity: 1, x: 0 }}
-							transition={{ delay: 0.4 + i * 0.08 }}
-							whileHover={CARD_HOVER}
-							className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
-						>
-							<div className='mb-2 flex items-center justify-between'>
-								<div className='flex items-center gap-2'>
-									<div className='grid size-8 place-items-center rounded-lg bg-brand/10 text-brand'>
-										{dim.icon}
+					<div className='space-y-3'>
+						{dimensions.map((dim, i) => (
+							<motion.div
+								key={dim.label}
+								initial={{ opacity: 0, x: -20 }}
+								animate={{ opacity: 1, x: 0 }}
+								transition={{ delay: 0.4 + i * 0.08 }}
+								whileHover={CARD_HOVER}
+								className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
+							>
+								<div className='mb-2 flex items-center justify-between'>
+									<div className='flex items-center gap-2'>
+										<div className='grid size-8 place-items-center rounded-lg bg-brand/10 text-brand'>
+											{dim.icon}
+										</div>
+										<span className='font-semibold text-text'>{dim.label}</span>
 									</div>
-									<span className='font-semibold text-text'>{dim.label}</span>
+									<span className='text-sm font-bold text-brand'>
+										{dim.value}%
+									</span>
 								</div>
-								<span className='text-sm font-bold text-brand'>{dim.value}%</span>
-							</div>
-							{/* Progress bar */}
-							<div className='h-2 overflow-hidden rounded-full bg-bg-elevated'>
-								<motion.div
-									className='h-full rounded-full bg-gradient-to-r from-brand to-brand/70'
-									initial={{ width: 0 }}
-									animate={{ width: `${dim.value}%` }}
-									transition={{ delay: 0.6 + i * 0.08, duration: DURATION_S.slow, ease: 'easeOut' }}
-								/>
-							</div>
-							<p className='mt-1 text-xs text-text-muted'>{dim.description}</p>
-						</motion.div>
-					))}
-				</div>
+								{/* Progress bar */}
+								<div className='h-2 overflow-hidden rounded-full bg-bg-elevated'>
+									<motion.div
+										className='h-full rounded-full bg-gradient-to-r from-brand to-brand/70'
+										initial={{ width: 0 }}
+										animate={{ width: `${dim.value}%` }}
+										transition={{
+											delay: 0.6 + i * 0.08,
+											duration: DURATION_S.slow,
+											ease: 'easeOut',
+										}}
+									/>
+								</div>
+								<p className='mt-1 text-xs text-text-muted'>
+									{dim.description}
+								</p>
+							</motion.div>
+						))}
+					</div>
 				)}
 
 				{/* Cuisine DNA — Real behavioral data from 5-signal taste vector */}
-				{tasteProfile && tasteProfile.cuisineDistribution && tasteProfile.cuisineDistribution.length > 0 && (
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.7 }}
-						className='mt-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
-					>
-						<h2 className='mb-4 flex items-center gap-2 font-semibold text-text'>
-							<Globe className='size-5 text-brand' />
-							Your Cuisine DNA
-						</h2>
-						<p className='mb-4 text-xs text-text-muted'>
-							Based on {tasteProfile.totalInteractions ?? 0} interactions — likes, saves, views, and cooks
-						</p>
-						<div className='space-y-3'>
-							{tasteProfile.cuisineDistribution.map((item, i) => (
-								<motion.div
-									key={item.cuisine}
-									initial={{ opacity: 0, x: -10 }}
-									animate={{ opacity: 1, x: 0 }}
-									transition={{ delay: 0.8 + i * 0.05 }}
-									className='flex items-center gap-3'
-								>
-									<span className='w-24 shrink-0 text-sm font-medium text-text'>
-										{item.cuisine}
-									</span>
-									<div className='h-2.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
-										<motion.div
-											className='h-full rounded-full bg-gradient-to-r from-brand to-brand/60'
-											initial={{ width: 0 }}
-											animate={{ width: `${item.percentage}%` }}
-											transition={{ delay: 0.9 + i * 0.05, duration: DURATION_S.slow, ease: 'easeOut' }}
-										/>
-									</div>
-									<span className='w-12 shrink-0 text-right text-xs font-bold text-brand'>
-										{item.percentage.toFixed(0)}%
-									</span>
-								</motion.div>
-							))}
-						</div>
-					</motion.div>
-				)}
+				{tasteProfile &&
+					tasteProfile.cuisineDistribution &&
+					tasteProfile.cuisineDistribution.length > 0 && (
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.7 }}
+							className='mt-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+						>
+							<h2 className='mb-4 flex items-center gap-2 font-semibold text-text'>
+								<Globe className='size-5 text-brand' />
+								Your Cuisine DNA
+							</h2>
+							<p className='mb-4 text-xs text-text-muted'>
+								Based on {tasteProfile.totalInteractions ?? 0} interactions —
+								likes, saves, views, and cooks
+							</p>
+							<div className='space-y-3'>
+								{tasteProfile.cuisineDistribution.map((item, i) => (
+									<motion.div
+										key={item.cuisine}
+										initial={{ opacity: 0, x: -10 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: 0.8 + i * 0.05 }}
+										className='flex items-center gap-3'
+									>
+										<span className='w-24 shrink-0 text-sm font-medium text-text'>
+											{item.cuisine}
+										</span>
+										<div className='h-2.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
+											<motion.div
+												className='h-full rounded-full bg-gradient-to-r from-brand to-brand/60'
+												initial={{ width: 0 }}
+												animate={{ width: `${item.percentage}%` }}
+												transition={{
+													delay: 0.9 + i * 0.05,
+													duration: DURATION_S.slow,
+													ease: 'easeOut',
+												}}
+											/>
+										</div>
+										<span className='w-12 shrink-0 text-right text-xs font-bold text-brand'>
+											{item.percentage.toFixed(0)}%
+										</span>
+									</motion.div>
+								))}
+							</div>
+						</motion.div>
+					)}
 
 				{/* Learning Narrative */}
 				{!isBlankProfile && profile.statistics && (
@@ -506,7 +555,10 @@ export default function TasteProfilePage() {
 								</h3>
 								<div className='flex flex-wrap gap-2'>
 									{cookingPrefs.preferredCuisines.map(c => (
-										<span key={c} className='rounded-full bg-bg-elevated px-3 py-1 text-xs font-medium text-text-secondary'>
+										<span
+											key={c}
+											className='rounded-full bg-bg-elevated px-3 py-1 text-xs font-medium text-text-secondary'
+										>
 											{c}
 										</span>
 									))}
@@ -521,7 +573,10 @@ export default function TasteProfilePage() {
 								</h3>
 								<div className='flex flex-wrap gap-2'>
 									{cookingPrefs.dietaryRestrictions.map(d => (
-										<span key={d} className='rounded-full bg-gaming-xp/10 px-3 py-1 text-xs font-medium text-gaming-xp'>
+										<span
+											key={d}
+											className='rounded-full bg-gaming-xp/10 px-3 py-1 text-xs font-medium text-gaming-xp'
+										>
 											{d}
 										</span>
 									))}
@@ -549,7 +604,9 @@ export default function TasteProfilePage() {
 									<Calendar className='size-6' />
 								</div>
 								<div className='flex-1'>
-									<h3 className='font-semibold text-text'>{t('yearInCooking')}</h3>
+									<h3 className='font-semibold text-text'>
+										{t('yearInCooking')}
+									</h3>
 									<p className='text-sm text-text-muted'>
 										{t('yearInCookingSubtext')}
 									</p>

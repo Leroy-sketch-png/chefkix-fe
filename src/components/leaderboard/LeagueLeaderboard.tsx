@@ -65,7 +65,7 @@ const leagueConfig: Record<
 		textColor: 'text-medal-silver',
 	},
 	gold: {
-		icon: 'ðŸ†',
+		icon: '🏆',
 		gradient: 'from-medal-gold/20 to-medal-gold/8',
 		borderColor: 'border-medal-gold/40',
 		textColor: 'text-medal-gold',
@@ -118,10 +118,10 @@ function LeagueHeader({
 							config.textColor,
 						)}
 					>
-						{t('leagueTier', {tier: leagueInfo.tier})}
+						{t('leagueTier', { tier: leagueInfo.tier })}
 					</span>
 					<span className='text-xs text-text-tertiary'>
-						{t('leagueWeek', {n: leagueInfo.week})}
+						{t('leagueWeek', { n: leagueInfo.week })}
 					</span>
 				</div>
 			</motion.div>
@@ -155,7 +155,10 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-success/10 rounded-lg text-xs font-semibold text-success'>
 					<ChevronUp className='size-3.5' />
 					<span>
-						{t('topNPromote', {n: leagueInfo.promotionRanks, tier: leagueInfo.nextTier})}
+						{t('topNPromote', {
+							n: leagueInfo.promotionRanks,
+							tier: leagueInfo.nextTier,
+						})}
 					</span>
 				</div>
 			)}
@@ -167,7 +170,10 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-error/10 rounded-lg text-xs font-semibold text-error'>
 					<ChevronDown className='size-3.5' />
 					<span>
-						{t('bottomNDemote', {n: leagueInfo.demotionRanks, tier: leagueInfo.prevTier})}
+						{t('bottomNDemote', {
+							n: leagueInfo.demotionRanks,
+							tier: leagueInfo.prevTier,
+						})}
 					</span>
 				</div>
 			)}
@@ -265,7 +271,7 @@ function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 			className='flex items-center justify-center gap-2 py-3 bg-error/10 rounded-lg text-sm text-error'
 		>
 			<AlertTriangle className='size-4' />
-			<span>{t('xpToLeave', {xp: xpNeeded})}</span>
+			<span>{t('xpToLeave', { xp: xpNeeded })}</span>
 		</motion.div>
 	)
 }
@@ -317,7 +323,7 @@ export function LeagueLeaderboard({
 			{promotionEntries.length > 0 && leagueInfo.nextTier && (
 				<ZoneSection
 					type='promotion'
-					label='Promotion Zone'
+					label={t('promotionZone')}
 					destination={`${leagueInfo.nextTier.charAt(0).toUpperCase()}${leagueInfo.nextTier.slice(1)}`}
 					entries={promotionEntries}
 					onUserClick={onUserClick}
@@ -328,7 +334,7 @@ export function LeagueLeaderboard({
 			{safeEntries.length > 0 && (
 				<ZoneSection
 					type='safe'
-					label='Safe Zone'
+					label={t('safeZone')}
 					entries={safeEntries.slice(0, 3)} // Only show first few
 					onUserClick={onUserClick}
 				/>
@@ -337,8 +343,11 @@ export function LeagueLeaderboard({
 			{/* Abbreviated indicator for safe zone */}
 			{safeEntries.length > 3 && (
 				<div className='text-center py-3 text-xs tabular-nums text-text-muted'>
-					Ranks {promotionThreshold + 4}-{demotionThreshold} •{' '}
-					{safeEntries[3]?.xpThisWeek?.toLocaleString()}-
+					{t('ranksRange', {
+						start: promotionThreshold + 4,
+						end: demotionThreshold,
+					})}{' '}
+					• {safeEntries[3]?.xpThisWeek?.toLocaleString()}-
 					{safeEntries[safeEntries.length - 1]?.xpThisWeek?.toLocaleString()} XP
 				</div>
 			)}
@@ -348,7 +357,7 @@ export function LeagueLeaderboard({
 				<>
 					<ZoneSection
 						type='demotion'
-						label='Demotion Zone'
+						label={t('demotionZone')}
 						destination={`${leagueInfo.prevTier.charAt(0).toUpperCase()}${leagueInfo.prevTier.slice(1)}`}
 						entries={demotionEntries}
 						onUserClick={onUserClick}

@@ -232,14 +232,19 @@ export function DraftsList({
 										className='flex flex-1 flex-col items-start text-left'
 									>
 										<div className='font-semibold text-text'>
-										{draft.title || t('untitledRecipe')}
+											{draft.title || t('untitledRecipe')}
 										</div>
 										<div className='flex items-center gap-2 text-xs text-text-muted'>
 											<Clock className='size-3' />
 											<span>
 												{draft.createdAt
-												? t('createdAgo', { time: formatDistanceToNow(new Date(draft.createdAt), { addSuffix: true }) })
-												: t('draft')}
+													? t('createdAgo', {
+															time: formatDistanceToNow(
+																new Date(draft.createdAt),
+																{ addSuffix: true },
+															),
+														})
+													: t('draft')}
 											</span>
 										</div>
 										{draft.description && (
@@ -298,7 +303,9 @@ export function DraftsList({
 						variant='custom'
 						title={t('noDraftsYet')}
 						description={t('noDraftsDescription')}
-						emoji='📝'
+						illustration={
+							<FileText className='size-16 text-brand opacity-50' />
+						}
 						primaryAction={{ label: t('createRecipe'), href: '/create' }}
 					/>
 				)}
@@ -313,11 +320,15 @@ export function DraftsList({
 					<AlertDialogHeader>
 						<AlertDialogTitle>{t('deleteDraftTitle')}</AlertDialogTitle>
 						<AlertDialogDescription>
-							{t('deleteDraftDescription', { title: deleteTarget?.title || t('untitledRecipe') })}
+							{t('deleteDraftDescription', {
+								title: deleteTarget?.title || t('untitledRecipe'),
+							})}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel disabled={isDeleting}>{t('cancel')}</AlertDialogCancel>
+						<AlertDialogCancel disabled={isDeleting}>
+							{t('cancel')}
+						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={isDeleting}

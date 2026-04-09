@@ -6,6 +6,7 @@ export const PATHS = {
 	FEED: '/feed',
 	DISCOVER: '/community',
 	COMMUNITY: '/community',
+	LEADERBOARD: '/leaderboard',
 	MESSAGES: '/messages',
 	CREATE: '/create',
 	SETTINGS: '/settings',

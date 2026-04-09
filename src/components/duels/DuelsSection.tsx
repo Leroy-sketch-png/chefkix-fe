@@ -36,7 +36,13 @@ import type { DuelResponse, CreateDuelRequest } from '@/lib/types/duel'
 import type { Profile } from '@/lib/types/profile'
 import type { Recipe } from '@/lib/types/recipe'
 import { getProfileDisplayName } from '@/lib/types/profile'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_HOVER, BUTTON_TAP, LIST_ITEM_HOVER } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	LIST_ITEM_HOVER,
+} from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
 
@@ -44,7 +50,12 @@ import { useTranslations } from 'next-intl'
 // STATUS HELPERS
 // ============================================
 
-type StatusMeta = { label: string; color: string; bgColor: string; icon: React.ReactNode }
+type StatusMeta = {
+	label: string
+	color: string
+	bgColor: string
+	icon: React.ReactNode
+}
 
 function getStatusMeta(t: (key: string) => string): Record<string, StatusMeta> {
 	return {
@@ -93,12 +104,19 @@ function getStatusMeta(t: (key: string) => string): Record<string, StatusMeta> {
 	}
 }
 
-function formatDeadline(iso: string | null, t: (key: string, values?: Record<string, string | number>) => string): string {
+function formatDeadline(
+	iso: string | null,
+	t: (key: string, values?: Record<string, string | number>) => string,
+): string {
 	if (!iso) return ''
 	const diff = new Date(iso).getTime() - Date.now()
 	if (diff <= 0) return t('expired')
 	const hours = Math.floor(diff / 3600000)
-	if (hours >= 24) return t('daysHoursLeft', { days: Math.floor(hours / 24), hours: hours % 24 })
+	if (hours >= 24)
+		return t('daysHoursLeft', {
+			days: Math.floor(hours / 24),
+			hours: hours % 24,
+		})
 	const mins = Math.floor((diff % 3600000) / 60000)
 	return t('hoursMinutesLeft', { hours, mins })
 }
@@ -202,8 +220,8 @@ function DuelCard({
 					<div>
 						<p className='font-semibold text-text'>
 							{isChallenger
-							? t('vsOpponent', { name: opponentName })
-							: t('challengedYou', { name: duel.challengerName })}
+								? t('vsOpponent', { name: opponentName })
+								: t('challengedYou', { name: duel.challengerName })}
 						</p>
 						<p className='text-sm text-text-secondary'>{duel.recipeTitle}</p>
 					</div>
@@ -254,7 +272,7 @@ function DuelCard({
 					</div>
 					{duel.bonusXp > 0 && isWinner && (
 						<p className='mt-2 text-center text-sm font-semibold text-xp'>
-							{t('bonusXP', {n: duel.bonusXp})}
+							{t('bonusXP', { n: duel.bonusXp })}
 						</p>
 					)}
 				</div>
@@ -271,14 +289,14 @@ function DuelCard({
 			{duel.status === 'Pending' && duel.acceptDeadline && (
 				<p className='mb-3 flex items-center gap-1.5 text-xs text-text-muted'>
 					<Clock className='size-3.5' />
-					{t('acceptWithin', {time: formatDeadline(duel.acceptDeadline, t)})}
+					{t('acceptWithin', { time: formatDeadline(duel.acceptDeadline, t) })}
 				</p>
 			)}
 			{(duel.status === 'Accepted' || duel.status === 'In Progress') &&
 				duel.cookDeadline && (
 					<p className='mb-3 flex items-center gap-1.5 text-xs text-text-muted'>
 						<Clock className='size-3.5' />
-						{t('cookWithin', {time: formatDeadline(duel.cookDeadline, t)})}
+						{t('cookWithin', { time: formatDeadline(duel.cookDeadline, t) })}
 					</p>
 				)}
 
@@ -496,12 +514,15 @@ function CreateDuelModal({
 					<div className='flex items-center justify-between border-b border-border-subtle px-5 py-4'>
 						<div className='flex items-center gap-2'>
 							<Swords className='size-5 text-brand' />
-							<h2 id='create-duel-title' className='text-lg font-bold text-text'>
+							<h2
+								id='create-duel-title'
+								className='text-lg font-bold text-text'
+							>
 								{step === 'friend'
-								? t('stepPickFriend')
-								: step === 'recipe'
-									? t('stepPickRecipe')
-									: t('stepConfirm')}
+									? t('stepPickFriend')
+									: step === 'recipe'
+										? t('stepPickRecipe')
+										: t('stepConfirm')}
 							</h2>
 						</div>
 						<button
@@ -666,7 +687,9 @@ function CreateDuelModal({
 													</p>
 													<p className='text-xs text-text-secondary'>
 														{recipe.difficulty} &middot;{' '}
-														{t('stepsCount', { count: recipe.steps?.length ?? 0 })}
+														{t('stepsCount', {
+															count: recipe.steps?.length ?? 0,
+														})}
 													</p>
 												</div>
 												<ChevronRight className='size-4 flex-shrink-0 text-text-muted' />
@@ -697,7 +720,9 @@ function CreateDuelModal({
 									</div>
 									<div className='space-y-2 text-sm'>
 										<div className='flex items-center justify-between'>
-											<span className='text-text-secondary'>{t('opponent')}</span>
+											<span className='text-text-secondary'>
+												{t('opponent')}
+											</span>
 											<span className='font-medium text-text'>
 												{getProfileDisplayName(selectedFriend)}
 											</span>
@@ -709,8 +734,12 @@ function CreateDuelModal({
 											</span>
 										</div>
 										<div className='flex items-center justify-between'>
-											<span className='text-text-secondary'>{t('bonusXpLabel')}</span>
-											<span className='font-semibold text-xp'>{t('bonusXpValue')}</span>
+											<span className='text-text-secondary'>
+												{t('bonusXpLabel')}
+											</span>
+											<span className='font-semibold text-xp'>
+												{t('bonusXpValue')}
+											</span>
 										</div>
 									</div>
 								</div>
@@ -740,15 +769,15 @@ function CreateDuelModal({
 										{t('back')}
 									</button>
 									<motion.button
-									type='button'
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									disabled={submitting}
-									onClick={handleSubmit}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
+										type='button'
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										disabled={submitting}
+										onClick={handleSubmit}
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
 									>
 										<Send className='size-4' />
-								{submitting ? t('sending') : t('sendChallenge')}
+										{submitting ? t('sending') : t('sendChallenge')}
 									</motion.button>
 								</div>
 							</div>
@@ -854,7 +883,7 @@ export function DuelsSection() {
 						className='inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 					>
 						<Swords className='size-4' />
-					{t('sendFirstChallenge')}
+						{t('sendFirstChallenge')}
 					</motion.button>
 				</div>
 			) : (
@@ -906,7 +935,7 @@ export function DuelsSection() {
 								className='mb-2 flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text'
 							>
 								<Trophy className='size-4' />
-								{t('pastDuels')} ({history.length})
+								{t('pastDuels', { n: history.length })}
 								<ChevronRight
 									className={`size-4 transition-transform ${showHistory ? 'rotate-90' : ''}`}
 								/>

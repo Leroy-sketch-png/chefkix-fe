@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback, useMemo, useTransition } from 'react'
+import {
+	useEffect,
+	useState,
+	useRef,
+	useCallback,
+	useMemo,
+	useTransition,
+} from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
@@ -42,7 +49,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { StaggerContainer, staggerItemVariants } from '@/components/ui/stagger-animation'
+import {
+	StaggerContainer,
+	staggerItemVariants,
+} from '@/components/ui/stagger-animation'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
@@ -125,7 +135,7 @@ function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
 		author: {
 			userId: doc.authorId,
 			username: doc.authorName ?? '',
-			displayName: doc.authorName ?? 'Unknown Chef',
+			displayName: doc.authorName ?? undefined,
 			avatarUrl: undefined,
 		},
 		recipeStatus: 'PUBLISHED',
@@ -193,7 +203,10 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							variant='outline'
 							className='border-border-medium bg-bg-elevated'
 						>
-							{t(DIFFICULTY_API_TO_DISPLAY_KEYS[recipe.difficulty] || recipe.difficulty)}
+							{t(
+								DIFFICULTY_API_TO_DISPLAY_KEYS[recipe.difficulty] ||
+									recipe.difficulty,
+							)}
 						</Badge>
 						{/* Time */}
 						<Badge
@@ -201,7 +214,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							className='flex items-center gap-1 border-border-medium bg-bg-elevated'
 						>
 							<Clock className='size-3' />
-							{getTotalTime(recipe)} min
+							{getTotalTime(recipe)} {t('unitMin')}
 						</Badge>
 					</div>
 
@@ -214,26 +227,25 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 					</p>
 
 					{/* Author */}
-					{recipe.author?.displayName &&
-						recipe.author.displayName !== 'Unknown Chef' && (
-							<div className='mb-6 flex items-center gap-3'>
-								<Image
-									src={recipe.author.avatarUrl || '/placeholder-avatar.svg'}
-									alt={recipe.author.displayName}
-									width={40}
-									height={40}
-									className='rounded-full border-2 border-border-subtle object-cover'
-								/>
-								<div>
-									<p className='text-sm font-medium text-text'>
-										{recipe.author.displayName}
-									</p>
-									<p className='text-xs text-text-muted'>
-										{t('heroCookCount', { count: recipe.cookCount ?? 0 })}
-									</p>
-								</div>
+					{recipe.author?.displayName && (
+						<div className='mb-6 flex items-center gap-3'>
+							<Image
+								src={recipe.author.avatarUrl || '/placeholder-avatar.svg'}
+								alt={recipe.author.displayName}
+								width={40}
+								height={40}
+								className='rounded-full border-2 border-border-subtle object-cover'
+							/>
+							<div>
+								<p className='text-sm font-medium text-text'>
+									{recipe.author.displayName}
+								</p>
+								<p className='text-xs text-text-muted'>
+									{t('heroCookCount', { count: recipe.cookCount ?? 0 })}
+								</p>
 							</div>
-						)}
+						</div>
+					)}
 
 					{/* Actions */}
 					<div className='flex gap-3'>
@@ -254,9 +266,11 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						</motion.button>
 						<motion.button
 							type='button'
-							onClick={() => startNavigationTransition(() => {
-								router.push(`/recipes/${recipe.id}`)
-							})}
+							onClick={() =>
+								startNavigationTransition(() => {
+									router.push(`/recipes/${recipe.id}`)
+								})
+							}
 							disabled={isNavigating}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
@@ -315,8 +329,11 @@ function FilterChips({
 		activeFilters.push({
 			type: 'difficulty',
 			value: d,
-			label:
-				t(DIFFICULTY_API_TO_DISPLAY_KEYS[DIFFICULTY_DISPLAY[d.toLowerCase()] ?? d] || d),
+			label: t(
+				DIFFICULTY_API_TO_DISPLAY_KEYS[
+					DIFFICULTY_DISPLAY[d.toLowerCase()] ?? d
+				] || d,
+			),
 		}),
 	)
 	if (filters.cookingTimeMax < 120) {
@@ -356,7 +373,9 @@ function FilterChips({
 			<span className='text-sm font-medium tabular-nums text-text-secondary'>
 				{resultCount === 0
 					? t('noResults')
-					: resultCount === 1 ? t('recipeCountSingle', { n: resultCount }) : t('recipeCountPlural', { n: resultCount })}
+					: resultCount === 1
+						? t('recipeCountSingle', { n: resultCount })
+						: t('recipeCountPlural', { n: resultCount })}
 				{searchQuery && (
 					<span className='text-text-muted'>
 						{' '}
@@ -585,7 +604,7 @@ export default function ExplorePage() {
 		return () => clearTimeout(timeout)
 	}, [searchQuery])
 
-	// Fetch trending searches from API on mount (with hardcoded fallback)
+	// Fetch trending searches from API on mount
 	useEffect(() => {
 		let cancelled = false
 		const fetchTrending = async () => {
@@ -702,7 +721,7 @@ export default function ExplorePage() {
 					}
 				}
 			} catch (err) {
-				if (!cancelled) setError(t('failedLoadRecipes'))
+				if (!cancelled) setError(t('failedLoadRecipesDescription'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -714,25 +733,35 @@ export default function ExplorePage() {
 		}
 	}, [debouncedSearch, viewMode, filters, retryCount, sortBy, t])
 
-	// Scroll restoration
+	// Scroll restoration — save on unmount (covers all navigations away), restore once after data loads
+	const scrollRestoredRef = useRef(false)
+
 	useEffect(() => {
+		if (scrollRestoredRef.current || isLoading) return
 		const savedPosition = sessionStorage.getItem(SCROLL_RESTORATION_KEY)
-		if (savedPosition && !isLoading) {
-			setTimeout(() => {
+		if (savedPosition) {
+			scrollRestoredRef.current = true
+			requestAnimationFrame(() => {
 				window.scrollTo(0, parseInt(savedPosition, 10))
 				sessionStorage.removeItem(SCROLL_RESTORATION_KEY)
-			}, 100)
+			})
 		}
+	}, [isLoading])
 
+	// Save scroll on unmount (covers client-side navigation) and beforeunload (covers refresh/close)
+	useEffect(() => {
 		const handleBeforeUnload = () => {
 			sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
 		}
-
 		window.addEventListener('beforeunload', handleBeforeUnload)
 		return () => {
 			window.removeEventListener('beforeunload', handleBeforeUnload)
+			// Save on component unmount (e.g., navigating to recipe detail)
+			if (window.scrollY > 0) {
+				sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
+			}
 		}
-	}, [isLoading])
+	}, [])
 
 	// Load more handler for infinite scroll
 	const handleLoadMore = useCallback(async () => {
@@ -837,13 +866,12 @@ export default function ExplorePage() {
 	// ============================================
 
 	const handleCook = (recipeId: string) => {
-		if (!requireAuth('start cooking')) return
-		sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
+		if (!requireAuth(t('authActionCook'))) return
 		router.push(`/recipes/${recipeId}?cook=true`)
 	}
 
 	const handleSave = async (recipeId: string) => {
-		if (!requireAuth('save this recipe')) return
+		if (!requireAuth(t('authActionSave'))) return
 		const wasSaved = savedRecipes.has(recipeId)
 		const willBeSaved = !wasSaved
 
@@ -1043,9 +1071,7 @@ export default function ExplorePage() {
 				</AnimatePresence>
 
 				{/* Tonight's Pick — Personalized recommendation (only when not searching) */}
-				{!debouncedSearch && (
-					<TonightsPick className='mb-6' />
-				)}
+				{!debouncedSearch && <TonightsPick className='mb-6' />}
 
 				{/* Season's Best — Curated featured collections (only when not searching) */}
 				{!debouncedSearch && <SeasonsBest className='mb-6' />}
@@ -1264,7 +1290,7 @@ export default function ExplorePage() {
 										setSearchQuery(term)
 										setDebouncedSearch(term)
 									}}
-									className='rounded-full border border-border bg-bg-card px-3 py-1.5 text-sm text-text transition-colors hover:border-brand hover:bg-brand/5 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='rounded-full border border-border bg-bg-card px-3 py-1.5 text-sm text-text transition-colors hover:border-brand hover:bg-brand/5 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{term}
 								</motion.button>
@@ -1363,8 +1389,7 @@ export default function ExplorePage() {
 										skillTags={recipe.skillTags}
 										badges={recipe.rewardBadges}
 										author={
-											recipe.author?.displayName &&
-											recipe.author.displayName !== 'Unknown Chef'
+											recipe.author?.displayName
 												? {
 														id: recipe.author.userId,
 														name: recipe.author.displayName,
@@ -1387,9 +1412,7 @@ export default function ExplorePage() {
 						<div ref={loadMoreRef} className='h-px' />
 
 						{/* Loading indicator for infinite scroll */}
-						{isLoadingMore && (
-							<RecipeCardSkeleton count={3} />
-						)}
+						{isLoadingMore && <RecipeCardSkeleton count={3} />}
 
 						{/* Load more error with retry */}
 						{loadMoreError && !isLoadingMore && (
@@ -1398,7 +1421,9 @@ export default function ExplorePage() {
 								animate={{ opacity: 1, y: 0 }}
 								className='flex flex-col items-center gap-2 py-8'
 							>
-								<span className='text-sm text-text-muted'>{t('loadMoreFailed')}</span>
+								<span className='text-sm text-text-muted'>
+									{t('loadMoreFailed')}
+								</span>
 								<motion.button
 									type='button'
 									whileHover={BUTTON_HOVER}
@@ -1406,7 +1431,7 @@ export default function ExplorePage() {
 									onClick={handleLoadMore}
 									className='rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
-									Try again
+									{t('tryAgainButton')}
 								</motion.button>
 							</motion.div>
 						)}
@@ -1419,7 +1444,7 @@ export default function ExplorePage() {
 								className='flex justify-center py-8'
 							>
 								<span className='tabular-nums text-sm text-text-muted'>
-									✨ You&apos;ve seen all {totalCount} recipes
+									✨ {t('seenAllRecipes', { count: totalCount })}
 								</span>
 							</motion.div>
 						)}

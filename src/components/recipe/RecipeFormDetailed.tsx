@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -25,12 +25,14 @@ import {
 	AsyncCombobox,
 	AsyncComboboxOption,
 } from '@/components/ui/async-combobox'
-import {
-	Combobox,
-	type ComboboxOption,
-} from '@/components/ui/combobox'
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { autocompleteSearch } from '@/services/search'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { formDataToRecipe } from '@/lib/recipeTransforms'
@@ -119,23 +121,18 @@ const MEASUREMENT_UNITS: MeasurementUnit[] = [
 	'pieces',
 ]
 
-const CATEGORIES = [
-	'Italian',
-	'Asian',
-	'Mexican',
-	'American',
-	'French',
-	'Indian',
-	'Mediterranean',
-	'Dessert',
-	'Healthy',
-	'Quick & Easy',
+const CATEGORY_KEYS: { value: string; labelKey: string }[] = [
+	{ value: 'Italian', labelKey: 'catItalian' },
+	{ value: 'Asian', labelKey: 'catAsian' },
+	{ value: 'Mexican', labelKey: 'catMexican' },
+	{ value: 'American', labelKey: 'catAmerican' },
+	{ value: 'French', labelKey: 'catFrench' },
+	{ value: 'Indian', labelKey: 'catIndian' },
+	{ value: 'Mediterranean', labelKey: 'catMediterranean' },
+	{ value: 'Dessert', labelKey: 'catDessert' },
+	{ value: 'Healthy', labelKey: 'catHealthy' },
+	{ value: 'Quick & Easy', labelKey: 'catQuickEasy' },
 ]
-
-const CATEGORY_OPTIONS: ComboboxOption[] = CATEGORIES.map(cat => ({
-	value: cat,
-	label: cat,
-}))
 
 const SUGGESTED_TAGS = [
 	'vegetarian',
@@ -302,47 +299,47 @@ const IngredientRow = ({
 }) => {
 	const t = useTranslations('recipe')
 	return (
-	<div className='group flex items-center gap-3'>
-		<div className='flex flex-1 items-center gap-3'>
-			<input
-				type='text'
-				value={ingredient.amount}
-				onChange={e => onChange({ ...ingredient, amount: e.target.value })}
-				placeholder={t('formAmountPlaceholder')}
-				className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
-			/>
-			<select
-				value={ingredient.unit}
-				onChange={e =>
-					onChange({ ...ingredient, unit: e.target.value as MeasurementUnit })
-				}
-				className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
+		<div className='group flex items-center gap-3'>
+			<div className='flex flex-1 items-center gap-3'>
+				<input
+					type='text'
+					value={ingredient.amount}
+					onChange={e => onChange({ ...ingredient, amount: e.target.value })}
+					placeholder={t('formAmountPlaceholder')}
+					className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
+				/>
+				<select
+					value={ingredient.unit}
+					onChange={e =>
+						onChange({ ...ingredient, unit: e.target.value as MeasurementUnit })
+					}
+					className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
+				>
+					{MEASUREMENT_UNITS.map(unit => (
+						<option key={unit} value={unit} className='bg-bg-card text-text'>
+							{unit}
+						</option>
+					))}
+				</select>
+				<AsyncCombobox
+					value={ingredient.name}
+					onChange={val => onChange({ ...ingredient, name: val })}
+					onSelect={opt => onChange({ ...ingredient, name: opt.label })}
+					fetchOptions={fetchIngredientOptions}
+					placeholder={t('formIngredientPlaceholder')}
+					minChars={1}
+					className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
+				/>
+			</div>
+			<button
+				type='button'
+				onClick={onRemove}
+				aria-label={t('formDeleteIngredient')}
+				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
 			>
-				{MEASUREMENT_UNITS.map(unit => (
-					<option key={unit} value={unit} className='bg-bg-card text-text'>
-						{unit}
-					</option>
-				))}
-			</select>
-			<AsyncCombobox
-				value={ingredient.name}
-				onChange={val => onChange({ ...ingredient, name: val })}
-				onSelect={opt => onChange({ ...ingredient, name: opt.label })}
-				fetchOptions={fetchIngredientOptions}
-				placeholder={t('formIngredientPlaceholder')}
-				minChars={1}
-				className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
-			/>
+				<Trash2 className='size-4' />
+			</button>
 		</div>
-		<button
-			type='button'
-			onClick={onRemove}
-			aria-label={t('formDeleteIngredient')}
-			className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
-		>
-			<Trash2 className='size-4' />
-		</button>
-	</div>
 	)
 }
 
@@ -470,7 +467,9 @@ const StepRow = ({
 									min={0}
 									max={23}
 								/>
-								<span className='text-xs font-semibold text-brand'>{t('formTimerH')}</span>
+								<span className='text-xs font-semibold text-brand'>
+									{t('formTimerH')}
+								</span>
 								{/* Minutes */}
 								<input
 									type='number'
@@ -486,7 +485,9 @@ const StepRow = ({
 									min={0}
 									max={59}
 								/>
-								<span className='text-xs font-semibold text-brand'>{t('formTimerM')}</span>
+								<span className='text-xs font-semibold text-brand'>
+									{t('formTimerM')}
+								</span>
 								{/* Seconds */}
 								<input
 									type='number'
@@ -502,7 +503,9 @@ const StepRow = ({
 									min={0}
 									max={59}
 								/>
-								<span className='text-xs font-semibold text-brand'>{t('formTimerS')}</span>
+								<span className='text-xs font-semibold text-brand'>
+									{t('formTimerS')}
+								</span>
 							</div>
 							<button
 								type='button'
@@ -635,6 +638,10 @@ export const RecipeFormDetailed = ({
 	className,
 }: RecipeFormDetailedProps) => {
 	const t = useTranslations('recipe')
+	const categoryOptions: ComboboxOption[] = CATEGORY_KEYS.map(cat => ({
+		value: cat.value,
+		label: t(cat.labelKey),
+	}))
 	const [formData, setFormData] = useState<RecipeFormData>({
 		title: initialData?.title || '',
 		description: initialData?.description || '',
@@ -753,8 +760,7 @@ export const RecipeFormDetailed = ({
 			i => i.name.trim() && i.amount.trim(),
 		)
 		if (validIngredients.length === 0) {
-			newErrors.ingredients =
-				t('formErrIngredientRequired')
+			newErrors.ingredients = t('formErrIngredientRequired')
 		}
 
 		// At least one step with instruction
@@ -893,15 +899,13 @@ export const RecipeFormDetailed = ({
 	])
 
 	return (
-		<div className={cn('mx-auto max-w-container-form p-6 md:p-10', className)}>
+		<div className={cn('mx-auto max-w-form p-6 md:p-10', className)}>
 			{/* Header */}
 			<div className='mb-10'>
 				<h1 className='text-3xl font-display font-extrabold text-text md:text-4xl'>
 					{t('formCreateTitle')}
 				</h1>
-				<p className='mt-2 text-text-secondary'>
-					{t('formCreateSubtitle')}
-				</p>
+				<p className='mt-2 text-text-secondary'>{t('formCreateSubtitle')}</p>
 			</div>
 
 			<form
@@ -943,7 +947,9 @@ export const RecipeFormDetailed = ({
 								<p className='text-sm text-text-secondary'>
 									{t('formTitleHint')}
 								</p>
-								<p className={`tabular-nums text-xs ${formData.title.length > 80 ? (formData.title.length >= 100 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+								<p
+									className={`tabular-nums text-xs ${formData.title.length > 80 ? (formData.title.length >= 100 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+								>
 									{formData.title.length}/100
 								</p>
 							</div>
@@ -977,7 +983,9 @@ export const RecipeFormDetailed = ({
 						{errors.description ? (
 							<p className='mt-1.5 text-sm text-error'>{errors.description}</p>
 						) : (
-							<p className={`tabular-nums mt-1.5 text-sm ${formData.description.length > 400 ? (formData.description.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-secondary'}`}>
+							<p
+								className={`tabular-nums mt-1.5 text-sm ${formData.description.length > 400 ? (formData.description.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-secondary'}`}
+							>
 								{t('formDescCharCount', { count: formData.description.length })}
 							</p>
 						)}
@@ -1107,9 +1115,7 @@ export const RecipeFormDetailed = ({
 								<Signal
 									className={cn(
 										'size-4',
-										predictedDifficulty
-											? 'text-brand'
-											: 'text-text-secondary',
+										predictedDifficulty ? 'text-brand' : 'text-text-secondary',
 									)}
 								/>
 								<span
@@ -1146,8 +1152,10 @@ export const RecipeFormDetailed = ({
 								id='recipe-category'
 								value={formData.category}
 								onChange={val => updateFieldWithClearError('category', val)}
-								onSelect={opt => updateFieldWithClearError('category', opt.value)}
-								options={CATEGORY_OPTIONS}
+								onSelect={opt =>
+									updateFieldWithClearError('category', opt.value)
+								}
+								options={categoryOptions}
 								placeholder={t('formSelectCategory')}
 								className={cn(
 									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text focus:outline-none',
@@ -1170,7 +1178,9 @@ export const RecipeFormDetailed = ({
 				>
 					<div className='mb-6 flex items-center justify-between'>
 						<div>
-							<h2 className='text-xl font-bold text-text'>{t('formIngredientsSection')}</h2>
+							<h2 className='text-xl font-bold text-text'>
+								{t('formIngredientsSection')}
+							</h2>
 							{errors.ingredients && (
 								<p className='mt-1 text-sm text-error'>{errors.ingredients}</p>
 							)}
@@ -1223,7 +1233,9 @@ export const RecipeFormDetailed = ({
 					<div className='mb-6 flex items-center justify-between'>
 						<div>
 							<div className='flex items-center gap-4'>
-								<h2 className='text-xl font-bold text-text'>{t('formInstructionsSection')}</h2>
+								<h2 className='text-xl font-bold text-text'>
+									{t('formInstructionsSection')}
+								</h2>
 								{formData.steps.length > 0 && (
 									<button
 										type='button'
@@ -1302,7 +1314,9 @@ export const RecipeFormDetailed = ({
 
 				{/* Tags Section */}
 				<section className='mb-8'>
-					<h2 className='mb-6 text-xl font-bold text-text'>{t('formTagsSection')}</h2>
+					<h2 className='mb-6 text-xl font-bold text-text'>
+						{t('formTagsSection')}
+					</h2>
 					<p className='mb-3 text-sm text-text-secondary'>
 						{t('formTagsHint')}
 					</p>
@@ -1327,7 +1341,9 @@ export const RecipeFormDetailed = ({
 						) : (
 							<Cloud className='size-4' />
 						)}
-						{isSaving ? (savingLabel ?? t('formSaving')) : (saveDraftLabel ?? t('formSaveToCloud'))}
+						{isSaving
+							? (savingLabel ?? t('formSaving'))
+							: (saveDraftLabel ?? t('formSaveToCloud'))}
 						{!isSaving && (
 							<kbd className='ml-1 hidden rounded bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand/70 sm:inline-block'>
 								{modKey}+S
@@ -1357,7 +1373,9 @@ export const RecipeFormDetailed = ({
 							) : (
 								<Send className='size-4' />
 							)}
-							{isSubmitting ? (submittingLabel ?? t('formProcessing')) : (submitLabel ?? t('formReviewXp'))}
+							{isSubmitting
+								? (submittingLabel ?? t('formProcessing'))
+								: (submitLabel ?? t('formReviewXp'))}
 							{!isSubmitting && (
 								<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-medium text-white/80 sm:inline-block'>
 									{modKey}+↵

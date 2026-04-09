@@ -1,5 +1,6 @@
 'use client'
 import { useTranslations } from 'next-intl'
+import { formatShortTimeAgo } from '@/lib/utils'
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
@@ -28,7 +29,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem, BUTTON_SUBTLE_TAP, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+	BUTTON_SUBTLE_TAP,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 import {
 	getNotifications,
 	markAllNotificationsRead,
@@ -77,20 +85,33 @@ interface SocialNotification {
 // HELPERS
 // ============================================
 
-const formatTimeAgo = (date: Date): string => {
-	const now = new Date()
-	const diffMs = now.getTime() - date.getTime()
-	const diffMins = Math.floor(diffMs / 60000)
-	const diffHours = Math.floor(diffMs / 3600000)
-	const diffDays = Math.floor(diffMs / 86400000)
+// Parse structured values from content string when data field is missing
+function parseXpFromContent(content?: string): { xp: number; recipe: string } {
+	if (!content) return { xp: 0, recipe: 'Recipe' }
+	const xpMatch = content.match(/(\d+)\s*XP/i)
+	const recipeMatch = content.match(/completing\s+(.+?)(?:[!.]|$)/i)
+	return {
+		xp: xpMatch ? parseInt(xpMatch[1], 10) : 0,
+		recipe: recipeMatch ? recipeMatch[1].trim().replace(/!$/, '') : 'Recipe',
+	}
+}
 
-	if (diffMins < 1) return 'Just now'
-	if (diffMins < 60) return `${diffMins}m ago`
-	if (diffHours < 24) return `${diffHours}h ago`
-	if (diffDays === 1) return 'Yesterday'
-	if (diffDays < 7) return `${diffDays}d ago`
-	if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+function parseLevelFromContent(content?: string): number | undefined {
+	if (!content) return undefined
+	const m = content.match(/Level\s+(\d+)/i)
+	return m ? parseInt(m[1], 10) : undefined
+}
+
+function parseStreakFromContent(content?: string): number {
+	if (!content) return 0
+	const m = content.match(/(\d+)[- ]day/i)
+	return m ? parseInt(m[1], 10) : 0
+}
+
+function parseDaysFromContent(content?: string): number {
+	if (!content) return 0
+	const m = content.match(/(\d+)\s*days?\s*(?:remaining|left)/i)
+	return m ? parseInt(m[1], 10) : 0
 }
 
 // Transform API notification to gamified format
@@ -101,26 +122,31 @@ const transformToGamifiedNotification = (
 	const timestamp = new Date(notif.createdAt)
 
 	switch (notif.type) {
-		case 'XP_AWARDED':
+		case 'XP_AWARDED': {
+			const parsed = parseXpFromContent(notif.content)
 			return {
 				id: notif.id,
 				type: 'xp_awarded',
-				recipeName: (data.recipeName as string) || 'Recipe',
-				xpAmount: (data.xpAmount as number) || 0,
+				recipeName: (data.recipeName as string) || parsed.recipe,
+				xpAmount: (data.xpAmount as number) || parsed.xp,
 				pendingXp: (data.pendingXp as number) || 0,
 				timestamp,
 				isRead: notif.isRead,
 			}
-		case 'LEVEL_UP':
+		}
+		case 'LEVEL_UP': {
+			const parsedLevel =
+				(data.newLevel as number) ?? parseLevelFromContent(notif.content)
 			return {
 				id: notif.id,
 				type: 'level_up',
-				newLevel: (data.newLevel as number) ?? undefined,
+				newLevel: parsedLevel,
 				newGoalXp: (data.newGoalXp as number) ?? undefined,
 				recipesToNextLevel: (data.recipesToNextLevel as number) ?? undefined,
 				timestamp,
 				isRead: notif.isRead,
 			}
+		}
 		case 'BADGE_EARNED':
 			return {
 				id: notif.id,
@@ -152,25 +178,31 @@ const transformToGamifiedNotification = (
 			return {
 				id: notif.id,
 				type: 'streak_warning',
-				streakCount: (data.streakCount as number) || 0,
+				streakCount:
+					(data.streakCount as number) || parseStreakFromContent(notif.content),
 				hoursRemaining: (data.hoursRemaining as number) || 0,
 				timestamp,
 				isRead: notif.isRead,
 			}
-		case 'POST_DEADLINE':
+		case 'POST_DEADLINE': {
+			const days =
+				(data.daysRemaining as number) || parseDaysFromContent(notif.content)
 			return {
 				id: notif.id,
-				type: (data.daysRemaining as number) <= 1 ? 'post_deadline_urgent' : 'post_deadline',
+				type: days <= 1 ? 'post_deadline_urgent' : 'post_deadline',
 				recipeName: (data.recipeName as string) || 'Recipe',
-				daysRemaining: (data.daysRemaining as number) || 0,
+				daysRemaining: days,
 				pendingXp: (data.pendingXp as number) || 0,
-				...(((data.daysRemaining as number) <= 1) ? {
-					originalXp: (data.originalXp as number) || 0,
-					decayPercent: (data.decayPercent as number) || 0,
-				} : {}),
+				...(days <= 1
+					? {
+							originalXp: (data.originalXp as number) || 0,
+							decayPercent: (data.decayPercent as number) || 0,
+						}
+					: {}),
 				timestamp,
 				isRead: notif.isRead,
 			} as GamifiedNotification
+		}
 		case 'CHALLENGE_AVAILABLE':
 		case 'CHALLENGE_REMINDER':
 			return {
@@ -187,7 +219,10 @@ const transformToGamifiedNotification = (
 			return {
 				id: notif.id,
 				type: 'weekend_nudge',
-				content: notif.content || (data.content as string) || 'It\'s the weekend — perfect time to try a new recipe!',
+				content:
+					notif.content ||
+					(data.content as string) ||
+					"It's the weekend — perfect time to try a new recipe!",
 				timestamp,
 				isRead: notif.isRead,
 			}
@@ -195,7 +230,10 @@ const transformToGamifiedNotification = (
 			return {
 				id: notif.id,
 				type: 'pantry_expiring',
-				content: notif.content || (data.content as string) || 'Some ingredients are expiring soon',
+				content:
+					notif.content ||
+					(data.content as string) ||
+					'Some ingredients are expiring soon',
 				daysRemaining: (data.daysRemaining as number) || 3,
 				timestamp,
 				isRead: notif.isRead,
@@ -255,7 +293,7 @@ const transformToSocialNotification = (
 			notif.targetEntityId || (data.targetEntityId as string) || undefined,
 		targetEntityUrl:
 			notif.targetEntityUrl || (data.targetEntityUrl as string) || undefined,
-		time: formatTimeAgo(timestamp),
+		time: formatShortTimeAgo(timestamp),
 		read: notif.isRead,
 		createdAt: timestamp,
 	}
@@ -322,13 +360,13 @@ const FilterTabs = ({
 	]
 
 	return (
-		<div className='flex gap-2 overflow-x-auto pb-2'>
+		<div className='flex gap-2 overflow-x-auto pb-2 pr-1 scrollbar-hide'>
 			{filters.map(filter => {
 				const count = counts[filter.id]
 				const Icon = filter.icon
 				const isActive = activeFilter === filter.id
 
-					return (
+				return (
 					<motion.button
 						type='button'
 						key={filter.id}
@@ -532,8 +570,8 @@ export default function NotificationsPage() {
 							if (socialNotif) {
 								social.push(socialNotif)
 							} else {
-							// Unknown notification type — skip rather than show broken UI
-							logDevError(`Unhandled notification type: ${notif.type}`, notif)
+								// Unknown notification type — skip rather than show broken UI
+								logDevError(`Unhandled notification type: ${notif.type}`, notif)
 							}
 						}
 					})
@@ -680,14 +718,14 @@ export default function NotificationsPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='lg'>
-			{/* Header - PRIMARY page (in LeftSidebar), no back button */}
-			<PageHeader
-				icon={Bell}
-				title={t('title')}
-				subtitle={t('subtitle')}
-				gradient="blue"
-				marginBottom="md"
-				rightAction={
+				{/* Header - PRIMARY page (in LeftSidebar), no back button */}
+				<PageHeader
+					icon={Bell}
+					title={t('title')}
+					subtitle={t('subtitle')}
+					gradient='blue'
+					marginBottom='md'
+					rightAction={
 						counts.unread > 0 ? (
 							<Button
 								variant='ghost'
@@ -782,14 +820,16 @@ export default function NotificationsPage() {
 									// Add callbacks based on notification type
 									const extraProps: Record<string, unknown> = {}
 									if (notif.type === 'xp_awarded') {
-										extraProps.onPost = () => startNavigationTransition(() => {
-											router.push('/create')
-										})
+										extraProps.onPost = () =>
+											startNavigationTransition(() => {
+												router.push('/create')
+											})
 									}
 									if (notif.type === 'streak_warning') {
-										extraProps.onFindRecipe = () => startNavigationTransition(() => {
-											router.push('/explore')
-										})
+										extraProps.onFindRecipe = () =>
+											startNavigationTransition(() => {
+												router.push('/explore')
+											})
 									}
 									return (
 										<NotificationItemGamified

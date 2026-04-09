@@ -192,9 +192,7 @@ export default function PremiumUpgradeCard() {
 			if (response.success && response.data) {
 				setSubscription(response.data)
 				setShowCancelConfirm(false)
-				toast.success(
-					"Subscription cancelled. You'll retain access until the end of your billing period.",
-				)
+				toast.success(t('toastCancelled'))
 			}
 		} catch {
 			toast.error(t('toastCancelFailed'))
@@ -227,7 +225,7 @@ export default function PremiumUpgradeCard() {
 				<AlertTriangle className='size-8 text-text-muted' />
 				<p className='text-text-secondary'>{error}</p>
 				<Button variant='outline' onClick={fetchSubscription}>
-					Try Again
+					{t('tryAgain')}
 				</Button>
 			</div>
 		)
@@ -272,7 +270,11 @@ export default function PremiumUpgradeCard() {
 								? isTrialActive
 									? t('statusTrialActive')
 									: cancelledAtPeriodEnd
-										? t('statusCancelled', { date: subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : t('endOfPeriod') })
+										? t('statusCancelled', {
+												date: subscription?.endDate
+													? new Date(subscription.endDate).toLocaleDateString()
+													: t('endOfPeriod'),
+											})
 										: t('statusActive')
 								: t('statusFree')}
 						</p>
@@ -380,9 +382,7 @@ export default function PremiumUpgradeCard() {
 							</Button>
 						)}
 						<p className='text-center text-xs text-text-muted'>
-							{trialUsed
-								? t('trialUsedNote')
-								: t('trialNote')}
+							{trialUsed ? t('trialUsedNote') : t('trialNote')}
 						</p>
 					</>
 				)}
@@ -407,10 +407,10 @@ export default function PremiumUpgradeCard() {
 									className='overflow-hidden rounded-lg border border-error/20 bg-error/5 p-4'
 								>
 									<p className='text-sm font-medium text-error'>
-									{t('cancelConfirmTitle')}
-								</p>
-								<p className='mt-1 text-xs text-error/70'>
-									{t('cancelConfirmBody')}
+										{t('cancelConfirmTitle')}
+									</p>
+									<p className='mt-1 text-xs text-error/70'>
+										{t('cancelConfirmBody')}
 									</p>
 									<div className='mt-3 flex gap-2'>
 										<Button
@@ -440,7 +440,11 @@ export default function PremiumUpgradeCard() {
 
 				{isPremium && cancelledAtPeriodEnd && (
 					<p className='text-center text-sm text-warning'>
-						{t('cancelledActiveNote', { date: subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : t('endOfPeriod') })}
+						{t('cancelledActiveNote', {
+							date: subscription?.endDate
+								? new Date(subscription.endDate).toLocaleDateString()
+								: t('endOfPeriod'),
+						})}
 					</p>
 				)}
 			</motion.div>

@@ -19,6 +19,7 @@ import {
 	MessageCircle,
 	Settings,
 	X,
+	LogIn,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -29,6 +30,7 @@ import {
 } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { useTranslations } from '@/i18n/hooks'
+import { useAuth } from '@/hooks/useAuth'
 
 interface NavItem {
 	href: string
@@ -70,6 +72,26 @@ const navItems: NavItem[] = [
 	},
 ]
 
+// Guest bottom nav: only public routes + sign-in CTA
+const guestNavItems: NavItem[] = [
+	{
+		href: '/explore',
+		icon: Compass,
+		labelKey: 'explore',
+	},
+	{
+		href: '/community',
+		icon: Users,
+		labelKey: 'community',
+	},
+	{
+		href: '/auth/sign-up',
+		icon: LogIn,
+		labelKey: 'getStarted',
+		isCreate: true, // Center elevated button treatment
+	},
+]
+
 const moreMenuItems: NavItem[] = [
 	{ href: '/challenges', icon: Target, labelKey: 'challenges' },
 	{ href: '/community', icon: Users, labelKey: 'community' },
@@ -86,6 +108,10 @@ export const MobileBottomNav = () => {
 	const router = useRouter()
 	const [showMore, setShowMore] = useState(false)
 	const t = useTranslations('nav')
+	const { isAuthenticated } = useAuth()
+
+	// Use different nav items for guests vs authenticated users
+	const activeNavItems = isAuthenticated ? navItems : guestNavItems
 
 	const isActive = (href: string) => {
 		if (href === '/dashboard') return pathname === '/dashboard'
@@ -103,7 +129,7 @@ export const MobileBottomNav = () => {
 				className='fixed bottom-0 left-0 right-0 z-sticky flex h-18 items-center justify-around border-t border-border-subtle bg-bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'
 				aria-label={t('ariaMobileNavigation')}
 			>
-				{navItems.map(item => {
+				{activeNavItems.map(item => {
 					const Icon = item.icon
 					const active = isActive(item.href)
 					const label = t(item.labelKey)
@@ -164,38 +190,40 @@ export const MobileBottomNav = () => {
 					)
 				})}
 
-				{/* More button */}
-				<button
-					type='button'
-					onClick={() => setShowMore(true)}
-					className={cn(
-						'group relative flex flex-1 max-w-20 flex-col items-center justify-center gap-1 rounded-radius px-3 py-2',
-						isMoreActive ? 'text-brand' : 'text-text-secondary',
-					)}
-				>
-					<motion.div
-						className='absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand'
-						initial={false}
-						animate={{
-							scale: isMoreActive ? 1 : 0,
-							opacity: isMoreActive ? 1 : 0,
-						}}
-						transition={TRANSITION_SPRING}
-					/>
-					<motion.div
-						whileHover={ICON_BUTTON_HOVER}
-						whileTap={ICON_BUTTON_TAP}
-						transition={TRANSITION_SPRING}
+				{/* More button — only for authenticated users (guests have minimal nav) */}
+				{isAuthenticated && (
+					<button
+						type='button'
+						onClick={() => setShowMore(true)}
+						className={cn(
+							'group relative flex flex-1 max-w-20 flex-col items-center justify-center gap-1 rounded-radius px-3 py-2',
+							isMoreActive ? 'text-brand' : 'text-text-secondary',
+						)}
 					>
-						<Menu
-							className={cn(
-								'size-6 transition-all duration-300',
-								isMoreActive && 'drop-shadow-glow',
-							)}
+						<motion.div
+							className='absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand'
+							initial={false}
+							animate={{
+								scale: isMoreActive ? 1 : 0,
+								opacity: isMoreActive ? 1 : 0,
+							}}
+							transition={TRANSITION_SPRING}
 						/>
-					</motion.div>
-					<span className='text-xs font-semibold'>{t('more')}</span>
-				</button>
+						<motion.div
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+						>
+							<Menu
+								className={cn(
+									'size-6 transition-all duration-300',
+									isMoreActive && 'drop-shadow-glow',
+								)}
+							/>
+						</motion.div>
+						<span className='text-xs font-semibold'>{t('more')}</span>
+					</button>
+				)}
 			</nav>
 
 			{/* More drawer */}
@@ -251,7 +279,9 @@ export const MobileBottomNav = () => {
 											)}
 										>
 											<Icon className='size-6' />
-											<span className='text-xs font-medium'>{t(item.labelKey)}</span>
+											<span className='text-xs font-medium'>
+												{t(item.labelKey)}
+											</span>
 										</button>
 									)
 								})}

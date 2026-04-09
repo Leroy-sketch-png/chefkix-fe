@@ -151,10 +151,7 @@ export const CreatePostForm = ({
 				diag.warn('social', 'POST_BLOCKED_BY_MODERATION', {
 					reason: moderationResult.data.reason,
 				})
-				toast.error(
-					moderationResult.data.reason ||
-						t('createPostBlocked'),
-				)
+				toast.error(moderationResult.data.reason || t('createPostBlocked'))
 				setIsSubmitting(false)
 				return
 			}
@@ -162,10 +159,7 @@ export const CreatePostForm = ({
 				diag.warn('social', 'POST_FLAGGED_BY_MODERATION', {
 					reason: moderationResult.data.reason,
 				})
-				toast.warning(
-					moderationResult.data.reason ||
-						t('createPostFlagged'),
-				)
+				toast.warning(moderationResult.data.reason || t('createPostFlagged'))
 			}
 		}
 
@@ -248,7 +242,7 @@ export const CreatePostForm = ({
 							{currentUser?.displayName || 'You'}
 						</div>
 						<div className='text-sm leading-normal text-text-secondary'>
-						{t('createPostSubtitle')}
+							{t('createPostSubtitle')}
 						</div>
 					</div>
 				</div>
@@ -294,7 +288,7 @@ export const CreatePostForm = ({
 							>
 								{previewUrls.map((url, index) => (
 									<motion.div
-										key={index}
+										key={url}
 										initial={{ opacity: 0, scale: 0.8 }}
 										animate={{ opacity: 1, scale: 1 }}
 										exit={{ opacity: 0, scale: 0.8 }}
@@ -399,9 +393,7 @@ export const CreatePostForm = ({
 							onClick={() => setShowAdvanced(!showAdvanced)}
 							aria-label={t('createPostToggleVideo')}
 							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
-								showAdvanced
-									? 'bg-brand/10 text-brand'
-									: 'text-text-secondary'
+								showAdvanced ? 'bg-brand/10 text-brand' : 'text-text-secondary'
 							}`}
 						>
 							<Video className='mx-auto size-5' />
@@ -412,9 +404,7 @@ export const CreatePostForm = ({
 							onClick={() => setShowAdvanced(!showAdvanced)}
 							aria-label={t('createPostToggleTags')}
 							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
-								showAdvanced
-									? 'bg-brand/10 text-brand'
-									: 'text-text-secondary'
+								showAdvanced ? 'bg-brand/10 text-brand' : 'text-text-secondary'
 							}`}
 						>
 							<Tag className='mx-auto size-5' />
@@ -440,7 +430,7 @@ export const CreatePostForm = ({
 							</TooltipTrigger>
 							{!content.trim() && (
 								<TooltipContent>
-								<p>{t('createPostWriteSomething')}</p>
+									<p>{t('createPostWriteSomething')}</p>
 								</TooltipContent>
 							)}
 						</Tooltip>

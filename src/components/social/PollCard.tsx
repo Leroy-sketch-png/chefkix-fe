@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Post } from '@/lib/types'
 import { votePoll } from '@/services/post'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { BarChart3 } from 'lucide-react'
@@ -11,7 +12,12 @@ import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
-import { TRANSITION_SPRING, CARD_FEED_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_FEED_HOVER,
+	BUTTON_SUBTLE_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 
@@ -27,6 +33,7 @@ export const PollCard = ({
 	currentUserId,
 }: PollCardProps) => {
 	const t = useTranslations('social')
+	const requireAuth = useAuthGate()
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isVoting, setIsVoting] = useState(false)
 
@@ -34,6 +41,7 @@ export const PollCard = ({
 
 	const handleVote = useCallback(
 		async (option: 'A' | 'B') => {
+			if (!requireAuth(t('authActionVotePoll'))) return
 			if (isVoting || currentUserId === post.userId || !poll) return
 			setIsVoting(true)
 			try {
@@ -60,7 +68,7 @@ export const PollCard = ({
 				setIsVoting(false)
 			}
 		},
-		[isVoting, currentUserId, post, poll, onUpdate, t],
+		[requireAuth, isVoting, currentUserId, post, poll, onUpdate, t],
 	)
 
 	if (!poll) return null
@@ -88,7 +96,7 @@ export const PollCard = ({
 			{/* Header */}
 			<div className='mb-3 flex items-center gap-3'>
 				<UserHoverCard userId={post.userId}>
-					<Link href={`/profile/${post.userId}`}>
+					<Link href={`/${post.userId}`}>
 						<Avatar className='size-10 ring-2 ring-border-subtle'>
 							<AvatarImage src={post.avatarUrl || undefined} />
 							<AvatarFallback className='bg-bg-elevated text-text-muted'>
@@ -100,7 +108,7 @@ export const PollCard = ({
 				<div className='flex-1'>
 					<UserHoverCard userId={post.userId}>
 						<Link
-							href={`/profile/${post.userId}`}
+							href={`/${post.userId}`}
 							className='font-medium text-text hover:text-brand transition-colors'
 						>
 							{post.displayName || 'Chef'}

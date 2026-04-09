@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useRef, useCallback, useTransition } from 'react'
 import { motion } from 'framer-motion'
@@ -22,7 +22,10 @@ import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { FeedModeTabBar, type FeedMode } from '@/components/shared/FeedTabBar'
 import Link from 'next/link'
-import { StaggerContainer, staggerItemVariants } from '@/components/ui/stagger-animation'
+import {
+	StaggerContainer,
+	staggerItemVariants,
+} from '@/components/ui/stagger-animation'
 import {
 	Users,
 	Users2,
@@ -236,9 +239,7 @@ export default function DashboardPage() {
 					const recovered = await retryPendingXpSync()
 					if (cancelled) return
 					if (!recovered) {
-						toast.warning(
-							'Your post was shared, but XP is still syncing. You can retry from the banner on this page.',
-						)
+						toast.warning(t('toastXpStillSyncing'))
 					}
 				}
 
@@ -349,7 +350,7 @@ export default function DashboardPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [feedMode, retryPendingXpSync, retryCount, feedRefreshKey])
+	}, [feedMode, retryPendingXpSync, retryCount, feedRefreshKey, t])
 
 	const handleRetryPendingXpSync = async () => {
 		if (isRetryingPendingXp) return
@@ -475,13 +476,12 @@ export default function DashboardPage() {
 
 	// Interest picker for first-time users
 	const showInterestPicker =
-		!isLoading &&
-		user &&
-		(!user.preferences || user.preferences.length === 0)
+		!isLoading && user && (!user.preferences || user.preferences.length === 0)
 	const [interestPickerDismissed, setInterestPickerDismissed] = useState(false)
 
 	// Progressive disclosure: hide empty widgets for brand-new users
-	const isNewUser = stats && (stats.currentXP ?? 0) === 0 && (stats.recipeCount ?? 0) === 0
+	const isNewUser =
+		stats && (stats.currentXP ?? 0) === 0 && (stats.recipeCount ?? 0) === 0
 
 	return (
 		<>
@@ -509,384 +509,388 @@ export default function DashboardPage() {
 					/>
 				)}
 			</AnimatePresence>
-		<PageTransition>
-			<PageContainer maxWidth='lg'>
-				{/* Tonight's Pick — hero recipe suggestion */}
-				<TonightsPick className='mb-6' />
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<PageHeader
+						icon={Home}
+						title={t('title')}
+						subtitle={t('subtitle')}
+						gradient='orange'
+						marginBottom='md'
+					/>
+					{/* Tonight's Pick Ã¢â‚¬â€ hero recipe suggestion */}
+					<TonightsPick className='mb-6' />
 
-				{/* Seasonal Event Banner — only shown for users with some activity */}
-				{!isNewUser && <SeasonalBanner className='mb-6' />}
+					{/* Seasonal Event Banner Ã¢â‚¬â€ only shown for users with some activity */}
+					{!isNewUser && <SeasonalBanner className='mb-6' />}
 
-				{/* Active Challenges Widget — only shown for users with some activity */}
-				{!isNewUser && <ActiveChallengesWidget className='mb-6' />}
+					{/* Active Challenges Widget Ã¢â‚¬â€ only shown for users with some activity */}
+					{!isNewUser && <ActiveChallengesWidget className='mb-6' />}
 
-				{/* Onboarding Card — welcome for new users, profile nudge for incomplete profiles */}
-				{isNewUser ? (
-					<motion.div
-						initial={{ opacity: 0, y: 12 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={TRANSITION_SPRING}
-						className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
-					>
-						<h2 className='text-lg font-bold text-text'>
-							Welcome to ChefKix,{' '}
-							{user?.displayName || user?.firstName || user?.username}!
-						</h2>
-						<p className='mt-1 text-sm text-text-secondary'>
-							Here&apos;s how to get the most out of ChefKix:
-						</p>
-						<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
-							<Link
-								href='/explore'
-								className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-							>
-								<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 transition-colors group-hover:bg-brand/20'>
-									<BookOpen className='size-5 text-brand' />
-								</div>
-								<div>
-									<span className='text-sm font-medium text-text'>
-										Browse recipes
-									</span>
-									<p className='text-xs text-text-muted'>
-										Hundreds of dishes to discover
-									</p>
-								</div>
-							</Link>
-							<Link
-								href='/explore?difficulty=Beginner'
-								className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-							>
-								<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
-									<ChefHat className='size-5 text-xp' />
-								</div>
-								<div>
-									<span className='text-sm font-medium text-text'>
-										Try your first recipe
-									</span>
-									<p className='text-xs text-text-muted'>
-										Easy recipes to get started
-									</p>
-								</div>
-							</Link>
-							<Link
-								href='/community'
-								className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-							>
-								<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 transition-colors group-hover:bg-streak/20'>
-									<Users className='size-5 text-streak' />
-								</div>
-								<div>
-									<span className='text-sm font-medium text-text'>
-										Join the community
-									</span>
-									<p className='text-xs text-text-muted'>
-										Follow chefs you love
-									</p>
-								</div>
-							</Link>
-						</div>
-						{/* Profile completion nudge — inline for new users */}
-						{user &&
-							(!user.avatarUrl ||
-								user.avatarUrl === '/placeholder-avatar.svg' ||
-								!user.bio) && (
-								<div className='mt-4 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-3'>
-									<span className='text-xs font-medium text-text-muted'>
-										Quick wins:
-									</span>
-									{(!user.avatarUrl ||
-										user.avatarUrl === '/placeholder-avatar.svg') && (
-										<Link
-											href='/settings'
-											className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-										>
-											<Camera className='size-3.5' />
-											Add a photo
-										</Link>
-									)}
-									{!user.bio && (
-										<Link
-											href='/settings'
-											className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-										>
-											<PenLine className='size-3.5' />
-											Write a bio
-										</Link>
-									)}
-								</div>
-							)}
-					</motion.div>
-				) : (
-					/* Returning users — compact profile completion nudge only */
-					user &&
-					(!user.avatarUrl ||
-						user.avatarUrl === '/placeholder-avatar.svg' ||
-						!user.bio) && (
+					{/* Onboarding Card Ã¢â‚¬â€ welcome for new users, profile nudge for incomplete profiles */}
+					{isNewUser ? (
 						<motion.div
 							initial={{ opacity: 0, y: 12 }}
 							animate={{ opacity: 1, y: 0 }}
-							transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-							className='mb-6 flex flex-wrap items-center gap-3 rounded-radius border border-border-subtle bg-bg-card px-4 py-3 shadow-card'
+							transition={TRANSITION_SPRING}
+							className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
 						>
-							<span className='text-xs font-semibold text-text-secondary'>
-								Profiles with photos get 5x more followers
-							</span>
-							{(!user.avatarUrl ||
-								user.avatarUrl === '/placeholder-avatar.svg') && (
-								<Link
-									href='/settings'
-									className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-								>
-									<Camera className='size-3.5' />
-									Add a photo
-								</Link>
-							)}
-							{!user.bio && (
-								<Link
-									href='/settings'
-									className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-								>
-									<PenLine className='size-3.5' />
-									Write a bio
-								</Link>
-							)}
-						</motion.div>
-					)
-				)}
-
-				{hasPendingXpSync && (
-					<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
-						<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-							<div>
-								<p className='text-sm font-semibold text-brand'>
-									Syncing your XP...
-								</p>
-								<p className='text-sm text-text-secondary'>
-									Your post is published! XP is being confirmed — this usually
-									takes a few seconds.
-								</p>
-							</div>
-							<Button
-								variant='outline'
-								size='sm'
-								onClick={handleRetryPendingXpSync}
-								disabled={isRetryingPendingXp}
-								className='sm:w-auto'
-							>
-								{isRetryingPendingXp ? 'Syncing...' : 'Sync Now'}
-							</Button>
-						</div>
-					</div>
-				)}
-				{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
-				<ResumeCookingBanner className='mb-6' />
-				{/* Streak Risk Banner - only shown for users with an active streak at risk */}
-				{!isNewUser && hasStreakAtRisk && showStreakBanner && (
-					<StreakRiskBanner
-						currentStreak={stats?.streakCount ?? 0}
-						timeRemaining={{ hours: hoursUntilBreak, minutes: 0 }}
-						isUrgent={isUrgent}
-						onQuickCook={() => startNavigationTransition(() => {
-							router.push('/explore')
-						})}
-						onDismiss={() => setShowStreakBanner(false)}
-						className='mb-6'
-					/>
-				)}
-				{/* Pending Posts Section - only for users who have cooked */}
-				{!isNewUser && pendingSessions.length > 0 && (
-					<PendingPostsSection
-						sessions={pendingSessions}
-						onPost={handlePostFromPending}
-						onDismiss={handleDismissPending}
-						onViewAll={() => startNavigationTransition(() => {
-							router.push(`/${user?.userId}?tab=cooking`)
-						})}
-						className='mb-6'
-					/>
-				)}
-				<PageHeader
-					icon={Home}
-					title={t('title')}
-					subtitle={t('subtitle')}
-					gradient="orange"
-					marginBottom="md"
-				/>
-				{/* Feed Mode Tabs */}
-				<FeedModeTabBar
-					activeMode={feedMode}
-					onModeChange={setFeedMode}
-					className="mb-6"
-				/>
-				{/* Since Last Visit Summary - compact recap for returning users */}
-				{!isNewUser && <SinceLastVisitCard className='mb-6' />}
-				{/* Create Post Form */}
-				<div className='mb-4 md:mb-6'>
-					<CreatePostForm
-						onPostCreated={handlePostCreated}
-						currentUser={
-							user
-								? {
-										userId: user.userId ?? '',
-										displayName: user.displayName || user.username || 'User',
-										avatarUrl: user.avatarUrl,
-									}
-								: undefined
-						}
-					/>
-				</div>
-				{/* Cold-Start Experience — wraps feed with curated categories for new users */}
-				<ColdStartExperience
-					isAuthenticated={!!user}
-					onColdStartComplete={() => setFeedRefreshKey(k => k + 1)}
-				>
-				{/* Content */}
-				{isLoading && (
-					<div className='space-y-4 md:space-y-6'>
-						<PostCardSkeleton count={3} showImages={false} />
-					</div>
-				)}
-				{error && (
-					<ErrorState
-						title={t('failedToLoad')}
-						message={error}
-						onRetry={() => {
-							setError(null)
-							setRetryCount(c => c + 1)
-						}}
-					/>
-				)}
-				{/* Cold-start banner: shown when forYou is empty but trending has posts */}
-				{!isLoading &&
-					!error &&
-					isColdStartFallback &&
-					feedMode === 'forYou' && (
-						<div className='mb-4 flex items-center gap-3 rounded-radius border border-brand/20 bg-brand/5 p-3 text-sm text-text-secondary'>
-							<TrendingUp className='size-4 shrink-0 text-brand' />
-							<span>
-								{t.rich('coldStartBanner', {
-									strong: (chunks) => <strong className='text-text'>{chunks}</strong>,
+							<h2 className='text-lg font-bold text-text'>
+								{t('obWelcome', {
+									name: user?.displayName || user?.firstName || user?.username,
 								})}
-							</span>
-						</div>
-					)}
-				{!isLoading &&
-					!error &&
-					filteredPosts.length === 0 &&
-					feedMode === 'following' && (
-						<EmptyStateGamified
-							variant='feed'
-						title={t('emptyFollowing')}
-						description={t('emptyFollowingDesc')}
-						primaryAction={{
-							label: t('discoverPeople'),
-								href: '/community',
-								icon: <Users className='size-4' />,
-							}}
-						/>
-					)}
-				{!isLoading &&
-					!error &&
-					filteredPosts.length === 0 &&
-					feedMode === 'forYou' && (
-						<EmptyStateGamified
-							variant='feed'
-						title={t('emptyForYou')}
-						description={t('emptyForYouDesc')}
-						primaryAction={{
-							label: t('exploreTrending'),
-								href: '/explore',
-								icon: <TrendingUp className='size-4' />,
-							}}
-						/>
-					)}
-				{!isLoading &&
-					!error &&
-					filteredPosts.length === 0 &&
-					feedMode !== 'following' &&
-					feedMode !== 'forYou' && (
-						<EmptyStateGamified
-							variant='feed'
-						title={t('emptyFeed')}
-						description={t('emptyFeedDesc')}
-						primaryAction={{
-							label: t('discoverPeople'),
-								href: '/community',
-								icon: <Users className='size-4' />,
-							}}
-							secondaryActions={[
-								{
-									label: t('explorePosts'),
-									href: '/explore',
-									icon: <MessageSquare className='size-4' />,
-								},
-							]}
-						/>
-					)}
-				{!isLoading && !error && filteredPosts.length > 0 && (
-					<>
-						<StaggerContainer className='space-y-4 md:space-y-6'>
-							<AnimatePresence mode='popLayout'>
-								{filteredPosts.map((post, i) => (
-								<motion.div
-									key={post.id}
-									variants={staggerItemVariants}
-									exit={{ opacity: 0, y: -10 }}
-									layout
-										data-post-index={i}
-										className={cn(
-											'rounded-2xl transition-shadow',
-											focusedPostIndex === i &&
-												'ring-2 ring-brand/50 shadow-warm',
-										)}
-									>
-										{post.postType === 'POLL' ? (
-											<PollCard
-												post={post}
-												onUpdate={handlePostUpdate}
-												currentUserId={user?.userId}
-											/>
-										) : post.postType === 'RECENT_COOK' ? (
-											<RecentCookCard post={post} />
-										) : (
-											<PostCard
-												post={post}
-												onUpdate={handlePostUpdate}
-												onDelete={handlePostDelete}
-												currentUserId={user?.userId}
-											/>
-										)}
-									</motion.div>
-								))}
-							</AnimatePresence>
-						</StaggerContainer>
+							</h2>
 
-						{/* Infinite scroll trigger */}
-						<div ref={loadMoreRef} className='flex justify-center py-8'>
-							{isLoadingMore && (
-								<motion.div
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									className='flex items-center gap-2 text-text-secondary'
+							<p className='mt-1 text-sm text-text-secondary'>{t('obHowTo')}</p>
+							<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+								<Link
+									href='/explore'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
 								>
-									<Loader2 className='size-5 animate-spin text-brand' />
-									<span className='text-sm font-medium'>
-									{t('loadingMore')}
-									</span>
-								</motion.div>
-							)}
-							{!hasMore && filteredPosts.length > POSTS_PER_PAGE && (
-								<p className='text-sm text-text-muted'>
-									{t('endOfFeed')}
-								</p>
-							)}
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 transition-colors group-hover:bg-brand/20'>
+										<BookOpen className='size-5 text-brand' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											{t('obBrowse')}
+										</span>
+										<p className='text-xs text-text-muted'>
+											{t('obBrowseDesc')}
+										</p>
+									</div>
+								</Link>
+								<Link
+									href='/explore?difficulty=Beginner'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
+										<ChefHat className='size-5 text-xp' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											{t('obTryFirst')}
+										</span>
+										<p className='text-xs text-text-muted'>
+											{t('obTryFirstDesc')}
+										</p>
+									</div>
+								</Link>
+								<Link
+									href='/community'
+									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
+								>
+									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 transition-colors group-hover:bg-streak/20'>
+										<Users className='size-5 text-streak' />
+									</div>
+									<div>
+										<span className='text-sm font-medium text-text'>
+											{t('obJoin')}
+										</span>
+										<p className='text-xs text-text-muted'>{t('obJoinDesc')}</p>
+									</div>
+								</Link>
+							</div>
+							{/* Profile completion nudge Ã¢â‚¬â€ inline for new users */}
+							{user &&
+								(!user.avatarUrl ||
+									user.avatarUrl === '/placeholder-avatar.svg' ||
+									!user.bio) && (
+									<div className='mt-4 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-3'>
+										<span className='text-xs font-medium text-text-muted'>
+											{t('obQuickWins')}
+										</span>
+										{(!user.avatarUrl ||
+											user.avatarUrl === '/placeholder-avatar.svg') && (
+											<Link
+												href='/settings'
+												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+											>
+												<Camera className='size-3.5' />
+
+												{t('obAddPhoto')}
+											</Link>
+										)}
+										{!user.bio && (
+											<Link
+												href='/settings'
+												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+											>
+												<PenLine className='size-3.5' />
+
+												{t('obWriteBio')}
+											</Link>
+										)}
+									</div>
+								)}
+						</motion.div>
+					) : (
+						/* Returning users Ã¢â‚¬â€ compact profile completion nudge only */
+						user &&
+						(!user.avatarUrl ||
+							user.avatarUrl === '/placeholder-avatar.svg' ||
+							!user.bio) && (
+							<motion.div
+								initial={{ opacity: 0, y: 12 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+								className='mb-6 flex flex-wrap items-center gap-3 rounded-radius border border-border-subtle bg-bg-card px-4 py-3 shadow-card'
+							>
+								<span className='text-xs font-semibold text-text-secondary'>
+									{t('obProfileNudge')}
+								</span>
+								{(!user.avatarUrl ||
+									user.avatarUrl === '/placeholder-avatar.svg') && (
+									<Link
+										href='/settings'
+										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+									>
+										<Camera className='size-3.5' />
+
+										{t('obAddPhoto')}
+									</Link>
+								)}
+								{!user.bio && (
+									<Link
+										href='/settings'
+										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+									>
+										<PenLine className='size-3.5' />
+
+										{t('obWriteBio')}
+									</Link>
+								)}
+							</motion.div>
+						)
+					)}
+
+					{hasPendingXpSync && (
+						<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
+							<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+								<div>
+									<p className='text-sm font-semibold text-brand'>
+										{t('xpSyncingTitle')}
+									</p>
+									<p className='text-sm text-text-secondary'>
+										{t('xpConfirmingText')}
+									</p>
+								</div>
+								<Button
+									variant='outline'
+									size='sm'
+									onClick={handleRetryPendingXpSync}
+									disabled={isRetryingPendingXp}
+									className='sm:w-auto'
+								>
+									{isRetryingPendingXp ? t('syncing') : t('syncNow')}
+								</Button>
+							</div>
 						</div>
-					</>
-				)}
-				</ColdStartExperience>
-			</PageContainer>
-			<QuickPostFAB onPostCreated={handlePostCreated} />
-		</PageTransition>
+					)}
+					{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
+					<ResumeCookingBanner className='mb-6' />
+					{/* Streak Risk Banner - only shown for users with an active streak at risk */}
+					{!isNewUser && hasStreakAtRisk && showStreakBanner && (
+						<StreakRiskBanner
+							currentStreak={stats?.streakCount ?? 0}
+							timeRemaining={{ hours: hoursUntilBreak, minutes: 0 }}
+							isUrgent={isUrgent}
+							onQuickCook={() =>
+								startNavigationTransition(() => {
+									router.push('/explore')
+								})
+							}
+							onDismiss={() => setShowStreakBanner(false)}
+							className='mb-6'
+						/>
+					)}
+					{/* Pending Posts Section - only for users who have cooked */}
+					{!isNewUser && pendingSessions.length > 0 && (
+						<PendingPostsSection
+							sessions={pendingSessions}
+							onPost={handlePostFromPending}
+							onDismiss={handleDismissPending}
+							onViewAll={() =>
+								startNavigationTransition(() => {
+									router.push(`/${user?.userId}?tab=cooking`)
+								})
+							}
+							className='mb-6'
+						/>
+					)}
+					<FeedModeTabBar
+						activeMode={feedMode}
+						onModeChange={setFeedMode}
+						className='mb-6'
+					/>
+					{/* Since Last Visit Summary - compact recap for returning users */}
+					{!isNewUser && <SinceLastVisitCard className='mb-6' />}
+					{/* Create Post Form */}
+					<div className='mb-4 md:mb-6'>
+						<CreatePostForm
+							onPostCreated={handlePostCreated}
+							currentUser={
+								user
+									? {
+											userId: user.userId ?? '',
+											displayName: user.displayName || user.username || 'User',
+											avatarUrl: user.avatarUrl,
+										}
+									: undefined
+							}
+						/>
+					</div>
+					{/* Cold-Start Experience Ã¢â‚¬â€ wraps feed with curated categories for new users */}
+					<ColdStartExperience
+						isAuthenticated={!!user}
+						onColdStartComplete={() => setFeedRefreshKey(k => k + 1)}
+					>
+						{/* Content */}
+						{isLoading && (
+							<div className='space-y-4 md:space-y-6'>
+								<PostCardSkeleton count={3} showImages={false} />
+							</div>
+						)}
+						{error && (
+							<ErrorState
+								title={t('failedToLoad')}
+								message={error}
+								onRetry={() => {
+									setError(null)
+									setRetryCount(c => c + 1)
+								}}
+							/>
+						)}
+						{/* Cold-start banner: shown when forYou is empty but trending has posts */}
+						{!isLoading &&
+							!error &&
+							isColdStartFallback &&
+							feedMode === 'forYou' && (
+								<div className='mb-4 flex items-center gap-3 rounded-radius border border-brand/20 bg-brand/5 p-3 text-sm text-text-secondary'>
+									<TrendingUp className='size-4 shrink-0 text-brand' />
+									<span>
+										{t.rich('coldStartBanner', {
+											strong: chunks => (
+												<strong className='text-text'>{chunks}</strong>
+											),
+										})}
+									</span>
+								</div>
+							)}
+						{!isLoading &&
+							!error &&
+							filteredPosts.length === 0 &&
+							feedMode === 'following' && (
+								<EmptyStateGamified
+									variant='feed'
+									title={t('emptyFollowing')}
+									description={t('emptyFollowingDesc')}
+									primaryAction={{
+										label: t('discoverPeople'),
+										href: '/community',
+										icon: <Users className='size-4' />,
+									}}
+								/>
+							)}
+						{!isLoading &&
+							!error &&
+							filteredPosts.length === 0 &&
+							feedMode === 'forYou' && (
+								<EmptyStateGamified
+									variant='feed'
+									title={t('emptyForYou')}
+									description={t('emptyForYouDesc')}
+									primaryAction={{
+										label: t('exploreTrending'),
+										href: '/explore',
+										icon: <TrendingUp className='size-4' />,
+									}}
+								/>
+							)}
+						{!isLoading &&
+							!error &&
+							filteredPosts.length === 0 &&
+							feedMode !== 'following' &&
+							feedMode !== 'forYou' && (
+								<EmptyStateGamified
+									variant='feed'
+									title={t('emptyFeed')}
+									description={t('emptyFeedDesc')}
+									primaryAction={{
+										label: t('discoverPeople'),
+										href: '/community',
+										icon: <Users className='size-4' />,
+									}}
+									secondaryActions={[
+										{
+											label: t('explorePosts'),
+											href: '/explore',
+											icon: <MessageSquare className='size-4' />,
+										},
+									]}
+								/>
+							)}
+						{!isLoading && !error && filteredPosts.length > 0 && (
+							<>
+								<StaggerContainer className='space-y-4 md:space-y-6'>
+									<AnimatePresence mode='popLayout'>
+										{filteredPosts.map((post, i) => (
+											<motion.div
+												key={post.id}
+												variants={staggerItemVariants}
+												exit={{ opacity: 0, y: -10 }}
+												layout
+												data-post-index={i}
+												className={cn(
+													'rounded-2xl transition-shadow',
+													focusedPostIndex === i &&
+														'ring-2 ring-brand/50 shadow-warm',
+												)}
+											>
+												{post.postType === 'POLL' ? (
+													<PollCard
+														post={post}
+														onUpdate={handlePostUpdate}
+														currentUserId={user?.userId}
+													/>
+												) : post.postType === 'RECENT_COOK' ? (
+													<RecentCookCard post={post} />
+												) : (
+													<PostCard
+														post={post}
+														onUpdate={handlePostUpdate}
+														onDelete={handlePostDelete}
+														currentUserId={user?.userId}
+													/>
+												)}
+											</motion.div>
+										))}
+									</AnimatePresence>
+								</StaggerContainer>
+
+								{/* Infinite scroll trigger */}
+								<div ref={loadMoreRef} className='flex justify-center py-8'>
+									{isLoadingMore && (
+										<motion.div
+											initial={{ opacity: 0 }}
+											animate={{ opacity: 1 }}
+											className='flex items-center gap-2 text-text-secondary'
+										>
+											<Loader2 className='size-5 animate-spin text-brand' />
+											<span className='text-sm font-medium'>
+												{t('loadingMore')}
+											</span>
+										</motion.div>
+									)}
+									{!hasMore && filteredPosts.length > POSTS_PER_PAGE && (
+										<p className='text-sm text-text-muted'>{t('endOfFeed')}</p>
+									)}
+								</div>
+							</>
+						)}
+					</ColdStartExperience>
+				</PageContainer>
+				<QuickPostFAB onPostCreated={handlePostCreated} />
+			</PageTransition>
 		</>
 	)
 }

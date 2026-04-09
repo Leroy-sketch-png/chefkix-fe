@@ -27,7 +27,12 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	BUTTON_SUBTLE_TAP,
+	BUTTON_TAP,
+} from '@/lib/motion'
 import {
 	getPantryItems,
 	addPantryItem,
@@ -300,14 +305,19 @@ export default function PantryPage() {
 		}
 	}
 
-	const handleAddToShoppingList = async (recipeId: string, e: React.MouseEvent) => {
+	const handleAddToShoppingList = async (
+		recipeId: string,
+		e: React.SyntheticEvent,
+	) => {
 		e.stopPropagation()
 		if (addingToListId) return
 		setAddingToListId(recipeId)
 		try {
 			const shoppingList = await createFromRecipe({ recipeId })
 			toast.success(t('shoppingListCreated'), {
-				description: t('missingIngredients', { count: shoppingList.totalItems }),
+				description: t('missingIngredients', {
+					count: shoppingList.totalItems,
+				}),
 				action: {
 					label: t('viewShoppingList'),
 					onClick: () => router.push('/shopping-lists'),
@@ -388,8 +398,8 @@ export default function PantryPage() {
 						icon={Package}
 						title={t('title')}
 						subtitle={t('subtitle')}
-						gradient="green"
-						marginBottom="sm"
+						gradient='green'
+						marginBottom='sm'
 						rightAction={
 							<div className='flex items-center gap-2'>
 								<span className='rounded-full bg-bg-elevated px-2.5 py-0.5 text-sm text-text-secondary'>
@@ -428,9 +438,7 @@ export default function PantryPage() {
 						>
 							<AlertTriangle className='size-5 text-warning' />
 							<p className='text-sm text-warning'>
-								<strong>
-									{t('expiringItems', { count: expiringCount })}
-								</strong>{' '}
+								<strong>{t('expiringItems', { count: expiringCount })}</strong>{' '}
 								{t('expiringSoonMessage')}
 								<motion.button
 									type='button'
@@ -614,7 +622,9 @@ export default function PantryPage() {
 							primaryAction={{
 								label: t('addFirstIngredient'),
 								onClick: () => {
-									const input = document.querySelector<HTMLInputElement>('[data-pantry-input]')
+									const input = document.querySelector<HTMLInputElement>(
+										'[data-pantry-input]',
+									)
 									input?.focus()
 								},
 								icon: <Plus className='size-4' />,
@@ -669,7 +679,7 @@ export default function PantryPage() {
 																}))
 															}
 															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none focus:border-brand focus:outline-none'
-														placeholder={t('labelQty')}
+															placeholder={t('labelQty')}
 														/>
 														<input
 															value={editForm.unit ?? ''}
@@ -680,7 +690,7 @@ export default function PantryPage() {
 																}))
 															}
 															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
-														placeholder={t('labelUnit')}
+															placeholder={t('labelUnit')}
 														/>
 														<input
 															type='date'
@@ -693,23 +703,23 @@ export default function PantryPage() {
 															}
 															className='w-36 rounded-md border border-border-subtle bg-bg-card px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
 														/>
-															<motion.button
+														<motion.button
 															type='button'
 															onClick={saveEdit}
-																whileTap={BUTTON_SUBTLE_TAP}
+															whileTap={BUTTON_SUBTLE_TAP}
 															className='rounded-md bg-success/10 p-1.5 text-success hover:bg-success/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 															aria-label={t('saveChanges')}
 														>
 															<Check className='size-4' />
-															</motion.button>
-															<motion.button
+														</motion.button>
+														<motion.button
 															type='button'
 															onClick={() => setEditingId(null)}
-																whileTap={BUTTON_SUBTLE_TAP}
+															whileTap={BUTTON_SUBTLE_TAP}
 															className='rounded-md bg-bg-elevated p-1.5 text-text-secondary hover:bg-bg-elevated/80 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
 															<X className='size-4' />
-															</motion.button>
+														</motion.button>
 													</div>
 												) : (
 													/* ── Normal Row ─────── */
@@ -737,10 +747,12 @@ export default function PantryPage() {
 														)}
 														<span
 															className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-															FRESHNESS_KEYS[item.freshness]?.bg
-														} ${FRESHNESS_KEYS[item.freshness]?.text}`}
-													>
-														{FRESHNESS_KEYS[item.freshness]?.labelKey ? t(FRESHNESS_KEYS[item.freshness].labelKey) : item.freshness}
+																FRESHNESS_KEYS[item.freshness]?.bg
+															} ${FRESHNESS_KEYS[item.freshness]?.text}`}
+														>
+															{FRESHNESS_KEYS[item.freshness]?.labelKey
+																? t(FRESHNESS_KEYS[item.freshness].labelKey)
+																: item.freshness}
 														</span>
 														<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
 															<motion.button
@@ -840,7 +852,9 @@ export default function PantryPage() {
 													</p>
 													<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
 														<span>{match.difficulty}</span>
-														<span>{match.totalTimeMinutes} {t('min')}</span>
+														<span>
+															{match.totalTimeMinutes} {t('min')}
+														</span>
 													</div>
 													<div className='mt-1.5 flex items-center gap-2'>
 														<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
@@ -857,24 +871,31 @@ export default function PantryPage() {
 													</div>
 													{match.expiringIngredientsUsed.length > 0 && (
 														<p className='mt-1 text-xs text-warning'>
-													{t('usesExpiring')}{' '}
+															{t('usesExpiring')}{' '}
 															{match.expiringIngredientsUsed.join(', ')}
 														</p>
 													)}
-												</div>													<span
-														role='button'
-														tabIndex={0}
-														onClick={(e) => handleAddToShoppingList(match.recipeId, e)}
-														onKeyDown={(e) => { if (e.key === 'Enter') handleAddToShoppingList(match.recipeId, e as unknown as React.MouseEvent) }}
-														className='grid size-10 flex-shrink-0 place-items-center rounded-lg border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
-														title={t('addToShoppingList')}
-													>
-														{addingToListId === match.recipeId ? (
-															<Loader2 className='size-4 animate-spin text-text-muted' />
-														) : (
-															<ShoppingCart className='size-4 text-text-secondary' />
-														)}
-													</span>											</motion.button>
+												</div>{' '}
+												<span
+													role='button'
+													tabIndex={0}
+													onClick={e =>
+														handleAddToShoppingList(match.recipeId, e)
+													}
+													onKeyDown={e => {
+														if (e.key === 'Enter')
+															handleAddToShoppingList(match.recipeId, e)
+													}}
+													className='grid size-10 flex-shrink-0 place-items-center rounded-lg border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
+													title={t('addToShoppingList')}
+												>
+													{addingToListId === match.recipeId ? (
+														<Loader2 className='size-4 animate-spin text-text-muted' />
+													) : (
+														<ShoppingCart className='size-4 text-text-secondary' />
+													)}
+												</span>{' '}
+											</motion.button>
 										))}
 									</div>
 								)}
@@ -905,7 +926,11 @@ export default function PantryPage() {
 										{t('deleteItem')}
 									</h3>
 									<p className='mb-6 text-sm text-text-muted'>
-										{t('deleteConfirm', { name: items.find(i => i.id === confirmingDeleteId)?.ingredientName ?? '' })}
+										{t('deleteConfirm', {
+											name:
+												items.find(i => i.id === confirmingDeleteId)
+													?.ingredientName ?? '',
+										})}
 									</p>
 									<div className='flex justify-end gap-3'>
 										<motion.button

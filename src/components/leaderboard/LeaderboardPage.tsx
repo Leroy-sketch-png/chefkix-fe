@@ -82,10 +82,11 @@ function LeaderboardTabs({
 	activeType: LeaderboardType
 	onTypeChange?: (type: LeaderboardType) => void
 }) {
+	const t = useTranslations('leaderboard')
 	const tabs: { type: LeaderboardType; label: string; icon: typeof Globe }[] = [
-		{ type: 'global', label: 'Global', icon: Globe },
-		{ type: 'friends', label: 'Friends', icon: Users },
-		{ type: 'league', label: 'League', icon: Trophy },
+		{ type: 'global', label: t('tabGlobal'), icon: Globe },
+		{ type: 'friends', label: t('tabFriends'), icon: Users },
+		{ type: 'league', label: t('tabLeague'), icon: Trophy },
 	]
 
 	return (
@@ -210,7 +211,10 @@ function MyRankBanner({
 			{/* Goal & CTA */}
 			<div className='flex-1 flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto'>
 				<span className='text-xs text-text-muted'>
-					{t('xpToNext', {xp: myRank.xpToNextRank, rank: myRank.nextRankPosition})}
+					{t('xpToNext', {
+						xp: myRank.xpToNextRank,
+						rank: myRank.nextRankPosition,
+					})}
 				</span>
 				<motion.button
 					type='button'
@@ -286,7 +290,7 @@ export function LeaderboardPage({
 	const showMyRankBanner = myRank && (!userInList || myRank.rank > 50)
 
 	return (
-		<div className={cn('max-w-container-md mx-auto p-4', className)}>
+		<div className={cn('max-w-md mx-auto p-4', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-4 mb-5'>
 				{onBack && (
@@ -413,9 +417,7 @@ export function LeaderboardPage({
 							: t('emptyGlobalTitle')}
 					</h3>
 					<p className='text-sm text-text-secondary max-w-xs'>
-						{type === 'friends'
-							? t('emptyFriendsDesc')
-							: t('emptyGlobalDesc')}
+						{type === 'friends' ? t('emptyFriendsDesc') : t('emptyGlobalDesc')}
 					</p>
 				</motion.div>
 			)}

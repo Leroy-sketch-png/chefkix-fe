@@ -100,16 +100,29 @@ import { RecipeParsingOverlay } from './RecipeParsingOverlay'
 import { IngredientItem } from './IngredientItem'
 import { StepItem } from './StepItem'
 import { XpPreviewModal } from './XpPreviewModal'
-import {
-	Combobox,
-	type ComboboxOption,
-} from '@/components/ui/combobox'
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 
 const CUISINE_OPTIONS: ComboboxOption[] = [
-	'Italian', 'Asian', 'Mexican', 'American', 'French', 'Indian',
-	'Mediterranean', 'Vietnamese', 'Thai', 'Chinese', 'Japanese',
-	'Korean', 'Middle Eastern', 'African', 'Caribbean', 'Brazilian',
-	'Greek', 'Spanish', 'Fusion', 'Other',
+	'Italian',
+	'Asian',
+	'Mexican',
+	'American',
+	'French',
+	'Indian',
+	'Mediterranean',
+	'Vietnamese',
+	'Thai',
+	'Chinese',
+	'Japanese',
+	'Korean',
+	'Middle Eastern',
+	'African',
+	'Caribbean',
+	'Brazilian',
+	'Greek',
+	'Spanish',
+	'Fusion',
+	'Other',
 ].map(c => ({ value: c, label: c }))
 
 const isLocalPreviewUrl = (url?: string) =>
@@ -304,10 +317,7 @@ export const RecipeCreateAiFlow = ({
 	// ── Warn before unload if recipe creation is in progress ────────
 	const hasUnsavedWork =
 		(rawText.trim().length > 0 || recipe !== null) && !isPublishing
-	useBeforeUnloadWarning(
-		hasUnsavedWork,
-		t('unfinishedRecipeWarning'),
-	)
+	useBeforeUnloadWarning(hasUnsavedWork, t('unfinishedRecipeWarning'))
 
 	// ── Load initial draft ──────────────────────────────────────────
 	useEffect(() => {
@@ -338,7 +348,7 @@ export const RecipeCreateAiFlow = ({
 				detectedBadges: (initialDraft.rewardBadges || []).map(b => {
 					const resolved = resolveBadge(b)
 					return {
-						emoji: resolved?.icon || 'ðŸ†',
+						emoji: resolved?.icon || '🏆',
 						name: b,
 					}
 				}),
@@ -469,7 +479,8 @@ export const RecipeCreateAiFlow = ({
 						steps: xpBreakdown.steps,
 						time: xpBreakdown.time,
 						techniques:
-							xpBreakdown.techniques?.reduce((sum, tech) => sum + tech.xp, 0) || 0,
+							xpBreakdown.techniques?.reduce((sum, tech) => sum + tech.xp, 0) ||
+							0,
 						total: xpBreakdown.total,
 					}
 				: targetRecipe.xpBreakdown,
@@ -556,7 +567,9 @@ export const RecipeCreateAiFlow = ({
 					toast.error(t('aiFlowDraftSaveFailed'), {
 						description:
 							saveResponse.message ||
-							`Error ${saveResponse.statusCode || 'unknown'}. Please try again.`,
+							t('errorCodeRetry', {
+								code: saveResponse.statusCode || 'unknown',
+							}),
 					})
 				}
 			} catch (err) {
@@ -634,7 +647,10 @@ export const RecipeCreateAiFlow = ({
 					setStep('preview')
 					diag.nav('recipe', 'input', 'preview', 'AI parse complete')
 					toast.success(t('aiFlowParsedSuccess'), {
-						description: t('aiFlowParsedDesc', { steps: parsed.steps.length, ingredients: parsed.ingredients.length }),
+						description: t('aiFlowParsedDesc', {
+							steps: parsed.steps.length,
+							ingredients: parsed.ingredients.length,
+						}),
 					})
 				} else {
 					diag.error(
@@ -748,7 +764,7 @@ export const RecipeCreateAiFlow = ({
 						return {
 							...currentRecipe,
 							detectedBadges: data.badges.map(badge => ({
-								emoji: 'ðŸ†',
+								emoji: '🏆',
 								name: badge,
 							})),
 							xpReward: data.xpReward,
@@ -1047,10 +1063,19 @@ export const RecipeCreateAiFlow = ({
 					triggerRecipeCompleteConfetti()
 
 					const qualityMsg = publishData?.qualityTier
-						? t('aiFlowQuality', { tier: publishData.qualityTier, score: publishData.qualityScore ? ` (${publishData.qualityScore}/100)` : '' })
+						? t('aiFlowQuality', {
+								tier: publishData.qualityTier,
+								score: publishData.qualityScore
+									? ` (${publishData.qualityScore}/100)`
+									: '',
+							})
 						: ''
 					toast.success(t('aiFlowRecipePublished'), {
-						description: t('aiFlowPublishedDesc', { title: finalRecipe.title, xp: finalRecipe.xpReward || 0, quality: qualityMsg }),
+						description: t('aiFlowPublishedDesc', {
+							title: finalRecipe.title,
+							xp: finalRecipe.xpReward || 0,
+							quality: qualityMsg,
+						}),
 					})
 
 					// NOTE: Do NOT setIsPublishing(false) — leave button disabled until navigation
@@ -1218,7 +1243,9 @@ export const RecipeCreateAiFlow = ({
 					</motion.button>
 				)}
 				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
-					{step === 'preview' ? t('aiFlowReviewRecipe') : t('aiFlowCreateRecipe')}
+					{step === 'preview'
+						? t('aiFlowReviewRecipe')
+						: t('aiFlowCreateRecipe')}
 				</h1>
 				{step === 'preview' && (
 					<div className='flex items-center gap-3'>
@@ -1232,7 +1259,9 @@ export const RecipeCreateAiFlow = ({
 							whileTap={isSaving ? undefined : BUTTON_TAP}
 							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
-							{isSaving || saveStatus === 'saving' ? t('aiFlowSaving') : t('aiFlowSaveDraft')}
+							{isSaving || saveStatus === 'saving'
+								? t('aiFlowSaving')
+								: t('aiFlowSaveDraft')}
 							{!isSaving && saveStatus !== 'saving' && (
 								<kbd className='hidden rounded bg-bg-elevated px-1.5 py-0.5 text-2xs font-normal md:inline-block'>
 									{modKey}+S
@@ -1457,13 +1486,15 @@ export const RecipeCreateAiFlow = ({
 									transition={TRANSITION_SPRING}
 									className='flex items-center gap-2 rounded-xl bg-xp/10 px-4 py-2'
 								>
-									<span className='text-lg'>â­</span>
+									<span className='text-lg'>⭐</span>
 									<div className='text-right'>
 										<div className='text-lg font-bold text-xp'>
 											+{recipe.xpReward} XP
 										</div>
 										<div className='text-xs text-text-secondary'>
-											{t('aiFlowBadgeCount', { count: recipe.detectedBadges.length })}
+											{t('aiFlowBadgeCount', {
+												count: recipe.detectedBadges.length,
+											})}
 										</div>
 									</div>
 								</motion.div>
@@ -1534,7 +1565,9 @@ export const RecipeCreateAiFlow = ({
 										) : (
 											<>
 												<ImagePlus className='size-8' />
-												<span className='text-sm'>{t('aiFlowAddCoverPhoto')}</span>
+												<span className='text-sm'>
+													{t('aiFlowAddCoverPhoto')}
+												</span>
 											</>
 										)}
 									</button>
@@ -1633,7 +1666,9 @@ export const RecipeCreateAiFlow = ({
 									<Combobox
 										value={recipe.cuisine}
 										onChange={val => setRecipe({ ...recipe, cuisine: val })}
-										onSelect={opt => setRecipe({ ...recipe, cuisine: opt.value })}
+										onSelect={opt =>
+											setRecipe({ ...recipe, cuisine: opt.value })
+										}
 										options={CUISINE_OPTIONS}
 										placeholder={t('aiFlowCuisine')}
 										className='w-24 border-none bg-transparent text-xs font-semibold text-text focus:outline-none'

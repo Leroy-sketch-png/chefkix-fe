@@ -23,7 +23,12 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { TRANSITION_SPRING, ICON_BUTTON_HOVER, staggerContainer, staggerItem } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	ICON_BUTTON_HOVER,
+	staggerContainer,
+	staggerItem,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { getTrendingRecipes } from '@/services/recipe'
 import { Recipe } from '@/lib/types/recipe'
@@ -90,9 +95,7 @@ const FeatureCard = ({
 			</div>
 			<div>
 				<h3 className='font-semibold text-text'>{title}</h3>
-				<p className='mt-0.5 text-sm text-text-secondary'>
-					{description}
-				</p>
+				<p className='mt-0.5 text-sm text-text-secondary'>{description}</p>
 			</div>
 		</motion.div>
 	)
@@ -105,7 +108,12 @@ interface TrendingRecipeCardProps {
 	cookedLabel: string
 }
 
-const TrendingRecipeCard = ({ recipe, index, byLabel, cookedLabel }: TrendingRecipeCardProps) => {
+const TrendingRecipeCard = ({
+	recipe,
+	index,
+	byLabel,
+	cookedLabel,
+}: TrendingRecipeCardProps) => {
 	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.svg'
 	const difficulty = difficultyToDisplay(recipe.difficulty)
 	const totalTime =
@@ -178,8 +186,6 @@ const TrendingRecipeCard = ({ recipe, index, byLabel, cookedLabel }: TrendingRec
 	)
 }
 
-
-
 // ============================================
 // MAIN PAGE
 // ============================================
@@ -238,7 +244,6 @@ export default function HomePage() {
 
 	return (
 		<div className='relative min-h-screen bg-bg'>
-
 			{/* Content */}
 			<div className='relative'>
 				{/* Navigation */}
@@ -270,7 +275,7 @@ export default function HomePage() {
 					variants={staggerContainer}
 					initial='hidden'
 					animate='visible'
-					className='mx-auto max-w-5xl px-6 pb-8 pt-8 text-center md:px-12 md:pt-12'
+					className='mx-auto max-w-5xl px-6 pb-12 pt-8 text-center md:px-12 md:pb-16 md:pt-16'
 				>
 					<motion.div variants={staggerItem}>
 						<motion.div
@@ -322,11 +327,13 @@ export default function HomePage() {
 				</motion.section>
 
 				{/* Trending Recipes Section */}
-				<section className='mx-auto max-w-6xl px-6 py-12 md:px-12'>
+				<section className='mx-auto max-w-6xl px-6 py-16 md:px-12'>
 					<div className='mb-6 flex items-center justify-between'>
 						<div className='flex items-center gap-2'>
 							<TrendingUp className='size-5 text-brand' />
-							<h2 className='text-xl font-bold text-text'>{t('trendingTonight')}</h2>
+							<h2 className='text-xl font-bold text-text'>
+								{t('trendingTonight')}
+							</h2>
 						</div>
 						<Link
 							href='/explore'
@@ -358,9 +365,7 @@ export default function HomePage() {
 							<p className='mb-2 font-medium text-text'>
 								{t('couldntLoadRecipes')}
 							</p>
-							<p className='mb-4 text-sm text-text-secondary'>
-								{recipesError}
-							</p>
+							<p className='mb-4 text-sm text-text-secondary'>{recipesError}</p>
 							<button
 								type='button'
 								onClick={() => {
@@ -390,17 +395,19 @@ export default function HomePage() {
 									key={recipe.id}
 									recipe={recipe}
 									index={i}
-									byLabel={t('by', { name: recipe.author?.displayName || 'ChefKix' })}
-									cookedLabel={t('peopleCookedThis', { count: recipe.cookCount })}
+									byLabel={t('by', {
+										name: recipe.author?.displayName || 'ChefKix',
+									})}
+									cookedLabel={t('peopleCookedThis', {
+										count: recipe.cookCount,
+									})}
 								/>
 							))}
 						</div>
 					) : (
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
 							<ChefHat className='mx-auto mb-3 size-10 text-text-muted' />
-							<p className='text-text-secondary'>
-								{t('beFirstToTrend')}
-							</p>
+							<p className='text-text-secondary'>{t('beFirstToTrend')}</p>
 							<Link
 								href='/auth/sign-up'
 								className='mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline'
@@ -454,9 +461,7 @@ export default function HomePage() {
 							<h2 className='mb-2 text-2xl font-bold text-text md:text-3xl'>
 								{t('cookModeGuides')}
 							</h2>
-							<p className='text-text-secondary'>
-								{t('neverLosePlaceDesc')}
-							</p>
+							<p className='text-text-secondary'>{t('neverLosePlaceDesc')}</p>
 						</div>
 
 						{/* Interactive Demo Card */}
@@ -474,8 +479,12 @@ export default function HomePage() {
 										<ChefHat className='size-5 text-brand' />
 									</div>
 									<div>
-										<h3 className='font-bold text-text'>{t('classicPastaDemo')}</h3>
-										<p className='text-xs text-text-muted'>{t('stepOf', { current: 2, total: 4 })}</p>
+										<h3 className='font-bold text-text'>
+											{t('classicPastaDemo')}
+										</h3>
+										<p className='text-xs text-text-muted'>
+											{t('stepOf', { current: 2, total: 4 })}
+										</p>
 									</div>
 								</div>
 								<div className='flex items-center gap-2'>
@@ -496,9 +505,7 @@ export default function HomePage() {
 											{t('currentStep')}
 										</span>
 									</div>
-									<p className='text-lg text-text'>
-										{t('demoInstruction')}
-									</p>
+									<p className='text-lg text-text'>{t('demoInstruction')}</p>
 								</div>
 
 								{/* Demo Timer */}
@@ -507,7 +514,9 @@ export default function HomePage() {
 										<Timer className='size-6 text-brand' />
 									</div>
 									<div className='flex-1'>
-										<p className='text-sm font-medium text-text-secondary'>{t('timer')}</p>
+										<p className='text-sm font-medium text-text-secondary'>
+											{t('timer')}
+										</p>
 										<p className='text-2xl font-bold tabular-nums text-text'>
 											8:00
 										</p>
@@ -524,7 +533,10 @@ export default function HomePage() {
 
 								{/* Step Navigation Demo */}
 								<div className='flex items-center justify-between'>
-									<button type='button' className='rounded-lg border border-border-subtle px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'>
+									<button
+										type='button'
+										className='rounded-lg border border-border-subtle px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+									>
 										{t('previous')}
 									</button>
 									<div className='flex gap-1.5'>
@@ -533,7 +545,10 @@ export default function HomePage() {
 										<div className='size-2 rounded-full bg-border-subtle' />
 										<div className='size-2 rounded-full bg-border-subtle' />
 									</div>
-									<button type='button' className='flex items-center gap-2 rounded-lg bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'>
+									<button
+										type='button'
+										className='flex items-center gap-2 rounded-lg bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
+									>
 										{t('nextStep')}
 										<ArrowRight className='size-4' />
 									</button>
@@ -567,8 +582,8 @@ export default function HomePage() {
 								initial={{ scale: 0.9, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
 								exit={{ scale: 0.9, opacity: 0 }}
-								onClick={(e) => e.stopPropagation()}
-								className='w-full max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-xl'
+								onClick={e => e.stopPropagation()}
+								className='relative w-full max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-xl'
 							>
 								<button
 									type='button'
@@ -580,7 +595,9 @@ export default function HomePage() {
 								<div className='mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-brand/10'>
 									<Timer className='size-8 text-brand' />
 								</div>
-								<h3 className='mb-2 text-xl font-bold text-text'>{t('timerStarted')}</h3>
+								<h3 className='mb-2 text-xl font-bold text-text'>
+									{t('timerStarted')}
+								</h3>
 								<p className='mb-6 text-text-secondary'>
 									{t('timerModalDesc')}
 								</p>
@@ -620,9 +637,7 @@ export default function HomePage() {
 						<h2 className='mb-3 text-2xl font-bold text-text md:text-3xl'>
 							{t('kitchenWaiting')}
 						</h2>
-						<p className='mb-6 text-text-secondary'>
-							{t('bottomCtaDesc')}
-						</p>
+						<p className='mb-6 text-text-secondary'>{t('bottomCtaDesc')}</p>
 						<Link
 							href='/auth/sign-up'
 							className='inline-flex items-center gap-2 rounded-radius bg-gradient-hero px-8 py-3.5 font-bold text-white shadow-card shadow-brand/30 transition-all hover:shadow-warm'
@@ -630,9 +645,7 @@ export default function HomePage() {
 							<ChefHat className='size-5' />
 							{t('startCookingFree')}
 						</Link>
-						<p className='mt-4 text-xs text-text-muted'>
-							{t('noCreditCard')}
-						</p>
+						<p className='mt-4 text-xs text-text-muted'>{t('noCreditCard')}</p>
 					</div>
 				</section>
 

@@ -95,7 +95,18 @@ export function StreakRiskBanner({
 				{/* Fire Icon */}
 				<div className='relative flex-shrink-0'>
 					<motion.span
-						animate={isUrgent ? { x: [-3, 3, -3], transition: { duration: 0.3, repeat: Infinity, ease: 'easeInOut' as const } } : STREAK_FLAME.animate}
+						animate={
+							isUrgent
+								? {
+										x: [-3, 3, -3],
+										transition: {
+											duration: 0.3,
+											repeat: Infinity,
+											ease: 'easeInOut' as const,
+										},
+									}
+								: STREAK_FLAME.animate
+						}
 						className='text-icon-xl block'
 					>
 						🔥
@@ -113,16 +124,14 @@ export function StreakRiskBanner({
 				{/* Info */}
 				<div className='flex flex-col text-center sm:text-left'>
 					<span className='text-base font-display font-bold text-text'>
-						{isUrgent ? (
-							<>âš ï¸ LAST CHANCE! <span className='tabular-nums'>{currentStreak}</span>-day streak ending soon</>
-						) : (
-							<>Your <span className='tabular-nums'>{currentStreak}</span>-day streak is at risk!</>
-						)}
+						{isUrgent
+							? t('srLastChance', { count: currentStreak })
+							: t('srAtRisk', { count: currentStreak })}
 					</span>
 					<span className='text-sm text-text-secondary'>
 						{isUrgent
-						? t('srDontLose', { count: currentStreak })
-						: t('srCookToday')}
+							? t('srDontLose', { count: currentStreak })
+							: t('srCookToday')}
 					</span>
 				</div>
 
@@ -139,7 +148,9 @@ export function StreakRiskBanner({
 					<span className='font-bold tabular-nums'>
 						{timeRemaining.hours}h {timeRemaining.minutes}m
 					</span>
-					{!isUrgent && <span className='text-xs opacity-80'>{t('srLeftToday')}</span>}
+					{!isUrgent && (
+						<span className='text-xs opacity-80'>{t('srLeftToday')}</span>
+					)}
 				</div>
 			</div>
 
@@ -232,15 +243,13 @@ export function StreakSavedToast({
 						{/* Content */}
 						<div className='flex flex-col'>
 							<span className='text-base font-display font-extrabold text-success'>
-							{isNewStreak ? t('stNewStarted') : t('stSaved')}
+								{isNewStreak ? t('stNewStarted') : t('stSaved')}
 							</span>
 							<span className='text-sm text-text'>
 								{isNewStreak ? (
 									<>{t('stDay1')}</>
 								) : (
-									<>
-										{t('stDaysAndCounting', { count: newStreak })}
-									</>
+									<>{t('stDaysAndCounting', { count: newStreak })}</>
 								)}
 							</span>
 						</div>
@@ -307,16 +316,20 @@ export function StreakMilestoneCard({
 					{t('smTitle', { count: days })}
 				</h3>
 				<p className='text-sm text-text-secondary mb-3'>
-					{days === 7 ? t('smCookedWeek') : days === 14 ? t('smCookedTwoWeeks') : t('smCookedDays', { count: days })}
+					{days === 7
+						? t('smCookedWeek')
+						: days === 14
+							? t('smCookedTwoWeeks')
+							: t('smCookedDays', { count: days })}
 				</p>
 
 				{/* Badge Reward */}
 				<div className='flex items-center gap-2.5 p-2.5 bg-bg-card rounded-xl mb-2.5 justify-center sm:justify-start'>
-					<span className='text-2xl'>🎖ï¸</span>
+					<span className='text-2xl'>🎖️</span>
 					<div className='flex flex-col'>
 						<span className='text-sm font-bold text-text'>{badgeName}</span>
 						<span className='text-xs text-text-secondary'>
-						{t('smAddedToCollection')}
+							{t('smAddedToCollection')}
 						</span>
 					</div>
 				</div>
@@ -326,7 +339,10 @@ export function StreakMilestoneCard({
 					<div className='text-xs text-text-secondary'>
 						<span>{t('smNextMilestone')} </span>
 						<span className='text-streak font-semibold'>
-							{t('smNextMilestoneDetail', { count: nextMilestone.days, badge: nextMilestone.badgeName })}
+							{t('smNextMilestoneDetail', {
+								count: nextMilestone.days,
+								badge: nextMilestone.badgeName,
+							})}
 						</span>
 					</div>
 				)}
@@ -343,7 +359,7 @@ export function StreakMilestoneCard({
 					className='flex items-center gap-1.5 py-2.5 px-4 bg-bg-card border border-border rounded-lg text-sm font-semibold text-text flex-shrink-0 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Share2 className='size-4' />
-					Share
+					{t('smShare')}
 				</motion.button>
 			)}
 		</motion.div>
@@ -405,7 +421,24 @@ export function StreakWidget({
 	className,
 }: StreakWidgetProps) {
 	const t = useTranslations('streak')
-	const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+	const dayLabels = [
+		t('swDayMon'),
+		t('swDayTue'),
+		t('swDayWed'),
+		t('swDayThu'),
+		t('swDayFri'),
+		t('swDaySat'),
+		t('swDaySun'),
+	]
+	const dayFullNames = [
+		t('swDayFullMon'),
+		t('swDayFullTue'),
+		t('swDayFullWed'),
+		t('swDayFullThu'),
+		t('swDayFullFri'),
+		t('swDayFullSat'),
+		t('swDayFullSun'),
+	]
 
 	return (
 		<div
@@ -416,7 +449,9 @@ export function StreakWidget({
 		>
 			{/* Header */}
 			<div className='flex justify-between items-center mb-4'>
-				<span className='text-sm font-bold text-text'>{t('swCookingStreak')}</span>
+				<span className='text-sm font-bold text-text'>
+					{t('swCookingStreak')}
+				</span>
 				<span
 					className={cn(
 						'py-1 px-2.5 rounded-full text-xs font-bold uppercase tracking-wide',
@@ -431,7 +466,9 @@ export function StreakWidget({
 
 			{/* Streak Display */}
 			<div className='flex items-baseline justify-center gap-2 mb-5'>
-				<motion.span animate={STREAK_FLAME.animate} className='text-4xl'>🔥</motion.span>
+				<motion.span animate={STREAK_FLAME.animate} className='text-4xl'>
+					🔥
+				</motion.span>
 				<span className='text-5xl font-black text-streak leading-none'>
 					{currentStreak}
 				</span>
@@ -450,17 +487,16 @@ export function StreakWidget({
 						<div
 							key={index}
 							className={cn(
-								'flex-1 aspect-square flex items-center justify-center rounded-lg text-xs font-bold transition-all',
+								'flex-1 aspect-square flex items-center justify-center rounded-lg border-2 text-xs font-bold transition-all',
 								day === 'cooked' &&
-									'bg-gradient-streak text-white shadow-card shadow-streak/30',
+									'border-transparent bg-gradient-streak text-white shadow-card shadow-streak/30',
 								day === 'today' &&
 									(isActiveToday
-										? 'bg-gradient-success text-white shadow-card shadow-success/30'
-										: 'bg-bg-card border-2 border-dashed border-success text-success'),
-								day === 'future' &&
-									'bg-bg border-2 border-border text-text-secondary',
+										? 'border-transparent bg-gradient-success text-white shadow-card shadow-success/30'
+										: 'border-dashed border-success bg-bg-card text-success'),
+								day === 'future' && 'border-border bg-bg text-text-secondary',
 							)}
-							title={`${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index]}${day === 'today' ? ' (Today)' : ''}`}
+							title={`${dayFullNames[index]}${day === 'today' ? ` (${t('swToday')})` : ''}`}
 						>
 							{dayLabels[index]}
 						</div>

@@ -1,7 +1,14 @@
 'use client'
 import { useTranslations } from 'next-intl'
 
-import { useState, useEffect, useRef, useMemo, Suspense, useTransition } from 'react'
+import {
+	useState,
+	useEffect,
+	useRef,
+	useMemo,
+	Suspense,
+	useTransition,
+} from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -127,25 +134,57 @@ const SEARCH_SUGGESTIONS = [
 // Extended vocabulary for "Did you mean?" fuzzy matching
 const SEARCH_VOCABULARY = [
 	...SEARCH_SUGGESTIONS,
-	'Pizza', 'Burger', 'Sushi', 'Tacos', 'Curry', 'Rice', 'Noodles',
-	'Grilling', 'Vegetarian', 'Gluten-free', 'Low-carb', 'Keto',
-	'Smoothie', 'Sandwich', 'Seafood', 'Beef', 'Pork', 'Lamb',
-	'Chocolate', 'Cake', 'Cookies', 'Bread', 'Pancakes', 'Waffles',
-	'Italian', 'Mexican', 'Asian', 'Indian', 'Mediterranean', 'Thai',
-	'French', 'Japanese', 'Korean', 'Chinese', 'American', 'Middle Eastern',
+	'Pizza',
+	'Burger',
+	'Sushi',
+	'Tacos',
+	'Curry',
+	'Rice',
+	'Noodles',
+	'Grilling',
+	'Vegetarian',
+	'Gluten-free',
+	'Low-carb',
+	'Keto',
+	'Smoothie',
+	'Sandwich',
+	'Seafood',
+	'Beef',
+	'Pork',
+	'Lamb',
+	'Chocolate',
+	'Cake',
+	'Cookies',
+	'Bread',
+	'Pancakes',
+	'Waffles',
+	'Italian',
+	'Mexican',
+	'Asian',
+	'Indian',
+	'Mediterranean',
+	'Thai',
+	'French',
+	'Japanese',
+	'Korean',
+	'Chinese',
+	'American',
+	'Middle Eastern',
 ]
 
 /** Simple Levenshtein distance for "Did you mean?" */
 function levenshtein(a: string, b: string): number {
-	const al = a.length, bl = b.length
+	const al = a.length,
+		bl = b.length
 	const dp: number[][] = Array.from({ length: al + 1 }, (_, i) =>
-		Array.from({ length: bl + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+		Array.from({ length: bl + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
 	)
 	for (let i = 1; i <= al; i++)
 		for (let j = 1; j <= bl; j++)
-			dp[i][j] = a[i - 1] === b[j - 1]
-				? dp[i - 1][j - 1]
-				: 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+			dp[i][j] =
+				a[i - 1] === b[j - 1]
+					? dp[i - 1][j - 1]
+					: 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
 	return dp[al][bl]
 }
 
@@ -179,7 +218,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const handleSave = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		if (!requireAuth('save this recipe')) return
+		if (!requireAuth(t('authActionSave'))) return
 		const prev = saved
 		setSaved(!prev)
 		try {
@@ -292,7 +331,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const t = useTranslations('search')
 
 	const handleFollow = async () => {
-		if (!requireAuth('follow this chef')) return
+		if (!requireAuth(t('authActionFollow'))) return
 		if (followLockRef.current) return
 		followLockRef.current = true
 		const prev = following
@@ -475,7 +514,10 @@ function SearchContent() {
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	// "Did you mean?" suggestion for empty results
-	const suggestion = useMemo(() => query ? findSuggestion(query) : null, [query])
+	const suggestion = useMemo(
+		() => (query ? findSuggestion(query) : null),
+		[query],
+	)
 
 	// Clean up debounce timer on unmount
 	useEffect(() => {
@@ -645,7 +687,9 @@ function SearchContent() {
 						<div className='mx-auto mb-8 max-w-xl'>
 							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
 								<History className='size-4' />
-								<span className='text-sm font-semibold'>{t('recentSearches')}</span>
+								<span className='text-sm font-semibold'>
+									{t('recentSearches')}
+								</span>
 							</div>
 							<div className='flex flex-wrap gap-2'>
 								{recentSearches.map(term => (
@@ -790,9 +834,9 @@ function SearchContent() {
 					tabs={tabs}
 					activeTab={activeTab}
 					onTabChange={setActiveTab}
-					variant="underline"
-					size="lg"
-					className="mb-8"
+					variant='underline'
+					size='lg'
+					className='mb-8'
 				/>
 
 				{/* Results */}
@@ -825,7 +869,10 @@ function SearchContent() {
 							{activeTab === 'people' && (
 								<div className='space-y-4'>
 									{Array.from({ length: 4 }).map((_, i) => (
-										<div key={i} className='flex items-center gap-4 rounded-2xl bg-bg-card p-4'>
+										<div
+											key={i}
+											className='flex items-center gap-4 rounded-2xl bg-bg-card p-4'
+										>
 											<Skeleton className='size-14 shrink-0 rounded-full' />
 											<div className='flex-1 space-y-2'>
 												<Skeleton className='h-5 w-32' />
@@ -840,7 +887,10 @@ function SearchContent() {
 							{activeTab === 'posts' && (
 								<div className='space-y-3'>
 									{Array.from({ length: 4 }).map((_, i) => (
-										<div key={i} className='rounded-2xl bg-bg-card p-4 space-y-3'>
+										<div
+											key={i}
+											className='rounded-2xl bg-bg-card p-4 space-y-3'
+										>
 											<div className='flex items-center gap-3'>
 												<Skeleton className='size-10 rounded-full' />
 												<div className='flex-1 space-y-1'>
@@ -857,178 +907,184 @@ function SearchContent() {
 							)}
 						</motion.div>
 					) : (
-					<>
-					{activeTab === 'recipes' && (
-						<motion.div
-							key='recipes'
-							initial={{ opacity: 0, y: 10 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -10 }}
-							transition={{ duration: DURATION_S.normal }}
-						>
-							{results.recipes.length > 0 ? (
-								<StaggerContainer staggerDelay={0.05}>
-									<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
-										{results.recipes.map(recipe => (
-											<RecipeResultCard key={recipe.id} recipe={recipe} />
-										))}
-									</div>
-								</StaggerContainer>
-							) : (
-								<>
-									{suggestion && (
-										<motion.p
-											initial={{ opacity: 0 }}
-											animate={{ opacity: 1 }}
-											className='mb-4 text-center text-sm text-text-secondary'
-										>
-											Did you mean{' '}
-											<motion.button
-												type='button'
-												onClick={() => {
-													isInternalNav.current = true
-													setSearchInput(suggestion)
-													startNavigationTransition(() => {
-														router.push(`/search?q=${encodeURIComponent(suggestion)}`)
-													})
+						<>
+							{activeTab === 'recipes' && (
+								<motion.div
+									key='recipes'
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -10 }}
+									transition={{ duration: DURATION_S.normal }}
+								>
+									{results.recipes.length > 0 ? (
+										<StaggerContainer staggerDelay={0.05}>
+											<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+												{results.recipes.map(recipe => (
+													<RecipeResultCard key={recipe.id} recipe={recipe} />
+												))}
+											</div>
+										</StaggerContainer>
+									) : (
+										<>
+											{suggestion && (
+												<motion.p
+													initial={{ opacity: 0 }}
+													animate={{ opacity: 1 }}
+													className='mb-4 text-center text-sm text-text-secondary'
+												>
+													Did you mean{' '}
+													<motion.button
+														type='button'
+														onClick={() => {
+															isInternalNav.current = true
+															setSearchInput(suggestion)
+															startNavigationTransition(() => {
+																router.push(
+																	`/search?q=${encodeURIComponent(suggestion)}`,
+																)
+															})
+														}}
+														disabled={isNavigating}
+														whileTap={BUTTON_TAP}
+														className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+													>
+														{suggestion}
+													</motion.button>
+													?
+												</motion.p>
+											)}
+											<EmptyStateGamified
+												variant='search'
+												title={t('noRecipes')}
+												description={t('noRecipesDesc', { query })}
+												primaryAction={{
+													label: t('exploreAll'),
+													href: '/explore',
 												}}
-												disabled={isNavigating}
-												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-											>
-												{suggestion}
-											</motion.button>
-											?
-										</motion.p>
+											/>
+										</>
 									)}
-									<EmptyStateGamified
-										variant='search'
-										title={t('noRecipes')}
-										description={t('noRecipesDesc', { query })}
-										primaryAction={{
-											label: t('exploreAll'),
-											href: '/explore',
-										}}
-									/>
-								</>
+								</motion.div>
 							)}
-						</motion.div>
-					)}
 
-					{activeTab === 'people' && (
-						<motion.div
-							key='people'
-							initial={{ opacity: 0, y: 10 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -10 }}
-							transition={{ duration: DURATION_S.normal }}
-						>
-							{results.people.length > 0 ? (
-								<StaggerContainer staggerDelay={0.05}>
-									<div className='space-y-4'>
-										{results.people.map(person => (
-											<PersonResultCard key={person.id} person={person} />
-										))}
-									</div>
-								</StaggerContainer>
-							) : (
-								<>
-									{suggestion && (
-										<motion.p
-											initial={{ opacity: 0 }}
-											animate={{ opacity: 1 }}
-											className='mb-4 text-center text-sm text-text-secondary'
-										>
-											Did you mean{' '}
-											<motion.button
-												type='button'
-												onClick={() => {
-													isInternalNav.current = true
-													setSearchInput(suggestion)
-													startNavigationTransition(() => {
-														router.push(`/search?q=${encodeURIComponent(suggestion)}`)
-													})
+							{activeTab === 'people' && (
+								<motion.div
+									key='people'
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -10 }}
+									transition={{ duration: DURATION_S.normal }}
+								>
+									{results.people.length > 0 ? (
+										<StaggerContainer staggerDelay={0.05}>
+											<div className='space-y-4'>
+												{results.people.map(person => (
+													<PersonResultCard key={person.id} person={person} />
+												))}
+											</div>
+										</StaggerContainer>
+									) : (
+										<>
+											{suggestion && (
+												<motion.p
+													initial={{ opacity: 0 }}
+													animate={{ opacity: 1 }}
+													className='mb-4 text-center text-sm text-text-secondary'
+												>
+													Did you mean{' '}
+													<motion.button
+														type='button'
+														onClick={() => {
+															isInternalNav.current = true
+															setSearchInput(suggestion)
+															startNavigationTransition(() => {
+																router.push(
+																	`/search?q=${encodeURIComponent(suggestion)}`,
+																)
+															})
+														}}
+														disabled={isNavigating}
+														whileTap={BUTTON_TAP}
+														className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+													>
+														{suggestion}
+													</motion.button>
+													?
+												</motion.p>
+											)}
+											<EmptyStateGamified
+												variant='search'
+												title={t('noPeople')}
+												description={t('noPeopleDesc', { query })}
+												primaryAction={{
+													label: t('discoverPeople'),
+													href: '/community',
 												}}
-												disabled={isNavigating}
-												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-											>
-												{suggestion}
-											</motion.button>
-											?
-										</motion.p>
+											/>
+										</>
 									)}
-									<EmptyStateGamified
-										variant='search'
-										title={t('noPeople')}
-										description={t('noPeopleDesc', { query })}
-										primaryAction={{
-											label: t('discoverPeople'),
-											href: '/community',
-										}}
-									/>
-								</>
+								</motion.div>
 							)}
-						</motion.div>
-					)}
 
-					{activeTab === 'posts' && (
-						<motion.div
-							key='posts'
-							initial={{ opacity: 0, y: 10 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -10 }}
-							transition={{ duration: DURATION_S.normal }}
-						>
-							{results.posts.length > 0 ? (
-								<StaggerContainer staggerDelay={0.05}>
-									<div className='space-y-3'>
-										{results.posts.map(post => (
-											<PostResultCard key={post.id} post={post} />
-										))}
-									</div>
-								</StaggerContainer>
-							) : (
-								<>
-									{suggestion && (
-										<motion.p
-											initial={{ opacity: 0 }}
-											animate={{ opacity: 1 }}
-											className='mb-4 text-center text-sm text-text-secondary'
-										>
-											Did you mean{' '}
-											<motion.button
-												type='button'
-												onClick={() => {
-													isInternalNav.current = true
-													setSearchInput(suggestion)
-													startNavigationTransition(() => {
-														router.push(`/search?q=${encodeURIComponent(suggestion)}`)
-													})
+							{activeTab === 'posts' && (
+								<motion.div
+									key='posts'
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -10 }}
+									transition={{ duration: DURATION_S.normal }}
+								>
+									{results.posts.length > 0 ? (
+										<StaggerContainer staggerDelay={0.05}>
+											<div className='space-y-3'>
+												{results.posts.map(post => (
+													<PostResultCard key={post.id} post={post} />
+												))}
+											</div>
+										</StaggerContainer>
+									) : (
+										<>
+											{suggestion && (
+												<motion.p
+													initial={{ opacity: 0 }}
+													animate={{ opacity: 1 }}
+													className='mb-4 text-center text-sm text-text-secondary'
+												>
+													Did you mean{' '}
+													<motion.button
+														type='button'
+														onClick={() => {
+															isInternalNav.current = true
+															setSearchInput(suggestion)
+															startNavigationTransition(() => {
+																router.push(
+																	`/search?q=${encodeURIComponent(suggestion)}`,
+																)
+															})
+														}}
+														disabled={isNavigating}
+														whileTap={BUTTON_TAP}
+														className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+													>
+														{suggestion}
+													</motion.button>
+													?
+												</motion.p>
+											)}
+											<EmptyStateGamified
+												variant='search'
+												title={t('noPosts')}
+												description={t('noPostsDesc', { query })}
+												primaryAction={{
+													label: t('viewFeed'),
+													href: '/dashboard',
 												}}
-												disabled={isNavigating}
-												whileTap={BUTTON_TAP}
-												className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-											>
-												{suggestion}
-											</motion.button>
-											?
-										</motion.p>
+											/>
+										</>
 									)}
-									<EmptyStateGamified
-										variant='search'
-										title={t('noPosts')}
-										description={t('noPostsDesc', { query })}
-										primaryAction={{
-											label: t('viewFeed'),
-											href: '/dashboard',
-										}}
-									/>
-								</>
+								</motion.div>
 							)}
-						</motion.div>
-					)}
-					</>
+						</>
 					)}
 				</AnimatePresence>
 			</PageContainer>

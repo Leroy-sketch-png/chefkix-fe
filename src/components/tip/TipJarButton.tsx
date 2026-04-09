@@ -9,7 +9,13 @@ import { useTranslations } from '@/i18n/hooks'
 import { getCreatorTipSettings, sendTip } from '@/services/tips'
 import { CreatorTipSettings } from '@/lib/types/tips'
 import { Portal } from '@/components/ui/portal'
-import { BUTTON_HOVER, BUTTON_TAP, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, TRANSITION_SPRING } from '@/lib/motion'
+import {
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	TRANSITION_SPRING,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 interface TipJarButtonProps {
@@ -71,8 +77,8 @@ export function TipJarButton({
 			})
 			toast.success(
 				settings.payoutAccountId
-					? (settings.thankYouMessage || `Thanks for supporting ${creatorName}!`)
-					: `Tip recorded! ${creatorName} will receive it once payouts are live.`,
+					? settings.thankYouMessage || t('toastThanks', { creatorName })
+					: t('toastRecorded', { creatorName }),
 			)
 			setShowModal(false)
 			setSelectedAmount(null)
@@ -100,8 +106,8 @@ export function TipJarButton({
 						? 'grid size-14 place-items-center rounded-xl border-2 border-border-medium hover:border-brand hover:bg-brand/10'
 						: 'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-brand/10 hover:text-brand hover:border-brand/30',
 				)}
-				title={`Tip ${creatorName}`}
-				aria-label={`Send a tip to ${creatorName}`}
+				title={t('supportTitle', { creatorName })}
+				aria-label={t('supportTitle', { creatorName })}
 			>
 				<DollarSign className={isRecipe ? 'size-5' : 'size-4'} />
 			</motion.button>
@@ -116,10 +122,12 @@ export function TipJarButton({
 							className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'
 							onClick={() => setShowModal(false)}
 						>
-							<motion.div							ref={focusTrapRef}
-							role='dialog'
-							aria-labelledby='tip-jar-title'
-							aria-modal='true'								initial={{ opacity: 0, scale: 0.9, y: 20 }}
+							<motion.div
+								ref={focusTrapRef}
+								role='dialog'
+								aria-labelledby='tip-jar-title'
+								aria-modal='true'
+								initial={{ opacity: 0, scale: 0.9, y: 20 }}
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.9, y: 20 }}
 								transition={TRANSITION_SPRING}
@@ -141,7 +149,10 @@ export function TipJarButton({
 									<div className='mx-auto mb-2 grid size-12 place-items-center rounded-full bg-brand/10'>
 										<Heart className='size-6 text-brand' />
 									</div>
-									<h3 id='tip-jar-title' className='text-lg font-bold text-text'>
+									<h3
+										id='tip-jar-title'
+										className='text-lg font-bold text-text'
+									>
 										Support {creatorName}
 									</h3>
 									<p className='mt-1 text-sm text-text-secondary'>
@@ -155,12 +166,10 @@ export function TipJarButton({
 										<motion.button
 											type='button'
 											key={amt}
-										whileHover={BUTTON_SUBTLE_HOVER}
-										whileTap={BUTTON_SUBTLE_TAP}
+											whileHover={BUTTON_SUBTLE_HOVER}
+											whileTap={BUTTON_SUBTLE_TAP}
 											onClick={() => {
-												setSelectedAmount(
-													selectedAmount === amt ? null : amt,
-												)
+												setSelectedAmount(selectedAmount === amt ? null : amt)
 												setCustomAmount('')
 											}}
 											className={cn(
@@ -207,9 +216,7 @@ export function TipJarButton({
 								<motion.button
 									type='button'
 									onClick={handleSend}
-									disabled={
-										isSending || effectiveAmountCents <= 0
-									}
+									disabled={isSending || effectiveAmountCents <= 0}
 									whileHover={
 										effectiveAmountCents > 0 && !isSending
 											? BUTTON_HOVER
@@ -233,8 +240,10 @@ export function TipJarButton({
 										<>
 											<Send className='size-5' />
 											{effectiveAmountCents > 0
-												? `Send $${(effectiveAmountCents / 100).toFixed(2)}`
-												: 'Select an amount'}
+												? t('sendButton', {
+														amount: (effectiveAmountCents / 100).toFixed(2),
+													})
+												: t('selectAmount')}
 										</>
 									)}
 								</motion.button>

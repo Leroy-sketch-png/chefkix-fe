@@ -173,7 +173,9 @@ const ActiveChallengeBanner = ({
 						<span className='text-xs font-bold uppercase tracking-wide text-accent-purple'>
 							{t('dailyChallenge')}
 						</span>
-						<h3 className='text-xl font-display font-extrabold'>{challenge.title}</h3>
+						<h3 className='text-xl font-display font-extrabold'>
+							{challenge.title}
+						</h3>
 					</div>
 				</div>
 
@@ -187,14 +189,14 @@ const ActiveChallengeBanner = ({
 					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/20 to-xp/20 px-3.5 py-2 shadow-card shadow-bonus/20'>
 						<span>⚡</span>
 						<span className='tabular-nums text-base font-display font-extrabold text-xp'>
-							+{challenge.bonusXp} XP
+							+{challenge.bonusXp || 0} XP
 						</span>
 						<span className='text-xs text-bonus'>bonus</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-text-muted'>
 						<Clock className='size-4' />
 						<span className='font-semibold text-text'>{timeRemaining}</span>
-						<span>{t('remaining')}</span>
+						{timeRemaining !== t('expired') && <span>{t('remaining')}</span>}
 					</div>
 				</div>
 
@@ -271,88 +273,92 @@ const CompletedChallengeBanner = ({
 }: CompletedChallengeProps) => {
 	const t = useTranslations('challenge')
 	return (
-	<motion.div
-		initial={{ opacity: 0, y: -10 }}
-		animate={{ opacity: 1, y: 0 }}
-		className='relative mb-5 overflow-hidden rounded-2xl border-2 border-success/30 bg-gradient-to-r from-success/10 to-success/5 shadow-lg'
-	>
-		<GlowBar isComplete />
+		<motion.div
+			initial={{ opacity: 0, y: -10 }}
+			animate={{ opacity: 1, y: 0 }}
+			className='relative mb-5 overflow-hidden rounded-2xl border-2 border-success/30 bg-gradient-to-r from-success/10 to-success/5 shadow-lg'
+		>
+			<GlowBar isComplete />
 
-		{/* Confetti */}
-		<div className='pointer-events-none absolute inset-0 overflow-hidden'>
-			{['🎉', '✨'].map((emoji, i) => (
-				<motion.span
-					key={i}
-					className='absolute text-2xl'
-					style={{ left: i === 0 ? '20%' : '80%' }}
-					initial={{ y: -20, opacity: 0, rotate: 0 }}
-					animate={{ y: 100, opacity: [0, 1, 0], rotate: 360 }}
-					transition={{ duration: 2, delay: i * 0.3 }}
-				>
-					{emoji}
-				</motion.span>
-			))}
-		</div>
-
-		<div className='p-5'>
-			{/* Header */}
-			<div className='mb-4 flex items-center gap-3.5'>
-				<ChallengeIcon icon='✅' isComplete />
-				<div className='flex-1'>
-					<span className='text-xs font-bold uppercase tracking-wide text-success'>
-						{t('challengeComplete')}
-					</span>
-					<h3 className='text-xl font-display font-extrabold'>{challenge.title}</h3>
-				</div>
+			{/* Confetti */}
+			<div className='pointer-events-none absolute inset-0 overflow-hidden'>
+				{['🎉', '✨'].map((emoji, i) => (
+					<motion.span
+						key={i}
+						className='absolute text-2xl'
+						style={{ left: i === 0 ? '20%' : '80%' }}
+						initial={{ y: -20, opacity: 0, rotate: 0 }}
+						animate={{ y: 100, opacity: [0, 1, 0], rotate: 360 }}
+						transition={{ duration: 2, delay: i * 0.3 }}
+					>
+						{emoji}
+					</motion.span>
+				))}
 			</div>
 
-			{/* Completed With */}
-			<div className='mb-3 flex items-center justify-between rounded-xl bg-bg-card p-3.5'>
-				<div className='flex items-center gap-3'>
-					<Image
-						src={completedWith.recipeImageUrl}
-						alt={completedWith.recipeTitle}
-						width={48}
-						height={48}
-						className='size-12 rounded-lg object-cover'
-					/>
-					<div className='flex flex-col'>
-						<span className='text-xs text-text-muted'>{t('completedWith')}</span>
-						<span className='text-sm font-semibold'>
-							{completedWith.recipeTitle}
+			<div className='p-5'>
+				{/* Header */}
+				<div className='mb-4 flex items-center gap-3.5'>
+					<ChallengeIcon icon='✅' isComplete />
+					<div className='flex-1'>
+						<span className='text-xs font-bold uppercase tracking-wide text-success'>
+							{t('challengeComplete')}
 						</span>
+						<h3 className='text-xl font-display font-extrabold'>
+							{challenge.title}
+						</h3>
 					</div>
 				</div>
-				<div className='text-right'>
-					<span className='block tabular-nums text-xl font-display font-extrabold text-xp'>
-						+{challenge.bonusXp} XP
-					</span>
-					<span className='text-xs text-text-muted'>{t('bonusEarned')}</span>
+
+				{/* Completed With */}
+				<div className='mb-3 flex items-center justify-between rounded-xl bg-bg-card p-3.5'>
+					<div className='flex items-center gap-3'>
+						<Image
+							src={completedWith.recipeImageUrl}
+							alt={completedWith.recipeTitle}
+							width={48}
+							height={48}
+							className='size-12 rounded-lg object-cover'
+						/>
+						<div className='flex flex-col'>
+							<span className='text-xs text-text-muted'>
+								{t('completedWith')}
+							</span>
+							<span className='text-sm font-semibold'>
+								{completedWith.recipeTitle}
+							</span>
+						</div>
+					</div>
+					<div className='text-right'>
+						<span className='block tabular-nums text-xl font-display font-extrabold text-xp'>
+							+{challenge.bonusXp} XP
+						</span>
+						<span className='text-xs text-text-muted'>{t('bonusEarned')}</span>
+					</div>
 				</div>
+
+				{/* Streak Teaser */}
+				{streakCount > 0 && (
+					<div className='flex items-center justify-center gap-2 rounded-lg bg-streak/10 px-3 py-2.5'>
+						<span className='text-lg'>🔥</span>
+						<span className='text-sm font-semibold text-streak'>
+							{t('streakDays', { n: streakCount })}
+						</span>
+					</div>
+				)}
 			</div>
 
-			{/* Streak Teaser */}
-			{streakCount > 0 && (
-				<div className='flex items-center justify-center gap-2 rounded-lg bg-streak/10 px-3 py-2.5'>
-					<span className='text-lg'>🔥</span>
-					<span className='text-sm font-semibold text-streak'>
-						{t('streakDays', { n: streakCount })}
-					</span>
-				</div>
-			)}
-		</div>
-
-		{/* View History */}
-		<button
-			type='button'
-			onClick={onViewHistory}
-			className='absolute right-4 top-4 flex items-center gap-1 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-		>
-			{t('viewHistory')}
-			<ChevronRight className='size-4' />
-		</button>
-	</motion.div>
-)
+			{/* View History */}
+			<button
+				type='button'
+				onClick={onViewHistory}
+				className='absolute right-4 top-4 flex items-center gap-1 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+			>
+				{t('viewHistory')}
+				<ChevronRight className='size-4' />
+			</button>
+		</motion.div>
+	)
 }
 
 // ============================================
@@ -443,7 +449,7 @@ const FeaturedChallengeBanner = ({
 					</div>
 					<div>
 						<span className='text-xs font-bold uppercase tracking-wide text-white/70'>
-						{challenge.eventLabel ?? t('weekendChallenge')}
+							{challenge.eventLabel ?? t('weekendChallenge')}
 						</span>
 						<h2 className='text-2xl font-display font-extrabold text-white'>
 							{challenge.title}
@@ -459,14 +465,14 @@ const FeaturedChallengeBanner = ({
 					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/30 to-xp/30 px-4 py-2.5 shadow-card shadow-bonus/30'>
 						<span>⚡</span>
 						<span className='tabular-nums text-xl font-display font-extrabold text-xp drop-shadow-glow'>
-							+{challenge.bonusXp} XP
+							+{challenge.bonusXp || 0} XP
 						</span>
 						<span className='text-xs text-bonus'>bonus</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-white/70'>
 						<Calendar className='size-4' />
 						<span className='font-semibold text-white'>{timeRemaining}</span>
-					<span>{t('remaining')}</span>
+						{timeRemaining !== t('expired') && <span>{t('remaining')}</span>}
 					</div>
 				</div>
 
@@ -478,7 +484,9 @@ const FeaturedChallengeBanner = ({
 								? `${(challenge.participants / 1000).toFixed(1)}k`
 								: challenge.participants}
 						</span>
-						<span className='text-xs text-white/60'>{t('participantsLabel')}</span>
+						<span className='text-xs text-white/60'>
+							{t('participantsLabel')}
+						</span>
 					</div>
 					<div className='flex flex-col'>
 						<span className='tabular-nums text-lg font-bold text-white'>

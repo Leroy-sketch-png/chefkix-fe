@@ -58,7 +58,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 					<div className='flex items-center gap-2'>
 						<UserHoverCard userId={post.userId}>
 							<Link
-								href={`/profile/${post.userId}`}
+								href={`/${post.userId}`}
 								className='flex items-center gap-1.5'
 							>
 								<Avatar className='size-5'>
@@ -97,7 +97,9 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 					</div>
 
 					{/* Activity label */}
-					<span className='text-xs text-text-muted'>🍳 {t('cookedThisRecipe')}</span>
+					<span className='text-xs text-text-muted'>
+						🍳 {t('cookedThisRecipe')}
+					</span>
 				</div>
 
 				{/* Arrow link to recipe */}

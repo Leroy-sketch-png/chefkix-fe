@@ -46,7 +46,7 @@ export function FollowUserCard({
 
 	const handleToggleFollow = async (e: React.MouseEvent) => {
 		e.stopPropagation()
-		if (!requireAuth('follow this chef')) return
+		if (!requireAuth(t('authActionFollow'))) return
 		if (followLockRef.current || isOwnProfile) return
 		followLockRef.current = true
 

@@ -17,7 +17,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -105,7 +110,12 @@ const StatCard = ({
 	<div className='flex items-center gap-2.5 rounded-xl bg-bg p-3.5'>
 		<span className='text-xl'>{icon}</span>
 		<div className='flex flex-col'>
-			<span className={cn('text-lg font-display font-extrabold text-text', colorClass)}>
+			<span
+				className={cn(
+					'text-lg font-display font-extrabold text-text',
+					colorClass,
+				)}
+			>
 				{value}
 			</span>
 			<span className='text-2xs text-text-secondary'>{label}</span>
@@ -187,7 +197,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 				<span
 					className={cn('text-xl', day.status === 'missed' && 'opacity-50')}
 				>
-					{day.challenge?.emoji ?? 'ðŸ³'}
+					{day.challenge?.emoji ?? '🍳'}
 				</span>
 				{config.indicator && (
 					<div
@@ -282,7 +292,7 @@ export const ChallengeHistorySection = ({
 					colorClass='text-brand'
 				/>
 				<StatCard
-					icon='ðŸ†'
+					icon='🏆'
 					value={String(stats.bestStreak)}
 					label={t('bestStreak')}
 					colorClass='text-warning'
@@ -303,7 +313,9 @@ export const ChallengeHistorySection = ({
 						<span className='text-3xl'>🎯</span>
 						<div className='text-sm text-text'>
 							<strong className='text-streak'>
-								{daysToNextBadge > 1 ? t('unlockBadgePlural', { n: daysToNextBadge }) : t('unlockBadgeSingle', { n: daysToNextBadge })}
+								{daysToNextBadge > 1
+									? t('unlockBadgePlural', { n: daysToNextBadge })
+									: t('unlockBadgeSingle', { n: daysToNextBadge })}
 							</strong>
 							<span className='mt-0.5 block text-xs text-text-secondary'>
 								{t('completeTomorrowStreak')}
@@ -371,7 +383,7 @@ const HistoryItem = ({
 					)}
 				>
 					<span className={cn('text-2xl', !isCompleted && 'opacity-50')}>
-						{day.challenge?.emoji ?? 'ðŸ³'}
+						{day.challenge?.emoji ?? '🍳'}
 					</span>
 				</div>
 
@@ -381,7 +393,9 @@ const HistoryItem = ({
 					</span>
 					<span className='text-xs text-text-secondary'>
 						{day.challenge?.title
-							? t('completeChallenge', { title: day.challenge.title.toLowerCase() })
+							? t('completeChallenge', {
+									title: day.challenge.title.toLowerCase(),
+								})
 							: '—'}
 					</span>
 					{day.recipeCooked && (
@@ -401,7 +415,7 @@ const HistoryItem = ({
 				</div>
 
 				<div className='flex flex-col items-end gap-0.5'>
-					<span className='text-xl'>{isCompleted ? '✅' : 'âŒ'}</span>
+					<span className='text-xl'>{isCompleted ? '✅' : '❌'}</span>
 					<span
 						className={cn(
 							'text-sm font-bold',
@@ -483,11 +497,13 @@ export const ChallengeHistoryPage = ({
 							</span>
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
-							<span className='text-xl'>ðŸ†</span>
+							<span className='text-xl'>🏆</span>
 							<span className='text-xl font-display font-extrabold text-text'>
 								{stats.bestStreak}
 							</span>
-							<span className='text-xs text-text-secondary'>{t('bestStreak')}</span>
+							<span className='text-xs text-text-secondary'>
+								{t('bestStreak')}
+							</span>
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>⚡</span>
@@ -549,15 +565,17 @@ export const ChallengeHistoryPage = ({
 
 				{/* Simple calendar grid placeholder - would be expanded for full implementation */}
 				<div className='grid grid-cols-7 gap-1'>
-					{([
-					{ key: 'dayMon', label: t('dayMon') },
-					{ key: 'dayTue', label: t('dayTue') },
-					{ key: 'dayWed', label: t('dayWed') },
-					{ key: 'dayThu', label: t('dayThu') },
-					{ key: 'dayFri', label: t('dayFri') },
-					{ key: 'daySat', label: t('daySat') },
-					{ key: 'daySun', label: t('daySun') },
-				] as Array<{ key: string; label: string }>).map(({ key, label }) => (
+					{(
+						[
+							{ key: 'dayMon', label: t('dayMon') },
+							{ key: 'dayTue', label: t('dayTue') },
+							{ key: 'dayWed', label: t('dayWed') },
+							{ key: 'dayThu', label: t('dayThu') },
+							{ key: 'dayFri', label: t('dayFri') },
+							{ key: 'daySat', label: t('daySat') },
+							{ key: 'daySun', label: t('daySun') },
+						] as Array<{ key: string; label: string }>
+					).map(({ key, label }) => (
 						<div
 							key={key}
 							className='py-2 text-center text-xs font-semibold text-text-secondary'

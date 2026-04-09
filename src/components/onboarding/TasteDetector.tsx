@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
+
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Radar, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -40,12 +42,17 @@ interface TasteDetectorProps {
 // ============================================
 
 const TASTE_DIMENSIONS = [
-	{ key: 'sweet', label: 'Sweet', color: 'text-brand', angle: 0 },
-	{ key: 'savory', label: 'Savory', color: 'text-warning', angle: 60 },
-	{ key: 'spicy', label: 'Spicy', color: 'text-error', angle: 120 },
-	{ key: 'fresh', label: 'Fresh', color: 'text-success', angle: 180 },
-	{ key: 'rich', label: 'Rich', color: 'text-streak', angle: 240 },
-	{ key: 'umami', label: 'Umami', color: 'text-accent-purple', angle: 300 },
+	{ key: 'sweet', labelKey: 'tasteSweet', color: 'text-brand', angle: 0 },
+	{ key: 'savory', labelKey: 'tasteSavory', color: 'text-warning', angle: 60 },
+	{ key: 'spicy', labelKey: 'tasteSpicy', color: 'text-error', angle: 120 },
+	{ key: 'fresh', labelKey: 'tasteFresh', color: 'text-success', angle: 180 },
+	{ key: 'rich', labelKey: 'tasteRich', color: 'text-streak', angle: 240 },
+	{
+		key: 'umami',
+		labelKey: 'tasteUmami',
+		color: 'text-accent-purple',
+		angle: 300,
+	},
 ] as const
 
 const DEFAULT_MIN_EVENTS = 10
@@ -72,7 +79,7 @@ function buildRadarPath(profile: TasteProfile, size: number) {
 	const cy = size / 2
 	const maxRadius = (size / 2) * 0.8 // 80% of half-size
 
-	const points = TASTE_DIMENSIONS.map((dim) => {
+	const points = TASTE_DIMENSIONS.map(dim => {
 		const value = profile[dim.key as keyof TasteProfile] ?? 0
 		const radius = (value / 100) * maxRadius
 		return polarToCartesian(cx, cy, radius, dim.angle)
@@ -80,9 +87,10 @@ function buildRadarPath(profile: TasteProfile, size: number) {
 
 	if (points.length === 0) return ''
 
-	return points
-		.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-		.join(' ') + ' Z'
+	return (
+		points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') +
+		' Z'
+	)
 }
 
 // ============================================
@@ -105,20 +113,30 @@ function buildRadarPath(profile: TasteProfile, size: number) {
  * />
  * ```
  */
+const EMPTY_PROFILE: TasteProfile = {}
+
 export const TasteDetector = ({
-	profile = {},
+	profile,
 	isDetecting = false,
 	eventCount = 0,
 	minEvents = DEFAULT_MIN_EVENTS,
 	className,
 	compact = false,
 }: TasteDetectorProps) => {
-	const [animatedProfile, setAnimatedProfile] = useState<TasteProfile>({})
+	const tc = useTranslations('common')
+	const stableProfile = profile ?? EMPTY_PROFILE
+	const [animatedProfile, setAnimatedProfile] =
+		useState<TasteProfile>(stableProfile)
+	const prevProfileJson = useRef('')
 
-	// Animate profile changes smoothly
+	// Animate profile changes smoothly — compare by value to avoid infinite loops
 	useEffect(() => {
-		setAnimatedProfile(profile)
-	}, [profile])
+		const json = JSON.stringify(stableProfile)
+		if (json !== prevProfileJson.current) {
+			prevProfileJson.current = json
+			setAnimatedProfile(stableProfile)
+		}
+	}, [stableProfile])
 
 	const progress = Math.min(100, (eventCount / minEvents) * 100)
 	const isFormed = eventCount >= minEvents
@@ -134,15 +152,17 @@ export const TasteDetector = ({
 		const cx = radarSize / 2
 		const cy = radarSize / 2
 		const maxRadius = (radarSize / 2) * 0.8
-		return [0.25, 0.5, 0.75, 1].map((scale) => {
-			const r = maxRadius * scale
-			return TASTE_DIMENSIONS.map((dim, i) => {
-				const p = polarToCartesian(cx, cy, r, dim.angle)
-				const next = TASTE_DIMENSIONS[(i + 1) % TASTE_DIMENSIONS.length]
-				const p2 = polarToCartesian(cx, cy, r, next.angle)
-				return { x1: p.x, y1: p.y, x2: p2.x, y2: p2.y, key: `${scale}-${i}` }
+		return [0.25, 0.5, 0.75, 1]
+			.map(scale => {
+				const r = maxRadius * scale
+				return TASTE_DIMENSIONS.map((dim, i) => {
+					const p = polarToCartesian(cx, cy, r, dim.angle)
+					const next = TASTE_DIMENSIONS[(i + 1) % TASTE_DIMENSIONS.length]
+					const p2 = polarToCartesian(cx, cy, r, next.angle)
+					return { x1: p.x, y1: p.y, x2: p2.x, y2: p2.y, key: `${scale}-${i}` }
+				})
 			})
-		}).flat()
+			.flat()
 	}, [radarSize])
 
 	// Spoke lines
@@ -150,7 +170,7 @@ export const TasteDetector = ({
 		const cx = radarSize / 2
 		const cy = radarSize / 2
 		const maxRadius = (radarSize / 2) * 0.8
-		return TASTE_DIMENSIONS.map((dim) => {
+		return TASTE_DIMENSIONS.map(dim => {
 			const p = polarToCartesian(cx, cy, maxRadius, dim.angle)
 			return { x1: cx, y1: cy, x2: p.x, y2: p.y, key: dim.key }
 		})
@@ -176,7 +196,7 @@ export const TasteDetector = ({
 					>
 						{/* Grid */}
 						<g className='stroke-border-subtle' strokeWidth={0.5}>
-							{gridLines.map((line) => (
+							{gridLines.map(line => (
 								<line
 									key={line.key}
 									x1={line.x1}
@@ -260,7 +280,7 @@ export const TasteDetector = ({
 					>
 						{/* Grid circles */}
 						<g className='stroke-border-subtle' strokeWidth={0.5} fill='none'>
-							{gridLines.map((line) => (
+							{gridLines.map(line => (
 								<line
 									key={line.key}
 									x1={line.x1}
@@ -272,7 +292,7 @@ export const TasteDetector = ({
 						</g>
 						{/* Spokes */}
 						<g className='stroke-border' strokeWidth={0.5}>
-							{spokeLines.map((line) => (
+							{spokeLines.map(line => (
 								<line
 									key={line.key}
 									x1={line.x1}
@@ -294,7 +314,10 @@ export const TasteDetector = ({
 									initial={{ pathLength: 0, opacity: 0 }}
 									animate={{ pathLength: 1, opacity: 1 }}
 									exit={{ opacity: 0 }}
-									transition={{ duration: DURATION_S.dramatic, ease: 'easeOut' }}
+									transition={{
+										duration: DURATION_S.dramatic,
+										ease: 'easeOut',
+									}}
 								/>
 							)}
 						</AnimatePresence>
@@ -317,7 +340,7 @@ export const TasteDetector = ({
 			{/* Dimension labels (outside chart) */}
 			{!compact && (
 				<div className='mt-3 flex flex-wrap justify-center gap-2'>
-					{TASTE_DIMENSIONS.map((dim) => {
+					{TASTE_DIMENSIONS.map(dim => {
 						const value = animatedProfile[dim.key as keyof TasteProfile] ?? 0
 						const hasValue = value > 0
 						return (
@@ -331,7 +354,7 @@ export const TasteDetector = ({
 								)}
 								animate={{ opacity: hasValue ? 1 : 0.5 }}
 							>
-								{dim.label}
+								{tc(dim.labelKey)}
 							</motion.span>
 						)
 					})}

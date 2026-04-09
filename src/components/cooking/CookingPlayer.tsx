@@ -134,47 +134,51 @@ const StepDots = ({
 }) => {
 	const t = useTranslations('cooking')
 	return (
-	<div
-		className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide max-w-step-dots md:max-w-step-dots-lg px-1'
-		role='tablist'
-		aria-label={t('ariaRecipeSteps')}
-	>
-		{Array.from({ length: totalSteps }, (_, i) => {
-			const stepNum = i + 1
-			const isCompleted = completedSteps.has(stepNum)
-			const isCurrent = stepNum === currentStep
+		<div
+			className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide max-w-step-dots md:max-w-step-dots-lg px-1'
+			role='tablist'
+			aria-label={t('ariaRecipeSteps')}
+		>
+			{Array.from({ length: totalSteps }, (_, i) => {
+				const stepNum = i + 1
+				const isCompleted = completedSteps.has(stepNum)
+				const isCurrent = stepNum === currentStep
 
-			return (
-				<motion.button
-					type='button'
-					key={stepNum}
-					role='tab'
-					aria-selected={isCurrent}
-					aria-label={t(isCompleted ? 'stepNumCompleted' : 'stepNum', { step: stepNum })}
-					onClick={() => onStepClick?.(stepNum)}
-					whileHover={ICON_BUTTON_HOVER}
-					whileTap={ICON_BUTTON_TAP}
-					initial={false}
-					animate={{
-						scale: isCurrent ? 1.05 : 1,
-					}}
-					transition={TRANSITION_SPRING}
-					className={cn(
-						'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
-						// 44px minimum touch targets for accessibility
-						isCurrent
-							? 'h-11 w-14 bg-white text-brand shadow-card'
-							: isCompleted
-								? 'size-11 bg-success text-white'
-								: 'size-11 bg-white/20 text-white/70 hover:bg-white/30 hover:text-white',
-					)}
-					title={t(isCompleted ? 'stepNumCompleted' : 'stepNum', { step: stepNum })}
-				>
-					{isCompleted && !isCurrent ? <Check className='size-4' /> : stepNum}
-				</motion.button>
-			)
-		})}
-	</div>
+				return (
+					<motion.button
+						type='button'
+						key={stepNum}
+						role='tab'
+						aria-selected={isCurrent}
+						aria-label={t(isCompleted ? 'stepNumCompleted' : 'stepNum', {
+							step: stepNum,
+						})}
+						onClick={() => onStepClick?.(stepNum)}
+						whileHover={ICON_BUTTON_HOVER}
+						whileTap={ICON_BUTTON_TAP}
+						initial={false}
+						animate={{
+							scale: isCurrent ? 1.05 : 1,
+						}}
+						transition={TRANSITION_SPRING}
+						className={cn(
+							'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
+							// 44px minimum touch targets for accessibility
+							isCurrent
+								? 'h-11 w-14 bg-white text-brand shadow-card'
+								: isCompleted
+									? 'size-11 bg-success text-white'
+									: 'size-11 bg-white/20 text-white/70 hover:bg-white/30 hover:text-white',
+						)}
+						title={t(isCompleted ? 'stepNumCompleted' : 'stepNum', {
+							step: stepNum,
+						})}
+					>
+						{isCompleted && !isCurrent ? <Check className='size-4' /> : stepNum}
+					</motion.button>
+				)
+			})}
+		</div>
 	)
 }
 
@@ -354,7 +358,9 @@ const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 		)}
 	>
 		<Zap className='size-4' />
-		<span className='tabular-nums'>+<AnimatedNumber value={xp} duration={0.8} /> XP</span>
+		<span className='tabular-nums'>
+			+<AnimatedNumber value={xp} duration={0.8} /> XP
+		</span>
 	</motion.div>
 )
 
@@ -364,34 +370,34 @@ const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 
 const MODE_CONFIG: Record<
 	KitchenInteractionMode,
-	{ label: string; icon: string; bg: string; text: string }
+	{ labelKey: string; icon: string; bg: string; text: string }
 > = {
 	PREP: {
-		label: 'Getting Ready',
+		labelKey: 'modePrep',
 		icon: '📋',
 		bg: 'bg-brand/20',
 		text: 'text-brand',
 	},
 	ACTIVE: {
-		label: 'Cooking',
+		labelKey: 'modeActive',
 		icon: '🔥',
 		bg: 'bg-success/20',
 		text: 'text-success',
 	},
 	MESSY_HANDS: {
-		label: 'Messy Hands',
+		labelKey: 'modeMessy',
 		icon: '🙌',
 		bg: 'bg-warning/25',
 		text: 'text-warning',
 	},
 	MONITORING: {
-		label: 'Monitoring',
+		labelKey: 'modeMonitoring',
 		icon: '👀',
 		bg: 'bg-streak/20',
 		text: 'text-streak',
 	},
 	COMPLETION: {
-		label: 'Done!',
+		labelKey: 'modeCompletion',
 		icon: '🏆',
 		bg: 'bg-xp/20',
 		text: 'text-xp',
@@ -429,7 +435,7 @@ const ModeIndicatorBadge = ({
 				)}
 			>
 				<span>{config.icon}</span>
-				<span>{t(`mode${mode}`)}</span>
+				<span>{t(config.labelKey)}</span>
 			</motion.div>
 		</AnimatePresence>
 	)
@@ -478,7 +484,7 @@ const ActiveTimersBadge = ({
 							isUrgent
 								? {
 										backgroundColor: [
-											'rgba(239,68,68,0.2) focus-visible:ring-2 focus-visible:ring-brand/50',
+											'rgba(239,68,68,0.2)',
 											'rgba(239,68,68,0.4)',
 											'rgba(239,68,68,0.2)',
 										],
@@ -512,7 +518,8 @@ const ActiveTimersBadge = ({
 
 export const CookingPlayer = () => {
 	const { cookingMode, closeCookingPanel } = useUiStore()
-	const { shouldReduceMotion: prefersReducedMotion } = useReducedMotionPreference()
+	const { shouldReduceMotion: prefersReducedMotion } =
+		useReducedMotionPreference()
 	const t = useTranslations('cooking')
 	const isOpen = cookingMode === 'expanded'
 	const { showImmediateRewards, showLevelUp } = useCelebration()
@@ -566,10 +573,7 @@ export const CookingPlayer = () => {
 	// Warn users before leaving page during active cooking session (skip in preview)
 	const hasActiveSession =
 		session?.status === 'in_progress' && isOpen && !isPreviewMode
-	useBeforeUnloadWarning(
-		hasActiveSession,
-		t('beforeUnloadWarning'),
-	)
+	useBeforeUnloadWarning(hasActiveSession, t('beforeUnloadWarning'))
 
 	// Local UI state
 	const [direction, setDirection] = useState(0) // -1 = back, 1 = forward
@@ -681,13 +685,22 @@ export const CookingPlayer = () => {
 	const handleDoubleclap = useCallback(() => {
 		if (!step || !voice.hasTTS) return
 		const tipsText =
-			instructionDetail === 'detailed' && step.tips ? ` Tip: ${step.tips}` : ''
+			instructionDetail === 'detailed' && step.tips
+				? t('ttsTipPrefix', { tips: step.tips })
+				: ''
 		const speech =
 			instructionDetail === 'condensed'
-				? `Step ${step.stepNumber}. ${step.title ?? step.description}`
-				: `Step ${step.stepNumber}. ${step.description}${tipsText}`
+				? t('ttsStepCondensed', {
+						stepNumber: step.stepNumber,
+						instruction: step.title ?? step.description,
+					})
+				: t('ttsStepDetailed', {
+						stepNumber: step.stepNumber,
+						instruction: step.description,
+						tips: tipsText,
+					})
 		voice.speak(speech)
-	}, [step, voice, instructionDetail])
+	}, [step, voice, instructionDetail, t])
 
 	useClapDetection({
 		enabled: isOpen && !!session && session.status === 'in_progress',
@@ -725,16 +738,31 @@ export const CookingPlayer = () => {
 		prevStepRef.current = currentStepNumber
 
 		const tipsText =
-			instructionDetail === 'detailed' && step.tips ? ` Tip: ${step.tips}` : ''
-		const announcement = `Step ${step.stepNumber} of ${totalSteps}. ${step.title ?? 'Cook'}. ${step.description}${tipsText}`
+			instructionDetail === 'detailed' && step.tips
+				? t('ttsTipPrefix', { tips: step.tips })
+				: ''
+		const announcement = t('ttsAnnouncement', {
+			stepNumber: step.stepNumber,
+			totalSteps,
+			title: step.title ?? t('ttsTitleFallback'),
+			instruction: step.description,
+			tips: tipsText,
+		})
 		// Update aria-live region for screen readers
 		setLiveAnnouncement(announcement)
 
 		if (isAudioEnabled() && voice.hasTTS) {
 			const speech =
 				instructionDetail === 'condensed'
-					? `Step ${step.stepNumber}. ${step.title ?? step.description}`
-					: `Step ${step.stepNumber}. ${step.description}${tipsText}`
+					? t('ttsStepCondensed', {
+							stepNumber: step.stepNumber,
+							instruction: step.title ?? step.description,
+						})
+					: t('ttsStepDetailed', {
+							stepNumber: step.stepNumber,
+							instruction: step.description,
+							tips: tipsText,
+						})
 			voice.speak(speech)
 		}
 	}, [
@@ -931,7 +959,10 @@ export const CookingPlayer = () => {
 						? t('almostThere')
 						: remaining === 0
 							? t('allStepsDone')
-							: t('stepsProgress', { done: newCompletedCount, total: totalSteps })
+							: t('stepsProgress', {
+									done: newCompletedCount,
+									total: totalSteps,
+								})
 				toast.success(message, { duration: 2000 })
 			}
 
@@ -1231,9 +1262,7 @@ export const CookingPlayer = () => {
 						error: errorMsg,
 						sessionId: session?.sessionId,
 					})
-					toast.error(
-						errorMsg || t('failedComplete'),
-					)
+					toast.error(errorMsg || t('failedComplete'))
 					return
 				}
 
@@ -1351,7 +1380,11 @@ export const CookingPlayer = () => {
 						<div className='flex flex-col items-center gap-4 text-white'>
 							<motion.span
 								animate={{ rotate: [0, 10, -10, 0] }}
-								transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+								transition={{
+									duration: 1.5,
+									repeat: Infinity,
+									ease: 'easeInOut',
+								}}
 								className='text-5xl'
 							>
 								👨‍🍳
@@ -1437,7 +1470,9 @@ export const CookingPlayer = () => {
 							{isPreviewMode && (
 								<div className='flex items-center justify-center gap-2 bg-warning/10 px-4 py-1.5 text-sm dark:bg-warning/20'>
 									<Sparkles className='size-3.5 text-warning' />
-									<span className='font-medium text-warning'>{t('previewMode')}</span>
+									<span className='font-medium text-warning'>
+										{t('previewMode')}
+									</span>
 									<span className='text-warning/70'>
 										{t('previewModeDesc')}
 									</span>
@@ -1512,7 +1547,7 @@ export const CookingPlayer = () => {
 										whileHover={ICON_BUTTON_HOVER}
 										whileTap={ICON_BUTTON_TAP}
 										className={cn(
-											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
+											'grid size-10 place-items-center rounded-full backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 											kitchenMode
 												? 'bg-white/40 text-white'
 												: 'bg-white/20 text-white/70 hover:bg-white/30',
@@ -1596,11 +1631,11 @@ export const CookingPlayer = () => {
 									<div className='mt-3 flex flex-wrap items-center justify-center gap-4 text-sm opacity-90 md:gap-6'>
 										<span className='flex items-center gap-1.5'>
 											<User className='size-4' />{' '}
-											{recipe.author?.displayName ?? 'Chef'}
+											{recipe.author?.displayName ?? t('authorFallback')}
 										</span>
 										<span className='flex items-center gap-1.5'>
 											<Clock className='size-4' />{' '}
-											{recipe.totalTimeMinutes ?? 0} min
+											{recipe.totalTimeMinutes ?? 0} {t('unitMin')}
 										</span>
 										<span className='flex items-center gap-1.5'>
 											<BarChart2 className='size-4' /> {recipe.difficulty}
@@ -1628,7 +1663,10 @@ export const CookingPlayer = () => {
 											kitchenMode ? 'text-base' : 'text-sm',
 										)}
 									>
-										{t('stepOf', { current: currentStepNumber, total: totalSteps })}
+										{t('stepOf', {
+											current: currentStepNumber,
+											total: totalSteps,
+										})}
 									</span>
 									<StepDots
 										totalSteps={totalSteps}
@@ -1700,7 +1738,9 @@ export const CookingPlayer = () => {
 																))}
 															{recipe.fullIngredientList.length > 8 && (
 																<li className='text-xs text-text-muted'>
-																	{t('moreIngredients', { count: recipe.fullIngredientList.length - 8 })}
+																	{t('moreIngredients', {
+																		count: recipe.fullIngredientList.length - 8,
+																	})}
 																</li>
 															)}
 														</ul>
@@ -1731,7 +1771,9 @@ export const CookingPlayer = () => {
 										>
 											<div className='flex items-center gap-2 text-streak'>
 												<Clock className='size-5' />
-												<span className='font-semibold'>{t('monitoringTimer')}</span>
+												<span className='font-semibold'>
+													{t('monitoringTimer')}
+												</span>
 											</div>
 											<motion.button
 												type='button'
@@ -1781,7 +1823,8 @@ export const CookingPlayer = () => {
 															className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle bg-bg-card p-4'
 														>
 															<h4 className='mb-3 flex items-center gap-2 font-semibold text-text'>
-																<span className='text-lg'>🧾</span> {t('ingredientsForStep')}
+																<span className='text-lg'>🧾</span>{' '}
+																{t('ingredientsForStep')}
 															</h4>
 															<div className='flex flex-col gap-2'>
 																{step.ingredients.map((ing, idx) => {
@@ -1843,7 +1886,7 @@ export const CookingPlayer = () => {
 											setShowPhotoPrompt(false)
 										}}
 										className={cn(
-											'mx-auto mb-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-4 py-2 text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
+											'mx-auto mb-3 flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-4 py-2 text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50',
 											kitchenMode ? 'px-6 py-3 text-base' : 'text-sm',
 										)}
 									>
@@ -1882,7 +1925,7 @@ export const CookingPlayer = () => {
 											: undefined
 									}
 									className={cn(
-										'flex items-center gap-2 rounded-full font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
+										'flex items-center gap-2 rounded-full font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 										kitchenMode || interactionMode === 'MESSY_HANDS'
 											? 'min-h-16 px-8 py-4 text-lg'
 											: 'px-6 py-3',
@@ -1919,7 +1962,7 @@ export const CookingPlayer = () => {
 											: t('titleMessyHands')
 									}
 									className={cn(
-										'grid place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-2 focus-visible:ring-brand/50',
+										'grid place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 										kitchenMode ? 'size-14' : 'size-10',
 										interactionMode === 'MESSY_HANDS'
 											? 'bg-warning/30 text-warning ring-2 ring-warning/50'

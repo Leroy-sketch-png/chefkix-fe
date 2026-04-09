@@ -6,25 +6,30 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, ChevronRight, Trophy, X } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, DURATION_S } from '@/lib/motion'
 import {
-	getSeasonalChallenges,
-	SeasonalChallenge,
-} from '@/services/challenge'
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	DURATION_S,
+} from '@/lib/motion'
+import { getSeasonalChallenges, SeasonalChallenge } from '@/services/challenge'
 import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // HELPERS
 // ============================================
 
-function getTimeRemaining(endsAt: string): string {
+function getTimeRemaining(
+	endsAt: string,
+	t: (key: string, params?: Record<string, unknown>) => string,
+): string {
 	const diff = new Date(endsAt).getTime() - Date.now()
-	if (diff <= 0) return 'Ended'
+	if (diff <= 0) return t('sbEnded')
 	const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-	if (days > 1) return `${days} days left`
+	if (days > 1) return t('sbDaysLeft', { count: days })
 	const hours = Math.floor(diff / (1000 * 60 * 60))
-	if (hours > 1) return `${hours} hours left`
-	return 'Ending soon'
+	if (hours > 1) return t('sbHoursLeft', { count: hours })
+	return t('sbEndingSoon')
 }
 
 const DISMISSED_KEY = 'chefkix_seasonal_banner_dismissed'
@@ -55,7 +60,8 @@ interface SeasonalBannerProps {
 }
 
 export function SeasonalBanner({ className }: SeasonalBannerProps) {
-	const t = useTranslations('common')
+	const tc = useTranslations('common')
+	const td = useTranslations('dashboard')
 	const [challenge, setChallenge] = useState<SeasonalChallenge | null>(null)
 	const [dismissed, setDismissed] = useState(false)
 
@@ -81,14 +87,20 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 		}
 
 		fetchSeasonal()
-		return () => { mounted = false }
+		return () => {
+			mounted = false
+		}
 	}, [])
 
 	const showBanner = !!challenge && !dismissed
 
-	const progressPercent = challenge && challenge.targetCount > 0
-		? Math.min(100, Math.round((challenge.userProgress / challenge.targetCount) * 100))
-		: 0
+	const progressPercent =
+		challenge && challenge.targetCount > 0
+			? Math.min(
+					100,
+					Math.round((challenge.userProgress / challenge.targetCount) * 100),
+				)
+			: 0
 
 	const handleDismiss = () => {
 		if (challenge) dismissBanner(challenge.id)
@@ -98,103 +110,107 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 	return (
 		<AnimatePresence>
 			{showBanner && challenge && (
-		<motion.div
-			initial={{ opacity: 0, y: 12 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -12 }}
-			transition={TRANSITION_SPRING}
-			className={cn(
-				'group relative overflow-hidden rounded-radius border border-brand/20 bg-gradient-to-r from-brand/10 via-bg-card to-streak/10 p-4 shadow-card md:p-5',
-				className,
-			)}
-		>
-			{/* Dismiss button */}
-			<button
-				type='button'
-				onClick={handleDismiss}
-				className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-				aria-label={t('ariaDismissSeasonalBanner')}
-			>
-				<X className='size-4' />
-			</button>
+				<motion.div
+					initial={{ opacity: 0, y: 12 }}
+					animate={{ opacity: 1, y: 0 }}
+					exit={{ opacity: 0, y: -12 }}
+					transition={TRANSITION_SPRING}
+					className={cn(
+						'group relative overflow-hidden rounded-radius border border-brand/20 bg-gradient-to-r from-brand/10 via-bg-card to-streak/10 p-4 shadow-card md:p-5',
+						className,
+					)}
+				>
+					{/* Dismiss button */}
+					<button
+						type='button'
+						onClick={handleDismiss}
+						className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+						aria-label={tc('ariaDismissSeasonalBanner')}
+					>
+						<X className='size-4' />
+					</button>
 
-			{/* Content */}
-			<div className='flex items-start gap-4'>
-				{/* Emoji / Icon */}
-				<div className='grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-hero text-xl shadow-card shadow-brand/25'>
-					{challenge.emoji || '🎄'}
-				</div>
+					{/* Content */}
+					<div className='flex items-start gap-4'>
+						{/* Emoji / Icon */}
+						<div className='grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-hero text-xl shadow-card shadow-brand/25'>
+							{challenge.emoji || '🎄'}
+						</div>
 
-				<div className='min-w-0 flex-1'>
-					{/* Header */}
-					<div className='flex items-center gap-2'>
-						<span className='rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-brand'>
-							Seasonal Event
-						</span>
-						<span className='flex items-center gap-1 text-xs text-text-muted'>
-							<Calendar className='size-3' />
-							{getTimeRemaining(challenge.endsAt)}
-						</span>
-					</div>
-
-					<h3 className='mt-1.5 text-base font-bold text-text'>
-						{challenge.title}
-					</h3>
-					<p className='mt-0.5 line-clamp-2 text-sm text-text-secondary'>
-						{challenge.description}
-					</p>
-
-					{/* Progress bar */}
-					{challenge.targetCount > 0 && (
-						<div className='mt-3'>
-							<div className='mb-1 flex items-center justify-between text-xs'>
-								<span className='tabular-nums text-text-secondary'>
-									{challenge.userProgress} / {challenge.targetCount} {challenge.targetUnit}
+						<div className='min-w-0 flex-1'>
+							{/* Header */}
+							<div className='flex items-center gap-2'>
+								<span className='rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-brand'>
+									{td('sbSeasonalEvent')}
 								</span>
-								<span className='font-semibold tabular-nums text-brand'>
-									{progressPercent}%
+								<span className='flex items-center gap-1 text-xs text-text-muted'>
+									<Calendar className='size-3' />
+									{getTimeRemaining(challenge.endsAt, td)}
 								</span>
 							</div>
-							<div className='h-2 overflow-hidden rounded-full bg-bg-elevated'>
-								<motion.div
-									initial={{ width: 0 }}
-									animate={{ width: `${progressPercent}%` }}
-									transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
-									className='h-full rounded-full bg-gradient-brand'
-								/>
+
+							<h3 className='mt-1.5 text-base font-bold text-text'>
+								{challenge.title}
+							</h3>
+							<p className='mt-0.5 line-clamp-2 text-sm text-text-secondary'>
+								{challenge.description}
+							</p>
+
+							{/* Progress bar */}
+							{challenge.targetCount > 0 && (
+								<div className='mt-3'>
+									<div className='mb-1 flex items-center justify-between text-xs'>
+										<span className='tabular-nums text-text-secondary'>
+											{challenge.userProgress} / {challenge.targetCount}{' '}
+											{challenge.targetUnit}
+										</span>
+										<span className='font-semibold tabular-nums text-brand'>
+											{progressPercent}%
+										</span>
+									</div>
+									<div className='h-2 overflow-hidden rounded-full bg-bg-elevated'>
+										<motion.div
+											initial={{ width: 0 }}
+											animate={{ width: `${progressPercent}%` }}
+											transition={{
+												duration: DURATION_S.verySlow,
+												ease: 'easeOut',
+											}}
+											className='h-full rounded-full bg-gradient-brand'
+										/>
+									</div>
+								</div>
+							)}
+
+							{/* Footer: reward + CTA */}
+							<div className='mt-3 flex flex-wrap items-center gap-3'>
+								{challenge.rewardXp > 0 && (
+									<span className='flex items-center gap-1 text-xs font-semibold text-xp'>
+										<Trophy className='size-3.5' />
+										{challenge.rewardXp} XP
+										{challenge.rewardBadgeName &&
+											` + ${challenge.rewardBadgeName}`}
+									</span>
+								)}
+								<Link href='/challenges' className='ml-auto'>
+									<motion.span
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-warm'
+									>
+										{challenge.userCompleted
+											? td('sbViewDetails')
+											: td('sbJoinEvent')}
+										<ChevronRight className='size-3.5' />
+									</motion.span>
+								</Link>
 							</div>
 						</div>
-					)}
-
-					{/* Footer: reward + CTA */}
-					<div className='mt-3 flex flex-wrap items-center gap-3'>
-						{challenge.rewardXp > 0 && (
-							<span className='flex items-center gap-1 text-xs font-semibold text-xp'>
-								<Trophy className='size-3.5' />
-								{challenge.rewardXp} XP
-								{challenge.rewardBadgeName && ` + ${challenge.rewardBadgeName}`}
-							</span>
-						)}
-						<Link
-							href='/challenges'
-							className='ml-auto'
-						>
-							<motion.span
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className='inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-warm'
-							>
-								{challenge.userCompleted ? 'View Details' : 'Join Event'}
-								<ChevronRight className='size-3.5' />
-							</motion.span>
-						</Link>
 					</div>
-				</div>
-			</div>
 
-			{/* Subtle decorative glow */}
-			<div className='pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-brand/5 blur-2xl' />
-		</motion.div>
+					{/* Subtle decorative glow */}
+					<div className='pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-brand/5 blur-2xl' />
+				</motion.div>
 			)}
 		</AnimatePresence>
 	)

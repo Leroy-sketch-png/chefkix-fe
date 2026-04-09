@@ -15,7 +15,14 @@ import {
 	Target,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, TRANSITION_SMOOTH, ICON_BUTTON_HOVER, ICON_BUTTON_TAP, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	TRANSITION_SMOOTH,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 import { Button } from '@/components/ui/button'
 import type { Step } from '@/lib/types/recipe'
 
@@ -44,68 +51,68 @@ interface StepQualityIndicatorProps {
 
 interface QualityCheck {
 	field: keyof Step
-	label: string
+	labelKey: string
 	icon: typeof CheckCircle2
 	check: (step: Partial<Step>) => boolean
-	suggestion: string
+	suggestionKey: string
 	weight: number // 1-3, higher = more important
 }
 
 const QUALITY_CHECKS: QualityCheck[] = [
 	{
 		field: 'title',
-		label: 'Step title',
+		labelKey: 'qualityStepTitle',
 		icon: Target,
 		check: s => !!s.title?.trim(),
-		suggestion: 'Add a clear, action-oriented title',
+		suggestionKey: 'qualitySuggestTitle',
 		weight: 3,
 	},
 	{
 		field: 'description',
-		label: 'Instructions',
+		labelKey: 'qualityInstructions',
 		icon: ListChecks,
 		check: s => !!s.description?.trim() && s.description.length > 20,
-		suggestion: 'Add detailed step-by-step instructions',
+		suggestionKey: 'qualitySuggestInstructions',
 		weight: 3,
 	},
 	{
 		field: 'timerSeconds',
-		label: 'Timer',
+		labelKey: 'qualityTimer',
 		icon: Timer,
 		check: s => s.timerSeconds !== undefined && s.timerSeconds > 0,
-		suggestion: 'Add a timer for time-sensitive steps',
+		suggestionKey: 'qualitySuggestTimer',
 		weight: 2,
 	},
 	{
 		field: 'visualCues',
-		label: 'Visual cues',
+		labelKey: 'qualityVisualCues',
 		icon: Eye,
 		check: s => !!s.visualCues?.trim(),
-		suggestion: 'Describe what it should look like when done',
+		suggestionKey: 'qualitySuggestVisualCues',
 		weight: 2,
 	},
 	{
 		field: 'chefTip',
-		label: 'Chef tip',
+		labelKey: 'qualityChefTip',
 		icon: ChefHat,
 		check: s => !!s.chefTip?.trim(),
-		suggestion: 'Add a pro tip to help users succeed',
+		suggestionKey: 'qualitySuggestChefTip',
 		weight: 1,
 	},
 	{
 		field: 'commonMistake',
-		label: 'Common mistake',
+		labelKey: 'qualityCommonMistake',
 		icon: AlertCircle,
 		check: s => !!s.commonMistake?.trim(),
-		suggestion: 'Warn about common mistakes to avoid',
+		suggestionKey: 'qualitySuggestCommonMistake',
 		weight: 1,
 	},
 	{
 		field: 'goal',
-		label: 'Step goal',
+		labelKey: 'qualityStepGoal',
 		icon: Lightbulb,
 		check: s => !!s.goal?.trim(),
-		suggestion: 'Explain what this step achieves',
+		suggestionKey: 'qualitySuggestStepGoal',
 		weight: 1,
 	},
 ]
@@ -154,7 +161,7 @@ const LEVEL_CONFIG: Record<
 		bgColor: string
 		borderColor: string
 		icon: typeof CheckCircle2
-		label: string
+		labelKey: string
 	}
 > = {
 	complete: {
@@ -162,21 +169,21 @@ const LEVEL_CONFIG: Record<
 		bgColor: 'bg-success/10',
 		borderColor: 'border-success/30',
 		icon: CheckCircle2,
-		label: 'Complete',
+		labelKey: 'qualityComplete',
 	},
 	partial: {
 		color: 'text-warning',
 		bgColor: 'bg-warning/10',
 		borderColor: 'border-warning/30',
 		icon: AlertCircle,
-		label: 'Needs polish',
+		labelKey: 'qualityNeedsPolish',
 	},
 	incomplete: {
 		color: 'text-error',
 		bgColor: 'bg-error/10',
 		borderColor: 'border-error/30',
 		icon: XCircle,
-		label: 'Incomplete',
+		labelKey: 'qualityIncomplete',
 	},
 }
 
@@ -232,21 +239,22 @@ const StepQualityIndicatorComponent = ({
 				whileTap={ICON_BUTTON_TAP}
 				className={cn(
 					'relative size-3 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
-				level === 'complete' && 'bg-success',
-				level === 'partial' && 'bg-warning',
-				level === 'incomplete' && 'bg-error',
+					level === 'complete' && 'bg-success',
+					level === 'partial' && 'bg-warning',
+					level === 'incomplete' && 'bg-error',
 					className,
 				)}
-				aria-label={t('sqiStepQuality', { label: t(LEVEL_LABEL_KEYS[level]), score })}
+				aria-label={t('sqiStepQuality', {
+					label: t(LEVEL_LABEL_KEYS[level]),
+					score,
+				})}
 			>
 				{level !== 'complete' && (
 					<motion.span
 						className='absolute inset-0 rounded-full'
 						style={{
 							backgroundColor:
-								level === 'partial'
-									? 'rgb(234 179 8)'
-									: 'rgb(239 68 68)',
+								level === 'partial' ? 'rgb(234 179 8)' : 'rgb(239 68 68)',
 						}}
 						animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
 						transition={{ duration: 2, repeat: Infinity }}
@@ -300,14 +308,14 @@ const StepQualityIndicatorComponent = ({
 							{sortedFailed.slice(0, 3).map(check => {
 								const CheckIcon = check.icon
 								return (
-									<div
-										key={check.field}
-										className='flex items-start gap-2'
-									>
+									<div key={check.field} className='flex items-start gap-2'>
 										<CheckIcon className='mt-0.5 size-4 shrink-0 text-text-muted' />
 										<div className='flex-1'>
 											<p className='text-xs text-text'>
-												{t(QUALITY_CHECK_SUGGESTION_KEYS[check.field] || check.field)}
+												{t(
+													QUALITY_CHECK_SUGGESTION_KEYS[check.field] ||
+														check.field,
+												)}
 											</p>
 										</div>
 										{onSuggestFix && (
@@ -319,7 +327,7 @@ const StepQualityIndicatorComponent = ({
 													e.stopPropagation()
 													onSuggestFix(
 														check.field,
-														check.suggestion,
+														t(check.suggestionKey),
 														stepIndex,
 													)
 												}}
@@ -347,13 +355,7 @@ const StepQualityIndicatorComponent = ({
  * StepQualityDot — Minimal dot-only indicator for inline use
  */
 export const StepQualityDot = memo(
-	({
-		step,
-		className,
-	}: {
-		step: Partial<Step>
-		className?: string
-	}) => {
+	({ step, className }: { step: Partial<Step>; className?: string }) => {
 		const t = useTranslations('recipe')
 		const { level, score } = calculateQuality(step)
 

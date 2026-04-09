@@ -4,12 +4,25 @@ import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { DollarSign, ArrowDownLeft, ArrowUpRight, MessageSquare, Clock, AlertCircle } from 'lucide-react'
+import {
+	DollarSign,
+	ArrowDownLeft,
+	ArrowUpRight,
+	MessageSquare,
+	Clock,
+	AlertCircle,
+} from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getReceivedTips, getSentTips } from '@/services/tips'
 import { getProfileByUserId } from '@/services/profile'
 import { Tip } from '@/lib/types/tips'
-import { TRANSITION_SPRING, LIST_ITEM_HOVER, LIST_ITEM_TAP, staggerContainer, staggerItem } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+	staggerContainer,
+	staggerItem,
+} from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
@@ -61,40 +74,57 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(false)
 
-	const resolveTips = useCallback(async (tips: Tip[], resolveField: 'tipperId' | 'creatorId'): Promise<ResolvedTip[]> => {
-		// Batch-dedupe user IDs to minimize requests
-		const uniqueIds = [...new Set(tips.map(t => t[resolveField]))]
-		const profileMap = new Map<string, { displayName: string; avatarUrl: string | null; username: string | null }>()
-
-		await Promise.allSettled(
-			uniqueIds.map(async id => {
-				try {
-					const res = await getProfileByUserId(id)
-					if (res.success && res.data) {
-						const p = res.data
-						const name = p.displayName || [p.firstName, p.lastName].filter(Boolean).join(' ') || p.username || 'Unknown'
-						profileMap.set(id, {
-							displayName: name,
-							avatarUrl: p.avatarUrl ?? null,
-							username: p.username ?? null,
-						})
-					}
-				} catch {
-					// Skip failed profile resolution
+	const resolveTips = useCallback(
+		async (
+			tips: Tip[],
+			resolveField: 'tipperId' | 'creatorId',
+		): Promise<ResolvedTip[]> => {
+			// Batch-dedupe user IDs to minimize requests
+			const uniqueIds = [...new Set(tips.map(t => t[resolveField]))]
+			const profileMap = new Map<
+				string,
+				{
+					displayName: string
+					avatarUrl: string | null
+					username: string | null
 				}
-			}),
-		)
+			>()
 
-		return tips.map(tip => {
-			const resolved = profileMap.get(tip[resolveField])
-			return {
-				...tip,
-				displayName: resolved?.displayName ?? 'Unknown User',
-				avatarUrl: resolved?.avatarUrl ?? null,
-				username: resolved?.username ?? null,
-			}
-		})
-	}, [])
+			await Promise.allSettled(
+				uniqueIds.map(async id => {
+					try {
+						const res = await getProfileByUserId(id)
+						if (res.success && res.data) {
+							const p = res.data
+							const name =
+								p.displayName ||
+								[p.firstName, p.lastName].filter(Boolean).join(' ') ||
+								p.username ||
+								'Unknown'
+							profileMap.set(id, {
+								displayName: name,
+								avatarUrl: p.avatarUrl ?? null,
+								username: p.username ?? null,
+							})
+						}
+					} catch {
+						// Skip failed profile resolution
+					}
+				}),
+			)
+
+			return tips.map(tip => {
+				const resolved = profileMap.get(tip[resolveField])
+				return {
+					...tip,
+					displayName: resolved?.displayName ?? t('unknownUser'),
+					avatarUrl: resolved?.avatarUrl ?? null,
+					username: resolved?.username ?? null,
+				}
+			})
+		},
+		[t],
+	)
 
 	const fetchTips = useCallback(async () => {
 		setIsLoading(true)
@@ -118,14 +148,18 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 		}
 	}, [resolveTips])
 
-	useEffect(() => { fetchTips() }, [fetchTips])
+	useEffect(() => {
+		fetchTips()
+	}, [fetchTips])
 
 	const activeTips = activeTab === 'received' ? receivedTips : sentTips
 	const totalReceived = receivedTips.reduce((sum, t) => sum + t.amountCents, 0)
 	const totalSent = sentTips.reduce((sum, t) => sum + t.amountCents, 0)
 
 	return (
-		<div className={`rounded-radius border border-border bg-bg-card shadow-card ${className}`}>
+		<div
+			className={`rounded-radius border border-border bg-bg-card shadow-card ${className}`}
+		>
 			{/* Header */}
 			<div className='border-b border-border-subtle p-4 md:p-6'>
 				<div className='mb-4 flex items-center gap-3'>
@@ -206,7 +240,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 							onClick={fetchTips}
 							className='rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
 						>
-							Try Again
+							{t('tryAgain')}
 						</button>
 					</div>
 				) : activeTips.length === 0 ? (
@@ -215,13 +249,11 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 							{activeTab === 'received' ? '💰' : '🎁'}
 						</span>
 						<p className='font-medium text-text'>
-							{activeTab === 'received'
-								? t('noTipsReceived')
-								: t('noTipsSent')}
+							{activeTab === 'received' ? t('noTipsReceived') : t('noTipsSent')}
 						</p>
 						<p className='text-sm text-text-muted'>
 							{activeTab === 'received'
-								? 'When fans tip your recipes, they\'ll show up here'
+								? "When fans tip your recipes, they'll show up here"
 								: 'Support your favorite creators by sending a tip'}
 						</p>
 					</div>
@@ -235,11 +267,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 							className='space-y-2'
 						>
 							{activeTips.map(tip => (
-								<TipListItem
-									key={tip.id}
-									tip={tip}
-									direction={activeTab}
-								/>
+								<TipListItem key={tip.id} tip={tip} direction={activeTab} />
 							))}
 						</motion.div>
 					</AnimatePresence>
@@ -273,10 +301,7 @@ function TipListItem({
 			{/* Avatar */}
 			<Link href={`/${userId}`} className='flex-shrink-0'>
 				<Avatar className='size-10'>
-					<AvatarImage
-						src={tip.avatarUrl ?? undefined}
-						alt={tip.displayName}
-					/>
+					<AvatarImage src={tip.avatarUrl ?? undefined} alt={tip.displayName} />
 					<AvatarFallback>
 						{tip.displayName
 							.split(' ')
@@ -325,9 +350,7 @@ function TipListItem({
 			<div className='flex flex-shrink-0 flex-col items-end gap-1'>
 				<span
 					className={`text-sm font-bold ${
-						direction === 'received'
-							? 'text-gaming-xp'
-							: 'text-text-secondary'
+						direction === 'received' ? 'text-gaming-xp' : 'text-text-secondary'
 					}`}
 				>
 					{direction === 'received' ? '+' : '-'}

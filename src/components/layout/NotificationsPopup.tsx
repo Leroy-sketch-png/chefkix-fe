@@ -28,6 +28,7 @@ import {
 import { toggleFollow } from '@/services/social'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
+import { formatShortTimeAgo } from '@/lib/utils'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 
@@ -80,7 +81,7 @@ const transformToGamifiedNotification = (
 			return {
 				id: notif.id,
 				type: 'badge_unlocked',
-				badgeIcon: (data.badgeIcon as string) || 'ðŸ†',
+				badgeIcon: (data.badgeIcon as string) || '🏆',
 				badgeName: (data.badgeName as string) || 'Badge',
 				badgeRarity:
 					(data.badgeRarity as 'common' | 'rare' | 'epic' | 'legendary') ||
@@ -109,19 +110,6 @@ const transformToGamifiedNotification = (
 }
 
 // Helper to format time ago
-const formatTimeAgo = (date: Date): string => {
-	const now = new Date()
-	const diffMs = now.getTime() - date.getTime()
-	const diffMins = Math.floor(diffMs / 60000)
-	const diffHours = Math.floor(diffMs / 3600000)
-	const diffDays = Math.floor(diffMs / 86400000)
-
-	if (diffMins < 1) return 'Just now'
-	if (diffMins < 60) return `${diffMins} min ago`
-	if (diffHours < 24) return `${diffHours}h ago`
-	if (diffDays === 1) return 'Yesterday'
-	return `${diffDays}d ago`
-}
 
 // Helper to transform API notification to social notification format
 // Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
@@ -160,7 +148,7 @@ const transformToSocialNotification = (
 		action: notif.content || notif.body || '',
 		target: undefined,
 		targetEntityId: notif.targetEntityId, // Post ID for likes/comments, userId for follows
-		time: formatTimeAgo(timestamp),
+		time: formatShortTimeAgo(timestamp),
 		read: notif.isRead,
 	}
 }
@@ -240,11 +228,8 @@ export const NotificationsPopup = () => {
 									user: notif.latestActorName || 'ChefKix',
 									avatar:
 										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
-									action:
-										notif.content ||
-										notif.body ||
-										t('newNotification'),
-									time: formatTimeAgo(new Date(notif.createdAt)),
+									action: notif.content || notif.body || t('newNotification'),
+									time: formatShortTimeAgo(new Date(notif.createdAt)),
 									read: notif.isRead,
 								})
 							}
@@ -263,7 +248,7 @@ export const NotificationsPopup = () => {
 		}
 
 		fetchNotifications()
-	}, [isNotificationsPopupOpen])
+	}, [isNotificationsPopupOpen, t])
 
 	if (!isNotificationsPopupOpen) return null
 
@@ -324,7 +309,10 @@ export const NotificationsPopup = () => {
 					{isLoading && (
 						<div className='space-y-0'>
 							{[0, 1, 2, 3].map(i => (
-								<div key={i} className='flex items-start gap-3 border-b border-border p-4'>
+								<div
+									key={i}
+									className='flex items-start gap-3 border-b border-border p-4'
+								>
 									<div className='size-10 flex-shrink-0 animate-pulse rounded-full bg-bg-elevated' />
 									<div className='flex-1 space-y-2'>
 										<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated' />
@@ -338,7 +326,9 @@ export const NotificationsPopup = () => {
 					{/* Error state */}
 					{!isLoading && fetchError && (
 						<div className='px-4 py-12 text-center'>
-							<p className='mb-2 text-sm text-text-muted'>{t('failedToLoad')}</p>
+							<p className='mb-2 text-sm text-text-muted'>
+								{t('failedToLoad')}
+							</p>
 							<button
 								type='button'
 								onClick={() => {
@@ -347,7 +337,8 @@ export const NotificationsPopup = () => {
 									getNotifications({ size: 20 })
 										.then(response => {
 											if (response.success && response.data) {
-												const { notifications, unreadCount: count } = response.data
+												const { notifications, unreadCount: count } =
+													response.data
 												setUnreadCount(count)
 												const gamified: GamifiedNotification[] = []
 												const social: SocialNotification[] = []
@@ -370,21 +361,28 @@ export const NotificationsPopup = () => {
 								}}
 								className='text-sm font-semibold text-brand hover:text-brand/80'
 							>
-							{t('tryAgain')}
+								{t('tryAgain')}
 							</button>
 						</div>
 					)}
 
 					{/* Empty state */}
-					{!isLoading && !fetchError && gamifiedNotifications.length === 0 && socialNotifications.length === 0 && (
-						<div className='px-4 py-12 text-center'>
-							<div className='mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-bg-elevated'>
-								<Bell className='size-5 text-text-muted' />
+					{!isLoading &&
+						!fetchError &&
+						gamifiedNotifications.length === 0 &&
+						socialNotifications.length === 0 && (
+							<div className='px-4 py-12 text-center'>
+								<div className='mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-bg-elevated'>
+									<Bell className='size-5 text-text-muted' />
+								</div>
+								<p className='text-sm font-medium text-text-secondary'>
+									{t('allCaughtUp')}
+								</p>
+								<p className='mt-1 text-xs text-text-muted'>
+									{t('newActivityHere')}
+								</p>
 							</div>
-<p className='text-sm font-medium text-text-secondary'>{t('allCaughtUp')}</p>
-						<p className='mt-1 text-xs text-text-muted'>{t('newActivityHere')}</p>
-						</div>
-					)}
+						)}
 					{/* Gamified Notifications (XP, levels, streaks) */}
 					{gamifiedNotifications.length > 0 && (
 						<>
@@ -468,7 +466,9 @@ export const NotificationsPopup = () => {
 									try {
 										const response = await toggleFollow(notif.userId)
 										if (response.success) {
-											toast.success(t('toastFollowSuccess', { user: notif.user }))
+											toast.success(
+												t('toastFollowSuccess', { user: notif.user }),
+											)
 											// Mark this notification as read locally
 											setSocialNotifications(prev =>
 												prev.map(n =>

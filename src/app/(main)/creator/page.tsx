@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, ChefHat, BookOpen, Loader2 } from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { formatShortTimeAgo } from '@/lib/utils'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 
@@ -87,15 +88,17 @@ export default function CreatorRoute() {
 		}
 
 		fetchAll()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	// Transform API data to component format
 	// Per vision_and_spec/03-social.txt - using real data from BE
 	const weekHighlight = {
-		newCooks: stats?.weeklyCreatorCooks ?? stats?.thisWeek.newCooks ?? 0,
+		newCooks: stats?.thisWeek.newCooks ?? 0,
 		// Phase 2: newCooksChange, xpEarnedChange (requires historical data storage)
-		xpEarned: stats?.weeklyCreatorXp ?? stats?.thisWeek.xpEarned ?? 0,
+		xpEarned: stats?.thisWeek.xpEarned ?? 0,
 		dateRange: getDateRangeThisWeek(),
 	}
 
@@ -164,19 +167,6 @@ export default function CreatorRoute() {
 		needsAttention: r.cookCount === 0 && r.viewCount > 10,
 	}))
 
-	const formatTimeAgo = (dateStr: string): string => {
-		const date = new Date(dateStr)
-		const now = new Date()
-		const diffMs = now.getTime() - date.getTime()
-		const diffMin = Math.floor(diffMs / 60000)
-		if (diffMin < 60) return `${diffMin}m ago`
-		const diffHrs = Math.floor(diffMin / 60)
-		if (diffHrs < 24) return `${diffHrs}h ago`
-		const diffDays = Math.floor(diffHrs / 24)
-		if (diffDays < 7) return `${diffDays}d ago`
-		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-	}
-
 	const recentCooks = (recentCooksData?.cooks ?? []).map(c => ({
 		id: c.sessionId,
 		userId: c.cookUserId,
@@ -184,7 +174,7 @@ export default function CreatorRoute() {
 		userAvatar: c.cookAvatarUrl ?? '/placeholder-avatar.svg',
 		recipeTitle: c.recipeTitle,
 		xpEarned: c.xpEarned ?? 0,
-		timeAgo: formatTimeAgo(c.completedAt),
+		timeAgo: formatShortTimeAgo(c.completedAt),
 	}))
 
 	if (isLoading) {
@@ -223,13 +213,22 @@ export default function CreatorRoute() {
 								getCreatorStats(),
 								getCreatorPerformance(),
 								getRecentCooks(0, 10),
-							]).then(([statsRes, perfRes, cooksRes]) => {
-								const anySuccess = statsRes.success || perfRes.success || cooksRes.success
-								if (!anySuccess) { setFetchError(true); return }
-								if (statsRes.success && statsRes.data) setStats(statsRes.data)
-								if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
-								if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
-							}).catch(() => setFetchError(true)).finally(() => setIsLoading(false))
+							])
+								.then(([statsRes, perfRes, cooksRes]) => {
+									const anySuccess =
+										statsRes.success || perfRes.success || cooksRes.success
+									if (!anySuccess) {
+										setFetchError(true)
+										return
+									}
+									if (statsRes.success && statsRes.data) setStats(statsRes.data)
+									if (perfRes.success && perfRes.data)
+										setPerformanceData(perfRes.data)
+									if (cooksRes.success && cooksRes.data)
+										setRecentCooksData(cooksRes.data)
+								})
+								.catch(() => setFetchError(true))
+								.finally(() => setIsLoading(false))
 						}}
 					/>
 				</PageContainer>
@@ -238,7 +237,10 @@ export default function CreatorRoute() {
 	}
 
 	// New creator with no recipes — show onboarding
-	if (!stats || (stats.totalRecipesPublished === 0 && recipePerformance.length === 0)) {
+	if (
+		!stats ||
+		(stats.totalRecipesPublished === 0 && recipePerformance.length === 0)
+	) {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='xl'>
@@ -286,9 +288,11 @@ export default function CreatorRoute() {
 				<div className='mb-6 flex items-center gap-3'>
 					<motion.button
 						type='button'
-						onClick={() => startNavigationTransition(() => {
-							router.push('/dashboard')
-						})}
+						onClick={() =>
+							startNavigationTransition(() => {
+								router.push('/dashboard')
+							})
+						}
 						disabled={isNavigating}
 						whileTap={BUTTON_SUBTLE_TAP}
 						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
@@ -314,18 +318,21 @@ export default function CreatorRoute() {
 					topRecipe={topRecipe}
 					recipePerformance={recipePerformance}
 					recentCooks={recentCooks}
-					onBack={() => startNavigationTransition(() => {
-						router.push('/dashboard')
-					})}
-					onCreateRecipe={() => startNavigationTransition(() => {
-						router.push('/create')
-					})}
-					onRecipeClick={id => startNavigationTransition(() => {
-						router.push(`/recipes/${id}`)
-					})}
-					onViewAllRecipes={() => startNavigationTransition(() => {
-						router.push('/creator/recipes')
-					})}
+					onCreateRecipe={() =>
+						startNavigationTransition(() => {
+							router.push('/create')
+						})
+					}
+					onRecipeClick={id =>
+						startNavigationTransition(() => {
+							router.push(`/recipes/${id}`)
+						})
+					}
+					onViewAllRecipes={() =>
+						startNavigationTransition(() => {
+							router.push('/creator/recipes')
+						})
+					}
 					onViewStepAnalytics={id =>
 						setHeatmapRecipeId(prev => (prev === id ? null : id))
 					}

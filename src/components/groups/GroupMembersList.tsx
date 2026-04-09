@@ -80,10 +80,14 @@ export const GroupMembersList = ({
 	const getRoleLabel = (role: MemberRole) => {
 		if (role === 'MEMBER') return ''
 		switch (role) {
-			case 'OWNER': return t('gmRoleOwner')
-			case 'ADMIN': return t('gmRoleAdmin')
-			case 'MODERATOR': return t('gmRoleModerator')
-			default: return role
+			case 'OWNER':
+				return t('gmRoleOwner')
+			case 'ADMIN':
+				return t('gmRoleAdmin')
+			case 'MODERATOR':
+				return t('gmRoleModerator')
+			default:
+				return role
 		}
 	}
 
@@ -91,7 +95,10 @@ export const GroupMembersList = ({
 		return (
 			<div className='space-y-2'>
 				{Array.from({ length: 5 }).map((_, i) => (
-					<div key={i} className='bg-bg-card rounded-lg p-4 border border-border flex items-center justify-between'>
+					<div
+						key={i}
+						className='bg-bg-card rounded-lg p-4 border border-border flex items-center justify-between'
+					>
 						<div className='flex items-center gap-3'>
 							<Skeleton className='size-10 rounded-full' />
 							<div className='space-y-1.5'>
@@ -122,7 +129,7 @@ export const GroupMembersList = ({
 					variants={staggerItemVariants}
 					className='bg-bg-card rounded-lg p-4 border border-border hover:border-brand/50 transition-colors flex items-center justify-between'
 				>
-					<Link href={`/profile/${member.userId}`} className='flex-1'>
+					<Link href={`/${member.userId}`} className='flex-1'>
 						<div className='flex items-center gap-3 cursor-pointer'>
 							<Avatar className='size-10'>
 								<AvatarImage
@@ -149,7 +156,9 @@ export const GroupMembersList = ({
 									)}
 								</div>
 								<p className='text-xs text-text-muted'>
-									{t('gmJoined', { date: new Date(member.joinedAt).toLocaleDateString() })}
+									{t('gmJoined', {
+										date: new Date(member.joinedAt).toLocaleDateString(),
+									})}
 								</p>
 							</div>
 						</div>

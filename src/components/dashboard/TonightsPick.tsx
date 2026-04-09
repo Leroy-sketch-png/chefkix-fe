@@ -2,13 +2,26 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChefHat, Clock, Flame, Star, Play, Sparkles, TrendingUp } from 'lucide-react'
+import {
+	ChefHat,
+	Clock,
+	Flame,
+	Star,
+	Play,
+	Sparkles,
+	TrendingUp,
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Recipe, RecommendationResponse } from '@/lib/types/recipe'
 import { getTonightsPick } from '@/services/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
-import { TRANSITION_SPRING, CARD_FEED_HOVER, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_FEED_HOVER,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
@@ -39,9 +52,11 @@ interface TonightsPickProps {
  */
 export const TonightsPick = ({ className }: TonightsPickProps) => {
 	const t = useTranslations('dashboard')
-	const [recommendation, setRecommendation] = useState<RecommendationResponse | null>(null)
+	const [recommendation, setRecommendation] =
+		useState<RecommendationResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasError, setHasError] = useState(false)
+	const [imgError, setImgError] = useState(false)
 
 	useEffect(() => {
 		const fetchPick = async () => {
@@ -99,9 +114,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 					</span>
 				</div>
 				<p className='mt-2 text-sm text-text-secondary'>
-					{hasError
-						? t('tpErrorMsg')
-						: t('tpEmptyMsg')}
+					{hasError ? t('tpErrorMsg') : t('tpEmptyMsg')}
 				</p>
 				<Link
 					href='/explore'
@@ -114,8 +127,11 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		)
 	}
 
-	const { recipe, whyRecommended, matchSignals, confidenceScore } = recommendation
-	const coverImage = recipe.coverImageUrl?.[0] || '/placeholder-recipe.svg'
+	const { recipe, whyRecommended, matchSignals, confidenceScore } =
+		recommendation
+	const coverImage = imgError
+		? '/placeholder-recipe.svg'
+		: recipe.coverImageUrl?.[0] || '/placeholder-recipe.svg'
 	const difficulty = difficultyToDisplay(recipe.difficulty)
 	const totalTime =
 		recipe.totalTimeMinutes || recipe.prepTimeMinutes + recipe.cookTimeMinutes
@@ -139,6 +155,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 							fill
 							className='object-cover transition-transform duration-500 group-hover:scale-110'
 							sizes='128px'
+							onError={() => setImgError(true)}
 						/>
 						{/* Cook CTA overlay */}
 						<div className='absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/30'>
@@ -194,17 +211,20 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 							</p>
 						)}
 
-						{/* Match Signals as tags */}
+						{/* Match Signals as tags (skip whyRecommended to avoid duplication) */}
 						{matchSignals && matchSignals.length > 0 && (
 							<div className='flex flex-wrap gap-1'>
-								{matchSignals.slice(0, 2).map((signal, idx) => (
-									<span
-										key={idx}
-										className='rounded-full bg-brand/10 px-2 py-0.5 text-2xs text-brand'
-									>
-										{signal}
-									</span>
-								))}
+								{matchSignals
+									.filter(s => s !== whyRecommended)
+									.slice(0, 2)
+									.map((signal, idx) => (
+										<span
+											key={idx}
+											className='rounded-full bg-brand/10 px-2 py-0.5 text-2xs text-brand'
+										>
+											{signal}
+										</span>
+									))}
 							</div>
 						)}
 

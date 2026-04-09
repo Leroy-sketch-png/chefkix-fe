@@ -111,9 +111,7 @@ const CollapsibleSection = ({
 						transition={TRANSITION_SMOOTH}
 						className='overflow-hidden'
 					>
-						<div className='border-t border-border-subtle p-3'>
-							{children}
-						</div>
+						<div className='border-t border-border-subtle p-3'>{children}</div>
 					</motion.div>
 				)}
 			</AnimatePresence>
@@ -192,7 +190,8 @@ const FullModeRenderer = ({
 				transition={{ delay: 0.15 }}
 				className='text-center text-xl font-bold text-text md:text-2xl'
 			>
-				Step {step.stepNumber}: {step.title ?? 'Cook'}
+				{t('step', { stepNum: step.stepNumber })}:{' '}
+				{step.title ?? t('ttsTitleFallback')}
 			</motion.h3>
 
 			{/* Goal (V2) - prominent display */}
@@ -351,7 +350,7 @@ const FullModeRenderer = ({
 						<div className='flex items-center justify-center gap-2 text-sm text-text-muted'>
 							<Timer className='size-4' />
 							<span>
-								~{Math.ceil(step.estimatedHandsOnTime / 60)} min hands-on
+								~{Math.ceil(step.estimatedHandsOnTime / 60)} {t('minHandsOn')}
 							</span>
 						</div>
 					)}
@@ -372,14 +371,17 @@ const QuickModeRenderer = ({
 	step: Step
 	timerComponent?: React.ReactNode
 }) => {
+	const t = useTranslations('cooking')
 	return (
 		<div className='space-y-4'>
 			{/* Compact header */}
 			<div className='text-center'>
 				<span className='text-xs font-semibold uppercase tracking-wide text-text-muted'>
-					Step {step.stepNumber}
+					{t('step', { stepNum: step.stepNumber })}
 				</span>
-				<h3 className='text-lg font-bold text-text'>{step.title ?? 'Cook'}</h3>
+				<h3 className='text-lg font-bold text-text'>
+					{step.title ?? t('ttsTitleFallback')}
+				</h3>
 			</div>
 
 			{/* Action line only */}
@@ -408,6 +410,7 @@ const KitchenModeRenderer = ({
 	step: Step
 	timerComponent?: React.ReactNode
 }) => {
+	const t = useTranslations('cooking')
 	return (
 		<div className='space-y-6'>
 			{/* Video (auto-plays, useful at distance for visual reference) */}
@@ -431,7 +434,9 @@ const KitchenModeRenderer = ({
 					{step.stepNumber}
 				</span>
 				<p className='text-lg font-medium text-text-muted'>
-					of {step.title ?? 'Cook'}
+					{t('kitchenStepLabel', {
+						title: step.title ?? t('ttsTitleFallback'),
+					})}
 				</p>
 			</div>
 
@@ -456,9 +461,7 @@ const KitchenModeRenderer = ({
 			{step.visualCues && (
 				<div className='rounded-2xl border-2 border-success/40 bg-success/5 p-6 text-center'>
 					<Eye className='mx-auto mb-2 size-8 text-success' />
-					<p className='text-xl text-success md:text-2xl'>
-						{step.visualCues}
-					</p>
+					<p className='text-xl text-success md:text-2xl'>{step.visualCues}</p>
 				</div>
 			)}
 

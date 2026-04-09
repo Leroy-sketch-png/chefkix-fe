@@ -276,83 +276,97 @@ const StatsRow = ({
 }) => {
 	const t = useTranslations('profile')
 	return (
-	<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
-		{/* Social Stats */}
-		<div className='flex gap-8'>
-			{isOwnProfile ? (
-				<Link
-					href='/profile/followers?tab=followers'
-					className='flex flex-col transition-opacity hover:opacity-70'
-				>
-					<span className='text-xl font-display font-extrabold tabular-nums'>
-						<AnimatedNumber value={social.followers} format={formatNumber} />
-					</span>
-					<span className='text-xs text-text-muted'>{t('followersLabel')}</span>
-				</Link>
-			) : (
-				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold tabular-nums'>
-						<AnimatedNumber value={social.followers} format={formatNumber} />
-					</span>
-					<span className='text-xs text-text-muted'>{t('followersLabel')}</span>
-				</div>
-			)}
-			{isOwnProfile ? (
-				<Link
-					href='/profile/followers?tab=following'
-					className='flex flex-col transition-opacity hover:opacity-70'
-				>
-					<span className='text-xl font-display font-extrabold tabular-nums'>
-						<AnimatedNumber value={social.following} format={formatNumber} />
-					</span>
-					<span className='text-xs text-text-muted'>{t('followingLabel')}</span>
-				</Link>
-			) : (
-				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold tabular-nums'>
-						<AnimatedNumber value={social.following} format={formatNumber} />
-					</span>
-					<span className='text-xs text-text-muted'>{t('followingLabel')}</span>
-				</div>
-			)}
-		</div>
-
-		{/* Divider */}
-		<div className='mx-8 h-10 w-px bg-border' />
-
-		{/* Cooking Stats */}
-		<div className='flex gap-8'>
-			<div className='flex flex-col'>
-				<span className='text-xl font-display font-extrabold text-success tabular-nums'>
-					<AnimatedNumber value={cooking.recipesCooked} format={formatNumber} />
-				</span>
-				<span className='text-xs font-semibold text-success'>
-					{cooking.recipesCooked === 0 && isOwnProfile
-						? t('startCooking')
-						: t('recipesCooked')}
-				</span>
+		<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
+			{/* Social Stats */}
+			<div className='flex gap-8'>
+				{isOwnProfile ? (
+					<Link
+						href='/profile/followers?tab=followers'
+						className='flex flex-col transition-opacity hover:opacity-70'
+					>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.followers} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followersLabel')}
+						</span>
+					</Link>
+				) : (
+					<div className='flex flex-col'>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.followers} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followersLabel')}
+						</span>
+					</div>
+				)}
+				{isOwnProfile ? (
+					<Link
+						href='/profile/followers?tab=following'
+						className='flex flex-col transition-opacity hover:opacity-70'
+					>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.following} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followingLabel')}
+						</span>
+					</Link>
+				) : (
+					<div className='flex flex-col'>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.following} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followingLabel')}
+						</span>
+					</div>
+				)}
 			</div>
-			<div className='flex flex-col'>
-				<span className='text-xl font-display font-extrabold tabular-nums'>
-					<AnimatedNumber value={cooking.recipesCreated} format={formatNumber} />
-				</span>
-				<span className='text-xs text-text-muted'>
-					{cooking.recipesCreated === 0 && isOwnProfile
-						? t('shareRecipe')
-						: t('recipesCreated')}
-				</span>
-			</div>
-			{cooking.mastered !== undefined && (
+
+			{/* Divider */}
+			<div className='mx-8 h-10 w-px bg-border' />
+
+			{/* Cooking Stats */}
+			<div className='flex gap-8'>
+				<div className='flex flex-col'>
+					<span className='text-xl font-display font-extrabold text-success tabular-nums'>
+						<AnimatedNumber
+							value={cooking.recipesCooked}
+							format={formatNumber}
+						/>
+					</span>
+					<span className='text-xs font-semibold text-success'>
+						{cooking.recipesCooked === 0 && isOwnProfile
+							? t('startCooking')
+							: t('recipesCooked')}
+					</span>
+				</div>
 				<div className='flex flex-col'>
 					<span className='text-xl font-display font-extrabold tabular-nums'>
-						<AnimatedNumber value={cooking.mastered} format={formatNumber} />
+						<AnimatedNumber
+							value={cooking.recipesCreated}
+							format={formatNumber}
+						/>
 					</span>
-					<span className='text-xs text-text-muted'>{t('mastered')}</span>
+					<span className='text-xs text-text-muted'>
+						{cooking.recipesCreated === 0 && isOwnProfile
+							? t('shareRecipe')
+							: t('recipesCreated')}
+					</span>
 				</div>
-			)}
+				{cooking.mastered !== undefined && (
+					<div className='flex flex-col'>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={cooking.mastered} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>{t('mastered')}</span>
+					</div>
+				)}
+			</div>
 		</div>
-	</div>
-)
+	)
 }
 
 // XP Progress Bar
@@ -369,29 +383,29 @@ const XPProgressBar = ({
 }) => {
 	const t = useTranslations('profile')
 	return (
-	<div className='px-6 py-4'>
-		<div className='relative mb-2 h-2.5 overflow-hidden rounded-full bg-border'>
-			<motion.div
-				className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
-				initial={{ width: 0 }}
-				animate={{ width: `${progressPercent}%` }}
-				transition={{ duration: DURATION_S.slow }}
-			/>
-			{/* Next level milestone marker */}
-			<div className='absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
-				<div className='h-4 w-1 rounded-sm bg-text-muted' />
+		<div className='px-6 py-4'>
+			<div className='relative mb-2 h-2.5 overflow-hidden rounded-full bg-border'>
+				<motion.div
+					className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
+					initial={{ width: 0 }}
+					animate={{ width: `${progressPercent}%` }}
+					transition={{ duration: DURATION_S.slow }}
+				/>
+				{/* Next level milestone marker */}
+				<div className='absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
+					<div className='h-4 w-1 rounded-sm bg-text-muted' />
+				</div>
+			</div>
+			<div className='flex justify-between text-sm'>
+				<span className='font-display font-semibold text-success'>
+					{t('xpLabel', { xp: formatNumber(currentXP) })}
+				</span>
+				<span className='text-text-muted'>
+					{t('xpToLevel', { xp: formatNumber(xpToNext), level: nextLevel })}
+				</span>
 			</div>
 		</div>
-		<div className='flex justify-between text-sm'>
-			<span className='font-display font-semibold text-success'>
-				{t('xpLabel', { xp: formatNumber(currentXP) })}
-			</span>
-			<span className='text-text-muted'>
-				{t('xpToLevel', { xp: formatNumber(xpToNext), level: nextLevel })}
-			</span>
-		</div>
-	</div>
-)
+	)
 }
 
 // Badges Showcase
@@ -410,78 +424,78 @@ const BadgesShowcase = ({
 }) => {
 	const t = useTranslations('profile')
 	return (
-	<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
-		{!compact && (
-			<div className='mb-4 flex items-center justify-between'>
-				<h3 className='text-sm font-bold'>{t('badgesTitle')}</h3>
-				{isOwnProfile ? (
+		<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
+			{!compact && (
+				<div className='mb-4 flex items-center justify-between'>
+					<h3 className='text-sm font-bold'>{t('badgesTitle')}</h3>
+					{isOwnProfile ? (
+						<Link
+							href='/profile/badges'
+							className='text-sm font-semibold text-brand hover:underline'
+						>
+							{t('viewAllBadges', { count: totalBadges })}
+						</Link>
+					) : (
+						<span className='text-sm text-text-muted'>
+							{t('badgesEarned', { count: totalBadges })}
+						</span>
+					)}
+				</div>
+			)}
+			<div className='flex gap-3 overflow-x-auto pb-2'>
+				{badges.length === 0 && isOwnProfile ? (
 					<Link
 						href='/profile/badges'
-						className='text-sm font-semibold text-brand hover:underline'
+						className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-4 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
 					>
-						{t('viewAllBadges', { count: totalBadges })}
+						<span className='text-lg'>🏅</span>
+						{t('earnFirstBadge')}
 					</Link>
+				) : badges.length === 0 ? (
+					<p className='py-4 text-center text-sm text-text-muted'>
+						{t('noBadgesYet')}
+					</p>
 				) : (
-					<span className='text-sm text-text-muted'>
-						{t('badgesEarned', { count: totalBadges })}
+					badges.slice(0, compact ? 3 : 5).map((badge, index) => (
+						<motion.div
+							key={badge.id || `badge-${index}`}
+							whileHover={STAT_ITEM_HOVER}
+							transition={TRANSITION_SPRING}
+							className={cn(
+								'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-card',
+								compact
+									? 'min-w-nav px-3 py-2.5'
+									: 'min-w-thumbnail-xl px-4 py-3.5',
+								index === 0 && !compact && 'border-xp/30 bg-xp/10',
+							)}
+						>
+							<span className={compact ? 'text-xl' : 'text-icon-lg'}>
+								{badge.icon}
+							</span>
+							<span
+								className={cn(
+									'text-center font-semibold',
+									compact ? 'text-2xs' : 'text-xs',
+								)}
+							>
+								{badge.name}
+							</span>
+							{!compact && badge.rarity === 'RARE' && (
+								<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
+									{t('badgeRare')}
+								</span>
+							)}
+						</motion.div>
+					))
+				)}
+				{compact && totalBadges > 3 && (
+					<span className='flex items-center px-3 text-xs font-semibold text-text-muted'>
+						+{totalBadges - 3}
 					</span>
 				)}
 			</div>
-		)}
-		<div className='flex gap-3 overflow-x-auto pb-2'>
-			{badges.length === 0 && isOwnProfile ? (
-				<Link
-					href='/profile/badges'
-					className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-4 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
-				>
-					<span className='text-lg'>ðŸ…</span>
-					{t('earnFirstBadge')}
-				</Link>
-			) : badges.length === 0 ? (
-				<p className='py-4 text-center text-sm text-text-muted'>
-					{t('noBadgesYet')}
-				</p>
-			) : (
-				badges.slice(0, compact ? 3 : 5).map((badge, index) => (
-					<motion.div
-						key={badge.id || `badge-${index}`}
-						whileHover={STAT_ITEM_HOVER}
-						transition={TRANSITION_SPRING}
-						className={cn(
-							'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-card',
-							compact
-								? 'min-w-nav px-3 py-2.5'
-								: 'min-w-thumbnail-xl px-4 py-3.5',
-							index === 0 && !compact && 'border-xp/30 bg-xp/10',
-						)}
-					>
-						<span className={compact ? 'text-xl' : 'text-icon-lg'}>
-							{badge.icon}
-						</span>
-						<span
-							className={cn(
-								'text-center font-semibold',
-								compact ? 'text-2xs' : 'text-xs',
-							)}
-						>
-							{badge.name}
-						</span>
-						{!compact && badge.rarity === 'RARE' && (
-							<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
-								{t('badgeRare')}
-							</span>
-						)}
-					</motion.div>
-				))
-			)}
-			{compact && totalBadges > 3 && (
-				<span className='flex items-center px-3 text-xs font-semibold text-text-muted'>
-					+{totalBadges - 3}
-				</span>
-			)}
 		</div>
-	</div>
-)
+	)
 }
 
 // Profile Tabs
@@ -551,8 +565,9 @@ const OwnProfileHeader = ({
 	// Platform detection for keyboard shortcuts
 	const isMac =
 		typeof navigator !== 'undefined' &&
-		('userAgentData' in navigator &&
-			(navigator.userAgentData as { platform?: string })?.platform === 'macOS' ||
+		(('userAgentData' in navigator &&
+			(navigator.userAgentData as { platform?: string })?.platform ===
+				'macOS') ||
 			/Mac/i.test(navigator.userAgent))
 	const modKey = isMac ? '⌘' : 'Ctrl'
 
@@ -571,7 +586,11 @@ const OwnProfileHeader = ({
 	}, [onEditProfile])
 
 	const tabs = [
-		{ id: 'recipes', label: t('tabRecipes'), icon: <Utensils className='size-4' /> },
+		{
+			id: 'recipes',
+			label: t('tabRecipes'),
+			icon: <Utensils className='size-4' />,
+		},
 		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'cooking',
@@ -579,7 +598,11 @@ const OwnProfileHeader = ({
 			icon: <ChefHat className='size-4' />,
 			badge: pendingPosts?.count,
 		},
-		{ id: 'saved', label: t('tabSaved'), icon: <Bookmark className='size-4' /> },
+		{
+			id: 'saved',
+			label: t('tabSaved'),
+			icon: <Bookmark className='size-4' />,
+		},
 		{ id: 'liked', label: t('tabLiked'), icon: <Heart className='size-4' /> },
 		{
 			id: 'achievements',
@@ -605,7 +628,20 @@ const OwnProfileHeader = ({
 				<LevelRing
 					level={user.gamification.currentLevel}
 					progressPercent={user.gamification.progressPercent}
-					xpText={<><AnimatedNumber value={user.gamification.currentXP} format={formatNumber} /> / <AnimatedNumber value={user.gamification.currentXPGoal} format={formatNumber} /> XP</>}
+					xpText={
+						<>
+							<AnimatedNumber
+								value={user.gamification.currentXP}
+								format={formatNumber}
+							/>{' '}
+							/{' '}
+							<AnimatedNumber
+								value={user.gamification.currentXPGoal}
+								format={formatNumber}
+							/>{' '}
+							XP
+						</>
+					}
 				/>
 
 				{/* Streak Badge */}
@@ -628,7 +664,9 @@ const OwnProfileHeader = ({
 
 				{/* Info */}
 				<div className='flex-1 pt-14'>
-					<h1 className='text-2xl font-display font-extrabold'>{user.displayName}</h1>
+					<h1 className='text-2xl font-display font-extrabold'>
+						{user.displayName}
+					</h1>
 					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
 					{user.bio && (
 						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
@@ -707,7 +745,9 @@ const OwnProfileHeader = ({
 							{t('pendingRecipesWaiting', { count: pendingPosts.count })}
 						</span>
 						<span className='text-xs text-text-muted'>
-							{t('pendingDontLose', { xp: formatNumber(pendingPosts.totalPendingXP) })}
+							{t('pendingDontLose', {
+								xp: formatNumber(pendingPosts.totalPendingXP),
+							})}
 						</span>
 					</div>
 					<motion.button
@@ -807,7 +847,9 @@ const OtherUserProfileHeader = ({
 				{/* Info */}
 				<div className='flex-1 pt-14'>
 					<div className='flex items-center gap-2'>
-						<h1 className='text-2xl font-display font-extrabold'>{user.displayName}</h1>
+						<h1 className='text-2xl font-display font-extrabold'>
+							{user.displayName}
+						</h1>
 						{user.isVerified && <VerifiedBadge className='text-info' />}
 					</div>
 					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
@@ -844,7 +886,7 @@ const OtherUserProfileHeader = ({
 					{isMutualFollow && (
 						<div className='flex items-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm font-semibold text-success'>
 							<Users className='size-4' />
-						{t('friends')}
+							{t('friends')}
 						</div>
 					)}
 					<motion.button
@@ -959,15 +1001,23 @@ const MiniProfileHeader = ({
 							config.gradient,
 						)}
 					>
-					{t(config.labelKey)}
-				</span>
-			</div>
+						{t(config.labelKey)}
+					</span>
+				</div>
 				<div className='mt-0.5 flex items-center gap-1.5 text-xs text-text-muted'>
-					<span className='tabular-nums'><AnimatedNumber value={user.stats.followers} format={formatNumber} /> {t('followersCount')}</span>
+					<span className='tabular-nums'>
+						<AnimatedNumber
+							value={user.stats.followers}
+							format={formatNumber}
+						/>{' '}
+						{t('followersCount')}
+					</span>
 					{streakCount !== undefined && streakCount > 0 && (
 						<>
 							<span className='text-border'>•</span>
-							<span>🔥 {streakCount} {t('dayStreak')}</span>
+							<span>
+								🔥 {streakCount} {t('dayStreak')}
+							</span>
 						</>
 					)}
 				</div>

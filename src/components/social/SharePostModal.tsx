@@ -300,7 +300,10 @@ export const SharePostModal = ({
 								{isLoading ? (
 									<div className='space-y-2 py-2'>
 										{Array.from({ length: 4 }).map((_, i) => (
-											<div key={i} className='flex items-center gap-3 rounded-xl p-3'>
+											<div
+												key={i}
+												className='flex items-center gap-3 rounded-xl p-3'
+											>
 												<Skeleton className='size-10 rounded-full sm:size-11' />
 												<div className='flex-1 space-y-1.5'>
 													<Skeleton className='h-4 w-28' />
@@ -316,12 +319,14 @@ export const SharePostModal = ({
 										</div>
 										<div>
 											<p className='text-sm font-semibold text-text sm:text-base'>
-											{searchQuery ? t('shareNoMatches') : t('shareNoRecentChats')}
-										</p>
-										<p className='text-xs text-text-muted sm:text-sm'>
-											{searchQuery
-												? t('shareTryDifferentSearch')
-												: t('shareStartConversation')}
+												{searchQuery
+													? t('shareNoMatches')
+													: t('shareNoRecentChats')}
+											</p>
+											<p className='text-xs text-text-muted sm:text-sm'>
+												{searchQuery
+													? t('shareTryDifferentSearch')
+													: t('shareStartConversation')}
 											</p>
 										</div>
 									</div>
@@ -417,8 +422,8 @@ export const SharePostModal = ({
 														</p>
 														<p className='text-xs text-text-muted'>
 															{conv.type === 'GROUP'
-																? 'Group conversation'
-																: 'Direct message'}
+																? t('typeGroupConversation')
+																: t('typeDirectMessage')}
 														</p>
 													</div>
 
@@ -487,7 +492,7 @@ export const SharePostModal = ({
 								</div>
 								<p className='mt-2 flex items-center gap-1.5 text-xs text-text-muted'>
 									<Sparkles className='size-3' />
-							{t('shareAutoCaption')}
+									{t('shareAutoCaption')}
 								</p>
 							</div>
 						</div>
@@ -523,13 +528,15 @@ export const SharePostModal = ({
 									{isSending ? (
 										<>
 											<Loader2 className='size-4 animate-spin' />
-									<span className='text-sm'>{t('shareSharing')}</span>
+											<span className='text-sm'>{t('shareSharing')}</span>
 										</>
 									) : (
 										<>
 											<Send className='size-4' />
 											<span className='text-sm'>
-												{t('shareButton', { count: selectedConversations.size })}
+												{t('shareButton', {
+													count: selectedConversations.size,
+												})}
 											</span>
 										</>
 									)}

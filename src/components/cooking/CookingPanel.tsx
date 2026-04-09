@@ -17,7 +17,13 @@ import { useStepPhotos } from '@/hooks/useStepPhotos'
 import { useClapDetection } from '@/hooks/useClapDetection'
 import { useVoiceMode } from '@/lib/voice'
 import { isAudioEnabled } from '@/lib/audio'
-import { TRANSITION_SPRING, BUTTON_TAP, BUTTON_HOVER, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_TAP,
+	BUTTON_HOVER,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -61,6 +67,7 @@ const MiniTimer = ({
 	isRunning: boolean
 	onToggle: () => void
 }) => {
+	const t = useTranslations('cooking')
 	const minutes = Math.floor(seconds / 60)
 	const secs = seconds % 60
 	const isUrgent = seconds <= 30 && seconds > 0
@@ -71,7 +78,11 @@ const MiniTimer = ({
 			onClick={onToggle}
 			role='timer'
 			aria-live='polite'
-			aria-label={`Timer: ${minutes} minutes ${secs} seconds, ${isRunning ? 'running' : 'paused'}`}
+			aria-label={t('ariaTimerStatus', {
+				minutes,
+				seconds: secs,
+				state: isRunning ? t('timerRunning') : t('timerPaused'),
+			})}
 			className={cn(
 				'flex items-center gap-2 rounded-xl px-3 py-2 font-mono tabular-nums text-lg font-bold transition-all',
 				isRunning
@@ -160,12 +171,26 @@ export const CookingPanel = () => {
 	const [kitchenMode, setKitchenMode] = useState(false) // Off by default in docked (narrow sidebar)
 
 	// Adaptive instructions: derive default from user proficiency
-	const userTitle = useAuthStore.getState().user?.statistics?.title ?? 'BEGINNER'
-	const defaultDetail = userTitle === 'BEGINNER' ? 'detailed' : userTitle === 'AMATEUR' ? 'standard' : 'condensed'
-	const [instructionDetail, setInstructionDetail] = useState<'detailed' | 'standard' | 'condensed'>(defaultDetail)
+	const userTitle =
+		useAuthStore.getState().user?.statistics?.title ?? 'BEGINNER'
+	const defaultDetail =
+		userTitle === 'BEGINNER'
+			? 'detailed'
+			: userTitle === 'AMATEUR'
+				? 'standard'
+				: 'condensed'
+	const [instructionDetail, setInstructionDetail] = useState<
+		'detailed' | 'standard' | 'condensed'
+	>(defaultDetail)
 
 	const cycleInstructionDetail = useCallback(() => {
-		setInstructionDetail(prev => prev === 'detailed' ? 'standard' : prev === 'standard' ? 'condensed' : 'detailed')
+		setInstructionDetail(prev =>
+			prev === 'detailed'
+				? 'standard'
+				: prev === 'standard'
+					? 'condensed'
+					: 'detailed',
+		)
 	}, [])
 
 	// Warn before browser exit during active cooking (not preview)
@@ -174,10 +199,7 @@ export const CookingPanel = () => {
 		session?.status === 'in_progress' &&
 		cookingMode !== 'hidden' &&
 		!isPreviewMode
-	useBeforeUnloadWarning(
-		hasActiveSession,
-		t('cpBeforeUnloadWarning'),
-	)
+	useBeforeUnloadWarning(hasActiveSession, t('cpBeforeUnloadWarning'))
 
 	// Keep screen awake during cooking (Wave 2: Kitchen Protocol)
 	useWakeLock(hasActiveSession)
@@ -201,7 +223,14 @@ export const CookingPanel = () => {
 		if (!hasActiveSession && voice.isContinuous) {
 			voice.stopContinuous()
 		}
-	}, [hasActiveSession, voice.isSupported, voice.isContinuous, voice.startContinuous, voice.stopContinuous, voice])
+	}, [
+		hasActiveSession,
+		voice.isSupported,
+		voice.isContinuous,
+		voice.startContinuous,
+		voice.stopContinuous,
+		voice,
+	])
 
 	// Derive state (always compute, even if we won't render)
 	const currentStepNumber = session?.currentStep ?? 1
@@ -213,12 +242,23 @@ export const CookingPanel = () => {
 	// Double-clap detection: re-reads current step via TTS (Wave 2: Kitchen Protocol)
 	const handleDoubleclap = useCallback(() => {
 		if (!step || !voice.hasTTS) return
-		const tipsText = instructionDetail === 'detailed' && step.tips ? ` Tip: ${step.tips}` : ''
-		const speech = instructionDetail === 'condensed'
-			? `Step ${step.stepNumber}. ${step.title ?? step.description}`
-			: `Step ${step.stepNumber}. ${step.description}${tipsText}`
+		const tipsText =
+			instructionDetail === 'detailed' && step.tips
+				? t('ttsTipPrefix', { tips: step.tips })
+				: ''
+		const speech =
+			instructionDetail === 'condensed'
+				? t('ttsStepCondensed', {
+						stepNumber: step.stepNumber,
+						instruction: step.title ?? step.description,
+					})
+				: t('ttsStepDetailed', {
+						stepNumber: step.stepNumber,
+						instruction: step.description,
+						tips: tipsText,
+					})
 		voice.speak(speech)
-	}, [step, voice, instructionDetail])
+	}, [step, voice, instructionDetail, t])
 
 	useClapDetection({
 		enabled: hasActiveSession,
@@ -232,17 +272,42 @@ export const CookingPanel = () => {
 		if (prevStepRef.current === currentStepNumber) return
 		prevStepRef.current = currentStepNumber
 
-		const tipsText = instructionDetail === 'detailed' && step.tips ? ` Tip: ${step.tips}` : ''
-		const announcement = `Step ${step.stepNumber} of ${totalSteps}. ${step.title ?? 'Cook'}. ${step.description}${tipsText}`
+		const tipsText =
+			instructionDetail === 'detailed' && step.tips
+				? t('ttsTipPrefix', { tips: step.tips })
+				: ''
+		const announcement = t('ttsAnnouncement', {
+			stepNumber: step.stepNumber,
+			totalSteps,
+			title: step.title ?? t('ttsTitleFallback'),
+			instruction: step.description,
+			tips: tipsText,
+		})
 		setLiveAnnouncement(announcement)
 
 		if (isAudioEnabled() && voice.hasTTS) {
-			const speech = instructionDetail === 'condensed'
-				? `Step ${step.stepNumber}. ${step.title ?? step.description}`
-				: `Step ${step.stepNumber}. ${step.description}${tipsText}`
+			const speech =
+				instructionDetail === 'condensed'
+					? t('ttsStepCondensed', {
+							stepNumber: step.stepNumber,
+							instruction: step.title ?? step.description,
+						})
+					: t('ttsStepDetailed', {
+							stepNumber: step.stepNumber,
+							instruction: step.description,
+							tips: tipsText,
+						})
 			voice.speak(speech)
 		}
-	}, [hasActiveSession, currentStepNumber, step, cookingMode, voice, instructionDetail, totalSteps])
+	}, [
+		hasActiveSession,
+		currentStepNumber,
+		step,
+		cookingMode,
+		voice,
+		instructionDetail,
+		totalSteps,
+	])
 
 	// Timer state
 	const activeTimer = localTimers.get(currentStepNumber)
@@ -351,14 +416,18 @@ export const CookingPanel = () => {
 				<div className='absolute right-2 top-2 flex gap-1'>
 					<button
 						type='button'
-						onClick={() => setKitchenMode((k) => !k)}
+						onClick={() => setKitchenMode(k => !k)}
 						className={cn(
 							'grid size-8 place-items-center rounded-lg transition-colors',
 							kitchenMode ? 'bg-white/40' : 'bg-white/20 hover:bg-white/30',
 						)}
 						title={kitchenMode ? t('cpKitchenOn') : t('cpKitchenOff')}
 					>
-						{kitchenMode ? <ZoomOut className='size-4' /> : <ZoomIn className='size-4' />}
+						{kitchenMode ? (
+							<ZoomOut className='size-4' />
+						) : (
+							<ZoomIn className='size-4' />
+						)}
 					</button>
 					<button
 						type='button'
@@ -403,7 +472,9 @@ export const CookingPanel = () => {
 						<h3 className='truncate text-sm font-bold'>{recipe.title}</h3>
 						<div className='flex items-center gap-2 text-xs opacity-80'>
 							<Clock className='size-3' />
-							<span>{recipe.totalTimeMinutes} {t('cpMin')}</span>
+							<span>
+								{recipe.totalTimeMinutes} {t('cpMin')}
+							</span>
 							<span>•</span>
 							<Zap className='size-3' />
 							<span>{t('cpXp', { xp: recipe.xpReward })}</span>
@@ -453,17 +524,32 @@ export const CookingPanel = () => {
 			{/* Current Step Content */}
 			<div className='flex-1 overflow-y-auto p-4'>
 				<div className='mb-3 flex items-center justify-between'>
-					<span className={cn('tabular-nums font-medium uppercase tracking-wide text-text-secondary', kitchenMode ? 'text-sm' : 'text-xs')}>
+					<span
+						className={cn(
+							'tabular-nums font-medium uppercase tracking-wide text-text-secondary',
+							kitchenMode ? 'text-sm' : 'text-xs',
+						)}
+					>
 						{t('cpStep', { current: currentStepNumber, total: totalSteps })}
 					</span>
 					{completedSteps.has(currentStepNumber) && (
-						<span className={cn('flex items-center gap-1 font-medium text-success', kitchenMode ? 'text-sm' : 'text-xs')}>
+						<span
+							className={cn(
+								'flex items-center gap-1 font-medium text-success',
+								kitchenMode ? 'text-sm' : 'text-xs',
+							)}
+						>
 							<Check className='size-3' /> {t('cpDone')}
 						</span>
 					)}
 				</div>
 
-				<h4 className={cn('mb-2 font-bold text-text', kitchenMode ? 'text-xl' : 'text-lg')}>
+				<h4
+					className={cn(
+						'mb-2 font-bold text-text',
+						kitchenMode ? 'text-xl' : 'text-lg',
+					)}
+				>
 					{step?.title || t('cpStepFallback', { step: currentStepNumber })}
 				</h4>
 
@@ -484,7 +570,9 @@ export const CookingPanel = () => {
 					<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 						<Image
 							src={step.imageUrl}
-							alt={step.title || t('cpStepFallback', { step: currentStepNumber })}
+							alt={
+								step.title || t('cpStepFallback', { step: currentStepNumber })
+							}
 							fill
 							sizes='(max-width: 768px) 100vw, 50vw'
 							className='object-cover'
@@ -492,17 +580,26 @@ export const CookingPanel = () => {
 					</div>
 				) : null}
 
-				<p className={cn('mb-4 leading-relaxed text-text-secondary', kitchenMode ? 'text-base' : 'text-sm')}>
+				<p
+					className={cn(
+						'mb-4 leading-relaxed text-text-secondary',
+						kitchenMode ? 'text-base' : 'text-sm',
+					)}
+				>
 					{step?.description}
 				</p>
 
 				{/* Tips — Adaptive: hidden in condensed mode */}
 				{step?.tips && instructionDetail !== 'condensed' && (
-					<div className={cn(
-						'mb-4 rounded-xl p-3',
-						instructionDetail === 'detailed' ? 'border border-bonus/30 bg-bonus/15' : 'bg-bonus/10',
-						kitchenMode ? 'text-base' : 'text-sm',
-					)}>
+					<div
+						className={cn(
+							'mb-4 rounded-xl p-3',
+							instructionDetail === 'detailed'
+								? 'border border-bonus/30 bg-bonus/15'
+								: 'bg-bonus/10',
+							kitchenMode ? 'text-base' : 'text-sm',
+						)}
+					>
 						<span className='mr-2'>💡</span>
 						<span className='text-bonus'>{step.tips}</span>
 					</div>
@@ -547,7 +644,12 @@ export const CookingPanel = () => {
 				)}
 
 				{/* Accessibility: aria-live region for step/timer announcements (Wave 2) */}
-				<div role='status' aria-live='assertive' aria-atomic='true' className='sr-only'>
+				<div
+					role='status'
+					aria-live='assertive'
+					aria-atomic='true'
+					className='sr-only'
+				>
 					{liveAnnouncement}
 				</div>
 
@@ -626,8 +728,8 @@ export const CookingPanel = () => {
 							type='button'
 							onClick={handleNextStep}
 							disabled={isNavigating}
-						whileHover={isNavigating ? undefined : BUTTON_HOVER}
-						whileTap={isNavigating ? undefined : BUTTON_TAP}
+							whileHover={isNavigating ? undefined : BUTTON_HOVER}
+							whileTap={isNavigating ? undefined : BUTTON_TAP}
 							className={cn(
 								'flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero font-bold text-white transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
 								kitchenMode ? 'py-4 text-base' : 'py-3',

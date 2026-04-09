@@ -22,7 +22,11 @@ import {
 	getSessionHistory,
 	SessionHistoryItem,
 } from '@/services/cookingSession'
-import { getRecipesByUserId, getSavedRecipes, getLikedRecipes } from '@/services/recipe'
+import {
+	getRecipesByUserId,
+	getSavedRecipes,
+	getLikedRecipes,
+} from '@/services/recipe'
 import { getPostsByUser, getSavedPosts } from '@/services/post'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
@@ -111,7 +115,8 @@ const transformProfileToProfileUser = (profile: Profile): ProfileUser => {
 		stats: {
 			followers: statistics.followerCount,
 			following: statistics.followingCount,
-			recipesCooked: statistics.recipesCooked ?? statistics.completionCount ?? 0, // Distinct recipes cooked (fallback to completionCount for existing users)
+			recipesCooked:
+				statistics.recipesCooked ?? statistics.completionCount ?? 0, // Distinct recipes cooked (fallback to completionCount for existing users)
 			recipesCreated: statistics.recipeCount,
 			mastered: statistics.recipesMastered ?? 0,
 		},
@@ -473,9 +478,9 @@ export const UserProfile = ({
 			try {
 				const response = await getSavedPosts(0, 20)
 				if (cancelled) return
-				if (response.success && response.data?.content) {
+				if (response.success && response.data) {
 					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
-					const personalPosts = response.data.content.filter(
+					const personalPosts = response.data.filter(
 						post => post.postType !== 'GROUP',
 					)
 					setSavedPosts(personalPosts)
@@ -500,7 +505,7 @@ export const UserProfile = ({
 
 	const handleFollow = async () => {
 		if (isFollowLoading) return
-		if (!requireAuth('follow this chef')) return
+		if (!requireAuth(t('authActionFollow'))) return
 		setIsFollowLoading(true)
 		const wasFollowing = profile.isFollowing
 
@@ -523,8 +528,8 @@ export const UserProfile = ({
 			const displayName = getProfileDisplayName(profile)
 			toast.success(
 				wasFollowing
-					? `Unfollowed ${displayName}`
-					: `Now following ${displayName}`,
+					? t('toastUnfollowed', { name: displayName })
+					: t('toastNowFollowing', { name: displayName }),
 			)
 		} else {
 			// Revert optimistic update on error
@@ -555,18 +560,22 @@ export const UserProfile = ({
 	const handleShareProfile = () => {
 		const displayName = getProfileDisplayName(profile)
 		if (navigator.share) {
-			navigator.share({
-				title: `${displayName}'s Profile`,
-				url: window.location.href,
-			})
+			navigator
+				.share({
+					title: t('shareProfileTitle', { name: displayName }),
+					url: window.location.href,
+				})
+				.catch(() => {})
 		} else {
-			navigator.clipboard.writeText(window.location.href)
-			toast.success(t('profileLinkCopied'))
+			navigator.clipboard
+				.writeText(window.location.href)
+				.then(() => toast.success(t('profileLinkCopied')))
+				.catch(() => toast.error(t('failedCopy')))
 		}
 	}
 
 	const handleMessage = () => {
-		if (!requireAuth('message this chef')) return
+		if (!requireAuth(t('authActionMessage'))) return
 		router.push(`/messages?userId=${profile.userId}`)
 	}
 
@@ -574,7 +583,7 @@ export const UserProfile = ({
 	const [isBlocked, setIsBlocked] = useState(profile.isBlocked ?? false)
 
 	const handleBlock = async () => {
-		if (!requireAuth('block this user')) return
+		if (!requireAuth(t('authActionBlock'))) return
 		if (isBlockLoading) return
 		setIsBlockLoading(true)
 		const wasBlocked = isBlocked
@@ -625,7 +634,7 @@ export const UserProfile = ({
 	}
 
 	return (
-		<div className='mx-auto w-full max-w-container-xl'>
+		<div className='mx-auto w-full max-w-xl'>
 			{/* Block confirmation dialog */}
 			<ConfirmDialog
 				open={showBlockConfirm}
@@ -711,9 +720,15 @@ export const UserProfile = ({
 							<EmptyStateGamified
 								variant='cooking'
 								title={isOwnProfile ? t('noRecipesOwn') : t('noRecipesOther')}
-								description={isOwnProfile ? 'Share your first recipe with the community!' : 'This chef hasn\'t published any recipes yet.'}
+								description={
+									isOwnProfile ? t('noRecipesOwnDesc') : t('noRecipesOtherDesc')
+								}
 								emoji='👨‍🍳'
-								primaryAction={isOwnProfile ? { label: t('createFirstRecipe'), href: '/create' } : undefined}
+								primaryAction={
+									isOwnProfile
+										? { label: t('createFirstRecipe'), href: '/create' }
+										: undefined
+								}
 							/>
 						) : (
 							<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
@@ -740,7 +755,7 @@ export const UserProfile = ({
 											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
 												<span className='flex items-center gap-1 tabular-nums'>
 													<Clock className='size-4' /> {getTotalTime(recipe)}{' '}
-													min
+													{t('unitMin')}
 												</span>
 												<span className='flex items-center gap-1 tabular-nums'>
 													<Heart className='size-4' />{' '}
@@ -787,9 +802,15 @@ export const UserProfile = ({
 							<EmptyStateGamified
 								variant='feed'
 								title={isOwnProfile ? t('noPostsOwn') : t('noPostsOther')}
-								description={isOwnProfile ? 'Cook a recipe and share your experience!' : 'This chef hasn\'t shared any posts yet.'}
+								description={
+									isOwnProfile ? t('noPostsOwnDesc') : t('noPostsOtherDesc')
+								}
 								emoji='📸'
-								primaryAction={isOwnProfile ? { label: t('findRecipes'), href: '/explore' } : undefined}
+								primaryAction={
+									isOwnProfile
+										? { label: t('findRecipes'), href: '/explore' }
+										: undefined
+								}
 							/>
 						) : (
 							<div className='space-y-4'>
@@ -813,13 +834,13 @@ export const UserProfile = ({
 							router.push(`/post/new?session=${sessionId}`)
 						}}
 						onViewPost={postId => {
-							router.push(`/posts/${postId}`)
+							router.push(`/post/${postId}`)
 						}}
 						onRetry={sessionId => {
 							// Navigate to retry cooking this recipe
 							const session = cookingSessions.find(s => s.id === sessionId)
 							if (session) {
-								router.push(`/recipes/${session.recipeId}/cook`)
+								router.push(`/recipes/${session.recipeId}?cook=true`)
 							}
 						}}
 						onCookAgain={recipeId => {
@@ -849,7 +870,8 @@ export const UserProfile = ({
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
 										}`}
 									>
-										{t('recipesTab')}{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
+										{t('recipesTab')}
+										{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
 									</motion.button>
 									<motion.button
 										type='button'
@@ -892,7 +914,10 @@ export const UserProfile = ({
 												title={t('noSavedRecipes')}
 												description={t('saveRecipesDesc')}
 												emoji='🔖'
-												primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
+												primaryAction={{
+													label: t('exploreRecipes'),
+													href: '/explore',
+												}}
 											/>
 										) : (
 											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
@@ -921,7 +946,7 @@ export const UserProfile = ({
 															<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
 																<span className='flex items-center gap-1 tabular-nums'>
 																	<Clock className='size-4' />
-																	{getTotalTime(recipe)} min
+																	{getTotalTime(recipe)} {t('unitMin')}
 																</span>
 																<span className='flex items-center gap-1 tabular-nums'>
 																	<Heart className='size-4' />
@@ -1020,8 +1045,7 @@ export const UserProfile = ({
 										<div className='relative h-40 overflow-hidden'>
 											<Image
 												src={
-													getRecipeImage(recipe) ||
-													'/placeholder-recipe.svg'
+													getRecipeImage(recipe) || '/placeholder-recipe.svg'
 												}
 												alt={recipe.title}
 												fill
@@ -1036,7 +1060,7 @@ export const UserProfile = ({
 											<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
 												<span className='flex items-center gap-1 tabular-nums'>
 													<Clock className='size-4' />
-													{getTotalTime(recipe)} min
+													{getTotalTime(recipe)} {t('unitMin')}
 												</span>
 												<span className='flex items-center gap-1 tabular-nums'>
 													<Heart className='size-4' />
@@ -1068,9 +1092,7 @@ export const UserProfile = ({
 										<Award className='size-7 text-xp' />
 									</div>
 									<p className='font-medium text-text-secondary'>
-										{isOwnProfile
-											? t('noBadgesOwn')
-											: t('noBadgesOther')}
+										{isOwnProfile ? t('noBadgesOwn') : t('noBadgesOther')}
 									</p>
 									{isOwnProfile && (
 										<Link href='/explore'>

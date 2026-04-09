@@ -61,12 +61,22 @@ export const QuickPostFAB = ({
 	const [pollOptionB, setPollOptionB] = useState('')
 
 	// Battle state
-	const [battleRecipeA, setBattleRecipeA] = useState<{ id: string; title: string } | null>(null)
-	const [battleRecipeB, setBattleRecipeB] = useState<{ id: string; title: string } | null>(null)
+	const [battleRecipeA, setBattleRecipeA] = useState<{
+		id: string
+		title: string
+	} | null>(null)
+	const [battleRecipeB, setBattleRecipeB] = useState<{
+		id: string
+		title: string
+	} | null>(null)
 	const [battleSearch, setBattleSearch] = useState('')
-	const [battleSearchResults, setBattleSearchResults] = useState<{ id: string; title: string }[]>([])
+	const [battleSearchResults, setBattleSearchResults] = useState<
+		{ id: string; title: string }[]
+	>([])
 	const [battleSearching, setBattleSearching] = useState(false)
-	const [battlePickingSlot, setBattlePickingSlot] = useState<'A' | 'B' | null>(null)
+	const [battlePickingSlot, setBattlePickingSlot] = useState<'A' | 'B' | null>(
+		null,
+	)
 
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const battleSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -163,7 +173,7 @@ export const QuickPostFAB = ({
 				const res = await autocompleteSearch(query.trim(), 'recipes', 6)
 				if (res.success && res.data) {
 					const hits = res.data.recipes?.hits ?? []
-					const recipes = hits.map((h) => ({
+					const recipes = hits.map(h => ({
 						id: h.document.id,
 						title: h.document.title,
 					}))
@@ -216,10 +226,7 @@ export const QuickPostFAB = ({
 					return
 				}
 				if (moderationResult.data?.action === 'block') {
-					toast.error(
-						moderationResult.data.reason ||
-							t('fabContentBlocked'),
-					)
+					toast.error(moderationResult.data.reason || t('fabContentBlocked'))
 					return
 				}
 
@@ -269,10 +276,7 @@ export const QuickPostFAB = ({
 					return
 				}
 				if (moderationResult.data?.action === 'block') {
-					toast.error(
-						moderationResult.data.reason ||
-							t('fabContentBlocked'),
-					)
+					toast.error(moderationResult.data.reason || t('fabContentBlocked'))
 					return
 				}
 
@@ -320,10 +324,7 @@ export const QuickPostFAB = ({
 					return
 				}
 				if (moderationResult.data?.action === 'block') {
-					toast.error(
-						moderationResult.data.reason ||
-							t('fabContentBlocked'),
-					)
+					toast.error(moderationResult.data.reason || t('fabContentBlocked'))
 					return
 				}
 
@@ -372,17 +373,11 @@ export const QuickPostFAB = ({
 				return
 			}
 			if (moderationResult.data?.action === 'block') {
-				toast.error(
-					moderationResult.data.reason ||
-						t('fabContentBlocked'),
-				)
+				toast.error(moderationResult.data.reason || t('fabContentBlocked'))
 				return
 			}
 			if (moderationResult.data?.action === 'flag') {
-				toast.warning(
-					moderationResult.data.reason ||
-						t('fabContentFlagged'),
-				)
+				toast.warning(moderationResult.data.reason || t('fabContentFlagged'))
 			}
 
 			const response = await createPost({
@@ -421,14 +416,20 @@ export const QuickPostFAB = ({
 							animate={{ opacity: 1, x: 0, scale: 1 }}
 							exit={{ opacity: 0, x: 20, scale: 0.9 }}
 							transition={TRANSITION_SPRING}
-							onClick={() => { dismissHint(); handleOpen() }}
+							onClick={() => {
+								dismissHint()
+								handleOpen()
+							}}
 							className='flex items-center gap-2 rounded-full border border-brand/20 bg-bg-card px-4 py-2.5 text-sm font-medium text-text shadow-warm transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Camera className='size-4 text-brand' />
-						{t('fabHintText')}
+							{t('fabHintText')}
 							<X
 								className='size-3.5 text-text-muted hover:text-text'
-								onClick={(e) => { e.stopPropagation(); dismissHint() }}
+								onClick={e => {
+									e.stopPropagation()
+									dismissHint()
+								}}
 							/>
 						</motion.button>
 					)}
@@ -436,7 +437,10 @@ export const QuickPostFAB = ({
 
 				<motion.button
 					type='button'
-					onClick={() => { dismissHint(); handleOpen() }}
+					onClick={() => {
+						dismissHint()
+						handleOpen()
+					}}
 					className={cn(
 						'group relative flex size-14 items-center justify-center rounded-full bg-gradient-brand transition-all duration-300 hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50',
 						className,
@@ -476,11 +480,25 @@ export const QuickPostFAB = ({
 								{/* Header */}
 								<div className='mb-4 flex items-center justify-between'>
 									<h2 className='flex items-center gap-2 text-lg font-bold text-text'>
-										{mode === 'post' && <Camera className='size-5 text-brand' />}
-										{mode === 'poll' && <BarChart3 className='size-5 text-brand' />}
-										{mode === 'tip' && <Lightbulb className='size-5 text-warning' />}
-										{mode === 'battle' && <Swords className='size-5 text-error' />}
-										{mode === 'post' ? t('fabTitlePost') : mode === 'poll' ? t('fabTitlePoll') : mode === 'tip' ? t('fabTitleTip') : t('fabTitleBattle')}
+										{mode === 'post' && (
+											<Camera className='size-5 text-brand' />
+										)}
+										{mode === 'poll' && (
+											<BarChart3 className='size-5 text-brand' />
+										)}
+										{mode === 'tip' && (
+											<Lightbulb className='size-5 text-warning' />
+										)}
+										{mode === 'battle' && (
+											<Swords className='size-5 text-error' />
+										)}
+										{mode === 'post'
+											? t('fabTitlePost')
+											: mode === 'poll'
+												? t('fabTitlePoll')
+												: mode === 'tip'
+													? t('fabTitleTip')
+													: t('fabTitleBattle')}
 									</h2>
 									<button
 										type='button'
@@ -495,12 +513,18 @@ export const QuickPostFAB = ({
 
 								{/* Mode Toggle */}
 								<div className='mb-4 flex gap-1 rounded-xl bg-bg-elevated p-1'>
-									{([
-										{ key: 'post', icon: Camera, label: t('fabModePost') },
-										{ key: 'poll', icon: BarChart3, label: t('fabModePoll') },
-										{ key: 'tip', icon: Lightbulb, label: t('fabModeTip') },
-										{ key: 'battle', icon: Swords, label: t('fabModeBattle') },
-									] as const).map(({ key, icon: Icon, label }) => (
+									{(
+										[
+											{ key: 'post', icon: Camera, label: t('fabModePost') },
+											{ key: 'poll', icon: BarChart3, label: t('fabModePoll') },
+											{ key: 'tip', icon: Lightbulb, label: t('fabModeTip') },
+											{
+												key: 'battle',
+												icon: Swords,
+												label: t('fabModeBattle'),
+											},
+										] as const
+									).map(({ key, icon: Icon, label }) => (
 										<button
 											type='button'
 											key={key}
@@ -530,9 +554,13 @@ export const QuickPostFAB = ({
 												maxLength={200}
 												disabled={isSubmitting}
 												className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
-											/>										<p className={`mt-1 text-right text-xs tabular-nums ${pollQuestion.length > 160 ? (pollQuestion.length >= 200 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
-											{pollQuestion.length}/200
-										</p>										</div>
+											/>{' '}
+											<p
+												className={`mt-1 text-right text-xs tabular-nums ${pollQuestion.length > 160 ? (pollQuestion.length >= 200 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+											>
+												{pollQuestion.length}/200
+											</p>{' '}
+										</div>
 
 										{/* Poll Options */}
 										<div className='mb-4 space-y-2'>
@@ -573,18 +601,22 @@ export const QuickPostFAB = ({
 										<div className='mb-3'>
 											<div className='mb-2 flex items-center gap-2 rounded-lg bg-warning/10 px-3 py-2'>
 												<Lightbulb className='size-4 shrink-0 text-warning' />
-												<span className='text-xs text-warning'>{t('fabTipInfoText')}</span>
+												<span className='text-xs text-warning'>
+													{t('fabTipInfoText')}
+												</span>
 											</div>
 											<textarea
 												value={caption}
 												onChange={e => setCaption(e.target.value)}
-											placeholder={t('fabTipPlaceholder')}
+												placeholder={t('fabTipPlaceholder')}
 												maxLength={280}
 												rows={3}
 												disabled={isSubmitting}
 												className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
 											/>
-											<p className={`mt-1 text-right text-xs tabular-nums ${caption.length > 224 ? (caption.length >= 280 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+											<p
+												className={`mt-1 text-right text-xs tabular-nums ${caption.length > 224 ? (caption.length >= 280 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+											>
 												{caption.length}/280
 											</p>
 										</div>
@@ -595,7 +627,7 @@ export const QuickPostFAB = ({
 												<div className='grid grid-cols-3 gap-2'>
 													{previewUrls.map((url, index) => (
 														<div
-															key={index}
+															key={url}
 															className='group relative aspect-square overflow-hidden rounded-xl'
 														>
 															<Image
@@ -609,7 +641,7 @@ export const QuickPostFAB = ({
 																type='button'
 																onClick={() => removePhoto(index)}
 																aria-label={t('fabRemovePhoto')}
-															className='absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+																className='absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 															>
 																<X className='size-3.5' />
 															</button>
@@ -630,7 +662,9 @@ export const QuickPostFAB = ({
 											) : (
 												<label className='flex h-20 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-subtle transition-colors hover:border-brand/50 hover:bg-brand/5'>
 													<ImageIcon className='size-5 text-text-muted' />
-													<span className='text-sm text-text-muted'>{t('fabTipAddPhoto')}</span>
+													<span className='text-sm text-text-muted'>
+														{t('fabTipAddPhoto')}
+													</span>
 													<input
 														type='file'
 														accept='image/*'
@@ -648,9 +682,13 @@ export const QuickPostFAB = ({
 											{/* Recipe A */}
 											<div className='rounded-xl border border-border-subtle bg-bg-elevated p-3'>
 												<div className='mb-2 flex items-center gap-2'>
-													<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand'>A</span>
+													<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand'>
+														A
+													</span>
 													<span className='text-sm font-medium text-text'>
-														{battleRecipeA ? battleRecipeA.title : t('fabBattlePickFirst')}
+														{battleRecipeA
+															? battleRecipeA.title
+															: t('fabBattlePickFirst')}
 													</span>
 													{battleRecipeA && (
 														<button
@@ -678,16 +716,22 @@ export const QuickPostFAB = ({
 											{/* VS divider */}
 											<div className='flex items-center gap-3'>
 												<div className='h-px flex-1 bg-border-subtle' />
-												<span className='text-sm font-bold text-text-muted'>VS</span>
+												<span className='text-sm font-bold text-text-muted'>
+													VS
+												</span>
 												<div className='h-px flex-1 bg-border-subtle' />
 											</div>
 
 											{/* Recipe B */}
 											<div className='rounded-xl border border-border-subtle bg-bg-elevated p-3'>
 												<div className='mb-2 flex items-center gap-2'>
-													<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-xs font-bold text-secondary'>B</span>
+													<span className='flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-xs font-bold text-secondary'>
+														B
+													</span>
 													<span className='text-sm font-medium text-text'>
-														{battleRecipeB ? battleRecipeB.title : t('fabBattlePickSecond')}
+														{battleRecipeB
+															? battleRecipeB.title
+															: t('fabBattlePickSecond')}
 													</span>
 													{battleRecipeB && (
 														<button
@@ -729,24 +773,29 @@ export const QuickPostFAB = ({
 															<Loader2 className='size-4 animate-spin text-text-muted' />
 														</div>
 													)}
-													{!battleSearching && battleSearchResults.length > 0 && (
-														<div className='max-h-40 space-y-1 overflow-y-auto'>
-															{battleSearchResults.map(recipe => (
-																<button
-																	type='button'
-																	key={recipe.id}
-																	onClick={() => selectBattleRecipe(recipe)}
-																	className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text transition-colors hover:bg-bg-elevated'
-																>
-																	<ChefHat className='size-4 shrink-0 text-brand' />
-																	{recipe.title}
-																</button>
-															))}
-														</div>
-													)}
-													{!battleSearching && battleSearch.trim() && battleSearchResults.length === 0 && (
-														<p className='py-2 text-center text-xs text-text-muted'>{t('fabBattleNoRecipesFound')}</p>
-													)}
+													{!battleSearching &&
+														battleSearchResults.length > 0 && (
+															<div className='max-h-40 space-y-1 overflow-y-auto'>
+																{battleSearchResults.map(recipe => (
+																	<button
+																		type='button'
+																		key={recipe.id}
+																		onClick={() => selectBattleRecipe(recipe)}
+																		className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text transition-colors hover:bg-bg-elevated'
+																	>
+																		<ChefHat className='size-4 shrink-0 text-brand' />
+																		{recipe.title}
+																	</button>
+																))}
+															</div>
+														)}
+													{!battleSearching &&
+														battleSearch.trim() &&
+														battleSearchResults.length === 0 && (
+															<p className='py-2 text-center text-xs text-text-muted'>
+																{t('fabBattleNoRecipesFound')}
+															</p>
+														)}
 													<button
 														type='button'
 														onClick={() => {
@@ -767,14 +816,18 @@ export const QuickPostFAB = ({
 											<textarea
 												value={caption}
 												onChange={e => setCaption(e.target.value)}
-											placeholder={t('fabBattleCaptionPlaceholder')}
+												placeholder={t('fabBattleCaptionPlaceholder')}
 												maxLength={500}
 												rows={2}
 												disabled={isSubmitting}
 												className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
-											/>										<p className={`mt-1 text-right text-xs tabular-nums ${caption.length > 400 ? (caption.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
-											{caption.length}/500
-										</p>										</div>
+											/>{' '}
+											<p
+												className={`mt-1 text-right text-xs tabular-nums ${caption.length > 400 ? (caption.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+											>
+												{caption.length}/500
+											</p>{' '}
+										</div>
 									</>
 								) : (
 									<>
@@ -784,7 +837,7 @@ export const QuickPostFAB = ({
 												<div className='grid grid-cols-3 gap-2'>
 													{previewUrls.map((url, index) => (
 														<div
-															key={index}
+															key={url}
 															className='group relative aspect-square overflow-hidden rounded-xl'
 														>
 															<Image
@@ -798,7 +851,7 @@ export const QuickPostFAB = ({
 																type='button'
 																onClick={() => removePhoto(index)}
 																aria-label={t('removePhoto')}
-															className='absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+																className='absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 															>
 																<X className='size-3.5' />
 															</button>
@@ -841,14 +894,16 @@ export const QuickPostFAB = ({
 												value={caption}
 												onChange={setCaption}
 												onTaggedUsersChange={setTaggedUserIds}
-											placeholder={t('fabPostPlaceholder')}
+												placeholder={t('fabPostPlaceholder')}
 												multiline
 												rows={2}
 												maxLength={500}
 												disabled={isSubmitting}
 												className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm'
 											/>
-											<p className={`mt-1 text-right text-xs tabular-nums ${caption.length > 400 ? (caption.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+											<p
+												className={`mt-1 text-right text-xs tabular-nums ${caption.length > 400 ? (caption.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+											>
 												{caption.length}/500
 											</p>
 										</div>
@@ -864,7 +919,9 @@ export const QuickPostFAB = ({
 										(mode === 'post'
 											? !caption.trim() && photoFiles.length === 0
 											: mode === 'poll'
-												? !pollQuestion.trim() || !pollOptionA.trim() || !pollOptionB.trim()
+												? !pollQuestion.trim() ||
+													!pollOptionA.trim() ||
+													!pollOptionB.trim()
 												: mode === 'tip'
 													? !caption.trim()
 													: !battleRecipeA || !battleRecipeB || !caption.trim())
@@ -877,7 +934,13 @@ export const QuickPostFAB = ({
 									{isSubmitting ? (
 										<>
 											<Loader2 className='size-5 animate-spin' />
-									{mode === 'poll' ? t('fabSubmitPollLoading') : mode === 'tip' ? t('fabSubmitTipLoading') : mode === 'battle' ? t('fabSubmitBattleLoading') : t('fabSubmitPostLoading')}
+											{mode === 'poll'
+												? t('fabSubmitPollLoading')
+												: mode === 'tip'
+													? t('fabSubmitTipLoading')
+													: mode === 'battle'
+														? t('fabSubmitBattleLoading')
+														: t('fabSubmitPostLoading')}
 										</>
 									) : (
 										<>
@@ -885,7 +948,13 @@ export const QuickPostFAB = ({
 											{mode === 'tip' && <Lightbulb className='size-5' />}
 											{mode === 'battle' && <Swords className='size-5' />}
 											{mode === 'post' && <Send className='size-5' />}
-											{mode === 'poll' ? t('fabSubmitPoll') : mode === 'tip' ? t('fabSubmitTip') : mode === 'battle' ? t('fabSubmitBattle') : t('fabSubmitPost')}
+											{mode === 'poll'
+												? t('fabSubmitPoll')
+												: mode === 'tip'
+													? t('fabSubmitTip')
+													: mode === 'battle'
+														? t('fabSubmitBattle')
+														: t('fabSubmitPost')}
 										</>
 									)}
 								</motion.button>

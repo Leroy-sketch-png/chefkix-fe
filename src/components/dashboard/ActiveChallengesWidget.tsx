@@ -21,7 +21,9 @@ import { useTranslations } from 'next-intl'
 // ============================================
 
 function formatCountdown(endsAt: string): string {
-	const diff = new Date(endsAt).getTime() - Date.now()
+	const end = new Date(endsAt)
+	if (isNaN(end.getTime())) return '—'
+	const diff = end.getTime() - Date.now()
 	if (diff <= 0) return 'Ended'
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	if (hours < 1) {
@@ -41,7 +43,9 @@ interface ActiveChallengesWidgetProps {
 	className?: string
 }
 
-export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProps) {
+export function ActiveChallengesWidget({
+	className,
+}: ActiveChallengesWidgetProps) {
 	const [daily, setDaily] = useState<DailyChallenge | null>(null)
 	const [weekly, setWeekly] = useState<WeeklyChallenge | null>(null)
 	const [loaded, setLoaded] = useState(false)
@@ -63,10 +67,21 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 				if (!dailyRes && !weeklyRes) {
 					setHasError(true)
 				} else {
-					if (dailyRes?.success && dailyRes.data && !dailyRes.data.completed) {
+					if (
+						dailyRes?.success &&
+						dailyRes.data &&
+						typeof dailyRes.data.title === 'string' &&
+						dailyRes.data.endsAt &&
+						!dailyRes.data.completed
+					) {
 						setDaily(dailyRes.data)
 					}
-					if (weeklyRes?.success && weeklyRes.data && !weeklyRes.data.completed) {
+					if (
+						weeklyRes?.success &&
+						weeklyRes.data &&
+						typeof weeklyRes.data.title === 'string' &&
+						!weeklyRes.data.completed
+					) {
 						setWeekly(weeklyRes.data)
 					}
 				}
@@ -79,7 +94,9 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 		}
 
 		fetch()
-		return () => { mounted = false }
+		return () => {
+			mounted = false
+		}
 	}, [])
 
 	// Don't render if still loading
@@ -145,7 +162,12 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 								<Clock className='size-3' />
 								{t('remaining', { time: formatCountdown(daily.endsAt) })}
 								<span className='ml-auto font-semibold tabular-nums text-xp'>
-									+<AnimatedNumber value={daily.bonusXp} className='tabular-nums' /> XP
+									+
+									<AnimatedNumber
+										value={daily.bonusXp}
+										className='tabular-nums'
+									/>{' '}
+									XP
 								</span>
 							</p>
 						</div>
@@ -175,8 +197,12 @@ export function ActiveChallengesWidget({ className }: ActiveChallengesWidgetProp
 										}}
 									/>
 								</div>
-							<span className='text-xs font-medium tabular-nums text-text-muted'>
-								<AnimatedNumber value={weekly.progress} className='tabular-nums' />/{weekly.target}
+								<span className='text-xs font-medium tabular-nums text-text-muted'>
+									<AnimatedNumber
+										value={weekly.progress}
+										className='tabular-nums'
+									/>
+									/{weekly.target}
 								</span>
 							</div>
 						</div>

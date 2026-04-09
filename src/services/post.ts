@@ -281,17 +281,17 @@ export const getPostById = async (
 export const getSavedPosts = async (
 	page: number = 0,
 	size: number = 20,
-): Promise<ApiResponse<Page<Post>>> => {
+): Promise<ApiResponse<Post[]>> => {
 	try {
 		const params = toBackendPagination({ page, size })
-		const response = await api.get<ApiResponse<Page<Post>>>(
+		const response = await api.get<ApiResponse<Post[] | PostPageData>>(
 			API_ENDPOINTS.POST.GET_SAVED,
 			{ params },
 		)
-		return response.data
+		return mapPostPageResponse(response.data)
 	} catch (error) {
 		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Page<Post>>>
+		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
@@ -647,7 +647,11 @@ export const getReviewsForRecipe = async (
 		logDevError('getReviewsForRecipe failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) return axiosError.response.data
-		return { success: false, message: 'Failed to load reviews', statusCode: 500 }
+		return {
+			success: false,
+			message: 'Failed to load reviews',
+			statusCode: 500,
+		}
 	}
 }
 
@@ -665,9 +669,15 @@ export const getRecipeReviewStats = async (
 		return response.data
 	} catch (error) {
 		logDevError('getRecipeReviewStats failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<RecipeReviewStatsResponse>>
+		const axiosError = error as AxiosError<
+			ApiResponse<RecipeReviewStatsResponse>
+		>
 		if (axiosError.response) return axiosError.response.data
-		return { success: false, message: 'Failed to load review stats', statusCode: 500 }
+		return {
+			success: false,
+			message: 'Failed to load review stats',
+			statusCode: 500,
+		}
 	}
 }
 
@@ -717,11 +727,17 @@ export const getActiveBattles = async (
 		logDevError('getActiveBattles failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) return axiosError.response.data
-		return { success: false, message: 'Failed to load battles', statusCode: 500 }
+		return {
+			success: false,
+			message: 'Failed to load battles',
+			statusCode: 500,
+		}
 	}
 }
 
-export const getTasteProfile = async (): Promise<ApiResponse<TasteProfileResponse>> => {
+export const getTasteProfile = async (): Promise<
+	ApiResponse<TasteProfileResponse>
+> => {
 	try {
 		const response = await api.get<ApiResponse<TasteProfileResponse>>(
 			API_ENDPOINTS.POST.TASTE_PROFILE,
@@ -731,6 +747,10 @@ export const getTasteProfile = async (): Promise<ApiResponse<TasteProfileRespons
 		logDevError('getTasteProfile failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<TasteProfileResponse>>
 		if (axiosError.response) return axiosError.response.data
-		return { success: false, message: 'Failed to load taste profile', statusCode: 500 }
+		return {
+			success: false,
+			message: 'Failed to load taste profile',
+			statusCode: 500,
+		}
 	}
 }

@@ -19,7 +19,14 @@ import {
 	MoreHorizontal,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HEART_POP, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, TRANSITION_SPRING, SEND_WHOOSH, DURATION_S } from '@/lib/motion'
+import {
+	HEART_POP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	TRANSITION_SPRING,
+	SEND_WHOOSH,
+	DURATION_S,
+} from '@/lib/motion'
 import {
 	getRepliesByCommentId,
 	createReply,
@@ -84,7 +91,7 @@ const renderContentWithMentions = (
 			parts.push(
 				<a
 					key={match.index}
-					href={`/profile/${userId}`}
+					href={`/${userId}`}
 					className='font-medium text-brand hover:underline'
 					onClick={e => e.stopPropagation()}
 				>
@@ -200,12 +207,18 @@ const ReplyItem = ({
 						className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
 						aria-label={isLiked ? t('unlikeReply') : t('likeReply')}
 					>
-						<motion.div variants={HEART_POP} animate={isLiked ? 'liked' : 'unliked'} initial={false}>
+						<motion.div
+							variants={HEART_POP}
+							animate={isLiked ? 'liked' : 'unliked'}
+							initial={false}
+						>
 							<Heart
 								className={`size-2.5 transition-all ${isLiked ? 'fill-color-error text-color-error' : 'text-text-muted hover:text-color-error'}`}
 							/>
 						</motion.div>
-						{likes > 0 && <AnimatedNumber value={likes} className='tabular-nums' />}
+						{likes > 0 && (
+							<AnimatedNumber value={likes} className='tabular-nums' />
+						)}
 					</button>
 				</div>
 			</div>
@@ -371,97 +384,93 @@ export const Comment = ({
 		setIsSubmittingReply(true)
 
 		try {
-		// AI content moderation before posting (fail-closed for safety)
-		diag.request('social', '/api/v1/moderate', {
-			contentType: 'comment',
-			contentPreview: replyContent.trim().slice(0, 100),
-		})
-
-		const moderationResult = await moderateContent(
-			replyContent.trim(),
-			'comment',
-		)
-
-		diag.response(
-			'social',
-			'/api/v1/moderate',
-			{
-				success: moderationResult.success,
-				action: moderationResult.data?.action,
-				reason: moderationResult.data?.reason,
-			},
-			moderationResult.success,
-		)
-
-		// Fail-closed: if moderation API fails, don't allow reply
-		if (!moderationResult.success) {
-			diag.warn('social', 'REPLY_MODERATION_API_FAILED', {
-				message: 'API failure - fail-closed blocking reply',
+			// AI content moderation before posting (fail-closed for safety)
+			diag.request('social', '/api/v1/moderate', {
+				contentType: 'comment',
+				contentPreview: replyContent.trim().slice(0, 100),
 			})
-			toast.error(t('moderationVerifyFailed'))
-			setIsSubmittingReply(false)
-			return
-		}
 
-		if (moderationResult.data) {
-			if (moderationResult.data.action === 'block') {
-				diag.warn('social', 'REPLY_BLOCKED_BY_MODERATION', {
-					reason: moderationResult.data.reason,
+			const moderationResult = await moderateContent(
+				replyContent.trim(),
+				'comment',
+			)
+
+			diag.response(
+				'social',
+				'/api/v1/moderate',
+				{
+					success: moderationResult.success,
+					action: moderationResult.data?.action,
+					reason: moderationResult.data?.reason,
+				},
+				moderationResult.success,
+			)
+
+			// Fail-closed: if moderation API fails, don't allow reply
+			if (!moderationResult.success) {
+				diag.warn('social', 'REPLY_MODERATION_API_FAILED', {
+					message: 'API failure - fail-closed blocking reply',
 				})
-				toast.error(
-					moderationResult.data.reason ||
-						t('moderationBlockReply'),
-				)
+				toast.error(t('moderationVerifyFailed'))
 				setIsSubmittingReply(false)
 				return
 			}
-			if (moderationResult.data.action === 'flag') {
-				diag.warn('social', 'REPLY_FLAGGED_BY_MODERATION', {
-					reason: moderationResult.data.reason,
-				})
-				toast.warning(
-					moderationResult.data.reason ||
-						t('moderationFlagReply'),
-				)
+
+			if (moderationResult.data) {
+				if (moderationResult.data.action === 'block') {
+					diag.warn('social', 'REPLY_BLOCKED_BY_MODERATION', {
+						reason: moderationResult.data.reason,
+					})
+					toast.error(moderationResult.data.reason || t('moderationBlockReply'))
+					setIsSubmittingReply(false)
+					return
+				}
+				if (moderationResult.data.action === 'flag') {
+					diag.warn('social', 'REPLY_FLAGGED_BY_MODERATION', {
+						reason: moderationResult.data.reason,
+					})
+					toast.warning(
+						moderationResult.data.reason || t('moderationFlagReply'),
+					)
+				}
 			}
-		}
 
-		diag.request('social', 'createReply', {
-			commentId: comment.id,
-			contentLength: replyContent.trim().length,
-			taggedUserIds,
-		})
-
-		const response = await createReply(comment.id, {
-			content: replyContent.trim(),
-			parentCommentId: comment.id,
-			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
-		})
-
-		if (response.success && response.data) {
-			diag.response(
-				'social',
-				'createReply',
-				{
-					replyId: response.data.id,
-					success: true,
-				},
-				true,
-			)
-			setReplies(prev => [...prev, response.data!])
-			setReplyCount(prev => prev + 1)
-			setReplyContent('')
-			setTaggedUserIds([])
-			mentionInputRef.current?.clear()
-			setShowReplyInput(false)
-			setShowReplies(true)
-			toast.success(t('replyPosted'))
-		} else {
-			diag.error('social', 'REPLY_CREATE_FAILED', {
-				message: response.message,
+			diag.request('social', 'createReply', {
+				commentId: comment.id,
+				contentLength: replyContent.trim().length,
+				taggedUserIds,
 			})
-			toast.error(response.message || t('failedPostReply'))
-		}
+
+			const response = await createReply(comment.id, {
+				content: replyContent.trim(),
+				parentCommentId: comment.id,
+				taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
+			})
+
+			if (response.success && response.data) {
+				diag.response(
+					'social',
+					'createReply',
+					{
+						replyId: response.data.id,
+						success: true,
+					},
+					true,
+				)
+				setReplies(prev => [...prev, response.data!])
+				setReplyCount(prev => prev + 1)
+				setReplyContent('')
+				setTaggedUserIds([])
+				mentionInputRef.current?.clear()
+				setShowReplyInput(false)
+				setShowReplies(true)
+				toast.success(t('replyPosted'))
+			} else {
+				diag.error('social', 'REPLY_CREATE_FAILED', {
+					message: response.message,
+				})
+				toast.error(response.message || t('failedPostReply'))
+			}
 		} catch {
 			toast.error(t('failedPostReply'))
 		} finally {
@@ -563,12 +572,18 @@ export const Comment = ({
 							className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
 							aria-label={isLiked ? t('unlikeComment') : t('likeComment')}
 						>
-							<motion.div variants={HEART_POP} animate={isLiked ? 'liked' : 'unliked'} initial={false}>
+							<motion.div
+								variants={HEART_POP}
+								animate={isLiked ? 'liked' : 'unliked'}
+								initial={false}
+							>
 								<Heart
 									className={`size-3 transition-all ${isLiked ? 'fill-color-error text-color-error' : 'text-text-muted hover:text-color-error'}`}
 								/>
 							</motion.div>
-							{likes > 0 && <AnimatedNumber value={likes} className='tabular-nums' />}
+							{likes > 0 && (
+								<AnimatedNumber value={likes} className='tabular-nums' />
+							)}
 						</button>
 						<button
 							type='button'
@@ -608,7 +623,9 @@ export const Comment = ({
 										type='button'
 										onClick={handleSubmitReply}
 										disabled={!replyContent.trim() || isSubmittingReply}
-										whileHover={isSubmittingReply ? undefined : BUTTON_SUBTLE_HOVER}
+										whileHover={
+											isSubmittingReply ? undefined : BUTTON_SUBTLE_HOVER
+										}
 										whileTap={isSubmittingReply ? undefined : BUTTON_SUBTLE_TAP}
 										transition={TRANSITION_SPRING}
 										className='grid size-9 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
@@ -621,7 +638,11 @@ export const Comment = ({
 									</motion.button>
 								</div>
 								{replyContent.length > 0 && (
-									<p className={`mt-1 text-right text-xs tabular-nums ${replyContent.length > 400 ? (replyContent.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>{replyContent.length}/500</p>
+									<p
+										className={`mt-1 text-right text-xs tabular-nums ${replyContent.length > 400 ? (replyContent.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+									>
+										{replyContent.length}/500
+									</p>
 								)}
 							</motion.div>
 						)}
@@ -662,12 +683,12 @@ export const Comment = ({
 										key={reply.id}
 										initial={{ opacity: 0, x: -8 }}
 										animate={{ opacity: 1, x: 0 }}
-										transition={{ delay: i * 0.05, duration: DURATION_S.normal }}
+										transition={{
+											delay: i * 0.05,
+											duration: DURATION_S.normal,
+										}}
 									>
-										<ReplyItem
-											reply={reply}
-											currentUserId={currentUserId}
-										/>
+										<ReplyItem reply={reply} currentUserId={currentUserId} />
 									</motion.div>
 								))}
 							</motion.div>

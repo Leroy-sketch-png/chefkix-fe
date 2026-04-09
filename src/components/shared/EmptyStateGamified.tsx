@@ -616,7 +616,11 @@ function CheckmarkIllustration() {
 						x: [0, (i % 2 === 0 ? 1 : -1) * (20 + i * 8)],
 						y: [0, -(15 + i * 5)],
 					}}
-					transition={{ duration: DURATION_S.dramatic, delay: 0.3 + i * 0.1, ease: 'easeOut' }}
+					transition={{
+						duration: DURATION_S.dramatic,
+						delay: 0.3 + i * 0.1,
+						ease: 'easeOut',
+					}}
 				/>
 			))}
 		</div>
@@ -767,7 +771,9 @@ export function EmptyState({
 			{displayIllustration && <div className='mb-6'>{displayIllustration}</div>}
 
 			{/* Title & Description */}
-			<h3 className='text-xl font-display font-extrabold text-text mb-2'>{title}</h3>
+			<h3 className='text-xl font-display font-extrabold text-text mb-2'>
+				{title}
+			</h3>
 			<p className='text-base text-text-muted mb-6 max-w-xs mx-auto leading-relaxed'>
 				{description}
 			</p>
@@ -919,9 +925,17 @@ export function EmptyFeed({
 				icon: <Compass className='size-icon-sm' />,
 			}}
 			quickActions={[
-				{ label: t('catItalian'), emoji: '🇮🇹', href: '/explore?category=italian' },
+				{
+					label: t('catItalian'),
+					emoji: '🇮🇹',
+					href: '/explore?category=italian',
+				},
 				{ label: t('catAsian'), emoji: '🥢', href: '/explore?category=asian' },
-				{ label: t('catQuickMeals'), emoji: 'â±ï¸', href: '/explore?category=quick' },
+				{
+					label: t('catQuickMeals'),
+					emoji: '⏱️',
+					href: '/explore?category=quick',
+				},
 			]}
 			className={className}
 		/>
@@ -960,15 +974,19 @@ export function EmptyCookingHistory({
 			<div className='flex flex-col gap-2.5 p-4 bg-bg rounded-xl mb-6 max-w-xs mx-auto text-left'>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>⚡</span>
-					{t.rich('earnXp', { strong: (chunks) => <strong>{chunks}</strong> })}
+					{t.rich('earnXp', { strong: chunks => <strong>{chunks}</strong> })}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
-					<span className='text-lg'>🎖ï¸</span>
-					{t.rich('unlockBadge', { strong: (chunks) => <strong>{chunks}</strong> })}
+					<span className='text-lg'>🎖️</span>
+					{t.rich('unlockBadge', {
+						strong: chunks => <strong>{chunks}</strong>,
+					})}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>🔥</span>
-					{t.rich('startStreak', { strong: (chunks) => <strong>{chunks}</strong> })}
+					{t.rich('startStreak', {
+						strong: chunks => <strong>{chunks}</strong>,
+					})}
 				</div>
 			</div>
 
@@ -1026,23 +1044,21 @@ export function EmptySaved({
 		>
 			{/* How To */}
 			<div className='flex items-center justify-center gap-2.5 mb-6 flex-wrap'>
-				{[
-					t('savedStep1'),
-					t('savedStep2'),
-					t('savedStep3'),
-				].map((step, index) => (
-					<div key={index} className='flex items-center gap-2'>
-						<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-lg'>
-							<span className='size-icon-md flex items-center justify-center bg-brand text-white rounded-full text-xs font-bold'>
-								{index + 1}
-							</span>
-							<span className='text-sm text-text'>{step}</span>
+				{[t('savedStep1'), t('savedStep2'), t('savedStep3')].map(
+					(step, index) => (
+						<div key={index} className='flex items-center gap-2'>
+							<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-lg'>
+								<span className='size-icon-md flex items-center justify-center bg-brand text-white rounded-full text-xs font-bold'>
+									{index + 1}
+								</span>
+								<span className='text-sm text-text'>{step}</span>
+							</div>
+							{index < 2 && (
+								<span className='text-text-muted hidden sm:block'>→</span>
+							)}
 						</div>
-						{index < 2 && (
-							<span className='text-text-muted hidden sm:block'>→</span>
-						)}
-					</div>
-				))}
+					),
+				)}
 			</div>
 		</EmptyState>
 	)
@@ -1058,16 +1074,19 @@ export function EmptyNotifications({ className }: { className?: string }) {
 			className={className}
 		>
 			<div className='flex gap-2 justify-center flex-wrap mt-2'>
-				{[`❤️ ${t('notifLikes')}`, `💬 ${t('notifComments')}`, `👤 ${t('notifFollows')}`, `🏆 ${t('notifAchievements')}`].map(
-					type => (
-						<span
-							key={type}
-							className='py-1.5 px-3 bg-bg rounded-full text-xs text-text-muted'
-						>
-							{type}
-						</span>
-					),
-				)}
+				{[
+					`❤️ ${t('notifLikes')}`,
+					`💬 ${t('notifComments')}`,
+					`👤 ${t('notifFollows')}`,
+					`🏆 ${t('notifAchievements')}`,
+				].map(type => (
+					<span
+						key={type}
+						className='py-1.5 px-3 bg-bg rounded-full text-xs text-text-muted'
+					>
+						{type}
+					</span>
+				))}
 			</div>
 		</EmptyState>
 	)
@@ -1091,16 +1110,16 @@ export function AllCaughtUp({
 		>
 			{/* Next Goal */}
 			<div className='mt-5 max-w-xs mx-auto text-left'>
-				<span className='block text-xs text-text-muted mb-2.5'>{t('nextGoal')}</span>
+				<span className='block text-xs text-text-muted mb-2.5'>
+					{t('nextGoal')}
+				</span>
 				<div className='flex items-center gap-3 p-3.5 bg-bg border border-border rounded-xl'>
-					<span className='text-icon-lg'>ðŸ³</span>
+					<span className='text-icon-lg'>🍳</span>
 					<div className='flex-1'>
 						<span className='block text-sm font-semibold text-text'>
 							{t('cookSomethingNew')}
 						</span>
-						<span className='text-xs text-text-muted'>
-							{t('earnMoreXp')}
-						</span>
+						<span className='text-xs text-text-muted'>{t('earnMoreXp')}</span>
 					</div>
 					<button
 						type='button'

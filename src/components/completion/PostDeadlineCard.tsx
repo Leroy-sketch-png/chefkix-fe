@@ -148,7 +148,7 @@ export const PostDeadlineCard = ({
 			ClockIcon: Clock,
 		},
 		warning: {
-			icon: 'â°',
+			icon: '⏰',
 			label: t('timeRunningOut'),
 			borderClass: 'border-gold/40',
 			bgClass: 'bg-gold/5',
@@ -227,7 +227,7 @@ export const PostDeadlineCard = ({
 						/>
 					) : (
 						<div className='flex size-full items-center justify-center rounded-xl bg-bg-elevated text-2xl'>
-							ðŸ³
+							🍳
 						</div>
 					)}
 					<motion.span
@@ -406,7 +406,7 @@ export const PostDeadlineStack = ({
 											/>
 										) : (
 											<div className='flex size-10 items-center justify-center rounded-lg bg-bg-elevated text-lg'>
-												ðŸ³
+												🍳
 											</div>
 										)}
 										<span className='min-w-0 flex-1 truncate text-sm font-semibold'>
@@ -514,10 +514,14 @@ export const PostDeadlineMobileStrip = ({
 			)}
 		>
 			<span className='text-base'>
-				{state === 'urgent' ? '🚨' : state === 'warning' ? 'â°' : '📸'}
+				{state === 'urgent' ? '🚨' : state === 'warning' ? '⏰' : '📸'}
 			</span>
 			<span className='flex-1 truncate text-xs font-medium'>
-				{t('mobileStripText', { recipe: recipeName, time: timeRemaining, xp: Math.round(pendingXp) })}
+				{t('mobileStripText', {
+					recipe: recipeName,
+					time: timeRemaining,
+					xp: Math.round(pendingXp),
+				})}
 			</span>
 			<motion.button
 				type='button'

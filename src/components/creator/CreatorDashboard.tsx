@@ -207,11 +207,13 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 				<div className='col-span-2 sm:col-span-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-bg rounded-xl text-center'>
 					<div className='flex items-center gap-2'>
 						<span className='text-4xl font-black tabular-nums text-brand'>
-						<AnimatedNumber value={stats.recipesPublished} duration={0.8} />
+							<AnimatedNumber value={stats.recipesPublished} duration={0.8} />
 						</span>
 						<span className='text-icon-lg'>📖</span>
 					</div>
-					<span className='text-sm text-text-secondary'>{t('recipesPublished')}</span>
+					<span className='text-sm text-text-secondary'>
+						{t('recipesPublished')}
+					</span>
 				</div>
 
 				<StatCard
@@ -251,7 +253,9 @@ function StatCard({
 		<div className='flex items-center gap-2.5 p-4 bg-bg rounded-xl'>
 			<span className='text-2xl'>{icon}</span>
 			<div className='flex flex-col'>
-				<span className='text-xl font-display font-extrabold tabular-nums text-text'>{value}</span>
+				<span className='text-xl font-display font-extrabold tabular-nums text-text'>
+					{value}
+				</span>
 				<span className='text-xs text-text-secondary'>{label}</span>
 			</div>
 		</div>
@@ -340,7 +344,7 @@ function TopRecipeSection({
 			</div>
 
 			<motion.div
-							whileHover={LIST_ITEM_HOVER}
+				whileHover={LIST_ITEM_HOVER}
 				transition={TRANSITION_SPRING}
 				onClick={() => onRecipeClick?.(recipe.id)}
 				className='flex flex-col sm:flex-row gap-5 cursor-pointer'
@@ -353,11 +357,13 @@ function TopRecipeSection({
 					className='w-full sm:size-thumbnail-2xl rounded-2xl object-cover mx-auto sm:mx-0'
 				/>{' '}
 				<div className='flex-1 flex flex-col gap-2 items-center sm:items-start text-center sm:text-left'>
-					<h4 className='text-xl font-display font-extrabold text-text'>{recipe.title}</h4>
+					<h4 className='text-xl font-display font-extrabold text-text'>
+						{recipe.title}
+					</h4>
 					<div className='flex gap-3'>
 						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='w-3.5 h-3.5' />
-							{recipe.cookTime} min
+							{recipe.cookTime} {t('unitMin')}
 						</span>
 						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Signal className='w-3.5 h-3.5' />
@@ -367,21 +373,34 @@ function TopRecipeSection({
 					<div className='flex gap-6 mt-auto justify-center sm:justify-start'>
 						<div className='flex flex-col'>
 							<span className='text-xl font-display font-extrabold text-brand'>
-								<AnimatedNumber value={recipe.cookCount} className='tabular-nums' />
+								<AnimatedNumber
+									value={recipe.cookCount}
+									className='tabular-nums'
+								/>
 							</span>
-								<span className='text-xs text-text-secondary'>{t('cooksLabel')}</span>
-							</div>
-							<div className='flex flex-col'>
-								<span className='text-xl font-display font-extrabold text-brand'>
-									<AnimatedNumber value={recipe.xpGenerated} format={n => n.toLocaleString()} className='tabular-nums' />
-								</span>
-								<span className='text-xs text-text-secondary'>{t('xpGenerated')}</span>
-							</div>
-							<div className='flex flex-col'>
-								<span className='text-xl font-display font-extrabold text-brand'>
-									{recipe.rating.toFixed(1)}
-								</span>
-								<span className='text-xs text-text-secondary'>{t('ratingLabel')}</span>
+							<span className='text-xs text-text-secondary'>
+								{t('cooksLabel')}
+							</span>
+						</div>
+						<div className='flex flex-col'>
+							<span className='text-xl font-display font-extrabold text-brand'>
+								<AnimatedNumber
+									value={recipe.xpGenerated}
+									format={n => n.toLocaleString()}
+									className='tabular-nums'
+								/>
+							</span>
+							<span className='text-xs text-text-secondary'>
+								{t('xpGenerated')}
+							</span>
+						</div>
+						<div className='flex flex-col'>
+							<span className='text-xl font-display font-extrabold text-brand'>
+								{recipe.rating.toFixed(1)}
+							</span>
+							<span className='text-xs text-text-secondary'>
+								{t('ratingLabel')}
+							</span>
 						</div>
 					</div>
 				</div>
@@ -409,7 +428,9 @@ function RecipePerformanceSection({
 	return (
 		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>{t('recipePerformance')}</h3>
+				<h3 className='text-lg font-bold text-text'>
+					{t('recipePerformance')}
+				</h3>
 				<button
 					type='button'
 					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-lg text-sm text-text'
@@ -481,13 +502,22 @@ function RecipePerformanceSection({
 							<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
 									<span className='text-base font-display font-extrabold text-text'>
-									<AnimatedNumber value={recipe.cookCount} className='tabular-nums' />
-								</span>
-								<span className='text-2xs text-text-secondary'>{t('cooksLabel')}</span>
-							</div>
-							<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-								<span className='text-base font-display font-extrabold text-text'>
-									+<AnimatedNumber value={recipe.xpGenerated} className='tabular-nums' />
+										<AnimatedNumber
+											value={recipe.cookCount}
+											className='tabular-nums'
+										/>
+									</span>
+									<span className='text-2xs text-text-secondary'>
+										{t('cooksLabel')}
+									</span>
+								</div>
+								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
+									<span className='text-base font-display font-extrabold text-text'>
+										+
+										<AnimatedNumber
+											value={recipe.xpGenerated}
+											className='tabular-nums'
+										/>
 									</span>
 									<span className='text-2xs text-text-secondary'>XP</span>
 								</div>
@@ -560,9 +590,7 @@ function RecentCooksSection({
 			{cooks.length === 0 ? (
 				<div className='flex flex-col items-center gap-3 py-10 text-center'>
 					<span className='text-4xl'>👨‍🍳</span>
-					<p className='text-base font-semibold text-text'>
-						{t('noCooks')}
-					</p>
+					<p className='text-base font-semibold text-text'>{t('noCooks')}</p>
 					<p className='text-sm text-text-secondary max-w-xs'>
 						{t('noCooksSubtitle')}
 						cooks them.
@@ -599,7 +627,11 @@ function RecentCooksSection({
 							</div>
 							<div className='text-right'>
 								<span className='block text-base font-display font-extrabold text-success'>
-									+<AnimatedNumber value={cook.xpEarned} className='tabular-nums' />
+									+
+									<AnimatedNumber
+										value={cook.xpEarned}
+										className='tabular-nums'
+									/>
 								</span>
 								<span className='text-2xs text-text-secondary'>XP</span>
 							</div>
@@ -630,9 +662,7 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			<div className='flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left'>
 				<span className='text-icon-xl'>✨</span>
 				<div className='flex flex-col'>
-					<strong className='text-base text-text'>
-						{t('createCtaTitle')}
-					</strong>
+					<strong className='text-base text-text'>{t('createCtaTitle')}</strong>
 					<span className='text-sm text-text-secondary'>
 						Every cook of your recipe earns you 4% XP
 					</span>
@@ -641,7 +671,7 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 
 			<motion.button
 				type='button'
-							whileHover={STAT_ITEM_HOVER}
+				whileHover={STAT_ITEM_HOVER}
 				whileTap={LIST_ITEM_TAP}
 				onClick={onCreateRecipe}
 				className={cn(
@@ -680,7 +710,7 @@ export function CreatorDashboard({
 }: CreatorDashboardProps) {
 	const t = useTranslations('creator')
 	return (
-		<div className={cn('max-w-container-lg mx-auto p-5', className)}>
+		<div className={cn('max-w-lg mx-auto p-5', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-4 mb-6'>
 				{onBack && (
@@ -697,7 +727,7 @@ export function CreatorDashboard({
 				)}
 				<div className='flex-1 flex items-center gap-3 flex-wrap'>
 					<h1 className='text-2xl font-display font-extrabold text-text'>
-					{t('creatorDashboard')}
+						{t('creatorDashboard')}
 					</h1>
 					<span className='py-1 px-2.5 bg-xp/20 border border-xp/30 rounded-xl text-xs font-semibold text-xp'>
 						📝 Recipe Creator

@@ -20,7 +20,10 @@ import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { DailyChallengeBanner, ActiveBattlesSection } from '@/components/challenges'
+import {
+	DailyChallengeBanner,
+	ActiveBattlesSection,
+} from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -36,7 +39,7 @@ import {
 } from '@/services/challenge'
 import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
 import { formatEventTimeRemaining } from '@/lib/challenge-time'
-import { logDevError } from '@/lib/dev-log' 
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // PAGE
@@ -175,9 +178,9 @@ export default function ChallengesPage() {
 				{/* Header */}
 				<PageHeader
 					icon={Trophy}
-					title={t("title")}
-					subtitle={t("subtitle")}
-					gradient="yellow"
+					title={t('title')}
+					subtitle={t('subtitle')}
+					gradient='yellow'
 				/>
 
 				{/* Cooking Duels — 1v1 friend challenges */}
@@ -294,7 +297,10 @@ export default function ChallengesPage() {
 									<div className='mb-2'>
 										<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 											<span>
-												{t('progressCount', { progress: weeklyChallenge.progress, target: weeklyChallenge.target })}
+												{t('progressCount', {
+													progress: weeklyChallenge.progress,
+													target: weeklyChallenge.target,
+												})}
 											</span>
 											<span>
 												{weeklyChallenge.target > 0
@@ -313,7 +319,10 @@ export default function ChallengesPage() {
 												animate={{
 													width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
 												}}
-												transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
+												transition={{
+													duration: DURATION_S.verySlow,
+													ease: 'easeOut',
+												}}
 												className='h-full rounded-full bg-gradient-indigo'
 											/>
 										</div>
@@ -321,7 +330,7 @@ export default function ChallengesPage() {
 
 									{/* Time remaining */}
 									<p className='text-xs text-text-muted'>
-										{t('endsOn', { date: new Date(weeklyChallenge.endsAt).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) })}
+										{formatEventTimeRemaining(weeklyChallenge.endsAt, t)}
 									</p>
 
 									{/* CTA: Find matching recipes */}
@@ -340,7 +349,7 @@ export default function ChallengesPage() {
 												disabled={isNavigating}
 												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 											>
-												{t("findMatchingRecipes")}
+												{t('findMatchingRecipes')}
 												<ChevronRight className='size-4' />
 											</button>
 										)}
@@ -354,7 +363,7 @@ export default function ChallengesPage() {
 								<div className='mb-4 flex items-center gap-2'>
 									<Users className='size-5 text-combo' />
 									<h2 className='text-lg font-bold text-text'>
-										{t("communityChallenges")}
+										{t('communityChallenges')}
 									</h2>
 								</div>
 								<div className='space-y-4'>
@@ -400,7 +409,9 @@ export default function ChallengesPage() {
 														{ch.currentProgress.toLocaleString()} /{' '}
 														{ch.targetCount.toLocaleString()} {ch.targetUnit}
 													</span>
-													<span className='tabular-nums'>{Math.round(ch.progressPercent)}%</span>
+													<span className='tabular-nums'>
+														{Math.round(ch.progressPercent)}%
+													</span>
 												</div>
 												<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
 													<motion.div
@@ -421,7 +432,9 @@ export default function ChallengesPage() {
 											<div className='flex items-center justify-between text-xs text-text-muted'>
 												<span className='flex items-center gap-1'>
 													<Users className='size-3.5' />
-													{t('participantsCount', { count: ch.participantCount })}
+													{t('participantsCount', {
+														count: ch.participantCount,
+													})}
 												</span>
 												{ch.hasContributed ? (
 													<span className='font-medium text-success'>
@@ -457,7 +470,7 @@ export default function ChallengesPage() {
 								<div className='mb-4 flex items-center gap-2'>
 									<Leaf className='size-5 text-streak' />
 									<h2 className='text-lg font-bold text-text'>
-										{t("seasonalEvents")}
+										{t('seasonalEvents')}
 									</h2>
 								</div>
 								<div className='space-y-4'>
@@ -568,7 +581,9 @@ export default function ChallengesPage() {
 															disabled={isNavigating}
 															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
 														>
-															{t('featuredRecipesCount', { count: ev.featuredRecipes.length })}
+															{t('featuredRecipesCount', {
+																count: ev.featuredRecipes.length,
+															})}
 															<ChevronRight className='size-3.5' />
 														</button>
 													)}
@@ -597,10 +612,10 @@ export default function ChallengesPage() {
 									</div>
 									<div>
 										<h3 className='font-semibold text-text'>
-											{t("challengeHistory")}
+											{t('challengeHistory')}
 										</h3>
 										<p className='text-sm text-text-muted'>
-											{t("challengeHistoryDesc")}
+											{t('challengeHistoryDesc')}
 										</p>
 									</div>
 								</div>

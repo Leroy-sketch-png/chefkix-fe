@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
 import { logDevError } from '@/lib/dev-log'
+import { useTranslations } from 'next-intl'
 
 /**
  * Route-level error boundary for the (main) route group.
@@ -18,6 +19,8 @@ export default function MainError({
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
+	const t = useTranslations('shared')
+
 	useEffect(() => {
 		logDevError('[MainError] Route error caught:', error)
 	}, [error])
@@ -32,18 +35,15 @@ export default function MainError({
 					</div>
 				</div>
 
-				<h2 className='mb-2 text-xl font-bold text-text'>
-					Something went wrong
-				</h2>
+				<h2 className='mb-2 text-xl font-bold text-text'>{t('errorTitle')}</h2>
 				<p className='mb-6 text-sm leading-relaxed text-text-secondary'>
-					We hit a bump in the kitchen. This error has been noted — you can try
-					again or head back to the dashboard.
+					{t('errorKitchenBump')}
 				</p>
 
 				{process.env.NODE_ENV === 'development' && (
 					<details className='mb-6 rounded-radius border border-border-subtle bg-bg-elevated p-3 text-left'>
 						<summary className='cursor-pointer text-xs font-medium text-text-muted'>
-							Error details (dev only)
+							{t('errorDevDetails')}
 						</summary>
 						<pre className='mt-2 overflow-auto text-xs text-error'>
 							{error.message}
@@ -55,12 +55,12 @@ export default function MainError({
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
 					<Button onClick={reset} className='h-11 gap-2'>
 						<RefreshCw className='size-4' />
-						Try Again
+						{t('tryAgain')}
 					</Button>
 					<Button variant='outline' asChild className='h-11 gap-2'>
 						<Link href='/dashboard'>
 							<Home className='size-4' />
-							Dashboard
+							{t('dashboard')}
 						</Link>
 					</Button>
 				</div>

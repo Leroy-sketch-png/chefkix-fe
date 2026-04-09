@@ -12,7 +12,11 @@ import {
 	voteBattle,
 } from '@/services/post'
 import { toast } from 'sonner'
-import { trackEvent, startDwellTracking, stopDwellTracking } from '@/lib/eventTracker'
+import {
+	trackEvent,
+	startDwellTracking,
+	stopDwellTracking,
+} from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -40,7 +44,18 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { CommentList } from '@/components/social/CommentList'
-import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_FEED_HOVER, BUTTON_HOVER, BUTTON_TAP, BUTTON_SUBTLE_TAP, HEART_POP, BOOKMARK_SLIDE, SEND_WHOOSH, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	EXIT_VARIANTS,
+	CARD_FEED_HOVER,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_TAP,
+	HEART_POP,
+	BOOKMARK_SLIDE,
+	SEND_WHOOSH,
+	DURATION_S,
+} from '@/lib/motion'
 import { ImageCarousel } from '@/components/ui/image-carousel'
 import {
 	ReportModal,
@@ -128,7 +143,10 @@ export const PostCard = ({
 	})
 	const [isRatingPlate, setIsRatingPlate] = useState(false)
 	const [showCollectionPicker, setShowCollectionPicker] = useState(false)
-	const [collectionPickerPos, setCollectionPickerPos] = useState({ top: 0, right: 0 })
+	const [collectionPickerPos, setCollectionPickerPos] = useState({
+		top: 0,
+		right: 0,
+	})
 	const [isVotingBattle, setIsVotingBattle] = useState(false)
 
 	// Refs
@@ -205,7 +223,7 @@ export const PostCard = ({
 
 	const handleLike = useCallback(async () => {
 		if (isLiking) return
-		if (!requireAuth('like this post')) return
+		if (!requireAuth(t('authActionLike'))) return
 
 		setIsLiking(true)
 		const wasLiked = post.isLiked
@@ -261,11 +279,11 @@ export const PostCard = ({
 		} finally {
 			setIsLiking(false)
 		}
-	}, [isLiking, onUpdate, post, requireAuth])
+	}, [isLiking, onUpdate, post, requireAuth, t])
 
 	const handleSave = async () => {
 		if (isSaving) return
-		if (!requireAuth('save this post')) return
+		if (!requireAuth(t('authActionSave'))) return
 
 		// Optimistic update
 		const previousSaved = isSaved
@@ -285,9 +303,7 @@ export const PostCard = ({
 				setIsSaved(response.data.isSaved)
 
 				toast.success(
-					response.data.isSaved
-						? t('toastSaved')
-						: t('toastUnsaved'),
+					response.data.isSaved ? t('toastSaved') : t('toastUnsaved'),
 				)
 			} else {
 				// Revert on error
@@ -301,15 +317,14 @@ export const PostCard = ({
 			// Revert on error
 			setIsSaved(previousSaved)
 			logDevError('Failed to save post:', error)
-			toast.error(
-				previousSaved ? t('unsavePostFailed') : t('savePostFailed'),
-			)
+			toast.error(previousSaved ? t('unsavePostFailed') : t('savePostFailed'))
 		} finally {
 			setIsSaving(false)
 		}
 	}
 
 	const handleRatePlate = async (rating: 'FIRE' | 'CRINGE') => {
+		if (!requireAuth(t('authActionRate'))) return
 		if (isRatingPlate) return
 		setIsRatingPlate(true)
 
@@ -443,7 +458,7 @@ export const PostCard = ({
 
 	// Handle report submission
 	const handleReportSubmit = async (reason: string, details?: string) => {
-		if (!requireAuth('report this post')) return
+		if (!requireAuth(t('authActionReport'))) return
 		try {
 			const response = await reportPost(post.id, { reason, details })
 			if (response.success) {
@@ -465,7 +480,9 @@ export const PostCard = ({
 		setShowShareMenu(false)
 		const postUrl = `${window.location.origin}/post/${post.id}`
 		const shareData = {
-			title: t('nativeShareTitle', { name: post.displayName || t('chefkixUser') }),
+			title: t('nativeShareTitle', {
+				name: post.displayName || t('chefkixUser'),
+			}),
 			text:
 				post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
 			url: postUrl,
@@ -498,14 +515,14 @@ export const PostCard = ({
 	}
 
 	const handleShareToChat = () => {
-		if (!requireAuth('share to chat')) return
+		if (!requireAuth(t('authActionShareChat'))) return
 		setShowShareMenu(false)
 		setShowShareModal(true)
 	}
 
 	// Handle battle voting
 	const handleBattleVote = async (choice: 'A' | 'B') => {
-		if (!requireAuth('vote in battle')) return
+		if (!requireAuth(t('authActionVoteBattle'))) return
 		if (isVotingBattle) return
 		// Don't allow voting on ended battles
 		if (post.battleEndsAt && new Date(post.battleEndsAt) <= new Date()) return
@@ -597,7 +614,10 @@ export const PostCard = ({
 				transition={TRANSITION_SPRING}
 				className='mb-6'
 			>
-				<motion.div whileHover={CARD_FEED_HOVER} className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'>
+				<motion.div
+					whileHover={CARD_FEED_HOVER}
+					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'
+				>
 					{/* Header */}
 					<div className='flex items-center justify-between p-4 md:p-6'>
 						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
@@ -624,19 +644,54 @@ export const PostCard = ({
 								</Avatar>
 								<div>
 									<div className='flex items-center gap-1 text-base font-bold leading-tight text-text-primary'>
-										{post.displayName || 'Unknown User'}
+										{post.displayName || t('unknownUser')}
 										{post.isVerified && <VerifiedBadge size='sm' />}
 									</div>
 									<div className='flex items-center gap-2 text-sm leading-normal text-text-secondary'>
 										{post.postType && post.postType !== 'PERSONAL' && (
 											<span className='inline-flex items-center gap-1 rounded-full bg-bg-elevated px-1.5 py-0.5 text-xs font-medium text-text-muted'>
-												{post.postType === 'QUICK' && <><Zap className='size-3' />{t('typeQuickShort')}</>}
-												{post.postType === 'POLL' && <><BarChart3 className='size-3' />{t('typePollShort')}</>}
-												{post.postType === 'RECENT_COOK' && <><ChefHat className='size-3' />{t('typeCookShort')}</>}
-												{post.postType === 'GROUP' && <><Users className='size-3' />{t('typeGroupShort')}</>}
-												{post.postType === 'RECIPE_REVIEW' && <><Star className='size-3' />{t('typeReviewShort')}</>}
-												{post.postType === 'QUICK_TIP' && <><Lightbulb className='size-3' />{t('typeTipShort')}</>}
-												{post.postType === 'RECIPE_BATTLE' && <><Swords className='size-3' />{t('typeBattleShort')}</>}
+												{post.postType === 'QUICK' && (
+													<>
+														<Zap className='size-3' />
+														{t('typeQuickShort')}
+													</>
+												)}
+												{post.postType === 'POLL' && (
+													<>
+														<BarChart3 className='size-3' />
+														{t('typePollShort')}
+													</>
+												)}
+												{post.postType === 'RECENT_COOK' && (
+													<>
+														<ChefHat className='size-3' />
+														{t('typeCookShort')}
+													</>
+												)}
+												{post.postType === 'GROUP' && (
+													<>
+														<Users className='size-3' />
+														{t('typeGroupShort')}
+													</>
+												)}
+												{post.postType === 'RECIPE_REVIEW' && (
+													<>
+														<Star className='size-3' />
+														{t('typeReviewShort')}
+													</>
+												)}
+												{post.postType === 'QUICK_TIP' && (
+													<>
+														<Lightbulb className='size-3' />
+														{t('typeTipShort')}
+													</>
+												)}
+												{post.postType === 'RECIPE_BATTLE' && (
+													<>
+														<Swords className='size-3' />
+														{t('typeBattleShort')}
+													</>
+												)}
 											</span>
 										)}
 										{formatDistanceToNow(new Date(post.createdAt), {
@@ -747,7 +802,9 @@ export const PostCard = ({
 								maxLength={2000}
 							/>
 							{editContent.length > 0 && (
-								<p className={`text-right text-xs ${editContent.length > 1600 ? (editContent.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+								<p
+									className={`text-right text-xs ${editContent.length > 1600 ? (editContent.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+								>
 									{editContent.length}/2000
 								</p>
 							)}
@@ -801,117 +858,166 @@ export const PostCard = ({
 								)}
 
 								{/* Recipe Review — Star rating inline */}
-								{post.postType === 'RECIPE_REVIEW' && post.reviewRating != null && (
-									<div className='flex items-center gap-3 rounded-xl bg-gradient-to-r from-warning/10 to-streak/10 px-3 py-2'>
-										<StarRating value={post.reviewRating} readOnly size='sm' />
-										<span className='text-sm font-medium text-text-secondary'>
-											{post.reviewRating}/5
-										</span>
-									</div>
-								)}
+								{post.postType === 'RECIPE_REVIEW' &&
+									post.reviewRating != null && (
+										<div className='flex items-center gap-3 rounded-xl bg-gradient-to-r from-warning/10 to-streak/10 px-3 py-2'>
+											<StarRating
+												value={post.reviewRating}
+												readOnly
+												size='sm'
+											/>
+											<span className='text-sm font-medium text-text-secondary'>
+												{post.reviewRating}/5
+											</span>
+										</div>
+									)}
 
 								{/* Recipe Battle — VS card with voting */}
-								{post.postType === 'RECIPE_BATTLE' && post.battleRecipeIdA && post.battleRecipeIdB && (() => {
-									const battleActive = !post.battleEndsAt || new Date(post.battleEndsAt) > new Date()
-									const totalVotes = (post.battleVotesA ?? 0) + (post.battleVotesB ?? 0)
-									const userVote = post.userBattleVote
+								{post.postType === 'RECIPE_BATTLE' &&
+									post.battleRecipeIdA &&
+									post.battleRecipeIdB &&
+									(() => {
+										const battleActive =
+											!post.battleEndsAt ||
+											new Date(post.battleEndsAt) > new Date()
+										const totalVotes =
+											(post.battleVotesA ?? 0) + (post.battleVotesB ?? 0)
+										const userVote = post.userBattleVote
 
-									return (
-									<div className='rounded-xl border border-border-subtle bg-bg-elevated/50 p-3'>
-										<div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
-											{/* Recipe A */}
-											<div className='flex flex-col items-center gap-2'>
-												<Link href={`/recipes/${post.battleRecipeIdA}`} className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'>
-													{post.battleRecipeImageA && (
-														<div className='relative size-16 overflow-hidden rounded-lg'>
-															<Image src={post.battleRecipeImageA} alt={post.battleRecipeTitleA ?? t('recipeAFallback')} fill sizes='64px' unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
-														</div>
-													)}
-													<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
-														{post.battleRecipeTitleA ?? t('recipeAFallback')}
-													</span>
-												</Link>
-												<span className='text-xs font-bold tabular-nums text-brand'>
-													{t('votesCount', { count: post.battleVotesA ?? 0 })}
-												</span>
-												{battleActive && (
-													<motion.button
-														type='button'
-														whileHover={BUTTON_HOVER}
-														whileTap={BUTTON_TAP}
-														onClick={() => handleBattleVote('A')}
-														disabled={isVotingBattle}
-														className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
-															userVote === 'A'
-																? 'bg-brand text-white shadow-glow'
-																: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
-														}`}
-													>
-														{userVote === 'A' ? t('battleVoted') : t('battleVoteA')}
-													</motion.button>
+										return (
+											<div className='rounded-xl border border-border-subtle bg-bg-elevated/50 p-3'>
+												<div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
+													{/* Recipe A */}
+													<div className='flex flex-col items-center gap-2'>
+														<Link
+															href={`/recipes/${post.battleRecipeIdA}`}
+															className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'
+														>
+															{post.battleRecipeImageA && (
+																<div className='relative size-16 overflow-hidden rounded-lg'>
+																	<Image
+																		src={post.battleRecipeImageA}
+																		alt={
+																			post.battleRecipeTitleA ??
+																			t('recipeAFallback')
+																		}
+																		fill
+																		sizes='64px'
+																		unoptimized
+																		className='object-cover transition-transform group-hover/recipe:scale-110'
+																	/>
+																</div>
+															)}
+															<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
+																{post.battleRecipeTitleA ??
+																	t('recipeAFallback')}
+															</span>
+														</Link>
+														<span className='text-xs font-bold tabular-nums text-brand'>
+															{t('votesCount', {
+																count: post.battleVotesA ?? 0,
+															})}
+														</span>
+														{battleActive && (
+															<motion.button
+																type='button'
+																whileHover={BUTTON_HOVER}
+																whileTap={BUTTON_TAP}
+																onClick={() => handleBattleVote('A')}
+																disabled={isVotingBattle}
+																className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+																	userVote === 'A'
+																		? 'bg-brand text-white shadow-glow'
+																		: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
+																}`}
+															>
+																{userVote === 'A'
+																	? t('battleVoted')
+																	: t('battleVoteA')}
+															</motion.button>
+														)}
+													</div>
+
+													{/* VS Badge */}
+													<div className='flex flex-col items-center gap-1'>
+														<span className='rounded-full bg-gradient-to-br from-brand to-destructive px-3 py-1 text-xs font-black text-white shadow-glow'>
+															VS
+														</span>
+														{post.battleEndsAt && (
+															<span className='text-2xs text-text-muted'>
+																{battleActive
+																	? t('battleActive')
+																	: t('battleEnded')}
+															</span>
+														)}
+													</div>
+
+													{/* Recipe B */}
+													<div className='flex flex-col items-center gap-2'>
+														<Link
+															href={`/recipes/${post.battleRecipeIdB}`}
+															className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'
+														>
+															{post.battleRecipeImageB && (
+																<div className='relative size-16 overflow-hidden rounded-lg'>
+																	<Image
+																		src={post.battleRecipeImageB}
+																		alt={
+																			post.battleRecipeTitleB ??
+																			t('recipeBFallback')
+																		}
+																		fill
+																		sizes='64px'
+																		unoptimized
+																		className='object-cover transition-transform group-hover/recipe:scale-110'
+																	/>
+																</div>
+															)}
+															<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
+																{post.battleRecipeTitleB ??
+																	t('recipeBFallback')}
+															</span>
+														</Link>
+														<span className='text-xs font-bold tabular-nums text-brand'>
+															{t('votesCount', {
+																count: post.battleVotesB ?? 0,
+															})}
+														</span>
+														{battleActive && (
+															<motion.button
+																type='button'
+																whileHover={BUTTON_HOVER}
+																whileTap={BUTTON_TAP}
+																onClick={() => handleBattleVote('B')}
+																disabled={isVotingBattle}
+																className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+																	userVote === 'B'
+																		? 'bg-brand text-white shadow-glow'
+																		: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
+																}`}
+															>
+																{userVote === 'B'
+																	? t('battleVoted')
+																	: t('battleVoteB')}
+															</motion.button>
+														)}
+													</div>
+												</div>
+
+												{/* Vote progress bar */}
+												{totalVotes > 0 && (
+													<div className='mt-3 h-2 overflow-hidden rounded-full bg-bg'>
+														<div
+															className='h-full rounded-full bg-gradient-to-r from-brand to-streak transition-all duration-500'
+															style={{
+																width: `${((post.battleVotesA ?? 0) / totalVotes) * 100}%`,
+															}}
+														/>
+													</div>
 												)}
 											</div>
-
-											{/* VS Badge */}
-											<div className='flex flex-col items-center gap-1'>
-												<span className='rounded-full bg-gradient-to-br from-brand to-destructive px-3 py-1 text-xs font-black text-white shadow-glow'>
-													VS
-												</span>
-												{post.battleEndsAt && (
-													<span className='text-2xs text-text-muted'>
-														{battleActive ? t('battleActive') : t('battleEnded')}
-													</span>
-												)}
-											</div>
-
-											{/* Recipe B */}
-											<div className='flex flex-col items-center gap-2'>
-												<Link href={`/recipes/${post.battleRecipeIdB}`} className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'>
-													{post.battleRecipeImageB && (
-														<div className='relative size-16 overflow-hidden rounded-lg'>
-															<Image src={post.battleRecipeImageB} alt={post.battleRecipeTitleB ?? t('recipeBFallback')} fill sizes='64px' unoptimized className='object-cover transition-transform group-hover/recipe:scale-110' />
-														</div>
-													)}
-													<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
-														{post.battleRecipeTitleB ?? t('recipeBFallback')}
-													</span>
-												</Link>
-												<span className='text-xs font-bold tabular-nums text-brand'>
-													{t('votesCount', { count: post.battleVotesB ?? 0 })}
-												</span>
-												{battleActive && (
-													<motion.button
-														type='button'
-														whileHover={BUTTON_HOVER}
-														whileTap={BUTTON_TAP}
-														onClick={() => handleBattleVote('B')}
-														disabled={isVotingBattle}
-														className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
-															userVote === 'B'
-																? 'bg-brand text-white shadow-glow'
-																: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
-														}`}
-													>
-														{userVote === 'B' ? t('battleVoted') : t('battleVoteB')}
-													</motion.button>
-												)}
-											</div>
-										</div>
-
-										{/* Vote progress bar */}
-										{totalVotes > 0 && (
-											<div className='mt-3 h-2 overflow-hidden rounded-full bg-bg'>
-												<div
-													className='h-full rounded-full bg-gradient-to-r from-brand to-streak transition-all duration-500'
-													style={{
-														width: `${((post.battleVotesA ?? 0) / totalVotes) * 100}%`,
-													}}
-												/>
-											</div>
-										)}
-									</div>
-									)
-								})()}
+										)
+									})()}
 
 								{/* Quick Tip — Highlighted tip block */}
 								{post.postType === 'QUICK_TIP' && (
@@ -927,7 +1033,14 @@ export const PostCard = ({
 								{post.recipeId && post.recipeTitle && (
 									<Link
 										href={`/recipes/${post.recipeId}`}
-										aria-label={`View recipe: ${post.recipeTitle}${post.xpEarned ? `, earned ${post.xpEarned} XP` : ''}`}
+										aria-label={
+											post.xpEarned
+												? t('ariaViewRecipeXp', {
+														title: post.recipeTitle,
+														xp: post.xpEarned,
+													})
+												: t('ariaViewRecipe', { title: post.recipeTitle })
+										}
 										className='inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/10 to-bonus/10 px-3 py-2 text-sm font-medium text-text transition-all hover:from-brand/20 hover:to-bonus/20'
 									>
 										<ChefHat className='size-4 text-brand' />
@@ -939,7 +1052,8 @@ export const PostCard = ({
 										</span>
 										{post.xpEarned && (
 											<span className='ml-1 inline-flex items-center gap-1 rounded-full bg-xp/20 px-2 py-0.5 text-xs font-bold text-xp'>
-												<Zap className='size-3' />+{post.xpEarned} XP
+												<Zap className='size-3' />
+												{t('xpBadge', { xp: post.xpEarned })}
 											</span>
 										)}
 									</Link>
@@ -1013,7 +1127,10 @@ export const PostCard = ({
 												initial={{ scale: 0, opacity: 0 }}
 												animate={{ scale: 1, opacity: 1 }}
 												exit={{ scale: 1.5, opacity: 0 }}
-												transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
+												transition={{
+													duration: DURATION_S.smooth,
+													ease: 'easeOut',
+												}}
 												className='absolute inset-0 flex items-center justify-center pointer-events-none'
 											>
 												<Heart className='size-24 fill-white stroke-white drop-shadow-lg' />
@@ -1060,7 +1177,10 @@ export const PostCard = ({
 									>
 										<span>🔥</span>
 										{(post.fireCount ?? 0) > 0 && (
-											<AnimatedNumber value={post.fireCount!} className='text-xs font-semibold tabular-nums' />
+											<AnimatedNumber
+												value={post.fireCount!}
+												className='text-xs font-semibold tabular-nums'
+											/>
 										)}
 									</motion.button>
 									<motion.button
@@ -1076,7 +1196,10 @@ export const PostCard = ({
 									>
 										<span>😬</span>
 										{(post.cringeCount ?? 0) > 0 && (
-											<AnimatedNumber value={post.cringeCount!} className='text-xs font-semibold tabular-nums' />
+											<AnimatedNumber
+												value={post.cringeCount!}
+												className='text-xs font-semibold tabular-nums'
+											/>
 										)}
 									</motion.button>
 								</div>
@@ -1091,7 +1214,9 @@ export const PostCard = ({
 							onClick={handleLike}
 							disabled={isLiking}
 							whileTap={BUTTON_SUBTLE_TAP}
-							aria-label={post.isLiked ? t('unlikePostLabel') : t('likePostLabel')}
+							aria-label={
+								post.isLiked ? t('unlikePostLabel') : t('likePostLabel')
+							}
 							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								post.isLiked
 									? 'text-brand'
@@ -1103,26 +1228,34 @@ export const PostCard = ({
 								animate={post.isLiked ? 'liked' : 'unliked'}
 								initial={false}
 							>
-							<Heart
-								className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
-									post.isLiked
-										? 'fill-destructive stroke-destructive'
-										: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
-								}`}
-							/>
+								<Heart
+									className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
+										post.isLiked
+											? 'fill-destructive stroke-destructive'
+											: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
+									}`}
+								/>
 							</motion.div>
-							<AnimatedNumber value={post.likes ?? 0} className='tabular-nums' />
+							<AnimatedNumber
+								value={post.likes ?? 0}
+								className='tabular-nums'
+							/>
 						</motion.button>
 
 						<motion.button
 							type='button'
 							onClick={() => setShowComments(!showComments)}
 							whileTap={BUTTON_SUBTLE_TAP}
-							aria-label={showComments ? t('hideCommentsLabel') : t('showCommentsLabel')}
+							aria-label={
+								showComments ? t('hideCommentsLabel') : t('showCommentsLabel')
+							}
 							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-brand group-hover/btn:stroke-brand' />
-							<AnimatedNumber value={post.commentCount ?? 0} className='tabular-nums' />
+							<AnimatedNumber
+								value={post.commentCount ?? 0}
+								className='tabular-nums'
+							/>
 						</motion.button>
 
 						{/* Share button with dropdown menu */}
@@ -1197,7 +1330,9 @@ export const PostCard = ({
 							onClick={handleSave}
 							disabled={isSaving}
 							whileTap={BUTTON_SUBTLE_TAP}
-							aria-label={isSaved ? t('removeSavedPostLabel') : t('savePostLabel')}
+							aria-label={
+								isSaved ? t('removeSavedPostLabel') : t('savePostLabel')
+							}
 							className={`group/btn flex h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								isSaved
 									? 'flex-1 text-brand'
@@ -1209,13 +1344,13 @@ export const PostCard = ({
 								animate={isSaved ? 'saved' : 'unsaved'}
 								initial={false}
 							>
-							<Bookmark
-								className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
-									isSaved
-										? 'fill-gold stroke-gold'
-										: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
-								}`}
-							/>
+								<Bookmark
+									className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
+										isSaved
+											? 'fill-gold stroke-gold'
+											: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
+									}`}
+								/>
 							</motion.div>
 						</motion.button>
 						{/* Add to Collection button — appears when post is saved */}

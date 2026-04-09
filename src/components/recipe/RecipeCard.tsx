@@ -39,7 +39,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const handleLikeClick = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		if (!requireAuth('like this recipe')) return
+		if (!requireAuth(t('authActionLike'))) return
 		if (isLikeLoading) return
 
 		// Optimistic update
@@ -76,7 +76,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 	const handleSaveClick = async (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		if (!requireAuth('save this recipe')) return
+		if (!requireAuth(t('authActionSave'))) return
 		if (isSaveLoading) return
 
 		// Optimistic update
@@ -128,10 +128,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			transition={TRANSITION_SPRING}
 			layout
 		>
-			<motion.div
-							whileHover={CARD_GRID_HOVER}
-				transition={TRANSITION_SPRING}
-			>
+			<motion.div whileHover={CARD_GRID_HOVER} transition={TRANSITION_SPRING}>
 				<Link
 					href={`/recipes/${recipe.id}`}
 					className='group block overflow-hidden rounded-radius border border-border-subtle bg-bg-card transition-all duration-300 hover:border-brand/50 hover:bg-bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
@@ -197,8 +194,14 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							{recipe.description}
 						</p>
 						<div className='flex items-center justify-between text-sm text-text-secondary'>
-							<span>{t('byAuthor', { name: recipe.author?.displayName || 'Unknown' })}</span>
-							<span className='tabular-nums'>â­ {t('likesCount', { count: likeCount })}</span>
+							<span>
+								{t('byAuthor', {
+									name: recipe.author?.displayName || 'Unknown',
+								})}
+							</span>
+							<span className='tabular-nums'>
+								â­ {t('likesCount', { count: likeCount })}
+							</span>
 						</div>
 						<div className='flex gap-4'>
 							<button

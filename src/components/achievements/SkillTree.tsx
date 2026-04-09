@@ -43,7 +43,7 @@ const CATEGORY_META: Record<
 		color: 'text-brand',
 		bgColor: 'bg-brand/10',
 		borderColor: 'border-brand/30',
-		icon: 'ðŸ³',
+		icon: '🍳',
 	},
 	Technique: {
 		color: 'text-info',
@@ -71,7 +71,13 @@ const CATEGORY_META: Record<
 	},
 }
 
-const TIER_LABEL_KEYS = ['', 'bronzeTier', 'silverTier', 'goldTier', 'diamondTier'] as const
+const TIER_LABEL_KEYS = [
+	'',
+	'bronzeTier',
+	'silverTier',
+	'goldTier',
+	'diamondTier',
+] as const
 
 const TIER_COLORS: Record<number, string> = {
 	1: 'from-warning to-warning',
@@ -158,9 +164,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 			<div className='flex h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border'>
 				<Trophy className='size-8 text-text-muted' />
 				<p className='mt-2 text-text-muted'>
-					{isOwnProfile
-					? t('startCooking')
-					: t('noAchievements')}
+					{isOwnProfile ? t('startCooking') : t('noAchievements')}
 				</p>
 			</div>
 		)
@@ -327,7 +331,7 @@ function SkillPathCard({
 						{isComplete && (
 							<span className='flex items-center gap-0.5 rounded-full bg-success/15 px-2 py-0.5 text-2xs font-bold text-success'>
 								<Crown className='size-3' />
-							{t('complete')}
+								{t('complete')}
 							</span>
 						)}
 					</div>
@@ -421,8 +425,12 @@ function AchievementNodeCard({
 					<Lock className='size-4' />
 				</div>
 				<div>
-					<p className='text-sm font-semibold text-text-muted'>{t('hiddenAchievement')}</p>
-					<p className='text-xs text-text-muted'>{t('hiddenAchievementDesc')}</p>
+					<p className='text-sm font-semibold text-text-muted'>
+						{t('hiddenAchievement')}
+					</p>
+					<p className='text-xs text-text-muted'>
+						{t('hiddenAchievementDesc')}
+					</p>
 				</div>
 			</div>
 		)
@@ -481,7 +489,7 @@ function AchievementNodeCard({
 					)}
 					{node.tier > 1 && (
 						<span className='shrink-0 text-2xs font-bold text-text-muted'>
-						{TIER_LABEL_KEYS[node.tier] ? t(TIER_LABEL_KEYS[node.tier]) : ''}
+							{TIER_LABEL_KEYS[node.tier] ? t(TIER_LABEL_KEYS[node.tier]) : ''}
 						</span>
 					)}
 				</div>
@@ -519,7 +527,7 @@ function AchievementNodeCard({
 								month: 'short',
 								day: 'numeric',
 								year: 'numeric',
-							})
+							}),
 						})}
 					</p>
 				)}

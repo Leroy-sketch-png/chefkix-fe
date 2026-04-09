@@ -54,40 +54,41 @@ export interface PageHeaderProps {
 // Gradient mappings
 // ─────────────────────────────────────────────────────────────────
 
-const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> = {
-	orange: {
-		bg: 'bg-gradient-hero',
-		shadow: 'shadow-brand/25',
-	},
-	yellow: {
-		bg: 'bg-gradient-streak',
-		shadow: 'shadow-streak/25',
-	},
-	purple: {
-		bg: 'bg-gradient-xp',
-		shadow: 'shadow-level/25',
-	},
-	blue: {
-		bg: 'bg-gradient-indigo',
-		shadow: 'shadow-info/25',
-	},
-	green: {
-		bg: 'bg-gradient-success',
-		shadow: 'shadow-success/25',
-	},
-	gray: {
-		bg: 'bg-gradient-to-br from-border-strong to-text-muted',
-		shadow: 'shadow-border-strong/25',
-	},
-	warm: {
-		bg: 'bg-gradient-warm',
-		shadow: 'shadow-brand/20',
-	},
-	pink: {
-		bg: 'bg-gradient-social',
-		shadow: 'shadow-xp/25',
-	},
-}
+const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> =
+	{
+		orange: {
+			bg: 'bg-gradient-hero',
+			shadow: 'shadow-brand/25',
+		},
+		yellow: {
+			bg: 'bg-gradient-streak',
+			shadow: 'shadow-streak/25',
+		},
+		purple: {
+			bg: 'bg-gradient-xp',
+			shadow: 'shadow-level/25',
+		},
+		blue: {
+			bg: 'bg-gradient-indigo',
+			shadow: 'shadow-info/25',
+		},
+		green: {
+			bg: 'bg-gradient-success',
+			shadow: 'shadow-success/25',
+		},
+		gray: {
+			bg: 'bg-gradient-to-br from-border-strong to-text-muted',
+			shadow: 'shadow-border-strong/25',
+		},
+		warm: {
+			bg: 'bg-gradient-warm',
+			shadow: 'shadow-brand/20',
+		},
+		pink: {
+			bg: 'bg-gradient-social',
+			shadow: 'shadow-xp/25',
+		},
+	}
 
 const marginMap = {
 	sm: 'mb-4',
@@ -134,8 +135,8 @@ export function PageHeader({
 					<span>{t('back')}</span>
 				</button>
 			)}
-			<div className="mb-2 flex items-center justify-between">
-				<div className="flex items-center gap-3">
+			<div className='mb-2 flex flex-wrap items-center justify-between gap-2'>
+				<div className='flex items-center gap-3'>
 					{/* Icon Box */}
 					<motion.div
 						initial={{ scale: 0 }}
@@ -150,11 +151,11 @@ export function PageHeader({
 							shadow,
 						)}
 					>
-						<Icon className="size-6 text-white" />
+						<Icon className='size-6 text-white' />
 					</motion.div>
 
 					{/* Title */}
-					<h1 className="text-3xl font-bold text-text">{title}</h1>
+					<h1 className='text-2xl sm:text-3xl font-bold text-text'>{title}</h1>
 				</div>
 
 				{/* Right Action */}
@@ -162,9 +163,9 @@ export function PageHeader({
 			</div>
 
 			{/* Subtitle */}
-			<p className="flex items-center gap-2 text-text-secondary">
+			<p className='flex items-center gap-2 text-text-secondary'>
 				{ActualSubtitleIcon && (
-					<ActualSubtitleIcon className="size-4 text-streak" />
+					<ActualSubtitleIcon className='size-4 text-streak' />
 				)}
 				{subtitle}
 			</p>

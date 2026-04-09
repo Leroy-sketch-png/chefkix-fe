@@ -75,9 +75,7 @@ const ProfileContent = () => {
 	if (serverError) {
 		return (
 			<div className='flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center'>
-				<p className='text-lg text-text-secondary'>
-					{t('somethingWentWrong')}
-				</p>
+				<p className='text-lg text-text-secondary'>{t('somethingWentWrong')}</p>
 				<button
 					type='button'
 					onClick={() => setRetryCount(c => c + 1)}
@@ -93,21 +91,23 @@ const ProfileContent = () => {
 		return <ProfileNotFound />
 	}
 
+	const isOwnProfile = currentUser?.userId === userId
+
 	return (
 		<>
-			<div className='mx-auto w-full max-w-container-xl pt-4'>
-				<button
-
-					type='button'
-
-					onClick={() => router.back()}
-					className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-					aria-label={t('ariaGoBack')}
-				>
-					<ArrowLeft className='size-4' />
-					<span>{t('back')}</span>
-				</button>
-			</div>
+			{!isOwnProfile && (
+				<div className='mx-auto w-full max-w-xl pt-4'>
+					<button
+						type='button'
+						onClick={() => router.back()}
+						className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						aria-label={t('ariaGoBack')}
+					>
+						<ArrowLeft className='size-4' />
+						<span>{t('back')}</span>
+					</button>
+				</div>
+			)}
 			<UserProfile
 				profile={profile}
 				currentUserId={currentUser?.userId}

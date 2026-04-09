@@ -149,25 +149,25 @@ interface AchievementBannerProps {
 const AchievementBanner = ({ achievement }: AchievementBannerProps) => {
 	const t = useTranslations('completion')
 	return (
-	<motion.div
-		variants={BADGE_REVEAL_VARIANTS}
-		initial='hidden'
-		animate='visible'
-		className='mb-5 flex items-center gap-3.5 rounded-2xl border border-accent-purple/30 bg-gradient-to-r from-accent-purple/10 to-accent-purple/5 p-3.5'
-	>
-		{/* Badge icon */}
-		<div className='flex size-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
-			{achievement.iconEmoji}
-		</div>
+		<motion.div
+			variants={BADGE_REVEAL_VARIANTS}
+			initial='hidden'
+			animate='visible'
+			className='mb-5 flex items-center gap-3.5 rounded-2xl border border-accent-purple/30 bg-gradient-to-r from-accent-purple/10 to-accent-purple/5 p-3.5'
+		>
+			{/* Badge icon */}
+			<div className='flex size-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
+				{achievement.iconEmoji}
+			</div>
 
-		{/* Info */}
-		<div className='flex-1'>
-			<span className='block text-xs font-semibold uppercase tracking-wide text-accent-purple'>
-				{t('achievementUnlocked')}
-			</span>
-			<span className='block text-base font-bold'>{achievement.name}</span>
-		</div>
-	</motion.div>
+			{/* Info */}
+			<div className='flex-1'>
+				<span className='block text-xs font-semibold uppercase tracking-wide text-accent-purple'>
+					{t('achievementUnlocked')}
+				</span>
+				<span className='block text-base font-bold'>{achievement.name}</span>
+			</div>
+		</motion.div>
 	)
 }
 
@@ -332,7 +332,11 @@ export const ImmediateRewards = ({
 							<div className='mb-7 text-center'>
 								<motion.div
 									animate={shouldReduceMotion ? undefined : { y: [0, -10, 0] }}
-									transition={shouldReduceMotion ? undefined : { duration: 0.6, repeat: Infinity }}
+									transition={
+										shouldReduceMotion
+											? undefined
+											: { duration: 0.6, repeat: Infinity }
+									}
 									className='mb-4 inline-block text-6xl max-md:text-5xl'
 								>
 									👨‍🍳
@@ -385,8 +389,7 @@ export const ImmediateRewards = ({
 												},
 												xpBreakdown.techniques != null &&
 													xpBreakdown.techniques > 0 && {
-														label:
-															xpBreakdown.techniquesReason || 'Techniques',
+														label: xpBreakdown.techniquesReason || 'Techniques',
 														value: xpBreakdown.techniques,
 													},
 											]
@@ -417,8 +420,8 @@ export const ImmediateRewards = ({
 												className='mt-1 flex items-center justify-between border-t border-border-subtle pt-1 text-xs'
 											>
 												<span className='font-medium text-text-muted'>
-														{t('totalRecipeXp')}
-													</span>
+													{t('totalRecipeXp')}
+												</span>
 												<span className='font-bold text-text'>
 													{xpBreakdown.total}
 												</span>
@@ -504,7 +507,11 @@ export const ImmediateRewards = ({
 							>
 								<Clock className='size-4' />
 								<span>
-									{postDeadlineHours >= 24 ? t('postWithinDays', { count: Math.floor(postDeadlineHours / 24) }) : t('postWithinHours', { count: postDeadlineHours })}
+									{postDeadlineHours >= 24
+										? t('postWithinDays', {
+												count: Math.floor(postDeadlineHours / 24),
+											})
+										: t('postWithinHours', { count: postDeadlineHours })}
 								</span>
 							</motion.div>
 
@@ -529,7 +536,7 @@ export const ImmediateRewards = ({
 									{/* Existing photo previews */}
 									{photoPreviewUrls.map((url, index) => (
 										<motion.div
-											key={index}
+											key={url}
 											initial={{ opacity: 0, scale: 0.8 }}
 											animate={{ opacity: 1, scale: 1 }}
 											className='group relative size-20 flex-shrink-0 overflow-hidden rounded-xl'
@@ -556,7 +563,9 @@ export const ImmediateRewards = ({
 										<label className='flex size-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-brand hover:bg-bg-hover'>
 											<div className='flex flex-col items-center gap-1'>
 												<Camera className='size-5 text-text-muted' />
-												<span className='text-xs text-text-muted'>{t('addPhoto')}</span>
+												<span className='text-xs text-text-muted'>
+													{t('addPhoto')}
+												</span>
 											</div>
 											<input
 												ref={fileInputRef}
@@ -599,10 +608,12 @@ export const ImmediateRewards = ({
 								>
 									<ImageIcon className='size-5 shrink-0' />
 									<div className='flex-1'>
-										<span className='block font-semibold'>{t('viewCookCard')}</span>
+										<span className='block font-semibold'>
+											{t('viewCookCard')}
+										</span>
 										<span className='block text-xs text-text-muted'>
-										{t('cookCardDesc')}
-									</span>
+											{t('cookCardDesc')}
+										</span>
 									</div>
 									<span className='text-xs text-text-muted'>&rarr;</span>
 								</motion.a>
@@ -633,7 +644,11 @@ export const ImmediateRewards = ({
 											{isNavigating
 												? t('preparingPost')
 												: capturedPhotos.length > 0
-													? capturedPhotos.length > 1 ? t('sharePhotosPlural', { count: capturedPhotos.length }) : t('sharePhotos', { count: capturedPhotos.length })
+													? capturedPhotos.length > 1
+														? t('sharePhotosPlural', {
+																count: capturedPhotos.length,
+															})
+														: t('sharePhotos', { count: capturedPhotos.length })
 													: t('shareYourCreation')}
 										</span>
 									</div>
@@ -680,28 +695,31 @@ export const RewardsToast = ({
 }: RewardsToastProps) => {
 	const t = useTranslations('completion')
 	return (
-	<motion.div
-		initial={{ opacity: 0, y: 20, scale: 0.95 }}
-		animate={{ opacity: 1, y: 0, scale: 1 }}
-		exit={{ opacity: 0, y: 20, scale: 0.95 }}
-		transition={TRANSITION_SPRING}
-		className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-bg-card p-1 shadow-xl md:bottom-6'
-	>
-		<div className='flex items-center gap-3 px-4 py-3'>
-			<span className='text-xl'>✅</span>
-			<span className='text-sm font-semibold'>
-				{t('toastEarned', { earned: Math.round(earnedXp), pending: Math.round(pendingXp) })}
-			</span>
-			<motion.button
-				type='button'
-				onClick={onPostNow}
-				whileHover={BUTTON_SUBTLE_HOVER}
-				whileTap={BUTTON_SUBTLE_TAP}
-				className='rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50'
-			>
-				{t('postNow')}
-			</motion.button>
-		</div>
-	</motion.div>
+		<motion.div
+			initial={{ opacity: 0, y: 20, scale: 0.95 }}
+			animate={{ opacity: 1, y: 0, scale: 1 }}
+			exit={{ opacity: 0, y: 20, scale: 0.95 }}
+			transition={TRANSITION_SPRING}
+			className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-bg-card p-1 shadow-xl md:bottom-6'
+		>
+			<div className='flex items-center gap-3 px-4 py-3'>
+				<span className='text-xl'>✅</span>
+				<span className='text-sm font-semibold'>
+					{t('toastEarned', {
+						earned: Math.round(earnedXp),
+						pending: Math.round(pendingXp),
+					})}
+				</span>
+				<motion.button
+					type='button'
+					onClick={onPostNow}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={BUTTON_SUBTLE_TAP}
+					className='rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50'
+				>
+					{t('postNow')}
+				</motion.button>
+			</div>
+		</motion.div>
 	)
 }

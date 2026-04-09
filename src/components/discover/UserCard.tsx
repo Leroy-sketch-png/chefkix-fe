@@ -3,7 +3,12 @@
 import { Profile } from '@/lib/types'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { TRANSITION_SPRING, CARD_FEED_HOVER, staggerItem, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_FEED_HOVER,
+	staggerItem,
+	DURATION_S,
+} from '@/lib/motion'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
@@ -23,7 +28,11 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 			variants={staggerItem}
 			initial='hidden'
 			animate='visible'
-			exit={{ opacity: 0, scale: 0.95, transition: { duration: DURATION_S.normal } }}
+			exit={{
+				opacity: 0,
+				scale: 0.95,
+				transition: { duration: DURATION_S.normal },
+			}}
 			layout
 		>
 			<UserHoverCard userId={profile.userId} currentUserId={user?.userId}>
@@ -50,7 +59,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 							</Avatar>
 							<div className='overflow-hidden'>
 								<h3 className='truncate text-lg font-bold leading-tight text-text'>
-									{profile.displayName || 'Unknown User'}
+									{profile.displayName || t('unknownUser')}
 								</h3>
 								<p className='truncate text-sm leading-normal text-text-secondary'>
 									@{profile.username || 'user'}
@@ -62,7 +71,9 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 								<span className='font-bold text-text'>
 									{profile.statistics?.followerCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>{t('followers')}</span>
+								<span className='ml-1 text-text-secondary'>
+									{t('followers')}
+								</span>
 							</div>
 							<div>
 								<span className='font-bold text-text'>

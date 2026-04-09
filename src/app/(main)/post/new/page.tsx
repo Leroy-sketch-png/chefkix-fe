@@ -173,7 +173,7 @@ function CreatePostContent() {
 					setSession({
 						id: s.sessionId,
 						recipeId: s.recipeId ?? s.recipe?.id ?? '',
-						recipeTitle: s.recipe?.title ?? 'Your Recipe',
+						recipeTitle: s.recipe?.title ?? t('defaultRecipeTitle'),
 						recipeImage: s.recipe?.coverImageUrl?.[0],
 						pendingXp: s.pendingXp ?? 0,
 						completedAt: s.completedAt ?? '',
@@ -233,20 +233,15 @@ function CreatePostContent() {
 			const guardResult = await guardContent(content.trim(), 'post')
 			if (guardResult.success && guardResult.data) {
 				if (guardResult.data.action === 'block') {
-					toast.error(
-						t('contentGuardBlocked'),
-						{
-							description:
-								guardResult.data.reasons?.[0] || t('contentGuardRevise'),
-						},
-					)
+					toast.error(t('contentGuardBlocked'), {
+						description:
+							guardResult.data.reasons?.[0] || t('contentGuardRevise'),
+					})
 					setIsSubmitting(false)
 					return
 				}
 				if (guardResult.data.action === 'flag') {
-					toast.warning(
-						'Your post has been flagged for review and may be moderated.',
-					)
+					toast.warning(t('contentGuardFlagged'))
 				}
 			}
 			// If guardContent fails (AI down), proceed — don't block posting
@@ -258,10 +253,11 @@ function CreatePostContent() {
 				content: content.trim(),
 				photoUrls: photoFiles,
 				sessionId: session?.id, // Link to cooking session for XP
-				...(session && reviewRating > 0 && {
-					postType: 'RECIPE_REVIEW' as const,
-					reviewRating,
-				}),
+				...(session &&
+					reviewRating > 0 && {
+						postType: 'RECIPE_REVIEW' as const,
+						reviewRating,
+					}),
 			})
 
 			if (response.success && response.data) {
@@ -309,7 +305,7 @@ function CreatePostContent() {
 
 						// Post succeeded but XP claim still needs recovery
 						logDevError('Failed to claim XP:', linkResponse?.message)
-								toast.warning(t('toastPostXpClaiming'), {
+						toast.warning(t('toastPostXpClaiming'), {
 							description:
 								linkResponse?.message ||
 								'We will retry the XP award on the dashboard.',
@@ -325,9 +321,9 @@ function CreatePostContent() {
 				// Show success with XP if earned
 				if (xpAwarded > 0) {
 					triggerSuccessConfetti()
-					toast.success(`Post shared! +${xpAwarded} XP unlocked! 🎉`, {
+					toast.success(t('toastPostSharedXp', { xp: xpAwarded }), {
 						description: session?.recipeTitle
-							? `Your ${session.recipeTitle} post is now live`
+							? t('toastPostLive', { title: session.recipeTitle })
 							: undefined,
 					})
 				} else {
@@ -356,15 +352,16 @@ function CreatePostContent() {
 		const now = new Date()
 		const diff = deadline.getTime() - now.getTime()
 
-		if (diff <= 0) return { text: 'Expired', urgent: true }
+		if (diff <= 0) return { text: t('deadlineExpired'), urgent: true }
 
 		const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
 		const urgent = days < 2
 		const warning = days < 5
 
-		if (days > 0) return { text: `${days}d ${hours}h left`, urgent, warning }
-		return { text: `${hours}h left`, urgent: true, warning: true }
+		if (days > 0)
+			return { text: t('deadlineDaysHours', { days, hours }), urgent, warning }
+		return { text: t('deadlineHours', { hours }), urgent: true, warning: true }
 	}
 
 	return (
@@ -385,16 +382,16 @@ function CreatePostContent() {
 						<div className='flex-1'>
 							<PageHeader
 								icon={session ? ChefHat : PenSquare}
-								title={session ? 'Share Your Creation' : 'Create Post'}
-							subtitle={
-								session
-									? 'Post your cooking photos to unlock XP'
-									: 'Share what you made with the community'
-							}
-							gradient='pink'
-							marginBottom='sm'
-							className='mb-0'
-						/>
+								title={session ? t('shareYourCreation') : t('createPost')}
+								subtitle={
+									session
+										? t('subtitleSharePhotos')
+										: t('subtitleShareCommunity')
+								}
+								gradient='pink'
+								marginBottom='sm'
+								className='mb-0'
+							/>
 						</div>
 					</div>
 
@@ -403,7 +400,7 @@ function CreatePostContent() {
 						<div className='mb-6 flex items-center justify-center rounded-2xl border border-border-subtle bg-bg-card p-8'>
 							<Loader2 className='size-6 animate-spin text-brand' />
 							<span className='ml-3 text-text-secondary'>
-								Loading session...
+								{t('loadingSession')}
 							</span>
 						</div>
 					)}
@@ -429,7 +426,7 @@ function CreatePostContent() {
 									<div className='mb-1 flex items-center gap-2'>
 										<ChefHat className='size-4 text-brand' />
 										<span className='text-sm font-medium text-text-secondary'>
-											Cooked
+											{t('cookedLabel')}
 										</span>
 									</div>
 									<h3 className='mb-2 text-lg font-bold text-text'>
@@ -441,13 +438,15 @@ function CreatePostContent() {
 											{Math.round(session.pendingXp)} XP
 										</span>
 										{getTimeLeft() && (
-											<span className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${
-												getTimeLeft()!.urgent
-													? 'bg-error/10 text-error'
-													: getTimeLeft()!.warning
-														? 'bg-warning/10 text-warning'
-														: 'text-text-secondary'
-											}`}>
+											<span
+												className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${
+													getTimeLeft()!.urgent
+														? 'bg-error/10 text-error'
+														: getTimeLeft()!.warning
+															? 'bg-warning/10 text-warning'
+															: 'text-text-secondary'
+												}`}
+											>
 												<Clock className='size-3.5' />
 												{getTimeLeft()!.text}
 											</span>
@@ -458,7 +457,7 @@ function CreatePostContent() {
 							<div className='border-t border-brand/10 bg-brand/5 px-4 py-2.5'>
 								<p className='flex items-center gap-2 text-sm text-brand'>
 									<Sparkles className='size-4' />
-									Add photos of your creation to unlock the XP bonus!
+									{t('addPhotosForXp')}
 								</p>
 							</div>
 						</motion.div>
@@ -476,9 +475,13 @@ function CreatePostContent() {
 							<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
 								<Star className='size-5 text-warning' />
 								<div>
-									<h4 className='text-sm font-bold text-text'>{t('rateRecipe')}</h4>
+									<h4 className='text-sm font-bold text-text'>
+										{t('rateRecipe')}
+									</h4>
 									<p className='text-xs text-text-muted'>
-										{t('rateRecipeSubtext', { recipeName: session.recipeTitle })}
+										{t('rateRecipeSubtext', {
+											recipeName: session.recipeTitle,
+										})}
 									</p>
 								</div>
 							</div>
@@ -494,7 +497,15 @@ function CreatePostContent() {
 										animate={{ opacity: 1, x: 0 }}
 										className='text-sm font-medium text-warning'
 									>
-										{reviewRating === 5 ? 'Amazing!' : reviewRating === 4 ? 'Great!' : reviewRating === 3 ? 'Good' : reviewRating === 2 ? 'Okay' : 'Poor'}
+										{reviewRating === 5
+											? t('ratingAmazing')
+											: reviewRating === 4
+												? t('ratingGreat')
+												: reviewRating === 3
+													? t('ratingGood')
+													: reviewRating === 2
+														? t('ratingOkay')
+														: t('ratingPoor')}
 									</motion.span>
 								)}
 							</div>
@@ -531,8 +542,8 @@ function CreatePostContent() {
 								</div>
 								<div className='text-sm text-text-secondary'>
 									{session
-										? `Sharing: ${session.recipeTitle}`
-										: 'Share your creation'}
+										? t('sharingRecipe', { title: session.recipeTitle })
+										: t('shareYourCreationShort')}
 								</div>
 							</div>
 						</div>
@@ -551,13 +562,17 @@ function CreatePostContent() {
 								maxLength={2000}
 								placeholder={
 									session
-										? `Tell everyone about your ${session.recipeTitle}! How did it turn out?`
-										: "What's cooking? Share your culinary journey..."
+										? t('placeholderWithSession', {
+												title: session.recipeTitle,
+											})
+										: t('placeholderGeneric')
 								}
 								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none'
 								autoFocus
 							/>
-							<p className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+							<p
+								className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+							>
 								{content.length}/2000
 							</p>
 
@@ -611,7 +626,7 @@ function CreatePostContent() {
 								)}
 							>
 								<Camera className='size-5' />
-								Add Photos ({photoFiles.length}/5)
+								{t('addPhotosCount', { count: photoFiles.length })}
 								<input
 									type='file'
 									accept='image/*'
@@ -637,14 +652,16 @@ function CreatePostContent() {
 								{isSubmitting ? (
 									<>
 										<Loader2 className='size-4 animate-spin' />
-										Posting...
+										{t('posting')}
 									</>
 								) : (
 									<>
 										<Send className='size-4' />
 										{session
-											? `Post & Claim ${Math.round(session.pendingXp)} XP`
-											: 'Post'}
+											? t('postAndClaimXp', {
+													xp: Math.round(session.pendingXp),
+												})
+											: t('postButton')}
 										<kbd
 											className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
 											suppressHydrationWarning
@@ -669,7 +686,7 @@ function CreatePostContent() {
 							transition={{ delay: 0.2 }}
 							className='mt-4 text-center text-sm text-text-secondary'
 						>
-							💡 Photos count! 2+ photos = 100% XP. 1 photo = 50% XP.
+							💡 {t('xpPhotoHint')}
 						</motion.p>
 					)}
 				</div>

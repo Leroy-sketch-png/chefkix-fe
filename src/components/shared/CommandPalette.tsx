@@ -31,6 +31,7 @@ import { api } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants'
 import { PATHS } from '@/constants/paths'
 import { useAuthStore } from '@/store/authStore'
+import { useAuthGate } from '@/hooks/useAuthGate'
 
 // ============================================
 // TYPES
@@ -44,6 +45,7 @@ interface CommandItem {
 	action: () => void
 	keywords?: string[]
 	group: string
+	requiresAuth?: boolean
 }
 
 // ============================================
@@ -64,6 +66,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav(PATHS.DASHBOARD),
 			keywords: ['home', 'feed', 'main'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-explore',
@@ -91,6 +94,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav('/challenges'),
 			keywords: ['daily', 'weekly', 'seasonal', 'quest'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-messages',
@@ -100,6 +104,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav(PATHS.MESSAGES),
 			keywords: ['chat', 'dm', 'inbox'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-notifications',
@@ -109,6 +114,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav('/notifications'),
 			keywords: ['alerts', 'updates'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-profile',
@@ -118,6 +124,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav('/profile'),
 			keywords: ['me', 'account', 'stats'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-settings',
@@ -127,6 +134,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav(PATHS.SETTINGS),
 			keywords: ['preferences', 'account', 'config'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-pantry',
@@ -136,6 +144,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav('/pantry'),
 			keywords: ['ingredients', 'fridge', 'inventory'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-meal-planner',
@@ -145,6 +154,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav('/meal-planner'),
 			keywords: ['plan', 'schedule', 'weekly'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-shopping-lists',
@@ -154,6 +164,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav('/shopping-lists'),
 			keywords: ['grocery', 'buy', 'list'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 		{
 			id: 'nav-creator',
@@ -163,6 +174,7 @@ function useNavigationItems(): CommandItem[] {
 			action: nav('/creator'),
 			keywords: ['analytics', 'studio', 'manage'],
 			group: 'Navigation',
+			requiresAuth: true,
 		},
 	]
 }
@@ -184,6 +196,7 @@ function useActionItems(): CommandItem[] {
 			action: () => router.push('/create'),
 			keywords: ['new', 'add', 'write'],
 			group: 'Actions',
+			requiresAuth: true,
 		},
 		{
 			id: 'action-new-post',
@@ -193,6 +206,7 @@ function useActionItems(): CommandItem[] {
 			action: () => router.push('/post/new'),
 			keywords: ['share', 'publish', 'post'],
 			group: 'Actions',
+			requiresAuth: true,
 		},
 		{
 			id: 'action-search',
@@ -249,13 +263,18 @@ function useSearchResults(
 					signal: controller.signal,
 				})
 
-				const recipes = recipeRes.data?.data?.content ?? recipeRes.data?.data ?? []
-				const recipeResults: SearchResult[] = (Array.isArray(recipes) ? recipes : [])
+				const recipes =
+					recipeRes.data?.data?.content ?? recipeRes.data?.data ?? []
+				const recipeResults: SearchResult[] = (
+					Array.isArray(recipes) ? recipes : []
+				)
 					.slice(0, 5)
 					.map((r: { id: string; title: string; difficulty?: string }) => ({
 						id: `recipe-${r.id}`,
 						label: r.title,
-						description: r.difficulty ? `${r.difficulty} recipe` : t('cpRecipeFallback'),
+						description: r.difficulty
+							? `${r.difficulty} recipe`
+							: t('cpRecipeFallback'),
 						icon: <ChefHat className='size-4' />,
 						action: () => router.push(`/recipes/${r.id}`),
 						group: 'Recipes',
@@ -338,10 +357,19 @@ export function CommandPalette() {
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const isAuthenticated = useAuthStore(s => s.isAuthenticated)
+	const requireAuth = useAuthGate()
 
-	const navItems = useNavigationItems()
-	const actionItems = useActionItems()
+	const allNavItems = useNavigationItems()
+	const allActionItems = useActionItems()
 	const { results: searchResults, isSearching } = useSearchResults(query, open)
+
+	// Filter items based on auth state — guests see only public navigation + search
+	const navItems = isAuthenticated
+		? allNavItems
+		: allNavItems.filter(item => !item.requiresAuth)
+	const actionItems = isAuthenticated
+		? allActionItems
+		: allActionItems.filter(item => !item.requiresAuth)
 
 	// Ctrl/Cmd + K to toggle
 	useEffect(() => {
@@ -357,20 +385,26 @@ export function CommandPalette() {
 
 	const handleSelect = useCallback(
 		(id: string, action: () => void) => {
+			// Gate auth-only items for guests (safety net — items should already be filtered)
+			const item = [...allNavItems, ...allActionItems].find(i => i.id === id)
+			if (item?.requiresAuth && !isAuthenticated) {
+				setOpen(false)
+				setQuery('')
+				requireAuth(item.label.toLowerCase())
+				return
+			}
 			addRecentItem(id)
 			setOpen(false)
 			setQuery('')
 			action()
 		},
-		[],
+		[allNavItems, allActionItems, isAuthenticated, requireAuth],
 	)
 
 	// Reset query when closing
 	useEffect(() => {
 		if (!open) setQuery('')
 	}, [open])
-
-	if (!isAuthenticated) return null
 
 	const isMac =
 		typeof navigator !== 'undefined' && navigator.platform?.includes('Mac')
@@ -458,14 +492,19 @@ export function CommandPalette() {
 									const items = searchResults.filter(r => r.group === group)
 									if (items.length === 0) return null
 									return (
-										<Command.Group key={group} heading={group === 'Recipes' ? t('cpRecipesGroup') : t('cpPeopleGroup')}>
+										<Command.Group
+											key={group}
+											heading={
+												group === 'Recipes'
+													? t('cpRecipesGroup')
+													: t('cpPeopleGroup')
+											}
+										>
 											{items.map(item => (
 												<CommandRow
 													key={item.id}
 													item={item}
-													onSelect={() =>
-														handleSelect(item.id, item.action)
-													}
+													onSelect={() => handleSelect(item.id, item.action)}
 												/>
 											))}
 										</Command.Group>
@@ -502,15 +541,21 @@ export function CommandPalette() {
 					{/* Footer hint */}
 					<div className='flex items-center justify-between border-t border-border-subtle px-4 py-2 text-xs text-text-muted'>
 						<span>
-							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>↑↓</kbd>
+							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>
+								↑↓
+							</kbd>
 							{t('cpNavigate')}
 						</span>
 						<span>
-							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>↵</kbd>
+							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>
+								↵
+							</kbd>
 							{t('cpSelect')}
 						</span>
 						<span>
-							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>Esc</kbd>
+							<kbd className='mr-1 rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5'>
+								Esc
+							</kbd>
 							{t('cpClose')}
 						</span>
 					</div>
@@ -528,7 +573,12 @@ function CommandRow({
 	item,
 	onSelect,
 }: {
-	item: { id: string; label: string; description?: string; icon: React.ReactNode }
+	item: {
+		id: string
+		label: string
+		description?: string
+		icon: React.ReactNode
+	}
 	onSelect: () => void
 }) {
 	return (

@@ -20,8 +20,18 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
-import { Collection, CollectionProgress, DifficultyStep } from '@/lib/types/collection'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	DURATION_S,
+} from '@/lib/motion'
+import {
+	Collection,
+	CollectionProgress,
+	DifficultyStep,
+} from '@/lib/types/collection'
 import {
 	enrollInCollection,
 	getCollectionProgress,
@@ -38,14 +48,22 @@ interface LearningPathViewProps {
  * Shows progress, difficulty stages, enrolled users, and recipes to complete.
  * @see PLAN-AGENT-BRAVO.md D-FE.3
  */
-export function LearningPathView({ collection, isOwner }: LearningPathViewProps) {
+export function LearningPathView({
+	collection,
+	isOwner,
+}: LearningPathViewProps) {
 	const router = useRouter()
 	const t = useTranslations('collections')
 	const [progress, setProgress] = useState<CollectionProgress | null>(null)
 	const [isLoadingProgress, setIsLoadingProgress] = useState(true)
 	const [isEnrolling, setIsEnrolling] = useState(false)
 	const [expandedStage, setExpandedStage] = useState<number | null>(null)
-	const [recipeSummaries, setRecipeSummaries] = useState<Record<string, { title: string; difficulty?: string; coverImageUrl?: string }>>({})
+	const [recipeSummaries, setRecipeSummaries] = useState<
+		Record<
+			string,
+			{ title: string; difficulty?: string; coverImageUrl?: string }
+		>
+	>({})
 
 	const isEnrolled = progress !== null
 
@@ -77,11 +95,18 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 
 		const fetchSummaries = async () => {
 			const results = await Promise.allSettled(
-				allRecipeIds.map(id => getRecipeById(id))
+				allRecipeIds.map(id => getRecipeById(id)),
 			)
-			const summaries: Record<string, { title: string; difficulty?: string; coverImageUrl?: string }> = {}
+			const summaries: Record<
+				string,
+				{ title: string; difficulty?: string; coverImageUrl?: string }
+			> = {}
 			results.forEach((result, idx) => {
-				if (result.status === 'fulfilled' && result.value.success && result.value.data) {
+				if (
+					result.status === 'fulfilled' &&
+					result.value.success &&
+					result.value.data
+				) {
 					const r = result.value.data
 					summaries[allRecipeIds[idx]] = {
 						title: r.title,
@@ -102,7 +127,7 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 			setProgress(res.data)
 			toast.success(t('toastEnrolled'))
 		} else {
-			toast.error(res.message || 'Failed to enroll')
+			toast.error(res.message || t('toastEnrollFailed'))
 		}
 		setIsEnrolling(false)
 	}
@@ -197,7 +222,8 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 				</div>
 
 				{/* Rating and completion rate */}
-				{(collection.averageRating || collection.completionRate !== undefined) && (
+				{(collection.averageRating ||
+					collection.completionRate !== undefined) && (
 					<div className='mb-6 flex items-center gap-6'>
 						{collection.averageRating && (
 							<div className='flex items-center gap-1.5'>
@@ -224,7 +250,9 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 				) : isEnrolled ? (
 					<div className='rounded-xl bg-bg-elevated p-4'>
 						<div className='mb-3 flex items-center justify-between'>
-							<span className='text-sm font-medium text-text'>{t('yourProgress')}</span>
+							<span className='text-sm font-medium text-text'>
+								{t('yourProgress')}
+							</span>
 							<span className='text-sm tabular-nums text-text-muted'>
 								{completedCount} of {totalRecipes} complete
 							</span>
@@ -272,31 +300,34 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 			</div>
 
 			{/* Difficulty Progression Stages */}
-			{collection.difficultyProgression && collection.difficultyProgression.length > 0 && (
-				<div className='space-y-3'>
-					<h2 className='text-lg font-semibold text-text'>{t('learningStages')}</h2>
+			{collection.difficultyProgression &&
+				collection.difficultyProgression.length > 0 && (
 					<div className='space-y-3'>
-						{collection.difficultyProgression
-							.sort((a, b) => a.order - b.order)
-							.map((stage, idx) => (
-								<StageCard
-									key={stage.order}
-									stage={stage}
-									stageIndex={idx}
-									isExpanded={expandedStage === idx}
-									onToggle={() =>
-										setExpandedStage(expandedStage === idx ? null : idx)
-									}
-									isEnrolled={isEnrolled}
-									isRecipeCompleted={isRecipeCompleted}
-									onStartRecipe={handleStartRecipe}
-									getDifficultyColor={getDifficultyColor}
-									recipeSummaries={recipeSummaries}
-								/>
-							))}
+						<h2 className='text-lg font-semibold text-text'>
+							{t('learningStages')}
+						</h2>
+						<div className='space-y-3'>
+							{collection.difficultyProgression
+								.sort((a, b) => a.order - b.order)
+								.map((stage, idx) => (
+									<StageCard
+										key={stage.order}
+										stage={stage}
+										stageIndex={idx}
+										isExpanded={expandedStage === idx}
+										onToggle={() =>
+											setExpandedStage(expandedStage === idx ? null : idx)
+										}
+										isEnrolled={isEnrolled}
+										isRecipeCompleted={isRecipeCompleted}
+										onStartRecipe={handleStartRecipe}
+										getDifficultyColor={getDifficultyColor}
+										recipeSummaries={recipeSummaries}
+									/>
+								))}
+						</div>
 					</div>
-				</div>
-			)}
+				)}
 
 			{/* Flat recipe list (no stages) */}
 			{(!collection.difficultyProgression ||
@@ -304,7 +335,9 @@ export function LearningPathView({ collection, isOwner }: LearningPathViewProps)
 				collection.recipeIds &&
 				collection.recipeIds.length > 0 && (
 					<div className='space-y-3'>
-						<h2 className='text-lg font-semibold text-text'>{t('recipesLabel')}</h2>
+						<h2 className='text-lg font-semibold text-text'>
+							{t('recipesLabel')}
+						</h2>
 						<div className='space-y-2'>
 							{collection.recipeIds.map((recipeId, idx) => (
 								<RecipeRow
@@ -337,7 +370,10 @@ interface StageCardProps {
 	isRecipeCompleted: (recipeId: string) => boolean
 	onStartRecipe: (recipeId: string) => void
 	getDifficultyColor: (difficulty: string) => string
-	recipeSummaries: Record<string, { title: string; difficulty?: string; coverImageUrl?: string }>
+	recipeSummaries: Record<
+		string,
+		{ title: string; difficulty?: string; coverImageUrl?: string }
+	>
 }
 
 function StageCard({
@@ -441,7 +477,14 @@ interface RecipeRowProps {
 	recipeName?: string
 }
 
-function RecipeRow({ recipeId, index, isCompleted, isLocked, onStart, recipeName }: RecipeRowProps) {
+function RecipeRow({
+	recipeId,
+	index,
+	isCompleted,
+	isLocked,
+	onStart,
+	recipeName,
+}: RecipeRowProps) {
 	const displayName = recipeName || `Recipe ${index + 1}`
 	return (
 		<motion.div

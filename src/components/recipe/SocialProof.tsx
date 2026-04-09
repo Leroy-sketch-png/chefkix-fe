@@ -14,6 +14,7 @@ import {
 import { getRecipeSocialProof } from '@/services/heartbeat'
 import type { RecipeSocialProofResponse } from '@/lib/types/heartbeat'
 import { useTranslations } from 'next-intl'
+import { formatShortTimeAgo } from '@/lib/utils'
 
 interface SocialProofProps {
 	recipeId: string
@@ -33,18 +34,6 @@ function getInitials(
 	}
 	if (username) return username.slice(0, 2).toUpperCase()
 	return '?'
-}
-
-function formatTimeAgo(iso: string): string {
-	const diff = Date.now() - new Date(iso).getTime()
-	const minutes = Math.floor(diff / 60_000)
-	if (minutes < 60) return `${minutes}m ago`
-	const hours = Math.floor(minutes / 60)
-	if (hours < 24) return `${hours}h ago`
-	const days = Math.floor(hours / 24)
-	if (days < 7) return `${days}d ago`
-	const weeks = Math.floor(days / 7)
-	return `${weeks}w ago`
 }
 
 export function SocialProof({ recipeId }: SocialProofProps) {
@@ -80,7 +69,9 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 			{/* Header */}
 			<div className='mb-4 flex items-center gap-2'>
 				<TrendingUp className='size-5 text-brand' />
-				<h3 className='text-lg font-bold text-text'>{t('communityActivity')}</h3>
+				<h3 className='text-lg font-bold text-text'>
+					{t('communityActivity')}
+				</h3>
 			</div>
 
 			{/* Stats row */}
@@ -95,7 +86,9 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 								{data.cookCount}
 							</p>
 							<p className='text-xs text-text-muted'>
-								{data.cookCount === 1 ? t('personCookedThis', { count: 1 }) : t('personCookedThis', { count: data.cookCount })}
+								{data.cookCount === 1
+									? t('personCookedThis', { count: 1 })
+									: t('personCookedThis', { count: data.cookCount })}
 							</p>
 						</div>
 					</div>
@@ -110,7 +103,9 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 								{data.postCount}
 							</p>
 							<p className='text-xs text-text-muted'>
-								{data.postCount === 1 ? t('postShared', { count: 1 }) : t('postShared', { count: data.postCount })}
+								{data.postCount === 1
+									? t('postShared', { count: 1 })
+									: t('postShared', { count: data.postCount })}
 							</p>
 						</div>
 					</div>
@@ -145,10 +140,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 											className='relative'
 											style={{ zIndex: maxVisible - i }}
 										>
-											<Avatar
-												size='sm'
-												className='ring-2 ring-bg-card'
-											>
+											<Avatar size='sm' className='ring-2 ring-bg-card'>
 												{cooker.avatarUrl && (
 													<AvatarImage
 														src={cooker.avatarUrl}
@@ -160,20 +152,21 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 													/>
 												)}
 												<AvatarFallback className='text-xs'>
-													{getInitials(
-														cooker.displayName,
-														cooker.username,
-													)}
+													{getInitials(cooker.displayName, cooker.username)}
 												</AvatarFallback>
 											</Avatar>
 										</motion.div>
 									</TooltipTrigger>
 									<TooltipContent side='bottom' className='p-2'>
 										<p className='text-sm font-medium'>
-											{cooker.displayName ?? cooker.username ?? t('chefFallback')}
+											{cooker.displayName ??
+												cooker.username ??
+												t('chefFallback')}
 										</p>
 										<p className='text-xs text-text-muted'>
-											{t('cookedTimeAgo', { time: formatTimeAgo(cooker.completedAt) })}
+											{t('cookedTimeAgo', {
+												time: formatShortTimeAgo(cooker.completedAt),
+											})}
 										</p>
 									</TooltipContent>
 								</Tooltip>
@@ -200,11 +193,9 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 								t('someoneFallback')}
 						</span>
 						{visibleCookers.length > 1 && (
-							<>
-								{' '}{t('andOthers', { count: data.cookCount - 1 })}
-							</>
-						)}
-						{' '}{t('cookedThis')}
+							<> {t('andOthers', { count: data.cookCount - 1 })}</>
+						)}{' '}
+						{t('cookedThis')}
 					</p>
 				</div>
 			)}
