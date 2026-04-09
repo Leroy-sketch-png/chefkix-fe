@@ -15,7 +15,13 @@ interface State {
 	error?: Error
 }
 
-function ErrorBoundaryFallback({ error, onReset }: { error?: Error; onReset: () => void }) {
+function ErrorBoundaryFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
 	const t = useTranslations('common')
 	return (
 		<div className='flex min-h-panel-md items-center justify-center p-6'>
@@ -38,7 +44,9 @@ export class ErrorBoundary extends Component<Props, State> {
 	}
 
 	public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-		console.error('ErrorBoundary caught an error:', error, errorInfo)
+		if (process.env.NODE_ENV === 'development') {
+			console.error('ErrorBoundary caught an error:', error, errorInfo)
+		}
 		this.props.onError?.(error, errorInfo)
 	}
 
@@ -52,7 +60,12 @@ export class ErrorBoundary extends Component<Props, State> {
 				return this.props.fallback
 			}
 
-			return <ErrorBoundaryFallback error={this.state.error} onReset={this.handleReset} />
+			return (
+				<ErrorBoundaryFallback
+					error={this.state.error}
+					onReset={this.handleReset}
+				/>
+			)
 		}
 
 		return this.props.children

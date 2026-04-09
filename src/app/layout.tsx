@@ -125,25 +125,25 @@ export default async function RootLayout({
 					Skip to main content
 				</a>
 				<GoogleOAuthWrapper>
-				<NextIntlClientProvider messages={messages}>
-					<AuthProvider>
-						<TokenRefreshProvider>
-							<BlockedUsersProvider>
-								<CelebrationProvider>
-									<LiveAnnouncerProvider>
-										<ReducedMotionProvider>
-											<FirstVisitHintsProvider>
-												{children}
-											</FirstVisitHintsProvider>
-										</ReducedMotionProvider>
-									</LiveAnnouncerProvider>
-								</CelebrationProvider>
-							</BlockedUsersProvider>
-						</TokenRefreshProvider>
-					</AuthProvider>
-				</NextIntlClientProvider>
-			</GoogleOAuthWrapper>
-				<NetworkStatusProvider />
+					<NextIntlClientProvider messages={messages}>
+						<AuthProvider>
+							<TokenRefreshProvider>
+								<BlockedUsersProvider>
+									<CelebrationProvider>
+										<LiveAnnouncerProvider>
+											<ReducedMotionProvider>
+												<FirstVisitHintsProvider>
+													{children}
+													<NetworkStatusProvider />
+												</FirstVisitHintsProvider>
+											</ReducedMotionProvider>
+										</LiveAnnouncerProvider>
+									</CelebrationProvider>
+								</BlockedUsersProvider>
+							</TokenRefreshProvider>
+						</AuthProvider>
+					</NextIntlClientProvider>
+				</GoogleOAuthWrapper>
 				<Toaster position='bottom-center' />
 			</body>
 		</html>

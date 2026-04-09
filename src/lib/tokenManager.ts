@@ -19,6 +19,7 @@
  */
 
 import { api } from '@/lib/axios'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 // ============================================================================
 // CONSTANTS
@@ -64,13 +65,13 @@ export const decodeToken = (token: string): DecodedToken | null => {
 
 		// Validate required fields
 		if (typeof payload.exp !== 'number' || typeof payload.sub !== 'string') {
-			console.error('[TokenManager] Token missing required claims')
+			logDevError('[TokenManager] Token missing required claims')
 			return null
 		}
 
 		return payload as DecodedToken
 	} catch (error) {
-		console.error('[TokenManager] Failed to decode token:', error)
+		logDevError('[TokenManager] Failed to decode token:', error)
 		return null
 	}
 }
@@ -270,7 +271,7 @@ export const refreshAccessToken = async (
 
 		return { success: true, token: newToken, error: null }
 	} catch (error: unknown) {
-		console.error('[TokenManager] ❌ Token refresh failed:', error)
+		logDevError('[TokenManager] Token refresh failed:', error)
 
 		// Determine the type of failure
 		let errorType: RefreshResult['error'] = 'UNKNOWN'
@@ -288,7 +289,7 @@ export const refreshAccessToken = async (
 			) {
 				// Network error — don't logout, user can retry
 				errorType = 'NETWORK'
-				console.warn(
+				logDevWarn(
 					'[TokenManager] Network error during refresh — NOT logging out',
 				)
 			} else if (
@@ -297,7 +298,7 @@ export const refreshAccessToken = async (
 			) {
 				// Server explicitly rejected the refresh token — session is truly expired
 				errorType = 'EXPIRED'
-				console.error(
+				logDevError(
 					'[TokenManager] Session expired (401/403 from refresh endpoint)',
 				)
 				onSessionExpired()

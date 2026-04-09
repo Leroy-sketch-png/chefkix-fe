@@ -9,13 +9,22 @@
  * Expired/ended strings go through the i18n translator `t`.
  */
 
-type Translator = (key: string, values?: Record<string, string | number>) => string
+type Translator = (
+	key: string,
+	values?: Record<string, string | number>,
+) => string
+
+/** Guard against invalid / missing dates — returns true if usable */
+function isValidDate(d: unknown): d is Date {
+	return d instanceof Date && !isNaN(d.getTime())
+}
 
 /**
  * Compact time remaining -- "1d", "23h 59m", t('expired').
  * Accepts Date. Used by ChallengeCard.
  */
 export function formatCompactTimeRemaining(date: Date, t: Translator): string {
+	if (!isValidDate(date)) return t('expired')
 	const diffMs = date.getTime() - Date.now()
 	if (diffMs <= 0) return t('expired')
 
@@ -31,6 +40,7 @@ export function formatCompactTimeRemaining(date: Date, t: Translator): string {
  * Accepts Date. Used by DailyChallengeBanner (caller appends "remaining").
  */
 export function formatVerboseTimeRemaining(date: Date, t: Translator): string {
+	if (!isValidDate(date)) return t('expired')
 	const diffMs = date.getTime() - Date.now()
 	if (diffMs <= 0) return t('expired')
 
@@ -48,8 +58,13 @@ export function formatVerboseTimeRemaining(date: Date, t: Translator): string {
  * Event/battle time remaining — "5d left", "23h 59m left", t('ended').
  * Accepts ISO string. Used by ActiveBattlesSection, challenges/page.tsx.
  */
-export function formatEventTimeRemaining(dateStr: string, t: Translator): string {
-	const diffMs = new Date(dateStr).getTime() - Date.now()
+export function formatEventTimeRemaining(
+	dateStr: string,
+	t: Translator,
+): string {
+	const parsed = new Date(dateStr)
+	if (isNaN(parsed.getTime())) return t('ended')
+	const diffMs = parsed.getTime() - Date.now()
 	if (diffMs <= 0) return t('ended')
 
 	const hours = Math.floor(diffMs / 3600000)

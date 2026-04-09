@@ -742,7 +742,13 @@ export const useCookingStore = create<CookingState>()(
 				try {
 					const response = await apiAbandonSession(session.sessionId)
 					if (response.success) {
-						set({ session: null, recipe: null, localTimers: new Map(), checkedIngredients: {}, interactionMode: null })
+						set({
+							session: null,
+							recipe: null,
+							localTimers: new Map(),
+							checkedIngredients: {},
+							interactionMode: null,
+						})
 						toast.info(ct('toastSessionAbandoned'))
 					} else {
 						logDevError('Failed to abandon session:', response.message)
@@ -794,7 +800,7 @@ export const useCookingStore = create<CookingState>()(
 			 */
 			startPreviewCooking: (recipe: Recipe) => {
 				const mockSession: CookingSession = {
-					sessionId: 'preview',
+					sessionId: `preview-${Date.now()}`,
 					recipeId: recipe.id || 'preview-unsaved',
 					status: 'in_progress',
 					currentStep: 1,
@@ -853,9 +859,7 @@ export const useCookingStore = create<CookingState>()(
 									session.sessionId,
 									stepNumber,
 									'complete',
-								).catch(err =>
-									logDevError('Timer complete event failed:', err),
-								)
+								).catch(err => logDevError('Timer complete event failed:', err))
 							}
 							newTimers.delete(stepNumber)
 						} else {
@@ -1077,10 +1081,20 @@ export const useCookingStore = create<CookingState>()(
 				stepRenderMode: state.stepRenderMode,
 			}),
 			merge: (persisted: unknown, currentState: CookingState) => {
-				const p = persisted as Partial<CookingState & { localTimers: [number, { initialDuration: number; startedAt: number; remaining: number }][] }>
+				const p = persisted as Partial<
+					CookingState & {
+						localTimers: [
+							number,
+							{ initialDuration: number; startedAt: number; remaining: number },
+						][]
+					}
+				>
 				const timersArray = Array.isArray(p?.localTimers) ? p.localTimers : []
 				const now = Date.now()
-				const rehydratedTimers = new Map<number, { initialDuration: number; startedAt: number; remaining: number }>()
+				const rehydratedTimers = new Map<
+					number,
+					{ initialDuration: number; startedAt: number; remaining: number }
+				>()
 				for (const [step, timer] of timersArray) {
 					const elapsed = Math.floor((now - timer.startedAt) / 1000)
 					const remaining = Math.max(0, timer.initialDuration - elapsed)

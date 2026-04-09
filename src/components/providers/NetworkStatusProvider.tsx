@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import { Wifi, WifiOff } from 'lucide-react'
 import { installOfflineInterceptor } from '@/lib/offline/offlineInterceptor'
@@ -18,8 +18,21 @@ import { useTranslations } from '@/i18n/hooks'
  * - Replay queued requests on reconnect
  *
  * Place this component once in your app layout (e.g., in providers).
+ * Defers useTranslations to after client mount to avoid SSR context errors.
  */
 export const NetworkStatusProvider = () => {
+	const [mounted, setMounted] = useState(false)
+
+	useEffect(() => {
+		setMounted(true)
+	}, [])
+
+	if (!mounted) return null
+
+	return <NetworkStatusProviderInner />
+}
+
+const NetworkStatusProviderInner = () => {
 	const t = useTranslations('common')
 	const wasOffline = useRef(false)
 	const toastId = useRef<string | number | undefined>(undefined)
@@ -55,10 +68,10 @@ export const NetworkStatusProvider = () => {
 					toast.loading(t('toastSyncingOffline'), { id: 'offline-sync' })
 					const result = await syncQueuedRequests()
 					if (result.success > 0) {
-						toast.success(
-							t('toastSyncedActions', { count: result.success }),
-							{ id: 'offline-sync', duration: 3000 },
-						)
+						toast.success(t('toastSyncedActions', { count: result.success }), {
+							id: 'offline-sync',
+							duration: 3000,
+						})
 					} else {
 						toast.dismiss('offline-sync')
 					}

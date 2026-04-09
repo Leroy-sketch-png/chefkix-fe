@@ -48,8 +48,11 @@ async function flush() {
 
 	try {
 		await api.post(API_ENDPOINTS.EVENTS.TRACK, { events: batch })
-	} catch {
-		// On failure, re-enqueue at front for next flush
+	} catch (err: unknown) {
+		// Don't re-enqueue on auth errors — user isn't logged in, data would be rejected anyway
+		const status = (err as { response?: { status?: number } })?.response?.status
+		if (status === 401 || status === 403) return
+		// On transient failure, re-enqueue at front for next flush
 		eventQueue.unshift(...batch)
 	}
 }

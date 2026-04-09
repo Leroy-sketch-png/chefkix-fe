@@ -34,7 +34,8 @@ export async function syncQueuedRequests(): Promise<SyncResult> {
 			await removeQueuedRequest(request.id)
 			success++
 		} catch (error) {
-			console.error(`[Sync] Failed to replay request ${request.id}:`, error)
+			if (process.env.NODE_ENV === 'development')
+				console.error(`[Sync] Failed to replay request ${request.id}:`, error)
 
 			if (request.retryCount >= MAX_RETRIES) {
 				// Give up on this request
