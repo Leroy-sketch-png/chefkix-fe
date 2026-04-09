@@ -48,3 +48,13 @@ public/workbox-*.js
 public/workbox-*.js.map
 # Dev build/debug artifacts (temp terminal output files)
 _*.txt
+
+# Playwright visual testing outputs
+tests/visual/.run-state.json
+tests/visual/raw-captures/
+tests/visual/raw-archive/
+tests/visual/shots/
+tests/visual/ai-review/
+tests/visual/test-results/
+tests/visual/report/
+tests/visual/_audit*/
