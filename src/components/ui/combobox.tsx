@@ -202,7 +202,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 						placeholder={resolvedPlaceholder}
 						disabled={disabled}
 						className={cn(
-							'w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand',
+							'w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand',
 							icon && 'pl-9',
 							className,
 						)}

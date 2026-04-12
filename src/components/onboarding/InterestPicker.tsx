@@ -4,7 +4,14 @@ import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
 import { Button } from '@/components/ui/button'
-import { Check, ChevronRight, Sparkles, X, AlertTriangle } from 'lucide-react'
+import {
+	Check,
+	ChevronRight,
+	Sparkles,
+	X,
+	AlertTriangle,
+	Loader2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { updateProfile } from '@/services/profile'
 import { useAuthStore } from '@/store/authStore'
@@ -217,9 +224,7 @@ export function InterestPicker({
 				onComplete()
 			} else {
 				// API returned but unsuccessful — keep picker open for retry
-				toast.error(
-					response.message || t('ipToastSaveError'),
-				)
+				toast.error(response.message || t('ipToastSaveError'))
 			}
 		} catch {
 			// Network/unexpected error — keep picker open for retry
@@ -245,15 +250,24 @@ export function InterestPicker({
 							animate={{ scale: 1, opacity: 1 }}
 							exit={{ scale: 0.9, opacity: 0 }}
 							className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
+							role='alertdialog'
+							aria-modal='true'
+							aria-label={t('ipSkipConfirmTitle')}
 						>
 							<div className='mb-4 flex items-center gap-3'>
 								<div className='flex size-10 items-center justify-center rounded-full bg-warning/10'>
 									<AlertTriangle className='size-5 text-warning' />
 								</div>
-								<h3 className='text-lg font-semibold text-text'>{t('ipSkipConfirmTitle')}</h3>
+								<h3 className='text-lg font-semibold text-text'>
+									{t('ipSkipConfirmTitle')}
+								</h3>
 							</div>
 							<p className='mb-6 text-sm text-text-secondary'>
-								{t.rich('ipSkipConfirmDesc', { settingsPath: () => <strong>Settings &rarr; Cooking Preferences</strong> })}
+								{t.rich('ipSkipConfirmDesc', {
+									settingsPath: () => (
+										<strong>Settings &rarr; Cooking Preferences</strong>
+									),
+								})}
 							</p>
 							<div className='flex gap-3'>
 								<button
@@ -287,6 +301,9 @@ export function InterestPicker({
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
 					className='relative w-full max-w-2xl overflow-hidden rounded-3xl bg-bg-card shadow-warm'
+					role='dialog'
+					aria-modal='true'
+					aria-label={t('ipTitle')}
 				>
 					{/* Dismiss X button */}
 					{dismissible && (
@@ -314,9 +331,7 @@ export function InterestPicker({
 							{editMode ? t('ipTitleEdit') : t('ipTitleNew')}
 						</h2>
 						<p className='mt-2 text-sm text-text-secondary'>
-							{editMode 
-								? t('ipSubtitleEdit')
-								: t('ipSubtitleNew')}
+							{editMode ? t('ipSubtitleEdit') : t('ipSubtitleNew')}
 						</p>
 					</div>
 
@@ -409,12 +424,19 @@ export function InterestPicker({
 							className='gap-2'
 						>
 							{isSaving ? (
-								t('ipSaving')
+								<>
+									<Loader2 className='size-4 animate-spin' />
+									{t('ipSaving')}
+								</>
 							) : (
 								<>
-									{editMode 
-										? (selected.size > 0 ? t('ipSaveCount', { count: selected.size }) : t('ipSave'))
-										: (selected.size > 0 ? t('ipContinueCount', { count: selected.size }) : t('ipContinue'))}
+									{editMode
+										? selected.size > 0
+											? t('ipSaveCount', { count: selected.size })
+											: t('ipSave')
+										: selected.size > 0
+											? t('ipContinueCount', { count: selected.size })
+											: t('ipContinue')}
 									<ChevronRight className='size-4' />
 								</>
 							)}

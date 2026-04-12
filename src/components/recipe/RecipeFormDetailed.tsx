@@ -238,14 +238,17 @@ const ImageUpload = ({
 						fill
 						sizes='(max-width: 768px) 100vw, 50vw'
 						className='object-cover'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/default-cover.svg'
+						}}
 					/>
 					<button
 						type='button'
 						onClick={handleRemove}
 						aria-label={t('formRemoveCoverImage')}
-						className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70'
+						className='absolute right-2 top-2 flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-white/70'
 					>
-						<X className='size-4' />
+						<X className='size-5' />
 					</button>
 				</div>
 			) : (
@@ -306,14 +309,17 @@ const IngredientRow = ({
 					value={ingredient.amount}
 					onChange={e => onChange({ ...ingredient, amount: e.target.value })}
 					placeholder={t('formAmountPlaceholder')}
-					className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
+					aria-label={t('formAmountPlaceholder')}
+					maxLength={20}
+					className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 				<select
 					value={ingredient.unit}
+					aria-label={t('formUnitLabel')}
 					onChange={e =>
 						onChange({ ...ingredient, unit: e.target.value as MeasurementUnit })
 					}
-					className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
+					className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{MEASUREMENT_UNITS.map(unit => (
 						<option key={unit} value={unit} className='bg-bg-card text-text'>
@@ -328,14 +334,14 @@ const IngredientRow = ({
 					fetchOptions={fetchIngredientOptions}
 					placeholder={t('formIngredientPlaceholder')}
 					minChars={1}
-					className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none'
+					className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 			</div>
 			<button
 				type='button'
 				onClick={onRemove}
 				aria-label={t('formDeleteIngredient')}
-				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
+				className='flex size-11 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
 			>
 				<Trash2 className='size-4' />
 			</button>
@@ -409,8 +415,10 @@ const StepRow = ({
 					value={step.instruction}
 					onChange={e => onChange({ ...step, instruction: e.target.value })}
 					placeholder={t('formStepPlaceholder')}
+					aria-label={`${t('formStepPlaceholder')} ${index + 1}`}
 					rows={3}
-					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
+					maxLength={2000}
+					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 				{/* Step Image Preview */}
 				{step.imageUrl && (
@@ -421,12 +429,15 @@ const StepRow = ({
 							fill
 							sizes='(max-width: 768px) 100vw, 320px'
 							className='object-cover'
+							onError={e => {
+								;(e.target as HTMLImageElement).src = '/default-cover.svg'
+							}}
 						/>
 						<button
 							type='button'
 							onClick={handleRemoveImage}
 							aria-label={t('formRemoveStepImage')}
-							className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70'
+							className='absolute right-2 top-2 flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-white/70'
 						>
 							<X className='size-4' />
 						</button>
@@ -443,14 +454,14 @@ const StepRow = ({
 					<button
 						type='button'
 						onClick={() => fileInputRef.current?.click()}
-						className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
+						className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<ImageIcon className='size-3.5' />
 						{step.imageUrl ? t('formChangePhoto') : t('formAddPhoto')}
 					</button>
 					{showTimerInput ? (
 						<div className='flex items-center gap-2'>
-							<div className='flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1.5'>
+							<div className='flex items-center gap-1 rounded-full bg-brand/15 px-3 py-1.5'>
 								<Timer className='size-3.5 text-brand' />
 								{/* Hours */}
 								<input
@@ -463,7 +474,7 @@ const StepRow = ({
 										onChange({ ...step, timerSeconds: newTotal || undefined })
 									}}
 									placeholder='0'
-									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									min={0}
 									max={23}
 								/>
@@ -481,7 +492,7 @@ const StepRow = ({
 										onChange({ ...step, timerSeconds: newTotal || undefined })
 									}}
 									placeholder='0'
-									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									min={0}
 									max={59}
 								/>
@@ -499,7 +510,7 @@ const StepRow = ({
 										onChange({ ...step, timerSeconds: newTotal || undefined })
 									}}
 									placeholder='0'
-									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-8 bg-transparent text-center text-xs font-semibold text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									min={0}
 									max={59}
 								/>
@@ -514,7 +525,7 @@ const StepRow = ({
 									onChange({ ...step, timerSeconds: undefined })
 								}}
 								aria-label={t('formClearTimer')}
-								className='text-text-secondary hover:text-error'
+								className='flex size-8 items-center justify-center rounded-full text-text-secondary hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<X className='size-4' />
 							</button>
@@ -523,7 +534,7 @@ const StepRow = ({
 						<button
 							type='button'
 							onClick={() => setShowTimerInput(true)}
-							className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
+							className='flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Timer className='size-3.5' />
 							{t('formAddTimer')}
@@ -535,7 +546,7 @@ const StepRow = ({
 				type='button'
 				onClick={onRemove}
 				aria-label={t('formDeleteStep')}
-				className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
+				className='flex size-11 flex-shrink-0 items-center justify-center rounded-full text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
 			>
 				<Trash2 className='size-4' />
 			</button>
@@ -557,6 +568,7 @@ const TagInput = ({
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'Enter' && input.trim()) {
 			e.preventDefault()
+			if (tags.length >= 15) return
 			if (!tags.includes(input.trim().toLowerCase())) {
 				onChange([...tags, input.trim().toLowerCase()])
 			}
@@ -587,7 +599,7 @@ const TagInput = ({
 							type='button'
 							onClick={() => removeTag(tag)}
 							aria-label={t('formDeleteTag')}
-							className='flex size-4 items-center justify-center rounded-full transition-colors hover:bg-white/20'
+							className='ml-0.5 flex size-5 items-center justify-center rounded-full transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/50'
 						>
 							×
 						</button>
@@ -599,7 +611,10 @@ const TagInput = ({
 					onChange={e => setInput(e.target.value)}
 					onKeyDown={handleKeyDown}
 					placeholder={tags.length === 0 ? t('formTagPlaceholder') : ''}
-					className='min-w-search flex-1 bg-transparent py-1.5 text-sm text-text focus:outline-none'
+					aria-label={t('formTagPlaceholder')}
+					maxLength={30}
+					disabled={tags.length >= 15}
+					className='min-w-search flex-1 bg-transparent py-1.5 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-50'
 				/>
 			</div>
 			<div className='flex flex-wrap gap-2'>
@@ -610,7 +625,7 @@ const TagInput = ({
 							key={tag}
 							type='button'
 							onClick={() => addSuggestedTag(tag)}
-							className='rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand'
+							className='rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{tag}
 						</button>
@@ -911,6 +926,7 @@ export const RecipeFormDetailed = ({
 			<form
 				onSubmit={handleSubmit}
 				className='rounded-2xl border border-border bg-bg-card p-6 md:p-10'
+				noValidate
 			>
 				{/* Basic Info Section */}
 				<section className='mb-12 border-b-2 border-border pb-12'>
@@ -934,7 +950,7 @@ export const RecipeFormDetailed = ({
 							placeholder={t('formTitlePlaceholder')}
 							maxLength={100}
 							className={cn(
-								'w-full rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none',
+								'w-full rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 								errors.title
 									? 'border-error focus:border-error'
 									: 'border-border focus:border-brand',
@@ -974,7 +990,7 @@ export const RecipeFormDetailed = ({
 							rows={4}
 							maxLength={500}
 							className={cn(
-								'w-full resize-y rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none',
+								'w-full resize-y rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 								errors.description
 									? 'border-error focus:border-error'
 									: 'border-border focus:border-brand',
@@ -1043,7 +1059,8 @@ export const RecipeFormDetailed = ({
 									}
 									placeholder='15'
 									min={0}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									max={1440}
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									{t('formMinUnit')}
@@ -1070,7 +1087,8 @@ export const RecipeFormDetailed = ({
 									}
 									placeholder='30'
 									min={0}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									max={1440}
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									{t('formMinUnit')}
@@ -1093,7 +1111,8 @@ export const RecipeFormDetailed = ({
 								}
 								placeholder='4'
 								min={1}
-								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+								max={100}
+								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 							/>
 						</div>
 					</div>
@@ -1133,7 +1152,7 @@ export const RecipeFormDetailed = ({
 										{Math.round(difficultyConfidence * 100)}%
 									</span>
 								)}
-								<Lock className='size-4 text-text-secondary/50' />
+								<Lock className='size-4 text-text-secondary' />
 							</div>
 							<p className='mt-1.5 text-xs text-text-secondary'>
 								{predictedDifficulty
@@ -1158,7 +1177,7 @@ export const RecipeFormDetailed = ({
 								options={categoryOptions}
 								placeholder={t('formSelectCategory')}
 								className={cn(
-									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text focus:outline-none',
+									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 									errors.category
 										? 'border-error focus:border-error'
 										: 'border-border focus:border-brand',
@@ -1246,7 +1265,7 @@ export const RecipeFormDetailed = ({
 												.startPreviewCooking(previewRecipe)
 											useUiStore.getState().expandCookingPanel()
 										}}
-										className='flex items-center gap-1.5 text-sm font-medium text-brand/70 transition-colors hover:text-brand'
+										className='flex items-center gap-1.5 text-sm font-medium text-brand/70 transition-colors hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 rounded-md'
 									>
 										<Rocket className='size-3.5' />
 										{t('formTestPlay')}
@@ -1307,8 +1326,10 @@ export const RecipeFormDetailed = ({
 						value={formData.tips}
 						onChange={e => updateField('tips', e.target.value)}
 						placeholder={t('formTipsPlaceholder')}
+						aria-label={t('formTipsSection')}
 						rows={4}
-						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
+						maxLength={1000}
+						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 					/>
 				</section>
 
@@ -1345,7 +1366,7 @@ export const RecipeFormDetailed = ({
 							? (savingLabel ?? t('formSaving'))
 							: (saveDraftLabel ?? t('formSaveToCloud'))}
 						{!isSaving && (
-							<kbd className='ml-1 hidden rounded bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand/70 sm:inline-block'>
+							<kbd className='ml-1 hidden rounded bg-brand/15 px-1.5 py-0.5 text-xs font-medium text-brand sm:inline-block'>
 								{modKey}+S
 							</kbd>
 						)}
@@ -1356,7 +1377,7 @@ export const RecipeFormDetailed = ({
 								type='button'
 								onClick={onCancel}
 								disabled={isSubmitting || isSaving}
-								className='flex-1 rounded-xl border border-border bg-bg px-5 py-3 font-semibold text-text-secondary disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none'
+								className='flex-1 rounded-xl border border-border bg-bg px-5 py-3 font-semibold text-text-secondary disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:flex-none'
 							>
 								{t('formCancel')}
 							</button>
@@ -1377,7 +1398,7 @@ export const RecipeFormDetailed = ({
 								? (submittingLabel ?? t('formProcessing'))
 								: (submitLabel ?? t('formReviewXp'))}
 							{!isSubmitting && (
-								<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-medium text-white/80 sm:inline-block'>
+								<kbd className='ml-1 hidden rounded bg-white/30 px-1.5 py-0.5 text-xs font-medium text-white sm:inline-block'>
 									{modKey}+↵
 								</kbd>
 							)}

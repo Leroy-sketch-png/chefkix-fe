@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
@@ -270,7 +270,7 @@ export const StepItem = ({
 									videoDurationSec: undefined,
 								})
 							}
-							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-error'
+							className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-error focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<X className='size-3.5' />
 						</button>
@@ -308,7 +308,7 @@ export const StepItem = ({
 					defaultValue={step.instruction}
 					onChange={e => onUpdate({ instruction: e.target.value })}
 					placeholder={t('describeStepPlaceholder')}
-					className='min-h-16 w-full resize-none rounded-lg border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none'
+					className='min-h-16 w-full resize-none rounded-lg border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 
 				{/* Timer & Technique Tags */}
@@ -323,13 +323,13 @@ export const StepItem = ({
 								onKeyDown={handleTimerKeyDown}
 								placeholder='0'
 								min='0'
-								className='w-12 bg-transparent text-xs font-semibold text-brand outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+								className='w-12 bg-transparent text-xs font-semibold text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								autoFocus
 							/>
 							<select
 								value={timerUnit}
 								onChange={e => setTimerUnit(e.target.value as TimeUnit)}
-								className='bg-bg-card text-xs font-semibold text-brand outline-none cursor-pointer rounded px-1 py-0.5'
+								className='bg-bg-card text-xs font-semibold text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand/50 cursor-pointer rounded px-1 py-0.5'
 							>
 								<option value='seconds' className='bg-bg-card text-text'>
 									sec
@@ -378,7 +378,7 @@ export const StepItem = ({
 							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Timer className='size-3.5' />
-						{t('addTimer')}
+							{t('addTimer')}
 						</button>
 					)}
 					{step.technique && (
@@ -400,7 +400,7 @@ export const StepItem = ({
 					type='button'
 					onClick={onRemove}
 					aria-label={t('removeStep')}
-					className='flex size-8 items-center justify-center rounded-lg text-text-secondary/50 transition-colors hover:bg-error/10 hover:text-error'
+					className='flex size-8 items-center justify-center rounded-lg text-text-secondary/50 transition-colors hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Trash2 className='size-4' />
 				</button>

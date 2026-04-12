@@ -10,6 +10,7 @@ import {
 	Users,
 	MessageCircle,
 	AlertTriangle,
+	Sparkles,
 	Utensils,
 	Grid3X3,
 	ChefHat,
@@ -168,7 +169,7 @@ const LevelRing = ({
 	return (
 		<div
 			className={cn(
-				'absolute flex items-center gap-3 rounded-full border border-white/15 bg-black/60 backdrop-blur-xl',
+				'absolute flex items-center gap-3 rounded-full border border-white/15 bg-black/45 backdrop-blur-xl',
 				size === 'default'
 					? 'right-4 top-4 py-2.5 pl-2.5 pr-4'
 					: 'right-3 top-3 py-2 pl-2 pr-3',
@@ -235,10 +236,10 @@ const StreakBadge = ({ count }: { count: number }) => {
 		<motion.div
 			initial={{ scale: 0.8, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
-			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-streak px-4 py-2.5 font-display font-bold text-white shadow-lg shadow-streak/40'
+			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-streak px-3 py-2 font-display font-semibold text-white shadow-md shadow-streak/30'
 		>
-			<span className='text-xl'>🔥</span>
-			<span className='text-xl tabular-nums'>{count}</span>
+			<span className='text-base'>🔥</span>
+			<span className='text-lg tabular-nums'>{count}</span>
 			<span className='text-xs opacity-90'>{t('dayStreak')}</span>
 		</motion.div>
 	)
@@ -255,7 +256,7 @@ const TitleBadge = ({ title }: { title: UserTitle }) => {
 			animate={{ opacity: 1, y: 0, scale: 1 }}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white',
+				'absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-2xs font-semibold tracking-normal text-white',
 				config.gradient,
 			)}
 		>
@@ -276,9 +277,9 @@ const StatsRow = ({
 }) => {
 	const t = useTranslations('profile')
 	return (
-		<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
+		<div className='flex flex-col gap-4 border-y border-border bg-bg-elevated px-4 py-5 sm:flex-row sm:items-center sm:gap-0 md:px-6'>
 			{/* Social Stats */}
-			<div className='flex gap-8'>
+			<div className='flex gap-6 md:gap-8'>
 				{isOwnProfile ? (
 					<Link
 						href='/profile/followers?tab=followers'
@@ -326,10 +327,10 @@ const StatsRow = ({
 			</div>
 
 			{/* Divider */}
-			<div className='mx-8 h-10 w-px bg-border' />
+			<div className='hidden h-10 w-px bg-border sm:mx-6 sm:block md:mx-8' />
 
 			{/* Cooking Stats */}
-			<div className='flex gap-8'>
+			<div className='flex gap-6 md:gap-8'>
 				<div className='flex flex-col'>
 					<span className='text-xl font-display font-extrabold text-success tabular-nums'>
 						<AnimatedNumber
@@ -386,7 +387,7 @@ const XPProgressBar = ({
 		<div className='px-6 py-4'>
 			<div className='relative mb-2 h-2.5 overflow-hidden rounded-full bg-border'>
 				<motion.div
-					className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
+					className='h-full rounded-full bg-gradient-to-r from-brand to-streak'
 					initial={{ width: 0 }}
 					animate={{ width: `${progressPercent}%` }}
 					transition={{ duration: DURATION_S.slow }}
@@ -397,7 +398,7 @@ const XPProgressBar = ({
 				</div>
 			</div>
 			<div className='flex justify-between text-sm'>
-				<span className='font-display font-semibold text-success'>
+				<span className='font-display font-semibold text-brand'>
 					{t('xpLabel', { xp: formatNumber(currentXP) })}
 				</span>
 				<span className='text-text-muted'>
@@ -428,21 +429,21 @@ const BadgesShowcase = ({
 			{!compact && (
 				<div className='mb-4 flex items-center justify-between'>
 					<h3 className='text-sm font-bold'>{t('badgesTitle')}</h3>
-					{isOwnProfile ? (
+					{isOwnProfile && totalBadges > 0 ? (
 						<Link
 							href='/profile/badges'
 							className='text-sm font-semibold text-brand hover:underline'
 						>
 							{t('viewAllBadges', { count: totalBadges })}
 						</Link>
-					) : (
+					) : !isOwnProfile ? (
 						<span className='text-sm text-text-muted'>
 							{t('badgesEarned', { count: totalBadges })}
 						</span>
-					)}
+					) : null}
 				</div>
 			)}
-			<div className='flex gap-3 overflow-x-auto pb-2'>
+			<div className='flex gap-3 overflow-x-auto scrollbar-hide pb-2 pr-4'>
 				{badges.length === 0 && isOwnProfile ? (
 					<Link
 						href='/profile/badges'
@@ -459,10 +460,9 @@ const BadgesShowcase = ({
 					badges.slice(0, compact ? 3 : 5).map((badge, index) => (
 						<motion.div
 							key={badge.id || `badge-${index}`}
-							whileHover={STAT_ITEM_HOVER}
 							transition={TRANSITION_SPRING}
 							className={cn(
-								'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-card',
+								'flex flex-shrink-0 flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated',
 								compact
 									? 'min-w-nav px-3 py-2.5'
 									: 'min-w-thumbnail-xl px-4 py-3.5',
@@ -513,41 +513,47 @@ const ProfileTabs = ({
 	}[]
 	activeTab?: string
 	onTabChange?: (tab: string) => void
-}) => (
-	<div className='flex gap-1 overflow-x-auto border-t border-border px-4'>
-		{tabs.map(tab => (
-			<button
-				type='button'
-				key={tab.id}
-				onClick={() => onTabChange?.(tab.id)}
-				className={cn(
-					'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-4 py-4 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
-					activeTab === tab.id
-						? 'border-brand text-brand'
-						: 'border-transparent text-text-muted hover:text-text',
-				)}
-			>
-				{tab.icon}
-				{tab.label}
-				{tab.badge !== undefined && (
-					<span className='rounded-full bg-error px-2 py-0.5 text-xs font-bold tabular-nums text-white'>
-						{tab.badge}
-					</span>
-				)}
-				{tab.count !== undefined && (
-					<span
+}) => {
+	return (
+		<div className='relative border-t border-border'>
+			<div className='flex gap-0.5 overflow-x-auto scrollbar-hide px-2 md:px-4'>
+				{tabs.map(tab => (
+					<button
+						type='button'
+						key={tab.id}
+						onClick={() => onTabChange?.(tab.id)}
 						className={cn(
-							'text-xs tabular-nums',
-							activeTab === tab.id ? 'text-brand' : 'text-text-muted',
+							'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-2.5 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 md:px-4 md:py-4',
+							activeTab === tab.id
+								? 'border-brand text-brand'
+								: 'border-transparent text-text-muted hover:text-text',
 						)}
 					>
-						<AnimatedNumber value={tab.count} format={formatNumber} />
-					</span>
-				)}
-			</button>
-		))}
-	</div>
-)
+						{tab.icon}
+						{tab.label}
+						{tab.badge !== undefined && (
+							<span className='rounded-full bg-error px-2 py-0.5 text-xs font-bold tabular-nums text-white'>
+								{tab.badge}
+							</span>
+						)}
+						{tab.count !== undefined && (
+							<span
+								className={cn(
+									'text-xs tabular-nums',
+									activeTab === tab.id ? 'text-brand' : 'text-text-muted',
+								)}
+							>
+								<AnimatedNumber value={tab.count} format={formatNumber} />
+							</span>
+						)}
+					</button>
+				))}
+			</div>
+			{/* Right-edge fade hint for scrollable tabs on mobile */}
+			<div className='pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-bg-card to-transparent md:hidden' />
+		</div>
+	)
+}
 
 // ============================================
 // VARIANT: OWN PROFILE
@@ -621,8 +627,11 @@ const OwnProfileHeader = ({
 					fill
 					sizes='100vw'
 					className='object-cover'
+					onError={e => {
+						;(e.target as HTMLImageElement).src = '/default-cover.svg'
+					}}
 				/>
-				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
+				<div className='pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
 
 				{/* Level Ring */}
 				<LevelRing
@@ -658,16 +667,21 @@ const OwnProfileHeader = ({
 						width={96}
 						height={96}
 						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
+						}}
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
 
 				{/* Info */}
 				<div className='flex-1 pt-14'>
-					<h1 className='text-2xl font-display font-extrabold'>
+					<h1 className='truncate text-2xl font-display font-extrabold'>
 						{user.displayName}
 					</h1>
-					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
+					<p className='mt-1 truncate text-sm text-text-muted'>
+						@{user.username}
+					</p>
 					{user.bio && (
 						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
 					)}
@@ -762,6 +776,17 @@ const OwnProfileHeader = ({
 				</div>
 			)}
 
+			{/* Taste DNA link */}
+			<div className='flex justify-center py-2'>
+				<Link
+					href='/profile/taste'
+					className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
+				>
+					<Sparkles className='size-4' />
+					{t('viewTasteDNA')}
+				</Link>
+			</div>
+
 			{/* Tabs */}
 			<ProfileTabs
 				tabs={tabs}
@@ -816,8 +841,11 @@ const OtherUserProfileHeader = ({
 					fill
 					sizes='100vw'
 					className='object-cover'
+					onError={e => {
+						;(e.target as HTMLImageElement).src = '/default-cover.svg'
+					}}
 				/>
-				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
+				<div className='pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
 
 				{/* Level Ring */}
 				<LevelRing
@@ -840,6 +868,9 @@ const OtherUserProfileHeader = ({
 						width={96}
 						height={96}
 						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
+						}}
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
@@ -847,12 +878,16 @@ const OtherUserProfileHeader = ({
 				{/* Info */}
 				<div className='flex-1 pt-14'>
 					<div className='flex items-center gap-2'>
-						<h1 className='text-2xl font-display font-extrabold'>
+						<h1 className='truncate text-2xl font-display font-extrabold'>
 							{user.displayName}
 						</h1>
-						{user.isVerified && <VerifiedBadge className='text-info' />}
+						{user.isVerified && (
+							<VerifiedBadge className='flex-shrink-0 text-info' />
+						)}
 					</div>
-					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
+					<p className='mt-1 truncate text-sm text-text-muted'>
+						@{user.username}
+					</p>
 					{user.bio && (
 						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
 					)}
@@ -993,8 +1028,10 @@ const MiniProfileHeader = ({
 			{/* Info */}
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center gap-1.5'>
-					<span className='text-sm font-bold'>{user.displayName}</span>
-					{user.isVerified && <VerifiedBadge size='sm' className='text-info' />}
+					<span className='truncate text-sm font-bold'>{user.displayName}</span>
+					{user.isVerified && (
+						<VerifiedBadge size='sm' className='flex-shrink-0 text-info' />
+					)}
 					<span
 						className={cn(
 							'rounded-lg px-2 py-0.5 text-2xs font-bold uppercase text-white',

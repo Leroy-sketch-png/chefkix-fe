@@ -26,7 +26,7 @@ export default function YearInCookingLoading() {
 				</div>
 
 				{/* Card placeholder */}
-				<Skeleton className='min-h-[380px] rounded-2xl' />
+				<Skeleton className='min-h-96 rounded-2xl' />
 			</div>
 
 			{/* Action buttons */}

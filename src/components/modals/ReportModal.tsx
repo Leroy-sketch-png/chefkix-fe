@@ -90,7 +90,12 @@ const modalVariants = {
 		scale: 1,
 		transition: TRANSITION_SMOOTH,
 	},
-	exit: { opacity: 0, y: 50, scale: 0.95, transition: { duration: DURATION_S.normal } },
+	exit: {
+		opacity: 0,
+		y: 50,
+		scale: 0.95,
+		transition: { duration: DURATION_S.normal },
+	},
 }
 
 // ============================================
@@ -104,7 +109,11 @@ interface ReportModalProps {
 	content: ReportedContent
 }
 
-const reportReasons: { value: ReportReason; titleKey: string; descKey: string }[] = [
+const reportReasons: {
+	value: ReportReason
+	titleKey: string
+	descKey: string
+}[] = [
 	{
 		value: 'spam',
 		titleKey: 'rrSpam',
@@ -173,6 +182,9 @@ export const ReportModal = ({
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Report content'
 						variants={overlayVariants}
 						initial='hidden'
 						animate='visible'
@@ -230,7 +242,9 @@ export const ReportModal = ({
 								<>
 									<div className='flex items-center justify-between border-b border-border p-4 md:p-5'>
 										<h2 className='text-lg font-extrabold'>{t('rmTitle')}</h2>
-										<motion.button										type='button'											whileHover={ICON_BUTTON_HOVER}
+										<motion.button
+											type='button'
+											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
 											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
@@ -265,7 +279,7 @@ export const ReportModal = ({
 										{/* Reasons */}
 										<div className='mb-4'>
 											<h3 className='mb-2.5 text-sm font-bold'>
-											{t('rmWhyReporting')}
+												{t('rmWhyReporting')}
 											</h3>
 											<div className='flex flex-col gap-2'>
 												{reportReasons.map(reason => (
@@ -314,17 +328,19 @@ export const ReportModal = ({
 										{/* Additional Details */}
 										<div className='mb-4'>
 											<h3 className='mb-1.5 text-sm font-bold'>
-											{t('rmDetails')}
+												{t('rmDetails')}
 											</h3>
 											<textarea
 												value={details}
 												onChange={e => setDetails(e.target.value)}
 												placeholder={t('rmDetailsPlaceholder')}
 												maxLength={1000}
-												className='min-h-20 w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
+												className='min-h-20 w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-colors focus:border-accent-purple'
 											/>
 											{details.length > 0 && (
-											<p className={`mt-1 text-right text-xs tabular-nums ${details.length > 800 ? (details.length >= 1000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+												<p
+													className={`mt-1 text-right text-xs tabular-nums ${details.length > 800 ? (details.length >= 1000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+												>
 													{details.length}/1000
 												</p>
 											)}
@@ -334,7 +350,7 @@ export const ReportModal = ({
 										<div className='mb-4 flex items-start gap-2 rounded-lg bg-xp/10 p-3'>
 											<Shield className='mt-0.5 size-4 flex-shrink-0 text-xp' />
 											<span className='text-xs leading-relaxed text-text-muted'>
-											{t('rmTrustSignal')}
+												{t('rmTrustSignal')}
 											</span>
 										</div>
 
@@ -356,7 +372,7 @@ export const ReportModal = ({
 											) : (
 												<>
 													<Flag className='size-4' />
-												<span>{t('rmSubmit')}</span>
+													<span>{t('rmSubmit')}</span>
 												</>
 											)}
 										</motion.button>
@@ -395,6 +411,9 @@ export const ReportLimitModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={onClose}
+						role='alertdialog'
+						aria-modal='true'
+						aria-label='Confirm block user'
 						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
@@ -408,9 +427,7 @@ export const ReportLimitModal = ({
 							<div className='mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
 								<AlertCircle className='size-8' />
 							</div>
-							<h3 className='mb-3 text-xl font-extrabold'>
-								{t('rlTitle')}
-							</h3>
+							<h3 className='mb-3 text-xl font-extrabold'>{t('rlTitle')}</h3>
 							<p className='mb-5 text-sm leading-relaxed text-text-muted'>
 								{t('rlDescription')}
 							</p>
@@ -418,7 +435,9 @@ export const ReportLimitModal = ({
 								<Clock className='size-icon-sm' />
 								<span>
 									{t('rlResetIn')}{' '}
-									<strong className='text-text'>{t('rlHours', { count: hoursUntilReset })}</strong>
+									<strong className='text-text'>
+										{t('rlHours', { count: hoursUntilReset })}
+									</strong>
 								</span>
 							</div>
 							<motion.button
@@ -453,12 +472,7 @@ export const AccountRestrictedNotice = ({
 }: AccountRestrictedNoticeProps) => {
 	const t = useTranslations('report')
 	const isPermanent = violation.restrictionDays === 'permanent'
-	const offenseLabels = [
-		t('ar1st'),
-		t('ar2nd'),
-		t('ar3rd'),
-		t('ar4th'),
-	]
+	const offenseLabels = [t('ar1st'), t('ar2nd'), t('ar3rd'), t('ar4th')]
 
 	return (
 		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-2xl bg-bg-card'>
@@ -499,7 +513,9 @@ export const AccountRestrictedNotice = ({
 				{/* Violation Details */}
 				<div className='mb-5 rounded-2xl bg-bg-elevated p-4'>
 					<div className='flex justify-between border-b border-border py-2.5'>
-						<span className='text-sm text-text-muted'>{t('arViolationType')}</span>
+						<span className='text-sm text-text-muted'>
+							{t('arViolationType')}
+						</span>
 						<span className='text-sm font-semibold'>{violation.type}</span>
 					</div>
 					<div className='flex justify-between border-b border-border py-2.5'>
@@ -509,9 +525,13 @@ export const AccountRestrictedNotice = ({
 						</span>
 					</div>
 					<div className='flex justify-between border-b border-border py-2.5'>
-						<span className='text-sm text-text-muted'>{t('arRestrictionPeriod')}</span>
+						<span className='text-sm text-text-muted'>
+							{t('arRestrictionPeriod')}
+						</span>
 						<span className='text-sm font-semibold'>
-							{isPermanent ? t('arPermanent') : t('arDays', { count: violation.restrictionDays })}
+							{isPermanent
+								? t('arPermanent')
+								: t('arDays', { count: violation.restrictionDays })}
 						</span>
 					</div>
 					{violation.endDate && (
@@ -525,15 +545,9 @@ export const AccountRestrictedNotice = ({
 				{/* Effects */}
 				{!isPermanent && (
 					<div className='mb-5'>
-						<h4 className='mb-3 text-sm font-bold'>
-							{t('arCannotDo')}
-						</h4>
+						<h4 className='mb-3 text-sm font-bold'>{t('arCannotDo')}</h4>
 						<ul className='space-y-2.5'>
-							{[
-								t('arNoPost'),
-								t('arNoCook'),
-								t('arNoXp'),
-							].map(item => (
+							{[t('arNoPost'), t('arNoCook'), t('arNoXp')].map(item => (
 								<li
 									key={item}
 									className='flex items-center gap-2.5 text-sm text-error'
@@ -641,6 +655,9 @@ export const AppealModal = ({
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Appeal ban'
 						variants={overlayVariants}
 						initial='hidden'
 						animate='visible'
@@ -731,11 +748,15 @@ export const AppealModal = ({
 												</span>
 											</div>
 											<div className='flex justify-between py-2'>
-												<span className='text-sm text-text-muted'>{t('apPenalty')}</span>
+												<span className='text-sm text-text-muted'>
+													{t('apPenalty')}
+												</span>
 												<span className='text-sm font-semibold'>
 													{violation.restrictionDays === 'permanent'
 														? t('apPermBan')
-														: t('apDayRestriction', { count: violation.restrictionDays })}
+														: t('apDayRestriction', {
+																count: violation.restrictionDays,
+															})}
 												</span>
 											</div>
 										</div>
@@ -743,7 +764,7 @@ export const AppealModal = ({
 										{/* Appeal Form */}
 										<div className='mb-5'>
 											<label className='mb-2.5 block text-sm font-bold'>
-											{t('apWhyIncorrect')}
+												{t('apWhyIncorrect')}
 											</label>
 											<textarea
 												value={appealText}
@@ -751,7 +772,7 @@ export const AppealModal = ({
 													setAppealText(e.target.value.slice(0, 1000))
 												}
 												placeholder={t('apPlaceholder')}
-												className='min-h-textarea w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-4 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
+												className='min-h-textarea w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-4 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-colors focus:border-accent-purple'
 											/>
 											<div className='mt-2 text-right text-xs text-text-muted tabular-nums'>
 												{appealText.length} / 1000
@@ -761,14 +782,14 @@ export const AppealModal = ({
 										{/* Guidelines */}
 										<div className='mb-5 rounded-xl bg-bg-elevated p-4'>
 											<h4 className='mb-2.5 text-sm font-bold'>
-											{t('apGuidelines')}
-										</h4>
-										<ul className='space-y-1.5 text-sm text-text-muted'>
-											<li>• {t('apGuide1')}</li>
-											<li>• {t('apGuide2')}</li>
-											<li>• {t('apGuide3')}</li>
-											<li>• {t('apGuide4')}</li>
-											<li>• {t('apGuide5')}</li>
+												{t('apGuidelines')}
+											</h4>
+											<ul className='space-y-1.5 text-sm text-text-muted'>
+												<li>• {t('apGuide1')}</li>
+												<li>• {t('apGuide2')}</li>
+												<li>• {t('apGuide3')}</li>
+												<li>• {t('apGuide4')}</li>
+												<li>• {t('apGuide5')}</li>
 											</ul>
 										</div>
 
@@ -781,7 +802,7 @@ export const AppealModal = ({
 												whileTap={BUTTON_TAP}
 												className='flex-1 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
-											{t('apCancel')}
+												{t('apCancel')}
 											</motion.button>
 											<motion.button
 												type='button'
@@ -802,7 +823,7 @@ export const AppealModal = ({
 												) : (
 													<>
 														<Send className='size-icon-sm' />
-													<span>{t('apSubmit')}</span>
+														<span>{t('apSubmit')}</span>
 													</>
 												)}
 											</motion.button>
@@ -850,9 +871,7 @@ export const ContentRemovedNotice = ({
 
 			{/* Body */}
 			<div className='p-5'>
-				<p className='mb-3.5 text-sm text-text-muted'>
-					{t('crDescription')}
-				</p>
+				<p className='mb-3.5 text-sm text-text-muted'>{t('crDescription')}</p>
 
 				<div className='mb-4 inline-flex items-center gap-2 rounded-lg bg-bg-elevated px-4 py-2.5 text-sm font-semibold text-error'>
 					<AlertCircle className='size-4' />

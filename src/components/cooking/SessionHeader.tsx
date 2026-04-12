@@ -183,6 +183,9 @@ export const SessionHeader = ({
 								fill
 								sizes='48px'
 								className='object-cover'
+								onError={e => {
+									;(e.target as HTMLImageElement).src = '/default-cover.svg'
+								}}
 							/>
 						</div>
 						<div className='text-white'>

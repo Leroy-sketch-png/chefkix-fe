@@ -38,8 +38,17 @@ export const IngredientCheck = ({
 				: 'bg-bg-elevated hover:bg-bg-hover',
 		)}
 	>
-		{/* Custom checkbox */}
+		{/* Semantic checkbox for screen readers */}
+		<input
+			type='checkbox'
+			checked={isChecked}
+			onChange={onToggle}
+			className='sr-only'
+			aria-label={`${ingredient.quantity} ${ingredient.unit} ${ingredient.name}`}
+		/>
+		{/* Custom checkbox visual */}
 		<motion.div
+			aria-hidden='true'
 			animate={{
 				backgroundColor: isChecked ? 'var(--color-success)' : 'transparent',
 				borderColor: isChecked

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Image as ImageIcon, Smile, MapPin } from 'lucide-react'
+import { Image as ImageIcon, Smile, MapPin, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { createGroupPost } from '@/services/post'
@@ -80,19 +80,28 @@ export function GroupCreatePostBox({
 					onClick={() => setIsOpen(true)}
 					className='w-full text-left px-4 py-3 bg-bg rounded-full text-text-secondary hover:bg-bg/80 transition-colors'
 				>
-{t('gpWhatsOnMind')}
+					{t('gpWhatsOnMind')}
 				</button>
 
 				<div className='flex gap-2 mt-4 flex-wrap'>
-					<button type='button' className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+					<button
+						type='button'
+						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
+					>
 						<ImageIcon className='size-5' />
 						{t('gpPhoto')}
 					</button>
-					<button type='button' className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+					<button
+						type='button'
+						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
+					>
 						<Smile className='size-5' />
 						{t('gpFeeling')}
 					</button>
-					<button type='button' className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+					<button
+						type='button'
+						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
+					>
 						<MapPin className='size-5' />
 						{t('gpLocation')}
 					</button>
@@ -125,7 +134,9 @@ export function GroupCreatePostBox({
 					disabled={isSubmitting}
 				/>
 				{content.length > 0 && (
-					<p className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+					<p
+						className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+					>
 						{content.length}/2000
 					</p>
 				)}
@@ -147,7 +158,14 @@ export function GroupCreatePostBox({
 					disabled={isSubmitting || !content.trim()}
 					className='bg-brand hover:bg-brand/90'
 				>
-					{isSubmitting ? t('gpPosting') : t('gpPost')}
+					{isSubmitting ? (
+						<>
+							<Loader2 className='mr-2 size-4 animate-spin' />
+							{t('gpPosting')}
+						</>
+					) : (
+						t('gpPost')
+					)}
 				</Button>
 			</div>
 		</motion.div>

@@ -61,7 +61,14 @@ function buildRecapCards(stats: {
 
 	// 1. Total cooks
 	if (stats.completionCount > 0) {
-		const tier = stats.completionCount >= 50 ? 'warrior' : stats.completionCount >= 20 ? 'dedicated' : stats.completionCount >= 5 ? 'groove' : 'first'
+		const tier =
+			stats.completionCount >= 50
+				? 'warrior'
+				: stats.completionCount >= 20
+					? 'dedicated'
+					: stats.completionCount >= 5
+						? 'groove'
+						: 'first'
 		cards.push({
 			id: 'cooks',
 			emoji: '🍳',
@@ -90,7 +97,14 @@ function buildRecapCards(stats: {
 	// 3. Best streak (historical max, with current streak fallback for older users)
 	const bestStreak = Math.max(stats.longestStreak, stats.streakCount)
 	if (bestStreak > 0) {
-		const tier = bestStreak >= 30 ? 'legendary' : bestStreak >= 14 ? 'twoWeeks' : bestStreak >= 7 ? 'fullWeek' : 'building'
+		const tier =
+			bestStreak >= 30
+				? 'legendary'
+				: bestStreak >= 14
+					? 'twoWeeks'
+					: bestStreak >= 7
+						? 'fullWeek'
+						: 'building'
 		cards.push({
 			id: 'streak',
 			emoji: '🔥',
@@ -105,7 +119,12 @@ function buildRecapCards(stats: {
 
 	// 4. Recipes created
 	if (stats.recipeCount > 0) {
-		const tier = stats.recipeCount >= 20 ? 'author' : stats.recipeCount >= 5 ? 'growing' : 'first'
+		const tier =
+			stats.recipeCount >= 20
+				? 'author'
+				: stats.recipeCount >= 5
+					? 'growing'
+					: 'first'
 		cards.push({
 			id: 'recipes',
 			emoji: '📝',
@@ -119,7 +138,12 @@ function buildRecapCards(stats: {
 
 	// 5. Posts shared
 	if (stats.postCount > 0) {
-		const tier = stats.postCount >= 30 ? 'machine' : stats.postCount >= 10 ? 'sharing' : 'started'
+		const tier =
+			stats.postCount >= 30
+				? 'machine'
+				: stats.postCount >= 10
+					? 'sharing'
+					: 'started'
 		cards.push({
 			id: 'posts',
 			emoji: '📸',
@@ -148,7 +172,12 @@ function buildRecapCards(stats: {
 
 	// 7. Badges
 	if (stats.badges.length > 0) {
-		const tier = stats.badges.length >= 10 ? 'collector' : stats.badges.length >= 5 ? 'building' : 'first'
+		const tier =
+			stats.badges.length >= 10
+				? 'collector'
+				: stats.badges.length >= 5
+					? 'building'
+					: 'first'
 		cards.push({
 			id: 'badges',
 			emoji: '🏅',
@@ -272,7 +301,10 @@ function generateShareCanvas(
 		// Subtitle (truncate)
 		ctx.font = '11px system-ui, -apple-system, sans-serif'
 		ctx.fillStyle = 'rgba(140,126,114,0.7)'
-		const sub = card.subtitle.length > 35 ? card.subtitle.slice(0, 32) + '…' : card.subtitle
+		const sub =
+			card.subtitle.length > 35
+				? card.subtitle.slice(0, 32) + '…'
+				: card.subtitle
 		ctx.fillText(sub, x + cellW / 2, y + 140)
 	})
 
@@ -347,13 +379,14 @@ export default function YearInCookingPage() {
 		[cards.length],
 	)
 
-	const resolveShareCards = useCallback((): ShareCard[] =>
-		cards.map(c => ({
-			emoji: c.emoji,
-			title: t(c.titleKey),
-			value: c.valueKey ? t(c.valueKey, c.valueParams) : (c.value ?? ''),
-			subtitle: t(c.subtitleKey, c.subtitleParams),
-		})),
+	const resolveShareCards = useCallback(
+		(): ShareCard[] =>
+			cards.map(c => ({
+				emoji: c.emoji,
+				title: t(c.titleKey),
+				value: c.valueKey ? t(c.valueKey, c.valueParams) : (c.value ?? ''),
+				subtitle: t(c.subtitleKey, c.subtitleParams),
+			})),
 		[cards, t],
 	)
 
@@ -364,17 +397,31 @@ export default function YearInCookingPage() {
 			const shareCards = resolveShareCards()
 			const headerTitle = t('yicShareHeader', { name: displayName })
 			const footerTitle = t('yicShareFooter')
-			const canvas = generateShareCanvas(shareCards, displayName, headerTitle, footerTitle)
-			const blob = await new Promise<Blob | null>((res) =>
+			const canvas = generateShareCanvas(
+				shareCards,
+				displayName,
+				headerTitle,
+				footerTitle,
+			)
+			const blob = await new Promise<Blob | null>(res =>
 				canvas.toBlob(res, 'image/png'),
 			)
 			if (!blob) throw new Error('Failed to generate image')
 
-			if (navigator.share && navigator.canShare?.({ files: [new File([blob], 'year-in-cooking.png', { type: 'image/png' })] })) {
+			if (
+				navigator.share &&
+				navigator.canShare?.({
+					files: [
+						new File([blob], 'year-in-cooking.png', { type: 'image/png' }),
+					],
+				})
+			) {
 				await navigator.share({
 					title: t('yicShareHeader', { name: displayName }),
 					text: t('yicShareText'),
-					files: [new File([blob], 'year-in-cooking.png', { type: 'image/png' })],
+					files: [
+						new File([blob], 'year-in-cooking.png', { type: 'image/png' }),
+					],
 				})
 			} else {
 				await navigator.clipboard.write([
@@ -398,8 +445,13 @@ export default function YearInCookingPage() {
 			const shareCards = resolveShareCards()
 			const headerTitle = t('yicShareHeader', { name: displayName })
 			const footerTitle = t('yicShareFooter')
-			const canvas = generateShareCanvas(shareCards, displayName, headerTitle, footerTitle)
-			const blob = await new Promise<Blob | null>((res) =>
+			const canvas = generateShareCanvas(
+				shareCards,
+				displayName,
+				headerTitle,
+				footerTitle,
+			)
+			const blob = await new Promise<Blob | null>(res =>
 				canvas.toBlob(res, 'image/png'),
 			)
 			if (!blob) throw new Error('Failed to generate image')
@@ -455,7 +507,9 @@ export default function YearInCookingPage() {
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
-						<h1 className='text-xl font-bold text-text'>{t('yearInCooking')}</h1>
+						<h1 className='text-xl font-bold text-text'>
+							{t('yearInCooking')}
+						</h1>
 					</div>
 					<EmptyStateGamified
 						variant='cooking'
@@ -485,7 +539,9 @@ export default function YearInCookingPage() {
 						<ArrowLeft className='size-5' />
 					</motion.button>
 					<div className='flex-1'>
-						<h1 className='text-xl font-bold text-text'>{t('yearInCooking')}</h1>
+						<h1 className='text-xl font-bold text-text'>
+							{t('yearInCooking')}
+						</h1>
 						<p className='text-sm text-text-muted'>
 							{page + 1} / {cards.length}
 						</p>
@@ -514,7 +570,7 @@ export default function YearInCookingPage() {
 					</div>
 
 					{/* Card */}
-					<div className='relative min-h-[380px]'>
+					<div className='relative min-h-96'>
 						<AnimatePresence initial={false} custom={direction} mode='wait'>
 							<motion.div
 								key={page}
@@ -528,7 +584,7 @@ export default function YearInCookingPage() {
 									opacity: { duration: 0.2 },
 									scale: { duration: 0.2 },
 								}}
-								className={`flex min-h-[380px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br ${currentCard.gradient} p-8 text-white shadow-warm`}
+								className={`flex min-h-96 flex-col items-center justify-center rounded-2xl bg-gradient-to-br ${currentCard.gradient} p-8 text-white shadow-warm`}
 							>
 								{/* Decorative background circles */}
 								<div className='pointer-events-none absolute inset-0 overflow-hidden rounded-2xl'>
@@ -542,9 +598,11 @@ export default function YearInCookingPage() {
 										{t(currentCard.titleKey)}
 									</p>
 									<p className='mb-3 text-5xl font-black tracking-tight'>
-										{currentCard.valueKey ? t(currentCard.valueKey, currentCard.valueParams) : currentCard.value}
+										{currentCard.valueKey
+											? t(currentCard.valueKey, currentCard.valueParams)
+											: currentCard.value}
 									</p>
-									<p className='max-w-[260px] text-center text-base text-white/90'>
+									<p className='max-w-64 text-center text-base text-white/90'>
 										{t(currentCard.subtitleKey, currentCard.subtitleParams)}
 									</p>
 								</div>
@@ -615,6 +673,8 @@ export default function YearInCookingPage() {
 				<p className='mt-4 text-center text-xs text-text-muted'>
 					{t('yicKeyboardHint')}
 				</p>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

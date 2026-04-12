@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import {
 	Tooltip,
 	TooltipContent,
@@ -194,6 +196,8 @@ export const ImmediateRewards = ({
 	onPostLater,
 }: ImmediateRewardsProps) => {
 	const t = useTranslations('completion')
+	useEscapeKey(isOpen, onClose)
+	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
 	const [capturedPhotos, setCapturedPhotos] = useState<File[]>([])
 	const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
 	const [isNavigating, setIsNavigating] = useState(false)
@@ -305,6 +309,10 @@ export const ImmediateRewards = ({
 				<Portal>
 					{/* Overlay */}
 					<motion.div
+						ref={focusTrapRef}
+						role='dialog'
+						aria-modal='true'
+						aria-label='Cooking rewards'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -487,7 +495,7 @@ export const ImmediateRewards = ({
 									initial={{ opacity: 0, scale: 0.9 }}
 									animate={{ opacity: 1, scale: 1 }}
 									transition={{ delay: 0.7, ...TRANSITION_SPRING }}
-									className='rounded-xl border-2 border-dashed border-brand/40 bg-brand/5 p-4 text-center'
+									className='rounded-xl border-2 border-brand/30 bg-brand/5 p-4 text-center'
 								>
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
 										{t('pending')}

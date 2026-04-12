@@ -63,20 +63,18 @@ export interface EmptyStateProps {
 
 function PlateIllustration() {
 	return (
-		<div className='relative inline-flex items-center justify-center'>
+		<div className='relative inline-flex size-20 items-center justify-center md:size-24'>
 			{/* Ambient glow ring */}
 			<motion.div
-				className='absolute size-28 rounded-full bg-brand/8'
-				animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.3, 0.6] }}
+				className='absolute inset-0 scale-125 rounded-full bg-brand/8'
+				animate={{ scale: [1.25, 1.4, 1.25], opacity: [0.6, 0.3, 0.6] }}
 				transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
 			/>
 			<svg
-				width='100'
-				height='100'
 				viewBox='0 0 100 100'
 				fill='none'
 				xmlns='http://www.w3.org/2000/svg'
-				className='relative z-10'
+				className='relative z-10 size-full'
 			>
 				{/* Plate shadow */}
 				<ellipse

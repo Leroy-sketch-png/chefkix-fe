@@ -453,12 +453,12 @@ export default function PantryPage() {
 					)}
 
 					{/* ── Quick Add Bar ─────────────────── */}
-					<motion.div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-						<div className='flex flex-wrap items-end gap-3'>
-							<div className='flex-1 min-w-[180px]'>
+					<motion.div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card sm:p-4'>
+						<div className='grid grid-cols-[1fr_4.5rem] gap-2 sm:flex sm:flex-wrap sm:items-end sm:gap-3'>
+							<div className='col-span-2 sm:flex-1 sm:min-w-[180px]'>
 								<label
 									htmlFor='pantry-ingredient'
-									className='mb-1 block text-xs font-medium text-text-secondary'
+									className='mb-0.5 block text-xs font-medium text-text-secondary'
 								>
 									{t('labelIngredient')}
 								</label>
@@ -480,10 +480,10 @@ export default function PantryPage() {
 									placeholder={t('ingredientPlaceholder')}
 								/>
 							</div>
-							<div className='w-20'>
+							<div className='sm:w-20'>
 								<label
 									htmlFor='pantry-qty'
-									className='mb-1 block text-xs font-medium text-text-secondary'
+									className='mb-0.5 block text-xs font-medium text-text-secondary'
 								>
 									{t('labelQty')}
 								</label>
@@ -494,13 +494,13 @@ export default function PantryPage() {
 									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
 									placeholder='2'
 									type='number'
-									className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+									className='w-full rounded-lg border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 								/>
 							</div>
-							<div className='w-24'>
+							<div className='sm:w-24'>
 								<label
 									htmlFor='pantry-unit'
-									className='mb-1 block text-xs font-medium text-text-secondary'
+									className='mb-0.5 block text-xs font-medium text-text-secondary'
 								>
 									{t('labelUnit')}
 								</label>
@@ -510,13 +510,13 @@ export default function PantryPage() {
 									onChange={e => setQuickAddUnit(e.target.value)}
 									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
 									placeholder={t('unitPlaceholder')}
-									className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+									className='w-full rounded-lg border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 								/>
 							</div>
-							<div className='w-32'>
+							<div className='sm:w-32'>
 								<label
 									htmlFor='pantry-category'
-									className='mb-1 block text-xs font-medium text-text-secondary'
+									className='mb-0.5 block text-xs font-medium text-text-secondary'
 								>
 									{t('labelCategory')}
 								</label>
@@ -524,7 +524,7 @@ export default function PantryPage() {
 									id='pantry-category'
 									value={quickAddCategory}
 									onChange={e => setQuickAddCategory(e.target.value)}
-									className='w-full rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+									className='w-full rounded-lg border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 								>
 									{CATEGORIES.map(c => (
 										<option
@@ -537,10 +537,10 @@ export default function PantryPage() {
 									))}
 								</select>
 							</div>
-							<div className='w-36'>
+							<div className='sm:w-36'>
 								<label
 									htmlFor='pantry-expiry'
-									className='mb-1 block text-xs font-medium text-text-secondary'
+									className='mb-0.5 block text-xs font-medium text-text-secondary'
 								>
 									{t('labelExpiry')}
 								</label>
@@ -549,7 +549,7 @@ export default function PantryPage() {
 									type='date'
 									value={quickAddExpiry}
 									onChange={e => setQuickAddExpiry(e.target.value)}
-									className='w-full rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+									className='w-full rounded-lg border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 								/>
 							</div>
 							<motion.button
@@ -557,7 +557,7 @@ export default function PantryPage() {
 								onClick={handleQuickAdd}
 								whileTap={BUTTON_TAP}
 								disabled={!quickAddName.trim() || isAdding}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='col-span-2 flex items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:col-span-1 sm:self-end'
 							>
 								<Plus className='size-4' />
 								{t('addButton')}
@@ -573,16 +573,23 @@ export default function PantryPage() {
 								value={searchQuery}
 								onChange={e => setSearchQuery(e.target.value)}
 								placeholder={t('searchPlaceholder')}
-								className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-10 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+								aria-label={t('searchPlaceholder')}
+								className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-10 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 							/>
 						</div>
-						<div className='flex items-center gap-1.5'>
-							<Filter className='size-4 text-text-muted' />
+						<div
+							className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide'
+							role='tablist'
+							aria-label={t('filterByCategory')}
+						>
+							<Filter className='size-4 flex-shrink-0 text-text-muted' />
 							<motion.button
 								type='button'
+								role='tab'
+								aria-selected={!filterCategory}
 								onClick={() => setFilterCategory(null)}
 								whileTap={BUTTON_SUBTLE_TAP}
-								className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+								className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 									!filterCategory
 										? 'bg-brand text-white'
 										: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
@@ -594,12 +601,14 @@ export default function PantryPage() {
 							{CATEGORIES.map(c => (
 								<motion.button
 									type='button'
+									role='tab'
+									aria-selected={filterCategory === c.key}
 									key={c.key}
 									onClick={() =>
 										setFilterCategory(filterCategory === c.key ? null : c.key)
 									}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+									className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 										filterCategory === c.key
 											? 'bg-brand text-white'
 											: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
@@ -665,7 +674,8 @@ export default function PantryPage() {
 																	ingredientName: e.target.value,
 																}))
 															}
-															className='flex-1 min-w-[120px] rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
+															aria-label={t('labelIngredient')}
+															className='flex-1 min-w-[120px] rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 														/>
 														<input
 															type='number'
@@ -678,7 +688,8 @@ export default function PantryPage() {
 																		: undefined,
 																}))
 															}
-															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none focus:border-brand focus:outline-none'
+															aria-label={t('labelQty')}
+															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 															placeholder={t('labelQty')}
 														/>
 														<input
@@ -689,7 +700,8 @@ export default function PantryPage() {
 																	unit: e.target.value,
 																}))
 															}
-															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
+															aria-label={t('labelUnit')}
+															className='w-16 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 															placeholder={t('labelUnit')}
 														/>
 														<input
@@ -701,13 +713,14 @@ export default function PantryPage() {
 																	expiryDate: e.target.value || undefined,
 																}))
 															}
-															className='w-36 rounded-md border border-border-subtle bg-bg-card px-2 py-1 text-sm text-text focus:border-brand focus:outline-none'
+															aria-label={t('labelExpiry')}
+															className='w-36 rounded-md border border-border-subtle bg-bg-card px-2 py-1 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 														/>
 														<motion.button
 															type='button'
 															onClick={saveEdit}
 															whileTap={BUTTON_SUBTLE_TAP}
-															className='rounded-md bg-success/10 p-1.5 text-success hover:bg-success/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+															className='flex size-10 items-center justify-center rounded-md bg-success/10 text-success hover:bg-success/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 															aria-label={t('saveChanges')}
 														>
 															<Check className='size-4' />
@@ -716,7 +729,8 @@ export default function PantryPage() {
 															type='button'
 															onClick={() => setEditingId(null)}
 															whileTap={BUTTON_SUBTLE_TAP}
-															className='rounded-md bg-bg-elevated p-1.5 text-text-secondary hover:bg-bg-elevated/80 focus-visible:ring-2 focus-visible:ring-brand/50'
+															aria-label={t('cancelEdit')}
+															className='flex size-10 items-center justify-center rounded-md bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
 															<X className='size-4' />
 														</motion.button>
@@ -754,24 +768,24 @@ export default function PantryPage() {
 																? t(FRESHNESS_KEYS[item.freshness].labelKey)
 																: item.freshness}
 														</span>
-														<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
+														<div className='flex items-center gap-0.5 opacity-50 transition-opacity group-hover:opacity-100 focus-within:opacity-100'>
 															<motion.button
 																type='button'
 																onClick={() => startEdit(item)}
 																whileTap={BUTTON_SUBTLE_TAP}
-																className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+																className='flex size-10 items-center justify-center rounded-md text-text-muted hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 																aria-label={t('editItem')}
 															>
-																<Pencil className='size-3.5' />
+																<Pencil className='size-4' />
 															</motion.button>
 															<motion.button
 																type='button'
 																onClick={() => setConfirmingDeleteId(item.id)}
 																whileTap={BUTTON_SUBTLE_TAP}
-																className='rounded-md p-1.5 text-text-muted hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
+																className='flex size-10 items-center justify-center rounded-md text-text-muted hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
 																aria-label={t('deleteItem')}
 															>
-																<Trash2 className='size-3.5' />
+																<Trash2 className='size-4' />
 															</motion.button>
 														</div>
 													</>
@@ -805,6 +819,7 @@ export default function PantryPage() {
 										type='button'
 										onClick={() => setShowSuggestions(false)}
 										whileTap={BUTTON_SUBTLE_TAP}
+										aria-label={t('closeSuggestions')}
 										className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<X className='size-4' />
@@ -876,25 +891,20 @@ export default function PantryPage() {
 														</p>
 													)}
 												</div>{' '}
-												<span
-													role='button'
-													tabIndex={0}
+												<button
+													type='button'
 													onClick={e =>
 														handleAddToShoppingList(match.recipeId, e)
 													}
-													onKeyDown={e => {
-														if (e.key === 'Enter')
-															handleAddToShoppingList(match.recipeId, e)
-													}}
+													aria-label={t('addToShoppingList')}
 													className='grid size-10 flex-shrink-0 place-items-center rounded-lg border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
-													title={t('addToShoppingList')}
 												>
 													{addingToListId === match.recipeId ? (
 														<Loader2 className='size-4 animate-spin text-text-muted' />
 													) : (
 														<ShoppingCart className='size-4 text-text-secondary' />
 													)}
-												</span>{' '}
+												</button>{' '}
 											</motion.button>
 										))}
 									</div>
@@ -920,12 +930,22 @@ export default function PantryPage() {
 									animate={{ scale: 1, opacity: 1 }}
 									exit={{ scale: 0.95, opacity: 0 }}
 									onClick={e => e.stopPropagation()}
+									role='alertdialog'
+									aria-modal='true'
+									aria-labelledby='delete-pantry-title'
+									aria-describedby='delete-pantry-desc'
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
-									<h3 className='mb-2 text-lg font-bold text-text'>
+									<h3
+										className='mb-2 text-lg font-bold text-text'
+										id='delete-pantry-title'
+									>
 										{t('deleteItem')}
 									</h3>
-									<p className='mb-6 text-sm text-text-muted'>
+									<p
+										className='mb-6 text-sm text-text-muted'
+										id='delete-pantry-desc'
+									>
 										{t('deleteConfirm', {
 											name:
 												items.find(i => i.id === confirmingDeleteId)
@@ -975,12 +995,22 @@ export default function PantryPage() {
 									animate={{ scale: 1, opacity: 1 }}
 									exit={{ scale: 0.95, opacity: 0 }}
 									onClick={e => e.stopPropagation()}
+									role='alertdialog'
+									aria-modal='true'
+									aria-labelledby='clear-expired-title'
+									aria-describedby='clear-expired-desc'
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
-									<h3 className='mb-2 text-lg font-bold text-text'>
+									<h3
+										className='mb-2 text-lg font-bold text-text'
+										id='clear-expired-title'
+									>
 										{t('clearExpiredTitle')}
 									</h3>
-									<p className='mb-6 text-sm text-text-muted'>
+									<p
+										className='mb-6 text-sm text-text-muted'
+										id='clear-expired-desc'
+									>
 										{t('clearExpiredConfirm', { count: expiredCount })}
 									</p>
 									<div className='flex justify-end gap-3'>
@@ -1007,6 +1037,9 @@ export default function PantryPage() {
 						</Portal>
 					)}
 				</AnimatePresence>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

@@ -169,7 +169,11 @@ export const GroupMembersList = ({
 						member.role !== 'OWNER' && (
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
-									<Button variant='ghost' size='icon'>
+									<Button
+										variant='ghost'
+										size='icon'
+										aria-label={t('memberOptions')}
+									>
 										<MoreVertical className='size-4' />
 									</Button>
 								</DropdownMenuTrigger>

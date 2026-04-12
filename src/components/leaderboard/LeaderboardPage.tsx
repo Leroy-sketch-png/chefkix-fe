@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import {
 	Globe,
 	Users,
@@ -90,11 +91,17 @@ function LeaderboardTabs({
 	]
 
 	return (
-		<div className='flex gap-2 p-1.5 bg-bg-card rounded-2xl mb-4'>
+		<div
+			className='flex gap-2 p-1.5 bg-bg-card rounded-2xl mb-4'
+			role='tablist'
+			aria-label={t('tabTypeLabel')}
+		>
 			{tabs.map(({ type, label, icon: Icon }) => (
 				<motion.button
 					type='button'
 					key={type}
+					role='tab'
+					aria-selected={activeType === type}
 					whileTap={LIST_ITEM_TAP}
 					onClick={() => onTypeChange?.(type)}
 					className={cn(
@@ -106,7 +113,7 @@ function LeaderboardTabs({
 					)}
 				>
 					<Icon className='size-icon-sm' />
-					<span className='hidden sm:inline'>{label}</span>
+					<span className='text-xs sm:text-sm'>{label}</span>
 				</motion.button>
 			))}
 		</div>
@@ -134,7 +141,11 @@ function TimeframeToggle({
 	const activeIndex = timeframes.findIndex(t => t.value === activeTimeframe)
 
 	return (
-		<div className='relative flex p-1 bg-bg-card rounded-xl mb-5'>
+		<div
+			className='relative flex p-1 bg-bg-card rounded-xl mb-5'
+			role='tablist'
+			aria-label={t('tabTimeframeLabel')}
+		>
 			{/* Sliding indicator */}
 			<motion.div
 				className='absolute top-1 h-[calc(100%-8px)] bg-bg rounded-lg'
@@ -149,6 +160,8 @@ function TimeframeToggle({
 			{timeframes.map(({ value, label }) => (
 				<button
 					type='button'
+					role='tab'
+					aria-selected={activeTimeframe === value}
 					key={value}
 					onClick={() => onTimeframeChange?.(value)}
 					className={cn(
@@ -182,7 +195,7 @@ function MyRankBanner({
 			className={cn(
 				'flex flex-col sm:flex-row items-center gap-5 p-4 sm:p-5',
 				'bg-accent-purple-subtle',
-				'border-2 border-accent-purple/20 rounded-2xl mb-6',
+				'border border-accent-purple/15 rounded-2xl mb-6',
 			)}
 		>
 			<div className='flex flex-col items-center sm:pr-5 sm:border-r border-border pb-4 sm:pb-0 w-full sm:w-auto'>
@@ -419,6 +432,12 @@ export function LeaderboardPage({
 					<p className='text-sm text-text-secondary max-w-xs'>
 						{type === 'friends' ? t('emptyFriendsDesc') : t('emptyGlobalDesc')}
 					</p>
+					<Link
+						href={type === 'friends' ? '/community' : '/explore'}
+						className='mt-4 rounded-xl bg-gradient-hero px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-shadow hover:shadow-xl'
+					>
+						{type === 'friends' ? t('findFriends') : t('startCooking')}
+					</Link>
 				</motion.div>
 			)}
 		</div>

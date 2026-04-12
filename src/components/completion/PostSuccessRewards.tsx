@@ -7,6 +7,8 @@ import { X, Check, Lock, Unlock, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -180,6 +182,8 @@ export const PostSuccessRewards = ({
 	nextActions,
 }: PostSuccessRewardsProps) => {
 	const t = useTranslations('completion')
+	useEscapeKey(isOpen, onClose)
+	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
 	return (
 		<AnimatePresence>
 			{isOpen && (
@@ -195,6 +199,10 @@ export const PostSuccessRewards = ({
 
 					{/* Overlay */}
 					<motion.div
+						ref={focusTrapRef}
+						role='dialog'
+						aria-modal='true'
+						aria-label='Post rewards'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -237,8 +245,12 @@ export const PostSuccessRewards = ({
 										<Check className='size-5 text-white' />
 									</motion.div>
 								</div>
-								<h1 className='mb-2 text-3xl font-display font-extrabold'>{t('posted')}</h1>
-								<p className='text-text-muted'>{t('yourRecipeIsLive', { recipeName })}</p>
+								<h1 className='mb-2 text-3xl font-display font-extrabold'>
+									{t('posted')}
+								</h1>
+								<p className='text-text-muted'>
+									{t('yourRecipeIsLive', { recipeName })}
+								</p>
 							</div>
 
 							{/* XP unlocked section */}
@@ -287,9 +299,14 @@ export const PostSuccessRewards = ({
 							{/* Level progress */}
 							<div className='mb-4 rounded-xl bg-bg-elevated p-4'>
 								<div className='mb-2 flex items-center justify-between'>
-									<span className='font-bold'>{t('levelLabel', { level: currentLevel })}</span>
+									<span className='font-bold'>
+										{t('levelLabel', { level: currentLevel })}
+									</span>
 									<span className='text-sm text-text-muted'>
-										{t('xpToLevel', { amount: xpToNextLevel, level: currentLevel + 1 })}
+										{t('xpToLevel', {
+											amount: xpToNextLevel,
+											level: currentLevel + 1,
+										})}
 									</span>
 								</div>
 								<ProgressBar
@@ -321,7 +338,9 @@ export const PostSuccessRewards = ({
 										</span>
 									</div>
 									<p className='mt-2 text-sm text-text-muted'>
-										{t('keepCookingCuisine', { cuisine: mastery.cuisineName.toLowerCase() })}
+										{t('keepCookingCuisine', {
+											cuisine: mastery.cuisineName.toLowerCase(),
+										})}
 									</p>
 								</div>
 							)}
@@ -330,17 +349,15 @@ export const PostSuccessRewards = ({
 							{postPreview && (
 								<div className='mb-5 rounded-xl bg-bg-elevated p-4'>
 									<div className='mb-3 flex items-center justify-between'>
-										<span className='font-semibold'>
-										{t('yourPostIsLive')}
-									</span>
+										<span className='font-semibold'>{t('yourPostIsLive')}</span>
 										{onViewPost && (
 											<button
 												type='button'
 												onClick={onViewPost}
 												className='flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 											>
-											{t('viewPost')}
-											<ArrowRight className='size-4' />
+												{t('viewPost')}
+												<ArrowRight className='size-4' />
 											</button>
 										)}
 									</div>
@@ -356,7 +373,9 @@ export const PostSuccessRewards = ({
 											<span className='flex-1 text-sm font-semibold'>
 												{postPreview.authorName}
 											</span>
-											<span className='text-xs text-text-muted'>{t('justNow')}</span>
+											<span className='text-xs text-text-muted'>
+												{t('justNow')}
+											</span>
 										</div>
 										<Image
 											src={postPreview.imageUrl}

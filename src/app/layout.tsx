@@ -8,7 +8,6 @@ import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { TokenRefreshProvider } from '@/components/providers/TokenRefreshProvider'
 import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
-import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
 import { NetworkStatusProvider } from '@/components/providers/NetworkStatusProvider'
 import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvider'
 import { LiveAnnouncerProvider } from '@/components/a11y/LiveAnnouncer'
@@ -124,26 +123,24 @@ export default async function RootLayout({
 				>
 					Skip to main content
 				</a>
-				<GoogleOAuthWrapper>
-					<NextIntlClientProvider messages={messages}>
-						<AuthProvider>
-							<TokenRefreshProvider>
-								<BlockedUsersProvider>
-									<CelebrationProvider>
-										<LiveAnnouncerProvider>
-											<ReducedMotionProvider>
-												<FirstVisitHintsProvider>
-													{children}
-													<NetworkStatusProvider />
-												</FirstVisitHintsProvider>
-											</ReducedMotionProvider>
-										</LiveAnnouncerProvider>
-									</CelebrationProvider>
-								</BlockedUsersProvider>
-							</TokenRefreshProvider>
-						</AuthProvider>
-					</NextIntlClientProvider>
-				</GoogleOAuthWrapper>
+				<NextIntlClientProvider messages={messages}>
+					<AuthProvider>
+						<TokenRefreshProvider>
+							<BlockedUsersProvider>
+								<CelebrationProvider>
+									<LiveAnnouncerProvider>
+										<ReducedMotionProvider>
+											<FirstVisitHintsProvider>
+												{children}
+												<NetworkStatusProvider />
+											</FirstVisitHintsProvider>
+										</ReducedMotionProvider>
+									</LiveAnnouncerProvider>
+								</CelebrationProvider>
+							</BlockedUsersProvider>
+						</TokenRefreshProvider>
+					</AuthProvider>
+				</NextIntlClientProvider>
 				<Toaster position='bottom-center' />
 			</body>
 		</html>

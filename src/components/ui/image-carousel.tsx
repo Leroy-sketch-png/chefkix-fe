@@ -138,7 +138,10 @@ export function ImageCarousel({
 			)}
 			tabIndex={hasMultiple ? 0 : undefined}
 			role='region'
-			aria-label={t('ariaImageCarousel', { current: currentIndex + 1, total: images.length })}
+			aria-label={t('ariaImageCarousel', {
+				current: currentIndex + 1,
+				total: images.length,
+			})}
 			aria-roledescription='carousel'
 		>
 			{/* Image container with animation */}
@@ -180,7 +183,7 @@ export function ImageCarousel({
 							'flex size-8 items-center justify-center rounded-full',
 							'bg-bg-card border border-border-subtle text-text',
 							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
-							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
+							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
 						)}
 						aria-label={t('ariaPreviousImage')}
 					>
@@ -194,7 +197,7 @@ export function ImageCarousel({
 							'flex size-8 items-center justify-center rounded-full',
 							'bg-bg-card border border-border-subtle text-text',
 							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
-							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
+							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
 						)}
 						aria-label={t('ariaNextImage')}
 					>

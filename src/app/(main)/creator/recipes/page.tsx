@@ -52,7 +52,8 @@ import {
 	deleteRecipe,
 	duplicateRecipe,
 } from '@/services/recipe'
-import { getRecipeImage } from '@/lib/types/recipe'
+import { getRecipeImage, formatCookingTime } from '@/lib/types/recipe'
+import type { Recipe, Difficulty } from '@/lib/types/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import {
@@ -63,7 +64,6 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-import type { Recipe, Difficulty } from '@/lib/types/recipe'
 
 // ============================================
 // RECIPE CARD COMPONENT
@@ -110,6 +110,9 @@ const RecipeManageCard = ({
 						fill
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-500 group-hover:scale-105'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
+						}}
 					/>
 					<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
 
@@ -173,22 +176,28 @@ const RecipeManageCard = ({
 					</span>
 					<span className='flex items-center gap-1'>
 						<Clock className='size-4' />
-						{recipe.totalTimeMinutes}m
+						{formatCookingTime(recipe.totalTimeMinutes)}
 					</span>
 				</div>
 
 				{/* Actions */}
 				<div className='flex items-center gap-2'>
 					<Button
-						onClick={() => startNavigationTransition(() => {
-							router.push(`/create?draftId=${recipe.id}`)
-						})}
+						onClick={() =>
+							startNavigationTransition(() => {
+								router.push(`/create?draftId=${recipe.id}`)
+							})
+						}
 						variant='outline'
 						size='sm'
 						disabled={isNavigating}
 						className='flex-1 gap-1'
 					>
-						{isNavigating ? <Loader2 className='size-4 animate-spin' /> : <Edit3 className='size-4' />}
+						{isNavigating ? (
+							<Loader2 className='size-4 animate-spin' />
+						) : (
+							<Edit3 className='size-4' />
+						)}
 						{t('edit')}
 					</Button>
 					<Button
@@ -301,7 +310,7 @@ export default function MyRecipesPage() {
 				setRecipes(prev => prev.filter(r => r.id !== recipeId))
 				toast.success(t('recipeDeleted'))
 			} else {
-				toast.error(response.message || t('failedToDeleteRecipe'))
+				toast.error(t('failedToDeleteRecipe'))
 			}
 		} catch {
 			toast.error(t('failedToDeleteRecipe'))
@@ -322,7 +331,7 @@ export default function MyRecipesPage() {
 					router.push(`/create?draftId=${response.data.id}`)
 				})
 			} else {
-				toast.error(response.message || t('failedToDuplicateRecipe'))
+				toast.error(t('failedToDuplicateRecipe'))
 			}
 		} catch {
 			toast.error(t('failedToDuplicateRecipe'))
@@ -387,7 +396,7 @@ export default function MyRecipesPage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-					{t('loading')}
+							{t('loading')}
 						</div>
 					</motion.div>
 				)}
@@ -413,9 +422,11 @@ export default function MyRecipesPage() {
 							className='mb-0'
 							rightAction={
 								<Button
-									onClick={() => startNavigationTransition(() => {
-										router.push('/create')
-									})}
+									onClick={() =>
+										startNavigationTransition(() => {
+											router.push('/create')
+										})
+									}
 									disabled={isNavigating}
 									className='gap-2 bg-gradient-hero text-white shadow-lg shadow-brand/30 disabled:opacity-50'
 								>
@@ -470,14 +481,16 @@ export default function MyRecipesPage() {
 						<div className='mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-brand/10'>
 							<ChefHat className='size-8 text-brand' />
 						</div>
-						<h3 className='mb-2 text-xl font-bold text-text'>{t('noRecipesYet')}</h3>
-						<p className='mb-6 text-text-muted'>
-							{t('noRecipesYetDesc')}
-						</p>
+						<h3 className='mb-2 text-xl font-bold text-text'>
+							{t('noRecipesYet')}
+						</h3>
+						<p className='mb-6 text-text-muted'>{t('noRecipesYetDesc')}</p>
 						<Button
-							onClick={() => startNavigationTransition(() => {
-								router.push('/create')
-							})}
+							onClick={() =>
+								startNavigationTransition(() => {
+									router.push('/create')
+								})
+							}
 							disabled={isNavigating}
 							className='gap-2 bg-gradient-hero text-white disabled:opacity-50'
 						>
@@ -489,8 +502,9 @@ export default function MyRecipesPage() {
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
-						className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center shadow-card'
+						className='flex flex-col items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-8 text-center shadow-card'
 					>
+						<Search className='size-8 text-text-muted/40' />
 						<p className='text-text-muted'>
 							{t('noRecipesMatch', { query: searchQuery })}
 						</p>
@@ -514,6 +528,8 @@ export default function MyRecipesPage() {
 						))}
 					</motion.div>
 				)}
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

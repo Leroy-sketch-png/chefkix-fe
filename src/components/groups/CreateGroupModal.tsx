@@ -42,9 +42,7 @@ const createGroupSchema = z.object({
 		.string()
 		.min(3, 'Group name must be at least 3 characters')
 		.max(50, 'Group name cannot exceed 50 characters'),
-	description: z
-		.string()
-		.max(500, 'Description cannot exceed 500 characters'),
+	description: z.string().max(500, 'Description cannot exceed 500 characters'),
 	privacyType: z.enum(['PUBLIC', 'PRIVATE']),
 	tags: z.array(z.string()),
 })
@@ -106,15 +104,14 @@ export const CreateGroupModal = ({
 			<DialogContent className='sm:max-w-lg'>
 				<DialogHeader>
 					<DialogTitle>{t('cgTitle')}</DialogTitle>
-					<DialogDescription>
-						{t('cgDescription')}
-					</DialogDescription>
+					<DialogDescription>{t('cgDescription')}</DialogDescription>
 				</DialogHeader>
 
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
 						className='space-y-6'
+						noValidate
 					>
 						{/* Group Name */}
 						<FormField
@@ -150,9 +147,7 @@ export const CreateGroupModal = ({
 											rows={4}
 										/>
 									</FormControl>
-									<FormDescription>
-										{t('cgDescHint')}
-									</FormDescription>
+									<FormDescription>{t('cgDescHint')}</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -178,17 +173,17 @@ export const CreateGroupModal = ({
 										<SelectContent>
 											<SelectItem value='PUBLIC'>
 												<div className='flex flex-col'>
-														<span>{t('cgPublic')}</span>
-														<span className='text-xs text-text-secondary'>
-															{t('cgPublicDesc')}
-														</span>
-													</div>
-												</SelectItem>
-												<SelectItem value='PRIVATE'>
-													<div className='flex flex-col'>
-														<span>{t('cgPrivate')}</span>
-														<span className='text-xs text-text-secondary'>
-															{t('cgPrivateDesc')}
+													<span>{t('cgPublic')}</span>
+													<span className='text-xs text-text-secondary'>
+														{t('cgPublicDesc')}
+													</span>
+												</div>
+											</SelectItem>
+											<SelectItem value='PRIVATE'>
+												<div className='flex flex-col'>
+													<span>{t('cgPrivate')}</span>
+													<span className='text-xs text-text-secondary'>
+														{t('cgPrivateDesc')}
 													</span>
 												</div>
 											</SelectItem>
@@ -209,10 +204,10 @@ export const CreateGroupModal = ({
 									<FormControl>
 										<Input
 											placeholder={t('cgTagsPlaceholder')}
-											onChange={(e) => {
+											onChange={e => {
 												const values = e.target.value
 													.split(',')
-													.map((tag) => tag.trim())
+													.map(tag => tag.trim())
 													.filter(Boolean)
 												field.onChange(values)
 											}}
@@ -220,9 +215,7 @@ export const CreateGroupModal = ({
 											disabled={isSubmitting}
 										/>
 									</FormControl>
-									<FormDescription>
-										{t('cgTagsHint')}
-									</FormDescription>
+									<FormDescription>{t('cgTagsHint')}</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}

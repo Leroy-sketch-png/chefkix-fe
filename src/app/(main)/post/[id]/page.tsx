@@ -114,7 +114,7 @@ export default function PostDetailPage() {
 						className='gap-2 text-text-secondary hover:text-text'
 					>
 						<ArrowLeft className='size-4' />
-					<span>{t('backLabel')}</span>
+						<span>{t('backLabel')}</span>
 					</Button>
 				</motion.div>
 
@@ -131,6 +131,8 @@ export default function PostDetailPage() {
 						currentUserId={user?.userId}
 					/>
 				</motion.div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

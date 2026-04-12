@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Home } from 'lucide-react'
+import { RefreshCw, Home, Compass, Search } from 'lucide-react'
 import Link from 'next/link'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
@@ -26,7 +26,7 @@ export default function MainError({
 	}, [error])
 
 	return (
-		<div className='flex min-h-[60vh] flex-col items-center justify-center px-4'>
+		<div className='flex min-h-[60vh] flex-col items-center justify-start px-4 pb-24 pt-10 md:justify-center md:pb-8 md:pt-0'>
 			<div className='mx-auto max-w-md text-center'>
 				{/* Icon */}
 				<div className='mb-6 flex justify-center'>
@@ -53,14 +53,41 @@ export default function MainError({
 				)}
 
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
-					<Button onClick={reset} className='h-11 gap-2'>
+					<Button onClick={reset} className='h-11 w-full gap-2 sm:w-auto'>
 						<RefreshCw className='size-4' />
 						{t('tryAgain')}
 					</Button>
-					<Button variant='outline' asChild className='h-11 gap-2'>
+					<Button
+						variant='outline'
+						asChild
+						className='h-11 w-full gap-2 sm:w-auto'
+					>
 						<Link href='/dashboard'>
 							<Home className='size-4' />
 							{t('dashboard')}
+						</Link>
+					</Button>
+				</div>
+
+				<div className='mt-3 grid grid-cols-2 gap-2'>
+					<Button
+						variant='ghost'
+						asChild
+						className='h-10 gap-2 border border-border-subtle'
+					>
+						<Link href='/explore'>
+							<Compass className='size-4' />
+							{t('explore')}
+						</Link>
+					</Button>
+					<Button
+						variant='ghost'
+						asChild
+						className='h-10 gap-2 border border-border-subtle'
+					>
+						<Link href='/search'>
+							<Search className='size-4' />
+							{t('search')}
 						</Link>
 					</Button>
 				</div>

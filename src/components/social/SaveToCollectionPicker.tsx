@@ -10,13 +10,7 @@ import {
 } from '@/services/collection'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-	FolderHeart,
-	Plus,
-	Check,
-	Loader2,
-	X,
-} from 'lucide-react'
+import { FolderHeart, Plus, Check, Loader2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -81,11 +75,13 @@ export const SaveToCollectionPicker = ({
 		try {
 			const response = await addPostToCollection(collectionId, postId)
 			if (response.success) {
-				const col = collections.find((c) => c.id === collectionId)
-				toast.success(t('addedToCollection', { name: col?.name ?? 'collection' }))
+				const col = collections.find(c => c.id === collectionId)
+				toast.success(
+					t('addedToCollection', { name: col?.name ?? 'collection' }),
+				)
 				onClose()
 			} else {
-				toast.error(response.message || t('failedAddToCollection'))
+				toast.error(t('failedAddToCollection'))
 			}
 		} catch (error) {
 			logDevError('Failed to add post to collection:', error)
@@ -122,7 +118,7 @@ export const SaveToCollectionPicker = ({
 					onClose()
 				}
 			} else {
-				toast.error(createResponse.message || t('failedCreateCollection'))
+				toast.error(t('failedCreateCollection'))
 			}
 		} catch (error) {
 			logDevError('Failed to create collection:', error)
@@ -141,16 +137,16 @@ export const SaveToCollectionPicker = ({
 	return (
 		<Portal>
 			{/* Backdrop */}
-			<div
-				className='fixed inset-0 z-dropdown'
-				onClick={onClose}
-			/>
+			<div className='fixed inset-0 z-dropdown' onClick={onClose} />
 			<AnimatePresence>
 				<motion.div
 					initial={{ opacity: 0, scale: 0.95, y: 10 }}
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					exit={{ opacity: 0, scale: 0.95, y: 10 }}
 					transition={TRANSITION_SPRING}
+					role='dialog'
+					aria-modal='true'
+					aria-labelledby='save-collection-title'
 					className='fixed z-dropdown w-64 rounded-radius border border-border-subtle bg-bg-card shadow-card'
 					style={{
 						bottom: `${window.innerHeight - anchorPosition.top}px`,
@@ -159,7 +155,10 @@ export const SaveToCollectionPicker = ({
 				>
 					{/* Header */}
 					<div className='flex items-center justify-between border-b border-border-subtle px-3 py-2'>
-						<span className='text-sm font-semibold text-text'>
+						<span
+							className='text-sm font-semibold text-text'
+							id='save-collection-title'
+						>
 							{t('saveToCollection')}
 						</span>
 						<button
@@ -183,7 +182,7 @@ export const SaveToCollectionPicker = ({
 								{t('noCollectionsYet')}
 							</div>
 						) : (
-							collections.map((col) => {
+							collections.map(col => {
 								const saved = alreadySaved(col)
 								return (
 									<button
@@ -222,8 +221,8 @@ export const SaveToCollectionPicker = ({
 									ref={inputRef}
 									type='text'
 									value={newName}
-									onChange={(e) => setNewName(e.target.value)}
-									onKeyDown={(e) => {
+									onChange={e => setNewName(e.target.value)}
+									onKeyDown={e => {
 										if (e.key === 'Enter') handleCreateAndAdd()
 										if (e.key === 'Escape') {
 											e.stopPropagation()
@@ -233,7 +232,7 @@ export const SaveToCollectionPicker = ({
 									}}
 									placeholder={t('collectionNamePlaceholder')}
 									maxLength={60}
-									className='flex-1 rounded border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+									className='flex-1 rounded border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								/>
 								<button
 									type='button'

@@ -20,7 +20,16 @@ import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { TRANSITION_SPRING, scaleIn, ICON_BUTTON_HOVER, ICON_BUTTON_TAP, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	scaleIn,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 
 // =============================================================================
 // TYPES
@@ -88,7 +97,14 @@ const getStatusIcon = (status: Message['status']) => {
 }
 
 // Quick reactions
-const QUICK_REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏']
+const QUICK_REACTIONS = [
+	{ emoji: '❤️', label: 'heart' },
+	{ emoji: '👍', label: 'thumbs up' },
+	{ emoji: '😂', label: 'laughing' },
+	{ emoji: '😮', label: 'surprised' },
+	{ emoji: '😢', label: 'sad' },
+	{ emoji: '🙏', label: 'thanks' },
+]
 
 // =============================================================================
 // REACTION PICKER
@@ -111,11 +127,12 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 				isOwn ? 'bottom-full right-0 mb-2' : 'bottom-full left-0 mb-2',
 			)}
 		>
-			{QUICK_REACTIONS.map((emoji, i) => (
+			{QUICK_REACTIONS.map(({ emoji, label }, i) => (
 				<motion.button
 					type='button'
 					key={emoji}
 					onClick={() => onSelect(emoji)}
+					aria-label={label}
 					className='flex size-9 items-center justify-center rounded-full text-lg hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 					initial={{ opacity: 0, scale: 0 }}
 					animate={{ opacity: 1, scale: 1 }}
@@ -320,7 +337,10 @@ export const ChatMessage = ({
 								<span className='font-semibold text-text'>
 									{message.replyTo.senderName}
 								</span>
-								<p className='mt-0.5 line-clamp-2 text-text-secondary'>
+								<p
+									className='mt-0.5 line-clamp-2 text-text-secondary'
+									title={message.replyTo.content}
+								>
 									{message.replyTo.content}
 								</p>
 							</motion.div>
@@ -334,7 +354,7 @@ export const ChatMessage = ({
 									whileHover={LIST_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
 									className={cn(
-										'group/card overflow-hidden rounded-2xl border transition-all hover:shadow-lg',
+										'group/card overflow-hidden rounded-2xl border transition-all hover:shadow-warm',
 										message.isOwn
 											? 'rounded-br-md border-brand/30 bg-brand/5'
 											: 'rounded-bl-md border-border bg-bg-elevated',
@@ -351,6 +371,10 @@ export const ChatMessage = ({
 													sizes='80px'
 													className='object-cover transition-transform group-hover/card:scale-110'
 													unoptimized
+													onError={e => {
+														;(e.target as HTMLImageElement).style.display =
+															'none'
+													}}
 												/>
 											</div>
 										)}
@@ -384,13 +408,19 @@ export const ChatMessage = ({
 
 											{/* Title */}
 											{message.sharedPostTitle && (
-												<p className='mb-1 line-clamp-1 text-sm font-bold text-text'>
+												<p
+													className='mb-1 line-clamp-1 text-sm font-bold text-text'
+													title={message.sharedPostTitle}
+												>
 													{message.sharedPostTitle}
 												</p>
 											)}
 
 											{/* Caption */}
-											<p className='line-clamp-2 text-xs leading-relaxed text-text-secondary'>
+											<p
+												className='line-clamp-2 text-xs leading-relaxed text-text-secondary'
+												title={message.content}
+											>
 												{message.content}
 											</p>
 
@@ -451,8 +481,8 @@ export const ChatMessage = ({
 												? 'bg-brand/10 text-brand ring-2 ring-brand/20'
 												: 'bg-bg-elevated text-text-secondary ring-1 ring-border hover:bg-bg-hover',
 										)}
-									whileHover={BUTTON_SUBTLE_HOVER}
-									whileTap={BUTTON_SUBTLE_TAP}
+										whileHover={BUTTON_SUBTLE_HOVER}
+										whileTap={BUTTON_SUBTLE_TAP}
 									>
 										<span className='text-sm'>{reaction.emoji}</span>
 										<span className='font-semibold'>{reaction.count}</span>
@@ -493,7 +523,9 @@ export const ChatMessage = ({
 						message.isOwn ? 'mr-2' : !showAvatar ? 'ml-0' : 'ml-11',
 					)}
 				>
-					<span className='tabular-nums font-medium'>{formatTime(message.timestamp)}</span>
+					<span className='tabular-nums font-medium'>
+						{formatTime(message.timestamp)}
+					</span>
 					{message.isOwn && (
 						<motion.div
 							initial={{ scale: 0 }}

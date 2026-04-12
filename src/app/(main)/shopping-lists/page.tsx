@@ -28,7 +28,15 @@ import {
 	type AsyncComboboxOption,
 } from '@/components/ui/async-combobox'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { TRANSITION_SPRING, CARD_HOVER, CARD_FEATURED_HOVER, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP, LIST_ITEM_TAP, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	CARD_FEATURED_HOVER,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	LIST_ITEM_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import {
 	getUserShoppingLists,
 	getShoppingListById,
@@ -422,7 +430,8 @@ export default function ShoppingListsPage() {
 										setSelectedList(null)
 										fetchLists()
 									}}
-									className='rounded-lg p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+									className='rounded-lg p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('backToLists')}
 								>
 									<ArrowLeft className='size-5' />
 								</button>
@@ -431,7 +440,10 @@ export default function ShoppingListsPage() {
 										{selectedList.name}
 									</h1>
 									<p className='text-sm text-text-muted'>
-										{t('itemsChecked', { checked: selectedList.items.filter(i => i.checked).length, total: selectedList.totalItems })}
+										{t('itemsChecked', {
+											checked: selectedList.items.filter(i => i.checked).length,
+											total: selectedList.totalItems,
+										})}
 									</p>
 								</div>
 							</div>
@@ -502,9 +514,7 @@ export default function ShoppingListsPage() {
 													t('checkoutStarted', { count: result.itemCount }),
 												)
 											} else {
-												toast.success(
-													t('checkoutPrepared'),
-												)
+												toast.success(t('checkoutPrepared'))
 											}
 										} catch {
 											toast.error(t('checkoutFailed'))
@@ -586,7 +596,7 @@ export default function ShoppingListsPage() {
 													}))
 												}
 												placeholder={t('quantityPlaceholder')}
-												className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+												className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 											/>
 										</div>
 										<button
@@ -662,6 +672,9 @@ export default function ShoppingListsPage() {
 														<button
 															type='button'
 															onClick={() => handleToggleItem(item.itemId)}
+															role='checkbox'
+															aria-checked={item.checked}
+															aria-label={`${item.ingredient}`}
 															className='flex-shrink-0'
 														>
 															{item.checked ? (
@@ -708,7 +721,7 @@ export default function ShoppingListsPage() {
 														<button
 															type='button'
 															onClick={() => handleRemoveItem(item.itemId)}
-															className='flex-shrink-0 rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
+															className='flex size-10 flex-shrink-0 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
 															aria-label={t('ariaRemoveItem')}
 														>
 															<Trash2 className='size-4' />
@@ -738,8 +751,8 @@ export default function ShoppingListsPage() {
 						icon={ShoppingCart}
 						title={t('title')}
 						subtitle={t('subtitle', { count: lists.length })}
-						gradient="blue"
-						marginBottom="sm"
+						gradient='blue'
+						marginBottom='sm'
 						rightAction={
 							<div className='relative'>
 								<motion.button
@@ -780,7 +793,9 @@ export default function ShoppingListsPage() {
 												>
 													<CalendarDays className='size-4 text-info' />
 													<div>
-														<div className='font-medium'>{t('fromMealPlan')}</div>
+														<div className='font-medium'>
+															{t('fromMealPlan')}
+														</div>
 														<div className='text-xs text-text-muted'>
 															{t('mealPlanDesc')}
 														</div>
@@ -805,28 +820,29 @@ export default function ShoppingListsPage() {
 														<input
 															value={customListName}
 															onChange={e => setCustomListName(e.target.value)}
-														placeholder={t('listNamePlaceholder')}
-														className='flex-1 rounded-lg border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
-														onKeyDown={e =>
-															e.key === 'Enter' && handleCreateCustom()
-														}
-														autoFocus
-													/>
-													<button
-														type='button'
-														onClick={handleCreateCustom}
-														disabled={!customListName.trim() || isCreating}
-														className='rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
-													>
-														Create
-													</button>
-												</div>
-											)}
-										</motion.div>
-									</>
-								)}
-							</AnimatePresence>
-						</div>
+															placeholder={t('listNamePlaceholder')}
+															aria-label={t('listNamePlaceholder')}
+															className='flex-1 rounded-lg border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+															onKeyDown={e =>
+																e.key === 'Enter' && handleCreateCustom()
+															}
+															autoFocus
+														/>
+														<button
+															type='button'
+															onClick={handleCreateCustom}
+															disabled={!customListName.trim() || isCreating}
+															className='rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
+														>
+															Create
+														</button>
+													</div>
+												)}
+											</motion.div>
+										</>
+									)}
+								</AnimatePresence>
+							</div>
 						}
 					/>
 
@@ -837,9 +853,7 @@ export default function ShoppingListsPage() {
 							<h2 className='mb-2 text-lg font-semibold text-text'>
 								{t('noListsYet')}
 							</h2>
-							<p className='mb-6 text-sm text-text-muted'>
-								{t('noListsDesc')}
-							</p>
+							<p className='mb-6 text-sm text-text-muted'>{t('noListsDesc')}</p>
 							<button
 								type='button'
 								onClick={() => setShowCreateMenu(true)}
@@ -880,7 +894,7 @@ export default function ShoppingListsPage() {
 													e.stopPropagation()
 													setConfirmingDeleteId(list.id)
 												}}
-												className='rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
+												className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
 												aria-label={t('ariaDeleteList')}
 											>
 												<Trash2 className='size-4' />
@@ -938,12 +952,22 @@ export default function ShoppingListsPage() {
 									animate={{ scale: 1, opacity: 1 }}
 									exit={{ scale: 0.95, opacity: 0 }}
 									onClick={e => e.stopPropagation()}
+									role='alertdialog'
+									aria-modal='true'
+									aria-labelledby='delete-list-title'
+									aria-describedby='delete-list-desc'
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
-									<h3 className='mb-2 text-lg font-bold text-text'>
+									<h3
+										className='mb-2 text-lg font-bold text-text'
+										id='delete-list-title'
+									>
 										{t('deleteTitle')}
 									</h3>
-									<p className='mb-6 text-sm text-text-muted'>
+									<p
+										className='mb-6 text-sm text-text-muted'
+										id='delete-list-desc'
+									>
 										{t('deleteDesc')}
 									</p>
 									<div className='flex justify-end gap-3'>
@@ -968,6 +992,9 @@ export default function ShoppingListsPage() {
 						</Portal>
 					)}
 				</AnimatePresence>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

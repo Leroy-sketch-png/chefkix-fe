@@ -82,14 +82,20 @@ export default function CookingRoomPage() {
 				case 'STEP_NAVIGATED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: t('ctActivityStepNav', { name, step: String(event.data?.stepNumber ?? '?') }),
+						text: t('ctActivityStepNav', {
+							name,
+							step: String(event.data?.stepNumber ?? '?'),
+						}),
 						emoji: '👣',
 						timestamp: Date.now(),
 					}
 				case 'STEP_COMPLETED':
 					return {
 						id: `${event.type}-${Date.now()}`,
-						text: t('ctActivityStepDone', { name, step: String(event.data?.stepNumber ?? '?') }),
+						text: t('ctActivityStepDone', {
+							name,
+							step: String(event.data?.stepNumber ?? '?'),
+						}),
 						emoji: '✅',
 						timestamp: Date.now(),
 					}
@@ -216,7 +222,7 @@ export default function CookingRoomPage() {
 			await leaveRoom()
 			const success = await joinRoom(roomCode, 'COOK')
 			if (success) {
-					toast.success(t('ctToastNowCooking'))
+				toast.success(t('ctToastNowCooking'))
 			} else {
 				toast.error(t('toastJoinCookFailed'))
 				router.replace('/cook-together')
@@ -272,7 +278,7 @@ export default function CookingRoomPage() {
 					)}
 				</AnimatePresence>
 
-			{/* Header with PageHeader */}
+				{/* Header with PageHeader */}
 				<div className='mb-8'>
 					<PageHeader
 						icon={Users}
@@ -324,7 +330,10 @@ export default function CookingRoomPage() {
 										{recipe.title}
 									</h2>
 									<p className='text-sm text-text-secondary'>
-												{t('ctRecipeInfo', { steps: totalSteps, minutes: recipe.totalTimeMinutes ?? 0 })}
+										{t('ctRecipeInfo', {
+											steps: totalSteps,
+											minutes: recipe.totalTimeMinutes ?? 0,
+										})}
 									</p>
 								</div>
 							</div>
@@ -402,7 +411,10 @@ export default function CookingRoomPage() {
 												<p className='text-xs text-text-muted'>
 													{pIsSpectator
 														? t('ctSpectating')
-														: t('ctStepOf', { current: p.currentStep, total: totalSteps })}
+														: t('ctStepOf', {
+																current: p.currentStep,
+																total: totalSteps,
+															})}
 												</p>
 											</div>
 											{/* Progress — only for cooks */}
@@ -521,6 +533,8 @@ export default function CookingRoomPage() {
 						</div>
 					</motion.div>
 				</div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

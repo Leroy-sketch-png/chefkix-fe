@@ -21,6 +21,7 @@ import { toast } from 'sonner'
 import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	getActiveDuels,
 	getPendingInvites,
@@ -152,11 +153,15 @@ function DuelCard({
 	const handleAccept = async () => {
 		setActing(true)
 		try {
-			await acceptDuel(duel.id)
+			const result = await acceptDuel(duel.id)
+			if (!result.success) {
+				toast.error(result.message || t('toastFailed'))
+				return
+			}
 			toast.success(t('toastAccepted'))
 			onAction()
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : t('toastFailed'))
+			toast.error(t('toastFailed'))
 		} finally {
 			setActing(false)
 		}
@@ -165,11 +170,15 @@ function DuelCard({
 	const handleDecline = async () => {
 		setActing(true)
 		try {
-			await declineDuel(duel.id)
+			const result = await declineDuel(duel.id)
+			if (!result.success) {
+				toast.error(result.message || t('toastFailed'))
+				return
+			}
 			toast.success(t('toastDeclined'))
 			onAction()
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : t('toastFailed'))
+			toast.error(t('toastFailed'))
 		} finally {
 			setActing(false)
 		}
@@ -178,11 +187,15 @@ function DuelCard({
 	const handleCancel = async () => {
 		setActing(true)
 		try {
-			await cancelDuel(duel.id)
+			const result = await cancelDuel(duel.id)
+			if (!result.success) {
+				toast.error(result.message || t('toastFailed'))
+				return
+			}
 			toast.success(t('toastCancelled'))
 			onAction()
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : t('toastFailed'))
+			toast.error(t('toastFailed'))
 		} finally {
 			setActing(false)
 		}
@@ -227,7 +240,7 @@ function DuelCard({
 					</div>
 				</div>
 				<span
-					className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.color} ${meta.bgColor}`}
+					className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${meta.color} ${meta.bgColor}`}
 				>
 					{meta.icon}
 					{meta.label}
@@ -402,6 +415,7 @@ function CreateDuelModal({
 	onCreated: () => void
 }) {
 	const t = useTranslations('duels')
+	useEscapeKey(isOpen, onClose)
 	const [step, setStep] = useState<'friend' | 'recipe' | 'confirm'>('friend')
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [friendSearch, setFriendSearch] = useState('')
@@ -480,14 +494,18 @@ function CreateDuelModal({
 				recipeId: selectedRecipe.id,
 				...(message.trim() && { message: message.trim() }),
 			}
-			await createDuel(request)
+			const result = await createDuel(request)
+			if (!result.success) {
+				toast.error(result.message || t('toastFailedSend'))
+				return
+			}
 			toast.success(
 				t('toastSent', { name: getProfileDisplayName(selectedFriend) }),
 			)
 			onCreated()
 			onClose()
 		} catch (e) {
-			toast.error(e instanceof Error ? e.message : t('toastFailedSend'))
+			toast.error(t('toastFailedSend'))
 		} finally {
 			setSubmitting(false)
 		}
@@ -560,7 +578,7 @@ function CreateDuelModal({
 										placeholder={t('searchFriends')}
 										value={friendSearch}
 										onChange={e => setFriendSearch(e.target.value)}
-										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 									/>
 								</div>
 								{loading ? (
@@ -633,7 +651,7 @@ function CreateDuelModal({
 										placeholder={t('searchRecipes')}
 										value={recipeSearch}
 										onChange={e => setRecipeSearch(e.target.value)}
-										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 									/>
 								</div>
 								{loading ? (
@@ -755,7 +773,7 @@ function CreateDuelModal({
 										value={message}
 										onChange={e => setMessage(e.target.value)}
 										maxLength={200}
-										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 px-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 px-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 									/>
 								</div>
 

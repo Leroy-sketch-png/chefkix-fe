@@ -2,7 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BUTTON_SUBTLE_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_TAP,
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+} from '@/lib/motion'
 import { Star, MessageSquare, ChevronDown, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { StarRating } from '@/components/ui/star-rating'
@@ -10,7 +16,6 @@ import { getReviewsForRecipe, getRecipeReviewStats } from '@/services/post'
 import { Post, RecipeReviewStatsResponse } from '@/lib/types/post'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
 
@@ -119,7 +124,10 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 						/>
 						<span className='text-sm font-medium text-text-secondary'>
 							{stats.averageRating.toFixed(1)} ({stats.totalReviews}{' '}
-							{stats.totalReviews === 1 ? t('reviewSingular') : t('reviewPlural')})
+							{stats.totalReviews === 1
+								? t('reviewSingular')
+								: t('reviewPlural')}
+							)
 						</span>
 					</div>
 				)}
@@ -185,7 +193,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 							{review.likes != null && review.likes > 0 && (
 								<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
 									<MessageSquare className='size-3' />
-							{review.commentCount ?? 0} {t('commentsLabel')}
+									{review.commentCount ?? 0} {t('commentsLabel')}
 								</div>
 							)}
 						</motion.div>

@@ -7,10 +7,16 @@ import {
 	useCallback,
 	useMemo,
 	useTransition,
+	Suspense,
 } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
+import {
+	Recipe,
+	getRecipeImage,
+	getTotalTime,
+	formatCookingTime,
+} from '@/lib/types/recipe'
 import {
 	getAllRecipes,
 	getTrendingRecipes,
@@ -169,20 +175,23 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
 			transition={TRANSITION_SPRING}
-			className='relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand/10 via-bg-card to-streak/10 shadow-warm'
+			className='relative mb-6 overflow-hidden rounded-2xl border border-brand/15 bg-bg-card shadow-card md:mb-8'
 		>
-			<div className='grid gap-6 p-6 md:grid-cols-2 md:p-8'>
+			<div className='grid gap-4 p-4 sm:gap-6 sm:p-6 md:grid-cols-2 md:p-8'>
 				{/* Left: Image */}
-				<div className='relative aspect-[4/3] overflow-hidden rounded-2xl shadow-lg md:aspect-auto md:h-full md:min-h-[300px]'>
+				<div className='relative aspect-[16/9] overflow-hidden rounded-2xl shadow-lg sm:aspect-[4/3] md:aspect-auto md:h-full md:min-h-[300px]'>
 					<Image
 						src={getRecipeImage(recipe)}
 						alt={recipe.title}
 						fill
 						className='object-cover'
 						sizes='(max-width: 768px) 100vw, 50vw'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
+						}}
 					/>
 					{/* Featured badge */}
-					<div className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-gradient-hero px-4 py-2 text-sm font-bold text-white shadow-lg'>
+					<div className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-brand/90 px-3 py-1.5 text-xs font-semibold text-white shadow-md'>
 						<Flame className='size-4' />
 						{t('featuredToday')}
 					</div>
@@ -194,7 +203,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						{/* XP Badge */}
 						<Badge
 							variant='secondary'
-							className='tabular-nums bg-gradient-xp px-3 py-1 text-sm font-bold text-white shadow-card'
+							className='tabular-nums bg-xp px-3 py-1 text-sm font-semibold text-white shadow-sm'
 						>
 							+{recipe.xpReward || 0} XP
 						</Badge>
@@ -214,27 +223,27 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							className='flex items-center gap-1 border-border-medium bg-bg-elevated'
 						>
 							<Clock className='size-3' />
-							{getTotalTime(recipe)} {t('unitMin')}
+							{formatCookingTime(getTotalTime(recipe))}
 						</Badge>
 					</div>
 
-					<h2 className='mb-3 text-2xl font-serif font-bold text-text md:text-3xl'>
+					<h2 className='mb-2 text-xl font-serif font-bold text-text sm:mb-3 sm:text-2xl md:text-3xl'>
 						{recipe.title}
 					</h2>
 
-					<p className='mb-6 line-clamp-3 text-text-secondary'>
+					<p className='mb-4 line-clamp-2 text-sm text-text-secondary sm:mb-6 sm:line-clamp-3 sm:text-base'>
 						{recipe.description}
 					</p>
 
 					{/* Author */}
 					{recipe.author?.displayName && (
-						<div className='mb-6 flex items-center gap-3'>
+						<div className='mb-4 flex items-center gap-2.5 sm:mb-6 sm:gap-3'>
 							<Image
 								src={recipe.author.avatarUrl || '/placeholder-avatar.svg'}
 								alt={recipe.author.displayName}
 								width={40}
 								height={40}
-								className='rounded-full border-2 border-border-subtle object-cover'
+								className='size-10 rounded-full border-2 border-border-subtle object-cover sm:size-12'
 							/>
 							<div>
 								<p className='text-sm font-medium text-text'>
@@ -255,7 +264,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							disabled={isCookNavigating}
 							whileHover={isCookNavigating ? undefined : BUTTON_HOVER}
 							whileTap={isCookNavigating ? undefined : BUTTON_TAP}
-							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
 						>
 							{isCookNavigating ? (
 								<Loader2 className='size-5 animate-spin' />
@@ -274,7 +283,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							disabled={isNavigating}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='rounded-xl border-2 border-border-medium bg-bg-card px-6 py-3 font-semibold text-text hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='rounded-xl border-2 border-border-medium bg-bg-card px-4 py-2.5 text-sm font-semibold text-text hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
 						>
 							{isNavigating ? (
 								<>
@@ -394,7 +403,7 @@ function FilterChips({
 					exit={{ scale: 0.8, opacity: 0 }}
 					whileTap={BUTTON_TAP}
 					onClick={() => onRemove(filter.type, filter.value)}
-					className='group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-2 text-sm font-medium text-brand hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{filter.label}
 					<X className='size-3.5 transition-transform group-hover:scale-110' />
@@ -421,6 +430,14 @@ function FilterChips({
 // ============================================
 
 export default function ExplorePage() {
+	return (
+		<Suspense>
+			<ExploreContent />
+		</Suspense>
+	)
+}
+
+function ExploreContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const requireAuth = useAuthGate()
@@ -642,14 +659,16 @@ export default function ExplorePage() {
 					)
 					if (cancelled) return
 					if (searchRes.success && searchRes.data?.recipes?.hits) {
-						const allRecipes = searchRes.data.recipes.hits.map(h =>
+						const recipesResult = searchRes.data.recipes
+						const allRecipes = recipesResult.hits.map(h =>
 							mapRecipeDocToRecipe(h.document),
 						)
 						setFeaturedRecipe(null)
 						setSavedRecipes(new Set<string>())
 						setRecipes(allRecipes)
-						setTotalCount(searchRes.data.recipes.found ?? allRecipes.length)
-						setHasMore(false) // Typesense returns all matches in one page
+						const totalFound = recipesResult.found ?? allRecipes.length
+						setTotalCount(totalFound)
+						setHasMore(allRecipes.length < totalFound)
 					} else {
 						setRecipes([])
 						setTotalCount(0)
@@ -772,68 +791,96 @@ export default function ExplorePage() {
 		const nextPage = page // page state is already 1-based, backend expects 0-based
 
 		try {
-			// Build same server-side filter params as fetchRecipes
-			const filterParams: Record<string, unknown> = {
-				page: nextPage,
-				size: RECIPES_PER_PAGE,
-				search: debouncedSearch || undefined,
-			}
+			// ── Typesense path: paginated search when user has a search query ──
+			if (debouncedSearch) {
+				const searchRes = await unifiedSearch(
+					debouncedSearch,
+					'recipes',
+					RECIPES_PER_PAGE,
+					nextPage + 1, // Typesense pages are 1-based
+				)
+				if (searchRes.success && searchRes.data?.recipes?.hits) {
+					const recipesResult = searchRes.data.recipes
+					const newRecipes = recipesResult.hits.map(h =>
+						mapRecipeDocToRecipe(h.document),
+					)
+					setRecipes(prev => {
+						const existingIds = new Set(prev.map(r => r.id))
+						const dedupedRecipes = newRecipes.filter(
+							r => !existingIds.has(r.id),
+						)
+						return [...prev, ...dedupedRecipes]
+					})
+					setPage(nextPage + 1)
+					const totalFound = recipesResult.found ?? 0
+					setTotalCount(totalFound)
+					setHasMore(recipes.length + newRecipes.length < totalFound)
+				}
+			} else {
+				// ── MongoDB path: browse / filter / trending (no search query) ──
+				const filterParams: Record<string, unknown> = {
+					page: nextPage,
+					size: RECIPES_PER_PAGE,
+				}
 
-			if (filters.difficulty.length > 0) {
-				const apiDifficulty = filters.difficulty
-					.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
-					.find(Boolean)
-				if (apiDifficulty) filterParams.difficulty = apiDifficulty
-			}
-			if (filters.cuisine.length > 0) {
-				filterParams.cuisineType = filters.cuisine[0]
-			}
-			if (filters.dietary.length > 0) {
-				filterParams.dietaryTags = filters.dietary
-			}
-			if (filters.cookingTimeMax < 120) {
-				filterParams.maxTime = filters.cookingTimeMax
-			}
-			if (filters.foolproofOnly) {
-				filterParams.qualityTier = 'Foolproof'
-			}
-			if (sortBy && viewMode !== 'trending') {
-				filterParams.sortBy = sortBy
-			}
+				if (filters.difficulty.length > 0) {
+					const apiDifficulty = filters.difficulty
+						.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
+						.find(Boolean)
+					if (apiDifficulty) filterParams.difficulty = apiDifficulty
+				}
+				if (filters.cuisine.length > 0) {
+					filterParams.cuisineType = filters.cuisine[0]
+				}
+				if (filters.dietary.length > 0) {
+					filterParams.dietaryTags = filters.dietary
+				}
+				if (filters.cookingTimeMax < 120) {
+					filterParams.maxTime = filters.cookingTimeMax
+				}
+				if (filters.foolproofOnly) {
+					filterParams.qualityTier = 'Foolproof'
+				}
+				if (sortBy && viewMode !== 'trending') {
+					filterParams.sortBy = sortBy
+				}
 
-			const response =
-				viewMode === 'trending'
-					? await getTrendingRecipes({
-							page: nextPage,
-							size: RECIPES_PER_PAGE,
-						})
-					: await getAllRecipes(filterParams)
+				const response =
+					viewMode === 'trending'
+						? await getTrendingRecipes({
+								page: nextPage,
+								size: RECIPES_PER_PAGE,
+							})
+						: await getAllRecipes(filterParams)
 
-			if (response.success && response.data) {
-				const newRecipes = response.data
+				if (response.success && response.data) {
+					const newRecipes = response.data
 
-				// Update saved recipes set
-				response.data.forEach(recipe => {
-					if (recipe.isSaved) {
-						setSavedRecipes(prev => new Set([...prev, recipe.id]))
+					// Update saved recipes set
+					response.data.forEach(recipe => {
+						if (recipe.isSaved) {
+							setSavedRecipes(prev => new Set([...prev, recipe.id]))
+						}
+					})
+
+					// Append to existing recipes (already filtered server-side)
+					setRecipes(prev => {
+						const existingIds = new Set(prev.map(r => r.id))
+						const dedupedRecipes = newRecipes.filter(
+							r => !existingIds.has(r.id),
+						)
+						return [...prev, ...dedupedRecipes]
+					})
+					setPage(nextPage + 1)
+
+					// Update pagination state
+					const pagination = response.pagination
+					if (pagination) {
+						setTotalCount(pagination.totalElements)
+						setHasMore(!pagination.last)
+					} else {
+						setHasMore(response.data.length >= RECIPES_PER_PAGE)
 					}
-				})
-
-				// Append to existing recipes (already filtered server-side)
-				setRecipes(prev => {
-					const existingIds = new Set(prev.map(r => r.id))
-					const dedupedRecipes = newRecipes.filter(r => !existingIds.has(r.id))
-					return [...prev, ...dedupedRecipes]
-				})
-				setPage(nextPage + 1)
-
-				// Update pagination state
-				const pagination = response.pagination
-				if (pagination) {
-					setTotalCount(pagination.totalElements)
-					setHasMore(!pagination.last)
-				} else {
-					setHasMore(response.data.length >= RECIPES_PER_PAGE)
 				}
 			}
 		} catch (err) {
@@ -842,7 +889,16 @@ export default function ExplorePage() {
 		} finally {
 			setIsLoadingMore(false)
 		}
-	}, [isLoadingMore, hasMore, page, viewMode, debouncedSearch, filters, sortBy])
+	}, [
+		isLoadingMore,
+		hasMore,
+		page,
+		viewMode,
+		debouncedSearch,
+		filters,
+		sortBy,
+		recipes.length,
+	])
 
 	// Infinite scroll - IntersectionObserver
 	useEffect(() => {
@@ -1060,7 +1116,7 @@ export default function ExplorePage() {
 					icon={Compass}
 					title={t('title')}
 					subtitle={t('subtitle')}
-					gradient='warm'
+					gradient='gray'
 				/>
 
 				{/* Hero/Featured Recipe (only when not searching) */}
@@ -1088,6 +1144,18 @@ export default function ExplorePage() {
 						<Input
 							ref={searchInputRef}
 							placeholder={t('searchPlaceholder')}
+							aria-label={t('searchPlaceholder')}
+							role='combobox'
+							aria-expanded={
+								showAutocomplete && autocompleteSuggestions.length > 0
+							}
+							aria-autocomplete='list'
+							aria-controls='explore-autocomplete-listbox'
+							aria-activedescendant={
+								selectedSuggestionIndex >= 0
+									? `explore-suggestion-${selectedSuggestionIndex}`
+									: undefined
+							}
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							onKeyDown={handleSearchKeyDown}
@@ -1099,7 +1167,7 @@ export default function ExplorePage() {
 								// Delay to allow dropdown clicks to register
 								setTimeout(() => setShowAutocomplete(false), 200)
 							}}
-							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-card transition-colors focus:border-brand focus:shadow-card focus:ring-2 focus:ring-brand/20'
+							className='h-11 rounded-xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-sm transition-colors focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 						/>
 						{/* Loading indicator or clear button */}
 						<div className='absolute right-12 top-1/2 -translate-y-1/2'>
@@ -1127,6 +1195,9 @@ export default function ExplorePage() {
 							{showAutocomplete && autocompleteSuggestions.length > 0 && (
 								<motion.div
 									ref={autocompleteRef}
+									role='listbox'
+									id='explore-autocomplete-listbox'
+									aria-label={t('searchPlaceholder')}
 									initial={{ opacity: 0, y: -4 }}
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: -4 }}
@@ -1137,6 +1208,9 @@ export default function ExplorePage() {
 										<button
 											type='button'
 											key={suggestion}
+											id={`explore-suggestion-${index}`}
+											role='option'
+											aria-selected={index === selectedSuggestionIndex}
 											onMouseDown={e => {
 												e.preventDefault()
 												setSearchQuery(suggestion)
@@ -1157,12 +1231,14 @@ export default function ExplorePage() {
 							)}
 						</AnimatePresence>
 					</div>
-					<div className='flex gap-2'>
+					<div className='-mx-1 flex gap-2 overflow-x-auto scrollbar-hide px-1 pb-1'>
 						{/* Filter Sheet Button */}
-						<RecipeFiltersSheet
-							initialFilters={filters}
-							onApply={handleFiltersApply}
-						/>
+						<div className='shrink-0'>
+							<RecipeFiltersSheet
+								initialFilters={filters}
+								onApply={handleFiltersApply}
+							/>
+						</div>
 
 						{/* View Mode Buttons */}
 						<motion.button
@@ -1173,10 +1249,10 @@ export default function ExplorePage() {
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className={`rounded-xl px-5 py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
+							className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'all'
-									? 'bg-gradient-hero text-white shadow-card shadow-brand/30'
-									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
+									? 'bg-brand text-white shadow-sm'
+									: 'border border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 							}`}
 						>
 							{t('allRecipes')}
@@ -1189,10 +1265,10 @@ export default function ExplorePage() {
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
+							className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'trending'
-									? 'bg-gradient-xp text-white shadow-card shadow-xp/30'
-									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
+									? 'bg-xp text-white shadow-sm'
+									: 'border border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
 							}`}
 						>
 							<TrendingUp className='size-4' />
@@ -1201,14 +1277,14 @@ export default function ExplorePage() {
 
 						{/* Sort Dropdown */}
 						{viewMode === 'all' && (
-							<div className='relative'>
+							<div className='relative shrink-0'>
 								<select
 									value={sortBy}
 									onChange={e => {
 										setSortBy(e.target.value)
 										setPage(1)
 									}}
-									className='h-12 appearance-none rounded-xl border-2 border-border-medium bg-bg-card py-3 pl-4 pr-10 text-sm font-semibold text-text-secondary transition-colors hover:border-brand focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+									className='h-11 appearance-none rounded-lg border border-border-medium bg-bg-card py-2 pl-4 pr-10 text-sm font-medium text-text-secondary transition-colors hover:border-brand focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
 								>
 									<option value='newest'>{t('newest')}</option>
 									<option value='popular'>{t('mostCooked')}</option>
@@ -1450,6 +1526,8 @@ export default function ExplorePage() {
 						)}
 					</>
 				)}
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

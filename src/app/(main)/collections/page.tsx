@@ -3,7 +3,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FolderHeart, Plus, Trash2, Globe, Lock, Image as ImageIcon } from 'lucide-react'
+import {
+	FolderHeart,
+	Plus,
+	Trash2,
+	Globe,
+	Lock,
+	Image as ImageIcon,
+} from 'lucide-react'
 import NextImage from 'next/image'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { toast } from 'sonner'
@@ -13,7 +20,12 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Portal } from '@/components/ui/portal'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 import { Collection, CreateCollectionRequest } from '@/lib/types/collection'
 import {
 	getMyCollections,
@@ -36,7 +48,9 @@ export default function CollectionsPage() {
 	const [fetchError, setFetchError] = useState(false)
 
 	useEscapeKey(showCreateModal, () => setShowCreateModal(false))
-	useEscapeKey(!!confirmingDeleteId && !showCreateModal, () => setConfirmingDeleteId(null))
+	useEscapeKey(!!confirmingDeleteId && !showCreateModal, () =>
+		setConfirmingDeleteId(null),
+	)
 
 	// Create form state
 	const [newName, setNewName] = useState('')
@@ -83,7 +97,7 @@ export default function CollectionsPage() {
 			setNewIsPublic(false)
 			toast.success(t('created'))
 		} else {
-			toast.error(response.message || t('createFailed'))
+			toast.error(t('createFailed'))
 		}
 		setIsCreating(false)
 	}
@@ -95,7 +109,7 @@ export default function CollectionsPage() {
 			setCollections(prev => prev.filter(c => c.id !== id))
 			toast.success(t('deleted'))
 		} else {
-			toast.error(response.message || t('deleteFailed'))
+			toast.error(t('deleteFailed'))
 		}
 		setConfirmingDeleteId(null)
 		setIsDeleting(false)
@@ -153,9 +167,9 @@ export default function CollectionsPage() {
 							<motion.button
 								type='button'
 								onClick={() => setShowCreateModal(true)}
-								className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
-							whileHover={BUTTON_SUBTLE_HOVER}
-							whileTap={BUTTON_SUBTLE_TAP}
+								className='flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
+								whileHover={BUTTON_SUBTLE_HOVER}
+								whileTap={BUTTON_SUBTLE_TAP}
 							>
 								<Plus className='size-4' />
 								{t('newCollection')}
@@ -185,21 +199,19 @@ export default function CollectionsPage() {
 									className='group relative cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card transition-all hover:shadow-warm'
 									whileHover={CARD_HOVER}
 									transition={TRANSITION_SPRING}
-									onClick={() =>
-										router.push(`/collections/${collection.id}`)
-									}
+									onClick={() => router.push(`/collections/${collection.id}`)}
 								>
 									{/* Cover image or placeholder */}
 									<div className='relative h-32 bg-bg-elevated'>
 										{collection.coverImageUrl ? (
 											<NextImage
-														src={collection.coverImageUrl}
-														alt={collection.name}
-														fill
-														sizes='(max-width: 768px) 100vw, 50vw'
-														className='object-cover'
-														unoptimized
-														/>
+												src={collection.coverImageUrl}
+												alt={collection.name}
+												fill
+												sizes='(max-width: 768px) 100vw, 50vw'
+												className='object-cover'
+												unoptimized
+											/>
 										) : (
 											<div className='flex size-full items-center justify-center'>
 												<ImageIcon className='size-10 text-text-muted/20' />
@@ -245,19 +257,23 @@ export default function CollectionsPage() {
 													setConfirmingDeleteId(collection.id)
 												}}
 												className='ml-2 flex-shrink-0 rounded-md p-1 text-text-muted transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+												aria-label={t('deleteTitle')}
 											>
 												<Trash2 className='size-4' />
 											</button>
 										</div>
 										<p className='mt-2 text-xs text-text-muted'>
-										{t('postCount', { count: collection.itemCount })}
-									</p>
+											{t('postCount', { count: collection.itemCount })}
+										</p>
 									</div>
 								</motion.div>
 							))}
 						</div>
 					)}
 				</div>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 
 			{/* Create Collection Modal */}
@@ -268,6 +284,9 @@ export default function CollectionsPage() {
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
+							role='dialog'
+							aria-modal='true'
+							aria-label={t('newCollection')}
 							className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'
 							onClick={() => setShowCreateModal(false)}
 						>
@@ -278,8 +297,14 @@ export default function CollectionsPage() {
 								transition={TRANSITION_SPRING}
 								className='w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-warm'
 								onClick={e => e.stopPropagation()}
+								role='dialog'
+								aria-modal='true'
+								aria-labelledby='create-collection-title'
 							>
-								<h2 className='mb-4 text-lg font-bold text-text'>
+								<h2
+									className='mb-4 text-lg font-bold text-text'
+									id='create-collection-title'
+								>
 									{t('newCollection')}
 								</h2>
 								<div className='space-y-4'>
@@ -293,14 +318,16 @@ export default function CollectionsPage() {
 											onChange={e => setNewName(e.target.value)}
 											placeholder={t('namePlaceholder')}
 											maxLength={60}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 											autoFocus
 										/>
 									</div>
 									<div>
 										<label className='mb-1 block text-sm font-medium text-text-secondary'>
 											{t('descriptionLabel')}{' '}
-											<span className='text-text-muted'>{t('descriptionOptional')}</span>
+											<span className='text-text-muted'>
+												{t('descriptionOptional')}
+											</span>
 										</label>
 										<input
 											type='text'
@@ -308,7 +335,7 @@ export default function CollectionsPage() {
 											onChange={e => setNewDescription(e.target.value)}
 											placeholder={t('descriptionPlaceholder')}
 											maxLength={200}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 										/>
 									</div>
 									<label className='flex cursor-pointer items-center gap-3'>
@@ -318,21 +345,19 @@ export default function CollectionsPage() {
 											onChange={e => setNewIsPublic(e.target.checked)}
 											className='size-4 rounded border-border-subtle accent-brand'
 										/>
-										<span className='text-sm text-text'>
-											{t('makePublic')}
-										</span>
+										<span className='text-sm text-text'>{t('makePublic')}</span>
 									</label>
 								</div>
 								<div className='mt-6 flex justify-end gap-3'>
 									<button
-									type='button'
-									onClick={() => setShowCreateModal(false)}
-									className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
-								>
-									{t('cancel')}
-								</button>
-								<button
-									type='button'
+										type='button'
+										onClick={() => setShowCreateModal(false)}
+										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
+									>
+										{t('cancel')}
+									</button>
+									<button
+										type='button'
 										onClick={handleCreate}
 										disabled={isCreating || !newName.trim()}
 										className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-50'
@@ -354,6 +379,9 @@ export default function CollectionsPage() {
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
+							role='dialog'
+							aria-modal='true'
+							aria-label={t('deleteTitle')}
 							className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'
 							onClick={() => setConfirmingDeleteId(null)}
 						>
@@ -364,23 +392,33 @@ export default function CollectionsPage() {
 								transition={TRANSITION_SPRING}
 								className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
 								onClick={e => e.stopPropagation()}
+								role='alertdialog'
+								aria-modal='true'
+								aria-labelledby='delete-collection-title'
+								aria-describedby='delete-collection-desc'
 							>
-								<h3 className='mb-2 text-lg font-bold text-text'>
+								<h3
+									className='mb-2 text-lg font-bold text-text'
+									id='delete-collection-title'
+								>
 									{t('deleteTitle')}
 								</h3>
-								<p className='mb-6 text-sm text-text-muted'>
+								<p
+									className='mb-6 text-sm text-text-muted'
+									id='delete-collection-desc'
+								>
 									{t('deleteMessage')}
 								</p>
 								<div className='flex justify-end gap-3'>
 									<button
-									type='button'
-									onClick={() => setConfirmingDeleteId(null)}
-									className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
-								>
-									{t('cancel')}
-								</button>
-								<button
-									type='button'
+										type='button'
+										onClick={() => setConfirmingDeleteId(null)}
+										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
+									>
+										{t('cancel')}
+									</button>
+									<button
+										type='button'
 										onClick={() => handleDelete(confirmingDeleteId)}
 										disabled={isDeleting}
 										className='rounded-xl bg-destructive px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'

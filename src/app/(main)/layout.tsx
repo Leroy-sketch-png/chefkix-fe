@@ -42,7 +42,7 @@ export default function MainAppLayout({
 				</ErrorBoundary>
 				<main
 					id='main-content'
-					className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 pb-20 md:pb-4 lg:gap-6 lg:p-6 lg:pb-6'
+					className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 pb-28 md:pb-4 lg:gap-6 lg:p-6 lg:pb-6'
 				>
 					<ErrorBoundary>{children}</ErrorBoundary>
 				</main>
@@ -50,34 +50,34 @@ export default function MainAppLayout({
 				<ErrorBoundary>
 					<CookingSidebarSwitch />
 				</ErrorBoundary>
-		</div>
-		{/* Global overlays and drawers - wrapped in error boundaries to prevent crashes */}
-		<ErrorBoundary>
-			<MessagesDrawer />
-		</ErrorBoundary>
-		<ErrorBoundary>
-			<NotificationsPopup />
-		</ErrorBoundary>
-		{/* Fullscreen cooking player - for expanded mode */}
-		<ErrorBoundary>
-			<CookingPlayer />
-		</ErrorBoundary>
-		{/* Mini cooking bar - for mobile collapsed mode */}
-		<ErrorBoundary>
-			<MiniCookingBar />
-		</ErrorBoundary>
-		{/* Mobile bottom navigation - hidden on desktop, shown below md breakpoint */}
-		<MobileBottomNav />
-		{/* Centralized timer ticking + completion notifications */}
-		<CookingTimerProvider />
-		<KeyboardShortcuts />
-		<CommandPalette />
-		<EventTrackerProvider>{null}</EventTrackerProvider>
-		{/* WebSocket provider - wrapped to prevent connection errors from crashing app */}
-		<ErrorBoundary>
-			<NotificationSocketProvider />
-		</ErrorBoundary>
-		<PushNotificationProvider />
+			</div>
+			{/* Global overlays and drawers - wrapped in error boundaries to prevent crashes */}
+			<ErrorBoundary>
+				<MessagesDrawer />
+			</ErrorBoundary>
+			<ErrorBoundary>
+				<NotificationsPopup />
+			</ErrorBoundary>
+			{/* Fullscreen cooking player - for expanded mode */}
+			<ErrorBoundary>
+				<CookingPlayer />
+			</ErrorBoundary>
+			{/* Mini cooking bar - for mobile collapsed mode */}
+			<ErrorBoundary>
+				<MiniCookingBar />
+			</ErrorBoundary>
+			{/* Mobile bottom navigation - hidden on desktop, shown below md breakpoint */}
+			<MobileBottomNav />
+			{/* Centralized timer ticking + completion notifications */}
+			<CookingTimerProvider />
+			<KeyboardShortcuts />
+			<CommandPalette />
+			<EventTrackerProvider>{null}</EventTrackerProvider>
+			{/* WebSocket provider - wrapped to prevent connection errors from crashing app */}
+			<ErrorBoundary>
+				<NotificationSocketProvider />
+			</ErrorBoundary>
+			<PushNotificationProvider />
 			<DemoWidget />
 		</div>
 	)

@@ -279,7 +279,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 				</span>
 			</div>
 
-			<div className='flex gap-3 overflow-x-auto pb-1 scrollbar-hide'>
+			<div className='flex gap-3 overflow-x-auto pb-1 pr-4 scrollbar-hide'>
 				{badges.map((badge, index) => (
 					<motion.div
 						key={badge.id || `creator-badge-${index}`}
@@ -532,6 +532,7 @@ function RecipePerformanceSection({
 										onViewStepAnalytics(recipe.id)
 									}}
 									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('viewStepAnalytics')}
 									title={t('viewStepAnalytics')}
 								>
 									<BarChart3 className='size-4' />
@@ -726,9 +727,6 @@ export function CreatorDashboard({
 					</motion.button>
 				)}
 				<div className='flex-1 flex items-center gap-3 flex-wrap'>
-					<h1 className='text-2xl font-display font-extrabold text-text'>
-						{t('creatorDashboard')}
-					</h1>
 					<span className='py-1 px-2.5 bg-xp/20 border border-xp/30 rounded-xl text-xs font-semibold text-xp'>
 						📝 Recipe Creator
 					</span>

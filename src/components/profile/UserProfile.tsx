@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
@@ -14,7 +14,6 @@ import {
 	ImageOff,
 	Trophy,
 	Award,
-	Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toggleFollow, blockUser, unblockUser } from '@/services/social'
@@ -28,7 +27,12 @@ import {
 	getLikedRecipes,
 } from '@/services/recipe'
 import { getPostsByUser, getSavedPosts } from '@/services/post'
-import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
+import {
+	Recipe,
+	getRecipeImage,
+	getTotalTime,
+	formatCookingTime,
+} from '@/lib/types/recipe'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
@@ -543,7 +547,7 @@ export const UserProfile = ({
 						: prev.statistics.followerCount - 1,
 				},
 			}))
-			toast.error(response.message || t('failedFollowUpdate'))
+			toast.error(t('failedFollowUpdate'))
 		}
 
 		setIsFollowLoading(false)
@@ -565,7 +569,12 @@ export const UserProfile = ({
 					title: t('shareProfileTitle', { name: displayName }),
 					url: window.location.href,
 				})
-				.catch(() => {})
+				.catch(err => {
+					// User cancelled share — ignore AbortError
+					if (err?.name !== 'AbortError') {
+						toast.error(t('failedShare'))
+					}
+				})
 		} else {
 			navigator.clipboard
 				.writeText(window.location.href)
@@ -598,7 +607,7 @@ export const UserProfile = ({
 					toast.success(t('toastUnblocked', { name: displayName }))
 				} else {
 					setIsBlocked(true)
-					toast.error(response.message || t('failedUnblock'))
+					toast.error(t('failedUnblock'))
 				}
 			} finally {
 				setIsBlockLoading(false)
@@ -626,7 +635,7 @@ export const UserProfile = ({
 				}))
 			} else {
 				setIsBlocked(false)
-				toast.error(response.message || t('failedBlock'))
+				toast.error(t('failedBlock'))
 			}
 		} finally {
 			setIsBlockLoading(false)
@@ -649,25 +658,14 @@ export const UserProfile = ({
 
 			{/* Gamified Profile Header */}
 			{isOwnProfile ? (
-				<>
-					<ProfileHeaderGamified
-						variant='own'
-						user={profileUser}
-						onEditProfile={handleEditProfile}
-						onShareProfile={handleShareProfile}
-						activeTab={activeTab}
-						onTabChange={setActiveTab}
-					/>
-					<div className='mt-3 flex justify-center'>
-						<Link
-							href='/profile/taste'
-							className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
-						>
-							<Sparkles className='size-4' />
-							{t('viewTasteDNA')}
-						</Link>
-					</div>
-				</>
+				<ProfileHeaderGamified
+					variant='own'
+					user={profileUser}
+					onEditProfile={handleEditProfile}
+					onShareProfile={handleShareProfile}
+					activeTab={activeTab}
+					onTabChange={setActiveTab}
+				/>
 			) : (
 				<>
 					<ProfileHeaderGamified
@@ -754,8 +752,8 @@ export const UserProfile = ({
 											</h3>
 											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
 												<span className='flex items-center gap-1 tabular-nums'>
-													<Clock className='size-4' /> {getTotalTime(recipe)}{' '}
-													{t('unitMin')}
+													<Clock className='size-4' />{' '}
+													{formatCookingTime(getTotalTime(recipe))}
 												</span>
 												<span className='flex items-center gap-1 tabular-nums'>
 													<Heart className='size-4' />{' '}
@@ -946,7 +944,7 @@ export const UserProfile = ({
 															<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
 																<span className='flex items-center gap-1 tabular-nums'>
 																	<Clock className='size-4' />
-																	{getTotalTime(recipe)} {t('unitMin')}
+																	{formatCookingTime(getTotalTime(recipe))}
 																</span>
 																<span className='flex items-center gap-1 tabular-nums'>
 																	<Heart className='size-4' />
@@ -1060,7 +1058,7 @@ export const UserProfile = ({
 											<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
 												<span className='flex items-center gap-1 tabular-nums'>
 													<Clock className='size-4' />
-													{getTotalTime(recipe)} {t('unitMin')}
+													{formatCookingTime(getTotalTime(recipe))}
 												</span>
 												<span className='flex items-center gap-1 tabular-nums'>
 													<Heart className='size-4' />

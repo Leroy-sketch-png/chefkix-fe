@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 /**
  * RecipeCreateAiFlow — The recipe creation orchestrator.
@@ -1344,10 +1344,10 @@ export const RecipeCreateAiFlow = ({
 										whileHover={rawText.trim() ? BUTTON_HOVER : undefined}
 										whileTap={rawText.trim() ? BUTTON_TAP : undefined}
 										className={cn(
-											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											rawText.trim()
-												? 'bg-gradient-hero shadow-lg hover:shadow-xl'
-												: 'cursor-not-allowed bg-muted/50',
+												? 'bg-gradient-hero text-white shadow-lg hover:shadow-xl'
+												: 'cursor-not-allowed bg-muted/50 text-text-muted',
 										)}
 									>
 										<Sparkles className='size-5' />
@@ -1526,7 +1526,7 @@ export const RecipeCreateAiFlow = ({
 											)}
 										/>
 										{isUploadingCover && (
-											<div className='absolute inset-0 flex items-center justify-center'>
+											<div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
 												<Loader2 className='size-8 animate-spin text-white' />
 											</div>
 										)}
@@ -1536,6 +1536,7 @@ export const RecipeCreateAiFlow = ({
 												setRecipe({ ...recipe, coverImageUrl: undefined })
 											}
 											disabled={isUploadingCover}
+											aria-label='Remove cover image'
 											className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-black/60 text-white hover:bg-error disabled:opacity-50'
 										>
 											<X className='size-4' />
@@ -1555,7 +1556,7 @@ export const RecipeCreateAiFlow = ({
 										type='button'
 										onClick={() => coverImageRef.current?.click()}
 										disabled={isUploadingCover}
-										className='flex h-44 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-bg text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
+										className='flex h-44 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-bg text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{isUploadingCover ? (
 											<>
@@ -1596,7 +1597,7 @@ export const RecipeCreateAiFlow = ({
 									onChange={e =>
 										setRecipe({ ...recipe, title: e.target.value })
 									}
-									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text focus:border-brand focus:outline-none'
+									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								/>
 							</div>
 
@@ -1614,7 +1615,7 @@ export const RecipeCreateAiFlow = ({
 									onChange={e =>
 										setRecipe({ ...recipe, description: e.target.value })
 									}
-									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none'
+									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								/>
 							</div>
 
@@ -1628,7 +1629,7 @@ export const RecipeCreateAiFlow = ({
 										onChange={e =>
 											setRecipe({ ...recipe, cookTime: e.target.value })
 										}
-										className='w-20 border-none bg-transparent text-xs font-semibold text-text focus:outline-none'
+										className='w-20 border-none bg-transparent text-xs font-semibold text-text focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded'
 										placeholder='30 min'
 									/>
 								</div>
@@ -1655,7 +1656,7 @@ export const RecipeCreateAiFlow = ({
 												servings: parseInt(e.target.value) || 1,
 											})
 										}
-										className='w-12 border-none bg-transparent text-xs font-semibold text-text focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+										className='w-12 border-none bg-transparent text-xs font-semibold text-text focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									/>
 									<span className='text-xs text-text-secondary'>
 										{t('aiFlowServings')}
@@ -1671,7 +1672,7 @@ export const RecipeCreateAiFlow = ({
 										}
 										options={CUISINE_OPTIONS}
 										placeholder={t('aiFlowCuisine')}
-										className='w-24 border-none bg-transparent text-xs font-semibold text-text focus:outline-none'
+										className='w-24 border-none bg-transparent text-xs font-semibold text-text focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded'
 									/>
 								</div>
 							</div>

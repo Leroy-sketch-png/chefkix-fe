@@ -140,6 +140,8 @@ export default function ChallengeHistoryPageRoute() {
 					onBack={() => router.back()}
 					isLoadingMore={isLoadingMore}
 				/>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

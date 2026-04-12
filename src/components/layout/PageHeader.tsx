@@ -91,9 +91,9 @@ const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> =
 	}
 
 const marginMap = {
-	sm: 'mb-4',
-	md: 'mb-6',
-	lg: 'mb-8',
+	sm: 'mb-3 sm:mb-4',
+	md: 'mb-4 sm:mb-6',
+	lg: 'mb-5 sm:mb-8',
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -135,8 +135,8 @@ export function PageHeader({
 					<span>{t('back')}</span>
 				</button>
 			)}
-			<div className='mb-2 flex flex-wrap items-center justify-between gap-2'>
-				<div className='flex items-center gap-3'>
+			<div className='mb-1.5 flex flex-wrap items-center justify-between gap-3 sm:mb-2'>
+				<div className='flex items-center gap-2.5 sm:gap-3'>
 					{/* Icon Box */}
 					<motion.div
 						initial={{ scale: 0 }}
@@ -146,16 +146,16 @@ export function PageHeader({
 						}}
 						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
 						className={cn(
-							'flex size-12 items-center justify-center rounded-2xl shadow-card',
+							'flex size-9 items-center justify-center rounded-xl shadow-card sm:size-10',
 							bg,
 							shadow,
 						)}
 					>
-						<Icon className='size-6 text-white' />
+						<Icon className='size-4 text-white sm:size-5' />
 					</motion.div>
 
 					{/* Title */}
-					<h1 className='text-2xl sm:text-3xl font-bold text-text'>{title}</h1>
+					<h1 className='text-lg font-bold text-text sm:text-2xl'>{title}</h1>
 				</div>
 
 				{/* Right Action */}
@@ -163,12 +163,14 @@ export function PageHeader({
 			</div>
 
 			{/* Subtitle */}
-			<p className='flex items-center gap-2 text-text-secondary'>
-				{ActualSubtitleIcon && (
-					<ActualSubtitleIcon className='size-4 text-streak' />
-				)}
-				{subtitle}
-			</p>
+			{subtitle && (
+				<p className='flex items-start gap-2 text-sm leading-relaxed text-text-secondary sm:text-base'>
+					{ActualSubtitleIcon && (
+						<ActualSubtitleIcon className='mt-0.5 size-4 shrink-0 text-streak' />
+					)}
+					{subtitle}
+				</p>
+			)}
 		</motion.div>
 	)
 }

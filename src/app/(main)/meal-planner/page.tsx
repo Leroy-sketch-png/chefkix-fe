@@ -33,7 +33,7 @@ import {
 	swapMeal,
 } from '@/services/mealplan'
 import { getAllRecipes } from '@/services/recipe'
-import { Recipe, getTotalTime } from '@/lib/types/recipe'
+import { Recipe, getTotalTime, formatCookingTime } from '@/lib/types/recipe'
 import type {
 	MealPlan,
 	PlannedDay,
@@ -106,7 +106,8 @@ export default function MealPlannerPage() {
 			setPlan(data)
 		} catch (err: unknown) {
 			// 404 = no plan for this week (expected), anything else = real error
-			const status = (err as { response?: { status?: number } })?.response?.status
+			const status = (err as { response?: { status?: number } })?.response
+				?.status
 			if (status === 404) {
 				setPlan(null)
 			} else {
@@ -202,7 +203,10 @@ export default function MealPlannerPage() {
 		setSwapResults([])
 		fetchSwapSuggestions('')
 		if (swapFocusTimeoutRef.current) clearTimeout(swapFocusTimeoutRef.current)
-		swapFocusTimeoutRef.current = setTimeout(() => swapSearchRef.current?.focus(), 100)
+		swapFocusTimeoutRef.current = setTimeout(
+			() => swapSearchRef.current?.focus(),
+			100,
+		)
 	}
 
 	const fetchSwapSuggestions = useCallback(async (query: string) => {
@@ -306,7 +310,7 @@ export default function MealPlannerPage() {
 						gradient='green'
 						marginBottom='sm'
 						rightAction={
-							<div className='flex items-center gap-2'>
+							<div className='flex flex-wrap items-center gap-2'>
 								{plan && (
 									<>
 										<button
@@ -420,7 +424,7 @@ export default function MealPlannerPage() {
 						</motion.div>
 					) : (
 						/* ── 7-Day Grid ──────────────────── */
-						<div className='overflow-x-auto'>
+						<div className='overflow-x-auto scrollbar-hide'>
 							<div className='min-w-[900px]'>
 								{/* Day Headers */}
 								<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
@@ -470,7 +474,7 @@ export default function MealPlannerPage() {
 																</p>
 																<div className='mt-1.5 flex items-center gap-1.5 text-2xs text-text-muted'>
 																	<Clock className='size-3' />
-																	{meal.totalTimeMinutes}m
+																	{formatCookingTime(meal.totalTimeMinutes)}
 																	{meal.aiGenerated && (
 																		<span className='rounded bg-info/10 px-1 py-0.5 text-info'>
 																			AI
@@ -479,7 +483,7 @@ export default function MealPlannerPage() {
 																</div>
 															</>
 														) : (
-															<p className='text-xs text-text-muted/50'>—</p>
+															<p className='text-sm text-text-muted/50'>+</p>
 														)}
 													</button>
 													{/* Swap button */}
@@ -489,10 +493,10 @@ export default function MealPlannerPage() {
 															e.stopPropagation()
 															handleSwapClick(day.dayOfWeek, mealType)
 														}}
-														className='absolute right-1 top-1 rounded-md p-1 text-text-muted opacity-70 transition-all hover:bg-bg-elevated hover:text-brand md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
-														title={t('swapMeal')}
+														aria-label={t('swapMeal')}
+														className='absolute right-1 top-1 rounded-md p-2 text-text-muted opacity-70 transition-all hover:bg-bg-elevated hover:text-brand active:opacity-100 md:opacity-60 md:group-hover:opacity-100 focus-visible:opacity-100'
 													>
-														<Shuffle className='size-3' />
+														<Shuffle className='size-4' />
 													</button>
 												</motion.div>
 											)
@@ -541,6 +545,7 @@ export default function MealPlannerPage() {
 										<button
 											type='button'
 											onClick={() => setShowShopping(false)}
+											aria-label={t('closeShoppingList')}
 											className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
 										>
 											<X className='size-4' />
@@ -558,9 +563,12 @@ export default function MealPlannerPage() {
 										))}
 									</div>
 								) : shoppingList.length === 0 ? (
-									<p className='py-8 text-center text-sm text-text-muted'>
-										{t('allCovered')}
-									</p>
+									<div className='flex flex-col items-center gap-2 py-8 text-center'>
+										<Check className='size-8 text-green-500' />
+										<p className='text-sm font-medium text-text-secondary'>
+											{t('allCovered')}
+										</p>
+									</div>
 								) : (
 									<ul className='divide-y divide-border-subtle'>
 										{shoppingList.map(item => (
@@ -632,13 +640,19 @@ export default function MealPlannerPage() {
 									animate={{ scale: 1, opacity: 1 }}
 									exit={{ scale: 0.95, opacity: 0 }}
 									onClick={e => e.stopPropagation()}
+									role='dialog'
+									aria-modal='true'
+									aria-labelledby='swap-meal-title'
 									className='flex w-full max-w-md flex-col rounded-xl bg-bg-card shadow-warm'
 									style={{ maxHeight: '80vh' }}
 								>
 									<div className='border-b border-border-subtle p-5'>
 										<div className='mb-4 flex items-center justify-between'>
 											<div>
-												<h3 className='text-lg font-bold text-text'>
+												<h3
+													className='text-lg font-bold text-text'
+													id='swap-meal-title'
+												>
 													{t('swapMeal')}
 												</h3>
 												<p className='text-xs text-text-muted'>
@@ -650,6 +664,7 @@ export default function MealPlannerPage() {
 											<button
 												type='button'
 												onClick={() => setSwapping(null)}
+												aria-label={t('closeSwapPanel')}
 												className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
 											>
 												<X className='size-4' />
@@ -663,7 +678,8 @@ export default function MealPlannerPage() {
 												placeholder={t('searchRecipes')}
 												value={swapSearch}
 												onChange={e => setSwapSearch(e.target.value)}
-												className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/30'
+												aria-label={t('searchRecipes')}
+												className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
 											/>
 										</div>
 									</div>
@@ -674,9 +690,12 @@ export default function MealPlannerPage() {
 												<Loader2 className='size-5 animate-spin text-brand' />
 											</div>
 										) : swapResults.length === 0 ? (
-											<p className='py-8 text-center text-sm text-text-muted'>
-												{t('noRecipesFound')}
-											</p>
+											<div className='flex flex-col items-center gap-2 py-8 text-center'>
+												<Search className='size-6 text-text-muted/40' />
+												<p className='text-sm text-text-muted'>
+													{t('noRecipesFound')}
+												</p>
+											</div>
 										) : (
 											<div className='space-y-1'>
 												{swapResults.map(recipe => (
@@ -697,7 +716,7 @@ export default function MealPlannerPage() {
 															<div className='flex items-center gap-2 text-xs text-text-muted'>
 																<span className='flex items-center gap-1'>
 																	<Clock className='size-3' />
-																	{getTotalTime(recipe)}m
+																	{formatCookingTime(getTotalTime(recipe))}
 																</span>
 																<span>{recipe.servings} servings</span>
 															</div>
@@ -732,12 +751,22 @@ export default function MealPlannerPage() {
 									animate={{ scale: 1, opacity: 1 }}
 									exit={{ scale: 0.95, opacity: 0 }}
 									onClick={e => e.stopPropagation()}
+									role='alertdialog'
+									aria-modal='true'
+									aria-labelledby='delete-plan-title'
+									aria-describedby='delete-plan-desc'
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
-									<h3 className='mb-2 text-lg font-bold text-text'>
+									<h3
+										className='mb-2 text-lg font-bold text-text'
+										id='delete-plan-title'
+									>
 										{t('deletePlanTitle')}
 									</h3>
-									<p className='mb-6 text-sm text-text-muted'>
+									<p
+										className='mb-6 text-sm text-text-muted'
+										id='delete-plan-desc'
+									>
 										{t('deletePlanDesc')}
 									</p>
 									<div className='flex justify-end gap-3'>
@@ -762,6 +791,9 @@ export default function MealPlannerPage() {
 						</Portal>
 					)}
 				</AnimatePresence>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

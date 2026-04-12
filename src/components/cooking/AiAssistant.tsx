@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
@@ -162,13 +162,17 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 				{message.type === 'warning' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-warning'>
 						<AlertTriangle className='size-4' />
-						<span className='text-xs font-semibold uppercase'>{t('aiWarning')}</span>
+						<span className='text-xs font-semibold uppercase'>
+							{t('aiWarning')}
+						</span>
 					</div>
 				)}
 				{message.type === 'tip' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-success'>
 						<Lightbulb className='size-4' />
-						<span className='text-xs font-semibold uppercase'>{t('aiProTip')}</span>
+						<span className='text-xs font-semibold uppercase'>
+							{t('aiProTip')}
+						</span>
 					</div>
 				)}
 
@@ -241,25 +245,25 @@ interface AiButtonProps {
 export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => {
 	const t = useTranslations('cooking')
 	return (
-	<motion.button
-		type='button'
-		onClick={onClick}
-		whileHover={ICON_BUTTON_HOVER}
-		whileTap={ICON_BUTTON_TAP}
-		animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
-		className={cn(
-			'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-lg md:bottom-6 focus-visible:ring-2 focus-visible:ring-brand/50',
-			'bg-gradient-indigo text-white',
-		)}
-		aria-label={t('ariaOpenAiAssistant')}
-	>
-		<Sparkles className='size-6' />
-		{hasUnreadSuggestion && (
-			<span className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-error text-xs font-bold'>
-				1
-			</span>
-		)}
-	</motion.button>
+		<motion.button
+			type='button'
+			onClick={onClick}
+			whileHover={ICON_BUTTON_HOVER}
+			whileTap={ICON_BUTTON_TAP}
+			animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
+			className={cn(
+				'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-lg md:bottom-6 focus-visible:ring-2 focus-visible:ring-brand/50',
+				'bg-gradient-indigo text-white',
+			)}
+			aria-label={t('ariaOpenAiAssistant')}
+		>
+			<Sparkles className='size-6' />
+			{hasUnreadSuggestion && (
+				<span className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-error text-xs font-bold'>
+					1
+				</span>
+			)}
+		</motion.button>
 	)
 }
 
@@ -374,8 +378,7 @@ export const AiAssistant = ({
 				id: `error-${Date.now()}`,
 				role: 'assistant',
 				type: 'warning',
-				content:
-					t('aiErrorReach'),
+				content: t('aiErrorReach'),
 				timestamp: new Date(),
 			}
 			setMessages(prev => [...prev, errorResponse])
@@ -457,6 +460,9 @@ export const AiAssistant = ({
 						animate='visible'
 						exit='exit'
 						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-bg-card shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
+						role='dialog'
+						aria-modal='true'
+						aria-label={t('aiCookingAssistant')}
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border bg-gradient-indigo p-4 text-white'>
@@ -562,7 +568,8 @@ export const AiAssistant = ({
 										onChange={e => setInputValue(e.target.value)}
 										onKeyDown={e => e.key === 'Enter' && handleSend()}
 										placeholder={t('aiAskAnything')}
-										className='w-full rounded-full bg-bg-elevated px-4 py-2.5 pr-12 text-sm outline-none placeholder:text-text-muted focus:ring-2 focus:ring-brand/30'
+										aria-label={t('aiAskAnything')}
+										className='w-full rounded-full bg-bg-elevated px-4 py-2.5 pr-12 text-sm outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-brand/30'
 									/>
 									<button
 										type='button'

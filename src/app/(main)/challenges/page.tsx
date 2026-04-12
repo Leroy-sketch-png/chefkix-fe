@@ -347,7 +347,7 @@ export default function ChallengesPage() {
 													})
 												}
 												disabled={isNavigating}
-												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
+												className='mt-3 flex items-center gap-1.5 rounded-lg text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{t('findMatchingRecipes')}
 												<ChevronRight className='size-4' />
@@ -451,7 +451,7 @@ export default function ChallengesPage() {
 															})
 														}
 														disabled={isNavigating}
-														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
+														className='flex items-center gap-1 rounded-lg font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 													>
 														{t('cookToContribute')}
 														<ChevronRight className='size-3.5' />
@@ -579,7 +579,7 @@ export default function ChallengesPage() {
 																})
 															}
 															disabled={isNavigating}
-															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50'
+															className='mt-3 flex items-center gap-1 rounded-lg text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
 															{t('featuredRecipesCount', {
 																count: ev.featuredRecipes.length,
@@ -624,6 +624,9 @@ export default function ChallengesPage() {
 						</section>
 					</>
 				)}
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

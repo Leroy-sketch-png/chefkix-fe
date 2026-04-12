@@ -116,7 +116,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 					exit={{ opacity: 0, y: -12 }}
 					transition={TRANSITION_SPRING}
 					className={cn(
-						'group relative overflow-hidden rounded-radius border border-brand/20 bg-gradient-to-r from-brand/10 via-bg-card to-streak/10 p-4 shadow-card md:p-5',
+						'group relative overflow-hidden rounded-radius border border-brand/20 bg-gradient-to-r from-brand/10 via-bg-card to-streak/10 p-3 shadow-card sm:p-4 md:p-5',
 						className,
 					)}
 				>
@@ -124,23 +124,23 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 					<button
 						type='button'
 						onClick={handleDismiss}
-						className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+						className='absolute right-2 top-2 flex size-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50 sm:right-3 sm:top-3'
 						aria-label={tc('ariaDismissSeasonalBanner')}
 					>
 						<X className='size-4' />
 					</button>
 
 					{/* Content */}
-					<div className='flex items-start gap-4'>
+					<div className='flex items-start gap-3 sm:gap-4'>
 						{/* Emoji / Icon */}
-						<div className='grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-hero text-xl shadow-card shadow-brand/25'>
+						<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-hero text-lg shadow-card shadow-brand/25 sm:size-12 sm:text-xl'>
 							{challenge.emoji || '🎄'}
 						</div>
 
 						<div className='min-w-0 flex-1'>
 							{/* Header */}
-							<div className='flex items-center gap-2'>
-								<span className='rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-brand'>
+							<div className='flex flex-wrap items-center gap-1.5 pr-8 sm:gap-2'>
+								<span className='rounded-full bg-brand/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-brand'>
 									{td('sbSeasonalEvent')}
 								</span>
 								<span className='flex items-center gap-1 text-xs text-text-muted'>
@@ -149,10 +149,13 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 								</span>
 							</div>
 
-							<h3 className='mt-1.5 text-base font-bold text-text'>
+							<h3 className='mt-1.5 text-sm font-bold text-text sm:text-base'>
 								{challenge.title}
 							</h3>
-							<p className='mt-0.5 line-clamp-2 text-sm text-text-secondary'>
+							<p
+								className='mt-0.5 line-clamp-2 text-xs leading-relaxed text-text-secondary sm:text-sm'
+								title={challenge.description}
+							>
 								{challenge.description}
 							</p>
 
@@ -183,7 +186,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 							)}
 
 							{/* Footer: reward + CTA */}
-							<div className='mt-3 flex flex-wrap items-center gap-3'>
+							<div className='mt-2.5 flex flex-wrap items-center gap-2.5 sm:mt-3 sm:gap-3'>
 								{challenge.rewardXp > 0 && (
 									<span className='flex items-center gap-1 text-xs font-semibold text-xp'>
 										<Trophy className='size-3.5' />
@@ -196,7 +199,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 									<motion.span
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-warm'
+										className='inline-flex items-center gap-1 rounded-lg bg-brand px-2.5 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-warm sm:px-3'
 									>
 										{challenge.userCompleted
 											? td('sbViewDetails')

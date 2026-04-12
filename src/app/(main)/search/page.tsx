@@ -131,6 +131,17 @@ const SEARCH_SUGGESTIONS = [
 	'Baking',
 ]
 
+const TRENDING_SEARCH_TERMS: Array<{
+	term: string
+	icon: React.ComponentType<{ className?: string }>
+	iconClass: string
+}> = [
+	{ term: 'Quick meals', icon: Clock, iconClass: 'bg-info/10 text-info' },
+	{ term: 'High protein', icon: Flame, iconClass: 'bg-error/10 text-error' },
+	{ term: 'Meal prep', icon: Sparkles, iconClass: 'bg-xp/10 text-xp' },
+	{ term: 'Top rated', icon: Star, iconClass: 'bg-warning/10 text-warning' },
+]
+
 // Extended vocabulary for "Did you mean?" fuzzy matching
 const SEARCH_VOCABULARY = [
 	...SEARCH_SUGGESTIONS,
@@ -254,6 +265,9 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 						fill
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
+						}}
 					/>
 				</div>
 				<div className='p-4'>
@@ -416,6 +430,9 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 						fill
 						sizes='80px'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
+						}}
 					/>
 				</div>
 				<div className='min-w-0 flex-1'>
@@ -657,7 +674,7 @@ function SearchContent() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					{/* Search input always visible */}
-					<div className='mx-auto mt-10 mb-8 max-w-xl'>
+					<div className='mx-auto mt-2 mb-5 max-w-xl'>
 						<div className='relative'>
 							<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
 							<input
@@ -665,8 +682,8 @@ function SearchContent() {
 								value={searchInput}
 								onChange={e => handleSearchInputChange(e.target.value)}
 								placeholder={t('searchPlaceholder')}
-								autoFocus
-								className='w-full rounded-2xl border border-border-subtle bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+								aria-label={t('searchPlaceholder')}
+								className='w-full rounded-2xl border border-border-subtle bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
 							/>
 							{searchInput && (
 								<motion.button
@@ -726,7 +743,7 @@ function SearchContent() {
 					)}
 
 					{/* Suggestions */}
-					<div className='mx-auto mb-8 max-w-xl'>
+					<div className='mx-auto mb-6 max-w-xl'>
 						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
 							<TrendingUp className='size-4' />
 							<span className='text-sm font-semibold'>{t('suggestions')}</span>
@@ -745,6 +762,94 @@ function SearchContent() {
 							))}
 						</div>
 					</div>
+
+					<div className='mx-auto mb-6 max-w-xl'>
+						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+							<Flame className='size-4 text-streak' />
+							<span className='text-sm font-semibold'>
+								{t('trendingSearches')}
+							</span>
+						</div>
+						<div className='grid grid-cols-2 gap-2'>
+							{TRENDING_SEARCH_TERMS.map(({ term, icon: Icon, iconClass }) => (
+								<motion.button
+									type='button'
+									key={term}
+									onClick={() => handleSuggestionClick(term)}
+									whileTap={BUTTON_TAP}
+									className='group flex items-center gap-2 rounded-2xl border border-border-subtle bg-bg-card p-3 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									<span
+										className={cn(
+											'flex size-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105',
+											iconClass,
+										)}
+									>
+										<Icon className='size-4' />
+									</span>
+									<span className='text-sm font-semibold text-text'>
+										{term}
+									</span>
+								</motion.button>
+							))}
+						</div>
+					</div>
+
+					<div className='mx-auto mb-8 max-w-xl'>
+						<div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
+							<Link
+								href='/explore'
+								className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							>
+								<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
+									<BookOpen className='size-4' />
+								</span>
+								<div className='min-w-0'>
+									<p className='text-sm font-semibold text-text'>
+										{t('tabRecipes')}
+									</p>
+									<p className='text-caption text-text-secondary'>
+										{t('exploreAll')}
+									</p>
+								</div>
+							</Link>
+
+							<Link
+								href='/community'
+								className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							>
+								<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
+									<Users className='size-4' />
+								</span>
+								<div className='min-w-0'>
+									<p className='text-sm font-semibold text-text'>
+										{t('tabPeople')}
+									</p>
+									<p className='text-caption text-text-secondary'>
+										{t('discoverPeople')}
+									</p>
+								</div>
+							</Link>
+
+							<Link
+								href='/dashboard'
+								className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							>
+								<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
+									<ImageIcon className='size-4' />
+								</span>
+								<div className='min-w-0'>
+									<p className='text-sm font-semibold text-text'>
+										{t('tabPosts')}
+									</p>
+									<p className='text-caption text-text-secondary'>
+										{t('viewFeed')}
+									</p>
+								</div>
+							</Link>
+						</div>
+					</div>
+					<div className='pb-24 md:pb-8' />
 				</PageContainer>
 			</PageTransition>
 		)
@@ -795,7 +900,8 @@ function SearchContent() {
 								value={searchInput}
 								onChange={e => handleSearchInputChange(e.target.value)}
 								placeholder={t('searchPlaceholder')}
-								className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+								aria-label={t('searchPlaceholder')}
+								className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
 							/>
 							{searchInput && (
 								<motion.button

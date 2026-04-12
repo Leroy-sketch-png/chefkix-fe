@@ -175,7 +175,15 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 					const res = await autocompleteSearch(mentionQuery, 'users', 5)
 					if (res.success && res.data?.users?.hits) {
 						const searchResults: MentionSuggestion[] = res.data.users.hits.map(
-							(h: { document: { id: string; username: string; displayName?: string; firstName?: string; avatarUrl?: string } }) => ({
+							(h: {
+								document: {
+									id: string
+									username: string
+									displayName?: string
+									firstName?: string
+									avatarUrl?: string
+								}
+							}) => ({
 								userId: h.document.id,
 								displayName:
 									h.document.displayName ||
@@ -346,7 +354,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							disabled={disabled}
 							rows={rows}
 							className={cn(
-								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand/30',
+								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,
 							)}
 						/>
@@ -361,7 +369,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							placeholder={placeholder}
 							disabled={disabled}
 							className={cn(
-								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand/30',
+								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,
 							)}
 						/>
@@ -403,9 +411,13 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 										{t('miNoUsersFound')}
 									</div>
 								) : (
-									<ul className='max-h-48 overflow-y-auto py-1'>
+									<ul className='max-h-48 overflow-y-auto py-1' role='listbox'>
 										{filteredSuggestions.map((user, index) => (
-											<li key={user.userId}>
+											<li
+												key={user.userId}
+												role='option'
+												aria-selected={index === selectedIndex}
+											>
 												<button
 													type='button'
 													onClick={() => selectUser(user)}

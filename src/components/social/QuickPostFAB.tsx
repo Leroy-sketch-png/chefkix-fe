@@ -246,7 +246,7 @@ export const QuickPostFAB = ({
 					handleClose()
 					return
 				}
-				toast.error(response.message || t('fabPollFailed'))
+				toast.error(t('fabPollFailed'))
 			} catch {
 				toast.error(t('fabPollNetworkError'))
 			} finally {
@@ -294,7 +294,7 @@ export const QuickPostFAB = ({
 					handleClose()
 					return
 				}
-				toast.error(response.message || t('fabTipFailed'))
+				toast.error(t('fabTipFailed'))
 			} catch {
 				toast.error(t('fabTipNetworkError'))
 			} finally {
@@ -343,7 +343,7 @@ export const QuickPostFAB = ({
 					handleClose()
 					return
 				}
-				toast.error(response.message || t('fabBattleFailed'))
+				toast.error(t('fabBattleFailed'))
 			} catch {
 				toast.error(t('fabBattleNetworkError'))
 			} finally {
@@ -395,7 +395,7 @@ export const QuickPostFAB = ({
 				handleClose()
 				return
 			}
-			toast.error(response.message || t('fabPostFailed'))
+			toast.error(t('fabPostFailed'))
 		} catch {
 			toast.error(t('fabPostNetworkError'))
 		} finally {
@@ -406,7 +406,7 @@ export const QuickPostFAB = ({
 	return (
 		<>
 			{/* FAB Button with discoverability hint */}
-			<div className='fixed bottom-6 right-6 z-sticky flex items-center gap-3'>
+			<div className='fixed bottom-20 right-6 z-sticky flex items-center gap-3 md:bottom-6'>
 				{/* First-visit hint pill */}
 				<AnimatePresence>
 					{showHint && !isOpen && (
@@ -463,6 +463,9 @@ export const QuickPostFAB = ({
 				{isOpen && (
 					<Portal>
 						<motion.div
+							role='dialog'
+							aria-modal='true'
+							aria-label='Create post'
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
@@ -505,7 +508,7 @@ export const QuickPostFAB = ({
 										onClick={handleClose}
 										disabled={isSubmitting}
 										aria-label={t('fabClose')}
-										className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+										className='grid size-10 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text disabled:cursor-not-allowed disabled:opacity-50'
 									>
 										<X className='size-5' />
 									</button>
@@ -550,10 +553,11 @@ export const QuickPostFAB = ({
 												type='text'
 												value={pollQuestion}
 												onChange={e => setPollQuestion(e.target.value)}
+												aria-label={t('fabPollQuestionPlaceholder')}
 												placeholder={t('fabPollQuestionPlaceholder')}
 												maxLength={200}
 												disabled={isSubmitting}
-												className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+												className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 											/>{' '}
 											<p
 												className={`mt-1 text-right text-xs tabular-nums ${pollQuestion.length > 160 ? (pollQuestion.length >= 200 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
@@ -575,7 +579,7 @@ export const QuickPostFAB = ({
 													placeholder={t('fabPollOptionA')}
 													maxLength={100}
 													disabled={isSubmitting}
-													className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+													className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 												/>
 											</div>
 											<div className='flex items-center gap-2'>
@@ -590,7 +594,7 @@ export const QuickPostFAB = ({
 													placeholder={t('fabPollOptionB')}
 													maxLength={100}
 													disabled={isSubmitting}
-													className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+													className='w-full rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 												/>
 											</div>
 										</div>
@@ -608,11 +612,12 @@ export const QuickPostFAB = ({
 											<textarea
 												value={caption}
 												onChange={e => setCaption(e.target.value)}
+												aria-label={t('fabTipPlaceholder')}
 												placeholder={t('fabTipPlaceholder')}
 												maxLength={280}
 												rows={3}
 												disabled={isSubmitting}
-												className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+												className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 											/>
 											<p
 												className={`mt-1 text-right text-xs tabular-nums ${caption.length > 224 ? (caption.length >= 280 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
@@ -641,7 +646,7 @@ export const QuickPostFAB = ({
 																type='button'
 																onClick={() => removePhoto(index)}
 																aria-label={t('fabRemovePhoto')}
-																className='absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+																className='absolute right-1 top-1 grid size-8 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 															>
 																<X className='size-3.5' />
 															</button>
@@ -695,9 +700,9 @@ export const QuickPostFAB = ({
 															type='button'
 															onClick={() => setBattleRecipeA(null)}
 															aria-label={t('fabBattleRemoveRecipe')}
-															className='ml-auto grid size-6 place-items-center rounded-full text-text-muted hover:bg-bg-card hover:text-text'
+															className='ml-auto grid size-8 place-items-center rounded-full text-text-muted hover:bg-bg-card hover:text-text'
 														>
-															<X className='size-3.5' />
+															<X className='size-4' />
 														</button>
 													)}
 												</div>
@@ -738,9 +743,9 @@ export const QuickPostFAB = ({
 															type='button'
 															onClick={() => setBattleRecipeB(null)}
 															aria-label={t('fabBattleRemoveRecipe')}
-															className='ml-auto grid size-6 place-items-center rounded-full text-text-muted hover:bg-bg-card hover:text-text'
+															className='ml-auto grid size-8 place-items-center rounded-full text-text-muted hover:bg-bg-card hover:text-text'
 														>
-															<X className='size-3.5' />
+															<X className='size-4' />
 														</button>
 													)}
 												</div>
@@ -766,7 +771,7 @@ export const QuickPostFAB = ({
 														onChange={e => handleBattleSearch(e.target.value)}
 														placeholder={t('fabBattleSearchPlaceholder')}
 														autoFocus
-														className='mb-2 w-full rounded-lg border border-border-subtle bg-bg-elevated p-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+														className='mb-2 w-full rounded-lg border border-border-subtle bg-bg-elevated p-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 													/>
 													{battleSearching && (
 														<div className='flex items-center justify-center py-3'>
@@ -805,7 +810,7 @@ export const QuickPostFAB = ({
 														}}
 														className='mt-2 w-full text-center text-xs text-text-muted hover:text-text'
 													>
-														Cancel
+														{t('fabCancel')}
 													</button>
 												</div>
 											)}
@@ -816,11 +821,12 @@ export const QuickPostFAB = ({
 											<textarea
 												value={caption}
 												onChange={e => setCaption(e.target.value)}
+												aria-label={t('fabBattleCaptionPlaceholder')}
 												placeholder={t('fabBattleCaptionPlaceholder')}
 												maxLength={500}
 												rows={2}
 												disabled={isSubmitting}
-												className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+												className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 											/>{' '}
 											<p
 												className={`mt-1 text-right text-xs tabular-nums ${caption.length > 400 ? (caption.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
@@ -851,7 +857,7 @@ export const QuickPostFAB = ({
 																type='button'
 																onClick={() => removePhoto(index)}
 																aria-label={t('removePhoto')}
-																className='absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+																className='absolute right-1 top-1 grid size-8 place-items-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 															>
 																<X className='size-3.5' />
 															</button>
@@ -874,7 +880,7 @@ export const QuickPostFAB = ({
 												<label className='flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-subtle transition-colors hover:border-brand/50 hover:bg-brand/5'>
 													<Camera className='size-8 text-text-muted' />
 													<span className='text-sm text-text-muted'>
-														Tap to add photos
+														{t('fabTapAddPhotos')}
 													</span>
 													<input
 														ref={fileInputRef}

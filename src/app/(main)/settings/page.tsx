@@ -46,12 +46,16 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { PATHS } from '@/constants'
-import { logout as logoutService } from '@/services/auth'
-import { changePassword } from '@/services/auth'
-import { deleteAccount, exportUserData } from '@/services/profile'
+import { logout as logoutService, changePassword } from '@/services/auth'
+import {
+	deleteAccount,
+	exportUserData,
+	updateProfile,
+} from '@/services/profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { logDevError } from '@/lib/dev-log'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -78,7 +82,6 @@ import {
 	updateCookingPreferences,
 	updateAppPreferences,
 } from '@/services/settings'
-import { updateProfile } from '@/services/profile'
 import { uploadRecipeImages } from '@/services/recipe'
 import {
 	applyForVerification,
@@ -294,7 +297,7 @@ const SettingsCard = ({
 		)}
 	>
 		<div className='mb-4'>
-			<h3 className='text-lg font-semibold text-text'>{title}</h3>
+			<h2 className='text-lg font-semibold text-text'>{title}</h2>
 			{description && (
 				<p className='mt-1 text-sm text-text-secondary'>{description}</p>
 			)}
@@ -447,6 +450,7 @@ export default function SettingsPage() {
 	}))
 	const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 	const [isLoading, setIsLoading] = useState(true)
+	const [loadError, setLoadError] = useState(false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [isLoggingOut, setIsLoggingOut] = useState(false)
 	const [settings, setSettings] = useState<UserSettings | null>(null)
@@ -547,6 +551,7 @@ export default function SettingsPage() {
 			} catch (error) {
 				if (cancelled) return
 				logDevError('Failed to load settings:', error)
+				setLoadError(true)
 				toast.error(t('toastLoadFailed'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
@@ -656,7 +661,7 @@ export default function SettingsPage() {
 				}
 				toast.success(t('toastProfileUpdated'))
 			} else {
-				toast.error(response.message || t('toastProfileUpdateFailed'))
+				toast.error(t('toastProfileUpdateFailed'))
 			}
 		} catch (error) {
 			logDevError('Failed to update profile:', error)
@@ -736,7 +741,7 @@ export default function SettingsPage() {
 					toast.success(t('toastPrivacyUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(response.message || t('toastPrivacyFailed'))
+					toast.error(t('toastPrivacyFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update privacy settings:', error)
@@ -765,7 +770,7 @@ export default function SettingsPage() {
 					toast.success(t('toastNotificationsUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(response.message || t('toastNotificationsFailed'))
+					toast.error(t('toastNotificationsFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update notification settings:', error)
@@ -789,7 +794,7 @@ export default function SettingsPage() {
 					toast.success(t('toastCookingPrefsUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(response.message || t('toastCookingPrefsFailed'))
+					toast.error(t('toastCookingPrefsFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update cooking preferences:', error)
@@ -813,7 +818,7 @@ export default function SettingsPage() {
 					toast.success(t('toastAppPrefsUpdated'))
 				} else {
 					setSettings(previousSettings)
-					toast.error(response.message || t('toastAppPrefsFailed'))
+					toast.error(t('toastAppPrefsFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update app preferences:', error)
@@ -926,6 +931,23 @@ export default function SettingsPage() {
 		)
 	}
 
+	if (loadError) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title={t('toastLoadFailed')}
+						message={t('toastLoadFailedDesc')}
+						onRetry={() => {
+							setLoadError(false)
+							setIsLoading(true)
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
@@ -944,62 +966,79 @@ export default function SettingsPage() {
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={TRANSITION_SPRING}
-						className='flex gap-1 overflow-x-auto pb-2 lg:pb-0 lg:flex-col rounded-radius border border-border-subtle bg-bg-card p-2 shadow-card h-fit lg:sticky lg:top-24 scrollbar-hide'
+						className='relative'
 					>
-						{TABS.map(tab => {
-							const Icon = tab.icon
-							const isActive = activeTab === tab.id
-							return (
-								<motion.button
-									type='button'
-									key={tab.id}
-									whileHover={NAV_ITEM_HOVER}
-									whileTap={LIST_ITEM_TAP}
-									onClick={() => setActiveTab(tab.id)}
-									className={cn(
-										'flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand/50 whitespace-nowrap flex-shrink-0',
-										isActive
-											? 'bg-brand/10 text-brand font-semibold'
-											: 'text-text-secondary hover:bg-bg-hover hover:text-text',
-									)}
-								>
-									<Icon
-										className={cn(
-											'size-5 flex-shrink-0',
-											isActive ? 'text-brand' : 'text-text-secondary',
-										)}
-									/>
-									<p className='text-sm'>{t(tab.labelKey)}</p>
-								</motion.button>
-							)
-						})}
-
-						{/* Divider + Sign Out */}
-						<div className='hidden lg:block my-1 h-px bg-border-subtle' />
-						<div className='lg:hidden my-1 w-px bg-border-subtle' />
-						<motion.button
-							type='button'
-							whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
-							whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
-							onClick={handleLogout}
-							disabled={isLoggingOut}
-							className='flex items-center gap-3 rounded-lg px-4 py-3 text-left text-error hover:bg-error/10 transition-all flex-shrink-0 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						<div
+							role='tablist'
+							aria-label={t('title')}
+							className='flex gap-1.5 overflow-x-auto pb-1 lg:pb-0 lg:flex-col rounded-radius border border-border-subtle bg-bg-card p-1.5 shadow-card h-fit lg:sticky lg:top-24 scrollbar-hide lg:p-2 lg:gap-2'
 						>
-							{isLoggingOut ? (
-								<Loader2 className='size-5 flex-shrink-0 animate-spin' />
-							) : (
-								<LogOut className='size-5 flex-shrink-0' />
-							)}
-							<p className='text-sm font-medium whitespace-nowrap'>
-								{isLoggingOut ? t('signingOut') : t('signOut')}
-							</p>
-						</motion.button>
+							{TABS.map(tab => {
+								const Icon = tab.icon
+								const isActive = activeTab === tab.id
+								return (
+									<motion.button
+										type='button'
+										key={tab.id}
+										role='tab'
+										aria-selected={isActive}
+										aria-controls={`tabpanel-${tab.id}`}
+										whileHover={NAV_ITEM_HOVER}
+										whileTap={LIST_ITEM_TAP}
+										onClick={() => setActiveTab(tab.id)}
+										title={t(tab.labelKey)}
+										className={cn(
+											'flex min-w-[4.25rem] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-brand/50 lg:min-w-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left',
+											isActive
+												? 'bg-brand/10 text-brand font-semibold'
+												: 'text-text-secondary hover:bg-bg-hover hover:text-text',
+										)}
+									>
+										<Icon
+											className={cn(
+												'size-5 flex-shrink-0',
+												isActive ? 'text-brand' : 'text-text-secondary',
+											)}
+										/>
+										<p className='text-xs font-medium leading-tight lg:text-sm'>
+											{t(tab.labelKey)}
+										</p>
+									</motion.button>
+								)
+							})}
+
+							{/* Divider + Sign Out */}
+							<div className='hidden lg:block my-1 h-px bg-border-subtle' />
+							<div className='lg:hidden my-1 w-px bg-border-subtle' />
+							<motion.button
+								type='button'
+								whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
+								whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
+								onClick={handleLogout}
+								disabled={isLoggingOut}
+								className='flex min-w-[4.25rem] flex-shrink-0 flex-col items-center gap-1 rounded-lg px-2 py-2 text-center text-error transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 lg:min-w-0 lg:flex-row lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left'
+							>
+								{isLoggingOut ? (
+									<Loader2 className='size-5 flex-shrink-0 animate-spin' />
+								) : (
+									<LogOut className='size-5 flex-shrink-0' />
+								)}
+								<p className='text-xs font-medium leading-tight lg:text-sm'>
+									{isLoggingOut ? t('signingOut') : t('signOut')}
+								</p>
+							</motion.button>
+						</div>
+						{/* Scroll fade indicator (mobile only) */}
+						<div className='pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-bg-card to-transparent lg:hidden' />
 					</motion.nav>
 
 					{/* Content Area */}
 					<AnimatePresence mode='wait'>
 						<motion.div
 							key={activeTab}
+							id={`tabpanel-${activeTab}`}
+							role='tabpanel'
+							aria-labelledby={activeTab}
 							variants={tabContentVariants}
 							initial='hidden'
 							animate='visible'
@@ -1030,7 +1069,10 @@ export default function SettingsPage() {
 												>
 													<div
 														className={cn(
-															'relative h-32 w-full overflow-hidden rounded-lg border-2 border-dashed border-border-subtle bg-gradient-warm transition-all',
+															'relative h-28 w-full overflow-hidden rounded-lg border-2 bg-gradient-warm transition-all sm:h-32',
+															coverImageUrl
+																? 'border-border-subtle'
+																: 'border-dashed border-border-subtle',
 															isUploadingCover && 'opacity-60',
 														)}
 													>
@@ -1041,6 +1083,10 @@ export default function SettingsPage() {
 																fill
 																sizes='100vw'
 																className='object-cover'
+																onError={e => {
+																	;(e.target as HTMLImageElement).src =
+																		'/default-cover.svg'
+																}}
 															/>
 														) : (
 															<div className='flex h-full items-center justify-center'>
@@ -1057,23 +1103,43 @@ export default function SettingsPage() {
 														type='button'
 														variant='outline'
 														size='sm'
-														className='absolute bottom-2 right-2 gap-1.5'
+														className='absolute bottom-2 right-2 hidden gap-1.5 sm:inline-flex'
 														onClick={() => coverInputRef.current?.click()}
 														disabled={isUploadingCover}
 													>
 														<Camera className='size-4' />
-														{coverImageUrl ? 'Change' : 'Upload'}
+														{coverImageUrl
+															? t('changeCover')
+															: t('uploadCover')}
 													</Button>
 													<input
 														ref={coverInputRef}
 														type='file'
 														accept='image/*'
+														aria-label={
+															coverImageUrl
+																? t('changeCover')
+																: t('uploadCover')
+														}
 														className='hidden'
 														onChange={handleCoverUpload}
 													/>
 												</div>
+												<Button
+													type='button'
+													variant='outline'
+													size='sm'
+													className='w-full gap-1.5 sm:hidden'
+													onClick={() => coverInputRef.current?.click()}
+													disabled={isUploadingCover}
+												>
+													<Camera className='size-4' />
+													{coverImageUrl
+														? t('changeCoverMobile')
+														: t('uploadCoverMobile')}
+												</Button>
 												<p className='text-xs text-text-muted'>
-													Recommended: 1200×300px, max 5MB
+													{t('coverPhotoHint')}
 												</p>
 											</div>
 
@@ -1083,12 +1149,13 @@ export default function SettingsPage() {
 													{t('profilePhoto')}
 												</Label>
 												<div
-													className='flex items-center gap-4'
+													className='flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4'
 													aria-labelledby='settings-avatar-label'
 												>
 													<div
 														className={cn(
-															'relative size-20 overflow-hidden rounded-full border-2 border-dashed border-border-subtle bg-bg-elevated transition-all',
+															'relative size-20 overflow-hidden rounded-full border-2 border-border-subtle bg-bg-elevated transition-all',
+															!avatarUrl && 'border-dashed',
 															isUploadingAvatar && 'opacity-60',
 														)}
 													>
@@ -1099,6 +1166,10 @@ export default function SettingsPage() {
 																fill
 																sizes='80px'
 																className='object-cover'
+																onError={e => {
+																	;(e.target as HTMLImageElement).src =
+																		'/placeholder-avatar.svg'
+																}}
 															/>
 														) : (
 															<div className='flex size-full items-center justify-center'>
@@ -1131,6 +1202,9 @@ export default function SettingsPage() {
 														ref={avatarInputRef}
 														type='file'
 														accept='image/*'
+														aria-label={
+															avatarUrl ? t('changePhoto') : t('uploadPhoto')
+														}
 														className='hidden'
 														onChange={handleAvatarUpload}
 													/>
@@ -1144,6 +1218,7 @@ export default function SettingsPage() {
 													value={displayName}
 													onChange={e => setDisplayName(e.target.value)}
 													placeholder={t('displayNamePlaceholder')}
+													maxLength={50}
 												/>
 											</div>
 											<div className='grid gap-2'>
@@ -1191,6 +1266,7 @@ export default function SettingsPage() {
 												disabled={
 													isSaving || isUploadingAvatar || isUploadingCover
 												}
+												className='w-full sm:w-auto'
 											>
 												{isSaving ? (
 													<Loader2 className='mr-2 size-4 animate-spin' />
@@ -1365,9 +1441,6 @@ export default function SettingsPage() {
 										<div className='space-y-4'>
 											<p className='text-sm text-text-secondary'>
 												{t('deleteWarning')}
-												profile, statistics, and social connections. Your posts
-												will show as &quot;Deleted User&quot;. This action
-												cannot be undone.
 											</p>
 											{!showDeleteConfirm ? (
 												<Button
@@ -1387,6 +1460,7 @@ export default function SettingsPage() {
 														value={deleteConfirmText}
 														onChange={e => setDeleteConfirmText(e.target.value)}
 														placeholder={t('deleteConfirmPlaceholder')}
+														aria-label={t('deleteConfirmInstruction')}
 														className='max-w-xs'
 													/>
 													<div className='flex gap-2'>
@@ -1398,12 +1472,17 @@ export default function SettingsPage() {
 																setDeleteConfirmText('')
 															}}
 														>
-															Cancel
+															{t('cancelEdit')}
 														</Button>
 														<Button
 															size='sm'
 															disabled={deleteConfirmText !== 'DELETE'}
 															onClick={handleDeleteAccount}
+															title={
+																deleteConfirmText !== 'DELETE'
+																	? t('deleteConfirmInstruction')
+																	: undefined
+															}
 															className='bg-error text-white hover:bg-error/90 disabled:opacity-50'
 														>
 															<Trash2 className='mr-2 size-4' />
@@ -2142,7 +2221,7 @@ export default function SettingsPage() {
 													className={cn(
 														'flex flex-1 flex-col items-center gap-2 rounded-radius border p-3 transition-all',
 														theme === mode
-															? 'border-brand bg-brand/10 text-brand shadow-sm'
+															? 'border-brand bg-brand/10 text-brand shadow-card'
 															: 'border-border-subtle bg-bg text-text-secondary hover:border-border hover:bg-bg-elevated',
 													)}
 												>
@@ -2235,6 +2314,8 @@ export default function SettingsPage() {
 						</motion.div>
 					</AnimatePresence>
 				</div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 
 			{/* Interest Picker Modal */}

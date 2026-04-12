@@ -32,7 +32,12 @@ import type {
 	BadgeCategory,
 	BadgeRarity,
 } from '@/lib/types/gamification'
-import { TRANSITION_SPRING, CARD_HOVER, BUTTON_SUBTLE_TAP, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	BUTTON_SUBTLE_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 
 // ============================================
@@ -235,11 +240,13 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 					{/* Earned date (for earned badges) */}
 					{isEarned && earnedAt && (
 						<p className='text-2xs text-text-muted'>
-							{t('earnedDate', { date: new Date(earnedAt).toLocaleDateString('en-US', {
-								month: 'short',
-								day: 'numeric',
-								year: 'numeric',
-							}) })}
+							{t('earnedDate', {
+								date: new Date(earnedAt).toLocaleDateString('en-US', {
+									month: 'short',
+									day: 'numeric',
+									year: 'numeric',
+								}),
+							})}
 						</p>
 					)}
 				</>
@@ -379,7 +386,11 @@ export default function BadgeCatalogPage() {
 									<PageHeader
 										icon={Trophy}
 										title={t('badgeCollection')}
-										subtitle={t('badgeProgress', { earned: earnedCount, total: totalBadges, percent: progressPercent })}
+										subtitle={t('badgeProgress', {
+											earned: earnedCount,
+											total: totalBadges,
+											percent: progressPercent,
+										})}
 										gradient='warm'
 										marginBottom='sm'
 										className='mb-0'
@@ -392,160 +403,184 @@ export default function BadgeCatalogPage() {
 								<motion.div
 									initial={{ width: 0 }}
 									animate={{ width: `${progressPercent}%` }}
-									transition={{ duration: DURATION_S.dramatic, ease: 'easeOut' }}
+									transition={{
+										duration: DURATION_S.dramatic,
+										ease: 'easeOut',
+									}}
 									className='h-full rounded-full bg-gradient-to-r from-xp to-brand'
 								/>
 							</div>
 
 							{/* Search + Filters */}
-							<div className='mt-4 flex flex-wrap items-center gap-2'>
+							<div className='mt-4 grid grid-cols-[1fr] gap-2 sm:flex sm:flex-wrap sm:items-center'>
 								{/* Search */}
-								<div className='relative flex-1 min-w-search'>
+								<div className='relative sm:flex-1 sm:min-w-search'>
 									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 									<input
 										type='text'
 										placeholder={t('searchPlaceholder')}
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
-										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
+										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20'
 									/>
 								</div>
 
 								{/* Category Filter */}
-								<select
-									value={selectedCategory}
-									onChange={e =>
-										setSelectedCategory(e.target.value as BadgeCategory | 'ALL')
-									}
-									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
-								>
-									<option value='ALL'>{t('allCategories')}</option>
-									{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-										<option key={key} value={key}>
-											{t(config.labelKey)} ({categoryCounts[key]?.earned ?? 0}/
-											{categoryCounts[key]?.total ?? 0})
+								{/* Filter row */}
+								<div className='flex flex-wrap items-center gap-2'>
+									<select
+										value={selectedCategory}
+										onChange={e =>
+											setSelectedCategory(
+												e.target.value as BadgeCategory | 'ALL',
+											)
+										}
+										className='min-w-0 flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+									>
+										<option className='bg-bg-card text-text' value='ALL'>
+											{t('allCategories')}
 										</option>
-									))}
-								</select>
+										{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+											<option
+												className='bg-bg-card text-text'
+												key={key}
+												value={key}
+											>
+												{t(config.labelKey)} ({categoryCounts[key]?.earned ?? 0}
+												/{categoryCounts[key]?.total ?? 0})
+											</option>
+										))}
+									</select>
 
-								{/* Rarity Filter */}
-								<select
-									value={selectedRarity}
-									onChange={e =>
-										setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
-									}
-									className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20'
-								>
-									<option value='ALL'>{t('allRarities')}</option>
-									{RARITY_ORDER.map(rarity => (
-										<option key={rarity} value={rarity}>
-											{t(RARITY_CONFIG[rarity].labelKey)}
+									{/* Rarity Filter */}
+									<select
+										value={selectedRarity}
+										onChange={e =>
+											setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
+										}
+										className='min-w-0 flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+									>
+										<option className='bg-bg-card text-text' value='ALL'>
+											{t('allRarities')}
 										</option>
-									))}
-								</select>
+										{RARITY_ORDER.map(rarity => (
+											<option
+												className='bg-bg-card text-text'
+												key={rarity}
+												value={rarity}
+											>
+												{t(RARITY_CONFIG[rarity].labelKey)}
+											</option>
+										))}
+									</select>
 
-								{/* Earned Only Toggle */}
-								<button
-									type='button'
-									onClick={() => setShowEarnedOnly(!showEarnedOnly)}
-									className={cn(
-										'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-										showEarnedOnly
-											? 'border-success bg-success/10 text-success'
-											: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
-									)}
-								>
-									<CheckCircle2 className='size-4' />
-									Earned Only
-								</button>
+									{/* Earned Only Toggle */}
+									<button
+										type='button'
+										onClick={() => setShowEarnedOnly(!showEarnedOnly)}
+										className={cn(
+											'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+											showEarnedOnly
+												? 'border-success bg-success/10 text-success'
+												: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
+										)}
+									>
+										<CheckCircle2 className='size-4' />
+										Earned Only
+									</button>
+								</div>
 							</div>
 						</div>
 					</PageContainer>
 				</div>
 
-			{/* Badge Grid */}
+				{/* Badge Grid */}
 				<PageContainer maxWidth='xl' className='py-6'>
-				<AnimatePresence mode='popLayout'>
-					{filteredBadges.length === 0 ? (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='flex flex-col items-center justify-center py-20 text-center'
-						>
-							<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
-								<Search className='size-8 text-text-muted' />
-							</div>
-						<p className='mt-4 font-semibold text-text'>{t('noBadgesFound')}</p>
-						<p className='mt-1 text-sm text-text-muted'>
-							{t('noBadgesHint')}
-							</p>
-						</motion.div>
-					) : (
-						<motion.div
-							layout
-							className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-						>
-							{filteredBadges.map((badge, index) => {
-								const isEarned =
-									earnedBadgeIds.has(badge.id) ||
-									earnedBadgeIds.has(badge.name) ||
-									earnedBadgeIds.has(badge.name.toLowerCase())
-								return (
-									<motion.div
-										key={badge.id || `badge-${index}`}
-										layout
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, scale: 0.9 }}
-										transition={{ delay: Math.min(index * 0.02, 0.3) }}
-									>
-										<BadgeCard
-											badge={badge}
-											isEarned={isEarned}
-											earnedAt={
-												badgeTimestamps[badge.id] ??
-												badgeTimestamps[badge.name] ??
-												undefined
-											}
-										/>
-									</motion.div>
-								)
-							})}
-						</motion.div>
-					)}
-				</AnimatePresence>
+					<AnimatePresence mode='popLayout'>
+						{filteredBadges.length === 0 ? (
+							<motion.div
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='flex flex-col items-center justify-center py-20 text-center'
+							>
+								<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
+									<Search className='size-8 text-text-muted' />
+								</div>
+								<p className='mt-4 font-semibold text-text'>
+									{t('noBadgesFound')}
+								</p>
+								<p className='mt-1 text-sm text-text-muted'>
+									{t('noBadgesHint')}
+								</p>
+							</motion.div>
+						) : (
+							<motion.div
+								layout
+								className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+							>
+								{filteredBadges.map((badge, index) => {
+									const isEarned =
+										earnedBadgeIds.has(badge.id) ||
+										earnedBadgeIds.has(badge.name) ||
+										earnedBadgeIds.has(badge.name.toLowerCase())
+									return (
+										<motion.div
+											key={badge.id || `badge-${index}`}
+											layout
+											initial={{ opacity: 0, y: 20 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, scale: 0.9 }}
+											transition={{ delay: Math.min(index * 0.02, 0.3) }}
+										>
+											<BadgeCard
+												badge={badge}
+												isEarned={isEarned}
+												earnedAt={
+													badgeTimestamps[badge.id] ??
+													badgeTimestamps[badge.name] ??
+													undefined
+												}
+											/>
+										</motion.div>
+									)
+								})}
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</PageContainer>
 
 				{/* Rarity Legend */}
 				<PageContainer maxWidth='xl' className='pb-8'>
-				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
-					<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
-						<Star className='size-4 text-xp' />
-						{t('rarityGuide')}
-					</h3>
-					<div className='flex flex-wrap gap-2'>
-						{RARITY_ORDER.map(rarity => {
-							const config = RARITY_CONFIG[rarity]
-							return (
-								<div
-									key={rarity}
-									className={cn(
-										'flex items-center gap-2 rounded-lg border px-3 py-1.5',
-										config.bgClass,
-										config.borderClass,
-									)}
-								>
-									<span
-										className={cn('text-xs font-semibold', config.textClass)}
+					<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+						<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
+							<Star className='size-4 text-xp' />
+							{t('rarityGuide')}
+						</h3>
+						<div className='flex flex-wrap gap-2'>
+							{RARITY_ORDER.map(rarity => {
+								const config = RARITY_CONFIG[rarity]
+								return (
+									<div
+										key={rarity}
+										className={cn(
+											'flex items-center gap-2 rounded-lg border px-3 py-1.5',
+											config.bgClass,
+											config.borderClass,
+										)}
 									>
-										{t(config.labelKey)}
-									</span>
-								</div>
-							)
-						})}
+										<span
+											className={cn('text-xs font-semibold', config.textClass)}
+										>
+											{t(config.labelKey)}
+										</span>
+									</div>
+								)
+							})}
+						</div>
 					</div>
-				</div>
+
+					<div className='pb-40 md:pb-8' />
 				</PageContainer>
 			</div>
 		</PageTransition>

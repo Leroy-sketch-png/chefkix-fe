@@ -162,7 +162,8 @@ export function SessionRatingForm({
 		onSubmit(rating, notes.trim() || undefined)
 	}, [rating, notes, onSubmit])
 
-	const displayLabelKey = RATING_LABEL_KEYS[hoverRating] || RATING_LABEL_KEYS[rating]
+	const displayLabelKey =
+		RATING_LABEL_KEYS[hoverRating] || RATING_LABEL_KEYS[rating]
 	const displayLabel = displayLabelKey ? t(displayLabelKey) : undefined
 
 	return (
@@ -178,7 +179,9 @@ export function SessionRatingForm({
 			</motion.div>
 
 			{/* Title */}
-			<h2 className='mb-1 text-2xl font-bold text-text'>{t('recipeComplete')}</h2>
+			<h2 className='mb-1 text-2xl font-bold text-text'>
+				{t('recipeComplete')}
+			</h2>
 			<p className='mb-4 text-sm text-text-secondary'>{recipeTitle}</p>
 
 			{/* XP Badge */}
@@ -240,7 +243,7 @@ export function SessionRatingForm({
 						className='mb-4 flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageSquare className='size-4' />
-					{t('addNote')}
+						{t('addNote')}
 					</motion.button>
 				)}
 			</AnimatePresence>
@@ -258,11 +261,13 @@ export function SessionRatingForm({
 							value={notes}
 							onChange={e => setNotes(e.target.value)}
 							placeholder={t('notePlaceholder')}
-							className='w-full resize-none rounded-xl border border-border-subtle bg-bg p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+							className='w-full resize-none rounded-xl border border-border-subtle bg-bg p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
 							rows={2}
 							maxLength={500}
 						/>
-						<p className={`mt-1 text-right text-xs ${notes.length > 400 ? (notes.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+						<p
+							className={`mt-1 text-right text-xs ${notes.length > 400 ? (notes.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+						>
 							{notes.length}/500
 						</p>
 					</motion.div>
@@ -279,7 +284,7 @@ export function SessionRatingForm({
 				className={cn(
 					'w-full rounded-full py-3 font-bold text-white transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 					rating > 0
-						? 'bg-gradient-hero shadow-card hover:shadow-lg'
+						? 'bg-gradient-hero shadow-card hover:shadow-warm'
 						: 'cursor-not-allowed bg-border text-text-muted',
 					isSubmitting && 'opacity-70',
 				)}

@@ -18,9 +18,15 @@ import {
 import { Loader2, Plus, Search, Users } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { motion } from 'framer-motion'
-import { BUTTON_HOVER, BUTTON_TAP, TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
+import {
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	TRANSITION_SPRING,
+	DURATION_S,
+} from '@/lib/motion'
 import { CreateGroupModal } from './CreateGroupModal'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
+import { ErrorState } from '@/components/ui/error-state'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 
@@ -37,49 +43,49 @@ export const GroupsExploreGrid = ({
 }: GroupsExploreGridProps) => {
 	const [groups, setGroups] = useState<Group[]>([])
 	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState(false)
 	const [hasMore, setHasMore] = useState(true)
 	const [page, setPage] = useState(0)
 
 	// Filters
 	const [searchTerm, setSearchTerm] = useState('')
-	const [privacyFilter, setPrivacyFilter] = useState<PrivacyType | 'ALL'>(
-		'ALL'
-	)
+	const [privacyFilter, setPrivacyFilter] = useState<PrivacyType | 'ALL'>('ALL')
 	const [sortBy, setSortBy] = useState<'LATEST' | 'MEMBERS' | 'TRENDING'>(
-		'LATEST'
+		'LATEST',
 	)
 
 	// Modal state
 	const [showCreateModal, setShowCreateModal] = useState(false)
-	const user = useAuthStore((state) => state.user)
+	const user = useAuthStore(state => state.user)
 	const t = useTranslations('groups')
 
 	// Load groups
 	const loadGroups = useCallback(
 		async (pageNum: number = 0, append: boolean = false) => {
 			setIsLoading(true)
+			setError(false)
 			try {
 				const query: Partial<GroupExploreQuery> = {
 					searchTerm: searchTerm || undefined,
-					privacyType:
-						privacyFilter === 'ALL' ? undefined : privacyFilter,
+					privacyType: privacyFilter === 'ALL' ? undefined : privacyFilter,
 					sortBy,
 				}
 
 				const response = await exploreGroups(query, pageNum, 12)
 
-				setGroups((prev) =>
-					append ? [...prev, ...response.content] : response.content
+				setGroups(prev =>
+					append ? [...prev, ...response.content] : response.content,
 				)
 				setPage(pageNum)
 				setHasMore(pageNum < response.totalPages - 1)
 			} catch (error) {
+				setError(true)
 				toast.error(t('geLoadFailed'))
 			} finally {
 				setIsLoading(false)
 			}
 		},
-		[searchTerm, privacyFilter, sortBy, t]
+		[searchTerm, privacyFilter, sortBy, t],
 	)
 
 	// Initial load and filter changes
@@ -92,9 +98,19 @@ export const GroupsExploreGrid = ({
 	}
 
 	const handleGroupCreated = (newGroup: Group) => {
-		setGroups((prev) => [newGroup, ...prev])
+		setGroups(prev => [newGroup, ...prev])
 		// Optionally scroll to top
 		window.scrollTo({ top: 0, behavior: 'smooth' })
+	}
+
+	if (error && groups.length === 0) {
+		return (
+			<ErrorState
+				title={t('geLoadFailed')}
+				message={t('geLoadFailedDesc')}
+				onRetry={() => loadGroups(0, false)}
+			/>
+		)
 	}
 
 	return (
@@ -114,12 +130,12 @@ export const GroupsExploreGrid = ({
 							type='button'
 							onClick={() => setShowCreateModal(true)}
 							className='flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-semibold shadow-lg shadow-brand/30 transition-all duration-300 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand/50'
-						whileHover={BUTTON_HOVER}
-						whileTap={BUTTON_TAP}
-						transition={TRANSITION_SPRING}
+							whileHover={BUTTON_HOVER}
+							whileTap={BUTTON_TAP}
+							transition={TRANSITION_SPRING}
 						>
 							<Plus className='size-5' />
-						{t('geCreateGroup')}
+							{t('geCreateGroup')}
 						</motion.button>
 					)}
 				</div>
@@ -133,7 +149,7 @@ export const GroupsExploreGrid = ({
 					<Input
 						placeholder={t('geSearchPlaceholder')}
 						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
+						onChange={e => setSearchTerm(e.target.value)}
 						className='pl-12 py-3 text-base rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand transition-colors'
 						disabled={isLoading}
 					/>
@@ -144,9 +160,7 @@ export const GroupsExploreGrid = ({
 					{/* Privacy Filter */}
 					<Select
 						value={privacyFilter}
-						onValueChange={(val) =>
-							setPrivacyFilter(val as PrivacyType | 'ALL')
-						}
+						onValueChange={val => setPrivacyFilter(val as PrivacyType | 'ALL')}
 						disabled={isLoading}
 					>
 						<SelectTrigger className='w-full sm:w-48 rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand'>
@@ -162,7 +176,7 @@ export const GroupsExploreGrid = ({
 					{/* Sort */}
 					<Select
 						value={sortBy}
-						onValueChange={(val) =>
+						onValueChange={val =>
 							setSortBy(val as 'LATEST' | 'MEMBERS' | 'TRENDING')
 						}
 						disabled={isLoading}
@@ -183,7 +197,10 @@ export const GroupsExploreGrid = ({
 			{isLoading && groups.length === 0 ? (
 				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
 					{Array.from({ length: 6 }).map((_, i) => (
-						<div key={i} className='rounded-radius border border-border-subtle bg-bg-card shadow-card overflow-hidden'>
+						<div
+							key={i}
+							className='rounded-radius border border-border-subtle bg-bg-card shadow-card overflow-hidden'
+						>
 							<Skeleton className='h-32 w-full' />
 							<div className='p-4 space-y-3'>
 								<Skeleton className='h-5 w-3/4' />
@@ -200,19 +217,35 @@ export const GroupsExploreGrid = ({
 				<EmptyState
 					variant='custom'
 					title={t('geNoGroups')}
-					description={searchTerm
-						? t('geNoGroupsSearchDesc')
-						: t('geNoGroupsDesc')}
+					description={
+						searchTerm ? t('geNoGroupsSearchDesc') : t('geNoGroupsDesc')
+					}
 					emoji='👥'
-					primaryAction={currentUserId ? {
-						label: t('geCreateFirst'),
-						onClick: () => setShowCreateModal(true),
-						icon: <Plus className='size-4' />,
-					} : undefined}
-					searchSuggestions={searchTerm ? [t('geSuggestionItalian'), t('geSuggestionBaking'), t('geSuggestionMealPrep')] : undefined}
-					onSuggestionClick={searchTerm ? (suggestion) => {
-						setSearchTerm(suggestion)
-					} : undefined}
+					primaryAction={
+						currentUserId
+							? {
+									label: t('geCreateFirst'),
+									onClick: () => setShowCreateModal(true),
+									icon: <Plus className='size-4' />,
+								}
+							: undefined
+					}
+					searchSuggestions={
+						searchTerm
+							? [
+									t('geSuggestionItalian'),
+									t('geSuggestionBaking'),
+									t('geSuggestionMealPrep'),
+								]
+							: undefined
+					}
+					onSuggestionClick={
+						searchTerm
+							? suggestion => {
+									setSearchTerm(suggestion)
+								}
+							: undefined
+					}
 				/>
 			) : (
 				<>
@@ -243,13 +276,11 @@ export const GroupsExploreGrid = ({
 									variant='default'
 									currentUserId={currentUserId}
 									isJoinable={!group.isJoined}
-									onJoinSuccess={(updatedGroup) => {
-										setGroups((prev) =>
-											prev.map((g) =>
-												g.id === updatedGroup.id
-													? { ...g, isJoined: true }
-													: g
-											)
+									onJoinSuccess={updatedGroup => {
+										setGroups(prev =>
+											prev.map(g =>
+												g.id === updatedGroup.id ? { ...g, isJoined: true } : g,
+											),
 										)
 									}}
 								/>
@@ -271,7 +302,7 @@ export const GroupsExploreGrid = ({
 						{isLoading ? (
 							<>
 								<Loader2 className='size-4 mr-2 animate-spin' />
-							{t('geLoadingMore')}
+								{t('geLoadingMore')}
 							</>
 						) : (
 							t('geLoadMore')

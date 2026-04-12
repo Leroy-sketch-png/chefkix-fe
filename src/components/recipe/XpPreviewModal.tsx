@@ -6,7 +6,12 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Edit3, Loader2, Rocket, Send, Shield, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP, BUTTON_SUBTLE_HOVER } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+} from '@/lib/motion'
 import { modKey } from '@/lib/recipeCreateUtils'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { AnimatedNumber } from '@/components/ui/animated-number'
@@ -55,6 +60,9 @@ export const XpPreviewModal = ({
 	return (
 		<Portal>
 			<motion.div
+				role='dialog'
+				aria-modal='true'
+				aria-label={t('xpPreview')}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
@@ -67,10 +75,14 @@ export const XpPreviewModal = ({
 				>
 					{/* Header */}
 					<div className='mb-5 flex items-center justify-between'>
-						<h2 className='text-xl font-display font-extrabold text-text'>{t('xpPreview')}</h2>
+						<h2 className='text-xl font-display font-extrabold text-text'>
+							{t('xpPreview')}
+						</h2>
 						<button
 							type='button'
-							onClick={onBack}						aria-label={t('ariaClose')}							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
+							onClick={onBack}
+							aria-label={t('ariaClose')}
+							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
 						>
 							<X className='size-5' />
 						</button>
@@ -94,7 +106,8 @@ export const XpPreviewModal = ({
 						<div className='flex-1'>
 							<h3 className='text-lg font-bold text-text'>{recipe.title}</h3>
 							<p className='text-xs text-text-secondary'>
-								{recipe.cookTime} • {recipe.difficulty} • {t('servingsLabel', { count: recipe.servings })}
+								{recipe.cookTime} • {recipe.difficulty} •{' '}
+								{t('servingsLabel', { count: recipe.servings })}
 							</p>
 						</div>
 					</div>
@@ -140,16 +153,16 @@ export const XpPreviewModal = ({
 									+{xpBreakdown.time}
 								</span>
 							</div>
-						{(xpBreakdown.techniques || []).map((tech, i) => (
+							{(xpBreakdown.techniques || []).map((tech, i) => (
 								<div
 									key={i}
 									className='flex items-center justify-between rounded-lg bg-streak/10 px-3.5 py-2.5'
 								>
 									<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>??</span>
-									{t('technique', { name: tech.name })}
-								</div>
-								<span className='font-bold text-success'>+{tech.xp}</span>
+										<span className='text-lg'>??</span>
+										{t('technique', { name: tech.name })}
+									</div>
+									<span className='font-bold text-success'>+{tech.xp}</span>
 								</div>
 							))}
 						</div>
@@ -198,11 +211,13 @@ export const XpPreviewModal = ({
 						<span className='text-3xl'>?</span>
 						<div>
 							<strong className='text-sm text-xp'>{t('creatorXpEarn')}</strong>{' '}
-								<span className='text-sm text-text'>
-									{t('creatorXpWhenOthersCook')}
-								</span>
-								<span className='block text-xs text-text-secondary'>
-									{t('creatorXpProjection', { xp: Math.round(xpBreakdown.total * 0.04 * 100) })}
+							<span className='text-sm text-text'>
+								{t('creatorXpWhenOthersCook')}
+							</span>
+							<span className='block text-xs text-text-secondary'>
+								{t('creatorXpProjection', {
+									xp: Math.round(xpBreakdown.total * 0.04 * 100),
+								})}
 							</span>
 						</div>
 					</div>
@@ -217,7 +232,7 @@ export const XpPreviewModal = ({
 							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Edit3 className='size-4' />
-						{t('editRecipe')}
+							{t('editRecipe')}
 						</motion.button>
 						<motion.button
 							type='button'
@@ -227,7 +242,7 @@ export const XpPreviewModal = ({
 							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Send className='size-4' />
-						{t('publishRecipe')}
+							{t('publishRecipe')}
 							<kbd className='hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline-block'>
 								{modKey}+?
 							</kbd>
@@ -245,7 +260,7 @@ export const XpPreviewModal = ({
 									<Rocket className='size-7 text-white' />
 								</div>
 								<AlertDialogTitle className='text-lg font-bold text-text'>
-								{t('readyToGoLive')}
+									{t('readyToGoLive')}
 								</AlertDialogTitle>
 								<AlertDialogDescription className='text-sm text-text-secondary'>
 									{t.rich('publishConfirmDesc', {
@@ -259,7 +274,7 @@ export const XpPreviewModal = ({
 									disabled={isPublishing}
 									className='flex-1 rounded-xl border-border bg-bg text-text-secondary hover:bg-bg-hover disabled:opacity-50'
 								>
-								{t('waitGoBack')}
+									{t('waitGoBack')}
 								</AlertDialogCancel>
 								<button
 									type='button'

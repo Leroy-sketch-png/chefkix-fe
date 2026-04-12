@@ -61,7 +61,13 @@ export function RoomParticipantsBar({
 							participant={participant}
 							isSelf={participant.userId === currentUserId}
 							totalSteps={totalSteps}
-							compact={compact}						participantTitle={t('participantTitle', { name: participant.displayName, current: participant.currentStep, total: totalSteps })}						/>
+							compact={compact}
+							participantTitle={t('participantTitle', {
+								name: participant.displayName,
+								current: participant.currentStep,
+								total: totalSteps,
+							})}
+						/>
 					))}
 				</AnimatePresence>
 			</div>
@@ -145,6 +151,9 @@ function ParticipantAvatar({
 						'rounded-full border-2 object-cover',
 						isSelf ? 'border-brand' : 'border-white/40',
 					)}
+					onError={e => {
+						;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
+					}}
 				/>
 			) : (
 				<div

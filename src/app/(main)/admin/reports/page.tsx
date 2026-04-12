@@ -53,7 +53,11 @@ const STATUS_CONFIG: Record<
 > = {
 	pending: { labelKey: 'statusPending', variant: 'destructive', icon: Clock },
 	reviewed: { labelKey: 'statusReviewed', variant: 'secondary', icon: Eye },
-	resolved: { labelKey: 'statusResolved', variant: 'default', icon: CheckCircle },
+	resolved: {
+		labelKey: 'statusResolved',
+		variant: 'default',
+		icon: CheckCircle,
+	},
 	dismissed: { labelKey: 'statusDismissed', variant: 'outline', icon: XCircle },
 }
 
@@ -179,6 +183,8 @@ export default function ReportsPage() {
 					/>
 				</TabsContent>
 			</Tabs>
+
+			<div className='pb-40 md:pb-8' />
 		</PageContainer>
 	)
 }
@@ -241,9 +247,11 @@ function ReportList({
 						)}
 					>
 						{/* Report header */}
-						<div
-							className='flex cursor-pointer items-center justify-between gap-3'
+						<button
+							type='button'
+							className='flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg text-left focus-visible:ring-2 focus-visible:ring-brand/50'
 							onClick={() => setExpandedId(isExpanded ? null : report.id)}
+							aria-expanded={isExpanded}
 						>
 							<div className='flex items-center gap-3'>
 								<div className='grid size-10 place-items-center rounded-lg bg-warning/10'>
@@ -258,11 +266,17 @@ function ReportList({
 											variant={statusConfig?.variant ?? 'outline'}
 											className='text-xs'
 										>
-											{statusConfig?.labelKey ? t(statusConfig.labelKey) : report.status}
+											{statusConfig?.labelKey
+												? t(statusConfig.labelKey)
+												: report.status}
 										</Badge>
 									</div>
 									<p className='text-xs text-text-muted'>
-										{t('reasonLabel', { reason: REASON_LABEL_KEYS[report.reason] ? t(REASON_LABEL_KEYS[report.reason]) : report.reason })}
+										{t('reasonLabel', {
+											reason: REASON_LABEL_KEYS[report.reason]
+												? t(REASON_LABEL_KEYS[report.reason])
+												: report.reason,
+										})}
 										{' \u00b7 '}
 										{new Date(report.createdAt).toLocaleDateString()}
 									</p>
@@ -271,7 +285,7 @@ function ReportList({
 							<div className='text-xs text-text-muted'>
 								{t('idLabel', { id: report.targetId.slice(0, 8) + '...' })}
 							</div>
-						</div>
+						</button>
 
 						{/* Expanded details */}
 						{isExpanded && (
@@ -297,7 +311,9 @@ function ReportList({
 
 								{report.details && (
 									<div className='text-xs'>
-										<span className='font-medium text-text-muted'>{t('detailsLabel')}</span>
+										<span className='font-medium text-text-muted'>
+											{t('detailsLabel')}
+										</span>
 										<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
 											{report.details}
 										</p>
@@ -308,7 +324,7 @@ function ReportList({
 									<div className='grid grid-cols-2 gap-3 text-xs'>
 										<div>
 											<span className='font-medium text-text-muted'>
-											{t('reviewedByLabel')}
+												{t('reviewedByLabel')}
 											</span>
 											<p className='mt-0.5 font-mono text-text'>
 												{report.reviewedBy}
@@ -317,7 +333,7 @@ function ReportList({
 										{report.reviewedAt && (
 											<div>
 												<span className='font-medium text-text-muted'>
-												{t('reviewedAtLabel')}
+													{t('reviewedAtLabel')}
 												</span>
 												<p className='mt-0.5 text-text'>
 													{new Date(report.reviewedAt).toLocaleString()}
@@ -330,7 +346,7 @@ function ReportList({
 								{report.reviewNotes && (
 									<div className='text-xs'>
 										<span className='font-medium text-text-muted'>
-										{t('reviewNotesLabel')}
+											{t('reviewNotesLabel')}
 										</span>
 										<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
 											{report.reviewNotes}
@@ -345,8 +361,9 @@ function ReportList({
 											value={reviewNotes}
 											onChange={e => setReviewNotes(e.target.value)}
 											placeholder={t('reviewNotesPlaceholder')}
+											aria-label={t('reviewNotesPlaceholder')}
 											maxLength={1000}
-											className='w-full resize-none rounded-lg border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand/30'
+											className='w-full resize-none rounded-lg border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
 											rows={2}
 										/>
 										<div className='flex flex-wrap gap-2'>
@@ -358,7 +375,7 @@ function ReportList({
 												className='gap-1.5'
 											>
 												<CheckCircle className='size-3.5' />
-											{t('resolveUnhide')}
+												{t('resolveUnhide')}
 											</Button>
 											<Button
 												size='sm'
@@ -368,7 +385,7 @@ function ReportList({
 												className='gap-1.5'
 											>
 												<XCircle className='size-3.5' />
-											{t('dismiss')}
+												{t('dismiss')}
 											</Button>
 											<Button
 												size='sm'
@@ -378,7 +395,7 @@ function ReportList({
 												className='gap-1.5'
 											>
 												<Ban className='size-3.5' />
-											{t('banUser')}
+												{t('banUser')}
 											</Button>
 										</div>
 									</div>

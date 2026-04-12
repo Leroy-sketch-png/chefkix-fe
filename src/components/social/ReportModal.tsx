@@ -327,6 +327,9 @@ export function CollectionBuilder({
 			{/* Add Stage Modal */}
 			{showAddStage && (
 				<motion.div
+					role='dialog'
+					aria-modal='true'
+					aria-labelledby='add-stage-title'
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 p-4'
@@ -339,7 +342,10 @@ export function CollectionBuilder({
 						className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
 						onClick={e => e.stopPropagation()}
 					>
-						<h3 className='mb-4 text-lg font-bold text-text'>
+						<h3
+							id='add-stage-title'
+							className='mb-4 text-lg font-bold text-text'
+						>
 							{t('builderAddStageTitle')}
 						</h3>
 						<div className='space-y-4'>

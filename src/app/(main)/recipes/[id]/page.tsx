@@ -99,6 +99,7 @@ import { AnimatedNumber } from '@/components/ui/animated-number'
 import { calibrateDifficulty, type CalibrationResult } from '@/services/ml'
 import { TipJarButton } from '@/components/tip/TipJarButton'
 import { useTranslations } from 'next-intl'
+import { logDevError } from '@/lib/dev-log'
 
 function RecipeDetailContent() {
 	const params = useParams()
@@ -230,8 +231,7 @@ function RecipeDetailContent() {
 				}
 			})
 			.catch(err => {
-				if (process.env.NODE_ENV === 'development')
-					console.warn('[calibrateDifficulty] failed:', err)
+				logDevError('[calibrateDifficulty] failed:', err)
 			})
 		return () => {
 			cancelled = true
@@ -436,7 +436,7 @@ function RecipeDetailContent() {
 				toast.success(t('toastRemixCreated'))
 				setRemixResult(response.data)
 			} else {
-				toast.error(response.message || t('toastFailedRemixRecipe'))
+				toast.error(t('toastFailedRemixRecipe'))
 			}
 		} catch {
 			toast.error(t('toastFailedRemix'))
@@ -536,7 +536,7 @@ function RecipeDetailContent() {
 				toast.success(t('toastDeleted'))
 				router.push('/profile')
 			} else {
-				toast.error(response.message || t('toastFailedDeleteRecipe'))
+				toast.error(t('toastFailedDeleteRecipe'))
 			}
 		} catch {
 			toast.error(t('toastFailedDelete'))
@@ -740,7 +740,7 @@ function RecipeDetailContent() {
 						</motion.div>
 
 						{/* Gradient overlay */}
-						<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
+						<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
 						{/* XP Badge - top left */}
 						{recipe.xpReward != null && recipe.xpReward > 0 && (
@@ -1101,7 +1101,7 @@ function RecipeDetailContent() {
 									isCurrentlyCooked
 										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 										: hasOtherSession
-											? 'cursor-not-allowed bg-border-strong text-white shadow-none'
+											? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
 											: 'bg-gradient-hero text-white shadow-brand/30 hover:shadow-xl hover:shadow-brand/40',
 								)}
 							>
@@ -1616,12 +1616,18 @@ function RecipeDetailContent() {
 
 				{/* Similar Recipes */}
 				<SimilarRecipes recipeId={recipeId} />
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 
 			{/* Remix Result Modal */}
 			{remixResult && (
 				<Portal>
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-labelledby='remix-result-title'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -1640,7 +1646,10 @@ function RecipeDetailContent() {
 									<span className='mb-1 inline-block rounded-full bg-xp/10 px-3 py-1 text-xs font-semibold text-xp'>
 										{t('aiRemix')}
 									</span>
-									<h2 className='mt-2 text-xl font-bold text-text'>
+									<h2
+										id='remix-result-title'
+										className='mt-2 text-xl font-bold text-text'
+									>
 										{remixResult.remix_title}
 									</h2>
 								</div>
@@ -1759,16 +1768,28 @@ function RecipeDetailContent() {
 			{/* Delete Confirmation */}
 			{showDeleteConfirm && (
 				<Portal>
-					<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+					<div
+						role='alertdialog'
+						aria-modal='true'
+						aria-labelledby='delete-confirm-title'
+						aria-describedby='delete-confirm-desc'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
+					>
 						<motion.div
 							initial={{ opacity: 0, scale: 0.95 }}
 							animate={{ opacity: 1, scale: 1 }}
 							className='mx-4 w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-card'
 						>
-							<h3 className='mb-2 text-lg font-bold text-text'>
+							<h3
+								id='delete-confirm-title'
+								className='mb-2 text-lg font-bold text-text'
+							>
 								{t('deleteRecipeConfirmTitle')}
 							</h3>
-							<p className='mb-6 text-sm text-text-secondary'>
+							<p
+								id='delete-confirm-desc'
+								className='mb-6 text-sm text-text-secondary'
+							>
 								{t('deleteRecipeConfirmDesc')}
 							</p>
 							<div className='flex gap-3'>

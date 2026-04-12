@@ -286,27 +286,27 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='relative flex h-18 w-full flex-shrink-0 items-center justify-center gap-2 overflow-hidden border-b border-border-subtle bg-bg-card px-4 md:gap-4 md:px-6'
+			className='relative flex h-16 w-full flex-shrink-0 items-center justify-start gap-1.5 overflow-hidden border-b border-border-subtle bg-bg-card px-3 md:h-18 md:justify-center md:gap-4 md:px-6'
 			role='banner'
 		>
 			{/* Animated Logo */}
 			<Link
 				href='/dashboard'
-				className='absolute left-4 flex items-center gap-2 md:left-6'
+				className='flex items-center gap-2 md:absolute md:left-6'
 			>
 				<motion.div
-					className='flex items-center gap-2.5'
+					className='flex items-center gap-1.5 md:gap-2.5'
 					whileHover={{ scale: 1.03 }}
 					transition={TRANSITION_SPRING}
 				>
 					<motion.div
-						className='flex size-9 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25'
+						className='flex size-7 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25 md:size-9'
 						whileHover={{ rotate: 10 }}
 						transition={TRANSITION_SPRING}
 					>
-						<ChefHat className='size-5 text-white' />
+						<ChefHat className='size-4 text-white md:size-5' />
 					</motion.div>
-					<div className='font-display text-2xl font-extrabold leading-none tracking-tight'>
+					<div className='font-display text-lg font-extrabold leading-none tracking-tight md:text-2xl'>
 						<span className='bg-gradient-to-r from-brand to-brand/80 bg-clip-text text-transparent'>
 							Chef
 						</span>
@@ -314,10 +314,18 @@ export const Topbar = () => {
 					</div>
 				</motion.div>
 			</Link>
+			<Link
+				href='/search'
+				className='grid size-10 shrink-0 place-items-center rounded-xl border border-border-medium bg-bg-input text-text-secondary shadow-card transition-colors hover:border-brand hover:text-brand md:hidden'
+				aria-label={t('tbSearchLabel')}
+			>
+				<Search className='size-4.5 text-current' />
+			</Link>
 			{/* Search Bar - constrained max width, with left margin to clear the absolute logo */}
 			<form
 				ref={searchFormRef}
 				role='search'
+				noValidate
 				onSubmit={e => {
 					e.preventDefault()
 					setShowSuggestions(false)
@@ -327,7 +335,7 @@ export const Topbar = () => {
 						router.push(`/search?q=${encodeURIComponent(q)}`)
 					}
 				}}
-				className='group relative ml-36 flex min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-card transition-all duration-300 focus-within:border-brand focus-within:shadow-card md:ml-44 md:px-4 md:py-2.5'
+				className='group relative ml-36 hidden min-w-0 max-w-2xl flex-1 items-center gap-3 rounded-full border-2 border-border-medium bg-bg-input px-3 py-2 shadow-card transition-all duration-300 focus-within:border-brand focus-within:shadow-card md:ml-44 md:flex md:px-4 md:py-2.5'
 			>
 				<Search className='size-5 shrink-0 text-text-secondary transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-brand' />
 				<input
@@ -361,7 +369,7 @@ export const Topbar = () => {
 						}
 					}}
 					onKeyDown={handleSearchKeyDown}
-					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-brand outline-none ring-0 placeholder:text-text-muted focus:border-0 focus:ring-0 md:text-base'
+					className='w-full min-w-0 border-0 bg-transparent text-sm text-text-primary caret-brand outline-none ring-0 placeholder:text-text-muted focus:border-0 focus-visible:ring-0 md:text-base'
 				/>
 				{/* Typeahead Suggestions Dropdown — Portaled */}
 				{showSuggestions && (
@@ -574,7 +582,7 @@ export const Topbar = () => {
 
 			{/* Avatar with dropdown - visible on ALL screen sizes (Settings + Sign Out access on mobile) */}
 			{user && (
-				<div className='relative'>
+				<div className='relative ml-auto'>
 					<motion.button
 						type='button'
 						ref={avatarButtonRef}
@@ -593,6 +601,7 @@ export const Topbar = () => {
 						transition={TRANSITION_SPRING}
 						aria-haspopup='true'
 						aria-expanded={showUserMenu}
+						aria-label={t('profileMenu')}
 						className='group relative cursor-pointer focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{/* XP Progress Ring - hidden on mobile for compactness */}
@@ -658,7 +667,7 @@ export const Topbar = () => {
 									.slice(0, 2) || 'U'}
 							</AvatarFallback>
 						</Avatar>
-						<Avatar size='sm' className='shadow-card md:hidden'>
+						<Avatar size='xs' className='shadow-card md:hidden'>
 							<AvatarImage
 								src={user.avatarUrl || '/placeholder-avatar.svg'}
 								alt={user.displayName || 'User'}
@@ -712,16 +721,16 @@ export const Topbar = () => {
 			)}
 			{/* Guest CTA - Sign In / Get Started */}
 			{!user && (
-				<div className='flex items-center gap-2'>
+				<div className='ml-auto flex shrink-0 items-center gap-1 md:gap-2'>
 					<Link
 						href={PATHS.AUTH.SIGN_IN}
-						className='rounded-radius px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						className='whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-semibold'
 					>
 						{t('tbSignIn')}
 					</Link>
 					<Link
 						href={PATHS.AUTH.SIGN_UP}
-						className='rounded-radius bg-brand px-4 py-2 text-sm font-bold text-white shadow-card transition-all hover:shadow-warm'
+						className='whitespace-nowrap rounded-lg bg-brand px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-brand/90 md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-bold md:shadow-card md:hover:shadow-warm'
 					>
 						{t('tbGetStarted')}
 					</Link>
@@ -737,7 +746,7 @@ export const Topbar = () => {
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
-						className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
 						aria-label={
 							unreadNotifications > 0
 								? t('tbNotificationsUnread', { count: unreadNotifications })
@@ -748,7 +757,7 @@ export const Topbar = () => {
 							key={unreadNotifications}
 							animate={unreadNotifications > 0 ? BELL_SHAKE.animate : undefined}
 						>
-							<Bell className='size-5' />
+							<Bell className='size-4 md:size-5' />
 						</motion.div>
 						{unreadNotifications > 0 && (
 							<motion.span
@@ -769,14 +778,14 @@ export const Topbar = () => {
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
-						className='relative grid size-11 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
 						aria-label={
 							unreadMessages > 0
 								? t('tbMessagesUnread', { count: unreadMessages })
 								: t('tbMessages')
 						}
 					>
-						<MessageCircle className='size-5' />
+						<MessageCircle className='size-4 md:size-5' />
 						{unreadMessages > 0 && (
 							<motion.span
 								initial={{ scale: 0 }}

@@ -404,6 +404,9 @@ export default function CommunityPage() {
 						/>
 					</TabsContent>
 				</Tabs>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

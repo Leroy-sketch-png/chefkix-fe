@@ -501,6 +501,9 @@ export const PendingExpandedModal = ({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Pending posts'
 						className='fixed inset-0 z-modal bg-black/60 flex items-end justify-center'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}

@@ -57,7 +57,9 @@ export default function CollectionDetailPage({
 	const isOwner = currentUser?.userId === collection?.userId
 
 	useEscapeKey(showEditModal, () => setShowEditModal(false))
-	useEscapeKey(showDeleteConfirm && !showEditModal, () => setShowDeleteConfirm(false))
+	useEscapeKey(showDeleteConfirm && !showEditModal, () =>
+		setShowDeleteConfirm(false),
+	)
 
 	const fetchData = useCallback(async () => {
 		try {
@@ -102,7 +104,7 @@ export default function CollectionDetailPage({
 			setShowEditModal(false)
 			toast.success(t('detailUpdated'))
 		} else {
-			toast.error(response.message || t('detailUpdateFailed'))
+			toast.error(t('detailUpdateFailed'))
 		}
 		setIsUpdating(false)
 	}
@@ -114,7 +116,7 @@ export default function CollectionDetailPage({
 			toast.success(t('detailDeleted'))
 			router.push('/collections')
 		} else {
-			toast.error(response.message || t('detailDeleteFailed'))
+			toast.error(t('detailDeleteFailed'))
 			setIsDeleting(false)
 		}
 	}
@@ -134,7 +136,7 @@ export default function CollectionDetailPage({
 			)
 			toast.success(t('detailRemoved'))
 		} else {
-			toast.error(response.message || t('detailRemoveFailed'))
+			toast.error(t('detailRemoveFailed'))
 		}
 	}
 
@@ -231,24 +233,22 @@ export default function CollectionDetailPage({
 									)}
 									<p className='mt-1 text-xs text-text-muted'>
 										{collection.itemCount}{' '}
-									{collection.itemCount === 1 ? t('postSingle') : t('postPlural')}
+										{collection.itemCount === 1
+											? t('postSingle')
+											: t('postPlural')}
 									</p>
 								</div>
 								{isOwner && (
 									<div className='flex gap-2'>
 										<button
-
 											type='button'
-
 											onClick={() => setShowEditModal(true)}
 											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 										>
 											<Pencil className='size-4' />
 										</button>
 										<button
-
 											type='button'
-
 											onClick={() => setShowDeleteConfirm(true)}
 											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
 										>
@@ -283,7 +283,7 @@ export default function CollectionDetailPage({
 													type='button'
 													onClick={() => handleRemovePost(post.id)}
 													className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
-													title={t('removeFromCollection')}
+													aria-label={t('removeFromCollection')}
 												>
 													<Trash2 className='size-3.5' />
 												</button>
@@ -295,6 +295,8 @@ export default function CollectionDetailPage({
 						</>
 					)}
 				</div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 
 			{/* Edit Modal */}
@@ -305,7 +307,10 @@ export default function CollectionDetailPage({
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
+							role='dialog'
+							aria-modal='true'
+							aria-label={t('detailEditTitle')}
+							className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
 							onClick={() => setShowEditModal(false)}
 						>
 							<motion.div
@@ -317,7 +322,7 @@ export default function CollectionDetailPage({
 								onClick={e => e.stopPropagation()}
 							>
 								<h2 className='mb-4 text-lg font-bold text-text'>
-								{t('detailEditTitle')}
+									{t('detailEditTitle')}
 								</h2>
 								<div className='space-y-4'>
 									<div>
@@ -352,9 +357,7 @@ export default function CollectionDetailPage({
 											onChange={e => setEditIsPublic(e.target.checked)}
 											className='size-4 rounded border-border-subtle accent-brand'
 										/>
-										<span className='text-sm text-text'>
-										{t('makePublic')}
-										</span>
+										<span className='text-sm text-text'>{t('makePublic')}</span>
 									</label>
 								</div>
 								<div className='mt-6 flex justify-end gap-3'>
@@ -388,7 +391,10 @@ export default function CollectionDetailPage({
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
-						className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
+							role='dialog'
+							aria-modal='true'
+							aria-label={t('detailDeleteTitle')}
+							className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
 							onClick={() => setShowDeleteConfirm(false)}
 						>
 							<motion.div
@@ -400,10 +406,10 @@ export default function CollectionDetailPage({
 								onClick={e => e.stopPropagation()}
 							>
 								<h3 className='mb-2 text-lg font-bold text-text'>
-								{t('detailDeleteTitle')}
-							</h3>
-							<p className='mb-6 text-sm text-text-muted'>
-								{t('detailDeleteMessage', { name: collection.name })}
+									{t('detailDeleteTitle')}
+								</h3>
+								<p className='mb-6 text-sm text-text-muted'>
+									{t('detailDeleteMessage', { name: collection.name })}
 								</p>
 								<div className='flex justify-end gap-3'>
 									<button

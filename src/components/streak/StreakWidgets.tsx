@@ -113,7 +113,7 @@ export function StreakRiskBanner({
 					</motion.span>
 					<div
 						className={cn(
-							'absolute -inset-2 border-2 border-dashed rounded-full opacity-50',
+							'absolute -inset-2 border-2 rounded-full opacity-50',
 							isUrgent
 								? 'border-streak-urgent animate-ping'
 								: 'border-streak animate-spin-slow',
@@ -219,6 +219,8 @@ export function StreakSavedToast({
 							'bg-bg-card border-2 border-success rounded-2xl',
 							'shadow-2xl shadow-black/30',
 						)}
+						role='status'
+						aria-live='polite'
 					>
 						{/* Celebration */}
 						<div className='relative'>

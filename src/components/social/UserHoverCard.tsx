@@ -108,7 +108,7 @@ export const UserHoverCard = ({
 							<Link href={`/${profile.userId}`} className='flex-shrink-0'>
 								<Avatar
 									size='xl'
-									className='shadow-card hover:shadow-lg transition-shadow'
+									className='shadow-card hover:shadow-warm transition-shadow'
 								>
 									<AvatarImage
 										src={profile.avatarUrl || '/placeholder-avatar.svg'}
@@ -187,19 +187,25 @@ export const UserHoverCard = ({
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.followerCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>{t('hoverCardFollowers')}</span>
+								<span className='ml-1 text-text-secondary'>
+									{t('hoverCardFollowers')}
+								</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.followingCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>{t('hoverCardFollowingLabel')}</span>
+								<span className='ml-1 text-text-secondary'>
+									{t('hoverCardFollowingLabel')}
+								</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.recipeCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>{t('hoverCardRecipes')}</span>
+								<span className='ml-1 text-text-secondary'>
+									{t('hoverCardRecipes')}
+								</span>
 							</div>
 						</div>
 					</div>

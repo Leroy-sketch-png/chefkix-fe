@@ -39,7 +39,7 @@ import {
 // ============================================
 
 import type { Difficulty } from '@/lib/types/gamification'
-import type { QualityTier } from '@/lib/types/recipe'
+import { formatCookingTime, type QualityTier } from '@/lib/types/recipe'
 import { resolveBadgesWithFallback } from '@/lib/data/badgeRegistry'
 import { QualityBadge } from './QualityBadge'
 
@@ -132,45 +132,22 @@ const XPBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 font-bold text-white shadow-card shadow-success/40',
-				size === 'large' ? 'px-4 py-2.5 text-base' : 'px-3 py-1.5 text-sm',
+				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand/90 font-bold text-white shadow-md',
+				size === 'large' ? 'px-4 py-2 text-base' : 'px-2.5 py-1 text-xs',
 			)}
 		>
-			<span className={size === 'large' ? 'text-lg' : 'text-sm'}>⚡</span>
+			<span className={size === 'large' ? 'text-base' : 'text-xs'}>⚡</span>
 			<span className='tabular-nums'>{xp} XP</span>
 		</div>
 	)
 }
 
 // Difficulty colors (using backend Title Case keys)
-const difficultyConfig: Record<
-	Difficulty,
-	{ color: string; bgColor: string; filledDots: number; label: string }
-> = {
-	Beginner: {
-		color: 'text-success',
-		bgColor: 'bg-success',
-		filledDots: 1,
-		label: 'Easy',
-	},
-	Intermediate: {
-		color: 'text-warning',
-		bgColor: 'bg-warning',
-		filledDots: 2,
-		label: 'Medium',
-	},
-	Advanced: {
-		color: 'text-error',
-		bgColor: 'bg-error',
-		filledDots: 3,
-		label: 'Hard',
-	},
-	Expert: {
-		color: 'text-xp',
-		bgColor: 'bg-xp',
-		filledDots: 4,
-		label: 'Expert',
-	},
+const difficultyConfig: Record<Difficulty, { bgColor: string }> = {
+	Beginner: { bgColor: 'bg-success' },
+	Intermediate: { bgColor: 'bg-warning' },
+	Advanced: { bgColor: 'bg-error' },
+	Expert: { bgColor: 'bg-xp' },
 }
 
 // Difficulty indicator with dots
@@ -184,21 +161,9 @@ const DifficultyIndicator = ({
 	const config = difficultyConfig[difficulty] ?? difficultyConfig.Beginner
 
 	return (
-		<div className='absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-black/70 px-3 py-1.5 text-xs font-semibold text-white'>
-			<div className='flex gap-0.5'>
-				{[1, 2, 3, 4].map(dot => (
-					<span
-						key={dot}
-						className={cn(
-							'size-2 rounded-full',
-							dot <= config.filledDots ? config.bgColor : 'bg-white/30',
-						)}
-					/>
-				))}
-			</div>
-			{showLabel && (
-				<span className='capitalize'>{difficulty || 'Beginner'}</span>
-			)}
+		<div className='absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm'>
+			<span className={cn('size-1.5 rounded-full', config.bgColor)} />
+			{showLabel && <span>{difficulty || 'Beginner'}</span>}
 		</div>
 	)
 }
@@ -269,6 +234,12 @@ const MasteryBadge = ({
 	)
 }
 
+const formatSkillLabel = (skill: string) =>
+	skill
+		.replace(/[-_]/g, ' ')
+		.trim()
+		.replace(/\b\w/g, char => char.toUpperCase())
+
 // Skill tags row - shows skills you'll learn
 const SkillTagsRow = ({
 	skills,
@@ -286,17 +257,21 @@ const SkillTagsRow = ({
 
 	return (
 		<div className='flex flex-wrap items-center gap-1.5'>
-			{visibleSkills.map(skill => (
-				<span
-					key={skill}
-					className={cn(
-						'rounded-full bg-info/15 font-medium text-info',
-						size === 'small' ? 'px-2 py-0.5 text-2xs' : 'px-2.5 py-1 text-xs',
-					)}
-				>
-					{skill}
-				</span>
-			))}
+			{visibleSkills.map(skill => {
+				const skillLabel = formatSkillLabel(skill)
+
+				return (
+					<span
+						key={skill}
+						className={cn(
+							'rounded-full bg-brand/10 font-medium text-brand',
+							size === 'small' ? 'px-2 py-0.5 text-2xs' : 'px-2.5 py-1 text-xs',
+						)}
+					>
+						{skillLabel}
+					</span>
+				)
+			})}
 			{remaining > 0 && (
 				<span
 					className={cn(
@@ -337,7 +312,7 @@ const BadgePreview = ({
 
 	return (
 		<div className='flex items-center gap-1'>
-			<span className='text-2xs'>🏆</span>
+			<span className='text-xs'>🏆</span>
 			<div className='flex items-center gap-1'>
 				{visibleBadges.map(badge => (
 					<span
@@ -450,7 +425,7 @@ const FeedCard = ({
 						)}
 						<span className='flex items-center gap-1'>
 							<Clock className='size-3.5' />
-							{cookTimeMinutes} {t('minUnit')}
+							{formatCookingTime(cookTimeMinutes)}
 						</span>
 					</div>
 
@@ -582,7 +557,7 @@ const GridCard = ({
 						<div className='flex items-center gap-3'>
 							<span className='flex items-center gap-1'>
 								<Clock className='size-3.5' />
-								{cookTimeMinutes} min
+								{formatCookingTime(cookTimeMinutes)}
 							</span>
 							{cookCount > 0 && (
 								<span className='flex items-center gap-1 text-success tabular-nums'>
@@ -633,7 +608,7 @@ const GridCard = ({
 					}}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-brand/30 bg-brand/5 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Play className='size-4' />
 					{t('startCooking')}
@@ -650,7 +625,7 @@ const GridCard = ({
 					transition={TRANSITION_SPRING}
 					aria-label={isSaved ? t('removeFromSaved') : t('saveRecipe')}
 					className={cn(
-						'flex size-10 items-center justify-center rounded-lg border focus-visible:ring-2 focus-visible:ring-brand/50',
+						'flex size-11 items-center justify-center rounded-lg border focus-visible:ring-2 focus-visible:ring-brand/50',
 						isSaved
 							? 'border-brand bg-brand/10 text-brand'
 							: 'border-border bg-bg-elevated text-text-muted hover:border-brand hover:bg-brand/10 hover:text-brand',
@@ -709,7 +684,7 @@ const FeaturedCard = ({
 						className='object-cover'
 					/>
 					{/* Gradient overlay */}
-					<div className='absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent' />
+					<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent' />
 
 					{/* Trending badge */}
 					{isTrending && (
@@ -804,9 +779,7 @@ const FeaturedCard = ({
 							)}
 							<span className='flex items-center gap-1.5 text-sm text-white/90'>
 								<Clock className='size-4' />
-								{cookTimeMinutes >= 60
-									? `${Math.floor(cookTimeMinutes / 60)}h ${cookTimeMinutes % 60}min`
-									: `${cookTimeMinutes} min`}
+								{formatCookingTime(cookTimeMinutes)}
 							</span>
 						</div>
 
@@ -1029,10 +1002,7 @@ const MiniCard = ({
 								difficulty === 'Expert' && 'bg-xp/10 text-xp',
 							)}
 						>
-							{
-								(difficultyConfig[difficulty] ?? difficultyConfig.Beginner)
-									.label
-							}
+							{difficulty || 'Beginner'}
 						</span>
 					</div>
 				</div>
@@ -1044,7 +1014,7 @@ const MiniCard = ({
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
 				aria-label={t('startCookingLabel')}
-				className='flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='flex size-11 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				<Play className='size-4' />
 			</motion.button>

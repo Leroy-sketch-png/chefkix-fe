@@ -295,7 +295,7 @@ export default function CreatorRoute() {
 						}
 						disabled={isNavigating}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex size-11 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						aria-label={t('ariaGoToDashboard')}
 					>
 						<ArrowLeft className='size-5' />
@@ -347,6 +347,9 @@ export default function CreatorRoute() {
 					/>
 				)}
 				<TipHistory className='mt-6' />
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

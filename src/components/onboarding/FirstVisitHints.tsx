@@ -1,6 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react'
+import {
+	useState,
+	useEffect,
+	useCallback,
+	createContext,
+	useContext,
+	ReactNode,
+} from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronRight, Sparkles } from 'lucide-react'
@@ -60,7 +67,9 @@ interface FirstVisitHintsContextType {
 // CONTEXT
 // ============================================
 
-const FirstVisitHintsContext = createContext<FirstVisitHintsContextType | null>(null)
+const FirstVisitHintsContext = createContext<FirstVisitHintsContextType | null>(
+	null,
+)
 
 // ============================================
 // PROVIDER
@@ -178,7 +187,9 @@ export function FirstVisitHintsProvider({ children }: { children: ReactNode }) {
 export function useFirstVisitHints() {
 	const context = useContext(FirstVisitHintsContext)
 	if (!context) {
-		throw new Error('useFirstVisitHints must be used within FirstVisitHintsProvider')
+		throw new Error(
+			'useFirstVisitHints must be used within FirstVisitHintsProvider',
+		)
 	}
 	return context
 }
@@ -209,6 +220,9 @@ function HintOverlay() {
 
 					{/* Hint card */}
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Getting started tip'
 						initial={{ opacity: 0, y: 20, scale: 0.95 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -232,7 +246,7 @@ function HintOverlay() {
 										<Sparkles className='size-4 text-brand' />
 									</div>
 									<span className='text-xs font-bold uppercase tracking-wider text-brand'>
-									{t('hintQuickTip')}
+										{t('hintQuickTip')}
 									</span>
 								</div>
 
@@ -351,7 +365,7 @@ export const FIRST_VISIT_HINTS = {
 		id: 'streaks',
 		title: 'Build Your Streak',
 		description:
-			'Cook something every day to build a streak. Longer streaks mean bonus XP multipliers and exclusive streak badges. Don\'t break the chain!',
+			"Cook something every day to build a streak. Longer streaks mean bonus XP multipliers and exclusive streak badges. Don't break the chain!",
 	},
 	LEVELS_BADGES: {
 		id: 'levels-badges',
@@ -385,7 +399,7 @@ export const FIRST_VISIT_HINTS = {
 		id: 'community',
 		title: 'Join the Community',
 		description:
-			'The Community page is where you\'ll find trending posts, discover new cooks to follow, and see what others are making.',
+			"The Community page is where you'll find trending posts, discover new cooks to follow, and see what others are making.",
 	},
 
 	// ─────────────────────────────────────────
@@ -411,7 +425,7 @@ export const FIRST_VISIT_HINTS = {
 		id: 'pantry',
 		title: 'Your Virtual Pantry',
 		description:
-			'Track ingredients you have at home. When you mark items in your pantry, we\'ll suggest recipes you can make right now.',
+			"Track ingredients you have at home. When you mark items in your pantry, we'll suggest recipes you can make right now.",
 	},
 	SHOPPING_LIST: {
 		id: 'shopping-list',
@@ -433,13 +447,13 @@ export const FIRST_VISIT_HINTS = {
 		id: 'dashboard-feed',
 		title: 'Your Personalized Feed',
 		description:
-			'This is your home base. We\'ll show you recipes and posts based on your interests, people you follow, and what\'s trending.',
+			"This is your home base. We'll show you recipes and posts based on your interests, people you follow, and what's trending.",
 	},
 	TONIGHTS_PICK: {
 		id: 'tonights-pick',
-		title: 'Tonight\'s Pick',
+		title: "Tonight's Pick",
 		description:
-			'Not sure what to cook? We suggest a recipe each day based on your preferences and what you haven\'t tried yet.',
+			"Not sure what to cook? We suggest a recipe each day based on your preferences and what you haven't tried yet.",
 	},
 } as const
 

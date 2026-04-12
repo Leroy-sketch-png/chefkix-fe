@@ -315,28 +315,31 @@ export default function GroupDetailPage() {
 											))}
 										</div>
 									) : (
-									<EmptyState
+										<EmptyState
 											variant='feed'
-										title={t('noPostsYet')}
-										description={t('beFirstToPost')}
+											title={t('noPostsYet')}
+											description={t('beFirstToPost')}
 											emoji='🍳'
 											primaryAction={{
 												label: t('createFirstPost'),
 												onClick: () => {
-													const postBox = document.querySelector('[data-group-post-box]')
-													if (postBox) postBox.scrollIntoView({ behavior: 'smooth' })
+													const postBox = document.querySelector(
+														'[data-group-post-box]',
+													)
+													if (postBox)
+														postBox.scrollIntoView({ behavior: 'smooth' })
 												},
 											}}
 										/>
 									)}
 								</>
 							) : (
-							<EmptyState
-										variant='custom'
-											title={t('joinConversation')}
-											description={t('joinConversationDesc')}
-										emoji='👋'
-									/>
+								<EmptyState
+									variant='custom'
+									title={t('joinConversation')}
+									description={t('joinConversationDesc')}
+									emoji='👋'
+								/>
 							)}
 						</TabsContent>
 					</Tabs>
@@ -354,6 +357,8 @@ export default function GroupDetailPage() {
 						}}
 					/>
 				)}
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

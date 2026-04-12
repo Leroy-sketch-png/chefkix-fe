@@ -354,6 +354,8 @@ export default function SharedShoppingListPage() {
 					</motion.div>
 				</div>
 			</PageTransition>
+
+			<div className='pb-40 md:pb-8' />
 		</PageContainer>
 	)
 }

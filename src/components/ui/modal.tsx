@@ -68,6 +68,8 @@ export const Modal = ({
 	return (
 		<Portal>
 			<div
+				role='dialog'
+				aria-modal='true'
 				className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/80 p-6'
 				onClick={closeOnOverlayClick ? onClose : undefined}
 			>
@@ -229,10 +231,8 @@ export const ConfirmModal = ({
 					disabled={isLoading}
 					className={cn(
 						'h-11 rounded-lg px-4 text-sm font-semibold leading-normal transition-all hover:-translate-y-0.5 disabled:opacity-50',
-						variant === 'default' &&
-							'bg-brand text-white hover:shadow-md',
-						variant === 'danger' &&
-							'bg-error text-white hover:shadow-md',
+						variant === 'default' && 'bg-brand text-white hover:shadow-md',
+						variant === 'danger' && 'bg-error text-white hover:shadow-md',
 					)}
 				>
 					{isLoading ? 'Processing...' : confirmText}

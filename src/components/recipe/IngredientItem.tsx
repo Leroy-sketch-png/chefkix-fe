@@ -41,31 +41,31 @@ export const IngredientItem = ({
 }: IngredientItemProps) => {
 	const t = useTranslations('recipe')
 	return (
-	<div className='group flex items-center gap-3 rounded-xl bg-bg px-4 py-3'>
-		<input
-			type='text'
-			value={ingredient.quantity}
-			onChange={e => onUpdate({ quantity: e.target.value })}
-			placeholder={t('qtyPlaceholder')}
-			className='min-w-24 w-auto max-w-40 bg-transparent text-sm font-bold text-brand outline-none placeholder:text-text-secondary/50'
-		/>
-		<AsyncCombobox
-			value={ingredient.name}
-			onChange={val => onUpdate({ name: val })}
-			onSelect={opt => onUpdate({ name: opt.label })}
-			fetchOptions={fetchIngredientOptions}
-			placeholder={t('ingredientNamePlaceholder')}
-			minChars={1}
-			className='flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-secondary/50'
-		/>
-		<button
-			type='button'
-			onClick={onRemove}
-			aria-label={t('removeIngredient')}
-			className='flex size-7 items-center justify-center rounded-lg text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-error/10 hover:text-error'
-		>
-			<X className='size-4' />
-		</button>
-	</div>
+		<div className='group flex items-center gap-3 rounded-xl bg-bg px-4 py-3'>
+			<input
+				type='text'
+				value={ingredient.quantity}
+				onChange={e => onUpdate({ quantity: e.target.value })}
+				placeholder={t('qtyPlaceholder')}
+				className='min-w-24 w-auto max-w-40 bg-transparent text-sm font-bold text-brand outline-none placeholder:text-text-secondary/50 focus-visible:ring-2 focus-visible:ring-brand/50 rounded-md'
+			/>
+			<AsyncCombobox
+				value={ingredient.name}
+				onChange={val => onUpdate({ name: val })}
+				onSelect={opt => onUpdate({ name: opt.label })}
+				fetchOptions={fetchIngredientOptions}
+				placeholder={t('ingredientNamePlaceholder')}
+				minChars={1}
+				className='flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-secondary/50 focus-visible:ring-2 focus-visible:ring-brand/50 rounded-md'
+			/>
+			<button
+				type='button'
+				onClick={onRemove}
+				aria-label={t('removeIngredient')}
+				className='flex size-7 items-center justify-center rounded-lg text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 hover:text-error'
+			>
+				<X className='size-4' />
+			</button>
+		</div>
 	)
 }

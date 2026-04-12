@@ -95,6 +95,24 @@ const SIZE_CONFIG = {
 	},
 }
 
+const normalizeTier = (tier: string): QualityTier => {
+	const normalized = tier.toLowerCase().replace(/[\s_-]/g, '')
+
+	switch (normalized) {
+		case 'foolproof':
+			return 'Foolproof'
+		case 'good':
+			return 'Good'
+		case 'needswork':
+			return 'Needs Work'
+		case 'draft':
+		case 'draftquality':
+			return 'Draft Quality'
+		default:
+			return 'Draft Quality'
+	}
+}
+
 const QualityBadgeComponent = ({
 	tier,
 	score,
@@ -104,7 +122,8 @@ const QualityBadgeComponent = ({
 	className,
 	animate = true,
 }: QualityBadgeProps) => {
-	const config = TIER_CONFIG[tier]
+	const safeTier = normalizeTier(String(tier ?? ''))
+	const config = TIER_CONFIG[safeTier]
 	const sizeConfig = SIZE_CONFIG[size]
 	const Icon = config.icon
 	const t = useTranslations('recipe')
@@ -120,7 +139,7 @@ const QualityBadgeComponent = ({
 			)}
 		>
 			<Icon className={cn(sizeConfig.icon, config.iconColor)} />
-			{showLabel && <span>{t(TIER_LABEL_KEYS[tier])}</span>}
+			{showLabel && <span>{t(TIER_LABEL_KEYS[safeTier])}</span>}
 			{showScore && score !== undefined && (
 				<span className='font-display opacity-75'>({score})</span>
 			)}

@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState, memo, useMemo } from 'react'
+import { useEffect, useState, memo, useMemo, useRef } from 'react'
 import Lottie, { LottieComponentProps } from 'lottie-react'
 import { useDeviceSize } from '@/hooks/useDeviceSize'
 import { logDevError } from '@/lib/dev-log'
 import { useInView, motion, type Variants } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
-import { useRef } from 'react'
 
 interface LazyLottieProps
 	extends Omit<LottieComponentProps, 'style' | 'animationData'> {

@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState, useRef, useCallback, useTransition } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Post } from '@/lib/types'
 import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
 import {
@@ -45,14 +45,15 @@ import { useAuth } from '@/hooks/useAuth'
 import { useFilterBlockedContent } from '@/hooks/useBlockedUsers'
 import { usePostKeyboardNav } from '@/hooks/usePostKeyboardNav'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
-import { AnimatePresence } from 'framer-motion'
 import { StreakRiskBanner } from '@/components/streak'
 import { PendingPostsSection, type PendingSession } from '@/components/pending'
 import { ResumeCookingBanner } from '@/components/cooking'
-import { SinceLastVisitCard } from '@/components/dashboard'
-import { TonightsPick } from '@/components/dashboard'
-import { SeasonalBanner } from '@/components/dashboard'
-import { ActiveChallengesWidget } from '@/components/dashboard'
+import {
+	SinceLastVisitCard,
+	TonightsPick,
+	SeasonalBanner,
+	ActiveChallengesWidget,
+} from '@/components/dashboard'
 import { InterestPicker } from '@/components/onboarding/InterestPicker'
 import { ColdStartExperience } from '@/components/onboarding/ColdStartExperience'
 import { useRouter } from 'next/navigation'
@@ -868,12 +869,18 @@ export default function DashboardPage() {
 								</StaggerContainer>
 
 								{/* Infinite scroll trigger */}
-								<div ref={loadMoreRef} className='flex justify-center py-8'>
+								<div
+									ref={loadMoreRef}
+									className='flex justify-center py-8'
+									aria-live='polite'
+									aria-atomic='true'
+								>
 									{isLoadingMore && (
 										<motion.div
 											initial={{ opacity: 0 }}
 											animate={{ opacity: 1 }}
 											className='flex items-center gap-2 text-text-secondary'
+											role='status'
 										>
 											<Loader2 className='size-5 animate-spin text-brand' />
 											<span className='text-sm font-medium'>
@@ -888,6 +895,7 @@ export default function DashboardPage() {
 							</>
 						)}
 					</ColdStartExperience>
+					<div className='pb-24 md:pb-8' />
 				</PageContainer>
 				<QuickPostFAB onPostCreated={handlePostCreated} />
 			</PageTransition>

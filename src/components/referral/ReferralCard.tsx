@@ -168,7 +168,7 @@ export default function ReferralCard() {
 					<div className='flex items-center gap-3'>
 						<motion.div
 							whileHover={CARD_HOVER}
-							className='flex-1 rounded-lg border-2 border-dashed border-brand/30 bg-brand/5 px-4 py-3 text-center'
+							className='flex-1 rounded-lg border-2 border-brand/30 bg-brand/5 px-4 py-3 text-center'
 						>
 							<span className='font-mono text-xl font-bold tracking-widest text-brand'>
 								{codeData.code}
@@ -225,7 +225,9 @@ export default function ReferralCard() {
 						<div className='flex size-8 items-center justify-center rounded-lg bg-xp/10'>
 							<Trophy className='size-4 text-xp' />
 						</div>
-						<h3 className='text-lg font-semibold text-text'>{t('referralStats')}</h3>
+						<h3 className='text-lg font-semibold text-text'>
+							{t('referralStats')}
+						</h3>
 					</div>
 
 					<div className='mb-4 grid grid-cols-2 gap-3'>

@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Share2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { triggerAchievementConfetti } from '@/lib/confetti'
 import {
 	TRANSITION_SPRING,
@@ -128,7 +130,11 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 				strokeDasharray='339'
 				initial={{ strokeDashoffset: 339 }}
 				animate={{ strokeDashoffset: 0 }}
-				transition={{ duration: DURATION_S.dramatic, delay: 0.3, ease: 'easeOut' }}
+				transition={{
+					duration: DURATION_S.dramatic,
+					delay: 0.3,
+					ease: 'easeOut',
+				}}
 			/>
 		</svg>
 
@@ -235,6 +241,8 @@ export const LevelUpCelebration = ({
 	onContinue,
 }: LevelUpCelebrationProps) => {
 	const t = useTranslations('completion')
+	useEscapeKey(isOpen, onClose)
+	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
 	// Fire gold confetti burst when the celebration opens
 	useEffect(() => {
 		if (isOpen) {
@@ -249,6 +257,7 @@ export const LevelUpCelebration = ({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						ref={focusTrapRef}
 						role='alertdialog'
 						aria-live='assertive'
 						initial={{ opacity: 0 }}
@@ -346,7 +355,10 @@ export const LevelUpCelebration = ({
 										/>
 									</div>
 									<span className='text-sm text-white/60'>
-										{t('xpToNextLevel', { amount: xpToNextLevel.toLocaleString(), level: newLevel + 1 })}
+										{t('xpToNextLevel', {
+											amount: xpToNextLevel.toLocaleString(),
+											level: newLevel + 1,
+										})}
 									</span>
 								</div>
 								{nextLevelPerk && (
@@ -406,45 +418,44 @@ export const LevelUpToast = ({
 }: LevelUpToastProps) => {
 	const t = useTranslations('completion')
 	return (
-	<motion.div
-		role='alert'
-		aria-live='assertive'
-		initial={{ opacity: 0, y: 20 }}
-		animate={{ opacity: 1, y: 0 }}
-		exit={{ opacity: 0, y: 20 }}
-		transition={TRANSITION_SPRING}
-		className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-bg-card px-4 py-3 shadow-xl shadow-bonus/20 md:bottom-6'
-	>
-		{/* Badge */}
-		<div className='flex size-11 items-center justify-center rounded-full bg-gradient-celebration'>
-			<span className='text-lg font-black text-white'>{level}</span>
-		</div>
-
-		{/* Content */}
-		<div className='flex flex-col'>
-			<span className='text-base font-display font-extrabold'>{t('levelToast', { level })}</span>
-			<span className='text-sm text-text-muted'>
-				{t('youreProgressing')}
-			</span>
-		</div>
-
-		{/* Actions */}
-		<button
-			type='button'
-			onClick={onView}
-			className='rounded-lg bg-gradient-celebration px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
+		<motion.div
+			role='alert'
+			aria-live='assertive'
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: 20 }}
+			transition={TRANSITION_SPRING}
+			className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-bg-card px-4 py-3 shadow-xl shadow-bonus/20 md:bottom-6'
 		>
-			{t('viewAction')}
-		</button>
-		<button
-			type='button'
-			onClick={onDismiss}
-			aria-label={t('ariaDismiss')}
-			className='flex size-8 items-center justify-center text-text-muted hover:text-text'
-		>
-			<X className='size-5' />
-		</button>
-	</motion.div>
-)
+			{/* Badge */}
+			<div className='flex size-11 items-center justify-center rounded-full bg-gradient-celebration'>
+				<span className='text-lg font-black text-white'>{level}</span>
+			</div>
 
+			{/* Content */}
+			<div className='flex flex-col'>
+				<span className='text-base font-display font-extrabold'>
+					{t('levelToast', { level })}
+				</span>
+				<span className='text-sm text-text-muted'>{t('youreProgressing')}</span>
+			</div>
+
+			{/* Actions */}
+			<button
+				type='button'
+				onClick={onView}
+				className='rounded-lg bg-gradient-celebration px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
+			>
+				{t('viewAction')}
+			</button>
+			<button
+				type='button'
+				onClick={onDismiss}
+				aria-label={t('ariaDismiss')}
+				className='flex size-8 items-center justify-center text-text-muted hover:text-text'
+			>
+				<X className='size-5' />
+			</button>
+		</motion.div>
+	)
 }

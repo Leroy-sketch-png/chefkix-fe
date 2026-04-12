@@ -42,6 +42,9 @@ export default function GroupsExplorePage() {
 				/>
 
 				<GroupsExploreGrid currentUserId={user?.userId} />
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

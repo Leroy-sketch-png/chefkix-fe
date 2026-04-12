@@ -16,7 +16,7 @@ import {
 	TRANSITION_SPRING,
 	FOLLOW_PULSE,
 } from '@/lib/motion'
-import { UserCheck, UserPlus } from 'lucide-react'
+import { UserCheck, UserPlus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
@@ -124,7 +124,9 @@ export function FollowUserCard({
 								'border-border-subtle text-text-secondary hover:border-destructive hover:text-destructive',
 						)}
 					>
-						{isFollowing ? (
+						{isLoading ? (
+							<Loader2 className='size-3.5 animate-spin' />
+						) : isFollowing ? (
 							<>
 								<UserCheck className='size-3.5' />
 								{t('following')}

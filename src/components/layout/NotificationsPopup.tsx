@@ -476,7 +476,7 @@ export const NotificationsPopup = () => {
 												),
 											)
 										} else {
-											toast.error(response.message || t('toastFollowFailed'))
+											toast.error(t('toastFollowFailed'))
 										}
 									} catch {
 										toast.error(t('toastFollowFailed'))

@@ -54,7 +54,7 @@ const primaryNavItems: NavItem[] = [
 	{
 		href: '/notifications',
 		icon: Bell,
-		labelKey: 'notifs',
+		labelKey: 'notifications',
 		showBadge: true,
 		requiresAuth: true,
 	},
@@ -113,17 +113,7 @@ export const LeftSidebar = () => {
 	const pathname = usePathname()
 	const { user, isAuthenticated } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
-	const [showMore, setShowMore] = useState(false)
 	const t = useTranslations('nav')
-
-	// Filter nav items based on auth state — guests only see public routes
-	const visiblePrimaryItems = useMemo(
-		() =>
-			isAuthenticated
-				? primaryNavItems
-				: primaryNavItems.filter(item => !item.requiresAuth),
-		[isAuthenticated],
-	)
 
 	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
 	const isSecondaryActive = useMemo(() => {
@@ -136,7 +126,19 @@ export const LeftSidebar = () => {
 		})
 	}, [pathname, user?.accountType, user?.userId])
 
-	// Auto-expand when on a secondary route
+	// Initialize showMore based on whether a secondary route is already active (avoids layout shift)
+	const [showMore, setShowMore] = useState(isSecondaryActive)
+
+	// Filter nav items based on auth state — guests only see public routes
+	const visiblePrimaryItems = useMemo(
+		() =>
+			isAuthenticated
+				? primaryNavItems
+				: primaryNavItems.filter(item => !item.requiresAuth),
+		[isAuthenticated],
+	)
+
+	// Auto-expand when navigating to a secondary route
 	useEffect(() => {
 		if (isSecondaryActive) setShowMore(true)
 	}, [isSecondaryActive])
@@ -182,7 +184,7 @@ export const LeftSidebar = () => {
 			<Link
 				key={item.labelKey}
 				href={href}
-				className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-brand'
+				className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-radius px-1 py-1.5 text-xs font-medium leading-tight text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-brand'
 				data-active={active}
 				aria-current={active ? 'page' : undefined}
 				title={label}
@@ -198,7 +200,7 @@ export const LeftSidebar = () => {
 				/>
 				{/* Background glow on active */}
 				<motion.div
-					className='absolute inset-0 rounded-radius bg-gradient-to-r from-brand/10 to-transparent opacity-0'
+					className='pointer-events-none absolute inset-0 rounded-radius bg-gradient-to-r from-brand/10 to-transparent opacity-0'
 					initial={false}
 					animate={{
 						opacity: active ? 1 : 0,
@@ -225,7 +227,9 @@ export const LeftSidebar = () => {
 						</span>
 					)}
 				</motion.div>
-				<div>{label}</div>
+				<div className='w-full truncate text-center text-2xs leading-tight'>
+					{label}
+				</div>
 			</Link>
 		)
 	}
@@ -243,7 +247,7 @@ export const LeftSidebar = () => {
 				<button
 					type='button'
 					onClick={() => setShowMore(prev => !prev)}
-					className='group relative flex h-11 w-full flex-col items-center justify-center gap-1 rounded-radius px-1.5 text-xs font-semibold uppercase leading-tight tracking-wide text-text-secondary transition-colors duration-300 hover:text-text-primary'
+					className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-radius px-1 py-1.5 text-xs font-medium leading-tight text-text-secondary transition-colors duration-300 hover:text-text-primary'
 					title={showMore ? t('showLess') : t('more')}
 					aria-expanded={showMore}
 				>
@@ -257,7 +261,9 @@ export const LeftSidebar = () => {
 					>
 						<MoreHorizontal className='size-6' />
 					</motion.div>
-					<div>{showMore ? t('less') : t('more')}</div>
+					<div className='text-2xs leading-tight'>
+						{showMore ? t('less') : t('more')}
+					</div>
 				</button>
 			)}
 
@@ -283,13 +289,13 @@ export const LeftSidebar = () => {
 					<div className='mx-auto mb-2 h-px w-8 bg-border-subtle' />
 					<Link
 						href='/auth/sign-in'
-						className='flex h-9 w-full items-center justify-center rounded-radius text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						className='flex h-11 w-full items-center justify-center rounded-radius text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 					>
 						{t('signIn')}
 					</Link>
 					<Link
 						href='/auth/sign-up'
-						className='flex h-9 w-full items-center justify-center rounded-radius bg-brand text-xs font-bold text-white shadow-card transition-all hover:shadow-warm'
+						className='flex h-11 w-full items-center justify-center whitespace-nowrap rounded-radius bg-brand text-xs font-bold text-white shadow-card transition-all hover:shadow-warm'
 					>
 						{t('getStarted')}
 					</Link>

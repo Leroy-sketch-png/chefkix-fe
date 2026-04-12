@@ -59,7 +59,7 @@ export const PollCard = ({
 					setPost(updatedPost)
 					onUpdate?.(updatedPost)
 				} else {
-					toast.error(response.message || t('failedVote'))
+					toast.error(t('failedVote'))
 				}
 			} catch (error) {
 				logDevError('Failed to vote:', error)
@@ -136,6 +136,7 @@ export const PollCard = ({
 					isSelected={post.userVote === 'A'}
 					hasVoted={hasVoted}
 					disabled={isVoting || isOwner}
+					title={isOwner ? t('cannotVoteOwnPoll') : undefined}
 					onClick={() => handleVote('A')}
 				/>
 				<PollOption
@@ -145,6 +146,7 @@ export const PollCard = ({
 					isSelected={post.userVote === 'B'}
 					hasVoted={hasVoted}
 					disabled={isVoting || isOwner}
+					title={isOwner ? t('cannotVoteOwnPoll') : undefined}
 					onClick={() => handleVote('B')}
 				/>
 			</div>
@@ -167,6 +169,7 @@ function PollOption({
 	isSelected,
 	hasVoted,
 	disabled,
+	title,
 	onClick,
 }: {
 	label: string
@@ -175,6 +178,7 @@ function PollOption({
 	isSelected: boolean
 	hasVoted: boolean
 	disabled: boolean
+	title?: string
 	onClick: () => void
 }) {
 	return (
@@ -182,6 +186,8 @@ function PollOption({
 			type='button'
 			onClick={onClick}
 			disabled={disabled}
+			title={title}
+			aria-label={disabled && title ? `${label}. ${title}` : label}
 			whileTap={disabled ? undefined : BUTTON_SUBTLE_TAP}
 			className={cn(
 				'relative w-full overflow-hidden rounded-lg border p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
@@ -198,7 +204,7 @@ function PollOption({
 					animate={{ width: `${percent}%` }}
 					transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 					className={cn(
-						'absolute inset-y-0 left-0 rounded-lg',
+						'pointer-events-none absolute inset-y-0 left-0 rounded-lg',
 						isSelected ? 'bg-brand/15' : 'bg-bg-elevated/60',
 					)}
 				/>

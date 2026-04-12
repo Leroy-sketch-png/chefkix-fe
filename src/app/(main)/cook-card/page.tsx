@@ -49,8 +49,8 @@ function CookCardContent() {
 					<div className='flex-1'>
 						<PageHeader
 							icon={Award}
-						title={t('cookCardTitle')}
-						subtitle={t('cookCardSubtitle')}
+							title={t('cookCardTitle')}
+							subtitle={t('cookCardSubtitle')}
 							gradient='warm'
 							subtitleIcon={Sparkles}
 							marginBottom='sm'
@@ -62,6 +62,8 @@ function CookCardContent() {
 				<div className='mx-auto max-w-md'>
 					<CookCardRenderer sessionId={sessionId} />
 				</div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

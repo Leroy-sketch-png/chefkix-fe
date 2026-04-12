@@ -161,6 +161,9 @@ export default function LeaderboardRoute() {
 					onBack={() => router.back()}
 					onCookNow={() => router.push('/explore')}
 				/>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

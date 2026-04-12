@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { useTranslations } from 'next-intl'
@@ -56,7 +56,7 @@ export const FollowSuggestionCard = ({
 				triggerLikeConfetti() // Celebrate new mutual connection!
 				onFollowBack?.(profile.userId)
 			} else {
-				toast.error(response.message || t('failedFollowUser'))
+				toast.error(t('failedFollowUser'))
 			}
 		} catch {
 			toast.error(t('networkErrorConnection'))
@@ -112,7 +112,9 @@ export const FollowSuggestionCard = ({
 						</h3>
 						<p className='text-sm text-text-secondary'>@{profile.username}</p>
 						<p className='text-xs text-text-tertiary'>
-							{variant === 'follow-back' ? t('followsYou') : t('suggestedForYou')}
+							{variant === 'follow-back'
+								? t('followsYou')
+								: t('suggestedForYou')}
 						</p>
 					</div>
 				</Link>

@@ -1,12 +1,14 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, Share2, ChefHat, Lock } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
@@ -84,8 +86,16 @@ const buildUnlocks = (
 	},
 ]
 
-const buildJourney = (pendingXp: number, t: (key: string, values?: Record<string, unknown>) => string): JourneyNode[] => [
-	{ id: '1', label: t('firstDish'), status: 'done', statusText: t('completedLabel') },
+const buildJourney = (
+	pendingXp: number,
+	t: (key: string, values?: Record<string, unknown>) => string,
+): JourneyNode[] => [
+	{
+		id: '1',
+		label: t('firstDish'),
+		status: 'done',
+		statusText: t('completedLabel'),
+	},
 	{
 		id: '2',
 		label: t('shareYourDishNode'),
@@ -250,6 +260,8 @@ export const FirstCookCelebration = ({
 	onContinueCooking,
 }: FirstCookCelebrationProps) => {
 	const t = useTranslations('completion')
+	useEscapeKey(isOpen, onClose)
+	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
 	const unlocks = buildUnlocks(immediateXp, pendingXp, postDeadlineDays, t)
 	const journey = buildJourney(pendingXp, t)
 
@@ -258,6 +270,7 @@ export const FirstCookCelebration = ({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						ref={focusTrapRef}
 						role='alertdialog'
 						aria-live='assertive'
 						initial={{ opacity: 0 }}
@@ -310,9 +323,7 @@ export const FirstCookCelebration = ({
 								<h1 className='mb-2 bg-gradient-gold bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
 									{t('youreAChefNow')}
 								</h1>
-								<p className='text-text-muted'>
-									{t('firstDishComplete')}
-								</p>
+								<p className='text-text-muted'>{t('firstDishComplete')}</p>
 							</div>
 
 							{/* Dish showcase */}
@@ -348,7 +359,7 @@ export const FirstCookCelebration = ({
 							</div>
 
 							{/* Pending XP teaser */}
-							<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-dashed border-xp/40 bg-gradient-to-r from-xp/10 to-bonus/10 p-4'>
+							<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-xp/30 bg-gradient-to-r from-xp/10 to-bonus/10 p-4'>
 								<div className='flex size-10 items-center justify-center rounded-lg bg-bg-card text-xp'>
 									<Lock className='size-5' />
 								</div>
@@ -370,14 +381,14 @@ export const FirstCookCelebration = ({
 								<h3 className='mb-4 text-xs font-bold uppercase tracking-wide text-text-muted'>
 									{t('yourChefJourney')}
 								</h3>
-								<div className='-mx-6 flex items-start gap-0 overflow-x-auto px-6 py-2 max-md:-mx-6'>
+								<div className='-mx-6 flex items-start gap-0 overflow-x-auto scrollbar-hide px-6 py-2 max-md:-mx-6'>
 									{journey.map((node, i) => (
-										<>
-											<JourneyNodeComponent key={node.id} node={node} />
+										<Fragment key={node.id}>
+											<JourneyNodeComponent node={node} />
 											{i < journey.length - 1 && (
 												<div className='mt-5 h-0.5 min-w-5 flex-1 bg-border' />
 											)}
-										</>
+										</Fragment>
 									))}
 								</div>
 							</div>

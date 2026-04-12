@@ -143,6 +143,9 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							fill
 							sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 							className='object-cover brightness-95 transition-all duration-500 group-hover:scale-105 group-hover:brightness-105 group-hover:saturate-110'
+							onError={e => {
+								;(e.target as HTMLImageElement).style.display = 'none'
+							}}
 						/>
 						{/* Difficulty badge */}
 						<div
@@ -187,14 +190,17 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						)}
 					</div>
 					<div className='space-y-3 p-4 md:p-6'>
-						<h3 className='text-lg font-serif font-bold leading-tight text-text-primary line-clamp-2'>
+						<h3
+							className='text-lg font-serif font-bold leading-tight text-text-primary line-clamp-2'
+							title={recipe.title}
+						>
 							{recipe.title}
 						</h3>
 						<p className='text-sm leading-normal text-text-secondary line-clamp-2'>
 							{recipe.description}
 						</p>
 						<div className='flex items-center justify-between text-sm text-text-secondary'>
-							<span>
+							<span className='truncate'>
 								{t('byAuthor', {
 									name: recipe.author?.displayName || 'Unknown',
 								})}

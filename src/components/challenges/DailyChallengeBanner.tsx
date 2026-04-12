@@ -131,11 +131,7 @@ const ChallengeIcon = ({
 			</span>
 		</div>
 		{!isComplete && (
-			<motion.div
-				className='absolute -inset-1 rounded-xl border-2 border-dashed border-xp/40'
-				animate={{ rotate: 360 }}
-				transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-			/>
+			<div className='absolute -inset-1 rounded-xl border-2 border-xp/30' />
 		)}
 		{isComplete && (
 			<div className='absolute -bottom-2 -right-2 flex size-8 items-center justify-center rounded-full border-4 border-bg-card bg-success text-sm text-white'>
@@ -206,7 +202,7 @@ const ActiveChallengeBanner = ({
 						<span className='mb-2 block text-xs text-text-muted'>
 							{t('tryThese')}
 						</span>
-						<div className='-mr-5 flex gap-2 overflow-x-auto pb-1 pr-5'>
+						<div className='-mr-5 flex gap-2 overflow-x-auto scrollbar-hide pb-1 pr-5'>
 							{challenge.matchingRecipes.slice(0, 2).map(recipe => (
 								<Link
 									key={recipe.id}

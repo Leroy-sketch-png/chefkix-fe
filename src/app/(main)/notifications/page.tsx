@@ -1,7 +1,5 @@
 'use client'
 import { useTranslations } from 'next-intl'
-import { formatShortTimeAgo } from '@/lib/utils'
-
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -28,7 +26,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
-import { cn } from '@/lib/utils'
+import { formatShortTimeAgo, cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
 	staggerContainer,
@@ -360,7 +358,11 @@ const FilterTabs = ({
 	]
 
 	return (
-		<div className='flex gap-2 overflow-x-auto pb-2 pr-1 scrollbar-hide'>
+		<div
+			role='tablist'
+			aria-label={t('filterLabel')}
+			className='grid grid-cols-4 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-2 sm:pr-8 scrollbar-hide'
+		>
 			{filters.map(filter => {
 				const count = counts[filter.id]
 				const Icon = filter.icon
@@ -370,22 +372,26 @@ const FilterTabs = ({
 					<motion.button
 						type='button'
 						key={filter.id}
+						role='tab'
+						aria-selected={isActive}
 						onClick={() => onFilterChange(filter.id)}
 						whileTap={BUTTON_SUBTLE_TAP}
 						className={cn(
-							'flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+							'flex items-center justify-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50 sm:gap-1.5 sm:px-3 sm:text-sm',
 							isActive
-								? 'bg-brand text-white shadow-card'
+								? 'border border-brand/20 bg-brand/10 text-brand-text shadow-card'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
 						)}
 					>
-						<Icon className='size-4' />
+						<Icon className='hidden size-4 sm:block' />
 						{filter.label}
 						{count > 0 && (
 							<span
 								className={cn(
-									'tabular-nums rounded-full px-1.5 py-0.5 text-xs font-bold',
-									isActive ? 'bg-white/20' : 'bg-brand/10 text-brand',
+									'min-w-5 tabular-nums rounded-full px-1 py-0.5 text-center text-xs font-bold sm:min-w-6 sm:px-1.5',
+									isActive
+										? 'bg-brand/15 text-brand-text'
+										: 'bg-brand/10 text-brand',
 								)}
 							>
 								{count}
@@ -709,7 +715,7 @@ export default function NotificationsPage() {
 						exit={{ opacity: 0 }}
 						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
 					>
-						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+						<div className='flex items-center gap-2 rounded-full border border-brand/20 bg-bg-card px-4 py-2 text-sm font-semibold text-brand-text shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
 							{t('loading')}
 						</div>
@@ -722,9 +728,10 @@ export default function NotificationsPage() {
 				<PageHeader
 					icon={Bell}
 					title={t('title')}
-					subtitle={t('subtitle')}
+					subtitle=''
+					showSparkles={false}
 					gradient='blue'
-					marginBottom='md'
+					marginBottom='sm'
 					rightAction={
 						counts.unread > 0 ? (
 							<Button
@@ -746,12 +753,13 @@ export default function NotificationsPage() {
 				/>
 
 				{/* Filter Tabs */}
-				<div className='mb-6'>
+				<div className='relative mb-3'>
 					<FilterTabs
 						activeFilter={activeFilter}
 						onFilterChange={setActiveFilter}
 						counts={counts}
 					/>
+					<div className='pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-bg to-transparent sm:block' />
 				</div>
 
 				{/* Loading State — content-shaped skeleton */}
@@ -803,13 +811,16 @@ export default function NotificationsPage() {
 						variants={staggerContainer}
 						initial='hidden'
 						animate='visible'
-						className='space-y-3'
+						role='log'
+						aria-live='polite'
+						aria-label={t('notificationsList')}
+						className='space-y-2'
 					>
 						{/* Gamified Notifications */}
 						{filtered.gamified.length > 0 && (
 							<>
 								{activeFilter === 'all' && (
-									<div className='flex items-center gap-2 py-2'>
+									<div className='flex items-center gap-2 py-1'>
 										<Sparkles className='size-4 text-xp' />
 										<span className='text-sm font-semibold text-text-secondary'>
 											{t('activitySection')}
@@ -846,7 +857,7 @@ export default function NotificationsPage() {
 						{filtered.social.length > 0 && (
 							<>
 								{activeFilter === 'all' && (
-									<div className='flex items-center gap-2 py-2'>
+									<div className='flex items-center gap-2 py-1'>
 										<Heart className='size-4 text-error' />
 										<span className='text-sm font-semibold text-text-secondary'>
 											{t('socialSection')}
@@ -866,7 +877,7 @@ export default function NotificationsPage() {
 					</motion.div>
 				)}
 				{/* Bottom breathing room */}
-				<div className='pb-8' />
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

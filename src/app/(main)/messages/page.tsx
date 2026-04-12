@@ -43,7 +43,13 @@ import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
-import { TRANSITION_SPRING, LIST_ITEM_HOVER, LIST_ITEM_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
@@ -52,7 +58,10 @@ import { toast } from 'sonner'
 // HELPERS
 // ============================================
 
-function formatMessageTime(dateString: string): string {
+function formatMessageTime(
+	dateString: string,
+	yesterdayLabel = 'Yesterday',
+): string {
 	const date = new Date(dateString)
 	const now = new Date()
 	const diffDays = Math.floor(
@@ -62,7 +71,7 @@ function formatMessageTime(dateString: string): string {
 	if (diffDays === 0) {
 		return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 	} else if (diffDays === 1) {
-		return 'Yesterday'
+		return yesterdayLabel
 	} else if (diffDays < 7) {
 		return date.toLocaleDateString([], { weekday: 'short' })
 	} else {
@@ -87,6 +96,7 @@ function ConversationItem({
 	currentUserId,
 	onClick,
 }: ConversationItemProps) {
+	const t = useTranslations('messages')
 	const otherParticipant = conversation.participants.find(
 		p => p.userId !== currentUserId,
 	)
@@ -96,12 +106,17 @@ function ConversationItem({
 		(otherParticipant
 			? `${otherParticipant.firstName} ${otherParticipant.lastName}`.trim() ||
 				otherParticipant.username
-			: 'Unknown')
+			: t('unknownUser'))
 
 	const avatar =
 		conversation.conversationAvatar ||
 		otherParticipant?.avatar ||
 		'/placeholder-avatar.svg'
+	const previewText = conversation.lastMessage?.message || t('noMessagesYet')
+	const previewDate =
+		conversation.lastMessage?.createdDate ||
+		conversation.modifiedDate ||
+		conversation.createdDate
 
 	const hasUnread = conversation.unreadCount && conversation.unreadCount > 0
 
@@ -113,17 +128,17 @@ function ConversationItem({
 			whileTap={LIST_ITEM_TAP}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'group flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
+				'group flex w-full cursor-pointer items-center gap-2.5 rounded-xl p-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
 				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated',
 			)}
 		>
 			{/* Avatar */}
-			<div className='relative size-12 flex-shrink-0'>
+			<div className='relative size-11 flex-shrink-0'>
 				<Image
 					src={avatar}
 					alt={name}
 					fill
-					sizes='48px'
+					sizes='44px'
 					className='rounded-full object-cover'
 				/>
 			</div>
@@ -139,27 +154,31 @@ function ConversationItem({
 					>
 						{name}
 					</span>
-					{conversation.lastMessage && (
-						<span className='tabular-nums flex-shrink-0 text-xs text-text-muted'>
-							{formatMessageTime(conversation.lastMessage.createdDate)}
-						</span>
-					)}
+					<span className='tabular-nums flex-shrink-0 text-xs text-text-muted'>
+						{formatMessageTime(previewDate, t('yesterday'))}
+					</span>
 				</div>
-				{conversation.lastMessage && (
-					<p
-						className={cn(
-							'mt-0.5 truncate text-sm',
-							hasUnread ? 'font-medium text-text' : 'text-text-muted',
-						)}
-					>
-						{conversation.lastMessage.message}
-					</p>
-				)}
+				<p
+					className={cn(
+						'mt-0.5 truncate text-sm',
+						conversation.lastMessage
+							? hasUnread
+								? 'font-medium text-text'
+								: 'text-text-muted'
+							: 'italic text-text-muted',
+					)}
+				>
+					{previewText}
+				</p>
 			</div>
 
 			{/* Unread badge */}
 			{hasUnread && (
-				<span className='flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold tabular-nums text-white'>
+				<span
+					className='flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold tabular-nums text-white'
+					role='status'
+					aria-label={`${conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount} ${t('unreadMessages')}`}
+				>
 					{conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount}
 				</span>
 			)}
@@ -246,9 +265,7 @@ function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
 			<div>
 				<h2 className='text-xl font-bold text-text'>{t('welcomeTitle')}</h2>
 				<p className='mt-2 text-text-secondary'>
-					{hasConversations
-						? t('selectConversation')
-						: t('startConversation')}
+					{hasConversations ? t('selectConversation') : t('startConversation')}
 				</p>
 			</div>
 		</div>
@@ -266,7 +283,7 @@ function ConnectionStatus({
 	if (isConnected) {
 		return (
 			<div className='flex items-center gap-1.5 text-xs text-success'>
-				<Wifi className='size-3' />
+				<Wifi className='size-3.5' />
 				<span>{t('connected')}</span>
 			</div>
 		)
@@ -274,8 +291,8 @@ function ConnectionStatus({
 
 	return (
 		<div className='flex items-center gap-1.5 text-xs text-text-muted'>
-			<WifiOff className='size-3' />
-			<span>{error || 'Connecting...'}</span>
+			<WifiOff className='size-3.5' />
+			<span>{error || t('connecting')}</span>
 		</div>
 	)
 }
@@ -528,45 +545,51 @@ function MessagesContent() {
 
 	// React to a message
 	const reactingRef = useRef(new Set<string>())
-	const handleReact = useCallback(async (messageId: string, emoji: string) => {
-		if (reactingRef.current.has(messageId)) return
-		reactingRef.current.add(messageId)
-		try {
-			const response = await reactToMessage(messageId, emoji)
-			if (response.success && response.data) {
-				setMessages(prev =>
-					prev.map(m => (m.id === messageId ? response.data! : m)),
-				)
-			} else {
+	const handleReact = useCallback(
+		async (messageId: string, emoji: string) => {
+			if (reactingRef.current.has(messageId)) return
+			reactingRef.current.add(messageId)
+			try {
+				const response = await reactToMessage(messageId, emoji)
+				if (response.success && response.data) {
+					setMessages(prev =>
+						prev.map(m => (m.id === messageId ? response.data! : m)),
+					)
+				} else {
+					toast.error(t('failedToReact'))
+				}
+			} catch {
 				toast.error(t('failedToReact'))
+			} finally {
+				reactingRef.current.delete(messageId)
 			}
-		} catch {
-			toast.error(t('failedToReact'))
-		} finally {
-			reactingRef.current.delete(messageId)
-		}
-	}, [t])
+		},
+		[t],
+	)
 
 	// Delete a message (own messages only)
 	const deletingRef = useRef(new Set<string>())
-	const handleDelete = useCallback(async (messageId: string) => {
-		if (deletingRef.current.has(messageId)) return
-		deletingRef.current.add(messageId)
-		try {
-			const response = await deleteMessage(messageId)
-			if (response.success && response.data) {
-				setMessages(prev =>
-					prev.map(m => (m.id === messageId ? response.data! : m)),
-				)
-			} else {
+	const handleDelete = useCallback(
+		async (messageId: string) => {
+			if (deletingRef.current.has(messageId)) return
+			deletingRef.current.add(messageId)
+			try {
+				const response = await deleteMessage(messageId)
+				if (response.success && response.data) {
+					setMessages(prev =>
+						prev.map(m => (m.id === messageId ? response.data! : m)),
+					)
+				} else {
+					toast.error(t('failedToDelete'))
+				}
+			} catch {
 				toast.error(t('failedToDelete'))
+			} finally {
+				deletingRef.current.delete(messageId)
 			}
-		} catch {
-			toast.error(t('failedToDelete'))
-		} finally {
-			deletingRef.current.delete(messageId)
-		}
-	}, [t])
+		},
+		[t],
+	)
 
 	// Reply to a message - focus input and prepend reply context
 	const handleReply = useCallback((message: Message) => {
@@ -575,13 +598,16 @@ function MessagesContent() {
 	}, [])
 
 	// Copy message content
-	const handleCopy = useCallback(async (content: string) => {
-		try {
-			await navigator.clipboard.writeText(content)
-		} catch {
-			toast.error(t('failedToCopy'))
-		}
-	}, [t])
+	const handleCopy = useCallback(
+		async (content: string) => {
+			try {
+				await navigator.clipboard.writeText(content)
+			} catch {
+				toast.error(t('failedToCopy'))
+			}
+		},
+		[t],
+	)
 
 	// Back to list (mobile)
 	const handleBackToList = () => {
@@ -649,6 +675,7 @@ function MessagesContent() {
 						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 						<Input
 							placeholder={t('searchConversations')}
+							aria-label={t('searchConversations')}
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							className='bg-bg-elevated pl-9'
@@ -657,7 +684,7 @@ function MessagesContent() {
 				</header>
 
 				{/* Conversations List - Scrollable */}
-				<nav className='flex-1 overflow-y-auto px-2 py-2'>
+				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-24 md:pb-2'>
 					{isLoadingConversations ? (
 						<div className='space-y-2 px-2'>
 							{Array.from({ length: 5 }).map((_, i) => (
@@ -708,6 +735,29 @@ function MessagesContent() {
 									</motion.div>
 								))}
 							</AnimatePresence>
+
+							{!searchQuery.trim() && filteredConversations.length < 8 && (
+								<motion.div
+									initial={{ opacity: 0, y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={TRANSITION_SPRING}
+									className='mt-3 rounded-xl border border-border-subtle bg-bg-elevated p-3'
+								>
+									<p className='text-sm font-semibold text-text'>
+										{t('findPeopleToChat')}
+									</p>
+									<p className='mt-1 text-xs text-text-muted'>
+										{t('startConversationFriend')}
+									</p>
+									<Link
+										href='/community'
+										className='mt-2 inline-flex items-center gap-1.5 rounded-lg border border-brand/20 bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/15'
+									>
+										<Users className='size-3.5' />
+										{t('discoverChefs')}
+									</Link>
+								</motion.div>
+							)}
 						</div>
 					)}
 				</nav>
@@ -743,6 +793,10 @@ function MessagesContent() {
 									fill
 									sizes='40px'
 									className='rounded-full object-cover'
+									onError={e => {
+										;(e.target as HTMLImageElement).src =
+											'/placeholder-avatar.svg'
+									}}
 								/>
 							</div>
 							<div className='min-w-0 flex-1'>
@@ -769,7 +823,12 @@ function MessagesContent() {
 						{/* Video Call Modal / Overlay */}
 						{isVideoCallActive && selectedConversation && user && (
 							<Portal>
-								<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
+								<div
+									className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'
+									role='dialog'
+									aria-modal='true'
+									aria-label={t('ariaStartVideoCall')}
+								>
 									<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
 										<Button
 											variant='ghost'
@@ -794,6 +853,9 @@ function MessagesContent() {
 						{/* Messages Area - Scrollable */}
 						<div
 							ref={messagesContainerRef}
+							role='log'
+							aria-live='polite'
+							aria-label={t('ariaMessagesRegion')}
 							className='flex-1 overflow-y-auto px-4 py-4 md:px-6'
 						>
 							{isLoadingMessages ? (
@@ -819,8 +881,8 @@ function MessagesContent() {
 								<div className='flex h-full items-center justify-center'>
 									<EmptyState
 										variant='custom'
-									title={t('noMessages')}
-									description={t('noMessagesDesc')}
+										title={t('noMessages')}
+										description={t('noMessagesDesc')}
 										emoji='💬'
 									/>
 								</div>
@@ -883,6 +945,7 @@ function MessagesContent() {
 									<button
 										type='button'
 										onClick={() => setReplyingTo(null)}
+										aria-label={t('ariaCancelReply')}
 										className='flex-shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text'
 									>
 										<X className='size-3.5' />
@@ -893,6 +956,7 @@ function MessagesContent() {
 								<MentionInput
 									ref={inputRef}
 									placeholder={t('typeMessage')}
+									aria-label={t('ariaMessageInput')}
 									value={newMessage}
 									onChange={setNewMessage}
 									onTaggedUsersChange={ids => {
@@ -907,6 +971,7 @@ function MessagesContent() {
 									onClick={handleSendMessage}
 									disabled={!newMessage.trim() || isSending}
 									size='icon'
+									aria-label={t('ariaSendMessage')}
 									className='bg-brand text-white hover:bg-brand-hover'
 								>
 									{isSending ? (
@@ -932,7 +997,11 @@ function MessagesContent() {
 										key={i}
 										className='size-3 rounded-full bg-brand'
 										animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
-										transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+										transition={{
+											duration: 0.8,
+											repeat: Infinity,
+											delay: i * 0.15,
+										}}
 									/>
 								))}
 							</div>

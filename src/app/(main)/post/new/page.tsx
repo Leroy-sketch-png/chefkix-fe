@@ -163,8 +163,7 @@ function CreatePostContent() {
 					// Only completed sessions should be linked to posts
 					if (s.status !== 'completed') {
 						toast.error(t('toastSessionCannotLink'), {
-							description:
-								'Only completed cooking sessions can earn XP from posts.',
+							description: t('sessionMustBeCompleted'),
 						})
 						setIsLoadingSession(false)
 						return
@@ -332,7 +331,7 @@ function CreatePostContent() {
 
 				router.push('/dashboard')
 			} else {
-				toast.error(response.message || t('toastPostFailed'))
+				toast.error(t('toastPostFailed'))
 				setIsSubmitting(false)
 				return
 			}
@@ -420,6 +419,10 @@ function CreatePostContent() {
 										width={80}
 										height={80}
 										className='size-20 rounded-xl object-cover'
+										onError={e => {
+											;(e.target as HTMLImageElement).src =
+												'/placeholder-recipe.svg'
+										}}
 									/>
 								)}
 								<div className='flex-1'>
@@ -559,6 +562,7 @@ function CreatePostContent() {
 										handleSubmit()
 									}
 								}}
+								aria-label={t('postContentLabel')}
 								maxLength={2000}
 								placeholder={
 									session
@@ -567,10 +571,12 @@ function CreatePostContent() {
 											})
 										: t('placeholderGeneric')
 								}
-								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none'
+								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								autoFocus
 							/>
 							<p
+								aria-live='polite'
+								aria-atomic='true'
 								className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
 							>
 								{content.length}/2000
@@ -603,7 +609,7 @@ function CreatePostContent() {
 												<motion.button
 													type='button'
 													onClick={() => removePhoto(index)}
-													className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+													className='absolute right-1 top-1 flex size-9 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 													whileHover={ICON_BUTTON_HOVER}
 													whileTap={ICON_BUTTON_TAP}
 													aria-label={`Remove photo ${index + 1}`}
@@ -632,6 +638,7 @@ function CreatePostContent() {
 									accept='image/*'
 									multiple
 									onChange={handlePhotoSelect}
+									aria-label={t('addPhotosCount', { count: photoFiles.length })}
 									className='hidden'
 									disabled={photoFiles.length >= 5}
 								/>
@@ -690,6 +697,8 @@ function CreatePostContent() {
 						</motion.p>
 					)}
 				</div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

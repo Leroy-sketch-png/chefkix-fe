@@ -64,9 +64,7 @@ function CookTogetherContent() {
 					if (cancelled) return
 					if (success) {
 						toast.success(
-							urlRole === 'SPECTATOR'
-								? t('ctWatching')
-								: t('toastJoinedRoom'),
+							urlRole === 'SPECTATOR' ? t('ctWatching') : t('toastJoinedRoom'),
 						)
 						router.push('/cook-together/room')
 					} else {
@@ -149,13 +147,13 @@ function CookTogetherContent() {
 
 				<AnimatePresence>
 					{roomCode && (
-					<motion.div
-						initial={{ opacity: 0, y: -10 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: -10 }}
-						transition={TRANSITION_SPRING}
-						className='mb-6 rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
-					>
+						<motion.div
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -10 }}
+							transition={TRANSITION_SPRING}
+							className='mb-6 rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
+						>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-3'>
 									<div className='flex size-10 items-center justify-center rounded-xl bg-brand/10'>
@@ -188,7 +186,7 @@ function CookTogetherContent() {
 										onClick={() => router.push('/cook-together/room')}
 										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
 									>
-									{t('ctReturnToRoom')}
+										{t('ctReturnToRoom')}
 										<ArrowRight className='size-4' />
 									</button>
 								</div>
@@ -202,23 +200,21 @@ function CookTogetherContent() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-					className='group rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
+					className='group rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6 md:p-8'
 				>
 					<div className='mb-6 flex items-center gap-3'>
 						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-info to-accent-purple'>
 							<Share2 className='size-5 text-white' />
 						</div>
 						<div>
-							<h2 className='text-xl font-bold text-text'>
-								{t('ctJoinRoom')}
-							</h2>
+							<h2 className='text-xl font-bold text-text'>{t('ctJoinRoom')}</h2>
 							<p className='text-sm text-text-secondary'>
 								{t('ctJoinRoomDesc')}
 							</p>
 						</div>
 					</div>
 
-					<div className='flex gap-3'>
+					<div className='flex gap-2 sm:gap-3'>
 						<input
 							ref={inputRef}
 							type='text'
@@ -230,14 +226,14 @@ function CookTogetherContent() {
 							placeholder={t('ctRoomCodePlaceholder')}
 							maxLength={6}
 							aria-label={t('ctRoomCodeLabel')}
-							className='flex-1 rounded-xl border border-border-subtle bg-bg px-4 py-3 font-mono text-xl tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+							className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg px-3 py-2.5 font-mono text-base tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 sm:px-4 sm:py-3 sm:text-xl'
 							disabled={isJoining}
 						/>
 						<button
 							type='button'
 							onClick={handleJoin}
 							disabled={isJoining || roomCodeInput.trim().length < 6}
-							className='flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50'
+							className='flex flex-shrink-0 items-center gap-2 rounded-xl bg-brand px-3 py-2.5 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-3'
 						>
 							{isJoining ? (
 								<motion.div
@@ -253,13 +249,15 @@ function CookTogetherContent() {
 							) : (
 								<ArrowRight className='size-5' />
 							)}
-							{isJoining ? t('ctJoining') : t('ctJoin')}
+							{isJoining ? (
+								t('ctJoining')
+							) : (
+								<span className='hidden sm:inline'>{t('ctJoin')}</span>
+							)}
 						</button>
 					</div>
 
-					<p className='mt-3 text-xs text-text-muted'>
-						{t('ctRoomCodeHint')}
-					</p>
+					<p className='mt-3 text-xs text-text-muted'>{t('ctRoomCodeHint')}</p>
 				</motion.div>
 
 				{/* How It Works */}
@@ -291,7 +289,7 @@ function CookTogetherContent() {
 							{
 								step: '3',
 								title: t('ctStep3Title'),
-							desc: t('ctStep3Desc'),
+								desc: t('ctStep3Desc'),
 							},
 						].map((item, i) => (
 							<motion.div
@@ -313,6 +311,8 @@ function CookTogetherContent() {
 						))}
 					</div>
 				</motion.div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

@@ -64,10 +64,7 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 				</div>
 				<div className='flex gap-4 overflow-hidden'>
 					{[1, 2, 3].map(i => (
-						<Skeleton
-							key={i}
-							className='h-48 w-72 flex-shrink-0 rounded-2xl'
-						/>
+						<Skeleton key={i} className='h-48 w-72 flex-shrink-0 rounded-2xl' />
 					))}
 				</div>
 			</div>
@@ -86,7 +83,9 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 			<div className='mb-3 flex items-center justify-between'>
 				<div className='flex items-center gap-2'>
 					<Sparkles className='size-5 text-brand' />
-					<h2 className='text-lg font-bold text-text'>{t('seasonsBestTitle')}</h2>
+					<h2 className='text-lg font-bold text-text'>
+						{t('seasonsBestTitle')}
+					</h2>
 				</div>
 				<Link
 					href='/explore?view=collections'
@@ -99,7 +98,7 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 
 			{/* Scrollable card strip */}
 			<div
-				className='-mx-1 flex gap-4 overflow-x-auto px-1 pb-2 scrollbar-thin scrollbar-thumb-border-medium'
+				className='flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 scrollbar-thin scrollbar-thumb-border-medium'
 				role='list'
 			>
 				<AnimatePresence>
@@ -125,9 +124,14 @@ interface FeaturedCollectionCardProps {
 	index: number
 }
 
-function FeaturedCollectionCard({ collection, index }: FeaturedCollectionCardProps) {
+function FeaturedCollectionCard({
+	collection,
+	index,
+}: FeaturedCollectionCardProps) {
 	const t = useTranslations('explore')
-	const itemCount = (collection.recipeIds?.length || 0) + (collection.postIds?.length || 0)
+	const [imgError, setImgError] = useState(false)
+	const itemCount =
+		(collection.recipeIds?.length || 0) + (collection.postIds?.length || 0)
 
 	return (
 		<motion.div
@@ -139,17 +143,18 @@ function FeaturedCollectionCard({ collection, index }: FeaturedCollectionCardPro
 		>
 			<Link
 				href={`/collections/${collection.id}`}
-				className='group block w-72 flex-shrink-0'
+				className='group block w-72 snap-start flex-shrink-0'
 			>
-				<div className='relative h-48 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-shadow duration-300 group-hover:shadow-warm'>
-					{/* Cover image or gradient fallback */}
-					{collection.coverImageUrl ? (
+				<div className='relative h-48 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card text-transparent shadow-card transition-shadow duration-300 group-hover:shadow-warm'>
+					{/* Cover image or gradient fallback — text-transparent hides alt text on slow/broken images */}
+					{collection.coverImageUrl && !imgError ? (
 						<Image
 							src={collection.coverImageUrl}
 							alt={collection.name}
 							fill
 							className='object-cover transition-transform duration-500 group-hover:scale-105'
 							sizes='288px'
+							onError={() => setImgError(true)}
 						/>
 					) : (
 						<div className='absolute inset-0 bg-gradient-to-br from-brand/20 via-brand/10 to-transparent' />
@@ -186,7 +191,10 @@ function FeaturedCollectionCard({ collection, index }: FeaturedCollectionCardPro
 							{itemCount > 0 && (
 								<span className='flex items-center gap-1'>
 									<BookOpen className='size-3' />
-									<span className='tabular-nums'>{itemCount}</span> {itemCount === 1 ? t('recipeCountSingle') : t('recipeCountPlural')}
+									<span className='tabular-nums'>{itemCount}</span>{' '}
+									{itemCount === 1
+										? t('recipeCountSingle')
+										: t('recipeCountPlural')}
 								</span>
 							)}
 							{collection.totalXp && collection.totalXp > 0 && (

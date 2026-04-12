@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Trophy, Clock, Flame, ChevronRight } from 'lucide-react'
+import { Trophy, Clock, Flame, ChevronRight, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
@@ -20,11 +20,11 @@ import { useTranslations } from 'next-intl'
 // HELPERS
 // ============================================
 
-function formatCountdown(endsAt: string): string {
+function formatCountdown(endsAt: string, endedLabel = 'Ended'): string {
 	const end = new Date(endsAt)
 	if (isNaN(end.getTime())) return '—'
 	const diff = end.getTime() - Date.now()
-	if (diff <= 0) return 'Ended'
+	if (diff <= 0) return endedLabel
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	if (hours < 1) {
 		const mins = Math.floor(diff / (1000 * 60))
@@ -52,52 +52,47 @@ export function ActiveChallengesWidget({
 	const [hasError, setHasError] = useState(false)
 	const t = useTranslations('challengeWidget')
 
-	useEffect(() => {
-		let mounted = true
+	const fetchChallenges = useCallback(async () => {
+		setHasError(false)
+		setLoaded(false)
+		try {
+			const [dailyRes, weeklyRes] = await Promise.all([
+				getTodaysChallenge().catch(() => null),
+				getWeeklyChallenge().catch(() => null),
+			])
 
-		async function fetch() {
-			try {
-				const [dailyRes, weeklyRes] = await Promise.all([
-					getTodaysChallenge().catch(() => null),
-					getWeeklyChallenge().catch(() => null),
-				])
-				if (!mounted) return
-
-				// If both returned null, the API is down
-				if (!dailyRes && !weeklyRes) {
-					setHasError(true)
-				} else {
-					if (
-						dailyRes?.success &&
-						dailyRes.data &&
-						typeof dailyRes.data.title === 'string' &&
-						dailyRes.data.endsAt &&
-						!dailyRes.data.completed
-					) {
-						setDaily(dailyRes.data)
-					}
-					if (
-						weeklyRes?.success &&
-						weeklyRes.data &&
-						typeof weeklyRes.data.title === 'string' &&
-						!weeklyRes.data.completed
-					) {
-						setWeekly(weeklyRes.data)
-					}
+			if (!dailyRes && !weeklyRes) {
+				setHasError(true)
+			} else {
+				if (
+					dailyRes?.success &&
+					dailyRes.data &&
+					typeof dailyRes.data.title === 'string' &&
+					dailyRes.data.endsAt &&
+					!dailyRes.data.completed
+				) {
+					setDaily(dailyRes.data)
 				}
-			} catch (err) {
-				logDevError('Failed to fetch challenges for widget:', err)
-				if (mounted) setHasError(true)
-			} finally {
-				if (mounted) setLoaded(true)
+				if (
+					weeklyRes?.success &&
+					weeklyRes.data &&
+					typeof weeklyRes.data.title === 'string' &&
+					!weeklyRes.data.completed
+				) {
+					setWeekly(weeklyRes.data)
+				}
 			}
-		}
-
-		fetch()
-		return () => {
-			mounted = false
+		} catch (err) {
+			logDevError('Failed to fetch challenges for widget:', err)
+			setHasError(true)
+		} finally {
+			setLoaded(true)
 		}
 	}, [])
+
+	useEffect(() => {
+		fetchChallenges()
+	}, [fetchChallenges])
 
 	// Don't render if still loading
 	if (!loaded) return null
@@ -107,12 +102,23 @@ export function ActiveChallengesWidget({
 		return (
 			<div
 				className={cn(
-					'flex items-center gap-2 rounded-radius border border-border-subtle bg-bg-card p-4 text-sm text-text-muted shadow-card',
+					'flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 text-sm text-text-muted shadow-card',
 					className,
 				)}
 			>
-				<Trophy className='size-4 text-text-muted' />
-				<span>{t('unavailable')}</span>
+				<div className='flex items-center gap-2'>
+					<Trophy className='size-4 text-text-muted' />
+					<span>{t('unavailable')}</span>
+				</div>
+				<button
+					type='button'
+					onClick={fetchChallenges}
+					className='flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/10'
+					aria-label={t('retry')}
+				>
+					<RefreshCw className='size-3' />
+					{t('retry')}
+				</button>
 			</div>
 		)
 	}
@@ -160,7 +166,9 @@ export function ActiveChallengesWidget({
 							</p>
 							<p className='flex items-center gap-1 text-xs text-text-muted'>
 								<Clock className='size-3' />
-								{t('remaining', { time: formatCountdown(daily.endsAt) })}
+								{t('remaining', {
+									time: formatCountdown(daily.endsAt, t('ended')),
+								})}
 								<span className='ml-auto font-semibold tabular-nums text-xp'>
 									+
 									<AnimatedNumber

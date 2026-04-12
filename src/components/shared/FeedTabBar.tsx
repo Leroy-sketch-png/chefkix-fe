@@ -87,11 +87,11 @@ export function FeedTabBar<T extends string = string>({
 			className={cn(
 				'flex',
 				sizes.container,
-				scrollable && 'overflow-x-auto scrollbar-none',
+				scrollable && 'overflow-x-auto scrollbar-hide',
 				!isPill && 'border-b-2 border-border-subtle',
 				className,
 			)}
-			role="tablist"
+			role='tablist'
 		>
 			{tabs.map(tab => {
 				const isActive = activeTab === tab.key
@@ -103,7 +103,7 @@ export function FeedTabBar<T extends string = string>({
 						key={tab.key}
 						onClick={() => onTabChange(tab.key)}
 						whileTap={isPill ? BUTTON_SUBTLE_TAP : BUTTON_TAP}
-						role="tab"
+						role='tab'
 						aria-selected={isActive}
 						aria-controls={`tabpanel-${tab.key}`}
 						className={cn(
@@ -128,7 +128,7 @@ export function FeedTabBar<T extends string = string>({
 						{/* Animated pill background */}
 						{isPill && isActive && (
 							<motion.div
-								layoutId="feed-tab-pill"
+								layoutId='feed-tab-pill'
 								className='absolute inset-0 rounded-radius bg-gradient-brand shadow-card'
 								transition={{ type: 'spring', stiffness: 400, damping: 30 }}
 							/>
@@ -136,36 +136,36 @@ export function FeedTabBar<T extends string = string>({
 						{/* Animated underline indicator */}
 						{!isPill && isActive && (
 							<motion.div
-								layoutId="feed-tab-underline"
+								layoutId='feed-tab-underline'
 								className='absolute inset-x-0 -bottom-[2px] h-[3px] rounded-full bg-brand'
 								transition={{ type: 'spring', stiffness: 400, damping: 30 }}
 							/>
 						)}
 						<span className='relative z-10 flex items-center gap-2'>
-						{Icon && <Icon className={sizes.icon} />}
-						{tab.label}
+							{Icon && <Icon className={sizes.icon} />}
+							{tab.label}
 
-						{/* Count badge */}
-						{tab.count !== undefined && (
-							<span
-								className={cn(
-									'rounded-full font-bold tabular-nums',
-									sizes.count,
-									isPill
-										? isActive
-											? 'bg-white/20 text-white'
-											: 'bg-bg-elevated text-text-secondary'
-										: isActive
-											? 'bg-brand/15 text-brand'
-											: 'bg-bg-elevated text-text-secondary',
-								)}
-							>
-								{tab.count}
-							</span>
-						)}
+							{/* Count badge */}
+							{tab.count !== undefined && (
+								<span
+									className={cn(
+										'rounded-full font-bold tabular-nums',
+										sizes.count,
+										isPill
+											? isActive
+												? 'bg-white/20 text-white'
+												: 'bg-bg-elevated text-text-secondary'
+											: isActive
+												? 'bg-brand/15 text-brand'
+												: 'bg-bg-elevated text-text-secondary',
+									)}
+								>
+									{tab.count}
+								</span>
+							)}
 
-						{/* Custom badge */}
-						{tab.badge}
+							{/* Custom badge */}
+							{tab.badge}
 						</span>
 					</motion.button>
 				)
@@ -207,7 +207,7 @@ export function FeedModeTabBar({
 			tabs={tabs}
 			activeTab={activeMode}
 			onTabChange={onModeChange}
-			variant="pill"
+			variant='pill'
 			className={className}
 		/>
 	)

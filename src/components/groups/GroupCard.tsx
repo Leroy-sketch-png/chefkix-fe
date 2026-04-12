@@ -170,7 +170,11 @@ export const GroupCard = ({
 						disabled={isJoining}
 						className='flex-shrink-0'
 					>
-						{isJoining ? <Loader2 className='size-3 animate-spin' /> : t('gcJoin')}
+						{isJoining ? (
+							<Loader2 className='size-3 animate-spin' />
+						) : (
+							t('gcJoin')
+						)}
 					</Button>
 				)}
 			</motion.div>
@@ -207,14 +211,14 @@ export const GroupCard = ({
 							<>
 								<Lock className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
-								{t('gcPrivate')}
+									{t('gcPrivate')}
 								</span>
 							</>
 						) : (
 							<>
 								<Globe className='size-3 text-text-secondary' />
 								<span className='text-xs font-medium text-text-secondary'>
-								{t('gcPublic')}
+									{t('gcPublic')}
 								</span>
 							</>
 						)}
@@ -233,7 +237,10 @@ export const GroupCard = ({
 					</h3>
 				</Link>
 
-				<p className='text-sm text-text-secondary mt-2 line-clamp-2 flex-1'>
+				<p
+					className='text-sm text-text-secondary mt-2 line-clamp-2 flex-1'
+					title={group.description || undefined}
+				>
 					{group.description || t('gcNoDescription')}
 				</p>
 

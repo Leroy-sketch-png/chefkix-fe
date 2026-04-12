@@ -129,6 +129,7 @@ export const GroupHeader = ({
 									variant='outline'
 									size='icon'
 									className='bg-bg/90 backdrop-blur-sm border-0'
+									aria-label={t('groupOptionsMenu')}
 								>
 									<MoreVertical className='size-4' />
 								</Button>
@@ -137,12 +138,12 @@ export const GroupHeader = ({
 								{(isOwner || isAdmin) && (
 									<DropdownMenuItem onClick={onSettingsClick}>
 										<Settings className='size-4 mr-2' />
-									{t('ghGroupSettings')}
+										{t('ghGroupSettings')}
 									</DropdownMenuItem>
 								)}
 								<DropdownMenuItem>
 									<Share2 className='size-4 mr-2' />
-								{t('ghShareGroup')}
+									{t('ghShareGroup')}
 								</DropdownMenuItem>
 								{!isOwner && (
 									<DropdownMenuItem
@@ -150,7 +151,7 @@ export const GroupHeader = ({
 										className='text-error focus:text-error'
 									>
 										<LogOut className='size-4 mr-2' />
-									{t('ghLeaveGroup')}
+										{t('ghLeaveGroup')}
 									</DropdownMenuItem>
 								)}
 							</DropdownMenuContent>
@@ -168,12 +169,14 @@ export const GroupHeader = ({
 						<div className='flex items-center gap-4 mt-3 flex-wrap'>
 							<div className='flex items-center gap-1 text-text-secondary'>
 								<Users className='size-4' />
-								<span className='text-sm'>{t('ghMembersCount', { count: group.memberCount })}</span>
+								<span className='text-sm'>
+									{t('ghMembersCount', { count: group.memberCount })}
+								</span>
 							</div>
 
 							{group.privacyType === 'PRIVATE' && (
 								<div className='text-xs text-text-muted px-2 py-1 bg-bg rounded-full'>
-								{t('ghPrivateGroup')}
+									{t('ghPrivateGroup')}
 								</div>
 							)}
 

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Post } from '@/lib/types'
@@ -112,6 +112,16 @@ interface PostCardProps {
 	onUpdate?: (post: Post) => void
 	onDelete?: (postId: string) => void
 	currentUserId?: string
+}
+
+const POST_TYPE_BADGE_STYLES: Record<string, string> = {
+	QUICK: 'bg-warning/15 text-warning-deep',
+	POLL: 'bg-info/15 text-info',
+	RECENT_COOK: 'bg-brand/15 text-brand',
+	GROUP: 'bg-accent-purple/15 text-accent-purple',
+	RECIPE_REVIEW: 'bg-warning/20 text-warning-deep',
+	QUICK_TIP: 'bg-success/15 text-success-deep',
+	RECIPE_BATTLE: 'bg-error/15 text-error',
 }
 
 export const PostCard = ({
@@ -266,7 +276,7 @@ export const PostCard = ({
 					isLiked: wasLiked,
 					likes: previousLikes,
 				}))
-				toast.error(response.message || t('toastLikeFailed'))
+				toast.error(t('toastLikeFailed'))
 			}
 		} catch {
 			// Revert on network/unexpected error
@@ -404,7 +414,7 @@ export const PostCard = ({
 				toast.success(t('toastDeleteSuccess'))
 				onDelete?.(post.id)
 			} else {
-				toast.error(response.message || t('toastDeleteFailed'))
+				toast.error(t('toastDeleteFailed'))
 			}
 		} catch {
 			logDevError('Failed to delete post:', post.id)
@@ -446,7 +456,7 @@ export const PostCard = ({
 				setIsEditing(false)
 				toast.success(t('toastUpdateSuccess'))
 			} else {
-				toast.error(response.message || t('toastUpdateFailed'))
+				toast.error(t('toastUpdateFailed'))
 			}
 		} catch {
 			logDevError('Failed to update post:', post.id)
@@ -468,7 +478,7 @@ export const PostCard = ({
 						: t('reportThankYou'),
 				)
 			} else {
-				toast.error(response.message || t('failedReport'))
+				toast.error(t('failedReport'))
 			}
 		} catch {
 			logDevError('Failed to submit post report:', post.id)
@@ -542,7 +552,7 @@ export const PostCard = ({
 					toggled: response.data.userVote === null,
 				})
 			} else {
-				toast.error(response.message ?? t('battleVoteFailed'))
+				toast.error(t('battleVoteFailed'))
 			}
 		} catch {
 			toast.error(t('battleVoteFailed'))
@@ -644,12 +654,16 @@ export const PostCard = ({
 								</Avatar>
 								<div>
 									<div className='flex items-center gap-1 text-base font-bold leading-tight text-text-primary'>
-										{post.displayName || t('unknownUser')}
+										<span className='truncate'>
+											{post.displayName || t('unknownUser')}
+										</span>
 										{post.isVerified && <VerifiedBadge size='sm' />}
 									</div>
 									<div className='flex items-center gap-2 text-sm leading-normal text-text-secondary'>
 										{post.postType && post.postType !== 'PERSONAL' && (
-											<span className='inline-flex items-center gap-1 rounded-full bg-bg-elevated px-1.5 py-0.5 text-xs font-medium text-text-muted'>
+											<span
+												className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium ${POST_TYPE_BADGE_STYLES[post.postType] || 'bg-bg-elevated text-text-muted'}`}
+											>
 												{post.postType === 'QUICK' && (
 													<>
 														<Zap className='size-3' />
@@ -797,8 +811,9 @@ export const PostCard = ({
 							<textarea
 								value={editContent}
 								onChange={e => setEditContent(e.target.value)}
-								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
+								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
 								placeholder={t('editPostPlaceholder')}
+								aria-label={t('editPostPlaceholder')}
 								maxLength={2000}
 							/>
 							{editContent.length > 0 && (
@@ -811,8 +826,9 @@ export const PostCard = ({
 							<input
 								value={editTags}
 								onChange={e => setEditTags(e.target.value)}
-								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
+								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
 								placeholder={t('tagsPlaceholder')}
+								aria-label={t('tagsPlaceholder')}
 								maxLength={200}
 							/>
 							<div className='flex gap-2'>
@@ -904,11 +920,22 @@ export const PostCard = ({
 																		fill
 																		sizes='64px'
 																		unoptimized
+																		onError={e => {
+																			;(
+																				e.target as HTMLImageElement
+																			).style.display = 'none'
+																		}}
 																		className='object-cover transition-transform group-hover/recipe:scale-110'
 																	/>
 																</div>
 															)}
-															<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
+															<span
+																className='line-clamp-2 text-center text-xs font-semibold text-text-primary'
+																title={
+																	post.battleRecipeTitleA ??
+																	t('recipeAFallback')
+																}
+															>
 																{post.battleRecipeTitleA ??
 																	t('recipeAFallback')}
 															</span>
@@ -925,15 +952,17 @@ export const PostCard = ({
 																whileTap={BUTTON_TAP}
 																onClick={() => handleBattleVote('A')}
 																disabled={isVotingBattle}
-																className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+																className={`rounded-lg px-4 py-2.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${isVotingBattle ? 'animate-pulse opacity-60' : ''} ${
 																	userVote === 'A'
 																		? 'bg-brand text-white shadow-glow'
 																		: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 																}`}
 															>
-																{userVote === 'A'
-																	? t('battleVoted')
-																	: t('battleVoteA')}
+																{isVotingBattle
+																	? t('battleVoting')
+																	: userVote === 'A'
+																		? t('battleVoted')
+																		: t('battleVoteA')}
 															</motion.button>
 														)}
 													</div>
@@ -969,11 +998,22 @@ export const PostCard = ({
 																		fill
 																		sizes='64px'
 																		unoptimized
+																		onError={e => {
+																			;(
+																				e.target as HTMLImageElement
+																			).style.display = 'none'
+																		}}
 																		className='object-cover transition-transform group-hover/recipe:scale-110'
 																	/>
 																</div>
 															)}
-															<span className='line-clamp-2 text-center text-xs font-semibold text-text-primary'>
+															<span
+																className='line-clamp-2 text-center text-xs font-semibold text-text-primary'
+																title={
+																	post.battleRecipeTitleB ??
+																	t('recipeBFallback')
+																}
+															>
 																{post.battleRecipeTitleB ??
 																	t('recipeBFallback')}
 															</span>
@@ -990,15 +1030,17 @@ export const PostCard = ({
 																whileTap={BUTTON_TAP}
 																onClick={() => handleBattleVote('B')}
 																disabled={isVotingBattle}
-																className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+																className={`rounded-lg px-4 py-2.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${isVotingBattle ? 'animate-pulse opacity-60' : ''} ${
 																	userVote === 'B'
 																		? 'bg-brand text-white shadow-glow'
 																		: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 																}`}
 															>
-																{userVote === 'B'
-																	? t('battleVoted')
-																	: t('battleVoteB')}
+																{isVotingBattle
+																	? t('battleVoting')
+																	: userVote === 'B'
+																		? t('battleVoted')
+																		: t('battleVoteB')}
 															</motion.button>
 														)}
 													</div>
@@ -1050,7 +1092,7 @@ export const PostCard = ({
 												{post.recipeTitle}
 											</span>
 										</span>
-										{post.xpEarned && (
+										{post.xpEarned != null && post.xpEarned > 0 && (
 											<span className='ml-1 inline-flex items-center gap-1 rounded-full bg-xp/20 px-2 py-0.5 text-xs font-bold text-xp'>
 												<Zap className='size-3' />
 												{t('xpBadge', { xp: post.xpEarned })}
@@ -1080,6 +1122,11 @@ export const PostCard = ({
 																width={16}
 																height={16}
 																unoptimized
+																onError={e => {
+																	;(
+																		e.target as HTMLImageElement
+																	).style.display = 'none'
+																}}
 																className='size-4 rounded-full object-cover'
 															/>
 														)}
@@ -1102,6 +1149,12 @@ export const PostCard = ({
 								<div
 									className='relative w-full cursor-pointer select-none'
 									onClick={handleDoubleTap}
+									role='button'
+									tabIndex={0}
+									onKeyDown={e => {
+										if (e.key === 'Enter') handleDoubleTap()
+									}}
+									aria-label={t('postByUser', { name: post.displayName })}
 								>
 									{/* Use ImageCarousel for multi-image support */}
 									<ImageCarousel
@@ -1132,6 +1185,9 @@ export const PostCard = ({
 													ease: 'easeOut',
 												}}
 												className='absolute inset-0 flex items-center justify-center pointer-events-none'
+												role='status'
+												aria-live='polite'
+												aria-label={t('postLiked')}
 											>
 												<Heart className='size-24 fill-white stroke-white drop-shadow-lg' />
 											</motion.div>
@@ -1146,6 +1202,7 @@ export const PostCard = ({
 										src={post.videoUrl}
 										controls
 										className='h-full w-full'
+										aria-label={t('postByUser', { name: post.displayName })}
 									/>
 								</div>
 							)}
@@ -1169,7 +1226,8 @@ export const PostCard = ({
 										onClick={() => handleRatePlate('FIRE')}
 										whileTap={BUTTON_SUBTLE_TAP}
 										disabled={isRatingPlate}
-										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
+										aria-label={t('rateFireLabel')}
+										className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${isRatingPlate ? 'animate-pulse opacity-60' : ''} ${
 											post.userPlateRating === 'FIRE'
 												? 'bg-streak/100/15 text-streak ring-1 ring-orange-500/30'
 												: 'text-text-muted hover:bg-streak/100/10 hover:text-streak'
@@ -1188,7 +1246,8 @@ export const PostCard = ({
 										onClick={() => handleRatePlate('CRINGE')}
 										whileTap={BUTTON_SUBTLE_TAP}
 										disabled={isRatingPlate}
-										className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
+										aria-label={t('rateCringeLabel')}
+										className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${isRatingPlate ? 'animate-pulse opacity-60' : ''} ${
 											post.userPlateRating === 'CRINGE'
 												? 'bg-accent-purple/15 text-accent-purple ring-1 ring-accent-purple/30'
 												: 'text-text-muted hover:bg-accent-purple/10 hover:text-accent-purple'
@@ -1207,7 +1266,7 @@ export const PostCard = ({
 						)}
 
 					{/* Actions */}
-					<div className='flex justify-around border-t border-border-subtle bg-bg-card p-2'>
+					<div className='flex gap-1.5 border-t border-border-subtle bg-bg-card px-3 py-2'>
 						<motion.button
 							type='button'
 							ref={likeButtonRef}

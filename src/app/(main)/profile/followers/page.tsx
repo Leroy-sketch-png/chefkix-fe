@@ -19,13 +19,7 @@ import {
 } from '@/services/social'
 import { Profile } from '@/lib/types/profile'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
-import {
-	Users,
-	UserCheck,
-	Heart,
-	ArrowLeft,
-	Sparkles,
-} from 'lucide-react'
+import { Users, UserCheck, Heart, ArrowLeft, Sparkles } from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
@@ -33,13 +27,21 @@ import { useTranslations } from 'next-intl'
 type Tab = 'followers' | 'following' | 'friends'
 
 const TABS: { key: Tab; labelKey: string; icon: React.ReactNode }[] = [
-	{ key: 'followers', labelKey: 'tabFollowers', icon: <Users className='size-4' /> },
+	{
+		key: 'followers',
+		labelKey: 'tabFollowers',
+		icon: <Users className='size-4' />,
+	},
 	{
 		key: 'following',
 		labelKey: 'tabFollowing',
 		icon: <UserCheck className='size-4' />,
 	},
-	{ key: 'friends', labelKey: 'tabFriends', icon: <Heart className='size-4' /> },
+	{
+		key: 'friends',
+		labelKey: 'tabFriends',
+		icon: <Heart className='size-4' />,
+	},
 ]
 
 function FollowersSkeleton() {
@@ -90,32 +92,35 @@ function FollowersContent() {
 	const [suggestionsLoaded, setSuggestionsLoaded] = useState(false)
 	const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
 
-	const fetchTab = useCallback(async (tab: Tab) => {
-		setLoading(prev => ({ ...prev, [tab]: true }))
-		setErrors(prev => ({ ...prev, [tab]: null }))
+	const fetchTab = useCallback(
+		async (tab: Tab) => {
+			setLoading(prev => ({ ...prev, [tab]: true }))
+			setErrors(prev => ({ ...prev, [tab]: null }))
 
-		const fetchers: Record<Tab, () => ReturnType<typeof getFollowers>> = {
-			followers: getFollowers,
-			following: getFollowing,
-			friends: getFriends,
-		}
-
-		try {
-			const response = await fetchers[tab]()
-			if (response.success && response.data) {
-				setData(prev => ({ ...prev, [tab]: response.data! }))
-			} else {
-				setErrors(prev => ({
-					...prev,
-					[tab]: response.message || t('failedToLoad', { tab }),
-				}))
+			const fetchers: Record<Tab, () => ReturnType<typeof getFollowers>> = {
+				followers: getFollowers,
+				following: getFollowing,
+				friends: getFriends,
 			}
-		} catch {
-			setErrors(prev => ({ ...prev, [tab]: t('failedToLoad', { tab }) }))
-		} finally {
-			setLoading(prev => ({ ...prev, [tab]: false }))
-		}
-	}, [t])
+
+			try {
+				const response = await fetchers[tab]()
+				if (response.success && response.data) {
+					setData(prev => ({ ...prev, [tab]: response.data! }))
+				} else {
+					setErrors(prev => ({
+						...prev,
+						[tab]: response.message || t('failedToLoad', { tab }),
+					}))
+				}
+			} catch {
+				setErrors(prev => ({ ...prev, [tab]: t('failedToLoad', { tab }) }))
+			} finally {
+				setLoading(prev => ({ ...prev, [tab]: false }))
+			}
+		},
+		[t],
+	)
 
 	const fetchSuggestions = useCallback(async () => {
 		if (suggestionsLoaded || suggestionsLoading) return
@@ -159,7 +164,8 @@ function FollowersContent() {
 				} else {
 					setErrors(prev => ({
 						...prev,
-						[activeTab]: response.message || t('failedToLoad', { tab: activeTab }),
+						[activeTab]:
+							response.message || t('failedToLoad', { tab: activeTab }),
 					}))
 				}
 			} catch {
@@ -236,8 +242,8 @@ function FollowersContent() {
 					<div className='flex-1'>
 						<PageHeader
 							icon={Users}
-						title={t('networkTitle')}
-						subtitle={t('networkSubtitle')}
+							title={t('networkTitle')}
+							subtitle={t('networkSubtitle')}
 							gradient='purple'
 							marginBottom='sm'
 							className='mb-0'
@@ -298,16 +304,15 @@ function FollowersContent() {
 								{(activeTab === 'following' || activeTab === 'friends') &&
 								suggestionsLoading ? (
 									<FollowersSkeleton />
-								) : (activeTab === 'following' ||
-										activeTab === 'friends') &&
+								) : (activeTab === 'following' || activeTab === 'friends') &&
 								  visibleSuggestions.length > 0 ? (
 									<div className='space-y-4'>
 										<div className='flex items-center gap-2 text-text-secondary'>
 											<Sparkles className='size-4 text-brand' />
 											<h3 className='text-sm font-semibold'>
 												{activeTab === 'following'
-												? t('chefsYouMightLike')
-												: t('followChefsToMakeFriends')}
+													? t('chefsYouMightLike')
+													: t('followChefsToMakeFriends')}
 											</h3>
 										</div>
 										<StaggerContainer className='space-y-3'>
@@ -357,6 +362,8 @@ function FollowersContent() {
 						)}
 					</motion.div>
 				</AnimatePresence>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

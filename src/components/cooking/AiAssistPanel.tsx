@@ -109,12 +109,17 @@ export function AiAssistPanel({
 						transition={TRANSITION_SPRING}
 						onClick={e => e.stopPropagation()}
 						className='fixed inset-x-4 bottom-4 z-modal mx-auto max-w-lg rounded-2xl border border-border-subtle bg-bg-card shadow-warm sm:inset-x-auto sm:bottom-8 sm:w-full'
+						role='dialog'
+						aria-modal='true'
+						aria-label={t('aiChefAssistant')}
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border-subtle px-5 py-3'>
 							<div className='flex items-center gap-2'>
 								<Sparkles className='size-5 text-brand' />
-							<h3 className='font-semibold text-text'>{t('aiChefAssistant')}</h3>
+								<h3 className='font-semibold text-text'>
+									{t('aiChefAssistant')}
+								</h3>
 							</div>
 							<button
 								type='button'
@@ -130,7 +135,10 @@ export function AiAssistPanel({
 						<div className='max-h-80 overflow-y-auto p-5'>
 							{/* Context hint */}
 							<p className='mb-3 text-xs text-text-muted'>
-								{t('aiAskingAboutStep', { step: stepNumber, recipe: recipeTitle })}
+								{t('aiAskingAboutStep', {
+									step: stepNumber,
+									recipe: recipeTitle,
+								})}
 							</p>
 
 							{/* Result */}
@@ -186,7 +194,11 @@ export function AiAssistPanel({
 												key={i}
 												className='size-2.5 rounded-full bg-brand'
 												animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
-												transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+												transition={{
+													duration: 0.8,
+													repeat: Infinity,
+													delay: i * 0.15,
+												}}
 											/>
 										))}
 									</div>
@@ -211,7 +223,7 @@ export function AiAssistPanel({
 										onKeyDown={handleKeyDown}
 										placeholder={t('aiInputPlaceholder')}
 										disabled={isLoading}
-										className='flex-1 rounded-lg bg-bg-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand/30'
+										className='flex-1 rounded-lg bg-bg-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
 									/>
 									<button
 										type='button'

@@ -133,6 +133,7 @@ function LeagueHeader({
 					whileTap={BUTTON_SUBTLE_TAP}
 					onClick={onLeagueInfo}
 					className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-tertiary focus-visible:ring-2 focus-visible:ring-brand/50'
+					aria-label={t('leagueInfo')}
 				>
 					<Info className='size-5' />
 				</motion.button>

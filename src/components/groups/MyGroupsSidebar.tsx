@@ -69,6 +69,7 @@ export const MyGroupsSidebar = ({
 						size='sm'
 						variant='outline'
 						className='h-7 text-xs'
+						aria-label={t('msExploreGroups')}
 					>
 						<Plus className='size-3' />
 					</Button>
@@ -81,9 +82,7 @@ export const MyGroupsSidebar = ({
 				</div>
 			) : groups.length === 0 ? (
 				<div className='text-center py-4'>
-					<p className='text-xs text-text-secondary mb-3'>
-						{t('msNoGroups')}
-					</p>
+					<p className='text-xs text-text-secondary mb-3'>{t('msNoGroups')}</p>
 					<Link href={PATHS.GROUPS.EXPLORE} className='block'>
 						<Button
 							size='sm'
@@ -95,21 +94,18 @@ export const MyGroupsSidebar = ({
 				</div>
 			) : (
 				<div className='space-y-2'>
-					{groups.map((group) => (
+					{groups.map(group => (
 						<GroupCard
 							key={group.id}
 							group={group}
 							variant='compact'
 							currentUserId={currentUserId}
-							isJoinable={false}  // Already member in "My Groups"
+							isJoinable={false} // Already member in "My Groups"
 						/>
 					))}
 
 					{groups.length > 0 && (
-						<Link
-							href={PATHS.GROUPS.MY_GROUPS}
-							className='block'
-						>
+						<Link href={PATHS.GROUPS.MY_GROUPS} className='block'>
 							<Button
 								variant='ghost'
 								className='w-full text-xs text-brand hover:bg-brand/5'

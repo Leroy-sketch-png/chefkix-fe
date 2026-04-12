@@ -47,7 +47,7 @@ async function shareWithFallback(
 		text: string
 		url: string
 	},
-	t: (key: string) => string
+	t: (key: string) => string,
 ) {
 	// Try native share API first
 	if (navigator.share) {
@@ -362,11 +362,14 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	}
 
 	const handleLevelUpShare = () => {
-		shareWithFallback({
-			title: t('shareLevelUpTitle', { level: levelUpData?.newLevel }),
-			text: t('shareLevelUpText', { level: levelUpData?.newLevel }),
-			url: window.location.origin,
-		}, t)
+		shareWithFallback(
+			{
+				title: t('shareLevelUpTitle', { level: levelUpData?.newLevel }),
+				text: t('shareLevelUpText', { level: levelUpData?.newLevel }),
+				url: window.location.origin,
+			},
+			t,
+		)
 	}
 
 	const handleLevelUpToastDismiss = () => {
@@ -451,11 +454,14 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 
 	const handleStreakMilestoneShare = () => {
 		if (streakMilestoneData) {
-			shareWithFallback({
-				title: t('shareStreakTitle', { days: streakMilestoneData.days }),
-				text: t('shareStreakText', { days: streakMilestoneData.days }),
-				url: window.location.origin,
-			}, t)
+			shareWithFallback(
+				{
+					title: t('shareStreakTitle', { days: streakMilestoneData.days }),
+					text: t('shareStreakText', { days: streakMilestoneData.days }),
+					url: window.location.origin,
+				},
+				t,
+			)
 		}
 	}
 
@@ -476,11 +482,19 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 
 	const handleChallengeCompleteShare = () => {
 		if (challengeCompleteData) {
-			shareWithFallback({
-				title: t('shareChallengeTitle', { title: challengeCompleteData.challengeTitle }),
-				text: t('shareChallengeText', { title: challengeCompleteData.challengeTitle, xp: challengeCompleteData.bonusXp }),
-				url: window.location.origin,
-			}, t)
+			shareWithFallback(
+				{
+					title: t('shareChallengeTitle', {
+						title: challengeCompleteData.challengeTitle,
+					}),
+					text: t('shareChallengeText', {
+						title: challengeCompleteData.challengeTitle,
+						xp: challengeCompleteData.bonusXp,
+					}),
+					url: window.location.origin,
+				},
+				t,
+			)
 		}
 	}
 
@@ -579,11 +593,16 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 							label: t('celebrationShare'),
 							sublabel: t('celebrationShareSub'),
 							onClick: () => {
-								shareWithFallback({
-									title: t('celebrationShareTitle'),
-									text: t('celebrationShareText', { recipe: postSuccessData.recipeName }),
-									url: window.location.origin,
-								}, t)
+								shareWithFallback(
+									{
+										title: t('celebrationShareTitle'),
+										text: t('celebrationShareText', {
+											recipe: postSuccessData.recipeName,
+										}),
+										url: window.location.origin,
+									},
+									t,
+								)
 							},
 						},
 					]}
@@ -605,11 +624,16 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 						router.push('/create')
 					}}
 					onShareAchievement={() => {
-						shareWithFallback({
-							title: t('celebrationFirstCookTitle'),
-							text: t('celebrationFirstCookText', { recipe: firstCookData.recipeName }),
-							url: window.location.origin,
-						}, t)
+						shareWithFallback(
+							{
+								title: t('celebrationFirstCookTitle'),
+								text: t('celebrationFirstCookText', {
+									recipe: firstCookData.recipeName,
+								}),
+								url: window.location.origin,
+							},
+							t,
+						)
 					}}
 					onContinueCooking={() => {
 						handleFirstCookClose()
@@ -654,7 +678,12 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 			{/* Streak Milestone Card (shown as modal overlay) */}
 			{streakMilestoneOpen && streakMilestoneData && (
 				<Portal>
-					<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm p-6'>
+					<div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Streak milestone'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 backdrop-blur-sm p-6'
+					>
 						<div className='w-full max-w-md'>
 							<StreakMilestoneCard
 								days={streakMilestoneData.days}

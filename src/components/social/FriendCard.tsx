@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { useTranslations } from 'next-intl'
@@ -48,7 +48,7 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 				toast.success(t('unfollowSuccess', { name: displayName }))
 				onUnfollow?.(profile.userId)
 			} else {
-				toast.error(response.message || t('failedUnfollow'))
+				toast.error(t('failedUnfollow'))
 			}
 		} catch {
 			toast.error(t('networkErrorConnection'))
@@ -112,7 +112,9 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 								<div className='mt-1 flex gap-md text-xs text-text-secondary'>
 									<span className='flex items-center gap-xs'>
 										<Book className='size-3' />
-										{t('recipesCount', { count: profile.statistics.recipeCount })}
+										{t('recipesCount', {
+											count: profile.statistics.recipeCount,
+										})}
 									</span>
 									{profile.statistics.currentXP !== undefined && (
 										<span className='flex items-center gap-xs'>

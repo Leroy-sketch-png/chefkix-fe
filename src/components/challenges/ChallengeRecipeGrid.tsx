@@ -234,7 +234,7 @@ const ChallengeRecipeCard = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-card transition-shadow hover:shadow-lg focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-card transition-shadow hover:shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2'
 						>
 							<Play className='size-4' />
 							{t('cook')}
@@ -336,7 +336,11 @@ export const ChallengeRecipeGrid = ({
 						</div>
 						<div className='flex items-center justify-end gap-1.5 text-xs text-text-secondary'>
 							<Clock className='size-3.5' />
-						{t('hoursMinutes', { hours: challenge.timeRemaining.hours, mins: challenge.timeRemaining.minutes })} {t('remaining')}
+							{t('hoursMinutes', {
+								hours: challenge.timeRemaining.hours,
+								mins: challenge.timeRemaining.minutes,
+							})}{' '}
+							{t('remaining')}
 						</div>
 					</div>
 				</div>
@@ -402,9 +406,7 @@ export const ChallengeRecipeGrid = ({
 			{topPick && (
 				<div className='rounded-xl bg-bg-card px-5 py-4'>
 					<div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
-						<span className='text-text-secondary'>
-							{t('topPickXp')}
-						</span>
+						<span className='text-text-secondary'>{t('topPickXp')}</span>
 						<span className='tabular-nums font-semibold text-text'>
 							{topPick.baseXp} XP base
 						</span>

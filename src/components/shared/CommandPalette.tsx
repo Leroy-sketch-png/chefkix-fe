@@ -449,7 +449,8 @@ export function CommandPalette() {
 							value={query}
 							onValueChange={setQuery}
 							placeholder={t('cpPlaceholder')}
-							className='flex-1 bg-transparent py-4 text-base text-text outline-none placeholder:text-text-muted'
+							aria-label={t('cpPlaceholder')}
+							className='flex-1 bg-transparent py-4 text-base text-text outline-none focus-visible:ring-2 focus-visible:ring-brand/50 placeholder:text-text-muted'
 						/>
 						<kbd className='hidden rounded-md border border-border-subtle bg-bg-elevated px-2 py-0.5 text-xs text-text-muted sm:inline-block'>
 							{isMac ? '⌘' : 'Ctrl'}+K

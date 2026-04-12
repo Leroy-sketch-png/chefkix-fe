@@ -41,6 +41,9 @@ export function StreakBrokenModal({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						role='alertdialog'
+						aria-modal='true'
+						aria-label='Streak broken'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -92,9 +95,7 @@ export function StreakBrokenModal({
 							{/* Motivation */}
 							<div className='mb-5 space-y-2 text-sm text-text-secondary'>
 								<p>{t('sbMotivation1')}</p>
-								<p>
-									{t('sbMotivation2')} 💪
-								</p>
+								<p>{t('sbMotivation2')} 💪</p>
 							</div>
 
 							{/* Best Streak */}
@@ -106,7 +107,9 @@ export function StreakBrokenModal({
 									<span className='text-sm font-bold text-success'>
 										{t('sbDays', { count: bestStreak })}
 									</span>
-									<span className='text-xs text-success'>{t('sbCanBeatIt')}</span>
+									<span className='text-xs text-success'>
+										{t('sbCanBeatIt')}
+									</span>
 								</div>
 							)}
 

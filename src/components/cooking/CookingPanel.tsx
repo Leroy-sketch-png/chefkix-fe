@@ -418,10 +418,11 @@ export const CookingPanel = () => {
 						type='button'
 						onClick={() => setKitchenMode(k => !k)}
 						className={cn(
-							'grid size-8 place-items-center rounded-lg transition-colors',
+							'grid size-10 place-items-center rounded-lg transition-colors',
 							kitchenMode ? 'bg-white/40' : 'bg-white/20 hover:bg-white/30',
 						)}
 						title={kitchenMode ? t('cpKitchenOn') : t('cpKitchenOff')}
+						aria-label={kitchenMode ? t('cpKitchenOn') : t('cpKitchenOff')}
 					>
 						{kitchenMode ? (
 							<ZoomOut className='size-4' />
@@ -433,7 +434,7 @@ export const CookingPanel = () => {
 						type='button'
 						onClick={cycleInstructionDetail}
 						className={cn(
-							'grid size-8 place-items-center rounded-lg transition-colors',
+							'grid size-10 place-items-center rounded-lg transition-colors',
 							instructionDetail === 'detailed'
 								? 'bg-success/40'
 								: instructionDetail === 'condensed'
@@ -441,21 +442,23 @@ export const CookingPanel = () => {
 									: 'bg-white/20 hover:bg-white/30',
 						)}
 						title={t('cpInstructions', { detail: instructionDetail })}
+						aria-label={t('cpInstructions', { detail: instructionDetail })}
 					>
 						<BookOpen className='size-4' />
 					</button>
 					<button
 						type='button'
 						onClick={expandCookingPanel}
-						className='grid size-8 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
+						className='grid size-10 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
 						title={t('cpExpand')}
+						aria-label={t('cpExpand')}
 					>
 						<Maximize2 className='size-4' />
 					</button>
 					<button
 						type='button'
 						onClick={closeCookingPanel}
-						className='grid size-8 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
+						className='grid size-10 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
 						title={t('cpClose')}
 						aria-label={t('cpClose')}
 					>
@@ -716,6 +719,7 @@ export const CookingPanel = () => {
 							type='button'
 							onClick={handlePrevStep}
 							disabled={currentStepNumber <= 1 || isNavigating}
+							aria-label={t('cpPrevStep')}
 							className={cn(
 								'grid place-items-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-all hover:bg-bg-hover disabled:opacity-30',
 								kitchenMode ? 'size-14' : 'size-12',

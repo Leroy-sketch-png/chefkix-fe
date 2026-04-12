@@ -90,6 +90,7 @@ const CollapsibleSection = ({
 			<button
 				type='button'
 				onClick={() => setIsOpen(!isOpen)}
+				aria-expanded={isOpen}
 				className='flex w-full items-center justify-between p-3 text-left'
 			>
 				<div className='flex items-center gap-2'>
@@ -164,6 +165,9 @@ const FullModeRenderer = ({
 						muted
 						playsInline
 						className='h-full w-full object-cover'
+						onError={e => {
+							;(e.target as HTMLVideoElement).style.display = 'none'
+						}}
 					/>
 				</motion.div>
 			) : step.imageUrl ? (
@@ -179,6 +183,9 @@ const FullModeRenderer = ({
 						fill
 						sizes='(max-width: 768px) 100vw, 672px'
 						className='object-cover'
+						onError={e => {
+							;(e.target as HTMLImageElement).style.display = 'none'
+						}}
 					/>
 				</motion.div>
 			) : null}
@@ -205,7 +212,7 @@ const FullModeRenderer = ({
 					<Target className='mt-0.5 size-5 shrink-0 text-brand' />
 					<div>
 						<p className='text-xs font-semibold uppercase tracking-wide text-brand'>
-							Goal
+							{t('stepGoalLabel')}
 						</p>
 						<p className='text-text'>{step.goal}</p>
 					</div>
@@ -233,7 +240,7 @@ const FullModeRenderer = ({
 					<div className='mb-3 flex items-center gap-2'>
 						<ListChecks className='size-4 text-text-muted' />
 						<span className='text-sm font-semibold text-text'>
-							Step-by-step
+							{t('stepByStepLabel')}
 						</span>
 					</div>
 					<ol className='space-y-2'>
@@ -275,7 +282,7 @@ const FullModeRenderer = ({
 					<Eye className='mt-0.5 size-5 shrink-0 text-success' />
 					<div>
 						<p className='text-xs font-semibold uppercase tracking-wide text-success'>
-							Look for
+							{t('lookForLabel')}
 						</p>
 						<p className='text-success'>{step.visualCues}</p>
 					</div>
@@ -293,7 +300,7 @@ const FullModeRenderer = ({
 					<AlertTriangle className='mt-0.5 size-5 shrink-0 text-warning' />
 					<div>
 						<p className='text-xs font-semibold uppercase tracking-wide text-warning-vivid'>
-							Avoid this mistake
+							{t('avoidMistakeLabel')}
 						</p>
 						<p className='text-warning-vivid'>{step.commonMistake}</p>
 					</div>
@@ -424,6 +431,9 @@ const KitchenModeRenderer = ({
 						muted
 						playsInline
 						className='h-full w-full object-cover'
+						onError={e => {
+							;(e.target as HTMLVideoElement).style.display = 'none'
+						}}
 					/>
 				</div>
 			)}

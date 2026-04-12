@@ -31,7 +31,7 @@ import {
 } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { getTrendingRecipes } from '@/services/recipe'
-import { Recipe } from '@/lib/types/recipe'
+import { Recipe, formatCookingTime } from '@/lib/types/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
 import { logDevError } from '@/lib/dev-log'
 
@@ -43,6 +43,8 @@ interface FeatureHighlight {
 	icon: typeof Timer
 	titleKey: string
 	descriptionKey: string
+	accent: string
+	iconColor: string
 }
 
 // ============================================
@@ -54,16 +56,22 @@ const featureHighlights: FeatureHighlight[] = [
 		icon: Timer,
 		titleKey: 'smartTimersTitle',
 		descriptionKey: 'smartTimersDesc',
+		accent: 'bg-info/10',
+		iconColor: 'text-info',
 	},
 	{
 		icon: Trophy,
 		titleKey: 'earnXpTitle',
 		descriptionKey: 'earnXpDesc',
+		accent: 'bg-xp/10',
+		iconColor: 'text-xp',
 	},
 	{
 		icon: Zap,
 		titleKey: 'stepByStepTitle',
 		descriptionKey: 'stepByStepDesc',
+		accent: 'bg-brand/10',
+		iconColor: 'text-brand',
 	},
 ]
 
@@ -90,8 +98,13 @@ const FeatureCard = ({
 			transition={{ delay: 0.8 + index * 0.1, ...TRANSITION_SPRING }}
 			className='flex items-start gap-3 rounded-xl border border-border-subtle bg-bg-card/80 p-4 shadow-card backdrop-blur-sm'
 		>
-			<div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10'>
-				<Icon className='size-5 text-brand' />
+			<div
+				className={cn(
+					'flex size-10 shrink-0 items-center justify-center rounded-lg',
+					feature.accent,
+				)}
+			>
+				<Icon className={cn('size-5', feature.iconColor)} />
 			</div>
 			<div>
 				<h3 className='font-semibold text-text'>{title}</h3>
@@ -129,7 +142,7 @@ const TrendingRecipeCard = ({
 				href={`/recipes/${recipe.id}`}
 				className='group block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
 			>
-				<div className='relative aspect-[4/3] w-full overflow-hidden'>
+				<div className='relative aspect-video w-full overflow-hidden sm:aspect-[4/3]'>
 					<Image
 						src={coverImage}
 						alt={recipe.title}
@@ -153,7 +166,7 @@ const TrendingRecipeCard = ({
 						<div className='flex items-center gap-2 text-xs text-white/90'>
 							<span className='flex items-center gap-1'>
 								<Clock className='size-3' />
-								{totalTime}m
+								{formatCookingTime(totalTime)}
 							</span>
 							<span className='flex items-center gap-1'>
 								<Flame className='size-3' />
@@ -234,9 +247,9 @@ export default function HomePage() {
 					initial={{ scale: 0.8, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
 					transition={TRANSITION_SPRING}
-					className='flex size-20 items-center justify-center rounded-2xl bg-gradient-hero shadow-lg shadow-brand/30'
+					className='flex size-16 items-center justify-center rounded-2xl bg-gradient-hero shadow-lg shadow-brand/30'
 				>
-					<ChefHat className='size-10 text-white' />
+					<ChefHat className='size-8 text-white' />
 				</motion.div>
 			</div>
 		)
@@ -282,15 +295,15 @@ export default function HomePage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='mx-auto mb-6 flex size-20 items-center justify-center rounded-2xl bg-gradient-hero shadow-xl shadow-brand/30'
+							className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-hero shadow-xl shadow-brand/30'
 						>
-							<ChefHat className='size-10 text-white' />
+							<ChefHat className='size-8 text-white' />
 						</motion.div>
 					</motion.div>
 
 					<motion.h1
 						variants={staggerItem}
-						className='mb-4 text-4xl font-extrabold leading-tight text-text md:text-5xl lg:text-6xl'
+						className='mb-4 text-3xl font-extrabold leading-tight text-text md:text-4xl lg:text-5xl'
 					>
 						{t('heroTitle1')}
 						<br />
@@ -327,7 +340,7 @@ export default function HomePage() {
 				</motion.section>
 
 				{/* Trending Recipes Section */}
-				<section className='mx-auto max-w-6xl px-6 py-16 md:px-12'>
+				<section className='mx-auto max-w-6xl px-6 py-10 md:px-12 md:py-16'>
 					<div className='mb-6 flex items-center justify-between'>
 						<div className='flex items-center gap-2'>
 							<TrendingUp className='size-5 text-brand' />
@@ -351,7 +364,7 @@ export default function HomePage() {
 									key={i}
 									className='animate-pulse rounded-2xl border border-border-subtle bg-bg-card'
 								>
-									<div className='aspect-[4/3] bg-bg-elevated' />
+									<div className='aspect-video bg-bg-elevated sm:aspect-[4/3]' />
 									<div className='space-y-2 p-4'>
 										<div className='h-4 w-3/4 rounded bg-bg-elevated' />
 										<div className='h-3 w-1/2 rounded bg-bg-elevated' />

@@ -329,7 +329,7 @@ export const Comment = ({
 				diag.error('social', 'COMMENT_DELETE_FAILED', {
 					message: response.message,
 				})
-				toast.error(response.message || t('failedDeleteComment'))
+				toast.error(t('failedDeleteComment'))
 			}
 		} catch {
 			diag.error('social', 'COMMENT_DELETE_ERROR', { error: 'Network error' })
@@ -469,7 +469,7 @@ export const Comment = ({
 				diag.error('social', 'REPLY_CREATE_FAILED', {
 					message: response.message,
 				})
-				toast.error(response.message || t('failedPostReply'))
+				toast.error(t('failedPostReply'))
 			}
 		} catch {
 			toast.error(t('failedPostReply'))

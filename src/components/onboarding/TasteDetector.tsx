@@ -220,14 +220,14 @@ export const TasteDetector = ({
 					</svg>
 					{isDetecting && (
 						<motion.div
-							className='absolute inset-0 rounded-full border-2 border-brand'
+							className='pointer-events-none absolute inset-0 rounded-full border-2 border-brand'
 							animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
 							transition={{ duration: 2, repeat: Infinity }}
 						/>
 					)}
 				</div>
 				<span className='text-xs font-medium text-text-secondary'>
-					{isFormed ? 'Taste profile ready' : `${Math.round(progress)}%`}
+					{isFormed ? tc('tasteProfileReady') : tc('tasteDetecting')}
 				</span>
 			</motion.div>
 		)
@@ -259,12 +259,15 @@ export const TasteDetector = ({
 				</div>
 				<div>
 					<h4 className='text-sm font-bold text-text'>
-						{isFormed ? 'Your Taste Profile' : 'Building your taste profile...'}
+						{isFormed ? tc('tasteYourProfile') : tc('tasteBuildingProfile')}
 					</h4>
 					<p className='text-xs text-text-muted'>
 						{isFormed
-							? 'Recommendations are personalized for you'
-							: `${eventCount}/${minEvents} interactions`}
+							? tc('tastePersonalized')
+							: tc('tasteInteractions', {
+									count: eventCount,
+									total: minEvents,
+								})}
 					</p>
 				</div>
 			</div>
@@ -326,7 +329,7 @@ export const TasteDetector = ({
 					{/* Detecting pulse */}
 					{isDetecting && !isFormed && (
 						<motion.div
-							className='absolute inset-0 rounded-full border-2 border-brand/50'
+							className='pointer-events-none absolute inset-0 rounded-full border-2 border-brand/50'
 							animate={{
 								scale: [1, 1.3, 1],
 								opacity: [0.6, 0, 0.6],

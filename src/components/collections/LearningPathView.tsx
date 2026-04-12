@@ -203,7 +203,7 @@ export function LearningPathView({
 							</span>
 						</div>
 					)}
-					{collection.totalXp && (
+					{collection.totalXp != null && collection.totalXp > 0 && (
 						<div className='flex items-center gap-2'>
 							<Zap className='size-4 text-xp' />
 							<span className='text-sm tabular-nums text-text-secondary'>

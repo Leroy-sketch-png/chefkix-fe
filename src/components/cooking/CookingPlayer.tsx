@@ -296,6 +296,13 @@ const StepTimer = ({
 					onClick={onToggle}
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
+					aria-label={
+						isComplete
+							? t('timerComplete')
+							: isRunning
+								? t('timerPaused')
+								: t('timerRunning')
+					}
 					className={cn(
 						'grid place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 						kitchenMode ? 'size-16' : 'size-12',
@@ -334,6 +341,7 @@ const StepTimer = ({
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					title={audioEnabled ? t('muteTimer') : t('unmuteTimer')}
+					aria-label={audioEnabled ? t('muteTimer') : t('unmuteTimer')}
 					className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{audioEnabled ? (
@@ -501,6 +509,7 @@ const ActiveTimersBadge = ({
 								: 'bg-white/20 text-white hover:bg-white/30',
 						)}
 						title={t('titleJumpToStep', { step: stepNum })}
+						aria-label={t('titleJumpToStep', { step: stepNum })}
 					>
 						<Clock className='size-3' />
 						<span>{t('step', { stepNum })}</span>
@@ -1557,6 +1566,11 @@ export const CookingPlayer = () => {
 												? t('titleKitchenDisplayOn')
 												: t('titleKitchenDisplayOff')
 										}
+										aria-label={
+											kitchenMode
+												? t('titleKitchenDisplayOn')
+												: t('titleKitchenDisplayOff')
+										}
 									>
 										{kitchenMode ? (
 											<ZoomOut className='size-5' />
@@ -1581,6 +1595,7 @@ export const CookingPlayer = () => {
 													: 'bg-white/20 text-white/70 hover:bg-white/30',
 										)}
 										title={t(`titleViewMode_${instructionDetail}`)}
+										aria-label={t(`titleViewMode_${instructionDetail}`)}
 									>
 										<BookOpen className='size-5' />
 									</motion.button>
@@ -1593,6 +1608,7 @@ export const CookingPlayer = () => {
 										whileTap={ICON_BUTTON_TAP}
 										className='grid size-10 place-items-center rounded-full bg-error/20 backdrop-blur-sm transition-colors hover:bg-error/40 focus-visible:ring-2 focus-visible:ring-brand/50'
 										title={t('exitAbandonSession')}
+										aria-label={t('exitAbandonSession')}
 									>
 										<LogOut className='size-5' />
 									</motion.button>
@@ -1957,6 +1973,11 @@ export const CookingPlayer = () => {
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									title={
+										interactionMode === 'MESSY_HANDS'
+											? t('titleCleanHands')
+											: t('titleMessyHands')
+									}
+									aria-label={
 										interactionMode === 'MESSY_HANDS'
 											? t('titleCleanHands')
 											: t('titleMessyHands')

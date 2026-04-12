@@ -13,7 +13,10 @@ import { formatEventTimeRemaining } from '@/lib/challenge-time'
 import { logDevError } from '@/lib/dev-log'
 import type { Post } from '@/lib/types/post'
 
-function getBattleHeat(votesA: number, votesB: number): 'cold' | 'warm' | 'hot' {
+function getBattleHeat(
+	votesA: number,
+	votesB: number,
+): 'cold' | 'warm' | 'hot' {
 	const total = votesA + votesB
 	if (total >= 50) return 'hot'
 	if (total >= 10) return 'warm'
@@ -28,7 +31,9 @@ function BattleCard({ battle, index }: { battle: Post; index: number }) {
 	const t = useTranslations('challenges')
 	const totalVotes = (battle.battleVotesA || 0) + (battle.battleVotesB || 0)
 	const percentA =
-		totalVotes > 0 ? Math.round(((battle.battleVotesA || 0) / totalVotes) * 100) : 50
+		totalVotes > 0
+			? Math.round(((battle.battleVotesA || 0) / totalVotes) * 100)
+			: 50
 	const heat = getBattleHeat(battle.battleVotesA || 0, battle.battleVotesB || 0)
 	const timeLeft = battle.battleEndsAt
 		? formatEventTimeRemaining(battle.battleEndsAt, t)
@@ -65,12 +70,13 @@ function BattleCard({ battle, index }: { battle: Post; index: number }) {
 							)}
 						</div>
 						<div>
-							<p className='text-sm font-semibold text-text line-clamp-1'>
+							<p
+								className='text-sm font-semibold text-text line-clamp-1'
+								title={battle.content || t('recipeBattle')}
+							>
 								{battle.content || t('recipeBattle')}
 							</p>
-							<p className='text-xs text-text-muted'>
-								{battle.displayName}
-							</p>
+							<p className='text-xs text-text-muted'>{battle.displayName}</p>
 						</div>
 					</div>
 					{timeLeft && (
@@ -92,14 +98,20 @@ function BattleCard({ battle, index }: { battle: Post; index: number }) {
 								width={200}
 								height={120}
 								className='h-24 w-full object-cover transition-transform duration-300 group-hover:scale-105'
+								onError={e => {
+									;(e.target as HTMLImageElement).style.display = 'none'
+								}}
 							/>
 						) : (
 							<div className='flex h-24 items-center justify-center bg-bg-elevated text-2xl'>
 								🍳
 							</div>
 						)}
-						<div className='absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2'>
-							<p className='text-xs font-semibold text-white line-clamp-1'>
+						<div className='pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2'>
+							<p
+								className='text-xs font-semibold text-white line-clamp-1'
+								title={battle.battleRecipeTitleA || t('recipeA')}
+							>
 								{battle.battleRecipeTitleA || t('recipeA')}
 							</p>
 						</div>
@@ -119,14 +131,20 @@ function BattleCard({ battle, index }: { battle: Post; index: number }) {
 								width={200}
 								height={120}
 								className='h-24 w-full object-cover transition-transform duration-300 group-hover:scale-105'
+								onError={e => {
+									;(e.target as HTMLImageElement).style.display = 'none'
+								}}
 							/>
 						) : (
 							<div className='flex h-24 items-center justify-center bg-bg-elevated text-2xl'>
 								🍳
 							</div>
 						)}
-						<div className='absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2'>
-							<p className='text-xs font-semibold text-white line-clamp-1'>
+						<div className='pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2'>
+							<p
+								className='text-xs font-semibold text-white line-clamp-1'
+								title={battle.battleRecipeTitleB || t('recipeB')}
+							>
 								{battle.battleRecipeTitleB || t('recipeB')}
 							</p>
 						</div>
@@ -149,7 +167,7 @@ function BattleCard({ battle, index }: { battle: Post; index: number }) {
 							className='rounded-r-full bg-accent-purple'
 						/>
 					</div>
-					<div className='mt-1 flex justify-between text-[11px] font-medium tabular-nums text-text-muted'>
+					<div className='mt-1 flex justify-between text-xs font-medium tabular-nums text-text-muted'>
 						<span>{t('votesCount', { count: battle.battleVotesA || 0 })}</span>
 						<span>{t('votesCount', { count: battle.battleVotesB || 0 })}</span>
 					</div>
@@ -211,9 +229,7 @@ export function ActiveBattlesSection() {
 		<section className='mb-8'>
 			<div className='mb-4 flex items-center gap-2'>
 				<Swords className='size-5 text-brand' />
-				<h2 className='text-lg font-bold text-text'>
-					{t('recipeBattles')}
-				</h2>
+				<h2 className='text-lg font-bold text-text'>{t('recipeBattles')}</h2>
 			</div>
 
 			<AnimatePresence mode='wait'>

@@ -106,14 +106,18 @@ export function SubstitutionButton({
 								animate={{ opacity: 1, y: 0, scale: 1 }}
 								exit={{ opacity: 0, y: -4, scale: 0.96 }}
 								transition={{ duration: DURATION_S.fast }}
-								className='fixed w-[300px] rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
+								className='fixed w-72 rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
 								style={{ top: pos.top, left: pos.left }}
+								role='dialog'
+								aria-label={t('findSubstituteFor', {
+									ingredient: ingredientName,
+								})}
 								onMouseDown={e => e.stopPropagation()}
 							>
 								{/* Header */}
 								<div className='mb-3 flex items-center justify-between'>
 									<h4 className='text-sm font-semibold text-text'>
-									{t('swapIngredient', { ingredient: ingredientName })}
+										{t('swapIngredient', { ingredient: ingredientName })}
 									</h4>
 									<button
 										type='button'

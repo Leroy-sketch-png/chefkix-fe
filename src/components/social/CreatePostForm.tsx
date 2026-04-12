@@ -208,7 +208,7 @@ export const CreatePostForm = ({
 			diag.error('social', 'POST_CREATE_FAILED', {
 				message: response.message,
 			})
-			toast.error(response.message || t('createPostFailed'))
+			toast.error(t('createPostFailed'))
 		}
 
 		setIsSubmitting(false)
@@ -220,7 +220,7 @@ export const CreatePostForm = ({
 			animate={{ opacity: 1, y: 0 }}
 			className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-card'
 		>
-			<form onSubmit={handleSubmit} data-post-form>
+			<form onSubmit={handleSubmit} data-post-form noValidate>
 				{/* Header */}
 				<div className='flex items-center gap-3 border-b border-border-subtle p-4 md:p-6'>
 					<Avatar size='lg' className='ring-2 ring-brand/10'>
@@ -259,7 +259,7 @@ export const CreatePostForm = ({
 						maxLength={500}
 						placeholder={t('createPostPlaceholder')}
 						disabled={isSubmitting}
-						className='bg-bg-card p-3 caret-brand placeholder-text-secondary focus:ring-brand/10'
+						className='bg-bg-card p-3 caret-brand placeholder-text-secondary focus-visible:ring-brand/10 disabled:cursor-not-allowed disabled:opacity-50'
 						onSubmit={() => {
 							if (content.trim()) {
 								const form =
@@ -269,7 +269,11 @@ export const CreatePostForm = ({
 						}}
 					/>
 					{/* Character count */}
-					<div className='mt-1 flex justify-end'>
+					<div
+						className='mt-1 flex justify-end'
+						aria-live='polite'
+						aria-atomic='true'
+					>
 						<span
 							className={`text-xs ${content.length > 450 ? (content.length >= 500 ? 'text-error' : 'text-warning') : 'text-text-muted'}`}
 						>
@@ -305,9 +309,9 @@ export const CreatePostForm = ({
 											type='button'
 											onClick={() => removePhoto(index)}
 											aria-label={`Remove photo ${index + 1}`}
-											className='absolute right-1 top-1 size-8 rounded-full bg-text-brand/60 text-bg-card opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+											className='absolute right-1 top-1 size-9 rounded-full bg-text-brand/60 text-bg-card opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 										>
-											<X className='mx-auto size-4' />
+											<X className='mx-auto size-5' />
 										</button>
 									</motion.div>
 								))}
@@ -337,7 +341,7 @@ export const CreatePostForm = ({
 										value={videoUrl}
 										onChange={e => setVideoUrl(e.target.value)}
 										placeholder='https://...'
-										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
+										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
 									/>
 								</div>
 								<div>
@@ -353,7 +357,7 @@ export const CreatePostForm = ({
 										value={tags}
 										onChange={e => setTags(e.target.value)}
 										placeholder={t('tagsPlaceholder')}
-										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus:ring-1 focus:ring-brand/10'
+										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
 									/>
 								</div>
 							</motion.div>
@@ -369,7 +373,7 @@ export const CreatePostForm = ({
 							<ImageIcon className='mx-auto mt-2.5 size-5 text-text-secondary transition-colors group-hover:text-brand' />
 							{photoFiles.length > 0 && (
 								<span
-									className={`absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${
+									className={`absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full text-xs font-bold text-white ${
 										photoFiles.length >= MAX_PHOTO_COUNT
 											? 'bg-error'
 											: 'bg-brand'

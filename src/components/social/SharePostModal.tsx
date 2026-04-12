@@ -198,6 +198,9 @@ export const SharePostModal = ({
 		<Portal>
 			<AnimatePresence mode='wait'>
 				<motion.div
+					role='dialog'
+					aria-modal='true'
+					aria-labelledby='share-modal-title'
 					className='fixed inset-0 z-modal flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4'
 					variants={overlayVariants}
 					initial='hidden'
@@ -223,7 +226,10 @@ export const SharePostModal = ({
 										<Sparkles className='size-4 text-brand sm:size-5' />
 									</div>
 									<div className='min-w-0'>
-										<h2 className='text-lg font-bold text-text sm:text-xl'>
+										<h2
+											id='share-modal-title'
+											className='text-lg font-bold text-text sm:text-xl'
+										>
 											Share Recipe
 										</h2>
 										<p className='text-xs text-text-secondary sm:text-sm'>
@@ -368,7 +374,7 @@ export const SharePostModal = ({
 													{/* Selection glow effect */}
 													{isSelected && (
 														<motion.div
-															className='absolute inset-0 bg-gradient-to-r from-brand/10 to-transparent'
+															className='pointer-events-none absolute inset-0 bg-gradient-to-r from-brand/10 to-transparent'
 															initial={{ opacity: 0 }}
 															animate={{ opacity: 1 }}
 															transition={{ duration: DURATION_S.smooth }}

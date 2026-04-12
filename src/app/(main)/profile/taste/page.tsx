@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { logDevError } from '@/lib/dev-log'
 import { motion } from 'framer-motion'
 import {
 	ArrowLeft,
@@ -117,7 +118,7 @@ function computeTasteDimensions(
 			value: speedCookValue,
 			icon: <Clock className='size-4' />,
 			description: rawMaxTime
-				? t('dimPrefersUnder', { minutes: rawMaxTime })
+				? t('dimPrefersUnder', { count: rawMaxTime })
 				: t('dimFlexibleTiming'),
 		},
 	]
@@ -126,7 +127,9 @@ function computeTasteDimensions(
 // ── Radar Chart (SVG) ──
 function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 	const size = 280
-	const center = size / 2
+	const pad = 50
+	const svgSize = size + pad * 2
+	const center = svgSize / 2
 	const radius = (size - 60) / 2
 	const angleStep = (2 * Math.PI) / dimensions.length
 
@@ -150,8 +153,14 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 	const gridLevels = [25, 50, 75, 100]
 
 	return (
-		<div className='flex items-center justify-center'>
-			<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+		<div className='flex items-center justify-center overflow-visible'>
+			<svg
+				className='h-auto w-full'
+				overflow='visible'
+				width={svgSize}
+				height={svgSize}
+				viewBox={`0 0 ${svgSize} ${svgSize}`}
+			>
 				{/* Grid rings */}
 				{gridLevels.map(level => {
 					const r = (level / 100) * radius
@@ -218,13 +227,17 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 
 				{/* Labels */}
 				{dimensions.map((d, i) => {
-					const { x, y } = getPoint(i, 120)
+					const { x, y } = getPoint(i, 115)
+					const angle = i * angleStep - Math.PI / 2
+					const cos = Math.cos(angle)
+					const anchor =
+						Math.abs(cos) < 0.01 ? 'middle' : cos > 0 ? 'start' : 'end'
 					return (
 						<text
 							key={i}
 							x={x}
 							y={y}
-							textAnchor='middle'
+							textAnchor={anchor}
 							dominantBaseline='middle'
 							className='fill-text-secondary text-xs font-medium'
 						>
@@ -260,8 +273,7 @@ export default function TasteProfilePage() {
 				}
 			})
 			.catch(err => {
-				if (process.env.NODE_ENV === 'development')
-					console.warn('[taste] fetch failed:', err)
+				logDevError('[taste] fetch failed:', err)
 			})
 			.finally(() => {
 				if (!cancelled) setIsLoading(false)
@@ -379,7 +391,7 @@ export default function TasteProfilePage() {
 						initial={{ opacity: 0, scale: 0.9 }}
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-						className='mx-auto mb-8 max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+						className='mx-auto mb-8 max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'
 					>
 						<TasteRadar dimensions={dimensions} />
 						{topDimension && (
@@ -616,6 +628,8 @@ export default function TasteProfilePage() {
 						</Link>
 					</motion.div>
 				)}
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

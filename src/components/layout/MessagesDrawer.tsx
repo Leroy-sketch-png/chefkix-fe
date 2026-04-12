@@ -279,9 +279,9 @@ export const MessagesDrawer = () => {
 									<Loader2 className='size-5 animate-spin text-text-secondary' />
 								</div>
 							) : messages.length === 0 ? (
-									<div className='flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-text-secondary'>
-										<MessageSquare className='size-8 text-text-muted' />
-										{t('noMessagesYet')}
+								<div className='flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-text-secondary'>
+									<MessageSquare className='size-8 text-text-muted' />
+									{t('noMessagesYet')}
 								</div>
 							) : (
 								<div className='flex flex-col gap-2'>
@@ -385,6 +385,7 @@ export const MessagesDrawer = () => {
 							size='icon'
 							onClick={handleSendMessage}
 							disabled={!newMessage.trim() || isSending}
+							aria-label={t('sendMessage')}
 						>
 							{isSending ? (
 								<Loader2 className='size-4 animate-spin' />

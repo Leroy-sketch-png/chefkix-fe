@@ -196,7 +196,7 @@ export function TipJarButton({
 											setCustomAmount(e.target.value)
 											setSelectedAmount(null)
 										}}
-										className='w-full rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+										className='w-full rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 									/>
 								</div>
 
@@ -208,7 +208,7 @@ export function TipJarButton({
 										onChange={e => setMessage(e.target.value)}
 										maxLength={200}
 										rows={2}
-										className='w-full resize-none rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+										className='w-full resize-none rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 									/>
 								</div>
 
