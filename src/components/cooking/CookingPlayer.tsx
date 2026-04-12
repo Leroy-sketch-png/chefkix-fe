@@ -782,6 +782,7 @@ export const CookingPlayer = () => {
 		voice,
 		instructionDetail,
 		totalSteps,
+		t,
 	])
 
 	// ============================================

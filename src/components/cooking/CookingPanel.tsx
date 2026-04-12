@@ -307,6 +307,7 @@ export const CookingPanel = () => {
 		voice,
 		instructionDetail,
 		totalSteps,
+		t,
 	])
 
 	// Timer state
