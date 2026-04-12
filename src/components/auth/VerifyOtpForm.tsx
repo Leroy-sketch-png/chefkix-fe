@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Button } from '@/components/ui/button'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import {
 	Form,
@@ -25,7 +24,7 @@ import { resendOtp, verifyOtp } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
-import { useState, useEffect, useCallback, useRef , useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { toast } from 'sonner'
 import { triggerSuccessConfetti } from '@/lib/confetti'
 import { Clock, AlertTriangle } from 'lucide-react'
@@ -34,7 +33,7 @@ import { LazyLottie } from '@/components/shared/LazyLottie'
 
 function createOtpSchema(t: (key: string) => string) {
 	return z.object({
-		otp: z.string().min(6, { message: t('validationOtpMin') }),
+		otp: z.string().length(6, { message: t('validationOtpExact') }),
 	})
 }
 
@@ -61,7 +60,12 @@ export const VerifyOtpForm = () => {
 
 	// Determine the redirect target after login
 	// Only allow relative paths to prevent open redirect attacks
-	const postLoginPath = returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard'
+	const postLoginPath =
+		returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard'
+	const signInPath =
+		returnTo && returnTo.startsWith('/')
+			? `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(returnTo)}`
+			: PATHS.AUTH.SIGN_IN
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
 
@@ -158,7 +162,7 @@ export const VerifyOtpForm = () => {
 				sessionStorage.setItem('verified-email', email)
 				sessionStorage.setItem('just-registered', 'true')
 			}
-			router.push(PATHS.AUTH.SIGN_IN)
+			router.push(signInPath)
 		} else {
 			const errorMsg = response.message || t('invalidOtp')
 			setError(errorMsg)
@@ -229,22 +233,24 @@ export const VerifyOtpForm = () => {
 				{isExpired ? (
 					<>
 						<AlertTriangle className='size-4' />
-						<span className='text-sm font-medium'>
-						{t('codeExpired')}
-						</span>
+						<span className='text-sm font-medium'>{t('codeExpired')}</span>
 					</>
 				) : (
 					<>
 						<Clock className='size-4' />
 						<span className='text-sm font-medium'>
-						{t('codeExpiresIn', { time: formatTime(timeRemaining) })}
+							{t('codeExpiresIn', { time: formatTime(timeRemaining) })}
 						</span>
 					</>
 				)}
 			</div>
 
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='mt-6 space-y-6'>
+				<form
+					onSubmit={form.handleSubmit(onSubmit)}
+					className='mt-6 space-y-6'
+					noValidate
+				>
 					<FormField
 						control={form.control}
 						name='otp'
@@ -266,7 +272,7 @@ export const VerifyOtpForm = () => {
 									</div>
 								</FormControl>
 								<FormDescription className='text-center'>
-								{t('otpDescription')}
+									{t('otpDescription')}
 								</FormDescription>
 								<FormMessage />
 							</FormItem>
@@ -304,9 +310,7 @@ export const VerifyOtpForm = () => {
 				</form>
 			</Form>
 			<div className='mt-4 flex items-center justify-center gap-2 text-sm text-text-secondary'>
-				<span>
-					{isExpired ? t('getNewCode') : t('didntReceive')}
-				</span>
+				<span>{isExpired ? t('getNewCode') : t('didntReceive')}</span>
 				<ResendOtpButton onResend={handleResendOtp} />
 			</div>
 		</div>

@@ -231,7 +231,6 @@ export const changePassword = async (
 	}
 }
 
-// Google Sign-In function
 export const googleSignIn = async (
 	data: GoogleSignInDto,
 ): Promise<ApiResponse<LoginSuccessResponse>> => {

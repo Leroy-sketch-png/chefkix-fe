@@ -238,7 +238,10 @@ export const useCookingStore = create<CookingState>()(
 							// If existing session is for a DIFFERENT recipe,
 							// we need to inform the user (they must abandon first)
 							set({
-								error: `You're already cooking "${existingSession.recipe?.title || 'another recipe'}". Please finish or abandon that session first.`,
+								error: ct('storeAlreadyCooking').replace(
+									'{title}',
+									existingSession.recipe?.title || ct('storeAnotherRecipe'),
+								),
 								isLoading: false,
 							})
 							return false
@@ -247,7 +250,7 @@ export const useCookingStore = create<CookingState>()(
 
 					if (!sessionResponse.success || !sessionResponse.data) {
 						set({
-							error: sessionResponse.message || 'Failed to start session',
+							error: sessionResponse.message || ct('storeFailedStart'),
 							isLoading: false,
 						})
 						return false
@@ -257,7 +260,7 @@ export const useCookingStore = create<CookingState>()(
 					const recipeResponse = await getRecipeById(recipeId)
 					if (!recipeResponse.success || !recipeResponse.data) {
 						set({
-							error: 'Failed to load recipe',
+							error: ct('storeFailedLoadRecipe'),
 							isLoading: false,
 						})
 						return false
@@ -287,7 +290,7 @@ export const useCookingStore = create<CookingState>()(
 					return true
 				} catch (error) {
 					set({
-						error: 'An error occurred starting the session',
+						error: ct('storeErrorStarting'),
 						isLoading: false,
 					})
 					return false
@@ -353,7 +356,7 @@ export const useCookingStore = create<CookingState>()(
 							recipeId: session.recipeId,
 						})
 						set({
-							error: 'Failed to load recipe for session',
+							error: ct('storeFailedLoadRecipeSession'),
 							isLoading: false,
 						})
 						return false
@@ -394,7 +397,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return true
 				} catch (error) {
-					set({ error: 'Failed to resume session', isLoading: false })
+					set({ error: ct('storeFailedResume'), isLoading: false })
 					return false
 				}
 			},
@@ -406,7 +409,7 @@ export const useCookingStore = create<CookingState>()(
 					const response = await apiGetSessionById(sessionId)
 					if (!response.success || !response.data) {
 						set({
-							error: response.message || 'Session not found',
+							error: response.message || ct('storeSessionNotFound'),
 							isLoading: false,
 						})
 						return false
@@ -429,7 +432,10 @@ export const useCookingStore = create<CookingState>()(
 							},
 						)
 						set({
-							error: `This cooking session is ${session.status}. Navigate to the recipe page to cook again.`,
+							error: ct('storeSessionInactive').replace(
+								'{status}',
+								session.status,
+							),
 							isLoading: false,
 						})
 						return false
@@ -439,7 +445,7 @@ export const useCookingStore = create<CookingState>()(
 					const recipeResponse = await getRecipeById(session.recipeId)
 					if (!recipeResponse.success || !recipeResponse.data) {
 						set({
-							error: 'Failed to load recipe',
+							error: ct('storeFailedLoadRecipe'),
 							isLoading: false,
 						})
 						return false
@@ -454,7 +460,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return true
 				} catch (error) {
-					set({ error: 'Failed to load session', isLoading: false })
+					set({ error: ct('storeFailedLoadSession'), isLoading: false })
 					return false
 				}
 			},
@@ -712,13 +718,13 @@ export const useCookingStore = create<CookingState>()(
 
 					// API returned failure
 					set({
-						error: response.message || 'Failed to complete cooking session',
+						error: response.message || ct('storeFailedLoadSession'),
 					})
 					return null
 				} catch (error) {
 					logDevError('Failed to complete session:', error)
 					set({
-						error: 'Network error while completing session. Please try again.',
+						error: ct('storeNetworkError'),
 					})
 					return null
 				}
@@ -892,7 +898,7 @@ export const useCookingStore = create<CookingState>()(
 					const response = await apiCreateRoom({ recipeId })
 					if (!response.success || !response.data) {
 						set({
-							error: response.message || 'Failed to create room',
+							error: response.message || ct('storeFailedCreateRoom'),
 							isLoading: false,
 						})
 						return null
@@ -911,7 +917,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return room.roomCode
 				} catch {
-					set({ error: 'Failed to create room', isLoading: false })
+					set({ error: ct('storeFailedCreateRoom'), isLoading: false })
 					return null
 				}
 			},
@@ -925,7 +931,7 @@ export const useCookingStore = create<CookingState>()(
 					})
 					if (!response.success || !response.data) {
 						set({
-							error: response.message || 'Failed to join room',
+							error: response.message || ct('storeFailedJoinRoom'),
 							isLoading: false,
 						})
 						return false
@@ -952,7 +958,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return true
 				} catch {
-					set({ error: 'Failed to join room', isLoading: false })
+					set({ error: ct('storeFailedJoinRoom'), isLoading: false })
 					return false
 				}
 			},

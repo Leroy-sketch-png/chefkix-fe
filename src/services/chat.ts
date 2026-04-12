@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios'
+import { API_ENDPOINTS } from '@/constants/api'
 import { ApiResponse } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
@@ -110,12 +111,6 @@ export interface CreateMessageRequest {
 }
 
 // ============================================
-// API ENDPOINTS
-// ============================================
-
-const API_BASE = '/api/v1/chat'
-
-// ============================================
 // SERVICE FUNCTIONS
 // ============================================
 
@@ -127,7 +122,7 @@ export const createConversation = async (
 ): Promise<ApiResponse<Conversation>> => {
 	try {
 		const response = await api.post<ApiResponse<Conversation>>(
-			`${API_BASE}/conversations/create`,
+			API_ENDPOINTS.CHAT.CREATE_CONVERSATION,
 			data,
 		)
 		return response.data
@@ -153,7 +148,7 @@ export const getMyConversations = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<Conversation[]>>(
-			`${API_BASE}/conversations/my-conversations`,
+			API_ENDPOINTS.CHAT.MY_CONVERSATIONS,
 		)
 		return response.data
 	} catch (error) {
@@ -199,7 +194,7 @@ export const sharePostToConversation = async (
 		}
 
 		const response = await api.post<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/create`,
+			API_ENDPOINTS.CHAT.CREATE_MESSAGE,
 			payload,
 		)
 
@@ -227,7 +222,7 @@ export const sendMessage = async (
 ): Promise<ApiResponse<ChatMessage>> => {
 	try {
 		const response = await api.post<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/create`,
+			API_ENDPOINTS.CHAT.CREATE_MESSAGE,
 			{
 				conversationId: data.conversationId,
 				message: data.message,
@@ -258,7 +253,7 @@ export const getMessages = async (
 ): Promise<ApiResponse<ChatMessage[]>> => {
 	try {
 		const response = await api.get<ApiResponse<ChatMessage[]>>(
-			`${API_BASE}/messages`,
+			API_ENDPOINTS.CHAT.GET_MESSAGES,
 			{ params: { conversationId } },
 		)
 		return response.data
@@ -284,7 +279,7 @@ export const getShareSuggestions = async (
 ): Promise<ApiResponse<ShareContactResponse[]>> => {
 	try {
 		const response = await api.get<ApiResponse<ShareContactResponse[]>>(
-			`${API_BASE}/conversations/share-suggestions`,
+			API_ENDPOINTS.CHAT.SHARE_SUGGESTIONS,
 			{ params: { size } },
 		)
 		return response.data
@@ -311,7 +306,7 @@ export const reactToMessage = async (
 ): Promise<ApiResponse<ChatMessage>> => {
 	try {
 		const response = await api.post<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/${messageId}/react`,
+			API_ENDPOINTS.CHAT.REACT_MESSAGE(messageId),
 			{ emoji },
 		)
 		return response.data
@@ -337,7 +332,7 @@ export const deleteMessage = async (
 ): Promise<ApiResponse<ChatMessage>> => {
 	try {
 		const response = await api.delete<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/${messageId}`,
+			API_ENDPOINTS.CHAT.DELETE_MESSAGE(messageId),
 		)
 		return response.data
 	} catch (error) {

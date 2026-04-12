@@ -22,7 +22,7 @@ export const API_ENDPOINTS = {
 		VERIFY_OTP_PASSWORD: `${API_PREFIX}/auth/verify-otp-password`,
 		FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
 		CHANGE_PASSWORD: `${API_PREFIX}/auth/change-password`,
-		GOOGLE: `${API_PREFIX}/auth/google`, // Future: Requires Keycloak Google IdP setup + backend OAuth callback
+		GOOGLE: `${API_PREFIX}/auth/google`,
 		REFRESH_TOKEN: `${API_PREFIX}/auth/refresh-token`, // Public endpoint, no auth header needed
 		ME: `${API_PREFIX}/auth/me`,
 		/** Check if username is available for registration */
@@ -220,6 +220,11 @@ export const API_ENDPOINTS = {
 		CREATE_MESSAGE: `${API_PREFIX}/chat/messages/create`,
 		GET_MESSAGES: `${API_PREFIX}/chat/messages`,
 		GET_MESSAGES_PAGINATED: `${API_PREFIX}/chat/messages/paginated`,
+		SHARE_SUGGESTIONS: `${API_PREFIX}/chat/conversations/share-suggestions`,
+		REACT_MESSAGE: (messageId: string) =>
+			`${API_PREFIX}/chat/messages/${messageId}/react`,
+		DELETE_MESSAGE: (messageId: string) =>
+			`${API_PREFIX}/chat/messages/${messageId}`,
 		VIDEO_SIGNALING_WS: `${API_PREFIX}/ws/video-signaling`,
 	},
 	// AI Integration per spec (14-ai-integration.txt)
@@ -403,7 +408,8 @@ export const API_ENDPOINTS = {
 	TIPS: {
 		MY_SETTINGS: `${TIPS_PREFIX}/settings`,
 		UPDATE_SETTINGS: `${TIPS_PREFIX}/settings`,
-		CREATOR_SETTINGS: (creatorId: string) => `${TIPS_PREFIX}/creator/${creatorId}`,
+		CREATOR_SETTINGS: (creatorId: string) =>
+			`${TIPS_PREFIX}/creator/${creatorId}`,
 		SEND: `${TIPS_PREFIX}/send`,
 		RECEIVED: `${TIPS_PREFIX}/received`,
 		SENT: `${TIPS_PREFIX}/sent`,

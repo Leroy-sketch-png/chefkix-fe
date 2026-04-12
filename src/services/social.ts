@@ -288,7 +288,7 @@ export const isUserBlocked = async (
 ): Promise<ApiResponse<boolean>> => {
 	try {
 		const response = await api.get<ApiResponse<boolean>>(
-			`/api/v1/social/is-blocked/${userId}`,
+			API_ENDPOINTS.SOCIAL.IS_BLOCKED(userId),
 		)
 		return response.data
 	} catch (error) {

@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios'
+import { API_ENDPOINTS } from '@/constants/api'
 import { ApiResponse } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { trackEvent } from '@/lib/eventTracker'
@@ -134,12 +135,6 @@ export interface LinkPostResponse {
 }
 
 // ============================================
-// API ENDPOINTS
-// ============================================
-
-const API_BASE = '/api/v1/cooking-sessions'
-
-// ============================================
 // SERVICE FUNCTIONS
 // ============================================
 
@@ -152,7 +147,7 @@ export const startSession = async (
 ): Promise<ApiResponse<StartSessionResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<StartSessionResponse>>(
-			API_BASE,
+			API_ENDPOINTS.COOKING_SESSIONS.BASE,
 			{ recipeId },
 		)
 		if (response.data.success) {
@@ -182,7 +177,7 @@ export const getCurrentSession = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<CookingSession | null>>(
-			`${API_BASE}/current`,
+			API_ENDPOINTS.COOKING_SESSIONS.CURRENT,
 		)
 		return response.data
 	} catch (error) {
@@ -207,7 +202,7 @@ export const getSessionById = async (
 ): Promise<ApiResponse<CookingSession>> => {
 	try {
 		const response = await api.get<ApiResponse<CookingSession>>(
-			`${API_BASE}/${sessionId}`,
+			API_ENDPOINTS.COOKING_SESSIONS.GET_BY_ID(sessionId),
 		)
 		return response.data
 	} catch (error) {
@@ -244,7 +239,7 @@ export const getSessionHistory = async (params?: {
 				sessions: SessionHistoryItem[]
 				pagination: { page: number; size: number; total: number }
 			}>
-		>(API_BASE, { params })
+		>(API_ENDPOINTS.COOKING_SESSIONS.BASE, { params })
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -322,7 +317,10 @@ export const navigateStep = async (
 				previousStep: number
 				activeTimers: ActiveTimer[]
 			}>
-		>(`${API_BASE}/${sessionId}/navigate`, { action, targetStep })
+		>(API_ENDPOINTS.COOKING_SESSIONS.NAVIGATE(sessionId), {
+			action,
+			targetStep,
+		})
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -368,7 +366,7 @@ export const completeStep = async (
 ): Promise<ApiResponse<CompleteStepResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<CompleteStepResponse>>(
-			`${API_BASE}/${sessionId}/complete-step`,
+			API_ENDPOINTS.COOKING_SESSIONS.COMPLETE_STEP(sessionId),
 			{ stepNumber },
 		)
 		return response.data
@@ -397,7 +395,7 @@ export const logTimerEvent = async (
 ): Promise<ApiResponse<{ logged: boolean }>> => {
 	try {
 		const response = await api.post<ApiResponse<{ logged: boolean }>>(
-			`${API_BASE}/${sessionId}/timer-event`,
+			API_ENDPOINTS.COOKING_SESSIONS.TIMER_EVENT(sessionId),
 			{
 				stepNumber,
 				event,
@@ -441,7 +439,7 @@ export const pauseSession = async (
 				pauseAt: string
 				resumeDeadline: string
 			}>
-		>(`${API_BASE}/${sessionId}/pause`)
+		>(API_ENDPOINTS.COOKING_SESSIONS.PAUSE(sessionId))
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -483,7 +481,7 @@ export const resumeSession = async (
 				status: 'in_progress'
 				resumeAt: string
 			}>
-		>(`${API_BASE}/${sessionId}/resume`)
+		>(API_ENDPOINTS.COOKING_SESSIONS.RESUME(sessionId))
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -515,7 +513,7 @@ export const completeSession = async (
 ): Promise<ApiResponse<CompleteSessionResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<CompleteSessionResponse>>(
-			`${API_BASE}/${sessionId}/complete`,
+			API_ENDPOINTS.COOKING_SESSIONS.COMPLETE(sessionId),
 			data || {},
 		)
 		if (response.data.success) {
@@ -546,7 +544,7 @@ export const linkPostToSession = async (
 ): Promise<ApiResponse<LinkPostResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<LinkPostResponse>>(
-			`${API_BASE}/${sessionId}/link-post`,
+			API_ENDPOINTS.COOKING_SESSIONS.LINK_POST(sessionId),
 			{ postId },
 		)
 		return response.data
@@ -573,7 +571,7 @@ export const abandonSession = async (
 ): Promise<ApiResponse<{ abandoned: boolean }>> => {
 	try {
 		const response = await api.post<ApiResponse<{ abandoned: boolean }>>(
-			`${API_BASE}/${sessionId}/abandon`,
+			API_ENDPOINTS.COOKING_SESSIONS.ABANDON(sessionId),
 		)
 		if (response.data.success) {
 			trackEvent('COOKING_ABANDONED', sessionId, 'session')

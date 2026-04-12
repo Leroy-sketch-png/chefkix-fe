@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
@@ -45,11 +45,11 @@ function createEmailSchema(t: (key: string) => string) {
 function createResetSchema(t: (key: string) => string) {
 	return z
 		.object({
-			otp: z.string().min(6, { message: t('forgotCodeInvalid') }),
-			newPassword: z.string().min(6, {
+			otp: z.string().length(6, { message: t('forgotCodeInvalid') }),
+			newPassword: z.string().min(8, {
 				message: t('forgotPasswordMin'),
 			}),
-			confirmPassword: z.string().min(6, {
+			confirmPassword: z.string().min(8, {
 				message: t('forgotPasswordMin'),
 			}),
 		})
@@ -98,8 +98,7 @@ export const ForgotPasswordDialog = ({
 			return
 		}
 
-		const errorMessage =
-			response.message || t('forgotSendFailed')
+		const errorMessage = response.message || t('forgotSendFailed')
 		emailForm.setError('email', { type: 'manual', message: errorMessage })
 		toast.error(errorMessage)
 	}
@@ -135,7 +134,7 @@ export const ForgotPasswordDialog = ({
 			toast.success(t('resetResendSuccess'))
 			return
 		}
-		toast.error(response.message || t('forgotResendFailed'))
+		toast.error(t('forgotResendFailed'))
 	}
 
 	const handleBack = () => {
@@ -159,14 +158,12 @@ export const ForgotPasswordDialog = ({
 			<DialogContent className='sm:max-w-md'>
 				<DialogHeader>
 					<DialogTitle>
+						{step === 'email' ? t('forgotPageTitle') : t('resetPageTitle')}
+					</DialogTitle>
+					<DialogDescription>
 						{step === 'email'
-						? t('forgotPageTitle')
-						: t('resetPageTitle')}
-				</DialogTitle>
-				<DialogDescription>
-					{step === 'email'
-						? t('forgotPageSubtitle')
-						: t('resetPageSubtitle')}
+							? t('forgotPageSubtitle')
+							: t('resetPageSubtitle')}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -175,15 +172,14 @@ export const ForgotPasswordDialog = ({
 						<form
 							onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
 							className='space-y-4'
+							noValidate
 						>
 							<FormField
 								control={emailForm.control}
 								name='email'
 								render={({ field }) => (
 									<FormItem>
-									<FormLabel>
-										{t('forgotEmailLabel')}
-									</FormLabel>
+										<FormLabel>{t('forgotEmailLabel')}</FormLabel>
 										<FormControl>
 											<Input
 												placeholder={t('forgotEmailPlaceholder')}
@@ -191,6 +187,7 @@ export const ForgotPasswordDialog = ({
 												className='text-foreground'
 											/>
 										</FormControl>
+										<FormDescription>{t('forgotEmailHelp')}</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
@@ -223,6 +220,7 @@ export const ForgotPasswordDialog = ({
 							<form
 								onSubmit={resetForm.handleSubmit(handleResetSubmit)}
 								className='space-y-4'
+								noValidate
 							>
 								<FormField
 									control={resetForm.control}
@@ -260,9 +258,7 @@ export const ForgotPasswordDialog = ({
 									name='newPassword'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>
-												{t('resetNewPasswordLabel')}
-											</FormLabel>
+											<FormLabel>{t('resetNewPasswordLabel')}</FormLabel>
 											<FormControl>
 												<PasswordInput
 													placeholder={t('forgotPasswordPlaceholder')}
@@ -279,9 +275,7 @@ export const ForgotPasswordDialog = ({
 									name='confirmPassword'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>
-												{t('resetConfirmPasswordLabel')}
-											</FormLabel>
+											<FormLabel>{t('resetConfirmPasswordLabel')}</FormLabel>
 											<FormControl>
 												<PasswordInput
 													placeholder={t('forgotConfirmPlaceholder')}

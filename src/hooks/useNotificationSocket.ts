@@ -6,6 +6,12 @@ import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import { logDevError } from '@/lib/dev-log'
 import type { Notification } from '@/services/notification'
+import {
+	getFreshWebSocketAccessToken,
+	getReadableWebSocketError,
+	getWebSocketUrl,
+	WEBSOCKET_SESSION_EXPIRED_MESSAGE,
+} from '@/lib/websocket-auth'
 
 interface NotificationEvent {
 	action: 'CREATE' | 'UPDATE' | 'DELETE'
@@ -51,14 +57,18 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 	useEffect(() => {
 		if (!accessToken || !userId) return
 
-		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
-		const wsBase = apiBase.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}/api/v1/ws`
-
 		const client = new Client({
-			brokerURL: wsUrl,
-			connectHeaders: {
-				Authorization: `Bearer ${accessToken}`,
+			brokerURL: getWebSocketUrl(),
+			beforeConnect: async () => {
+				const token = await getFreshWebSocketAccessToken()
+				if (!token) {
+					setError(WEBSOCKET_SESSION_EXPIRED_MESSAGE)
+					throw new Error('Missing access token for notification socket')
+				}
+
+				client.connectHeaders = {
+					Authorization: `Bearer ${token}`,
+				}
 			},
 			debug: () => {},
 			reconnectDelay: 5000,
@@ -89,8 +99,9 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 				setIsConnected(false)
 			},
 			onStompError: frame => {
+				const errorMessage = getReadableWebSocketError(frame.headers['message'])
 				logDevError('[NotifSocket] STOMP error:', frame.headers['message'])
-				setError(frame.headers['message'] || 'Connection error')
+				setError(errorMessage)
 				setIsConnected(false)
 			},
 			onWebSocketError: () => {

@@ -127,7 +127,7 @@ export function DevQuickLogin() {
 	}
 
 	return (
-		<div className='fixed bottom-4 right-4 z-50'>
+		<div className='fixed bottom-4 right-4 z-50 hidden md:block'>
 			<motion.div
 				layout
 				className='overflow-hidden rounded-xl border border-brand/30 bg-bg-card shadow-xl'
@@ -135,6 +135,7 @@ export function DevQuickLogin() {
 			>
 				{/* Toggle Header */}
 				<button
+					type='button'
 					onClick={() => setExpanded(!expanded)}
 					className='flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold text-brand hover:bg-brand/5'
 				>

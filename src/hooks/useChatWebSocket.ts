@@ -5,6 +5,12 @@ import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
 import { ChatMessage, Conversation } from '@/services/chat'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
+import {
+	getFreshWebSocketAccessToken,
+	getReadableWebSocketError,
+	getWebSocketUrl,
+	WEBSOCKET_SESSION_EXPIRED_MESSAGE,
+} from '@/lib/websocket-auth'
 
 interface UseChatWebSocketOptions {
 	conversationId: string | null
@@ -54,16 +60,18 @@ export function useChatWebSocket({
 			return
 		}
 
-		// Determine WebSocket URL based on environment
-		// Monolith uses context-path /api/v1, so WebSocket is at /api/v1/ws
-		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
-		const wsBase = apiBase.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}/api/v1/ws`
-
 		const client = new Client({
-			brokerURL: wsUrl,
-			connectHeaders: {
-				Authorization: `Bearer ${accessToken}`,
+			brokerURL: getWebSocketUrl(),
+			beforeConnect: async () => {
+				const token = await getFreshWebSocketAccessToken()
+				if (!token) {
+					setError(WEBSOCKET_SESSION_EXPIRED_MESSAGE)
+					throw new Error('Missing access token for WebSocket connection')
+				}
+
+				client.connectHeaders = {
+					Authorization: `Bearer ${token}`,
+				}
 			},
 			debug: () => {},
 			reconnectDelay: 5000,
@@ -77,8 +85,9 @@ export function useChatWebSocket({
 				setIsConnected(false)
 			},
 			onStompError: frame => {
+				const errorMessage = getReadableWebSocketError(frame.headers['message'])
 				logDevError('[WebSocket] STOMP error:', frame.headers['message'])
-				setError(frame.headers['message'] || 'Connection error')
+				setError(errorMessage)
 				setIsConnected(false)
 			},
 			onWebSocketError: () => {

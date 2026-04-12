@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { SignInForm } from '@/components/auth/SignInForm'
 import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
-import { ChefHat, Sparkles, ArrowLeft } from 'lucide-react'
+import { ChefHat, ArrowLeft } from 'lucide-react'
 import { LazyLottie } from '@/components/shared/LazyLottie'
 import { DevQuickLogin } from '@/components/auth/DevQuickLogin'
 import { useTranslations } from '@/i18n/hooks'
@@ -14,7 +14,7 @@ const SignInPage = () => {
 	const searchParams = useSearchParams()
 	const returnTo = searchParams.get('returnTo')
 	return (
-		<div className='relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-bg px-4'>
+		<div className='relative flex min-h-screen flex-col items-center justify-start overflow-hidden bg-bg px-4 pb-8 pt-16 sm:justify-center sm:py-10'>
 			<DevQuickLogin />
 			{/* Back to browsing escape hatch — guests must never be trapped */}
 			<Link
@@ -45,58 +45,41 @@ const SignInPage = () => {
 				animate='visible'
 				className='relative w-full max-w-md'
 			>
-				{/* Logo & Branding */}
+				{/* Logo & Brand — compact, not a hero banner */}
 				<motion.div
 					variants={staggerItem}
-					className='mb-8 flex flex-col items-center'
+					className='mb-3 flex items-center justify-center gap-2.5 sm:mb-5'
 				>
 					<motion.div
 						whileHover={{ rotate: 10, scale: 1.1 }}
 						transition={TRANSITION_SPRING}
-						className='mb-4 flex size-20 items-center justify-center rounded-2xl bg-gradient-hero shadow-lg shadow-brand/30'
+						className='flex size-10 items-center justify-center rounded-xl bg-brand shadow-md shadow-brand/20 sm:size-12'
 					>
-						<ChefHat className='size-10 text-white' />
+						<ChefHat className='size-5 text-white sm:size-6' />
 					</motion.div>
 					<motion.h1
-						className='mb-1 text-3xl font-bold text-text'
+						className='text-xl font-bold text-text sm:text-2xl'
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2 }}
 					>
 						{t('brandName')}
 					</motion.h1>
-					<motion.p
-						className='flex items-center gap-1 text-sm text-text-muted'
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ delay: 0.3 }}
-					>
-						<Sparkles className='size-3.5 text-streak' />
-						{t('signInSubtitle')}
-					</motion.p>
 				</motion.div>
 
-				{/* Sign In Card - NOTE: No backdrop-blur to avoid stacking context issues with modals */}
+				{/* Sign In Card */}
 				<motion.div
 					variants={staggerItem}
-					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-8 shadow-xl shadow-black/5'
+					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-lg shadow-black/5 sm:p-8'
 				>
 					<motion.h2
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.3 }}
-						className='mb-2 text-center text-2xl font-bold text-text'
+						className='mb-5 text-center text-lg font-bold text-text sm:mb-6 sm:text-xl'
 					>
 						{t('pageTitle')}
 					</motion.h2>
-					<motion.p
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ delay: 0.4 }}
-						className='mb-8 text-center text-text-secondary'
-					>
-						{t('pageSubtitle')}
-					</motion.p>
 					<SignInForm />
 				</motion.div>
 			</motion.div>

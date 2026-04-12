@@ -5,10 +5,7 @@ import { DuelResponse, CreateDuelRequest } from '@/lib/types/duel'
 import { logDevError } from '@/lib/dev-log'
 import { AxiosError } from 'axios'
 
-function extractErrorMessage(
-	error: unknown,
-	fallback: string,
-): string {
+function extractErrorMessage(error: unknown, fallback: string): string {
 	const axiosError = error as AxiosError<ApiResponse<unknown>>
 	return axiosError.response?.data?.message || fallback
 }
@@ -19,58 +16,78 @@ function extractErrorMessage(
 
 export async function createDuel(
 	request: CreateDuelRequest,
-): Promise<DuelResponse> {
+): Promise<ApiResponse<DuelResponse>> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.CREATE,
 			request,
 		)
-		return res.data.data!
+		return res.data
 	} catch (error) {
 		logDevError('Failed to create duel:', error)
-		throw new Error(extractErrorMessage(error, 'Failed to send challenge'))
+		return {
+			success: false,
+			statusCode: 500,
+			message: extractErrorMessage(error, 'Failed to send challenge'),
+			data: null as unknown as DuelResponse,
+		}
 	}
 }
 
 export async function acceptDuel(
 	duelId: string,
-): Promise<DuelResponse> {
+): Promise<ApiResponse<DuelResponse>> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.ACCEPT(duelId),
 		)
-		return res.data.data!
+		return res.data
 	} catch (error) {
 		logDevError('Failed to accept duel:', error)
-		throw new Error(extractErrorMessage(error, 'Failed to accept duel'))
+		return {
+			success: false,
+			statusCode: 500,
+			message: extractErrorMessage(error, 'Failed to accept duel'),
+			data: null as unknown as DuelResponse,
+		}
 	}
 }
 
 export async function declineDuel(
 	duelId: string,
-): Promise<DuelResponse> {
+): Promise<ApiResponse<DuelResponse>> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.DECLINE(duelId),
 		)
-		return res.data.data!
+		return res.data
 	} catch (error) {
 		logDevError('Failed to decline duel:', error)
-		throw new Error(extractErrorMessage(error, 'Failed to decline duel'))
+		return {
+			success: false,
+			statusCode: 500,
+			message: extractErrorMessage(error, 'Failed to decline duel'),
+			data: null as unknown as DuelResponse,
+		}
 	}
 }
 
 export async function cancelDuel(
 	duelId: string,
-): Promise<DuelResponse> {
+): Promise<ApiResponse<DuelResponse>> {
 	try {
 		const res = await api.post<ApiResponse<DuelResponse>>(
 			API_ENDPOINTS.DUELS.CANCEL(duelId),
 		)
-		return res.data.data!
+		return res.data
 	} catch (error) {
 		logDevError('Failed to cancel duel:', error)
-		throw new Error(extractErrorMessage(error, 'Failed to cancel duel'))
+		return {
+			success: false,
+			statusCode: 500,
+			message: extractErrorMessage(error, 'Failed to cancel duel'),
+			data: null as unknown as DuelResponse,
+		}
 	}
 }
 
