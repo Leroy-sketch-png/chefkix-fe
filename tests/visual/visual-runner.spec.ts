@@ -98,13 +98,6 @@ const PUBLIC_ROUTES: RouteConfig[] = [
 		waitForSelector: 'form',
 	},
 	{
-		path: '/auth/forgot-password',
-		name: 'auth-forgot-password',
-		requiresAuth: false,
-		states: ['guest'],
-		waitForSelector: 'form',
-	},
-	{
 		path: '/explore',
 		name: 'explore',
 		requiresAuth: false,
@@ -314,6 +307,14 @@ async function disableAnimations(page: Page): Promise<void> {
 		/* Framer Motion: force all motion values to final state */
 		[style*="opacity: 0"] { opacity: 1 !important; }
 		[style*="transform: translateY"] { transform: none !important; }
+		nextjs-portal,
+		#__next-build-watcher,
+		[data-next-badge-root],
+		[data-nextjs-toast],
+		button[title="Demo Control Widget"],
+		button[title="Show demo widget"] {
+			display: none !important;
+		}
 	`
 	try {
 		await page.addStyleTag({ content: css })
@@ -456,7 +457,46 @@ async function waitForStable(
 
 interface AuthTokens {
 	accessToken: string
+	refreshTokenCookie: string
 	userId: string
+	user: {
+		userId: string
+		username: string
+		email: string
+		displayName: string
+		firstName: string
+		lastName: string
+		avatarUrl: string
+		statistics: {
+			currentLevel: number
+			currentXP: number
+			currentXPGoal: number
+			streakCount: number
+			recipeCount: number
+			postCount: number
+		}
+	}
+}
+
+function extractRefreshTokenCookie(response: Response): string | null {
+	const headersWithGetSetCookie = response.headers as Headers & {
+		getSetCookie?: () => string[]
+	}
+	const setCookieHeaders =
+		typeof headersWithGetSetCookie.getSetCookie === 'function'
+			? headersWithGetSetCookie.getSetCookie()
+			: [response.headers.get('set-cookie')].filter(
+					(header): header is string => Boolean(header),
+				)
+
+	for (const header of setCookieHeaders) {
+		const match = header.match(/(?:^|,\s*)refresh_token=([^;]+)/)
+		if (match) {
+			return match[1]
+		}
+	}
+
+	return null
 }
 
 /** Login via API and return tokens */
@@ -479,21 +519,56 @@ async function loginViaAPI(): Promise<AuthTokens> {
 		throw new Error(`Login response missing token: ${JSON.stringify(data)}`)
 	}
 
+	const refreshTokenCookie = extractRefreshTokenCookie(response)
+	if (!refreshTokenCookie) {
+		throw new Error(
+			'Login response missing refresh_token cookie. Visual auth bootstrap would be incomplete.',
+		)
+	}
+
 	return {
 		accessToken: data.data.accessToken,
+		refreshTokenCookie,
 		userId: data.data.user?.id || 'unknown',
+		user: {
+			userId: data.data.user?.id || 'unknown',
+			username: data.data.user?.username || 'visual-user',
+			email: data.data.user?.email || AUTH_CREDS.emailOrUsername,
+			displayName: data.data.user?.username || 'Visual User',
+			firstName: 'Visual',
+			lastName: 'User',
+			avatarUrl: '/placeholder-avatar.svg',
+			statistics: {
+				currentLevel: 1,
+				currentXP: 0,
+				currentXPGoal: 25,
+				streakCount: 0,
+				recipeCount: 0,
+				postCount: 0,
+			},
+		},
 	}
 }
 
 /** Inject auth state into the browser context (localStorage + Zustand) */
 async function injectAuth(page: Page, tokens: AuthTokens): Promise<void> {
-	await page.evaluate(({ accessToken, userId }) => {
+	await page.context().addCookies([
+		{
+			name: 'refresh_token',
+			value: tokens.refreshTokenCookie,
+			url: `${BASE_URL}/`,
+			httpOnly: true,
+			sameSite: 'Strict',
+		},
+	])
+
+	await page.addInitScript(({ accessToken, user }) => {
 		// Set the Zustand auth store in localStorage (persisted store)
 		const authState = {
 			state: {
 				isAuthenticated: true,
 				accessToken,
-				user: null, // Will be populated by AuthProvider on mount
+				user,
 				isLoading: false,
 			},
 			version: 0,
@@ -508,12 +583,39 @@ async function injectAuth(page: Page, tokens: AuthTokens): Promise<void> {
 	}, tokens)
 }
 
+async function assertExpectedRoute(
+	page: Page,
+	route: RouteConfig,
+	state: VisualState,
+): Promise<void> {
+	if (state === 'guest') {
+		return
+	}
+
+	const currentUrl = new URL(page.url())
+	const currentPath = currentUrl.pathname
+
+	if (route.requiresAuth && currentPath.startsWith('/auth/')) {
+		throw new Error(
+			`Protected route ${route.path} redirected to ${currentPath}. ` +
+				'Visual capture aborted because the page is unauthenticated.',
+		)
+	}
+
+	if (route.path !== '/' && !currentPath.startsWith(route.path)) {
+		throw new Error(
+			`Route ${route.path} resolved to unexpected path ${currentPath}. ` +
+				'Visual capture aborted to prevent false-success screenshots.',
+		)
+	}
+}
+
 /** Clear all auth state */
 async function clearAuth(page: Page): Promise<void> {
-	await page.evaluate(() => {
+	await page.context().clearCookies()
+	await page.addInitScript(() => {
 		localStorage.clear()
 		sessionStorage.clear()
-		// Dismiss first-visit hints so they don't block screenshots
 		localStorage.setItem('chefkix:hints-dismissed-all', 'true')
 	})
 }
@@ -709,11 +811,33 @@ test.describe('Visual Truth Machine', () => {
 	})
 
 	test.afterAll(async () => {
+		test.setTimeout(120_000) // AI review builds images — needs more than 60s default
 		const manifestPath = writeManifest(currentDevice, currentRunId)
 		console.log(`\n📸 Archived capture manifest written: ${manifestPath}`)
 		console.log(`   Latest screenshots recorded: ${manifest.length}`)
 
+		const auditTools = await import(
+			pathToFileURL(path.join(__dirname, 'export-audit.mjs')).href
+		)
+
 		if (process.env.VISUAL_BUILD_AI_REVIEW === '0') {
+			const latestAuditResult = await auditTools.exportLatestAuditAliases({
+				device: currentDevice,
+				manifestEntries: manifest,
+			})
+			const sanitizeResult = await auditTools.sanitizeAuditArtifacts({
+				deviceFilter: currentDevice,
+			})
+
+			console.log(
+				`   Safe latest audit aliases: ${latestAuditResult.exported} (${latestAuditResult.jpegFallbacks} JPEG fallbacks)`,
+			)
+			console.log(
+				`   Legacy audit files sanitized: ${sanitizeResult.rewritten}`,
+			)
+			console.log(
+				`   Oversized audit images remaining: ${sanitizeResult.remainingOversized}`,
+			)
 			return
 		}
 
@@ -732,6 +856,20 @@ test.describe('Visual Truth Machine', () => {
 			`   Oversized visual images remaining: ${reviewResult.remainingOversizedImages}`,
 		)
 		console.log(`   Next batch file: ${reviewResult.nextBatchPath}`)
+
+		const auditExportResult = await auditTools.exportAuditArtifacts({
+			deviceFilter: currentDevice,
+		})
+		const latestAuditResult = await auditTools.exportLatestAuditAliases({
+			device: currentDevice,
+			manifestEntries: manifest,
+		})
+		console.log(
+			`   Audit exports: ${auditExportResult.totalExported} (${auditExportResult.jpegFallbacks} JPEG fallbacks)`,
+		)
+		console.log(
+			`   Safe latest audit aliases: ${latestAuditResult.exported} (${latestAuditResult.jpegFallbacks} JPEG fallbacks)`,
+		)
 
 		if (reviewResult.nextBatch) {
 			console.log(reviewTools.formatBatchSummary(reviewResult.nextBatch))
@@ -764,11 +902,8 @@ test.describe('Visual Truth Machine', () => {
 
 				// ---- 2. Set up auth state ----------------------------------------
 				if (route.requiresAuth && state !== 'guest' && authTokens) {
-					// Navigate to the app first to set localStorage on the right domain
-					await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' })
 					await injectAuth(page, authTokens)
 				} else if (state === 'guest') {
-					await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' })
 					await clearAuth(page)
 				}
 
@@ -790,6 +925,7 @@ test.describe('Visual Truth Machine', () => {
 
 				// ---- 5. Wait for stability --------------------------------------
 				await waitForStable(page, route.waitForSelector, state)
+				await assertExpectedRoute(page, route, state)
 
 				// ---- 6. Run custom setup if any ---------------------------------
 				if (route.setup) {

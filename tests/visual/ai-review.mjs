@@ -24,6 +24,15 @@ const DEFAULT_CONFIG = {
 	tileOverlap: 128,
 	resizeToleranceRatio: 1.12,
 	maxBatchImages: 6,
+	// File-weight limits: prevents 413 payload-too-large errors when the
+	// agent attaches many images within a single conversation turn.
+	// If a PNG exceeds maxFileKB after compression, it is re-encoded as
+	// JPEG at jpegQuality to guarantee the budget.
+	maxFileKB: 500,
+	jpegQuality: 82,
+	// Batch payload budget (KB). A batch is capped by EITHER maxBatchImages
+	// OR maxBatchPayloadKB, whichever limit is reached first.
+	maxBatchPayloadKB: 4096,
 }
 
 function parseNumberOption(value, fallback) {
@@ -87,12 +96,94 @@ function resolveConfig(overrides = {}) {
 		),
 	)
 
+	const maxFileKB = Math.max(
+		1,
+		Math.round(
+			overrides.maxFileKB ??
+				parseNumberOption(
+					process.env.VISUAL_AI_REVIEW_MAX_FILE_KB,
+					DEFAULT_CONFIG.maxFileKB,
+				),
+		),
+	)
+	const jpegQuality = Math.min(
+		100,
+		Math.max(
+			1,
+			Math.round(
+				overrides.jpegQuality ??
+					parseNumberOption(
+						process.env.VISUAL_AI_REVIEW_JPEG_QUALITY,
+						DEFAULT_CONFIG.jpegQuality,
+					),
+			),
+		),
+	)
+	const maxBatchPayloadKB = Math.max(
+		1,
+		Math.round(
+			overrides.maxBatchPayloadKB ??
+				parseNumberOption(
+					process.env.VISUAL_AI_REVIEW_MAX_BATCH_PAYLOAD_KB,
+					DEFAULT_CONFIG.maxBatchPayloadKB,
+				),
+		),
+	)
+
 	return {
 		maxDimension,
 		tileSize,
 		tileOverlap,
 		resizeToleranceRatio,
 		maxBatchImages,
+		maxFileKB,
+		jpegQuality,
+		maxBatchPayloadKB,
+	}
+}
+
+/**
+ * Write an optimized review image that respects the file-weight budget.
+ *
+ * Strategy (fast path → slow path):
+ *   1) Write with PNG compressionLevel 9 + palette quantization
+ *   2) If still over maxFileKB → re-encode as JPEG at configured quality
+ *
+ * Returns { outputPath, sizeKB, format } so callers can record the format.
+ */
+async function writeOptimizedReviewImage(
+	sharpInstance,
+	outputPathNoExt,
+	config,
+) {
+	const pngPath = `${outputPathNoExt}.png`
+	await sharpInstance
+		.png({ compressionLevel: 9, palette: true, effort: 7 })
+		.toFile(pngPath)
+
+	const pngSizeKB = fs.statSync(pngPath).size / 1024
+	if (pngSizeKB <= config.maxFileKB) {
+		return {
+			outputPath: pngPath,
+			sizeKB: Math.round(pngSizeKB * 10) / 10,
+			format: 'png',
+		}
+	}
+
+	// PNG exceeded budget — re-encode as JPEG
+	const jpegPath = `${outputPathNoExt}.jpg`
+	await sharpInstance
+		.jpeg({ quality: config.jpegQuality, mozjpeg: true })
+		.toFile(jpegPath)
+
+	// Remove the oversized PNG
+	fs.unlinkSync(pngPath)
+
+	const jpegSizeKB = fs.statSync(jpegPath).size / 1024
+	return {
+		outputPath: jpegPath,
+		sizeKB: Math.round(jpegSizeKB * 10) / 10,
+		format: 'jpeg',
 	}
 }
 
@@ -404,22 +495,29 @@ function getSafeRelativeFile(capture, fileName) {
 	)
 }
 
-async function buildCopiedReview(capture, sourceBuffer, originalMeta) {
+async function buildCopiedReview(capture, sourceBuffer, originalMeta, config) {
 	const outputDir = getSafeOutputDir(capture)
 	ensureDir(outputDir)
 
-	const fileName = 'review.png'
-	const outputPath = path.join(outputDir, fileName)
-	await sharp(sourceBuffer).png().toFile(outputPath)
+	const baseName = 'review'
+	const outputPathNoExt = path.join(outputDir, baseName)
+	const result = await writeOptimizedReviewImage(
+		sharp(sourceBuffer),
+		outputPathNoExt,
+		config,
+	)
+	const actualFileName = path.basename(result.outputPath)
 
 	return [
 		{
-			file: getSafeRelativeFile(capture, fileName),
+			file: getSafeRelativeFile(capture, actualFileName),
 			width: originalMeta.width,
 			height: originalMeta.height,
 			order: 1,
 			variant: 'copy',
 			tile: null,
+			sizeKB: result.sizeKB,
+			format: result.format,
 		},
 	]
 }
@@ -428,28 +526,32 @@ async function buildResizedReview(capture, sourceBuffer, config) {
 	const outputDir = getSafeOutputDir(capture)
 	ensureDir(outputDir)
 
-	const fileName = 'review.png'
-	const outputPath = path.join(outputDir, fileName)
-	await sharp(sourceBuffer)
-		.resize({
-			width: config.maxDimension,
-			height: config.maxDimension,
-			fit: 'inside',
-			withoutEnlargement: true,
-		})
-		.png()
-		.toFile(outputPath)
-
-	const metadata = await sharp(outputPath).metadata()
+	const baseName = 'review'
+	const outputPathNoExt = path.join(outputDir, baseName)
+	const resized = sharp(sourceBuffer).resize({
+		width: config.maxDimension,
+		height: config.maxDimension,
+		fit: 'inside',
+		withoutEnlargement: true,
+	})
+	const result = await writeOptimizedReviewImage(
+		resized,
+		outputPathNoExt,
+		config,
+	)
+	const actualFileName = path.basename(result.outputPath)
+	const metadata = await sharp(result.outputPath).metadata()
 
 	return [
 		{
-			file: getSafeRelativeFile(capture, fileName),
+			file: getSafeRelativeFile(capture, actualFileName),
 			width: metadata.width,
 			height: metadata.height,
 			order: 1,
 			variant: 'resize',
 			tile: null,
+			sizeKB: result.sizeKB,
+			format: result.format,
 		},
 	]
 }
@@ -477,21 +579,23 @@ async function buildTiledReview(capture, sourceBuffer, originalMeta, config) {
 		for (const left of xPositions) {
 			const extractedWidth = Math.min(tileWidth, originalMeta.width - left)
 			const extractedHeight = Math.min(tileHeight, originalMeta.height - top)
-			const fileName = `tile-${String(order).padStart(3, '0')}.png`
-			const outputPath = path.join(outputDir, fileName)
+			const tileBaseName = `tile-${String(order).padStart(3, '0')}`
+			const tilePathNoExt = path.join(outputDir, tileBaseName)
 
-			await sharp(sourceBuffer)
-				.extract({
+			const tileResult = await writeOptimizedReviewImage(
+				sharp(sourceBuffer).extract({
 					left,
 					top,
 					width: extractedWidth,
 					height: extractedHeight,
-				})
-				.png()
-				.toFile(outputPath)
+				}),
+				tilePathNoExt,
+				config,
+			)
+			const actualTileFileName = path.basename(tileResult.outputPath)
 
 			reviewImages.push({
-				file: getSafeRelativeFile(capture, fileName),
+				file: getSafeRelativeFile(capture, actualTileFileName),
 				width: extractedWidth,
 				height: extractedHeight,
 				order,
@@ -503,6 +607,8 @@ async function buildTiledReview(capture, sourceBuffer, originalMeta, config) {
 					height: extractedHeight,
 					overlap: config.tileOverlap,
 				},
+				sizeKB: tileResult.sizeKB,
+				format: tileResult.format,
 			})
 			order += 1
 		}
@@ -532,6 +638,7 @@ async function processCapture(capture, manifestIndex, config) {
 			capture,
 			sourceBuffer,
 			originalMetadata,
+			config,
 		)
 	} else if (reviewStrategy === 'resize') {
 		reviewImages = await buildResizedReview(capture, sourceBuffer, config)
@@ -568,16 +675,21 @@ async function verifyReviewImages(entries, config) {
 	let totalReviewImages = 0
 	let maxWidth = 0
 	let maxHeight = 0
+	let totalSizeKB = 0
+	let jpegCount = 0
 
 	for (const entry of entries) {
 		for (const image of entry.reviewImages) {
 			totalReviewImages += 1
-			const metadata = await sharp(path.join(VISUAL_DIR, image.file)).metadata()
+			const imagePath = path.join(VISUAL_DIR, image.file)
+			const metadata = await sharp(imagePath).metadata()
 			const width = metadata.width ?? 0
 			const height = metadata.height ?? 0
 
 			maxWidth = Math.max(maxWidth, width)
 			maxHeight = Math.max(maxHeight, height)
+			totalSizeKB += image.sizeKB ?? fs.statSync(imagePath).size / 1024
+			if (image.format === 'jpeg') jpegCount += 1
 
 			if (width > config.maxDimension || height > config.maxDimension) {
 				violations.push({ file: image.file, width, height })
@@ -597,6 +709,9 @@ async function verifyReviewImages(entries, config) {
 		totalReviewImages,
 		maxWidth,
 		maxHeight,
+		totalSizeKB: Math.round(totalSizeKB * 10) / 10,
+		totalSizeMB: Math.round((totalSizeKB / 1024) * 100) / 100,
+		jpegFallbackCount: jpegCount,
 	}
 }
 
@@ -689,6 +804,7 @@ function createBatch(device, index, maxBatchImages) {
 		device,
 		maxBatchImages,
 		imageCount: 0,
+		payloadKB: 0,
 		routes: new Set(),
 		segments: [],
 		images: [],
@@ -702,6 +818,7 @@ function finalizeBatch(batch) {
 		device: batch.device,
 		maxBatchImages: batch.maxBatchImages,
 		imageCount: batch.imageCount,
+		payloadKB: Math.round(batch.payloadKB * 10) / 10,
 		routeCount: batch.routes.size,
 		routes: [...batch.routes],
 		segments: batch.segments,
@@ -715,10 +832,23 @@ function buildReviewBatches(entries, config) {
 
 	for (const entry of sortEntriesForBatching(entries)) {
 		for (const segment of createEntrySegments(entry, config.maxBatchImages)) {
+			const segmentPayloadKB = segment.images.reduce(
+				(sum, img) => sum + (img.sizeKB ?? 0),
+				0,
+			)
+
+			const wouldExceedImages =
+				currentBatch &&
+				currentBatch.imageCount + segment.imageCount > config.maxBatchImages
+			const wouldExceedPayload =
+				currentBatch &&
+				currentBatch.payloadKB + segmentPayloadKB > config.maxBatchPayloadKB
+
 			if (
 				!currentBatch ||
 				currentBatch.device !== segment.device ||
-				currentBatch.imageCount + segment.imageCount > config.maxBatchImages
+				wouldExceedImages ||
+				wouldExceedPayload
 			) {
 				if (currentBatch) {
 					batches.push(finalizeBatch(currentBatch))
@@ -732,6 +862,7 @@ function buildReviewBatches(entries, config) {
 			}
 
 			currentBatch.imageCount += segment.imageCount
+			currentBatch.payloadKB += segmentPayloadKB
 			currentBatch.routes.add(`${segment.routeName}:${segment.state}`)
 			currentBatch.segments.push(segment)
 			currentBatch.images.push(
@@ -740,6 +871,8 @@ function buildReviewBatches(entries, config) {
 					width: image.width,
 					height: image.height,
 					order: image.order,
+					sizeKB: image.sizeKB ?? 0,
+					format: image.format ?? 'png',
 					routeName: segment.routeName,
 					state: segment.state,
 					segmentIndex: segment.segmentIndex,
@@ -864,6 +997,8 @@ export async function buildAiReviewArtifacts(overrides = {}) {
 		config: {
 			maxBatchImages: config.maxBatchImages,
 			maxDimension: config.maxDimension,
+			maxFileKB: config.maxFileKB,
+			maxBatchPayloadKB: config.maxBatchPayloadKB,
 		},
 		allImagesAiSafe: isBatchAiSafe(nextBatch, config),
 		batch: nextBatch,
@@ -920,6 +1055,9 @@ async function main() {
 		console.log(`[ai-review] Originals: ${result.totalOriginals}`)
 		console.log(
 			`[ai-review] AI-safe images: ${result.totalReviewImages} (max ${result.verification.maxWidth}x${result.verification.maxHeight})`,
+		)
+		console.log(
+			`[ai-review] Total size: ${result.verification.totalSizeMB}MB (${result.verification.jpegFallbackCount} JPEG fallbacks)`,
 		)
 		console.log(
 			`[ai-review] Oversized images remaining: ${result.remainingOversizedImages}`,
