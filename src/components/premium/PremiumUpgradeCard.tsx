@@ -366,24 +366,36 @@ export default function PremiumUpgradeCard() {
 			<motion.div variants={FADE_IN_VARIANTS} className='space-y-3 pt-2'>
 				{!isPremium && (
 					<>
-						{!trialUsed && (
-							<Button
-								onClick={handleStartTrial}
-								disabled={isActioning}
-								className='w-full bg-gradient-gold text-white shadow-warm hover:opacity-90'
-								size='lg'
-							>
-								{isActioning ? (
-									<Loader2 className='mr-2 size-4 animate-spin' />
-								) : (
-									<Crown className='mr-2 size-4' />
-								)}
-								{t('startTrial')}
-							</Button>
+						{!trialUsed ? (
+							<>
+								<Button
+									onClick={handleStartTrial}
+									disabled={isActioning}
+									className='w-full bg-gradient-gold text-white shadow-warm hover:opacity-90'
+									size='lg'
+								>
+									{isActioning ? (
+										<Loader2 className='mr-2 size-4 animate-spin' />
+									) : (
+										<Crown className='mr-2 size-4' />
+									)}
+									{t('startTrial')}
+								</Button>
+								<p className='text-center text-xs text-text-muted'>
+									{t('trialNote')}
+								</p>
+							</>
+						) : (
+							<div className='rounded-xl border border-level/25 bg-level/5 p-5 text-center space-y-2'>
+								<Crown className='mx-auto size-7 text-level/70' />
+								<p className='font-semibold text-sm text-text'>
+									{t('comingSoonTitle')}
+								</p>
+								<p className='text-xs text-text-secondary leading-relaxed'>
+									{t('trialUsedNote')}
+								</p>
+							</div>
 						)}
-						<p className='text-center text-xs text-text-muted'>
-							{trialUsed ? t('trialUsedNote') : t('trialNote')}
-						</p>
 					</>
 				)}
 
