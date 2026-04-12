@@ -1,5 +1,7 @@
 ﻿'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { motion } from 'framer-motion'
 import {
 	ArrowLeft,
@@ -26,6 +28,7 @@ import {
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -111,6 +114,7 @@ export interface CreatorDashboardProps {
 // ============================================================================
 
 function WeekHighlightSection({ data }: { data: WeekHighlight }) {
+	const t = useTranslations('creator')
 	const hasNewCooksChange = data.newCooksChange !== undefined
 	const hasXpEarnedChange = data.xpEarnedChange !== undefined
 
@@ -125,7 +129,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 		>
 			{/* Header */}
 			<div className='flex justify-between mb-4'>
-				<span className='text-sm font-bold text-success'>This Week</span>
+				<span className='text-sm font-bold text-success'>{t('thisWeek')}</span>
 				<span className='text-sm text-text-secondary'>{data.dateRange}</span>
 			</div>
 
@@ -133,12 +137,12 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 			<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 				{/* New Cooks */}
 				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
-					<span className='text-icon-lg'>ðŸ‘¨â€ðŸ³</span>
+					<span className='text-icon-lg'>👨‍🍳</span>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xl font-extrabold text-success'>
-							+{data.newCooks}
+						<span className='text-2xl font-display font-extrabold text-success'>
+							+<AnimatedNumber value={data.newCooks} className='tabular-nums' />
 						</span>
-						<span className='text-xs text-text-secondary'>New Cooks</span>
+						<span className='text-xs text-text-secondary'>{t('newCooks')}</span>
 					</div>
 					{hasNewCooksChange && (
 						<div
@@ -160,12 +164,12 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 
 				{/* XP Earned */}
 				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
-					<span className='text-icon-lg'>âš¡</span>
+					<span className='text-icon-lg'>⚡</span>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xl font-extrabold text-text'>
-							+{data.xpEarned}
+						<span className='text-2xl font-display font-extrabold text-text'>
+							+<AnimatedNumber value={data.xpEarned} className='tabular-nums' />
 						</span>
-						<span className='text-xs text-text-secondary'>XP Earned</span>
+						<span className='text-xs text-text-secondary'>{t('xpEarned')}</span>
 					</div>
 					{hasXpEarnedChange && (
 						<div
@@ -194,40 +198,42 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 // ============================================================================
 
 function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
+	const t = useTranslations('creator')
 	return (
 		<div className='bg-bg-card rounded-xl p-6 mb-6'>
-			<h3 className='text-lg font-bold text-text mb-4'>Lifetime Stats</h3>
+			<h3 className='text-lg font-bold text-text mb-4'>{t('lifetimeStats')}</h3>
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
 				{/* Recipes Published - Large */}
 				<div className='col-span-2 sm:col-span-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-bg rounded-xl text-center'>
 					<div className='flex items-center gap-2'>
-						<span className='text-4xl font-black text-primary'>
-							{stats.recipesPublished}
+						<span className='text-4xl font-black tabular-nums text-brand'>
+							<AnimatedNumber value={stats.recipesPublished} duration={0.8} />
 						</span>
-						<span className='text-icon-lg'>ðŸ“–</span>
+						<span className='text-icon-lg'>📖</span>
 					</div>
-					<span className='text-sm text-text-secondary'>Recipes Published</span>
+					<span className='text-sm text-text-secondary'>
+						{t('recipesPublished')}
+					</span>
 				</div>
 
-				{/* Total Cooks */}
 				<StatCard
-					icon='ðŸ‘¨â€ðŸ³'
+					icon='👨‍🍳'
 					value={stats.totalCooks.toLocaleString()}
-					label='Total Cooks'
+					label={t('totalCooks')}
 				/>
 
 				{/* Creator XP */}
 				<StatCard
-					icon='âš¡'
+					icon='⚡'
 					value={stats.creatorXpEarned.toLocaleString()}
-					label='Creator XP Earned'
+					label={t('creatorXpEarned')}
 				/>
 
 				{/* Avg Rating */}
 				<StatCard
-					icon='â­'
-					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : 'â€”'}
-					label='Avg Rating'
+					icon='⭐'
+					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : '—'}
+					label={t('avgRating')}
 				/>
 			</div>
 		</div>
@@ -247,7 +253,9 @@ function StatCard({
 		<div className='flex items-center gap-2.5 p-4 bg-bg rounded-xl'>
 			<span className='text-2xl'>{icon}</span>
 			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold text-text'>{value}</span>
+				<span className='text-xl font-display font-extrabold tabular-nums text-text'>
+					{value}
+				</span>
 				<span className='text-xs text-text-secondary'>{label}</span>
 			</div>
 		</div>
@@ -259,18 +267,19 @@ function StatCard({
 // ============================================================================
 
 function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
+	const t = useTranslations('creator')
 	const earnedCount = badges.filter(b => b.isEarned).length
 
 	return (
 		<div className='mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>Creator Badges</h3>
+				<h3 className='text-lg font-bold text-text'>{t('creatorBadges')}</h3>
 				<span className='text-sm text-text-secondary'>
 					{earnedCount} earned
 				</span>
 			</div>
 
-			<div className='flex gap-3 overflow-x-auto pb-1 scrollbar-hide'>
+			<div className='flex gap-3 overflow-x-auto pb-1 pr-4 scrollbar-hide'>
 				{badges.map((badge, index) => (
 					<motion.div
 						key={badge.id || `creator-badge-${index}`}
@@ -318,39 +327,43 @@ function TopRecipeSection({
 	onViewAllRecipes?: () => void
 	onRecipeClick?: (id: string) => void
 }) {
+	const t = useTranslations('creator')
 	return (
 		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>ðŸ† Top Recipe</h3>
+				<h3 className='text-lg font-bold text-text'>🏆 Top Recipe</h3>
 				{onViewAllRecipes && (
 					<button
+						type='button'
 						onClick={onViewAllRecipes}
-						className='text-sm font-semibold text-primary'
+						className='text-sm font-semibold text-brand'
 					>
-						View All Recipes
+						{t('viewAllRecipes')}
 					</button>
 				)}
 			</div>
 
 			<motion.div
-				whileHover={{ ...LIST_ITEM_HOVER, scale: 1.01 }}
+				whileHover={LIST_ITEM_HOVER}
 				transition={TRANSITION_SPRING}
 				onClick={() => onRecipeClick?.(recipe.id)}
 				className='flex flex-col sm:flex-row gap-5 cursor-pointer'
 			>
 				<Image
-					src={recipe.imageUrl || '/images/recipe-placeholder.jpg'}
+					src={recipe.imageUrl || '/placeholder-recipe.svg'}
 					alt={recipe.title}
 					width={120}
 					height={120}
 					className='w-full sm:size-thumbnail-2xl rounded-2xl object-cover mx-auto sm:mx-0'
 				/>{' '}
 				<div className='flex-1 flex flex-col gap-2 items-center sm:items-start text-center sm:text-left'>
-					<h4 className='text-xl font-extrabold text-text'>{recipe.title}</h4>
+					<h4 className='text-xl font-display font-extrabold text-text'>
+						{recipe.title}
+					</h4>
 					<div className='flex gap-3'>
 						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='w-3.5 h-3.5' />
-							{recipe.cookTime} min
+							{recipe.cookTime} {t('unitMin')}
 						</span>
 						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Signal className='w-3.5 h-3.5' />
@@ -359,22 +372,35 @@ function TopRecipeSection({
 					</div>
 					<div className='flex gap-6 mt-auto justify-center sm:justify-start'>
 						<div className='flex flex-col'>
-							<span className='text-xl font-extrabold text-primary'>
-								{recipe.cookCount}
+							<span className='text-xl font-display font-extrabold text-brand'>
+								<AnimatedNumber
+									value={recipe.cookCount}
+									className='tabular-nums'
+								/>
 							</span>
-							<span className='text-xs text-text-secondary'>Cooks</span>
+							<span className='text-xs text-text-secondary'>
+								{t('cooksLabel')}
+							</span>
 						</div>
 						<div className='flex flex-col'>
-							<span className='text-xl font-extrabold text-primary'>
-								{recipe.xpGenerated.toLocaleString()}
+							<span className='text-xl font-display font-extrabold text-brand'>
+								<AnimatedNumber
+									value={recipe.xpGenerated}
+									format={n => n.toLocaleString()}
+									className='tabular-nums'
+								/>
 							</span>
-							<span className='text-xs text-text-secondary'>XP Generated</span>
+							<span className='text-xs text-text-secondary'>
+								{t('xpGenerated')}
+							</span>
 						</div>
 						<div className='flex flex-col'>
-							<span className='text-xl font-extrabold text-primary'>
+							<span className='text-xl font-display font-extrabold text-brand'>
 								{recipe.rating.toFixed(1)}
 							</span>
-							<span className='text-xs text-text-secondary'>Rating</span>
+							<span className='text-xs text-text-secondary'>
+								{t('ratingLabel')}
+							</span>
 						</div>
 					</div>
 				</div>
@@ -398,27 +424,30 @@ function RecipePerformanceSection({
 	onRecipeClick?: (id: string) => void
 	onViewStepAnalytics?: (id: string) => void
 }) {
+	const t = useTranslations('creator')
 	return (
 		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>Recipe Performance</h3>
+				<h3 className='text-lg font-bold text-text'>
+					{t('recipePerformance')}
+				</h3>
 				<button
 					type='button'
 					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-lg text-sm text-text'
 				>
 					<ArrowUpDown className='w-3.5 h-3.5 text-text-secondary' />
-					Most Cooked
+					{t('mostCooked')}
 				</button>
 			</div>
 
 			{recipes.length === 0 ? (
 				<div className='flex flex-col items-center gap-3 py-10 text-center'>
-					<span className='text-4xl'>ðŸ“Š</span>
+					<span className='text-4xl'>📊</span>
 					<p className='text-base font-semibold text-text'>
-						No performance data yet
+						{t('noPerformance')}
 					</p>
 					<p className='text-sm text-text-secondary max-w-xs'>
-						Publish recipes and watch them get cooked â€” your analytics will
+						{t('noPerformanceSubtitle')}
 						appear here.
 					</p>
 				</div>
@@ -440,7 +469,7 @@ function RecipePerformanceSection({
 								recipe.needsAttention && 'border-l-3 border-l-amber-500',
 							)}
 						>
-							<span className='w-7 text-base font-extrabold text-text-secondary text-center'>
+							<span className='w-7 text-base font-display font-extrabold text-text-secondary text-center'>
 								{recipe.rank}
 							</span>{' '}
 							<Image
@@ -459,7 +488,7 @@ function RecipePerformanceSection({
 										className={cn(
 											'inline-flex w-fit px-2 py-0.5 rounded-lg text-xs font-semibold',
 											recipe.badge.type === 'milestone' &&
-												'bg-accent-indigo/10 text-accent-indigo',
+												'bg-info/10 text-info',
 											recipe.badge.type === 'trending' &&
 												'bg-streak/10 text-streak',
 											recipe.badge.type === 'attention' &&
@@ -472,42 +501,54 @@ function RecipePerformanceSection({
 							</div>
 							<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-									<span className='text-base font-extrabold text-text'>
-										{recipe.cookCount}
+									<span className='text-base font-display font-extrabold text-text'>
+										<AnimatedNumber
+											value={recipe.cookCount}
+											className='tabular-nums'
+										/>
 									</span>
-									<span className='text-2xs text-text-secondary'>Cooks</span>
+									<span className='text-2xs text-text-secondary'>
+										{t('cooksLabel')}
+									</span>
 								</div>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-									<span className='text-base font-extrabold text-text'>
-										+{recipe.xpGenerated}
+									<span className='text-base font-display font-extrabold text-text'>
+										+
+										<AnimatedNumber
+											value={recipe.xpGenerated}
+											className='tabular-nums'
+										/>
 									</span>
 									<span className='text-2xs text-text-secondary'>XP</span>
 								</div>
 							</div>
 							{onViewStepAnalytics && recipe.cookCount > 0 && (
 								<motion.button
+									type='button'
 									whileHover={BUTTON_SUBTLE_HOVER}
 									whileTap={BUTTON_SUBTLE_TAP}
 									onClick={e => {
 										e.stopPropagation()
 										onViewStepAnalytics(recipe.id)
 									}}
-									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-brand'
-									title='View step analytics'
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('viewStepAnalytics')}
+									title={t('viewStepAnalytics')}
 								>
 									<BarChart3 className='size-4' />
 								</motion.button>
 							)}
 							{recipe.needsAttention && onImproveRecipe && (
 								<motion.button
+									type='button'
 									whileHover={BUTTON_SUBTLE_HOVER}
 									whileTap={BUTTON_SUBTLE_TAP}
 									onClick={e => {
 										e.stopPropagation()
 										onImproveRecipe(recipe.id)
 									}}
-									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-text'
-									aria-label='Improve recipe'
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaImproveRecipe')}
 								>
 									<Edit3 className='size-4' />
 								</motion.button>
@@ -531,28 +572,28 @@ function RecentCooksSection({
 	cooks: RecentCook[]
 	onViewAll?: () => void
 }) {
+	const t = useTranslations('creator')
 	return (
 		<div className='bg-bg-card rounded-xl p-6 mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>Recent Cooks</h3>
+				<h3 className='text-lg font-bold text-text'>{t('recentCooks')}</h3>
 				{onViewAll && (
 					<button
+						type='button'
 						onClick={onViewAll}
-						className='text-sm font-semibold text-primary'
+						className='text-sm font-semibold text-brand'
 					>
-						See All
+						{t('seeAll')}
 					</button>
 				)}
 			</div>
 
 			{cooks.length === 0 ? (
 				<div className='flex flex-col items-center gap-3 py-10 text-center'>
-					<span className='text-4xl'>ðŸ‘¨â€ðŸ³</span>
-					<p className='text-base font-semibold text-text'>
-						No one has cooked your recipes yet
-					</p>
+					<span className='text-4xl'>👨‍🍳</span>
+					<p className='text-base font-semibold text-text'>{t('noCooks')}</p>
 					<p className='text-sm text-text-secondary max-w-xs'>
-						Share your recipes with friends â€” you earn XP every time someone
+						{t('noCooksSubtitle')}
 						cooks them.
 					</p>
 				</div>
@@ -570,7 +611,7 @@ function RecentCooksSection({
 							className='flex items-center gap-3 p-3 bg-bg rounded-xl'
 						>
 							<Image
-								src={cook.userAvatar || '/images/default-avatar.png'}
+								src={cook.userAvatar || '/placeholder-avatar.svg'}
 								alt={cook.userName}
 								width={40}
 								height={40}
@@ -586,8 +627,12 @@ function RecentCooksSection({
 								</span>
 							</div>
 							<div className='text-right'>
-								<span className='block text-base font-extrabold text-success'>
-									+{cook.xpEarned}
+								<span className='block text-base font-display font-extrabold text-success'>
+									+
+									<AnimatedNumber
+										value={cook.xpEarned}
+										className='tabular-nums'
+									/>
 								</span>
 								<span className='text-2xs text-text-secondary'>XP</span>
 							</div>
@@ -604,6 +649,7 @@ function RecentCooksSection({
 // ============================================================================
 
 function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
+	const t = useTranslations('creator')
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -615,11 +661,9 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			)}
 		>
 			<div className='flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left'>
-				<span className='text-icon-xl'>âœ¨</span>
+				<span className='text-icon-xl'>✨</span>
 				<div className='flex flex-col'>
-					<strong className='text-base text-text'>
-						Share your next masterpiece
-					</strong>
+					<strong className='text-base text-text'>{t('createCtaTitle')}</strong>
 					<span className='text-sm text-text-secondary'>
 						Every cook of your recipe earns you 4% XP
 					</span>
@@ -627,18 +671,19 @@ function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
 			</div>
 
 			<motion.button
-				whileHover={{ ...LIST_ITEM_HOVER, ...STAT_ITEM_HOVER }}
+				type='button'
+				whileHover={STAT_ITEM_HOVER}
 				whileTap={LIST_ITEM_TAP}
 				onClick={onCreateRecipe}
 				className={cn(
-					'flex items-center justify-center gap-2 py-3 px-5',
+					'flex items-center justify-center gap-2 py-3 px-5 focus-visible:ring-2 focus-visible:ring-brand/50',
 					'bg-gradient-hero',
 					'rounded-xl text-sm font-bold text-white w-full sm:w-auto',
 					'shadow-card shadow-brand/20',
 				)}
 			>
 				<Plus className='size-icon-sm' />
-				Create Recipe
+				{t('createRecipe')}
 			</motion.button>
 		</motion.div>
 	)
@@ -664,27 +709,26 @@ export function CreatorDashboard({
 	onViewStepAnalytics,
 	className,
 }: CreatorDashboardProps) {
+	const t = useTranslations('creator')
 	return (
-		<div className={cn('max-w-container-lg mx-auto p-5', className)}>
+		<div className={cn('max-w-lg mx-auto p-5', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-4 mb-6'>
 				{onBack && (
 					<motion.button
+						type='button'
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='size-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text'
-						aria-label='Go back'
+						className='size-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
 				<div className='flex-1 flex items-center gap-3 flex-wrap'>
-					<h1 className='text-2xl font-extrabold text-text'>
-						Creator Dashboard
-					</h1>
 					<span className='py-1 px-2.5 bg-xp/20 border border-xp/30 rounded-xl text-xs font-semibold text-xp'>
-						ðŸ“ Recipe Creator
+						📝 Recipe Creator
 					</span>
 				</div>
 			</div>

@@ -72,4 +72,6 @@ export interface ChangePasswordDto {
 
 export interface GoogleSignInDto {
 	code: string
+	redirectUri: string
+	codeVerifier: string
 }

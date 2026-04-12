@@ -1,8 +1,11 @@
-'use client'
+﻿'use client'
+
+import { useTranslations } from 'next-intl'
 
 import { motion } from 'framer-motion'
 import { Clock, Users, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatCompactTimeRemaining } from '@/lib/challenge-time'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -10,7 +13,9 @@ import {
 	CARD_FEED_HOVER,
 	STAT_ITEM_HOVER,
 	LIST_ITEM_TAP,
+	DURATION_S,
 } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================
 // TYPES
@@ -42,46 +47,31 @@ interface ChallengeCardProps {
 // HELPER FUNCTIONS
 // ============================================
 
-const formatTimeRemaining = (date: Date): string => {
-	const now = new Date()
-	const diffMs = date.getTime() - now.getTime()
 
-	if (diffMs <= 0) return 'Expired'
-
-	const hours = Math.floor(diffMs / 3600000)
-	const mins = Math.floor((diffMs % 3600000) / 60000)
-
-	if (hours >= 24) {
-		const days = Math.floor(hours / 24)
-		return `${days}d`
-	}
-
-	return `${hours}h ${mins}m`
-}
 
 const typeConfig: Record<
 	ChallengeType,
-	{ gradient: string; label: string; labelColor: string }
+	{ gradient: string; labelColor: string; labelKey: string }
 > = {
 	daily: {
-		gradient: 'from-xp via-cyan-400 to-blue-500',
-		label: '🎯 Daily Challenge',
+		gradient: 'from-xp via-accent-teal to-info',
 		labelColor: 'text-xp',
+		labelKey: 'dailyChallenge',
 	},
 	weekly: {
-		gradient: 'from-rare via-purple-500 to-pink-500',
-		label: '📅 Weekly Challenge',
+		gradient: 'from-rare via-accent-purple to-brand',
 		labelColor: 'text-rare',
+		labelKey: 'weeklyChallenge',
 	},
 	community: {
-		gradient: 'from-combo via-pink-400 to-rose-500',
-		label: '👥 Community Challenge',
+		gradient: 'from-combo via-brand to-brand',
 		labelColor: 'text-combo',
+		labelKey: 'communityChallenge',
 	},
 	seasonal: {
-		gradient: 'from-legendary via-amber-400 to-bonus',
-		label: '🌟 Seasonal Event',
+		gradient: 'from-legendary via-warning to-bonus',
 		labelColor: 'text-legendary',
+		labelKey: 'seasonalEvent',
 	},
 }
 
@@ -109,6 +99,7 @@ export const ChallengeCard = ({
 		: 0
 	const isCompleted = status === 'completed'
 	const isExpired = status === 'expired'
+	const t = useTranslations('challenge')
 
 	return (
 		<motion.div
@@ -137,13 +128,13 @@ export const ChallengeCard = ({
 							config.labelColor,
 						)}
 					>
-						{config.label}
+						{t(config.labelKey as Parameters<typeof t>[0])}
 					</span>
 					<span className='text-3xl'>{icon}</span>
 				</div>
 
 				{/* Title */}
-				<h3 className='mb-2 text-lg font-extrabold leading-tight'>{title}</h3>
+				<h3 className='mb-2 text-lg font-display font-extrabold leading-tight'>{title}</h3>
 
 				{/* Description */}
 				{description && (
@@ -156,9 +147,9 @@ export const ChallengeCard = ({
 				{progress && (
 					<div className='mb-4'>
 						<div className='mb-1.5 flex justify-between text-xs'>
-							<span className='opacity-80'>Progress</span>
-							<span className='font-semibold'>
-								{progress.current}/{progress.total}
+							<span className='opacity-80'>{t('progress')}</span>
+						<span className='font-semibold tabular-nums'>
+							<AnimatedNumber value={progress.current} />/{progress.total}
 							</span>
 						</div>
 						<div className='h-2.5 overflow-hidden rounded-full bg-white/20'>
@@ -166,7 +157,7 @@ export const ChallengeCard = ({
 								className='h-full rounded-full bg-white'
 								initial={{ width: 0 }}
 								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: 0.5, delay: 0.2 }}
+								transition={{ duration: DURATION_S.slow, delay: 0.2 }}
 							/>
 						</div>
 					</div>
@@ -177,21 +168,21 @@ export const ChallengeCard = ({
 					{/* Bonus XP */}
 					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-card shadow-bonus/20'>
 						<span>⚡</span>
-						<span className='font-bold text-bonus'>+{bonusXp} XP</span>
+						<span className='font-bold tabular-nums text-bonus'>+<AnimatedNumber value={bonusXp} /> XP</span>
 					</div>
 
 					{/* Time Remaining */}
 					{endsAt && (
 						<div className='flex items-center gap-1 opacity-80'>
-							<Clock className='h-3.5 w-3.5' />
-							<span>{formatTimeRemaining(endsAt)}</span>
+							<Clock className='size-3.5' />
+							<span>{formatCompactTimeRemaining(endsAt, t)}</span>
 						</div>
 					)}
 
 					{/* Participants */}
 					{participants !== undefined && (
 						<div className='flex items-center gap-1 opacity-80'>
-							<Users className='h-3.5 w-3.5' />
+							<Users className='size-3.5' />
 							<span>
 								{participants >= 1000
 									? `${(participants / 1000).toFixed(1)}k`
@@ -204,15 +195,16 @@ export const ChallengeCard = ({
 				{/* Action Button */}
 				{isCompleted ? (
 					<div className='flex items-center justify-center gap-2 rounded-full bg-white/20 py-2.5 text-sm font-bold'>
-						<Trophy className='h-4 w-4' />
-						Completed!
+						<Trophy className='size-4' />
+							{t('completed')}
 					</div>
 				) : isExpired ? (
 					<div className='flex items-center justify-center rounded-full bg-white/10 py-2.5 text-sm font-semibold opacity-60'>
-						Expired
+						{t('expired')}
 					</div>
 				) : (
 					<motion.button
+						type='button'
 						onClick={e => {
 							e.stopPropagation()
 							onJoin?.()
@@ -220,13 +212,13 @@ export const ChallengeCard = ({
 						whileHover={STAT_ITEM_HOVER}
 						whileTap={LIST_ITEM_TAP}
 						className={cn(
-							'w-full rounded-full py-2.5 text-sm font-bold transition-all',
+							'w-full rounded-full py-2.5 text-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 							isJoined
 								? 'bg-white/20 text-white'
-								: 'bg-bg-card text-accent-indigo hover:bg-bg-card/90',
+								: 'bg-bg-card text-info hover:bg-bg-card/90',
 						)}
 					>
-						{isJoined ? 'View Challenge' : 'Join Challenge'}
+						{isJoined ? t('viewChallenge') : t('joinChallenge')}
 					</motion.button>
 				)}
 			</div>
@@ -235,7 +227,7 @@ export const ChallengeCard = ({
 			{isCompleted && (
 				<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
 					<div className='rounded-full bg-success px-4 py-2 text-sm font-bold shadow-lg'>
-						✓ Completed
+						✓ {t('completedOverlay')}
 					</div>
 				</div>
 			)}
@@ -251,7 +243,7 @@ export const ChallengeCardSkeleton = () => (
 	<div className='animate-pulse rounded-2xl bg-bg-elevated p-6'>
 		<div className='mb-4 flex items-start justify-between'>
 			<div className='h-4 w-24 rounded bg-border-subtle' />
-			<div className='h-8 w-8 rounded-lg bg-border-subtle' />
+			<div className='size-8 rounded-lg bg-border-subtle' />
 		</div>
 		<div className='mb-2 h-6 w-3/4 rounded bg-border-subtle' />
 		<div className='mb-4 h-4 w-full rounded bg-border-subtle' />

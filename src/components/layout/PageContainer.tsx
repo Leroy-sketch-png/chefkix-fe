@@ -8,22 +8,22 @@ interface PageContainerProps {
 }
 
 const maxWidthClasses = {
-	sm: 'max-w-container-sm',
-	md: 'max-w-container-md',
-	lg: 'max-w-container-lg',
-	xl: 'max-w-container-xl',
+	sm: 'max-w-sm',
+	md: 'max-w-md',
+	lg: 'max-w-lg',
+	xl: 'max-w-xl',
 	'2xl': 'max-w-7xl',
-	form: 'max-w-container-form',
+	form: 'max-w-form',
 	full: 'max-w-full',
 }
 
 export const PageContainer = ({
 	children,
-	maxWidth = 'lg', // Default to 850px social-media-style center
+	maxWidth = 'lg', // Default to 800px social-media-style center
 	className,
 }: PageContainerProps) => {
 	return (
-		<div className={cn('mx-auto w-full px-4 sm:px-6 lg:px-8', maxWidthClasses[maxWidth], className)}>
+		<div className={cn('mx-auto w-full', maxWidthClasses[maxWidth], className)}>
 			{children}
 		</div>
 	)

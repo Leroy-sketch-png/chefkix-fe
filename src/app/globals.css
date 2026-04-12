@@ -14,6 +14,7 @@
 	/* Primary Brand - Energetic Coral/Orange-Red */
 	--color-brand: #ff5a36; /* More vibrant coral - CTAs, primary actions */
 	--color-brand-hover: #e64a2e; /* Darker for hover */
+	--color-brand-text: #bc3518; /* Accessible coral for text on light bg (WCAG AA ≥4.5:1) */
 	--color-brand-subtle: #fff0eb; /* Soft background tint */
 
 	/* Secondary Brand - Electric Purple (for variety & gaming feel) */
@@ -29,8 +30,10 @@
 	/* Semantic Colors - VIBRANT & Expressive */
 	--color-success: #10b981; /* Brighter emerald - completed, achievements */
 	--color-success-vivid: #34d399; /* Extra pop for celebrations */
+	--color-success-deep: #047857; /* Darker emerald - AA-contrast on light bg */
 	--color-warning: #f59e0b; /* Richer amber - caution, timers */
 	--color-warning-vivid: #fbbf24; /* Urgent warnings */
+	--color-warning-deep: #b45309; /* Darker amber - AA-contrast on light bg */
 	--color-error: #ef4444; /* Vibrant red - errors, destructive */
 	--color-error-vivid: #f87171; /* Urgent errors */
 	--color-info: #3b82f6; /* Brighter blue - tips, info */
@@ -38,12 +41,16 @@
 
 	/* Gaming Colors - XP, Streaks, Levels, Rarity */
 	--color-streak: #f97316; /* Fire orange - streaks */
+	--color-streak-text: #ad5008; /* Accessible orange for text (WCAG AA ≥4.5:1) */
 	--color-streak-urgent: #dc2626; /* Deep red - about to lose streak */
 	--color-xp: #a855f7; /* Purple - XP gains */
+	--color-xp-text: #8b2fd0; /* Accessible purple for text (WCAG AA ≥4.5:1) */
 	--color-bonus: #c084fc; /* Lighter purple - bonus XP, rewards */
 	--color-level: #eab308; /* Gold - level ups */
+	--color-level-text: #856200; /* Accessible gold for text (WCAG AA ≥4.5:1) */
 	--color-level-glow: #fde047; /* Bright gold glow */
 	--color-badge: #06b6d4; /* Cyan - badges earned */
+	--color-badge-text: #067a97; /* Accessible cyan for text (WCAG AA ≥4.5:1) */
 
 	/* Rarity Colors - Gaming RPG style */
 	--color-rare: #3b82f6; /* Blue - rare items/achievements */
@@ -110,7 +117,7 @@
 	--text-primary: #2c2420;
 	--text-secondary: #524840; /* Dark chocolate - readable warmth */
 	--text-tertiary: #6b5f55; /* Cocoa - medium emphasis (WCAG AA ≥4.5:1 on --bg) */
-	--text-muted: #766b62; /* Latte - soft muted (WCAG AA ≥4.5:1 on --bg) */
+	--text-muted: #6f665e; /* Latte - soft muted (WCAG AA ≥4.5:1 on all light surfaces) */
 
 	/* Borders - Warm stone/terracotta undertones */
 	--border: #e5ddd5; /* Warm sand border */
@@ -217,6 +224,16 @@
 		#1e1b4b 50%,
 		#581c87 100%
 	);
+
+	/* Image scrim overlay (card images, recipe covers) */
+	--gradient-scrim: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.6) 0%,
+		transparent 100%
+	);
+
+	/* Hero text gradient (brand → streak → XP) */
+	--gradient-hero-text: linear-gradient(to right, #ff5a36, #f97316, #a855f7);
 
 	/* ============ BORDER WIDTHS ============ */
 	/* Emphasis borders for avatars, badges, indicators */
@@ -358,6 +375,9 @@
 		0 16px 48px rgba(44, 36, 32, 0.14), 0 8px 16px rgba(44, 36, 32, 0.08);
 	--shadow-2xl:
 		0 24px 64px rgba(44, 36, 32, 0.18), 0 12px 24px rgba(44, 36, 32, 0.1);
+	--shadow-modal:
+		0 25px 50px rgba(44, 36, 32, 0.2), 0 12px 24px rgba(44, 36, 32, 0.1); /* Modal/dialog elevation */
+	--shadow-badge: 0 2px 8px rgba(44, 36, 32, 0.15); /* Floating badges, chips */
 
 	/* ============ TRANSITIONS - SMOOTH & DELIGHTFUL ============ */
 	--transition-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -495,6 +515,7 @@
 	/* ============ DARK MODE BRAND - EXTRA VIBRANT ============ */
 	--color-brand: #ff6b4a; /* Brighter on dark */
 	--color-brand-hover: #ff8566;
+	--color-brand-text: #ff6b4a; /* Same as brand on dark (already accessible) */
 	--color-brand-subtle: #2d1810;
 
 	/* Secondary Accent - Purple glows on dark */
@@ -510,8 +531,10 @@
 	/* Semantic colors - VIVID on dark */
 	--color-success: #34d399;
 	--color-success-vivid: #6ee7b7;
+	--color-success-deep: #34d399; /* Dark mode: lighter for contrast */
 	--color-warning: #fbbf24;
 	--color-warning-vivid: #fcd34d;
+	--color-warning-deep: #fbbf24; /* Dark mode: lighter for contrast */
 	--color-error: #f87171;
 	--color-error-vivid: #fca5a5;
 	--color-info: #60a5fa;
@@ -519,12 +542,16 @@
 
 	/* Gaming colors - GLOW on dark */
 	--color-streak: #fb923c;
+	--color-streak-text: #fb923c; /* Same on dark (already accessible) */
 	--color-streak-urgent: #ef4444;
 	--color-xp: #c084fc;
+	--color-xp-text: #c084fc; /* Same on dark */
 	--color-bonus: #d8b4fe;
 	--color-level: #fbbf24;
+	--color-level-text: #fbbf24; /* Same on dark */
 	--color-level-glow: #fef08a;
 	--color-badge: #22d3ee;
+	--color-badge-text: #22d3ee; /* Same on dark */
 
 	/* Rarity Colors - Glow on dark */
 	--color-rare: #60a5fa; /* Brighter blue */
@@ -542,6 +569,9 @@
 		0 2px 16px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 107, 74, 0.1); /* Subtle warm edge */
 	--shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
 	--shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
+	--shadow-modal:
+		0 25px 50px rgba(0, 0, 0, 0.8), 0 12px 24px rgba(0, 0, 0, 0.6);
+	--shadow-badge: 0 2px 8px rgba(0, 0, 0, 0.5);
 
 	/* ============ DARK MODE GRADIENTS - RICH ============ */
 	--gradient-brand: linear-gradient(
@@ -608,8 +638,10 @@
 	/* ============ SEMANTIC COLORS ============ */
 	--color-success: var(--color-success);
 	--color-success-vivid: var(--color-success-vivid);
+	--color-success-deep: var(--color-success-deep);
 	--color-warning: var(--color-warning);
 	--color-warning-vivid: var(--color-warning-vivid);
+	--color-warning-deep: var(--color-warning-deep);
 	--color-error: var(--color-error);
 	--color-error-vivid: var(--color-error-vivid);
 	--color-info: var(--color-info);
@@ -760,6 +792,66 @@
 	--container-5xl: 64rem; /* 1024px */
 	--container-6xl: 72rem; /* 1152px */
 	--container-7xl: 80rem; /* 1280px */
+
+	/* Modal max-widths - For max-w-modal-* utilities */
+	--container-modal-sm: var(--modal-sm); /* 380px */
+	--container-modal-md: var(--modal-md); /* 420px */
+	--container-modal-lg: var(--modal-lg); /* 480px */
+	--container-modal-xl: var(--modal-xl); /* 600px */
+	--container-modal-2xl: var(--modal-2xl); /* 768px */
+
+	/* Form container */
+	--container-form: 56.25rem; /* 900px */
+
+	/* Bubble max-widths */
+	--container-bubble-sm: var(--bubble-sm); /* 200px */
+	--container-bubble-md: var(--bubble-md); /* 280px */
+	--container-bubble-lg: var(--bubble-lg); /* 400px */
+
+	/* Step dots max-widths */
+	--container-step-dots: var(--step-dots-max-w); /* 280px */
+	--container-step-dots-lg: var(--step-dots-max-w-lg); /* 400px */
+
+	/* Thumbnail max-widths */
+	--container-thumbnail-sm: var(--thumbnail-sm); /* 60px */
+	--container-thumbnail-md: var(--thumbnail-md); /* 80px */
+	--container-thumbnail-lg: var(--thumbnail-lg); /* 80px */
+	--container-thumbnail-xl: var(--thumbnail-xl); /* 100px */
+	--container-thumbnail-2xl: var(--thumbnail-2xl); /* 120px */
+
+	/* ============ SPACING-BASED SIZE TOKENS ============ */
+	/* These generate size-*, w-*, h-* utilities via Tailwind v4 --spacing-* namespace */
+
+	/* Avatar sizes */
+	--spacing-avatar-xs: var(--avatar-xs); /* 32px */
+	--spacing-avatar-sm: var(--avatar-sm); /* 42px */
+	--spacing-avatar-md: var(--avatar-md); /* 72px */
+	--spacing-avatar-lg: var(--avatar-lg); /* 100px */
+	--spacing-avatar-xl: var(--avatar-xl); /* 120px */
+
+	/* Icon sizes */
+	--spacing-icon-2xs: var(--icon-2xs); /* 14px */
+	--spacing-icon-xs: var(--icon-xs); /* 14px */
+	--spacing-icon-sm: var(--icon-sm); /* 18px */
+	--spacing-icon-md: var(--icon-md); /* 22px */
+	--spacing-icon-lg: var(--icon-lg); /* 28px */
+	--spacing-icon-xl: var(--icon-xl); /* 32px */
+	--spacing-icon-2xl: var(--icon-2xl); /* 40px */
+	--spacing-icon-emoji: var(--icon-emoji); /* 28px */
+	--spacing-icon-emoji-lg: var(--icon-emoji-lg); /* 32px */
+	--spacing-icon-emoji-xl: var(--icon-emoji-xl); /* 64px */
+
+	/* Thumbnail sizes */
+	--spacing-thumbnail-sm: var(--thumbnail-sm); /* 60px */
+	--spacing-thumbnail-md: var(--thumbnail-md); /* 80px */
+	--spacing-thumbnail-lg: var(--thumbnail-lg); /* 80px */
+	--spacing-thumbnail-xl: var(--thumbnail-xl); /* 100px */
+	--spacing-thumbnail-2xl: var(--thumbnail-2xl); /* 120px */
+
+	/* Layout sizes */
+	--spacing-nav: var(--nav-w); /* sidebar width */
+	--spacing-right: var(--right-w); /* right sidebar width */
+	--spacing-drawer: var(--drawer-w); /* drawer width */
 }
 
 /* Note: Gradient utilities are defined via @utility directives at the end of this file */
@@ -924,21 +1016,6 @@ img[alt]:after {
 
 .animate-glow-pulse {
 	animation: glow-pulse 2s ease-in-out infinite;
-}
-
-/* Auth page floating orbs — gentle vertical drift with subtle scale breath */
-@keyframes float-orb {
-	0%,
-	100% {
-		transform: translateY(0) scale(1);
-	}
-	50% {
-		transform: translateY(-20px) scale(1.05);
-	}
-}
-
-.animate-float-orb {
-	animation: float-orb 8s ease-in-out infinite;
 }
 
 /* Subtle urgency pulse for deadline/expiring cards */
@@ -1175,4 +1252,53 @@ select {
 		#1e1b4b 50%,
 		#581c87 100%
 	);
+}
+
+@utility bg-gradient-scrim {
+	background-image: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.65) 0%,
+		rgba(0, 0, 0, 0.15) 60%,
+		rgba(0, 0, 0, 0.05) 100%
+	);
+}
+
+@utility bg-gradient-hero-text {
+	background-image: linear-gradient(to right, #ff5a36, #f97316, #a855f7);
+}
+
+/* ============ Z-INDEX UTILITIES ============ */
+/* Tailwind v4 has no --z-* namespace, so we define custom @utility directives */
+@utility z-dropdown {
+	z-index: var(--z-dropdown);
+}
+@utility z-sticky {
+	z-index: var(--z-sticky);
+}
+@utility z-modal {
+	z-index: var(--z-modal);
+}
+@utility z-notification {
+	z-index: var(--z-notification);
+}
+@utility z-toast {
+	z-index: var(--z-notification); /* Same level as notification */
+}
+@utility z-tooltip {
+	z-index: var(--z-tooltip);
+}
+
+/* ============ HEIGHT / MAX-HEIGHT UTILITIES ============ */
+/* Custom height utilities not covered by --spacing-* namespace */
+@utility h-panel-md {
+	height: var(--h-panel-md);
+}
+@utility h-panel-xl {
+	height: var(--h-panel-xl);
+}
+@utility h-card-image {
+	height: var(--card-image-height);
+}
+@utility max-h-panel-lg {
+	max-height: var(--h-panel-lg);
 }

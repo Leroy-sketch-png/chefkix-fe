@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Sparkles,
@@ -72,8 +73,8 @@ interface Message {
 interface QuickAction {
 	id: string
 	icon: React.ReactNode
-	label: string
-	prompt: string
+	labelKey: string
+	promptKey: string
 }
 
 interface AiAssistantProps {
@@ -93,29 +94,28 @@ const QUICK_ACTIONS: QuickAction[] = [
 	{
 		id: 'substitute',
 		icon: <span>🔄</span>,
-		label: "I'm missing an ingredient",
-		prompt: "I'm missing an ingredient. What can I substitute?",
+		labelKey: 'qaMissingIngredient',
+		promptKey: 'qaMissingPrompt',
 	},
 	{
 		id: 'technique',
 		icon: <span>🔪</span>,
-		label: 'How do I do this technique?',
-		prompt: 'Can you explain this cooking technique in more detail?',
+		labelKey: 'qaTechnique',
+		promptKey: 'qaTechniquePrompt',
 	},
 	{
 		id: 'timing',
 		icon: <span>⏱️</span>,
-		label: 'Is this done yet?',
-		prompt: 'How do I know when this step is complete? What should I look for?',
+		labelKey: 'qaDoneYet',
+		promptKey: 'qaDonePrompt',
 	},
 	{
 		id: 'troubleshoot',
 		icon: <span>🆘</span>,
-		label: 'Something went wrong',
-		prompt: 'Something went wrong with my dish. Can you help me fix it?',
+		labelKey: 'qaWentWrong',
+		promptKey: 'qaWrongPrompt',
 	},
 ]
-
 // ============================================
 // SUB-COMPONENTS
 // ============================================
@@ -125,6 +125,7 @@ interface ChatMessageProps {
 }
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
+	const t = useTranslations('cooking')
 	const isUser = message.role === 'user'
 
 	return (
@@ -137,7 +138,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 			{/* Avatar */}
 			<div
 				className={cn(
-					'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm',
+					'flex size-8 shrink-0 items-center justify-center rounded-full text-sm',
 					isUser ? 'bg-brand text-white' : 'bg-gradient-indigo text-white',
 				)}
 			>
@@ -161,13 +162,17 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 				{message.type === 'warning' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-warning'>
 						<AlertTriangle className='size-4' />
-						<span className='text-xs font-semibold uppercase'>Warning</span>
+						<span className='text-xs font-semibold uppercase'>
+							{t('aiWarning')}
+						</span>
 					</div>
 				)}
 				{message.type === 'tip' && (
 					<div className='mb-1.5 flex items-center gap-1.5 text-success'>
 						<Lightbulb className='size-4' />
-						<span className='text-xs font-semibold uppercase'>Pro Tip</span>
+						<span className='text-xs font-semibold uppercase'>
+							{t('aiProTip')}
+						</span>
 					</div>
 				)}
 
@@ -188,7 +193,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
 						</div>
 						{message.metadata.substitution.ratio && (
 							<p className='mt-1 text-sm text-text-secondary'>
-								Ratio: {message.metadata.substitution.ratio}
+								{t('aiRatio', { ratio: message.metadata.substitution.ratio })}
 							</p>
 						)}
 					</div>
@@ -208,7 +213,7 @@ const TypingIndicator = () => (
 		exit={{ opacity: 0, scale: 0.8 }}
 		className='flex gap-2'
 	>
-		<div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-indigo text-white'>
+		<div className='flex size-8 items-center justify-center rounded-full bg-gradient-indigo text-white'>
 			✨
 		</div>
 		<div className='flex items-center gap-1.5 rounded-2xl bg-bg-elevated px-4 py-3'>
@@ -221,7 +226,7 @@ const TypingIndicator = () => (
 						repeat: Infinity,
 						delay: i * 0.15,
 					}}
-					className='h-2 w-2 rounded-full bg-text-tertiary'
+					className='size-2 rounded-full bg-text-tertiary'
 				/>
 			))}
 		</div>
@@ -237,25 +242,30 @@ interface AiButtonProps {
 	hasUnreadSuggestion?: boolean
 }
 
-export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => (
-	<motion.button
-		onClick={onClick}
-		whileHover={ICON_BUTTON_HOVER}
-		whileTap={ICON_BUTTON_TAP}
-		animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
-		className={cn(
-			'fixed bottom-24 right-4 z-popover flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-6',
-			'bg-gradient-indigo text-white',
-		)}
-	>
-		<Sparkles className='h-6 w-6' />
-		{hasUnreadSuggestion && (
-			<span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-error text-xs font-bold'>
-				1
-			</span>
-		)}
-	</motion.button>
-)
+export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => {
+	const t = useTranslations('cooking')
+	return (
+		<motion.button
+			type='button'
+			onClick={onClick}
+			whileHover={ICON_BUTTON_HOVER}
+			whileTap={ICON_BUTTON_TAP}
+			animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
+			className={cn(
+				'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-lg md:bottom-6 focus-visible:ring-2 focus-visible:ring-brand/50',
+				'bg-gradient-indigo text-white',
+			)}
+			aria-label={t('ariaOpenAiAssistant')}
+		>
+			<Sparkles className='size-6' />
+			{hasUnreadSuggestion && (
+				<span className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-error text-xs font-bold'>
+					1
+				</span>
+			)}
+		</motion.button>
+	)
+}
 
 // ============================================
 // MAIN COMPONENT
@@ -269,6 +279,7 @@ export const AiAssistant = ({
 	onClose,
 	isOpen,
 }: AiAssistantProps) => {
+	const t = useTranslations('cooking')
 	const [messages, setMessages] = useState<Message[]>([])
 	const [inputValue, setInputValue] = useState('')
 	const [isTyping, setIsTyping] = useState(false)
@@ -289,9 +300,9 @@ export const AiAssistant = ({
 
 	// Focus input when opened
 	useEffect(() => {
-		if (isOpen) {
-			setTimeout(() => inputRef.current?.focus(), 300)
-		}
+		if (!isOpen) return
+		const id = setTimeout(() => inputRef.current?.focus(), 300)
+		return () => clearTimeout(id)
 	}, [isOpen])
 
 	// Initial welcome message
@@ -302,12 +313,12 @@ export const AiAssistant = ({
 					id: 'welcome',
 					role: 'assistant',
 					type: 'text',
-					content: `Hi! I'm your cooking assistant for "${recipeTitle}". Ask me anything about this recipe - substitutions, techniques, timing, or if something goes wrong!`,
+					content: t('aiWelcome', { recipe: recipeTitle }),
 					timestamp: new Date(),
 				},
 			])
 		}
-	}, [isOpen, recipeTitle, messages.length])
+	}, [isOpen, recipeTitle, messages.length, t])
 
 	const handleSend = async (prompt?: string) => {
 		const text = prompt || inputValue.trim()
@@ -337,7 +348,7 @@ export const AiAssistant = ({
 				content:
 					response.success && response.data
 						? response.data.answer
-						: "Sorry, I couldn't process your question. Please try again.",
+						: t('aiSorryRetry'),
 				timestamp: new Date(),
 				metadata: text.toLowerCase().includes('substitute')
 					? {
@@ -367,8 +378,7 @@ export const AiAssistant = ({
 				id: `error-${Date.now()}`,
 				role: 'assistant',
 				type: 'warning',
-				content:
-					'Unable to reach the AI assistant. Please check your connection and try again.',
+				content: t('aiErrorReach'),
 				timestamp: new Date(),
 			}
 			setMessages(prev => [...prev, errorResponse])
@@ -378,7 +388,7 @@ export const AiAssistant = ({
 	}
 
 	const handleQuickAction = (action: QuickAction) => {
-		handleSend(action.prompt)
+		handleSend(t(action.promptKey))
 	}
 
 	const toggleListening = () => {
@@ -449,28 +459,32 @@ export const AiAssistant = ({
 						initial='hidden'
 						animate='visible'
 						exit='exit'
-						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-panel-bg shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
+						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-bg-card shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
+						role='dialog'
+						aria-modal='true'
+						aria-label={t('aiCookingAssistant')}
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border bg-gradient-indigo p-4 text-white'>
 							<div className='flex items-center gap-3'>
-								<div className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20'>
-									<Sparkles className='h-5 w-5' />
+								<div className='flex size-10 items-center justify-center rounded-full bg-white/20'>
+									<Sparkles className='size-5' />
 								</div>
 								<div>
-									<h3 className='font-bold'>AI Cooking Assistant</h3>
+									<h3 className='font-bold'>{t('aiCookingAssistant')}</h3>
 									<p className='text-sm text-white/80'>
-										Step {currentStep} • {recipeTitle}
+										{t('aiStepDot', { step: currentStep, recipe: recipeTitle })}
 									</p>
 								</div>
 							</div>
 							<div className='flex items-center gap-2'>
 								<button
+									type='button'
 									onClick={onClose}
-									aria-label='Close AI assistant'
+									aria-label={t('cpClose')}
 									className='rounded-full p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white'
 								>
-									<X className='h-5 w-5' />
+									<X className='size-5' />
 								</button>
 							</div>
 						</div>
@@ -478,7 +492,7 @@ export const AiAssistant = ({
 						{/* Current step context */}
 						<div className='border-b border-border bg-bg-elevated px-4 py-3'>
 							<p className='text-xs font-medium uppercase text-text-tertiary'>
-								Current Step
+								{t('aiCurrentStep')}
 							</p>
 							<p className='mt-1 line-clamp-2 text-sm text-text-secondary'>
 								{currentStepInstruction}
@@ -502,17 +516,18 @@ export const AiAssistant = ({
 						{messages.length <= 1 && (
 							<div className='border-t border-border bg-bg-elevated p-4'>
 								<p className='mb-2 text-xs font-medium uppercase text-text-tertiary'>
-									Quick Actions
+									{t('aiQuickActions')}
 								</p>
 								<div className='grid grid-cols-2 gap-2'>
 									{QUICK_ACTIONS.map(action => (
 										<button
+											type='button'
 											key={action.id}
 											onClick={() => handleQuickAction(action)}
 											className='flex items-center gap-2 rounded-lg bg-bg-card p-3 text-left text-sm transition-colors hover:bg-bg-hover'
 										>
 											<span className='text-lg'>{action.icon}</span>
-											<span className='font-medium'>{action.label}</span>
+											<span className='font-medium'>{t(action.labelKey)}</span>
 										</button>
 									))}
 								</div>
@@ -525,21 +540,22 @@ export const AiAssistant = ({
 								{/* Voice input button - only shown when Web Speech API is available */}
 								{speechSupported && (
 									<button
+										type='button'
 										onClick={toggleListening}
 										aria-label={
-											isListening ? 'Stop listening' : 'Start voice input'
+											isListening ? t('aiStopListening') : t('aiStartVoice')
 										}
 										className={cn(
-											'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors',
+											'flex size-10 shrink-0 items-center justify-center rounded-full transition-colors',
 											isListening
 												? 'bg-error text-white'
 												: 'bg-bg-elevated text-text-tertiary hover:bg-bg-hover',
 										)}
 									>
 										{isListening ? (
-											<Mic className='h-5 w-5 animate-pulse' />
+											<Mic className='size-5 animate-pulse' />
 										) : (
-											<MicOff className='h-5 w-5' />
+											<MicOff className='size-5' />
 										)}
 									</button>
 								)}
@@ -551,14 +567,16 @@ export const AiAssistant = ({
 										value={inputValue}
 										onChange={e => setInputValue(e.target.value)}
 										onKeyDown={e => e.key === 'Enter' && handleSend()}
-										placeholder='Ask me anything...'
-										className='w-full rounded-full bg-bg-elevated px-4 py-2.5 pr-12 text-sm outline-none placeholder:text-text-muted focus:ring-2 focus:ring-brand/30'
+										placeholder={t('aiAskAnything')}
+										aria-label={t('aiAskAnything')}
+										className='w-full rounded-full bg-bg-elevated px-4 py-2.5 pr-12 text-sm outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-brand/30'
 									/>
 									<button
+										type='button'
 										onClick={() => handleSend()}
 										disabled={!inputValue.trim() || isTyping}
 										className={cn(
-											'absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors',
+											'absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors',
 											inputValue.trim()
 												? 'bg-brand text-white'
 												: 'text-text-tertiary',
@@ -567,7 +585,7 @@ export const AiAssistant = ({
 										{isTyping ? (
 											<Loader2 className='size-4 animate-spin' />
 										) : (
-											<Send className='h-4 w-4' />
+											<Send className='size-4' />
 										)}
 									</button>
 								</div>

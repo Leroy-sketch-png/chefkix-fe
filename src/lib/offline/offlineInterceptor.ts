@@ -1,9 +1,9 @@
 /**
  * Offline interceptor for axios
- * 
+ *
  * When the browser is offline and a cooking session action fails,
  * instead of throwing an error, queue the request for replay.
- * 
+ *
  * Only queues non-GET requests to cooking-session endpoints,
  * since read operations need real data from the server.
  */
@@ -17,7 +17,10 @@ const QUEUEABLE_PATTERNS = [
 	'/cooking-sessions/', // step navigation, timer events, step completion
 ]
 
-function isQueueableRequest(url: string | undefined, method: string | undefined): boolean {
+function isQueueableRequest(
+	url: string | undefined,
+	method: string | undefined,
+): boolean {
 	if (!url || !method) return false
 	const m = method.toUpperCase()
 	// Only queue state-mutating requests (not GETs)
@@ -56,7 +59,12 @@ export function installOfflineInterceptor(): void {
 				try {
 					await queueRequest({
 						url: config.url || '',
-						method: (config.method?.toUpperCase() || 'POST') as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+						method: (config.method?.toUpperCase() || 'POST') as
+							| 'GET'
+							| 'POST'
+							| 'PUT'
+							| 'PATCH'
+							| 'DELETE',
 						body: config.data ? JSON.parse(config.data) : undefined,
 						headers: config.headers
 							? Object.fromEntries(
@@ -68,21 +76,25 @@ export function installOfflineInterceptor(): void {
 						priority: 10, // Normal priority
 					})
 
-					// Return a fake successful response so the UI doesn't break
+					// Return an honest "queued" response — success:false signals pending state
 					return {
 						data: {
-							success: true,
+							success: false,
 							statusCode: 202,
 							message: 'Queued for sync when online',
 							data: null,
+							offlineQueued: true,
 						},
 						status: 202,
-						statusText: 'Accepted (Offline)',
+						statusText: 'Queued (Offline)',
 						headers: {},
 						config,
 					}
 				} catch (queueError) {
-					console.error('[Offline] Failed to queue request:', queueError)
+					if (process.env.NODE_ENV === 'development')
+						console.error('[Offline] Failed to queue request:', queueError)
+					// Don't swallow — reject so caller knows the action wasn't saved
+					return Promise.reject(error)
 				}
 			}
 

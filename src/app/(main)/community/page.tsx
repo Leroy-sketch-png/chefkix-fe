@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
@@ -13,12 +14,17 @@ import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { GroupsExploreGrid } from '@/components/groups'
-import { getFriends, getFollowers } from '@/services/social'
+import {
+	getFriends,
+	getFollowers,
+	getSuggestedFollows,
+} from '@/services/social'
 import {
 	getLeaderboard,
 	type LeaderboardEntry as LeaderboardServiceEntry,
 } from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
+import { cn } from '@/lib/utils'
 import {
 	Users,
 	UserPlus,
@@ -26,6 +32,7 @@ import {
 	Search,
 	Sparkles,
 	UsersRound,
+	Loader2,
 } from 'lucide-react'
 import {
 	InputGroup,
@@ -38,21 +45,29 @@ import {
 } from '@/components/leaderboard'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 export default function CommunityPage() {
-	const { user } = useAuth()
+	const { user, isAuthenticated } = useAuth()
+	const t = useTranslations('community')
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [activeTab, setActiveTab] = useState('discover')
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [followers, setFollowers] = useState<Profile[]>([])
+	const [suggestedFollows, setSuggestedFollows] = useState<Profile[]>([])
 	const [leaderboardEntries, setLeaderboardEntries] = useState<
 		LeaderboardEntry[]
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000, condition: !loading })
 
 	// Compute closest competitor for CatchingUpAlert
 	const closestCompetitor = useMemo(() => {
@@ -71,31 +86,14 @@ export default function CommunityPage() {
 
 		const fetchData = async () => {
 			try {
-				// Note: getAllProfiles removed - UserDiscoveryClient fetches its own data with pagination
-				// Using 'global' leaderboard to show all users, not just friends
-				const [friendsRes, followersRes, leaderboardRes] = await Promise.all([
-					getFriends(),
-					getFollowers(),
-					getLeaderboard({ type: 'global', timeframe: 'weekly' }),
-				])
+				// Leaderboard is public — always fetch
+				const leaderboardRes = await getLeaderboard({
+					type: 'global',
+					timeframe: 'weekly',
+				})
 
 				if (cancelled) return
 
-				if (friendsRes.success && friendsRes.data) {
-					setFriends(friendsRes.data)
-				}
-
-				if (followersRes.success && followersRes.data) {
-					// Filter to show only followers who we don't follow back (not yet mutual)
-					// In Instagram model: followers who aren't in friends list = follow back suggestions
-					const friendIds = new Set((friendsRes.data || []).map(f => f.userId))
-					const followBackSuggestions = followersRes.data.filter(
-						f => !friendIds.has(f.userId),
-					)
-					setFollowers(followBackSuggestions)
-				}
-
-				// Use real leaderboard data
 				if (leaderboardRes.success && leaderboardRes.data?.entries) {
 					const entries: LeaderboardEntry[] = leaderboardRes.data.entries.map(
 						entry => ({
@@ -106,13 +104,42 @@ export default function CommunityPage() {
 					setLeaderboardEntries(entries)
 				}
 
-				if (!friendsRes.success && !followersRes.success) {
-					setError(true)
+				// Auth-only data: friends, followers, suggested follows
+				if (isAuthenticated) {
+					const [friendsRes, followersRes, suggestedRes] = await Promise.all([
+						getFriends(),
+						getFollowers(),
+						getSuggestedFollows(12),
+					])
+
+					if (cancelled) return
+
+					if (friendsRes.success && friendsRes.data) {
+						setFriends(friendsRes.data)
+					}
+
+					if (followersRes.success && followersRes.data) {
+						const friendIds = new Set(
+							(friendsRes.data || []).map(f => f.userId),
+						)
+						const followBackSuggestions = followersRes.data.filter(
+							f => !friendIds.has(f.userId),
+						)
+						setFollowers(followBackSuggestions)
+					}
+
+					if (suggestedRes.success && suggestedRes.data) {
+						setSuggestedFollows(suggestedRes.data)
+					}
+
+					if (!friendsRes.success && !followersRes.success) {
+						setError(true)
+					}
 				}
 			} catch {
 				if (!cancelled) {
 					setError(true)
-					toast.error('Failed to load community data')
+					toast.error(t('failedToLoadData'))
 				}
 			} finally {
 				if (!cancelled) setLoading(false)
@@ -123,7 +150,7 @@ export default function CommunityPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user?.userId, retryKey])
+	}, [user?.userId, isAuthenticated, retryKey, t])
 
 	const handleFollowBack = (userId: string) => {
 		// User followed back, move them from followers to friends
@@ -139,6 +166,14 @@ export default function CommunityPage() {
 		setFollowers(prev => prev.filter(f => f.userId !== userId))
 	}
 
+	const handleSuggestedFollow = (userId: string) => {
+		setSuggestedFollows(prev => prev.filter(f => f.userId !== userId))
+	}
+
+	const handleSuggestedDismiss = (userId: string) => {
+		setSuggestedFollows(prev => prev.filter(f => f.userId !== userId))
+	}
+
 	const handleUnfollow = (userId: string) => {
 		// Unfollowing removes them from friends list
 		setFriends(prev => prev.filter(friend => friend.userId !== userId))
@@ -146,7 +181,9 @@ export default function CommunityPage() {
 
 	const handleLeaderboardUserClick = (entry: LeaderboardEntry) => {
 		if (!entry.isCurrentUser) {
-			router.push(`/${entry.userId}`)
+			startNavigationTransition(() => {
+				router.push(`/${entry.userId}`)
+			})
 		}
 	}
 
@@ -154,8 +191,8 @@ export default function CommunityPage() {
 		return (
 			<PageContainer maxWidth='xl'>
 				<ErrorState
-					title='Failed to load community'
-					message='We could not load community data. Please try again.'
+					title={t('failedToLoad')}
+					message={t('failedToLoadMessage')}
 					onRetry={() => {
 						setError(false)
 						setRetryKey(k => k + 1)
@@ -175,53 +212,64 @@ export default function CommunityPage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							{t('loading')}
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='xl'>
-				{/* Header - Unified with Dashboard/Explore/Challenges pattern */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-6'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-social shadow-card shadow-xp/25'
-						>
-							<Users className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Community Hub</h1>
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Connect with fellow chefs, discover talent, and climb the ranks.
-					</p>
-				</motion.div>
+				{/* Header */}
+				<PageHeader
+					icon={Users}
+					title={t('title')}
+					subtitle={t('subtitle')}
+					gradient='pink'
+					marginBottom='md'
+				/>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-					<TabsList className='mb-6 grid w-full grid-cols-4 lg:w-auto'>
+					<TabsList
+						className={cn(
+							'mb-6 grid w-full lg:w-auto',
+							isAuthenticated ? 'grid-cols-4' : 'grid-cols-2',
+						)}
+					>
 						<TabsTrigger value='discover' className='gap-2'>
 							<Search className='size-4' />
-							<span className='hidden sm:inline'>Discover</span>
+							<span className='hidden sm:inline'>{t('discover')}</span>
 						</TabsTrigger>
-						<TabsTrigger value='friends' className='gap-2'>
-							<Users className='size-4' />
-							<span className='hidden sm:inline'>Friends</span>
-							{friends.length > 0 && (
-								<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium text-brand'>
-									{friends.length}
-								</span>
-							)}
-						</TabsTrigger>
-						<TabsTrigger value='groups' className='gap-2'>
-							<UsersRound className='size-4' />
-							<span className='hidden sm:inline'>Groups</span>
-						</TabsTrigger>
+						{isAuthenticated && (
+							<TabsTrigger value='friends' className='gap-2'>
+								<Users className='size-4' />
+								<span className='hidden sm:inline'>{t('friends')}</span>
+								{friends.length > 0 && (
+									<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium tabular-nums text-brand'>
+										{friends.length}
+									</span>
+								)}
+							</TabsTrigger>
+						)}
+						{isAuthenticated && (
+							<TabsTrigger value='groups' className='gap-2'>
+								<UsersRound className='size-4' />
+								<span className='hidden sm:inline'>{t('groups')}</span>
+							</TabsTrigger>
+						)}
 						<TabsTrigger value='leaderboard' className='gap-2'>
 							<Trophy className='size-4' />
-							<span className='hidden sm:inline'>Leaderboard</span>
+							<span className='hidden sm:inline'>{t('leaderboard')}</span>
 						</TabsTrigger>
 					</TabsList>
 
@@ -238,18 +286,18 @@ export default function CommunityPage() {
 							<div className='mb-4 flex items-center gap-2'>
 								<UserPlus className='size-5 text-xp' />
 								<h2 className='text-xl font-semibold'>
-									Follow Back Suggestions{' '}
+									{t('followBackSuggestions')}{' '}
 									{followers.length > 0 && `(${followers.length})`}
 								</h2>
 							</div>
 							{followers.length === 0 ? (
 								<EmptyStateGamified
 									variant='feed'
-									title='No follow requests'
-									description='Keep cooking and sharing — chefs will discover you!'
+									title={t('noFollowRequests')}
+									description={t('noFollowRequestsDesc')}
 									quickActions={[
 										{
-											label: 'Browse Discover',
+											label: t('browseDiscover'),
 											emoji: '🔍',
 											onClick: () => setActiveTab('discover'),
 										},
@@ -273,21 +321,48 @@ export default function CommunityPage() {
 							)}
 						</section>
 
+						{/* {t('suggestedForYou')} — AI-powered user discovery */}
+						{suggestedFollows.length > 0 && (
+							<section>
+								<div className='mb-4 flex items-center gap-2'>
+									<Sparkles className='size-5 text-brand' />
+									<h2 className='text-xl font-semibold'>
+										{t('suggestedForYou')}
+									</h2>
+								</div>
+								<StaggerContainer staggerDelay={0.05}>
+									<AnimatePresence mode='popLayout'>
+										<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+											{suggestedFollows.map(user => (
+												<FollowSuggestionCard
+													key={user.userId}
+													profile={user}
+													variant='suggested'
+													onFollowBack={handleSuggestedFollow}
+													onDismiss={handleSuggestedDismiss}
+												/>
+											))}
+										</div>
+									</AnimatePresence>
+								</StaggerContainer>
+							</section>
+						)}
+
 						<section>
 							<div className='mb-4 flex items-center gap-2'>
 								<Users className='size-5 text-xp' />
 								<h2 className='text-xl font-semibold'>
-									My Friends {friends.length > 0 && `(${friends.length})`}
+									{t('myFriends')} {friends.length > 0 && `(${friends.length})`}
 								</h2>
 							</div>
 							{friends.length === 0 ? (
 								<EmptyStateGamified
 									variant='feed'
-									title='No friends yet'
-									description='Start connecting by following people in the Discover tab!'
+									title={t('noFriendsYet')}
+									description={t('noFriendsDesc')}
 									quickActions={[
 										{
-											label: 'Browse Discover',
+											label: t('browseDiscover'),
 											emoji: '🔍',
 											onClick: () => setActiveTab('discover'),
 										},
@@ -321,10 +396,17 @@ export default function CommunityPage() {
 							closestCompetitor={closestCompetitor}
 							onUserClick={handleLeaderboardUserClick}
 							onInviteFriends={() => setActiveTab('discover')}
-							onCookToDefend={() => router.push('/explore')}
+							onCookToDefend={() =>
+								startNavigationTransition(() => {
+									router.push('/explore')
+								})
+							}
 						/>
 					</TabsContent>
 				</Tabs>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

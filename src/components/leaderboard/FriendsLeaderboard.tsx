@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { UserPlus, ChefHat } from 'lucide-react'
 import Image from 'next/image'
@@ -97,32 +98,27 @@ function LeaderboardSummary({
 	isGlobal?: boolean
 	onInviteFriends?: () => void
 }) {
+	const t = useTranslations('leaderboard')
 	// Actionable copy based on context
 	const getMessage = () => {
 		if (isGlobal) {
 			if (totalChefs && totalChefs > 1) {
 				return (
 					<>
-						Competing with{' '}
-						<strong className='text-text'>
-							{totalChefs} {totalChefs === 1 ? 'chef' : 'chefs'}
-						</strong>{' '}
-						this week
+						{t('competingWithChef', {n: totalChefs})}
 					</>
 				)
 			}
 			return (
 				<>
-					<span className='text-streak font-semibold'>First on the board!</span>{' '}
-					Start cooking to climb the ranks
+					{t('firstOnBoard')}
 				</>
 			)
 		}
 		if (totalFriends === 0) {
 			return (
 				<>
-					<span className='text-streak font-semibold'>No rivals yet!</span>{' '}
-					Start the competition
+					{t('noRivals')}
 				</>
 			)
 		}
@@ -142,17 +138,18 @@ function LeaderboardSummary({
 			<span className='text-sm text-text-secondary'>{getMessage()}</span>
 			{onInviteFriends && (
 				<motion.button
+					type='button'
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onInviteFriends}
 					className={cn(
-						'flex items-center gap-1.5 py-2 px-3.5',
+						'flex items-center gap-1.5 py-2 px-3.5 focus-visible:ring-2 focus-visible:ring-brand/50',
 						'bg-gradient-xp',
 						'rounded-lg text-sm font-semibold text-white',
 					)}
 				>
 					<UserPlus className='size-4' />
-					{totalFriends === 0 ? 'Invite Rivals' : 'Invite'}
+					{totalFriends === 0 ? t('inviteRivals') : t('invite')}
 				</motion.button>
 			)}
 		</div>
@@ -172,6 +169,7 @@ function CatchingUpAlert({
 	xpBehind: number
 	onCookToDefend?: () => void
 }) {
+	const t = useTranslations('leaderboard')
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -190,16 +188,16 @@ function CatchingUpAlert({
 					/>
 				</div>
 				<span className='text-sm text-text'>
-					<strong className='text-streak'>{competitor.displayName}</strong> is
-					only {xpBehind} XP behind you!
+					{t('xpBehind', {name: competitor.displayName, xp: xpBehind})}
 				</span>
 			</div>
 			{onCookToDefend && (
 				<motion.button
+					type='button'
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onCookToDefend}
-					className='py-2 px-3.5 bg-streak rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto'
+					className='py-2 px-3.5 bg-streak rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					Cook to defend 🍳
 				</motion.button>
@@ -224,6 +222,7 @@ export function FriendsLeaderboard({
 	className,
 }: FriendsLeaderboardProps) {
 	// Check if current user is leading
+	const t = useTranslations('leaderboard')
 	const currentUser = entries.find(e => e.isCurrentUser)
 	const isLeading = currentUser?.rank === 1
 
@@ -283,7 +282,7 @@ export function FriendsLeaderboard({
 						<span className='text-3xl'>👑</span>
 					</motion.div>
 					<h3 className='mb-1 text-xl font-bold text-text'>
-						{entries.length === 1 ? 'Solo Champion!' : 'Dynamic Duo!'}
+						{entries.length === 1 ? t('soloChampion') : t('dynamicDuo')}
 					</h3>
 					<p className='mb-4 text-sm text-text-secondary'>
 						{entries.length === 1
@@ -363,17 +362,18 @@ export function FriendsLeaderboard({
 					</p>
 					{onInviteFriends && (
 						<motion.button
+							type='button'
 							whileHover={LIST_ITEM_HOVER}
 							whileTap={LIST_ITEM_TAP}
 							onClick={onInviteFriends}
 							className={cn(
-								'flex items-center gap-2 py-2.5 px-5',
+								'flex items-center gap-2 py-2.5 px-5 focus-visible:ring-2 focus-visible:ring-brand/50',
 								'bg-gradient-xp',
 								'rounded-xl text-sm font-semibold text-white',
 							)}
 						>
 							<UserPlus className='size-4' />
-							Invite Friends
+							{t('inviteFriends')}
 						</motion.button>
 					)}
 				</div>

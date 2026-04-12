@@ -1,4 +1,6 @@
-'use client'
+﻿'use client'
+
+import { useTranslations } from 'next-intl'
 
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
@@ -6,6 +8,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -37,41 +40,42 @@ export function CreatorStatsWidget({
 	dashboardUrl = '/creator/dashboard',
 	className,
 }: CreatorStatsWidgetProps) {
+	const t = useTranslations('creator')
 	return (
-		<div className={cn('bg-panel-bg rounded-2xl p-5', className)}>
+		<div className={cn('bg-bg-card rounded-2xl p-5', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-2 mb-4'>
-				<span className='text-xl'>📝</span>
+				<span className='text-xl'>??</span>
 				<span className='flex-1 text-base font-bold text-text'>
 					Creator Stats
 				</span>
 				<Link
 					href={dashboardUrl}
-					className='w-7 h-7 flex items-center justify-center bg-bg rounded-lg text-text-secondary hover:text-text transition-colors'
+					className='size-7 flex items-center justify-center bg-bg rounded-lg text-text-secondary hover:text-text transition-colors'
 				>
-					<ArrowRight className='w-4 h-4' />
+					<ArrowRight className='size-4' />
 				</Link>
 			</div>
 
 			{/* Stats Row */}
 			<div className='flex gap-3 mb-4'>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
-					<span className='text-lg font-extrabold text-text'>
-						{recipesCount}
+					<span className='text-lg font-display font-extrabold text-text'>
+						<AnimatedNumber value={recipesCount} className='tabular-nums' />
 					</span>
-					<span className='text-2xs text-text-secondary'>Recipes</span>
+					<span className='text-2xs text-text-secondary'>{t('recipesLabel')}</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
-					<span className='text-lg font-extrabold text-text'>
-						{totalCooks.toLocaleString()}
+					<span className='text-lg font-display font-extrabold text-text'>
+						<AnimatedNumber value={totalCooks} format={n => n.toLocaleString()} className='tabular-nums' />
 					</span>
-					<span className='text-2xs text-text-secondary'>Cooks</span>
+					<span className='text-2xs text-text-secondary'>{t('cooksLabel')}</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-success/10 rounded-lg'>
-					<span className='text-lg font-extrabold text-success'>
-						+{xpEarned.toLocaleString()}
+					<span className='text-lg font-display font-extrabold text-success'>
+						+<AnimatedNumber value={xpEarned} format={n => n.toLocaleString()} className='tabular-nums' />
 					</span>
-					<span className='text-2xs text-text-secondary'>XP Earned</span>
+					<span className='text-2xs text-text-secondary'>{t('xpEarned')}</span>
 				</div>
 			</div>
 
@@ -79,20 +83,20 @@ export function CreatorStatsWidget({
 			{topRecipe && (
 				<div className='flex items-center gap-3 p-3 bg-bg rounded-xl'>
 					<Image
-						src={topRecipe.imageUrl || '/images/recipe-placeholder.jpg'}
+						src={topRecipe.imageUrl || '/placeholder-recipe.svg'}
 						alt={topRecipe.title}
 						width={40}
 						height={40}
-						className='w-10 h-10 rounded-lg object-cover'
+						className='size-10 rounded-lg object-cover'
 					/>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xs text-text-secondary'>Top Recipe</span>
+						<span className='text-2xs text-text-secondary'>{t('topRecipe')}</span>
 						<span className='text-sm font-bold text-text truncate'>
 							{topRecipe.title}
 						</span>
 					</div>
-					<span className='text-sm font-semibold text-primary'>
-						{topRecipe.cookCount} cooks
+					<span className='text-sm font-semibold text-brand'>
+						<AnimatedNumber value={topRecipe.cookCount} className='tabular-nums' /> cooks
 					</span>
 				</div>
 			)}
@@ -119,6 +123,7 @@ export function CreatorXPNotification({
 	onView,
 	className,
 }: CreatorXPNotificationProps) {
+	const t = useTranslations('creator')
 	const remainingCount = cookersCount - cookerAvatars.length
 
 	return (
@@ -137,18 +142,18 @@ export function CreatorXPNotification({
 				{cookerAvatars.slice(0, 2).map((avatar, index) => (
 					<Image
 						key={index}
-						src={avatar || '/images/default-avatar.png'}
+						src={avatar || '/placeholder-avatar.svg'}
 						alt=''
 						width={32}
 						height={32}
 						className={cn(
-							'w-8 h-8 rounded-full border-3 border-panel-bg',
+							'size-8 rounded-full border-3 border-bg-card',
 							index > 0 && '-ml-2.5',
 						)}
 					/>
 				))}
 				{remainingCount > 0 && (
-					<div className='w-8 h-8 flex items-center justify-center bg-xp rounded-full border-3 border-panel-bg -ml-2.5 text-xs font-bold text-white'>
+					<div className='size-8 flex items-center justify-center bg-xp rounded-full border-3 border-bg-card -ml-2.5 text-xs font-bold text-white'>
 						+{remainingCount}
 					</div>
 				)}
@@ -167,10 +172,11 @@ export function CreatorXPNotification({
 			{/* View Button */}
 			{onView && (
 				<motion.button
+					type='button'
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onView}
-					className='py-2 px-3.5 bg-xp rounded-lg text-sm font-semibold text-white'
+					className='py-2 px-3.5 bg-xp rounded-lg text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					View
 				</motion.button>

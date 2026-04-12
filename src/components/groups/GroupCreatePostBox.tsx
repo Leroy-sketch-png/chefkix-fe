@@ -1,9 +1,11 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Image as ImageIcon, Smile, MapPin } from 'lucide-react'
+import { Image as ImageIcon, Smile, MapPin, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { createGroupPost } from '@/services/post'
@@ -28,11 +30,12 @@ export function GroupCreatePostBox({
 	const user = useAuthStore(state => state.user)
 	const [isOpen, setIsOpen] = useState(false)
 	const [content, setContent] = useState('')
+	const t = useTranslations('groups')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const handleSubmit = async () => {
 		if (!content.trim()) {
-			toast.error('Post cannot be empty')
+			toast.error(t('gpPostEmpty'))
 			return
 		}
 
@@ -46,7 +49,7 @@ export function GroupCreatePostBox({
 			})
 
 			// Show corner toast with success message
-			toast.success('Post created successfully! 🎉', {
+			toast.success(t('gpPostCreated'), {
 				position: 'top-right',
 				duration: 3000,
 			})
@@ -55,7 +58,7 @@ export function GroupCreatePostBox({
 			setIsOpen(false)
 			onPostCreated?.()
 		} catch (error) {
-			toast.error('Failed to create post', {
+			toast.error(t('gpPostFailed'), {
 				position: 'top-right',
 				duration: 3000,
 			})
@@ -73,24 +76,34 @@ export function GroupCreatePostBox({
 				className='bg-bg-card rounded-lg p-4 border border-border mb-6'
 			>
 				<button
+					type='button'
 					onClick={() => setIsOpen(true)}
 					className='w-full text-left px-4 py-3 bg-bg rounded-full text-text-secondary hover:bg-bg/80 transition-colors'
 				>
-					What&apos;s on your mind?
+					{t('gpWhatsOnMind')}
 				</button>
 
 				<div className='flex gap-2 mt-4 flex-wrap'>
-					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+					<button
+						type='button'
+						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
+					>
 						<ImageIcon className='size-5' />
-						Photo
+						{t('gpPhoto')}
 					</button>
-					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+					<button
+						type='button'
+						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
+					>
 						<Smile className='size-5' />
-						Feeling
+						{t('gpFeeling')}
 					</button>
-					<button className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'>
+					<button
+						type='button'
+						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
+					>
 						<MapPin className='size-5' />
-						Location
+						{t('gpLocation')}
 					</button>
 				</div>
 			</motion.div>
@@ -105,12 +118,12 @@ export function GroupCreatePostBox({
 		>
 			<div className='mb-4'>
 				<p className='text-sm font-medium text-text mb-3'>
-					Post to {groupName}
+					{t('gpPostTo', { groupName })}
 				</p>
 				<Textarea
 					value={content}
 					onChange={e => setContent(e.target.value)}
-					placeholder="What's on your mind?"
+					placeholder={t('gpWhatsOnMind')}
 					autoComplete='off'
 					autoCorrect='off'
 					autoCapitalize='none'
@@ -121,7 +134,9 @@ export function GroupCreatePostBox({
 					disabled={isSubmitting}
 				/>
 				{content.length > 0 && (
-					<p className='mt-1 text-right text-xs text-text-muted'>
+					<p
+						className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+					>
 						{content.length}/2000
 					</p>
 				)}
@@ -136,14 +151,21 @@ export function GroupCreatePostBox({
 					}}
 					disabled={isSubmitting}
 				>
-					Cancel
+					{t('gpCancel')}
 				</Button>
 				<Button
 					onClick={handleSubmit}
 					disabled={isSubmitting || !content.trim()}
 					className='bg-brand hover:bg-brand/90'
 				>
-					{isSubmitting ? 'Posting...' : 'Post'}
+					{isSubmitting ? (
+						<>
+							<Loader2 className='mr-2 size-4 animate-spin' />
+							{t('gpPosting')}
+						</>
+					) : (
+						t('gpPost')
+					)}
 				</Button>
 			</div>
 		</motion.div>

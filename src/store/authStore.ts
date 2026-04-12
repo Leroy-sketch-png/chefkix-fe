@@ -1,6 +1,7 @@
 import { User } from '@/lib/types'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 /**
  * IMPORTANT: This store does NOT import axios to avoid circular dependency.
@@ -52,7 +53,7 @@ export const useAuthStore = create<AuthState>()(
 			login: (accessToken: string) => {
 				// Critical: reject login without a valid access token
 				if (!accessToken || accessToken.trim() === '') {
-					console.error(
+					logDevError(
 						'[authStore] Login rejected: missing or empty accessToken',
 					)
 					return
@@ -70,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
 			 */
 			setUser: (user: User) => {
 				if (!isValidUser(user)) {
-					console.error('[authStore] setUser rejected: invalid user object', {
+					logDevError('[authStore] setUser rejected: invalid user object', {
 						user,
 					})
 					return
@@ -112,7 +113,7 @@ export const useAuthStore = create<AuthState>()(
 					if (state) {
 						// Validate persisted user - clear if corrupted
 						if (state.user && !isValidUser(state.user)) {
-							console.warn('[authStore] Clearing corrupted user from storage')
+							logDevWarn('[authStore] Clearing corrupted user from storage')
 							state.user = null
 						}
 

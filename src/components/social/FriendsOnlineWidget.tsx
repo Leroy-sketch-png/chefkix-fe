@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, ChefHat } from 'lucide-react'
 import Link from 'next/link'
@@ -8,6 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getFriendsPresence, PresenceInfo } from '@/services/presence'
 import { logDevError } from '@/lib/dev-log'
 import { TRANSITION_SPRING } from '@/lib/motion'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const POLL_INTERVAL_MS = 30_000 // 30s
 
@@ -16,6 +18,7 @@ const POLL_INTERVAL_MS = 30_000 // 30s
  * Polls every 30s. Lives in RightSidebar.
  */
 export function FriendsOnlineWidget() {
+	const t = useTranslations('social')
 	const [friends, setFriends] = useState<PresenceInfo[]>([])
 	const [loading, setLoading] = useState(true)
 
@@ -48,13 +51,13 @@ export function FriendsOnlineWidget() {
 		return (
 			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<div className='mb-3 flex items-center gap-2'>
-					<div className='h-4 w-24 animate-pulse rounded bg-bg-elevated' />
+					<Skeleton className='h-4 w-24' />
 				</div>
 				<div className='space-y-2'>
 					{[1, 2, 3].map(i => (
 						<div key={i} className='flex items-center gap-2'>
-							<div className='size-7 animate-pulse rounded-full bg-bg-elevated' />
-							<div className='h-3 w-20 animate-pulse rounded bg-bg-elevated' />
+							<Skeleton className='size-7 rounded-full' />
+							<Skeleton className='h-3 w-20' />
 						</div>
 					))}
 				</div>
@@ -67,11 +70,10 @@ export function FriendsOnlineWidget() {
 			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<div className='mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-text-primary'>
 					<Users className='size-4 text-text-secondary' />
-					Friends Online
+					{t('friendsOnline')}
 				</div>
 				<p className='text-xs leading-relaxed text-text-muted'>
-					None of your friends are online right now. Follow more chefs to see
-					who&apos;s cooking!
+					{t('friendsOnlineEmpty')}
 				</p>
 			</div>
 		)
@@ -85,9 +87,9 @@ export function FriendsOnlineWidget() {
 			<div className='mb-3 flex items-center justify-between'>
 				<div className='flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-text-primary'>
 					<Users className='size-4 text-text-secondary' />
-					Friends Online
+					{t('friendsOnline')}
 				</div>
-				<span className='rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold text-success'>
+				<span className='rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold tabular-nums text-success' aria-label={t('onlineCount', { count: friends.length })}>
 					{friends.length}
 				</span>
 			</div>
@@ -104,7 +106,7 @@ export function FriendsOnlineWidget() {
 							transition={TRANSITION_SPRING}
 						>
 							<Link
-								href={`/profile/${friend.userId}`}
+								href={`/${friend.userId}`}
 								className='flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
 								<div className='relative'>
@@ -118,17 +120,17 @@ export function FriendsOnlineWidget() {
 												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
-									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' />
+									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' aria-hidden='true' />
 								</div>
 								<div className='min-w-0 flex-1'>
 									<p className='truncate text-xs font-medium text-text-primary'>
 										{friend.displayName || friend.username}
 									</p>
-									<p className='flex items-center gap-1 truncate text-[10px] text-brand'>
+									<p className='flex items-center gap-1 truncate text-2xs text-brand'>
 										<ChefHat className='size-2.5' />
 										{friend.recipeTitle
-											? `Cooking ${friend.recipeTitle}`
-											: 'Cooking'}
+											? t('cookingRecipe', { title: friend.recipeTitle })
+											: t('cookingGeneric')}
 									</p>
 								</div>
 							</Link>
@@ -145,7 +147,7 @@ export function FriendsOnlineWidget() {
 							transition={TRANSITION_SPRING}
 						>
 							<Link
-								href={`/profile/${friend.userId}`}
+								href={`/${friend.userId}`}
 								className='flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
 								<div className='relative'>
@@ -159,7 +161,7 @@ export function FriendsOnlineWidget() {
 												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
-									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' />
+									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' aria-hidden='true' />
 								</div>
 								<p className='min-w-0 flex-1 truncate text-xs font-medium text-text-primary'>
 									{friend.displayName || friend.username}

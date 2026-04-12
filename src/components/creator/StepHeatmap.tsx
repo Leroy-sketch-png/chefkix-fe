@@ -1,4 +1,6 @@
-'use client'
+﻿'use client'
+
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -12,7 +14,7 @@ import {
 	ChevronUp,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import { TRANSITION_SPRING, staggerContainer, staggerItem, DURATION_S } from '@/lib/motion'
 import {
 	getStepHeatmap,
 	StepHeatmapResponse,
@@ -60,6 +62,7 @@ export function StepHeatmap({
 	const [data, setData] = useState<StepHeatmapResponse | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [expanded, setExpanded] = useState(false)
+	const t = useTranslations('creator')
 
 	useEffect(() => {
 		const fetch = async () => {
@@ -125,7 +128,7 @@ export function StepHeatmap({
 			<div className='border-b border-border-subtle p-4'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h3 className='text-sm font-semibold text-text'>Step Heatmap</h3>
+						<h3 className='text-sm font-semibold text-text'>{t('stepHeatmap')}</h3>
 						<p className='text-xs text-text-muted'>
 							{recipeTitle ?? data.recipeTitle} &middot; {data.totalSessions}{' '}
 							cook{data.totalSessions !== 1 ? 's' : ''}
@@ -135,8 +138,7 @@ export function StepHeatmap({
 						<div className='flex items-center gap-1.5 rounded-full bg-error/10 px-2.5 py-1'>
 							<AlertTriangle className='size-3.5 text-error' />
 							<span className='text-xs font-medium text-error'>
-								{struggleSteps.length} struggle point
-								{struggleSteps.length !== 1 ? 's' : ''}
+								{struggleSteps.length !== 1 ? t('strugglePointsPlural', { n: struggleSteps.length }) : t('strugglePoints', { n: struggleSteps.length })}
 							</span>
 						</div>
 					)}
@@ -192,7 +194,7 @@ export function StepHeatmap({
 								<motion.div
 									initial={{ width: 0 }}
 									animate={{ width: getBarWidth(step.completionRate) }}
-									transition={{ duration: 0.6, ease: 'easeOut' }}
+									transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 									className={cn('h-full rounded-full', getBarColor(step))}
 								/>
 							</div>
@@ -201,17 +203,17 @@ export function StepHeatmap({
 						{/* Metrics */}
 						<div className='flex shrink-0 gap-3'>
 							{step.skipRate > 0 && (
-								<div className='flex items-center gap-1' title='Skip rate'>
+								<div className='flex items-center gap-1' title={t('skipRate')}>
 									<SkipForward className='size-3 text-streak' />
-									<span className='text-[10px] text-text-muted'>
+									<span className='text-2xs text-text-muted'>
 										{step.skipRate}%
 									</span>
 								</div>
 							)}
 							{step.avgTimeSeconds !== null && (
-								<div className='flex items-center gap-1' title='Avg time'>
+								<div className='flex items-center gap-1' title={t('avgTime')}>
 									<Clock className='size-3 text-text-muted' />
-									<span className='text-[10px] text-text-muted'>
+									<span className='text-2xs text-text-muted'>
 										{formatTime(step.avgTimeSeconds)}
 										{step.estimatedTimeSeconds
 											? ` / ${formatTime(step.estimatedTimeSeconds)}`
@@ -222,10 +224,10 @@ export function StepHeatmap({
 							{step.abandonedAtCount > 0 && (
 								<div
 									className='flex items-center gap-1'
-									title='Sessions abandoned here'
+									title={t('sessionsAbandonedHere')}
 								>
 									<AlertTriangle className='size-3 text-error' />
-									<span className='text-[10px] text-error'>
+									<span className='text-2xs text-error'>
 										{step.abandonedAtCount}
 									</span>
 								</div>
@@ -241,12 +243,13 @@ export function StepHeatmap({
 			{/* Expand/collapse */}
 			{data.steps.length > 5 && (
 				<button
+					type='button'
 					onClick={() => setExpanded(!expanded)}
 					className='flex w-full items-center justify-center gap-1 border-t border-border-subtle py-2.5 text-xs font-medium text-text-secondary transition-colors hover:text-text'
 				>
 					{expanded ? (
 						<>
-							Show less <ChevronUp className='size-3.5' />
+							{t('showLess')} <ChevronUp className='size-3.5' />
 						</>
 					) : (
 						<>

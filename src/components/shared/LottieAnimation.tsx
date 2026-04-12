@@ -2,17 +2,18 @@
 
 import Lottie, { LottieComponentProps } from 'lottie-react'
 import { useDeviceSize } from '@/hooks/useDeviceSize'
+import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
 
 interface LottieAnimationProps
 	extends Omit<LottieComponentProps, 'style' | 'animationData'> {
 	/**
 	 * Lottie animation data (JSON)
 	 */
-	lottie?: any
+	lottie?: object
 	/**
 	 * Alternative: animation data (for compatibility with lottie-react examples)
 	 */
-	animationData?: any
+	animationData?: object
 	/**
 	 * Width ratio relative to device width (0-1)
 	 * @default 0.4
@@ -75,11 +76,14 @@ export default function LottieAnimation({
 		: Math.min(deviceWidth * widthRatio, deviceHeight * heightRatio, maxSize)
 
 	const animData = animationData || lottie
+	const { shouldReduceMotion } = useReducedMotionPreference()
 
 	return (
 		<Lottie
 			animationData={animData}
 			style={{ width: size, height: size }}
+			autoplay={shouldReduceMotion ? false : props.autoplay}
+			loop={shouldReduceMotion ? false : props.loop}
 			{...props}
 		/>
 	)

@@ -1,4 +1,4 @@
-import { PageContainer } from '@/components/layout/PageContainer'
+﻿import { PageContainer } from '@/components/layout/PageContainer'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Loading() {
@@ -7,18 +7,18 @@ export default function Loading() {
 			{/* Header skeleton */}
 			<div className='mb-6'>
 				<div className='mb-2 flex items-center gap-3'>
-					<div className='size-10 animate-pulse rounded-xl bg-bg-elevated/40' />
-					<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
-					<div className='h-9 w-40 animate-pulse rounded-lg bg-bg-elevated/40' />
+					<Skeleton className='size-10 rounded-xl' />
+					<Skeleton className='size-12 rounded-2xl' />
+					<Skeleton className='h-9 w-40 rounded-lg' />
 				</div>
-				<div className='h-6 w-48 animate-pulse rounded-lg bg-bg-elevated/40' />
+				<Skeleton className='h-6 w-48 rounded-lg' />
 			</div>
 
 			{/* Tabs skeleton */}
 			<div className='mb-6 flex gap-2'>
-				<div className='h-10 w-24 animate-pulse rounded-full bg-bg-elevated/40' />
-				<div className='h-10 w-24 animate-pulse rounded-full bg-bg-elevated/40' />
-				<div className='h-10 w-24 animate-pulse rounded-full bg-bg-elevated/40' />
+				<Skeleton className='h-10 w-24 rounded-full' />
+				<Skeleton className='h-10 w-24 rounded-full' />
+				<Skeleton className='h-10 w-24 rounded-full' />
 			</div>
 
 			{/* Top 3 podium skeleton */}
@@ -31,7 +31,7 @@ export default function Loading() {
 				<div className='flex flex-col items-center gap-2'>
 					<Skeleton className='size-20 rounded-full' />
 					<Skeleton className='h-4 w-24' />
-					<Skeleton className='h-28 w-28 rounded-t-lg' />
+					<Skeleton className='size-28 rounded-t-lg' />
 				</div>
 				<div className='flex flex-col items-center gap-2'>
 					<Skeleton className='size-16 rounded-full' />

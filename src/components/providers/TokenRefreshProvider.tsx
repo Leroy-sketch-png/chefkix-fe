@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { PATHS, AUTH_MESSAGES } from '@/constants'
+import { PATHS } from '@/constants'
 import {
 	scheduleProactiveRefresh,
 	cancelScheduledRefresh,
@@ -61,7 +61,7 @@ export const TokenRefreshProvider = ({
 	const onSessionExpired = useCallback(() => {
 		logout()
 		if (typeof window !== 'undefined') {
-			window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.SESSION_EXPIRED)}`
+			window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Session expired. Please sign in again.')}`
 		}
 	}, [logout])
 

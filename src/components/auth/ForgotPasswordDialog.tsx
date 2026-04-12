@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,34 +29,35 @@ import {
 	InputOTPSlot,
 } from '@/components/ui/input-otp'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { forgotPassword, verifyOtpPassword } from '@/services/auth'
-import {
-	FORGOT_PASSWORD_MESSAGES,
-	RESET_PASSWORD_MESSAGES,
-} from '@/constants/messages'
 import { ArrowLeft } from 'lucide-react'
 
 type Step = 'email' | 'reset'
 
-const emailSchema = z.object({
-	email: z.string().email({ message: 'Please enter a valid email.' }),
-})
+function createEmailSchema(t: (key: string) => string) {
+	return z.object({
+		email: z.string().email({ message: t('forgotEmailInvalid') }),
+	})
+}
 
-const resetSchema = z
-	.object({
-		otp: z.string().min(6, { message: 'Enter the 6-digit code.' }),
-		newPassword: z.string().min(6, {
-			message: 'Password must be at least 6 characters.',
-		}),
-		confirmPassword: z.string().min(6, {
-			message: 'Password must be at least 6 characters.',
-		}),
-	})
-	.refine(values => values.newPassword === values.confirmPassword, {
-		message: 'Passwords do not match.',
-		path: ['confirmPassword'],
-	})
+function createResetSchema(t: (key: string) => string) {
+	return z
+		.object({
+			otp: z.string().length(6, { message: t('forgotCodeInvalid') }),
+			newPassword: z.string().min(8, {
+				message: t('forgotPasswordMin'),
+			}),
+			confirmPassword: z.string().min(8, {
+				message: t('forgotPasswordMin'),
+			}),
+		})
+		.refine(values => values.newPassword === values.confirmPassword, {
+			message: t('forgotPasswordMismatch'),
+			path: ['confirmPassword'],
+		})
+}
 
 interface ForgotPasswordDialogProps {
 	open: boolean
@@ -67,6 +68,9 @@ export const ForgotPasswordDialog = ({
 	open,
 	onOpenChange,
 }: ForgotPasswordDialogProps) => {
+	const t = useTranslations('auth')
+	const emailSchema = useMemo(() => createEmailSchema(t), [t])
+	const resetSchema = useMemo(() => createResetSchema(t), [t])
 	const [step, setStep] = useState<Step>('email')
 	const [email, setEmail] = useState('')
 
@@ -90,12 +94,11 @@ export const ForgotPasswordDialog = ({
 		if (response.success) {
 			setEmail(values.email)
 			setStep('reset')
-			toast.success(FORGOT_PASSWORD_MESSAGES.SUCCESS)
+			toast.success(t('forgotSuccess'))
 			return
 		}
 
-		const errorMessage =
-			response.message || 'Failed to send reset instructions.'
+		const errorMessage = response.message || t('forgotSendFailed')
 		emailForm.setError('email', { type: 'manual', message: errorMessage })
 		toast.error(errorMessage)
 	}
@@ -108,7 +111,7 @@ export const ForgotPasswordDialog = ({
 		})
 
 		if (response.success) {
-			toast.success(RESET_PASSWORD_MESSAGES.SUCCESS)
+			toast.success(t('resetSuccess'))
 			setTimeout(() => {
 				onOpenChange(false)
 				// Reset forms and state
@@ -120,7 +123,7 @@ export const ForgotPasswordDialog = ({
 			return
 		}
 
-		const errorMessage = response.message || 'Failed to update password.'
+		const errorMessage = response.message || t('forgotUpdateFailed')
 		resetForm.setError('otp', { type: 'manual', message: errorMessage })
 		toast.error(errorMessage)
 	}
@@ -128,10 +131,10 @@ export const ForgotPasswordDialog = ({
 	const handleResend = async () => {
 		const response = await forgotPassword({ email })
 		if (response.success) {
-			toast.success(RESET_PASSWORD_MESSAGES.RESEND_SUCCESS)
+			toast.success(t('resetResendSuccess'))
 			return
 		}
-		toast.error(response.message || 'Failed to resend code.')
+		toast.error(t('forgotResendFailed'))
 	}
 
 	const handleBack = () => {
@@ -155,14 +158,12 @@ export const ForgotPasswordDialog = ({
 			<DialogContent className='sm:max-w-md'>
 				<DialogHeader>
 					<DialogTitle>
-						{step === 'email'
-							? FORGOT_PASSWORD_MESSAGES.PAGE_TITLE
-							: RESET_PASSWORD_MESSAGES.PAGE_TITLE}
+						{step === 'email' ? t('forgotPageTitle') : t('resetPageTitle')}
 					</DialogTitle>
 					<DialogDescription>
 						{step === 'email'
-							? FORGOT_PASSWORD_MESSAGES.PAGE_SUBTITLE
-							: RESET_PASSWORD_MESSAGES.PAGE_SUBTITLE}
+							? t('forgotPageSubtitle')
+							: t('resetPageSubtitle')}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -171,22 +172,22 @@ export const ForgotPasswordDialog = ({
 						<form
 							onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
 							className='space-y-4'
+							noValidate
 						>
 							<FormField
 								control={emailForm.control}
 								name='email'
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>
-											{FORGOT_PASSWORD_MESSAGES.EMAIL_LABEL}
-										</FormLabel>
+										<FormLabel>{t('forgotEmailLabel')}</FormLabel>
 										<FormControl>
 											<Input
-												placeholder='chef@example.com'
+												placeholder={t('forgotEmailPlaceholder')}
 												{...field}
 												className='text-foreground'
 											/>
 										</FormControl>
+										<FormDescription>{t('forgotEmailHelp')}</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
@@ -195,10 +196,10 @@ export const ForgotPasswordDialog = ({
 								type='submit'
 								className='w-full'
 								isLoading={emailForm.formState.isSubmitting}
-								loadingText='Sending...'
+								loadingText={t('forgotSending')}
 								shine
 							>
-								{FORGOT_PASSWORD_MESSAGES.FORM_TITLE}
+								{t('forgotFormTitle')}
 							</AnimatedButton>
 						</form>
 					</Form>
@@ -212,20 +213,21 @@ export const ForgotPasswordDialog = ({
 							onClick={handleBack}
 							className='mb-2 w-fit gap-2'
 						>
-							<ArrowLeft className='h-4 w-4' />
-							Back
+							<ArrowLeft className='size-4' />
+							{t('forgotBack')}
 						</Button>
 						<Form {...resetForm}>
 							<form
 								onSubmit={resetForm.handleSubmit(handleResetSubmit)}
 								className='space-y-4'
+								noValidate
 							>
 								<FormField
 									control={resetForm.control}
 									name='otp'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>{RESET_PASSWORD_MESSAGES.OTP_LABEL}</FormLabel>
+											<FormLabel>{t('resetOtpLabel')}</FormLabel>
 											<FormControl>
 												<div className='flex justify-center'>
 													<InputOTP maxLength={6} {...field}>
@@ -244,7 +246,7 @@ export const ForgotPasswordDialog = ({
 													onClick={handleResend}
 													className='h-auto p-0 text-xs'
 												>
-													{RESET_PASSWORD_MESSAGES.RESEND_BUTTON}
+													{t('resetResendButton')}
 												</Button>
 											</FormDescription>
 											<FormMessage />
@@ -256,12 +258,10 @@ export const ForgotPasswordDialog = ({
 									name='newPassword'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>
-												{RESET_PASSWORD_MESSAGES.NEW_PASSWORD_LABEL}
-											</FormLabel>
+											<FormLabel>{t('resetNewPasswordLabel')}</FormLabel>
 											<FormControl>
 												<PasswordInput
-													placeholder='Enter a strong password'
+													placeholder={t('forgotPasswordPlaceholder')}
 													{...field}
 													className='text-foreground'
 												/>
@@ -275,12 +275,10 @@ export const ForgotPasswordDialog = ({
 									name='confirmPassword'
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>
-												{RESET_PASSWORD_MESSAGES.CONFIRM_PASSWORD_LABEL}
-											</FormLabel>
+											<FormLabel>{t('resetConfirmPasswordLabel')}</FormLabel>
 											<FormControl>
 												<PasswordInput
-													placeholder='Re-enter the password'
+													placeholder={t('forgotConfirmPlaceholder')}
 													{...field}
 													className='text-foreground'
 												/>
@@ -293,10 +291,10 @@ export const ForgotPasswordDialog = ({
 									type='submit'
 									className='w-full'
 									isLoading={resetForm.formState.isSubmitting}
-									loadingText='Updating...'
+									loadingText={t('forgotUpdating')}
 									shine
 								>
-									{RESET_PASSWORD_MESSAGES.SUBMIT_TEXT}
+									{t('resetSubmitText')}
 								</AnimatedButton>
 							</form>
 						</Form>

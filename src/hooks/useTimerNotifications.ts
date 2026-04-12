@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { playTimerCompleteForStep, isAudioEnabled } from '@/lib/audio'
 import { getTextToSpeech, isTTSSupported } from '@/lib/voice/TextToSpeech'
 import { showTimerNotification } from '@/lib/pushNotifications'
+import { useTranslations } from 'next-intl'
 
 /**
  * Plays a pleasant chime sound using Web Audio API.
@@ -19,12 +20,15 @@ export const playTimerChime = () => {
 // Milestone thresholds in seconds for contextual TTS announcements
 const MILESTONES = [300, 180, 60, 30] // 5min, 3min, 1min, 30s
 
-function formatTimeRemaining(seconds: number): string {
+function formatTimeRemaining(
+	seconds: number,
+	t: (key: string, values?: Record<string, unknown>) => string,
+): string {
 	if (seconds >= 60) {
 		const mins = Math.floor(seconds / 60)
-		return `${mins} minute${mins > 1 ? 's' : ''}`
+		return t('timerMinutes', { count: mins })
 	}
-	return `${seconds} seconds`
+	return t('timerSeconds', { count: seconds })
 }
 
 /**
@@ -39,6 +43,7 @@ function formatTimeRemaining(seconds: number): string {
  */
 export const useTimerNotifications = () => {
 	const { localTimers, recipe, session } = useCookingStore()
+	const t = useTranslations('cooking')
 	const previousTimers = useRef<Map<number, number>>(new Map())
 	// Track announced milestones per step: stepNumber -> Set of milestone thresholds already spoken
 	const announcedMilestones = useRef<Map<number, Set<number>>>(new Map())
@@ -60,11 +65,12 @@ export const useTimerNotifications = () => {
 			if (remaining > 0 && !current.has(stepNumber)) {
 				// Timer completed!
 				const step = recipe.steps?.[stepNumber - 1]
-				const stepTitle = step?.title || `Step ${stepNumber}`
+				const stepTitle =
+					step?.title || t('stepFallback', { number: stepNumber })
 
 				// Show toast notification
-				toast.success('⏰ Timer Complete!', {
-					description: `${stepTitle} is ready`,
+				toast.success(t('timerComplete'), {
+					description: t('timerStepReady', { step: stepTitle }),
 					duration: 8000,
 				})
 
@@ -75,7 +81,7 @@ export const useTimerNotifications = () => {
 
 				// TTS: announce completion
 				if (isAudioEnabled() && isTTSSupported()) {
-					getTextToSpeech().speak(`${stepTitle} timer is done.`)
+					getTextToSpeech().speak(t('timerStepDone', { step: stepTitle }))
 				}
 
 				// Vibrate on mobile if supported
@@ -101,7 +107,8 @@ export const useTimerNotifications = () => {
 				if (prevRemaining === undefined) return // Timer just started, skip
 
 				const step = recipe.steps?.[stepNumber - 1]
-				const stepTitle = step?.title || `Step ${stepNumber}`
+				const stepTitle =
+					step?.title || t('stepFallback', { number: stepNumber })
 
 				// Get or create the announced set for this step
 				if (!announcedMilestones.current.has(stepNumber)) {
@@ -111,9 +118,18 @@ export const useTimerNotifications = () => {
 
 				for (const milestone of MILESTONES) {
 					// Check if we just crossed this milestone (was above, now at or below)
-					if (prevRemaining > milestone && timer.remaining <= milestone && !announced.has(milestone)) {
+					if (
+						prevRemaining > milestone &&
+						timer.remaining <= milestone &&
+						!announced.has(milestone)
+					) {
 						announced.add(milestone)
-						getTextToSpeech().speak(`${stepTitle}: ${formatTimeRemaining(milestone)} remaining.`)
+						getTextToSpeech().speak(
+							t('timerMilestone', {
+								step: stepTitle,
+								time: formatTimeRemaining(milestone, t),
+							}),
+						)
 						break // Only one announcement per tick
 					}
 				}
@@ -126,5 +142,5 @@ export const useTimerNotifications = () => {
 			newPrevious.set(stepNumber, timer.remaining)
 		})
 		previousTimers.current = newPrevious
-	}, [localTimers, recipe, session])
+	}, [localTimers, recipe, session, t])
 }

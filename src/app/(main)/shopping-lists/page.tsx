@@ -20,9 +20,23 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Portal } from '@/components/ui/portal'
+import { ErrorState } from '@/components/ui/error-state'
+import {
+	AsyncCombobox,
+	type AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	CARD_FEATURED_HOVER,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	LIST_ITEM_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import {
 	getUserShoppingLists,
 	getShoppingListById,
@@ -34,8 +48,10 @@ import {
 	removeShoppingItem,
 	deleteShoppingList,
 	regenerateShareToken,
+	checkoutShoppingList,
 } from '@/services/shoppingList'
 import { getCurrentMealPlan } from '@/services/mealplan'
+import { autocompleteSearch } from '@/services/search'
 import type {
 	ShoppingListSummary,
 	ShoppingListResponse,
@@ -44,6 +60,8 @@ import type {
 } from '@/lib/types/shoppingList'
 import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 
 // ── Source badge colors ──────────────────────────────────────────────
 
@@ -63,6 +81,7 @@ export default function ShoppingListsPage() {
 		null,
 	)
 	const [isLoading, setIsLoading] = useState(true)
+	const [fetchError, setFetchError] = useState(false)
 	const [isDetailLoading, setIsDetailLoading] = useState(false)
 	const [showCreateMenu, setShowCreateMenu] = useState(false)
 	const [showAddItem, setShowAddItem] = useState(false)
@@ -72,27 +91,68 @@ export default function ShoppingListsPage() {
 	const [isCreating, setIsCreating] = useState(false)
 	const [copySuccess, setCopySuccess] = useState(false)
 	const [shareSuccess, setShareSuccess] = useState(false)
+
+	// Auto-reset copy/share success after 2s with proper cleanup
+	useEffect(() => {
+		if (!copySuccess) return
+		const id = setTimeout(() => setCopySuccess(false), 2000)
+		return () => clearTimeout(id)
+	}, [copySuccess])
+
+	useEffect(() => {
+		if (!shareSuccess) return
+		const id = setTimeout(() => setShareSuccess(false), 2000)
+		return () => clearTimeout(id)
+	}, [shareSuccess])
 	const [customListName, setCustomListName] = useState('')
 	const [showCustomNameInput, setShowCustomNameInput] = useState(false)
 	const [isDeletingList, setIsDeletingList] = useState(false)
 	const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
 		null,
 	)
+	const [isCheckingOut, setIsCheckingOut] = useState(false)
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000, condition: !isLoading })
+	const t = useTranslations('shoppingLists')
 
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
+
+	// ── Ingredient autocomplete via Typesense ──────────────────────────
+
+	const fetchIngredientOptions = useCallback(
+		async (query: string): Promise<AsyncComboboxOption[]> => {
+			try {
+				const res = await autocompleteSearch(query, 'ingredients', 8)
+				if (res.success && res.data?.ingredients?.hits) {
+					return res.data.ingredients.hits.map(h => ({
+						value: h.document.id,
+						label: h.document.name,
+						category: h.document.category,
+					}))
+				}
+			} catch {
+				// Autocomplete is non-critical — degrade to empty suggestions
+			}
+			return []
+		},
+		[],
+	)
 
 	// ── Fetch lists ────────────────────────────────────────────────────
 
 	const fetchLists = useCallback(async () => {
+		setFetchError(false)
 		try {
 			const data = await getUserShoppingLists()
 			setLists(data)
 		} catch {
-			toast.error('Failed to load shopping lists')
+			setFetchError(true)
+			toast.error(t('failedLoad'))
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		fetchLists()
@@ -106,7 +166,7 @@ export default function ShoppingListsPage() {
 			const data = await getShoppingListById(id)
 			setSelectedList(data)
 		} catch {
-			toast.error('Failed to open shopping list')
+			toast.error(t('failedOpen'))
 		} finally {
 			setIsDetailLoading(false)
 		}
@@ -119,9 +179,9 @@ export default function ShoppingListsPage() {
 			setLists(prev => prev.filter(l => l.id !== id))
 			if (selectedList?.id === id) setSelectedList(null)
 			setConfirmingDeleteId(null)
-			toast.success('Shopping list deleted')
+			toast.success(t('deleted'))
 		} catch {
-			toast.error('Failed to delete shopping list')
+			toast.error(t('failedDelete'))
 		} finally {
 			setIsDeletingList(false)
 		}
@@ -135,9 +195,9 @@ export default function ShoppingListsPage() {
 			setSelectedList(list)
 			setShowCreateMenu(false)
 			fetchLists()
-			toast.success('Shopping list created from meal plan!')
+			toast.success(t('createdFromMealPlan'))
 		} catch {
-			toast.error('No meal plan found — generate one first')
+			toast.error(t('noMealPlan'))
 		} finally {
 			setIsCreating(false)
 		}
@@ -153,9 +213,9 @@ export default function ShoppingListsPage() {
 			setShowCustomNameInput(false)
 			setCustomListName('')
 			fetchLists()
-			toast.success('Custom list created!')
+			toast.success(t('customListCreated'))
 		} catch {
-			toast.error('Failed to create custom list')
+			toast.error(t('failedCreateCustom'))
 		} finally {
 			setIsCreating(false)
 		}
@@ -199,7 +259,7 @@ export default function ShoppingListsPage() {
 					}
 				})
 			}
-			toast.error('Failed to update item')
+			toast.error(t('failedUpdateItem'))
 		}
 	}
 
@@ -221,8 +281,9 @@ export default function ShoppingListsPage() {
 			setNewItemForm({ ingredient: '' })
 			setShowAddItem(false)
 			fetchLists()
+			toast.success(t('itemAdded'))
 		} catch {
-			toast.error('Failed to add item')
+			toast.error(t('failedAddItem'))
 		} finally {
 			addingItemRef.current = false
 		}
@@ -237,7 +298,7 @@ export default function ShoppingListsPage() {
 			setSelectedList(updated)
 			fetchLists()
 		} catch {
-			toast.error('Failed to remove item')
+			toast.error(t('failedRemoveItem'))
 		} finally {
 			removingItemRef.current.delete(itemId)
 		}
@@ -259,9 +320,8 @@ export default function ShoppingListsPage() {
 				`${selectedList.name}\n${'─'.repeat(30)}\n${text}`,
 			)
 			setCopySuccess(true)
-			setTimeout(() => setCopySuccess(false), 2000)
 		} catch {
-			toast.error('Failed to copy to clipboard')
+			toast.error(t('failedCopy'))
 		}
 	}
 
@@ -273,9 +333,8 @@ export default function ShoppingListsPage() {
 			const url = `${window.location.origin}/shopping-lists/shared/${updated.shareToken}`
 			await navigator.clipboard.writeText(url)
 			setShareSuccess(true)
-			setTimeout(() => setShareSuccess(false), 2000)
 		} catch {
-			toast.error('Failed to generate share link')
+			toast.error(t('failedShare'))
 		}
 	}
 
@@ -338,6 +397,23 @@ export default function ShoppingListsPage() {
 		)
 	}
 
+	if (fetchError) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title={t('failedLoad')}
+						message={t('failedLoadDesc')}
+						onRetry={() => {
+							setIsLoading(true)
+							fetchLists()
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
 	// ── Detail View ────────────────────────────────────────────────────
 
 	if (selectedList) {
@@ -349,11 +425,13 @@ export default function ShoppingListsPage() {
 						<div className='flex items-center justify-between'>
 							<div className='flex items-center gap-3'>
 								<button
+									type='button'
 									onClick={() => {
 										setSelectedList(null)
 										fetchLists()
 									}}
-									className='rounded-lg p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+									className='rounded-lg p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('backToLists')}
 								>
 									<ArrowLeft className='size-5' />
 								</button>
@@ -362,35 +440,39 @@ export default function ShoppingListsPage() {
 										{selectedList.name}
 									</h1>
 									<p className='text-sm text-text-muted'>
-										{selectedList.items.filter(i => i.checked).length}/
-										{selectedList.totalItems} items checked
+										{t('itemsChecked', {
+											checked: selectedList.items.filter(i => i.checked).length,
+											total: selectedList.totalItems,
+										})}
 									</p>
 								</div>
 							</div>
 							<div className='flex items-center gap-2'>
 								<button
+									type='button'
 									onClick={handleCopyList}
 									className='flex items-center gap-1.5 rounded-lg border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-									title='Copy list'
+									title={t('copyList')}
 								>
 									{copySuccess ? (
 										<Check className='size-4 text-success' />
 									) : (
 										<Copy className='size-4' />
 									)}
-									{copySuccess ? 'Copied!' : 'Copy'}
+									{copySuccess ? t('copied') : t('copy')}
 								</button>
 								<button
+									type='button'
 									onClick={handleShare}
 									className='flex items-center gap-1.5 rounded-lg border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-									title='Share list'
+									title={t('shareList')}
 								>
 									{shareSuccess ? (
 										<Check className='size-4 text-success' />
 									) : (
 										<Share2 className='size-4' />
 									)}
-									{shareSuccess ? 'Link copied!' : 'Share'}
+									{shareSuccess ? t('linkCopied') : t('share')}
 								</button>
 							</div>
 						</div>
@@ -405,29 +487,44 @@ export default function ShoppingListsPage() {
 								<ShoppingCart className='size-5 flex-shrink-0 text-brand' />
 								<div className='flex-1 min-w-0'>
 									<p className='text-sm font-semibold text-text'>
-										Shop on Instacart
+										{t('shopInstacart')}
 									</p>
 									<p className='text-xs text-text-muted'>
-										{uncheckedItems.length} item
-										{uncheckedItems.length !== 1 ? 's' : ''} remaining — opens
-										Instacart with your items
+										{t('remainingItems', { count: uncheckedItems.length })}
 									</p>
 								</div>
 								<button
-									onClick={() => {
-										const items = uncheckedItems
-											.map(i => i.ingredient)
-											.join(', ')
-										const searchQuery = encodeURIComponent(items)
-										window.open(
-											`https://www.instacart.com/store/search/${searchQuery}`,
-											'_blank',
-											'noopener,noreferrer',
-										)
+									type='button'
+									disabled={isCheckingOut}
+									onClick={async () => {
+										if (!selectedList) return
+										setIsCheckingOut(true)
+										try {
+											const result = await checkoutShoppingList(
+												selectedList.id,
+												'affiliate',
+											)
+											if (result?.checkoutUrl) {
+												window.open(
+													result.checkoutUrl,
+													'_blank',
+													'noopener,noreferrer',
+												)
+												toast.success(
+													t('checkoutStarted', { count: result.itemCount }),
+												)
+											} else {
+												toast.success(t('checkoutPrepared'))
+											}
+										} catch {
+											toast.error(t('checkoutFailed'))
+										} finally {
+											setIsCheckingOut(false)
+										}
 									}}
-									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
 								>
-									Shop Now
+									{isCheckingOut ? t('processing') : t('shopNow')}
 								</button>
 							</motion.div>
 						)}
@@ -444,7 +541,7 @@ export default function ShoppingListsPage() {
 							</div>
 						)}
 
-						{/* Add custom item */}
+						{/* {t('addCustomItem')} */}
 						<AnimatePresence>
 							{showAddItem ? (
 								<motion.div
@@ -459,21 +556,27 @@ export default function ShoppingListsPage() {
 												htmlFor='shopping-item-name'
 												className='text-xs font-medium text-text-muted'
 											>
-												Item name
+												{t('itemName')}
 											</label>
-											<input
+											<AsyncCombobox
 												id='shopping-item-name'
 												value={newItemForm.ingredient}
-												onChange={e =>
+												onChange={val =>
 													setNewItemForm(prev => ({
 														...prev,
-														ingredient: e.target.value,
+														ingredient: val,
 													}))
 												}
-												placeholder='e.g. Paper towels'
-												className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+												onSelect={option =>
+													setNewItemForm(prev => ({
+														...prev,
+														ingredient: option.label,
+													}))
+												}
+												fetchOptions={fetchIngredientOptions}
+												minChars={1}
+												placeholder={t('ingredientPlaceholder')}
 												onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-												autoFocus
 											/>
 										</div>
 										<div className='w-24 space-y-2'>
@@ -481,7 +584,7 @@ export default function ShoppingListsPage() {
 												htmlFor='shopping-quantity'
 												className='text-xs font-medium text-text-muted'
 											>
-												Quantity
+												{t('quantity')}
 											</label>
 											<input
 												id='shopping-quantity'
@@ -492,18 +595,20 @@ export default function ShoppingListsPage() {
 														quantity: e.target.value,
 													}))
 												}
-												placeholder='2 lbs'
-												className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand'
+												placeholder={t('quantityPlaceholder')}
+												className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 											/>
 										</div>
 										<button
+											type='button'
 											onClick={handleAddItem}
 											disabled={!newItemForm.ingredient.trim()}
 											className='rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 										>
-											Add
+											{t('add')}
 										</button>
 										<button
+											type='button'
 											onClick={() => {
 												setShowAddItem(false)
 												setNewItemForm({ ingredient: '' })
@@ -516,13 +621,14 @@ export default function ShoppingListsPage() {
 								</motion.div>
 							) : (
 								<motion.button
+									type='button'
 									onClick={() => setShowAddItem(true)}
-									className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
-									whileHover={{ scale: 1.01 }}
-									whileTap={{ scale: 0.99 }}
+									className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									whileHover={CARD_FEATURED_HOVER}
+									whileTap={LIST_ITEM_TAP}
 								>
 									<Plus className='size-4' />
-									Add custom item
+									{t('addCustomItem')}
 								</motion.button>
 							)}
 						</AnimatePresence>
@@ -531,7 +637,7 @@ export default function ShoppingListsPage() {
 						{selectedList.items.length === 0 ? (
 							<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
 								<Package className='mx-auto mb-3 size-12 text-text-muted/40' />
-								<p className='text-text-muted'>Empty list — add items above</p>
+								<p className='text-text-muted'>{t('emptyList')}</p>
 							</div>
 						) : (
 							<div className='space-y-4'>
@@ -555,16 +661,20 @@ export default function ShoppingListsPage() {
 												</span>
 											</div>
 											{/* Items */}
-											<div className='divide-y divide-border-subtle'>
+											<ul className='divide-y divide-border-subtle'>
 												{items.map(item => (
-													<motion.div
+													<motion.li
 														key={item.itemId}
 														layout
 														className='group flex items-center gap-3 px-4 py-3'
 													>
 														{/* Checkbox */}
 														<button
+															type='button'
 															onClick={() => handleToggleItem(item.itemId)}
+															role='checkbox'
+															aria-checked={item.checked}
+															aria-label={`${item.ingredient}`}
 															className='flex-shrink-0'
 														>
 															{item.checked ? (
@@ -594,7 +704,7 @@ export default function ShoppingListsPage() {
 																	{item.recipes.map(recipe => (
 																		<span
 																			key={recipe}
-																			className='inline-block rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium text-brand'
+																			className='inline-block rounded-full bg-brand/10 px-2 py-0.5 text-2xs font-medium text-brand'
 																		>
 																			{recipe}
 																		</span>
@@ -602,22 +712,23 @@ export default function ShoppingListsPage() {
 																</div>
 															)}
 															{item.addedManually && (
-																<span className='ml-1 text-[10px] text-text-muted'>
+																<span className='ml-1 text-2xs text-text-muted'>
 																	(custom)
 																</span>
 															)}
 														</div>
 														{/* Remove */}
 														<button
+															type='button'
 															onClick={() => handleRemoveItem(item.itemId)}
-															className='flex-shrink-0 rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
-															aria-label='Remove item'
+															className='flex size-10 flex-shrink-0 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
+															aria-label={t('ariaRemoveItem')}
 														>
 															<Trash2 className='size-4' />
 														</button>
-													</motion.div>
+													</motion.li>
 												))}
-											</div>
+											</ul>
 										</motion.div>
 									)
 								})}
@@ -636,112 +747,119 @@ export default function ShoppingListsPage() {
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
 					{/* Header */}
-					<div className='flex items-center justify-between'>
-						<div>
-							<h1 className='text-2xl font-bold text-text'>Shopping Lists</h1>
-							<p className='text-sm text-text-muted'>
-								{lists.length} {lists.length === 1 ? 'list' : 'lists'}
-							</p>
-						</div>
-						<div className='relative'>
-							<motion.button
-								onClick={() => setShowCreateMenu(!showCreateMenu)}
-								className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
-								whileHover={{ scale: 1.02 }}
-								whileTap={{ scale: 0.98 }}
-							>
-								<Plus className='size-4' />
-								New List
-							</motion.button>
+					<PageHeader
+						icon={ShoppingCart}
+						title={t('title')}
+						subtitle={t('subtitle', { count: lists.length })}
+						gradient='blue'
+						marginBottom='sm'
+						rightAction={
+							<div className='relative'>
+								<motion.button
+									type='button'
+									onClick={() => setShowCreateMenu(!showCreateMenu)}
+									className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
+									whileHover={BUTTON_SUBTLE_HOVER}
+									whileTap={BUTTON_SUBTLE_TAP}
+								>
+									<Plus className='size-4' />
+									{t('newList')}
+								</motion.button>
 
-							{/* Create dropdown */}
-							<AnimatePresence>
-								{showCreateMenu && (
-									<>
-										<div
-											className='fixed inset-0 z-10'
-											onClick={() => {
-												setShowCreateMenu(false)
-												setShowCustomNameInput(false)
-												setCustomListName('')
-											}}
-										/>
-										<motion.div
-											initial={{ opacity: 0, y: -8, scale: 0.95 }}
-											animate={{ opacity: 1, y: 0, scale: 1 }}
-											exit={{ opacity: 0, y: -8, scale: 0.95 }}
-											transition={{ duration: 0.15 }}
-											className='absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
-										>
-											<button
-												onClick={handleCreateFromMealPlan}
-												disabled={isCreating}
-												className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+								{/* Create dropdown */}
+								<AnimatePresence>
+									{showCreateMenu && (
+										<>
+											<div
+												className='fixed inset-0 z-dropdown'
+												onClick={() => {
+													setShowCreateMenu(false)
+													setShowCustomNameInput(false)
+													setCustomListName('')
+												}}
+											/>
+											<motion.div
+												initial={{ opacity: 0, y: -8, scale: 0.95 }}
+												animate={{ opacity: 1, y: 0, scale: 1 }}
+												exit={{ opacity: 0, y: -8, scale: 0.95 }}
+												transition={{ duration: DURATION_S.fast }}
+												className='absolute right-0 top-full z-dropdown mt-2 w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
 											>
-												<CalendarDays className='size-4 text-info' />
-												<div>
-													<div className='font-medium'>From Meal Plan</div>
-													<div className='text-xs text-text-muted'>
-														Current week&apos;s ingredients
+												<button
+													type='button'
+													onClick={handleCreateFromMealPlan}
+													disabled={isCreating}
+													className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+												>
+													<CalendarDays className='size-4 text-info' />
+													<div>
+														<div className='font-medium'>
+															{t('fromMealPlan')}
+														</div>
+														<div className='text-xs text-text-muted'>
+															{t('mealPlanDesc')}
+														</div>
 													</div>
-												</div>
-											</button>
-											<button
-												onClick={() => setShowCustomNameInput(true)}
-												disabled={isCreating}
-												className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
-											>
-												<FileText className='size-4 text-success' />
-												<div>
-													<div className='font-medium'>Custom List</div>
-													<div className='text-xs text-text-muted'>
-														Start with an empty list
+												</button>
+												<button
+													type='button'
+													onClick={() => setShowCustomNameInput(true)}
+													disabled={isCreating}
+													className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+												>
+													<FileText className='size-4 text-success' />
+													<div>
+														<div className='font-medium'>{t('customList')}</div>
+														<div className='text-xs text-text-muted'>
+															{t('customListDesc')}
+														</div>
 													</div>
-												</div>
-											</button>
-											{showCustomNameInput && (
-												<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
-													<input
-														value={customListName}
-														onChange={e => setCustomListName(e.target.value)}
-														placeholder='List name...'
-														className='flex-1 rounded-lg border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
-														onKeyDown={e =>
-															e.key === 'Enter' && handleCreateCustom()
-														}
-														autoFocus
-													/>
-													<button
-														onClick={handleCreateCustom}
-														disabled={!customListName.trim() || isCreating}
-														className='rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
-													>
-														Create
-													</button>
-												</div>
-											)}
-										</motion.div>
-									</>
-								)}
-							</AnimatePresence>
-						</div>
-					</div>
+												</button>
+												{showCustomNameInput && (
+													<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
+														<input
+															value={customListName}
+															onChange={e => setCustomListName(e.target.value)}
+															placeholder={t('listNamePlaceholder')}
+															aria-label={t('listNamePlaceholder')}
+															className='flex-1 rounded-lg border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+															onKeyDown={e =>
+																e.key === 'Enter' && handleCreateCustom()
+															}
+															autoFocus
+														/>
+														<button
+															type='button'
+															onClick={handleCreateCustom}
+															disabled={!customListName.trim() || isCreating}
+															className='rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
+														>
+															Create
+														</button>
+													</div>
+												)}
+											</motion.div>
+										</>
+									)}
+								</AnimatePresence>
+							</div>
+						}
+					/>
 
 					{/* Empty state */}
 					{lists.length === 0 ? (
 						<div className='rounded-xl border border-border-subtle bg-bg-card py-20 text-center shadow-card'>
 							<ShoppingCart className='mx-auto mb-4 size-16 text-text-muted/30' />
 							<h2 className='mb-2 text-lg font-semibold text-text'>
-								No shopping lists yet
+								{t('noListsYet')}
 							</h2>
-							<p className='mb-6 text-sm text-text-muted'>
-								Create one from your meal plan or start a custom list
-							</p>
+							<p className='mb-6 text-sm text-text-muted'>{t('noListsDesc')}</p>
 							<button
+								type='button'
 								onClick={() => setShowCreateMenu(true)}
 								className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
 							>
-								Create Your First List
+								{t('createFirst')}
 							</button>
 						</div>
 					) : (
@@ -771,12 +889,13 @@ export default function ShoppingListsPage() {
 												{list.source}
 											</span>
 											<button
+												type='button'
 												onClick={e => {
 													e.stopPropagation()
 													setConfirmingDeleteId(list.id)
 												}}
-												className='rounded-md p-1 text-text-muted md:opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100 focus-visible:opacity-100'
-												aria-label='Delete list'
+												className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
+												aria-label={t('ariaDeleteList')}
 											>
 												<Trash2 className='size-4' />
 											</button>
@@ -807,7 +926,7 @@ export default function ShoppingListsPage() {
 										{listProgress === 100 && list.totalItems > 0 && (
 											<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success'>
 												<Check className='size-3' />
-												Complete!
+												{t('complete')}
 											</div>
 										)}
 									</motion.div>
@@ -825,7 +944,7 @@ export default function ShoppingListsPage() {
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
-								className='fixed inset-0 z-modal flex items-center justify-center bg-black/40 p-4'
+								className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
 								onClick={() => setConfirmingDeleteId(null)}
 							>
 								<motion.div
@@ -833,28 +952,39 @@ export default function ShoppingListsPage() {
 									animate={{ scale: 1, opacity: 1 }}
 									exit={{ scale: 0.95, opacity: 0 }}
 									onClick={e => e.stopPropagation()}
+									role='alertdialog'
+									aria-modal='true'
+									aria-labelledby='delete-list-title'
+									aria-describedby='delete-list-desc'
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
-									<h3 className='mb-2 text-lg font-bold text-text'>
-										Delete Shopping List?
+									<h3
+										className='mb-2 text-lg font-bold text-text'
+										id='delete-list-title'
+									>
+										{t('deleteTitle')}
 									</h3>
-									<p className='mb-6 text-sm text-text-muted'>
-										This action cannot be undone. All items in this list will be
-										permanently removed.
+									<p
+										className='mb-6 text-sm text-text-muted'
+										id='delete-list-desc'
+									>
+										{t('deleteDesc')}
 									</p>
 									<div className='flex justify-end gap-3'>
 										<button
+											type='button'
 											onClick={() => setConfirmingDeleteId(null)}
 											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
 										>
-											Cancel
+											{t('cancel')}
 										</button>
 										<button
+											type='button'
 											onClick={() => handleDeleteList(confirmingDeleteId)}
 											disabled={isDeletingList}
 											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
 										>
-											{isDeletingList ? 'Deleting...' : 'Delete'}
+											{isDeletingList ? t('deleting') : t('delete')}
 										</button>
 									</div>
 								</motion.div>
@@ -862,6 +992,9 @@ export default function ShoppingListsPage() {
 						</Portal>
 					)}
 				</AnimatePresence>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

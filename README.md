@@ -196,6 +196,47 @@ cd chefkix-fe && npm install && npm run dev
 
 ---
 
+## Visual Review Workflow
+
+The Playwright visual runner now produces two artifact sets:
+
+- `tests/visual/shots/` is the canonical AI-safe image directory. Every image in it is guaranteed to fit within the many-image vision limit.
+- `tests/visual/raw-archive/` keeps the original full-fidelity captures as gzipped PNG archives so the raw data survives without leaving giant image files in the workspace.
+- `tests/visual/ai-review/` stores manifests, deterministic review batches, and the next recommended batch for Copilot vision review.
+
+Commands:
+
+```bash
+# Capture full screenshots and auto-build AI-safe review assets
+npm run visual
+
+# Rebuild only the AI-safe review assets from existing originals
+npm run visual:review
+
+# Rebuild and verify that no oversized visual images remain
+npm run visual:review:verify
+
+# Print and write the next recommended AI review batch
+npm run visual:review:next
+```
+
+Generated review metadata:
+
+- `tests/visual/shots/manifest.json` maps each archived original screenshot to its AI-safe derivative(s).
+- `tests/visual/ai-review/manifest.json` records the active run, verification results, and batching metadata.
+- `tests/visual/ai-review/batches.json` groups AI-safe images into small review batches.
+- `tests/visual/ai-review/next-batch.json` contains the best next batch to attach to Copilot.
+
+Optional environment overrides:
+
+- `VISUAL_AI_REVIEW_MAX_DIMENSION` default `2000`
+- `VISUAL_AI_REVIEW_TILE_SIZE` default `1600`
+- `VISUAL_AI_REVIEW_TILE_OVERLAP` default `160`
+- `VISUAL_AI_REVIEW_RESIZE_TOLERANCE_RATIO` default `1.12`
+- `VISUAL_AI_REVIEW_MAX_BATCH_IMAGES` default `6`
+
+---
+
 ## Stats
 
 - **782+ commits** across 4 repositories

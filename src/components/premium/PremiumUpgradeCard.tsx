@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -44,8 +46,7 @@ import {
 
 interface FeatureConfig {
 	icon: typeof Crown
-	label: string
-	description: string
+	labelKey: string
 	free: boolean
 	premium: boolean
 }
@@ -53,99 +54,85 @@ interface FeatureConfig {
 const FEATURES: FeatureConfig[] = [
 	{
 		icon: ChefHat,
-		label: 'Cooking Sessions & XP',
-		description: 'Cook recipes and earn experience points',
+		labelKey: 'CookingSessions',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Camera,
-		label: 'Post Your Creations',
-		description: 'Share cooking photos with the community',
+		labelKey: 'PostCreations',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: BookOpen,
-		label: 'Browse All Recipes',
-		description: 'Access the full recipe library',
+		labelKey: 'BrowseRecipes',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Users,
-		label: 'Social Features',
-		description: 'Follow friends, like, comment, and chat',
+		labelKey: 'Social',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Bookmark,
-		label: 'Saved Recipes',
-		description: 'Save up to 50 recipes (unlimited with Premium)',
+		labelKey: 'Saved',
 		free: true,
 		premium: true,
 	},
 	{
 		icon: Shield,
-		label: 'Ad-Free Experience',
-		description: 'Browse without interruptions',
+		labelKey: 'AdFree',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Gem,
-		label: 'Premium Badges',
-		description: 'Exclusive badges to show off your status',
+		labelKey: 'Badges',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Palette,
-		label: 'Custom Profile Themes',
-		description: 'Stand out with unique profile designs',
+		labelKey: 'Themes',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Volume2,
-		label: 'Custom Timer Sounds',
-		description: 'Personalize your cooking timer alerts',
+		labelKey: 'TimerSounds',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: BarChart3,
-		label: 'Advanced Analytics',
-		description: 'Deep insights into your cooking journey',
+		labelKey: 'Analytics',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: HeadphonesIcon,
-		label: 'Priority Support',
-		description: 'Get help faster when you need it',
+		labelKey: 'Support',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Zap,
-		label: 'Early Access',
-		description: 'Try new features before everyone else',
+		labelKey: 'EarlyAccess',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Trophy,
-		label: 'Exclusive Challenges',
-		description: 'Premium-only challenges with rare badges',
+		labelKey: 'ExclusiveChallenges',
 		free: false,
 		premium: true,
 	},
 	{
 		icon: Sparkles,
-		label: 'Premium Cosmetics',
-		description: 'Unique visual effects and profile flair',
+		labelKey: 'Cosmetics',
 		free: false,
 		premium: true,
 	},
@@ -163,6 +150,7 @@ export default function PremiumUpgradeCard() {
 	const [isActioning, setIsActioning] = useState(false)
 	const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const t = useTranslations('premium')
 
 	const fetchSubscription = useCallback(async () => {
 		try {
@@ -172,11 +160,11 @@ export default function PremiumUpgradeCard() {
 				setSubscription(response.data)
 			}
 		} catch {
-			setError('Failed to load subscription info')
+			setError(t('errorLoad'))
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		fetchSubscription()
@@ -188,10 +176,10 @@ export default function PremiumUpgradeCard() {
 			const response = await startTrial()
 			if (response.success && response.data) {
 				setSubscription(response.data)
-				toast.success('Welcome to Premium! Your 7-day trial has started.')
+				toast.success(t('toastTrialStarted'))
 			}
 		} catch {
-			toast.error('Failed to start trial. Please try again.')
+			toast.error(t('toastTrialFailed'))
 		} finally {
 			setIsActioning(false)
 		}
@@ -204,12 +192,10 @@ export default function PremiumUpgradeCard() {
 			if (response.success && response.data) {
 				setSubscription(response.data)
 				setShowCancelConfirm(false)
-				toast.success(
-					"Subscription cancelled. You'll retain access until the end of your billing period.",
-				)
+				toast.success(t('toastCancelled'))
 			}
 		} catch {
-			toast.error('Failed to cancel subscription. Please try again.')
+			toast.error(t('toastCancelFailed'))
 		} finally {
 			setIsActioning(false)
 		}
@@ -239,7 +225,7 @@ export default function PremiumUpgradeCard() {
 				<AlertTriangle className='size-8 text-text-muted' />
 				<p className='text-text-secondary'>{error}</p>
 				<Button variant='outline' onClick={fetchSubscription}>
-					Try Again
+					{t('tryAgain')}
 				</Button>
 			</div>
 		)
@@ -276,17 +262,21 @@ export default function PremiumUpgradeCard() {
 								<Sparkles className='size-6 text-text-muted' />
 							)}
 							<h3 className='text-lg font-bold text-text'>
-								{isPremium ? 'ChefKix Premium' : 'ChefKix Free'}
+								{isPremium ? t('title') : t('titleFree')}
 							</h3>
 						</div>
 						<p className='mt-1 text-sm text-text-secondary'>
 							{isPremium
 								? isTrialActive
-									? 'Trial active — enjoying all premium features!'
+									? t('statusTrialActive')
 									: cancelledAtPeriodEnd
-										? `Cancelled — access until ${subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : 'end of period'}`
-										: 'Full premium access — thank you for your support!'
-								: 'Upgrade to unlock exclusive features and enhance your cooking journey.'}
+										? t('statusCancelled', {
+												date: subscription?.endDate
+													? new Date(subscription.endDate).toLocaleDateString()
+													: t('endOfPeriod'),
+											})
+										: t('statusActive')
+								: t('statusFree')}
 						</p>
 					</div>
 					{isPremium && (
@@ -308,17 +298,17 @@ export default function PremiumUpgradeCard() {
 			{/* Feature Comparison Grid */}
 			<motion.div variants={FADE_IN_VARIANTS} className='space-y-3'>
 				<h4 className='text-sm font-semibold uppercase tracking-wider text-text-muted'>
-					Free vs Premium
+					{t('freeVsPremium')}
 				</h4>
 
 				{/* Column headers */}
 				<div className='flex items-center gap-3 px-4 py-2'>
 					<div className='flex-1' />
 					<span className='w-14 shrink-0 text-center text-xs font-semibold uppercase text-text-muted'>
-						Free
+						{t('columnFree')}
 					</span>
 					<span className='w-14 shrink-0 text-center text-xs font-semibold uppercase text-level'>
-						Pro
+						{t('columnPro')}
 					</span>
 				</div>
 
@@ -328,7 +318,7 @@ export default function PremiumUpgradeCard() {
 						const isPremiumOnly = !feature.free && feature.premium
 						return (
 							<motion.div
-								key={feature.label}
+								key={feature.labelKey}
 								variants={FADE_IN_VARIANTS}
 								className={cn(
 									'flex items-center gap-3 rounded-lg border px-4 py-2.5 transition-colors',
@@ -349,7 +339,7 @@ export default function PremiumUpgradeCard() {
 								</div>
 								<div className='min-w-0 flex-1'>
 									<p className='text-sm font-medium text-text'>
-										{feature.label}
+										{t(`feature${feature.labelKey}Label`)}
 									</p>
 								</div>
 								<div className='w-14 shrink-0 flex justify-center'>
@@ -388,13 +378,11 @@ export default function PremiumUpgradeCard() {
 								) : (
 									<Crown className='mr-2 size-4' />
 								)}
-								Start 7-Day Free Trial
+								{t('startTrial')}
 							</Button>
 						)}
 						<p className='text-center text-xs text-text-muted'>
-							{trialUsed
-								? 'Your free trial has been used. Subscribe to access premium features.'
-								: 'No credit card required. Cancel anytime during trial.'}
+							{trialUsed ? t('trialUsedNote') : t('trialNote')}
 						</p>
 					</>
 				)}
@@ -403,10 +391,11 @@ export default function PremiumUpgradeCard() {
 					<>
 						{!showCancelConfirm ? (
 							<button
+								type='button'
 								onClick={() => setShowCancelConfirm(true)}
 								className='w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-secondary hover:underline'
 							>
-								Cancel subscription
+								{t('cancelSubscription')}
 							</button>
 						) : (
 							<AnimatePresence>
@@ -418,11 +407,10 @@ export default function PremiumUpgradeCard() {
 									className='overflow-hidden rounded-lg border border-error/20 bg-error/5 p-4'
 								>
 									<p className='text-sm font-medium text-error'>
-										Are you sure you want to cancel?
+										{t('cancelConfirmTitle')}
 									</p>
 									<p className='mt-1 text-xs text-error/70'>
-										You&apos;ll retain premium access until the end of your
-										current billing period.
+										{t('cancelConfirmBody')}
 									</p>
 									<div className='mt-3 flex gap-2'>
 										<Button
@@ -434,14 +422,14 @@ export default function PremiumUpgradeCard() {
 											{isActioning ? (
 												<Loader2 className='mr-1 size-3 animate-spin' />
 											) : null}
-											Yes, Cancel
+											{t('cancelConfirmYes')}
 										</Button>
 										<Button
 											variant='outline'
 											size='sm'
 											onClick={() => setShowCancelConfirm(false)}
 										>
-											Keep Premium
+											{t('cancelConfirmKeep')}
 										</Button>
 									</div>
 								</motion.div>
@@ -452,11 +440,11 @@ export default function PremiumUpgradeCard() {
 
 				{isPremium && cancelledAtPeriodEnd && (
 					<p className='text-center text-sm text-warning'>
-						Your subscription is cancelled but active until{' '}
-						{subscription?.endDate
-							? new Date(subscription.endDate).toLocaleDateString()
-							: 'end of period'}
-						.
+						{t('cancelledActiveNote', {
+							date: subscription?.endDate
+								? new Date(subscription.endDate).toLocaleDateString()
+								: t('endOfPeriod'),
+						})}
 					</p>
 				)}
 			</motion.div>

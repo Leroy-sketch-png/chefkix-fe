@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, memo, useMemo } from 'react'
+import { useEffect, useState, memo, useMemo, useRef } from 'react'
 import Lottie, { LottieComponentProps } from 'lottie-react'
 import { useDeviceSize } from '@/hooks/useDeviceSize'
 import { logDevError } from '@/lib/dev-log'
 import { useInView, motion, type Variants } from 'framer-motion'
-import { useRef } from 'react'
+import { DURATION_S } from '@/lib/motion'
 
 interface LazyLottieProps
 	extends Omit<LottieComponentProps, 'style' | 'animationData'> {
@@ -69,7 +69,7 @@ const entranceVariants: Record<'fade' | 'scale' | 'none', Variants> = {
 		hidden: { opacity: 0 },
 		visible: {
 			opacity: 1,
-			transition: { duration: 0.6, ease: 'easeOut' as const },
+			transition: { duration: DURATION_S.verySlow, ease: 'easeOut' as const },
 		},
 	},
 	scale: {
@@ -172,6 +172,8 @@ function LazyLottieComponent({
 	useEffect(() => {
 		if (!isInView || hasLoaded) return
 
+		const controller = new AbortController()
+
 		const fetchAnimation = async () => {
 			try {
 				// Check cache first
@@ -182,22 +184,27 @@ function LazyLottieComponent({
 					return
 				}
 
-				const response = await fetch(src)
+				const response = await fetch(src, { signal: controller.signal })
 				if (!response.ok) {
 					logDevError(`Failed to fetch Lottie: ${src}`)
 					return
 				}
 
 				const data = await response.json()
-				lottieCache.set(src, data)
-				setAnimationData(data)
-				setHasLoaded(true)
+				if (!controller.signal.aborted) {
+					lottieCache.set(src, data)
+					setAnimationData(data)
+					setHasLoaded(true)
+				}
 			} catch (error) {
+				if (error instanceof Error && error.name === 'AbortError') return
 				logDevError(`Error loading Lottie animation: ${src}`, error)
 			}
 		}
 
 		fetchAnimation()
+
+		return () => controller.abort()
 	}, [isInView, hasLoaded, src])
 
 	// Only render Lottie when we have data and are in view

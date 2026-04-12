@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
@@ -67,12 +68,14 @@ export const Modal = ({
 	return (
 		<Portal>
 			<div
+				role='dialog'
+				aria-modal='true'
 				className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/80 p-6'
 				onClick={closeOnOverlayClick ? onClose : undefined}
 			>
 				<div
 					className={cn(
-						'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-card shadow-glow',
+						'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-bg-card shadow-glow',
 						sizeClasses[size],
 						className,
 					)}
@@ -104,6 +107,7 @@ export const ModalHeader = ({
 	children,
 	className,
 }: ModalHeaderProps) => {
+	const t = useTranslations('common')
 	return (
 		<div
 			className={cn(
@@ -117,9 +121,10 @@ export const ModalHeader = ({
 			{children}
 			{showCloseButton && onClose && (
 				<button
+					type='button'
 					onClick={onClose}
 					className='grid size-9 place-items-center rounded-full bg-bg-hover text-text-secondary transition-all hover:bg-bg-card hover:text-text-primary'
-					aria-label='Close modal'
+					aria-label={t('ariaCloseModal')}
 				>
 					<X className='size-5' />
 				</button>
@@ -213,6 +218,7 @@ export const ConfirmModal = ({
 			</ModalBody>
 			<ModalFooter>
 				<button
+					type='button'
 					onClick={onClose}
 					disabled={isLoading}
 					className='h-11 rounded-lg px-4 text-sm font-semibold leading-normal text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50'
@@ -220,14 +226,13 @@ export const ConfirmModal = ({
 					{cancelText}
 				</button>
 				<button
+					type='button'
 					onClick={onConfirm}
 					disabled={isLoading}
 					className={cn(
 						'h-11 rounded-lg px-4 text-sm font-semibold leading-normal transition-all hover:-translate-y-0.5 disabled:opacity-50',
-						variant === 'default' &&
-							'bg-primary text-primary-foreground hover:shadow-md',
-						variant === 'danger' &&
-							'bg-destructive text-destructive-foreground hover:shadow-md',
+						variant === 'default' && 'bg-brand text-white hover:shadow-md',
+						variant === 'danger' && 'bg-error text-white hover:shadow-md',
 					)}
 				>
 					{isLoading ? 'Processing...' : confirmText}
@@ -259,10 +264,10 @@ export const AlertModal = ({
 	buttonText = 'OK',
 }: AlertModalProps) => {
 	const typeColors = {
-		info: 'text-primary',
-		success: 'text-accent',
-		error: 'text-destructive',
-		warning: 'text-gold',
+		info: 'text-brand',
+		success: 'text-success',
+		error: 'text-error',
+		warning: 'text-warning',
 	}
 
 	return (
@@ -277,8 +282,9 @@ export const AlertModal = ({
 			</ModalBody>
 			<ModalFooter>
 				<button
+					type='button'
 					onClick={onClose}
-					className='h-11 rounded-lg bg-primary px-4 text-sm font-semibold leading-normal text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-md'
+					className='h-11 rounded-lg bg-brand px-4 text-sm font-semibold leading-normal text-white transition-all hover:-translate-y-0.5 hover:shadow-md'
 				>
 					{buttonText}
 				</button>

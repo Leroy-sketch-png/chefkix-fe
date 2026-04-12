@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from '@/i18n/hooks'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { ErrorState } from '@/components/ui/error-state'
 import {
 	ChallengeHistoryPage,
 	type ChallengeDay,
@@ -46,9 +48,11 @@ const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
 
 export default function ChallengeHistoryPageRoute() {
 	const router = useRouter()
+	const t = useTranslations('challenges')
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
+	const [fetchError, setFetchError] = useState(false)
 	const [days, setDays] = useState<ChallengeDay[]>([])
 	const [stats, setStats] = useState({
 		currentStreak: 0,
@@ -64,6 +68,7 @@ export default function ChallengeHistoryPageRoute() {
 		let cancelled = false
 		const fetchHistory = async () => {
 			setIsLoading(true)
+			setFetchError(false)
 			try {
 				const response = await getChallengeHistory(30) // Get last 30 days
 				if (cancelled) return
@@ -83,7 +88,8 @@ export default function ChallengeHistoryPageRoute() {
 			} catch (err) {
 				if (!cancelled) {
 					logDevError('Failed to fetch challenge history:', err)
-					toast.error('Failed to load challenge history')
+					toast.error(t('toastLoadHistoryFailed'))
+					setFetchError(true)
 				}
 			} finally {
 				if (!cancelled) setIsLoading(false)
@@ -94,7 +100,7 @@ export default function ChallengeHistoryPageRoute() {
 		return () => {
 			cancelled = true
 		}
-	}, [currentMonth])
+	}, [currentMonth, t])
 
 	const handleMonthChange = (direction: 'prev' | 'next') => {
 		const newMonth = new Date(currentMonth)
@@ -104,6 +110,24 @@ export default function ChallengeHistoryPageRoute() {
 
 	// NOTE: Load more disabled until pagination API is implemented
 	// When ready, add: onLoadMore={handleLoadMore} to ChallengeHistoryPage
+
+	if (fetchError) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title={t('errorLoadHistory')}
+						message={t('errorLoadHistoryDesc')}
+						onRetry={() => {
+							setIsLoading(true)
+							setFetchError(false)
+							setCurrentMonth(new Date(currentMonth))
+						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
 
 	return (
 		<PageTransition>
@@ -116,6 +140,8 @@ export default function ChallengeHistoryPageRoute() {
 					onBack={() => router.back()}
 					isLoadingMore={isLoadingMore}
 				/>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

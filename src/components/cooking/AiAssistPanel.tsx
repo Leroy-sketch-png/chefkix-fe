@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
-import { Sparkles, Send, Loader2, X, Lightbulb } from 'lucide-react'
+import { Sparkles, Send, X, Lightbulb } from 'lucide-react'
 import { askCookingAssistant } from '@/services/ai'
 import type { CookingAssistantResponse } from '@/services/ai'
 import { cn } from '@/lib/utils'
@@ -25,6 +26,7 @@ export function AiAssistPanel({
 	currentStep,
 	stepNumber,
 }: AiAssistPanelProps) {
+	const t = useTranslations('cooking')
 	const [query, setQuery] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 	const [result, setResult] = useState<CookingAssistantResponse | null>(null)
@@ -34,9 +36,9 @@ export function AiAssistPanel({
 
 	// Focus input when panel opens
 	useEffect(() => {
-		if (isOpen) {
-			setTimeout(() => inputRef.current?.focus(), 100)
-		}
+		if (!isOpen) return
+		const id = setTimeout(() => inputRef.current?.focus(), 100)
+		return () => clearTimeout(id)
 	}, [isOpen])
 
 	// Close on Escape
@@ -63,10 +65,10 @@ export function AiAssistPanel({
 			if (response.success && response.data) {
 				setResult(response.data)
 			} else {
-				setError(response.message || 'Could not get a response.')
+				setError(response.message || t('aiCouldNotRespond'))
 			}
 		} catch {
-			setError('AI assistant is temporarily unavailable.')
+			setError(t('aiUnavailable'))
 		} finally {
 			setIsLoading(false)
 		}
@@ -96,7 +98,7 @@ export function AiAssistPanel({
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						onClick={onClose}
-						className='fixed inset-0 z-modal bg-black/50'
+						className='fixed inset-0 z-modal bg-black/60'
 					/>
 					{/* Panel */}
 					<motion.div
@@ -107,15 +109,22 @@ export function AiAssistPanel({
 						transition={TRANSITION_SPRING}
 						onClick={e => e.stopPropagation()}
 						className='fixed inset-x-4 bottom-4 z-modal mx-auto max-w-lg rounded-2xl border border-border-subtle bg-bg-card shadow-warm sm:inset-x-auto sm:bottom-8 sm:w-full'
+						role='dialog'
+						aria-modal='true'
+						aria-label={t('aiChefAssistant')}
 					>
 						{/* Header */}
 						<div className='flex items-center justify-between border-b border-border-subtle px-5 py-3'>
 							<div className='flex items-center gap-2'>
 								<Sparkles className='size-5 text-brand' />
-								<h3 className='font-semibold text-text'>AI Chef Assistant</h3>
+								<h3 className='font-semibold text-text'>
+									{t('aiChefAssistant')}
+								</h3>
 							</div>
 							<button
+								type='button'
 								onClick={onClose}
+								aria-label={t('ariaCloseAiAssistant')}
 								className='grid size-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
 								<X className='size-4' />
@@ -126,8 +135,10 @@ export function AiAssistPanel({
 						<div className='max-h-80 overflow-y-auto p-5'>
 							{/* Context hint */}
 							<p className='mb-3 text-xs text-text-muted'>
-								Asking about Step {stepNumber} of{' '}
-								<span className='font-medium'>{recipeTitle}</span>
+								{t('aiAskingAboutStep', {
+									step: stepNumber,
+									recipe: recipeTitle,
+								})}
 							</p>
 
 							{/* Result */}
@@ -157,31 +168,45 @@ export function AiAssistPanel({
 									)}
 
 									<button
+										type='button'
 										onClick={handleNewQuestion}
 										className='text-sm font-medium text-brand transition-colors hover:text-brand-hover'
 									>
-										Ask another question
+										{t('aiAskAnother')}
 									</button>
 								</div>
 							) : error ? (
 								<div className='rounded-lg bg-error/10 p-4 text-sm text-error'>
 									{error}
 									<button
+										type='button'
 										onClick={handleNewQuestion}
 										className='mt-2 block text-sm font-medium text-brand hover:text-brand-hover'
 									>
-										Try again
+										{t('aiTryAgain')}
 									</button>
 								</div>
 							) : isLoading ? (
 								<div className='flex flex-col items-center gap-3 py-8'>
-									<Loader2 className='size-6 animate-spin text-brand' />
-									<p className='text-sm text-text-muted'>Thinking...</p>
+									<div className='flex items-center gap-1.5'>
+										{[0, 1, 2].map(i => (
+											<motion.div
+												key={i}
+												className='size-2.5 rounded-full bg-brand'
+												animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
+												transition={{
+													duration: 0.8,
+													repeat: Infinity,
+													delay: i * 0.15,
+												}}
+											/>
+										))}
+									</div>
+									<p className='text-sm text-text-muted'>{t('aiThinking')}</p>
 								</div>
 							) : (
 								<p className='py-4 text-center text-sm text-text-muted'>
-									Ask anything about this step — techniques, substitutions,
-									timing, or troubleshooting.
+									{t('aiEmptyPrompt')}
 								</p>
 							)}
 						</div>
@@ -196,13 +221,15 @@ export function AiAssistPanel({
 										value={query}
 										onChange={e => setQuery(e.target.value)}
 										onKeyDown={handleKeyDown}
-										placeholder='e.g. "How do I know when the oil is hot enough?"'
+										placeholder={t('aiInputPlaceholder')}
 										disabled={isLoading}
-										className='flex-1 rounded-lg bg-bg-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand/30'
+										className='flex-1 rounded-lg bg-bg-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
 									/>
 									<button
+										type='button'
 										onClick={handleAsk}
 										disabled={!query.trim() || isLoading}
+										aria-label={t('aiSendMessage')}
 										className={cn(
 											'grid size-9 place-items-center rounded-lg transition-colors',
 											query.trim() && !isLoading

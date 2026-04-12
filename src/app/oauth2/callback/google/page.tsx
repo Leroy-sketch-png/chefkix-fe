@@ -1,82 +1,118 @@
 'use client'
 
 import { useEffect, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/useAuth'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { PATHS } from '@/constants'
+import {
+	clearGoogleSignInSession,
+	consumeGoogleSignInSession,
+} from '@/lib/keycloak-sso'
 import { googleSignIn } from '@/services/auth'
+import { useAuth } from '@/hooks/useAuth'
 import { getMyProfile } from '@/services/profile'
-import { AUTH_MESSAGES, PATHS } from '@/constants'
-import { logDevError } from '@/lib/dev-log'
 
 const GoogleCallbackContent = () => {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const { login, setUser } = useAuth()
+	const t = useTranslations('auth')
+	const { login, setUser, logout, setLoading } = useAuth()
 
 	useEffect(() => {
-		const code = searchParams.get('code')
-		const error = searchParams.get('error')
+		let cancelled = false
 
-		if (error) {
-			// Handle error: redirect to sign-in with an error message
-			logDevError(`Google OAuth Error: ${error}`)
-			router.push(
-				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.GOOGLE_SIGN_IN_FAILED)}`,
-			)
-			return
+		const buildSignInUrl = (message: string, returnTo?: string | null) => {
+			const params = new URLSearchParams({ error: message })
+			if (returnTo && returnTo.startsWith('/')) {
+				params.set('returnTo', returnTo)
+			}
+			return `${PATHS.AUTH.SIGN_IN}?${params.toString()}`
 		}
 
-		if (code) {
-			const exchangeCodeForToken = async () => {
-				const response = await googleSignIn({ code })
-				if (response.success && response.data) {
-					// Backend returns only accessToken - validate it exists
-					if (!response.data.accessToken) {
-						router.push(
-							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Authentication failed: no access token received from server.')}`,
-						)
-						return
-					}
+		const exchangeCode = async () => {
+			const error = searchParams.get('error')
+			const errorDescription = searchParams.get('error_description')
+			const code = searchParams.get('code')
+			const state = searchParams.get('state')
 
-					// Set the token first (without user)
-					login(response.data.accessToken)
-
-					// Then fetch the user profile
-					const profileResponse = await getMyProfile()
-					if (profileResponse.success && profileResponse.data) {
-						setUser(profileResponse.data)
-						router.push(PATHS.HOME)
-					} else {
-						router.push(
-							`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Failed to fetch user profile.')}`,
-						)
-					}
-				} else {
-					// Handle failure: redirect to sign-in with an error message
-					const errorMessage =
-						response.message || AUTH_MESSAGES.GOOGLE_SIGN_IN_FAILED
-					router.push(
-						`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(errorMessage)}`,
+			if (error) {
+				clearGoogleSignInSession()
+				if (!cancelled) {
+					router.replace(
+						buildSignInUrl(errorDescription || t('googleSignInFailed')),
 					)
 				}
+				return
 			}
 
-			exchangeCodeForToken()
-		} else {
-			// Fallback if no code or error is present
-			router.push(
-				`${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.UNKNOWN_ERROR)}`,
-			)
+			if (!code || !state) {
+				clearGoogleSignInSession()
+				if (!cancelled) {
+					router.replace(buildSignInUrl(t('googleStateInvalid')))
+				}
+				return
+			}
+
+			const session = consumeGoogleSignInSession(state)
+			if (!session) {
+				if (!cancelled) {
+					router.replace(buildSignInUrl(t('googleStateInvalid')))
+				}
+				return
+			}
+
+			const response = await googleSignIn({
+				code,
+				redirectUri: session.redirectUri,
+				codeVerifier: session.codeVerifier,
+			})
+			clearGoogleSignInSession()
+
+			if (!response.success || !response.data?.accessToken) {
+				if (!cancelled) {
+					router.replace(
+						buildSignInUrl(
+							response.message || t('googleSignInFailed'),
+							session.returnTo,
+						),
+					)
+				}
+				return
+			}
+
+			login(response.data.accessToken)
+			const profileResponse = await getMyProfile()
+
+			if (profileResponse.success && profileResponse.data) {
+				setUser(profileResponse.data)
+				setLoading(true)
+				if (!cancelled) {
+					router.replace(session.returnTo || PATHS.DASHBOARD)
+				}
+				return
+			}
+
+			logout()
+			if (!cancelled) {
+				router.replace(
+					buildSignInUrl(t('errorProfileFetchFailed'), session.returnTo),
+				)
+			}
 		}
-	}, [searchParams, router, login, setUser])
+
+		void exchangeCode()
+
+		return () => {
+			cancelled = true
+		}
+	}, [router, searchParams, t, login, setUser, logout, setLoading])
 
 	return (
 		<div className='flex min-h-screen flex-col items-center justify-center'>
-			<p className='text-lg font-semibold'>Signing in with Google...</p>
+			<p className='text-lg font-semibold'>{t('signingInGoogle')}</p>
 			<p className='mt-2 text-sm text-text-secondary'>
-				Please wait, you will be redirected shortly.
+				{t('redirectingShortly')}
 			</p>
-			{/* You can add a spinner here */}
 		</div>
 	)
 }
@@ -86,7 +122,7 @@ export default function GoogleCallbackPage() {
 		<Suspense
 			fallback={
 				<div className='flex min-h-screen flex-col items-center justify-center'>
-					<p className='text-lg font-semibold'>Loading...</p>
+					<div className='size-8 animate-spin rounded-full border-4 border-brand border-t-transparent' />
 				</div>
 			}
 		>

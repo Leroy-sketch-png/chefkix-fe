@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 
 interface ImageCarouselProps {
 	images: string[]
@@ -25,7 +27,7 @@ interface ImageCarouselProps {
  * - Left/right arrows (hidden on single image)
  * - Dot indicators
  * - Swipe gesture support (mobile)
- * - Keyboard navigation (← →)
+ * - Keyboard navigation (â† →)
  * - Accessible: aria labels, focus management
  */
 export function ImageCarousel({
@@ -39,6 +41,7 @@ export function ImageCarousel({
 	enableKeyboard = true,
 	onImageError,
 }: ImageCarouselProps) {
+	const t = useTranslations('common')
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [direction, setDirection] = useState(0)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -135,7 +138,10 @@ export function ImageCarousel({
 			)}
 			tabIndex={hasMultiple ? 0 : undefined}
 			role='region'
-			aria-label={`Image carousel, ${currentIndex + 1} of ${images.length}`}
+			aria-label={t('ariaImageCarousel', {
+				current: currentIndex + 1,
+				total: images.length,
+			})}
 			aria-roledescription='carousel'
 		>
 			{/* Image container with animation */}
@@ -147,7 +153,7 @@ export function ImageCarousel({
 					initial='enter'
 					animate='center'
 					exit='exit'
-					transition={{ duration: 0.25, ease: 'easeInOut' }}
+					transition={{ duration: DURATION_S.smooth, ease: 'easeInOut' }}
 					drag={enableSwipe && hasMultiple ? 'x' : false}
 					dragConstraints={{ left: 0, right: 0 }}
 					dragElastic={0.2}
@@ -170,28 +176,30 @@ export function ImageCarousel({
 			{showControls && hasMultiple && (
 				<>
 					<button
+						type='button'
 						onClick={goToPrev}
 						className={cn(
 							'absolute left-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
 							'bg-bg-card border border-border-subtle text-text',
-							'opacity-0 transition-opacity duration-200 group-hover:opacity-100',
-							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
+							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
+							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
 						)}
-						aria-label='Previous image'
+						aria-label={t('ariaPreviousImage')}
 					>
 						<ChevronLeft className='size-5' />
 					</button>
 					<button
+						type='button'
 						onClick={goToNext}
 						className={cn(
 							'absolute right-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
 							'bg-bg-card border border-border-subtle text-text',
-							'opacity-0 transition-opacity duration-200 group-hover:opacity-100',
-							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand',
+							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
+							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
 						)}
-						aria-label='Next image'
+						aria-label={t('ariaNextImage')}
 					>
 						<ChevronRight className='size-5' />
 					</button>
@@ -206,10 +214,11 @@ export function ImageCarousel({
 						'flex items-center gap-1.5 rounded-full bg-bg-card border border-border-subtle px-2 py-1',
 					)}
 					role='tablist'
-					aria-label='Image indicators'
+					aria-label={t('ariaImageIndicators')}
 				>
 					{images.map((_, index) => (
 						<button
+							type='button'
 							key={index}
 							onClick={() => goToIndex(index)}
 							className={cn(
@@ -220,7 +229,7 @@ export function ImageCarousel({
 							)}
 							role='tab'
 							aria-selected={index === currentIndex}
-							aria-label={`Go to image ${index + 1}`}
+							aria-label={t('ariaGoToImage', { number: index + 1 })}
 						/>
 					))}
 				</div>

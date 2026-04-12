@@ -1,11 +1,12 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { ChefHat } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, DURATIONS, BUTTON_SUBTLE_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATIONS, BUTTON_SUBTLE_HOVER, CROWN_BOUNCE, PODIUM_RISE } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -154,12 +155,10 @@ function PodiumSpot({
 
 	return (
 		<motion.div
-			initial={{ opacity: 0, y: 30 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{
-				delay: entry.rank === 1 ? 0.2 : entry.rank === 2 ? 0.4 : 0.6,
-				...TRANSITION_SPRING,
-			}}
+			variants={PODIUM_RISE}
+			initial='hidden'
+			animate='visible'
+			custom={entry.rank === 1 ? 0.2 : entry.rank === 2 ? 0.4 : 0.6}
 			className='flex flex-col items-center relative cursor-pointer'
 			style={{ order: config.order }}
 			onClick={() => onUserClick?.(entry)}
@@ -167,14 +166,7 @@ function PodiumSpot({
 			{/* Crown for 1st place - TIGHTENED spacing */}
 			{config.showCrown && (
 				<motion.div
-					animate={{
-						y: [0, -3, 0],
-					}}
-					transition={{
-						duration: DURATIONS.slow / 1000,
-						repeat: Infinity,
-						ease: 'easeInOut',
-					}}
+					animate={CROWN_BOUNCE.animate}
 					className='text-icon-lg mb-0.5'
 				>
 					👑
@@ -208,7 +200,7 @@ function PodiumSpot({
 
 				{/* Rank Badge - with inline gradient styling */}
 				<div
-					className='absolute -bottom-1 left-1/2 -translate-x-1/2 flex size-6 items-center justify-center rounded-full text-xs font-extrabold text-white border-2 border-bg-card'
+					className='absolute -bottom-1 left-1/2 -translate-x-1/2 flex size-6 items-center justify-center rounded-full text-xs font-display font-extrabold text-white border-2 border-bg-card'
 					style={{
 						...config.rankBadge,
 						textShadow: '0 1px 2px rgba(0,0,0,0.4)',
@@ -236,8 +228,8 @@ function PodiumSpot({
 
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
-				<span className='text-lg font-extrabold text-text'>
-					{entry.xp.toLocaleString()}
+				<span className='text-lg font-display font-extrabold tabular-nums text-text'>
+					<AnimatedNumber value={entry.xp} format={n => n.toLocaleString()} duration={1} />
 				</span>
 				<span className='text-xs text-text-tertiary'>XP</span>
 			</div>
@@ -302,7 +294,7 @@ export function LeaderboardPodiumSkeleton({
 		>
 			{/* 2nd place */}
 			<div className='flex flex-col items-center' style={{ order: 1 }}>
-				<div className='w-16 h-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
+				<div className='size-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
 				<div className='w-14 h-4 bg-bg-elevated rounded animate-pulse mb-1' />
 				<div className='w-10 h-5 bg-bg-elevated rounded animate-pulse mb-3' />
 				<div className='w-16 h-14 bg-bg-elevated rounded-t-xl animate-pulse' />
@@ -310,16 +302,16 @@ export function LeaderboardPodiumSkeleton({
 
 			{/* 1st place */}
 			<div className='flex flex-col items-center' style={{ order: 2 }}>
-				<div className='w-7 h-7 bg-bg-elevated rounded animate-pulse mb-2' />
-				<div className='w-20 h-20 bg-bg-elevated rounded-full animate-pulse mb-2' />
+				<div className='size-7 bg-bg-elevated rounded animate-pulse mb-2' />
+				<div className='size-20 bg-bg-elevated rounded-full animate-pulse mb-2' />
 				<div className='w-16 h-4 bg-bg-elevated rounded animate-pulse mb-1' />
 				<div className='w-12 h-5 bg-bg-elevated rounded animate-pulse mb-3' />
-				<div className='w-20 h-20 bg-bg-elevated rounded-t-xl animate-pulse' />
+				<div className='size-20 bg-bg-elevated rounded-t-xl animate-pulse' />
 			</div>
 
 			{/* 3rd place */}
 			<div className='flex flex-col items-center' style={{ order: 3 }}>
-				<div className='w-16 h-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
+				<div className='size-16 bg-bg-elevated rounded-full animate-pulse mb-2' />
 				<div className='w-14 h-4 bg-bg-elevated rounded animate-pulse mb-1' />
 				<div className='w-10 h-5 bg-bg-elevated rounded animate-pulse mb-3' />
 				<div className='w-16 h-10 bg-bg-elevated rounded-t-xl animate-pulse' />

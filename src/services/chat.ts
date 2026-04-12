@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios'
+import { API_ENDPOINTS } from '@/constants/api'
 import { ApiResponse } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
@@ -110,12 +111,6 @@ export interface CreateMessageRequest {
 }
 
 // ============================================
-// API ENDPOINTS
-// ============================================
-
-const API_BASE = '/api/v1/chat'
-
-// ============================================
 // SERVICE FUNCTIONS
 // ============================================
 
@@ -127,7 +122,7 @@ export const createConversation = async (
 ): Promise<ApiResponse<Conversation>> => {
 	try {
 		const response = await api.post<ApiResponse<Conversation>>(
-			`${API_BASE}/conversations/create`,
+			API_ENDPOINTS.CHAT.CREATE_CONVERSATION,
 			data,
 		)
 		return response.data
@@ -153,7 +148,7 @@ export const getMyConversations = async (): Promise<
 > => {
 	try {
 		const response = await api.get<ApiResponse<Conversation[]>>(
-			`${API_BASE}/conversations/my-conversations`,
+			API_ENDPOINTS.CHAT.MY_CONVERSATIONS,
 		)
 		return response.data
 	} catch (error) {
@@ -199,7 +194,7 @@ export const sharePostToConversation = async (
 		}
 
 		const response = await api.post<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/create`,
+			API_ENDPOINTS.CHAT.CREATE_MESSAGE,
 			payload,
 		)
 
@@ -227,7 +222,7 @@ export const sendMessage = async (
 ): Promise<ApiResponse<ChatMessage>> => {
 	try {
 		const response = await api.post<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/create`,
+			API_ENDPOINTS.CHAT.CREATE_MESSAGE,
 			{
 				conversationId: data.conversationId,
 				message: data.message,
@@ -258,7 +253,7 @@ export const getMessages = async (
 ): Promise<ApiResponse<ChatMessage[]>> => {
 	try {
 		const response = await api.get<ApiResponse<ChatMessage[]>>(
-			`${API_BASE}/messages`,
+			API_ENDPOINTS.CHAT.GET_MESSAGES,
 			{ params: { conversationId } },
 		)
 		return response.data
@@ -277,47 +272,6 @@ export const getMessages = async (
 }
 
 /**
- * Get or create a direct conversation with a user.
- * Convenience function that checks existing conversations first.
- */
-export const getOrCreateDirectConversation = async (
-	userId: string,
-): Promise<ApiResponse<Conversation>> => {
-	try {
-		// First try to find existing conversation
-		const conversationsResponse = await getMyConversations()
-		if (conversationsResponse.success && conversationsResponse.data) {
-			const existing = conversationsResponse.data.find(
-				conv =>
-					conv.type === 'DIRECT' &&
-					conv.participants.some(p => p.userId === userId),
-			)
-			if (existing) {
-				return {
-					success: true,
-					message: 'Existing conversation found',
-					statusCode: 200,
-					data: existing,
-				}
-			}
-		}
-
-		// Create new conversation
-		return createConversation({
-			type: 'DIRECT',
-			participantIds: [userId],
-		})
-	} catch (error) {
-		logDevError('unknown failed:', error)
-		return {
-			success: false,
-			message: 'Failed to get or create conversation',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
  * Get conversation suggestions for sharing (recent chats)
  */
 export const getShareSuggestions = async (
@@ -325,7 +279,7 @@ export const getShareSuggestions = async (
 ): Promise<ApiResponse<ShareContactResponse[]>> => {
 	try {
 		const response = await api.get<ApiResponse<ShareContactResponse[]>>(
-			`${API_BASE}/conversations/share-suggestions`,
+			API_ENDPOINTS.CHAT.SHARE_SUGGESTIONS,
 			{ params: { size } },
 		)
 		return response.data
@@ -352,7 +306,7 @@ export const reactToMessage = async (
 ): Promise<ApiResponse<ChatMessage>> => {
 	try {
 		const response = await api.post<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/${messageId}/react`,
+			API_ENDPOINTS.CHAT.REACT_MESSAGE(messageId),
 			{ emoji },
 		)
 		return response.data
@@ -378,7 +332,7 @@ export const deleteMessage = async (
 ): Promise<ApiResponse<ChatMessage>> => {
 	try {
 		const response = await api.delete<ApiResponse<ChatMessage>>(
-			`${API_BASE}/messages/${messageId}`,
+			API_ENDPOINTS.CHAT.DELETE_MESSAGE(messageId),
 		)
 		return response.data
 	} catch (error) {

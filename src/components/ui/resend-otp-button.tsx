@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import app from '@/configs/app'
 import { useEffect, useState } from 'react'
@@ -56,8 +56,8 @@ export const ResendOtpButton = ({
 			className={cn(
 				'text-xs font-medium transition-colors hover:underline',
 				cooldown > 0
-					? 'text-primary/50 cursor-not-allowed pointer-events-none'
-					: 'text-primary hover:text-primary/80 cursor-pointer',
+					? 'text-brand/50 cursor-not-allowed pointer-events-none'
+					: 'text-brand hover:text-brand/80 cursor-pointer',
 				className,
 			)}
 		>

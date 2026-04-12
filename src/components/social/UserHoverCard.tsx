@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { getProfileByUserId } from '@/services/profile'
 import { toggleFollow } from '@/services/social'
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { UserPlus, UserCheck, MessageCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuthGate } from '@/hooks/useAuthGate'
 
 interface UserHoverCardProps {
 	userId: string
@@ -38,6 +40,8 @@ export const UserHoverCard = ({
 	currentUserId,
 }: UserHoverCardProps) => {
 	const router = useRouter()
+	const requireAuth = useAuthGate()
+	const t = useTranslations('social')
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [hasError, setHasError] = useState(false)
@@ -60,6 +64,7 @@ export const UserHoverCard = ({
 	}
 
 	const handleFollowToggle = useCallback(async () => {
+		if (!requireAuth(t('hoverCardFollowGate'))) return
 		if (followLockRef.current || !profile) return
 		followLockRef.current = true
 		setIsFollowLoading(true)
@@ -67,18 +72,19 @@ export const UserHoverCard = ({
 			const response = await toggleFollow(userId)
 			if (response.success && response.data) {
 				setProfile(prev =>
-					prev ? { ...prev, isFollowing: response.data!.isFollowing } : prev,
+					prev ? { ...prev, isFollowing: response.data.isFollowing } : prev,
 				)
 			}
 		} finally {
 			followLockRef.current = false
 			setIsFollowLoading(false)
 		}
-	}, [userId, profile])
+	}, [userId, profile, requireAuth, t])
 
 	const handleSendMessage = useCallback(() => {
+		if (!requireAuth(t('hoverCardMessageGate'))) return
 		router.push(`/messages?userId=${userId}`)
-	}, [router, userId])
+	}, [router, userId, requireAuth, t])
 
 	const isOwnProfile = userId === currentUserId
 	const displayName = getProfileDisplayName(profile)
@@ -89,11 +95,11 @@ export const UserHoverCard = ({
 			<PopoverContent className='w-80 p-0' align='start'>
 				{isLoading ? (
 					<div className='flex items-center justify-center p-8'>
-						<Loader2 className='size-6 animate-spin text-primary' />
+						<Loader2 className='size-6 animate-spin text-brand' />
 					</div>
 				) : hasError ? (
 					<div className='p-6 text-center text-sm text-text-secondary'>
-						Failed to load profile
+						{t('hoverCardLoadError')}
 					</div>
 				) : profile ? (
 					<div className='p-6 space-y-4'>
@@ -102,7 +108,7 @@ export const UserHoverCard = ({
 							<Link href={`/${profile.userId}`} className='flex-shrink-0'>
 								<Avatar
 									size='xl'
-									className='shadow-card hover:shadow-lg transition-shadow'
+									className='shadow-card hover:shadow-warm transition-shadow'
 								>
 									<AvatarImage
 										src={profile.avatarUrl || '/placeholder-avatar.svg'}
@@ -125,7 +131,7 @@ export const UserHoverCard = ({
 										size='sm'
 										variant='outline'
 										className='size-8 p-0'
-										aria-label='Send message'
+										aria-label={t('hoverCardSendMessage')}
 										onClick={handleSendMessage}
 									>
 										<MessageCircle className='size-4' />
@@ -142,12 +148,12 @@ export const UserHoverCard = ({
 										) : profile.isFollowing ? (
 											<>
 												<UserCheck className='size-4 mr-1' />
-												Following
+												{t('hoverCardFollowing')}
 											</>
 										) : (
 											<>
 												<UserPlus className='size-4 mr-1' />
-												Follow
+												{t('hoverCardFollow')}
 											</>
 										)}
 									</Button>
@@ -181,19 +187,25 @@ export const UserHoverCard = ({
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.followerCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>Followers</span>
+								<span className='ml-1 text-text-secondary'>
+									{t('hoverCardFollowers')}
+								</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.followingCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>Following</span>
+								<span className='ml-1 text-text-secondary'>
+									{t('hoverCardFollowingLabel')}
+								</span>
 							</div>
 							<div>
 								<span className='font-semibold text-text-primary'>
 									{profile.statistics?.recipeCount ?? 0}
 								</span>
-								<span className='ml-1 text-text-secondary'>Recipes</span>
+								<span className='ml-1 text-text-secondary'>
+									{t('hoverCardRecipes')}
+								</span>
 							</div>
 						</div>
 					</div>

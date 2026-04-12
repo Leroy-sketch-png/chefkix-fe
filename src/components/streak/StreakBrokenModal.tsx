@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Flame } from 'lucide-react'
@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useTranslations } from 'next-intl'
 
 // ============================================================================
 // TYPES
@@ -32,6 +33,7 @@ export function StreakBrokenModal({
 	onStartNewStreak,
 	onDismiss,
 }: StreakBrokenModalProps) {
+	const t = useTranslations('streak')
 	useEscapeKey(isOpen, onDismiss ?? (() => {}))
 
 	return (
@@ -39,6 +41,9 @@ export function StreakBrokenModal({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						role='alertdialog'
+						aria-modal='true'
+						aria-label='Streak broken'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -49,7 +54,7 @@ export function StreakBrokenModal({
 							animate={{ opacity: 1, y: 0, scale: 1 }}
 							exit={{ opacity: 0, y: 30, scale: 0.95 }}
 							transition={TRANSITION_SPRING}
-							className='w-full max-w-modal-md bg-panel-bg rounded-2xl p-10 text-center'
+							className='w-full max-w-modal-md bg-bg-card rounded-2xl p-10 text-center'
 						>
 							{/* Sad Icon */}
 							<div className='relative mb-6'>
@@ -60,75 +65,77 @@ export function StreakBrokenModal({
 							</div>
 
 							{/* Title */}
-							<h2 className='text-2xl font-extrabold text-text mb-2'>
-								Your streak ended
+							<h2 className='text-2xl font-display font-extrabold text-text mb-2'>
+								{t('sbTitle')}
 							</h2>
 							<p className='text-sm text-text-secondary mb-6'>
-								Your {lostStreak}-day cooking streak has reset to 0
+								{t('sbDescription', { count: lostStreak })}
 							</p>
 
 							{/* Stats Lost */}
 							<div className='flex justify-center gap-6 py-5 px-6 bg-bg rounded-xl mb-5'>
 								<div className='flex flex-col gap-1'>
 									<span className='text-xs text-text-secondary'>
-										Streak Length
+										{t('sbStreakLength')}
 									</span>
 									<span className='text-lg font-bold text-text'>
-										{lostStreak} days
+										{t('sbDays', { count: lostStreak })}
 									</span>
 								</div>
 								<div className='flex flex-col gap-1'>
 									<span className='text-xs text-text-secondary'>
-										Streak Bonuses Earned
+										{t('sbBonusesEarned')}
 									</span>
 									<span className='text-lg font-bold text-text'>
-										+{totalBonusXpEarned} XP
+										{t('sbBonusXp', { count: totalBonusXpEarned })}
 									</span>
 								</div>
 							</div>
 
 							{/* Motivation */}
 							<div className='mb-5 space-y-2 text-sm text-text-secondary'>
-								<p>Don&apos;t worry — every great chef has off days.</p>
-								<p>
-									Your skills and XP are still there. Let&apos;s start fresh! 💪
-								</p>
+								<p>{t('sbMotivation1')}</p>
+								<p>{t('sbMotivation2')} 💪</p>
 							</div>
 
 							{/* Best Streak */}
 							{bestStreak && bestStreak > lostStreak && (
 								<div className='mb-6 flex items-center justify-center gap-2 rounded-lg bg-success/10 px-4 py-3'>
 									<span className='text-xs text-text-secondary'>
-										Your best streak:
+										{t('sbBestStreak')}
 									</span>
 									<span className='text-sm font-bold text-success'>
-										{bestStreak} days
+										{t('sbDays', { count: bestStreak })}
 									</span>
-									<span className='text-xs text-success'>You can beat it!</span>
+									<span className='text-xs text-success'>
+										{t('sbCanBeatIt')}
+									</span>
 								</div>
 							)}
 
 							{/* Actions */}
 							<div className='flex flex-col gap-2.5'>
 								<motion.button
+									type='button'
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									transition={TRANSITION_SPRING}
 									onClick={onStartNewStreak}
 									className={cn(
-										'flex items-center justify-center gap-2 py-4 px-6 rounded-xl',
+										'flex items-center justify-center gap-2 py-4 px-6 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
 										'bg-gradient-streak text-white',
 										'text-base font-bold shadow-lg shadow-streak/30',
 									)}
 								>
-									<Flame className='w-5 h-5' />
-									Start New Streak
+									<Flame className='size-5' />
+									{t('sbStartNew')}
 								</motion.button>
 								<button
+									type='button'
 									onClick={onDismiss}
 									className='py-3.5 text-sm text-text-secondary hover:text-text transition-colors'
 								>
-									Maybe Later
+									{t('sbMaybeLater')}
 								</button>
 							</div>
 						</motion.div>

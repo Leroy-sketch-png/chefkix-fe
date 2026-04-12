@@ -32,6 +32,17 @@ export const DURATIONS = {
 	verySlow: 700,
 } as const
 
+// Duration constants (seconds) — for Framer Motion `transition={{ duration }}`
+export const DURATION_S = {
+	instant: 0.075,
+	fast: 0.15,
+	normal: 0.2,
+	smooth: 0.3,
+	slow: 0.5,
+	verySlow: 0.7,
+	dramatic: 1, // Charts, progress rings, celebration sequences
+} as const
+
 // Easing functions (cubic-bezier curves as arrays for Framer Motion)
 export const EASINGS = {
 	bounce: [0.68, -0.55, 0.265, 1.55], // Overshoot effect
@@ -102,6 +113,11 @@ export const CARD_FEATURED_HOVER = {
 	scale: 1.01,
 } as const
 
+// For navigation items (slide right on hover)
+export const NAV_ITEM_HOVER = {
+	x: 4,
+} as const
+
 // For list items (subtle scale)
 export const LIST_ITEM_HOVER = {
 	scale: 1.02,
@@ -132,6 +148,15 @@ export const ICON_BUTTON_HOVER = {
 
 export const ICON_BUTTON_TAP = {
 	scale: 0.95,
+} as const
+
+// For rating stars / gamification selection (slightly punchy)
+export const RATING_STAR_HOVER = {
+	scale: 1.2,
+} as const
+
+export const RATING_STAR_TAP = {
+	scale: 0.9,
 } as const
 
 // For subtle lift on stat items or cards
@@ -273,7 +298,7 @@ export const NUMBER_FLIP = {
 		y: 0,
 		opacity: 1,
 		rotateX: 0,
-		transition: { type: 'spring', stiffness: 500, damping: 25 },
+		transition: { type: 'spring' as const, stiffness: 500, damping: 25 },
 	},
 }
 
@@ -284,7 +309,7 @@ export const XP_COUNTER = {
 		scale: 1,
 		opacity: 1,
 		transition: {
-			type: 'spring',
+			type: 'spring' as const,
 			stiffness: 400,
 			damping: 15,
 			delay: 0.2,
@@ -300,7 +325,7 @@ export const BADGE_UNLOCK = {
 		rotate: 0,
 		opacity: 1,
 		transition: {
-			type: 'spring',
+			type: 'spring' as const,
 			stiffness: 300,
 			damping: 20,
 		},
@@ -331,7 +356,7 @@ export const STREAK_FLAME = {
 		transition: {
 			duration: 0.8,
 			repeat: Infinity,
-			ease: 'easeInOut',
+			ease: 'easeInOut' as const,
 		},
 	},
 }
@@ -354,7 +379,7 @@ export const PROGRESS_FILL = {
 	animate: (width: number) => ({
 		scaleX: width / 100,
 		transition: {
-			type: 'spring',
+			type: 'spring' as const,
 			stiffness: 100,
 			damping: 20,
 			delay: 0.3,
@@ -392,7 +417,7 @@ export const PARTICLE_FLOAT = {
 		scale: 0.5,
 		transition: {
 			duration: 1.5,
-			ease: 'easeOut',
+			ease: 'easeOut' as const,
 		},
 	},
 }
@@ -404,7 +429,7 @@ export const CROWN_BOUNCE = {
 		transition: {
 			duration: 1,
 			repeat: Infinity,
-			ease: 'easeInOut',
+			ease: 'easeInOut' as const,
 		},
 	},
 }
@@ -416,7 +441,7 @@ export const PODIUM_RISE = {
 		y: 0,
 		opacity: 1,
 		transition: {
-			type: 'spring',
+			type: 'spring' as const,
 			stiffness: 300,
 			damping: 25,
 			delay,
@@ -606,7 +631,7 @@ export const HEART_POP = {
 		transition: {
 			duration: 0.4,
 			times: [0, 0.2, 0.4, 0.7, 1],
-			ease: 'easeOut',
+			ease: 'easeOut' as const,
 		},
 	},
 	unliked: {
@@ -659,7 +684,7 @@ export const BELL_SHAKE = {
 		rotate: [0, 15, -15, 10, -10, 5, 0],
 		transition: {
 			duration: 0.5,
-			ease: 'easeInOut',
+			ease: 'easeInOut' as const,
 		},
 	},
 }
@@ -679,8 +704,77 @@ export const CHECKMARK_DRAW = {
 		pathLength: 1,
 		opacity: 1,
 		transition: {
-			pathLength: { type: 'spring', duration: 0.5, bounce: 0 },
+			pathLength: { type: 'spring' as const, duration: 0.5, bounce: 0 },
 			opacity: { duration: 0.1 },
 		},
 	},
+}
+
+// ============================================
+// REDUCED MOTION UTILITIES
+// ============================================
+
+/** Instant transition for reduced-motion users */
+const INSTANT = { duration: 0 } as const
+
+/** No-op hover/tap states */
+const NO_MOTION = {} as const
+
+/**
+ * Returns motion-appropriate variants based on user preference.
+ * Usage: const hover = useMotionVariant(BUTTON_HOVER)
+ *
+ * For components that use the motion system, call this with any
+ * motion constant and it returns either the original or a static no-op.
+ */
+export function getReducedMotionProps(shouldReduce: boolean) {
+	if (!shouldReduce) return {}
+
+	return {
+		// Disable all spring/tween transitions
+		transition: INSTANT,
+		// Disable layout animations
+		layout: false,
+	} as const
+}
+
+/**
+ * Get hover/tap props that respect reduced motion.
+ * Usage: <motion.div {...getMotionHoverTap(shouldReduce, BUTTON_HOVER, BUTTON_TAP)}>
+ */
+export function getMotionHoverTap(
+	shouldReduce: boolean,
+	hover: Record<string, unknown> = BUTTON_HOVER,
+	tap: Record<string, unknown> = BUTTON_TAP,
+) {
+	if (shouldReduce) return { whileHover: NO_MOTION, whileTap: NO_MOTION }
+	return { whileHover: hover, whileTap: tap }
+}
+
+/**
+ * Get variants with reduced-motion alternative.
+ * Reduced: visible state applied instantly, no hidden→visible animation.
+ */
+export function getMotionVariants(
+	shouldReduce: boolean,
+	variants: { hidden?: Record<string, unknown>; visible?: Record<string, unknown>; exit?: Record<string, unknown> },
+) {
+	if (!shouldReduce) return variants
+
+	return {
+		hidden: { opacity: 1 },
+		visible: { opacity: 1, transition: INSTANT },
+		...(variants.exit ? { exit: { opacity: 0, transition: INSTANT } } : {}),
+	}
+}
+
+/**
+ * Get transition that respects reduced motion.
+ * Reduced: instant transition, no spring/bounce.
+ */
+export function getMotionTransition(
+	shouldReduce: boolean,
+	transition: Record<string, unknown> = TRANSITION_SPRING,
+) {
+	return shouldReduce ? INSTANT : transition
 }

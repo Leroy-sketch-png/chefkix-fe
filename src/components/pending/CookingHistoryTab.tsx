@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Clock,
@@ -21,7 +22,9 @@ import {
 	BUTTON_TAP,
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
+	DURATION_S,
 } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import type { PendingSession } from './PendingPostsSection'
 
 // =============================================================================
@@ -55,22 +58,28 @@ interface HistoryFilter {
 // HELPERS
 // =============================================================================
 
-const getTimeLeft = (expiresAt: Date): string => {
+const getTimeLeft = (
+	expiresAt: Date,
+	t: (key: string, values?: Record<string, unknown>) => string,
+): string => {
 	const now = new Date()
 	const diff = expiresAt.getTime() - now.getTime()
 
-	if (diff <= 0) return 'Expired'
+	if (diff <= 0) return t('getTimeExpired')
 
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
 	const days = Math.floor(hours / 24)
 
-	if (days > 0) return `${days}d left`
-	if (hours > 0) return `${hours}h ${minutes}m left`
-	return `${minutes}m left`
+	if (days > 0) return t('getTimeDays', { days })
+	if (hours > 0) return t('getTimeHours', { hours, minutes })
+	return t('getTimeMinutes', { minutes })
 }
 
-const getTimeSinceCook = (cookedAt: Date): string => {
+const getTimeSinceCook = (
+	cookedAt: Date,
+	t: (key: string, values?: Record<string, unknown>) => string,
+): string => {
 	const now = new Date()
 	const diff = now.getTime() - cookedAt.getTime()
 
@@ -78,10 +87,10 @@ const getTimeSinceCook = (cookedAt: Date): string => {
 	const days = Math.floor(hours / 24)
 	const weeks = Math.floor(days / 7)
 
-	if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''} ago`
-	if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`
-	if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`
-	return 'Just now'
+	if (weeks > 0) return t('timeSinceWeeks', { weeks })
+	if (days > 0) return t('timeSinceDays', { days })
+	if (hours > 0) return t('timeSinceHours', { hours })
+	return t('timeSinceJustNow')
 }
 
 const formatDuration = (minutes: number): string => {
@@ -102,42 +111,43 @@ interface StatsBannerProps {
 }
 
 const StatsBanner = ({ stats }: StatsBannerProps) => {
+	const t = useTranslations('history')
 	const statItems = [
-		{ label: 'Total Sessions', value: stats.totalSessions },
-		{ label: 'Unique Recipes', value: stats.uniqueRecipes },
+		{ label: t('totalSessions'), value: stats.totalSessions },
+		{ label: t('uniqueRecipes'), value: stats.uniqueRecipes },
 		{
-			label: 'Pending Posts',
+			label: t('pendingPosts'),
 			value: stats.pendingPosts,
 			highlight: stats.pendingPosts > 0,
 		},
 		{
-			label: 'XP Earned',
+			label: t('xpEarned'),
 			value: stats.totalXPEarned.toLocaleString(),
 		},
 	]
 
 	return (
 		<motion.div
-			className='grid grid-cols-2 md:grid-cols-4 gap-4 bg-panel-bg rounded-2xl p-5 border border-border mb-6'
+			className='grid grid-cols-2 md:grid-cols-4 gap-4 bg-bg-card rounded-2xl p-5 border border-border mb-6'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.4, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 		>
 			{statItems.map((stat, index) => (
 				<motion.div
 					key={stat.label}
 					className={cn(
 						'text-center p-3 rounded-xl transition-colors hover:bg-muted/50',
-						stat.highlight && 'bg-primary/10 border border-primary/20',
+						stat.highlight && 'bg-brand/10 border border-brand/20',
 					)}
 					initial={{ opacity: 0, scale: 0.8 }}
 					animate={{ opacity: 1, scale: 1 }}
-					transition={{ delay: index * 0.05, duration: 0.3 }}
+					transition={{ delay: index * 0.05, duration: DURATION_S.smooth }}
 				>
 					<span
 						className={cn(
-							'block text-2xl md:text-3xl font-extrabold',
-							stat.highlight ? 'text-primary' : 'text-foreground',
+							'block text-2xl md:text-3xl font-display font-extrabold',
+							stat.highlight ? 'text-brand' : 'text-foreground',
 						)}
 					>
 						{stat.value}
@@ -161,6 +171,7 @@ interface PendingItemProps {
 }
 
 const PendingItem = ({ session, onPost }: PendingItemProps) => {
+	const t = useTranslations('history')
 	const isUrgent = session.status === 'urgent'
 	const isWarning = session.status === 'warning'
 	const decayPercent =
@@ -171,7 +182,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 	return (
 		<motion.div
 			className={cn(
-				'bg-muted/30 rounded-2xl overflow-hidden transition-shadow hover:shadow-lg',
+				'bg-muted/30 rounded-2xl overflow-hidden transition-shadow hover:shadow-warm',
 				isUrgent &&
 					'border border-error/30 bg-gradient-to-r from-error/5 to-transparent',
 				isWarning &&
@@ -179,7 +190,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 			)}
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
 		>
 			{/* Expiry Badge */}
 			{(isUrgent || isWarning) && (
@@ -191,7 +202,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 							: 'bg-gradient-to-r from-warning to-warning/80',
 					)}
 				>
-					{getTimeLeft(session.expiresAt)}
+					{getTimeLeft(session.expiresAt, t)}
 				</div>
 			)}
 
@@ -202,7 +213,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					alt={session.recipeName}
 					width={64}
 					height={64}
-					className='w-16 h-16 rounded-xl object-cover flex-shrink-0'
+					className='size-16 rounded-xl object-cover flex-shrink-0'
 				/>
 
 				<div className='flex-1 min-w-0'>
@@ -210,9 +221,15 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 						{session.recipeName}
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
-						<span>Cooked {getTimeSinceCook(session.cookedAt)}</span>
+						<span>
+							{t('cookedAgo', { time: getTimeSinceCook(session.cookedAt, t) })}
+						</span>
 						<span className='opacity-50'>•</span>
-						<span>{formatDuration(session.duration)} session</span>
+						<span>
+							{t('sessionDuration', {
+								duration: formatDuration(session.duration),
+							})}
+						</span>
 					</span>
 
 					{/* XP Decay Indicator - ONLY shown when actual time-based decay has occurred */}
@@ -224,11 +241,11 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 									className='h-full bg-gradient-to-r from-error to-warning rounded-full'
 									initial={{ width: 0 }}
 									animate={{ width: `${decayPercent}%` }}
-									transition={{ duration: 0.5 }}
+									transition={{ duration: DURATION_S.slow }}
 								/>
 							</div>
 							<span className='text-xs text-error font-semibold'>
-								{Math.round(decayPercent)}% time decay — post soon!
+								{t('timeDecay', { percent: Math.round(decayPercent) })}
 							</span>
 						</div>
 					)}
@@ -236,24 +253,29 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0 min-w-thumbnail-lg'>
-					<span className='block text-xl font-extrabold text-success'>
-						+{session.currentXP}
+					<span className='block text-xl font-display font-extrabold text-success'>
+						+
+						<AnimatedNumber
+							value={session.currentXP}
+							className='tabular-nums'
+						/>
 					</span>
 					{/* Only show original XP if there's actual time-based decay */}
 					{session.currentXP < session.baseXP && session.currentXP > 0 && (
 						<span className='block text-xs text-error line-through'>
-							was +{session.baseXP}
+							{t('wasXp', { xp: session.baseXP })}
 						</span>
 					)}
 				</div>
 
 				{/* Post Button */}
 				<motion.button
+					type='button'
 					className={cn(
-						'px-5 py-2.5 rounded-xl font-semibold text-sm',
+						'px-5 py-2.5 rounded-xl font-semibold text-sm focus-visible:ring-2 focus-visible:ring-brand/50',
 						isUrgent
 							? 'bg-error text-white shadow-lg shadow-error/30'
-							: 'bg-primary text-white shadow-lg shadow-primary/30',
+							: 'bg-brand text-white shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
 					whileHover={BUTTON_HOVER}
@@ -265,7 +287,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 							: undefined
 					}
 				>
-					{isUrgent ? 'POST NOW' : 'Post'}
+					{isUrgent ? t('postNow') : t('post')}
 				</motion.button>
 			</div>
 		</motion.div>
@@ -287,23 +309,25 @@ const CompletedItem = ({
 	onViewPost,
 	onCookAgain,
 }: CompletedItemProps) => {
+	const t = useTranslations('history')
 	const isMastered = session.cookCount && session.cookCount >= 5
 	const isReduced = session.cookCount && session.cookCount > 2
 
 	return (
 		<motion.div
-			className='bg-muted/30 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow'
+			className='bg-muted/30 rounded-2xl overflow-hidden hover:shadow-warm transition-shadow'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
 		>
 			<div className='flex items-center gap-4 p-4'>
 				{/* Image Stack */}
-				<div className='relative w-16 h-16 flex-shrink-0'>
+				<div className='relative size-16 flex-shrink-0'>
 					<Image
 						src={session.recipeImage}
 						alt={session.recipeName}
 						fill
+						sizes='64px'
 						className='rounded-xl object-cover'
 					/>
 					{session.postId && (
@@ -312,7 +336,7 @@ const CompletedItem = ({
 							alt=''
 							width={32}
 							height={32}
-							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-panel-bg object-cover'
+							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-bg-card object-cover'
 						/>
 					)}
 				</div>
@@ -322,30 +346,32 @@ const CompletedItem = ({
 						{session.recipeName}
 						{isMastered && (
 							<span className='rounded-md bg-accent-purple/10 px-2 py-0.5 text-xs font-semibold text-accent-purple'>
-								🥇 Mastered
+								🥇 {t('mastered')}
 							</span>
 						)}
 						{!isMastered && session.cookCount && session.cookCount > 1 && (
 							<span className='text-xs font-semibold text-text-secondary bg-bg-elevated px-2 py-0.5 rounded-md'>
-								{session.cookCount}
-								{session.cookCount === 2
-									? 'nd'
-									: session.cookCount === 3
-										? 'rd'
-										: 'th'}{' '}
-								cook
+								{t('nthCook', {
+									count: session.cookCount,
+									suffix:
+										session.cookCount === 2
+											? 'nd'
+											: session.cookCount === 3
+												? 'rd'
+												: 'th',
+								})}
 							</span>
 						)}
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
-						<span>{getTimeSinceCook(session.cookedAt)}</span>
+						<span>{getTimeSinceCook(session.cookedAt, t)}</span>
 						<span className='opacity-50'>•</span>
 						<span>{formatDuration(session.duration)}</span>
 						{session.rating && (
 							<>
 								<span className='opacity-50'>•</span>
 								<span className='flex items-center gap-1'>
-									<Star className='h-3 w-3 fill-warning text-warning' />
+									<Star className='size-3 fill-warning text-warning' />
 									{session.rating.toFixed(1)}
 								</span>
 							</>
@@ -355,16 +381,22 @@ const CompletedItem = ({
 
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0'>
-					<span className='block text-xl font-extrabold text-success'>
-						+{session.currentXP}
+					<span className='block text-xl font-display font-extrabold text-success'>
+						+
+						<AnimatedNumber
+							value={session.currentXP}
+							className='tabular-nums'
+						/>
 					</span>
 					{!isReduced && (
-						<span className='block text-xs text-success'>Full XP!</span>
+						<span className='block text-xs text-success'>{t('fullXp')}</span>
 					)}
 					{isReduced && (
 						<span className='block text-xs text-text-secondary'>
-							25% ({session.cookCount}
-							{session.cookCount === 2 ? 'nd' : 'rd'}+ cook)
+							{t('reducedXp', {
+								count: session.cookCount,
+								suffix: session.cookCount === 2 ? 'nd' : 'rd',
+							})}
 						</span>
 					)}
 				</div>
@@ -372,28 +404,30 @@ const CompletedItem = ({
 				{/* View Post Button */}
 				{session.postId && onViewPost && (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover'
+						type='button'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onViewPost(session.postId!)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 					>
 						<ExternalLink className='h-3.5 w-3.5' />
-						View Post
+						{t('viewPost')}
 					</motion.button>
 				)}
 
 				{/* Cook Again Button */}
 				{onCookAgain && session.recipeId && (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-brand/10 border border-brand/30 rounded-xl text-sm font-semibold text-brand hover:bg-brand/20'
+						type='button'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-brand/10 border border-brand/30 rounded-xl text-sm font-semibold text-brand hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onCookAgain(session.recipeId!)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 					>
 						<Play className='h-3.5 w-3.5 fill-current' />
-						Cook Again
+						{t('cookAgain')}
 					</motion.button>
 				)}
 			</div>
@@ -411,6 +445,7 @@ interface ExpiredItemProps {
 }
 
 const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
+	const t = useTranslations('history')
 	const isAbandoned = session.status === 'abandoned'
 
 	return (
@@ -418,7 +453,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 			className='bg-muted/30 rounded-2xl overflow-hidden'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 0.6, y: 0 }}
-			transition={{ duration: 0.3, ease: 'easeOut' }}
+			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
 		>
 			<div className='flex items-center gap-4 p-4'>
 				<Image
@@ -435,7 +470,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 					</span>
 					<span className='flex items-center gap-2 text-sm'>
 						<span className='text-text-secondary'>
-							{getTimeSinceCook(session.cookedAt)}
+							{getTimeSinceCook(session.cookedAt, t)}
 						</span>
 						<span className='opacity-50'>•</span>
 						<span
@@ -446,9 +481,9 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						>
 							{isAbandoned
 								? session.abandonedAtStep
-									? `Abandoned at Step ${session.abandonedAtStep}`
-									: 'Abandoned'
-								: 'Expired'}
+									? t('abandonedAtStep', { step: session.abandonedAtStep })
+									: t('abandoned')
+								: t('expired')}
 						</span>
 					</span>
 				</div>
@@ -457,15 +492,19 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				<div className='text-right flex-shrink-0'>
 					{isAbandoned ? (
 						<span className='text-base font-semibold text-text-secondary'>
-							0 XP
+							{t('zeroXp')}
 						</span>
 					) : (
 						<>
 							<span className='block text-lg font-bold text-text-secondary'>
-								+{session.currentXP}
+								+
+								<AnimatedNumber
+									value={session.currentXP}
+									className='tabular-nums'
+								/>
 							</span>
 							<span className='block text-xs text-error'>
-								-{session.baseXP - session.currentXP} lost
+								{t('xpLost', { amount: session.baseXP - session.currentXP })}
 							</span>
 						</>
 					)}
@@ -474,18 +513,19 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				{/* Action */}
 				{isAbandoned && onRetry ? (
 					<motion.button
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover'
+						type='button'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onRetry(session.id)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 					>
 						<RefreshCw className='h-3.5 w-3.5' />
-						Try Again
+						{t('tryAgain')}
 					</motion.button>
 				) : (
 					<span className='text-xs text-text-secondary px-4 py-2.5 bg-muted/50 rounded-lg'>
-						Not posted
+						{t('notPosted')}
 					</span>
 				)}
 			</div>
@@ -507,6 +547,7 @@ export const CookingHistoryTab = ({
 	onFilterChange,
 	className,
 }: CookingHistoryTabProps) => {
+	const t = useTranslations('history')
 	const [filter, setFilter] = useState<HistoryFilter>({
 		timeRange: 'all',
 		sortBy: 'recent',
@@ -549,28 +590,27 @@ export const CookingHistoryTab = ({
 			{/* Pending Posts Section */}
 			{pendingSessions.length > 0 && (
 				<motion.section
-					className='bg-panel-bg rounded-2xl p-5 border border-border border-l-4 border-l-primary mb-6'
+					className='bg-bg-card rounded-2xl p-5 border border-border border-l-4 border-l-primary mb-6'
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.4, ease: 'easeOut' }}
+					transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 				>
 					{/* Section Header */}
 					<div className='flex items-center justify-between mb-4'>
 						<h3 className='flex items-center gap-2 text-lg font-bold'>
 							<span>📸</span>
-							Pending Posts
+							{t('pendingPostsTitle')}
 						</h3>
 						<span className='text-base font-bold text-success bg-success/10 px-3 py-1.5 rounded-full'>
-							+{Math.round(totalPendingXP)} XP available
+							{t('xpAvailable', { xp: Math.round(totalPendingXP) })}
 						</span>
 					</div>
 
 					{/* Urgent Alert */}
 					{urgentCount > 0 && (
 						<div className='flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-error/10 to-error/5 border border-error/20 rounded-xl mb-4 text-sm font-semibold text-error'>
-							<span>⚠️</span>
-							{urgentCount} recipe{urgentCount > 1 ? 's' : ''} expire within 24
-							hours!
+							<span>⚠ï¸</span>
+							{t('urgentAlert', { count: urgentCount })}
 						</div>
 					)}
 
@@ -584,11 +624,12 @@ export const CookingHistoryTab = ({
 					{/* Show More */}
 					{hiddenPendingCount > 0 && (
 						<button
-							className='flex items-center justify-center gap-2 w-full mt-4 py-3 border border-dashed border-border rounded-xl text-sm font-semibold text-text-secondary hover:bg-muted/50 hover:border-solid hover:text-foreground transition-all'
+							type='button'
+							className='flex items-center justify-center gap-2 w-full mt-4 py-3 border border-border rounded-xl text-sm font-semibold text-text-secondary hover:bg-muted/50 hover:text-foreground transition-all'
 							onClick={() => setShowMorePending(true)}
 						>
-							Show {hiddenPendingCount} more pending
-							<ChevronDown className='h-4 w-4' />
+							{t('showMore', { count: hiddenPendingCount })}
+							<ChevronDown className='size-4' />
 						</button>
 					)}
 				</motion.section>
@@ -596,20 +637,21 @@ export const CookingHistoryTab = ({
 
 			{/* Completed Sessions Section */}
 			<motion.section
-				className='bg-panel-bg rounded-2xl p-5 border border-border mb-6'
+				className='bg-bg-card rounded-2xl p-5 border border-border mb-6'
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
+				transition={{ duration: DURATION_S.slow, ease: 'easeOut', delay: 0.1 }}
 			>
 				{/* Section Header */}
 				<div className='flex items-center justify-between mb-4'>
 					<h3 className='flex items-center gap-2 text-lg font-bold'>
 						<span>✅</span>
-						Cooking History
+						{t('cookingHistory')}
 					</h3>
 					<div className='flex gap-2'>
 						<select
-							className='px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm cursor-pointer'
+							aria-label={t('filterTimeRange')}
+							className='px-3 py-2 bg-bg-card border border-border rounded-lg text-sm text-text cursor-pointer'
 							value={filter.timeRange}
 							onChange={e =>
 								handleFilterChange({
@@ -617,13 +659,14 @@ export const CookingHistoryTab = ({
 								})
 							}
 						>
-							<option value='all'>All Time</option>
-							<option value='week'>This Week</option>
-							<option value='month'>This Month</option>
-							<option value='year'>This Year</option>
+							<option value='all'>{t('filterAll')}</option>
+							<option value='week'>{t('filterWeek')}</option>
+							<option value='month'>{t('filterMonth')}</option>
+							<option value='year'>{t('filterYear')}</option>
 						</select>
 						<select
-							className='px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm cursor-pointer'
+							aria-label={t('filterSortBy')}
+							className='px-3 py-2 bg-bg-card border border-border rounded-lg text-sm text-text cursor-pointer'
 							value={filter.sortBy}
 							onChange={e =>
 								handleFilterChange({
@@ -631,9 +674,9 @@ export const CookingHistoryTab = ({
 								})
 							}
 						>
-							<option value='recent'>Most Recent</option>
-							<option value='xp'>Highest XP</option>
-							<option value='rating'>Highest Rated</option>
+							<option value='recent'>{t('sortRecent')}</option>
+							<option value='xp'>{t('sortXp')}</option>
+							<option value='rating'>{t('sortRating')}</option>
 						</select>
 					</div>
 				</div>
@@ -657,8 +700,8 @@ export const CookingHistoryTab = ({
 
 				{completedSessions.length === 0 && expiredSessions.length === 0 && (
 					<div className='text-center py-8 text-text-secondary'>
-						<p className='text-lg'>No cooking history yet</p>
-						<p className='text-sm'>Start cooking to build your history!</p>
+						<p className='text-lg'>{t('noHistory')}</p>
+						<p className='text-sm'>{t('noHistoryDesc')}</p>
 					</div>
 				)}
 			</motion.section>

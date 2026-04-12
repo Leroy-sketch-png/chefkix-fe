@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import {
 	useState,
 	useRef,
@@ -16,6 +18,7 @@ import { Profile, getProfileDisplayName } from '@/lib/types'
 import { Loader2, AtSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
 
 export interface MentionInputProps {
@@ -62,7 +65,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 			value,
 			onChange,
 			onTaggedUsersChange,
-			placeholder = 'Write a reply...',
+			placeholder: placeholderProp,
 			disabled = false,
 			className,
 			onKeyDown,
@@ -73,6 +76,8 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		},
 		ref,
 	) => {
+		const t = useTranslations('shared')
+		const placeholder = placeholderProp ?? t('miDefaultPlaceholder')
 		const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 		const containerRef = useRef<HTMLDivElement>(null)
 		const [showSuggestions, setShowSuggestions] = useState(false)
@@ -170,7 +175,15 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 					const res = await autocompleteSearch(mentionQuery, 'users', 5)
 					if (res.success && res.data?.users?.hits) {
 						const searchResults: MentionSuggestion[] = res.data.users.hits.map(
-							(h: { document: { id: string; username: string; displayName?: string; firstName?: string; avatarUrl?: string } }) => ({
+							(h: {
+								document: {
+									id: string
+									username: string
+									displayName?: string
+									firstName?: string
+									avatarUrl?: string
+								}
+							}) => ({
 								userId: h.document.id,
 								displayName:
 									h.document.displayName ||
@@ -341,7 +354,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							disabled={disabled}
 							rows={rows}
 							className={cn(
-								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30',
+								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,
 							)}
 						/>
@@ -356,7 +369,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							placeholder={placeholder}
 							disabled={disabled}
 							className={cn(
-								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30',
+								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,
 							)}
 						/>
@@ -380,7 +393,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 								initial={{ opacity: 0, y: 4 }}
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 4 }}
-								transition={{ duration: 0.15 }}
+								transition={{ duration: DURATION_S.fast }}
 								className='fixed z-dropdown overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
 								style={{
 									bottom: `calc(100vh - ${dropdownPosition.top}px + 4px)`,
@@ -391,16 +404,20 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 								{isLoading ? (
 									<div className='flex items-center justify-center gap-2 p-3 text-sm text-text-secondary'>
 										<Loader2 className='size-4 animate-spin' />
-										<span>Loading suggestions...</span>
+										<span>{t('miLoading')}</span>
 									</div>
 								) : filteredSuggestions.length === 0 ? (
 									<div className='p-3 text-center text-sm text-text-muted'>
-										No users found
+										{t('miNoUsersFound')}
 									</div>
 								) : (
-									<ul className='max-h-48 overflow-y-auto py-1'>
+									<ul className='max-h-48 overflow-y-auto py-1' role='listbox'>
 										{filteredSuggestions.map((user, index) => (
-											<li key={user.userId}>
+											<li
+												key={user.userId}
+												role='option'
+												aria-selected={index === selectedIndex}
+											>
 												<button
 													type='button'
 													onClick={() => selectUser(user)}
@@ -408,7 +425,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 													className={cn(
 														'flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors',
 														index === selectedIndex
-															? 'bg-primary/10 text-primary'
+															? 'bg-brand/10 text-brand'
 															: 'text-text-primary hover:bg-bg-hover',
 													)}
 												>
@@ -441,11 +458,11 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 									<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
 										↑↓
 									</kbd>{' '}
-									to navigate,{' '}
+									{t('miNavHint')}{' '}
 									<kbd className='rounded bg-bg-card px-1 py-0.5 font-mono'>
 										Enter
 									</kbd>{' '}
-									to select
+									{t('miSelectHint')}
 								</div>
 							</motion.div>
 						</Portal>

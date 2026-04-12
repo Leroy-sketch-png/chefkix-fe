@@ -20,6 +20,7 @@ import {
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
 import { toast } from 'sonner'
+import messages from '../../messages/en.json'
 import { diag } from '@/lib/diagnostics'
 import type { RoomParticipant, CookingRoom, RoomEvent } from '@/lib/types/room'
 import { useAuthStore } from '@/store/authStore'
@@ -29,6 +30,10 @@ import {
 	leaveRoom as apiLeaveRoom,
 	getRoom as apiGetRoom,
 } from '@/services/cookingRoom'
+import type { StepRenderMode } from '@/components/cooking/StepV2Renderer'
+
+/** Non-hook i18n lookup for Zustand stores (single-locale) */
+const ct = (key: keyof typeof messages.cooking) => messages.cooking[key]
 
 // ============================================
 // TYPES
@@ -117,6 +122,10 @@ interface CookingState {
 	toggleIngredient: (id: string) => void
 	clearCheckedIngredients: () => void
 
+	// Step render mode preference (persisted)
+	stepRenderMode: StepRenderMode
+	setStepRenderMode: (mode: StepRenderMode) => void
+
 	// Timer management
 	tickTimers: () => void
 	getTimerRemaining: (stepNumber: number) => number | null
@@ -145,6 +154,7 @@ export const useCookingStore = create<CookingState>()(
 			isPreviewMode: false,
 			localTimers: new Map(),
 			checkedIngredients: {},
+			stepRenderMode: 'full' as StepRenderMode,
 			roomCode: null,
 			participants: [],
 			isInRoom: false,
@@ -152,6 +162,10 @@ export const useCookingStore = create<CookingState>()(
 
 			setInteractionMode: (mode: KitchenInteractionMode) => {
 				set({ interactionMode: mode })
+			},
+
+			setStepRenderMode: (mode: StepRenderMode) => {
+				set({ stepRenderMode: mode })
 			},
 
 			startCooking: async (recipeId: string) => {
@@ -224,7 +238,10 @@ export const useCookingStore = create<CookingState>()(
 							// If existing session is for a DIFFERENT recipe,
 							// we need to inform the user (they must abandon first)
 							set({
-								error: `You're already cooking "${existingSession.recipe?.title || 'another recipe'}". Please finish or abandon that session first.`,
+								error: ct('storeAlreadyCooking').replace(
+									'{title}',
+									existingSession.recipe?.title || ct('storeAnotherRecipe'),
+								),
 								isLoading: false,
 							})
 							return false
@@ -233,7 +250,7 @@ export const useCookingStore = create<CookingState>()(
 
 					if (!sessionResponse.success || !sessionResponse.data) {
 						set({
-							error: sessionResponse.message || 'Failed to start session',
+							error: sessionResponse.message || ct('storeFailedStart'),
 							isLoading: false,
 						})
 						return false
@@ -243,7 +260,7 @@ export const useCookingStore = create<CookingState>()(
 					const recipeResponse = await getRecipeById(recipeId)
 					if (!recipeResponse.success || !recipeResponse.data) {
 						set({
-							error: 'Failed to load recipe',
+							error: ct('storeFailedLoadRecipe'),
 							isLoading: false,
 						})
 						return false
@@ -273,7 +290,7 @@ export const useCookingStore = create<CookingState>()(
 					return true
 				} catch (error) {
 					set({
-						error: 'An error occurred starting the session',
+						error: ct('storeErrorStarting'),
 						isLoading: false,
 					})
 					return false
@@ -339,7 +356,7 @@ export const useCookingStore = create<CookingState>()(
 							recipeId: session.recipeId,
 						})
 						set({
-							error: 'Failed to load recipe for session',
+							error: ct('storeFailedLoadRecipeSession'),
 							isLoading: false,
 						})
 						return false
@@ -380,7 +397,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return true
 				} catch (error) {
-					set({ error: 'Failed to resume session', isLoading: false })
+					set({ error: ct('storeFailedResume'), isLoading: false })
 					return false
 				}
 			},
@@ -392,7 +409,7 @@ export const useCookingStore = create<CookingState>()(
 					const response = await apiGetSessionById(sessionId)
 					if (!response.success || !response.data) {
 						set({
-							error: response.message || 'Session not found',
+							error: response.message || ct('storeSessionNotFound'),
 							isLoading: false,
 						})
 						return false
@@ -415,7 +432,10 @@ export const useCookingStore = create<CookingState>()(
 							},
 						)
 						set({
-							error: `This cooking session is ${session.status}. Navigate to the recipe page to cook again.`,
+							error: ct('storeSessionInactive').replace(
+								'{status}',
+								session.status,
+							),
 							isLoading: false,
 						})
 						return false
@@ -425,7 +445,7 @@ export const useCookingStore = create<CookingState>()(
 					const recipeResponse = await getRecipeById(session.recipeId)
 					if (!recipeResponse.success || !recipeResponse.data) {
 						set({
-							error: 'Failed to load recipe',
+							error: ct('storeFailedLoadRecipe'),
 							isLoading: false,
 						})
 						return false
@@ -440,7 +460,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return true
 				} catch (error) {
-					set({ error: 'Failed to load session', isLoading: false })
+					set({ error: ct('storeFailedLoadSession'), isLoading: false })
 					return false
 				}
 			},
@@ -474,7 +494,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					logDevError('Failed to navigate step:', error)
-					toast.error('Failed to navigate step. Please try again.')
+					toast.error(ct('toastNavigateStepFailed'))
 				}
 			},
 
@@ -507,7 +527,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					logDevError('Failed to complete step:', error)
-					toast.error('Failed to mark step as complete. Please try again.')
+					toast.error(ct('toastCompleteStepFailed'))
 				}
 			},
 
@@ -544,7 +564,7 @@ export const useCookingStore = create<CookingState>()(
 					set({ localTimers: newTimers })
 				} catch (error) {
 					logDevError('Failed to start timer:', error)
-					toast.error('Failed to start timer. Please try again.')
+					toast.error(ct('toastStartTimerFailed'))
 				}
 			},
 
@@ -569,7 +589,7 @@ export const useCookingStore = create<CookingState>()(
 					set({ localTimers: newTimers })
 				} catch (error) {
 					logDevError('Failed to skip timer:', error)
-					toast.error('Failed to skip timer. Please try again.')
+					toast.error(ct('toastSkipTimerFailed'))
 				}
 			},
 
@@ -595,7 +615,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					diag.error('cooking', 'PAUSE_SESSION exception', error)
-					toast.error('Failed to pause session. Please try again.')
+					toast.error(ct('toastPauseSessionFailed'))
 				}
 			},
 
@@ -633,7 +653,7 @@ export const useCookingStore = create<CookingState>()(
 					}
 				} catch (error) {
 					diag.error('cooking', 'RESUME_COOKING exception', error)
-					toast.error('Failed to resume session. Please try again.')
+					toast.error(ct('toastResumeSessionFailed'))
 				}
 			},
 
@@ -698,13 +718,13 @@ export const useCookingStore = create<CookingState>()(
 
 					// API returned failure
 					set({
-						error: response.message || 'Failed to complete cooking session',
+						error: response.message || ct('storeFailedLoadSession'),
 					})
 					return null
 				} catch (error) {
 					logDevError('Failed to complete session:', error)
 					set({
-						error: 'Network error while completing session. Please try again.',
+						error: ct('storeNetworkError'),
 					})
 					return null
 				}
@@ -728,15 +748,21 @@ export const useCookingStore = create<CookingState>()(
 				try {
 					const response = await apiAbandonSession(session.sessionId)
 					if (response.success) {
-						set({ session: null, recipe: null, localTimers: new Map(), checkedIngredients: {}, interactionMode: null })
-						toast.info('Session abandoned')
+						set({
+							session: null,
+							recipe: null,
+							localTimers: new Map(),
+							checkedIngredients: {},
+							interactionMode: null,
+						})
+						toast.info(ct('toastSessionAbandoned'))
 					} else {
 						logDevError('Failed to abandon session:', response.message)
-						toast.error('Failed to abandon session. Please try again.')
+						toast.error(ct('toastAbandonSessionFailed'))
 					}
 				} catch (error) {
 					logDevError('Failed to abandon session:', error)
-					toast.error('Failed to abandon session. Please try again.')
+					toast.error(ct('toastAbandonSessionFailed'))
 				}
 			},
 
@@ -780,7 +806,7 @@ export const useCookingStore = create<CookingState>()(
 			 */
 			startPreviewCooking: (recipe: Recipe) => {
 				const mockSession: CookingSession = {
-					sessionId: 'preview',
+					sessionId: `preview-${Date.now()}`,
 					recipeId: recipe.id || 'preview-unsaved',
 					status: 'in_progress',
 					currentStep: 1,
@@ -839,9 +865,7 @@ export const useCookingStore = create<CookingState>()(
 									session.sessionId,
 									stepNumber,
 									'complete',
-								).catch(err =>
-									logDevError('Timer complete event failed:', err),
-								)
+								).catch(err => logDevError('Timer complete event failed:', err))
 							}
 							newTimers.delete(stepNumber)
 						} else {
@@ -874,7 +898,7 @@ export const useCookingStore = create<CookingState>()(
 					const response = await apiCreateRoom({ recipeId })
 					if (!response.success || !response.data) {
 						set({
-							error: response.message || 'Failed to create room',
+							error: response.message || ct('storeFailedCreateRoom'),
 							isLoading: false,
 						})
 						return null
@@ -893,7 +917,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return room.roomCode
 				} catch {
-					set({ error: 'Failed to create room', isLoading: false })
+					set({ error: ct('storeFailedCreateRoom'), isLoading: false })
 					return null
 				}
 			},
@@ -907,7 +931,7 @@ export const useCookingStore = create<CookingState>()(
 					})
 					if (!response.success || !response.data) {
 						set({
-							error: response.message || 'Failed to join room',
+							error: response.message || ct('storeFailedJoinRoom'),
 							isLoading: false,
 						})
 						return false
@@ -934,7 +958,7 @@ export const useCookingStore = create<CookingState>()(
 
 					return true
 				} catch {
-					set({ error: 'Failed to join room', isLoading: false })
+					set({ error: ct('storeFailedJoinRoom'), isLoading: false })
 					return false
 				}
 			},
@@ -1050,7 +1074,7 @@ export const useCookingStore = create<CookingState>()(
 		}),
 		{
 			name: 'chefkix-cooking-session',
-			// Persist session IDs, checklist state, and active timers
+			// Persist session IDs, checklist state, active timers, and render mode preference
 			partialize: state => ({
 				session: state.session
 					? {
@@ -1060,12 +1084,23 @@ export const useCookingStore = create<CookingState>()(
 					: null,
 				checkedIngredients: state.checkedIngredients,
 				localTimers: Array.from(state.localTimers.entries()),
+				stepRenderMode: state.stepRenderMode,
 			}),
 			merge: (persisted: unknown, currentState: CookingState) => {
-				const p = persisted as Partial<CookingState & { localTimers: [number, { initialDuration: number; startedAt: number; remaining: number }][] }>
+				const p = persisted as Partial<
+					CookingState & {
+						localTimers: [
+							number,
+							{ initialDuration: number; startedAt: number; remaining: number },
+						][]
+					}
+				>
 				const timersArray = Array.isArray(p?.localTimers) ? p.localTimers : []
 				const now = Date.now()
-				const rehydratedTimers = new Map<number, { initialDuration: number; startedAt: number; remaining: number }>()
+				const rehydratedTimers = new Map<
+					number,
+					{ initialDuration: number; startedAt: number; remaining: number }
+				>()
 				for (const [step, timer] of timersArray) {
 					const elapsed = Math.floor((now - timer.startedAt) / 1000)
 					const remaining = Math.max(0, timer.initialDuration - elapsed)
@@ -1077,6 +1112,7 @@ export const useCookingStore = create<CookingState>()(
 					...currentState,
 					...p,
 					localTimers: rehydratedTimers,
+					stepRenderMode: (p?.stepRenderMode as StepRenderMode) || 'full',
 				}
 			},
 		},

@@ -1,16 +1,20 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Lock, Unlock, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_BOUNCY,
 	CELEBRATION_MODAL,
 	XP_COUNTER_VARIANTS,
+	DURATION_S,
 } from '@/lib/motion'
 
 // ============================================
@@ -89,7 +93,7 @@ const Sparkle = ({ x, y, delay }: { x: string; y: string; delay: number }) => (
 			delay,
 			ease: 'easeInOut',
 		}}
-		className='absolute h-2 w-2 rounded-full bg-white'
+		className='absolute size-2 rounded-full bg-white'
 		style={{ left: x, top: y }}
 	/>
 )
@@ -139,7 +143,7 @@ const ProgressBar = ({
 		<motion.div
 			initial={{ width: 0 }}
 			animate={{ width: `${fillPercent}%` }}
-			transition={{ duration: 0.5 }}
+			transition={{ duration: DURATION_S.slow }}
 			className={cn('absolute inset-y-0 left-0 rounded-full', color)}
 		/>
 		{/* Gained section highlight */}
@@ -177,6 +181,9 @@ export const PostSuccessRewards = ({
 	onDone,
 	nextActions,
 }: PostSuccessRewardsProps) => {
+	const t = useTranslations('completion')
+	useEscapeKey(isOpen, onClose)
+	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
 	return (
 		<AnimatePresence>
 			{isOpen && (
@@ -192,6 +199,10 @@ export const PostSuccessRewards = ({
 
 					{/* Overlay */}
 					<motion.div
+						ref={focusTrapRef}
+						role='dialog'
+						aria-modal='true'
+						aria-label='Post rewards'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -203,20 +214,21 @@ export const PostSuccessRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative max-h-modal w-full max-w-md overflow-y-auto rounded-2xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-mobile max-md:rounded-b-none max-md:p-6'
+							className='relative max-h-modal w-full max-w-md overflow-y-auto rounded-2xl bg-bg-card p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-mobile max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close */}
 							<button
+								type='button'
 								onClick={onClose}
-								aria-label='Close'
-								className='absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+								aria-label={t('ariaClose')}
+								className='absolute right-4 top-4 z-10 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
-								<X className='h-5 w-5' />
+								<X className='size-5' />
 							</button>
 
 							{/* Header with posted image */}
 							<div className='mb-6 text-center'>
-								<div className='relative mx-auto mb-4 h-28 w-28'>
+								<div className='relative mx-auto mb-4 size-28'>
 									<Image
 										src={recipeImageUrl}
 										alt={recipeName}
@@ -228,13 +240,17 @@ export const PostSuccessRewards = ({
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
 										transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
-										className='absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-level shadow-lg shadow-level/40'
+										className='absolute -bottom-2 -right-2 flex size-10 items-center justify-center rounded-full bg-gradient-level shadow-lg shadow-level/40'
 									>
-										<Check className='h-5 w-5 text-white' />
+										<Check className='size-5 text-white' />
 									</motion.div>
 								</div>
-								<h1 className='mb-2 text-3xl font-extrabold'>Posted! 🎉</h1>
-								<p className='text-text-muted'>Your {recipeName} is now live</p>
+								<h1 className='mb-2 text-3xl font-display font-extrabold'>
+									{t('posted')}
+								</h1>
+								<p className='text-text-muted'>
+									{t('yourRecipeIsLive', { recipeName })}
+								</p>
 							</div>
 
 							{/* XP unlocked section */}
@@ -245,34 +261,34 @@ export const PostSuccessRewards = ({
 										initial={{ opacity: 1 }}
 										animate={{ opacity: 0 }}
 										transition={{ delay: 0.3 }}
-										className='flex h-12 w-12 items-center justify-center rounded-full bg-panel-bg'
+										className='flex size-12 items-center justify-center rounded-full bg-bg-card'
 									>
-										<Lock className='h-5 w-5 text-text-muted' />
+										<Lock className='size-5 text-text-muted' />
 									</motion.div>
 									<motion.div
 										initial={{ opacity: 0, scale: 0.5 }}
 										animate={{ opacity: 1, scale: 1 }}
 										transition={{ ...TRANSITION_BOUNCY, delay: 0.5 }}
-										className='absolute flex h-12 w-12 items-center justify-center rounded-full bg-panel-bg'
+										className='absolute flex size-12 items-center justify-center rounded-full bg-bg-card'
 									>
-										<Unlock className='h-5 w-5 text-xp' />
+										<Unlock className='size-5 text-xp' />
 									</motion.div>
 								</div>
 
 								{/* XP breakdown */}
-								<div className='space-y-1 rounded-xl bg-panel-bg p-3'>
+								<div className='space-y-1 rounded-xl bg-bg-card p-3'>
 									{xpRows.map((row, i) => (
 										<XPRowComponent key={row.id} row={row} index={i} />
 									))}
 
 									{/* Total */}
 									<div className='mt-2 flex items-center justify-between border-t border-border pt-3'>
-										<span className='font-semibold'>Total Earned</span>
+										<span className='font-semibold'>{t('totalEarned')}</span>
 										<motion.span
 											initial={{ scale: 0.5, opacity: 0 }}
 											animate={{ scale: 1, opacity: 1 }}
 											transition={{ ...TRANSITION_BOUNCY, delay: 0.8 }}
-											className='text-2xl font-extrabold text-xp'
+											className='text-2xl font-display font-extrabold text-xp'
 										>
 											+{totalXp} XP
 										</motion.span>
@@ -283,9 +299,14 @@ export const PostSuccessRewards = ({
 							{/* Level progress */}
 							<div className='mb-4 rounded-xl bg-bg-elevated p-4'>
 								<div className='mb-2 flex items-center justify-between'>
-									<span className='font-bold'>Level {currentLevel}</span>
+									<span className='font-bold'>
+										{t('levelLabel', { level: currentLevel })}
+									</span>
 									<span className='text-sm text-text-muted'>
-										{xpToNextLevel} XP to Level {currentLevel + 1}
+										{t('xpToLevel', {
+											amount: xpToNextLevel,
+											level: currentLevel + 1,
+										})}
 									</span>
 								</div>
 								<ProgressBar
@@ -301,7 +322,7 @@ export const PostSuccessRewards = ({
 									<div className='mb-3 flex items-center gap-2.5'>
 										<span className='text-xl'>{mastery.cuisineEmoji}</span>
 										<span className='font-semibold'>
-											{mastery.cuisineName} Mastery
+											{t('cuisineMastery', { cuisine: mastery.cuisineName })}
 										</span>
 									</div>
 									<div className='flex items-center gap-3'>
@@ -317,8 +338,9 @@ export const PostSuccessRewards = ({
 										</span>
 									</div>
 									<p className='mt-2 text-sm text-text-muted'>
-										Keep cooking {mastery.cuisineName.toLowerCase()} recipes to
-										master this cuisine!
+										{t('keepCookingCuisine', {
+											cuisine: mastery.cuisineName.toLowerCase(),
+										})}
 									</p>
 								</div>
 							)}
@@ -327,36 +349,37 @@ export const PostSuccessRewards = ({
 							{postPreview && (
 								<div className='mb-5 rounded-xl bg-bg-elevated p-4'>
 									<div className='mb-3 flex items-center justify-between'>
-										<span className='font-semibold'>
-											Your post is now live!
-										</span>
+										<span className='font-semibold'>{t('yourPostIsLive')}</span>
 										{onViewPost && (
 											<button
+												type='button'
 												onClick={onViewPost}
 												className='flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 											>
-												View Post
-												<ArrowRight className='h-4 w-4' />
+												{t('viewPost')}
+												<ArrowRight className='size-4' />
 											</button>
 										)}
 									</div>
-									<div className='overflow-hidden rounded-lg border border-border bg-panel-bg'>
+									<div className='overflow-hidden rounded-lg border border-border bg-bg-card'>
 										<div className='flex items-center gap-2.5 p-3'>
 											<Image
 												src={postPreview.authorAvatar}
 												alt={postPreview.authorName}
 												width={28}
 												height={28}
-												className='h-7 w-7 rounded-full'
+												className='size-7 rounded-full'
 											/>
 											<span className='flex-1 text-sm font-semibold'>
 												{postPreview.authorName}
 											</span>
-											<span className='text-xs text-text-muted'>Just now</span>
+											<span className='text-xs text-text-muted'>
+												{t('justNow')}
+											</span>
 										</div>
 										<Image
 											src={postPreview.imageUrl}
-											alt='Your creation'
+											alt={t('yourCreation')}
 											width={400}
 											height={300}
 											className='aspect-[4/3] w-full object-cover'
@@ -369,11 +392,12 @@ export const PostSuccessRewards = ({
 							{/* What's next */}
 							<div className='mb-5'>
 								<h3 className='mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted'>
-									What&apos;s Next?
+									{t('whatsNext')}
 								</h3>
 								<div className='grid grid-cols-3 gap-2.5'>
 									{nextActions.map(action => (
 										<button
+											type='button'
 											key={action.id}
 											onClick={action.onClick}
 											className='flex flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-3 py-4 transition-colors hover:border-brand hover:bg-brand/5'
@@ -392,10 +416,11 @@ export const PostSuccessRewards = ({
 
 							{/* Done button */}
 							<button
+								type='button'
 								onClick={onDone}
 								className='w-full rounded-xl bg-brand py-4 text-base font-bold text-white transition-opacity hover:opacity-90'
 							>
-								Done
+								{t('done')}
 							</button>
 						</motion.div>
 					</motion.div>

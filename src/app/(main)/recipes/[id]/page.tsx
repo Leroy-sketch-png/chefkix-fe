@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getRecipeById,
@@ -11,6 +12,10 @@ import {
 	deleteRecipe,
 } from '@/services/recipe'
 import { trackEvent } from '@/lib/eventTracker'
+import {
+	getIngredientBuyLinks,
+	createFromRecipe,
+} from '@/services/shoppingList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Button } from '@/components/ui/button'
@@ -37,12 +42,15 @@ import {
 	Rocket,
 	Info,
 	Timer,
+	ArrowLeft,
 	UtensilsCrossed,
 	Loader2,
 	AlertCircle,
 	Sparkles,
 	Flame,
 	Trash2,
+	ShoppingCart,
+	MoreHorizontal,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -50,16 +58,21 @@ import { toast } from 'sonner'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { RECIPE_MESSAGES } from '@/constants/messages'
 import { SocialProof } from '@/components/recipe/SocialProof'
 import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
+import { RecipeReviews } from '@/components/recipe/RecipeReviews'
 import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
+import {
+	QualityBadge,
+	getTierDescription,
+} from '@/components/recipe/QualityBadge'
 import { Portal } from '@/components/ui/portal'
 import {
 	remixRecipe,
@@ -72,42 +85,55 @@ import {
 	BUTTON_HOVER,
 	BUTTON_TAP,
 	CARD_HOVER,
+	BOOKMARK_SLIDE,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+	ICON_HOVER,
+	NAV_ITEM_HOVER,
+	STAT_ITEM_HOVER,
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-
-// Difficulty explanations for tooltip
-const DIFFICULTY_EXPLANATIONS: Record<
-	string,
-	{ label: string; description: string; techniques: string }
-> = {
-	Beginner: {
-		label: 'Beginner',
-		description: 'Perfect for first-time cooks',
-		techniques: 'Basic techniques like chopping, stirring, boiling',
-	},
-	Intermediate: {
-		label: 'Intermediate',
-		description: 'Some cooking experience helpful',
-		techniques: 'Sautéing, reduction, timing multiple components',
-	},
-	Advanced: {
-		label: 'Advanced',
-		description: 'Experienced cooks will thrive',
-		techniques: 'Emulsification, tempering, precision timing',
-	},
-	Expert: {
-		label: 'Expert',
-		description: 'Professional-level challenge',
-		techniques: 'Complex techniques, multi-day prep, precise execution',
-	},
-}
+import { triggerSaveConfetti } from '@/lib/confetti'
+import { AnimatedNumber } from '@/components/ui/animated-number'
+import { calibrateDifficulty, type CalibrationResult } from '@/services/ml'
+import { TipJarButton } from '@/components/tip/TipJarButton'
+import { useTranslations } from 'next-intl'
+import { logDevError } from '@/lib/dev-log'
 
 function RecipeDetailContent() {
 	const params = useParams()
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const recipeId = params?.id as string
+	const t = useTranslations('recipeDetail')
+
+	// Difficulty explanations for tooltip (must be inside component for i18n hook access)
+	const DIFFICULTY_EXPLANATIONS: Record<
+		string,
+		{ label: string; description: string; techniques: string }
+	> = {
+		Beginner: {
+			label: t('diffBeginner'),
+			description: t('diffBeginnerDesc'),
+			techniques: t('diffBeginnerTech'),
+		},
+		Intermediate: {
+			label: t('diffIntermediate'),
+			description: t('diffIntermediateDesc'),
+			techniques: t('diffIntermediateTech'),
+		},
+		Advanced: {
+			label: t('diffAdvanced'),
+			description: t('diffAdvancedDesc'),
+			techniques: t('diffAdvancedTech'),
+		},
+		Expert: {
+			label: t('diffExpert'),
+			description: t('diffExpertDesc'),
+			techniques: t('diffExpertTech'),
+		},
+	}
 	const shouldAutoStartCooking = searchParams?.get('cook') === 'true'
 	const { openCookingPanel, expandCookingPanel } = useUiStore()
 	const {
@@ -116,6 +142,7 @@ function RecipeDetailContent() {
 		session: activeSession,
 	} = useCookingStore()
 	const { user } = useAuth()
+	const requireAuth = useAuthGate()
 	const autoStartAttempted = useRef(false)
 
 	// Determine cooking button state — only count COMPLETE & ACTIVE sessions
@@ -147,6 +174,11 @@ function RecipeDetailContent() {
 	)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const [calibration, setCalibration] = useState<CalibrationResult | null>(null)
+	const [ingredientBuyLinks, setIngredientBuyLinks] = useState<
+		Record<string, string>
+	>({})
+	const [isAddingToShoppingList, setIsAddingToShoppingList] = useState(false)
 
 	// Check if current user is the recipe owner
 	const isOwner = user?.userId === recipe?.author?.userId
@@ -164,20 +196,65 @@ function RecipeDetailContent() {
 				setSaveCount(response.data.saveCount)
 				trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
 			} else {
-				setError('Recipe not found')
+				setError(t('errorRecipeNotFound'))
 			}
 		} catch (err) {
-			setError('Failed to load recipe')
+			setError(t('errorFailedLoadRecipe'))
 		} finally {
 			setIsLoading(false)
 		}
-	}, [recipeId])
+	}, [recipeId, t])
 
 	useEffect(() => {
 		if (recipeId) {
 			fetchRecipe()
 		}
 	}, [recipeId, fetchRecipe])
+
+	// AI difficulty calibration — fail-open, non-blocking
+	useEffect(() => {
+		if (!recipe) return
+		const req = {
+			ingredient_count: recipe.fullIngredientList?.length ?? 0,
+			step_count: recipe.steps?.length ?? 0,
+			techniques: recipe.skillTags ?? recipe.enrichment?.techniqueGuides ?? [],
+			estimated_time_minutes: recipe.totalTimeMinutes ?? 0,
+			equipment_count: recipe.enrichment?.equipmentNeeded?.length ?? 0,
+		}
+		// Only calibrate if we have meaningful data
+		if (req.ingredient_count === 0 && req.step_count === 0) return
+		let cancelled = false
+		calibrateDifficulty(req)
+			.then(res => {
+				if (!cancelled && res.success && res.data) {
+					setCalibration(res.data)
+				}
+			})
+			.catch(err => {
+				logDevError('[calibrateDifficulty] failed:', err)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [recipe])
+
+	// Fetch per-ingredient buy links — fail-open, non-blocking
+	useEffect(() => {
+		if (!recipe?.fullIngredientList?.length) return
+		let cancelled = false
+		const items = recipe.fullIngredientList.map((ing, i) => ({
+			itemId: `ing-${i}`,
+			name: ing.name,
+			quantity: ing.quantity,
+			unit: ing.unit,
+		}))
+		getIngredientBuyLinks(items).then(links => {
+			if (!cancelled) setIngredientBuyLinks(links)
+		})
+		return () => {
+			cancelled = true
+		}
+	}, [recipe])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
@@ -193,6 +270,12 @@ function RecipeDetailContent() {
 		// Remove the query param to prevent re-triggering
 		router.replace(`/recipes/${recipeId}`, { scroll: false })
 
+		// Guest cannot start cooking — show sign-up prompt
+		if (!user) {
+			requireAuth(t('authActionCook'))
+			return
+		}
+
 		let cancelled = false
 		// Start cooking session
 		const initCooking = async () => {
@@ -205,7 +288,7 @@ function RecipeDetailContent() {
 			} else {
 				// Get the error message from the store for better context
 				const errorMsg = useCookingStore.getState().error
-				toast.error(errorMsg || 'Failed to start cooking session')
+				toast.error(errorMsg || t('toastFailedStartCooking'))
 			}
 		}
 		initCooking()
@@ -221,10 +304,14 @@ function RecipeDetailContent() {
 		openCookingPanel,
 		expandCookingPanel,
 		router,
+		user,
+		requireAuth,
+		t,
 	])
 
 	const handleLike = useCallback(async () => {
 		if (isLikeLoading) return
+		if (!requireAuth(t('authActionLike'))) return
 
 		const previousLiked = isLiked
 		const previousCount = likeCount
@@ -249,14 +336,15 @@ function RecipeDetailContent() {
 		} catch (error) {
 			setIsLiked(previousLiked)
 			setLikeCount(previousCount)
-			toast.error(RECIPE_MESSAGES.LIKE_FAILED)
+			toast.error(t('toastFailedLike'))
 		} finally {
 			setIsLikeLoading(false)
 		}
-	}, [isLikeLoading, isLiked, likeCount, recipeId])
+	}, [isLikeLoading, isLiked, likeCount, recipeId, requireAuth, t])
 
 	const handleSave = useCallback(async () => {
 		if (isSaveLoading) return
+		if (!requireAuth(t('authActionSave'))) return
 
 		const previousSaved = isSaved
 		const previousCount = saveCount
@@ -282,16 +370,17 @@ function RecipeDetailContent() {
 					recipeId,
 					'recipe',
 				)
-				toast.success(serverSaved ? 'Recipe saved!' : 'Recipe unsaved')
+				toast.success(serverSaved ? t('toastSaved') : t('toastUnsaved'))
+				if (serverSaved) triggerSaveConfetti()
 			}
 		} catch (error) {
 			setIsSaved(previousSaved)
 			setSaveCount(previousCount)
-			toast.error(RECIPE_MESSAGES.SAVE_FAILED)
+			toast.error(t('toastFailedSave'))
 		} finally {
 			setIsSaveLoading(false)
 		}
-	}, [isSaveLoading, isSaved, recipeId, saveCount])
+	}, [isSaveLoading, isSaved, recipeId, saveCount, requireAuth, t])
 
 	const handleShare = async () => {
 		if (navigator.share) {
@@ -306,32 +395,33 @@ function RecipeDetailContent() {
 					// Share failed for non-cancel reason — fall back to clipboard
 					try {
 						await navigator.clipboard.writeText(window.location.href)
-						toast.success(RECIPE_MESSAGES.LINK_COPIED)
+						toast.success(t('toastLinkCopied'))
 					} catch {
-						toast.error('Failed to share recipe')
+						toast.error(t('toastFailedShare'))
 					}
 				}
 			}
 		} else {
 			try {
 				await navigator.clipboard.writeText(window.location.href)
-				toast.success(RECIPE_MESSAGES.LINK_COPIED)
+				toast.success(t('toastLinkCopied'))
 			} catch {
-				toast.error('Failed to copy link')
+				toast.error(t('toastFailedCopy'))
 			}
 		}
 	}
 
 	const REMIX_OPTIONS: { type: RemixType; label: string; emoji: string }[] = [
-		{ type: 'vegetarian', label: 'Vegetarian', emoji: '🌿' },
-		{ type: 'vegan', label: 'Vegan', emoji: '🌱' },
-		{ type: 'gluten-free', label: 'Gluten-Free', emoji: '🌾' },
-		{ type: 'spicy', label: 'Spicy', emoji: '🌶️' },
-		{ type: 'healthy', label: 'Healthy', emoji: '💚' },
-		{ type: 'quick', label: 'Quick', emoji: '⚡' },
+		{ type: 'vegetarian', label: t('dietVegetarian'), emoji: '🌿' },
+		{ type: 'vegan', label: t('dietVegan'), emoji: '🌱' },
+		{ type: 'gluten-free', label: t('dietGlutenFree'), emoji: '🌾' },
+		{ type: 'spicy', label: t('remixSpicy'), emoji: '🌶️' },
+		{ type: 'healthy', label: t('remixHealthy'), emoji: '💚' },
+		{ type: 'quick', label: t('remixQuick'), emoji: '⚡' },
 	]
 
 	const handleRemix = async (remixType: RemixType) => {
+		if (!requireAuth(t('authActionRemix'))) return
 		if (!recipe || isRemixing) return
 		setShowRemixMenu(false)
 		setIsRemixing(true)
@@ -343,13 +433,13 @@ function RecipeDetailContent() {
 				remix_type: remixType,
 			})
 			if (response.success && response.data) {
-				toast.success('Remix created!')
+				toast.success(t('toastRemixCreated'))
 				setRemixResult(response.data)
 			} else {
-				toast.error(response.message || 'Failed to remix recipe')
+				toast.error(t('toastFailedRemixRecipe'))
 			}
 		} catch {
-			toast.error('Failed to remix recipe')
+			toast.error(t('toastFailedRemix'))
 		} finally {
 			setIsRemixing(false)
 		}
@@ -357,6 +447,7 @@ function RecipeDetailContent() {
 
 	const handleStartCooking = useCallback(async () => {
 		if (isCookingLoading || !recipeId) return
+		if (!requireAuth(t('authActionCook'))) return
 
 		// If already cooking THIS recipe, just open the panel
 		if (isCurrentlyCooked) {
@@ -367,13 +458,36 @@ function RecipeDetailContent() {
 
 		const success = await startCooking(recipeId)
 		if (success) {
+			// Pre-cache recipe data for offline cooking via Cache API
+			if ('caches' in window) {
+				caches
+					.open('recipe-cooking-cache')
+					.then(cache => {
+						cache.put(
+							`/api/v1/recipes/${recipeId}`,
+							new Response(
+								JSON.stringify({
+									success: true,
+									statusCode: 200,
+									data: recipe,
+								}),
+								{
+									headers: { 'Content-Type': 'application/json' },
+								},
+							),
+						)
+					})
+					.catch(() => {
+						/* non-critical */
+					})
+			}
 			// Open docked panel on desktop, expanded on mobile
 			const isDesktop = window.innerWidth >= 1280
 			isDesktop ? openCookingPanel() : expandCookingPanel()
 		} else {
 			// Get the error message from the store for better context
 			const errorMsg = useCookingStore.getState().error
-			toast.error(errorMsg || 'Failed to start cooking session')
+			toast.error(errorMsg || t('toastFailedStartCooking'))
 		}
 	}, [
 		isCookingLoading,
@@ -382,28 +496,32 @@ function RecipeDetailContent() {
 		startCooking,
 		openCookingPanel,
 		expandCookingPanel,
+		requireAuth,
+		recipe,
+		t,
 	])
 
 	const [isCreatingRoom, setIsCreatingRoom] = useState(false)
 
 	const handleCookTogether = async () => {
 		if (isCreatingRoom || !recipeId) return
+		if (!requireAuth(t('authActionCookTogether'))) return
 		setIsCreatingRoom(true)
 		try {
 			const { createRoom } = useCookingStore.getState()
 			const roomCode = await createRoom(recipeId)
 			if (roomCode) {
-				toast.success(`Room created! Code: ${roomCode}`, {
-					description: 'Share this code with friends to cook together',
+				toast.success(t('toastRoomCreated', { roomCode }), {
+					description: t('toastShareCode'),
 					duration: 8000,
 				})
 				router.push('/cook-together')
 			} else {
 				const errorMsg = useCookingStore.getState().error
-				toast.error(errorMsg || 'Failed to create room')
+				toast.error(errorMsg || t('toastFailedCreateRoom'))
 			}
 		} catch {
-			toast.error('Failed to create room')
+			toast.error(t('toastFailedRoom'))
 		} finally {
 			setIsCreatingRoom(false)
 		}
@@ -415,18 +533,47 @@ function RecipeDetailContent() {
 		try {
 			const response = await deleteRecipe(recipeId)
 			if (response.success) {
-				toast.success('Recipe deleted')
+				toast.success(t('toastDeleted'))
 				router.push('/profile')
 			} else {
-				toast.error(response.message || 'Failed to delete recipe')
+				toast.error(t('toastFailedDeleteRecipe'))
 			}
 		} catch {
-			toast.error('Failed to delete recipe')
+			toast.error(t('toastFailedDelete'))
 		} finally {
 			setIsDeleting(false)
 			setShowDeleteConfirm(false)
 		}
-	}, [isDeleting, recipeId, router])
+	}, [isDeleting, recipeId, router, t])
+
+	const handleAddToShoppingList = async () => {
+		if (!requireAuth(t('authActionShoppingList'))) return
+		if (isAddingToShoppingList || !recipe) return
+		setIsAddingToShoppingList(true)
+		try {
+			const shoppingList = await createFromRecipe({
+				recipeId,
+				servings: recipe.servings ?? 1,
+			})
+			toast.success(t('toastShoppingListCreated'), {
+				description: t('toastShoppingListDetails', {
+					n: shoppingList.totalItems,
+				}),
+				action: {
+					label: t('viewAction'),
+					onClick: () => router.push('/shopping-lists'),
+				},
+			})
+			trackEvent('SHOPPING_LIST_CREATED', recipeId, 'recipe', {
+				source: 'recipe_detail',
+				items: shoppingList.totalItems,
+			})
+		} catch {
+			toast.error(t('toastFailedShoppingList'))
+		} finally {
+			setIsAddingToShoppingList(false)
+		}
+	}
 
 	// Keyboard shortcuts: Enter=cook, S=save, L=like, Esc=back
 	useEffect(() => {
@@ -513,8 +660,8 @@ function RecipeDetailContent() {
 			<PageTransition>
 				<PageContainer maxWidth='2xl'>
 					<ErrorState
-						title='Recipe not found'
-						message={error || 'The recipe you are looking for does not exist.'}
+						title={t('notFoundTitle')}
+						message={error || t('notFoundBody')}
 						onRetry={fetchRecipe}
 						showHomeButton
 					/>
@@ -549,6 +696,24 @@ function RecipeDetailContent() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='2xl'>
+				{/* Back Button */}
+				<motion.div
+					initial={{ opacity: 0, x: -10 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={TRANSITION_SPRING}
+					className='mb-4'
+				>
+					<Button
+						variant='ghost'
+						size='sm'
+						onClick={() => router.back()}
+						className='gap-2 text-text-secondary hover:text-text'
+					>
+						<ArrowLeft className='size-4' />
+						<span>{t('back')}</span>
+					</Button>
+				</motion.div>
+
 				{/* Hero Section */}
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
@@ -561,20 +726,21 @@ function RecipeDetailContent() {
 						<motion.div
 							initial={{ scale: 1.1 }}
 							animate={{ scale: 1 }}
-							transition={{ duration: 0.8, ease: 'easeOut' }}
+							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 							className='absolute inset-0'
 						>
 							<Image
 								src={getRecipeImage(recipe)}
 								alt={recipe.title}
 								fill
+								sizes='100vw'
 								className='object-cover transition-transform duration-700 group-hover:scale-105'
 								priority
 							/>
 						</motion.div>
 
 						{/* Gradient overlay */}
-						<div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
+						<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
 						{/* XP Badge - top left */}
 						{recipe.xpReward != null && recipe.xpReward > 0 && (
@@ -608,6 +774,7 @@ function RecipeDetailContent() {
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<motion.button
+											type='button'
 											onClick={() => {
 												// Get the first video URL from the array
 												const firstVideoUrl = recipe.videoUrl?.[0]
@@ -621,12 +788,13 @@ function RecipeDetailContent() {
 												} else {
 													// Video is embedded in cooking mode
 													handleStartCooking()
-													toast.info('Watch video in cooking mode')
+													toast.info(t('toastWatchVideoInCookingMode'))
 												}
 											}}
-											whileHover={{ scale: 1.1 }}
-											whileTap={{ scale: 0.95 }}
-											className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+											whileHover={ICON_BUTTON_HOVER}
+											whileTap={ICON_BUTTON_TAP}
+											transition={TRANSITION_SPRING}
+											className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<div className='grid size-20 place-items-center rounded-full bg-white/90 shadow-2xl transition-all hover:bg-white'>
 												<Play className='ml-1 size-8 fill-brand text-brand' />
@@ -634,7 +802,7 @@ function RecipeDetailContent() {
 										</motion.button>
 									</TooltipTrigger>
 									<TooltipContent>
-										<p>Watch recipe video</p>
+										<p>{t('watchVideo')}</p>
 									</TooltipContent>
 								</Tooltip>
 							</TooltipProvider>
@@ -648,7 +816,7 @@ function RecipeDetailContent() {
 								initial={{ opacity: 0, y: 10 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: 0.2 }}
-								className='mb-3 text-3xl font-bold text-text md:text-4xl'
+								className='mb-3 text-3xl font-serif font-bold text-text md:text-4xl'
 							>
 								{recipe.title}
 							</motion.h1>
@@ -677,6 +845,7 @@ function RecipeDetailContent() {
 												}
 												alt={recipe.author.username || 'Recipe author'}
 												fill
+												sizes='48px'
 												className='object-cover'
 											/>
 										</div>
@@ -712,18 +881,22 @@ function RecipeDetailContent() {
 									<Tooltip>
 										<TooltipTrigger asChild>
 											<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
-												{totalTime} min
+												{totalTime} {t('unitMin')}
 											</span>
 										</TooltipTrigger>
 										<TooltipContent className='p-3'>
 											<div className='space-y-1 text-sm'>
 												<div className='flex items-center gap-2'>
 													<Timer className='size-4 text-text-muted' />
-													<span>Prep: {recipe.prepTimeMinutes || 0} min</span>
+													<span>
+														{t('prepMin', { n: recipe.prepTimeMinutes || 0 })}
+													</span>
 												</div>
 												<div className='flex items-center gap-2'>
 													<UtensilsCrossed className='size-4 text-brand' />
-													<span>Cook: {recipe.cookTimeMinutes || 0} min</span>
+													<span>
+														{t('cookMin', { n: recipe.cookTimeMinutes || 0 })}
+													</span>
 												</div>
 											</div>
 										</TooltipContent>
@@ -737,7 +910,9 @@ function RecipeDetailContent() {
 								className='flex items-center gap-2 text-text-secondary'
 							>
 								<Users className='size-5 text-brand' />
-								<span className='font-medium'>{recipe.servings} servings</span>
+								<span className='font-medium tabular-nums'>
+									{recipe.servings} {t('servings')}
+								</span>
 							</motion.span>
 
 							{/* Difficulty with explanation tooltip */}
@@ -766,7 +941,7 @@ function RecipeDetailContent() {
 														}
 													</p>
 													<p className='text-xs text-text-muted'>
-														<strong>Techniques:</strong>{' '}
+														<strong>{t('techniques')}</strong>{' '}
 														{
 															DIFFICULTY_EXPLANATIONS[recipe.difficulty]
 																.techniques
@@ -775,13 +950,97 @@ function RecipeDetailContent() {
 												</div>
 											) : (
 												<p className='text-sm text-text-secondary'>
-													{recipe.difficulty} level recipe
+													{t('difficultyLevelRecipe', {
+														difficulty: recipe.difficulty,
+													})}
 												</p>
 											)}
 										</TooltipContent>
 									</Tooltip>
 								</TooltipProvider>
+								{/* AI difficulty calibration badge */}
+								{calibration &&
+									calibration.predictedDifficulty !== recipe.difficulty && (
+										<TooltipProvider delayDuration={100}>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<span className='inline-flex items-center gap-1 rounded-full bg-gaming-xp/10 px-2 py-0.5 text-xs font-medium text-gaming-xp'>
+														<Sparkles className='size-3' />
+														AI: {calibration.predictedDifficulty}
+													</span>
+												</TooltipTrigger>
+												<TooltipContent className='max-w-xs p-3'>
+													<div className='space-y-1 text-sm'>
+														<p className='font-semibold text-text'>
+															{t('aiDifficultyCalibration')}
+														</p>
+														<p className='text-text-secondary'>
+															{t('aiCalibrationDetail', {
+																steps: recipe.steps?.length ?? 0,
+																ingredients:
+																	recipe.fullIngredientList?.length ?? 0,
+																difficulty: calibration.predictedDifficulty,
+																confidence: Math.round(
+																	calibration.confidence * 100,
+																),
+															})}
+														</p>
+														<p className='text-xs text-text-muted'>
+															{t('aiCalibrationSource', {
+																source: calibration.calibrationSource,
+															})}
+														</p>
+													</div>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									)}
 							</motion.span>
+
+							{/* Recipe Quality Score */}
+							{recipe.qualityTier && (
+								<motion.span variants={staggerItem}>
+									<TooltipProvider delayDuration={100}>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className='cursor-help'>
+													<QualityBadge
+														tier={recipe.qualityTier}
+														score={recipe.qualityScore}
+														size='md'
+														showLabel
+														showScore
+														animate={false}
+													/>
+												</span>
+											</TooltipTrigger>
+											<TooltipContent className='max-w-xs p-3'>
+												<div className='space-y-1 text-sm'>
+													<p className='font-semibold text-text'>
+														{t('recipeQuality', { tier: recipe.qualityTier })}
+													</p>
+													<p className='text-text-secondary'>
+														{getTierDescription(recipe.qualityTier)}
+													</p>
+													{recipe.qualityScore != null && (
+														<div className='flex items-center gap-2'>
+															<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-border'>
+																<div
+																	className='h-full rounded-full bg-brand transition-all'
+																	style={{ width: `${recipe.qualityScore}%` }}
+																/>
+															</div>
+															<span className='text-xs font-bold tabular-nums text-text-muted'>
+																{recipe.qualityScore}/100
+															</span>
+														</div>
+													)}
+												</div>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								</motion.span>
+							)}
 
 							{/* Views */}
 							<motion.span
@@ -789,11 +1048,14 @@ function RecipeDetailContent() {
 								className='flex items-center gap-2 text-text-secondary'
 							>
 								<Eye className='size-5 text-brand' />
-								<span className='font-medium'>
-									{(recipe.viewCount || 0) >= 1000
-										? `${((recipe.viewCount || 0) / 1000).toFixed(1)}k`
-										: `${recipe.viewCount || 0}`}{' '}
-									views
+								<span className='font-medium tabular-nums'>
+									<AnimatedNumber
+										value={recipe.viewCount || 0}
+										format={n =>
+											n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`
+										}
+									/>{' '}
+									{t('views')}
 								</span>
 							</motion.span>
 
@@ -806,188 +1068,264 @@ function RecipeDetailContent() {
 									>
 										<Flame className='size-5 text-brand' />
 										<span className='font-medium'>
-											{recipe.caloriesPerServing} cal/serving
+											{recipe.caloriesPerServing} {t('calPerServing')}
 										</span>
 									</motion.span>
 								)}
 						</motion.div>
 
-						{/* Action Buttons */}
+						{/* Action Buttons — 3-tier hierarchy */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.5 }}
-							className='flex flex-wrap gap-3'
+							className='space-y-3'
 						>
+							{/* Tier 1: Primary CTA — full width, unmissable */}
 							<motion.button
+								type='button'
 								onClick={handleStartCooking}
 								disabled={isCookingLoading || hasOtherSession}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								title={
 									hasOtherSession
-										? `Already cooking: ${activeSession?.recipe?.title || 'another recipe'}`
+										? t('alreadyCookingTitle', {
+												recipe:
+													activeSession?.recipe?.title || t('anotherRecipe'),
+											})
 										: undefined
 								}
 								className={cn(
-									'flex flex-1 items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-lg transition-shadow disabled:opacity-50',
+									'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-lg transition-shadow disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 									isCurrentlyCooked
 										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 										: hasOtherSession
-											? 'cursor-not-allowed bg-border-strong text-white shadow-none'
+											? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
 											: 'bg-gradient-hero text-white shadow-brand/30 hover:shadow-xl hover:shadow-brand/40',
 								)}
 							>
 								{isCookingLoading ? (
 									<>
 										<Loader2 className='size-6 animate-spin' />
-										Starting...
+										{t('startingCooking')}
 									</>
 								) : isCurrentlyCooked ? (
 									<>
 										<Play className='size-6 fill-white' />
-										Continue Cooking
+										{t('continueCooking')}
 									</>
 								) : hasOtherSession ? (
 									<>
 										<AlertCircle className='size-6' />
-										Already Cooking
+										{t('alreadyCooking')}
 									</>
 								) : (
 									<>
 										<Play className='size-6 fill-white' />
-										Start Cooking
+										{t('startCooking')}
+										<kbd className='ml-2 rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal'>
+											Enter
+										</kbd>
 									</>
 								)}
 							</motion.button>
-							<motion.button
-								onClick={handleCookTogether}
-								disabled={isCreatingRoom || hasOtherSession}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								title={
-									hasOtherSession
-										? `Already cooking: ${activeSession?.recipe?.title || 'another recipe'}`
-										: 'Create a room and cook together with friends'
-								}
-								className='flex items-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-5 py-4 font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50'
-							>
-								{isCreatingRoom ? (
-									<Loader2 className='size-5 animate-spin' />
-								) : (
-									<Users className='size-5' />
-								)}
-								<span className='hidden sm:inline'>Cook Together</span>
-							</motion.button>
-							<motion.button
-								onClick={handleLike}
-								disabled={isLikeLoading}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className={cn(
-									'flex items-center gap-2 rounded-xl border-2 px-6 py-4 font-semibold transition-all',
-									isLiked
-										? 'border-error bg-error/10 text-error'
-										: 'border-border-medium hover:border-error hover:bg-error/5',
-								)}
-							>
-								<Heart className={cn('size-5', isLiked && 'fill-current')} />
-								{likeCount}
-							</motion.button>
-							<motion.button
-								onClick={handleSave}
-								disabled={isSaveLoading}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className={cn(
-									'flex items-center gap-2 rounded-xl border-2 px-6 py-4 font-semibold transition-all',
-									isSaved
-										? 'border-brand bg-brand/10 text-brand'
-										: 'border-border-medium hover:border-brand hover:bg-brand/5',
-								)}
-							>
-								<Bookmark className={cn('size-5', isSaved && 'fill-current')} />
-								{isSaved ? 'Saved' : 'Save'}
-							</motion.button>
-							{/* Remix Dropdown */}
-							<DropdownMenu
-								open={showRemixMenu}
-								onOpenChange={setShowRemixMenu}
-							>
-								<DropdownMenuTrigger asChild>
-									<motion.button
-										whileHover={BUTTON_HOVER}
-										whileTap={BUTTON_TAP}
-										disabled={isRemixing}
-										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-xp hover:bg-xp/10 disabled:opacity-50'
-										title='Remix Recipe'
+
+							{/* Tier 2: Social actions — compact inline bar */}
+							<div className='flex items-center gap-2'>
+								<motion.button
+									type='button'
+									onClick={handleLike}
+									disabled={isLikeLoading}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className={cn(
+										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+										isLiked
+											? 'border-error bg-error/10 text-error'
+											: 'border-border-medium hover:border-error hover:bg-error/5',
+									)}
+								>
+									<Heart className={cn('size-4', isLiked && 'fill-current')} />
+									<AnimatedNumber value={likeCount} className='tabular-nums' />
+									<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>
+										L
+									</kbd>
+								</motion.button>
+								<motion.button
+									type='button'
+									onClick={handleSave}
+									disabled={isSaveLoading}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className={cn(
+										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+										isSaved
+											? 'border-brand bg-brand/10 text-brand'
+											: 'border-border-medium hover:border-brand hover:bg-brand/5',
+									)}
+								>
+									<motion.span
+										animate={isSaved ? 'saved' : 'unsaved'}
+										variants={BOOKMARK_SLIDE}
+										className='inline-flex'
 									>
-										{isRemixing ? (
-											<Loader2 className='size-5 animate-spin' />
-										) : (
-											<Sparkles className='size-5' />
-										)}
-									</motion.button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align='center' className='w-48'>
-									{REMIX_OPTIONS.map(opt => (
-										<DropdownMenuItem
-											key={opt.type}
-											onClick={() => handleRemix(opt.type)}
-											className='cursor-pointer gap-2 text-sm'
+										<Bookmark
+											className={cn('size-4', isSaved && 'fill-current')}
+										/>
+									</motion.span>
+									{isSaved ? t('saved') : t('save')}
+									<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>
+										S
+									</kbd>
+								</motion.button>
+								<motion.button
+									type='button'
+									onClick={handleShare}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-border-medium px-4 py-3 text-sm font-semibold transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaShareRecipe')}
+								>
+									<Share2 className='size-4' />
+									{t('share')}
+								</motion.button>
+								<motion.button
+									type='button'
+									onClick={handleCookTogether}
+									disabled={isCreatingRoom || hasOtherSession}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									title={
+										hasOtherSession
+											? t('alreadyCookingTooltip', {
+													recipe:
+														activeSession?.recipe?.title || t('anotherRecipe'),
+												})
+											: t('cookTogetherTitle')
+									}
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-4 py-3 text-sm font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									{isCreatingRoom ? (
+										<Loader2 className='size-4 animate-spin' />
+									) : (
+										<Users className='size-4' />
+									)}
+									<span className='hidden sm:inline'>{t('together')}</span>
+								</motion.button>
+							</div>
+
+							{/* Tier 3: Secondary actions — condensed row with more-menu */}
+							<div className='flex items-center gap-2'>
+								<motion.button
+									type='button'
+									onClick={handleAddToShoppingList}
+									disabled={isAddingToShoppingList}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-success hover:bg-success/5 hover:text-success focus-visible:ring-2 focus-visible:ring-brand/50'
+									title={t('addToShoppingListTitle')}
+								>
+									{isAddingToShoppingList ? (
+										<Loader2 className='size-3.5 animate-spin' />
+									) : (
+										<ShoppingCart className='size-3.5' />
+									)}
+									{t('shoppingList')}
+								</motion.button>
+								{/* Remix Dropdown */}
+								<DropdownMenu
+									open={showRemixMenu}
+									onOpenChange={setShowRemixMenu}
+								>
+									<DropdownMenuTrigger asChild>
+										<motion.button
+											type='button'
+											whileHover={BUTTON_HOVER}
+											whileTap={BUTTON_TAP}
+											disabled={isRemixing}
+											className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-xp hover:bg-xp/5 hover:text-xp disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+											title={t('remixRecipeTitle')}
 										>
-											<span>{opt.emoji}</span>
-											<span>{opt.label}</span>
-										</DropdownMenuItem>
-									))}
-								</DropdownMenuContent>
-							</DropdownMenu>
-							<motion.button
-								onClick={handleShare}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-text-secondary hover:bg-bg-elevated'
-								aria-label='Share recipe'
-							>
-								<Share2 className='size-5' />
-							</motion.button>
-							{/* Owner Controls */}
-							{isOwner && (
-								<>
-									<motion.button
-										onClick={() => {
-											if (!recipe) return
-											useCookingStore.getState().startPreviewCooking(recipe)
-											useUiStore.getState().expandCookingPanel()
-										}}
-										whileHover={BUTTON_HOVER}
-										whileTap={BUTTON_TAP}
-										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-brand hover:bg-brand/10'
-										title='Test Cook (Preview Mode)'
-									>
-										<Rocket className='size-5' />
-									</motion.button>
-									<motion.button
-										onClick={() => router.push(`/create?draftId=${recipeId}`)}
-										whileHover={BUTTON_HOVER}
-										whileTap={BUTTON_TAP}
-										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-xp hover:bg-xp/10'
-										title='Edit Recipe'
-									>
-										<Edit3 className='size-5' />
-									</motion.button>
-									<motion.button
-										onClick={() => setShowDeleteConfirm(true)}
-										whileHover={BUTTON_HOVER}
-										whileTap={BUTTON_TAP}
-										className='grid size-14 place-items-center rounded-xl border-2 border-border-medium transition-colors hover:border-error hover:bg-error/10'
-										title='Delete Recipe'
-										aria-label='Delete recipe'
-									>
-										<Trash2 className='size-5 text-error' />
-									</motion.button>
-								</>
-							)}
+											{isRemixing ? (
+												<Loader2 className='size-3.5 animate-spin' />
+											) : (
+												<Sparkles className='size-3.5' />
+											)}
+											{t('remix')}
+										</motion.button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align='center' className='w-48'>
+										{REMIX_OPTIONS.map(opt => (
+											<DropdownMenuItem
+												key={opt.type}
+												onClick={() => handleRemix(opt.type)}
+												className='cursor-pointer gap-2 text-sm'
+											>
+												<span>{opt.emoji}</span>
+												<span>{opt.label}</span>
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuContent>
+								</DropdownMenu>
+								{!isOwner && recipe?.author?.userId && (
+									<TipJarButton
+										creatorId={recipe.author.userId}
+										creatorName={
+											recipe.author.displayName ||
+											recipe.author.username ||
+											'this creator'
+										}
+										recipeId={recipe.id}
+									/>
+								)}
+								{/* Owner Controls — collapsed into dropdown */}
+								{isOwner && (
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<motion.button
+												type='button'
+												whileHover={BUTTON_HOVER}
+												whileTap={BUTTON_TAP}
+												className='ml-auto flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+												title={t('recipeActionsTitle')}
+											>
+												<MoreHorizontal className='size-3.5' />
+												{t('manage')}
+											</motion.button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align='end' className='w-48'>
+											<DropdownMenuItem
+												onClick={() => {
+													if (!recipe) return
+													useCookingStore.getState().startPreviewCooking(recipe)
+													useUiStore.getState().expandCookingPanel()
+												}}
+												className='cursor-pointer gap-2 text-sm'
+											>
+												<Rocket className='size-4' />
+												{t('testCookPreview')}
+											</DropdownMenuItem>
+											<DropdownMenuItem
+												onClick={() =>
+													router.push(`/create?draftId=${recipeId}`)
+												}
+												className='cursor-pointer gap-2 text-sm'
+											>
+												<Edit3 className='size-4' />
+												{t('editRecipe')}
+											</DropdownMenuItem>
+											<DropdownMenuItem
+												onClick={() => setShowDeleteConfirm(true)}
+												className='cursor-pointer gap-2 text-sm text-error focus:text-error'
+											>
+												<Trash2 className='size-4' />
+												{t('deleteRecipe')}
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								)}
+							</div>
 						</motion.div>
 
 						{/* Tags */}
@@ -1029,7 +1367,7 @@ function RecipeDetailContent() {
 					>
 						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text'>
 							<Zap className='size-5 text-xp' />
-							XP Breakdown
+							{t('xpBreakdownHeading')}
 							<TooltipProvider delayDuration={100}>
 								<Tooltip>
 									<TooltipTrigger asChild>
@@ -1037,10 +1375,7 @@ function RecipeDetailContent() {
 									</TooltipTrigger>
 									<TooltipContent className='max-w-xs p-3'>
 										<p className='text-sm text-text-secondary'>
-											Earn XP by completing cooking sessions.{' '}
-											<strong>30% is yours to keep</strong>, and{' '}
-											<strong>70% is shared when you post</strong> your
-											creation!
+											{t('xpTooltipExplanation')}
 										</p>
 									</TooltipContent>
 								</Tooltip>
@@ -1048,53 +1383,57 @@ function RecipeDetailContent() {
 						</h2>
 						<div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
 							<div className='rounded-xl bg-bg-card p-4 text-center'>
-								<div className='text-2xl font-bold text-success'>
-									+{recipe.xpBreakdown.base}
+								<div className='text-2xl font-bold tabular-nums text-success'>
+									+<AnimatedNumber value={recipe.xpBreakdown.base} />
 								</div>
 								<div className='text-xs text-text-muted'>
-									Base ({recipe.difficulty})
+									{t('xpBase', { difficulty: recipe.difficulty })}
 								</div>
 							</div>
 							<div className='rounded-xl bg-bg-card p-4 text-center'>
-								<div className='text-2xl font-bold text-success'>
-									+{recipe.xpBreakdown.steps}
+								<div className='text-2xl font-bold tabular-nums text-success'>
+									+<AnimatedNumber value={recipe.xpBreakdown.steps} />
 								</div>
 								<div className='text-xs text-text-muted'>
-									Steps ({recipe.steps.length})
+									{t('xpSteps', { n: recipe.steps.length })}
 								</div>
 							</div>
 							<div className='rounded-xl bg-bg-card p-4 text-center'>
-								<div className='text-2xl font-bold text-success'>
-									+{recipe.xpBreakdown.time}
+								<div className='text-2xl font-bold tabular-nums text-success'>
+									+<AnimatedNumber value={recipe.xpBreakdown.time} />
 								</div>
 								<div className='text-xs text-text-muted'>
-									Time ({totalTime}min)
+									{t('xpTime', { n: totalTime })}
 								</div>
 							</div>
 							{recipe.xpBreakdown.techniques ? (
 								<div className='rounded-xl bg-bg-card p-4 text-center'>
-									<div className='text-2xl font-bold text-success'>
-										+{recipe.xpBreakdown.techniques}
+									<div className='text-2xl font-bold tabular-nums text-success'>
+										+<AnimatedNumber value={recipe.xpBreakdown.techniques} />
 									</div>
-									<div className='text-xs text-text-muted'>Techniques</div>
+									<div className='text-xs text-text-muted'>
+										{t('xpTechniques')}
+									</div>
 								</div>
 							) : null}
 						</div>
 						<div className='mt-4 flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
-							<span className='font-semibold text-white'>Total XP Reward</span>
-							<span className='text-2xl font-black text-white'>
+							<span className='font-semibold text-white'>{t('xpTotal')}</span>
+							<span className='text-2xl font-black tabular-nums text-white'>
 								+
-								{(() => {
-									const computed =
-										recipe.xpBreakdown.base +
-										recipe.xpBreakdown.steps +
-										recipe.xpBreakdown.time +
-										(recipe.xpBreakdown.techniques ?? 0)
-									// Use total if positive, otherwise fall back to computed value
-									return recipe.xpBreakdown.total > 0
-										? recipe.xpBreakdown.total
-										: computed
-								})()}
+								<AnimatedNumber
+									value={(() => {
+										const computed =
+											recipe.xpBreakdown.base +
+											recipe.xpBreakdown.steps +
+											recipe.xpBreakdown.time +
+											(recipe.xpBreakdown.techniques ?? 0)
+										return recipe.xpBreakdown.total > 0
+											? recipe.xpBreakdown.total
+											: computed
+									})()}
+									duration={0.8}
+								/>
 							</span>
 						</div>
 					</motion.div>
@@ -1108,7 +1447,7 @@ function RecipeDetailContent() {
 					>
 						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text'>
 							<Zap className='size-5 text-xp' />
-							XP Reward
+							{t('xpRewardHeading')}
 							<TooltipProvider delayDuration={100}>
 								<Tooltip>
 									<TooltipTrigger asChild>
@@ -1116,10 +1455,7 @@ function RecipeDetailContent() {
 									</TooltipTrigger>
 									<TooltipContent className='max-w-xs p-3'>
 										<p className='text-sm text-text-secondary'>
-											Earn XP by completing cooking sessions.{' '}
-											<strong>30% is yours to keep</strong>, and{' '}
-											<strong>70% is shared when you post</strong> your
-											creation!
+											{t('xpTooltipExplanation')}
 										</p>
 									</TooltipContent>
 								</Tooltip>
@@ -1128,11 +1464,9 @@ function RecipeDetailContent() {
 						<div className='flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
 							<div>
 								<span className='font-semibold text-white'>
-									Estimated XP Reward
+									{t('estimatedXpReward')}
 								</span>
-								<p className='text-xs text-white/70'>
-									Based on difficulty, steps, and time
-								</p>
+								<p className='text-xs text-white/70'>{t('xpRewardBasis')}</p>
 							</div>
 							<span className='text-2xl font-black text-white'>
 								+{recipe.xpReward ?? 0}
@@ -1152,10 +1486,10 @@ function RecipeDetailContent() {
 					>
 						<div className='sticky top-4 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 							<h2 className='mb-4 flex items-center gap-2 text-2xl font-bold text-text'>
-								<span className='text-2xl'>🧾</span> Ingredients
+								<span className='text-2xl'>🧾</span> {t('ingredients')}
 							</h2>
 							<p className='mb-4 text-sm text-text-muted'>
-								For {recipe.servings} servings
+								{t('forServings', { n: recipe.servings })}
 							</p>
 							<ul className='space-y-2'>
 								{recipe.fullIngredientList.map((ingredient, index) => (
@@ -1164,7 +1498,7 @@ function RecipeDetailContent() {
 										initial={{ opacity: 0, x: -10 }}
 										animate={{ opacity: 1, x: 0 }}
 										transition={{ delay: 0.5 + index * 0.03 }}
-										whileHover={{ x: 4 }}
+										whileHover={NAV_ITEM_HOVER}
 										className='group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated'
 									>
 										<div className='mt-1.5 size-2 flex-shrink-0 rounded-full bg-brand' />
@@ -1174,10 +1508,31 @@ function RecipeDetailContent() {
 											</span>{' '}
 											{ingredient.name}
 										</span>
-										<SubstitutionButton
-											ingredientName={ingredient.name}
-											recipeTitle={recipe.title}
-										/>
+										<div className='flex flex-shrink-0 items-center gap-1'>
+											{ingredientBuyLinks[`ing-${index}`] && (
+												<a
+													href={ingredientBuyLinks[`ing-${index}`]}
+													target='_blank'
+													rel='noopener noreferrer'
+													className='flex size-8 items-center justify-center rounded-lg text-text-muted opacity-70 transition-all hover:bg-brand/10 hover:text-brand md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+													title={t('buyIngredient', { name: ingredient.name })}
+													onClick={() =>
+														trackEvent(
+															'INGREDIENT_CHECKED',
+															`ing-${index}`,
+															'ingredient',
+															{ name: ingredient.name, action: 'buy_click' },
+														)
+													}
+												>
+													<ShoppingCart className='size-4' />
+												</a>
+											)}
+											<SubstitutionButton
+												ingredientName={ingredient.name}
+												recipeTitle={recipe.title}
+											/>
+										</div>
 									</motion.li>
 								))}
 							</ul>
@@ -1192,7 +1547,7 @@ function RecipeDetailContent() {
 						className='lg:col-span-2'
 					>
 						<h2 className='mb-6 flex items-center gap-2 text-2xl font-bold text-text'>
-							<span className='text-2xl'>👨‍🍳</span> Instructions
+							<span className='text-2xl'>👨‍🍳</span> {t('instructions')}
 						</h2>
 						<div className='space-y-4'>
 							{recipe.steps
@@ -1201,12 +1556,13 @@ function RecipeDetailContent() {
 									<motion.div
 										key={`step-${step.stepNumber}`}
 										variants={staggerItem}
-										whileHover={{ y: -2 }}
+										whileHover={STAT_ITEM_HOVER}
 										className='group rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card transition-shadow hover:shadow-warm'
 									>
 										<div className='mb-4 flex items-center gap-4'>
 											<motion.div
-												whileHover={{ scale: 1.1, rotate: 5 }}
+												whileHover={ICON_HOVER}
+												transition={TRANSITION_SPRING}
 												className='grid size-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-lg font-bold text-white shadow-card'
 											>
 												{index + 1}
@@ -1218,7 +1574,7 @@ function RecipeDetailContent() {
 												{step.timerSeconds && (
 													<p className='flex items-center gap-1 text-sm text-streak'>
 														<Clock className='size-3.5' />
-														{Math.ceil(step.timerSeconds / 60)} min timer
+														{Math.ceil(step.timerSeconds / 60)} {t('minTimer')}
 													</p>
 												)}
 											</div>
@@ -1241,6 +1597,7 @@ function RecipeDetailContent() {
 													src={step.imageUrl}
 													alt={step.title || `Step ${step.stepNumber}`}
 													fill
+													sizes='(max-width: 768px) 100vw, 50vw'
 													className='object-cover transition-transform duration-500 group-hover:scale-105'
 												/>
 											</div>
@@ -1254,14 +1611,23 @@ function RecipeDetailContent() {
 					</motion.div>
 				</div>
 
+				{/* Community Reviews */}
+				<RecipeReviews recipeId={recipeId} />
+
 				{/* Similar Recipes */}
 				<SimilarRecipes recipeId={recipeId} />
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 
 			{/* Remix Result Modal */}
 			{remixResult && (
 				<Portal>
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-labelledby='remix-result-title'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -1278,16 +1644,20 @@ function RecipeDetailContent() {
 							<div className='mb-4 flex items-start justify-between'>
 								<div>
 									<span className='mb-1 inline-block rounded-full bg-xp/10 px-3 py-1 text-xs font-semibold text-xp'>
-										AI Remix
+										{t('aiRemix')}
 									</span>
-									<h2 className='mt-2 text-xl font-bold text-text'>
+									<h2
+										id='remix-result-title'
+										className='mt-2 text-xl font-bold text-text'
+									>
 										{remixResult.remix_title}
 									</h2>
 								</div>
 								<button
+									type='button'
 									onClick={() => setRemixResult(null)}
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-									aria-label='Close remix modal'
+									aria-label={t('remixClose')}
 								>
 									✕
 								</button>
@@ -1298,7 +1668,7 @@ function RecipeDetailContent() {
 								remixResult.modifications.length > 0 && (
 									<div className='mb-5'>
 										<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-text-secondary'>
-											Changes Made
+											{t('changesMade')}
 										</h3>
 										<ul className='space-y-1'>
 											{remixResult.modifications.map((mod, i) => (
@@ -1324,7 +1694,7 @@ function RecipeDetailContent() {
 										remixResult.new_ingredients.length > 0 && (
 											<div className='flex-1'>
 												<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-brand'>
-													+ Added
+													{t('addedItems')}
 												</h3>
 												<ul className='space-y-1'>
 													{remixResult.new_ingredients.map((ing, i) => (
@@ -1339,7 +1709,7 @@ function RecipeDetailContent() {
 										remixResult.removed_ingredients.length > 0 && (
 											<div className='flex-1'>
 												<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-error'>
-													− Removed
+													{t('removedItems')}
 												</h3>
 												<ul className='space-y-1'>
 													{remixResult.removed_ingredients.map((ing, i) => (
@@ -1361,7 +1731,7 @@ function RecipeDetailContent() {
 								remixResult.modified_steps.length > 0 && (
 									<div className='mb-5'>
 										<h3 className='mb-2 text-sm font-semibold uppercase tracking-wider text-text-secondary'>
-											Steps
+											{t('stepsHeading')}
 										</h3>
 										<ol className='space-y-2'>
 											{remixResult.modified_steps.map((step, i) => (
@@ -1398,18 +1768,29 @@ function RecipeDetailContent() {
 			{/* Delete Confirmation */}
 			{showDeleteConfirm && (
 				<Portal>
-					<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+					<div
+						role='alertdialog'
+						aria-modal='true'
+						aria-labelledby='delete-confirm-title'
+						aria-describedby='delete-confirm-desc'
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
+					>
 						<motion.div
 							initial={{ opacity: 0, scale: 0.95 }}
 							animate={{ opacity: 1, scale: 1 }}
 							className='mx-4 w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-card'
 						>
-							<h3 className='mb-2 text-lg font-bold text-text'>
-								Delete Recipe?
+							<h3
+								id='delete-confirm-title'
+								className='mb-2 text-lg font-bold text-text'
+							>
+								{t('deleteRecipeConfirmTitle')}
 							</h3>
-							<p className='mb-6 text-sm text-text-secondary'>
-								This action cannot be undone. The recipe and all associated data
-								will be permanently deleted.
+							<p
+								id='delete-confirm-desc'
+								className='mb-6 text-sm text-text-secondary'
+							>
+								{t('deleteRecipeConfirmDesc')}
 							</p>
 							<div className='flex gap-3'>
 								<Button
@@ -1418,7 +1799,7 @@ function RecipeDetailContent() {
 									onClick={() => setShowDeleteConfirm(false)}
 									disabled={isDeleting}
 								>
-									Cancel
+									{t('cancel')}
 								</Button>
 								<Button
 									variant='destructive'
@@ -1431,7 +1812,7 @@ function RecipeDetailContent() {
 									) : (
 										<Trash2 className='mr-2 size-4' />
 									)}
-									Delete
+									{t('delete')}
 								</Button>
 							</div>
 						</motion.div>
@@ -1449,7 +1830,7 @@ function RecipeDetailSkeleton() {
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.3 }}
+				transition={{ duration: DURATION_S.smooth }}
 				className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 			>
 				<Skeleton className='h-72 w-full md:h-96' />

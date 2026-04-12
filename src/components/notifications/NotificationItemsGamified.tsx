@@ -2,10 +2,30 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { Upload, Clock, AlertTriangle, ChefHat, Search } from 'lucide-react'
+import {
+	Upload,
+	Clock,
+	AlertTriangle,
+	ChefHat,
+	Search,
+	Sun,
+	Apple,
+	Sparkles,
+	Star,
+	Crown,
+	Flame,
+	Target,
+} from 'lucide-react'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
+import { formatShortTimeAgo, cn } from '@/lib/utils'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	LIST_ITEM_HOVER,
+	DURATION_S,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -23,6 +43,8 @@ type NotificationType =
 	| 'streak_warning'
 	| 'streak_lost'
 	| 'challenge_reminder'
+	| 'weekend_nudge'
+	| 'pantry_expiring'
 
 interface BaseNotification {
 	id: string
@@ -122,6 +144,19 @@ interface ChallengeReminderNotification extends BaseNotification {
 	onSeeRecipes?: () => void
 }
 
+interface WeekendNudgeNotification extends BaseNotification {
+	type: 'weekend_nudge'
+	content: string
+	onExplore?: () => void
+}
+
+interface PantryExpiringNotification extends BaseNotification {
+	type: 'pantry_expiring'
+	content: string
+	daysRemaining: number
+	onViewPantry?: () => void
+}
+
 type GamifiedNotification =
 	| XPAwardedNotification
 	| XPAwardedFullNotification
@@ -134,24 +169,12 @@ type GamifiedNotification =
 	| StreakWarningNotification
 	| StreakLostNotification
 	| ChallengeReminderNotification
+	| WeekendNudgeNotification
+	| PantryExpiringNotification
 
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
-
-const formatTimeAgo = (date: Date): string => {
-	const now = new Date()
-	const diffMs = now.getTime() - date.getTime()
-	const diffMins = Math.floor(diffMs / 60000)
-	const diffHours = Math.floor(diffMs / 3600000)
-	const diffDays = Math.floor(diffMs / 86400000)
-
-	if (diffMins < 1) return 'Just now'
-	if (diffMins < 60) return `${diffMins} min ago`
-	if (diffHours < 24) return `${diffHours}h ago`
-	if (diffDays === 1) return 'Yesterday'
-	return `${diffDays}d ago`
-}
 
 const rarityConfig = {
 	common: {
@@ -162,8 +185,8 @@ const rarityConfig = {
 	rare: { bg: 'bg-rare/15', text: 'text-rare', label: 'Rare' },
 	epic: { bg: 'bg-combo/15', text: 'text-combo', label: 'Epic' },
 	legendary: {
-		bg: 'bg-gradient-celebration',
-		text: 'text-white',
+		bg: 'bg-level/15',
+		text: 'text-level-text',
 		label: 'Legendary',
 	},
 }
@@ -184,8 +207,9 @@ const NotifWrapper = ({
 	<motion.div
 		initial={{ opacity: 0, x: -10 }}
 		animate={{ opacity: 1, x: 0 }}
+		whileHover={LIST_ITEM_HOVER}
 		className={cn(
-			'relative flex items-start gap-3.5 border-b border-border px-5 py-4 transition-colors hover:bg-bg-elevated',
+			'relative grid grid-cols-[auto,minmax(0,1fr)] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-1.5 transition-colors hover:bg-bg-elevated sm:flex sm:gap-3 sm:py-2.5',
 			!isRead && 'bg-brand/5',
 			className,
 		)}
@@ -202,19 +226,19 @@ const NotifHeader = ({
 	type: string
 	time: Date
 	className?: string
-}) => (
-	<div className='mb-1 flex items-center justify-between'>
-		<span
-			className={cn(
-				'text-xs font-bold uppercase tracking-wide text-text-muted',
-				className,
-			)}
-		>
-			{type}
-		</span>
-		<span className='text-xs text-text-muted'>{formatTimeAgo(time)}</span>
-	</div>
-)
+}) => {
+	const t = useTranslations('notifications')
+	return (
+		<div className='mb-0.5 flex items-center justify-between gap-2'>
+			<span className={cn('text-xs font-semibold text-text-muted', className)}>
+				{type}
+			</span>
+			<span className='text-xs text-text-muted tabular-nums'>
+				{formatShortTimeAgo(time)}
+			</span>
+		</div>
+	)
+}
 
 const MetaTag = ({
 	children,
@@ -225,7 +249,7 @@ const MetaTag = ({
 }) => (
 	<span
 		className={cn(
-			'rounded-full px-2.5 py-0.5 text-xs font-semibold',
+			'rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums',
 			className,
 		)}
 	>
@@ -243,11 +267,12 @@ const ActionButton = ({
 	className?: string
 }) => (
 	<motion.button
+		type='button'
 		onClick={onClick}
 		whileHover={BUTTON_HOVER}
 		whileTap={BUTTON_TAP}
 		className={cn(
-			'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
+			'col-start-2 inline-flex w-fit items-center justify-center gap-1.5 justify-self-start self-start rounded-md border border-border-subtle bg-bg-card px-2 py-1 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50',
 			className,
 		)}
 	>
@@ -267,40 +292,45 @@ const XPAwardedItem = ({
 	timestamp,
 	isRead,
 	onPost,
-}: XPAwardedNotification) => (
-	<NotifWrapper isRead={isRead}>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-cyan-400'>
-			<span className='relative z-10 text-2xl'>⚡</span>
-			<div className='absolute -inset-1 rounded-full border-2 border-xp/30' />
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader type='XP Earned' time={timestamp} />
-			<p className='text-sm'>
-				You earned <strong className='font-bold text-xp'>+{xpAmount} XP</strong>{' '}
-				for completing{' '}
-				<span className='font-semibold text-brand'>{recipeName}</span>
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-xp/15 text-xp'>30% instant</MetaTag>
-				<span className='text-xs text-text-muted'>
-					{pendingXp} XP pending • Post to unlock
-				</span>
+}: XPAwardedNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead}>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-purple-subtle'>
+				<Sparkles className='relative z-10 size-5 text-accent-purple' />
 			</div>
-		</div>
 
-		{/* Action */}
-		<ActionButton
-			onClick={onPost}
-			className='flex-shrink-0 bg-xp text-white shadow-card shadow-xp/30'
-		>
-			<Upload className='h-4 w-4' />
-			Post
-		</ActionButton>
-	</NotifWrapper>
-)
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader type={t('typeXPEarned')} time={timestamp} />
+				<p className='text-sm'>
+					You earned{' '}
+					<strong className='tabular-nums font-bold text-xp'>
+						+{xpAmount.toLocaleString()} XP
+					</strong>{' '}
+					for completing{' '}
+					<span className='font-semibold text-brand'>{recipeName}</span>
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-xp/15 text-xp'>{t('xpInstant')}</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('xpPendingPost', { xp: pendingXp })}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onPost}
+				className='border-xp/20 bg-xp/10 text-xp-text hover:bg-xp/15 sm:flex-shrink-0'
+			>
+				<Upload className='size-4' />
+				{t('post')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
 
 // XP Awarded Full (After Post)
 const XPAwardedFullItem = ({
@@ -309,38 +339,40 @@ const XPAwardedFullItem = ({
 	photoCount,
 	timestamp,
 	isRead,
-}: XPAwardedFullNotification) => (
-	<NotifWrapper isRead={isRead}>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
-			<span className='relative z-10 text-2xl'>✨</span>
-			<motion.div
-				className='absolute -inset-1 rounded-full border-2 border-bonus/30'
-				animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
-				transition={{ duration: 1.5, repeat: Infinity }}
-			/>
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='Full XP Unlocked!'
-				time={timestamp}
-				className='text-bonus'
-			/>
-			<p className='text-sm'>
-				<strong className='text-lg font-bold text-xp'>+{xpAmount} XP</strong>{' '}
-				from <span className='font-semibold text-brand'>{recipeName}</span>
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-level/15 text-level'>100% earned</MetaTag>
-				<span className='text-xs text-text-muted'>
-					Posted with {photoCount} photos
-				</span>
+}: XPAwardedFullNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead}>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-subtle'>
+				<Star className='relative z-10 size-5 text-brand-text' />
 			</div>
-		</div>
-	</NotifWrapper>
-)
+
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeFullXP')}
+					time={timestamp}
+					className='text-bonus'
+				/>
+				<p className='text-sm'>
+					<strong className='tabular-nums text-lg font-bold text-xp'>
+						+{xpAmount.toLocaleString()} XP
+					</strong>{' '}
+					from <span className='font-semibold text-brand'>{recipeName}</span>
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-level/15 text-level'>
+						{t('xp100Earned')}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('postedWithPhotos', { count: photoCount })}
+					</span>
+				</div>
+			</div>
+		</NotifWrapper>
+	)
+}
 
 // Level Up
 const LevelUpItem = ({
@@ -349,68 +381,50 @@ const LevelUpItem = ({
 	recipesToNextLevel,
 	timestamp,
 	isRead,
-}: LevelUpNotification) => (
-	<NotifWrapper
-		isRead={isRead}
-		className='bg-gradient-to-r from-rare/10 to-combo/5'
-	>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
-			<span className='absolute -right-2 -top-2 z-10 text-lg'>🎉</span>
-			<span className='text-lg font-extrabold text-white drop-shadow-sm'>
-				{newLevel ?? '?'}
-			</span>
-			<motion.div
-				className='absolute -inset-1.5 rounded-full border-3 border-rare/40'
-				animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
-				transition={{ duration: 2, repeat: Infinity }}
-			/>
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='Level Up!'
-				time={timestamp}
-				className='text-sm text-rare'
-			/>
-			<p className='text-sm'>
-				Congratulations! You&apos;ve reached{' '}
-				<strong className='font-bold'>Level {newLevel ?? '?'}</strong>
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				{newGoalXp != null && (
-					<MetaTag className='bg-rare/15 text-rare'>
-						New goal: {newGoalXp.toLocaleString()} XP
-					</MetaTag>
-				)}
-				{recipesToNextLevel != null && newLevel != null && (
-					<span className='text-xs text-text-muted'>
-						{recipesToNextLevel} recipes to Level {newLevel + 1}
-					</span>
-				)}
+}: LevelUpNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper
+			isRead={isRead}
+			className='bg-gradient-to-r from-rare/10 to-combo/5'
+		>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-purple-subtle'>
+				<Crown className='absolute -right-2 -top-2 z-10 size-5 text-gold' />
+				<span className='text-lg font-display font-extrabold text-accent-purple-hover'>
+					{newLevel ?? '?'}
+				</span>
 			</div>
-		</div>
 
-		{/* Celebration particles */}
-		<div className='absolute right-5 top-2.5'>
-			{[0, 1, 2].map(i => (
-				<motion.span
-					key={i}
-					className={cn(
-						'absolute h-1.5 w-1.5 rounded-full',
-						i === 0 && 'bg-rare',
-						i === 1 && 'bg-bonus',
-						i === 2 && 'bg-xp',
-					)}
-					style={{ left: i * 15 }}
-					animate={{ y: [0, -20], opacity: [1, 0], scale: [1, 0] }}
-					transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeLevelUp')}
+					time={timestamp}
+					className='text-sm text-rare'
 				/>
-			))}
-		</div>
-	</NotifWrapper>
-)
+				<p className='text-sm'>
+					{t('levelUpCongrats', { level: newLevel ?? '?' })}
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					{newGoalXp != null && (
+						<MetaTag className='bg-rare/15 text-rare'>
+							{t('levelNewGoal', { xp: newGoalXp.toLocaleString() })}
+						</MetaTag>
+					)}
+					{recipesToNextLevel != null && newLevel != null && (
+						<span className='text-xs text-text-muted'>
+							{t('levelRecipesToNext', {
+								count: recipesToNextLevel,
+								next: (newLevel ?? 0) + 1,
+							})}
+						</span>
+					)}
+				</div>
+			</div>
+		</NotifWrapper>
+	)
+}
 
 // Badge Unlocked
 const BadgeUnlockedItem = ({
@@ -422,20 +436,20 @@ const BadgeUnlockedItem = ({
 	isRead,
 	onViewBadge,
 }: BadgeUnlockedNotification) => {
+	const t = useTranslations('notifications')
 	const rarity = rarityConfig[badgeRarity]
 
 	return (
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
-			<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-bonus to-legendary'>
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-level/15'>
 				<span className='text-icon-lg'>{badgeIcon}</span>
-				<div className='absolute -inset-1.5 rounded-full bg-bonus/20 blur-sm' />
 			</div>
 
 			{/* Content */}
 			<div className='min-w-0 flex-1'>
 				<NotifHeader
-					type='New Badge!'
+					type={t('typeNewBadge')}
 					time={timestamp}
 					className='text-bonus'
 				/>
@@ -443,9 +457,11 @@ const BadgeUnlockedItem = ({
 					You earned{' '}
 					<strong className='font-bold'>&quot;{badgeName}&quot;</strong>
 				</p>
-				<div className='mt-2 flex items-center gap-2.5'>
+				<div className='mt-1.5 flex items-center gap-2'>
 					<MetaTag className={cn(rarity.bg, rarity.text)}>
-						{rarity.label}
+						{t(
+							`rarity${badgeRarity.charAt(0).toUpperCase() + badgeRarity.slice(1)}`,
+						)}
 					</MetaTag>
 					<span className='text-xs text-text-muted'>{requirement}</span>
 				</div>
@@ -454,9 +470,9 @@ const BadgeUnlockedItem = ({
 			{/* Action */}
 			<ActionButton
 				onClick={onViewBadge}
-				className='flex-shrink-0 border border-bonus/30 bg-bonus/10 text-legendary hover:bg-bonus/20'
+				className='border-level/20 bg-level/10 text-level-text hover:bg-level/15 sm:flex-shrink-0'
 			>
-				View Badge
+				{t('viewBadge')}
 			</ActionButton>
 		</NotifWrapper>
 	)
@@ -469,44 +485,41 @@ const BadgeSurpriseItem = ({
 	percentOwned,
 	timestamp,
 	isRead,
-}: BadgeSurpriseNotification) => (
-	<NotifWrapper
-		isRead={isRead}
-		className='bg-gradient-to-r from-rare/10 to-combo/5'
-	>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rare to-combo'>
-			<span className='text-icon-lg'>{badgeIcon}</span>
-			<motion.div
-				className='absolute -inset-2.5 rounded-full bg-rare/30 blur-md'
-				initial={{ scale: 0.5, opacity: 1 }}
-				animate={{ scale: 1.5, opacity: 0 }}
-				transition={{ duration: 1 }}
-			/>
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='Surprise Badge!'
-				time={timestamp}
-				className='text-rare'
-			/>
-			<p className='text-sm'>
-				You unlocked a hidden badge:{' '}
-				<strong className='font-bold'>&quot;{badgeName}&quot;</strong>
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-gradient-to-r from-rare to-combo text-white'>
-					Ultra Rare
-				</MetaTag>
-				<span className='text-xs text-text-muted'>
-					Only {percentOwned}% of cooks have this
-				</span>
+}: BadgeSurpriseNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper
+			isRead={isRead}
+			className='bg-gradient-to-r from-rare/10 to-combo/5'
+		>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-purple-subtle'>
+				<span className='text-icon-lg'>{badgeIcon}</span>
 			</div>
-		</div>
-	</NotifWrapper>
-)
+
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeSurpriseBadge')}
+					time={timestamp}
+					className='text-rare'
+				/>
+				<p className='text-sm'>
+					You unlocked a hidden badge:{' '}
+					<strong className='font-bold'>&quot;{badgeName}&quot;</strong>
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-rare/15 text-rare'>
+						{t('rarityUltraRare')}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('badgePercentOwned', { percent: percentOwned })}
+					</span>
+				</div>
+			</div>
+		</NotifWrapper>
+	)
+}
 
 // Creator Bonus
 const CreatorBonusItem = ({
@@ -519,52 +532,57 @@ const CreatorBonusItem = ({
 	timestamp,
 	isRead,
 	onViewPost,
-}: CreatorBonusNotification) => (
-	<NotifWrapper isRead={isRead} className='bg-info/5'>
-		{/* Avatar */}
-		<div className='relative flex-shrink-0'>
-			<Image
-				src={cookerAvatarUrl}
-				alt={cookerName}
-				width={48}
-				height={48}
-				className='h-12 w-12 rounded-full object-cover'
-			/>
-			<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-panel-bg bg-info text-white'>
-				<ChefHat className='h-3 w-3' />
+}: CreatorBonusNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead} className='bg-info/5'>
+			{/* Avatar */}
+			<div className='relative flex-shrink-0'>
+				<Image
+					src={cookerAvatarUrl || '/placeholder-avatar.svg'}
+					alt={cookerName}
+					width={48}
+					height={48}
+					className='size-10 rounded-full object-cover'
+				/>
+				<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-bg-card bg-info/10 text-info'>
+					<ChefHat className='size-3' />
+				</div>
 			</div>
-		</div>
 
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='Recipe Cooked!'
-				time={timestamp}
-				className='text-info'
-			/>
-			<p className='text-sm'>
-				<strong className='font-bold'>@{cookerUsername}</strong> cooked your{' '}
-				<span className='font-semibold text-brand'>{recipeName}</span>
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-xp/15 text-xp'>+{xpBonus} XP bonus</MetaTag>
-				{totalCookRewards != null && (
-					<span className='text-xs text-text-muted'>
-						Your {totalCookRewards}th cook reward
-					</span>
-				)}
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeRecipeCooked')}
+					time={timestamp}
+					className='text-info'
+				/>
+				<p className='text-sm'>
+					{t('creatorCookedYour', { username: cookerUsername })}{' '}
+					<span className='font-semibold text-brand'>{recipeName}</span>
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-xp/15 text-xp'>
+						{t('xpBonus', { amount: xpBonus })}
+					</MetaTag>
+					{totalCookRewards != null && (
+						<span className='text-xs text-text-muted'>
+							{t('creatorCookReward', { count: totalCookRewards })}
+						</span>
+					)}
+				</div>
 			</div>
-		</div>
 
-		{/* Action */}
-		<ActionButton
-			onClick={onViewPost}
-			className='flex-shrink-0 border border-info/30 bg-info/10 text-info hover:bg-info/20'
-		>
-			See Their Post
-		</ActionButton>
-	</NotifWrapper>
-)
+			{/* Action */}
+			<ActionButton
+				onClick={onViewPost}
+				className='border-info/20 bg-info/10 text-info hover:bg-info/15 sm:flex-shrink-0'
+			>
+				{t('seeTheirPost')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
 
 // Post Deadline Normal
 const PostDeadlineItem = ({
@@ -574,38 +592,39 @@ const PostDeadlineItem = ({
 	timestamp,
 	isRead,
 	onPostNow,
-}: PostDeadlineNotification) => (
-	<NotifWrapper isRead={isRead}>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted text-white'>
-			<Clock className='relative z-10 h-6 w-6' />
-			<div className='absolute -inset-1 rounded-full border-2 border-text-muted/30' />
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader type='Post Reminder' time={timestamp} />
-			<p className='text-sm'>
-				<span className='font-semibold text-brand'>{recipeName}</span> is
-				waiting to be posted
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-text-secondary/15 text-text-secondary'>
-					{daysRemaining} days left
-				</MetaTag>
-				<span className='text-xs text-text-muted'>{pendingXp} XP at stake</span>
+}: PostDeadlineNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead}>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-bg-elevated text-text-secondary'>
+				<Clock className='relative z-10 size-5' />
 			</div>
-		</div>
 
-		{/* Action */}
-		<ActionButton
-			onClick={onPostNow}
-			className='flex-shrink-0 bg-brand text-white'
-		>
-			Post Now
-		</ActionButton>
-	</NotifWrapper>
-)
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader type={t('typePostReminder')} time={timestamp} />
+				<p className='text-sm'>{t('postWaiting', { name: recipeName })}</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-text-secondary/15 text-text-secondary'>
+						{t('daysLeft', { count: daysRemaining })}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('xpAtStake', { xp: pendingXp })}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onPostNow}
+				className='border-brand/20 bg-brand/10 text-brand-text hover:bg-brand/15 sm:flex-shrink-0'
+			>
+				{t('postNow')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
 
 // Post Deadline Urgent
 const PostDeadlineUrgentItem = ({
@@ -617,56 +636,51 @@ const PostDeadlineUrgentItem = ({
 	timestamp,
 	isRead,
 	onPostNow,
-}: PostDeadlineUrgentNotification) => (
-	<NotifWrapper
-		isRead={isRead}
-		className='border-l-4 border-l-error bg-error/10'
-	>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-error text-white'>
-			<AlertTriangle className='relative z-10 h-6 w-6' />
-			<motion.div
-				className='absolute -inset-1 rounded-full border-2 border-error/40'
-				animate={{ scale: [1, 1.1, 1] }}
-				transition={{ duration: 1, repeat: Infinity }}
-			/>
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='⚠️ Deadline Soon!'
-				time={timestamp}
-				className='text-error'
-			/>
-			<p className='text-sm'>
-				<span className='font-semibold text-brand'>{recipeName}</span> expires
-				in{' '}
-				<strong className='font-bold text-error'>{daysRemaining} days</strong>
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-error/15 text-error'>
-					{decayPercent}% decay active
-				</MetaTag>
-				<span className='text-xs text-text-muted'>
-					Only {pendingXp} XP remaining of {originalXp}
-				</span>
-			</div>
-		</div>
-
-		{/* Action */}
-		<motion.button
-			onClick={onPostNow}
-			whileHover={BUTTON_HOVER}
-			whileTap={BUTTON_TAP}
-			animate={{ scale: [1, 1.02, 1] }}
-			transition={{ duration: 1, repeat: Infinity }}
-			className='flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-error px-4 py-2 text-sm font-semibold text-white'
+}: PostDeadlineUrgentNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper
+			isRead={isRead}
+			className='border-l-4 border-l-error bg-error/10'
 		>
-			Post Now!
-		</motion.button>
-	</NotifWrapper>
-)
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-error/10 text-error'>
+				<AlertTriangle className='relative z-10 size-5' />
+			</div>
+
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeDeadlineSoon')}
+					time={timestamp}
+					className='text-error'
+				/>
+				<p className='text-sm'>
+					{t('deadlineExpires', { name: recipeName })}{' '}
+					<strong className='font-bold text-error'>
+						{t('daysCount', { count: daysRemaining })}
+					</strong>
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-error/15 text-error'>
+						{t('decayActive', { percent: decayPercent })}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('xpRemainingOf', { pending: pendingXp, original: originalXp })}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onPostNow}
+				className='border-error/20 bg-error/10 text-error hover:bg-error/15'
+			>
+				{t('postNowUrgent')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
 
 // Streak Warning
 const StreakWarningItem = ({
@@ -675,50 +689,49 @@ const StreakWarningItem = ({
 	timestamp,
 	isRead,
 	onFindRecipe,
-}: StreakWarningNotification) => (
-	<NotifWrapper
-		isRead={isRead}
-		className='border-l-4 border-l-streak bg-streak/10'
-	>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-streak to-streak/90'>
-			<span className='relative z-10 text-2xl'>🔥</span>
-			<motion.div
-				className='absolute -inset-1.5 rounded-full bg-streak/30 blur-sm'
-				animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
-				transition={{ duration: 1.5, repeat: Infinity }}
-			/>
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='Streak at Risk!'
-				time={timestamp}
-				className='text-streak'
-			/>
-			<p className='text-sm'>
-				Cook something today to keep your{' '}
-				<strong className='font-bold'>{streakCount}-day streak</strong> alive!
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-streak/15 text-streak'>
-					{hoursRemaining} hours left
-				</MetaTag>
-				<span className='text-xs text-text-muted'>Quick recipes available</span>
-			</div>
-		</div>
-
-		{/* Action */}
-		<ActionButton
-			onClick={onFindRecipe}
-			className='flex-shrink-0 bg-streak text-white'
+}: StreakWarningNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper
+			isRead={isRead}
+			className='border-l-4 border-l-streak bg-streak/10'
 		>
-			<Search className='h-4 w-4' />
-			Find Recipe
-		</ActionButton>
-	</NotifWrapper>
-)
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-streak/10'>
+				<Flame className='relative z-10 size-5 text-streak' />
+			</div>
+
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeStreakRisk')}
+					time={timestamp}
+					className='text-streak'
+				/>
+				<p className='text-sm'>
+					{t('streakKeepAlive', { count: streakCount })}
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-streak/15 text-streak'>
+						{t('hoursLeft', { count: hoursRemaining })}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('quickRecipesAvailable')}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onFindRecipe}
+				className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
+			>
+				<Search className='size-4' />
+				{t('findRecipe')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
 
 // Streak Lost
 const StreakLostItem = ({
@@ -727,43 +740,45 @@ const StreakLostItem = ({
 	timestamp,
 	isRead,
 	onStartNewStreak,
-}: StreakLostNotification) => (
-	<NotifWrapper isRead={isRead} className='opacity-80'>
-		{/* Icon */}
-		<div className='flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
-			<span className='text-2xl'>😢</span>
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='Streak Lost'
-				time={timestamp}
-				className='text-text-secondary'
-			/>
-			<p className='text-sm'>
-				Your {lostStreakCount}-day streak has ended. Don&apos;t worry, start
-				fresh!
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-text-secondary/15 text-text-secondary'>
-					Best: {bestStreak} days
-				</MetaTag>
-				<span className='text-xs text-text-muted'>
-					New streak starts with your next cook
-				</span>
+}: StreakLostNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead} className='opacity-80'>
+			{/* Icon */}
+			<div className='flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
+				<span className='text-lg'>☀️</span>
 			</div>
-		</div>
 
-		{/* Action */}
-		<ActionButton
-			onClick={onStartNewStreak}
-			className='flex-shrink-0 border border-streak/30 bg-streak/10 text-streak hover:bg-streak hover:text-white'
-		>
-			Start New Streak
-		</ActionButton>
-	</NotifWrapper>
-)
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeStreakLost')}
+					time={timestamp}
+					className='text-text-secondary'
+				/>
+				<p className='text-sm'>
+					{t('streakLostMsg', { count: lostStreakCount })}
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-text-secondary/15 text-text-secondary'>
+						{t('streakBest', { count: bestStreak })}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('streakNewStarts')}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onStartNewStreak}
+				className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
+			>
+				{t('startNewStreak')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
 
 // Challenge Reminder
 const ChallengeReminderItem = ({
@@ -774,46 +789,140 @@ const ChallengeReminderItem = ({
 	timestamp,
 	isRead,
 	onSeeRecipes,
-}: ChallengeReminderNotification) => (
-	<NotifWrapper isRead={isRead} className='bg-xp/10'>
-		{/* Icon */}
-		<div className='relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-xp to-rare'>
-			<span className='relative z-10 text-2xl'>🎯</span>
-			<motion.div
-				className='absolute -inset-1 rounded-full border-2 border-dashed border-xp/40'
-				animate={{ rotate: 360 }}
-				transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-			/>
-		</div>
-
-		{/* Content */}
-		<div className='min-w-0 flex-1'>
-			<NotifHeader
-				type='Daily Challenge'
-				time={timestamp}
-				className='text-xp'
-			/>
-			<p className='text-sm'>
-				<strong className='font-bold'>{challengeTitle}</strong>{' '}
-				{challengeDescription}
-			</p>
-			<div className='mt-2 flex items-center gap-2.5'>
-				<MetaTag className='bg-xp/15 text-xp'>+{xpBonusPercent}% XP</MetaTag>
-				<span className='text-xs text-text-muted'>
-					Ends in {hoursRemaining} hours
-				</span>
+}: ChallengeReminderNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead}>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-purple-subtle'>
+				<Target className='relative z-10 size-5 text-accent-purple' />
 			</div>
-		</div>
 
-		{/* Action */}
-		<ActionButton
-			onClick={onSeeRecipes}
-			className='flex-shrink-0 bg-xp text-white shadow-card shadow-xp/30'
-		>
-			See Recipes
-		</ActionButton>
-	</NotifWrapper>
-)
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeDailyChallenge')}
+					time={timestamp}
+					className='text-xp'
+				/>
+				<p className='text-sm'>
+					<strong className='font-bold'>{challengeTitle}</strong>
+					{challengeDescription && challengeDescription !== challengeTitle && (
+						<> {challengeDescription}</>
+					)}
+				</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					{xpBonusPercent > 0 && (
+						<MetaTag className='bg-xp/15 text-xp'>
+							{t('challengeXPBonus', { percent: xpBonusPercent })}
+						</MetaTag>
+					)}
+					<span className='text-xs text-text-muted'>
+						{t('endsInHours', { count: hoursRemaining })}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onSeeRecipes}
+				className='border-accent-purple/20 bg-accent-purple-subtle text-accent-purple hover:bg-accent-purple/12 sm:flex-shrink-0'
+			>
+				{t('seeRecipes')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
+
+// Weekend Nudge
+const WeekendNudgeItem = ({
+	content,
+	timestamp,
+	isRead,
+	onExplore,
+}: WeekendNudgeNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead} className='bg-bonus/5'>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-subtle'>
+				<Sun className='relative z-10 size-5 text-brand-text' />
+			</div>
+
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typeWeekendCooking')}
+					time={timestamp}
+					className='text-bonus'
+				/>
+				<p className='text-sm'>{content}</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-bonus/15 text-bonus'>
+						{t('weekendBonus')}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('timeToGetCooking')}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onExplore}
+				className='border-brand/20 bg-brand-subtle text-brand-text hover:bg-brand/12 sm:flex-shrink-0'
+			>
+				<Search className='size-4' />
+				{t('explore')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
+
+// Pantry Expiring
+const PantryExpiringItem = ({
+	content,
+	daysRemaining,
+	timestamp,
+	isRead,
+	onViewPantry,
+}: PantryExpiringNotification) => {
+	const t = useTranslations('notifications')
+	return (
+		<NotifWrapper isRead={isRead} className='bg-streak/5'>
+			{/* Icon */}
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-streak/10'>
+				<Apple className='relative z-10 size-5 text-streak-text' />
+			</div>
+
+			{/* Content */}
+			<div className='min-w-0 flex-1'>
+				<NotifHeader
+					type={t('typePantryAlert')}
+					time={timestamp}
+					className='text-streak'
+				/>
+				<p className='text-sm'>{content}</p>
+				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-streak/15 text-streak'>
+						{t('daysLeft', { count: daysRemaining })}
+					</MetaTag>
+					<span className='text-xs text-text-muted'>
+						{t('cookBeforeExpire')}
+					</span>
+				</div>
+			</div>
+
+			{/* Action */}
+			<ActionButton
+				onClick={onViewPantry}
+				className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
+			>
+				{t('viewPantry')}
+			</ActionButton>
+		</NotifWrapper>
+	)
+}
 
 // ============================================
 // MAIN EXPORT
@@ -843,6 +952,10 @@ export const NotificationItemGamified = (props: GamifiedNotification) => {
 			return <StreakLostItem {...props} />
 		case 'challenge_reminder':
 			return <ChallengeReminderItem {...props} />
+		case 'weekend_nudge':
+			return <WeekendNudgeItem {...props} />
+		case 'pantry_expiring':
+			return <PantryExpiringItem {...props} />
 		default:
 			return null
 	}
@@ -861,6 +974,8 @@ export {
 	StreakWarningItem,
 	StreakLostItem,
 	ChallengeReminderItem,
+	WeekendNudgeItem,
+	PantryExpiringItem,
 }
 
 // Export types

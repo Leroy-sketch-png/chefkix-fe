@@ -1,21 +1,42 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
+import {
+	useEffect,
+	useState,
+	useRef,
+	useCallback,
+	useMemo,
+	useTransition,
+	Suspense,
+} from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
+import {
+	Recipe,
+	getRecipeImage,
+	getTotalTime,
+	formatCookingTime,
+} from '@/lib/types/recipe'
 import {
 	getAllRecipes,
 	getTrendingRecipes,
 	toggleSaveRecipe,
 } from '@/services/recipe'
-import { unifiedSearch } from '@/services/search'
+import {
+	unifiedSearch,
+	autocompleteSearch,
+	getTrendingSearches,
+} from '@/services/search'
 import type { RecipeSearchDoc } from '@/lib/types/search'
 import { trackEvent } from '@/lib/eventTracker'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { RecipeCardEnhanced } from '@/components/recipe'
 import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
+import { TonightsPick } from '@/components/dashboard/TonightsPick'
+import { SeasonsBest } from '@/components/explore/SeasonsBest'
 import { RecipeFiltersSheet } from '@/components/shared/RecipeFiltersSheet'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
@@ -34,13 +55,18 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { StaggerContainer } from '@/components/ui/stagger-animation'
+import {
+	StaggerContainer,
+	staggerItemVariants,
+} from '@/components/ui/stagger-animation'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import type { Difficulty } from '@/lib/types/gamification'
 import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
+import { useTranslations } from '@/i18n/hooks'
 
 // ============================================
 // CONSTANTS
@@ -58,11 +84,11 @@ const DIFFICULTY_DISPLAY: Record<string, string> = {
 	expert: 'Expert',
 }
 
-const DIFFICULTY_API_TO_DISPLAY: Record<string, string> = {
-	Beginner: 'Easy',
-	Intermediate: 'Medium',
-	Advanced: 'Hard',
-	Expert: 'Expert',
+const DIFFICULTY_API_TO_DISPLAY_KEYS: Record<string, string> = {
+	Beginner: 'diffEasy',
+	Intermediate: 'diffMedium',
+	Advanced: 'diffHard',
+	Expert: 'diffExpert',
 }
 
 // ============================================
@@ -75,6 +101,7 @@ interface RecipeFilters {
 	difficulty: string[]
 	cookingTimeMax: number
 	rating: number | null
+	foolproofOnly: boolean
 }
 
 // ============================================
@@ -114,7 +141,7 @@ function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
 		author: {
 			userId: doc.authorId,
 			username: doc.authorName ?? '',
-			displayName: doc.authorName ?? 'Unknown Chef',
+			displayName: doc.authorName ?? undefined,
 			avatarUrl: undefined,
 		},
 		recipeStatus: 'PUBLISHED',
@@ -138,6 +165,9 @@ interface HeroRecipeProps {
 
 function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 	const router = useRouter()
+	const t = useTranslations('explore')
+	const [isNavigating, startNavigationTransition] = useTransition()
+	const [isCookNavigating, startCookTransition] = useTransition()
 
 	return (
 		<motion.div
@@ -145,22 +175,25 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
 			transition={TRANSITION_SPRING}
-			className='relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand/10 via-bg-card to-streak/10 shadow-warm'
+			className='relative mb-6 overflow-hidden rounded-2xl border border-brand/15 bg-bg-card shadow-card md:mb-8'
 		>
-			<div className='grid gap-6 p-6 md:grid-cols-2 md:p-8'>
+			<div className='grid gap-4 p-4 sm:gap-6 sm:p-6 md:grid-cols-2 md:p-8'>
 				{/* Left: Image */}
-				<div className='relative aspect-[4/3] overflow-hidden rounded-2xl shadow-lg md:aspect-auto md:h-full md:min-h-[300px]'>
+				<div className='relative aspect-[16/9] overflow-hidden rounded-2xl shadow-lg sm:aspect-[4/3] md:aspect-auto md:h-full md:min-h-[300px]'>
 					<Image
 						src={getRecipeImage(recipe)}
 						alt={recipe.title}
 						fill
-						className='object-cover transition-transform duration-500 hover:scale-105'
+						className='object-cover'
 						sizes='(max-width: 768px) 100vw, 50vw'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
+						}}
 					/>
 					{/* Featured badge */}
-					<div className='absolute left-4 top-4 flex items-center gap-2 rounded-full bg-gradient-hero px-4 py-2 text-sm font-bold text-white shadow-lg'>
+					<div className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-brand/90 px-3 py-1.5 text-xs font-semibold text-white shadow-md'>
 						<Flame className='size-4' />
-						Featured Today
+						{t('featuredToday')}
 					</div>
 				</div>
 
@@ -170,7 +203,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						{/* XP Badge */}
 						<Badge
 							variant='secondary'
-							className='bg-gradient-xp px-3 py-1 text-sm font-bold text-white shadow-card'
+							className='tabular-nums bg-xp px-3 py-1 text-sm font-semibold text-white shadow-sm'
 						>
 							+{recipe.xpReward || 0} XP
 						</Badge>
@@ -179,8 +212,10 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							variant='outline'
 							className='border-border-medium bg-bg-elevated'
 						>
-							{DIFFICULTY_API_TO_DISPLAY[recipe.difficulty] ||
-								recipe.difficulty}
+							{t(
+								DIFFICULTY_API_TO_DISPLAY_KEYS[recipe.difficulty] ||
+									recipe.difficulty,
+							)}
 						</Badge>
 						{/* Time */}
 						<Badge
@@ -188,58 +223,76 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							className='flex items-center gap-1 border-border-medium bg-bg-elevated'
 						>
 							<Clock className='size-3' />
-							{getTotalTime(recipe)} min
+							{formatCookingTime(getTotalTime(recipe))}
 						</Badge>
 					</div>
 
-					<h2 className='mb-3 text-2xl font-bold text-text md:text-3xl'>
+					<h2 className='mb-2 text-xl font-serif font-bold text-text sm:mb-3 sm:text-2xl md:text-3xl'>
 						{recipe.title}
 					</h2>
 
-					<p className='mb-6 line-clamp-3 text-text-secondary'>
+					<p className='mb-4 line-clamp-2 text-sm text-text-secondary sm:mb-6 sm:line-clamp-3 sm:text-base'>
 						{recipe.description}
 					</p>
 
 					{/* Author */}
-					{recipe.author?.displayName &&
-						recipe.author.displayName !== 'Unknown Chef' && (
-							<div className='mb-6 flex items-center gap-3'>
-								<Image
-									src={recipe.author.avatarUrl || '/placeholder-avatar.svg'}
-									alt={recipe.author.displayName}
-									width={40}
-									height={40}
-									className='rounded-full border-2 border-border-subtle object-cover'
-								/>
-								<div>
-									<p className='text-sm font-medium text-text'>
-										{recipe.author.displayName}
-									</p>
-									<p className='text-xs text-text-muted'>
-										{recipe.cookCount ?? 0} people cooked this
-									</p>
-								</div>
+					{recipe.author?.displayName && (
+						<div className='mb-4 flex items-center gap-2.5 sm:mb-6 sm:gap-3'>
+							<Image
+								src={recipe.author.avatarUrl || '/placeholder-avatar.svg'}
+								alt={recipe.author.displayName}
+								width={40}
+								height={40}
+								className='size-10 rounded-full border-2 border-border-subtle object-cover sm:size-12'
+							/>
+							<div>
+								<p className='text-sm font-medium text-text'>
+									{recipe.author.displayName}
+								</p>
+								<p className='text-xs text-text-muted'>
+									{t('heroCookCount', { count: recipe.cookCount ?? 0 })}
+								</p>
 							</div>
-						)}
+						</div>
+					)}
 
 					{/* Actions */}
 					<div className='flex gap-3'>
 						<motion.button
-							onClick={() => onCook(recipe.id)}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-lg shadow-brand/30 transition-all'
+							type='button'
+							onClick={() => startCookTransition(() => onCook(recipe.id))}
+							disabled={isCookNavigating}
+							whileHover={isCookNavigating ? undefined : BUTTON_HOVER}
+							whileTap={isCookNavigating ? undefined : BUTTON_TAP}
+							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
 						>
-							<ChefHat className='size-5' />
-							Start Cooking
+							{isCookNavigating ? (
+								<Loader2 className='size-5 animate-spin' />
+							) : (
+								<ChefHat className='size-5' />
+							)}
+							{isCookNavigating ? t('heroStarting') : t('heroStartCooking')}
 						</motion.button>
 						<motion.button
-							onClick={() => router.push(`/recipes/${recipe.id}`)}
+							type='button'
+							onClick={() =>
+								startNavigationTransition(() => {
+									router.push(`/recipes/${recipe.id}`)
+								})
+							}
+							disabled={isNavigating}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='rounded-xl border-2 border-border-medium bg-bg-card px-6 py-3 font-semibold text-text transition-all hover:border-brand hover:text-brand'
+							className='rounded-xl border-2 border-border-medium bg-bg-card px-4 py-2.5 text-sm font-semibold text-text hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
 						>
-							View Recipe
+							{isNavigating ? (
+								<>
+									<Loader2 className='inline size-5 animate-spin mr-2' />
+									{t('loading')}
+								</>
+							) : (
+								t('viewRecipe')
+							)}
 						</motion.button>
 					</div>
 				</div>
@@ -267,6 +320,7 @@ function FilterChips({
 	resultCount,
 	searchQuery,
 }: FilterChipsProps) {
+	const t = useTranslations('explore')
 	const activeFilters: Array<{
 		type: keyof RecipeFilters
 		value: string
@@ -284,23 +338,32 @@ function FilterChips({
 		activeFilters.push({
 			type: 'difficulty',
 			value: d,
-			label:
-				DIFFICULTY_API_TO_DISPLAY[DIFFICULTY_DISPLAY[d.toLowerCase()] ?? d] ||
-				d,
+			label: t(
+				DIFFICULTY_API_TO_DISPLAY_KEYS[
+					DIFFICULTY_DISPLAY[d.toLowerCase()] ?? d
+				] || d,
+			),
 		}),
 	)
 	if (filters.cookingTimeMax < 120) {
 		activeFilters.push({
 			type: 'cookingTimeMax',
 			value: String(filters.cookingTimeMax),
-			label: `Under ${filters.cookingTimeMax} min`,
+			label: t('underMinutes', { minutes: filters.cookingTimeMax }),
 		})
 	}
 	if (filters.rating !== null) {
 		activeFilters.push({
 			type: 'rating',
 			value: String(filters.rating),
-			label: `${filters.rating}+ stars`,
+			label: t('starsPlus', { rating: filters.rating }),
+		})
+	}
+	if (filters.foolproofOnly) {
+		activeFilters.push({
+			type: 'foolproofOnly',
+			value: 'true',
+			label: t('firstTimerFriendly'),
 		})
 	}
 
@@ -316,14 +379,16 @@ function FilterChips({
 			className='mb-6 flex flex-wrap items-center gap-2'
 		>
 			{/* Result count */}
-			<span className='text-sm font-medium text-text-secondary'>
+			<span className='text-sm font-medium tabular-nums text-text-secondary'>
 				{resultCount === 0
-					? 'No results'
-					: `${resultCount} recipe${resultCount === 1 ? '' : 's'}`}
+					? t('noResults')
+					: resultCount === 1
+						? t('recipeCountSingle', { n: resultCount })
+						: t('recipeCountPlural', { n: resultCount })}
 				{searchQuery && (
 					<span className='text-text-muted'>
 						{' '}
-						for &quot;{searchQuery}&quot;
+						{t('forQuery', { query: searchQuery })}
 					</span>
 				)}
 			</span>
@@ -331,12 +396,14 @@ function FilterChips({
 			{/* Active filter chips */}
 			{activeFilters.map(filter => (
 				<motion.button
+					type='button'
 					key={`${filter.type}-${filter.value}`}
 					initial={{ scale: 0.8, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
 					exit={{ scale: 0.8, opacity: 0 }}
+					whileTap={BUTTON_TAP}
 					onClick={() => onRemove(filter.type, filter.value)}
-					className='group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-all hover:bg-brand/20'
+					className='group flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-2 text-sm font-medium text-brand hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{filter.label}
 					<X className='size-3.5 transition-transform group-hover:scale-110' />
@@ -345,12 +412,14 @@ function FilterChips({
 
 			{/* Clear all button */}
 			{activeFilters.length > 1 && (
-				<button
+				<motion.button
+					type='button'
 					onClick={onClearAll}
-					className='text-sm font-medium text-text-muted transition-colors hover:text-text'
+					whileTap={BUTTON_TAP}
+					className='text-sm font-medium text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					Clear all
-				</button>
+					{t('clearAllFilters')}
+				</motion.button>
 			)}
 		</motion.div>
 	)
@@ -361,11 +430,25 @@ function FilterChips({
 // ============================================
 
 export default function ExplorePage() {
+	return (
+		<Suspense>
+			<ExploreContent />
+		</Suspense>
+	)
+}
+
+function ExploreContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const requireAuth = useAuthGate()
 	const initialQuery = searchParams.get('q') || ''
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
+	const [isNavigating, startNavigationTransition] = useTransition()
+	const t = useTranslations('explore')
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000 })
 
 	// State
 	const [recipes, setRecipes] = useState<Recipe[]>([])
@@ -373,6 +456,7 @@ export default function ExplorePage() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSearching, setIsSearching] = useState(false)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [loadMoreError, setLoadMoreError] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState(initialQuery)
 	const [debouncedSearch, setDebouncedSearch] = useState(initialQuery)
@@ -388,9 +472,19 @@ export default function ExplorePage() {
 		difficulty: [],
 		cookingTimeMax: 120,
 		rating: null,
+		foolproofOnly: false,
 	})
 	const [focusedCardIndex, setFocusedCardIndex] = useState(-1)
 	const [retryCount, setRetryCount] = useState(0)
+
+	// Autocomplete & trending state
+	const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<
+		string[]
+	>([])
+	const [showAutocomplete, setShowAutocomplete] = useState(false)
+	const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+	const [trendingSearches, setTrendingSearches] = useState<string[]>([])
+	const autocompleteRef = useRef<HTMLDivElement>(null)
 
 	// ============================================
 	// EFFECTS
@@ -470,7 +564,9 @@ export default function ExplorePage() {
 				focusedCardIndex < recipes.length
 			) {
 				e.preventDefault()
-				router.push(`/recipes/${recipes[focusedCardIndex].id}`)
+				startNavigationTransition(() => {
+					router.push(`/recipes/${recipes[focusedCardIndex].id}`)
+				})
 			}
 
 			// Escape to unfocus
@@ -494,6 +590,56 @@ export default function ExplorePage() {
 		return () => clearTimeout(timeout)
 	}, [searchQuery, debouncedSearch])
 
+	// Autocomplete: faster debounce (150ms) — fires suggestions while user types
+	useEffect(() => {
+		if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+			setAutocompleteSuggestions([])
+			setShowAutocomplete(false)
+			return
+		}
+
+		const timeout = setTimeout(async () => {
+			try {
+				const res = await autocompleteSearch(searchQuery.trim(), 'recipes', 5)
+				if (res.success && res.data?.recipes?.hits) {
+					const titles = res.data.recipes.hits
+						.map(h => h.document.title)
+						.filter(Boolean)
+					setAutocompleteSuggestions(titles)
+					setShowAutocomplete(titles.length > 0)
+					setSelectedSuggestionIndex(-1)
+				} else {
+					setAutocompleteSuggestions([])
+					setShowAutocomplete(false)
+				}
+			} catch {
+				setAutocompleteSuggestions([])
+				setShowAutocomplete(false)
+			}
+		}, 150)
+
+		return () => clearTimeout(timeout)
+	}, [searchQuery])
+
+	// Fetch trending searches from API on mount
+	useEffect(() => {
+		let cancelled = false
+		const fetchTrending = async () => {
+			try {
+				const res = await getTrendingSearches(8)
+				if (!cancelled && res.success && res.data && res.data.length > 0) {
+					setTrendingSearches(res.data)
+				}
+			} catch {
+				// fallback stays as default
+			}
+		}
+		fetchTrending()
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
 	// Fetch recipes - initial load or when filters/search/mode change
 	useEffect(() => {
 		let cancelled = false
@@ -513,14 +659,16 @@ export default function ExplorePage() {
 					)
 					if (cancelled) return
 					if (searchRes.success && searchRes.data?.recipes?.hits) {
-						const allRecipes = searchRes.data.recipes.hits.map(h =>
+						const recipesResult = searchRes.data.recipes
+						const allRecipes = recipesResult.hits.map(h =>
 							mapRecipeDocToRecipe(h.document),
 						)
 						setFeaturedRecipe(null)
 						setSavedRecipes(new Set<string>())
 						setRecipes(allRecipes)
-						setTotalCount(searchRes.data.recipes.found ?? allRecipes.length)
-						setHasMore(false) // Typesense returns all matches in one page
+						const totalFound = recipesResult.found ?? allRecipes.length
+						setTotalCount(totalFound)
+						setHasMore(allRecipes.length < totalFound)
 					} else {
 						setRecipes([])
 						setTotalCount(0)
@@ -547,6 +695,9 @@ export default function ExplorePage() {
 					}
 					if (filters.cookingTimeMax < 120) {
 						filterParams.maxTime = filters.cookingTimeMax
+					}
+					if (filters.foolproofOnly) {
+						filterParams.qualityTier = 'Foolproof'
 					}
 					if (sortBy && viewMode !== 'trending') {
 						filterParams.sortBy = sortBy
@@ -589,7 +740,7 @@ export default function ExplorePage() {
 					}
 				}
 			} catch (err) {
-				if (!cancelled) setError('Failed to load recipes')
+				if (!cancelled) setError(t('failedLoadRecipesDescription'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -599,103 +750,155 @@ export default function ExplorePage() {
 		return () => {
 			cancelled = true
 		}
-	}, [debouncedSearch, viewMode, filters, retryCount, sortBy])
+	}, [debouncedSearch, viewMode, filters, retryCount, sortBy, t])
 
-	// Scroll restoration
+	// Scroll restoration — save on unmount (covers all navigations away), restore once after data loads
+	const scrollRestoredRef = useRef(false)
+
 	useEffect(() => {
+		if (scrollRestoredRef.current || isLoading) return
 		const savedPosition = sessionStorage.getItem(SCROLL_RESTORATION_KEY)
-		if (savedPosition && !isLoading) {
-			setTimeout(() => {
+		if (savedPosition) {
+			scrollRestoredRef.current = true
+			requestAnimationFrame(() => {
 				window.scrollTo(0, parseInt(savedPosition, 10))
 				sessionStorage.removeItem(SCROLL_RESTORATION_KEY)
-			}, 100)
+			})
 		}
+	}, [isLoading])
 
+	// Save scroll on unmount (covers client-side navigation) and beforeunload (covers refresh/close)
+	useEffect(() => {
 		const handleBeforeUnload = () => {
 			sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
 		}
-
 		window.addEventListener('beforeunload', handleBeforeUnload)
 		return () => {
 			window.removeEventListener('beforeunload', handleBeforeUnload)
+			// Save on component unmount (e.g., navigating to recipe detail)
+			if (window.scrollY > 0) {
+				sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
+			}
 		}
-	}, [isLoading])
+	}, [])
 
 	// Load more handler for infinite scroll
 	const handleLoadMore = useCallback(async () => {
 		if (isLoadingMore || !hasMore) return
 
+		setLoadMoreError(false)
 		setIsLoadingMore(true)
 		const nextPage = page // page state is already 1-based, backend expects 0-based
 
 		try {
-			// Build same server-side filter params as fetchRecipes
-			const filterParams: Record<string, unknown> = {
-				page: nextPage,
-				size: RECIPES_PER_PAGE,
-				search: debouncedSearch || undefined,
-			}
+			// ── Typesense path: paginated search when user has a search query ──
+			if (debouncedSearch) {
+				const searchRes = await unifiedSearch(
+					debouncedSearch,
+					'recipes',
+					RECIPES_PER_PAGE,
+					nextPage + 1, // Typesense pages are 1-based
+				)
+				if (searchRes.success && searchRes.data?.recipes?.hits) {
+					const recipesResult = searchRes.data.recipes
+					const newRecipes = recipesResult.hits.map(h =>
+						mapRecipeDocToRecipe(h.document),
+					)
+					setRecipes(prev => {
+						const existingIds = new Set(prev.map(r => r.id))
+						const dedupedRecipes = newRecipes.filter(
+							r => !existingIds.has(r.id),
+						)
+						return [...prev, ...dedupedRecipes]
+					})
+					setPage(nextPage + 1)
+					const totalFound = recipesResult.found ?? 0
+					setTotalCount(totalFound)
+					setHasMore(recipes.length + newRecipes.length < totalFound)
+				}
+			} else {
+				// ── MongoDB path: browse / filter / trending (no search query) ──
+				const filterParams: Record<string, unknown> = {
+					page: nextPage,
+					size: RECIPES_PER_PAGE,
+				}
 
-			if (filters.difficulty.length > 0) {
-				const apiDifficulty = filters.difficulty
-					.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
-					.find(Boolean)
-				if (apiDifficulty) filterParams.difficulty = apiDifficulty
-			}
-			if (filters.cuisine.length > 0) {
-				filterParams.cuisineType = filters.cuisine[0]
-			}
-			if (filters.dietary.length > 0) {
-				filterParams.dietaryTags = filters.dietary
-			}
-			if (filters.cookingTimeMax < 120) {
-				filterParams.maxTime = filters.cookingTimeMax
-			}
-			if (sortBy && viewMode !== 'trending') {
-				filterParams.sortBy = sortBy
-			}
+				if (filters.difficulty.length > 0) {
+					const apiDifficulty = filters.difficulty
+						.map(d => DIFFICULTY_DISPLAY[d.toLowerCase()] || d)
+						.find(Boolean)
+					if (apiDifficulty) filterParams.difficulty = apiDifficulty
+				}
+				if (filters.cuisine.length > 0) {
+					filterParams.cuisineType = filters.cuisine[0]
+				}
+				if (filters.dietary.length > 0) {
+					filterParams.dietaryTags = filters.dietary
+				}
+				if (filters.cookingTimeMax < 120) {
+					filterParams.maxTime = filters.cookingTimeMax
+				}
+				if (filters.foolproofOnly) {
+					filterParams.qualityTier = 'Foolproof'
+				}
+				if (sortBy && viewMode !== 'trending') {
+					filterParams.sortBy = sortBy
+				}
 
-			const response =
-				viewMode === 'trending'
-					? await getTrendingRecipes({
-							page: nextPage,
-							size: RECIPES_PER_PAGE,
-						})
-					: await getAllRecipes(filterParams)
+				const response =
+					viewMode === 'trending'
+						? await getTrendingRecipes({
+								page: nextPage,
+								size: RECIPES_PER_PAGE,
+							})
+						: await getAllRecipes(filterParams)
 
-			if (response.success && response.data) {
-				const newRecipes = response.data
+				if (response.success && response.data) {
+					const newRecipes = response.data
 
-				// Update saved recipes set
-				response.data.forEach(recipe => {
-					if (recipe.isSaved) {
-						setSavedRecipes(prev => new Set([...prev, recipe.id]))
+					// Update saved recipes set
+					response.data.forEach(recipe => {
+						if (recipe.isSaved) {
+							setSavedRecipes(prev => new Set([...prev, recipe.id]))
+						}
+					})
+
+					// Append to existing recipes (already filtered server-side)
+					setRecipes(prev => {
+						const existingIds = new Set(prev.map(r => r.id))
+						const dedupedRecipes = newRecipes.filter(
+							r => !existingIds.has(r.id),
+						)
+						return [...prev, ...dedupedRecipes]
+					})
+					setPage(nextPage + 1)
+
+					// Update pagination state
+					const pagination = response.pagination
+					if (pagination) {
+						setTotalCount(pagination.totalElements)
+						setHasMore(!pagination.last)
+					} else {
+						setHasMore(response.data.length >= RECIPES_PER_PAGE)
 					}
-				})
-
-				// Append to existing recipes (already filtered server-side)
-				setRecipes(prev => {
-					const existingIds = new Set(prev.map(r => r.id))
-					const dedupedRecipes = newRecipes.filter(r => !existingIds.has(r.id))
-					return [...prev, ...dedupedRecipes]
-				})
-				setPage(nextPage + 1)
-
-				// Update pagination state
-				const pagination = response.pagination
-				if (pagination) {
-					setTotalCount(pagination.totalElements)
-					setHasMore(!pagination.last)
-				} else {
-					setHasMore(response.data.length >= RECIPES_PER_PAGE)
 				}
 			}
 		} catch (err) {
 			logDevError('Failed to load more recipes:', err)
+			setLoadMoreError(true)
 		} finally {
 			setIsLoadingMore(false)
 		}
-	}, [isLoadingMore, hasMore, page, viewMode, debouncedSearch, filters, sortBy])
+	}, [
+		isLoadingMore,
+		hasMore,
+		page,
+		viewMode,
+		debouncedSearch,
+		filters,
+		sortBy,
+		recipes.length,
+	])
 
 	// Infinite scroll - IntersectionObserver
 	useEffect(() => {
@@ -719,11 +922,12 @@ export default function ExplorePage() {
 	// ============================================
 
 	const handleCook = (recipeId: string) => {
-		sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
+		if (!requireAuth(t('authActionCook'))) return
 		router.push(`/recipes/${recipeId}?cook=true`)
 	}
 
 	const handleSave = async (recipeId: string) => {
+		if (!requireAuth(t('authActionSave'))) return
 		const wasSaved = savedRecipes.has(recipeId)
 		const willBeSaved = !wasSaved
 
@@ -750,7 +954,7 @@ export default function ExplorePage() {
 				// Reconcile with server's authoritative state
 				setSavedRecipes(prev => {
 					const newSet = new Set(prev)
-					if (response.data!.isSaved) {
+					if (response.data.isSaved) {
 						newSet.add(recipeId)
 					} else {
 						newSet.delete(recipeId)
@@ -763,9 +967,9 @@ export default function ExplorePage() {
 					'recipe',
 				)
 				if (response.data.isSaved) {
-					toast.success('Recipe saved!')
+					toast.success(t('toastRecipeSaved'))
 				} else {
-					toast.success('Recipe unsaved')
+					toast.success(t('toastRecipeUnsaved'))
 				}
 			}
 		} catch (error) {
@@ -779,7 +983,7 @@ export default function ExplorePage() {
 				}
 				return newSet
 			})
-			toast.error('Failed to save recipe')
+			toast.error(t('toastSaveFailed'))
 		}
 	}
 
@@ -801,6 +1005,8 @@ export default function ExplorePage() {
 				updated.cookingTimeMax = 120
 			} else if (type === 'rating') {
 				updated.rating = null
+			} else if (type === 'foolproofOnly') {
+				updated.foolproofOnly = false
 			}
 			return updated
 		})
@@ -814,21 +1020,55 @@ export default function ExplorePage() {
 			difficulty: [],
 			cookingTimeMax: 120,
 			rating: null,
+			foolproofOnly: false,
 		})
 		setSearchQuery('')
 		setPage(1)
 	}
 
 	const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+		// Autocomplete navigation
+		if (showAutocomplete && autocompleteSuggestions.length > 0) {
+			if (e.key === 'ArrowDown') {
+				e.preventDefault()
+				setSelectedSuggestionIndex(prev =>
+					prev < autocompleteSuggestions.length - 1 ? prev + 1 : 0,
+				)
+				return
+			}
+			if (e.key === 'ArrowUp') {
+				e.preventDefault()
+				setSelectedSuggestionIndex(prev =>
+					prev > 0 ? prev - 1 : autocompleteSuggestions.length - 1,
+				)
+				return
+			}
+			if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
+				e.preventDefault()
+				const selected = autocompleteSuggestions[selectedSuggestionIndex]
+				setSearchQuery(selected)
+				setDebouncedSearch(selected)
+				setShowAutocomplete(false)
+				return
+			}
+			if (e.key === 'Escape') {
+				setShowAutocomplete(false)
+				return
+			}
+		}
+
 		if (e.key === 'Enter' && searchQuery.trim()) {
-			// Navigate to full search page which supports recipes, people, posts
-			router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+			setShowAutocomplete(false)
+			startNavigationTransition(() => {
+				router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+			})
 		}
 	}
 
 	const handleClearSearch = () => {
 		setSearchQuery('')
 		setDebouncedSearch('')
+		setShowAutocomplete(false)
 		searchInputRef.current?.focus()
 	}
 
@@ -842,7 +1082,8 @@ export default function ExplorePage() {
 			filters.cuisine.length +
 			filters.difficulty.length +
 			(filters.cookingTimeMax < 120 ? 1 : 0) +
-			(filters.rating !== null ? 1 : 0),
+			(filters.rating !== null ? 1 : 0) +
+			(filters.foolproofOnly ? 1 : 0),
 		[filters],
 	)
 
@@ -852,30 +1093,31 @@ export default function ExplorePage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							{t('loading')}
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='xl'>
-				{/* Header with animation */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
-						>
-							<Compass className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Explore Recipes</h1>
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Discover new dishes and flavors from around the world.
-					</p>
-				</motion.div>
+				{/* Header */}
+				<PageHeader
+					icon={Compass}
+					title={t('title')}
+					subtitle={t('subtitle')}
+					gradient='gray'
+				/>
 
 				{/* Hero/Featured Recipe (only when not searching) */}
 				<AnimatePresence mode='wait'>
@@ -883,6 +1125,12 @@ export default function ExplorePage() {
 						<HeroRecipe recipe={featuredRecipe} onCook={handleCook} />
 					)}
 				</AnimatePresence>
+
+				{/* Tonight's Pick — Personalized recommendation (only when not searching) */}
+				{!debouncedSearch && <TonightsPick className='mb-6' />}
+
+				{/* Season's Best — Curated featured collections (only when not searching) */}
+				{!debouncedSearch && <SeasonsBest className='mb-6' />}
 
 				{/* Search & Filter Bar */}
 				<motion.div
@@ -895,86 +1143,153 @@ export default function ExplorePage() {
 						<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
 						<Input
 							ref={searchInputRef}
-							placeholder='Search recipes...'
+							placeholder={t('searchPlaceholder')}
+							aria-label={t('searchPlaceholder')}
+							role='combobox'
+							aria-expanded={
+								showAutocomplete && autocompleteSuggestions.length > 0
+							}
+							aria-autocomplete='list'
+							aria-controls='explore-autocomplete-listbox'
+							aria-activedescendant={
+								selectedSuggestionIndex >= 0
+									? `explore-suggestion-${selectedSuggestionIndex}`
+									: undefined
+							}
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							onKeyDown={handleSearchKeyDown}
-							className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-card transition-all focus:border-brand focus:shadow-card focus:ring-2 focus:ring-brand/20'
+							onFocus={() => {
+								if (autocompleteSuggestions.length > 0)
+									setShowAutocomplete(true)
+							}}
+							onBlur={() => {
+								// Delay to allow dropdown clicks to register
+								setTimeout(() => setShowAutocomplete(false), 200)
+							}}
+							className='h-11 rounded-xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-sm transition-colors focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 						/>
 						{/* Loading indicator or clear button */}
 						<div className='absolute right-12 top-1/2 -translate-y-1/2'>
 							{isSearching ? (
 								<Loader2 className='size-5 animate-spin text-brand' />
 							) : searchQuery ? (
-								<button
+								<motion.button
+									type='button'
 									onClick={handleClearSearch}
-									className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-									aria-label='Clear search'
+									whileTap={BUTTON_TAP}
+									className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaClearSearch')}
 								>
 									<X className='size-4' />
-								</button>
+								</motion.button>
 							) : null}
 						</div>
 						{/* Keyboard shortcut hint */}
 						<kbd className='absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-md border border-border-medium bg-bg-elevated px-2 py-1 text-xs text-text-muted sm:block'>
 							/
 						</kbd>
+
+						{/* Autocomplete dropdown */}
+						<AnimatePresence>
+							{showAutocomplete && autocompleteSuggestions.length > 0 && (
+								<motion.div
+									ref={autocompleteRef}
+									role='listbox'
+									id='explore-autocomplete-listbox'
+									aria-label={t('searchPlaceholder')}
+									initial={{ opacity: 0, y: -4 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -4 }}
+									transition={{ duration: 0.15 }}
+									className='absolute left-0 right-0 top-full z-dropdown mt-1 overflow-hidden rounded-xl border border-border-medium bg-bg-card shadow-warm'
+								>
+									{autocompleteSuggestions.map((suggestion, index) => (
+										<button
+											type='button'
+											key={suggestion}
+											id={`explore-suggestion-${index}`}
+											role='option'
+											aria-selected={index === selectedSuggestionIndex}
+											onMouseDown={e => {
+												e.preventDefault()
+												setSearchQuery(suggestion)
+												setDebouncedSearch(suggestion)
+												setShowAutocomplete(false)
+											}}
+											className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand ${
+												index === selectedSuggestionIndex
+													? 'bg-brand/10 text-brand'
+													: 'text-text hover:bg-bg-elevated'
+											}`}
+										>
+											<Search className='size-4 flex-shrink-0 text-text-muted' />
+											<span className='truncate'>{suggestion}</span>
+										</button>
+									))}
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</div>
-					<div className='flex gap-2'>
+					<div className='-mx-1 flex gap-2 overflow-x-auto scrollbar-hide px-1 pb-1'>
 						{/* Filter Sheet Button */}
-						<RecipeFiltersSheet
-							initialFilters={filters}
-							onApply={handleFiltersApply}
-						/>
+						<div className='shrink-0'>
+							<RecipeFiltersSheet
+								initialFilters={filters}
+								onApply={handleFiltersApply}
+							/>
+						</div>
 
 						{/* View Mode Buttons */}
 						<motion.button
+							type='button'
 							onClick={() => {
 								setViewMode('all')
 								setPage(1)
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className={`rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
+							className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'all'
-									? 'bg-gradient-hero text-white shadow-card shadow-brand/30'
-									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
+									? 'bg-brand text-white shadow-sm'
+									: 'border border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 							}`}
 						>
-							All Recipes
+							{t('allRecipes')}
 						</motion.button>
 						<motion.button
+							type='button'
 							onClick={() => {
 								setViewMode('trending')
 								setPage(1)
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
+							className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'trending'
-									? 'bg-gradient-xp text-white shadow-card shadow-xp/30'
-									: 'border-2 border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
+									? 'bg-xp text-white shadow-sm'
+									: 'border border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
 							}`}
 						>
 							<TrendingUp className='size-4' />
-							Trending
+							{t('trending')}
 						</motion.button>
 
 						{/* Sort Dropdown */}
 						{viewMode === 'all' && (
-							<div className='relative'>
+							<div className='relative shrink-0'>
 								<select
 									value={sortBy}
 									onChange={e => {
 										setSortBy(e.target.value)
 										setPage(1)
 									}}
-									className='h-12 appearance-none rounded-xl border-2 border-border-medium bg-bg-card py-3 pl-4 pr-10 text-sm font-semibold text-text-secondary transition-all hover:border-brand focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+									className='h-11 appearance-none rounded-lg border border-border-medium bg-bg-card py-2 pl-4 pr-10 text-sm font-medium text-text-secondary transition-colors hover:border-brand focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
 								>
-									<option value='newest'>Newest</option>
-									<option value='popular'>Most Cooked</option>
-									<option value='rating'>Top Rated</option>
-									<option value='quickest'>Quickest</option>
+									<option value='newest'>{t('newest')}</option>
+									<option value='popular'>{t('mostCooked')}</option>
+									<option value='rating'>{t('topRated')}</option>
+									<option value='quickest'>{t('quickest')}</option>
 								</select>
 								<ChevronDown className='pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 							</div>
@@ -1005,15 +1320,58 @@ export default function ExplorePage() {
 						<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
 							↑↓←→
 						</kbd>
-						<span>Navigate</span>
+						<span>{t('kbdNavigate')}</span>
 						<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
 							Enter
 						</kbd>
-						<span>Open</span>
+						<span>{t('kbdOpen')}</span>
 						<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
 							Esc
 						</kbd>
-						<span>Cancel</span>
+						<span>{t('kbdCancel')}</span>
+					</motion.div>
+				)}
+
+				{/* Trending Searches — show when no search is active */}
+				{!debouncedSearch && !isLoading && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						className='mb-6'
+					>
+						<div className='mb-2 flex items-center gap-2 text-sm font-medium text-text-secondary'>
+							<TrendingUp className='size-4 text-brand' />
+							{t('trendingSearches')}
+						</div>
+						<div className='flex flex-wrap gap-2'>
+							{(trendingSearches.length > 0
+								? trendingSearches
+								: [
+										'Quick meals',
+										'Pasta',
+										'Chicken',
+										'Vegan',
+										'Desserts',
+										'Stir fry',
+										'Breakfast',
+										'Baking',
+									]
+							).map(term => (
+								<motion.button
+									type='button'
+									key={term}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									onClick={() => {
+										setSearchQuery(term)
+										setDebouncedSearch(term)
+									}}
+									className='rounded-full border border-border bg-bg-card px-3 py-1.5 text-sm text-text transition-colors hover:border-brand hover:bg-brand/5 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									{term}
+								</motion.button>
+							))}
+						</div>
 					</motion.div>
 				)}
 
@@ -1025,7 +1383,7 @@ export default function ExplorePage() {
 				)}
 				{error && (
 					<ErrorState
-						title='Failed to load recipes'
+						title={t('failedLoadRecipes')}
 						message={error}
 						onRetry={() => {
 							setError(null)
@@ -1038,25 +1396,37 @@ export default function ExplorePage() {
 						variant='search'
 						title={
 							activeFiltersCount > 0
-								? 'No matching recipes'
-								: 'No recipes found'
+								? t('noMatchingRecipes')
+								: t('noRecipesFound')
 						}
 						description={
 							activeFiltersCount > 0
-								? 'Try adjusting your filters to see more recipes.'
+								? t('adjustFiltersHint')
 								: debouncedSearch
-									? `No recipes match "${debouncedSearch}". Try a different search.`
-									: 'Be the first to share a recipe!'
+									? t('noSearchResults', { query: debouncedSearch })
+									: t('beFirstToShare')
 						}
-						searchSuggestions={undefined}
+						searchSuggestions={
+							debouncedSearch
+								? trendingSearches.length > 0
+									? trendingSearches.slice(0, 5)
+									: [
+											'Pasta',
+											'Quick dinner',
+											'Chicken',
+											'Healthy breakfast',
+											'Dessert',
+										]
+								: undefined
+						}
 						primaryAction={
 							activeFiltersCount > 0 || debouncedSearch
 								? {
-										label: 'Clear All',
+										label: t('clearAll'),
 										onClick: handleClearAllFilters,
 									}
 								: {
-										label: 'Create Recipe',
+										label: t('createRecipe'),
 										href: '/create',
 									}
 						}
@@ -1068,7 +1438,8 @@ export default function ExplorePage() {
 							{recipes.map((recipe, index) => (
 								<motion.div
 									key={recipe.id}
-									className={`rounded-2xl transition-all ${
+									variants={staggerItemVariants}
+									className={`rounded-2xl  ${
 										focusedCardIndex === index
 											? 'ring-2 ring-brand ring-offset-2 ring-offset-bg'
 											: ''
@@ -1094,8 +1465,7 @@ export default function ExplorePage() {
 										skillTags={recipe.skillTags}
 										badges={recipe.rewardBadges}
 										author={
-											recipe.author?.displayName &&
-											recipe.author.displayName !== 'Unknown Chef'
+											recipe.author?.displayName
 												? {
 														id: recipe.author.userId,
 														name: recipe.author.displayName,
@@ -1118,18 +1488,27 @@ export default function ExplorePage() {
 						<div ref={loadMoreRef} className='h-px' />
 
 						{/* Loading indicator for infinite scroll */}
-						{isLoadingMore && (
+						{isLoadingMore && <RecipeCardSkeleton count={3} />}
+
+						{/* Load more error with retry */}
+						{loadMoreError && !isLoadingMore && (
 							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								className='flex justify-center py-8'
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								className='flex flex-col items-center gap-2 py-8'
 							>
-								<div className='flex items-center gap-3 text-text-secondary'>
-									<Loader2 className='size-5 animate-spin text-brand' />
-									<span className='text-sm font-medium'>
-										Loading more recipes...
-									</span>
-								</div>
+								<span className='text-sm text-text-muted'>
+									{t('loadMoreFailed')}
+								</span>
+								<motion.button
+									type='button'
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									onClick={handleLoadMore}
+									className='rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									{t('tryAgainButton')}
+								</motion.button>
 							</motion.div>
 						)}
 
@@ -1140,13 +1519,15 @@ export default function ExplorePage() {
 								animate={{ opacity: 1, y: 0 }}
 								className='flex justify-center py-8'
 							>
-								<span className='text-sm text-text-muted'>
-									✨ You&apos;ve seen all {totalCount} recipes
+								<span className='tabular-nums text-sm text-text-muted'>
+									✨ {t('seenAllRecipes', { count: totalCount })}
 								</span>
 							</motion.div>
 						)}
 					</>
 				)}
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

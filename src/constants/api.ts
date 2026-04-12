@@ -6,6 +6,8 @@ const POST_COMMENTS_BASE = `${POST_SERVICE_PREFIX}` // No extra prefix, comments
 const POST_REPLIES_BASE = `${API_PREFIX}/posts` // Replies are under /posts/comments/{commentId}/replies
 const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
 const SOCIAL_PREFIX = `${API_PREFIX}/social`
+const COLLECTIONS_PREFIX = `${API_PREFIX}/collections`
+const TIPS_PREFIX = `${API_PREFIX}/tips`
 
 export const API_ENDPOINTS = {
 	AUTH: {
@@ -20,9 +22,11 @@ export const API_ENDPOINTS = {
 		VERIFY_OTP_PASSWORD: `${API_PREFIX}/auth/verify-otp-password`,
 		FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
 		CHANGE_PASSWORD: `${API_PREFIX}/auth/change-password`,
-		GOOGLE: `${API_PREFIX}/auth/google`, // Future: Requires Keycloak Google IdP setup + backend OAuth callback
+		GOOGLE: `${API_PREFIX}/auth/google`,
 		REFRESH_TOKEN: `${API_PREFIX}/auth/refresh-token`, // Public endpoint, no auth header needed
 		ME: `${API_PREFIX}/auth/me`,
+		/** Check if username is available for registration */
+		CHECK_USERNAME: `${API_PREFIX}/auth/check-username`,
 	} as const,
 	PROFILE: {
 		GET_BY_USER_ID: (userId: string) => `${API_PREFIX}/auth/${userId}`,
@@ -31,6 +35,8 @@ export const API_ENDPOINTS = {
 		UPDATE: `${AUTH_PREFIX}/update`,
 		GET_PROFILE_ONLY: (userId: string) =>
 			`${AUTH_PREFIX}/profile-only/${userId}`,
+		DELETE_ACCOUNT: `${AUTH_PREFIX}/delete-account`,
+		EXPORT_DATA: `${AUTH_PREFIX}/export-data`,
 	},
 	// Social endpoints per spec (03-social.txt): /api/v1/social/*
 	// Instagram Model: Follow-only system, mutual follows = friends
@@ -43,6 +49,8 @@ export const API_ENDPOINTS = {
 		// Friends = Mutual follows (no explicit friend requests)
 		GET_FRIENDS: `${SOCIAL_PREFIX}/friends`,
 		IS_MUTUAL: (userId: string) => `${SOCIAL_PREFIX}/is-mutual/${userId}`,
+		// Suggested follows
+		GET_SUGGESTED: `${SOCIAL_PREFIX}/suggested`,
 		// Block system
 		BLOCK: (userId: string) => `${SOCIAL_PREFIX}/block/${userId}`,
 		UNBLOCK: (userId: string) => `${SOCIAL_PREFIX}/block/${userId}`, // DELETE method
@@ -86,6 +94,17 @@ export const API_ENDPOINTS = {
 			`${POST_REPLIES_BASE}/comments/${commentId}/replies/${replyId}/like`,
 		// Reports per spec (13-moderation.txt)
 		REPORT: `${POST_SERVICE_PREFIX}/report`,
+		// Recipe Reviews
+		GET_REVIEWS_FOR_RECIPE: (recipeId: string) =>
+			`${POST_SERVICE_PREFIX}/reviews/recipe/${recipeId}`,
+		GET_REVIEW_STATS: (recipeId: string) =>
+			`${POST_SERVICE_PREFIX}/reviews/recipe/${recipeId}/stats`,
+		// Recipe Battles
+		VOTE_BATTLE: (postId: string) =>
+			`${POST_SERVICE_PREFIX}/battles/${postId}/vote`,
+		GET_ACTIVE_BATTLES: `${POST_SERVICE_PREFIX}/battles/active`,
+		// Taste Profile (Sprint 7)
+		TASTE_PROFILE: `${POST_SERVICE_PREFIX}/taste-profile`,
 	},
 	// Recipe endpoints per spec (07-recipes.txt): /api/v1/recipe/* (singular)
 	RECIPES: {
@@ -201,6 +220,12 @@ export const API_ENDPOINTS = {
 		CREATE_MESSAGE: `${API_PREFIX}/chat/messages/create`,
 		GET_MESSAGES: `${API_PREFIX}/chat/messages`,
 		GET_MESSAGES_PAGINATED: `${API_PREFIX}/chat/messages/paginated`,
+		SHARE_SUGGESTIONS: `${API_PREFIX}/chat/conversations/share-suggestions`,
+		REACT_MESSAGE: (messageId: string) =>
+			`${API_PREFIX}/chat/messages/${messageId}/react`,
+		DELETE_MESSAGE: (messageId: string) =>
+			`${API_PREFIX}/chat/messages/${messageId}`,
+		VIDEO_SIGNALING_WS: `${API_PREFIX}/ws/video-signaling`,
 	},
 	// AI Integration per spec (14-ai-integration.txt)
 	AI: {
@@ -237,6 +262,7 @@ export const API_ENDPOINTS = {
 		// Push notification token management (matches BE DeviceController at /devices/push-token)
 		REGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
 		UNREGISTER_PUSH_TOKEN: `${API_PREFIX}/devices/push-token`,
+		UNREGISTER_ALL_PUSH_TOKENS: `${API_PREFIX}/devices/push-tokens`,
 	},
 	// Pantry Management per spec (23-pantry-and-meal-planning.txt)
 	PANTRY: {
@@ -273,6 +299,7 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/shopping-lists/${id}/items/${itemId}`,
 		DELETE: (id: string) => `${API_PREFIX}/shopping-lists/${id}`,
 		SHARE: (id: string) => `${API_PREFIX}/shopping-lists/${id}/share`,
+		INGREDIENT_LINKS: `${API_PREFIX}/shopping-lists/ingredient-links`,
 	},
 	// User Settings (identity module)
 	SETTINGS: {
@@ -297,10 +324,12 @@ export const API_ENDPOINTS = {
 	},
 	EVENTS: {
 		TRACK: `${API_PREFIX}/events`,
+		DELETE_MY_DATA: `${API_PREFIX}/events/my-data`,
 	},
 	SEARCH: {
 		UNIFIED: `${API_PREFIX}/search`,
 		AUTOCOMPLETE: `${API_PREFIX}/search/autocomplete`,
+		TRENDING: `${API_PREFIX}/search/trending`,
 	},
 	KNOWLEDGE: {
 		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,
@@ -316,6 +345,7 @@ export const API_ENDPOINTS = {
 		FRIENDS: `${API_PREFIX}/presence/friends`,
 		FRIENDS_COOKING: `${API_PREFIX}/presence/friends/cooking`,
 		OFFLINE: `${API_PREFIX}/presence/offline`,
+		GET_USER: (userId: string) => `${API_PREFIX}/presence/${userId}`,
 	},
 	VERIFICATION: {
 		APPLY: `${API_PREFIX}/verification/apply`,
@@ -353,5 +383,35 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/group/${groupId}/privacy`,
 		CREATE_POST: (groupId: string) =>
 			`${API_PREFIX}/posts/groups/${groupId}/posts`,
+	},
+	COLLECTIONS: {
+		BASE: COLLECTIONS_PREFIX,
+		GET_MY: COLLECTIONS_PREFIX,
+		GET_BY_ID: (id: string) => `${COLLECTIONS_PREFIX}/${id}`,
+		GET_POSTS: (id: string) => `${COLLECTIONS_PREFIX}/${id}/posts`,
+		GET_BY_USER: (userId: string) => `${COLLECTIONS_PREFIX}/user/${userId}`,
+		CREATE: COLLECTIONS_PREFIX,
+		UPDATE: (id: string) => `${COLLECTIONS_PREFIX}/${id}`,
+		DELETE: (id: string) => `${COLLECTIONS_PREFIX}/${id}`,
+		ADD_POST: (collectionId: string, postId: string) =>
+			`${COLLECTIONS_PREFIX}/${collectionId}/posts/${postId}`,
+		REMOVE_POST: (collectionId: string, postId: string) =>
+			`${COLLECTIONS_PREFIX}/${collectionId}/posts/${postId}`,
+		// Learning Path V2 endpoints
+		ENROLL: (id: string) => `${COLLECTIONS_PREFIX}/${id}/enroll`,
+		GET_PROGRESS: (id: string) => `${COLLECTIONS_PREFIX}/${id}/progress`,
+		UPDATE_PROGRESS: (id: string, recipeId: string, xpEarned: number = 0) =>
+			`${COLLECTIONS_PREFIX}/${id}/progress?recipeId=${recipeId}&xpEarned=${xpEarned}`,
+		// Featured / Seasonal
+		FEATURED: `${COLLECTIONS_PREFIX}/featured`,
+	},
+	TIPS: {
+		MY_SETTINGS: `${TIPS_PREFIX}/settings`,
+		UPDATE_SETTINGS: `${TIPS_PREFIX}/settings`,
+		CREATOR_SETTINGS: (creatorId: string) =>
+			`${TIPS_PREFIX}/creator/${creatorId}`,
+		SEND: `${TIPS_PREFIX}/send`,
+		RECEIVED: `${TIPS_PREFIX}/received`,
+		SENT: `${TIPS_PREFIX}/sent`,
 	},
 } as const

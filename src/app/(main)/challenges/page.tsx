@@ -1,9 +1,11 @@
-'use client'
+﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
+
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Trophy,
 	Sparkles,
@@ -12,13 +14,19 @@ import {
 	Clock,
 	ChevronRight,
 	History,
+	Loader2,
 } from 'lucide-react'
 import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { DailyChallengeBanner } from '@/components/challenges'
+import { PageHeader } from '@/components/layout/PageHeader'
+import {
+	DailyChallengeBanner,
+	ActiveBattlesSection,
+} from '@/components/challenges'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
 	getTodaysChallenge,
 	getWeeklyChallenge,
@@ -29,28 +37,18 @@ import {
 	CommunityChallenge,
 	SeasonalChallenge,
 } from '@/services/challenge'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
+import { formatEventTimeRemaining } from '@/lib/challenge-time'
 import { logDevError } from '@/lib/dev-log'
-
-// ============================================
-// HELPERS
-// ============================================
-
-const formatTimeRemaining = (dateStr: string): string => {
-	const diffMs = new Date(dateStr).getTime() - Date.now()
-	if (diffMs <= 0) return 'Ended'
-	const hours = Math.floor(diffMs / 3600000)
-	if (hours >= 24) return `${Math.floor(hours / 24)}d left`
-	const mins = Math.floor((diffMs % 3600000) / 60000)
-	return `${hours}h ${mins}m left`
-}
 
 // ============================================
 // PAGE
 // ============================================
 
 export default function ChallengesPage() {
+	const t = useTranslations('challenges')
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [dailyChallenge, setDailyChallenge] = useState<{
 		id: string
 		title: string
@@ -146,8 +144,8 @@ export default function ChallengesPage() {
 		return (
 			<PageContainer maxWidth='lg'>
 				<ErrorState
-					title='Failed to load challenges'
-					message='We could not load challenge data. Please try again.'
+					title={t('failedToLoad')}
+					message={t('failedToLoadDesc')}
 					onRetry={() => {
 						setError(false)
 						setRetryKey(k => k + 1)
@@ -159,45 +157,49 @@ export default function ChallengesPage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							{t('loading')}
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='lg'>
-				{/* Header - Unified with Dashboard/Explore pattern */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-streak shadow-card shadow-streak/25'
-						>
-							<Trophy className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Challenges</h1>
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Test your skills, earn bonus XP, and unlock exclusive badges!
-					</p>
-				</motion.div>
+				{/* Header */}
+				<PageHeader
+					icon={Trophy}
+					title={t('title')}
+					subtitle={t('subtitle')}
+					gradient='yellow'
+				/>
 
 				{/* Cooking Duels — 1v1 friend challenges */}
 				<DuelsSection />
+
+				{/* Active Recipe Battles — community voting */}
+				<ActiveBattlesSection />
 
 				{loading ? (
 					<div className='space-y-6'>
 						{/* Daily challenge skeleton */}
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 							<div className='flex items-center gap-4'>
-								<div className='size-12 shrink-0 animate-pulse rounded-2xl bg-bg-elevated/40' />
+								<Skeleton className='size-12 shrink-0 rounded-2xl' />
 								<div className='flex-1 space-y-2'>
-									<div className='h-5 w-1/3 animate-pulse rounded bg-bg-elevated/40' />
-									<div className='h-4 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+									<Skeleton className='h-5 w-1/3' />
+									<Skeleton className='h-4 w-2/3' />
 								</div>
-								<div className='h-8 w-20 animate-pulse rounded-full bg-bg-elevated/40' />
+								<Skeleton className='h-8 w-20 rounded-full' />
 							</div>
 						</div>
 						{/* Weekly + community skeletons */}
@@ -207,10 +209,10 @@ export default function ChallengesPage() {
 								className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
 							>
 								<div className='flex items-center gap-3'>
-									<div className='size-11 shrink-0 animate-pulse rounded-xl bg-bg-elevated/40' />
+									<Skeleton className='size-11 shrink-0 rounded-xl' />
 									<div className='flex-1 space-y-1.5'>
-										<div className='h-4 w-2/5 animate-pulse rounded bg-bg-elevated/40' />
-										<div className='h-3 w-3/5 animate-pulse rounded bg-bg-elevated/40' />
+										<Skeleton className='h-4 w-2/5' />
+										<Skeleton className='h-3 w-3/5' />
 									</div>
 								</div>
 							</div>
@@ -219,19 +221,19 @@ export default function ChallengesPage() {
 				) : hasNoChallenges ? (
 					<EmptyStateGamified
 						variant='challenges'
-						title='No Active Challenges Right Now'
-						description='New challenges drop daily! In the meantime, check your past challenges or explore recipes.'
+						title={t('noChallenges')}
+						description={t('noChallengesDesc')}
 						primaryAction={{
-							label: 'Refresh',
+							label: t('refresh'),
 							onClick: () => router.refresh(),
 						}}
 						secondaryActions={[
 							{
-								label: 'View History',
+								label: t('viewHistory'),
 								href: '/challenges/history',
 							},
 							{
-								label: 'Explore Recipes',
+								label: t('exploreRecipes'),
 								href: '/explore',
 							},
 						]}
@@ -244,9 +246,11 @@ export default function ChallengesPage() {
 								variant='active'
 								challenge={dailyChallenge}
 								onFindRecipe={() =>
-									router.push(
-										`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
-									)
+									startNavigationTransition(() => {
+										router.push(
+											`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
+										)
+									})
 								}
 							/>
 						)}
@@ -255,7 +259,7 @@ export default function ChallengesPage() {
 						{weeklyChallenge && (
 							<section className='mb-8'>
 								<h2 className='mb-4 text-lg font-bold text-text-primary'>
-									Weekly Challenge
+									{t('weeklyChallenge')}
 								</h2>
 								<motion.div
 									initial={{ opacity: 0, y: 10 }}
@@ -278,12 +282,12 @@ export default function ChallengesPage() {
 											</div>
 										</div>
 										<div className='text-right'>
-											<span className='text-lg font-bold text-xp'>
+											<span className='tabular-nums text-lg font-bold text-xp'>
 												+{weeklyChallenge.bonusXp} XP
 											</span>
 											{weeklyChallenge.completed && (
 												<p className='text-xs font-semibold text-success'>
-													✓ +{weeklyChallenge.bonusXp} XP Awarded
+													✓ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
 												</p>
 											)}
 										</div>
@@ -291,10 +295,12 @@ export default function ChallengesPage() {
 
 									{/* Progress bar */}
 									<div className='mb-2'>
-										<div className='mb-1 flex justify-between text-xs text-text-muted'>
+										<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 											<span>
-												{weeklyChallenge.progress} / {weeklyChallenge.target}{' '}
-												completed
+												{t('progressCount', {
+													progress: weeklyChallenge.progress,
+													target: weeklyChallenge.target,
+												})}
 											</span>
 											<span>
 												{weeklyChallenge.target > 0
@@ -313,7 +319,10 @@ export default function ChallengesPage() {
 												animate={{
 													width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
 												}}
-												transition={{ duration: 0.8, ease: 'easeOut' }}
+												transition={{
+													duration: DURATION_S.verySlow,
+													ease: 'easeOut',
+												}}
 												className='h-full rounded-full bg-gradient-indigo'
 											/>
 										</div>
@@ -321,11 +330,7 @@ export default function ChallengesPage() {
 
 									{/* Time remaining */}
 									<p className='text-xs text-text-muted'>
-										Ends{' '}
-										{new Date(weeklyChallenge.endsAt).toLocaleDateString(
-											'en-US',
-											{ weekday: 'long', month: 'short', day: 'numeric' },
-										)}
+										{formatEventTimeRemaining(weeklyChallenge.endsAt, t)}
 									</p>
 
 									{/* CTA: Find matching recipes */}
@@ -333,14 +338,18 @@ export default function ChallengesPage() {
 										weeklyChallenge.matchingRecipes &&
 										weeklyChallenge.matchingRecipes.length > 0 && (
 											<button
+												type='button'
 												onClick={() =>
-													router.push(
-														`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
-													)
+													startNavigationTransition(() => {
+														router.push(
+															`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
+														)
+													})
 												}
-												className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80'
+												disabled={isNavigating}
+												className='mt-3 flex items-center gap-1.5 rounded-lg text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
-												Find Matching Recipes
+												{t('findMatchingRecipes')}
 												<ChevronRight className='size-4' />
 											</button>
 										)}
@@ -354,7 +363,7 @@ export default function ChallengesPage() {
 								<div className='mb-4 flex items-center gap-2'>
 									<Users className='size-5 text-combo' />
 									<h2 className='text-lg font-bold text-text'>
-										Community Challenges
+										{t('communityChallenges')}
 									</h2>
 								</div>
 								<div className='space-y-4'>
@@ -384,23 +393,25 @@ export default function ChallengesPage() {
 													</div>
 												</div>
 												<div className='text-right'>
-													<span className='text-lg font-bold text-xp'>
+													<span className='tabular-nums text-lg font-bold text-xp'>
 														+{ch.rewardXpPerUser} XP
 													</span>
 													<p className='text-xs text-text-muted'>
-														{formatTimeRemaining(ch.endsAt)}
+														{formatEventTimeRemaining(ch.endsAt, t)}
 													</p>
 												</div>
 											</div>
 
 											{/* Global progress bar */}
 											<div className='mb-2'>
-												<div className='mb-1 flex justify-between text-xs text-text-muted'>
+												<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 													<span>
 														{ch.currentProgress.toLocaleString()} /{' '}
 														{ch.targetCount.toLocaleString()} {ch.targetUnit}
 													</span>
-													<span>{Math.round(ch.progressPercent)}%</span>
+													<span className='tabular-nums'>
+														{Math.round(ch.progressPercent)}%
+													</span>
 												</div>
 												<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
 													<motion.div
@@ -409,7 +420,7 @@ export default function ChallengesPage() {
 															width: `${Math.min(ch.progressPercent, 100)}%`,
 														}}
 														transition={{
-															duration: 1,
+															duration: DURATION_S.dramatic,
 															ease: 'easeOut',
 														}}
 														className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
@@ -421,22 +432,28 @@ export default function ChallengesPage() {
 											<div className='flex items-center justify-between text-xs text-text-muted'>
 												<span className='flex items-center gap-1'>
 													<Users className='size-3.5' />
-													{ch.participantCount.toLocaleString()} participants
+													{t('participantsCount', {
+														count: ch.participantCount,
+													})}
 												</span>
 												{ch.hasContributed ? (
 													<span className='font-medium text-success'>
-														✓ You contributed
+														✓ {t('youContributed')}
 													</span>
 												) : (
 													<button
+														type='button'
 														onClick={() =>
-															router.push(
-																`/explore?q=${encodeURIComponent(ch.title)}`,
-															)
+															startNavigationTransition(() => {
+																router.push(
+																	`/explore?q=${encodeURIComponent(ch.title)}`,
+																)
+															})
 														}
-														className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80'
+														disabled={isNavigating}
+														className='flex items-center gap-1 rounded-lg font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 													>
-														Cook to contribute!
+														{t('cookToContribute')}
 														<ChevronRight className='size-3.5' />
 													</button>
 												)}
@@ -453,7 +470,7 @@ export default function ChallengesPage() {
 								<div className='mb-4 flex items-center gap-2'>
 									<Leaf className='size-5 text-streak' />
 									<h2 className='text-lg font-bold text-text'>
-										Seasonal Events
+										{t('seasonalEvents')}
 									</h2>
 								</div>
 								<div className='space-y-4'>
@@ -504,7 +521,7 @@ export default function ChallengesPage() {
 
 												{/* Per-user progress */}
 												<div className='mb-2'>
-													<div className='mb-1 flex justify-between text-xs text-text-muted'>
+													<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 														<span>
 															{ev.userProgress} / {ev.targetCount}{' '}
 															{ev.targetUnit}
@@ -525,7 +542,7 @@ export default function ChallengesPage() {
 																width: `${ev.targetCount > 0 ? Math.min((ev.userProgress / ev.targetCount) * 100, 100) : 0}%`,
 															}}
 															transition={{
-																duration: 1,
+																duration: DURATION_S.dramatic,
 																ease: 'easeOut',
 															}}
 															className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
@@ -537,15 +554,15 @@ export default function ChallengesPage() {
 												<div className='flex items-center justify-between text-xs text-text-muted'>
 													<span className='flex items-center gap-1'>
 														<Clock className='size-3.5' />
-														{formatTimeRemaining(ev.endsAt)}
+														{formatEventTimeRemaining(ev.endsAt, t)}
 													</span>
 													<div className='flex items-center gap-2'>
 														{ev.rewardBadgeName && (
-															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning'>
+															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-2xs font-semibold text-warning'>
 																🏅 {ev.rewardBadgeName}
 															</span>
 														)}
-														<span className='font-bold text-xp'>
+														<span className='tabular-nums font-bold text-xp'>
 															+{ev.rewardXp} XP
 														</span>
 													</div>
@@ -555,19 +572,25 @@ export default function ChallengesPage() {
 												{ev.featuredRecipes &&
 													ev.featuredRecipes.length > 0 && (
 														<button
+															type='button'
 															onClick={() =>
-																router.push(`/explore?seasonal=${ev.id}`)
+																startNavigationTransition(() => {
+																	router.push(`/explore?seasonal=${ev.id}`)
+																})
 															}
-															className='mt-3 flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand/80'
+															disabled={isNavigating}
+															className='mt-3 flex items-center gap-1 rounded-lg text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
-															{ev.featuredRecipes.length} featured recipes
+															{t('featuredRecipesCount', {
+																count: ev.featuredRecipes.length,
+															})}
 															<ChevronRight className='size-3.5' />
 														</button>
 													)}
 
 												{ev.userCompleted && (
 													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-														✓ +{ev.rewardXp} XP Awarded
+														✓ +{ev.rewardXp} {t('xpAwarded')}
 													</div>
 												)}
 											</div>
@@ -589,10 +612,10 @@ export default function ChallengesPage() {
 									</div>
 									<div>
 										<h3 className='font-semibold text-text'>
-											Challenge History
+											{t('challengeHistory')}
 										</h3>
 										<p className='text-sm text-text-muted'>
-											View your past challenges and achievements
+											{t('challengeHistoryDesc')}
 										</p>
 									</div>
 								</div>
@@ -601,6 +624,9 @@ export default function ChallengesPage() {
 						</section>
 					</>
 				)}
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

@@ -1,6 +1,6 @@
 'use client'
-
-import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -19,13 +19,22 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { useAuth } from '@/hooks/useAuth'
-import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
+import { formatShortTimeAgo, cn } from '@/lib/utils'
+import {
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+	BUTTON_SUBTLE_TAP,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 import {
 	getNotifications,
 	markAllNotificationsRead,
@@ -74,20 +83,33 @@ interface SocialNotification {
 // HELPERS
 // ============================================
 
-const formatTimeAgo = (date: Date): string => {
-	const now = new Date()
-	const diffMs = now.getTime() - date.getTime()
-	const diffMins = Math.floor(diffMs / 60000)
-	const diffHours = Math.floor(diffMs / 3600000)
-	const diffDays = Math.floor(diffMs / 86400000)
+// Parse structured values from content string when data field is missing
+function parseXpFromContent(content?: string): { xp: number; recipe: string } {
+	if (!content) return { xp: 0, recipe: 'Recipe' }
+	const xpMatch = content.match(/(\d+)\s*XP/i)
+	const recipeMatch = content.match(/completing\s+(.+?)(?:[!.]|$)/i)
+	return {
+		xp: xpMatch ? parseInt(xpMatch[1], 10) : 0,
+		recipe: recipeMatch ? recipeMatch[1].trim().replace(/!$/, '') : 'Recipe',
+	}
+}
 
-	if (diffMins < 1) return 'Just now'
-	if (diffMins < 60) return `${diffMins}m ago`
-	if (diffHours < 24) return `${diffHours}h ago`
-	if (diffDays === 1) return 'Yesterday'
-	if (diffDays < 7) return `${diffDays}d ago`
-	if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+function parseLevelFromContent(content?: string): number | undefined {
+	if (!content) return undefined
+	const m = content.match(/Level\s+(\d+)/i)
+	return m ? parseInt(m[1], 10) : undefined
+}
+
+function parseStreakFromContent(content?: string): number {
+	if (!content) return 0
+	const m = content.match(/(\d+)[- ]day/i)
+	return m ? parseInt(m[1], 10) : 0
+}
+
+function parseDaysFromContent(content?: string): number {
+	if (!content) return 0
+	const m = content.match(/(\d+)\s*days?\s*(?:remaining|left)/i)
+	return m ? parseInt(m[1], 10) : 0
 }
 
 // Transform API notification to gamified format
@@ -98,26 +120,31 @@ const transformToGamifiedNotification = (
 	const timestamp = new Date(notif.createdAt)
 
 	switch (notif.type) {
-		case 'XP_AWARDED':
+		case 'XP_AWARDED': {
+			const parsed = parseXpFromContent(notif.content)
 			return {
 				id: notif.id,
 				type: 'xp_awarded',
-				recipeName: (data.recipeName as string) || 'Recipe',
-				xpAmount: (data.xpAmount as number) || 0,
+				recipeName: (data.recipeName as string) || parsed.recipe,
+				xpAmount: (data.xpAmount as number) || parsed.xp,
 				pendingXp: (data.pendingXp as number) || 0,
 				timestamp,
 				isRead: notif.isRead,
 			}
-		case 'LEVEL_UP':
+		}
+		case 'LEVEL_UP': {
+			const parsedLevel =
+				(data.newLevel as number) ?? parseLevelFromContent(notif.content)
 			return {
 				id: notif.id,
 				type: 'level_up',
-				newLevel: (data.newLevel as number) ?? undefined,
+				newLevel: parsedLevel,
 				newGoalXp: (data.newGoalXp as number) ?? undefined,
 				recipesToNextLevel: (data.recipesToNextLevel as number) ?? undefined,
 				timestamp,
 				isRead: notif.isRead,
 			}
+		}
 		case 'BADGE_EARNED':
 			return {
 				id: notif.id,
@@ -145,6 +172,70 @@ const transformToGamifiedNotification = (
 				timestamp,
 				isRead: notif.isRead,
 			}
+		case 'STREAK_WARNING':
+			return {
+				id: notif.id,
+				type: 'streak_warning',
+				streakCount:
+					(data.streakCount as number) || parseStreakFromContent(notif.content),
+				hoursRemaining: (data.hoursRemaining as number) || 0,
+				timestamp,
+				isRead: notif.isRead,
+			}
+		case 'POST_DEADLINE': {
+			const days =
+				(data.daysRemaining as number) || parseDaysFromContent(notif.content)
+			return {
+				id: notif.id,
+				type: days <= 1 ? 'post_deadline_urgent' : 'post_deadline',
+				recipeName: (data.recipeName as string) || 'Recipe',
+				daysRemaining: days,
+				pendingXp: (data.pendingXp as number) || 0,
+				...(days <= 1
+					? {
+							originalXp: (data.originalXp as number) || 0,
+							decayPercent: (data.decayPercent as number) || 0,
+						}
+					: {}),
+				timestamp,
+				isRead: notif.isRead,
+			} as GamifiedNotification
+		}
+		case 'CHALLENGE_AVAILABLE':
+		case 'CHALLENGE_REMINDER':
+			return {
+				id: notif.id,
+				type: 'challenge_reminder',
+				challengeTitle: (data.challengeTitle as string) || 'Challenge',
+				challengeDescription: (data.challengeDescription as string) || '',
+				xpBonusPercent: (data.xpBonusPercent as number) || 0,
+				hoursRemaining: (data.hoursRemaining as number) || 24,
+				timestamp,
+				isRead: notif.isRead,
+			}
+		case 'WEEKEND_NUDGE':
+			return {
+				id: notif.id,
+				type: 'weekend_nudge',
+				content:
+					notif.content ||
+					(data.content as string) ||
+					"It's the weekend — perfect time to try a new recipe!",
+				timestamp,
+				isRead: notif.isRead,
+			}
+		case 'PANTRY_EXPIRING':
+			return {
+				id: notif.id,
+				type: 'pantry_expiring',
+				content:
+					notif.content ||
+					(data.content as string) ||
+					'Some ingredients are expiring soon',
+				daysRemaining: (data.daysRemaining as number) || 3,
+				timestamp,
+				isRead: notif.isRead,
+			}
 		default:
 			return null
 	}
@@ -161,8 +252,19 @@ const transformToSocialNotification = (
 		NEW_FOLLOWER: 'follow',
 		FOLLOW: 'follow',
 		POST_LIKE: 'like',
+		RECIPE_LIKED: 'like',
 		POST_COMMENT: 'comment',
 		USER_MENTION: 'mention',
+		ROOM_INVITE: 'cook',
+		CO_CHEF_TAGGED: 'mention',
+		DUEL_INVITE: 'cook',
+		DUEL_ACCEPTED: 'cook',
+		DUEL_DECLINED: 'cook',
+		DUEL_COMPLETED: 'achievement',
+		DUEL_EXPIRED: 'cook',
+		JOIN_REQUESTED: 'follow',
+		MEMBER_JOINED: 'follow',
+		JOIN_REQUEST_APPROVED: 'follow',
 	}
 
 	const type = typeMap[notif.type]
@@ -189,7 +291,7 @@ const transformToSocialNotification = (
 			notif.targetEntityId || (data.targetEntityId as string) || undefined,
 		targetEntityUrl:
 			notif.targetEntityUrl || (data.targetEntityUrl as string) || undefined,
-		time: formatTimeAgo(timestamp),
+		time: formatShortTimeAgo(timestamp),
 		read: notif.isRead,
 		createdAt: timestamp,
 	}
@@ -243,48 +345,59 @@ const FilterTabs = ({
 	onFilterChange,
 	counts,
 }: FilterTabsProps) => {
+	const t = useTranslations('notifications')
 	const filters: {
 		id: NotificationFilter
 		label: string
 		icon: typeof Bell
 	}[] = [
-		{ id: 'all', label: 'All', icon: Bell },
-		{ id: 'gamified', label: 'Activity', icon: Sparkles },
-		{ id: 'social', label: 'Social', icon: Heart },
-		{ id: 'unread', label: 'Unread', icon: Filter },
+		{ id: 'all', label: t('filterAll'), icon: Bell },
+		{ id: 'gamified', label: t('filterActivity'), icon: Sparkles },
+		{ id: 'social', label: t('filterSocial'), icon: Heart },
+		{ id: 'unread', label: t('filterUnread'), icon: Filter },
 	]
 
 	return (
-		<div className='flex gap-2 overflow-x-auto pb-2'>
+		<div
+			role='tablist'
+			aria-label={t('filterLabel')}
+			className='grid grid-cols-4 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-2 sm:pr-8 scrollbar-hide'
+		>
 			{filters.map(filter => {
 				const count = counts[filter.id]
 				const Icon = filter.icon
 				const isActive = activeFilter === filter.id
 
 				return (
-					<button
+					<motion.button
+						type='button'
 						key={filter.id}
+						role='tab'
+						aria-selected={isActive}
 						onClick={() => onFilterChange(filter.id)}
+						whileTap={BUTTON_SUBTLE_TAP}
 						className={cn(
-							'flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all',
+							'flex items-center justify-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50 sm:gap-1.5 sm:px-3 sm:text-sm',
 							isActive
-								? 'bg-brand text-white shadow-card'
+								? 'border border-brand/20 bg-brand/10 text-brand-text shadow-card'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
 						)}
 					>
-						<Icon className='size-4' />
+						<Icon className='hidden size-4 sm:block' />
 						{filter.label}
 						{count > 0 && (
 							<span
 								className={cn(
-									'rounded-full px-1.5 py-0.5 text-xs font-bold',
-									isActive ? 'bg-white/20' : 'bg-brand/10 text-brand',
+									'min-w-5 tabular-nums rounded-full px-1 py-0.5 text-center text-xs font-bold sm:min-w-6 sm:px-1.5',
+									isActive
+										? 'bg-brand/15 text-brand-text'
+										: 'bg-brand/10 text-brand',
 								)}
 							>
 								{count}
 							</span>
 						)}
-					</button>
+					</motion.button>
 				)
 			})}
 		</div>
@@ -316,6 +429,8 @@ const SocialNotificationItem = ({
 	onMarkRead,
 }: SocialNotificationItemProps) => {
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
+	const t = useTranslations('notifications')
 	const { icon: Icon, color, bg } = getNotificationIcon(type)
 
 	const handleClick = () => {
@@ -323,29 +438,50 @@ const SocialNotificationItem = ({
 			onMarkRead(id)
 		}
 		// Navigate based on type — use targetEntityUrl first, then derive from type
-		if (targetEntityUrl) {
-			router.push(targetEntityUrl)
-		} else if (type === 'follow' && userId) {
-			router.push(`/${userId}`)
-		} else if (
-			(type === 'like' || type === 'comment' || type === 'mention') &&
-			targetEntityId
-		) {
-			router.push(`/post/${targetEntityId}`)
+		let resolved = false
+		startNavigationTransition(() => {
+			if (targetEntityUrl) {
+				router.push(targetEntityUrl)
+				resolved = true
+			} else if (type === 'follow' && userId) {
+				router.push(`/${userId}`)
+				resolved = true
+			} else if (
+				(type === 'like' || type === 'comment' || type === 'mention') &&
+				targetEntityId
+			) {
+				router.push(`/post/${targetEntityId}`)
+				resolved = true
+			} else if (type === 'cook' || type === 'achievement') {
+				router.push('/dashboard')
+				resolved = true
+			}
+		})
+		if (!resolved) {
+			toast.error(t('navigationUnavailable'))
 		}
 	}
 
 	return (
 		<motion.div
 			variants={staggerItem}
+			whileHover={LIST_ITEM_HOVER}
+			whileTap={LIST_ITEM_TAP}
 			onClick={handleClick}
 			className={cn(
 				'group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all hover:shadow-card',
 				read
 					? 'border-transparent bg-bg-card'
 					: 'border-brand/20 bg-brand/5 hover:border-brand/30',
+				isNavigating && 'opacity-50 pointer-events-none',
 			)}
 		>
+			{/* Loading indicator */}
+			{isNavigating && (
+				<div className='absolute inset-0 grid place-items-center rounded-xl bg-bg-card/50'>
+					<Loader2 className='size-5 animate-spin text-brand' />
+				</div>
+			)}
 			{/* Unread indicator */}
 			{!read && (
 				<div className='absolute left-2 top-1/2 size-2 -translate-y-1/2 rounded-full bg-brand' />
@@ -400,8 +536,10 @@ const SocialNotificationItem = ({
 
 export default function NotificationsPage() {
 	const { user } = useAuth()
+	const t = useTranslations('notifications')
 	const router = useRouter()
 	const { setUnreadCount, fetchUnreadCount } = useNotificationStore()
+	const [isNavigating, startNavigationTransition] = useTransition()
 
 	const [gamifiedNotifications, setGamifiedNotifications] = useState<
 		GamifiedNotification[]
@@ -438,22 +576,8 @@ export default function NotificationsPage() {
 							if (socialNotif) {
 								social.push(socialNotif)
 							} else {
-								// Fallback: show unknown types as generic social notifications
-								social.push({
-									id: notif.id,
-									type: 'achievement',
-									userId: notif.latestActorId || '',
-									user: notif.latestActorName || 'ChefKix',
-									avatar:
-										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
-									action:
-										notif.content ||
-										notif.body ||
-										'You have a new notification',
-									time: formatTimeAgo(new Date(notif.createdAt)),
-									read: notif.isRead,
-									createdAt: new Date(notif.createdAt),
-								})
+								// Unknown notification type — skip rather than show broken UI
+								logDevError(`Unhandled notification type: ${notif.type}`, notif)
 							}
 						}
 					})
@@ -498,11 +622,11 @@ export default function NotificationsPage() {
 				setSocialNotifications(prev => prev.map(n => ({ ...n, read: true })))
 				setUnreadCount(0)
 			} else {
-				toast.error('Failed to mark notifications as read')
+				toast.error(t('failedToMarkRead'))
 			}
 		} catch (err) {
 			logDevError('Failed to mark all as read:', err)
-			toast.error('Failed to mark notifications as read')
+			toast.error(t('failedToMarkRead'))
 		} finally {
 			setIsMarkingAllRead(false)
 		}
@@ -531,7 +655,7 @@ export default function NotificationsPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to mark notification as read:', err)
-			toast.error('Failed to update notification')
+			toast.error(t('failedToUpdate'))
 		}
 	}
 
@@ -567,8 +691,8 @@ export default function NotificationsPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<ErrorState
-						title='Failed to load notifications'
-						message="We couldn't load your notifications. Please try again."
+						title={t('failedToLoad')}
+						message={t('failedToLoadDesc')}
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)
@@ -582,27 +706,34 @@ export default function NotificationsPage() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full border border-brand/20 bg-bg-card px-4 py-2 text-sm font-semibold text-brand-text shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							{t('loading')}
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='lg'>
 				{/* Header - PRIMARY page (in LeftSidebar), no back button */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-6'
-				>
-					<div className='mb-2 flex items-center justify-between'>
-						<div className='flex items-center gap-3'>
-							<motion.div
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
-							>
-								<Bell className='size-6 text-white' />
-							</motion.div>
-							<h1 className='text-3xl font-bold text-text'>Notifications</h1>
-						</div>
-						{counts.unread > 0 && (
+				<PageHeader
+					icon={Bell}
+					title={t('title')}
+					subtitle=''
+					showSparkles={false}
+					gradient='blue'
+					marginBottom='sm'
+					rightAction={
+						counts.unread > 0 ? (
 							<Button
 								variant='ghost'
 								size='sm'
@@ -615,23 +746,20 @@ export default function NotificationsPage() {
 								) : (
 									<CheckCheck className='size-4' />
 								)}
-								Mark all read
+								{t('markAllRead')}
 							</Button>
-						)}
-					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Stay updated with your cooking journey
-					</p>
-				</motion.div>
+						) : null
+					}
+				/>
 
 				{/* Filter Tabs */}
-				<div className='mb-6'>
+				<div className='relative mb-3'>
 					<FilterTabs
 						activeFilter={activeFilter}
 						onFilterChange={setActiveFilter}
 						counts={counts}
 					/>
+					<div className='pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-bg to-transparent sm:block' />
 				</div>
 
 				{/* Loading State — content-shaped skeleton */}
@@ -642,12 +770,12 @@ export default function NotificationsPage() {
 								key={i}
 								className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
 							>
-								<div className='size-10 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+								<Skeleton className='size-10 shrink-0 rounded-full' />
 								<div className='flex-1 space-y-2'>
-									<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated/40' />
-									<div className='h-3 w-1/2 animate-pulse rounded bg-bg-elevated/40' />
+									<Skeleton className='h-4 w-3/4' />
+									<Skeleton className='h-3 w-1/2' />
 								</div>
-								<div className='h-3 w-12 animate-pulse rounded bg-bg-elevated/40' />
+								<Skeleton className='h-3 w-12' />
 							</div>
 						))}
 					</div>
@@ -657,20 +785,20 @@ export default function NotificationsPage() {
 				{!isLoading && !hasNotifications && (
 					<EmptyState
 						variant='notifications'
-						title='No notifications yet'
+						title={t('noNotificationsYet')}
 						description={
 							activeFilter === 'unread'
-								? "You're all caught up! No unread notifications."
-								: 'Your notification feed will fill up as you cook and interact with others.'
+								? t('noUnread')
+								: t('noNotificationsDesc')
 						}
 						primaryAction={
 							activeFilter !== 'all'
 								? {
-										label: 'View All',
+										label: t('viewAll'),
 										onClick: () => setActiveFilter('all'),
 									}
 								: {
-										label: 'Explore Recipes',
+										label: t('exploreRecipes'),
 										href: '/explore',
 									}
 						}
@@ -683,16 +811,19 @@ export default function NotificationsPage() {
 						variants={staggerContainer}
 						initial='hidden'
 						animate='visible'
-						className='space-y-3'
+						role='log'
+						aria-live='polite'
+						aria-label={t('notificationsList')}
+						className='space-y-2'
 					>
 						{/* Gamified Notifications */}
 						{filtered.gamified.length > 0 && (
 							<>
 								{activeFilter === 'all' && (
-									<div className='flex items-center gap-2 py-2'>
+									<div className='flex items-center gap-2 py-1'>
 										<Sparkles className='size-4 text-xp' />
 										<span className='text-sm font-semibold text-text-secondary'>
-											Activity
+											{t('activitySection')}
 										</span>
 									</div>
 								)}
@@ -700,10 +831,16 @@ export default function NotificationsPage() {
 									// Add callbacks based on notification type
 									const extraProps: Record<string, unknown> = {}
 									if (notif.type === 'xp_awarded') {
-										extraProps.onPost = () => router.push('/create')
+										extraProps.onPost = () =>
+											startNavigationTransition(() => {
+												router.push('/create')
+											})
 									}
 									if (notif.type === 'streak_warning') {
-										extraProps.onFindRecipe = () => router.push('/explore')
+										extraProps.onFindRecipe = () =>
+											startNavigationTransition(() => {
+												router.push('/explore')
+											})
 									}
 									return (
 										<NotificationItemGamified
@@ -720,10 +857,10 @@ export default function NotificationsPage() {
 						{filtered.social.length > 0 && (
 							<>
 								{activeFilter === 'all' && (
-									<div className='flex items-center gap-2 py-2'>
+									<div className='flex items-center gap-2 py-1'>
 										<Heart className='size-4 text-error' />
 										<span className='text-sm font-semibold text-text-secondary'>
-											Social
+											{t('socialSection')}
 										</span>
 									</div>
 								)}
@@ -739,6 +876,8 @@ export default function NotificationsPage() {
 						)}
 					</motion.div>
 				)}
+				{/* Bottom breathing room */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

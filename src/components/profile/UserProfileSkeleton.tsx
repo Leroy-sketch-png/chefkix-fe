@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+﻿import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 interface UserProfileSkeletonProps {
@@ -37,7 +37,7 @@ export const UserProfileSkeleton = ({
 					{/* Avatar and Name Row */}
 					<div className='mb-6 flex flex-col items-center gap-6 md:flex-row md:items-end'>
 						{/* Large Avatar */}
-						<Skeleton className='h-32 w-32 shrink-0 rounded-full border-4 border-bg-card shadow-lg md:h-40 md:w-40' />
+						<Skeleton className='size-32 shrink-0 rounded-full border-4 border-bg-card shadow-lg md:h-40 md:w-40' />
 
 						{/* Name and Bio Section */}
 						<div className='flex-1 space-y-4 text-center md:text-left'>
@@ -50,7 +50,7 @@ export const UserProfileSkeleton = ({
 							{/* Bio - 2 lines */}
 							<div className='space-y-2'>
 								<Skeleton className='mx-auto h-4 w-full max-w-xl md:mx-0' />
-								<Skeleton className='mx-auto h-4 w-4/5 max-w-lg md:mx-0' />
+								<Skeleton className='mx-auto size-4/5 max-w-lg md:mx-0' />
 							</div>
 						</div>
 
@@ -90,10 +90,10 @@ export const UserProfileSkeleton = ({
 
 					{/* Badges Row */}
 					<div className='mt-6 flex flex-wrap gap-3'>
-						<Skeleton className='h-16 w-16 rounded-sm' />
-						<Skeleton className='h-16 w-16 rounded-sm' />
-						<Skeleton className='h-16 w-16 rounded-sm' />
-						<Skeleton className='h-16 w-16 rounded-sm' />
+						<Skeleton className='size-16 rounded-sm' />
+						<Skeleton className='size-16 rounded-sm' />
+						<Skeleton className='size-16 rounded-sm' />
+						<Skeleton className='size-16 rounded-sm' />
 					</div>
 				</div>
 			</div>

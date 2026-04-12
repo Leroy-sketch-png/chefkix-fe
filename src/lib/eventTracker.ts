@@ -6,12 +6,31 @@ const BATCH_INTERVAL_MS = 10_000
 const MAX_BATCH_SIZE = 50
 const DWELL_THRESHOLD_MS = 2_000
 const SEARCH_DEBOUNCE_MS = 500
+const TRACKING_OPTOUT_KEY = 'chefkix_tracking_optout'
+
+export function isTrackingOptedOut(): boolean {
+	if (typeof window === 'undefined') return false
+	return localStorage.getItem(TRACKING_OPTOUT_KEY) === 'true'
+}
+
+export function setTrackingOptOut(optOut: boolean) {
+	if (typeof window === 'undefined') return
+	if (optOut) {
+		localStorage.setItem(TRACKING_OPTOUT_KEY, 'true')
+		// Stop tracker immediately
+		destroyEventTracker()
+	} else {
+		localStorage.removeItem(TRACKING_OPTOUT_KEY)
+	}
+}
 
 let eventQueue: TrackingEvent[] = []
 let flushTimer: ReturnType<typeof setInterval> | null = null
 let initialized = false
 
 function enqueue(event: TrackingEvent) {
+	if (isTrackingOptedOut()) return
+
 	eventQueue.push({
 		...event,
 		timestamp: event.timestamp || new Date().toISOString(),
@@ -29,8 +48,11 @@ async function flush() {
 
 	try {
 		await api.post(API_ENDPOINTS.EVENTS.TRACK, { events: batch })
-	} catch {
-		// On failure, re-enqueue at front for next flush
+	} catch (err: unknown) {
+		// Don't re-enqueue on auth errors — user isn't logged in, data would be rejected anyway
+		const status = (err as { response?: { status?: number } })?.response?.status
+		if (status === 401 || status === 403) return
+		// On transient failure, re-enqueue at front for next flush
 		eventQueue.unshift(...batch)
 	}
 }
@@ -53,6 +75,7 @@ function flushBeacon() {
 
 export function initEventTracker() {
 	if (initialized || typeof window === 'undefined') return
+	if (isTrackingOptedOut()) return
 
 	flushTimer = setInterval(flush, BATCH_INTERVAL_MS)
 
@@ -92,14 +115,16 @@ export function trackPageView(path: string) {
 // ─── Dwell Tracking ──────────────────────────────────────────────────
 
 const dwellTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const dwellStartTimes = new Map<string, number>()
 
 export function startDwellTracking(entityId: string, entityType: string) {
 	if (dwellTimers.has(entityId)) return
 
+	// Record when the user started dwelling
+	dwellStartTimes.set(entityId, Date.now())
+
 	const timer = setTimeout(() => {
-		trackEvent('POST_DWELLED', entityId, entityType, {
-			dwellMs: DWELL_THRESHOLD_MS,
-		})
+		// After threshold, keep tracking — actual dwell will be sent on stop
 		dwellTimers.delete(entityId)
 	}, DWELL_THRESHOLD_MS)
 
@@ -111,6 +136,17 @@ export function stopDwellTracking(entityId: string) {
 	if (timer) {
 		clearTimeout(timer)
 		dwellTimers.delete(entityId)
+	}
+
+	const startTime = dwellStartTimes.get(entityId)
+	if (startTime) {
+		const dwellMs = Date.now() - startTime
+		dwellStartTimes.delete(entityId)
+
+		// Only track if user dwelled longer than threshold
+		if (dwellMs >= DWELL_THRESHOLD_MS) {
+			trackEvent('POST_DWELLED', entityId, 'post', { dwellMs })
+		}
 	}
 }
 
@@ -144,4 +180,13 @@ export function trackScrollDepth(depth: number) {
 
 export function resetScrollDepth() {
 	lastScrollDepth = 0
+}
+
+export async function deleteMyEventData(): Promise<boolean> {
+	try {
+		await api.delete(API_ENDPOINTS.EVENTS.DELETE_MY_DATA)
+		return true
+	} catch {
+		return false
+	}
 }

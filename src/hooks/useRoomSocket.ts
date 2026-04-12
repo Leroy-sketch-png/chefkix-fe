@@ -5,6 +5,12 @@ import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
 import { logDevError } from '@/lib/dev-log'
 import type { RoomEvent, RoomEventPayload } from '@/lib/types/room'
+import {
+	getFreshWebSocketAccessToken,
+	getReadableWebSocketError,
+	getWebSocketUrl,
+	WEBSOCKET_SESSION_EXPIRED_MESSAGE,
+} from '@/lib/websocket-auth'
 
 interface UseRoomSocketOptions {
 	/** Room code to subscribe to (null = don't connect) */
@@ -66,14 +72,18 @@ export function useRoomSocket({
 			return
 		}
 
-		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
-		const wsBase = apiBase.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}/api/v1/ws`
-
 		const client = new Client({
-			brokerURL: wsUrl,
-			connectHeaders: {
-				Authorization: `Bearer ${accessToken}`,
+			brokerURL: getWebSocketUrl(),
+			beforeConnect: async () => {
+				const token = await getFreshWebSocketAccessToken()
+				if (!token) {
+					setError(WEBSOCKET_SESSION_EXPIRED_MESSAGE)
+					throw new Error('Missing access token for room socket')
+				}
+
+				client.connectHeaders = {
+					Authorization: `Bearer ${token}`,
+				}
 			},
 			debug: () => {},
 			reconnectDelay: 5000,
@@ -87,8 +97,9 @@ export function useRoomSocket({
 				setIsConnected(false)
 			},
 			onStompError: frame => {
+				const errorMessage = getReadableWebSocketError(frame.headers['message'])
 				logDevError('[RoomSocket] STOMP error:', frame.headers['message'])
-				setError(frame.headers['message'] || 'Connection error')
+				setError(errorMessage)
 				setIsConnected(false)
 			},
 			onWebSocketError: () => {

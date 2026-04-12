@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { ChefHat, MessageSquare, Star, TrendingUp } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -12,6 +13,8 @@ import {
 } from '@/components/ui/tooltip'
 import { getRecipeSocialProof } from '@/services/heartbeat'
 import type { RecipeSocialProofResponse } from '@/lib/types/heartbeat'
+import { useTranslations } from 'next-intl'
+import { formatShortTimeAgo } from '@/lib/utils'
 
 interface SocialProofProps {
 	recipeId: string
@@ -33,20 +36,9 @@ function getInitials(
 	return '?'
 }
 
-function formatTimeAgo(iso: string): string {
-	const diff = Date.now() - new Date(iso).getTime()
-	const minutes = Math.floor(diff / 60_000)
-	if (minutes < 60) return `${minutes}m ago`
-	const hours = Math.floor(minutes / 60)
-	if (hours < 24) return `${hours}h ago`
-	const days = Math.floor(hours / 24)
-	if (days < 7) return `${days}d ago`
-	const weeks = Math.floor(days / 7)
-	return `${weeks}w ago`
-}
-
 export function SocialProof({ recipeId }: SocialProofProps) {
 	const [data, setData] = useState<RecipeSocialProofResponse | null>(null)
+	const t = useTranslations('recipe')
 
 	useEffect(() => {
 		let cancelled = false
@@ -71,13 +63,15 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 		<motion.div
 			initial={{ opacity: 0, y: 16 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ delay: 0.55, duration: 0.4 }}
+			transition={{ delay: 0.55, duration: DURATION_S.smooth }}
 			className='mb-8 rounded-2xl border border-brand/15 bg-gradient-to-br from-brand/5 via-transparent to-success/5 p-5 shadow-card'
 		>
 			{/* Header */}
 			<div className='mb-4 flex items-center gap-2'>
 				<TrendingUp className='size-5 text-brand' />
-				<h3 className='text-lg font-bold text-text'>Community Activity</h3>
+				<h3 className='text-lg font-bold text-text'>
+					{t('communityActivity')}
+				</h3>
 			</div>
 
 			{/* Stats row */}
@@ -88,11 +82,13 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<ChefHat className='size-4 text-success' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text'>
+							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
 								{data.cookCount}
 							</p>
 							<p className='text-xs text-text-muted'>
-								{data.cookCount === 1 ? 'person cooked this' : 'people cooked this'}
+								{data.cookCount === 1
+									? t('personCookedThis', { count: 1 })
+									: t('personCookedThis', { count: data.cookCount })}
 							</p>
 						</div>
 					</div>
@@ -103,11 +99,13 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<MessageSquare className='size-4 text-brand' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text'>
+							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
 								{data.postCount}
 							</p>
 							<p className='text-xs text-text-muted'>
-								{data.postCount === 1 ? 'post shared' : 'posts shared'}
+								{data.postCount === 1
+									? t('postShared', { count: 1 })
+									: t('postShared', { count: data.postCount })}
 							</p>
 						</div>
 					</div>
@@ -118,10 +116,10 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<Star className='size-4 text-xp' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text'>
+							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
 								{data.averageRating.toFixed(1)}
 							</p>
-							<p className='text-xs text-text-muted'>avg rating</p>
+							<p className='text-xs text-text-muted'>{t('avgRating')}</p>
 						</div>
 					</div>
 				)}
@@ -142,35 +140,33 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 											className='relative'
 											style={{ zIndex: maxVisible - i }}
 										>
-											<Avatar
-												size='sm'
-												className='ring-2 ring-bg-card'
-											>
+											<Avatar size='sm' className='ring-2 ring-bg-card'>
 												{cooker.avatarUrl && (
 													<AvatarImage
 														src={cooker.avatarUrl}
 														alt={
 															cooker.displayName ??
 															cooker.username ??
-															'Cooker'
+															t('cookerFallback')
 														}
 													/>
 												)}
 												<AvatarFallback className='text-xs'>
-													{getInitials(
-														cooker.displayName,
-														cooker.username,
-													)}
+													{getInitials(cooker.displayName, cooker.username)}
 												</AvatarFallback>
 											</Avatar>
 										</motion.div>
 									</TooltipTrigger>
 									<TooltipContent side='bottom' className='p-2'>
 										<p className='text-sm font-medium'>
-											{cooker.displayName ?? cooker.username ?? 'Chef'}
+											{cooker.displayName ??
+												cooker.username ??
+												t('chefFallback')}
 										</p>
 										<p className='text-xs text-text-muted'>
-											Cooked {formatTimeAgo(cooker.completedAt)}
+											{t('cookedTimeAgo', {
+												time: formatShortTimeAgo(cooker.completedAt),
+											})}
 										</p>
 									</TooltipContent>
 								</Tooltip>
@@ -194,17 +190,12 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 						<span className='font-medium text-text'>
 							{visibleCookers[0]?.displayName ??
 								visibleCookers[0]?.username ??
-								'Someone'}
+								t('someoneFallback')}
 						</span>
 						{visibleCookers.length > 1 && (
-							<>
-								{' '}and{' '}
-								<span className='font-medium text-text'>
-									{data.cookCount - 1} other{data.cookCount - 1 !== 1 ? 's' : ''}
-								</span>
-							</>
-						)}
-						{' '}cooked this
+							<> {t('andOthers', { count: data.cookCount - 1 })}</>
+						)}{' '}
+						{t('cookedThis')}
 					</p>
 				</div>
 			)}

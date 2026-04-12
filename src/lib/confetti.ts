@@ -7,6 +7,7 @@ export const triggerConfetti = (options?: confetti.Options) => {
 		particleCount: 100,
 		spread: 70,
 		origin: { y: 0.6 },
+		disableForReducedMotion: true,
 	}
 
 	confetti({
@@ -22,6 +23,7 @@ export const triggerSuccessConfetti = () => {
 		spread: 55,
 		origin: { x: 0 },
 		colors: ['#10b981', '#34d399', '#6ee7b7'],
+		disableForReducedMotion: true,
 	})
 
 	confetti({
@@ -30,13 +32,14 @@ export const triggerSuccessConfetti = () => {
 		spread: 55,
 		origin: { x: 1 },
 		colors: ['#10b981', '#34d399', '#6ee7b7'],
+		disableForReducedMotion: true,
 	})
 }
 
 /** Celebration for mutual follow (Instagram model: mutual = friends) */
 export const triggerMutualFollowConfetti = () => {
 	const count = 150
-	const defaults = { origin: { y: 0.7 } }
+	const defaults = { origin: { y: 0.7 }, disableForReducedMotion: true as const }
 
 	function fire(particleRatio: number, opts: confetti.Options) {
 		confetti({
@@ -97,7 +100,7 @@ export const triggerLikeConfetti = (element?: HTMLElement) => {
 /** Celebration for earning badges/achievements */
 export const triggerAchievementConfetti = () => {
 	const count = 150
-	const defaults = { origin: { y: 0.7 } }
+	const defaults = { origin: { y: 0.7 }, disableForReducedMotion: true as const }
 
 	function fire(particleRatio: number, opts: confetti.Options) {
 		confetti({
@@ -130,7 +133,7 @@ export const triggerAchievementConfetti = () => {
 export const triggerRecipeCompleteConfetti = () => {
 	const duration = 3000
 	const animationEnd = Date.now() + duration
-	const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
+	const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, disableForReducedMotion: true as const }
 
 	function randomInRange(min: number, max: number) {
 		return Math.random() * (max - min) + min
@@ -185,4 +188,71 @@ export const triggerSaveConfetti = (element?: HTMLElement) => {
 			disableForReducedMotion: true,
 		})
 	})
+}
+
+/**
+ * Progress milestone confetti for CookingPlayer.
+ * Triggered every 3 completed steps or at specific milestone steps.
+ * Uses a burst from the bottom with fire/cooking colors.
+ * @see PLAN-AGENT-BRAVO.md C-FE.5
+ */
+export const triggerProgressMilestoneConfetti = (stepNumber: number, totalSteps: number) => {
+	const isHalfway = stepNumber === Math.floor(totalSteps / 2)
+	const isAlmostDone = stepNumber === totalSteps - 1
+	
+	// Adjust intensity based on milestone significance
+	const particleMultiplier = isHalfway ? 1.5 : isAlmostDone ? 1.2 : 1
+	const count = Math.floor(60 * particleMultiplier)
+	
+	const defaults = { origin: { y: 0.9 } }
+	
+	function fire(particleRatio: number, opts: confetti.Options) {
+		confetti({
+			...defaults,
+			...opts,
+			particleCount: Math.floor(count * particleRatio),
+			disableForReducedMotion: true,
+		})
+	}
+	
+	// Fire/cooking themed colors (orange, red, gold)
+	fire(0.3, {
+		spread: 40,
+		startVelocity: 45,
+		colors: ['#ff5a36', '#f97316', '#fbbf24'], // Brand + fire colors
+	})
+	
+	fire(0.25, {
+		spread: 60,
+		colors: ['#ff5a36', '#f97316', '#fbbf24'],
+	})
+	
+	fire(0.3, {
+		spread: 100,
+		decay: 0.92,
+		scalar: 0.9,
+		colors: ['#f97316', '#fbbf24', '#facc15'],
+	})
+}
+
+/**
+ * Check if the current step should trigger milestone confetti.
+ * Rules: Every 3 steps, halfway point, or one step before completion.
+ */
+export const shouldTriggerMilestone = (
+	completedSteps: number,
+	totalSteps: number,
+): boolean => {
+	if (completedSteps === 0) return false
+	if (totalSteps < 3) return false // Too short for milestones
+	
+	const halfway = Math.floor(totalSteps / 2)
+	const almostDone = totalSteps - 1
+	
+	// Trigger every 3 completed steps, or at milestone points
+	return (
+		completedSteps % 3 === 0 ||
+		completedSteps === halfway ||
+		completedSteps === almostDone
+	)
 }

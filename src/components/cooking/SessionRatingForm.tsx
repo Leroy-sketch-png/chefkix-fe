@@ -8,8 +8,12 @@ import {
 	TRANSITION_BOUNCY,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	RATING_STAR_HOVER,
+	RATING_STAR_TAP,
 	SPRING_BOUNCY,
+	DURATION_S,
 } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // TYPES
@@ -33,6 +37,8 @@ interface StarRatingProps {
 	onRate: (rating: number) => void
 	onHover: (rating: number) => void
 	onLeave: () => void
+	recipeRatingLabel: string
+	starAriaLabel: (count: number) => string
 }
 
 function StarRating({
@@ -41,6 +47,8 @@ function StarRating({
 	onRate,
 	onHover,
 	onLeave,
+	recipeRatingLabel,
+	starAriaLabel,
 }: StarRatingProps) {
 	const displayRating = hoverRating || rating
 
@@ -49,7 +57,7 @@ function StarRating({
 			className='flex items-center justify-center gap-1'
 			onMouseLeave={onLeave}
 			role='radiogroup'
-			aria-label='Recipe rating'
+			aria-label={recipeRatingLabel}
 		>
 			{[1, 2, 3, 4, 5].map(star => {
 				const isFilled = star <= displayRating
@@ -65,10 +73,10 @@ function StarRating({
 						onClick={() => onRate(star)}
 						onMouseEnter={() => onHover(star)}
 						onTouchStart={() => onHover(star)}
-						whileHover={{ scale: 1.2 }}
-						whileTap={{ scale: 0.9 }}
+						whileHover={RATING_STAR_HOVER}
+						whileTap={RATING_STAR_TAP}
 						className='relative p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 rounded-full'
-						aria-label={`${star} star${star > 1 ? 's' : ''}`}
+						aria-label={starAriaLabel(star)}
 					>
 						{/* Background star (outline) */}
 						<Star
@@ -106,7 +114,7 @@ function StarRating({
 									initial={{ scale: 0, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
 									exit={{ scale: 0, opacity: 0 }}
-									transition={{ duration: 0.2 }}
+									transition={{ duration: DURATION_S.normal }}
 									className='absolute -top-1 -right-1'
 								>
 									<span className='text-xs'>✨</span>
@@ -124,12 +132,12 @@ function StarRating({
 // RATING LABELS
 // ============================================
 
-const RATING_LABELS: Record<number, string> = {
-	1: 'Struggled a bit',
-	2: 'It was okay',
-	3: 'Good cook!',
-	4: 'Great success!',
-	5: 'Nailed it! 🔥',
+const RATING_LABEL_KEYS: Record<number, string> = {
+	1: 'ratingStruggled',
+	2: 'ratingOkay',
+	3: 'ratingGood',
+	4: 'ratingGreat',
+	5: 'ratingNailed',
 }
 
 // ============================================
@@ -143,6 +151,7 @@ export function SessionRatingForm({
 	onSkip,
 	isSubmitting = false,
 }: SessionRatingFormProps) {
+	const t = useTranslations('cooking')
 	const [rating, setRating] = useState(0)
 	const [hoverRating, setHoverRating] = useState(0)
 	const [notes, setNotes] = useState('')
@@ -153,7 +162,9 @@ export function SessionRatingForm({
 		onSubmit(rating, notes.trim() || undefined)
 	}, [rating, notes, onSubmit])
 
-	const displayLabel = RATING_LABELS[hoverRating] || RATING_LABELS[rating]
+	const displayLabelKey =
+		RATING_LABEL_KEYS[hoverRating] || RATING_LABEL_KEYS[rating]
+	const displayLabel = displayLabelKey ? t(displayLabelKey) : undefined
 
 	return (
 		<div className='flex flex-col items-center'>
@@ -168,7 +179,9 @@ export function SessionRatingForm({
 			</motion.div>
 
 			{/* Title */}
-			<h2 className='mb-1 text-2xl font-bold text-text'>Recipe Complete!</h2>
+			<h2 className='mb-1 text-2xl font-bold text-text'>
+				{t('recipeComplete')}
+			</h2>
 			<p className='mb-4 text-sm text-text-secondary'>{recipeTitle}</p>
 
 			{/* XP Badge */}
@@ -178,7 +191,7 @@ export function SessionRatingForm({
 				transition={{ delay: 0.2, ...TRANSITION_BOUNCY }}
 				className='mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-xp px-6 py-3 text-xl font-bold text-white shadow-card'
 			>
-				<Zap className='size-6' /> +{xpEarned} XP
+				<Zap className='size-6' /> {t('cpXp', { xp: xpEarned })}
 			</motion.div>
 
 			{/* Rating Section */}
@@ -189,7 +202,7 @@ export function SessionRatingForm({
 				className='mb-4 text-center'
 			>
 				<p className='mb-3 text-sm font-medium text-text-secondary'>
-					How did it go?
+					{t('howDidItGo')}
 				</p>
 
 				<StarRating
@@ -198,6 +211,8 @@ export function SessionRatingForm({
 					onRate={setRating}
 					onHover={setHoverRating}
 					onLeave={() => setHoverRating(0)}
+					recipeRatingLabel={t('recipeRating')}
+					starAriaLabel={(count: number) => t('starAria', { count })}
 				/>
 
 				{/* Rating Label */}
@@ -225,10 +240,10 @@ export function SessionRatingForm({
 						exit={{ opacity: 0 }}
 						type='button'
 						onClick={() => setShowNotes(true)}
-						className='mb-4 flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors'
+						className='mb-4 flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageSquare className='size-4' />
-						Add a note (optional)
+						{t('addNote')}
 					</motion.button>
 				)}
 			</AnimatePresence>
@@ -245,12 +260,14 @@ export function SessionRatingForm({
 						<textarea
 							value={notes}
 							onChange={e => setNotes(e.target.value)}
-							placeholder='Any thoughts on this cook?'
-							className='w-full resize-none rounded-xl border border-border-subtle bg-bg p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+							placeholder={t('notePlaceholder')}
+							className='w-full resize-none rounded-xl border border-border-subtle bg-bg p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
 							rows={2}
 							maxLength={500}
 						/>
-						<p className='mt-1 text-right text-xs text-text-muted'>
+						<p
+							className={`mt-1 text-right text-xs ${notes.length > 400 ? (notes.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+						>
 							{notes.length}/500
 						</p>
 					</motion.div>
@@ -259,14 +276,15 @@ export function SessionRatingForm({
 
 			{/* Submit Button */}
 			<motion.button
+				type='button'
 				onClick={handleSubmit}
 				disabled={rating === 0 || isSubmitting}
 				whileHover={rating > 0 ? BUTTON_HOVER : undefined}
 				whileTap={rating > 0 ? BUTTON_TAP : undefined}
 				className={cn(
-					'w-full rounded-full py-3 font-bold text-white transition-all',
+					'w-full rounded-full py-3 font-bold text-white transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 					rating > 0
-						? 'bg-gradient-hero shadow-card hover:shadow-lg'
+						? 'bg-gradient-hero shadow-card hover:shadow-warm'
 						: 'cursor-not-allowed bg-border text-text-muted',
 					isSubmitting && 'opacity-70',
 				)}
@@ -279,12 +297,12 @@ export function SessionRatingForm({
 						>
 							⏳
 						</motion.span>
-						Saving...
+						{t('saving')}
 					</span>
 				) : rating > 0 ? (
-					'Complete Cooking 🎉'
+					t('completeCooking')
 				) : (
-					'Tap a star to rate ⭐'
+					t('tapToRate')
 				)}
 			</motion.button>
 
@@ -296,7 +314,7 @@ export function SessionRatingForm({
 					disabled={isSubmitting}
 					className='mt-3 text-sm text-text-muted transition-colors hover:text-text-secondary disabled:opacity-50'
 				>
-					Skip &mdash; rate later
+					{t('skipRateLater')}
 				</button>
 			)}
 		</div>

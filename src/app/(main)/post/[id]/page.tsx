@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 /**
  * Post Detail Page
@@ -32,6 +33,7 @@ export default function PostDetailPage() {
 	const params = useParams()
 	const router = useRouter()
 	const { user } = useAuth()
+	const t = useTranslations('post')
 	const postId = params.id as string
 
 	const [post, setPost] = useState<Post | null>(null)
@@ -49,15 +51,15 @@ export default function PostDetailPage() {
 			if (response.success && response.data) {
 				setPost(response.data)
 			} else {
-				setError(response.message || 'Post not found')
+				setError(response.message || t('errorPostNotFound'))
 			}
 		} catch {
-			setError('Failed to load post. Please try again.')
-			toast.error('Failed to load post')
+			setError(t('errorLoadPostFailed'))
+			toast.error(t('toastLoadPostFailed'))
 		} finally {
 			setIsLoading(false)
 		}
-	}, [postId])
+	}, [postId, t])
 
 	useEffect(() => {
 		fetchPost()
@@ -84,7 +86,7 @@ export default function PostDetailPage() {
 		return (
 			<PageContainer maxWidth='md' className='py-6'>
 				<ErrorState
-					title='Post not found'
+					title={t('postNotFound')}
 					message={
 						error || 'This post may have been deleted or is not available.'
 					}
@@ -112,7 +114,7 @@ export default function PostDetailPage() {
 						className='gap-2 text-text-secondary hover:text-text'
 					>
 						<ArrowLeft className='size-4' />
-						<span>Back</span>
+						<span>{t('backLabel')}</span>
 					</Button>
 				</motion.div>
 
@@ -129,6 +131,8 @@ export default function PostDetailPage() {
 						currentUserId={user?.userId}
 					/>
 				</motion.div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

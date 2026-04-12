@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { Post } from '@/lib/types'
 import { votePoll } from '@/services/post'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { BarChart3 } from 'lucide-react'
@@ -10,7 +12,12 @@ import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
-import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_FEED_HOVER,
+	BUTTON_SUBTLE_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 
@@ -25,6 +32,8 @@ export const PollCard = ({
 	onUpdate,
 	currentUserId,
 }: PollCardProps) => {
+	const t = useTranslations('social')
+	const requireAuth = useAuthGate()
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isVoting, setIsVoting] = useState(false)
 
@@ -32,6 +41,7 @@ export const PollCard = ({
 
 	const handleVote = useCallback(
 		async (option: 'A' | 'B') => {
+			if (!requireAuth(t('authActionVotePoll'))) return
 			if (isVoting || currentUserId === post.userId || !poll) return
 			setIsVoting(true)
 			try {
@@ -49,16 +59,16 @@ export const PollCard = ({
 					setPost(updatedPost)
 					onUpdate?.(updatedPost)
 				} else {
-					toast.error(response.message || 'Failed to vote')
+					toast.error(t('failedVote'))
 				}
 			} catch (error) {
 				logDevError('Failed to vote:', error)
-				toast.error('An error occurred while voting')
+				toast.error(t('voteError'))
 			} finally {
 				setIsVoting(false)
 			}
 		},
-		[isVoting, currentUserId, post, poll, onUpdate],
+		[requireAuth, isVoting, currentUserId, post, poll, onUpdate, t],
 	)
 
 	if (!poll) return null
@@ -80,12 +90,13 @@ export const PollCard = ({
 	return (
 		<motion.div
 			layout
+			whileHover={CARD_FEED_HOVER}
 			className='group -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card p-4 transition-all duration-300 md:p-6'
 		>
 			{/* Header */}
 			<div className='mb-3 flex items-center gap-3'>
 				<UserHoverCard userId={post.userId}>
-					<Link href={`/profile/${post.userId}`}>
+					<Link href={`/${post.userId}`}>
 						<Avatar className='size-10 ring-2 ring-border-subtle'>
 							<AvatarImage src={post.avatarUrl || undefined} />
 							<AvatarFallback className='bg-bg-elevated text-text-muted'>
@@ -97,7 +108,7 @@ export const PollCard = ({
 				<div className='flex-1'>
 					<UserHoverCard userId={post.userId}>
 						<Link
-							href={`/profile/${post.userId}`}
+							href={`/${post.userId}`}
 							className='font-medium text-text hover:text-brand transition-colors'
 						>
 							{post.displayName || 'Chef'}
@@ -107,7 +118,7 @@ export const PollCard = ({
 				</div>
 				<div className='flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand'>
 					<BarChart3 className='size-3.5' />
-					Poll
+					{t('pollBadge')}
 				</div>
 			</div>
 
@@ -125,6 +136,7 @@ export const PollCard = ({
 					isSelected={post.userVote === 'A'}
 					hasVoted={hasVoted}
 					disabled={isVoting || isOwner}
+					title={isOwner ? t('cannotVoteOwnPoll') : undefined}
 					onClick={() => handleVote('A')}
 				/>
 				<PollOption
@@ -134,6 +146,7 @@ export const PollCard = ({
 					isSelected={post.userVote === 'B'}
 					hasVoted={hasVoted}
 					disabled={isVoting || isOwner}
+					title={isOwner ? t('cannotVoteOwnPoll') : undefined}
 					onClick={() => handleVote('B')}
 				/>
 			</div>
@@ -141,9 +154,9 @@ export const PollCard = ({
 			{/* Footer */}
 			<div className='mt-3 flex items-center justify-between text-xs text-text-muted'>
 				<span className='tabular-nums'>
-					{totalVotes} vote{totalVotes !== 1 ? 's' : ''}
+					{t('voteCount', { count: totalVotes })}
 				</span>
-				{isOwner && <span className='italic'>Your poll</span>}
+				{isOwner && <span className='italic'>{t('yourPoll')}</span>}
 			</div>
 		</motion.div>
 	)
@@ -156,6 +169,7 @@ function PollOption({
 	isSelected,
 	hasVoted,
 	disabled,
+	title,
 	onClick,
 }: {
 	label: string
@@ -164,14 +178,19 @@ function PollOption({
 	isSelected: boolean
 	hasVoted: boolean
 	disabled: boolean
+	title?: string
 	onClick: () => void
 }) {
 	return (
-		<button
+		<motion.button
+			type='button'
 			onClick={onClick}
 			disabled={disabled}
+			title={title}
+			aria-label={disabled && title ? `${label}. ${title}` : label}
+			whileTap={disabled ? undefined : BUTTON_SUBTLE_TAP}
 			className={cn(
-				'relative w-full overflow-hidden rounded-lg border p-3 text-left transition-all',
+				'relative w-full overflow-hidden rounded-lg border p-3 text-left transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 				isSelected
 					? 'border-brand bg-brand/5 ring-1 ring-brand/30'
 					: 'border-border-subtle hover:border-brand/40',
@@ -183,9 +202,9 @@ function PollOption({
 				<motion.div
 					initial={{ width: 0 }}
 					animate={{ width: `${percent}%` }}
-					transition={{ duration: 0.6, ease: 'easeOut' }}
+					transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 					className={cn(
-						'absolute inset-y-0 left-0 rounded-lg',
+						'pointer-events-none absolute inset-y-0 left-0 rounded-lg',
 						isSelected ? 'bg-brand/15' : 'bg-bg-elevated/60',
 					)}
 				/>
@@ -209,6 +228,6 @@ function PollOption({
 					</span>
 				)}
 			</div>
-		</button>
+		</motion.button>
 	)
 }

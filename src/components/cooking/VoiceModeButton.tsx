@@ -3,8 +3,10 @@
 import { useEffect } from 'react'
 import { Mic, MicOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ICON_BUTTON_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import type { UseVoiceModeReturn } from '@/lib/voice'
 
 /**
@@ -20,6 +22,7 @@ export function VoiceModeButton({
 	voice: UseVoiceModeReturn
 	className?: string
 }) {
+	const t = useTranslations('cooking')
 	// Surface voice events as toasts so the user gets feedback
 	useEffect(() => {
 		if (!voice.isSupported || !voice.lastEvent) return
@@ -53,10 +56,11 @@ export function VoiceModeButton({
 
 	return (
 		<motion.button
+			type='button'
 			onClick={handleClick}
-			whileTap={{ scale: 0.9 }}
+			whileTap={ICON_BUTTON_TAP}
 			className={cn(
-				'relative flex size-10 items-center justify-center rounded-full transition-colors',
+				'relative flex size-10 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 				voice.isListening
 					? voice.isContinuous
 						? 'bg-success text-white shadow-glow'
@@ -66,13 +70,13 @@ export function VoiceModeButton({
 			)}
 			title={
 				voice.isContinuous
-					? 'Continuous listening active — tap to mute'
+					? t('voiceContinuousActive')
 					: voice.isListening
-						? 'Stop listening'
-						: 'Start voice commands'
+						? t('voiceStopListening')
+						: t('voiceStartCommands')
 			}
 			aria-label={
-				voice.isListening ? 'Stop voice commands' : 'Start voice commands'
+				voice.isListening ? t('voiceStopCommands') : t('voiceStartCommands')
 			}
 		>
 			{/* Pulsing ring when active */}

@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { BadgeCheck } from 'lucide-react'
 
 interface VerifiedBadgeProps {
@@ -21,10 +23,11 @@ export function VerifiedBadge({
 	size = 'md',
 	className = '',
 }: VerifiedBadgeProps) {
+	const t = useTranslations('shared')
 	return (
 		<BadgeCheck
 			className={`${SIZE_MAP[size]} shrink-0 text-info ${className}`}
-			aria-label='Verified creator'
+			aria-label={t('vbVerified')}
 		/>
 	)
 }

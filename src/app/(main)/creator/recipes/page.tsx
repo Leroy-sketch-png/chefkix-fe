@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
+
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import {
 	ArrowLeft,
@@ -22,6 +24,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -49,17 +52,18 @@ import {
 	deleteRecipe,
 	duplicateRecipe,
 } from '@/services/recipe'
-import { getRecipeImage } from '@/lib/types/recipe'
+import { getRecipeImage, formatCookingTime } from '@/lib/types/recipe'
+import type { Recipe, Difficulty } from '@/lib/types/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	CARD_FEED_HOVER,
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-import type { Recipe, Difficulty } from '@/lib/types/recipe'
 
 // ============================================
 // RECIPE CARD COMPONENT
@@ -88,11 +92,13 @@ const RecipeManageCard = ({
 	isDuplicating,
 }: RecipeManageCardProps) => {
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
+	const t = useTranslations('creator')
 
 	return (
 		<motion.div
 			variants={staggerItem}
-			whileHover={{ y: -4 }}
+			whileHover={CARD_FEED_HOVER}
 			className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-warm'
 		>
 			{/* Image */}
@@ -102,7 +108,11 @@ const RecipeManageCard = ({
 						src={getRecipeImage(recipe)}
 						alt={recipe.title}
 						fill
+						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-500 group-hover:scale-105'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
+						}}
 					/>
 					<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
 
@@ -142,7 +152,7 @@ const RecipeManageCard = ({
 			{/* Content */}
 			<div className='p-4'>
 				<Link href={`/recipes/${recipe.id}`}>
-					<h3 className='mb-1 line-clamp-1 text-lg font-bold text-text group-hover:text-brand'>
+					<h3 className='mb-1 line-clamp-1 text-lg font-serif font-bold text-text group-hover:text-brand'>
 						{recipe.title}
 					</h3>
 				</Link>
@@ -166,27 +176,36 @@ const RecipeManageCard = ({
 					</span>
 					<span className='flex items-center gap-1'>
 						<Clock className='size-4' />
-						{recipe.totalTimeMinutes}m
+						{formatCookingTime(recipe.totalTimeMinutes)}
 					</span>
 				</div>
 
 				{/* Actions */}
 				<div className='flex items-center gap-2'>
 					<Button
-						onClick={() => router.push(`/create?draftId=${recipe.id}`)}
+						onClick={() =>
+							startNavigationTransition(() => {
+								router.push(`/create?draftId=${recipe.id}`)
+							})
+						}
 						variant='outline'
 						size='sm'
+						disabled={isNavigating}
 						className='flex-1 gap-1'
 					>
-						<Edit3 className='size-4' />
-						Edit
+						{isNavigating ? (
+							<Loader2 className='size-4 animate-spin' />
+						) : (
+							<Edit3 className='size-4' />
+						)}
+						{t('edit')}
 					</Button>
 					<Button
 						onClick={() => onDuplicate(recipe.id)}
 						variant='outline'
 						size='sm'
 						disabled={isDuplicating}
-						title='Duplicate as draft'
+						title={t('duplicateAsDraft')}
 						className='border-brand/30 text-brand hover:bg-brand/10'
 					>
 						{isDuplicating ? (
@@ -212,19 +231,18 @@ const RecipeManageCard = ({
 						</AlertDialogTrigger>
 						<AlertDialogContent>
 							<AlertDialogHeader>
-								<AlertDialogTitle>Delete Recipe?</AlertDialogTitle>
+								<AlertDialogTitle>{t('deleteRecipeTitle')}</AlertDialogTitle>
 								<AlertDialogDescription>
-									This will permanently delete &ldquo;{recipe.title}&rdquo;.
-									This action cannot be undone.
+									{t('deleteRecipeDesc', { title: recipe.title })}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
 								<AlertDialogAction
 									onClick={() => onDelete(recipe.id)}
 									className='bg-error text-white hover:bg-error/90'
 								>
-									Delete
+									{t('delete')}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>
@@ -240,8 +258,10 @@ const RecipeManageCard = ({
 // ============================================
 
 export default function MyRecipesPage() {
+	const t = useTranslations('creator')
 	const router = useRouter()
 	const { user } = useAuthStore()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [recipes, setRecipes] = useState<Recipe[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -266,10 +286,10 @@ export default function MyRecipesPage() {
 				if (response.success && response.data) {
 					setRecipes(response.data)
 				} else {
-					setError(response.message || 'Failed to load recipes')
+					setError(response.message || t('errorLoadRecipes'))
 				}
 			} catch {
-				if (!cancelled) setError('Failed to load recipes')
+				if (!cancelled) setError(t('errorLoadRecipes'))
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -279,7 +299,7 @@ export default function MyRecipesPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user?.userId, retryCount])
+	}, [user?.userId, retryCount, t])
 
 	// Handle delete
 	const handleDelete = async (recipeId: string) => {
@@ -288,12 +308,12 @@ export default function MyRecipesPage() {
 			const response = await deleteRecipe(recipeId)
 			if (response.success) {
 				setRecipes(prev => prev.filter(r => r.id !== recipeId))
-				toast.success('Recipe deleted')
+				toast.success(t('recipeDeleted'))
 			} else {
-				toast.error(response.message || 'Failed to delete recipe')
+				toast.error(t('failedToDeleteRecipe'))
 			}
 		} catch {
-			toast.error('Failed to delete recipe')
+			toast.error(t('failedToDeleteRecipe'))
 		} finally {
 			setDeletingId(null)
 		}
@@ -306,13 +326,15 @@ export default function MyRecipesPage() {
 		try {
 			const response = await duplicateRecipe(recipeId)
 			if (response.success && response.data) {
-				toast.success('Recipe duplicated as draft')
-				router.push(`/create?draftId=${response.data.id}`)
+				toast.success(t('recipeDuplicated'))
+				startNavigationTransition(() => {
+					router.push(`/create?draftId=${response.data.id}`)
+				})
 			} else {
-				toast.error(response.message || 'Failed to duplicate recipe')
+				toast.error(t('failedToDuplicateRecipe'))
 			}
 		} catch {
-			toast.error('Failed to duplicate recipe')
+			toast.error(t('failedToDuplicateRecipe'))
 		} finally {
 			setDuplicatingId(null)
 		}
@@ -348,7 +370,7 @@ export default function MyRecipesPage() {
 			<PageTransition>
 				<PageContainer maxWidth='2xl'>
 					<ErrorState
-						title='Failed to load recipes'
+						title={t('errorLoadRecipes')}
 						message={error}
 						onRetry={() => {
 							setError(null)
@@ -363,47 +385,58 @@ export default function MyRecipesPage() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='2xl'>
-				{/* Header - Secondary page pattern with back button and icon-box */}
-				<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='flex items-center justify-between'>
-						<div className='flex items-center gap-3'>
-							<button
-								onClick={() => router.back()}
-								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-							>
-								<ArrowLeft className='size-5' />
-							</button>
-							<motion.div
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-card shadow-xp/25'
-							>
-								<ChefHat className='size-6 text-white' />
-							</motion.div>
-							<div>
-								<h1 className='text-3xl font-bold text-text'>My Recipes</h1>
-								<p className='text-text-secondary'>
-									{recipes.length} recipe{recipes.length !== 1 ? 's' : ''}{' '}
-									published
-								</p>
-							</div>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							{t('loading')}
 						</div>
-						<Button
-							onClick={() => router.push('/create')}
-							className='gap-2 bg-gradient-hero text-white shadow-lg shadow-brand/30'
-						>
-							<Plus className='size-4' />
-							Create Recipe
-						</Button>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
+			<PageContainer maxWidth='2xl'>
+				{/* Header with PageHeader + back button + create action */}
+				<div className='mb-8 flex items-center gap-3'>
+					<button
+						type='button'
+						onClick={() => router.back()}
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+					>
+						<ArrowLeft className='size-5' />
+					</button>
+					<div className='flex-1'>
+						<PageHeader
+							icon={ChefHat}
+							title={t('myRecipes')}
+							subtitle={t('recipeCount', { count: recipes.length })}
+							gradient='purple'
+							marginBottom='sm'
+							className='mb-0'
+							rightAction={
+								<Button
+									onClick={() =>
+										startNavigationTransition(() => {
+											router.push('/create')
+										})
+									}
+									disabled={isNavigating}
+									className='gap-2 bg-gradient-hero text-white shadow-lg shadow-brand/30 disabled:opacity-50'
+								>
+									<Plus className='size-4' />
+									{t('createRecipe')}
+								</Button>
+							}
+						/>
 					</div>
-				</motion.div>
+				</div>
 
 				{/* Filters */}
 				{recipes.length > 0 && (
@@ -418,7 +451,7 @@ export default function MyRecipesPage() {
 							<Input
 								value={searchQuery}
 								onChange={e => setSearchQuery(e.target.value)}
-								placeholder='Search your recipes...'
+								placeholder={t('searchRecipes')}
 								className='pl-9'
 							/>
 						</div>
@@ -427,12 +460,12 @@ export default function MyRecipesPage() {
 							onValueChange={v => setSortBy(v as typeof sortBy)}
 						>
 							<SelectTrigger className='w-full sm:w-40'>
-								<SelectValue placeholder='Sort by' />
+								<SelectValue placeholder={t('sortBy')} />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value='newest'>Newest</SelectItem>
-								<SelectItem value='popular'>Most Liked</SelectItem>
-								<SelectItem value='views'>Most Viewed</SelectItem>
+								<SelectItem value='newest'>{t('sortNewest')}</SelectItem>
+								<SelectItem value='popular'>{t('sortMostLiked')}</SelectItem>
+								<SelectItem value='views'>{t('sortMostViewed')}</SelectItem>
 							</SelectContent>
 						</Select>
 					</motion.div>
@@ -448,13 +481,18 @@ export default function MyRecipesPage() {
 						<div className='mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-brand/10'>
 							<ChefHat className='size-8 text-brand' />
 						</div>
-						<h3 className='mb-2 text-xl font-bold text-text'>No recipes yet</h3>
-						<p className='mb-6 text-text-muted'>
-							Share your culinary creations with the world!
-						</p>
+						<h3 className='mb-2 text-xl font-bold text-text'>
+							{t('noRecipesYet')}
+						</h3>
+						<p className='mb-6 text-text-muted'>{t('noRecipesYetDesc')}</p>
 						<Button
-							onClick={() => router.push('/create')}
-							className='gap-2 bg-gradient-hero text-white'
+							onClick={() =>
+								startNavigationTransition(() => {
+									router.push('/create')
+								})
+							}
+							disabled={isNavigating}
+							className='gap-2 bg-gradient-hero text-white disabled:opacity-50'
 						>
 							<Plus className='size-4' />
 							Create Your First Recipe
@@ -464,10 +502,11 @@ export default function MyRecipesPage() {
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
-						className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center shadow-card'
+						className='flex flex-col items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-8 text-center shadow-card'
 					>
+						<Search className='size-8 text-text-muted/40' />
 						<p className='text-text-muted'>
-							No recipes match &ldquo;{searchQuery}&rdquo;
+							{t('noRecipesMatch', { query: searchQuery })}
 						</p>
 					</motion.div>
 				) : (
@@ -489,6 +528,8 @@ export default function MyRecipesPage() {
 						))}
 					</motion.div>
 				)}
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

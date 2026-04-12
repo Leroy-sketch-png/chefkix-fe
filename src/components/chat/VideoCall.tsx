@@ -1,15 +1,24 @@
-'use client' // This tells Next.js this is a Client Component (runs in the browser)
+﻿'use client' // This tells Next.js this is a Client Component (runs in the browser)
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { API_ENDPOINTS } from '@/constants/api'
+import { Portal } from '@/components/ui/portal'
+import { BUTTON_HOVER, BUTTON_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 // Define the structure of the signaling message to match the Spring Boot backend
+// data type depends on message type: offer/answer use RTCSessionDescriptionInit,
+// ice-candidate uses RTCIceCandidateInit, join/leave/ring have no data
+type SignalData = RTCSessionDescriptionInit | RTCIceCandidate
 interface SignalMessage {
 	type: 'join' | 'offer' | 'answer' | 'ice-candidate' | 'leave' | 'ring'
 	conversationId: string
 	senderId: string
-	data?: any
+	data?: SignalData
 }
 
 interface VideoCallProps {
@@ -23,6 +32,7 @@ export default function VideoCall({
 	currentUserId,
 	onClose,
 }: VideoCallProps) {
+	const t = useTranslations('messages')
 	// --- Phase 1: Refs for Media and Connections ---
 	// We use useRef instead of useState for things that don't need to trigger a re-render when they change
 	const localVideoRef = useRef<HTMLVideoElement>(null)
@@ -86,6 +96,11 @@ export default function VideoCall({
 
 			setIsCameraOn(videoEnabled)
 			setIsMicOn(true)
+
+			// Connect WebSocket for signaling (if not already connected)
+			if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+				connectWebSocket()
+			}
 		} catch (error) {
 			logDevError('Error accessing media devices.', error)
 
@@ -99,11 +114,14 @@ export default function VideoCall({
 				if (localVideoRef.current) localVideoRef.current.srcObject = audioStream
 				setIsCameraOn(false)
 				setIsMicOn(true)
+
+				// Connect WebSocket for signaling (if not already connected)
+				if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+					connectWebSocket()
+				}
 			} catch (audioError) {
 				logDevError('Error accessing audio device.', audioError)
-				toast.error(
-					'Could not access your microphone. Please check browser permissions.',
-				)
+				toast.error(t('toastMicDenied'))
 			}
 		}
 	}
@@ -135,10 +153,9 @@ export default function VideoCall({
 
 	// --- Phase 2: Signaling Client (WebSocket) ---
 	const connectWebSocket = () => {
-		// Connect to the Spring Boot endpoint we just created
 		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
 		const wsBase = apiBase.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}/api/v1/ws/video-signaling`
+		const wsUrl = `${wsBase}${API_ENDPOINTS.CHAT.VIDEO_SIGNALING_WS}`
 		const ws = new WebSocket(wsUrl)
 
 		ws.onopen = () => {
@@ -150,35 +167,44 @@ export default function VideoCall({
 
 		// Listen for messages from the backend
 		ws.onmessage = async event => {
-			const message: SignalMessage = JSON.parse(event.data)
+			try {
+				const message: SignalMessage = JSON.parse(event.data)
 
-			// Ignore our own messages just in case
-			if (message.senderId === currentUserId) return
+				// Ignore our own messages just in case
+				if (message.senderId === currentUserId) return
 
-			switch (message.type) {
-				case 'ring':
-					playRingtone()
-					setIsReceivingCall(true)
-					break
-				case 'offer':
-					stopRingtone()
-					setIsReceivingCall(true)
-					setRemoteOffer(message.data)
-					break
-				case 'answer':
-					stopRingtone()
-					await handleReceiveAnswer(message.data)
-					break
-				case 'ice-candidate':
-					await handleNewICECandidateMsg(message.data)
-					break
-				case 'leave':
-					stopRingtone()
-					endCall()
-					toast.info('The other person left the call.')
-					break
-				default:
-					logDevError('Unknown WebSocket message type:', message.type)
+				switch (message.type) {
+					case 'ring':
+						playRingtone()
+						setIsReceivingCall(true)
+						break
+					case 'offer':
+						stopRingtone()
+						setIsReceivingCall(true)
+						setRemoteOffer(message.data as RTCSessionDescriptionInit)
+						break
+					case 'answer':
+						stopRingtone()
+						await handleReceiveAnswer(
+							message.data as RTCSessionDescriptionInit,
+						)
+						break
+					case 'ice-candidate':
+						await handleNewICECandidateMsg(
+							message.data as RTCIceCandidateInit,
+						)
+						break
+					case 'leave':
+						stopRingtone()
+						endCall()
+						toast.info(t('toastOtherLeft'))
+						break
+					default:
+						logDevError('Unknown WebSocket message type:', message.type)
+				}
+			} catch (error) {
+				logDevError('Error processing WebSocket message', error)
+				toast.error(t('toastConnectionError'))
 			}
 		}
 
@@ -193,7 +219,11 @@ export default function VideoCall({
 
 	// Helper to send JSON messages through WebSocket
 	const sendMessage = useCallback(
-		(wsInstance: WebSocket | null, type: SignalMessage['type'], data?: any) => {
+		(
+			wsInstance: WebSocket | null,
+			type: SignalMessage['type'],
+			data?: SignalData,
+		) => {
 			if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
 				const payload: SignalMessage = {
 					type,
@@ -215,8 +245,9 @@ export default function VideoCall({
 
 		// 2. Add our local camera/mic tracks to the connection
 		if (localStreamRef.current) {
-			localStreamRef.current.getTracks().forEach(track => {
-				pc.addTrack(track, localStreamRef.current!)
+			const stream = localStreamRef.current
+			stream.getTracks().forEach(track => {
+				pc.addTrack(track, stream)
 			})
 		}
 
@@ -243,20 +274,26 @@ export default function VideoCall({
 
 	// Caller: "I want to call you. Here is my video setup (offer)."
 	const makeCall = async () => {
-		// 1. Send ring signal to start ringing on the other side
-		sendMessage(wsRef.current, 'ring')
-		// 2. Play ringtone locally while waiting
-		playRingtone()
+		try {
+			// 1. Send ring signal to start ringing on the other side
+			sendMessage(wsRef.current, 'ring')
+			// 2. Play ringtone locally while waiting
+			playRingtone()
 
-		const pc = initializePeerConnection()
+			const pc = initializePeerConnection()
 
-		// Create an offer
-		const offer = await pc.createOffer()
-		// Set it as our local description
-		await pc.setLocalDescription(offer)
+			// Create an offer
+			const offer = await pc.createOffer()
+			// Set it as our local description
+			await pc.setLocalDescription(offer)
 
-		// Send it to the other user via WebSocket
-		sendMessage(wsRef.current, 'offer', offer)
+			// Send it to the other user via WebSocket
+			sendMessage(wsRef.current, 'offer', offer)
+		} catch (error) {
+			logDevError('Failed to initiate call', error)
+			stopRingtone()
+			toast.error(t('toastStartFailed'))
+		}
 	}
 
 	// Callee: Answers the incoming call
@@ -264,13 +301,18 @@ export default function VideoCall({
 		stopRingtone()
 		setIsReceivingCall(false)
 
-		// Attempt to start audio/video. We default to both, but fallback to audio only in startMedia.
-		if (!localStreamRef.current) {
-			await startMedia(true)
-		}
+		try {
+			// Attempt to start audio/video. We default to both, but fallback to audio only in startMedia.
+			if (!localStreamRef.current) {
+				await startMedia(true)
+			}
 
-		if (remoteOffer) {
-			await handleReceiveOffer(remoteOffer)
+			if (remoteOffer) {
+				await handleReceiveOffer(remoteOffer)
+			}
+		} catch (error) {
+			logDevError('Failed to accept call', error)
+			toast.error(t('toastConnectFailed'))
 		}
 	}
 
@@ -284,28 +326,38 @@ export default function VideoCall({
 
 	// Callee: "I received your call. Here is my video setup (answer)."
 	const handleReceiveOffer = async (offer: RTCSessionDescriptionInit) => {
-		// Even if we are receiving, we need to initialize our Peer Connection
-		const pc = initializePeerConnection()
+		try {
+			// Even if we are receiving, we need to initialize our Peer Connection
+			const pc = initializePeerConnection()
 
-		// Register the caller's setup
-		await pc.setRemoteDescription(new RTCSessionDescription(offer))
+			// Register the caller's setup
+			await pc.setRemoteDescription(new RTCSessionDescription(offer))
 
-		// Create our answer
-		const answer = await pc.createAnswer()
-		// Register our setup locally
-		await pc.setLocalDescription(answer)
+			// Create our answer
+			const answer = await pc.createAnswer()
+			// Register our setup locally
+			await pc.setLocalDescription(answer)
 
-		// Send the answer back to the caller
-		sendMessage(wsRef.current, 'answer', answer)
-		setIsCallActive(true)
+			// Send the answer back to the caller
+			sendMessage(wsRef.current, 'answer', answer)
+			setIsCallActive(true)
+		} catch (error) {
+			logDevError('Failed to handle incoming offer', error)
+			toast.error(t('toastEstablishFailed'))
+		}
 	}
 
 	// Caller: "I received your answer. We are now connected."
 	const handleReceiveAnswer = async (answer: RTCSessionDescriptionInit) => {
-		if (peerConnectionRef.current) {
-			await peerConnectionRef.current.setRemoteDescription(
-				new RTCSessionDescription(answer),
-			)
+		try {
+			if (peerConnectionRef.current) {
+				await peerConnectionRef.current.setRemoteDescription(
+					new RTCSessionDescription(answer),
+				)
+			}
+		} catch (error) {
+			logDevError('Failed to process answer', error)
+			toast.error(t('toastEstablishFailed'))
 		}
 	}
 
@@ -369,12 +421,22 @@ export default function VideoCall({
 		}
 	}, [endCall])
 
+	// Escape key dismisses the incoming call overlay (same as {t('decline')})
+	useEscapeKey(isReceivingCall && !isCallActive, rejectCall)
+
 	// --- Render UI ---
 	return (
 		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-card border border-border-subtle w-full max-w-4xl mx-auto relative'>
 			{/* Incoming Call Overlay */}
+			<AnimatePresence>
 			{isReceivingCall && !isCallActive && (
-				<div className='absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm rounded-xl'>
+				<Portal>
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					className='fixed inset-0 z-modal flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm'
+				>
 					<div className='size-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
 						<div className='size-16 bg-brand rounded-full flex items-center justify-center'>
 							<svg
@@ -394,18 +456,24 @@ export default function VideoCall({
 						</div>
 					</div>
 					<h2 className='text-white text-2xl font-bold mb-8'>
-						Incoming Call...
+						{t('incomingCall')}
 					</h2>
 					<div className='flex gap-6'>
-						<button
+						<motion.button
+							type='button'
+							whileHover={BUTTON_HOVER}
+							whileTap={BUTTON_TAP}
 							onClick={rejectCall}
-							className='px-6 py-3 bg-error hover:bg-error-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105'
+							className='px-6 py-3 bg-error text-white rounded-full font-medium shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							Decline
-						</button>
-						<button
+						</motion.button>
+						<motion.button
+							type='button'
+							whileHover={BUTTON_HOVER}
+							whileTap={BUTTON_TAP}
 							onClick={acceptCall}
-							className='px-6 py-3 bg-success hover:bg-success-vivid outline-none text-white rounded-full font-medium shadow-lg transition-transform hover:scale-105 flex items-center gap-2'
+							className='px-6 py-3 bg-success text-white rounded-full font-medium shadow-lg flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<svg
 								xmlns='http://www.w3.org/2000/svg'
@@ -422,15 +490,17 @@ export default function VideoCall({
 								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
 							</svg>
 							Answer
-						</button>
+						</motion.button>
 					</div>
-				</div>
+				</motion.div>
+				</Portal>
 			)}
+			</AnimatePresence>
 
-			<h2 className='text-2xl font-semibold text-primary mb-2'>Video Call</h2>
+			<h2 className='text-2xl font-semibold text-brand mb-2'>{t('videoCallTitle')}</h2>
 
 			{/* Media Stage */}
-			<div className='relative w-full aspect-video bg-bg-inverse rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
+			<div className='relative w-full aspect-video bg-bg-elevated rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
 				{/* Remote Video (Large / Background) */}
 				<video
 					ref={remoteVideoRef}
@@ -452,55 +522,74 @@ export default function VideoCall({
 
 				{/* Fallback text when there's no call active */}
 				{!isCallActive && (
-					<div className='absolute inset-0 flex items-center justify-center text-text-muted font-medium'>
-						Waiting for video connection...
-					</div>
+					<motion.div
+						className='absolute inset-0 flex items-center justify-center text-text-muted font-medium'
+						animate={{ opacity: [1, 0.4, 1] }}
+						transition={{ duration: 2, repeat: Infinity }}
+					>
+						{t('waitingForConnection')}
+					</motion.div>
 				)}
 			</div>
 
 			{/* Control Buttons */}
 			<div className='flex gap-4 flex-wrap justify-center mt-4'>
-				<button
+				<motion.button
+					type='button'
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={() => startMedia()}
-					className='px-4 py-2 bg-info text-white rounded-md hover:bg-info-vivid'
+					className='px-4 py-2 bg-brand text-white rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					{isCameraOn ? 'Camera On ✅' : '1. Turn On Camera'}
-				</button>
+					{isCameraOn ? t('cameraOn') + ' ✅' : '1. ' + t('turnOnCamera')}
+				</motion.button>
 
-				<button
+				<motion.button
+					type='button'
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={toggleVideo}
-					className='px-4 py-2 bg-warning text-white rounded-md hover:bg-warning-vivid'
+					className='px-4 py-2 bg-warning text-white rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					{isCameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
-				</button>
+					{isCameraOn ? t('turnOffCamera') : t('turnOnCamera')}
+				</motion.button>
 
-				<button
+				<motion.button
+					type='button'
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={toggleAudio}
-					className='px-4 py-2 bg-accent-purple text-white rounded-md hover:bg-accent-purple-hover'
+					className='px-4 py-2 bg-bg-elevated text-text border border-border-subtle rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					{isMicOn ? 'Mute Mic' : 'Unmute Mic'}
-				</button>
+					{isMicOn ? t('muteMic') : t('unmuteMic')}
+				</motion.button>
 
 				{!isCallActive && (
-					<button
+					<motion.button
+						type='button'
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
 						onClick={makeCall}
 						disabled={!isCameraOn || !isJoined}
-						className={`px-4 py-2 text-white rounded-md transition-colors ${
+						className={`px-4 py-2 text-white rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 							!isCameraOn || !isJoined
 								? 'bg-bg-elevated text-text-muted cursor-not-allowed opacity-50'
-								: 'bg-success hover:bg-success-vivid'
+								: 'bg-success hover:opacity-90'
 						}`}
 					>
-						2. Call the other person
-					</button>
+						{t('callOtherPerson')}
+					</motion.button>
 				)}
 
-				<button
+				<motion.button
+					type='button'
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
 					onClick={endCall}
-					className='px-4 py-2 bg-error text-white rounded-md hover:bg-error-vivid'
+					className='px-4 py-2 bg-error text-white rounded-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					End Call
-				</button>
+				</motion.button>
 			</div>
 		</div>
 	)

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -10,16 +10,19 @@ import {
 	Users,
 	MessageCircle,
 	AlertTriangle,
+	Sparkles,
 	Utensils,
 	Grid3X3,
 	ChefHat,
 	Bookmark,
 	Trophy,
+	Heart,
 	ShieldBan,
 	MoreHorizontal,
 } from 'lucide-react'
 import Link from 'next/link'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
+import { TipJarButton } from '@/components/tip/TipJarButton'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -28,7 +31,11 @@ import {
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
 	STAT_ITEM_HOVER,
+	FOLLOW_PULSE,
+	DURATION_S,
 } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -91,6 +98,8 @@ interface OtherUserProfileProps {
 	isFollowing?: boolean
 	isMutualFollow?: boolean // They follow each other = implicit friends
 	isBlocked?: boolean
+	isFollowLoading?: boolean
+	isBlockLoading?: boolean
 	onFollow?: () => void
 	onMessage?: () => void
 	onBlock?: () => void
@@ -126,13 +135,13 @@ const formatNumber = (num: number): string => {
 	return num.toString()
 }
 
-const titleConfig: Record<UserTitle, { gradient: string; label: string }> = {
-	BEGINNER: { gradient: 'bg-text-muted', label: 'Beginner' },
-	AMATEUR: { gradient: 'bg-info', label: 'Amateur' },
-	SEMIPRO: { gradient: 'bg-warning', label: 'Semi-Pro' },
+const titleConfig: Record<UserTitle, { gradient: string; labelKey: string }> = {
+	BEGINNER: { gradient: 'bg-text-muted', labelKey: 'titleBeginner' },
+	AMATEUR: { gradient: 'bg-info', labelKey: 'titleAmateur' },
+	SEMIPRO: { gradient: 'bg-warning', labelKey: 'titleSemiPro' },
 	PRO: {
 		gradient: 'bg-gradient-xp',
-		label: 'Pro',
+		labelKey: 'titlePro',
 	},
 }
 
@@ -149,9 +158,10 @@ const LevelRing = ({
 }: {
 	level: number
 	progressPercent: number
-	xpText: string
+	xpText: React.ReactNode
 	size?: 'default' | 'small'
 }) => {
+	const t = useTranslations('profile')
 	const circumference = 2 * Math.PI * 45
 	const strokeDashoffset =
 		circumference - (progressPercent / 100) * circumference
@@ -159,7 +169,7 @@ const LevelRing = ({
 	return (
 		<div
 			className={cn(
-				'absolute flex items-center gap-3 rounded-full border border-white/15 bg-black/60 backdrop-blur-xl',
+				'absolute flex items-center gap-3 rounded-full border border-white/15 bg-black/45 backdrop-blur-xl',
 				size === 'default'
 					? 'right-4 top-4 py-2.5 pl-2.5 pr-4'
 					: 'right-3 top-3 py-2 pl-2 pr-3',
@@ -188,12 +198,12 @@ const LevelRing = ({
 						strokeDasharray={circumference}
 						initial={{ strokeDashoffset: circumference }}
 						animate={{ strokeDashoffset }}
-						transition={{ duration: 0.8 }}
+						transition={{ duration: DURATION_S.verySlow }}
 					/>
 				</svg>
 				<span
 					className={cn(
-						'absolute inset-0 flex items-center justify-center font-extrabold text-white',
+						'absolute inset-0 flex items-center justify-center font-display font-extrabold text-white',
 						size === 'default' ? 'text-lg' : 'text-base',
 					)}
 				>
@@ -202,11 +212,11 @@ const LevelRing = ({
 			</div>
 			<div className='flex flex-col'>
 				<span className='text-xs uppercase tracking-wide text-white/70'>
-					Level
+					{t('levelLabel')}
 				</span>
 				<span
 					className={cn(
-						'font-semibold text-white',
+						'font-semibold tabular-nums text-white',
 						size === 'default' ? 'text-sm' : 'text-xs',
 					)}
 				>
@@ -219,34 +229,39 @@ const LevelRing = ({
 
 // Streak Badge
 const StreakBadge = ({ count }: { count: number }) => {
+	const t = useTranslations('profile')
 	if (count === 0) return null
 
 	return (
 		<motion.div
 			initial={{ scale: 0.8, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
-			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-streak px-4 py-2.5 font-bold text-white shadow-lg shadow-streak/40'
+			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-streak px-3 py-2 font-display font-semibold text-white shadow-md shadow-streak/30'
 		>
-			<span className='text-xl'>🔥</span>
-			<span className='text-xl'>{count}</span>
-			<span className='text-xs opacity-90'>day streak</span>
+			<span className='text-base'>🔥</span>
+			<span className='text-lg tabular-nums'>{count}</span>
+			<span className='text-xs opacity-90'>{t('dayStreak')}</span>
 		</motion.div>
 	)
 }
 
 // Title Badge
 const TitleBadge = ({ title }: { title: UserTitle }) => {
+	const t = useTranslations('profile')
 	const config = titleConfig[title]
 
 	return (
-		<div
+		<motion.div
+			initial={{ opacity: 0, y: 6, scale: 0.9 }}
+			animate={{ opacity: 1, y: 0, scale: 1 }}
+			transition={TRANSITION_SPRING}
 			className={cn(
-				'absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white',
+				'absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-2xs font-semibold tracking-normal text-white',
 				config.gradient,
 			)}
 		>
-			{config.label}
-		</div>
+			{t(config.labelKey)}
+		</motion.div>
 	)
 }
 
@@ -259,84 +274,101 @@ const StatsRow = ({
 	social: { followers: number; following: number }
 	cooking: { recipesCooked: number; recipesCreated: number; mastered?: number }
 	isOwnProfile?: boolean
-}) => (
-	<div className='flex items-center border-y border-border bg-bg-elevated px-6 py-5'>
-		{/* Social Stats */}
-		<div className='flex gap-8'>
-			{isOwnProfile ? (
-				<Link
-					href='/profile/followers?tab=followers'
-					className='flex flex-col transition-opacity hover:opacity-70'
-				>
-					<span className='text-xl font-extrabold'>
-						{formatNumber(social.followers)}
-					</span>
-					<span className='text-xs text-text-muted'>Followers</span>
-				</Link>
-			) : (
-				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold'>
-						{formatNumber(social.followers)}
-					</span>
-					<span className='text-xs text-text-muted'>Followers</span>
-				</div>
-			)}
-			{isOwnProfile ? (
-				<Link
-					href='/profile/followers?tab=following'
-					className='flex flex-col transition-opacity hover:opacity-70'
-				>
-					<span className='text-xl font-extrabold'>
-						{formatNumber(social.following)}
-					</span>
-					<span className='text-xs text-text-muted'>Following</span>
-				</Link>
-			) : (
-				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold'>
-						{formatNumber(social.following)}
-					</span>
-					<span className='text-xs text-text-muted'>Following</span>
-				</div>
-			)}
-		</div>
-
-		{/* Divider */}
-		<div className='mx-8 h-10 w-px bg-border' />
-
-		{/* Cooking Stats */}
-		<div className='flex gap-8'>
-			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold text-success'>
-					{formatNumber(cooking.recipesCooked)}
-				</span>
-				<span className='text-xs font-semibold text-success'>
-					{cooking.recipesCooked === 0 && isOwnProfile
-						? 'Start cooking!'
-						: 'Recipes Cooked'}
-				</span>
+}) => {
+	const t = useTranslations('profile')
+	return (
+		<div className='flex flex-col gap-4 border-y border-border bg-bg-elevated px-4 py-5 sm:flex-row sm:items-center sm:gap-0 md:px-6'>
+			{/* Social Stats */}
+			<div className='flex gap-6 md:gap-8'>
+				{isOwnProfile ? (
+					<Link
+						href='/profile/followers?tab=followers'
+						className='flex flex-col transition-opacity hover:opacity-70'
+					>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.followers} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followersLabel')}
+						</span>
+					</Link>
+				) : (
+					<div className='flex flex-col'>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.followers} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followersLabel')}
+						</span>
+					</div>
+				)}
+				{isOwnProfile ? (
+					<Link
+						href='/profile/followers?tab=following'
+						className='flex flex-col transition-opacity hover:opacity-70'
+					>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.following} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followingLabel')}
+						</span>
+					</Link>
+				) : (
+					<div className='flex flex-col'>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={social.following} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>
+							{t('followingLabel')}
+						</span>
+					</div>
+				)}
 			</div>
-			<div className='flex flex-col'>
-				<span className='text-xl font-extrabold'>
-					{formatNumber(cooking.recipesCreated)}
-				</span>
-				<span className='text-xs text-text-muted'>
-					{cooking.recipesCreated === 0 && isOwnProfile
-						? 'Share a recipe!'
-						: 'Recipes Created'}
-				</span>
-			</div>
-			{cooking.mastered !== undefined && (
+
+			{/* Divider */}
+			<div className='hidden h-10 w-px bg-border sm:mx-6 sm:block md:mx-8' />
+
+			{/* Cooking Stats */}
+			<div className='flex gap-6 md:gap-8'>
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold'>
-						{formatNumber(cooking.mastered)}
+					<span className='text-xl font-display font-extrabold text-success tabular-nums'>
+						<AnimatedNumber
+							value={cooking.recipesCooked}
+							format={formatNumber}
+						/>
 					</span>
-					<span className='text-xs text-text-muted'>Mastered</span>
+					<span className='text-xs font-semibold text-success'>
+						{cooking.recipesCooked === 0 && isOwnProfile
+							? t('startCooking')
+							: t('recipesCooked')}
+					</span>
 				</div>
-			)}
+				<div className='flex flex-col'>
+					<span className='text-xl font-display font-extrabold tabular-nums'>
+						<AnimatedNumber
+							value={cooking.recipesCreated}
+							format={formatNumber}
+						/>
+					</span>
+					<span className='text-xs text-text-muted'>
+						{cooking.recipesCreated === 0 && isOwnProfile
+							? t('shareRecipe')
+							: t('recipesCreated')}
+					</span>
+				</div>
+				{cooking.mastered !== undefined && (
+					<div className='flex flex-col'>
+						<span className='text-xl font-display font-extrabold tabular-nums'>
+							<AnimatedNumber value={cooking.mastered} format={formatNumber} />
+						</span>
+						<span className='text-xs text-text-muted'>{t('mastered')}</span>
+					</div>
+				)}
+			</div>
 		</div>
-	</div>
-)
+	)
+}
 
 // XP Progress Bar
 const XPProgressBar = ({
@@ -349,30 +381,33 @@ const XPProgressBar = ({
 	xpToNext: number
 	progressPercent: number
 	nextLevel: number
-}) => (
-	<div className='px-6 py-4'>
-		<div className='relative mb-2 h-2.5 overflow-hidden rounded-full bg-border'>
-			<motion.div
-				className='h-full rounded-full bg-gradient-to-r from-success to-success/80'
-				initial={{ width: 0 }}
-				animate={{ width: `${progressPercent}%` }}
-				transition={{ duration: 0.5 }}
-			/>
-			{/* Next level milestone marker */}
-			<div className='absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
-				<div className='h-4 w-1 rounded-sm bg-text-muted' />
+}) => {
+	const t = useTranslations('profile')
+	return (
+		<div className='px-6 py-4'>
+			<div className='relative mb-2 h-2.5 overflow-hidden rounded-full bg-border'>
+				<motion.div
+					className='h-full rounded-full bg-gradient-to-r from-brand to-streak'
+					initial={{ width: 0 }}
+					animate={{ width: `${progressPercent}%` }}
+					transition={{ duration: DURATION_S.slow }}
+				/>
+				{/* Next level milestone marker */}
+				<div className='absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
+					<div className='h-4 w-1 rounded-sm bg-text-muted' />
+				</div>
+			</div>
+			<div className='flex justify-between text-sm'>
+				<span className='font-display font-semibold text-brand'>
+					{t('xpLabel', { xp: formatNumber(currentXP) })}
+				</span>
+				<span className='text-text-muted'>
+					{t('xpToLevel', { xp: formatNumber(xpToNext), level: nextLevel })}
+				</span>
 			</div>
 		</div>
-		<div className='flex justify-between text-sm'>
-			<span className='font-semibold text-success'>
-				{formatNumber(currentXP)} XP
-			</span>
-			<span className='text-text-muted'>
-				{formatNumber(xpToNext)} XP to Level {nextLevel}
-			</span>
-		</div>
-	</div>
-)
+	)
+}
 
 // Badges Showcase
 const BadgesShowcase = ({
@@ -387,79 +422,81 @@ const BadgesShowcase = ({
 	compact?: boolean
 	userId?: string // For linking to other user's badge pages (future feature)
 	isOwnProfile?: boolean // Only show "View all" link for own profile
-}) => (
-	<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
-		{!compact && (
-			<div className='mb-4 flex items-center justify-between'>
-				<h3 className='text-sm font-bold'>Badges</h3>
-				{isOwnProfile ? (
+}) => {
+	const t = useTranslations('profile')
+	return (
+		<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
+			{!compact && (
+				<div className='mb-4 flex items-center justify-between'>
+					<h3 className='text-sm font-bold'>{t('badgesTitle')}</h3>
+					{isOwnProfile && totalBadges > 0 ? (
+						<Link
+							href='/profile/badges'
+							className='text-sm font-semibold text-brand hover:underline'
+						>
+							{t('viewAllBadges', { count: totalBadges })}
+						</Link>
+					) : !isOwnProfile ? (
+						<span className='text-sm text-text-muted'>
+							{t('badgesEarned', { count: totalBadges })}
+						</span>
+					) : null}
+				</div>
+			)}
+			<div className='flex gap-3 overflow-x-auto scrollbar-hide pb-2 pr-4'>
+				{badges.length === 0 && isOwnProfile ? (
 					<Link
 						href='/profile/badges'
-						className='text-sm font-semibold text-brand hover:underline'
+						className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-4 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
 					>
-						View all {totalBadges} →
+						<span className='text-lg'>🏅</span>
+						{t('earnFirstBadge')}
 					</Link>
+				) : badges.length === 0 ? (
+					<p className='py-4 text-center text-sm text-text-muted'>
+						{t('noBadgesYet')}
+					</p>
 				) : (
-					<span className='text-sm text-text-muted'>
-						{totalBadges} badges earned
+					badges.slice(0, compact ? 3 : 5).map((badge, index) => (
+						<motion.div
+							key={badge.id || `badge-${index}`}
+							transition={TRANSITION_SPRING}
+							className={cn(
+								'flex flex-shrink-0 flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated',
+								compact
+									? 'min-w-nav px-3 py-2.5'
+									: 'min-w-thumbnail-xl px-4 py-3.5',
+								index === 0 && !compact && 'border-xp/30 bg-xp/10',
+							)}
+						>
+							<span className={compact ? 'text-xl' : 'text-icon-lg'}>
+								{badge.icon}
+							</span>
+							<span
+								className={cn(
+									'text-center font-semibold',
+									compact ? 'text-2xs' : 'text-xs',
+								)}
+							>
+								{badge.name}
+							</span>
+							{!compact && badge.rarity === 'RARE' && (
+								<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
+									{t('badgeRare')}
+								</span>
+							)}
+						</motion.div>
+					))
+				)}
+				{compact && totalBadges > 3 && (
+					<span className='flex items-center px-3 text-xs font-semibold text-text-muted'>
+						+{totalBadges - 3}
 					</span>
 				)}
 			</div>
-		)}
-		<div className='flex gap-3 overflow-x-auto pb-2'>
-			{badges.length === 0 && isOwnProfile ? (
-				<Link
-					href='/profile/badges'
-					className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle py-4 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand'
-				>
-					<span className='text-lg'>🏅</span>
-					Cook a recipe to earn your first badge!
-				</Link>
-			) : badges.length === 0 ? (
-				<p className='py-4 text-center text-sm text-text-muted'>
-					No badges yet
-				</p>
-			) : (
-				badges.slice(0, compact ? 3 : 5).map((badge, index) => (
-					<motion.div
-						key={badge.id || `badge-${index}`}
-						whileHover={STAT_ITEM_HOVER}
-						transition={TRANSITION_SPRING}
-						className={cn(
-							'flex flex-shrink-0 cursor-pointer flex-col items-center gap-1.5 rounded-xl border border-border bg-bg-elevated hover:shadow-card',
-							compact
-								? 'min-w-nav px-3 py-2.5'
-								: 'min-w-thumbnail-xl px-4 py-3.5',
-							index === 0 && !compact && 'border-xp/30 bg-xp/10',
-						)}
-					>
-						<span className={compact ? 'text-xl' : 'text-icon-lg'}>
-							{badge.icon}
-						</span>
-						<span
-							className={cn(
-								'text-center font-semibold',
-								compact ? 'text-2xs' : 'text-xs',
-							)}
-						>
-							{badge.name}
-						</span>
-						{!compact && badge.rarity === 'RARE' && (
-							<span className='rounded-full bg-xp px-2 py-0.5 text-2xs text-white'>
-								Rare
-							</span>
-						)}
-					</motion.div>
-				))
-			)}
-			{compact && totalBadges > 3 && (
-				<span className='flex items-center px-3 text-xs font-semibold text-text-muted'>
-					+{totalBadges - 3}
-				</span>
-			)}
 		</div>
-	</div>
-)
+	)
+}
 
 // Profile Tabs
 const ProfileTabs = ({
@@ -476,40 +513,47 @@ const ProfileTabs = ({
 	}[]
 	activeTab?: string
 	onTabChange?: (tab: string) => void
-}) => (
-	<div className='flex gap-1 overflow-x-auto border-t border-border px-4'>
-		{tabs.map(tab => (
-			<button
-				key={tab.id}
-				onClick={() => onTabChange?.(tab.id)}
-				className={cn(
-					'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-4 py-4 text-sm font-semibold transition-colors',
-					activeTab === tab.id
-						? 'border-brand text-brand'
-						: 'border-transparent text-text-muted hover:text-text',
-				)}
-			>
-				{tab.icon}
-				{tab.label}
-				{tab.badge !== undefined && (
-					<span className='rounded-full bg-error px-2 py-0.5 text-xs font-bold text-white'>
-						{tab.badge}
-					</span>
-				)}
-				{tab.count !== undefined && (
-					<span
+}) => {
+	return (
+		<div className='relative border-t border-border'>
+			<div className='flex gap-0.5 overflow-x-auto scrollbar-hide px-2 md:px-4'>
+				{tabs.map(tab => (
+					<button
+						type='button'
+						key={tab.id}
+						onClick={() => onTabChange?.(tab.id)}
 						className={cn(
-							'text-xs',
-							activeTab === tab.id ? 'text-brand' : 'text-text-muted',
+							'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-2.5 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 md:px-4 md:py-4',
+							activeTab === tab.id
+								? 'border-brand text-brand'
+								: 'border-transparent text-text-muted hover:text-text',
 						)}
 					>
-						{formatNumber(tab.count)}
-					</span>
-				)}
-			</button>
-		))}
-	</div>
-)
+						{tab.icon}
+						{tab.label}
+						{tab.badge !== undefined && (
+							<span className='rounded-full bg-error px-2 py-0.5 text-xs font-bold tabular-nums text-white'>
+								{tab.badge}
+							</span>
+						)}
+						{tab.count !== undefined && (
+							<span
+								className={cn(
+									'text-xs tabular-nums',
+									activeTab === tab.id ? 'text-brand' : 'text-text-muted',
+								)}
+							>
+								<AnimatedNumber value={tab.count} format={formatNumber} />
+							</span>
+						)}
+					</button>
+				))}
+			</div>
+			{/* Right-edge fade hint for scrollable tabs on mobile */}
+			<div className='pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-bg-card to-transparent md:hidden' />
+		</div>
+	)
+}
 
 // ============================================
 // VARIANT: OWN PROFILE
@@ -526,8 +570,14 @@ const OwnProfileHeader = ({
 }: OwnProfileProps) => {
 	// Platform detection for keyboard shortcuts
 	const isMac =
-		typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
+		typeof navigator !== 'undefined' &&
+		(('userAgentData' in navigator &&
+			(navigator.userAgentData as { platform?: string })?.platform ===
+				'macOS') ||
+			/Mac/i.test(navigator.userAgent))
 	const modKey = isMac ? '⌘' : 'Ctrl'
+
+	const t = useTranslations('profile')
 
 	// Keyboard shortcut: Ctrl/Cmd+E to edit profile
 	useEffect(() => {
@@ -542,39 +592,65 @@ const OwnProfileHeader = ({
 	}, [onEditProfile])
 
 	const tabs = [
-		{ id: 'recipes', label: 'Recipes', icon: <Utensils className='size-4' /> },
-		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='size-4' /> },
+		{
+			id: 'recipes',
+			label: t('tabRecipes'),
+			icon: <Utensils className='size-4' />,
+		},
+		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'cooking',
-			label: 'Cooking',
+			label: t('tabCooking'),
 			icon: <ChefHat className='size-4' />,
 			badge: pendingPosts?.count,
 		},
-		{ id: 'saved', label: 'Saved', icon: <Bookmark className='size-4' /> },
+		{
+			id: 'saved',
+			label: t('tabSaved'),
+			icon: <Bookmark className='size-4' />,
+		},
+		{ id: 'liked', label: t('tabLiked'), icon: <Heart className='size-4' /> },
 		{
 			id: 'achievements',
-			label: 'Achievements',
+			label: t('tabAchievements'),
 			icon: <Trophy className='size-4' />,
 		},
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-panel-bg shadow-lg'>
+		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-lg'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
 					src={user.coverUrl || '/default-cover.svg'}
-					alt='Cover'
+					alt={t('coverAlt')}
 					fill
+					sizes='100vw'
 					className='object-cover'
+					onError={e => {
+						;(e.target as HTMLImageElement).src = '/default-cover.svg'
+					}}
 				/>
-				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
+				<div className='pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
 
 				{/* Level Ring */}
 				<LevelRing
 					level={user.gamification.currentLevel}
 					progressPercent={user.gamification.progressPercent}
-					xpText={`${formatNumber(user.gamification.currentXP)} / ${formatNumber(user.gamification.currentXPGoal)} XP`}
+					xpText={
+						<>
+							<AnimatedNumber
+								value={user.gamification.currentXP}
+								format={formatNumber}
+							/>{' '}
+							/{' '}
+							<AnimatedNumber
+								value={user.gamification.currentXPGoal}
+								format={formatNumber}
+							/>{' '}
+							XP
+						</>
+					}
 				/>
 
 				{/* Streak Badge */}
@@ -590,15 +666,22 @@ const OwnProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='size-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
+						}}
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
 
 				{/* Info */}
 				<div className='flex-1 pt-14'>
-					<h1 className='text-2xl font-extrabold'>{user.displayName}</h1>
-					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
+					<h1 className='truncate text-2xl font-display font-extrabold'>
+						{user.displayName}
+					</h1>
+					<p className='mt-1 truncate text-sm text-text-muted'>
+						@{user.username}
+					</p>
 					{user.bio && (
 						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
 					)}
@@ -607,25 +690,27 @@ const OwnProfileHeader = ({
 				{/* Actions */}
 				<div className='flex gap-2 pt-14'>
 					<motion.button
+						type='button'
 						onClick={onEditProfile}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border'
-						title={`Edit Profile (${modKey}+E)`}
+						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border focus-visible:ring-2 focus-visible:ring-brand/50'
+						title={`${t('phEditProfile')} (${modKey}+E)`}
 					>
 						<Settings className='size-4' />
-						Edit Profile
-						<kbd className='ml-1.5 hidden rounded bg-bg px-1.5 py-0.5 font-mono text-[10px] text-text-muted group-hover:inline'>
+						{t('phEditProfile')}
+						<kbd className='ml-1.5 hidden rounded bg-bg px-1.5 py-0.5 font-mono text-2xs text-text-muted group-hover:inline'>
 							{modKey}+E
 						</kbd>
 					</motion.button>
 					<motion.button
+						type='button'
 						onClick={onShareProfile}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
-						aria-label='Share profile'
+						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('shareProfileAria')}
 					>
 						<Share2 className='size-4' />
 					</motion.button>
@@ -671,23 +756,36 @@ const OwnProfileHeader = ({
 					</div>
 					<div className='flex flex-1 flex-col gap-0.5'>
 						<span className='text-sm font-semibold'>
-							{pendingPosts.count} recipes waiting to be posted
+							{t('pendingRecipesWaiting', { count: pendingPosts.count })}
 						</span>
 						<span className='text-xs text-text-muted'>
-							Don&apos;t lose {formatNumber(pendingPosts.totalPendingXP)} XP!
-							Post before deadlines expire
+							{t('pendingDontLose', {
+								xp: formatNumber(pendingPosts.totalPendingXP),
+							})}
 						</span>
 					</div>
 					<motion.button
+						type='button'
 						onClick={onPostPending}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='rounded-lg bg-error px-4 py-2.5 text-sm font-semibold text-white'
+						className='rounded-lg bg-error px-4 py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
-						Post Now
+						{t('postNow')}
 					</motion.button>
 				</div>
 			)}
+
+			{/* Taste DNA link */}
+			<div className='flex justify-center py-2'>
+				<Link
+					href='/profile/taste'
+					className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
+				>
+					<Sparkles className='size-4' />
+					{t('viewTasteDNA')}
+				</Link>
+			</div>
 
 			{/* Tabs */}
 			<ProfileTabs
@@ -708,45 +806,52 @@ const OtherUserProfileHeader = ({
 	isFollowing,
 	isMutualFollow,
 	isBlocked,
+	isFollowLoading,
+	isBlockLoading,
 	onFollow,
 	onMessage,
 	onBlock,
 	activeTab,
 	onTabChange,
 }: OtherUserProfileProps) => {
+	const t = useTranslations('profile')
 	const tabs = [
 		{
 			id: 'recipes',
-			label: 'Recipes',
+			label: t('tabRecipes'),
 			icon: <Utensils className='size-4' />,
 			count: user.stats.recipesCreated,
 		},
-		{ id: 'posts', label: 'Posts', icon: <Grid3X3 className='size-4' /> },
+		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
 			id: 'achievements',
-			label: 'Achievements',
+			label: t('tabAchievements'),
 			icon: <Trophy className='size-4' />,
 			count: user.totalBadges,
 		},
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-panel-bg shadow-lg'>
+		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-lg'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
 					src={user.coverUrl || '/default-cover.svg'}
-					alt='Cover'
+					alt={t('coverAlt')}
 					fill
+					sizes='100vw'
 					className='object-cover'
+					onError={e => {
+						;(e.target as HTMLImageElement).src = '/default-cover.svg'
+					}}
 				/>
-				<div className='absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
+				<div className='pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60' />
 
 				{/* Level Ring */}
 				<LevelRing
 					level={user.gamification.currentLevel}
 					progressPercent={user.gamification.progressPercent}
-					xpText='Top 5%'
+					xpText={t('topPercent')}
 				/>
 
 				{/* Streak Badge */}
@@ -762,7 +867,10 @@ const OtherUserProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='size-avatar-xl rounded-full border-5 border-panel-bg object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
+						onError={e => {
+							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
+						}}
 					/>
 					<TitleBadge title={user.gamification.title} />
 				</div>
@@ -770,10 +878,16 @@ const OtherUserProfileHeader = ({
 				{/* Info */}
 				<div className='flex-1 pt-14'>
 					<div className='flex items-center gap-2'>
-						<h1 className='text-2xl font-extrabold'>{user.displayName}</h1>
-						{user.isVerified && <VerifiedBadge className='text-info' />}
+						<h1 className='truncate text-2xl font-display font-extrabold'>
+							{user.displayName}
+						</h1>
+						{user.isVerified && (
+							<VerifiedBadge className='flex-shrink-0 text-info' />
+						)}
 					</div>
-					<p className='mt-1 text-sm text-text-muted'>@{user.username}</p>
+					<p className='mt-1 truncate text-sm text-text-muted'>
+						@{user.username}
+					</p>
 					{user.bio && (
 						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
 					)}
@@ -782,11 +896,13 @@ const OtherUserProfileHeader = ({
 				{/* Actions */}
 				<div className='flex gap-2 pt-14'>
 					<motion.button
+						type='button'
 						onClick={onFollow}
+						disabled={isFollowLoading}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className={cn(
-							'flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors',
+							'flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 							isFollowing
 								? 'border border-border bg-bg-elevated hover:bg-border'
 								: 'bg-brand text-white',
@@ -805,33 +921,42 @@ const OtherUserProfileHeader = ({
 					{isMutualFollow && (
 						<div className='flex items-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm font-semibold text-success'>
 							<Users className='size-4' />
-							Friends
+							{t('friends')}
 						</div>
 					)}
 					<motion.button
+						type='button'
 						onClick={onMessage}
+						aria-label={t('ariaSendMessage')}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text'
+						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageCircle className='size-4' />
 					</motion.button>
+					<TipJarButton
+						creatorId={user.id}
+						creatorName={user.displayName || user.username}
+						variant='profile'
+					/>
 					{/* Block/Unblock Button */}
 					<motion.button
+						type='button'
 						onClick={onBlock}
+						disabled={isBlockLoading}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className={cn(
-							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors',
+							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 							isBlocked
 								? 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
 								: 'border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-destructive',
 						)}
-						title={isBlocked ? 'Unblock user' : 'Block user'}
+						title={isBlocked ? t('unblockUser') : t('blockUser')}
 					>
-						<ShieldBan className='h-4 w-4' />
+						<ShieldBan className='size-4' />
 					</motion.button>
 				</div>
 			</div>
@@ -881,10 +1006,11 @@ const MiniProfileHeader = ({
 	isFollowing,
 	onFollow,
 }: MiniHeaderProps) => {
+	const t = useTranslations('profile')
 	const config = titleConfig[title]
 
 	return (
-		<div className='flex items-center gap-3 rounded-xl border border-border bg-panel-bg p-3'>
+		<div className='flex items-center gap-3 rounded-xl border border-border bg-bg-card p-3'>
 			{/* Avatar with Level */}
 			<div className='relative flex-shrink-0'>
 				<Image
@@ -892,9 +1018,9 @@ const MiniProfileHeader = ({
 					alt={user.displayName}
 					width={48}
 					height={48}
-					className='h-12 w-12 rounded-full object-cover'
+					className='size-12 rounded-full object-cover'
 				/>
-				<span className='absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-panel-bg bg-success text-2xs font-extrabold text-white'>
+				<span className='absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border-2 border-bg-card bg-success text-2xs font-display font-extrabold text-white'>
 					{level}
 				</span>
 			</div>
@@ -902,23 +1028,33 @@ const MiniProfileHeader = ({
 			{/* Info */}
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center gap-1.5'>
-					<span className='text-sm font-bold'>{user.displayName}</span>
-					{user.isVerified && <VerifiedBadge size='sm' className='text-info' />}
+					<span className='truncate text-sm font-bold'>{user.displayName}</span>
+					{user.isVerified && (
+						<VerifiedBadge size='sm' className='flex-shrink-0 text-info' />
+					)}
 					<span
 						className={cn(
 							'rounded-lg px-2 py-0.5 text-2xs font-bold uppercase text-white',
 							config.gradient,
 						)}
 					>
-						{config.label}
+						{t(config.labelKey)}
 					</span>
 				</div>
 				<div className='mt-0.5 flex items-center gap-1.5 text-xs text-text-muted'>
-					<span>{formatNumber(user.stats.followers)} followers</span>
+					<span className='tabular-nums'>
+						<AnimatedNumber
+							value={user.stats.followers}
+							format={formatNumber}
+						/>{' '}
+						{t('followersCount')}
+					</span>
 					{streakCount !== undefined && streakCount > 0 && (
 						<>
 							<span className='text-border'>•</span>
-							<span>🔥 {streakCount} day streak</span>
+							<span>
+								🔥 {streakCount} {t('dayStreak')}
+							</span>
 						</>
 					)}
 				</div>
@@ -926,18 +1062,20 @@ const MiniProfileHeader = ({
 
 			{/* Follow Button */}
 			<motion.button
+				type='button'
 				onClick={onFollow}
 				whileHover={BUTTON_SUBTLE_HOVER}
 				whileTap={BUTTON_SUBTLE_TAP}
+				animate={isFollowing ? FOLLOW_PULSE.followed : undefined}
 				transition={TRANSITION_SPRING}
 				className={cn(
-					'rounded-lg px-4 py-2 text-sm font-semibold',
+					'rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 					isFollowing
 						? 'border border-border bg-bg-elevated hover:bg-border'
 						: 'bg-brand text-white',
 				)}
 			>
-				{isFollowing ? 'Following' : 'Follow'}
+				{isFollowing ? t('phFollowing') : t('phFollow')}
 			</motion.button>
 		</div>
 	)

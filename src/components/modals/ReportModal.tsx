@@ -25,6 +25,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { useTranslations } from 'next-intl'
 import {
 	TRANSITION_SPRING,
 	TRANSITION_SMOOTH,
@@ -33,6 +34,7 @@ import {
 	BUTTON_TAP,
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 
 // ============================================
@@ -88,7 +90,12 @@ const modalVariants = {
 		scale: 1,
 		transition: TRANSITION_SMOOTH,
 	},
-	exit: { opacity: 0, y: 50, scale: 0.95, transition: { duration: 0.2 } },
+	exit: {
+		opacity: 0,
+		y: 50,
+		scale: 0.95,
+		transition: { duration: DURATION_S.normal },
+	},
 }
 
 // ============================================
@@ -102,33 +109,37 @@ interface ReportModalProps {
 	content: ReportedContent
 }
 
-const reportReasons: { value: ReportReason; title: string; desc: string }[] = [
+const reportReasons: {
+	value: ReportReason
+	titleKey: string
+	descKey: string
+}[] = [
 	{
 		value: 'spam',
-		title: 'Spam or misleading',
-		desc: 'Fake content, scams, or repetitive posts',
+		titleKey: 'rrSpam',
+		descKey: 'rrSpamDesc',
 	},
 	{
 		value: 'inappropriate',
-		title: 'Inappropriate content',
-		desc: 'Not suitable for all audiences',
+		titleKey: 'rrInappropriate',
+		descKey: 'rrInappropriateDesc',
 	},
 	{
 		value: 'harassment',
-		title: 'Harassment or bullying',
-		desc: 'Targeting or attacking users',
+		titleKey: 'rrHarassment',
+		descKey: 'rrHarassmentDesc',
 	},
 	{
 		value: 'fraud',
-		title: 'Gaming/Fraud',
-		desc: 'Fake cooking sessions, XP manipulation',
+		titleKey: 'rrFraud',
+		descKey: 'rrFraudDesc',
 	},
 	{
 		value: 'copyright',
-		title: 'Copyright violation',
-		desc: 'Stolen recipes or content',
+		titleKey: 'rrCopyright',
+		descKey: 'rrCopyrightDesc',
 	},
-	{ value: 'other', title: 'Other', desc: 'Something else not listed above' },
+	{ value: 'other', titleKey: 'rrOther', descKey: 'rrOtherDesc' },
 ]
 
 export const ReportModal = ({
@@ -137,6 +148,7 @@ export const ReportModal = ({
 	onSubmit,
 	content,
 }: ReportModalProps) => {
+	const t = useTranslations('report')
 	const [selectedReason, setSelectedReason] = useState<ReportReason | null>(
 		null,
 	)
@@ -170,6 +182,9 @@ export const ReportModal = ({
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Report content'
 						variants={overlayVariants}
 						initial='hidden'
 						animate='visible'
@@ -197,42 +212,43 @@ export const ReportModal = ({
 										<CheckCircle className='size-7' />
 									</motion.div>
 									<h3 className='mb-2 text-lg font-extrabold'>
-										Report Submitted
+										{t('rmSubmitted')}
 									</h3>
 									<p className='mb-4 text-sm leading-relaxed text-text-muted'>
-										Thanks for helping keep ChefKix safe. Our team will review
-										this content within 24 hours.
+										{t('rmThanks')}
 									</p>
 									<div className='mb-4 rounded-lg bg-bg-elevated p-4 text-left'>
 										<h4 className='mb-2 text-sm font-bold'>
-											What happens next?
+											{t('rmWhatsNext')}
 										</h4>
 										<ul className='space-y-1.5 text-xs text-text-muted'>
-											<li>• AI moderators will review immediately</li>
-											<li>• If flagged, human moderators will take action</li>
-											<li>• We&apos;ll notify you if action is taken</li>
+											<li>• {t('rmStep1')}</li>
+											<li>• {t('rmStep2')}</li>
+											<li>• {t('rmStep3')}</li>
 										</ul>
 									</div>
 									<motion.button
+										type='button'
 										onClick={handleClose}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='w-full rounded-lg bg-gradient-xp py-3 text-sm font-bold text-white'
+										className='w-full rounded-lg bg-gradient-xp py-3 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
-										Done
+										{t('rmDone')}
 									</motion.button>
 								</div>
 							) : (
 								// Report Form
 								<>
 									<div className='flex items-center justify-between border-b border-border p-4 md:p-5'>
-										<h2 className='text-lg font-extrabold'>Report Content</h2>
+										<h2 className='text-lg font-extrabold'>{t('rmTitle')}</h2>
 										<motion.button
+											type='button'
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
-											aria-label='Close report form'
+											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+											aria-label={t('rmCloseAriaLabel')}
 										>
 											<X className='size-4' />
 										</motion.button>
@@ -263,7 +279,7 @@ export const ReportModal = ({
 										{/* Reasons */}
 										<div className='mb-4'>
 											<h3 className='mb-2.5 text-sm font-bold'>
-												Why are you reporting this?
+												{t('rmWhyReporting')}
 											</h3>
 											<div className='flex flex-col gap-2'>
 												{reportReasons.map(reason => (
@@ -298,10 +314,10 @@ export const ReportModal = ({
 														</div>
 														<div className='flex flex-col gap-0.5'>
 															<span className='text-sm font-semibold'>
-																{reason.title}
+																{t(reason.titleKey)}
 															</span>
 															<span className='text-xs text-text-muted'>
-																{reason.desc}
+																{t(reason.descKey)}
 															</span>
 														</div>
 													</label>
@@ -312,17 +328,19 @@ export const ReportModal = ({
 										{/* Additional Details */}
 										<div className='mb-4'>
 											<h3 className='mb-1.5 text-sm font-bold'>
-												Additional details (optional)
+												{t('rmDetails')}
 											</h3>
 											<textarea
 												value={details}
 												onChange={e => setDetails(e.target.value)}
-												placeholder='Provide more context...'
+												placeholder={t('rmDetailsPlaceholder')}
 												maxLength={1000}
-												className='min-h-[80px] w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
+												className='min-h-20 w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-colors focus:border-accent-purple'
 											/>
 											{details.length > 0 && (
-												<p className='mt-1 text-right text-xs text-text-muted'>
+												<p
+													className={`mt-1 text-right text-xs tabular-nums ${details.length > 800 ? (details.length >= 1000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+												>
 													{details.length}/1000
 												</p>
 											)}
@@ -332,13 +350,13 @@ export const ReportModal = ({
 										<div className='mb-4 flex items-start gap-2 rounded-lg bg-xp/10 p-3'>
 											<Shield className='mt-0.5 size-4 flex-shrink-0 text-xp' />
 											<span className='text-xs leading-relaxed text-text-muted'>
-												Reports are reviewed within 24 hours. False reports may
-												affect your account.
+												{t('rmTrustSignal')}
 											</span>
 										</div>
 
 										{/* Submit */}
 										<motion.button
+											type='button'
 											onClick={handleSubmit}
 											disabled={!selectedReason || isSubmitting}
 											whileHover={
@@ -347,14 +365,14 @@ export const ReportModal = ({
 											whileTap={
 												selectedReason && !isSubmitting ? { scale: 0.98 } : {}
 											}
-											className='flex w-full items-center justify-center gap-2 rounded-lg bg-error py-3 text-sm font-bold text-white disabled:opacity-50'
+											className='flex w-full items-center justify-center gap-2 rounded-lg bg-error py-3 text-sm font-bold text-white disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{isSubmitting ? (
 												<Loader2 className='size-4 animate-spin' />
 											) : (
 												<>
 													<Flag className='size-4' />
-													<span>Submit Report</span>
+													<span>{t('rmSubmit')}</span>
 												</>
 											)}
 										</motion.button>
@@ -380,6 +398,7 @@ export const ReportLimitModal = ({
 	onClose,
 	hoursUntilReset,
 }: ReportLimitModalProps) => {
+	const t = useTranslations('report')
 	useEscapeKey(isOpen, onClose)
 
 	return (
@@ -392,6 +411,9 @@ export const ReportLimitModal = ({
 						animate='visible'
 						exit='hidden'
 						onClick={onClose}
+						role='alertdialog'
+						aria-modal='true'
+						aria-label='Confirm block user'
 						className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 p-4'
 					>
 						<motion.div
@@ -405,27 +427,27 @@ export const ReportLimitModal = ({
 							<div className='mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
 								<AlertCircle className='size-8' />
 							</div>
-							<h3 className='mb-3 text-xl font-extrabold'>
-								Daily Report Limit Reached
-							</h3>
+							<h3 className='mb-3 text-xl font-extrabold'>{t('rlTitle')}</h3>
 							<p className='mb-5 text-sm leading-relaxed text-text-muted'>
-								You&apos;ve submitted 3 reports today. This limit helps prevent
-								abuse and ensures quality reviews.
+								{t('rlDescription')}
 							</p>
 							<div className='mb-5 flex items-center justify-center gap-2 rounded-lg bg-bg-elevated p-3 text-sm text-text-muted'>
 								<Clock className='size-icon-sm' />
 								<span>
-									Limit resets in{' '}
-									<strong className='text-text'>{hoursUntilReset} hours</strong>
+									{t('rlResetIn')}{' '}
+									<strong className='text-text'>
+										{t('rlHours', { count: hoursUntilReset })}
+									</strong>
 								</span>
 							</div>
 							<motion.button
+								type='button'
 								onClick={onClose}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
+								className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
-								Okay
+								{t('rlOkay')}
 							</motion.button>
 						</motion.div>
 					</motion.div>
@@ -448,13 +470,9 @@ export const AccountRestrictedNotice = ({
 	onAppeal,
 	onDismiss,
 }: AccountRestrictedNoticeProps) => {
+	const t = useTranslations('report')
 	const isPermanent = violation.restrictionDays === 'permanent'
-	const offenseLabels = [
-		'1st Offense',
-		'2nd Offense',
-		'3rd Offense',
-		'4th+ Offense',
-	]
+	const offenseLabels = [t('ar1st'), t('ar2nd'), t('ar3rd'), t('ar4th')]
 
 	return (
 		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-2xl bg-bg-card'>
@@ -463,7 +481,7 @@ export const AccountRestrictedNotice = ({
 				className={cn(
 					'flex flex-col items-center gap-4 p-8 text-center',
 					isPermanent
-						? 'bg-gradient-to-br from-error/20 to-red-900/10'
+						? 'bg-gradient-to-br from-error/20 to-error/10'
 						: 'bg-gradient-to-br from-warning/15 to-error/10',
 				)}
 			>
@@ -482,39 +500,43 @@ export const AccountRestrictedNotice = ({
 					)}
 				</div>
 				<h2 className='text-2xl font-extrabold'>
-					{isPermanent ? 'Account Permanently Banned' : 'Account Restricted'}
+					{isPermanent ? t('arBanned') : t('arRestricted')}
 				</h2>
 			</div>
 
 			{/* Body */}
 			<div className='p-6'>
 				<p className='mb-5 text-base leading-relaxed text-text-muted'>
-					Your account has been{' '}
-					{isPermanent ? 'permanently banned' : 'temporarily restricted'} due to
-					violation of our community guidelines.
+					{isPermanent ? t('arBannedDesc') : t('arRestrictedDesc')}
 				</p>
 
 				{/* Violation Details */}
 				<div className='mb-5 rounded-2xl bg-bg-elevated p-4'>
 					<div className='flex justify-between border-b border-border py-2.5'>
-						<span className='text-sm text-text-muted'>Violation Type</span>
+						<span className='text-sm text-text-muted'>
+							{t('arViolationType')}
+						</span>
 						<span className='text-sm font-semibold'>{violation.type}</span>
 					</div>
 					<div className='flex justify-between border-b border-border py-2.5'>
-						<span className='text-sm text-text-muted'>Offense</span>
+						<span className='text-sm text-text-muted'>{t('arOffense')}</span>
 						<span className='rounded-lg bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning'>
 							{offenseLabels[Math.min(violation.offense - 1, 3)]}
 						</span>
 					</div>
 					<div className='flex justify-between border-b border-border py-2.5'>
-						<span className='text-sm text-text-muted'>Restriction Period</span>
+						<span className='text-sm text-text-muted'>
+							{t('arRestrictionPeriod')}
+						</span>
 						<span className='text-sm font-semibold'>
-							{isPermanent ? 'Permanent' : `${violation.restrictionDays} days`}
+							{isPermanent
+								? t('arPermanent')
+								: t('arDays', { count: violation.restrictionDays })}
 						</span>
 					</div>
 					{violation.endDate && (
 						<div className='flex justify-between py-2.5'>
-							<span className='text-sm text-text-muted'>Restriction Ends</span>
+							<span className='text-sm text-text-muted'>{t('arEnds')}</span>
 							<span className='text-sm font-semibold'>{violation.endDate}</span>
 						</div>
 					)}
@@ -523,15 +545,9 @@ export const AccountRestrictedNotice = ({
 				{/* Effects */}
 				{!isPermanent && (
 					<div className='mb-5'>
-						<h4 className='mb-3 text-sm font-bold'>
-							During this restriction, you cannot:
-						</h4>
+						<h4 className='mb-3 text-sm font-bold'>{t('arCannotDo')}</h4>
 						<ul className='space-y-2.5'>
-							{[
-								'Create posts or comments',
-								'Complete cooking sessions',
-								'Earn or accumulate XP',
-							].map(item => (
+							{[t('arNoPost'), t('arNoCook'), t('arNoXp')].map(item => (
 								<li
 									key={item}
 									className='flex items-center gap-2.5 text-sm text-error'
@@ -542,7 +558,7 @@ export const AccountRestrictedNotice = ({
 							))}
 							<li className='flex items-center gap-2.5 text-sm text-success'>
 								<CheckCircle className='size-icon-sm' />
-								<span>View content and browse</span>
+								<span>{t('arCanView')}</span>
 							</li>
 						</ul>
 					</div>
@@ -554,10 +570,10 @@ export const AccountRestrictedNotice = ({
 						<TrendingUp className='mt-0.5 size-5 flex-shrink-0 text-error' />
 						<div className='flex flex-col gap-1'>
 							<strong className='text-sm text-error'>
-								Future violations will have longer restrictions:
+								{t('arEscalation')}
 							</strong>
 							<span className='text-sm text-text-muted'>
-								2nd: 7 days • 3rd: 14 days • 4th: Permanent ban
+								{t('arEscalationDetail')}
 							</span>
 						</div>
 					</div>
@@ -567,22 +583,24 @@ export const AccountRestrictedNotice = ({
 			{/* Actions */}
 			<div className='flex gap-3 px-6 pb-6'>
 				<motion.button
+					type='button'
 					onClick={onAppeal}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted'
+					className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<MessageCircle className='size-icon-sm' />
-					{isPermanent ? 'Submit Final Appeal' : 'Appeal Decision'}
+					{isPermanent ? t('arFinalAppeal') : t('arAppealDecision')}
 				</motion.button>
 				{!isPermanent && (
 					<motion.button
+						type='button'
 						onClick={onDismiss}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='flex-1 rounded-xl bg-warning py-3.5 text-sm font-bold text-white'
+						className='flex-1 rounded-xl bg-warning py-3.5 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
-						I Understand
+						{t('arUnderstand')}
 					</motion.button>
 				)}
 			</div>
@@ -607,6 +625,7 @@ export const AppealModal = ({
 	onSubmit,
 	violation,
 }: AppealModalProps) => {
+	const t = useTranslations('report')
 	const [appealText, setAppealText] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [submitted, setSubmitted] = useState(false)
@@ -636,6 +655,9 @@ export const AppealModal = ({
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Appeal ban'
 						variants={overlayVariants}
 						initial='hidden'
 						animate='visible'
@@ -663,52 +685,53 @@ export const AppealModal = ({
 										<CheckCircle className='size-9' />
 									</motion.div>
 									<h3 className='mb-3 text-xl font-extrabold'>
-										Appeal Submitted
+										{t('apSubmitted')}
 									</h3>
 									<p className='mb-6 leading-relaxed text-text-muted'>
-										Your appeal has been received. Our moderation team will
-										review it within 48 hours.
+										{t('apSubmittedDesc')}
 									</p>
 
 									{/* Status Card */}
 									<div className='mb-6 rounded-2xl bg-bg-elevated p-5 text-left'>
 										<div className='mb-4 flex items-center justify-between'>
 											<span className='text-sm text-text-muted'>
-												Appeal Status
+												{t('apStatus')}
 											</span>
 											<span className='rounded-lg bg-warning/10 px-3 py-1.5 text-xs font-bold text-warning'>
-												Under Review
+												{t('apUnderReview')}
 											</span>
 										</div>
 										<div className='mb-4 flex items-center justify-center gap-2 text-sm text-text-muted'>
 											<Clock className='size-4' />
 											<span>
-												Estimated decision:{' '}
-												<strong className='text-text'>~48 hours</strong>
+												{t('apEstimated')}{' '}
+												<strong className='text-text'>{t('ap48Hours')}</strong>
 											</span>
 										</div>
 									</div>
 
 									<motion.button
+										type='button'
 										onClick={handleClose}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white'
+										className='w-full rounded-xl bg-gradient-xp py-3.5 font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
-										Got It
+										{t('apGotIt')}
 									</motion.button>
 								</div>
 							) : (
 								// Appeal Form
 								<>
 									<div className='flex items-center justify-between border-b border-border p-7'>
-										<h2 className='text-xl font-extrabold'>Appeal Decision</h2>
+										<h2 className='text-xl font-extrabold'>{t('apTitle')}</h2>
 										<motion.button
+											type='button'
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text'
-											aria-label='Close appeal form'
+											className='flex size-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+											aria-label={t('apCloseAriaLabel')}
 										>
 											<X className='size-5' />
 										</motion.button>
@@ -718,18 +741,22 @@ export const AppealModal = ({
 										<div className='mb-5 rounded-xl bg-bg-elevated p-4'>
 											<div className='flex justify-between border-b border-border py-2'>
 												<span className='text-sm text-text-muted'>
-													Violation
+													{t('apViolation')}
 												</span>
 												<span className='text-sm font-semibold'>
 													{violation.type}
 												</span>
 											</div>
 											<div className='flex justify-between py-2'>
-												<span className='text-sm text-text-muted'>Penalty</span>
+												<span className='text-sm text-text-muted'>
+													{t('apPenalty')}
+												</span>
 												<span className='text-sm font-semibold'>
 													{violation.restrictionDays === 'permanent'
-														? 'Permanent ban'
-														: `${violation.restrictionDays} day restriction`}
+														? t('apPermBan')
+														: t('apDayRestriction', {
+																count: violation.restrictionDays,
+															})}
 												</span>
 											</div>
 										</div>
@@ -737,17 +764,17 @@ export const AppealModal = ({
 										{/* Appeal Form */}
 										<div className='mb-5'>
 											<label className='mb-2.5 block text-sm font-bold'>
-												Why do you believe this decision was incorrect?
+												{t('apWhyIncorrect')}
 											</label>
 											<textarea
 												value={appealText}
 												onChange={e =>
 													setAppealText(e.target.value.slice(0, 1000))
 												}
-												placeholder='Explain your side of the situation. Provide any context or evidence that might help us review your case...'
-												className='min-h-textarea w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-4 text-sm leading-relaxed outline-none transition-colors focus:border-accent-purple'
+												placeholder={t('apPlaceholder')}
+												className='min-h-textarea w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-4 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-colors focus:border-accent-purple'
 											/>
-											<div className='mt-2 text-right text-xs text-text-muted'>
+											<div className='mt-2 text-right text-xs text-text-muted tabular-nums'>
 												{appealText.length} / 1000
 											</div>
 										</div>
@@ -755,28 +782,30 @@ export const AppealModal = ({
 										{/* Guidelines */}
 										<div className='mb-5 rounded-xl bg-bg-elevated p-4'>
 											<h4 className='mb-2.5 text-sm font-bold'>
-												Appeal Guidelines
+												{t('apGuidelines')}
 											</h4>
 											<ul className='space-y-1.5 text-sm text-text-muted'>
-												<li>• Be honest and respectful in your appeal</li>
-												<li>• Provide specific details about the situation</li>
-												<li>• Include any evidence that supports your case</li>
-												<li>• Appeals are reviewed within 48 hours</li>
-												<li>• You can only submit one appeal per violation</li>
+												<li>• {t('apGuide1')}</li>
+												<li>• {t('apGuide2')}</li>
+												<li>• {t('apGuide3')}</li>
+												<li>• {t('apGuide4')}</li>
+												<li>• {t('apGuide5')}</li>
 											</ul>
 										</div>
 
 										{/* Actions */}
 										<div className='flex gap-3'>
 											<motion.button
+												type='button'
 												onClick={handleClose}
 												whileHover={BUTTON_HOVER}
 												whileTap={BUTTON_TAP}
-												className='flex-1 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted'
+												className='flex-1 rounded-xl border border-border bg-bg-elevated py-3.5 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
-												Cancel
+												{t('apCancel')}
 											</motion.button>
 											<motion.button
+												type='button'
 												onClick={handleSubmit}
 												disabled={!appealText.trim() || isSubmitting}
 												whileHover={
@@ -787,14 +816,14 @@ export const AppealModal = ({
 														? { scale: 0.98 }
 														: {}
 												}
-												className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-sm font-bold text-white disabled:opacity-50'
+												className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-sm font-bold text-white disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{isSubmitting ? (
 													<Loader2 className='size-icon-sm animate-spin' />
 												) : (
 													<>
 														<Send className='size-icon-sm' />
-														<span>Submit Appeal</span>
+														<span>{t('apSubmit')}</span>
 													</>
 												)}
 											</motion.button>
@@ -831,19 +860,18 @@ export const ContentRemovedNotice = ({
 	onLearnGuidelines,
 	onDismiss,
 }: ContentRemovedNoticeProps) => {
+	const t = useTranslations('report')
 	return (
 		<div className='max-w-modal-md overflow-hidden rounded-xl border border-error/20 bg-bg-card'>
 			{/* Header */}
 			<div className='flex items-center gap-2.5 bg-error/10 px-5 py-4 font-bold text-error'>
 				<Trash2 className='size-5' />
-				<span>Content Removed</span>
+				<span>{t('crTitle')}</span>
 			</div>
 
 			{/* Body */}
 			<div className='p-5'>
-				<p className='mb-3.5 text-sm text-text-muted'>
-					Your post was removed for violating our community guidelines:
-				</p>
+				<p className='mb-3.5 text-sm text-text-muted'>{t('crDescription')}</p>
 
 				<div className='mb-4 inline-flex items-center gap-2 rounded-lg bg-bg-elevated px-4 py-2.5 text-sm font-semibold text-error'>
 					<AlertCircle className='size-4' />
@@ -870,27 +898,29 @@ export const ContentRemovedNotice = ({
 				</div>
 
 				<p className='rounded-lg bg-warning/10 p-3 text-sm font-semibold text-warning'>
-					Repeated violations may result in account restrictions.
+					{t('crRepeatedWarning')}
 				</p>
 			</div>
 
 			{/* Actions */}
 			<div className='flex gap-2.5 border-t border-border px-5 py-4'>
 				<motion.button
+					type='button'
 					onClick={onLearnGuidelines}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex-1 rounded-lg border border-border py-3 text-sm font-semibold text-text-muted'
+					className='flex-1 rounded-lg border border-border py-3 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					Learn About Guidelines
+					{t('crLearnGuidelines')}
 				</motion.button>
 				<motion.button
+					type='button'
 					onClick={onDismiss}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex-1 rounded-lg bg-bg-elevated py-3 text-sm font-semibold'
+					className='flex-1 rounded-lg bg-bg-elevated py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					Dismiss
+					{t('crDismiss')}
 				</motion.button>
 			</div>
 		</div>

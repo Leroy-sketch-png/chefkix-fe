@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import {
@@ -10,29 +11,32 @@ import {
 	Camera,
 	ChefHat,
 	Clock,
-	Image as ImageIcon,
 	Loader2,
 	Sparkles,
 	Trophy,
 	X,
 	Send,
+	PenSquare,
+	Star,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
+import { StarRating } from '@/components/ui/star-rating'
 import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
 import { guardContent } from '@/services/ml'
 import { trackEvent } from '@/lib/eventTracker'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import { triggerSuccessConfetti } from '@/lib/confetti'
 import {
 	TRANSITION_SPRING,
 	fadeInUp,
-	BUTTON_HOVER,
-	BUTTON_TAP,
+	BUTTON_SUBTLE_TAP,
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
@@ -58,6 +62,7 @@ const PENDING_POST_LINK_KEY = 'pendingPostLink'
 
 function CreatePostContent() {
 	const router = useRouter()
+	const t = useTranslations('post')
 	const searchParams = useSearchParams()
 	const sessionId = searchParams.get('session')
 
@@ -69,6 +74,7 @@ function CreatePostContent() {
 	const [photoFiles, setPhotoFiles] = useState<File[]>([])
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [reviewRating, setReviewRating] = useState<number>(0)
 
 	const claimPendingXp = async (currentSessionId: string, postId: string) => {
 		let lastResponse: Awaited<ReturnType<typeof linkPostToSession>> | null =
@@ -127,9 +133,9 @@ function CreatePostContent() {
 		} catch (error) {
 			logDevError('Failed to load pending photos:', error)
 			sessionStorage.removeItem('pendingPostPhotos')
-			toast.info('Photos could not be restored. Please re-upload them.')
+			toast.info(t('toastPhotosNotRestored'))
 		}
-	}, [])
+	}, [t])
 
 	// Load session info if sessionId is provided
 	useEffect(() => {
@@ -146,8 +152,8 @@ function CreatePostContent() {
 					// Guard: Check if session was already linked to a post
 					// posted status means XP was already awarded, no point showing it again
 					if (s.status === 'posted') {
-						toast.error('This session was already linked to a post', {
-							description: 'The XP has already been awarded.',
+						toast.error(t('toastSessionAlreadyLinked'), {
+							description: t('xpAlreadyAwarded'),
 						})
 						setIsLoadingSession(false)
 						return // Don't set session - user can still make a regular post
@@ -156,9 +162,8 @@ function CreatePostContent() {
 					// Guard: Check if session is not in completed status
 					// Only completed sessions should be linked to posts
 					if (s.status !== 'completed') {
-						toast.error('Session cannot be linked', {
-							description:
-								'Only completed cooking sessions can earn XP from posts.',
+						toast.error(t('toastSessionCannotLink'), {
+							description: t('sessionMustBeCompleted'),
 						})
 						setIsLoadingSession(false)
 						return
@@ -167,19 +172,19 @@ function CreatePostContent() {
 					setSession({
 						id: s.sessionId,
 						recipeId: s.recipeId ?? s.recipe?.id ?? '',
-						recipeTitle: s.recipe?.title ?? 'Your Recipe',
+						recipeTitle: s.recipe?.title ?? t('defaultRecipeTitle'),
 						recipeImage: s.recipe?.coverImageUrl?.[0],
 						pendingXp: s.pendingXp ?? 0,
 						completedAt: s.completedAt ?? '',
 						postDeadline: s.postDeadline ?? '',
 					})
 				} else {
-					toast.error('Session not found')
+					toast.error(t('toastSessionNotFound'))
 				}
 			} catch (error) {
 				if (cancelled) return
 				logDevError('Failed to load session:', error)
-				toast.error('Failed to load session data')
+				toast.error(t('toastSessionLoadFailed'))
 			} finally {
 				if (!cancelled) setIsLoadingSession(false)
 			}
@@ -189,7 +194,7 @@ function CreatePostContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [sessionId])
+	}, [sessionId, t])
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || [])
@@ -216,7 +221,7 @@ function CreatePostContent() {
 		if (isSubmitting) return
 
 		if (!content.trim() && photoFiles.length === 0) {
-			toast.error('Add some content or photos to share!')
+			toast.error(t('toastAddContent'))
 			return
 		}
 
@@ -227,20 +232,15 @@ function CreatePostContent() {
 			const guardResult = await guardContent(content.trim(), 'post')
 			if (guardResult.success && guardResult.data) {
 				if (guardResult.data.action === 'block') {
-					toast.error(
-						'Your post contains content that violates community guidelines.',
-						{
-							description:
-								guardResult.data.reasons?.[0] || 'Please revise and try again.',
-						},
-					)
+					toast.error(t('contentGuardBlocked'), {
+						description:
+							guardResult.data.reasons?.[0] || t('contentGuardRevise'),
+					})
 					setIsSubmitting(false)
 					return
 				}
 				if (guardResult.data.action === 'flag') {
-					toast.warning(
-						'Your post has been flagged for review and may be moderated.',
-					)
+					toast.warning(t('contentGuardFlagged'))
 				}
 			}
 			// If guardContent fails (AI down), proceed — don't block posting
@@ -252,6 +252,11 @@ function CreatePostContent() {
 				content: content.trim(),
 				photoUrls: photoFiles,
 				sessionId: session?.id, // Link to cooking session for XP
+				...(session &&
+					reviewRating > 0 && {
+						postType: 'RECIPE_REVIEW' as const,
+						reviewRating,
+					}),
 			})
 
 			if (response.success && response.data) {
@@ -299,7 +304,7 @@ function CreatePostContent() {
 
 						// Post succeeded but XP claim still needs recovery
 						logDevError('Failed to claim XP:', linkResponse?.message)
-						toast.warning('Post shared. Cooking XP is still being claimed.', {
+						toast.warning(t('toastPostXpClaiming'), {
 							description:
 								linkResponse?.message ||
 								'We will retry the XP award on the dashboard.',
@@ -314,24 +319,25 @@ function CreatePostContent() {
 
 				// Show success with XP if earned
 				if (xpAwarded > 0) {
-					toast.success(`Post shared! +${xpAwarded} XP unlocked! 🎉`, {
+					triggerSuccessConfetti()
+					toast.success(t('toastPostSharedXp', { xp: xpAwarded }), {
 						description: session?.recipeTitle
-							? `Your ${session.recipeTitle} post is now live`
+							? t('toastPostLive', { title: session.recipeTitle })
 							: undefined,
 					})
 				} else {
-					toast.success('Post shared! 🎉')
+					toast.success(t('toastPostShared'))
 				}
 
 				router.push('/dashboard')
 			} else {
-				toast.error(response.message || 'Failed to create post')
+				toast.error(t('toastPostFailed'))
 				setIsSubmitting(false)
 				return
 			}
 		} catch (error) {
 			logDevError('Post creation error:', error)
-			toast.error('Something went wrong. Please try again.')
+			toast.error(t('toastPostFailed'))
 			setIsSubmitting(false)
 		}
 		// NOTE: Do NOT reset isSubmitting on success — router.push() is async.
@@ -345,48 +351,55 @@ function CreatePostContent() {
 		const now = new Date()
 		const diff = deadline.getTime() - now.getTime()
 
-		if (diff <= 0) return 'Expired'
+		if (diff <= 0) return { text: t('deadlineExpired'), urgent: true }
 
 		const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+		const urgent = days < 2
+		const warning = days < 5
 
-		if (days > 0) return `${days}d ${hours}h left`
-		return `${hours}h left`
+		if (days > 0)
+			return { text: t('deadlineDaysHours', { days, hours }), urgent, warning }
+		return { text: t('deadlineHours', { hours }), urgent: true, warning: true }
 	}
 
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='md'>
 				<div className='py-6'>
-					{/* Header */}
-					<div className='mb-6 flex items-center gap-4'>
+					{/* Header with PageHeader */}
+					<div className='mb-6 flex items-center gap-3'>
 						<motion.button
+							type='button'
 							onClick={() => router.back()}
-							className='flex size-10 items-center justify-center rounded-xl bg-bg-hover text-text-secondary transition-colors hover:bg-bg-card hover:text-text'
-							whileHover={ICON_BUTTON_HOVER}
-							whileTap={ICON_BUTTON_TAP}
-							aria-label='Go back'
+							whileTap={BUTTON_SUBTLE_TAP}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoBack')}
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
-						<div>
-							<h1 className='text-2xl font-bold text-text'>
-								{session ? 'Share Your Creation' : 'Create Post'}
-							</h1>
-							<p className='text-sm text-text-secondary'>
-								{session
-									? 'Post your cooking photos to unlock XP'
-									: 'Share what you made with the community'}
-							</p>
+						<div className='flex-1'>
+							<PageHeader
+								icon={session ? ChefHat : PenSquare}
+								title={session ? t('shareYourCreation') : t('createPost')}
+								subtitle={
+									session
+										? t('subtitleSharePhotos')
+										: t('subtitleShareCommunity')
+								}
+								gradient='pink'
+								marginBottom='sm'
+								className='mb-0'
+							/>
 						</div>
 					</div>
 
 					{/* Session Info Card (if linking to session) */}
 					{isLoadingSession && (
 						<div className='mb-6 flex items-center justify-center rounded-2xl border border-border-subtle bg-bg-card p-8'>
-							<Loader2 className='size-6 animate-spin text-primary' />
+							<Loader2 className='size-6 animate-spin text-brand' />
 							<span className='ml-3 text-text-secondary'>
-								Loading session...
+								{t('loadingSession')}
 							</span>
 						</div>
 					)}
@@ -396,7 +409,7 @@ function CreatePostContent() {
 							variants={fadeInUp}
 							initial='hidden'
 							animate='visible'
-							className='mb-6 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent'
+							className='mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 to-transparent'
 						>
 							<div className='flex items-center gap-4 p-4'>
 								{session.recipeImage && (
@@ -406,13 +419,17 @@ function CreatePostContent() {
 										width={80}
 										height={80}
 										className='size-20 rounded-xl object-cover'
+										onError={e => {
+											;(e.target as HTMLImageElement).src =
+												'/placeholder-recipe.svg'
+										}}
 									/>
 								)}
 								<div className='flex-1'>
 									<div className='mb-1 flex items-center gap-2'>
-										<ChefHat className='size-4 text-primary' />
+										<ChefHat className='size-4 text-brand' />
 										<span className='text-sm font-medium text-text-secondary'>
-											Cooked
+											{t('cookedLabel')}
 										</span>
 									</div>
 									<h3 className='mb-2 text-lg font-bold text-text'>
@@ -424,19 +441,76 @@ function CreatePostContent() {
 											{Math.round(session.pendingXp)} XP
 										</span>
 										{getTimeLeft() && (
-											<span className='flex items-center gap-1.5 text-sm text-text-secondary'>
+											<span
+												className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${
+													getTimeLeft()!.urgent
+														? 'bg-error/10 text-error'
+														: getTimeLeft()!.warning
+															? 'bg-warning/10 text-warning'
+															: 'text-text-secondary'
+												}`}
+											>
 												<Clock className='size-3.5' />
-												{getTimeLeft()}
+												{getTimeLeft()!.text}
 											</span>
 										)}
 									</div>
 								</div>
 							</div>
-							<div className='border-t border-primary/10 bg-primary/5 px-4 py-2.5'>
-								<p className='flex items-center gap-2 text-sm text-primary'>
+							<div className='border-t border-brand/10 bg-brand/5 px-4 py-2.5'>
+								<p className='flex items-center gap-2 text-sm text-brand'>
 									<Sparkles className='size-4' />
-									Add photos of your creation to unlock the XP bonus!
+									{t('addPhotosForXp')}
 								</p>
+							</div>
+						</motion.div>
+					)}
+
+					{/* Recipe Review — Rate this recipe (optional, only when linking a session) */}
+					{session && !isLoadingSession && (
+						<motion.div
+							variants={fadeInUp}
+							initial='hidden'
+							animate='visible'
+							transition={{ delay: 0.05 }}
+							className='mb-6 overflow-hidden rounded-2xl border border-warning/30/20 bg-gradient-to-br from-warning/5 to-transparent'
+						>
+							<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
+								<Star className='size-5 text-warning' />
+								<div>
+									<h4 className='text-sm font-bold text-text'>
+										{t('rateRecipe')}
+									</h4>
+									<p className='text-xs text-text-muted'>
+										{t('rateRecipeSubtext', {
+											recipeName: session.recipeTitle,
+										})}
+									</p>
+								</div>
+							</div>
+							<div className='flex items-center gap-3 px-4 pb-4'>
+								<StarRating
+									value={reviewRating}
+									onChange={setReviewRating}
+									size='md'
+								/>
+								{reviewRating > 0 && (
+									<motion.span
+										initial={{ opacity: 0, x: -10 }}
+										animate={{ opacity: 1, x: 0 }}
+										className='text-sm font-medium text-warning'
+									>
+										{reviewRating === 5
+											? t('ratingAmazing')
+											: reviewRating === 4
+												? t('ratingGreat')
+												: reviewRating === 3
+													? t('ratingGood')
+													: reviewRating === 2
+														? t('ratingOkay')
+														: t('ratingPoor')}
+									</motion.span>
+								)}
 							</div>
 						</motion.div>
 					)}
@@ -451,7 +525,7 @@ function CreatePostContent() {
 					>
 						{/* Author header */}
 						<div className='flex items-center gap-3 border-b border-border-subtle p-4'>
-							<Avatar className='size-12 ring-2 ring-primary/10'>
+							<Avatar className='size-12 ring-2 ring-brand/10'>
 								<AvatarImage
 									src={user?.avatarUrl}
 									alt={user?.displayName || 'You'}
@@ -471,8 +545,8 @@ function CreatePostContent() {
 								</div>
 								<div className='text-sm text-text-secondary'>
 									{session
-										? `Sharing: ${session.recipeTitle}`
-										: 'Share your creation'}
+										? t('sharingRecipe', { title: session.recipeTitle })
+										: t('shareYourCreationShort')}
 								</div>
 							</div>
 						</div>
@@ -488,16 +562,23 @@ function CreatePostContent() {
 										handleSubmit()
 									}
 								}}
+								aria-label={t('postContentLabel')}
 								maxLength={2000}
 								placeholder={
 									session
-										? `Tell everyone about your ${session.recipeTitle}! How did it turn out?`
-										: "What's cooking? Share your culinary journey..."
+										? t('placeholderWithSession', {
+												title: session.recipeTitle,
+											})
+										: t('placeholderGeneric')
 								}
-								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none'
+								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								autoFocus
 							/>
-							<p className='mt-1 text-right text-xs text-text-muted'>
+							<p
+								aria-live='polite'
+								aria-atomic='true'
+								className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+							>
 								{content.length}/2000
 							</p>
 
@@ -522,13 +603,15 @@ function CreatePostContent() {
 													src={url}
 													alt={`Preview ${index + 1}`}
 													fill
+													sizes='120px'
 													className='object-cover'
 												/>
 												<motion.button
+													type='button'
 													onClick={() => removePhoto(index)}
-													className='absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100'
-													whileHover={{ scale: 1.1 }}
-													whileTap={{ scale: 0.9 }}
+													className='absolute right-1 top-1 flex size-9 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+													whileHover={ICON_BUTTON_HOVER}
+													whileTap={ICON_BUTTON_TAP}
 													aria-label={`Remove photo ${index + 1}`}
 												>
 													<X className='size-4' />
@@ -544,17 +627,18 @@ function CreatePostContent() {
 						<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
 							<label
 								className={cn(
-									'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-card hover:text-primary',
+									'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-card hover:text-brand',
 									photoFiles.length >= 5 && 'cursor-not-allowed opacity-50',
 								)}
 							>
 								<Camera className='size-5' />
-								Add Photos ({photoFiles.length}/5)
+								{t('addPhotosCount', { count: photoFiles.length })}
 								<input
 									type='file'
 									accept='image/*'
 									multiple
 									onChange={handlePhotoSelect}
+									aria-label={t('addPhotosCount', { count: photoFiles.length })}
 									className='hidden'
 									disabled={photoFiles.length >= 5}
 								/>
@@ -569,20 +653,22 @@ function CreatePostContent() {
 									'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
 									session
 										? 'bg-gradient-hero text-white shadow-lg shadow-primary/30'
-										: 'bg-primary text-white',
+										: 'bg-brand text-white',
 								)}
 							>
 								{isSubmitting ? (
 									<>
 										<Loader2 className='size-4 animate-spin' />
-										Posting...
+										{t('posting')}
 									</>
 								) : (
 									<>
 										<Send className='size-4' />
 										{session
-											? `Post & Claim ${Math.round(session.pendingXp)} XP`
-											: 'Post'}
+											? t('postAndClaimXp', {
+													xp: Math.round(session.pendingXp),
+												})
+											: t('postButton')}
 										<kbd
 											className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
 											suppressHydrationWarning
@@ -607,10 +693,12 @@ function CreatePostContent() {
 							transition={{ delay: 0.2 }}
 							className='mt-4 text-center text-sm text-text-secondary'
 						>
-							💡 Photos count! 2+ photos = 100% XP. 1 photo = 50% XP.
+							💡 {t('xpPhotoHint')}
 						</motion.p>
 					)}
 				</div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

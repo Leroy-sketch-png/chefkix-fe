@@ -194,6 +194,7 @@ export const PopoverTrigger = React.forwardRef<
 
 	return (
 		<button
+			type='button'
 			ref={node => {
 				;(triggerRef as React.MutableRefObject<HTMLElement | null>).current =
 					node
@@ -300,6 +301,7 @@ export const PopoverContent = React.forwardRef<
 			}
 
 			setPosition({ top, left })
+			// Position calculation only depends on layout props, not on mutable DOM refs
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [open, side, align, sideOffset])
 

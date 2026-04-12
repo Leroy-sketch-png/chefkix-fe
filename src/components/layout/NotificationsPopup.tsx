@@ -6,11 +6,11 @@ import { useUiStore } from '@/store/uiStore'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import {
+	Bell,
 	Heart,
 	MessageCircle,
 	UserPlus,
 	ChefHat,
-	X,
 	CheckCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,6 +27,8 @@ import {
 } from '@/services/notification'
 import { toggleFollow } from '@/services/social'
 import { toast } from 'sonner'
+import { useTranslations } from '@/i18n/hooks'
+import { formatShortTimeAgo } from '@/lib/utils'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 
@@ -108,19 +110,6 @@ const transformToGamifiedNotification = (
 }
 
 // Helper to format time ago
-const formatTimeAgo = (date: Date): string => {
-	const now = new Date()
-	const diffMs = now.getTime() - date.getTime()
-	const diffMins = Math.floor(diffMs / 60000)
-	const diffHours = Math.floor(diffMs / 3600000)
-	const diffDays = Math.floor(diffMs / 86400000)
-
-	if (diffMins < 1) return 'Just now'
-	if (diffMins < 60) return `${diffMins} min ago`
-	if (diffHours < 24) return `${diffHours}h ago`
-	if (diffDays === 1) return 'Yesterday'
-	return `${diffDays}d ago`
-}
 
 // Helper to transform API notification to social notification format
 // Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
@@ -159,7 +148,7 @@ const transformToSocialNotification = (
 		action: notif.content || notif.body || '',
 		target: undefined,
 		targetEntityId: notif.targetEntityId, // Post ID for likes/comments, userId for follows
-		time: formatTimeAgo(timestamp),
+		time: formatShortTimeAgo(timestamp),
 		read: notif.isRead,
 	}
 }
@@ -167,8 +156,8 @@ const transformToSocialNotification = (
 const NotificationBadge = ({ type }: { type: NotificationType }) => {
 	const iconMap = {
 		like: { icon: Heart, bg: 'bg-destructive' },
-		comment: { icon: MessageCircle, bg: 'bg-primary' },
-		follow: { icon: UserPlus, bg: 'bg-accent' },
+		comment: { icon: MessageCircle, bg: 'bg-brand' },
+		follow: { icon: UserPlus, bg: 'bg-accent-purple' },
 		cook: { icon: ChefHat, bg: 'bg-gold' },
 		achievement: { icon: ChefHat, bg: 'bg-gradient-gold' },
 	}
@@ -188,6 +177,7 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 }
 
 export const NotificationsPopup = () => {
+	const t = useTranslations('notifications')
 	const { isNotificationsPopupOpen, toggleNotificationsPopup } = useUiStore()
 	const { user } = useAuth()
 	const router = useRouter()
@@ -199,6 +189,7 @@ export const NotificationsPopup = () => {
 	>([])
 	const [unreadCount, setUnreadCount] = useState(0)
 	const [isLoading, setIsLoading] = useState(false)
+	const [fetchError, setFetchError] = useState(false)
 
 	useEscapeKey(isNotificationsPopupOpen, toggleNotificationsPopup)
 
@@ -208,6 +199,7 @@ export const NotificationsPopup = () => {
 
 		const fetchNotifications = async () => {
 			setIsLoading(true)
+			setFetchError(false)
 			try {
 				const response = await getNotifications({ size: 20 })
 				if (response.success && response.data) {
@@ -236,11 +228,8 @@ export const NotificationsPopup = () => {
 									user: notif.latestActorName || 'ChefKix',
 									avatar:
 										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
-									action:
-										notif.content ||
-										notif.body ||
-										'You have a new notification',
-									time: formatTimeAgo(new Date(notif.createdAt)),
+									action: notif.content || notif.body || t('newNotification'),
+									time: formatShortTimeAgo(new Date(notif.createdAt)),
 									read: notif.isRead,
 								})
 							}
@@ -252,13 +241,14 @@ export const NotificationsPopup = () => {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch notifications:', err)
+				setFetchError(true)
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
 		fetchNotifications()
-	}, [isNotificationsPopupOpen])
+	}, [isNotificationsPopupOpen, t])
 
 	if (!isNotificationsPopupOpen) return null
 
@@ -274,6 +264,7 @@ export const NotificationsPopup = () => {
 			}
 		} catch (err) {
 			logDevError('Failed to mark all as read:', err)
+			toast.error(t('toastMarkReadFailed'))
 		}
 	}
 
@@ -295,24 +286,103 @@ export const NotificationsPopup = () => {
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border p-4'>
 					<div className='flex items-center gap-2'>
-						<h3 className='text-lg font-bold text-foreground'>Notifications</h3>
+						<h3 className='text-lg font-bold text-foreground'>{t('title')}</h3>
 						{unreadCount > 0 && (
-							<span className='rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-white'>
+							<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white'>
 								{unreadCount}
 							</span>
 						)}
 					</div>
 					<button
+						type='button'
 						onClick={handleMarkAllRead}
-						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-primary transition-colors hover:bg-primary/10'
+						className='flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 					>
 						<CheckCheck className='size-4' />
-						Mark all read
+						{t('markAllRead')}
 					</button>
 				</div>
 
 				{/* Notification List */}
 				<div className='max-h-96 overflow-y-auto'>
+					{/* Loading skeleton */}
+					{isLoading && (
+						<div className='space-y-0'>
+							{[0, 1, 2, 3].map(i => (
+								<div
+									key={i}
+									className='flex items-start gap-3 border-b border-border p-4'
+								>
+									<div className='size-10 flex-shrink-0 animate-pulse rounded-full bg-bg-elevated' />
+									<div className='flex-1 space-y-2'>
+										<div className='h-4 w-3/4 animate-pulse rounded bg-bg-elevated' />
+										<div className='h-3 w-1/3 animate-pulse rounded bg-bg-elevated' />
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+
+					{/* Error state */}
+					{!isLoading && fetchError && (
+						<div className='px-4 py-12 text-center'>
+							<p className='mb-2 text-sm text-text-muted'>
+								{t('failedToLoad')}
+							</p>
+							<button
+								type='button'
+								onClick={() => {
+									setFetchError(false)
+									setIsLoading(true)
+									getNotifications({ size: 20 })
+										.then(response => {
+											if (response.success && response.data) {
+												const { notifications, unreadCount: count } =
+													response.data
+												setUnreadCount(count)
+												const gamified: GamifiedNotification[] = []
+												const social: SocialNotification[] = []
+												notifications.forEach((notif, idx) => {
+													const g = transformToGamifiedNotification(notif)
+													if (g) gamified.push(g)
+													else {
+														const s = transformToSocialNotification(notif, idx)
+														if (s) social.push(s)
+													}
+												})
+												setGamifiedNotifications(gamified)
+												setSocialNotifications(social)
+											} else {
+												setFetchError(true)
+											}
+										})
+										.catch(() => setFetchError(true))
+										.finally(() => setIsLoading(false))
+								}}
+								className='text-sm font-semibold text-brand hover:text-brand/80'
+							>
+								{t('tryAgain')}
+							</button>
+						</div>
+					)}
+
+					{/* Empty state */}
+					{!isLoading &&
+						!fetchError &&
+						gamifiedNotifications.length === 0 &&
+						socialNotifications.length === 0 && (
+							<div className='px-4 py-12 text-center'>
+								<div className='mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-bg-elevated'>
+									<Bell className='size-5 text-text-muted' />
+								</div>
+								<p className='text-sm font-medium text-text-secondary'>
+									{t('allCaughtUp')}
+								</p>
+								<p className='mt-1 text-xs text-text-muted'>
+									{t('newActivityHere')}
+								</p>
+							</div>
+						)}
 					{/* Gamified Notifications (XP, levels, streaks) */}
 					{gamifiedNotifications.length > 0 && (
 						<>
@@ -390,13 +460,15 @@ export const NotificationsPopup = () => {
 								const handleFollowBack = async (e: React.MouseEvent) => {
 									e.stopPropagation() // Prevent triggering the parent onClick
 									if (!notif.userId) {
-										toast.error('Cannot follow back: user not found')
+										toast.error(t('toastFollowBackNotFound'))
 										return
 									}
 									try {
 										const response = await toggleFollow(notif.userId)
 										if (response.success) {
-											toast.success(`Following ${notif.user}!`)
+											toast.success(
+												t('toastFollowSuccess', { user: notif.user }),
+											)
 											// Mark this notification as read locally
 											setSocialNotifications(prev =>
 												prev.map(n =>
@@ -404,10 +476,10 @@ export const NotificationsPopup = () => {
 												),
 											)
 										} else {
-											toast.error(response.message || 'Failed to follow')
+											toast.error(t('toastFollowFailed'))
 										}
 									} catch {
-										toast.error('Failed to follow. Please try again.')
+										toast.error(t('toastFollowFailed'))
 									}
 								}
 
@@ -417,7 +489,7 @@ export const NotificationsPopup = () => {
 										onClick={handleClick}
 										className={cn(
 											'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-muted/50',
-											!notif.read && 'bg-primary/5',
+											!notif.read && 'bg-brand/5',
 										)}
 									>
 										{/* Avatar with badge */}
@@ -455,7 +527,7 @@ export const NotificationsPopup = () => {
 												{notif.target && (
 													<>
 														{' '}
-														<span className='font-medium text-primary'>
+														<span className='font-medium text-brand'>
 															&ldquo;{notif.target}&rdquo;
 														</span>
 													</>
@@ -467,13 +539,14 @@ export const NotificationsPopup = () => {
 										</div>
 										{/* Unread dot */}
 										{!notif.read && (
-											<div className='absolute right-4 top-5 size-2 rounded-full bg-primary shadow-glow' />
+											<div className='absolute right-4 top-5 size-2 rounded-full bg-brand shadow-glow' />
 										)}{' '}
 										{/* Follow back button - functional */}
 										{notif.type === 'follow' && !notif.read && (
 											<button
+												type='button'
 												onClick={handleFollowBack}
-												className='flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-primary/90'
+												className='flex-shrink-0 rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-brand/90'
 											>
 												Follow Back
 											</button>
@@ -489,7 +562,7 @@ export const NotificationsPopup = () => {
 				<div className='border-t border-border p-3 text-center'>
 					<Link
 						href='/notifications'
-						className='text-sm font-semibold text-primary transition-colors hover:text-primary/80'
+						className='text-sm font-semibold text-brand transition-colors hover:text-brand/80'
 					>
 						View All Notifications
 					</Link>

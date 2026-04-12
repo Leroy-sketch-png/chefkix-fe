@@ -13,7 +13,6 @@ import {
 } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
-import { AUTH_MESSAGES } from '@/constants/messages'
 import { logDevError } from '@/lib/dev-log'
 
 // Sign-in function
@@ -34,7 +33,7 @@ export const signIn = async (
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
 		}
 	}
@@ -56,7 +55,33 @@ export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Check if a username is available for registration.
+ * Debounce this on the client side for live validation.
+ */
+export const checkUsernameAvailability = async (
+	username: string,
+): Promise<ApiResponse<{ available: boolean }>> => {
+	try {
+		const response = await api.get<ApiResponse<{ available: boolean }>>(
+			`${API_ENDPOINTS.AUTH.CHECK_USERNAME}?username=${encodeURIComponent(username)}`,
+		)
+		return response.data
+	} catch (error) {
+		logDevError('Username check failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<{ available: boolean }>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Could not check username availability',
 			statusCode: 500,
 		}
 	}
@@ -77,7 +102,7 @@ export const logout = async (): Promise<ApiResponse<string>> => {
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.LOGOUT_ERROR,
+			message: 'Logout failed, but your session has been cleared locally.',
 			statusCode: 500,
 		}
 	}
@@ -103,7 +128,7 @@ export const resendOtp = async (
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
 		}
 	}
@@ -132,7 +157,7 @@ export const verifyOtp = async (
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
 		}
 	}
@@ -154,7 +179,7 @@ export const forgotPassword = async (
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
 		}
 	}
@@ -177,7 +202,7 @@ export const verifyOtpPassword = async (
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
 		}
 	}
@@ -200,13 +225,12 @@ export const changePassword = async (
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
 		}
 	}
 }
 
-// Google Sign-In function
 export const googleSignIn = async (
 	data: GoogleSignInDto,
 ): Promise<ApiResponse<LoginSuccessResponse>> => {
@@ -224,7 +248,7 @@ export const googleSignIn = async (
 		}
 		return {
 			success: false,
-			message: AUTH_MESSAGES.UNKNOWN_ERROR,
+			message: 'An unexpected error occurred. Please try again later.',
 			statusCode: 500,
 		}
 	}

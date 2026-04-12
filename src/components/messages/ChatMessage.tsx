@@ -17,9 +17,19 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { TRANSITION_SPRING, scaleIn } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	scaleIn,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+} from '@/lib/motion'
 
 // =============================================================================
 // TYPES
@@ -72,7 +82,7 @@ const getStatusIcon = (status: Message['status']) => {
 		case 'sending':
 			return (
 				<motion.div
-					className='h-3 w-3 rounded-full bg-text-muted/30'
+					className='size-3 rounded-full bg-text-muted/30'
 					animate={{ scale: [1, 1.2, 1] }}
 					transition={{ duration: 1, repeat: Infinity }}
 				/>
@@ -87,7 +97,14 @@ const getStatusIcon = (status: Message['status']) => {
 }
 
 // Quick reactions
-const QUICK_REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏']
+const QUICK_REACTIONS = [
+	{ emoji: '❤️', label: 'heart' },
+	{ emoji: '👍', label: 'thumbs up' },
+	{ emoji: '😂', label: 'laughing' },
+	{ emoji: '😮', label: 'surprised' },
+	{ emoji: '😢', label: 'sad' },
+	{ emoji: '🙏', label: 'thanks' },
+]
 
 // =============================================================================
 // REACTION PICKER
@@ -106,20 +123,22 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 			exit={{ opacity: 0, scale: 0.8, y: 10 }}
 			transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 			className={cn(
-				'absolute z-50 flex gap-1 rounded-full bg-bg-card p-2 shadow-xl ring-1 ring-border',
+				'absolute z-dropdown flex gap-1 rounded-full bg-bg-card p-2 shadow-xl ring-1 ring-border',
 				isOwn ? 'bottom-full right-0 mb-2' : 'bottom-full left-0 mb-2',
 			)}
 		>
-			{QUICK_REACTIONS.map((emoji, i) => (
+			{QUICK_REACTIONS.map(({ emoji, label }, i) => (
 				<motion.button
+					type='button'
 					key={emoji}
 					onClick={() => onSelect(emoji)}
-					className='flex h-9 w-9 items-center justify-center rounded-full text-lg transition-all hover:scale-125 hover:bg-bg-hover'
+					aria-label={label}
+					className='flex size-9 items-center justify-center rounded-full text-lg hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 					initial={{ opacity: 0, scale: 0 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ delay: i * 0.05 }}
-					whileHover={{ scale: 1.25 }}
-					whileTap={{ scale: 0.95 }}
+					whileHover={ICON_BUTTON_HOVER}
+					whileTap={ICON_BUTTON_TAP}
 				>
 					{emoji}
 				</motion.button>
@@ -147,6 +166,7 @@ const MessageActions = ({
 	onCopy,
 	onDelete,
 }: MessageActionsProps) => {
+	const t = useTranslations('chat')
 	return (
 		<motion.div
 			initial={{ opacity: 0, scale: 0.9, y: 5 }}
@@ -154,46 +174,54 @@ const MessageActions = ({
 			exit={{ opacity: 0, scale: 0.9, y: 5 }}
 			transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 			className={cn(
-				'absolute -top-2 z-40 flex gap-1 rounded-xl bg-bg-card p-1.5 shadow-xl ring-1 ring-border backdrop-blur-sm',
+				'absolute -top-2 z-dropdown flex gap-1 rounded-xl bg-bg-card p-1.5 shadow-xl ring-1 ring-border backdrop-blur-sm',
 				isOwn ? 'right-0' : 'left-0',
 			)}
 		>
 			<motion.button
+				type='button'
 				onClick={onReact}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand'
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.95 }}
-				aria-label='React to message'
+				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+				whileHover={ICON_BUTTON_HOVER}
+				whileTap={ICON_BUTTON_TAP}
+				transition={TRANSITION_SPRING}
+				aria-label={t('ariaReactToMessage')}
 			>
-				<Heart className='h-4 w-4' />
+				<Heart className='size-4' />
 			</motion.button>
 			<motion.button
+				type='button'
 				onClick={onReply}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.95 }}
-				aria-label='Reply to message'
+				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+				whileHover={ICON_BUTTON_HOVER}
+				whileTap={ICON_BUTTON_TAP}
+				transition={TRANSITION_SPRING}
+				aria-label={t('ariaReplyToMessage')}
 			>
-				<Reply className='h-4 w-4' />
+				<Reply className='size-4' />
 			</motion.button>
 			<motion.button
+				type='button'
 				onClick={onCopy}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.95 }}
-				aria-label='Copy message'
+				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+				whileHover={ICON_BUTTON_HOVER}
+				whileTap={ICON_BUTTON_TAP}
+				transition={TRANSITION_SPRING}
+				aria-label={t('ariaCopyMessage')}
 			>
-				<Copy className='h-4 w-4' />
+				<Copy className='size-4' />
 			</motion.button>
 			{isOwn && onDelete && (
 				<motion.button
+					type='button'
 					onClick={onDelete}
-					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
-					whileHover={{ scale: 1.1 }}
-					whileTap={{ scale: 0.95 }}
-					aria-label='Delete message'
+					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
+					whileHover={ICON_BUTTON_HOVER}
+					whileTap={ICON_BUTTON_TAP}
+					transition={TRANSITION_SPRING}
+					aria-label={t('ariaDeleteMessage')}
 				>
-					<Trash2 className='h-4 w-4' />
+					<Trash2 className='size-4' />
 				</motion.button>
 			)}
 		</motion.div>
@@ -217,6 +245,7 @@ export const ChatMessage = ({
 	const [showActions, setShowActions] = useState(false)
 	const [showReactionPicker, setShowReactionPicker] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const t = useTranslations('messages')
 
 	const handleReact = (emoji: string) => {
 		onReact?.(message.id, emoji)
@@ -248,8 +277,8 @@ export const ChatMessage = ({
 			<ConfirmDialog
 				open={showDeleteConfirm}
 				onOpenChange={setShowDeleteConfirm}
-				title='Delete message?'
-				description='This message will be permanently deleted. This cannot be undone.'
+				title={t('deleteMessage')}
+				description={t('deleteMessageDesc')}
 				confirmLabel='Delete'
 				cancelLabel='Cancel'
 				variant='destructive'
@@ -282,7 +311,7 @@ export const ChatMessage = ({
 							animate={{ scale: 1 }}
 							transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 						>
-							<Avatar className='h-9 w-9 flex-shrink-0 ring-2 ring-bg-card'>
+							<Avatar className='size-9 flex-shrink-0 ring-2 ring-bg-card'>
 								<AvatarImage src={senderAvatar} alt={senderName} />
 								<AvatarFallback className='bg-brand/10 text-xs font-semibold text-brand'>
 									{senderName?.slice(0, 2).toUpperCase() || 'U'}
@@ -308,7 +337,10 @@ export const ChatMessage = ({
 								<span className='font-semibold text-text'>
 									{message.replyTo.senderName}
 								</span>
-								<p className='mt-0.5 line-clamp-2 text-text-secondary'>
+								<p
+									className='mt-0.5 line-clamp-2 text-text-secondary'
+									title={message.replyTo.content}
+								>
 									{message.replyTo.content}
 								</p>
 							</motion.div>
@@ -319,10 +351,10 @@ export const ChatMessage = ({
 							// POST_SHARE: Enhanced card
 							<Link href={`/post/${message.relatedId}`}>
 								<motion.div
-									whileHover={{ scale: 1.02, y: -2 }}
-									whileTap={{ scale: 0.98 }}
+									whileHover={LIST_ITEM_HOVER}
+									whileTap={LIST_ITEM_TAP}
 									className={cn(
-										'group/card overflow-hidden rounded-2xl border transition-all hover:shadow-lg',
+										'group/card overflow-hidden rounded-2xl border transition-all hover:shadow-warm',
 										message.isOwn
 											? 'rounded-br-md border-brand/30 bg-brand/5'
 											: 'rounded-bl-md border-border bg-bg-elevated',
@@ -331,13 +363,18 @@ export const ChatMessage = ({
 									<div className='flex items-start gap-3 p-3.5'>
 										{/* Thumbnail */}
 										{message.sharedPostImage && (
-											<div className='relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
+											<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
 												<Image
 													src={message.sharedPostImage}
 													alt='Shared post'
 													fill
+													sizes='80px'
 													className='object-cover transition-transform group-hover/card:scale-110'
 													unoptimized
+													onError={e => {
+														;(e.target as HTMLImageElement).style.display =
+															'none'
+													}}
 												/>
 											</div>
 										)}
@@ -354,14 +391,14 @@ export const ChatMessage = ({
 												>
 													<Share2
 														className={cn(
-															'h-3 w-3',
+															'size-3',
 															message.isOwn ? 'text-brand' : 'text-text-muted',
 														)}
 													/>
 												</div>
 												<span
 													className={cn(
-														'text-[10px] font-bold uppercase tracking-wider',
+														'text-2xs font-bold uppercase tracking-wider',
 														message.isOwn ? 'text-brand' : 'text-text-muted',
 													)}
 												>
@@ -371,13 +408,19 @@ export const ChatMessage = ({
 
 											{/* Title */}
 											{message.sharedPostTitle && (
-												<p className='mb-1 line-clamp-1 text-sm font-bold text-text'>
+												<p
+													className='mb-1 line-clamp-1 text-sm font-bold text-text'
+													title={message.sharedPostTitle}
+												>
 													{message.sharedPostTitle}
 												</p>
 											)}
 
 											{/* Caption */}
-											<p className='line-clamp-2 text-xs leading-relaxed text-text-secondary'>
+											<p
+												className='line-clamp-2 text-xs leading-relaxed text-text-secondary'
+												title={message.content}
+											>
 												{message.content}
 											</p>
 
@@ -411,7 +454,7 @@ export const ChatMessage = ({
 										: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
 								)}
 							>
-								<p className='text-[15px] leading-relaxed whitespace-pre-wrap break-words'>
+								<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>
 									{message.content}
 								</p>
 							</motion.div>
@@ -429,16 +472,17 @@ export const ChatMessage = ({
 							>
 								{message.reactions.map((reaction, i) => (
 									<motion.button
+										type='button'
 										key={i}
 										onClick={() => onReact?.(message.id, reaction.emoji)}
 										className={cn(
-											'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-card transition-all',
+											'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium shadow-card transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											reaction.userReacted
 												? 'bg-brand/10 text-brand ring-2 ring-brand/20'
 												: 'bg-bg-elevated text-text-secondary ring-1 ring-border hover:bg-bg-hover',
 										)}
-										whileHover={{ scale: 1.05 }}
-										whileTap={{ scale: 0.95 }}
+										whileHover={BUTTON_SUBTLE_HOVER}
+										whileTap={BUTTON_SUBTLE_TAP}
 									>
 										<span className='text-sm'>{reaction.emoji}</span>
 										<span className='font-semibold'>{reaction.count}</span>
@@ -479,7 +523,9 @@ export const ChatMessage = ({
 						message.isOwn ? 'mr-2' : !showAvatar ? 'ml-0' : 'ml-11',
 					)}
 				>
-					<span className='font-medium'>{formatTime(message.timestamp)}</span>
+					<span className='tabular-nums font-medium'>
+						{formatTime(message.timestamp)}
+					</span>
 					{message.isOwn && (
 						<motion.div
 							initial={{ scale: 0 }}
@@ -515,7 +561,7 @@ export const TypingIndicator = ({
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, y: 10 }}
 		>
-			<Avatar className='h-9 w-9 flex-shrink-0 ring-2 ring-bg-card'>
+			<Avatar className='size-9 flex-shrink-0 ring-2 ring-bg-card'>
 				<AvatarImage src={senderAvatar} alt={senderName} />
 				<AvatarFallback className='bg-brand/10 text-xs font-semibold text-brand'>
 					{senderName?.slice(0, 2).toUpperCase() || 'U'}
@@ -537,7 +583,7 @@ export const TypingIndicator = ({
 					{[0, 1, 2].map(i => (
 						<motion.span
 							key={i}
-							className='h-2 w-2 rounded-full bg-brand'
+							className='size-2 rounded-full bg-brand'
 							animate={{
 								y: [0, -6, 0],
 								opacity: [0.5, 1, 0.5],

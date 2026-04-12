@@ -35,7 +35,6 @@ const DEMO_ROUTES: QuickRoute[] = [
 		icon: '✏️',
 		description: 'Recipe editor',
 	},
-	{ label: 'Feed', path: '/feed', icon: '📱', description: 'Social feed' },
 	{
 		label: 'Challenges',
 		path: '/challenges',
@@ -196,331 +195,16 @@ export function DemoWidget() {
 
 	if (isMinimized) {
 		return (
-			<button
-				onClick={() => setIsMinimized(false)}
-				style={{
-					position: 'fixed',
-					bottom: 16,
-					right: 16,
-					zIndex: 99999,
-					width: 12,
-					height: 12,
-					borderRadius: '50%',
-					background:
-						backendStatus === 'up'
-							? '#3fb950'
-							: backendStatus === 'down'
-								? '#f85149'
-								: '#d29922',
-					border: 'none',
-					cursor: 'pointer',
-					opacity: 0.6,
-				}}
-				title='Show demo widget'
-			/>
-		)
-	}
-
-	return (
-		<div
-			ref={panelRef}
-			style={{
-				position: 'fixed',
-				bottom: 16,
-				right: 16,
-				zIndex: 99999,
-				fontFamily: "'Inter', system-ui, sans-serif",
-			}}
-		>
-			{/* Flash message */}
-			{flashMessage && (
-				<div
+			<div className='hidden md:block'>
+				<button
+					onClick={() => setIsMinimized(false)}
 					style={{
-						position: 'absolute',
-						bottom: 52,
-						right: 0,
-						whiteSpace: 'nowrap',
-						background: '#238636',
-						color: '#fff',
-						padding: '6px 14px',
-						borderRadius: 8,
-						fontSize: 12,
-						fontWeight: 600,
-						boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-						animation: 'fadeIn 0.2s ease-out',
-					}}
-				>
-					{flashMessage}
-				</div>
-			)}
-
-			{/* Expanded panel */}
-			{isOpen && (
-				<div
-					style={{
-						position: 'absolute',
-						bottom: 52,
-						right: 0,
-						width: 340,
-						background: '#161b22',
-						border: '1px solid #30363d',
-						borderRadius: 12,
-						boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
-						overflow: 'hidden',
-						maxHeight: 'calc(100vh - 100px)',
-						overflowY: 'auto',
-					}}
-				>
-					{/* Header */}
-					<div
-						style={{
-							padding: '12px 16px',
-							borderBottom: '1px solid #30363d',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'space-between',
-							background: '#0d1117',
-						}}
-					>
-						<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-							<span style={{ fontSize: 16 }}>🍳</span>
-							<span style={{ fontSize: 13, fontWeight: 700, color: '#e6edf3' }}>
-								Demo Control
-							</span>
-						</div>
-						<div style={{ display: 'flex', gap: 6 }}>
-							<div
-								style={{
-									width: 8,
-									height: 8,
-									borderRadius: '50%',
-									background:
-										backendStatus === 'up'
-											? '#3fb950'
-											: backendStatus === 'down'
-												? '#f85149'
-												: '#d29922',
-								}}
-								title={`Backend: ${backendStatus}`}
-							/>
-							<button
-								onClick={() => {
-									setIsMinimized(true)
-									setIsOpen(false)
-								}}
-								style={{
-									background: 'none',
-									border: 'none',
-									color: '#8b949e',
-									cursor: 'pointer',
-									fontSize: 14,
-									padding: 0,
-								}}
-							>
-								−
-							</button>
-						</div>
-					</div>
-
-					{/* Auth Status */}
-					<div
-						style={{ padding: '10px 16px', borderBottom: '1px solid #21262d' }}
-					>
-						{isAuthenticated && user ? (
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'space-between',
-								}}
-							>
-								<div>
-									<div
-										style={{ fontSize: 12, color: '#3fb950', fontWeight: 600 }}
-									>
-										✓ Logged in as {user.username || user.displayName || 'user'}
-									</div>
-									<div style={{ fontSize: 10, color: '#8b949e', marginTop: 2 }}>
-										Token: {accessToken?.substring(0, 20)}...
-									</div>
-								</div>
-								<div style={{ display: 'flex', gap: 4 }}>
-									<button
-										onClick={() => {
-											navigator.clipboard.writeText(accessToken || '')
-											flash('Token copied!')
-										}}
-										style={btnSmall}
-									>
-										📋
-									</button>
-									<button
-										onClick={() => {
-											logout()
-											flash('Logged out')
-											setTimeout(() => window.location.reload(), 500)
-										}}
-										style={{ ...btnSmall, color: '#f85149' }}
-									>
-										⏏
-									</button>
-								</div>
-							</div>
-						) : (
-							<div>
-								<div
-									style={{
-										fontSize: 12,
-										color: '#d29922',
-										fontWeight: 600,
-										marginBottom: 8,
-									}}
-								>
-									Not authenticated
-								</div>
-								{TEST_ACCOUNTS.map(acc => (
-									<button
-										key={acc.username}
-										onClick={() => quickLogin(acc.username, acc.password)}
-										disabled={isLoggingIn || backendStatus !== 'up'}
-										style={{
-											width: '100%',
-											padding: '8px 12px',
-											marginBottom: 4,
-											background: isLoggingIn ? '#21262d' : '#238636',
-											border: 'none',
-											borderRadius: 6,
-											color: '#fff',
-											fontSize: 12,
-											fontWeight: 600,
-											cursor: isLoggingIn ? 'wait' : 'pointer',
-											display: 'flex',
-											alignItems: 'center',
-											justifyContent: 'center',
-											gap: 6,
-										}}
-									>
-										{isLoggingIn
-											? '⏳ Logging in...'
-											: `⚡ Login as ${acc.label}`}
-									</button>
-								))}
-								{backendStatus !== 'up' && (
-									<div style={{ fontSize: 10, color: '#f85149', marginTop: 4 }}>
-										Backend is {backendStatus}. Start monolith first.
-									</div>
-								)}
-							</div>
-						)}
-					</div>
-
-					{/* Quick Navigation */}
-					<div style={{ padding: '8px' }}>
-						<div
-							style={{
-								fontSize: 10,
-								color: '#8b949e',
-								textTransform: 'uppercase',
-								letterSpacing: 1,
-								padding: '4px 8px',
-								fontWeight: 600,
-							}}
-						>
-							Quick Navigate
-						</div>
-						<div
-							style={{
-								display: 'grid',
-								gridTemplateColumns: '1fr 1fr',
-								gap: 4,
-							}}
-						>
-							{DEMO_ROUTES.map(route => (
-								<button
-									key={route.path}
-									onClick={() => navigateTo(route.path)}
-									style={{
-										padding: '8px 10px',
-										background:
-											pathname === route.path ? '#1f6feb22' : '#0d1117',
-										border: `1px solid ${pathname === route.path ? '#1f6feb' : '#21262d'}`,
-										borderRadius: 6,
-										cursor: 'pointer',
-										textAlign: 'left',
-										display: 'flex',
-										alignItems: 'center',
-										gap: 6,
-										color: '#e6edf3',
-									}}
-								>
-									<span style={{ fontSize: 14 }}>{route.icon}</span>
-									<div>
-										<div style={{ fontSize: 11, fontWeight: 600 }}>
-											{route.label}
-										</div>
-										<div style={{ fontSize: 9, color: '#8b949e' }}>
-											{route.description}
-										</div>
-									</div>
-								</button>
-							))}
-						</div>
-					</div>
-
-					{/* Quick Actions */}
-					<div
-						style={{ padding: '8px 16px 12px', borderTop: '1px solid #21262d' }}
-					>
-						<div style={{ display: 'flex', gap: 6 }}>
-							<button
-								onClick={() => navigateTo('/_dev')}
-								style={{ ...btnAction, background: '#1f6feb', flex: 1 }}
-							>
-								🔧 Full Dashboard
-							</button>
-							<button
-								onClick={() =>
-									window.open(`${BASE}/api/v1/swagger-ui.html`, '_blank')
-								}
-								style={{ ...btnAction, background: '#21262d', flex: 1 }}
-							>
-								📄 Swagger
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
-
-			{/* FAB Button */}
-			<button
-				onClick={() => setIsOpen(!isOpen)}
-				style={{
-					width: 44,
-					height: 44,
-					borderRadius: '50%',
-					background: isOpen ? '#30363d' : '#ff5a36',
-					border: '2px solid rgba(255,255,255,0.15)',
-					color: '#fff',
-					fontSize: 20,
-					cursor: 'pointer',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					boxShadow: '0 4px 16px rgba(255,90,54,0.4)',
-					transition: 'all 0.2s ease',
-					position: 'relative',
-				}}
-				title='Demo Control Widget'
-			>
-				{isOpen ? '✕' : '🍳'}
-				{/* Status dot */}
-				<span
-					style={{
-						position: 'absolute',
-						top: -2,
-						right: -2,
-						width: 10,
-						height: 10,
+						position: 'fixed',
+						bottom: 16,
+						right: 16,
+						zIndex: 99999,
+						width: 12,
+						height: 12,
 						borderRadius: '50%',
 						background:
 							backendStatus === 'up'
@@ -528,17 +212,353 @@ export function DemoWidget() {
 								: backendStatus === 'down'
 									? '#f85149'
 									: '#d29922',
-						border: '2px solid #161b22',
+						border: 'none',
+						cursor: 'pointer',
+						opacity: 0.6,
 					}}
+					title='Show demo widget'
 				/>
-			</button>
+			</div>
+		)
+	}
 
-			<style>{`
+	return (
+		<div className='hidden md:block'>
+			<div
+				ref={panelRef}
+				style={{
+					position: 'fixed',
+					bottom: 16,
+					right: 16,
+					zIndex: 99999,
+					fontFamily: "'Inter', system-ui, sans-serif",
+				}}
+			>
+				{/* Flash message */}
+				{flashMessage && (
+					<div
+						style={{
+							position: 'absolute',
+							bottom: 52,
+							right: 0,
+							whiteSpace: 'nowrap',
+							background: '#238636',
+							color: '#fff',
+							padding: '6px 14px',
+							borderRadius: 8,
+							fontSize: 12,
+							fontWeight: 600,
+							boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+							animation: 'fadeIn 0.2s ease-out',
+						}}
+					>
+						{flashMessage}
+					</div>
+				)}
+
+				{/* Expanded panel */}
+				{isOpen && (
+					<div
+						style={{
+							position: 'absolute',
+							bottom: 52,
+							right: 0,
+							width: 340,
+							background: '#161b22',
+							border: '1px solid #30363d',
+							borderRadius: 12,
+							boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
+							overflow: 'hidden',
+							maxHeight: 'calc(100vh - 100px)',
+							overflowY: 'auto',
+						}}
+					>
+						{/* Header */}
+						<div
+							style={{
+								padding: '12px 16px',
+								borderBottom: '1px solid #30363d',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+								background: '#0d1117',
+							}}
+						>
+							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+								<span style={{ fontSize: 16 }}>🍳</span>
+								<span
+									style={{ fontSize: 13, fontWeight: 700, color: '#e6edf3' }}
+								>
+									Demo Control
+								</span>
+							</div>
+							<div style={{ display: 'flex', gap: 6 }}>
+								<div
+									style={{
+										width: 8,
+										height: 8,
+										borderRadius: '50%',
+										background:
+											backendStatus === 'up'
+												? '#3fb950'
+												: backendStatus === 'down'
+													? '#f85149'
+													: '#d29922',
+									}}
+									title={`Backend: ${backendStatus}`}
+								/>
+								<button
+									onClick={() => {
+										setIsMinimized(true)
+										setIsOpen(false)
+									}}
+									style={{
+										background: 'none',
+										border: 'none',
+										color: '#8b949e',
+										cursor: 'pointer',
+										fontSize: 14,
+										padding: 0,
+									}}
+								>
+									−
+								</button>
+							</div>
+						</div>
+
+						{/* Auth Status */}
+						<div
+							style={{
+								padding: '10px 16px',
+								borderBottom: '1px solid #21262d',
+							}}
+						>
+							{isAuthenticated && user ? (
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'space-between',
+									}}
+								>
+									<div>
+										<div
+											style={{
+												fontSize: 12,
+												color: '#3fb950',
+												fontWeight: 600,
+											}}
+										>
+											✓ Logged in as{' '}
+											{user.username || user.displayName || 'user'}
+										</div>
+										<div
+											style={{ fontSize: 10, color: '#8b949e', marginTop: 2 }}
+										>
+											Token: {accessToken?.substring(0, 20)}...
+										</div>
+									</div>
+									<div style={{ display: 'flex', gap: 4 }}>
+										<button
+											onClick={() => {
+												navigator.clipboard.writeText(accessToken || '')
+												flash('Token copied!')
+											}}
+											style={btnSmall}
+										>
+											📋
+										</button>
+										<button
+											onClick={() => {
+												logout()
+												flash('Logged out')
+												setTimeout(() => window.location.reload(), 500)
+											}}
+											style={{ ...btnSmall, color: '#f85149' }}
+										>
+											⏏
+										</button>
+									</div>
+								</div>
+							) : (
+								<div>
+									<div
+										style={{
+											fontSize: 12,
+											color: '#d29922',
+											fontWeight: 600,
+											marginBottom: 8,
+										}}
+									>
+										Not authenticated
+									</div>
+									{TEST_ACCOUNTS.map(acc => (
+										<button
+											key={acc.username}
+											onClick={() => quickLogin(acc.username, acc.password)}
+											disabled={isLoggingIn || backendStatus !== 'up'}
+											style={{
+												width: '100%',
+												padding: '8px 12px',
+												marginBottom: 4,
+												background: isLoggingIn ? '#21262d' : '#238636',
+												border: 'none',
+												borderRadius: 6,
+												color: '#fff',
+												fontSize: 12,
+												fontWeight: 600,
+												cursor: isLoggingIn ? 'wait' : 'pointer',
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center',
+												gap: 6,
+											}}
+										>
+											{isLoggingIn
+												? '⏳ Logging in...'
+												: `⚡ Login as ${acc.label}`}
+										</button>
+									))}
+									{backendStatus !== 'up' && (
+										<div
+											style={{ fontSize: 10, color: '#f85149', marginTop: 4 }}
+										>
+											Backend is {backendStatus}. Start monolith first.
+										</div>
+									)}
+								</div>
+							)}
+						</div>
+
+						{/* Quick Navigation */}
+						<div style={{ padding: '8px' }}>
+							<div
+								style={{
+									fontSize: 10,
+									color: '#8b949e',
+									textTransform: 'uppercase',
+									letterSpacing: 1,
+									padding: '4px 8px',
+									fontWeight: 600,
+								}}
+							>
+								Quick Navigate
+							</div>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: 4,
+								}}
+							>
+								{DEMO_ROUTES.map(route => (
+									<button
+										key={route.path}
+										onClick={() => navigateTo(route.path)}
+										style={{
+											padding: '8px 10px',
+											background:
+												pathname === route.path ? '#1f6feb22' : '#0d1117',
+											border: `1px solid ${pathname === route.path ? '#1f6feb' : '#21262d'}`,
+											borderRadius: 6,
+											cursor: 'pointer',
+											textAlign: 'left',
+											display: 'flex',
+											alignItems: 'center',
+											gap: 6,
+											color: '#e6edf3',
+										}}
+									>
+										<span style={{ fontSize: 14 }}>{route.icon}</span>
+										<div>
+											<div style={{ fontSize: 11, fontWeight: 600 }}>
+												{route.label}
+											</div>
+											<div style={{ fontSize: 9, color: '#8b949e' }}>
+												{route.description}
+											</div>
+										</div>
+									</button>
+								))}
+							</div>
+						</div>
+
+						{/* Quick Actions */}
+						<div
+							style={{
+								padding: '8px 16px 12px',
+								borderTop: '1px solid #21262d',
+							}}
+						>
+							<div style={{ display: 'flex', gap: 6 }}>
+								<button
+									onClick={() => navigateTo('/_dev')}
+									style={{ ...btnAction, background: '#1f6feb', flex: 1 }}
+								>
+									🔧 Full Dashboard
+								</button>
+								<button
+									onClick={() =>
+										window.open(`${BASE}/api/v1/swagger-ui.html`, '_blank')
+									}
+									style={{ ...btnAction, background: '#21262d', flex: 1 }}
+								>
+									📄 Swagger
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* FAB Button */}
+				<button
+					onClick={() => setIsOpen(!isOpen)}
+					style={{
+						width: 44,
+						height: 44,
+						borderRadius: '50%',
+						background: isOpen ? '#30363d' : '#ff5a36',
+						border: '2px solid rgba(255,255,255,0.15)',
+						color: '#fff',
+						fontSize: 20,
+						cursor: 'pointer',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						boxShadow: '0 4px 16px rgba(255,90,54,0.4)',
+						transition: 'all 0.2s ease',
+						position: 'relative',
+					}}
+					title='Demo Control Widget'
+				>
+					{isOpen ? '✕' : '🍳'}
+					{/* Status dot */}
+					<span
+						style={{
+							position: 'absolute',
+							top: -2,
+							right: -2,
+							width: 10,
+							height: 10,
+							borderRadius: '50%',
+							background:
+								backendStatus === 'up'
+									? '#3fb950'
+									: backendStatus === 'down'
+										? '#f85149'
+										: '#d29922',
+							border: '2px solid #161b22',
+						}}
+					/>
+				</button>
+
+				<style>{`
 				@keyframes fadeIn {
 					from { opacity: 0; transform: translateY(8px); }
 					to { opacity: 1; transform: translateY(0); }
 				}
 			`}</style>
+			</div>
 		</div>
 	)
 }

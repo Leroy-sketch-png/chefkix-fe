@@ -9,48 +9,6 @@ import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
 
-// ── NER Extract ─────────────────────────────────────────────────────────────
-
-export interface NERIngredient {
-	name: string
-	quantity: string | null
-	unit: string | null
-	rawText: string
-}
-
-export interface NERResult {
-	ingredients: NERIngredient[]
-	techniques: string[]
-	equipment: string[]
-	times: Record<string, unknown>[]
-	temperatures: Record<string, unknown>[]
-	estimatedDifficulty: string
-	parseTimeMs: number
-	modelVersion: string
-}
-
-/** @deprecated Use `processRecipe` from `@/services/ai` instead — covers NER as part of full recipe parsing. */
-export const extractEntities = async (
-	rawText: string,
-): Promise<ApiResponse<NERResult>> => {
-	try {
-		const response = await aiApi.post<ApiResponse<NERResult>>(
-			API_ENDPOINTS.ML.NER_EXTRACT,
-			{ raw_text: rawText },
-		)
-		return response.data
-	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<NERResult>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'NER extraction failed',
-			statusCode: 500,
-		}
-	}
-}
-
 // ── Difficulty Calibration ──────────────────────────────────────────────────
 
 export interface CalibrationRequest {

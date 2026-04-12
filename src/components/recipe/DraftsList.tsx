@@ -3,15 +3,22 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Recipe, RecipeSummary } from '@/lib/types/recipe'
-import { getDraftRecipes } from '@/services/recipe'
+import {
+	getDraftRecipes,
+	discardDraft,
+	duplicateRecipe,
+} from '@/services/recipe'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Clock, FileText, Trash2, Edit3, AlertCircle, Copy } from 'lucide-react'
+import { EmptyStateGamified } from '@/components/shared'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
@@ -26,8 +33,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { discardDraft, duplicateRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 interface DraftsListProps {
 	/**
@@ -77,6 +84,7 @@ export function DraftsList({
 	const [deleteTarget, setDeleteTarget] = useState<RecipeSummary | null>(null)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
+	const t = useTranslations('recipe')
 
 	useEffect(() => {
 		const fetchDrafts = async () => {
@@ -87,16 +95,16 @@ export function DraftsList({
 				if (response.success && response.data) {
 					setDrafts(response.data)
 				} else {
-					setError(response.message || 'Failed to load drafts')
+					setError(response.message || t('failedToLoadDrafts'))
 				}
 			} catch (err) {
-				setError('Failed to load drafts')
+				setError(t('failedToLoadDrafts'))
 			} finally {
 				setIsLoading(false)
 			}
 		}
 		fetchDrafts()
-	}, [])
+	}, [t])
 
 	const handleDuplicate = async (draftId: string) => {
 		if (duplicatingId) return
@@ -107,13 +115,13 @@ export function DraftsList({
 				// Add the new draft to the top of the list
 				const newDraft = recipeToSummary(response.data)
 				setDrafts(prev => [newDraft, ...prev])
-				toast.success('Draft duplicated')
+				toast.success(t('draftDuplicated'))
 				onDuplicated?.(response.data.id)
 			} else {
-				toast.error(response.message || 'Failed to duplicate')
+				toast.error(t('failedToDuplicate'))
 			}
 		} catch {
-			toast.error('Failed to duplicate draft')
+			toast.error(t('failedToDuplicateDraft'))
 		} finally {
 			setDuplicatingId(null)
 		}
@@ -126,12 +134,12 @@ export function DraftsList({
 			const response = await discardDraft(deleteTarget.id)
 			if (response.success) {
 				setDrafts(prev => prev.filter(d => d.id !== deleteTarget.id))
-				toast.success('Draft deleted')
+				toast.success(t('draftDeleted'))
 			} else {
-				toast.error('Failed to delete draft')
+				toast.error(t('failedToDeleteDraft'))
 			}
 		} catch (err) {
-			toast.error('Failed to delete draft')
+			toast.error(t('failedToDeleteDraft'))
 		} finally {
 			setIsDeleting(false)
 			setDeleteTarget(null)
@@ -172,19 +180,20 @@ export function DraftsList({
 			>
 				{/* New Recipe CTA */}
 				<motion.button
+					type='button'
 					variants={staggerItem}
 					onClick={onNewRecipe}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-brand/30 bg-brand/5 p-6 text-left transition-colors hover:border-brand hover:bg-brand/10'
+					className='flex w-full items-center gap-4 rounded-2xl border-2 border-brand/30 bg-brand/5 p-6 text-left transition-colors hover:border-brand hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-hero text-white'>
 						<Edit3 className='size-5' />
 					</div>
 					<div>
-						<div className='font-bold text-text'>Create New Recipe</div>
+						<div className='font-bold text-text'>{t('createNewRecipe')}</div>
 						<div className='text-sm text-text-muted'>
-							Start fresh with AI or manual entry
+							{t('startFreshSubtitle')}
 						</div>
 					</div>
 				</motion.button>
@@ -193,7 +202,7 @@ export function DraftsList({
 				{drafts.length > 0 && (
 					<div className='space-y-2'>
 						<h3 className='text-sm font-semibold uppercase tracking-wide text-text-muted'>
-							Your Drafts ({drafts.length})
+							{t('yourDraftsCount', { count: drafts.length })}
 						</h3>
 						<AnimatePresence mode='popLayout'>
 							{drafts.map(draft => (
@@ -221,18 +230,24 @@ export function DraftsList({
 
 									{/* Content */}
 									<button
+										type='button'
 										onClick={() => onSelectDraft(draft.id)}
 										className='flex flex-1 flex-col items-start text-left'
 									>
 										<div className='font-semibold text-text'>
-											{draft.title || 'Untitled Recipe'}
+											{draft.title || t('untitledRecipe')}
 										</div>
 										<div className='flex items-center gap-2 text-xs text-text-muted'>
 											<Clock className='size-3' />
 											<span>
 												{draft.createdAt
-													? `Created ${formatDistanceToNow(new Date(draft.createdAt), { addSuffix: true })}`
-													: 'Draft'}
+													? t('createdAgo', {
+															time: formatDistanceToNow(
+																new Date(draft.createdAt),
+																{ addSuffix: true },
+															),
+														})
+													: t('draft')}
 											</span>
 										</div>
 										{draft.description && (
@@ -243,18 +258,19 @@ export function DraftsList({
 									</button>
 
 									{/* Action Buttons */}
-									<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100'>
+									<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
 										{/* Duplicate Button */}
 										<motion.button
+											type='button'
 											onClick={e => {
 												e.stopPropagation()
 												handleDuplicate(draft.id)
 											}}
-											whileHover={{ scale: 1.1 }}
-											whileTap={{ scale: 0.9 }}
+											whileHover={ICON_BUTTON_HOVER}
+											whileTap={ICON_BUTTON_TAP}
 											disabled={duplicatingId === draft.id}
-											title='Duplicate draft'
-											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50'
+											title={t('duplicateDraft')}
+											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<Copy
 												className={cn(
@@ -265,14 +281,15 @@ export function DraftsList({
 										</motion.button>
 										{/* Delete Button */}
 										<motion.button
+											type='button'
 											onClick={e => {
 												e.stopPropagation()
 												setDeleteTarget(draft)
 											}}
-											whileHover={{ scale: 1.1 }}
-											whileTap={{ scale: 0.9 }}
-											title='Delete draft'
-											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-error/10 hover:text-error'
+											whileHover={ICON_BUTTON_HOVER}
+											whileTap={ICON_BUTTON_TAP}
+											title={t('deleteDraft')}
+											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<Trash2 className='size-4' />
 										</motion.button>
@@ -285,16 +302,15 @@ export function DraftsList({
 
 				{/* Empty State */}
 				{drafts.length === 0 && (
-					<motion.div
-						variants={staggerItem}
-						className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'
-					>
-						<FileText className='mx-auto mb-3 size-12 text-text-muted' />
-						<div className='font-semibold text-text'>No drafts yet</div>
-						<div className='text-sm text-text-muted'>
-							Your saved recipe drafts will appear here
-						</div>
-					</motion.div>
+					<EmptyStateGamified
+						variant='custom'
+						title={t('noDraftsYet')}
+						description={t('noDraftsDescription')}
+						illustration={
+							<FileText className='size-16 text-brand opacity-50' />
+						}
+						primaryAction={{ label: t('createRecipe'), href: '/create' }}
+					/>
 				)}
 			</motion.div>
 
@@ -305,21 +321,23 @@ export function DraftsList({
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Draft?</AlertDialogTitle>
+						<AlertDialogTitle>{t('deleteDraftTitle')}</AlertDialogTitle>
 						<AlertDialogDescription>
-							This will permanently delete &quot;
-							{deleteTarget?.title || 'Untitled Recipe'}&quot;. This action
-							cannot be undone.
+							{t('deleteDraftDescription', {
+								title: deleteTarget?.title || t('untitledRecipe'),
+							})}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+						<AlertDialogCancel disabled={isDeleting}>
+							{t('cancel')}
+						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={isDeleting}
 							className='bg-error text-white hover:bg-error/90'
 						>
-							{isDeleting ? 'Deleting...' : 'Delete'}
+							{isDeleting ? t('deleting') : t('delete')}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

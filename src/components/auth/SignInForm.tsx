@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -17,51 +17,58 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form'
-import { useRouter } from 'next/navigation' // <-- Thêm dòng này
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { ApiResponse, LoginSuccessResponse } from '@/lib/types'
-import { signIn, googleSignIn } from '@/services/auth'
+import { signIn } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
-import { SIGN_IN_MESSAGES } from '@/constants/messages'
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
+import { useTranslations } from '@/i18n/hooks'
+import { startGoogleSignIn } from '@/lib/keycloak-sso'
 
-const formSchema = z.object({
-	emailOrUsername: z
-		.string()
-		.min(3, { message: 'Email or username must be at least 3 characters.' }),
-	password: z.string().min(6, {
-		message: 'Password must be at least 6 characters.',
-	}),
-})
-
-// User-friendly error messages for common authentication failures
-const AUTH_ERROR_MAP: Record<string, string> = {
-	'Invalid credentials':
-		'Incorrect email/username or password. Please try again.',
-	'User not found': 'No account found with that email or username.',
-	'Account locked': 'Your account has been locked. Please contact support.',
-	'Account disabled': 'Your account has been disabled. Please contact support.',
-	'Email not verified': 'Please verify your email before signing in.',
-	'Too many attempts': 'Too many failed attempts. Please try again later.',
-	'Network Error': 'Unable to connect to server. Please check your connection.',
+function createFormSchema(t: (key: string) => string) {
+	return z.object({
+		emailOrUsername: z
+			.string()
+			.min(3, { message: t('validationEmailOrUsernameMin') }),
+		password: z.string().min(6, {
+			message: t('validationPasswordMin'),
+		}),
+	})
 }
 
-function getReadableErrorMessage(message: string): string {
-	// Check if we have a mapped error
-	for (const [key, value] of Object.entries(AUTH_ERROR_MAP)) {
+function createAuthErrorMap(
+	t: (key: string) => string,
+): Record<string, string> {
+	return {
+		'Invalid credentials': t('errorInvalidCredentials'),
+		'User not found': t('errorUserNotFound'),
+		'Account locked': t('errorAccountLocked'),
+		'Account disabled': t('errorAccountDisabled'),
+		'Email not verified': t('errorEmailNotVerified'),
+		'Too many attempts': t('errorTooManyAttempts'),
+		'Network Error': t('errorNetworkError'),
+	}
+}
+
+function getReadableErrorMessage(
+	message: string,
+	errorMap: Record<string, string>,
+	fallback: string,
+): string {
+	for (const [key, value] of Object.entries(errorMap)) {
 		if (message.toLowerCase().includes(key.toLowerCase())) {
 			return value
 		}
 	}
-	// If no mapping found, return original or a generic message
 	if (!message || message === 'An unknown error occurred.') {
-		return 'Sign in failed. Please check your credentials and try again.'
+		return fallback
 	}
 	return message
 }
@@ -71,18 +78,19 @@ export function SignInForm() {
 	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 	// Separate loading state for the button - form.isSubmitting doesn't track async properly
 	const [isSubmitting, setIsSubmitting] = useState(false)
-
-	// Check if user just verified their email — pre-fill to reduce friction
-	const verifiedEmail =
+	const t = useTranslations('auth')
+	const formSchema = useMemo(() => createFormSchema(t), [t])
+	const authErrorMap = useMemo(() => createAuthErrorMap(t), [t])
+	const [verifiedEmail] = useState(() =>
 		typeof window !== 'undefined'
 			? sessionStorage.getItem('verified-email')
-			: null
-	const isNewSignup =
-		typeof window !== 'undefined'
-			? sessionStorage.getItem('just-registered') === 'true'
-			: false
-	if (verifiedEmail) sessionStorage.removeItem('verified-email')
-	if (isNewSignup) sessionStorage.removeItem('just-registered')
+			: null,
+	)
+	const [isNewSignup] = useState(
+		() =>
+			typeof window !== 'undefined' &&
+			sessionStorage.getItem('just-registered') === 'true',
+	)
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -92,16 +100,44 @@ export function SignInForm() {
 		},
 	})
 	const router = useRouter()
+	const searchParams = useSearchParams()
+	const returnTo = searchParams.get('returnTo')
+	const oauthError = searchParams.get('error')
+
+	// Determine the redirect target after login
+	// Only allow relative paths to prevent open redirect attacks
+	const postLoginPath =
+		returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard'
+
+	useEffect(() => {
+		if (verifiedEmail) {
+			sessionStorage.removeItem('verified-email')
+		}
+		if (isNewSignup) {
+			sessionStorage.removeItem('just-registered')
+		}
+	}, [verifiedEmail, isNewSignup])
+
+	useEffect(() => {
+		if (!oauthError) {
+			return
+		}
+
+		form.setError('root', {
+			type: 'manual',
+			message: oauthError,
+		})
+		toast.error(oauthError)
+	}, [oauthError, form])
 
 	async function handleSuccessfulLogin(
 		response: ApiResponse<LoginSuccessResponse>,
 	): Promise<boolean> {
 		// Correctly access the nested 'data' property from the standardized ApiResponse
 		const payload = response.data
-		if (!payload || !payload.accessToken) {
-			const errorMsg =
-				'Authentication failed: no access token received from server.'
-			form.setError('root.general' as any, {
+		if (!payload?.accessToken) {
+			const errorMsg = t('errorNoAccessToken')
+			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
 			})
@@ -116,22 +152,20 @@ export function SignInForm() {
 		if (profileResponse.success && profileResponse.data) {
 			setUser(profileResponse.data)
 			if (isNewSignup) {
-				toast.success('Welcome to ChefKix! Let\u2019s get cooking 🎉')
+				toast.success(t('toastWelcomeNew'))
 				setLoading(true)
-				router.push('/dashboard')
+				router.push(postLoginPath)
 			} else {
-				toast.success('Welcome back! Signed in successfully.')
+				toast.success(t('toastWelcomeBack'))
 				setLoading(true)
-				router.push('/dashboard')
+				router.push(postLoginPath)
 			}
 			return true
 		} else {
 			// Profile fetch failed - logout completely and show error
 			logout()
-			const errorMsg =
-				profileResponse.message ||
-				'Login successful, but failed to fetch your profile. Please try again.'
-			form.setError('root.general' as any, {
+			const errorMsg = t('errorProfileFetchFailed')
+			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
 			})
@@ -160,8 +194,12 @@ export function SignInForm() {
 				// If success, keep spinner going until redirect happens
 			} else {
 				// Login failed - show user-friendly error
-				const readableError = getReadableErrorMessage(response.message || '')
-				form.setError('root.general' as any, {
+				const readableError = getReadableErrorMessage(
+					response.message || '',
+					authErrorMap,
+					t('errorSignInFailed'),
+				)
+				form.setError('root', {
 					type: 'manual',
 					message: readableError,
 				})
@@ -170,8 +208,8 @@ export function SignInForm() {
 			}
 		} catch (error) {
 			// Unexpected error
-			const errorMsg = 'An unexpected error occurred. Please try again.'
-			form.setError('root.general' as any, {
+			const errorMsg = t('errorUnexpected')
+			form.setError('root', {
 				type: 'manual',
 				message: errorMsg,
 			})
@@ -188,15 +226,19 @@ export function SignInForm() {
 			className='w-full space-y-6'
 		>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-5'>
-					{form.formState.errors.root?.general && (
+				<form
+					onSubmit={form.handleSubmit(onSubmit)}
+					className='space-y-4'
+					noValidate
+				>
+					{form.formState.errors.root?.message && (
 						<motion.div
 							initial={{ opacity: 0, height: 0 }}
 							animate={{ opacity: 1, height: 'auto' }}
 							className='rounded-xl bg-error/10 p-4 text-sm text-error'
 							role='alert'
 						>
-							{(form.formState.errors.root.general as any).message}
+							{form.formState.errors.root.message}
 						</motion.div>
 					)}
 					<motion.div variants={staggerItem}>
@@ -205,16 +247,18 @@ export function SignInForm() {
 							name='emailOrUsername'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Email or Username</FormLabel>
+									<FormLabel className='text-text'>
+										{t('emailOrUsername')}
+									</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='yourname or chef@email.com'
+											placeholder={t('emailOrUsernamePlaceholder')}
 											autoComplete='username'
 											autoCapitalize='none'
 											autoCorrect='off'
 											spellCheck={false}
 											{...field}
-											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
+											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
@@ -228,13 +272,13 @@ export function SignInForm() {
 							name='password'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>Password</FormLabel>
+									<FormLabel className='text-text'>{t('password')}</FormLabel>
 									<FormControl>
 										<PasswordInput
-											placeholder='password'
+											placeholder={t('passwordPlaceholder')}
 											autoComplete='current-password'
 											{...field}
-											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus:border-brand focus:ring-2 focus:ring-brand/20'
+											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
@@ -249,51 +293,43 @@ export function SignInForm() {
 							onClick={() => setForgotPasswordOpen(true)}
 							className='h-auto p-0 font-medium text-brand transition-colors hover:text-brand/80'
 						>
-							{SIGN_IN_MESSAGES.FORGOT_PASSWORD}
+							{t('forgotPassword')}
 						</Button>
 					</motion.div>
 					<motion.div variants={staggerItem}>
 						<AnimatedButton
 							type='submit'
-							className='h-12 w-full rounded-xl bg-gradient-hero text-base font-bold shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40'
+							className='h-11 w-full rounded-xl bg-brand text-base font-semibold text-white shadow-md shadow-brand/20 transition-all hover:bg-brand/90 hover:shadow-lg hover:shadow-brand/30 sm:h-12'
 							isLoading={isSubmitting}
-							loadingText='Signing in...'
-							shine
+							loadingText={t('signingIn')}
 						>
-							Sign In
+							{t('signIn')}
 						</AnimatedButton>
 					</motion.div>
 					<motion.div
 						variants={staggerItem}
-						className='relative my-4 flex items-center'
+						className='relative my-3 flex items-center sm:my-4'
 					>
 						<span className='flex-1 border-t border-border-subtle'></span>
 						<span className='mx-4 text-xs leading-normal text-text-muted'>
-							or
+							{t('or')}
 						</span>
 						<span className='flex-1 border-t border-border-subtle'></span>
 					</motion.div>
 					<motion.div variants={staggerItem}>
 						<GoogleSignInButton
-							text='Sign in with Google'
-							onSuccess={async code => {
-								const response = await googleSignIn({ code })
-								if (response.success) {
-									await handleSuccessfulLogin(response)
-								} else {
-									const errorMessage =
-										response.message || 'Google sign-in failed.'
-									form.setError('root.general' as any, {
+							text={t('google')}
+							onClick={async () => {
+								try {
+									await startGoogleSignIn(returnTo)
+								} catch {
+									const errorMessage = t('googleSignInFailedRetry')
+									form.setError('root', {
 										type: 'manual',
 										message: errorMessage,
 									})
+									toast.error(errorMessage)
 								}
-							}}
-							onFailure={error => {
-								form.setError('root.general' as any, {
-									type: 'manual',
-									message: error.message || 'Google sign-in failed.',
-								})
 							}}
 						/>
 					</motion.div>
@@ -303,12 +339,16 @@ export function SignInForm() {
 				variants={staggerItem}
 				className='text-center text-sm leading-normal text-text-secondary'
 			>
-				{SIGN_IN_MESSAGES.NO_ACCOUNT}{' '}
+				{t('noAccount')}{' '}
 				<Link
-					href={PATHS.AUTH.SIGN_UP}
+					href={
+						returnTo
+							? `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(returnTo)}`
+							: PATHS.AUTH.SIGN_UP
+					}
 					className='font-semibold text-brand transition-colors hover:text-brand/80'
 				>
-					Create account
+					{t('createAccount')}
 				</Link>
 			</motion.div>
 			<ForgotPasswordDialog

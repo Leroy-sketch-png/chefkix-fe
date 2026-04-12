@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
@@ -8,15 +8,18 @@ import { Button } from '@/components/ui/button'
 import { Profile, getProfileDisplayName } from '@/lib/types/profile'
 import { toggleFollow } from '@/services/social'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import {
 	CARD_HOVER,
 	BUTTON_HOVER,
 	BUTTON_TAP,
 	TRANSITION_SPRING,
+	FOLLOW_PULSE,
 } from '@/lib/motion'
-import { UserCheck, UserPlus } from 'lucide-react'
+import { UserCheck, UserPlus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface FollowUserCardProps {
 	profile: Profile
@@ -32,6 +35,8 @@ export function FollowUserCard({
 }: FollowUserCardProps) {
 	const router = useRouter()
 	const { user } = useAuth()
+	const requireAuth = useAuthGate()
+	const t = useTranslations('profile')
 	const [isFollowing, setIsFollowing] = useState(profile.isFollowing ?? false)
 	const [isLoading, setIsLoading] = useState(false)
 	const followLockRef = useRef(false)
@@ -41,6 +46,7 @@ export function FollowUserCard({
 
 	const handleToggleFollow = async (e: React.MouseEvent) => {
 		e.stopPropagation()
+		if (!requireAuth(t('authActionFollow'))) return
 		if (followLockRef.current || isOwnProfile) return
 		followLockRef.current = true
 
@@ -52,13 +58,13 @@ export function FollowUserCard({
 			const response = await toggleFollow(profile.userId)
 			if (!response.success) {
 				setIsFollowing(previousState) // Revert
-				toast.error('Failed to update follow status')
+				toast.error(t('failedFollowUpdate'))
 			} else {
 				onFollowChange?.(profile.userId, !previousState)
 			}
 		} catch {
 			setIsFollowing(previousState)
-			toast.error('Failed to update follow status')
+			toast.error(t('failedFollowUpdate'))
 		} finally {
 			followLockRef.current = false
 			setIsLoading(false)
@@ -87,8 +93,8 @@ export function FollowUserCard({
 						{displayName}
 					</p>
 					{isMutual && (
-						<span className='shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand'>
-							Mutual
+						<span className='shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-2xs font-bold text-brand'>
+							{t('mutual')}
 						</span>
 					)}
 				</div>
@@ -101,7 +107,12 @@ export function FollowUserCard({
 			</div>
 
 			{!isOwnProfile && (
-				<motion.div whileHover={BUTTON_HOVER} whileTap={BUTTON_TAP}>
+				<motion.div
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
+					animate={isFollowing ? FOLLOW_PULSE.followed : undefined}
+					initial={false}
+				>
 					<Button
 						size='sm'
 						variant={isFollowing ? 'outline' : 'default'}
@@ -113,15 +124,17 @@ export function FollowUserCard({
 								'border-border-subtle text-text-secondary hover:border-destructive hover:text-destructive',
 						)}
 					>
-						{isFollowing ? (
+						{isLoading ? (
+							<Loader2 className='size-3.5 animate-spin' />
+						) : isFollowing ? (
 							<>
 								<UserCheck className='size-3.5' />
-								Following
+								{t('following')}
 							</>
 						) : (
 							<>
 								<UserPlus className='size-3.5' />
-								Follow
+								{t('follow')}
 							</>
 						)}
 					</Button>

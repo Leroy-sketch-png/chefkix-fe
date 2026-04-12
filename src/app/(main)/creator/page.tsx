@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
+
+import { useState, useEffect, useTransition } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { CreatorDashboard, StepHeatmap } from '@/components/creator'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { CreatorDashboard, StepHeatmap, TipHistory } from '@/components/creator'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import {
@@ -14,11 +17,13 @@ import {
 	CreatorPerformanceResponse,
 	RecentCooksResponse,
 } from '@/services/creator'
-import { motion } from 'framer-motion'
-import { ArrowLeft, ChefHat, Sparkles } from 'lucide-react'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, ChefHat, BookOpen, Loader2 } from 'lucide-react'
+import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { formatShortTimeAgo } from '@/lib/utils'
 import { ErrorState } from '@/components/ui/error-state'
+import { EmptyStateGamified } from '@/components/shared'
 
 // ============================================
 // HELPERS
@@ -39,8 +44,10 @@ const getDateRangeThisWeek = (): string => {
 // ============================================
 
 export default function CreatorRoute() {
+	const t = useTranslations('creator')
 	const { user } = useAuth()
 	const router = useRouter()
+	const [isNavigating, startNavigationTransition] = useTransition()
 	const [isLoading, setIsLoading] = useState(true)
 	const [fetchError, setFetchError] = useState(false)
 	const [stats, setStats] = useState<CreatorStats | null>(null)
@@ -81,7 +88,9 @@ export default function CreatorRoute() {
 		}
 
 		fetchAll()
-		return () => { cancelled = true }
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	// Transform API data to component format
@@ -141,7 +150,7 @@ export default function CreatorRoute() {
 			}
 		: null
 
-	// These need additional API endpoints - leaving empty for now
+	// Recipe performance from API
 	const recipePerformance = (performanceData?.recipes ?? []).map((r, idx) => ({
 		id: r.id,
 		rank: idx + 1,
@@ -158,19 +167,6 @@ export default function CreatorRoute() {
 		needsAttention: r.cookCount === 0 && r.viewCount > 10,
 	}))
 
-	const formatTimeAgo = (dateStr: string): string => {
-		const date = new Date(dateStr)
-		const now = new Date()
-		const diffMs = now.getTime() - date.getTime()
-		const diffMin = Math.floor(diffMs / 60000)
-		if (diffMin < 60) return `${diffMin}m ago`
-		const diffHrs = Math.floor(diffMin / 60)
-		if (diffHrs < 24) return `${diffHrs}h ago`
-		const diffDays = Math.floor(diffHrs / 24)
-		if (diffDays < 7) return `${diffDays}d ago`
-		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-	}
-
 	const recentCooks = (recentCooksData?.cooks ?? []).map(c => ({
 		id: c.sessionId,
 		userId: c.cookUserId,
@@ -178,7 +174,7 @@ export default function CreatorRoute() {
 		userAvatar: c.cookAvatarUrl ?? '/placeholder-avatar.svg',
 		recipeTitle: c.recipeTitle,
 		xpEarned: c.xpEarned ?? 0,
-		timeAgo: formatTimeAgo(c.completedAt),
+		timeAgo: formatShortTimeAgo(c.completedAt),
 	}))
 
 	if (isLoading) {
@@ -208,8 +204,8 @@ export default function CreatorRoute() {
 			<PageTransition>
 				<PageContainer maxWidth='xl'>
 					<ErrorState
-						title='Failed to load creator analytics'
-						message='Something went wrong loading your data. Please try again.'
+						title={t('failedToLoadAnalytics')}
+						message={t('failedToLoadAnalyticsMessage')}
 						onRetry={() => {
 							setFetchError(false)
 							setIsLoading(true)
@@ -217,14 +213,51 @@ export default function CreatorRoute() {
 								getCreatorStats(),
 								getCreatorPerformance(),
 								getRecentCooks(0, 10),
-							]).then(([statsRes, perfRes, cooksRes]) => {
-								const anySuccess = statsRes.success || perfRes.success || cooksRes.success
-								if (!anySuccess) { setFetchError(true); return }
-								if (statsRes.success && statsRes.data) setStats(statsRes.data)
-								if (perfRes.success && perfRes.data) setPerformanceData(perfRes.data)
-								if (cooksRes.success && cooksRes.data) setRecentCooksData(cooksRes.data)
-							}).catch(() => setFetchError(true)).finally(() => setIsLoading(false))
+							])
+								.then(([statsRes, perfRes, cooksRes]) => {
+									const anySuccess =
+										statsRes.success || perfRes.success || cooksRes.success
+									if (!anySuccess) {
+										setFetchError(true)
+										return
+									}
+									if (statsRes.success && statsRes.data) setStats(statsRes.data)
+									if (perfRes.success && perfRes.data)
+										setPerformanceData(perfRes.data)
+									if (cooksRes.success && cooksRes.data)
+										setRecentCooksData(cooksRes.data)
+								})
+								.catch(() => setFetchError(true))
+								.finally(() => setIsLoading(false))
 						}}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
+	// New creator with no recipes — show onboarding
+	if (
+		!stats ||
+		(stats.totalRecipesPublished === 0 && recipePerformance.length === 0)
+	) {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='xl'>
+					<EmptyStateGamified
+						variant='custom'
+						emoji='👨‍🍳'
+						title={t('creatorStudioReady')}
+						description={t('creatorStudioReadyDesc')}
+						primaryAction={{
+							label: t('createYourFirstRecipe'),
+							href: '/create',
+							icon: <BookOpen className='size-4' />,
+						}}
+						quickActions={[
+							{ label: 'Explore top recipes', emoji: '🔥', href: '/explore' },
+							{ label: 'Browse challenges', emoji: '🏆', href: '/challenges' },
+						]}
 					/>
 				</PageContainer>
 			</PageTransition>
@@ -233,36 +266,51 @@ export default function CreatorRoute() {
 
 	return (
 		<PageTransition>
+			{/* Global navigation loading indicator */}
+			<AnimatePresence>
+				{isNavigating && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+							<Loader2 className='size-4 animate-spin' />
+							{t('loading')}
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+
 			<PageContainer maxWidth='xl'>
-				{/* Header - Secondary page pattern with back button */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-6'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<button
-							onClick={() => router.push('/dashboard')}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						>
-							<ArrowLeft className='size-5' />
-						</button>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-card shadow-xp/25'
-						>
-							<ChefHat className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>Creator Dashboard</h1>
+				{/* Header with back button using PageHeader */}
+				<div className='mb-6 flex items-center gap-3'>
+					<motion.button
+						type='button'
+						onClick={() =>
+							startNavigationTransition(() => {
+								router.push('/dashboard')
+							})
+						}
+						disabled={isNavigating}
+						whileTap={BUTTON_SUBTLE_TAP}
+						className='flex size-11 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoToDashboard')}
+					>
+						<ArrowLeft className='size-5' />
+					</motion.button>
+					<div className='flex-1'>
+						<PageHeader
+							icon={ChefHat}
+							title={t('dashboardTitle')}
+							subtitle={t('dashboardSubtitle')}
+							gradient='purple'
+							marginBottom='sm'
+							className='mb-0'
+						/>
 					</div>
-					<p className='flex items-center gap-2 text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						Track your recipe performance and inspire others
-					</p>
-				</motion.div>
+				</div>
 				<CreatorDashboard
 					weekHighlight={weekHighlight}
 					lifetimeStats={lifetimeStats}
@@ -270,10 +318,21 @@ export default function CreatorRoute() {
 					topRecipe={topRecipe}
 					recipePerformance={recipePerformance}
 					recentCooks={recentCooks}
-					onBack={() => router.push('/dashboard')}
-					onCreateRecipe={() => router.push('/create')}
-					onRecipeClick={id => router.push(`/recipes/${id}`)}
-					onViewAllRecipes={() => router.push('/creator/recipes')}
+					onCreateRecipe={() =>
+						startNavigationTransition(() => {
+							router.push('/create')
+						})
+					}
+					onRecipeClick={id =>
+						startNavigationTransition(() => {
+							router.push(`/recipes/${id}`)
+						})
+					}
+					onViewAllRecipes={() =>
+						startNavigationTransition(() => {
+							router.push('/creator/recipes')
+						})
+					}
 					onViewStepAnalytics={id =>
 						setHeatmapRecipeId(prev => (prev === id ? null : id))
 					}
@@ -287,6 +346,10 @@ export default function CreatorRoute() {
 						className='mt-6'
 					/>
 				)}
+				<TipHistory className='mt-6' />
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

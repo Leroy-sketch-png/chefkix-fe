@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, Crown, ChefHat } from 'lucide-react'
@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import type { RoomParticipant } from '@/lib/types/room'
+import { useTranslations } from 'next-intl'
 
 interface RoomParticipantsBarProps {
 	participants: RoomParticipant[]
@@ -29,6 +30,7 @@ export function RoomParticipantsBar({
 	compact = false,
 	className,
 }: RoomParticipantsBarProps) {
+	const t = useTranslations('cooking')
 	if (!participants.length) return null
 
 	return (
@@ -60,6 +62,11 @@ export function RoomParticipantsBar({
 							isSelf={participant.userId === currentUserId}
 							totalSteps={totalSteps}
 							compact={compact}
+							participantTitle={t('participantTitle', {
+								name: participant.displayName,
+								current: participant.currentStep,
+								total: totalSteps,
+							})}
 						/>
 					))}
 				</AnimatePresence>
@@ -80,11 +87,13 @@ function ParticipantAvatar({
 	isSelf,
 	totalSteps,
 	compact,
+	participantTitle,
 }: {
 	participant: RoomParticipant
 	isSelf: boolean
 	totalSteps: number
 	compact: boolean
+	participantTitle: string
 }) {
 	const progress =
 		totalSteps > 0 ? (participant.currentStep / totalSteps) * 100 : 0
@@ -97,7 +106,7 @@ function ParticipantAvatar({
 			exit={{ scale: 0, opacity: 0 }}
 			transition={TRANSITION_SPRING}
 			className='relative'
-			title={`${participant.displayName} — Step ${participant.currentStep}/${totalSteps}`}
+			title={participantTitle}
 		>
 			{/* Progress ring */}
 			<svg
@@ -142,6 +151,9 @@ function ParticipantAvatar({
 						'rounded-full border-2 object-cover',
 						isSelf ? 'border-brand' : 'border-white/40',
 					)}
+					onError={e => {
+						;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
+					}}
 				/>
 			) : (
 				<div
@@ -161,7 +173,7 @@ function ParticipantAvatar({
 			)}
 
 			{/* Step indicator */}
-			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-bg-card/90 px-1 text-[10px] font-bold text-text'>
+			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-bg-card/90 px-1 text-2xs font-bold text-text'>
 				{participant.currentStep}
 			</div>
 		</motion.div>

@@ -16,16 +16,21 @@ export interface Statistics {
 	badges?: string[] // Earned badge IDs
 	/** Badge name → ISO timestamp when earned. Null for badges earned before tracking was added. */
 	badgeTimestamps?: Record<string, string>
-	// ── Fields below exist in BE StatisticResponse but were previously untyped ──
-	friendCount?: number // BE: Long friendCount (mutual follow count)
-	friendRequestCount?: number // BE: Long friendRequestCount (pending requests)
-	// ── Fields below are aspirational (spec 02-profile.txt) — NOT in BE StatisticResponse ──
-	/** @notImplemented — BE StatisticResponse does not include this field */
+	// Social depth
+	friendCount?: number // Mutual follow count
+	friendRequestCount?: number // Pending friend requests
+	// Cooking depth metrics (from BE StatisticResponse)
 	recipesCooked?: number // Distinct recipes user has cooked
-	/** @notImplemented — BE StatisticResponse does not include this field */
 	recipesMastered?: number // Recipes cooked 5+ times (mastery threshold)
-	/** @notImplemented — BE StatisticResponse does not include this field */
 	longestStreak?: number // Historical best streak
+	// Temporal XP (leaderboard context)
+	xpWeekly?: number // XP earned this week (resets Monday)
+	xpMonthly?: number // XP earned this month (resets 1st)
+	// Creator stats
+	totalCooksOfYourRecipes?: number // Times others cooked your recipes
+	xpEarnedAsCreator?: number // XP earned from others cooking your recipes
+	weeklyCreatorCooks?: number // Cooks of your recipes this week
+	weeklyCreatorXp?: number // Creator XP this week
 	// Streak status fields (computed from lastCookAt by backend)
 	cookedToday?: boolean // Whether user has cooked within streak window (72h)
 	lastCookAt?: string // ISO timestamp of last cooking session completion
@@ -40,8 +45,6 @@ export type RelationshipStatus =
 	| 'REQUEST_SENT' // Friend request sent to this user
 	| 'REQUEST_RECEIVED' // Friend request received from this user
 	| 'NOT_FRIENDS' // No relationship
-
-import type { Badge } from './gamification'
 
 export interface Profile {
 	profileId: string
@@ -69,23 +72,10 @@ export interface Profile {
 	isBlocked?: boolean // Block status from API
 	/** Verified creator badge — from W5.9 */
 	isVerified?: boolean
-	// ── Aspirational gamification fields (per spec 02-profile.txt) ──
-	// These are NOT in BE ProfileResponse. Always undefined from API.
-	// Kept for future implementation. Use Statistics fields for actual data.
-	/** @notImplemented — BE ProfileResponse does not include this field */
-	badges?: Badge[] // Earned badges
-	/** @notImplemented — BE ProfileResponse does not include this field */
-	recipesCooked?: number // Distinct recipes completed
-	/** @notImplemented — BE ProfileResponse does not include this field */
-	totalCookingSessions?: number // Total sessions (includes repeats)
-	/** @notImplemented — BE ProfileResponse does not include this field */
-	lastCookDate?: string // ISO8601, for streak calculation
-	/** @notImplemented — BE ProfileResponse does not include this field */
-	longestStreak?: number // Historical best
-	// ── AI Quota (per spec) — NOT in BE ProfileResponse ──
-	/** @notImplemented — BE ProfileResponse does not include this field */
+	// ── AI Quota (per spec 15-ai-integration.txt) — NOT in BE yet ──
+	/** @notImplemented — requires UserAiQuota entity + daily reset logic */
 	aiGenerationsRemaining?: number // Resets daily, default 30
-	/** @notImplemented — BE ProfileResponse does not include this field */
+	/** @notImplemented — requires UserAiQuota entity */
 	aiQuotaResetAt?: string // ISO8601, next reset timestamp
 }
 

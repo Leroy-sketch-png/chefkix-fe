@@ -4,6 +4,7 @@ import { AlertCircle, Home, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import { useTranslations } from '@/i18n/hooks'
 
 const LottieAnimation = dynamic(
 	() => import('@/components/shared/LottieAnimation'),
@@ -16,19 +17,22 @@ interface ErrorStateProps {
 	showHomeButton?: boolean
 	onRetry?: () => void
 	/** Optional Lottie animation to show instead of AlertCircle icon */
-	lottieAnimation?: any
+	lottieAnimation?: object
 	/** Size calculator for Lottie animation */
 	lottieSize?: (width: number, height: number) => number
 }
 
 export const ErrorState = ({
-	title = 'Something went wrong',
-	message = 'We encountered an error while loading this content. Please try again.',
+	title,
+	message,
 	showHomeButton = true,
 	onRetry,
 	lottieAnimation,
 	lottieSize = (w, h) => Math.min(w * 0.3, h * 0.4, 300),
 }: ErrorStateProps) => {
+	const t = useTranslations('common')
+	const displayTitle = title || t('somethingWentWrong')
+	const displayMessage = message || t('defaultErrorMessage')
 	return (
 		<div className='flex min-h-content-tall flex-col items-center justify-center px-4'>
 			<div className='mx-auto max-w-md text-center' role='alert'>
@@ -51,15 +55,15 @@ export const ErrorState = ({
 				)}
 
 				<h1 className='mb-2 text-2xl font-bold leading-tight text-text-primary'>
-					{title}
+					{displayTitle}
 				</h1>
-				<p className='mb-8 leading-normal text-text-secondary'>{message}</p>
+				<p className='mb-8 leading-normal text-text-secondary'>{displayMessage}</p>
 
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
 					{onRetry && (
 						<Button onClick={onRetry} className='h-11'>
 							<RefreshCw className='size-4' />
-							Try Again
+						{t('tryAgain')}
 						</Button>
 					)}
 					{showHomeButton && (
@@ -70,7 +74,7 @@ export const ErrorState = ({
 						>
 							<Link href='/dashboard'>
 								<Home className='size-4' />
-								Go to Dashboard
+								{t('goToDashboard')}
 							</Link>
 						</Button>
 					)}

@@ -1,4 +1,6 @@
-'use client'
+﻿'use client'
+
+import { useTranslations, useLocale } from 'next-intl'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -15,7 +17,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	DURATION_S,
+} from '@/lib/motion'
 
 // ============================================
 // TYPES
@@ -72,12 +79,12 @@ interface ChallengeHistoryPageProps {
 // UTILITIES
 // ============================================
 
-const formatDate = (date: Date) => {
-	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const formatDate = (date: Date, locale = 'en-US') => {
+	return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
-const getDayName = (date: Date) => {
-	return date.toLocaleDateString('en-US', { weekday: 'short' })
+const getDayName = (date: Date, locale = 'en-US') => {
+	return date.toLocaleDateString(locale, { weekday: 'short' })
 }
 
 const isToday = (date: Date) => {
@@ -103,7 +110,12 @@ const StatCard = ({
 	<div className='flex items-center gap-2.5 rounded-xl bg-bg p-3.5'>
 		<span className='text-xl'>{icon}</span>
 		<div className='flex flex-col'>
-			<span className={cn('text-lg font-extrabold text-text', colorClass)}>
+			<span
+				className={cn(
+					'text-lg font-display font-extrabold text-text',
+					colorClass,
+				)}
+			>
 				{value}
 			</span>
 			<span className='text-2xs text-text-secondary'>{label}</span>
@@ -116,10 +128,12 @@ const StatCard = ({
 // ============================================
 
 const DayColumn = ({ day }: { day: ChallengeDay }) => {
+	const t = useTranslations('challenge')
+	const locale = useLocale()
 	const isCurrentDay = isToday(day.date)
 	const statusConfig = {
 		completed: {
-			badgeBg: 'bg-gradient-to-br from-success to-emerald-600',
+			badgeBg: 'bg-gradient-to-br from-success to-success',
 			indicator: <Check className='size-3' />,
 			indicatorBg: 'bg-success',
 			xpClass: 'text-success',
@@ -137,10 +151,10 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			xpClass: 'text-success',
 		},
 		upcoming: {
-			badgeBg: 'border-2 border-dashed border-primary/30 bg-primary/10',
+			badgeBg: 'border-2 border-dashed border-brand/30 bg-brand/10',
 			indicator: null,
 			indicatorBg: '',
-			xpClass: 'text-primary',
+			xpClass: 'text-brand',
 		},
 		future: {
 			badgeBg: 'bg-muted/30',
@@ -156,20 +170,20 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 		<div
 			className={cn(
 				'relative flex flex-col items-center gap-1.5 rounded-xl p-3 text-center',
-				isCurrentDay && 'border-2 border-primary/30 bg-primary/10',
+				isCurrentDay && 'border-2 border-brand/30 bg-brand/10',
 				!isCurrentDay && 'bg-bg',
 			)}
 		>
 			{isCurrentDay && (
-				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-primary px-2 py-0.5 text-2xs font-bold text-white'>
-					Today
+				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-brand px-2 py-0.5 text-2xs font-bold text-white'>
+					{t('today')}
 				</span>
 			)}
 			<span className='text-xs font-semibold text-text-secondary'>
-				{getDayName(day.date)}
+				{getDayName(day.date, locale)}
 			</span>
 			<span className='text-2xs text-text-secondary'>
-				{formatDate(day.date)}
+				{formatDate(day.date, locale)}
 			</span>
 
 			{/* Badge */}
@@ -197,7 +211,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 				)}
 				{day.status === 'upcoming' && (
 					<span className='absolute -bottom-2 whitespace-nowrap text-2xs font-semibold text-text-secondary'>
-						Tomorrow
+						{t('tomorrow')}
 					</span>
 				)}
 			</div>
@@ -207,7 +221,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			</span>
 			<span className={cn('text-2xs font-bold', config.xpClass)}>
 				{day.status === 'missed'
-					? 'Missed'
+					? t('missed')
 					: day.status === 'upcoming' || day.status === 'future'
 						? `+${day.challenge?.xp ?? 0} XP`
 						: `+${day.challenge?.xp ?? 0} XP`}
@@ -230,26 +244,28 @@ export const ChallengeHistorySection = ({
 	// Show last 7 days
 	const weekDays = days.slice(0, 7)
 	const daysToNextBadge = 7 - stats.currentStreak
+	const t = useTranslations('challenge')
 
 	return (
-		<div className={cn('rounded-2xl bg-panel-bg p-6', className)}>
+		<div className={cn('rounded-2xl bg-bg-card p-6', className)}>
 			{/* Header */}
 			<div className='mb-5 flex items-center justify-between'>
 				<div className='flex items-center gap-3'>
 					<h3 className='flex items-center gap-2 text-lg font-bold text-text'>
-						<CalendarCheck className='size-5 text-primary' />
-						Challenge History
+						<CalendarCheck className='size-5 text-brand' />
+						{t('challengeHistory')}
 					</h3>
 					<span className='rounded-xl bg-bg px-2.5 py-1 text-xs text-text-secondary'>
-						Last 7 Days
+						{t('last7Days')}
 					</span>
 				</div>
 				{onViewAll && (
 					<button
+						type='button'
 						onClick={onViewAll}
-						className='flex items-center gap-1 text-xs font-semibold text-primary hover:underline'
+						className='flex items-center gap-1 text-xs font-semibold text-brand hover:underline'
 					>
-						View All
+						{t('viewAll')}
 						<ChevronRight className='size-4' />
 					</button>
 				)}
@@ -260,25 +276,25 @@ export const ChallengeHistorySection = ({
 				<StatCard
 					icon='🔥'
 					value={String(stats.currentStreak)}
-					label='Current Streak'
+					label={t('currentStreak')}
 					colorClass='text-streak'
 				/>
 				<StatCard
 					icon='✅'
 					value={`${stats.completedThisWeek}/${stats.totalDays}`}
-					label='Completed'
+					label={t('completedStat')}
 					colorClass='text-success'
 				/>
 				<StatCard
 					icon='⚡'
 					value={`+${stats.bonusXpEarned}`}
-					label='Bonus XP'
-					colorClass='text-primary'
+					label={t('bonusXP')}
+					colorClass='text-brand'
 				/>
 				<StatCard
 					icon='🏆'
 					value={String(stats.bestStreak)}
-					label='Best Streak'
+					label={t('bestStreak')}
 					colorClass='text-warning'
 				/>
 			</div>
@@ -297,22 +313,24 @@ export const ChallengeHistorySection = ({
 						<span className='text-3xl'>🎯</span>
 						<div className='text-sm text-text'>
 							<strong className='text-streak'>
-								{daysToNextBadge} more day{daysToNextBadge > 1 ? 's' : ''}
-							</strong>{' '}
-							to unlock &quot;Weekly Champion&quot; badge!
+								{daysToNextBadge > 1
+									? t('unlockBadgePlural', { n: daysToNextBadge })
+									: t('unlockBadgeSingle', { n: daysToNextBadge })}
+							</strong>
 							<span className='mt-0.5 block text-xs text-text-secondary'>
-								Complete tomorrow&apos;s challenge to continue your streak
+								{t('completeTomorrowStreak')}
 							</span>
 						</div>
 					</div>
 					{onPreviewTomorrow && (
 						<motion.button
+							type='button'
 							onClick={onPreviewTomorrow}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-streak px-4 py-2.5 text-xs font-semibold text-white'
+							className='flex items-center gap-1.5 rounded-lg bg-streak px-4 py-2.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
-							Preview Tomorrow
+							{t('previewTomorrow')}
 							<ArrowRight className='size-4' />
 						</motion.button>
 					)}
@@ -334,20 +352,22 @@ const HistoryItem = ({
 	showTodayBadge?: boolean
 }) => {
 	const isCompleted = day.status === 'completed' || day.status === 'today'
+	const t = useTranslations('challenge')
+	const locale = useLocale()
 
 	return (
 		<div className='flex gap-4 border-b border-border py-4 last:border-b-0'>
 			{/* Date */}
 			<div className='flex min-w-thumbnail-sm flex-col items-center'>
-				<span className='text-xl font-extrabold leading-none text-text'>
+				<span className='text-xl font-display font-extrabold leading-none text-text'>
 					{day.date.getDate()}
 				</span>
 				<span className='text-xs text-text-secondary'>
-					{day.date.toLocaleDateString('en-US', { month: 'short' })}
+					{day.date.toLocaleDateString(locale, { month: 'short' })}
 				</span>
 				{showTodayBadge && (
-					<span className='mt-1 rounded-md bg-primary px-1.5 py-0.5 text-2xs font-bold text-white'>
-						Today
+					<span className='mt-1 rounded-md bg-brand px-1.5 py-0.5 text-2xs font-bold text-white'>
+						{t('today')}
 					</span>
 				)}
 			</div>
@@ -369,11 +389,13 @@ const HistoryItem = ({
 
 				<div className='flex flex-1 flex-col gap-1'>
 					<span className='text-sm font-bold text-text'>
-						{day.challenge?.title ?? 'No Challenge'}
+						{day.challenge?.title ?? t('noChallenge')}
 					</span>
 					<span className='text-xs text-text-secondary'>
 						{day.challenge?.title
-							? `Complete the ${day.challenge.title.toLowerCase()} challenge`
+							? t('completeChallenge', {
+									title: day.challenge.title.toLowerCase(),
+								})
 							: '—'}
 					</span>
 					{day.recipeCooked && (
@@ -385,7 +407,7 @@ const HistoryItem = ({
 								height={24}
 								className='size-6 rounded-md object-cover'
 							/>
-							<span className='text-xs font-semibold text-primary'>
+							<span className='text-xs font-semibold text-brand'>
 								{day.recipeCooked.title}
 							</span>
 						</div>
@@ -400,7 +422,7 @@ const HistoryItem = ({
 							isCompleted ? 'text-success' : 'text-text-secondary',
 						)}
 					>
-						{isCompleted ? `+${day.challenge?.xp ?? 0} XP` : 'Missed'}
+						{isCompleted ? `+${day.challenge?.xp ?? 0} XP` : t('missed')}
 					</span>
 				</div>
 			</div>
@@ -428,6 +450,8 @@ export const ChallengeHistoryPage = ({
 
 	// Group days by "recent" (last 7) and rest
 	const recentDays = days.filter(d => d.status !== 'future').slice(0, 10)
+	const t = useTranslations('challenge')
+	const locale = useLocale()
 
 	return (
 		<div className={cn('mx-auto max-w-3xl space-y-6 p-6', className)}>
@@ -435,27 +459,29 @@ export const ChallengeHistoryPage = ({
 			<div className='flex items-center gap-4'>
 				{onBack && (
 					<button
+						type='button'
 						onClick={onBack}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-panel-bg text-text'
+						aria-label={t('goBack')}
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text'
 					>
 						<ArrowLeft className='size-5' />
 					</button>
 				)}
-				<h1 className='flex-1 text-2xl font-extrabold text-text'>
-					Challenge History
+				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
+					{t('challengeHistory')}
 				</h1>
 			</div>
 
 			{/* Lifetime Stats */}
-			<div className='rounded-2xl bg-panel-bg p-6'>
+			<div className='rounded-2xl bg-bg-card p-6'>
 				<div className='mb-5 grid gap-5 md:grid-cols-[1fr_2fr]'>
 					{/* Big Stat */}
-					<div className='flex flex-col items-center justify-center rounded-2xl bg-primary/10 p-6'>
-						<span className='text-6xl font-black leading-none text-primary'>
+					<div className='flex flex-col items-center justify-center rounded-2xl bg-brand/10 p-6'>
+						<span className='text-6xl font-black leading-none text-brand'>
 							{stats.totalCompleted}
 						</span>
 						<span className='mt-2 text-sm text-text-secondary'>
-							Challenges Completed
+							{t('challengesCompleted')}
 						</span>
 					</div>
 
@@ -463,27 +489,29 @@ export const ChallengeHistoryPage = ({
 					<div className='grid grid-cols-3 gap-3'>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>🔥</span>
-							<span className='text-xl font-extrabold text-text'>
+							<span className='text-xl font-display font-extrabold text-text'>
 								{stats.currentStreak}
 							</span>
 							<span className='text-xs text-text-secondary'>
-								Current Streak
+								{t('currentStreak')}
 							</span>
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>🏆</span>
-							<span className='text-xl font-extrabold text-text'>
+							<span className='text-xl font-display font-extrabold text-text'>
 								{stats.bestStreak}
 							</span>
-							<span className='text-xs text-text-secondary'>Best Streak</span>
+							<span className='text-xs text-text-secondary'>
+								{t('bestStreak')}
+							</span>
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>⚡</span>
-							<span className='text-xl font-extrabold text-text'>
+							<span className='text-xl font-display font-extrabold text-text'>
 								{stats.totalBonusXp.toLocaleString()}
 							</span>
 							<span className='text-xs text-text-secondary'>
-								Total Bonus XP
+								{t('totalBonusXP')}
 							</span>
 						</div>
 					</div>
@@ -493,7 +521,7 @@ export const ChallengeHistoryPage = ({
 				<div className='border-t border-border pt-4'>
 					<div className='mb-2.5 flex justify-between'>
 						<span className='text-xs text-text-secondary'>
-							This Week&apos;s Completion
+							{t('thisWeekCompletion')}
 						</span>
 						<span className='text-sm font-bold text-success'>
 							{stats.completedThisWeek}/{stats.totalDays} ({completionRate}%)
@@ -503,29 +531,31 @@ export const ChallengeHistoryPage = ({
 						<motion.div
 							initial={{ width: 0 }}
 							animate={{ width: `${completionRate}%` }}
-							transition={{ duration: 0.5, ease: 'easeOut' }}
-							className='h-full rounded-full bg-gradient-to-r from-success to-emerald-600'
+							transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
+							className='h-full rounded-full bg-gradient-to-r from-success to-success'
 						/>
 					</div>
 				</div>
 			</div>
 
 			{/* Month View */}
-			<div className='rounded-2xl bg-panel-bg p-6'>
+			<div className='rounded-2xl bg-bg-card p-6'>
 				<div className='mb-5 flex items-center justify-center gap-6'>
 					<button
+						type='button'
 						onClick={() => onMonthChange?.('prev')}
 						className='flex size-8 items-center justify-center rounded-lg border border-border bg-bg text-text'
 					>
 						<ChevronLeft className='size-4' />
 					</button>
 					<span className='text-lg font-bold text-text'>
-						{currentMonth.toLocaleDateString('en-US', {
+						{currentMonth.toLocaleDateString(locale, {
 							month: 'long',
 							year: 'numeric',
 						})}
 					</span>
 					<button
+						type='button'
 						onClick={() => onMonthChange?.('next')}
 						className='flex size-8 items-center justify-center rounded-lg border border-border bg-bg text-text'
 					>
@@ -535,21 +565,31 @@ export const ChallengeHistoryPage = ({
 
 				{/* Simple calendar grid placeholder - would be expanded for full implementation */}
 				<div className='grid grid-cols-7 gap-1'>
-					{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+					{(
+						[
+							{ key: 'dayMon', label: t('dayMon') },
+							{ key: 'dayTue', label: t('dayTue') },
+							{ key: 'dayWed', label: t('dayWed') },
+							{ key: 'dayThu', label: t('dayThu') },
+							{ key: 'dayFri', label: t('dayFri') },
+							{ key: 'daySat', label: t('daySat') },
+							{ key: 'daySun', label: t('daySun') },
+						] as Array<{ key: string; label: string }>
+					).map(({ key, label }) => (
 						<div
-							key={day}
+							key={key}
 							className='py-2 text-center text-xs font-semibold text-text-secondary'
 						>
-							{day}
+							{label}
 						</div>
 					))}
 				</div>
 			</div>
 
 			{/* Recent History List */}
-			<div className='rounded-2xl bg-panel-bg p-6'>
+			<div className='rounded-2xl bg-bg-card p-6'>
 				<h3 className='mb-5 text-base font-bold text-text'>
-					Recent Challenges
+					{t('recentChallenges')}
 				</h3>
 				<div>
 					{recentDays.map((day, i) => (
@@ -559,13 +599,14 @@ export const ChallengeHistoryPage = ({
 
 				{onLoadMore && (
 					<motion.button
+						type='button'
 						onClick={onLoadMore}
 						disabled={isLoadingMore}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-muted/30'
+						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
-						{isLoadingMore ? 'Loading...' : 'Load More'}
+						{isLoadingMore ? t('loading') : t('loadMore')}
 						<ChevronDown className='size-4' />
 					</motion.button>
 				)}

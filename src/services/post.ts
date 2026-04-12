@@ -9,8 +9,13 @@ import {
 	PostWithXpResponse,
 	Page,
 } from '@/lib/types'
-import { PollVoteResponse } from '@/lib/types/post'
-import { PlateRateResponse } from '@/lib/types/post'
+import {
+	PollVoteResponse,
+	PlateRateResponse,
+	RecipeReviewStatsResponse,
+	BattleVoteResponse,
+} from '@/lib/types/post'
+import type { TasteProfileResponse } from '@/lib/types/social'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
 import { AxiosError } from 'axios'
@@ -159,6 +164,19 @@ export const createPost = async (
 			formData.append('pollOptionB', data.pollOptionB)
 		}
 
+		// Review fields (only when postType === 'RECIPE_REVIEW')
+		if (data.reviewRating) {
+			formData.append('reviewRating', String(data.reviewRating))
+		}
+
+		// Battle fields (only when postType === 'RECIPE_BATTLE')
+		if (data.battleRecipeIdA) {
+			formData.append('battleRecipeIdA', data.battleRecipeIdA)
+		}
+		if (data.battleRecipeIdB) {
+			formData.append('battleRecipeIdB', data.battleRecipeIdB)
+		}
+
 		const response = await api.post<ApiResponse<Post | PostWithXpResponse>>(
 			API_ENDPOINTS.POST.CREATE,
 			formData,
@@ -263,17 +281,17 @@ export const getPostById = async (
 export const getSavedPosts = async (
 	page: number = 0,
 	size: number = 20,
-): Promise<ApiResponse<Page<Post>>> => {
+): Promise<ApiResponse<Post[]>> => {
 	try {
 		const params = toBackendPagination({ page, size })
-		const response = await api.get<ApiResponse<Page<Post>>>(
+		const response = await api.get<ApiResponse<Post[] | PostPageData>>(
 			API_ENDPOINTS.POST.GET_SAVED,
 			{ params },
 		)
-		return response.data
+		return mapPostPageResponse(response.data)
 	} catch (error) {
 		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Page<Post>>>
+		const axiosError = error as AxiosError<ApiResponse<Post[]>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
@@ -600,6 +618,138 @@ export const reportPost = async (
 		return {
 			success: false,
 			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+// ========================================================================
+// RECIPE REVIEWS
+// ========================================================================
+
+/**
+ * Get all reviews for a specific recipe.
+ * GET /api/v1/posts/reviews/recipe/{recipeId}
+ */
+export const getReviewsForRecipe = async (
+	recipeId: string,
+	page = 0,
+	size = 10,
+): Promise<ApiResponse<Post[]>> => {
+	try {
+		const params = toBackendPagination({ page, size })
+		const response = await api.get<ApiResponse<Post[] | PostPageData>>(
+			API_ENDPOINTS.POST.GET_REVIEWS_FOR_RECIPE(recipeId),
+			{ params },
+		)
+		return mapPostPageResponse(response.data)
+	} catch (error) {
+		logDevError('getReviewsForRecipe failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<Post[]>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to load reviews',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get aggregate review stats for a recipe.
+ * GET /api/v1/posts/reviews/recipe/{recipeId}/stats
+ */
+export const getRecipeReviewStats = async (
+	recipeId: string,
+): Promise<ApiResponse<RecipeReviewStatsResponse>> => {
+	try {
+		const response = await api.get<ApiResponse<RecipeReviewStatsResponse>>(
+			API_ENDPOINTS.POST.GET_REVIEW_STATS(recipeId),
+		)
+		return response.data
+	} catch (error) {
+		logDevError('getRecipeReviewStats failed:', error)
+		const axiosError = error as AxiosError<
+			ApiResponse<RecipeReviewStatsResponse>
+		>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to load review stats',
+			statusCode: 500,
+		}
+	}
+}
+
+// ========================================================================
+// RECIPE BATTLES
+// ========================================================================
+
+/**
+ * Vote in a recipe battle (toggle: same choice removes vote).
+ * POST /api/v1/posts/battles/{postId}/vote?choice=A|B
+ */
+export const voteBattle = async (
+	postId: string,
+	choice: 'A' | 'B',
+): Promise<ApiResponse<BattleVoteResponse>> => {
+	try {
+		const response = await api.post<ApiResponse<BattleVoteResponse>>(
+			API_ENDPOINTS.POST.VOTE_BATTLE(postId),
+			null,
+			{ params: { choice } },
+		)
+		return response.data
+	} catch (error) {
+		logDevError('voteBattle failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<BattleVoteResponse>>
+		if (axiosError.response) return axiosError.response.data
+		return { success: false, message: 'Failed to vote', statusCode: 500 }
+	}
+}
+
+/**
+ * Get active recipe battles (not yet ended).
+ * GET /api/v1/posts/battles/active
+ */
+export const getActiveBattles = async (
+	page = 0,
+	size = 10,
+): Promise<ApiResponse<Post[]>> => {
+	try {
+		const params = toBackendPagination({ page, size })
+		const response = await api.get<ApiResponse<Post[] | PostPageData>>(
+			API_ENDPOINTS.POST.GET_ACTIVE_BATTLES,
+			{ params },
+		)
+		return mapPostPageResponse(response.data)
+	} catch (error) {
+		logDevError('getActiveBattles failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<Post[]>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to load battles',
+			statusCode: 500,
+		}
+	}
+}
+
+export const getTasteProfile = async (): Promise<
+	ApiResponse<TasteProfileResponse>
+> => {
+	try {
+		const response = await api.get<ApiResponse<TasteProfileResponse>>(
+			API_ENDPOINTS.POST.TASTE_PROFILE,
+		)
+		return response.data
+	} catch (error) {
+		logDevError('getTasteProfile failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<TasteProfileResponse>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to load taste profile',
 			statusCode: 500,
 		}
 	}

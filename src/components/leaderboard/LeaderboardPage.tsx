@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import {
 	Globe,
 	Users,
@@ -11,6 +12,7 @@ import {
 	ChefHat,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -81,21 +83,29 @@ function LeaderboardTabs({
 	activeType: LeaderboardType
 	onTypeChange?: (type: LeaderboardType) => void
 }) {
+	const t = useTranslations('leaderboard')
 	const tabs: { type: LeaderboardType; label: string; icon: typeof Globe }[] = [
-		{ type: 'global', label: 'Global', icon: Globe },
-		{ type: 'friends', label: 'Friends', icon: Users },
-		{ type: 'league', label: 'League', icon: Trophy },
+		{ type: 'global', label: t('tabGlobal'), icon: Globe },
+		{ type: 'friends', label: t('tabFriends'), icon: Users },
+		{ type: 'league', label: t('tabLeague'), icon: Trophy },
 	]
 
 	return (
-		<div className='flex gap-2 p-1.5 bg-bg-card rounded-2xl mb-4'>
+		<div
+			className='flex gap-2 p-1.5 bg-bg-card rounded-2xl mb-4'
+			role='tablist'
+			aria-label={t('tabTypeLabel')}
+		>
 			{tabs.map(({ type, label, icon: Icon }) => (
 				<motion.button
+					type='button'
 					key={type}
+					role='tab'
+					aria-selected={activeType === type}
 					whileTap={LIST_ITEM_TAP}
 					onClick={() => onTypeChange?.(type)}
 					className={cn(
-						'flex-1 flex items-center justify-center gap-2 py-3 px-4',
+						'flex-1 flex items-center justify-center gap-2 py-3 px-4 focus-visible:ring-2 focus-visible:ring-brand/50',
 						'rounded-xl text-sm font-semibold transition-all',
 						activeType === type
 							? 'bg-gradient-xp text-white'
@@ -103,7 +113,7 @@ function LeaderboardTabs({
 					)}
 				>
 					<Icon className='size-icon-sm' />
-					<span className='hidden sm:inline'>{label}</span>
+					<span className='text-xs sm:text-sm'>{label}</span>
 				</motion.button>
 			))}
 		</div>
@@ -121,16 +131,21 @@ function TimeframeToggle({
 	activeTimeframe: Timeframe
 	onTimeframeChange?: (timeframe: Timeframe) => void
 }) {
+	const t = useTranslations('leaderboard')
 	const timeframes: { value: Timeframe; label: string }[] = [
-		{ value: 'weekly', label: 'This Week' },
-		{ value: 'monthly', label: 'This Month' },
-		{ value: 'all_time', label: 'All Time' },
+		{ value: 'weekly', label: t('thisWeek') },
+		{ value: 'monthly', label: t('thisMonth') },
+		{ value: 'all_time', label: t('allTime') },
 	]
 
 	const activeIndex = timeframes.findIndex(t => t.value === activeTimeframe)
 
 	return (
-		<div className='relative flex p-1 bg-bg-card rounded-xl mb-5'>
+		<div
+			className='relative flex p-1 bg-bg-card rounded-xl mb-5'
+			role='tablist'
+			aria-label={t('tabTimeframeLabel')}
+		>
 			{/* Sliding indicator */}
 			<motion.div
 				className='absolute top-1 h-[calc(100%-8px)] bg-bg rounded-lg'
@@ -144,6 +159,9 @@ function TimeframeToggle({
 
 			{timeframes.map(({ value, label }) => (
 				<button
+					type='button'
+					role='tab'
+					aria-selected={activeTimeframe === value}
 					key={value}
 					onClick={() => onTimeframeChange?.(value)}
 					className={cn(
@@ -169,6 +187,7 @@ function MyRankBanner({
 	myRank: MyRankInfo
 	onCookNow?: () => void
 }) {
+	const t = useTranslations('leaderboard')
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -176,12 +195,12 @@ function MyRankBanner({
 			className={cn(
 				'flex flex-col sm:flex-row items-center gap-5 p-4 sm:p-5',
 				'bg-accent-purple-subtle',
-				'border-2 border-accent-purple/20 rounded-2xl mb-6',
+				'border border-accent-purple/15 rounded-2xl mb-6',
 			)}
 		>
 			<div className='flex flex-col items-center sm:pr-5 sm:border-r border-border pb-4 sm:pb-0 w-full sm:w-auto'>
 				<span className='text-xs font-semibold text-text-muted uppercase tracking-wide'>
-					Your Rank
+					{t('yourRank')}
 				</span>
 				<span className='text-3xl font-black text-xp'>#{myRank.rank}</span>
 			</div>
@@ -189,35 +208,39 @@ function MyRankBanner({
 			{/* Stats */}
 			<div className='flex gap-5'>
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold text-text'>
+					<span className='text-xl font-display font-extrabold text-text'>
 						{myRank.xpThisWeek}
 					</span>
-					<span className='text-xs text-text-muted'>XP this week</span>
+					<span className='text-xs text-text-muted'>{t('xpThisWeek')}</span>
 				</div>
 				<div className='flex flex-col'>
-					<span className='text-xl font-extrabold text-text'>
+					<span className='text-xl font-display font-extrabold text-text'>
 						{myRank.recipesCooked}
 					</span>
-					<span className='text-xs text-text-muted'>Recipes cooked</span>
+					<span className='text-xs text-text-muted'>{t('recipesCooked')}</span>
 				</div>
 			</div>
 
 			{/* Goal & CTA */}
 			<div className='flex-1 flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto'>
 				<span className='text-xs text-text-muted'>
-					+{myRank.xpToNextRank} XP to reach #{myRank.nextRankPosition}
+					{t('xpToNext', {
+						xp: myRank.xpToNextRank,
+						rank: myRank.nextRankPosition,
+					})}
 				</span>
 				<motion.button
+					type='button'
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onCookNow}
 					className={cn(
-						'py-2 px-4 rounded-lg text-sm font-bold text-white',
+						'py-2 px-4 rounded-lg text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50',
 						'bg-gradient-xp',
 						'w-full sm:w-auto',
 					)}
 				>
-					Cook Now
+					{t('cookNow')}
 				</motion.button>
 			</div>
 		</motion.div>
@@ -229,11 +252,12 @@ function MyRankBanner({
 // ============================================================================
 
 function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
+	const t = useTranslations('leaderboard')
 	return (
 		<div className='flex items-center justify-center gap-2 py-3.5 bg-bg-card rounded-xl mt-4 text-sm text-text-muted'>
 			<Clock className='size-icon-sm' />
 			<span>
-				Resets in{' '}
+				{t('resetsIn')}{' '}
 				<strong className='text-text'>
 					{resetInfo.days}d {resetInfo.hours}h {resetInfo.minutes}m
 				</strong>
@@ -261,6 +285,7 @@ export function LeaderboardPage({
 	onCookNow,
 	className,
 }: LeaderboardPageProps) {
+	const t = useTranslations('leaderboard')
 	// Extract top 3 for podium
 	const podiumEntries = entries
 		.filter(e => e.rank <= 3)
@@ -278,30 +303,32 @@ export function LeaderboardPage({
 	const showMyRankBanner = myRank && (!userInList || myRank.rank > 50)
 
 	return (
-		<div className={cn('max-w-container-md mx-auto p-4', className)}>
+		<div className={cn('max-w-md mx-auto p-4', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-4 mb-5'>
 				{onBack && (
 					<motion.button
+						type='button'
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text'
-						aria-label='Go back'
+						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
-				<h1 className='flex-1 text-2xl font-extrabold text-text'>
-					Leaderboard
+				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
+					{t('title')}
 				</h1>
 				{onShare && (
 					<motion.button
+						type='button'
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onShare}
-						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-muted'
-						aria-label='Share leaderboard'
+						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
+						aria-label={t('ariaShareLeaderboard')}
 					>
 						<Share2 className='size-5' />
 					</motion.button>
@@ -399,14 +426,18 @@ export function LeaderboardPage({
 					</motion.div>
 					<h3 className='text-lg font-bold text-text mb-2'>
 						{type === 'friends'
-							? 'Start the Rivalry! 🔥'
-							: 'Claim Your Throne! 👑'}
+							? t('emptyFriendsTitle')
+							: t('emptyGlobalTitle')}
 					</h3>
 					<p className='text-sm text-text-secondary max-w-xs'>
-						{type === 'friends'
-							? 'Invite friends and battle it out for cooking supremacy!'
-							: 'Cook your first recipe and become the top chef!'}
+						{type === 'friends' ? t('emptyFriendsDesc') : t('emptyGlobalDesc')}
 					</p>
+					<Link
+						href={type === 'friends' ? '/community' : '/explore'}
+						className='mt-4 rounded-xl bg-gradient-hero px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-shadow hover:shadow-xl'
+					>
+						{type === 'friends' ? t('findFriends') : t('startCooking')}
+					</Link>
 				</motion.div>
 			)}
 		</div>

@@ -1,43 +1,27 @@
 'use client'
 
-import React from 'react'
 import { SocialLoginButton } from '@/components/ui/social-login-button'
-import { useGoogleLogin } from '@react-oauth/google'
 
 interface GoogleSignInButtonProps {
-	onSuccess: (code: string) => void
-	onFailure: (error: any) => void
+	onClick: () => void | Promise<void>
 	text?: string
+	disabled?: boolean
 }
 
-/**
- * Internal component that uses the Google OAuth hook.
- * Only rendered when Google OAuth is configured.
- */
-const GoogleSignInButtonWithOAuth: React.FC<GoogleSignInButtonProps> = ({
-	onSuccess,
-	onFailure,
-	text = 'Sign in with Google',
-}) => {
-	const login = useGoogleLogin({
-		onSuccess: tokenResponse => {
-			if (tokenResponse.code) {
-				onSuccess(tokenResponse.code)
-			} else {
-				onFailure(new Error('No authorization code found in Google response'))
-			}
-		},
-		onError: error => {
-			onFailure(error)
-		},
-		flow: 'auth-code',
-	})
-
+export default function GoogleSignInButton({
+	onClick,
+	text = 'Continue with Google',
+	disabled = false,
+}: GoogleSignInButtonProps) {
 	return (
 		<SocialLoginButton
-			onClick={() => login()}
+			onClick={() => {
+				void onClick()
+			}}
+			disabled={disabled}
+			label={text}
 			icon={
-				<svg className='h-5 w-5' viewBox='0 0 24 24'>
+				<svg className='size-5' viewBox='0 0 24 24' aria-hidden='true'>
 					<path
 						fill='#4285F4'
 						d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
@@ -56,23 +40,6 @@ const GoogleSignInButtonWithOAuth: React.FC<GoogleSignInButtonProps> = ({
 					/>
 				</svg>
 			}
-			label={text}
 		/>
 	)
 }
-/**
- * Google Sign-In button that gracefully handles missing configuration.
- * Returns null (renders nothing) when NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set.
- * Per §COMMON_GOTCHAS: "Coming Soon that never comes → Remove until real."
- */
-const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = props => {
-	const isGoogleConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-
-	if (!isGoogleConfigured) {
-		return null
-	}
-
-	return <GoogleSignInButtonWithOAuth {...props} />
-}
-
-export default GoogleSignInButton

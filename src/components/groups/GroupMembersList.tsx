@@ -1,4 +1,6 @@
-'use client'
+﻿'use client'
+
+import { useTranslations } from 'next-intl'
 
 import { GroupMember, MemberRole } from '@/lib/types/group'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -11,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { motion } from 'framer-motion'
 import { MoreVertical, Crown, Shield, Loader2, UserMinus } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useState, useCallback } from 'react'
 import { kickMember } from '@/services/group'
 import { toast } from 'sonner'
@@ -42,6 +45,7 @@ export const GroupMembersList = ({
 	isLoading = false,
 	onMemberRemoved,
 }: GroupMembersListProps) => {
+	const t = useTranslations('groups')
 	const [kickingUserId, setKickingUserId] = useState<string | null>(null)
 
 	const handleKickMember = useCallback(
@@ -49,38 +53,62 @@ export const GroupMembersList = ({
 			setKickingUserId(userId)
 			try {
 				await kickMember(groupId, userId)
-				toast.success(`${displayName} has been removed from the group`)
+				toast.success(t('gmRemoved', { name: displayName }))
 				onMemberRemoved?.(userId)
 			} catch (error) {
-				toast.error('Failed to remove member')
+				toast.error(t('gmRemoveFailed'))
 			} finally {
 				setKickingUserId(null)
 			}
 		},
-		[groupId, onMemberRemoved],
+		[groupId, onMemberRemoved, t],
 	)
 
 	const getRoleIcon = (role: MemberRole) => {
 		switch (role) {
 			case 'OWNER':
-				return <Crown className='w-4 h-4 text-medal-gold' />
+				return <Crown className='size-4 text-medal-gold' />
 			case 'ADMIN':
-				return <Shield className='w-4 h-4 text-info' />
+				return <Shield className='size-4 text-info' />
 			case 'MODERATOR':
-				return <Shield className='w-4 h-4 text-info/70' />
+				return <Shield className='size-4 text-info/70' />
 			default:
 				return null
 		}
 	}
 
 	const getRoleLabel = (role: MemberRole) => {
-		return role === 'MEMBER' ? '' : role
+		if (role === 'MEMBER') return ''
+		switch (role) {
+			case 'OWNER':
+				return t('gmRoleOwner')
+			case 'ADMIN':
+				return t('gmRoleAdmin')
+			case 'MODERATOR':
+				return t('gmRoleModerator')
+			default:
+				return role
+		}
 	}
 
 	if (isLoading) {
 		return (
-			<div className='flex justify-center py-8'>
-				<Loader2 className='w-6 h-6 animate-spin text-brand' />
+			<div className='space-y-2'>
+				{Array.from({ length: 5 }).map((_, i) => (
+					<div
+						key={i}
+						className='bg-bg-card rounded-lg p-4 border border-border flex items-center justify-between'
+					>
+						<div className='flex items-center gap-3'>
+							<Skeleton className='size-10 rounded-full' />
+							<div className='space-y-1.5'>
+								<Skeleton className='h-4 w-28' />
+								<Skeleton className='h-3 w-20' />
+							</div>
+						</div>
+						<Skeleton className='size-8 rounded-md' />
+					</div>
+				))}
 			</div>
 		)
 	}
@@ -88,7 +116,7 @@ export const GroupMembersList = ({
 	if (members.length === 0) {
 		return (
 			<div className='text-center py-8'>
-				<p className='text-text-secondary'>No members yet</p>
+				<p className='text-text-secondary'>{t('gmNoMembers')}</p>
 			</div>
 		)
 	}
@@ -101,9 +129,9 @@ export const GroupMembersList = ({
 					variants={staggerItemVariants}
 					className='bg-bg-card rounded-lg p-4 border border-border hover:border-brand/50 transition-colors flex items-center justify-between'
 				>
-					<Link href={`/profile/${member.userId}`} className='flex-1'>
+					<Link href={`/${member.userId}`} className='flex-1'>
 						<div className='flex items-center gap-3 cursor-pointer'>
-							<Avatar className='h-10 w-10'>
+							<Avatar className='size-10'>
 								<AvatarImage
 									src={member.avatarUrl || undefined}
 									alt={member.displayName}
@@ -128,7 +156,9 @@ export const GroupMembersList = ({
 									)}
 								</div>
 								<p className='text-xs text-text-muted'>
-									Joined {new Date(member.joinedAt).toLocaleDateString()}
+									{t('gmJoined', {
+										date: new Date(member.joinedAt).toLocaleDateString(),
+									})}
 								</p>
 							</div>
 						</div>
@@ -139,8 +169,12 @@ export const GroupMembersList = ({
 						member.role !== 'OWNER' && (
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
-									<Button variant='ghost' size='icon'>
-										<MoreVertical className='w-4 h-4' />
+									<Button
+										variant='ghost'
+										size='icon'
+										aria-label={t('memberOptions')}
+									>
+										<MoreVertical className='size-4' />
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align='end'>
@@ -152,11 +186,11 @@ export const GroupMembersList = ({
 										className='text-error focus:text-error'
 									>
 										{kickingUserId === member.userId ? (
-											<Loader2 className='w-4 h-4 mr-2 animate-spin' />
+											<Loader2 className='size-4 mr-2 animate-spin' />
 										) : (
-											<UserMinus className='w-4 h-4 mr-2' />
+											<UserMinus className='size-4 mr-2' />
 										)}
-										Remove Member
+										{t('gmRemoveMember')}
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>

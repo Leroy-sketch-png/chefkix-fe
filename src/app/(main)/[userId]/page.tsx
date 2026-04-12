@@ -1,12 +1,15 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { getProfileByUserId } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { UserProfile } from '@/components/profile/UserProfile'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
+import { PageTransition } from '@/components/layout/PageTransition'
 import { Profile } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -18,7 +21,9 @@ import { toast } from 'sonner'
 const ProfileContent = () => {
 	const params = useParams()
 	const searchParams = useSearchParams()
+	const router = useRouter()
 	const userId = params.userId as string
+	const t = useTranslations('profile')
 	const initialTab = searchParams.get('tab') || undefined
 	const { user: currentUser, isLoading: isAuthLoading } = useAuth()
 
@@ -49,7 +54,7 @@ const ProfileContent = () => {
 				setNotFound(true)
 			} else {
 				setServerError(true)
-				toast.error('Failed to load profile')
+				toast.error(t('failedToLoadProfile'))
 			}
 
 			setIsLoading(false)
@@ -61,7 +66,7 @@ const ProfileContent = () => {
 		return () => {
 			cancelled = true
 		}
-	}, [userId, isAuthLoading, retryCount])
+	}, [userId, isAuthLoading, retryCount, t])
 
 	if (isLoading || isAuthLoading) {
 		return <UserProfileSkeleton />
@@ -70,14 +75,13 @@ const ProfileContent = () => {
 	if (serverError) {
 		return (
 			<div className='flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center'>
-				<p className='text-lg text-text-secondary'>
-					Something went wrong loading this profile.
-				</p>
+				<p className='text-lg text-text-secondary'>{t('somethingWentWrong')}</p>
 				<button
+					type='button'
 					onClick={() => setRetryCount(c => c + 1)}
 					className='rounded-lg bg-brand px-4 py-2 text-white transition-colors hover:bg-brand/90'
 				>
-					Try again
+					{t('tryAgain')}
 				</button>
 			</div>
 		)
@@ -87,19 +91,38 @@ const ProfileContent = () => {
 		return <ProfileNotFound />
 	}
 
+	const isOwnProfile = currentUser?.userId === userId
+
 	return (
-		<UserProfile
-			profile={profile}
-			currentUserId={currentUser?.userId}
-			initialTab={initialTab}
-		/>
+		<>
+			{!isOwnProfile && (
+				<div className='mx-auto w-full max-w-xl pt-4'>
+					<button
+						type='button'
+						onClick={() => router.back()}
+						className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						aria-label={t('ariaGoBack')}
+					>
+						<ArrowLeft className='size-4' />
+						<span>{t('back')}</span>
+					</button>
+				</div>
+			)}
+			<UserProfile
+				profile={profile}
+				currentUserId={currentUser?.userId}
+				initialTab={initialTab}
+			/>
+		</>
 	)
 }
 
 export default function ProfilePage() {
 	return (
-		<Suspense fallback={<UserProfileSkeleton />}>
-			<ProfileContent />
-		</Suspense>
+		<PageTransition>
+			<Suspense fallback={<UserProfileSkeleton />}>
+				<ProfileContent />
+			</Suspense>
+		</PageTransition>
 	)
 }

@@ -35,6 +35,8 @@ export type {
 	DayStatus,
 } from './ChallengeHistory'
 
+export { ActiveBattlesSection } from './ActiveBattlesSection'
+
 export { ChallengeRecipeGrid } from './ChallengeRecipeGrid'
 export type {
 	ChallengeRecipe,

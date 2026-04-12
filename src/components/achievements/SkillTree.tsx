@@ -1,7 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import {
 	Trophy,
 	Lock,
@@ -9,6 +10,8 @@ import {
 	Star,
 	ChevronRight,
 	Sparkles,
+	AlertTriangle,
+	RefreshCw,
 } from 'lucide-react'
 import {
 	FADE_IN_VARIANTS,
@@ -23,8 +26,10 @@ import type {
 	AchievementCategory,
 } from '@/lib/types/achievement'
 import { getMySkillTree, getUserSkillTree } from '@/services/achievement'
+import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // CATEGORY META
@@ -66,13 +71,19 @@ const CATEGORY_META: Record<
 	},
 }
 
-const TIER_LABELS = ['', 'Bronze', 'Silver', 'Gold', 'Diamond'] as const
+const TIER_LABEL_KEYS = [
+	'',
+	'bronzeTier',
+	'silverTier',
+	'goldTier',
+	'diamondTier',
+] as const
 
 const TIER_COLORS: Record<number, string> = {
-	1: 'from-amber-700 to-amber-600',
-	2: 'from-gray-400 to-gray-300',
-	3: 'from-yellow-500 to-amber-400',
-	4: 'from-cyan-400 to-blue-500',
+	1: 'from-warning to-warning',
+	2: 'from-text-muted to-text-muted',
+	3: 'from-warning to-warning',
+	4: 'from-accent-teal to-info',
 }
 
 // ============================================
@@ -85,8 +96,10 @@ interface SkillTreeProps {
 }
 
 export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
+	const t = useTranslations('achievements')
 	const [data, setData] = useState<SkillTreeResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
+	const [hasError, setHasError] = useState(false)
 	const [expandedPath, setExpandedPath] = useState<string | null>(null)
 	const [filterCategory, setFilterCategory] =
 		useState<AchievementCategory | null>(null)
@@ -94,25 +107,64 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 	useEffect(() => {
 		const load = async () => {
 			setIsLoading(true)
-			const result = userId
-				? await getUserSkillTree(userId)
-				: await getMySkillTree()
-			setData(result)
-			setIsLoading(false)
+			setHasError(false)
+			try {
+				const result = userId
+					? await getUserSkillTree(userId)
+					: await getMySkillTree()
+				setData(result)
+			} catch {
+				setHasError(true)
+				toast.error(t('failedToLoadSkillTree'))
+			} finally {
+				setIsLoading(false)
+			}
 		}
 		load()
-	}, [userId])
+	}, [userId, t])
 
 	if (isLoading) return <SkillTreeSkeleton />
+
+	if (hasError) {
+		return (
+			<div className='flex h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border'>
+				<AlertTriangle className='size-8 text-color-error' />
+				<p className='mt-2 text-text-muted'>{t('failedToLoadAchievements')}</p>
+				<button
+					type='button'
+					onClick={() => {
+						setIsLoading(true)
+						setHasError(false)
+						const load = async () => {
+							try {
+								const result = userId
+									? await getUserSkillTree(userId)
+									: await getMySkillTree()
+								setData(result)
+							} catch {
+								setHasError(true)
+								toast.error(t('failedToLoadSkillTree'))
+							} finally {
+								setIsLoading(false)
+							}
+						}
+						load()
+					}}
+					className='mt-2 flex items-center gap-1 text-sm text-brand hover:underline'
+				>
+					<RefreshCw className='size-3' />
+					{t('retry')}
+				</button>
+			</div>
+		)
+	}
 
 	if (!data || data.paths.length === 0) {
 		return (
 			<div className='flex h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border'>
 				<Trophy className='size-8 text-text-muted' />
 				<p className='mt-2 text-text-muted'>
-					{isOwnProfile
-						? 'Start cooking to unlock achievements!'
-						: 'No achievements yet.'}
+					{isOwnProfile ? t('startCooking') : t('noAchievements')}
 				</p>
 			</div>
 		)
@@ -134,14 +186,14 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 						<Trophy className='size-6' />
 					</div>
 					<div>
-						<p className='text-2xl font-extrabold text-text'>
+						<p className='text-2xl font-display font-extrabold text-text'>
 							{data.totalUnlocked}
 							<span className='text-base font-normal text-text-muted'>
 								{' '}
 								/ {data.totalAchievements}
 							</span>
 						</p>
-						<p className='text-xs text-text-muted'>Achievements Unlocked</p>
+						<p className='text-xs text-text-muted'>{t('unlocked')}</p>
 					</div>
 				</div>
 				<div className='flex items-center gap-1'>
@@ -153,7 +205,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 							animate={{
 								width: `${data.totalAchievements > 0 ? (data.totalUnlocked / data.totalAchievements) * 100 : 0}%`,
 							}}
-							transition={{ duration: 0.8, ease: 'easeOut' }}
+							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 						/>
 					</div>
 				</div>
@@ -162,6 +214,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 			{/* Category Filter Chips */}
 			<div className='flex flex-wrap gap-2'>
 				<button
+					type='button'
 					onClick={() => setFilterCategory(null)}
 					className={cn(
 						'rounded-full px-3 py-1.5 text-xs font-semibold transition-all',
@@ -170,13 +223,14 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 							: 'bg-bg-elevated text-text-secondary hover:bg-bg-card',
 					)}
 				>
-					All ({data.paths.length})
+					{t('tabAll', { n: data.paths.length })}
 				</button>
 				{categories.map(cat => {
 					const meta = CATEGORY_META[cat]
 					const count = data.paths.filter(p => p.category === cat).length
 					return (
 						<button
+							type='button'
 							key={cat}
 							onClick={() =>
 								setFilterCategory(filterCategory === cat ? null : cat)
@@ -188,7 +242,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 									: 'bg-bg-elevated text-text-secondary hover:bg-bg-card',
 							)}
 						>
-							{meta.icon} {cat} ({count})
+							{meta.icon} {t(`category${cat}`)} ({count})
 						</button>
 					)
 				})}
@@ -235,6 +289,7 @@ function SkillPathCard({
 	isExpanded: boolean
 	onToggle: () => void
 }) {
+	const t = useTranslations('achievements')
 	const meta = CATEGORY_META[path.category]
 	const progressPercent =
 		path.totalCount > 0
@@ -253,6 +308,7 @@ function SkillPathCard({
 		>
 			{/* Header - always visible */}
 			<button
+				type='button'
 				onClick={onToggle}
 				className='flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-bg-elevated/50'
 			>
@@ -273,9 +329,9 @@ function SkillPathCard({
 							{path.pathName}
 						</h4>
 						{isComplete && (
-							<span className='flex items-center gap-0.5 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success'>
+							<span className='flex items-center gap-0.5 rounded-full bg-success/15 px-2 py-0.5 text-2xs font-bold text-success'>
 								<Crown className='size-3' />
-								Complete
+								{t('complete')}
 							</span>
 						)}
 					</div>
@@ -290,10 +346,10 @@ function SkillPathCard({
 								)}
 								initial={{ width: 0 }}
 								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: 0.6, ease: 'easeOut' }}
+								transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 							/>
 						</div>
-						<span className='shrink-0 text-[10px] font-semibold text-text-muted'>
+						<span className='shrink-0 text-2xs font-semibold text-text-muted'>
 							{path.unlockedCount}/{path.totalCount}
 						</span>
 					</div>
@@ -302,7 +358,7 @@ function SkillPathCard({
 				{/* Expand Arrow */}
 				<motion.div
 					animate={{ rotate: isExpanded ? 90 : 0 }}
-					transition={{ duration: 0.2 }}
+					transition={{ duration: DURATION_S.normal }}
 				>
 					<ChevronRight className='size-4 text-text-muted' />
 				</motion.div>
@@ -315,7 +371,7 @@ function SkillPathCard({
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}
-						transition={{ duration: 0.3, ease: 'easeInOut' }}
+						transition={{ duration: DURATION_S.smooth, ease: 'easeInOut' }}
 						className='overflow-hidden'
 					>
 						<div className='border-t border-border-subtle px-4 pb-4 pt-3'>
@@ -350,6 +406,7 @@ function AchievementNodeCard({
 	index: number
 	isLast: boolean
 }) {
+	const t = useTranslations('achievements')
 	const isLocked = !node.unlocked && !node.prerequisiteMet
 	const isInProgress = !node.unlocked && node.prerequisiteMet
 	const progressPercent =
@@ -368,8 +425,12 @@ function AchievementNodeCard({
 					<Lock className='size-4' />
 				</div>
 				<div>
-					<p className='text-sm font-semibold text-text-muted'>???</p>
-					<p className='text-xs text-text-muted'>Hidden achievement</p>
+					<p className='text-sm font-semibold text-text-muted'>
+						{t('hiddenAchievement')}
+					</p>
+					<p className='text-xs text-text-muted'>
+						{t('hiddenAchievementDesc')}
+					</p>
 				</div>
 			</div>
 		)
@@ -427,8 +488,8 @@ function AchievementNodeCard({
 						<Sparkles className='size-3 shrink-0 text-warning' />
 					)}
 					{node.tier > 1 && (
-						<span className='shrink-0 text-[10px] font-bold text-text-muted'>
-							{TIER_LABELS[node.tier]}
+						<span className='shrink-0 text-2xs font-bold text-text-muted'>
+							{TIER_LABEL_KEYS[node.tier] ? t(TIER_LABEL_KEYS[node.tier]) : ''}
 						</span>
 					)}
 				</div>
@@ -449,10 +510,10 @@ function AchievementNodeCard({
 								className='h-full rounded-full bg-gradient-to-r from-xp to-accent-purple'
 								initial={{ width: 0 }}
 								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: 0.5, ease: 'easeOut' }}
+								transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 							/>
 						</div>
-						<span className='shrink-0 text-[10px] font-semibold text-text-muted'>
+						<span className='shrink-0 text-2xs font-semibold text-text-muted'>
 							{node.currentProgress}/{node.requiredProgress}
 						</span>
 					</div>
@@ -460,12 +521,13 @@ function AchievementNodeCard({
 
 				{/* Unlocked date */}
 				{node.unlocked && node.unlockedAt && (
-					<p className='mt-0.5 text-[10px] text-text-muted'>
-						Unlocked{' '}
-						{new Date(node.unlockedAt).toLocaleDateString(undefined, {
-							month: 'short',
-							day: 'numeric',
-							year: 'numeric',
+					<p className='mt-0.5 text-2xs text-text-muted'>
+						{t('unlockedDate', {
+							date: new Date(node.unlockedAt).toLocaleDateString(undefined, {
+								month: 'short',
+								day: 'numeric',
+								year: 'numeric',
+							}),
 						})}
 					</p>
 				)}

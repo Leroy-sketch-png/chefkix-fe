@@ -14,6 +14,7 @@ import {
 	ArrowRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import {
 	TRANSITION_SPRING,
 	fadeInUp,
@@ -26,6 +27,7 @@ import {
 	BUTTON_SUBTLE_TAP,
 	CARD_FEATURED_HOVER,
 } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 
@@ -64,32 +66,38 @@ interface PendingPostsSectionProps {
 // HELPERS
 // =============================================================================
 
-const getTimeLeft = (expiresAt: Date): string => {
+const getTimeLeft = (
+	expiresAt: Date,
+	t: (key: string, params?: Record<string, number>) => string,
+): string => {
 	const now = new Date()
 	const diff = expiresAt.getTime() - now.getTime()
 
-	if (diff <= 0) return 'Expired'
+	if (diff <= 0) return t('pdExpired')
 
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	const days = Math.floor(hours / 24)
 
-	if (days > 0) return `${days}d left`
-	if (hours > 0) return `${hours}h left`
+	if (days > 0) return t('pdDaysLeft', { count: days })
+	if (hours > 0) return t('pdHoursLeft', { count: hours })
 
 	const minutes = Math.floor(diff / (1000 * 60))
-	return `${minutes}m left`
+	return t('pdMinutesLeft', { count: minutes })
 }
 
-const getTimeSinceCook = (cookedAt: Date): string => {
+const getTimeSinceCook = (
+	cookedAt: Date,
+	t: (key: string, params?: Record<string, number>) => string,
+): string => {
 	const now = new Date()
 	const diff = now.getTime() - cookedAt.getTime()
 
 	const hours = Math.floor(diff / (1000 * 60 * 60))
 	const days = Math.floor(hours / 24)
 
-	if (days > 0) return `Cooked ${days} day${days > 1 ? 's' : ''} ago`
-	if (hours > 0) return `Cooked ${hours} hour${hours > 1 ? 's' : ''} ago`
-	return 'Cooked just now'
+	if (days > 0) return t('pdCookedDaysAgo', { count: days })
+	if (hours > 0) return t('pdCookedHoursAgo', { count: hours })
+	return t('pdCookedJustNow')
 }
 
 const formatDuration = (minutes: number): string => {
@@ -116,6 +124,7 @@ const SinglePendingPost = ({
 	onPost,
 	onDismiss,
 }: SinglePendingProps) => {
+	const t = useTranslations('pending')
 	return (
 		<motion.section
 			className={cn(
@@ -127,19 +136,22 @@ const SinglePendingPost = ({
 			animate='visible'
 		>
 			{/* Header */}
-			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-primary/5 to-transparent'>
+			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-brand/5 to-transparent'>
 				<div className='flex items-center gap-2'>
 					<span className='text-lg'>📸</span>
-					<h3 className='text-base font-bold text-text'>Post to unlock XP</h3>
+					<h3 className='text-base font-bold text-text'>
+						{t('pdPostToUnlock')}
+					</h3>
 				</div>
 				{onDismiss && (
 					<motion.button
-						className='p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
+						type='button'
+						className='p-2 rounded-full bg-muted/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={onDismiss}
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
-						aria-label='Dismiss pending posts prompt'
+						aria-label={t('pdDismissLabel')}
 					>
 						<X className='size-4 text-text-secondary' />
 					</motion.button>
@@ -161,23 +173,24 @@ const SinglePendingPost = ({
 						{session.recipeName}
 					</span>
 					<span className='block text-sm text-text-secondary mb-2'>
-						{getTimeSinceCook(session.cookedAt)}
+						{getTimeSinceCook(session.cookedAt, t)}
 					</span>
 					<div className='flex items-center gap-3'>
-						<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg'>
-							+{session.currentXP} XP
+						<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg tabular-nums'>
+							+<AnimatedNumber value={session.currentXP} /> XP
 						</span>
 						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='h-3.5 w-3.5' />
-							{getTimeLeft(session.expiresAt)}
+							{getTimeLeft(session.expiresAt, t)}
 						</span>
 					</div>
 				</div>
 
 				<motion.button
+					type='button'
 					className={cn(
-						'flex items-center gap-2 px-5 py-3 rounded-xl',
-						'bg-primary text-white font-semibold',
+						'flex items-center gap-2 px-5 py-3 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
+						'bg-brand text-white font-semibold',
 						'shadow-lg shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
@@ -186,7 +199,7 @@ const SinglePendingPost = ({
 					transition={TRANSITION_SPRING}
 				>
 					<Camera className='size-4' />
-					Post Now
+					{t('pdPostNow')}
 				</motion.button>
 			</div>
 		</motion.section>
@@ -210,6 +223,7 @@ const MultiplePendingPosts = ({
 	onPost,
 	onViewAll,
 }: MultiplePendingProps) => {
+	const t = useTranslations('pending')
 	const urgentSessions = sessions.filter(s => s.status === 'urgent')
 	const previewSessions = sessions.slice(0, 2)
 	const remaining = sessions.length - previewSessions.length
@@ -225,7 +239,7 @@ const MultiplePendingPosts = ({
 			animate='visible'
 		>
 			{/* Header */}
-			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-primary/5 to-transparent'>
+			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-brand/5 to-transparent'>
 				<div className='flex items-center gap-3'>
 					<motion.span
 						className='text-lg'
@@ -235,20 +249,21 @@ const MultiplePendingPosts = ({
 						📸
 					</motion.span>
 					<h3 className='text-base font-bold text-text'>
-						{sessions.length} recipes waiting
+						{t('pdRecipesWaiting', { count: sessions.length })}
 					</h3>
-					<span className='text-sm font-semibold text-success bg-success/10 px-2 py-1 rounded-full'>
-						+{totalXP} XP available
+					<span className='text-sm font-semibold text-success bg-success/10 px-2 py-1 rounded-full tabular-nums'>
+						{t('pdXpAvailable', { xp: totalXP })}
 					</span>
 				</div>
 				<motion.button
-					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-lg text-sm font-semibold'
+					type='button'
+					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					transition={TRANSITION_SPRING}
 				>
-					View All
+					{t('pdViewAll')}
 					<ChevronDown className='size-4' />
 				</motion.button>
 			</div>
@@ -285,34 +300,36 @@ const MultiplePendingPosts = ({
 										: 'text-text-secondary',
 								)}
 							>
-								{getTimeLeft(session.expiresAt)}
+								{getTimeLeft(session.expiresAt, t)}
 							</span>
 						</div>
-						<span className='text-sm font-bold text-success'>
-							+{session.currentXP}
+						<span className='text-sm font-bold text-success tabular-nums'>
+							+<AnimatedNumber value={session.currentXP} />
 						</span>
 						<motion.button
+							type='button'
 							className={cn(
-								'px-3 py-1.5 rounded-lg text-sm font-semibold',
+								'px-3 py-1.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 								session.status === 'urgent'
 									? 'bg-error text-white'
-									: 'bg-primary text-white',
+									: 'bg-brand text-white',
 							)}
 							onClick={() => onPost(session.id)}
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 						>
-							Post
+							{t('pdPost')}
 						</motion.button>
 					</motion.div>
 				))}
 
 				{remaining > 0 && (
 					<button
-						className='w-full text-center py-2 text-sm text-text-secondary hover:text-primary transition-colors'
+						type='button'
+						className='w-full text-center py-2 text-sm text-text-secondary hover:text-brand transition-colors'
 						onClick={onViewAll}
 					>
-						+{remaining} more recipe{remaining > 1 ? 's' : ''} • Tap to see all
+						{t('pdMoreRecipes', { count: remaining })}
 					</button>
 				)}
 			</div>
@@ -337,6 +354,7 @@ const ManyPendingPosts = ({
 	urgentCount,
 	onViewAll,
 }: ManyPendingProps) => {
+	const t = useTranslations('pending')
 	return (
 		<motion.section
 			className={cn(
@@ -361,23 +379,24 @@ const ManyPendingPosts = ({
 					<div className='flex items-center gap-2'>
 						<span className='text-lg'>🚨</span>
 						<span className='text-sm font-semibold text-error'>
-							{urgentCount} recipe{urgentCount > 1 ? 's' : ''} expiring soon!
+							{t('pdExpiringSoon', { count: urgentCount })}
 						</span>
 					</div>
 				)}
 
 				<span className='flex-1 text-sm text-text-secondary text-right'>
-					{sessions.length} pending • +{totalXP} XP
+					{t('pdPendingXp', { count: sessions.length, xp: totalXP })}
 				</span>
 
 				<motion.button
-					className='flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold'
+					type='button'
+					className='flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					transition={TRANSITION_SPRING}
 				>
-					View All
+					{t('pdViewAll')}
 					<ArrowRight className='size-4' />
 				</motion.button>
 			</div>
@@ -466,6 +485,7 @@ export const PendingExpandedModal = ({
 	onClose,
 	onPost,
 }: PendingExpandedModalProps) => {
+	const t = useTranslations('pending')
 	useEscapeKey(isOpen, onClose)
 
 	const pendingSessions = sessions.filter(
@@ -481,6 +501,9 @@ export const PendingExpandedModal = ({
 			{isOpen && (
 				<Portal>
 					<motion.div
+						role='dialog'
+						aria-modal='true'
+						aria-label='Pending posts'
 						className='fixed inset-0 z-modal bg-black/60 flex items-end justify-center'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
@@ -495,17 +518,23 @@ export const PendingExpandedModal = ({
 						>
 							{/* Header */}
 							<div className='flex items-center gap-3 px-6 py-5 border-b border-border'>
-								<h2 className='text-xl font-bold text-text'>Pending Posts</h2>
+								<h2 className='text-xl font-bold text-text'>
+									{t('pdPendingPosts')}
+								</h2>
 								<span className='text-sm text-text-secondary'>
-									{pendingSessions.length} recipes • +{totalXP} XP available
+									{t('pdRecipesXpAvailable', {
+										count: pendingSessions.length,
+										xp: totalXP,
+									})}
 								</span>
 								<motion.button
-									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-bg-hover'
+									type='button'
+									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 									onClick={onClose}
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									aria-label='Close pending posts'
+									aria-label={t('pdCloseLabel')}
 								>
 									<X className='size-5 text-text-secondary' />
 								</motion.button>
@@ -515,9 +544,7 @@ export const PendingExpandedModal = ({
 							{urgentSessions.length > 0 && (
 								<div className='flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-error to-error/80 text-white text-sm font-semibold'>
 									<AlertTriangle className='size-4' />
-									{urgentSessions.length} recipe
-									{urgentSessions.length > 1 ? 's' : ''} expire within 24 hours.
-									Post now to claim XP!
+									{t('pdExpireWithin24', { count: urgentSessions.length })}
 								</div>
 							)}
 
@@ -551,8 +578,10 @@ export const PendingExpandedModal = ({
 												)}
 											>
 												{session.status === 'urgent'
-													? `Expires in ${getTimeLeft(session.expiresAt)}`
-													: getTimeLeft(session.expiresAt)}
+													? t('pdExpiresIn', {
+															time: getTimeLeft(session.expiresAt, t),
+														})
+													: getTimeLeft(session.expiresAt, t)}
 											</div>
 										)}
 
@@ -570,7 +599,7 @@ export const PendingExpandedModal = ({
 													{session.recipeName}
 												</span>
 												<span className='block text-sm text-text-secondary'>
-													{getTimeSinceCook(session.cookedAt)}
+													{getTimeSinceCook(session.cookedAt, t)}
 												</span>
 												{/* Decay indicator - only shown when actual time-based decay */}
 												{session.currentXP < session.baseXP &&
@@ -584,13 +613,14 @@ export const PendingExpandedModal = ({
 																	}}
 																/>
 															</div>
-															<span className='text-xs text-error font-semibold'>
-																{Math.round(
-																	((session.baseXP - session.currentXP) /
-																		session.baseXP) *
-																		100,
-																)}
-																% time decay
+															<span className='text-xs text-error font-semibold tabular-nums'>
+																{t('pdTimeDecay', {
+																	percent: Math.round(
+																		((session.baseXP - session.currentXP) /
+																			session.baseXP) *
+																			100,
+																	),
+																})}
 															</span>
 														</div>
 													)}
@@ -598,35 +628,38 @@ export const PendingExpandedModal = ({
 											<div className='text-right'>
 												<span
 													className={cn(
-														'block text-lg font-bold',
+														'block text-lg font-bold tabular-nums',
 														session.status === 'urgent'
 															? 'text-error'
 															: 'text-success',
 													)}
 												>
-													+{session.currentXP} XP
+													+<AnimatedNumber value={session.currentXP} /> XP
 												</span>
 												{/* Only show original if there's actual decay */}
 												{session.currentXP < session.baseXP &&
 													session.currentXP > 0 && (
 														<span className='text-xs text-text-secondary line-through'>
-															was +{session.baseXP}
+															{t('pdWasXp', { xp: session.baseXP })}
 														</span>
 													)}
 											</div>
 											<motion.button
+												type='button'
 												className={cn(
-													'px-4 py-2.5 rounded-xl text-sm font-semibold',
+													'px-4 py-2.5 rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 													session.status === 'urgent'
 														? 'bg-error text-white'
-														: 'bg-primary text-white',
+														: 'bg-brand text-white',
 												)}
 												onClick={() => onPost(session.id)}
 												whileHover={BUTTON_SUBTLE_HOVER}
 												whileTap={BUTTON_SUBTLE_TAP}
 												transition={TRANSITION_SPRING}
 											>
-												{session.status === 'urgent' ? 'POST NOW' : 'Post'}
+												{session.status === 'urgent'
+													? t('pdPostNowUrgent')
+													: t('pdPost')}
 											</motion.button>
 										</div>
 									</motion.div>
@@ -636,16 +669,17 @@ export const PendingExpandedModal = ({
 							{/* Footer */}
 							<div className='p-5 border-t border-border bg-muted/30'>
 								<p className='text-sm text-text-secondary text-center mb-4'>
-									💡 Post photos of your creations to unlock XP and badges!
+									{t('pdTipFooter')}
 								</p>
 								<motion.button
-									className='w-full py-3 bg-primary text-white rounded-xl font-semibold'
+									type='button'
+									className='w-full py-3 bg-brand text-white rounded-xl font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 									onClick={onClose}
 									whileHover={CARD_FEATURED_HOVER}
 									whileTap={BUTTON_TAP}
 									transition={TRANSITION_SPRING}
 								>
-									Done
+									{t('pdDone')}
 								</motion.button>
 							</div>
 						</motion.div>

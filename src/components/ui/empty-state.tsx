@@ -20,7 +20,7 @@ interface EmptyStateProps {
 	onAction?: () => void
 	children?: ReactNode
 	/** Optional Lottie animation to show instead of icon */
-	lottieAnimation?: any
+	lottieAnimation?: object
 	/** Size calculator for Lottie animation */
 	lottieSize?: (width: number, height: number) => number
 }
@@ -51,8 +51,8 @@ export const EmptyState = ({
 					</div>
 				) : Icon ? (
 					<div className='mb-6 flex justify-center'>
-						<div className='rounded-full bg-gradient-to-br from-primary/10 to-accent/10 p-8'>
-							<Icon className='size-16 text-primary' />
+						<div className='rounded-full bg-gradient-to-br from-brand/10 to-accent-purple/10 p-8'>
+							<Icon className='size-16 text-brand' />
 						</div>
 					</div>
 				) : null}

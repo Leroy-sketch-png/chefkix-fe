@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { X } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
@@ -75,6 +76,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 		},
 		ref,
 	) => {
+		const t = useTranslations('common')
 		const [isVisible, setIsVisible] = React.useState(true)
 		const timerRef = React.useRef<NodeJS.Timeout | null>(null)
 
@@ -128,6 +130,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 				{/* Action - inline, subtle */}
 				{action && (
 					<button
+						type='button'
 						onClick={action.onClick}
 						className='flex-shrink-0 font-medium text-brand hover:underline'
 					>
@@ -138,9 +141,10 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 				{/* Close - tiny, appears on hover */}
 				{onClose && (
 					<button
+						type='button'
 						onClick={handleClose}
 						className='flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100'
-						aria-label='Close'
+						aria-label={t('ariaClose')}
 					>
 						<X className='size-3' />
 					</button>

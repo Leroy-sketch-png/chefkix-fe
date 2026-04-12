@@ -14,7 +14,7 @@
 
 import app from '@/configs/app'
 import { useAuthStore } from '@/store/authStore'
-import { PATHS, AUTH_MESSAGES } from '@/constants'
+import { PATHS } from '@/constants'
 import axios, {
 	AxiosError,
 	AxiosResponse,
@@ -25,6 +25,10 @@ import {
 	isRefreshInProgress,
 	waitForRefresh,
 } from '@/lib/tokenManager'
+import messages from '../../messages/en.json'
+
+/** Static lookup for axios error translations (non-component context) */
+const t = (key: keyof typeof messages.common) => messages.common[key]
 
 // ============================================================================
 // AXIOS INSTANCES
@@ -95,7 +99,7 @@ api.interceptors.response.use(
 			success: backendResponse.success ?? true,
 			statusCode:
 				backendResponse.code ?? backendResponse.statusCode ?? response.status,
-			message: backendResponse.message || 'Request successful.',
+			message: backendResponse.message || t('httpRequestSuccess'),
 			data: data,
 		}
 
@@ -145,7 +149,7 @@ api.interceptors.response.use(
 					logout()
 
 					if (typeof window !== 'undefined') {
-						window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(AUTH_MESSAGES.SESSION_EXPIRED)}`
+						window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(t('httpSessionExpired'))}`
 					}
 				},
 			)
@@ -180,15 +184,15 @@ api.interceptors.response.use(
 			if (!hasBody) {
 				// Map HTTP status codes to user-friendly messages
 				const statusMessages: Record<number, string> = {
-					400: 'Invalid request. Please check your input.',
-					401: 'Invalid credentials. Please check your email/username and password.',
-					403: 'Access denied. You do not have permission for this action.',
-					404: 'Resource not found.',
-					413: 'File too large. Maximum upload size is 10MB per file.',
-					429: 'Too many requests. Please try again later.',
-					500: 'Server error. Please try again later.',
-					502: 'Service temporarily unavailable. Please try again.',
-					503: 'Service temporarily unavailable. Please try again.',
+					400: t('httpError400'),
+					401: t('httpError401'),
+					403: t('httpError403'),
+					404: t('httpError404'),
+					413: t('httpError413'),
+					429: t('httpError429'),
+					500: t('httpError500'),
+					502: t('httpError502'),
+					503: t('httpError503'),
 				}
 
 				error.response.data = {
@@ -206,7 +210,7 @@ api.interceptors.response.use(
 						backendError.code ||
 						backendError.statusCode ||
 						error.response.status,
-					message: backendError.message || 'An error occurred.',
+					message: backendError.message || t('httpGenericError'),
 					error: backendError.result,
 				}
 			}

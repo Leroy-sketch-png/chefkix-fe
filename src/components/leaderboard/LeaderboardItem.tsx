@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -12,6 +12,8 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, LIST_ITEM_TAP } from '@/lib/motion'
+import { useTranslations } from 'next-intl'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
 // TYPES
@@ -101,6 +103,7 @@ export function LeaderboardItem({
 	const isLeading = variant === 'leading'
 	const isPromotion = variant === 'promotion'
 	const isDemotion = variant === 'demotion'
+	const t = useTranslations('leaderboard')
 
 	return (
 		<motion.div
@@ -123,7 +126,7 @@ export function LeaderboardItem({
 			{/* Rank */}
 			<span
 				className={cn(
-					'w-8 text-center text-base font-extrabold',
+					'w-8 text-center text-base font-display font-extrabold',
 					isCurrentUser ? 'text-xp' : 'text-text-tertiary',
 				)}
 			>
@@ -158,7 +161,7 @@ export function LeaderboardItem({
 				</div>
 				<div className='flex flex-col'>
 					<span className='text-base font-bold text-text'>
-						{isCurrentUser ? 'You' : entry.displayName}
+						{isCurrentUser ? t('you') : entry.displayName}
 					</span>
 					<span className='text-xs text-text-tertiary'>
 						Level {entry.level}
@@ -184,7 +187,7 @@ export function LeaderboardItem({
 					{entry.topBadges.slice(0, 3).map((badge, i) => (
 						<span
 							key={i}
-							className='rounded-md bg-bg-elevated px-1.5 py-0.5 text-[10px] font-semibold text-text-secondary'
+							className='rounded-md bg-bg-elevated px-1.5 py-0.5 text-2xs font-semibold text-text-secondary'
 							title={badge}
 						>
 							{badge.length > 12 ? badge.slice(0, 12) + '...' : badge}
@@ -198,21 +201,21 @@ export function LeaderboardItem({
 				<div className='hidden gap-3 sm:flex'>
 					<div className='flex items-center gap-1 text-sm text-streak'>
 						<Flame className='size-3.5' />
-						<span>{entry.streak}</span>
+						<AnimatedNumber value={entry.streak} className='tabular-nums' />
 					</div>
 					<div className='flex items-center gap-1 text-sm text-text-secondary'>
 						<Utensils className='size-3.5' />
-						<span>{entry.recipesCooked}</span>
+						<AnimatedNumber value={entry.recipesCooked} className='tabular-nums' />
 					</div>
 				</div>
 			)}
 
 			{/* XP */}
 			<div className='min-w-thumbnail-md text-right'>
-				<span className='block text-base font-extrabold text-text'>
-					{entry.xpThisWeek.toLocaleString()}
+				<span className='block text-base font-display font-extrabold text-text'>
+					<AnimatedNumber value={entry.xpThisWeek} format={n => n.toLocaleString()} className='tabular-nums' />
 				</span>
-				<span className='text-xs text-text-muted'>XP</span>
+				<span className='text-xs text-text-muted'>{t('xp')}</span>
 				{xpDiff !== undefined && xpDiff < 0 && (
 					<span className='block text-xs text-error'>
 						{Math.round(xpDiff).toLocaleString()}

@@ -98,26 +98,6 @@ export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 	}
 }
 
-export const getAllProfiles = async (): Promise<ApiResponse<Profile[]>> => {
-	try {
-		const response = await api.get<ApiResponse<Profile[]>>(
-			API_ENDPOINTS.PROFILE.GET_ALL,
-		)
-		return response.data
-	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
-		if (axiosError.response) {
-			return axiosError.response.data
-		}
-		return {
-			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
-			statusCode: 500,
-		}
-	}
-}
-
 export interface PaginatedProfilesParams {
 	page?: number
 	size?: number
@@ -137,38 +117,23 @@ export const getProfilesPaginated = async (
 	}
 > => {
 	try {
-		const response = await api.get<
-			ApiResponse<{
-				content: Profile[]
-				totalElements: number
-				totalPages: number
-				number: number
-				size: number
-				first: boolean
-				last: boolean
-			}>
-		>(API_ENDPOINTS.PROFILE.GET_ALL_PAGINATED, {
-			params: {
-				page: params.page ?? 0,
-				size: params.size ?? 20,
-				search: params.search,
+		const response = await api.get<ApiResponse<Profile[]>>(
+			API_ENDPOINTS.PROFILE.GET_ALL_PAGINATED,
+			{
+				params: {
+					page: params.page ?? 0,
+					size: params.size ?? 20,
+					search: params.search,
+				},
 			},
-		})
+		)
 
 		if (response.data.success && response.data.data) {
-			const pageData = response.data.data
 			return {
 				success: true,
 				statusCode: 200,
-				data: pageData.content,
-				pagination: {
-					page: pageData.number,
-					size: pageData.size,
-					totalElements: pageData.totalElements,
-					totalPages: pageData.totalPages,
-					first: pageData.first,
-					last: pageData.last,
-				},
+				data: response.data.data,
+				pagination: response.data.pagination,
 			}
 		}
 
@@ -197,6 +162,7 @@ export interface UpdateProfileDto {
 	bio?: string
 	avatarUrl?: string
 	coverImageUrl?: string
+	preferences?: string[]
 }
 
 export const updateProfile = async (
@@ -217,6 +183,48 @@ export const updateProfile = async (
 		return {
 			success: false,
 			message: 'An unexpected error occurred. Please try again later.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const deleteAccount = async (): Promise<ApiResponse<void>> => {
+	try {
+		const response = await api.delete<ApiResponse<void>>(
+			API_ENDPOINTS.PROFILE.DELETE_ACCOUNT,
+		)
+		return response.data
+	} catch (error) {
+		logDevError('Delete account failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<void>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to delete account. Please try again.',
+			statusCode: 500,
+		}
+	}
+}
+
+export const exportUserData = async (): Promise<
+	ApiResponse<Record<string, unknown>>
+> => {
+	try {
+		const response = await api.get<ApiResponse<Record<string, unknown>>>(
+			API_ENDPOINTS.PROFILE.EXPORT_DATA,
+		)
+		return response.data
+	} catch (error) {
+		logDevError('Export data failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<Record<string, unknown>>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
+		return {
+			success: false,
+			message: 'Failed to export data. Please try again.',
 			statusCode: 500,
 		}
 	}

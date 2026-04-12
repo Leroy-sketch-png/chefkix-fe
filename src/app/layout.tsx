@@ -8,9 +8,13 @@ import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { TokenRefreshProvider } from '@/components/providers/TokenRefreshProvider'
 import { CelebrationProvider } from '@/components/providers/CelebrationProvider'
-import { GoogleOAuthWrapper } from '@/components/providers/GoogleOAuthWrapper'
 import { NetworkStatusProvider } from '@/components/providers/NetworkStatusProvider'
 import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvider'
+import { LiveAnnouncerProvider } from '@/components/a11y/LiveAnnouncer'
+import { ReducedMotionProvider } from '@/components/providers/ReducedMotionProvider'
+import { FirstVisitHintsProvider } from '@/components/onboarding/FirstVisitHints'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 import { Toaster } from 'sonner'
 
 // Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
@@ -81,7 +85,6 @@ export const metadata: Metadata = {
 			{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
 			{ url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
 		],
-		apple: [{ url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' }],
 	},
 }
 
@@ -94,13 +97,22 @@ export const viewport: Viewport = {
 	],
 }
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: {
 	children: React.ReactNode
 }) {
+	const messages = await getMessages()
+
 	return (
-		<html lang='en'>
+		<html lang='en' suppressHydrationWarning>
+			<head>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t==='system'||!t)&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+					}}
+				/>
+			</head>
 			<body
 				className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${playfair.variable} font-sans antialiased`}
 			>
@@ -111,16 +123,24 @@ export default function RootLayout({
 				>
 					Skip to main content
 				</a>
-				<GoogleOAuthWrapper>
+				<NextIntlClientProvider messages={messages}>
 					<AuthProvider>
 						<TokenRefreshProvider>
 							<BlockedUsersProvider>
-								<CelebrationProvider>{children}</CelebrationProvider>
+								<CelebrationProvider>
+									<LiveAnnouncerProvider>
+										<ReducedMotionProvider>
+											<FirstVisitHintsProvider>
+												{children}
+												<NetworkStatusProvider />
+											</FirstVisitHintsProvider>
+										</ReducedMotionProvider>
+									</LiveAnnouncerProvider>
+								</CelebrationProvider>
 							</BlockedUsersProvider>
 						</TokenRefreshProvider>
 					</AuthProvider>
-				</GoogleOAuthWrapper>
-				<NetworkStatusProvider />
+				</NextIntlClientProvider>
 				<Toaster position='bottom-center' />
 			</body>
 		</html>

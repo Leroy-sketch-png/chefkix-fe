@@ -29,6 +29,7 @@ export function useStepPhotos() {
 		return () => {
 			state.photos.forEach(urls => urls.forEach(url => URL.revokeObjectURL(url)))
 		}
+		// Cleanup only on unmount — state.photos is intentionally omitted to avoid revoking URLs mid-session
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 

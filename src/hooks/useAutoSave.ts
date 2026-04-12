@@ -112,6 +112,7 @@ export function useAutoSave(
 		} finally {
 			isSavingRef.current = false
 		}
+		// Intentionally empty deps: save uses refs for current values to avoid re-creating the callback on every data change
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 

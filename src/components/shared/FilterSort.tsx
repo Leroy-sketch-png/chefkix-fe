@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 import {
 	Filter,
@@ -88,15 +90,16 @@ export const FilterBar = ({
 	onFilterClick,
 	className,
 }: FilterSortProps) => {
+	const t = useTranslations('shared')
 	const sortOptions = [
-		{ value: 'popular', label: 'Most Popular' },
-		{ value: 'newest', label: 'Newest First' },
-		{ value: 'rating', label: 'Highest Rated' },
-		{ value: 'quickest', label: 'Quickest' },
+		{ value: 'popular', label: t('fsSortPopular') },
+		{ value: 'newest', label: t('fsSortNewest') },
+		{ value: 'rating', label: t('fsSortRated') },
+		{ value: 'quickest', label: t('fsSortQuickest') },
 	]
 
 	const selectedSort =
-		sortOptions.find(opt => opt.value === sortValue)?.label || 'Most Popular'
+		sortOptions.find(opt => opt.value === sortValue)?.label || t('fsSortPopular')
 
 	return (
 		<div
@@ -107,13 +110,14 @@ export const FilterBar = ({
 		>
 			{/* Filter Button */}
 			<button
+				type='button'
 				onClick={onFilterClick}
-				className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:bg-bg-elevated'
+				className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-brand hover:bg-bg-elevated'
 			>
 				<Filter className='size-4.5 text-text-secondary' />
-				<span>Filters</span>
+				<span>{t('fsFilters')}</span>
 				{activeFiltersCount > 0 && (
-					<span className='min-w-4.5 rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold text-white'>
+					<span className='min-w-4.5 rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white'>
 						{activeFiltersCount}
 					</span>
 				)}
@@ -121,7 +125,7 @@ export const FilterBar = ({
 
 			{/* Sort Dropdown - Simplified for now, can be enhanced with Radix UI dropdown */}
 			<div className='relative'>
-				<button className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-primary hover:bg-bg-elevated'>
+				<button type='button' className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-brand hover:bg-bg-elevated'>
 					<ArrowUpDown className='size-4.5 text-text-secondary' />
 					<span>{selectedSort}</span>
 					<ChevronDown className='size-4.5 text-text-secondary' />
@@ -131,26 +135,28 @@ export const FilterBar = ({
 			{/* View Toggle */}
 			<div className='flex gap-1 rounded-[var(--radius)] border border-border-subtle bg-bg-hover p-1'>
 				<button
+					type='button'
 					onClick={() => onViewModeChange?.('grid')}
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'grid'
-							? 'bg-bg-card text-primary'
+							? 'bg-bg-card text-brand'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
-					aria-label='Grid view'
+					aria-label={t('fsGridView')}
 				>
 					<Grid className='size-4.5' />
 				</button>
 				<button
+					type='button'
 					onClick={() => onViewModeChange?.('list')}
 					className={cn(
 						'size-11 rounded-lg p-2 transition-all',
 						viewMode === 'list'
-							? 'bg-bg-card text-primary'
+							? 'bg-bg-card text-brand'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
 					)}
-					aria-label='List view'
+					aria-label={t('fsListView')}
 				>
 					<List className='size-4.5' />
 				</button>
@@ -158,7 +164,7 @@ export const FilterBar = ({
 
 			{/* Results Count */}
 			<div className='ml-auto text-sm leading-normal text-text-secondary'>
-				Showing {currentStart}-{currentEnd} of {totalResults} recipes
+				{t('fsShowing', { start: currentStart, end: currentEnd, total: totalResults })}
 			</div>
 		</div>
 	)
@@ -181,6 +187,7 @@ export const ActiveFilters = ({
 	onClearAll,
 	className,
 }: ActiveFiltersProps) => {
+	const t = useTranslations('shared')
 	if (filters.length === 0) return null
 
 	return (
@@ -192,13 +199,14 @@ export const ActiveFilters = ({
 			{filters.map(filter => (
 				<div
 					key={filter}
-					className='flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary'
+					className='flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand'
 				>
 					<span>{filter}</span>
 					<button
+						type='button'
 						onClick={() => onRemove?.(filter)}
-						className='grid size-6 place-items-center rounded-full p-0.5 transition-colors hover:bg-primary/20'
-						aria-label={`Remove ${filter} filter`}
+						className='grid size-6 place-items-center rounded-full p-0.5 transition-colors hover:bg-brand/20'
+						aria-label={t('fsRemoveFilter', { filter })}
 					>
 						<X className='h-3.5 w-3.5' />
 					</button>
@@ -207,6 +215,7 @@ export const ActiveFilters = ({
 
 			{filters.length > 1 && (
 				<button
+					type='button'
 					onClick={onClearAll}
 					className='h-11 rounded-lg px-3 text-xs font-semibold leading-normal text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary'
 				>
@@ -238,21 +247,23 @@ export const FilterPanel = ({
 	children,
 	className,
 }: FilterPanelProps) => {
+	const t = useTranslations('shared')
 	return (
 		<div
 			className={cn(
-				'flex h-screen w-80 flex-col overflow-hidden border-r border-border bg-card',
+				'flex h-screen w-80 flex-col overflow-hidden border-r border-border bg-bg-card',
 				!isOpen && 'hidden',
 				className,
 			)}
 		>
 			{/* Header */}
 			<div className='flex items-center justify-between border-b border-border p-5'>
-				<h3 className='text-lg font-bold text-foreground'>Filters</h3>
+				<h3 className='text-lg font-bold text-text'>{t('fsFilters')}</h3>
 				<button
+					type='button'
 					onClick={onClose}
-					aria-label='Close filters'
-					className='rounded-md p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-foreground'
+					aria-label={t('fsCloseFilters')}
+					className='rounded-md p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
 				>
 					<X className='size-5' />
 				</button>
@@ -264,10 +275,10 @@ export const FilterPanel = ({
 			{/* Footer */}
 			<div className='flex gap-3 border-t border-border p-5'>
 				<Button variant='outline' onClick={onReset} className='flex-1'>
-					Reset
+					{t('fsReset')}
 				</Button>
 				<Button onClick={onApply} className='flex-1'>
-					Apply Filters
+					{t('fsApplyFilters')}
 				</Button>
 			</div>
 		</div>
@@ -291,7 +302,7 @@ export const FilterSection = ({
 }: FilterSectionProps) => {
 	return (
 		<div className={cn('mb-8', className)}>
-			<h4 className='mb-3 text-sm font-bold uppercase tracking-wide text-foreground'>
+			<h4 className='mb-3 text-sm font-bold uppercase tracking-wide text-text'>
 				{title}
 			</h4>
 			{children}
@@ -324,10 +335,10 @@ export const CheckboxFilter = ({
 				onChange={e => onChange?.(e.target.checked)}
 				className='peer sr-only'
 			/>
-			<div className='grid size-4.5 flex-shrink-0 place-items-center rounded-md border-2 border-border transition-all peer-checked:border-primary peer-checked:bg-primary'>
+			<div className='grid size-4.5 flex-shrink-0 place-items-center rounded-md border-2 border-border transition-all peer-checked:border-brand peer-checked:bg-brand'>
 				<div className='h-2.5 w-2.5 scale-0 rounded-sm bg-card transition-transform peer-checked:scale-100' />
 			</div>
-			<span className='flex-1 text-sm text-foreground'>{label}</span>
+			<span className='flex-1 text-sm text-text'>{label}</span>
 			{count !== undefined && (
 				<span className='text-xs text-text-secondary'>({count})</span>
 			)}
@@ -361,10 +372,10 @@ export const RadioFilter = ({
 				onChange={onChange}
 				className='peer sr-only'
 			/>
-			<div className='grid size-4.5 flex-shrink-0 place-items-center rounded-full border-2 border-border transition-all peer-checked:border-primary'>
-				<div className='h-2.5 w-2.5 scale-0 rounded-full bg-primary transition-transform peer-checked:scale-100' />
+			<div className='grid size-4.5 flex-shrink-0 place-items-center rounded-full border-2 border-border transition-all peer-checked:border-brand'>
+				<div className='h-2.5 w-2.5 scale-0 rounded-full bg-brand transition-transform peer-checked:scale-100' />
 			</div>
-			<span className='text-sm text-foreground'>{label}</span>
+			<span className='text-sm text-text'>{label}</span>
 		</label>
 	)
 }
@@ -395,7 +406,7 @@ export const RatingFilter = ({
 				onChange={onChange}
 				className='peer sr-only'
 			/>
-			<div className='flex items-center gap-2 rounded-[var(--radius)] border-2 border-border px-4 py-2.5 transition-all peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:font-semibold hover:border-primary hover:bg-primary/5'>
+			<div className='flex items-center gap-2 rounded-[var(--radius)] border-2 border-border px-4 py-2.5 transition-all peer-checked:border-brand peer-checked:bg-brand/10 peer-checked:font-semibold hover:border-brand hover:bg-brand/5'>
 				<Star className='size-4.5 fill-[var(--gold)] text-[var(--gold)]' />
 				<span className='text-sm'>{rating}+</span>
 			</div>
@@ -452,12 +463,13 @@ export const CuisinePill = ({
 }: CuisinePillProps) => {
 	return (
 		<button
+			type='button'
 			onClick={onClick}
 			className={cn(
 				'rounded-full border px-4 py-2 text-xs font-semibold transition-all',
 				active
-					? 'border-primary bg-primary text-white'
-					: 'border-border bg-muted/20 text-foreground hover:border-primary hover:bg-primary/5',
+					? 'border-brand bg-brand text-white'
+					: 'border-border bg-muted/20 text-text hover:border-brand hover:bg-brand/5',
 			)}
 		>
 			{label}

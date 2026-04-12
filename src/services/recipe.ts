@@ -6,6 +6,7 @@ import {
 	RecipeCreateRequest,
 	RecipeUpdateRequest,
 	RecipeQueryParams,
+	RecommendationResponse,
 } from '@/lib/types/recipe'
 import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination, toBackendRecipeParams } from '@/lib/apiUtils'
@@ -16,14 +17,11 @@ import { logDevError } from '@/lib/dev-log'
 // ADDITIONAL TYPES (from spec 07-recipes.txt)
 // ============================================
 
-export interface RecipeSearchParams {
-	q: string
-	limit?: number
-}
-
 export interface PublishResponse {
 	isPublished: boolean
 	moderationStatus: 'approved' | 'pending' | 'rejected'
+	qualityScore?: number
+	qualityTier?: 'Foolproof' | 'Good' | 'Needs Work' | 'Draft Quality'
 }
 
 /**
@@ -129,36 +127,6 @@ export const getRecipesByUserId = async (
 }
 
 /**
- * Get feed recipes (from friends and followed users)
- * Maps FE params to BE params (e.g., search → query)
- */
-export const getFeedRecipes = async (
-	params?: RecipeQueryParams,
-): Promise<PaginatedRecipeResponse> => {
-	try {
-		const backendParams = toBackendRecipeParams(
-			params as Record<string, unknown>,
-		)
-		const response = await api.get<PaginatedRecipeResponse>(
-			API_ENDPOINTS.RECIPES.FEED,
-			{
-				params: backendParams,
-			},
-		)
-		return response.data
-	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<PaginatedRecipeResponse>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to fetch feed recipes',
-			statusCode: 500,
-		}
-	}
-}
-
-/**
  * Get trending recipes
  * Returns pagination metadata for infinite scroll
  */
@@ -166,7 +134,7 @@ export const getTrendingRecipes = async (
 	params?: RecipeQueryParams,
 ): Promise<PaginatedRecipeResponse> => {
 	try {
-		const backendParams = toBackendPagination(params as any) ?? params
+		const backendParams = toBackendPagination(params) ?? params
 		const response = await api.get<PaginatedRecipeResponse>(
 			API_ENDPOINTS.RECIPES.TRENDING,
 			{
@@ -187,35 +155,19 @@ export const getTrendingRecipes = async (
 }
 
 /**
- * Search recipes by query
- */
-export const searchRecipes = async (
-	params: RecipeSearchParams,
-): Promise<ApiResponse<Recipe[]>> => {
-	try {
-		const response = await api.get(API_ENDPOINTS.RECIPES.SEARCH, { params })
-		return response.data
-	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Recipe[]>>
-		if (axiosError.response) return axiosError.response.data
-		return { success: false, message: 'Search failed', statusCode: 500 }
-	}
-}
-
-/**
  * Get tonight's personalized recipe recommendation.
  * Uses cooking history + trending for taste-based picks.
+ * Returns RecommendationResponse with recipe + whyRecommended + matchSignals + confidenceScore
  */
-export const getTonightsPick = async (): Promise<ApiResponse<Recipe>> => {
+export const getTonightsPick = async (): Promise<ApiResponse<RecommendationResponse>> => {
 	try {
-		const response = await api.get<ApiResponse<Recipe>>(
+		const response = await api.get<ApiResponse<RecommendationResponse>>(
 			API_ENDPOINTS.RECIPES.TONIGHT_PICK,
 		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Recipe>>
+		const axiosError = error as AxiosError<ApiResponse<RecommendationResponse>>
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Users,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
@@ -21,6 +23,7 @@ import { toast } from 'sonner'
 
 function CookTogetherContent() {
 	const router = useRouter()
+	const t = useTranslations('cooking')
 	const searchParams = useSearchParams()
 	const [roomCodeInput, setRoomCodeInput] = useState('')
 	const [isJoining, setIsJoining] = useState(false)
@@ -61,16 +64,14 @@ function CookTogetherContent() {
 					if (cancelled) return
 					if (success) {
 						toast.success(
-							urlRole === 'SPECTATOR'
-								? 'Watching the cooking room!'
-								: 'Joined the cooking room!',
+							urlRole === 'SPECTATOR' ? t('ctWatching') : t('toastJoinedRoom'),
 						)
 						router.push('/cook-together/room')
 					} else {
-						toast.error('Could not join room. It may be full or dissolved.')
+						toast.error(t('toastJoinRoomFull'))
 					}
 				} catch {
-					if (!cancelled) toast.error('Failed to join room')
+					if (!cancelled) toast.error(t('toastJoinRoomFailed'))
 				} finally {
 					if (!cancelled) setIsJoining(false)
 				}
@@ -80,7 +81,7 @@ function CookTogetherContent() {
 				cancelled = true
 			}
 		}
-	}, [searchParams, isInRoom, isJoining, joinRoom, router])
+	}, [searchParams, isInRoom, isJoining, joinRoom, router, t])
 
 	// Auto-focus the input on mount
 	useEffect(() => {
@@ -92,7 +93,7 @@ function CookTogetherContent() {
 	const handleJoin = useCallback(async () => {
 		const code = roomCodeInput.trim().toUpperCase()
 		if (!code || code.length < 6) {
-			toast.error('Please enter a valid 6-character room code')
+			toast.error(t('toastInvalidRoomCode'))
 			return
 		}
 
@@ -100,29 +101,29 @@ function CookTogetherContent() {
 		try {
 			const success = await joinRoom(code)
 			if (success) {
-				toast.success('Joined the cooking room!')
+				toast.success(t('toastJoinedRoom'))
 				router.push('/cook-together/room')
 			} else {
-				toast.error('Could not join room. Check the code and try again.')
+				toast.error(t('toastJoinCheckCode'))
 			}
 		} catch {
-			toast.error('Failed to join room')
+			toast.error(t('toastJoinRoomFailed'))
 		} finally {
 			setIsJoining(false)
 		}
-	}, [roomCodeInput, joinRoom, router])
+	}, [roomCodeInput, joinRoom, router, t])
 
 	const handleCopyRoomCode = useCallback(async () => {
 		if (!roomCode) return
 		try {
 			await navigator.clipboard.writeText(roomCode)
 			setCopied(true)
-			toast.success('Room code copied!')
+			toast.success(t('toastRoomCodeCopied'))
 			copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch {
-			toast.error('Failed to copy room code')
+			toast.error(t('toastCopyFailed'))
 		}
-	}, [roomCode])
+	}, [roomCode, t])
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
@@ -137,33 +138,15 @@ function CookTogetherContent() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				{/* Header */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-8'
-				>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-orange-500 shadow-card'
-						>
-							<Users className='size-6 text-white' />
-						</motion.div>
-						<div>
-							<h1 className='text-3xl font-bold text-text'>Cook Together</h1>
-							<p className='text-text-secondary'>
-								Cook the same recipe with friends in real-time
-							</p>
-						</div>
-					</div>
-				</motion.div>
+				<PageHeader
+					icon={Users}
+					title={t('ctTitle')}
+					subtitle={t('ctSubtitle')}
+					gradient='orange'
+				/>
 
-				{/* Active Room Banner (if in a room) */}
 				<AnimatePresence>
-					{isInRoom && roomCode && (
+					{roomCode && (
 						<motion.div
 							initial={{ opacity: 0, y: -10 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -187,6 +170,7 @@ function CookTogetherContent() {
 								</div>
 								<div className='flex gap-2'>
 									<button
+										type='button'
 										onClick={handleCopyRoomCode}
 										className='flex items-center gap-2 rounded-xl bg-bg-card px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg-elevated'
 									>
@@ -195,13 +179,14 @@ function CookTogetherContent() {
 										) : (
 											<Copy className='size-4' />
 										)}
-										{copied ? 'Copied' : 'Share Code'}
+										{copied ? t('ctCopied') : t('ctShareCode')}
 									</button>
 									<button
+										type='button'
 										onClick={() => router.push('/cook-together/room')}
 										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
 									>
-										Return to Room
+										{t('ctReturnToRoom')}
 										<ArrowRight className='size-4' />
 									</button>
 								</div>
@@ -215,23 +200,21 @@ function CookTogetherContent() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-					className='group rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
+					className='group rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6 md:p-8'
 				>
 					<div className='mb-6 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500'>
+						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-info to-accent-purple'>
 							<Share2 className='size-5 text-white' />
 						</div>
 						<div>
-							<h2 className='text-xl font-bold text-text'>
-								Join a Cooking Room
-							</h2>
+							<h2 className='text-xl font-bold text-text'>{t('ctJoinRoom')}</h2>
 							<p className='text-sm text-text-secondary'>
-								Enter a room code shared by your friend
+								{t('ctJoinRoomDesc')}
 							</p>
 						</div>
 					</div>
 
-					<div className='flex gap-3'>
+					<div className='flex gap-2 sm:gap-3'>
 						<input
 							ref={inputRef}
 							type='text'
@@ -240,16 +223,17 @@ function CookTogetherContent() {
 								setRoomCodeInput(e.target.value.toUpperCase().slice(0, 6))
 							}
 							onKeyDown={handleKeyDown}
-							placeholder='ABCDEF'
+							placeholder={t('ctRoomCodePlaceholder')}
 							maxLength={6}
-							aria-label='Room code'
-							className='flex-1 rounded-xl border border-border-subtle bg-bg px-4 py-3 font-mono text-xl tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
+							aria-label={t('ctRoomCodeLabel')}
+							className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg px-3 py-2.5 font-mono text-base tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 sm:px-4 sm:py-3 sm:text-xl'
 							disabled={isJoining}
 						/>
 						<button
+							type='button'
 							onClick={handleJoin}
 							disabled={isJoining || roomCodeInput.trim().length < 6}
-							className='flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50'
+							className='flex flex-shrink-0 items-center gap-2 rounded-xl bg-brand px-3 py-2.5 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-3'
 						>
 							{isJoining ? (
 								<motion.div
@@ -265,14 +249,15 @@ function CookTogetherContent() {
 							) : (
 								<ArrowRight className='size-5' />
 							)}
-							{isJoining ? 'Joining...' : 'Join'}
+							{isJoining ? (
+								t('ctJoining')
+							) : (
+								<span className='hidden sm:inline'>{t('ctJoin')}</span>
+							)}
 						</button>
 					</div>
 
-					<p className='mt-3 text-xs text-text-muted'>
-						Room codes are 6 characters. Ask your friend to share theirs from
-						the cooking page.
-					</p>
+					<p className='mt-3 text-xs text-text-muted'>{t('ctRoomCodeHint')}</p>
 				</motion.div>
 
 				{/* How It Works */}
@@ -283,28 +268,28 @@ function CookTogetherContent() {
 					className='mt-6 rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 				>
 					<div className='mb-6 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500'>
+						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-streak'>
 							<Sparkles className='size-5 text-white' />
 						</div>
-						<h2 className='text-xl font-bold text-text'>How It Works</h2>
+						<h2 className='text-xl font-bold text-text'>{t('ctHowItWorks')}</h2>
 					</div>
 
 					<div className='grid gap-4 md:grid-cols-3'>
 						{[
 							{
 								step: '1',
-								title: 'Start a Room',
-								desc: 'Open any recipe and tap "Cook Together" to create a room with a unique code.',
+								title: t('ctStep1Title'),
+								desc: t('ctStep1Desc'),
 							},
 							{
 								step: '2',
-								title: 'Invite Friends',
-								desc: 'Share the 6-character room code. Up to 6 people can join and cook the same recipe.',
+								title: t('ctStep2Title'),
+								desc: t('ctStep2Desc'),
 							},
 							{
 								step: '3',
-								title: 'Cook in Sync',
-								desc: "See each other's progress, share reactions, and complete steps together in real-time.",
+								title: t('ctStep3Title'),
+								desc: t('ctStep3Desc'),
 							},
 						].map((item, i) => (
 							<motion.div
@@ -326,6 +311,8 @@ function CookTogetherContent() {
 						))}
 					</div>
 				</motion.div>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

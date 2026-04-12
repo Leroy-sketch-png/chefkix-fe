@@ -7,18 +7,11 @@ import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
 import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
-import {
-	ArrowLeft,
-	FileText,
-	Clock,
-	Trash2,
-	Loader2,
-	Edit3,
-	Sparkles,
-} from 'lucide-react'
+import { ArrowLeft, FileText, Clock, Trash2, Edit3 } from 'lucide-react'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -38,6 +31,8 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { logDevError } from '@/lib/dev-log'
+import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
+import { useTranslations } from 'next-intl'
 
 /**
  * Local Draft shape (stored in localStorage under 'chefkix-recipe-draft')
@@ -60,6 +55,7 @@ interface LocalDraft {
 function CreateRecipeContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const t = useTranslations('create')
 	const urlDraftId = searchParams.get('draftId')
 	const [mode, setMode] = useState<'list' | 'create'>(
 		urlDraftId ? 'create' : 'list',
@@ -68,6 +64,9 @@ function CreateRecipeContent() {
 	const [localDraft, setLocalDraft] = useState<LocalDraft | null>(null)
 	const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 	const [isLoadingDraft, setIsLoadingDraft] = useState(!!urlDraftId)
+
+	// Onboarding hints
+	useOnboardingOrchestrator({ delay: 1000 })
 
 	const loadLocalDraft = useCallback(() => {
 		try {
@@ -88,11 +87,9 @@ function CreateRecipeContent() {
 			logDevError('Failed to parse local draft:', error)
 			localStorage.removeItem('chefkix-recipe-draft')
 			setLocalDraft(null)
-			toast.error(
-				'Your local draft was corrupted and had to be removed. Sorry about that!',
-			)
+			toast.error(t('draftCorrupted'))
 		}
-	}, [])
+	}, [t])
 
 	// Load draft from URL ?draftId= param (deep links, redirects from edit page)
 	useEffect(() => {
@@ -110,14 +107,14 @@ function CreateRecipeContent() {
 					setMode('create')
 				} else {
 					setSelectedDraft(null)
-					toast.error(response.message || 'Draft not found')
+					toast.error(t('draftNotFound'))
 					setMode('list')
 				}
 			} catch (error) {
 				if (cancelled) return
 				logDevError('Failed to load draft from URL:', error)
 				setSelectedDraft(null)
-				toast.error('Failed to load draft')
+				toast.error(t('failedToLoadDraft'))
 				setMode('list')
 			} finally {
 				if (!cancelled) setIsLoadingDraft(false)
@@ -127,7 +124,7 @@ function CreateRecipeContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [urlDraftId])
+	}, [t, urlDraftId])
 
 	// Check for local draft on mount
 	useEffect(() => {
@@ -148,27 +145,30 @@ function CreateRecipeContent() {
 	 * The draft list only returns summary data (no ingredients/steps).
 	 * We need to fetch the full recipe to edit it properly.
 	 */
-	const handleSelectDraft = useCallback(async (draftId: string) => {
-		setIsLoadingDraft(true)
-		try {
-			const response = await getRecipeById(draftId)
-			if (response.success && response.data) {
-				setSelectedDraft(response.data)
-				localStorage.removeItem('chefkix-recipe-draft')
-				setLocalDraft(null) // Clear local draft state when using server draft
-				setMode('create')
-			} else {
+	const handleSelectDraft = useCallback(
+		async (draftId: string) => {
+			setIsLoadingDraft(true)
+			try {
+				const response = await getRecipeById(draftId)
+				if (response.success && response.data) {
+					setSelectedDraft(response.data)
+					localStorage.removeItem('chefkix-recipe-draft')
+					setLocalDraft(null) // Clear local draft state when using server draft
+					setMode('create')
+				} else {
+					setSelectedDraft(null)
+					toast.error(t('failedToLoadDraft'))
+				}
+			} catch (error) {
+				logDevError('Failed to load draft:', error)
 				setSelectedDraft(null)
-				toast.error(response.message || 'Failed to load draft')
+				toast.error(t('failedToLoadDraftRetry'))
+			} finally {
+				setIsLoadingDraft(false)
 			}
-		} catch (error) {
-			logDevError('Failed to load draft:', error)
-			setSelectedDraft(null)
-			toast.error('Failed to load draft. Please try again.')
-		} finally {
-			setIsLoadingDraft(false)
-		}
-	}, [])
+		},
+		[t],
+	)
 
 	const handleResumeLocalDraft = () => {
 		setSelectedDraft(null)
@@ -211,37 +211,20 @@ function CreateRecipeContent() {
 							transition={TRANSITION_SPRING}
 						>
 							{/* Header */}
-							<motion.div
-								initial={{ opacity: 0, y: -20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={TRANSITION_SPRING}
-								className='mb-8'
-							>
-								<div className='mb-2 flex items-center gap-3'>
-									<motion.div
-										initial={{ scale: 0 }}
-										animate={{ scale: 1 }}
-										transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-										className='flex size-12 items-center justify-center rounded-2xl bg-gradient-hero shadow-card shadow-brand/25'
-									>
-										<Edit3 className='size-6 text-white' />
-									</motion.div>
-									<h1 className='text-3xl font-bold text-text'>
-										Create Recipe
-									</h1>
-								</div>
-								<p className='flex items-center gap-2 text-text-secondary'>
-									<Sparkles className='size-4 text-streak' />
-									Start a new recipe or continue working on a draft
-								</p>
-							</motion.div>
+							<PageHeader
+								icon={Edit3}
+								title={t('title')}
+								subtitle={t('pageSubtitle')}
+								gradient='orange'
+								marginBottom='md'
+							/>
 
 							{/* Local Draft Recovery Card */}
 							{localDraft && (
 								<motion.div
 									initial={{ opacity: 0, y: -10 }}
 									animate={{ opacity: 1, y: 0 }}
-									className='mb-6 overflow-hidden rounded-2xl border-2 border-dashed border-streak/40 bg-gradient-to-r from-streak/10 to-orange-500/5 p-5'
+									className='mb-6 overflow-hidden rounded-2xl border-2 border-streak/60 bg-gradient-to-r from-streak/10 to-streak/5 p-5'
 								>
 									<div className='flex items-start gap-4'>
 										<div className='flex size-12 items-center justify-center rounded-xl bg-streak/20'>
@@ -249,42 +232,48 @@ function CreateRecipeContent() {
 										</div>
 										<div className='flex-1'>
 											<div className='flex items-center gap-2'>
-												<h3 className='font-semibold text-text'>
-													{localDraft.data.title || 'Untitled Recipe'}
-												</h3>
+												<h2 className='font-semibold text-text'>
+													{localDraft.data.title || t('untitledRecipe')}
+												</h2>
 												<span className='rounded-full bg-streak/20 px-2 py-0.5 text-xs font-medium text-streak'>
-													Local Draft
+													{t('localDraft')}
 												</span>
 											</div>
 											<div className='mt-1 flex items-center gap-1.5 text-xs text-text-muted'>
 												<Clock className='size-3' />
 												<span>
-													Saved{' '}
-													{formatDistanceToNow(new Date(localDraft.savedAt), {
-														addSuffix: true,
+													{t('savedAgo', {
+														time: formatDistanceToNow(
+															new Date(localDraft.savedAt),
+															{ addSuffix: true },
+														),
 													})}
 												</span>
 											</div>
 											<p className='mt-2 text-sm text-text-secondary'>
-												{localDraft.data.ingredients?.length || 0} ingredients •{' '}
-												{localDraft.data.steps?.length || 0} steps
+												{t('ingredientsSteps', {
+													ingredients: localDraft.data.ingredients?.length || 0,
+													steps: localDraft.data.steps?.length || 0,
+												})}
 											</p>
 										</div>
 									</div>
 									<div className='mt-4 flex gap-3'>
 										<motion.button
+											type='button'
 											onClick={handleResumeLocalDraft}
 											whileHover={BUTTON_HOVER}
 											whileTap={BUTTON_TAP}
-											className='flex-1 rounded-xl bg-streak py-2.5 text-sm font-semibold text-white'
+											className='flex-1 rounded-xl bg-streak py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											Resume Editing
+											{t('resumeEditing')}
 										</motion.button>
 										<motion.button
+											type='button'
 											onClick={() => setShowDiscardDialog(true)}
-											whileHover={{ scale: 1.05 }}
-											whileTap={{ scale: 0.95 }}
-											className='flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-text-muted hover:border-destructive hover:text-destructive'
+											whileHover={BUTTON_HOVER}
+											whileTap={BUTTON_TAP}
+											className='flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-text-muted hover:border-destructive hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											<Trash2 className='size-4' />
 										</motion.button>
@@ -298,18 +287,31 @@ function CreateRecipeContent() {
 								onNewRecipe={handleNewRecipe}
 							/>
 
-							{/* Loading overlay when fetching full draft data */}
+							{/* Loading skeleton when fetching full draft data — content-shaped, not a spinner */}
 							<AnimatePresence>
 								{isLoadingDraft && (
 									<motion.div
 										initial={{ opacity: 0 }}
 										animate={{ opacity: 1 }}
 										exit={{ opacity: 0 }}
-										className='fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm'
+										className='mx-auto max-w-3xl space-y-5 p-5'
 									>
-										<div className='flex flex-col items-center gap-4 rounded-2xl bg-bg-card p-8 shadow-lg'>
-											<Loader2 className='size-8 animate-spin text-brand' />
-											<p className='font-medium text-text'>Loading draft...</p>
+										{/* Header skeleton */}
+										<div className='flex items-center gap-4'>
+											<Skeleton className='size-10 rounded-xl' />
+											<Skeleton className='h-8 w-48' />
+										</div>
+										{/* Method cards skeleton */}
+										<div className='grid gap-4 md:grid-cols-2'>
+											<Skeleton className='h-24 rounded-2xl' />
+											<Skeleton className='h-24 rounded-2xl' />
+										</div>
+										{/* Content area skeleton */}
+										<div className='rounded-2xl bg-bg-card p-6 space-y-4'>
+											<Skeleton className='h-6 w-40' />
+											<Skeleton className='h-4 w-64' />
+											<Skeleton className='h-40 w-full rounded-xl' />
+											<Skeleton className='h-12 w-full rounded-xl' />
 										</div>
 									</motion.div>
 								)}
@@ -345,27 +347,29 @@ function CreateRecipeContent() {
 								<Trash2 className='size-7 text-destructive' />
 							</div>
 							<AlertDialogTitle className='text-lg font-bold text-text'>
-								Discard local draft?
+								{t('discardDraftTitle')}
 							</AlertDialogTitle>
 							<AlertDialogDescription className='text-sm text-text-secondary'>
-								This will permanently delete your unsaved recipe &quot;
-								{localDraft?.data.title || 'Untitled Recipe'}&quot;. This action
-								cannot be undone.
+								{t('discardDraftDescription', {
+									title: localDraft?.data.title || t('untitledRecipe'),
+								})}
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter className='flex-row gap-3 sm:justify-center'>
 							<AlertDialogCancel className='flex-1 rounded-xl border-border bg-bg text-text-secondary hover:bg-bg-hover'>
-								Keep it
+								{t('keepIt')}
 							</AlertDialogCancel>
 							<AlertDialogAction
 								onClick={handleDiscardLocalDraft}
 								className='flex-1 rounded-xl bg-destructive text-white hover:bg-destructive/90'
 							>
-								Discard
+								{t('discard')}
 							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>
 				</AlertDialog>
+
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

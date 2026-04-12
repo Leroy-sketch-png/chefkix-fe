@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -10,6 +11,7 @@ import {
 } from '@/components/leaderboard'
 import type { LeaderboardEntry } from '@/components/leaderboard/LeaderboardItem'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { useRouter } from 'next/navigation'
 import {
 	getLeaderboard,
@@ -24,8 +26,19 @@ import { ErrorState } from '@/components/ui/error-state'
 
 export default function LeaderboardRoute() {
 	const { user } = useAuth()
+	const requireAuth = useAuthGate()
+	const t = useTranslations('leaderboard')
 	const router = useRouter()
 	const [type, setType] = useState<LeaderboardType>('global')
+
+	// Guests can only view global leaderboard — friends/league require auth
+	const handleTypeChange = (newType: LeaderboardType) => {
+		if (newType !== 'global' && !user) {
+			requireAuth(t('authActionFriends'))
+			return
+		}
+		setType(newType)
+	}
 	const [timeframe, setTimeframe] = useState<Timeframe>('weekly')
 	const [entries, setEntries] = useState<LeaderboardEntry[]>([])
 	const [myRank, setMyRank] = useState<
@@ -119,8 +132,8 @@ export default function LeaderboardRoute() {
 			<PageTransition>
 				<PageContainer maxWidth='xl'>
 					<ErrorState
-						title='Failed to load leaderboard'
-						message="We couldn't load the leaderboard rankings. Please try again."
+						title={t('failedToLoad')}
+						message={t('failedToLoadDesc')}
 						onRetry={() => {
 							setError(false)
 							setIsLoading(true)
@@ -142,12 +155,15 @@ export default function LeaderboardRoute() {
 					resetInfo={getResetInfo()}
 					type={type}
 					timeframe={timeframe}
-					onTypeChange={setType}
+					onTypeChange={handleTypeChange}
 					onTimeframeChange={setTimeframe}
 					onUserClick={entry => router.push(`/${entry.userId}`)}
-					onBack={() => router.push('/dashboard')}
+					onBack={() => router.back()}
 					onCookNow={() => router.push('/explore')}
 				/>
+
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

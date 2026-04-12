@@ -1,9 +1,12 @@
 'use client'
+import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { PageTransition } from '@/components/layout/PageTransition'
 import {
 	MessageCircle,
 	Send,
@@ -11,7 +14,6 @@ import {
 	Wifi,
 	WifiOff,
 	Search,
-	CheckCheck,
 	Sparkles,
 	ArrowLeft,
 	Phone,
@@ -40,7 +42,15 @@ import {
 import { ChatMessage } from '@/components/messages/ChatMessage'
 import type { Message } from '@/components/messages/ChatMessage'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { EmptyState } from '@/components/shared/EmptyStateGamified'
+import {
+	TRANSITION_SPRING,
+	LIST_ITEM_HOVER,
+	LIST_ITEM_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
 
@@ -48,7 +58,10 @@ import { toast } from 'sonner'
 // HELPERS
 // ============================================
 
-function formatMessageTime(dateString: string): string {
+function formatMessageTime(
+	dateString: string,
+	yesterdayLabel = 'Yesterday',
+): string {
 	const date = new Date(dateString)
 	const now = new Date()
 	const diffDays = Math.floor(
@@ -58,7 +71,7 @@ function formatMessageTime(dateString: string): string {
 	if (diffDays === 0) {
 		return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 	} else if (diffDays === 1) {
-		return 'Yesterday'
+		return yesterdayLabel
 	} else if (diffDays < 7) {
 		return date.toLocaleDateString([], { weekday: 'short' })
 	} else {
@@ -83,6 +96,7 @@ function ConversationItem({
 	currentUserId,
 	onClick,
 }: ConversationItemProps) {
+	const t = useTranslations('messages')
 	const otherParticipant = conversation.participants.find(
 		p => p.userId !== currentUserId,
 	)
@@ -92,28 +106,39 @@ function ConversationItem({
 		(otherParticipant
 			? `${otherParticipant.firstName} ${otherParticipant.lastName}`.trim() ||
 				otherParticipant.username
-			: 'Unknown')
+			: t('unknownUser'))
 
 	const avatar =
 		conversation.conversationAvatar ||
 		otherParticipant?.avatar ||
 		'/placeholder-avatar.svg'
+	const previewText = conversation.lastMessage?.message || t('noMessagesYet')
+	const previewDate =
+		conversation.lastMessage?.createdDate ||
+		conversation.modifiedDate ||
+		conversation.createdDate
 
 	const hasUnread = conversation.unreadCount && conversation.unreadCount > 0
 
 	return (
-		<button
+		<motion.button
+			type='button'
 			onClick={onClick}
-			className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-all duration-200 ${
-				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated'
-			}`}
+			whileHover={LIST_ITEM_HOVER}
+			whileTap={LIST_ITEM_TAP}
+			transition={TRANSITION_SPRING}
+			className={cn(
+				'group flex w-full cursor-pointer items-center gap-2.5 rounded-xl p-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
+				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated',
+			)}
 		>
 			{/* Avatar */}
-			<div className='relative size-12 flex-shrink-0'>
+			<div className='relative size-11 flex-shrink-0'>
 				<Image
 					src={avatar}
 					alt={name}
 					fill
+					sizes='44px'
 					className='rounded-full object-cover'
 				/>
 			</div>
@@ -122,36 +147,42 @@ function ConversationItem({
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center justify-between gap-2'>
 					<span
-						className={`truncate font-semibold ${
-							hasUnread ? 'text-text' : 'text-text-secondary'
-						}`}
+						className={cn(
+							'truncate font-semibold',
+							hasUnread ? 'text-text' : 'text-text-secondary',
+						)}
 					>
 						{name}
 					</span>
-					{conversation.lastMessage && (
-						<span className='flex-shrink-0 text-xs text-text-muted'>
-							{formatMessageTime(conversation.lastMessage.createdDate)}
-						</span>
-					)}
+					<span className='tabular-nums flex-shrink-0 text-xs text-text-muted'>
+						{formatMessageTime(previewDate, t('yesterday'))}
+					</span>
 				</div>
-				{conversation.lastMessage && (
-					<p
-						className={`mt-0.5 truncate text-sm ${
-							hasUnread ? 'font-medium text-text' : 'text-text-muted'
-						}`}
-					>
-						{conversation.lastMessage.message}
-					</p>
-				)}
+				<p
+					className={cn(
+						'mt-0.5 truncate text-sm',
+						conversation.lastMessage
+							? hasUnread
+								? 'font-medium text-text'
+								: 'text-text-muted'
+							: 'italic text-text-muted',
+					)}
+				>
+					{previewText}
+				</p>
 			</div>
 
 			{/* Unread badge */}
 			{hasUnread && (
-				<span className='flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
+				<span
+					className='flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold tabular-nums text-white'
+					role='status'
+					aria-label={`${conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount} ${t('unreadMessages')}`}
+				>
 					{conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount}
 				</span>
 			)}
-		</button>
+		</motion.button>
 	)
 }
 
@@ -201,29 +232,26 @@ function MessageBubble({
 }
 
 function EmptyConversations() {
+	const t = useTranslations('messages')
 	return (
-		<div className='flex h-full flex-col items-center justify-center gap-4 p-6 text-center'>
-			<div className='grid size-16 place-items-center rounded-2xl bg-brand/10'>
-				<MessageCircle className='size-8 text-brand' />
-			</div>
-			<div>
-				<h3 className='font-semibold text-text'>No conversations yet</h3>
-				<p className='mt-1 text-sm text-text-muted'>
-					Find chefs in the community and start chatting!
-				</p>
-			</div>
-			<Link
-				href='/community'
-				className='mt-2 inline-flex items-center gap-2 rounded-radius bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-card transition-shadow hover:shadow-warm'
-			>
-				<Users className='size-4' />
-				Discover Chefs
-			</Link>
+		<div className='flex h-full items-center justify-center p-6'>
+			<EmptyState
+				variant='custom'
+				title={t('noConversations')}
+				description={t('noConversationsDesc')}
+				emoji='💬'
+				primaryAction={{
+					label: t('discoverChefs'),
+					href: '/community',
+					icon: <Users className='size-4' />,
+				}}
+			/>
 		</div>
 	)
 }
 
 function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
+	const t = useTranslations('messages')
 	return (
 		<div className='flex h-full flex-col items-center justify-center gap-4 p-6 text-center'>
 			<motion.div
@@ -235,11 +263,9 @@ function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
 				<Sparkles className='size-10 text-white' />
 			</motion.div>
 			<div>
-				<h2 className='text-xl font-bold text-text'>Welcome to Messages</h2>
+				<h2 className='text-xl font-bold text-text'>{t('welcomeTitle')}</h2>
 				<p className='mt-2 text-text-secondary'>
-					{hasConversations
-						? 'Select a conversation to continue chatting'
-						: "Start a conversation from any chef's profile"}
+					{hasConversations ? t('selectConversation') : t('startConversation')}
 				</p>
 			</div>
 		</div>
@@ -253,19 +279,20 @@ function ConnectionStatus({
 	isConnected: boolean
 	error: string | null
 }) {
+	const t = useTranslations('messages')
 	if (isConnected) {
 		return (
 			<div className='flex items-center gap-1.5 text-xs text-success'>
-				<Wifi className='size-3' />
-				<span>Connected</span>
+				<Wifi className='size-3.5' />
+				<span>{t('connected')}</span>
 			</div>
 		)
 	}
 
 	return (
 		<div className='flex items-center gap-1.5 text-xs text-text-muted'>
-			<WifiOff className='size-3' />
-			<span>{error || 'Connecting...'}</span>
+			<WifiOff className='size-3.5' />
+			<span>{error || t('connecting')}</span>
 		</div>
 	)
 }
@@ -277,6 +304,7 @@ function ConnectionStatus({
 function MessagesContent() {
 	const { user } = useAuth()
 	const searchParams = useSearchParams()
+	const t = useTranslations('messages')
 	const targetUserId = searchParams.get('userId')
 
 	// State
@@ -438,7 +466,7 @@ function MessagesContent() {
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch messages:', err)
-				toast.error('Could not load messages')
+				toast.error(t('couldNotLoadMessages'))
 			} finally {
 				if (!cancelled) setIsLoadingMessages(false)
 			}
@@ -451,7 +479,7 @@ function MessagesContent() {
 			cancelled = true
 			clearTimeout(focusTimer)
 		}
-	}, [selectedConversationId])
+	}, [selectedConversationId, t])
 
 	// Track scroll position to decide auto-scroll behavior
 	useEffect(() => {
@@ -497,12 +525,12 @@ function MessagesContent() {
 					setMessages(prev => [...prev, response.data!])
 				} else {
 					setNewMessage(messageText)
-					toast.error('Failed to send message')
+					toast.error(t('failedToSend'))
 				}
 			} catch (err) {
 				logDevError('Failed to send message:', err)
 				setNewMessage(messageText)
-				toast.error('Failed to send message')
+				toast.error(t('failedToSend'))
 			} finally {
 				setIsSending(false)
 			}
@@ -517,45 +545,51 @@ function MessagesContent() {
 
 	// React to a message
 	const reactingRef = useRef(new Set<string>())
-	const handleReact = useCallback(async (messageId: string, emoji: string) => {
-		if (reactingRef.current.has(messageId)) return
-		reactingRef.current.add(messageId)
-		try {
-			const response = await reactToMessage(messageId, emoji)
-			if (response.success && response.data) {
-				setMessages(prev =>
-					prev.map(m => (m.id === messageId ? response.data! : m)),
-				)
-			} else {
-				toast.error('Failed to react to message')
+	const handleReact = useCallback(
+		async (messageId: string, emoji: string) => {
+			if (reactingRef.current.has(messageId)) return
+			reactingRef.current.add(messageId)
+			try {
+				const response = await reactToMessage(messageId, emoji)
+				if (response.success && response.data) {
+					setMessages(prev =>
+						prev.map(m => (m.id === messageId ? response.data! : m)),
+					)
+				} else {
+					toast.error(t('failedToReact'))
+				}
+			} catch {
+				toast.error(t('failedToReact'))
+			} finally {
+				reactingRef.current.delete(messageId)
 			}
-		} catch {
-			toast.error('Failed to react to message')
-		} finally {
-			reactingRef.current.delete(messageId)
-		}
-	}, [])
+		},
+		[t],
+	)
 
 	// Delete a message (own messages only)
 	const deletingRef = useRef(new Set<string>())
-	const handleDelete = useCallback(async (messageId: string) => {
-		if (deletingRef.current.has(messageId)) return
-		deletingRef.current.add(messageId)
-		try {
-			const response = await deleteMessage(messageId)
-			if (response.success && response.data) {
-				setMessages(prev =>
-					prev.map(m => (m.id === messageId ? response.data! : m)),
-				)
-			} else {
-				toast.error('Failed to delete message')
+	const handleDelete = useCallback(
+		async (messageId: string) => {
+			if (deletingRef.current.has(messageId)) return
+			deletingRef.current.add(messageId)
+			try {
+				const response = await deleteMessage(messageId)
+				if (response.success && response.data) {
+					setMessages(prev =>
+						prev.map(m => (m.id === messageId ? response.data! : m)),
+					)
+				} else {
+					toast.error(t('failedToDelete'))
+				}
+			} catch {
+				toast.error(t('failedToDelete'))
+			} finally {
+				deletingRef.current.delete(messageId)
 			}
-		} catch {
-			toast.error('Failed to delete message')
-		} finally {
-			deletingRef.current.delete(messageId)
-		}
-	}, [])
+		},
+		[t],
+	)
 
 	// Reply to a message - focus input and prepend reply context
 	const handleReply = useCallback((message: Message) => {
@@ -564,13 +598,16 @@ function MessagesContent() {
 	}, [])
 
 	// Copy message content
-	const handleCopy = useCallback(async (content: string) => {
-		try {
-			await navigator.clipboard.writeText(content)
-		} catch {
-			toast.error('Failed to copy message')
-		}
-	}, [])
+	const handleCopy = useCallback(
+		async (content: string) => {
+			try {
+				await navigator.clipboard.writeText(content)
+			} catch {
+				toast.error(t('failedToCopy'))
+			}
+		},
+		[t],
+	)
 
 	// Back to list (mobile)
 	const handleBackToList = () => {
@@ -623,19 +660,22 @@ function MessagesContent() {
 					showMobileChat ? 'hidden md:flex' : 'flex'
 				}`}
 			>
-				{/* Sidebar Header */}
+				{/* Sidebar Header with PageHeader */}
 				<header className='flex-shrink-0 border-b border-border-subtle p-4'>
-					<div className='mb-3 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-hero shadow-card shadow-brand/25'>
-							<MessageCircle className='size-5 text-white' />
-						</div>
-						<h1 className='text-2xl font-bold text-text'>Messages</h1>
-					</div>
+					<PageHeader
+						icon={MessageCircle}
+						title={t('title')}
+						subtitle={t('subtitle')}
+						gradient='blue'
+						marginBottom='sm'
+						className='mb-0'
+					/>
 					{/* Search */}
 					<div className='relative mt-3'>
 						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
 						<Input
-							placeholder='Search conversations...'
+							placeholder={t('searchConversations')}
+							aria-label={t('searchConversations')}
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
 							className='bg-bg-elevated pl-9'
@@ -644,17 +684,17 @@ function MessagesContent() {
 				</header>
 
 				{/* Conversations List - Scrollable */}
-				<nav className='flex-1 overflow-y-auto px-2 py-2'>
+				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-24 md:pb-2'>
 					{isLoadingConversations ? (
 						<div className='space-y-2 px-2'>
 							{Array.from({ length: 5 }).map((_, i) => (
 								<div key={i} className='flex items-center gap-3 rounded-xl p-3'>
-									<div className='size-11 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+									<Skeleton className='size-11 shrink-0 rounded-full' />
 									<div className='flex-1 space-y-1.5'>
-										<div className='h-4 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
-										<div className='h-3 w-full animate-pulse rounded bg-bg-elevated/40' />
+										<Skeleton className='h-4 w-2/3' />
+										<Skeleton className='h-3 w-full' />
 									</div>
-									<div className='h-3 w-8 animate-pulse rounded bg-bg-elevated/40' />
+									<Skeleton className='h-3 w-8' />
 								</div>
 							))}
 						</div>
@@ -695,6 +735,29 @@ function MessagesContent() {
 									</motion.div>
 								))}
 							</AnimatePresence>
+
+							{!searchQuery.trim() && filteredConversations.length < 8 && (
+								<motion.div
+									initial={{ opacity: 0, y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={TRANSITION_SPRING}
+									className='mt-3 rounded-xl border border-border-subtle bg-bg-elevated p-3'
+								>
+									<p className='text-sm font-semibold text-text'>
+										{t('findPeopleToChat')}
+									</p>
+									<p className='mt-1 text-xs text-text-muted'>
+										{t('startConversationFriend')}
+									</p>
+									<Link
+										href='/community'
+										className='mt-2 inline-flex items-center gap-1.5 rounded-lg border border-brand/20 bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/15'
+									>
+										<Users className='size-3.5' />
+										{t('discoverChefs')}
+									</Link>
+								</motion.div>
+							)}
 						</div>
 					)}
 				</nav>
@@ -717,7 +780,7 @@ function MessagesContent() {
 								size='icon'
 								onClick={handleBackToList}
 								className='md:hidden'
-								aria-label='Back to conversations'
+								aria-label={t('ariaBackToConversations')}
 							>
 								<ArrowLeft className='size-5' />
 							</Button>
@@ -728,7 +791,12 @@ function MessagesContent() {
 									src={selectedInfo.avatar}
 									alt={selectedInfo.name}
 									fill
+									sizes='40px'
 									className='rounded-full object-cover'
+									onError={e => {
+										;(e.target as HTMLImageElement).src =
+											'/placeholder-avatar.svg'
+									}}
 								/>
 							</div>
 							<div className='min-w-0 flex-1'>
@@ -745,7 +813,7 @@ function MessagesContent() {
 									size='icon'
 									onClick={() => setIsVideoCallActive(true)}
 									className='text-brand hover:bg-brand/10'
-									aria-label='Start video call'
+									aria-label={t('ariaStartVideoCall')}
 								>
 									<Phone className='size-5' />
 								</Button>
@@ -755,14 +823,19 @@ function MessagesContent() {
 						{/* Video Call Modal / Overlay */}
 						{isVideoCallActive && selectedConversation && user && (
 							<Portal>
-								<div className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'>
+								<div
+									className='fixed inset-0 z-modal flex items-center justify-center bg-black/80 backdrop-blur-sm p-4'
+									role='dialog'
+									aria-modal='true'
+									aria-label={t('ariaStartVideoCall')}
+								>
 									<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
 										<Button
 											variant='ghost'
 											size='icon'
-											className='absolute -top-3 -right-3 z-[60] bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
+											className='absolute -top-3 -right-3 z-dropdown bg-bg-card rounded-full shadow-card text-error hover:bg-error/10 hover:text-error-vivid size-10'
 											onClick={() => setIsVideoCallActive(false)}
-											aria-label='End video call'
+											aria-label={t('ariaEndVideoCall')}
 										>
 											<X className='size-5' />
 										</Button>
@@ -780,6 +853,9 @@ function MessagesContent() {
 						{/* Messages Area - Scrollable */}
 						<div
 							ref={messagesContainerRef}
+							role='log'
+							aria-live='polite'
+							aria-label={t('ariaMessagesRegion')}
 							className='flex-1 overflow-y-auto px-4 py-4 md:px-6'
 						>
 							{isLoadingMessages ? (
@@ -790,25 +866,25 @@ function MessagesContent() {
 											className={`flex gap-2 ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}
 										>
 											{i % 2 === 0 && (
-												<div className='size-8 shrink-0 animate-pulse rounded-full bg-bg-elevated/40' />
+												<Skeleton className='size-8 shrink-0 rounded-full' />
 											)}
 											<div
 												className={`space-y-1.5 rounded-2xl p-3 ${i % 2 === 0 ? 'w-2/3 bg-bg-elevated/20' : 'w-1/2 bg-brand/10'}`}
 											>
-												<div className='h-3 w-full animate-pulse rounded bg-bg-elevated/40' />
-												<div className='h-3 w-2/3 animate-pulse rounded bg-bg-elevated/40' />
+												<Skeleton className='h-3 w-full' />
+												<Skeleton className='h-3 w-2/3' />
 											</div>
 										</div>
 									))}
 								</div>
 							) : messages.length === 0 ? (
-								<div className='flex h-full flex-col items-center justify-center gap-3 text-center'>
-									<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
-										<MessageCircle className='size-7 text-text-muted' />
-									</div>
-									<p className='text-text-secondary'>
-										No messages yet. Say hello! 👋
-									</p>
+								<div className='flex h-full items-center justify-center'>
+									<EmptyState
+										variant='custom'
+										title={t('noMessages')}
+										description={t('noMessagesDesc')}
+										emoji='💬'
+									/>
 								</div>
 							) : (
 								<div className='flex flex-col gap-3'>
@@ -869,6 +945,7 @@ function MessagesContent() {
 									<button
 										type='button'
 										onClick={() => setReplyingTo(null)}
+										aria-label={t('ariaCancelReply')}
 										className='flex-shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text'
 									>
 										<X className='size-3.5' />
@@ -878,7 +955,8 @@ function MessagesContent() {
 							<div className='flex items-center gap-3'>
 								<MentionInput
 									ref={inputRef}
-									placeholder='Type a message... (use @ to mention)'
+									placeholder={t('typeMessage')}
+									aria-label={t('ariaMessageInput')}
 									value={newMessage}
 									onChange={setNewMessage}
 									onTaggedUsersChange={ids => {
@@ -893,6 +971,7 @@ function MessagesContent() {
 									onClick={handleSendMessage}
 									disabled={!newMessage.trim() || isSending}
 									size='icon'
+									aria-label={t('ariaSendMessage')}
 									className='bg-brand text-white hover:bg-brand-hover'
 								>
 									{isSending ? (
@@ -911,9 +990,22 @@ function MessagesContent() {
 					</>
 				) : isCreatingConversation ? (
 					<div className='flex h-full items-center justify-center'>
-						<div className='flex flex-col items-center gap-3'>
-							<Loader2 className='size-8 animate-spin text-brand' />
-							<p className='text-text-secondary'>Starting conversation...</p>
+						<div className='flex flex-col items-center gap-4'>
+							<div className='flex items-center gap-1.5'>
+								{[0, 1, 2].map(i => (
+									<motion.div
+										key={i}
+										className='size-3 rounded-full bg-brand'
+										animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
+										transition={{
+											duration: 0.8,
+											repeat: Infinity,
+											delay: i * 0.15,
+										}}
+									/>
+								))}
+							</div>
+							<p className='text-text-secondary'>{t('startingConversation')}</p>
 						</div>
 					</div>
 				) : (
@@ -950,8 +1042,10 @@ function MessagesSkeleton() {
 
 export default function MessagesPage() {
 	return (
-		<Suspense fallback={<MessagesSkeleton />}>
-			<MessagesContent />
-		</Suspense>
+		<PageTransition>
+			<Suspense fallback={<MessagesSkeleton />}>
+				<MessagesContent />
+			</Suspense>
+		</PageTransition>
 	)
 }

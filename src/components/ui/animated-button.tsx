@@ -30,6 +30,7 @@ export const AnimatedButton = forwardRef<
 		return (
 			<Button ref={ref} disabled={disabled || isLoading} {...props} asChild>
 				<motion.button
+					type='button'
 					whileHover={
 						disabled || isLoading || prefersReducedMotion
 							? undefined
@@ -41,7 +42,7 @@ export const AnimatedButton = forwardRef<
 							: BUTTON_TAP
 					}
 					transition={TRANSITION_SPRING}
-					className='relative overflow-hidden'
+					className='relative overflow-hidden focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{isLoading ? (
 						<>

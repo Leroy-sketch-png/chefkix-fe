@@ -12,8 +12,10 @@ import {
 	Award,
 	X,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import { getActivitySummary } from '@/services/heartbeat'
 import type { NotificationSummaryResponse } from '@/lib/types/heartbeat'
 
@@ -47,11 +49,11 @@ function setLastVisit(): void {
 	localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString())
 }
 
-function formatTimeSince(date: Date): string {
+function formatTimeSince(date: Date, t: (key: string, params?: Record<string, number>) => string): string {
 	const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60))
-	if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+	if (hours < 24) return t('slHoursAgo', { count: hours })
 	const days = Math.floor(hours / 24)
-	return `${days} day${days !== 1 ? 's' : ''} ago`
+	return t('slDaysAgo', { count: days })
 }
 
 // ============================================
@@ -59,6 +61,7 @@ function formatTimeSince(date: Date): string {
 // ============================================
 
 export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
+	const t = useTranslations('dashboard')
 	const router = useRouter()
 	const [data, setData] = useState<NotificationSummaryResponse | null>(null)
 	const [lastVisit, setLastVisitDate] = useState<Date | null>(null)
@@ -117,42 +120,42 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 		{
 			icon: Heart,
 			value: data.newLikes,
-			label: 'likes',
+			label: t('slLikes'),
 			color: 'text-error',
 			href: '/notifications',
 		},
 		{
 			icon: MessageCircle,
 			value: data.newComments,
-			label: 'comments',
+			label: t('slComments'),
 			color: 'text-info',
 			href: '/notifications',
 		},
 		{
 			icon: UserPlus,
 			value: data.newFollowers,
-			label: 'followers',
+			label: t('slFollowers'),
 			color: 'text-success',
 			href: '/community',
 		},
 		{
 			icon: Sparkles,
 			value: data.xpAwarded,
-			label: 'XP',
+			label: t('slXp'),
 			color: 'text-accent-purple',
 			href: '/profile/badges',
 		},
 		{
 			icon: Trophy,
 			value: data.badgesEarned,
-			label: 'badges',
+			label: t('slBadges'),
 			color: 'text-medal-gold',
 			href: '/profile/badges',
 		},
 		{
 			icon: Award,
 			value: data.levelsGained,
-			label: 'levels',
+			label: t('slLevels'),
 			color: 'text-xp',
 			href: '/profile/badges',
 		},
@@ -177,9 +180,10 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 
 					{/* Dismiss button */}
 					<button
+						type='button'
 						onClick={handleDismiss}
 						className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-card hover:text-text'
-						aria-label='Dismiss'
+						aria-label={t('slDismissLabel')}
 					>
 						<X className='size-4' />
 					</button>
@@ -187,24 +191,27 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 					{/* Content */}
 					<div className='relative'>
 						<h3 className='mb-1 text-sm font-semibold text-text'>
-							Welcome back! 👋
+							{t('slWelcomeBack')}
 						</h3>
 						<p className='mb-3 text-xs text-text-muted'>
-							Since your last visit {formatTimeSince(lastVisit)}
+							{t('slSinceLastVisit', { timeAgo: formatTimeSince(lastVisit, t) })}
 						</p>
 
 						{/* Stats grid */}
 						<div className='flex flex-wrap gap-3'>
 							{stats.map(({ icon: Icon, value, label, color, href }) => (
 								<motion.button
+									type='button'
 									key={label}
-									whileHover={{ scale: 1.05 }}
+										whileHover={BUTTON_SUBTLE_HOVER}
+										whileTap={BUTTON_SUBTLE_TAP}
+										transition={TRANSITION_SPRING}
 									onClick={() => router.push(href)}
-									className='flex items-center gap-1.5 rounded-lg bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated'
+									className='flex items-center gap-1.5 rounded-lg bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Icon className={cn('size-4', color)} />
-									<span className='text-sm font-semibold text-text'>
-										{value}
+									<span className='text-sm font-semibold text-text tabular-nums'>
+										<AnimatedNumber value={value} />
 									</span>
 									<span className='text-xs text-text-muted'>{label}</span>
 								</motion.button>

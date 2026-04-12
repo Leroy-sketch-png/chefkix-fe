@@ -2,12 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
 	Trophy,
-	ChevronLeft,
 	Search,
-	Filter,
 	Sparkles,
 	Lock,
 	CheckCircle2,
@@ -15,16 +13,18 @@ import {
 	Flame,
 	ChefHat,
 	Award,
-	Utensils,
 	Globe,
 	Users,
 	Target,
+	ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PageTransition } from '@/components/layout/PageTransition'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
 	getAllBadges,
-	getBadgesByCategory,
 	resolveBadgesWithFallback,
 } from '@/lib/data/badgeRegistry'
 import type {
@@ -32,7 +32,13 @@ import type {
 	BadgeCategory,
 	BadgeRarity,
 } from '@/lib/types/gamification'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	BUTTON_SUBTLE_TAP,
+	DURATION_S,
+} from '@/lib/motion'
+import { useTranslations } from 'next-intl'
 
 // ============================================
 // BADGE CATALOG PAGE
@@ -43,40 +49,40 @@ import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 // Category display config
 const CATEGORY_CONFIG: Record<
 	BadgeCategory,
-	{ label: string; icon: React.ReactNode; color: string }
+	{ labelKey: string; icon: React.ReactNode; color: string }
 > = {
 	COOKING: {
-		label: 'Cooking',
+		labelKey: 'catCooking',
 		icon: <ChefHat className='size-4' />,
 		color: 'text-brand',
 	},
 	CUISINE: {
-		label: 'Cuisine',
+		labelKey: 'catCuisine',
 		icon: <Globe className='size-4' />,
 		color: 'text-info',
 	},
 	STREAK: {
-		label: 'Streaks',
+		labelKey: 'catStreaks',
 		icon: <Flame className='size-4' />,
 		color: 'text-streak',
 	},
 	SPECIAL: {
-		label: 'Special',
+		labelKey: 'catSpecial',
 		icon: <Sparkles className='size-4' />,
 		color: 'text-xp',
 	},
 	SOCIAL: {
-		label: 'Social',
+		labelKey: 'catSocial',
 		icon: <Users className='size-4' />,
 		color: 'text-success',
 	},
 	CHALLENGE: {
-		label: 'Challenges',
+		labelKey: 'catChallenges',
 		icon: <Target className='size-4' />,
 		color: 'text-warning',
 	},
 	CREATOR: {
-		label: 'Creator',
+		labelKey: 'catCreator',
 		icon: <Award className='size-4' />,
 		color: 'text-combo',
 	},
@@ -85,34 +91,34 @@ const CATEGORY_CONFIG: Record<
 // Rarity display config
 const RARITY_CONFIG: Record<
 	BadgeRarity,
-	{ label: string; bgClass: string; textClass: string; borderClass: string }
+	{ labelKey: string; bgClass: string; textClass: string; borderClass: string }
 > = {
 	COMMON: {
-		label: 'Common',
+		labelKey: 'rarCommon',
 		bgClass: 'bg-text-secondary/10',
 		textClass: 'text-text-secondary',
 		borderClass: 'border-text-secondary/20',
 	},
 	UNCOMMON: {
-		label: 'Uncommon',
+		labelKey: 'rarUncommon',
 		bgClass: 'bg-success/10',
 		textClass: 'text-success',
 		borderClass: 'border-success/30',
 	},
 	RARE: {
-		label: 'Rare',
+		labelKey: 'rarRare',
 		bgClass: 'bg-info/10',
 		textClass: 'text-info',
 		borderClass: 'border-info/30',
 	},
 	EPIC: {
-		label: 'Epic',
+		labelKey: 'rarEpic',
 		bgClass: 'bg-accent-purple/10',
 		textClass: 'text-accent-purple',
 		borderClass: 'border-accent-purple/30',
 	},
 	LEGENDARY: {
-		label: 'Legendary',
+		labelKey: 'rarLegendary',
 		bgClass: 'bg-gradient-to-r from-warning/10 to-brand/10',
 		textClass: 'text-warning',
 		borderClass: 'border-warning/30',
@@ -139,6 +145,7 @@ interface BadgeCardProps {
 }
 
 const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
+	const t = useTranslations('badges')
 	const rarityConfig = RARITY_CONFIG[badge.rarity]
 	const isHidden = badge.isHidden && !isEarned
 
@@ -220,7 +227,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 							rarityConfig.textClass,
 						)}
 					>
-						{rarityConfig.label}
+						{t(rarityConfig.labelKey)}
 					</span>
 
 					{/* Unlock criteria (for locked badges) */}
@@ -233,11 +240,12 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 					{/* Earned date (for earned badges) */}
 					{isEarned && earnedAt && (
 						<p className='text-2xs text-text-muted'>
-							Earned{' '}
-							{new Date(earnedAt).toLocaleDateString('en-US', {
-								month: 'short',
-								day: 'numeric',
-								year: 'numeric',
+							{t('earnedDate', {
+								date: new Date(earnedAt).toLocaleDateString('en-US', {
+									month: 'short',
+									day: 'numeric',
+									year: 'numeric',
+								}),
 							})}
 						</p>
 					)}
@@ -253,6 +261,8 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 
 export default function BadgeCatalogPage() {
 	const { user } = useAuth()
+	const router = useRouter()
+	const t = useTranslations('badges')
 	const [searchQuery, setSearchQuery] = useState('')
 	const [selectedCategory, setSelectedCategory] = useState<
 		BadgeCategory | 'ALL'
@@ -355,188 +365,224 @@ export default function BadgeCatalogPage() {
 	}, [allBadges, earnedBadgeIds])
 
 	return (
-		<div className='min-h-screen bg-bg pb-20'>
-			{/* Header */}
-			<div className='sticky top-0 z-sticky border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
-				<div className='mx-auto max-w-6xl px-4 py-4'>
-					{/* Back + Title */}
-					<div className='flex items-center gap-3'>
-						<Link
-							href='/profile'
-							className='grid size-10 place-items-center rounded-full bg-bg-hover text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						>
-							<ChevronLeft className='size-5' />
-						</Link>
-						<div className='flex-1'>
-							<h1 className='text-xl font-bold text-text'>Badge Collection</h1>
-							<p className='text-sm text-text-muted'>
-								{earnedCount} of {totalBadges} badges earned ({progressPercent}
-								%)
-							</p>
-						</div>
-						<div className='grid size-12 place-items-center rounded-xl bg-gradient-gold text-2xl shadow-card'>
-							<Trophy className='size-6 text-text' />
-						</div>
-					</div>
-
-					{/* Progress Bar */}
-					<div className='mt-4 h-2 overflow-hidden rounded-full bg-bg-hover'>
-						<motion.div
-							initial={{ width: 0 }}
-							animate={{ width: `${progressPercent}%` }}
-							transition={{ duration: 1, ease: 'easeOut' }}
-							className='h-full rounded-full bg-gradient-to-r from-xp to-brand'
-						/>
-					</div>
-
-					{/* Search + Filters */}
-					<div className='mt-4 flex flex-wrap items-center gap-2'>
-						{/* Search */}
-						<div className='relative flex-1 min-w-search'>
-							<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-							<input
-								type='text'
-								placeholder='Search badges...'
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
-								className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
-							/>
-						</div>
-
-						{/* Category Filter */}
-						<select
-							value={selectedCategory}
-							onChange={e =>
-								setSelectedCategory(e.target.value as BadgeCategory | 'ALL')
-							}
-							className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
-						>
-							<option value='ALL'>All Categories</option>
-							{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-								<option key={key} value={key}>
-									{config.label} ({categoryCounts[key]?.earned ?? 0}/
-									{categoryCounts[key]?.total ?? 0})
-								</option>
-							))}
-						</select>
-
-						{/* Rarity Filter */}
-						<select
-							value={selectedRarity}
-							onChange={e =>
-								setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
-							}
-							className='rounded-lg border border-border-subtle bg-bg-input px-3 py-2 text-sm text-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20'
-						>
-							<option value='ALL'>All Rarities</option>
-							{RARITY_ORDER.map(rarity => (
-								<option key={rarity} value={rarity}>
-									{RARITY_CONFIG[rarity].label}
-								</option>
-							))}
-						</select>
-
-						{/* Earned Only Toggle */}
-						<button
-							onClick={() => setShowEarnedOnly(!showEarnedOnly)}
-							className={cn(
-								'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-								showEarnedOnly
-									? 'border-success bg-success/10 text-success'
-									: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
-							)}
-						>
-							<CheckCircle2 className='size-4' />
-							Earned Only
-						</button>
-					</div>
-				</div>
-			</div>
-
-			{/* Badge Grid */}
-			<div className='mx-auto max-w-6xl px-4 py-6'>
-				<AnimatePresence mode='popLayout'>
-					{filteredBadges.length === 0 ? (
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className='flex flex-col items-center justify-center py-20 text-center'
-						>
-							<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
-								<Search className='size-8 text-text-muted' />
+		<PageTransition>
+			<div className='min-h-screen bg-bg pb-20'>
+				{/* Header */}
+				<div className='sticky top-0 z-sticky border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
+					<PageContainer maxWidth='xl'>
+						<div className='py-4'>
+							{/* Back + PageHeader */}
+							<div className='mb-4 flex items-center gap-3'>
+								<motion.button
+									type='button'
+									onClick={() => router.back()}
+									whileTap={BUTTON_SUBTLE_TAP}
+									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaGoBack')}
+								>
+									<ArrowLeft className='size-5' />
+								</motion.button>
+								<div className='flex-1'>
+									<PageHeader
+										icon={Trophy}
+										title={t('badgeCollection')}
+										subtitle={t('badgeProgress', {
+											earned: earnedCount,
+											total: totalBadges,
+											percent: progressPercent,
+										})}
+										gradient='warm'
+										marginBottom='sm'
+										className='mb-0'
+									/>
+								</div>
 							</div>
-							<p className='mt-4 font-semibold text-text'>No badges found</p>
-							<p className='mt-1 text-sm text-text-muted'>
-								Try adjusting your filters or search query
-							</p>
-						</motion.div>
-					) : (
-						<motion.div
-							layout
-							className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-						>
-							{filteredBadges.map((badge, index) => {
-								const isEarned =
-									earnedBadgeIds.has(badge.id) ||
-									earnedBadgeIds.has(badge.name) ||
-									earnedBadgeIds.has(badge.name.toLowerCase())
-								return (
-									<motion.div
-										key={badge.id || `badge-${index}`}
-										layout
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, scale: 0.9 }}
-										transition={{ delay: Math.min(index * 0.02, 0.3) }}
+
+							{/* Progress Bar */}
+							<div className='h-2 overflow-hidden rounded-full bg-bg-hover'>
+								<motion.div
+									initial={{ width: 0 }}
+									animate={{ width: `${progressPercent}%` }}
+									transition={{
+										duration: DURATION_S.dramatic,
+										ease: 'easeOut',
+									}}
+									className='h-full rounded-full bg-gradient-to-r from-xp to-brand'
+								/>
+							</div>
+
+							{/* Search + Filters */}
+							<div className='mt-4 grid grid-cols-[1fr] gap-2 sm:flex sm:flex-wrap sm:items-center'>
+								{/* Search */}
+								<div className='relative sm:flex-1 sm:min-w-search'>
+									<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+									<input
+										type='text'
+										placeholder={t('searchPlaceholder')}
+										value={searchQuery}
+										onChange={e => setSearchQuery(e.target.value)}
+										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20'
+									/>
+								</div>
+
+								{/* Category Filter */}
+								{/* Filter row */}
+								<div className='flex flex-wrap items-center gap-2'>
+									<select
+										value={selectedCategory}
+										onChange={e =>
+											setSelectedCategory(
+												e.target.value as BadgeCategory | 'ALL',
+											)
+										}
+										className='min-w-0 flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
 									>
-										<BadgeCard
-											badge={badge}
-											isEarned={isEarned}
-											earnedAt={
-												badgeTimestamps[badge.id] ??
-												badgeTimestamps[badge.name] ??
-												undefined
-											}
-										/>
-									</motion.div>
+										<option className='bg-bg-card text-text' value='ALL'>
+											{t('allCategories')}
+										</option>
+										{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+											<option
+												className='bg-bg-card text-text'
+												key={key}
+												value={key}
+											>
+												{t(config.labelKey)} ({categoryCounts[key]?.earned ?? 0}
+												/{categoryCounts[key]?.total ?? 0})
+											</option>
+										))}
+									</select>
+
+									{/* Rarity Filter */}
+									<select
+										value={selectedRarity}
+										onChange={e =>
+											setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
+										}
+										className='min-w-0 flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+									>
+										<option className='bg-bg-card text-text' value='ALL'>
+											{t('allRarities')}
+										</option>
+										{RARITY_ORDER.map(rarity => (
+											<option
+												className='bg-bg-card text-text'
+												key={rarity}
+												value={rarity}
+											>
+												{t(RARITY_CONFIG[rarity].labelKey)}
+											</option>
+										))}
+									</select>
+
+									{/* Earned Only Toggle */}
+									<button
+										type='button'
+										onClick={() => setShowEarnedOnly(!showEarnedOnly)}
+										className={cn(
+											'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+											showEarnedOnly
+												? 'border-success bg-success/10 text-success'
+												: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
+										)}
+									>
+										<CheckCircle2 className='size-4' />
+										Earned Only
+									</button>
+								</div>
+							</div>
+						</div>
+					</PageContainer>
+				</div>
+
+				{/* Badge Grid */}
+				<PageContainer maxWidth='xl' className='py-6'>
+					<AnimatePresence mode='popLayout'>
+						{filteredBadges.length === 0 ? (
+							<motion.div
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								className='flex flex-col items-center justify-center py-20 text-center'
+							>
+								<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
+									<Search className='size-8 text-text-muted' />
+								</div>
+								<p className='mt-4 font-semibold text-text'>
+									{t('noBadgesFound')}
+								</p>
+								<p className='mt-1 text-sm text-text-muted'>
+									{t('noBadgesHint')}
+								</p>
+							</motion.div>
+						) : (
+							<motion.div
+								layout
+								className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+							>
+								{filteredBadges.map((badge, index) => {
+									const isEarned =
+										earnedBadgeIds.has(badge.id) ||
+										earnedBadgeIds.has(badge.name) ||
+										earnedBadgeIds.has(badge.name.toLowerCase())
+									return (
+										<motion.div
+											key={badge.id || `badge-${index}`}
+											layout
+											initial={{ opacity: 0, y: 20 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, scale: 0.9 }}
+											transition={{ delay: Math.min(index * 0.02, 0.3) }}
+										>
+											<BadgeCard
+												badge={badge}
+												isEarned={isEarned}
+												earnedAt={
+													badgeTimestamps[badge.id] ??
+													badgeTimestamps[badge.name] ??
+													undefined
+												}
+											/>
+										</motion.div>
+									)
+								})}
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</PageContainer>
+
+				{/* Rarity Legend */}
+				<PageContainer maxWidth='xl' className='pb-8'>
+					<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+						<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
+							<Star className='size-4 text-xp' />
+							{t('rarityGuide')}
+						</h3>
+						<div className='flex flex-wrap gap-2'>
+							{RARITY_ORDER.map(rarity => {
+								const config = RARITY_CONFIG[rarity]
+								return (
+									<div
+										key={rarity}
+										className={cn(
+											'flex items-center gap-2 rounded-lg border px-3 py-1.5',
+											config.bgClass,
+											config.borderClass,
+										)}
+									>
+										<span
+											className={cn('text-xs font-semibold', config.textClass)}
+										>
+											{t(config.labelKey)}
+										</span>
+									</div>
 								)
 							})}
-						</motion.div>
-					)}
-				</AnimatePresence>
-			</div>
-
-			{/* Rarity Legend */}
-			<div className='mx-auto max-w-6xl px-4 pb-8'>
-				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
-					<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
-						<Star className='size-4 text-xp' />
-						Rarity Guide
-					</h3>
-					<div className='flex flex-wrap gap-2'>
-						{RARITY_ORDER.map(rarity => {
-							const config = RARITY_CONFIG[rarity]
-							return (
-								<div
-									key={rarity}
-									className={cn(
-										'flex items-center gap-2 rounded-lg border px-3 py-1.5',
-										config.bgClass,
-										config.borderClass,
-									)}
-								>
-									<span
-										className={cn('text-xs font-semibold', config.textClass)}
-									>
-										{config.label}
-									</span>
-								</div>
-							)
-						})}
+						</div>
 					</div>
-				</div>
+
+					<div className='pb-40 md:pb-8' />
+				</PageContainer>
 			</div>
-		</div>
+		</PageTransition>
 	)
 }

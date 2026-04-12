@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Button } from '@/components/ui/button'
 import { AnimatedButton } from '@/components/ui/animated-button'
 import {
 	Form,
@@ -24,16 +23,19 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { resendOtp, verifyOtp } from '@/services/auth'
 import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
-import { PATHS, VERIFY_OTP_MESSAGES } from '@/constants'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { PATHS } from '@/constants'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { toast } from 'sonner'
 import { triggerSuccessConfetti } from '@/lib/confetti'
 import { Clock, AlertTriangle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { LazyLottie } from '@/components/shared/LazyLottie'
 
-const formSchema = z.object({
-	otp: z.string().min(6, { message: 'Your OTP must be 6 characters.' }),
-})
+function createOtpSchema(t: (key: string) => string) {
+	return z.object({
+		otp: z.string().length(6, { message: t('validationOtpExact') }),
+	})
+}
 
 // OTP expires after 10 minutes (from spec)
 const OTP_EXPIRY_SECONDS = 10 * 60 // 600 seconds
@@ -49,9 +51,21 @@ function formatTime(seconds: number): string {
 
 export const VerifyOtpForm = () => {
 	const router = useRouter()
+	const t = useTranslations('auth')
+	const formSchema = useMemo(() => createOtpSchema(t), [t])
 	const searchParams = useSearchParams()
 	const email = searchParams.get('email')
+	const returnTo = searchParams.get('returnTo')
 	const { login, setUser, setLoading } = useAuth()
+
+	// Determine the redirect target after login
+	// Only allow relative paths to prevent open redirect attacks
+	const postLoginPath =
+		returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard'
+	const signInPath =
+		returnTo && returnTo.startsWith('/')
+			? `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(returnTo)}`
+			: PATHS.AUTH.SIGN_IN
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
 
@@ -104,12 +118,12 @@ export const VerifyOtpForm = () => {
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
 		// Don't allow submission if expired
 		if (isExpired) {
-			toast.error('Your code has expired. Please request a new one.')
+			toast.error(t('expiredResend'))
 			return
 		}
 
 		if (!email) {
-			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND
+			const errorMsg = t('emailNotFound')
 			setError(errorMsg)
 			toast.error(errorMsg)
 			return
@@ -123,7 +137,7 @@ export const VerifyOtpForm = () => {
 				clearInterval(timerRef.current)
 			}
 
-			setSuccess(VERIFY_OTP_MESSAGES.VERIFICATION_SUCCESS)
+			setSuccess(t('verificationSuccess'))
 			setError(null)
 			triggerSuccessConfetti()
 
@@ -135,24 +149,22 @@ export const VerifyOtpForm = () => {
 				const profileResponse = await getMyProfile()
 				if (profileResponse.success && profileResponse.data) {
 					setUser(profileResponse.data)
-					toast.success(
-						'Welcome to ChefKix! Let\u2019s get cooking \uD83C\uDF89',
-					)
+					toast.success(t('toastWelcomeNew'))
 					setLoading(true)
-					router.push('/dashboard')
+					router.push(postLoginPath)
 					return
 				}
 			}
 
 			// Fallback: if auto-login fails, redirect to sign-in with pre-filled email
-			toast.success('Email verified! Just enter your password to jump in.')
+			toast.success(t('toastEmailVerified'))
 			if (email) {
 				sessionStorage.setItem('verified-email', email)
 				sessionStorage.setItem('just-registered', 'true')
 			}
-			router.push(PATHS.AUTH.SIGN_IN)
+			router.push(signInPath)
 		} else {
-			const errorMsg = response.message || VERIFY_OTP_MESSAGES.INVALID_OTP
+			const errorMsg = response.message || t('invalidOtp')
 			setError(errorMsg)
 			setSuccess(null)
 			toast.error(errorMsg)
@@ -161,14 +173,14 @@ export const VerifyOtpForm = () => {
 
 	const handleResendOtp = async () => {
 		if (!email) {
-			const errorMsg = VERIFY_OTP_MESSAGES.EMAIL_NOT_FOUND_FOR_RESEND
+			const errorMsg = t('emailNotFoundForResend')
 			setError(errorMsg)
 			toast.error(errorMsg)
 			return
 		}
 		const response = await resendOtp({ email })
 		if (response.success) {
-			const successMsg = VERIFY_OTP_MESSAGES.RESEND_SUCCESS
+			const successMsg = t('resendSuccess')
 			setSuccess(null)
 			setError(null)
 			toast.success(successMsg)
@@ -177,7 +189,7 @@ export const VerifyOtpForm = () => {
 			// Clear the OTP input
 			form.reset()
 		} else {
-			const errorMsg = response.message || VERIFY_OTP_MESSAGES.RESEND_FAILED
+			const errorMsg = response.message || t('resendFailed')
 			setError(errorMsg)
 			setSuccess(null)
 			toast.error(errorMsg)
@@ -187,10 +199,10 @@ export const VerifyOtpForm = () => {
 	// No email = redirect to sign up (don't show error, just redirect)
 	useEffect(() => {
 		if (!email) {
-			toast.error('Please sign up first to verify your email.')
+			toast.error(t('signUpFirst'))
 			router.push(PATHS.AUTH.SIGN_UP)
 		}
-	}, [email, router])
+	}, [email, router, t])
 
 	// While redirecting due to no email, show nothing
 	if (!email) {
@@ -208,10 +220,10 @@ export const VerifyOtpForm = () => {
 	return (
 		<div className='rounded-lg bg-bg-card p-8 shadow-card'>
 			<h2 className='text-center text-2xl font-bold leading-tight text-text-primary'>
-				Verify Your Email
+				{t('verifyEmail')}
 			</h2>
 			<p className='mt-2 text-center text-sm leading-normal text-text-secondary'>
-				An OTP has been sent to <strong>{email}</strong>. Please enter it below.
+				{t('otpSentTo', { email })}
 			</p>
 
 			{/* Countdown Timer */}
@@ -221,28 +233,30 @@ export const VerifyOtpForm = () => {
 				{isExpired ? (
 					<>
 						<AlertTriangle className='size-4' />
-						<span className='text-sm font-medium'>
-							Code expired — please request a new one
-						</span>
+						<span className='text-sm font-medium'>{t('codeExpired')}</span>
 					</>
 				) : (
 					<>
 						<Clock className='size-4' />
 						<span className='text-sm font-medium'>
-							Code expires in {formatTime(timeRemaining)}
+							{t('codeExpiresIn', { time: formatTime(timeRemaining) })}
 						</span>
 					</>
 				)}
 			</div>
 
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className='mt-6 space-y-6'>
+				<form
+					onSubmit={form.handleSubmit(onSubmit)}
+					className='mt-6 space-y-6'
+					noValidate
+				>
 					<FormField
 						control={form.control}
 						name='otp'
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>One-Time Password</FormLabel>
+								<FormLabel>{t('otpLabel')}</FormLabel>
 								<FormControl>
 									<div className='flex justify-center'>
 										<InputOTP maxLength={6} {...field} disabled={isExpired}>
@@ -258,7 +272,7 @@ export const VerifyOtpForm = () => {
 									</div>
 								</FormControl>
 								<FormDescription className='text-center'>
-									Enter the 6-digit code.
+									{t('otpDescription')}
 								</FormDescription>
 								<FormMessage />
 							</FormItem>
@@ -278,7 +292,7 @@ export const VerifyOtpForm = () => {
 									autoplay
 								/>
 							</div>
-							<p className='text-center text-sm font-medium text-accent'>
+							<p className='text-center text-sm font-medium text-success'>
 								{success}
 							</p>
 						</div>
@@ -287,18 +301,16 @@ export const VerifyOtpForm = () => {
 						type='submit'
 						className='w-full'
 						isLoading={form.formState.isSubmitting}
-						loadingText='Verifying...'
+						loadingText={t('verifying')}
 						disabled={isExpired}
 						shine={!isExpired}
 					>
-						{isExpired ? 'Code Expired' : 'Verify Email'}
+						{isExpired ? t('codeExpiredBtn') : t('verifyEmailBtn')}
 					</AnimatedButton>
 				</form>
 			</Form>
 			<div className='mt-4 flex items-center justify-center gap-2 text-sm text-text-secondary'>
-				<span>
-					{isExpired ? 'Get a new code:' : "Didn't receive the code?"}
-				</span>
+				<span>{isExpired ? t('getNewCode') : t('didntReceive')}</span>
 				<ResendOtpButton onResend={handleResendOtp} />
 			</div>
 		</div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import {
@@ -12,13 +13,14 @@ import {
 	Zap,
 	Flame,
 	Info,
-	Plus,
 	Trash2,
 	Loader2,
 	ImageIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import {
 	Tooltip,
 	TooltipContent,
@@ -27,15 +29,18 @@ import {
 } from '@/components/ui/tooltip'
 import {
 	TRANSITION_SPRING,
-	TRANSITION_BOUNCY,
 	CELEBRATION_MODAL,
 	XP_COUNTER_VARIANTS,
 	BADGE_REVEAL_VARIANTS,
-	CONFETTI_BURST_VARIANTS,
 	STAT_ITEM_HOVER,
 	LIST_ITEM_TAP,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
-import type { XPReward, Badge } from '@/lib/types/gamification'
+import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
+import { AnimatedNumber } from '@/components/ui/animated-number'
+import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
+import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
 // TYPES
@@ -85,58 +90,6 @@ interface ImmediateRewardsProps {
 }
 
 // ============================================
-// CONFETTI COMPONENT
-// ============================================
-
-const CONFETTI_COLORS = [
-	'#ff6b6b',
-	'#feca57',
-	'#48dbfb',
-	'#ff9ff3',
-	'#54a0ff',
-	'#5f27cd',
-	'#1dd1a1',
-]
-
-const ConfettiParticle = ({ index }: { index: number }) => {
-	const color = CONFETTI_COLORS[index % CONFETTI_COLORS.length]
-	const delay = (index * 0.05) % 0.3
-	const xPos = (index * 17) % 100
-
-	return (
-		<motion.div
-			initial={{ y: -20, x: 0, opacity: 1, rotate: 0 }}
-			animate={{
-				y: '100vh',
-				rotate: 720,
-				opacity: 0,
-			}}
-			transition={{
-				duration: 3,
-				delay,
-				ease: 'easeOut',
-			}}
-			style={{
-				position: 'absolute',
-				left: `${xPos}%`,
-				width: 10,
-				height: 10,
-				backgroundColor: color,
-				borderRadius: 2,
-			}}
-		/>
-	)
-}
-
-const ConfettiContainer = () => (
-	<div className='pointer-events-none fixed inset-0 overflow-hidden'>
-		{Array.from({ length: 20 }).map((_, i) => (
-			<ConfettiParticle key={i} index={i} />
-		))}
-	</div>
-)
-
-// ============================================
 // SUB-COMPONENTS
 // ============================================
 
@@ -163,7 +116,7 @@ const RewardRowComponent = ({
 		)}
 	>
 		{/* Icon */}
-		<div className='flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-panel-bg'>
+		<div className='flex size-11 shrink-0 items-center justify-center rounded-xl bg-bg-card'>
 			{reward.icon}
 		</div>
 
@@ -181,11 +134,12 @@ const RewardRowComponent = ({
 			initial='hidden'
 			animate='visible'
 			className={cn(
-				'whitespace-nowrap text-xl font-bold',
+				'whitespace-nowrap text-xl font-bold tabular-nums',
 				reward.isLocked ? 'text-text-muted' : 'text-xp',
 			)}
 		>
-			+{reward.xpAmount} <span className='text-sm font-semibold'>XP</span>
+			+<AnimatedNumber value={reward.xpAmount} duration={0.8} />{' '}
+			<span className='text-sm font-semibold'>XP</span>
 		</motion.div>
 	</motion.div>
 )
@@ -194,27 +148,30 @@ interface AchievementBannerProps {
 	achievement: Badge
 }
 
-const AchievementBanner = ({ achievement }: AchievementBannerProps) => (
-	<motion.div
-		variants={BADGE_REVEAL_VARIANTS}
-		initial='hidden'
-		animate='visible'
-		className='mb-5 flex items-center gap-3.5 rounded-2xl border border-accent-purple/30 bg-gradient-to-r from-accent-purple/10 to-accent-purple/5 p-3.5'
-	>
-		{/* Badge icon */}
-		<div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
-			{achievement.iconEmoji}
-		</div>
+const AchievementBanner = ({ achievement }: AchievementBannerProps) => {
+	const t = useTranslations('completion')
+	return (
+		<motion.div
+			variants={BADGE_REVEAL_VARIANTS}
+			initial='hidden'
+			animate='visible'
+			className='mb-5 flex items-center gap-3.5 rounded-2xl border border-accent-purple/30 bg-gradient-to-r from-accent-purple/10 to-accent-purple/5 p-3.5'
+		>
+			{/* Badge icon */}
+			<div className='flex size-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
+				{achievement.iconEmoji}
+			</div>
 
-		{/* Info */}
-		<div className='flex-1'>
-			<span className='block text-xs font-semibold uppercase tracking-wide text-accent-purple'>
-				Achievement Unlocked!
-			</span>
-			<span className='block text-base font-bold'>{achievement.name}</span>
-		</div>
-	</motion.div>
-)
+			{/* Info */}
+			<div className='flex-1'>
+				<span className='block text-xs font-semibold uppercase tracking-wide text-accent-purple'>
+					{t('achievementUnlocked')}
+				</span>
+				<span className='block text-base font-bold'>{achievement.name}</span>
+			</div>
+		</motion.div>
+	)
+}
 
 // ============================================
 // MAIN COMPONENT
@@ -238,19 +195,21 @@ export const ImmediateRewards = ({
 	onPostNow,
 	onPostLater,
 }: ImmediateRewardsProps) => {
-	const [showConfetti, setShowConfetti] = useState(false)
+	const t = useTranslations('completion')
+	useEscapeKey(isOpen, onClose)
+	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
 	const [capturedPhotos, setCapturedPhotos] = useState<File[]>([])
 	const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
 	const [isNavigating, setIsNavigating] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const { shouldReduceMotion } = useReducedMotionPreference()
 
-	// Trigger confetti on mount
+	// Trigger canvas-confetti on mount (respects reduced motion internally)
 	useEffect(() => {
 		if (isOpen) {
-			setShowConfetti(true)
-			const timer = setTimeout(() => setShowConfetti(false), 3000)
+			triggerRecipeCompleteConfetti()
 		}
-		// Reset photos when modal opens/closes
+		// Reset photos when modal closes
 		if (!isOpen) {
 			setCapturedPhotos([])
 			setPhotoPreviewUrls([])
@@ -304,43 +263,43 @@ export const ImmediateRewards = ({
 	const rewards: RewardRow[] = [
 		{
 			type: 'immediate',
-			label: 'Immediate XP',
-			description: 'Earned for completing',
+			label: t('immediateXp'),
+			description: t('earnedForCompleting'),
 			xpAmount: immediateXp,
 			isLocked: false,
-			icon: <Zap className='h-6 w-6 text-success' />,
+			icon: <Zap className='size-6 text-success' />,
 		},
 	]
 
 	if (streakBonus > 0) {
 		rewards.push({
 			type: 'streak',
-			label: `${streakDays}-Day Streak`,
-			description: 'Cooking streak bonus',
+			label: t('dayStreak', { days: streakDays }),
+			description: t('cookingStreakBonus'),
 			xpAmount: streakBonus,
 			isLocked: false,
-			icon: <Flame className='h-6 w-6 text-warning' />,
+			icon: <Flame className='size-6 text-warning' />,
 		})
 	}
 
 	// Locked rewards
 	rewards.push({
 		type: 'pending',
-		label: 'Post Reward',
-		description: 'Share your creation to unlock',
+		label: t('postReward'),
+		description: t('shareToUnlock'),
 		xpAmount: pendingXp,
 		isLocked: true,
-		icon: <Lock className='h-5 w-5 text-text-muted' />,
+		icon: <Lock className='size-5 text-text-muted' />,
 	})
 
 	if (creatorTipXp > 0 && creatorHandle) {
 		rewards.push({
 			type: 'creator-tip',
-			label: 'Creator Tip',
-			description: `4% to @${creatorHandle}`,
+			label: t('creatorTip'),
+			description: t('creatorTipPercent', { handle: creatorHandle }),
 			xpAmount: creatorTipXp,
 			isLocked: true,
-			icon: <Gift className='h-5 w-5 text-text-muted' />,
+			icon: <Gift className='size-5 text-text-muted' />,
 		})
 	}
 
@@ -348,11 +307,12 @@ export const ImmediateRewards = ({
 		<AnimatePresence>
 			{isOpen && (
 				<Portal>
-					{/* Confetti */}
-					{showConfetti && <ConfettiContainer />}
-
 					{/* Overlay */}
 					<motion.div
+						ref={focusTrapRef}
+						role='dialog'
+						aria-modal='true'
+						aria-label='Cooking rewards'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -364,32 +324,36 @@ export const ImmediateRewards = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative w-full max-w-md overflow-hidden rounded-2xl bg-panel-bg p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-modal max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
+							className='relative w-full max-w-md overflow-hidden rounded-2xl bg-bg-card p-8 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-modal max-md:overflow-y-auto max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Close button */}
 							<button
+								type='button'
 								onClick={onClose}
-								aria-label='Close'
-								className='absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+								aria-label={t('ariaClose')}
+								className='absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
 							>
-								<X className='h-5 w-5' />
+								<X className='size-5' />
 							</button>
 
 							{/* Header */}
 							<div className='mb-7 text-center'>
 								<motion.div
-									animate={{ y: [0, -10, 0] }}
-									transition={{ duration: 0.6, repeat: Infinity }}
+									animate={shouldReduceMotion ? undefined : { y: [0, -10, 0] }}
+									transition={
+										shouldReduceMotion
+											? undefined
+											: { duration: 0.6, repeat: Infinity }
+									}
 									className='mb-4 inline-block text-6xl max-md:text-5xl'
 								>
 									👨‍🍳
 								</motion.div>
-								<h1 className='mb-2 bg-gradient-to-r from-success to-success/80 bg-clip-text text-3xl font-extrabold text-transparent max-md:text-2xl'>
-									Nice Work, Chef!
+								<h1 className='mb-2 bg-gradient-to-r from-success to-success/80 bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
+									{t('niceWorkChef')}
 								</h1>
 								<p className='text-text-muted'>
-									You completed{' '}
-									<strong className='text-text'>{recipeName}</strong>
+									{t('youCompleted', { recipeName })}
 								</p>
 							</div>
 
@@ -414,59 +378,62 @@ export const ImmediateRewards = ({
 										transition={{ delay: 0.4, ...TRANSITION_SPRING }}
 										className='mx-2 mb-1 rounded-xl bg-bg px-3 py-2'
 									>
-										<span className='mb-1.5 block text-[10px] font-medium uppercase tracking-wider text-text-muted'>
-											Recipe XP Breakdown
+										<span className='mb-1.5 block text-2xs font-medium uppercase tracking-wider text-text-muted'>
+											{t('recipeXpBreakdown')}
 										</span>
 										<div className='space-y-1'>
-											{xpBreakdown.base > 0 && (
-												<div className='flex items-center justify-between text-xs'>
-													<span className='text-text-secondary'>
-														{xpBreakdown.baseReason || 'Base'}
-													</span>
-													<span className='font-semibold text-xp'>
-														+{xpBreakdown.base}
-													</span>
-												</div>
-											)}
-											{xpBreakdown.steps > 0 && (
-												<div className='flex items-center justify-between text-xs'>
-													<span className='text-text-secondary'>
-														{xpBreakdown.stepsReason || 'Steps'}
-													</span>
-													<span className='font-semibold text-xp'>
-														+{xpBreakdown.steps}
-													</span>
-												</div>
-											)}
-											{xpBreakdown.time > 0 && (
-												<div className='flex items-center justify-between text-xs'>
-													<span className='text-text-secondary'>
-														{xpBreakdown.timeReason || 'Time'}
-													</span>
-													<span className='font-semibold text-xp'>
-														+{xpBreakdown.time}
-													</span>
-												</div>
-											)}
-											{xpBreakdown.techniques != null &&
-												xpBreakdown.techniques > 0 && (
-													<div className='flex items-center justify-between text-xs'>
+											{[
+												xpBreakdown.base > 0 && {
+													label: xpBreakdown.baseReason || 'Base',
+													value: xpBreakdown.base,
+												},
+												xpBreakdown.steps > 0 && {
+													label: xpBreakdown.stepsReason || 'Steps',
+													value: xpBreakdown.steps,
+												},
+												xpBreakdown.time > 0 && {
+													label: xpBreakdown.timeReason || 'Time',
+													value: xpBreakdown.time,
+												},
+												xpBreakdown.techniques != null &&
+													xpBreakdown.techniques > 0 && {
+														label: xpBreakdown.techniquesReason || 'Techniques',
+														value: xpBreakdown.techniques,
+													},
+											]
+												.filter(Boolean)
+												.map((item, i) => (
+													<motion.div
+														key={(item as { label: string }).label}
+														initial={{ opacity: 0, x: -8 }}
+														animate={{ opacity: 1, x: 0 }}
+														transition={{
+															delay: 0.5 + i * 0.08,
+															...TRANSITION_SPRING,
+														}}
+														className='flex items-center justify-between text-xs'
+													>
 														<span className='text-text-secondary'>
-															{xpBreakdown.techniquesReason || 'Techniques'}
+															{(item as { label: string }).label}
 														</span>
 														<span className='font-semibold text-xp'>
-															+{xpBreakdown.techniques}
+															+{(item as { value: number }).value}
 														</span>
-													</div>
-												)}
-											<div className='mt-1 flex items-center justify-between border-t border-border-subtle pt-1 text-xs'>
+													</motion.div>
+												))}
+											<motion.div
+												initial={{ opacity: 0 }}
+												animate={{ opacity: 1 }}
+												transition={{ delay: 0.8, ...TRANSITION_SPRING }}
+												className='mt-1 flex items-center justify-between border-t border-border-subtle pt-1 text-xs'
+											>
 												<span className='font-medium text-text-muted'>
-													Total recipe XP
+													{t('totalRecipeXp')}
 												</span>
 												<span className='font-bold text-text'>
 													{xpBreakdown.total}
 												</span>
-											</div>
+											</motion.div>
 										</div>
 									</motion.div>
 								)}
@@ -478,7 +445,7 @@ export const ImmediateRewards = ({
 										<Tooltip>
 											<TooltipTrigger asChild>
 												<span className='flex cursor-help items-center gap-1 text-xs uppercase tracking-wide text-text-muted'>
-													Post to unlock more
+													{t('postToUnlockMore')}
 													<Info className='size-3' />
 												</span>
 											</TooltipTrigger>
@@ -487,11 +454,9 @@ export const ImmediateRewards = ({
 												className='max-w-xs text-center'
 											>
 												<p className='text-sm'>
-													<strong>Why 70% is locked?</strong>
+													<strong>{t('whyLocked')}</strong>
 													<br />
-													ChefKix rewards sharing! Post your creation within 14
-													days to unlock the full XP reward and inspire the
-													community.
+													{t('whyLockedExplain')}
 												</p>
 											</TooltipContent>
 										</Tooltip>
@@ -513,37 +478,50 @@ export const ImmediateRewards = ({
 
 							{/* Totals */}
 							<div className='mb-4 grid grid-cols-2 gap-3'>
-								<div className='rounded-xl border-2 border-success bg-bg-elevated p-4 text-center'>
+								<motion.div
+									initial={{ opacity: 0, scale: 0.9 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{ delay: 0.6, ...TRANSITION_SPRING }}
+									className='rounded-xl border-2 border-success bg-bg-elevated p-4 text-center'
+								>
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
-										Earned Now
+										{t('earnedNow')}
 									</span>
-									<span className='block text-2xl font-extrabold text-success'>
-										{earnedNow} XP
+									<span className='block text-2xl font-display font-extrabold tabular-nums text-success'>
+										<AnimatedNumber value={earnedNow} duration={1.2} /> XP
 									</span>
-								</div>
-								<div className='rounded-xl border-2 border-dashed border-border bg-bg-elevated p-4 text-center'>
+								</motion.div>
+								<motion.div
+									initial={{ opacity: 0, scale: 0.9 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{ delay: 0.7, ...TRANSITION_SPRING }}
+									className='rounded-xl border-2 border-brand/30 bg-brand/5 p-4 text-center'
+								>
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
-										Pending
+										{t('pending')}
 									</span>
-									<span className='block text-2xl font-extrabold text-text-muted'>
-										{pendingTotal} XP
+									<span className='block text-2xl font-display font-extrabold tabular-nums text-brand/70'>
+										<AnimatedNumber value={pendingTotal} duration={1.2} /> XP
 									</span>
-								</div>
+								</motion.div>
 							</div>
 
 							{/* Deadline warning */}
-							<div className='mb-4 flex items-center justify-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning'>
-								<Clock className='h-4 w-4' />
+							<motion.div
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.8, ...TRANSITION_SPRING }}
+								className='mb-4 flex items-center justify-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning'
+							>
+								<Clock className='size-4' />
 								<span>
-									Post within{' '}
-									<strong>
-										{postDeadlineHours >= 24
-											? `${Math.floor(postDeadlineHours / 24)} days`
-											: `${postDeadlineHours} hours`}
-									</strong>{' '}
-									to unlock pending XP
+									{postDeadlineHours >= 24
+										? t('postWithinDays', {
+												count: Math.floor(postDeadlineHours / 24),
+											})
+										: t('postWithinHours', { count: postDeadlineHours })}
 								</span>
-							</div>
+							</motion.div>
 
 							{/* Achievement banner */}
 							{unlockedAchievement && (
@@ -557,7 +535,7 @@ export const ImmediateRewards = ({
 										📸 Capture your dish
 									</span>
 									<span className='text-xs text-text-muted'>
-										{capturedPhotos.length}/5 photos
+										{t('photosCount', { count: capturedPhotos.length })}
 									</span>
 								</div>
 
@@ -566,32 +544,36 @@ export const ImmediateRewards = ({
 									{/* Existing photo previews */}
 									{photoPreviewUrls.map((url, index) => (
 										<motion.div
-											key={index}
+											key={url}
 											initial={{ opacity: 0, scale: 0.8 }}
 											animate={{ opacity: 1, scale: 1 }}
-											className='group relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl'
+											className='group relative size-20 flex-shrink-0 overflow-hidden rounded-xl'
 										>
 											<Image
 												src={url}
 												alt={`Photo ${index + 1}`}
 												fill
+												sizes='80px'
 												className='object-cover'
 											/>
 											<button
+												type='button'
 												onClick={() => removePhoto(index)}
-												className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'
+												className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 											>
-												<Trash2 className='h-5 w-5 text-white' />
+												<Trash2 className='size-5 text-white' />
 											</button>
 										</motion.div>
 									))}
 
 									{/* Add photo button */}
 									{capturedPhotos.length < 5 && (
-										<label className='flex h-20 w-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-primary hover:bg-bg-hover'>
+										<label className='flex size-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-brand hover:bg-bg-hover'>
 											<div className='flex flex-col items-center gap-1'>
-												<Camera className='h-5 w-5 text-text-muted' />
-												<span className='text-xs text-text-muted'>Add</span>
+												<Camera className='size-5 text-text-muted' />
+												<span className='text-xs text-text-muted'>
+													{t('addPhoto')}
+												</span>
 											</div>
 											<input
 												ref={fileInputRef}
@@ -613,7 +595,7 @@ export const ImmediateRewards = ({
 								)}
 								{capturedPhotos.length === 1 && (
 									<p className='mt-2 text-xs text-warning'>
-										Add 1 more photo for full XP bonus!
+										{t('photoHintOne')}
 									</p>
 								)}
 								{capturedPhotos.length >= 2 && (
@@ -634,9 +616,11 @@ export const ImmediateRewards = ({
 								>
 									<ImageIcon className='size-5 shrink-0' />
 									<div className='flex-1'>
-										<span className='block font-semibold'>View Your Cook Card</span>
+										<span className='block font-semibold'>
+											{t('viewCookCard')}
+										</span>
 										<span className='block text-xs text-text-muted'>
-											Download &amp; share a beautiful summary card
+											{t('cookCardDesc')}
 										</span>
 									</div>
 									<span className='text-xs text-text-muted'>&rarr;</span>
@@ -646,12 +630,13 @@ export const ImmediateRewards = ({
 							{/* Actions */}
 							<div className='space-y-2.5'>
 								<motion.button
+									type='button'
 									onClick={handlePostNowClick}
 									disabled={isNavigating}
 									whileHover={isNavigating ? undefined : STAT_ITEM_HOVER}
 									whileTap={isNavigating ? undefined : LIST_ITEM_TAP}
 									className={cn(
-										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow',
+										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow focus-visible:ring-2 focus-visible:ring-brand/50',
 										isNavigating
 											? 'cursor-wait opacity-80'
 											: 'hover:shadow-xl hover:shadow-brand/40',
@@ -659,30 +644,37 @@ export const ImmediateRewards = ({
 								>
 									<div className='flex items-center gap-2.5'>
 										{isNavigating ? (
-											<Loader2 className='h-5 w-5 shrink-0 animate-spin' />
+											<Loader2 className='size-5 shrink-0 animate-spin' />
 										) : (
-											<Camera className='h-5 w-5 shrink-0' />
+											<Camera className='size-5 shrink-0' />
 										)}
 										<span className='text-lg font-bold'>
 											{isNavigating
-												? 'Preparing Post...'
+												? t('preparingPost')
 												: capturedPhotos.length > 0
-													? `Share ${capturedPhotos.length} Photo${capturedPhotos.length > 1 ? 's' : ''}`
-													: 'Share Your Creation'}
+													? capturedPhotos.length > 1
+														? t('sharePhotosPlural', {
+																count: capturedPhotos.length,
+															})
+														: t('sharePhotos', { count: capturedPhotos.length })
+													: t('shareYourCreation')}
 										</span>
 									</div>
 									{!isNavigating && (
 										<span className='shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
-											Unlock +{pendingTotal} XP
+											{t('unlockXp', { amount: pendingTotal })}
 										</span>
 									)}
 								</motion.button>
-								<button
+								<motion.button
+									type='button'
 									onClick={onPostLater}
-									className='w-full py-3 text-text-muted transition-colors hover:text-text'
+									whileHover={BUTTON_SUBTLE_HOVER}
+									whileTap={BUTTON_SUBTLE_TAP}
+									className='w-full py-3 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
-									I&apos;ll Post Later
-								</button>
+									{t('postLater')}
+								</motion.button>
 							</div>
 						</motion.div>
 					</motion.div>
@@ -708,26 +700,34 @@ export const RewardsToast = ({
 	pendingXp,
 	onPostNow,
 	onDismiss,
-}: RewardsToastProps) => (
-	<motion.div
-		initial={{ opacity: 0, y: 20 }}
-		animate={{ opacity: 1, y: 0 }}
-		exit={{ opacity: 0, y: 20 }}
-		transition={TRANSITION_SPRING}
-		className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-panel-bg p-1 shadow-xl md:bottom-6'
-	>
-		<div className='flex items-center gap-3 px-4 py-3'>
-			<span className='text-xl'>✅</span>
-			<span className='text-sm font-semibold'>
-				+{Math.round(earnedXp)} XP earned! Post to unlock +
-				{Math.round(pendingXp)} more
-			</span>
-			<button
-				onClick={onPostNow}
-				className='rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
-			>
-				Post Now
-			</button>
-		</div>
-	</motion.div>
-)
+}: RewardsToastProps) => {
+	const t = useTranslations('completion')
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: 20, scale: 0.95 }}
+			animate={{ opacity: 1, y: 0, scale: 1 }}
+			exit={{ opacity: 0, y: 20, scale: 0.95 }}
+			transition={TRANSITION_SPRING}
+			className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-bg-card p-1 shadow-xl md:bottom-6'
+		>
+			<div className='flex items-center gap-3 px-4 py-3'>
+				<span className='text-xl'>✅</span>
+				<span className='text-sm font-semibold'>
+					{t('toastEarned', {
+						earned: Math.round(earnedXp),
+						pending: Math.round(pendingXp),
+					})}
+				</span>
+				<motion.button
+					type='button'
+					onClick={onPostNow}
+					whileHover={BUTTON_SUBTLE_HOVER}
+					whileTap={BUTTON_SUBTLE_TAP}
+					className='rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50'
+				>
+					{t('postNow')}
+				</motion.button>
+			</div>
+		</motion.div>
+	)
+}

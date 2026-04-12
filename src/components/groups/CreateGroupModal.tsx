@@ -1,4 +1,6 @@
-'use client'
+﻿'use client'
+
+import { useTranslations } from 'next-intl'
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -40,9 +42,7 @@ const createGroupSchema = z.object({
 		.string()
 		.min(3, 'Group name must be at least 3 characters')
 		.max(50, 'Group name cannot exceed 50 characters'),
-	description: z
-		.string()
-		.max(500, 'Description cannot exceed 500 characters'),
+	description: z.string().max(500, 'Description cannot exceed 500 characters'),
 	privacyType: z.enum(['PUBLIC', 'PRIVATE']),
 	tags: z.array(z.string()),
 })
@@ -64,6 +64,7 @@ export const CreateGroupModal = ({
 	onOpenChange,
 	onSuccess,
 }: CreateGroupModalProps) => {
+	const t = useTranslations('groups')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const form = useForm<CreateGroupFormValues>({
@@ -87,12 +88,12 @@ export const CreateGroupModal = ({
 			}
 
 			const newGroup = await createGroup(payload)
-			toast.success(`Group "${newGroup.name}" created successfully!`)
+			toast.success(t('cgCreated', { name: newGroup.name }))
 			form.reset()
 			onOpenChange(false)
 			onSuccess?.(newGroup)
 		} catch (error) {
-			toast.error('Failed to create group. Please try again.')
+			toast.error(t('cgCreateFailed'))
 		} finally {
 			setIsSubmitting(false)
 		}
@@ -100,19 +101,17 @@ export const CreateGroupModal = ({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className='sm:max-w-[500px]'>
+			<DialogContent className='sm:max-w-lg'>
 				<DialogHeader>
-					<DialogTitle>Create a New Group</DialogTitle>
-					<DialogDescription>
-						Build a community around your cooking interests. Groups can be public
-						or private.
-					</DialogDescription>
+					<DialogTitle>{t('cgTitle')}</DialogTitle>
+					<DialogDescription>{t('cgDescription')}</DialogDescription>
 				</DialogHeader>
 
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
 						className='space-y-6'
+						noValidate
 					>
 						{/* Group Name */}
 						<FormField
@@ -120,10 +119,10 @@ export const CreateGroupModal = ({
 							name='name'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Group Name *</FormLabel>
+									<FormLabel>{t('cgNameLabel')}</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='e.g., Spicy Food Lovers'
+											placeholder={t('cgNamePlaceholder')}
 											{...field}
 											disabled={isSubmitting}
 										/>
@@ -139,18 +138,16 @@ export const CreateGroupModal = ({
 							name='description'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Description</FormLabel>
+									<FormLabel>{t('cgDescLabel')}</FormLabel>
 									<FormControl>
 										<Textarea
-											placeholder='Describe what this group is about...'
+											placeholder={t('cgDescPlaceholder')}
 											{...field}
 											disabled={isSubmitting}
 											rows={4}
 										/>
 									</FormControl>
-									<FormDescription>
-										Max 500 characters to help others find your group
-									</FormDescription>
+									<FormDescription>{t('cgDescHint')}</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -162,7 +159,7 @@ export const CreateGroupModal = ({
 							name='privacyType'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Privacy *</FormLabel>
+									<FormLabel>{t('cgPrivacyLabel')}</FormLabel>
 									<Select
 										onValueChange={field.onChange}
 										defaultValue={field.value}
@@ -170,23 +167,23 @@ export const CreateGroupModal = ({
 									>
 										<FormControl>
 											<SelectTrigger>
-												<SelectValue placeholder='Select privacy level' />
+												<SelectValue placeholder={t('cgPrivacyPlaceholder')} />
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
 											<SelectItem value='PUBLIC'>
 												<div className='flex flex-col'>
-													<span>Public</span>
+													<span>{t('cgPublic')}</span>
 													<span className='text-xs text-text-secondary'>
-														Anyone can find and join
+														{t('cgPublicDesc')}
 													</span>
 												</div>
 											</SelectItem>
 											<SelectItem value='PRIVATE'>
 												<div className='flex flex-col'>
-													<span>Private</span>
+													<span>{t('cgPrivate')}</span>
 													<span className='text-xs text-text-secondary'>
-														Members must be approved to join
+														{t('cgPrivateDesc')}
 													</span>
 												</div>
 											</SelectItem>
@@ -203,14 +200,14 @@ export const CreateGroupModal = ({
 							name='tags'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Tags</FormLabel>
+									<FormLabel>{t('cgTagsLabel')}</FormLabel>
 									<FormControl>
 										<Input
-											placeholder='e.g., spicy, asian, vegetarian (comma-separated)'
-											onChange={(e) => {
+											placeholder={t('cgTagsPlaceholder')}
+											onChange={e => {
 												const values = e.target.value
 													.split(',')
-													.map((tag) => tag.trim())
+													.map(tag => tag.trim())
 													.filter(Boolean)
 												field.onChange(values)
 											}}
@@ -218,9 +215,7 @@ export const CreateGroupModal = ({
 											disabled={isSubmitting}
 										/>
 									</FormControl>
-									<FormDescription>
-										Help people find your group with relevant tags
-									</FormDescription>
+									<FormDescription>{t('cgTagsHint')}</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -233,7 +228,7 @@ export const CreateGroupModal = ({
 								onClick={() => onOpenChange(false)}
 								disabled={isSubmitting}
 							>
-								Cancel
+								{t('cgCancel')}
 							</Button>
 							<Button
 								type='submit'
@@ -242,11 +237,11 @@ export const CreateGroupModal = ({
 							>
 								{isSubmitting ? (
 									<>
-										<Loader2 className='w-4 h-4 mr-2 animate-spin' />
-										Creating...
+										<Loader2 className='size-4 mr-2 animate-spin' />
+										{t('cgCreating')}
 									</>
 								) : (
-									'Create Group'
+									t('cgCreateGroup')
 								)}
 							</Button>
 						</div>

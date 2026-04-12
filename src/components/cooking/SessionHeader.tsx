@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -11,6 +11,7 @@ import {
 	ChefHat,
 } from 'lucide-react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -128,10 +129,13 @@ export const SessionHeader = ({
 	className,
 }: SessionHeaderProps) => {
 	// API status uses lowercase per spec 08-cooking-sessions.txt
+	const t = useTranslations('cooking')
 	const isPaused = session.status === 'paused'
 	const isIdleWarning = session.idleWarningShown
-	const hasActiveTimers = activeTimers.some(t => t.isRunning)
-	const urgentTimer = activeTimers.find(t => t.isRunning && t.remaining < 30)
+	const hasActiveTimers = activeTimers.some(tmr => tmr.isRunning)
+	const urgentTimer = activeTimers.find(
+		tmr => tmr.isRunning && tmr.remaining < 30,
+	)
 
 	// Determine visual state
 	const getState = (): SessionState => {
@@ -162,8 +166,7 @@ export const SessionHeader = ({
 					'absolute inset-0 transition-colors duration-300',
 					state === 'IN_PROGRESS' && 'bg-gradient-brand',
 					state === 'PAUSED' && 'bg-gradient-streak',
-					state === 'IDLE_WARNING' &&
-						'bg-gradient-to-r from-red-500 to-orange-500',
+					state === 'IDLE_WARNING' && 'bg-gradient-to-r from-error to-streak',
 				)}
 			/>
 
@@ -173,12 +176,16 @@ export const SessionHeader = ({
 				<div className='flex items-start justify-between'>
 					{/* Recipe info */}
 					<div className='flex items-center gap-3'>
-						<div className='relative h-12 w-12 overflow-hidden rounded-xl ring-2 ring-white/20'>
+						<div className='relative size-12 overflow-hidden rounded-xl ring-2 ring-white/20'>
 							<Image
 								src={session.recipe.imageUrl}
 								alt={session.recipe.title}
 								fill
+								sizes='48px'
 								className='object-cover'
+								onError={e => {
+									;(e.target as HTMLImageElement).src = '/default-cover.svg'
+								}}
 							/>
 						</div>
 						<div className='text-white'>
@@ -187,10 +194,15 @@ export const SessionHeader = ({
 							</h2>
 							<div className='flex items-center gap-2 text-sm text-white/80'>
 								<span>
-									Step {session.currentStep} of {session.recipe.totalSteps}
+									{t('stepOf', {
+										current: session.currentStep,
+										total: session.recipe.totalSteps,
+									})}
 								</span>
 								<span>•</span>
-								<span>~{session.recipe.estimatedTime} min</span>
+								<span>
+									{t('estTime', { minutes: session.recipe.estimatedTime })}
+								</span>
 							</div>
 						</div>
 					</div>
@@ -199,23 +211,25 @@ export const SessionHeader = ({
 					<div className='flex items-center gap-2'>
 						{/* AI Assist Button */}
 						<motion.button
+							type='button'
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onAiAssist}
-							className='flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30'
+							className='flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Sparkles className='size-4' />
-							<span className='hidden sm:inline'>AI Help</span>
+							<span className='hidden sm:inline'>{t('aiHelp')}</span>
 						</motion.button>
 
 						{/* Pause/Resume Button */}
 						<motion.button
+							type='button'
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={isPaused ? onResume : onPause}
 							disabled={hasActiveTimers && !isPaused}
 							className={cn(
-								'flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors',
+								'flex size-10 items-center justify-center rounded-full text-white transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 								isPaused
 									? 'bg-success hover:bg-success/90'
 									: hasActiveTimers
@@ -224,10 +238,10 @@ export const SessionHeader = ({
 							)}
 							title={
 								hasActiveTimers && !isPaused
-									? 'Cannot pause while timers are running'
+									? t('tooltipCannotPauseTimers')
 									: isPaused
-										? 'Resume cooking'
-										: 'Pause session'
+										? t('tooltipResumeCooking')
+										: t('tooltipPauseSession')
 							}
 						>
 							{isPaused ? (
@@ -239,11 +253,12 @@ export const SessionHeader = ({
 
 						{/* Close Button */}
 						<motion.button
+							type='button'
 							whileHover={BUTTON_SUBTLE_HOVER}
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={onClose}
-							className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30'
-							aria-label='Close cooking header'
+							className='flex size-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('closeAria')}
 						>
 							<X className='size-5' />
 						</motion.button>
@@ -269,12 +284,12 @@ export const SessionHeader = ({
 								{state === 'PAUSED' ? (
 									<>
 										<Pause className='size-4' />
-										<span>Session Paused</span>
+										<span>{t('sessionPaused')}</span>
 									</>
 								) : (
 									<>
 										<AlertTriangle className='size-4' />
-										<span>Still there? Session will auto-pause soon</span>
+										<span>{t('stillThere')}</span>
 									</>
 								)}
 							</div>
@@ -305,7 +320,7 @@ export const SessionHeader = ({
 						{/* Active timer badges */}
 						<div className='flex items-center gap-2'>
 							{activeTimers
-								.filter(t => t.isRunning)
+								.filter(tmr => tmr.isRunning)
 								.slice(0, 2)
 								.map(timer => (
 									<ActiveTimerBadge
@@ -314,9 +329,11 @@ export const SessionHeader = ({
 										isUrgent={timer.remaining < 30}
 									/>
 								))}
-							{activeTimers.filter(t => t.isRunning).length > 2 && (
+							{activeTimers.filter(tmr => tmr.isRunning).length > 2 && (
 								<span className='text-sm text-white/70'>
-									+{activeTimers.filter(t => t.isRunning).length - 2} more
+									{t('moreTimers', {
+										count: activeTimers.filter(tmr => tmr.isRunning).length - 2,
+									})}
 								</span>
 							)}
 						</div>
@@ -331,13 +348,13 @@ export const SessionHeader = ({
 							<span className='font-bold text-white'>
 								+{session.baseXP + session.bonusXP}
 							</span>{' '}
-							XP on completion
+							{t('xpOnCompletion')}
 						</span>
 					</div>
 					{session.challengeId && (
 						<div className='flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5'>
 							<span>🎯</span>
-							<span className='font-semibold'>Challenge</span>
+							<span className='font-semibold'>{t('challengeLabel')}</span>
 						</div>
 					)}
 				</div>
@@ -361,19 +378,21 @@ export const SessionHeaderCompact = ({
 	activeTimers,
 	onExpand,
 }: SessionHeaderCompactProps) => {
+	const t = useTranslations('cooking')
 	const progress =
 		(session.completedSteps.length / session.recipe.totalSteps) * 100
-	const hasActiveTimers = activeTimers.some(t => t.isRunning)
+	const hasActiveTimers = activeTimers.some(tmr => tmr.isRunning)
 
 	return (
 		<motion.button
+			type='button'
 			onClick={onExpand}
 			whileHover={LIST_ITEM_HOVER}
 			whileTap={LIST_ITEM_TAP}
-			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-lg'
+			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 		>
 			{/* Mini progress ring */}
-			<div className='relative h-10 w-10'>
+			<div className='relative size-10'>
 				<svg className='h-full w-full -rotate-90' viewBox='0 0 36 36'>
 					<circle
 						cx='18'
@@ -401,7 +420,10 @@ export const SessionHeaderCompact = ({
 			<div className='min-w-0 flex-1'>
 				<p className='truncate font-semibold'>{session.recipe.title}</p>
 				<p className='text-sm text-white/80'>
-					Step {session.currentStep}/{session.recipe.totalSteps}
+					{t('stepOf', {
+						current: session.currentStep,
+						total: session.recipe.totalSteps,
+					})}
 				</p>
 			</div>
 
@@ -409,7 +431,7 @@ export const SessionHeaderCompact = ({
 			{hasActiveTimers && (
 				<motion.div
 					animate={GLOW_PULSE.animate}
-					className='flex h-8 w-8 items-center justify-center rounded-full bg-warning'
+					className='flex size-8 items-center justify-center rounded-full bg-warning'
 				>
 					<Clock className='size-4 text-white' />
 				</motion.div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	X,
@@ -17,10 +18,10 @@ import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { CHAT_MESSAGES } from '@/constants/messages'
 import {
 	getShareSuggestions,
 	sharePostToConversation,
@@ -33,6 +34,8 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 	CARD_HOVER,
+	LIST_ITEM_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 
 interface SharePostModalProps {
@@ -75,6 +78,7 @@ export const SharePostModal = ({
 	>(new Set())
 	const [isSending, setIsSending] = useState(false)
 	const [customMessage, setCustomMessage] = useState('')
+	const t = useTranslations('social')
 
 	useEscapeKey(isOpen, onClose)
 
@@ -91,14 +95,14 @@ export const SharePostModal = ({
 				}
 			} catch (error) {
 				logDevError('Failed to fetch share suggestions:', error)
-				toast.error('Failed to load conversations')
+				toast.error(t('shareLoadFailed'))
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
 		fetchSuggestions()
-	}, [isOpen])
+	}, [isOpen, t])
 
 	// Reset state when modal closes
 	useEffect(() => {
@@ -128,7 +132,7 @@ export const SharePostModal = ({
 
 	const handleShare = async () => {
 		if (selectedConversations.size === 0) {
-			toast.error(CHAT_MESSAGES.SELECT_CONVERSATION)
+			toast.error(t('toastSelectConversation'))
 			return
 		}
 
@@ -171,13 +175,13 @@ export const SharePostModal = ({
 			if (successCount > 0) {
 				toast.success(
 					successCount === 1
-						? CHAT_MESSAGES.SHARE_SUCCESS
-						: CHAT_MESSAGES.SHARE_MULTIPLE_SUCCESS(successCount),
+						? t('toastShareSuccess')
+						: t('toastShareMultipleSuccess', { count: successCount }),
 				)
 			}
 
 			if (failCount > 0) {
-				toast.error(CHAT_MESSAGES.SHARE_PARTIAL_FAIL(failCount))
+				toast.error(t('toastSharePartialFail', { count: failCount }))
 			}
 
 			if (successCount > 0) {
@@ -194,6 +198,9 @@ export const SharePostModal = ({
 		<Portal>
 			<AnimatePresence mode='wait'>
 				<motion.div
+					role='dialog'
+					aria-modal='true'
+					aria-labelledby='share-modal-title'
 					className='fixed inset-0 z-modal flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4'
 					variants={overlayVariants}
 					initial='hidden'
@@ -203,7 +210,7 @@ export const SharePostModal = ({
 					onClick={onClose}
 				>
 					<motion.div
-						className='relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-bg-card shadow-2xl sm:max-h-[90vh] sm:rounded-2xl'
+						className='relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-bg-card shadow-modal sm:max-h-[90vh] sm:rounded-2xl'
 						variants={modalVariants}
 						initial='hidden'
 						animate='visible'
@@ -219,7 +226,10 @@ export const SharePostModal = ({
 										<Sparkles className='size-4 text-brand sm:size-5' />
 									</div>
 									<div className='min-w-0'>
-										<h2 className='text-lg font-bold text-text sm:text-xl'>
+										<h2
+											id='share-modal-title'
+											className='text-lg font-bold text-text sm:text-xl'
+										>
 											Share Recipe
 										</h2>
 										<p className='text-xs text-text-secondary sm:text-sm'>
@@ -228,11 +238,12 @@ export const SharePostModal = ({
 									</div>
 								</div>
 								<motion.button
+									type='button'
 									onClick={onClose}
-									className='grid size-8 flex-shrink-0 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9'
+									className='grid size-8 flex-shrink-0 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9 focus-visible:ring-2 focus-visible:ring-brand/50'
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
-									aria-label='Close share modal'
+									aria-label={t('shareCloseLabel')}
 								>
 									<X className='size-4 sm:size-5' />
 								</motion.button>
@@ -244,7 +255,7 @@ export const SharePostModal = ({
 							{/* Enhanced Post Preview */}
 							{(postImage || postTitle || postContent) && (
 								<motion.div
-									className='mx-3 my-3 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-amber-50/50 to-transparent p-3 shadow-card dark:from-amber-950/10 sm:mx-4 sm:my-4 sm:p-4'
+									className='mx-3 my-3 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-warning/50 to-transparent p-3 shadow-card dark:from-warning/10 sm:mx-4 sm:my-4 sm:p-4'
 									initial={{ opacity: 0, y: -10 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.1 }}
@@ -254,8 +265,9 @@ export const SharePostModal = ({
 											<div className='relative size-16 flex-shrink-0 overflow-hidden rounded-lg ring-2 ring-brand/20 sm:size-20'>
 												<Image
 													src={postImage}
-													alt='Post preview'
+													alt={t('sharePostPreviewAlt')}
 													fill
+													sizes='(max-width: 640px) 64px, 80px'
 													className='object-cover'
 												/>
 											</div>
@@ -281,7 +293,7 @@ export const SharePostModal = ({
 								<div className='relative'>
 									<Search className='absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-text-muted sm:size-4' />
 									<Input
-										placeholder='Search by name...'
+										placeholder={t('shareSearchPlaceholder')}
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
 										className='h-10 bg-bg-elevated pl-9 text-sm placeholder:text-text-muted sm:h-auto sm:pl-10'
@@ -292,11 +304,19 @@ export const SharePostModal = ({
 							{/* Conversation List */}
 							<div className='px-3 sm:px-4'>
 								{isLoading ? (
-									<div className='flex flex-col items-center justify-center gap-3 py-12 sm:py-16'>
-										<Loader2 className='size-7 animate-spin text-brand sm:size-8' />
-										<p className='text-xs text-text-secondary sm:text-sm'>
-											Loading conversations...
-										</p>
+									<div className='space-y-2 py-2'>
+										{Array.from({ length: 4 }).map((_, i) => (
+											<div
+												key={i}
+												className='flex items-center gap-3 rounded-xl p-3'
+											>
+												<Skeleton className='size-10 rounded-full sm:size-11' />
+												<div className='flex-1 space-y-1.5'>
+													<Skeleton className='h-4 w-28' />
+													<Skeleton className='h-3 w-40' />
+												</div>
+											</div>
+										))}
 									</div>
 								) : filteredConversations.length === 0 ? (
 									<div className='flex flex-col items-center justify-center gap-3 py-12 text-center sm:py-16'>
@@ -305,12 +325,14 @@ export const SharePostModal = ({
 										</div>
 										<div>
 											<p className='text-sm font-semibold text-text sm:text-base'>
-												{searchQuery ? 'No matches found' : 'No recent chats'}
+												{searchQuery
+													? t('shareNoMatches')
+													: t('shareNoRecentChats')}
 											</p>
 											<p className='text-xs text-text-muted sm:text-sm'>
 												{searchQuery
-													? 'Try a different search term'
-													: 'Start a conversation first!'}
+													? t('shareTryDifferentSearch')
+													: t('shareStartConversation')}
 											</p>
 										</div>
 									</div>
@@ -334,27 +356,28 @@ export const SharePostModal = ({
 
 											return (
 												<motion.button
+													type='button'
 													key={conv.conversationId}
 													onClick={() =>
 														toggleConversation(conv.conversationId)
 													}
 													className={cn(
-														'group relative flex w-full items-center gap-2.5 overflow-hidden rounded-xl p-2.5 text-left transition-all sm:gap-3 sm:p-3',
+														'group relative flex w-full items-center gap-2.5 overflow-hidden rounded-xl p-2.5 text-left transition-all sm:gap-3 sm:p-3 focus-visible:ring-2 focus-visible:ring-brand/50',
 														isSelected
 															? 'bg-brand/10 shadow-card ring-2 ring-brand/50'
 															: 'hover:bg-bg-hover active:bg-bg-hover',
 													)}
 													variants={listItemVariants}
 													whileHover={CARD_HOVER}
-													whileTap={{ scale: 0.98 }}
+													whileTap={LIST_ITEM_TAP}
 												>
 													{/* Selection glow effect */}
 													{isSelected && (
 														<motion.div
-															className='absolute inset-0 bg-gradient-to-r from-brand/10 to-transparent'
+															className='pointer-events-none absolute inset-0 bg-gradient-to-r from-brand/10 to-transparent'
 															initial={{ opacity: 0 }}
 															animate={{ opacity: 1 }}
-															transition={{ duration: 0.3 }}
+															transition={{ duration: DURATION_S.smooth }}
 														/>
 													)}
 
@@ -405,8 +428,8 @@ export const SharePostModal = ({
 														</p>
 														<p className='text-xs text-text-muted'>
 															{conv.type === 'GROUP'
-																? 'Group conversation'
-																: 'Direct message'}
+																? t('typeGroupConversation')
+																: t('typeDirectMessage')}
 														</p>
 													</div>
 
@@ -456,7 +479,7 @@ export const SharePostModal = ({
 							<div className='border-t border-border-subtle p-3 sm:p-4'>
 								<div className='relative'>
 									<Input
-										placeholder='Add a personal message (optional)...'
+										placeholder={t('sharePersonalMessagePlaceholder')}
 										value={customMessage}
 										onChange={e => setCustomMessage(e.target.value)}
 										maxLength={200}
@@ -475,7 +498,7 @@ export const SharePostModal = ({
 								</div>
 								<p className='mt-2 flex items-center gap-1.5 text-xs text-text-muted'>
 									<Sparkles className='size-3' />
-									Leave empty for auto-generated caption
+									{t('shareAutoCaption')}
 								</p>
 							</div>
 						</div>
@@ -493,13 +516,13 @@ export const SharePostModal = ({
 											</div>
 											<p className='text-xs font-medium text-text sm:text-sm'>
 												{selectedConversations.size === 1
-													? 'conversation selected'
-													: 'conversations selected'}
+													? t('shareConversationSelected')
+													: t('shareConversationsSelected')}
 											</p>
 										</>
 									) : (
 										<p className='text-xs text-text-muted sm:text-sm'>
-											Select who to share with
+											{t('shareSelectWho')}
 										</p>
 									)}
 								</div>
@@ -511,13 +534,15 @@ export const SharePostModal = ({
 									{isSending ? (
 										<>
 											<Loader2 className='size-4 animate-spin' />
-											<span className='text-sm'>Sharing...</span>
+											<span className='text-sm'>{t('shareSharing')}</span>
 										</>
 									) : (
 										<>
 											<Send className='size-4' />
 											<span className='text-sm'>
-												Share ({selectedConversations.size})
+												{t('shareButton', {
+													count: selectedConversations.size,
+												})}
 											</span>
 										</>
 									)}

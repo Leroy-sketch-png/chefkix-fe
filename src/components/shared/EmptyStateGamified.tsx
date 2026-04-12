@@ -1,11 +1,12 @@
-'use client'
+﻿'use client'
 
 import { motion } from 'framer-motion'
 import { Compass, BookOpen, ChefHat, Check } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING } from '@/lib/motion'
+import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
 
 // ============================================================================
 // TYPES
@@ -16,6 +17,7 @@ export type EmptyStateVariant =
 	| 'cooking'
 	| 'search'
 	| 'saved'
+	| 'liked'
 	| 'challenges'
 	| 'pending'
 	| 'notifications'
@@ -61,20 +63,18 @@ export interface EmptyStateProps {
 
 function PlateIllustration() {
 	return (
-		<div className='relative inline-flex items-center justify-center'>
+		<div className='relative inline-flex size-20 items-center justify-center md:size-24'>
 			{/* Ambient glow ring */}
 			<motion.div
-				className='absolute size-28 rounded-full bg-brand/8'
-				animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.3, 0.6] }}
+				className='absolute inset-0 scale-125 rounded-full bg-brand/8'
+				animate={{ scale: [1.25, 1.4, 1.25], opacity: [0.6, 0.3, 0.6] }}
 				transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
 			/>
 			<svg
-				width='100'
-				height='100'
 				viewBox='0 0 100 100'
 				fill='none'
 				xmlns='http://www.w3.org/2000/svg'
-				className='relative z-10'
+				className='relative z-10 size-full'
 			>
 				{/* Plate shadow */}
 				<ellipse
@@ -465,6 +465,44 @@ function BookmarkIllustration() {
 	)
 }
 
+function HeartIllustration() {
+	return (
+		<div className='relative inline-flex items-center justify-center'>
+			<motion.div
+				className='absolute size-28 rounded-full bg-brand/5'
+				animate={{ scale: [1, 1.1, 1] }}
+				transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+			/>
+			<div className='relative z-10 flex items-end gap-2'>
+				{[0, 1, 2].map(i => (
+					<motion.div
+						key={i}
+						initial={{ opacity: 0, scale: 0.5 }}
+						animate={{
+							opacity: i === 1 ? 1 : 0.4 + i * 0.15,
+							scale: 1,
+						}}
+						transition={{ delay: i * 0.15, type: 'spring', stiffness: 200 }}
+					>
+						<svg
+							width={i === 1 ? '48' : '32'}
+							height={i === 1 ? '44' : '28'}
+							viewBox='0 0 24 24'
+							fill='none'
+							xmlns='http://www.w3.org/2000/svg'
+						>
+							<path
+								d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'
+								className={i === 1 ? 'fill-brand' : 'fill-brand/30'}
+							/>
+						</svg>
+					</motion.div>
+				))}
+			</div>
+		</div>
+	)
+}
+
 function TargetIllustration() {
 	return (
 		<div className='relative inline-flex items-center justify-center'>
@@ -552,7 +590,7 @@ function CheckmarkIllustration() {
 				className='absolute size-24 rounded-full bg-success/10'
 				initial={{ scale: 0 }}
 				animate={{ scale: [0, 1.3, 1] }}
-				transition={{ duration: 0.8, ease: 'easeOut' }}
+				transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 			/>
 			<motion.div
 				initial={{ scale: 0 }}
@@ -576,7 +614,11 @@ function CheckmarkIllustration() {
 						x: [0, (i % 2 === 0 ? 1 : -1) * (20 + i * 8)],
 						y: [0, -(15 + i * 5)],
 					}}
-					transition={{ duration: 1, delay: 0.3 + i * 0.1, ease: 'easeOut' }}
+					transition={{
+						duration: DURATION_S.dramatic,
+						delay: 0.3 + i * 0.1,
+						ease: 'easeOut',
+					}}
 				/>
 			))}
 		</div>
@@ -676,6 +718,7 @@ const illustrationMap: Record<EmptyStateVariant, React.ReactNode> = {
 	cooking: <ChefWaitingIllustration />,
 	search: <SearchIllustration />,
 	saved: <BookmarkIllustration />,
+	liked: <HeartIllustration />,
 	challenges: <TargetIllustration />,
 	pending: <CheckmarkIllustration />,
 	notifications: <BellIllustration />,
@@ -716,7 +759,7 @@ export function EmptyState({
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
-				'text-center py-12 px-6 bg-panel-bg rounded-xl border border-border my-6',
+				'text-center py-12 px-6 bg-bg-card rounded-xl border border-border my-6',
 				isPositive &&
 					'bg-gradient-to-b from-success/5 to-brand/2 border-success/20',
 				className,
@@ -726,7 +769,9 @@ export function EmptyState({
 			{displayIllustration && <div className='mb-6'>{displayIllustration}</div>}
 
 			{/* Title & Description */}
-			<h3 className='text-xl font-extrabold text-text mb-2'>{title}</h3>
+			<h3 className='text-xl font-display font-extrabold text-text mb-2'>
+				{title}
+			</h3>
 			<p className='text-base text-text-muted mb-6 max-w-xs mx-auto leading-relaxed'>
 				{description}
 			</p>
@@ -740,9 +785,10 @@ export function EmptyState({
 					<div className='flex gap-2 justify-center flex-wrap'>
 						{searchSuggestions.map((suggestion, index) => (
 							<button
+								type='button'
 								key={index}
 								onClick={() => onSuggestionClick?.(suggestion)}
-								className='py-2 px-4 bg-bg border border-border rounded-full text-sm text-text hover:bg-primary hover:border-primary hover:text-white transition-colors'
+								className='py-2 px-4 bg-bg border border-border rounded-full text-sm text-text hover:bg-brand hover:border-brand hover:text-white transition-colors'
 							>
 								{suggestion}
 							</button>
@@ -759,8 +805,8 @@ export function EmptyState({
 							href={primaryAction.href}
 							className={cn(
 								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
-								'bg-primary text-white text-base font-bold',
-								'transition-all hover:bg-primary/90',
+								'bg-brand text-white text-base font-bold',
+								'transition-all hover:bg-brand/90',
 							)}
 						>
 							{primaryAction.icon}
@@ -768,11 +814,12 @@ export function EmptyState({
 						</Link>
 					) : (
 						<button
+							type='button'
 							onClick={primaryAction.onClick}
 							className={cn(
 								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
-								'bg-primary text-white text-base font-bold',
-								'transition-all hover:bg-primary/90',
+								'bg-brand text-white text-base font-bold',
+								'transition-all hover:bg-brand/90',
 								isPositive && 'animate-pulse',
 							)}
 						>
@@ -798,6 +845,7 @@ export function EmptyState({
 							</Link>
 						) : (
 							<button
+								type='button'
 								key={index}
 								onClick={action.onClick}
 								className='inline-flex items-center gap-2 py-3 px-5 bg-bg border border-border rounded-xl text-sm font-semibold text-text hover:bg-border transition-colors'
@@ -816,7 +864,7 @@ export function EmptyState({
 					<span className='text-xs text-text-muted'>Quick start:</span>
 					{quickActions.map((action, index) => {
 						const className =
-							'py-2 px-3.5 bg-bg border border-border rounded-full text-sm text-text hover:border-primary transition-colors'
+							'py-2 px-3.5 bg-bg border border-border rounded-full text-sm text-text hover:border-brand transition-colors'
 						const content = (
 							<>
 								{action.emoji && <span className='mr-1'>{action.emoji}</span>}
@@ -834,6 +882,7 @@ export function EmptyState({
 
 						return (
 							<button
+								type='button'
 								key={index}
 								onClick={action.onClick}
 								className={className}
@@ -862,20 +911,29 @@ export function EmptyFeed({
 	onDiscoverChefs?: () => void
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='feed'
-			title='Your feed is hungry!'
-			description='Follow chefs to fill it with delicious inspiration'
+			title={t('feedTitle')}
+			description={t('feedDesc')}
 			primaryAction={{
-				label: 'Discover Chefs',
+				label: t('discoverChefs'),
 				onClick: onDiscoverChefs,
 				icon: <Compass className='size-icon-sm' />,
 			}}
 			quickActions={[
-				{ label: 'Italian', emoji: '🇮🇹', href: '/explore?category=italian' },
-				{ label: 'Asian', emoji: '🥢', href: '/explore?category=asian' },
-				{ label: 'Quick Meals', emoji: '⏱️', href: '/explore?category=quick' },
+				{
+					label: t('catItalian'),
+					emoji: '🇮🇹',
+					href: '/explore?category=italian',
+				},
+				{ label: t('catAsian'), emoji: '🥢', href: '/explore?category=asian' },
+				{
+					label: t('catQuickMeals'),
+					emoji: '⏱️',
+					href: '/explore?category=quick',
+				},
 			]}
 			className={className}
 		/>
@@ -897,13 +955,14 @@ export function EmptyCookingHistory({
 	}
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='cooking'
-			title='Time to cook something!'
-			description='Your cooking journey starts with a single dish'
+			title={t('cookingTitle')}
+			description={t('cookingDesc')}
 			primaryAction={{
-				label: 'Start Your First Cook',
+				label: t('startFirstCook'),
 				onClick: onStartCooking,
 				icon: <ChefHat className='size-icon-sm' />,
 			}}
@@ -913,15 +972,19 @@ export function EmptyCookingHistory({
 			<div className='flex flex-col gap-2.5 p-4 bg-bg rounded-xl mb-6 max-w-xs mx-auto text-left'>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>⚡</span>
-					Earn <strong>30+ XP</strong> on your first cook
+					{t.rich('earnXp', { strong: chunks => <strong>{chunks}</strong> })}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>🎖️</span>
-					Unlock the <strong>First Dish</strong> badge
+					{t.rich('unlockBadge', {
+						strong: chunks => <strong>{chunks}</strong>,
+					})}
 				</div>
 				<div className='flex items-center gap-2.5 text-sm text-text'>
 					<span className='text-lg'>🔥</span>
-					Start your <strong>cooking streak</strong>
+					{t.rich('startStreak', {
+						strong: chunks => <strong>{chunks}</strong>,
+					})}
 				</div>
 			</div>
 
@@ -929,11 +992,11 @@ export function EmptyCookingHistory({
 			{beginnerRecipe && (
 				<div className='pt-6 border-t border-border'>
 					<span className='block text-xs text-text-muted mb-3'>
-						Great for beginners:
+						{t('greatForBeginners')}
 					</span>
 					<Link
 						href={beginnerRecipe.href}
-						className='inline-flex items-center gap-3 py-2.5 px-4 pr-5 bg-bg border border-border rounded-xl hover:border-primary transition-all'
+						className='inline-flex items-center gap-3 py-2.5 px-4 pr-5 bg-bg border border-border rounded-xl hover:border-brand transition-all'
 					>
 						<Image
 							src={beginnerRecipe.imageUrl}
@@ -964,13 +1027,14 @@ export function EmptySaved({
 	onBrowseRecipes?: () => void
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='saved'
-			title='No saved recipes yet'
-			description='Bookmark recipes you want to cook later'
+			title={t('savedTitle')}
+			description={t('savedDesc')}
 			primaryAction={{
-				label: 'Browse Recipes',
+				label: t('browseRecipes'),
 				onClick: onBrowseRecipes,
 				icon: <BookOpen className='size-icon-sm' />,
 			}}
@@ -978,47 +1042,49 @@ export function EmptySaved({
 		>
 			{/* How To */}
 			<div className='flex items-center justify-center gap-2.5 mb-6 flex-wrap'>
-				{[
-					'Find a recipe you like',
-					'Tap the bookmark icon',
-					'Cook when ready!',
-				].map((step, index) => (
-					<div key={index} className='flex items-center gap-2'>
-						<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-lg'>
-							<span className='size-icon-md flex items-center justify-center bg-primary text-white rounded-full text-xs font-bold'>
-								{index + 1}
-							</span>
-							<span className='text-sm text-text'>{step}</span>
+				{[t('savedStep1'), t('savedStep2'), t('savedStep3')].map(
+					(step, index) => (
+						<div key={index} className='flex items-center gap-2'>
+							<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-lg'>
+								<span className='size-icon-md flex items-center justify-center bg-brand text-white rounded-full text-xs font-bold'>
+									{index + 1}
+								</span>
+								<span className='text-sm text-text'>{step}</span>
+							</div>
+							{index < 2 && (
+								<span className='text-text-muted hidden sm:block'>→</span>
+							)}
 						</div>
-						{index < 2 && (
-							<span className='text-text-muted hidden sm:block'>→</span>
-						)}
-					</div>
-				))}
+					),
+				)}
 			</div>
 		</EmptyState>
 	)
 }
 
 export function EmptyNotifications({ className }: { className?: string }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='notifications'
-			title='No notifications yet'
-			description="When someone interacts with your content, you'll see it here"
+			title={t('notifTitle')}
+			description={t('notifDesc')}
 			className={className}
 		>
 			<div className='flex gap-2 justify-center flex-wrap mt-2'>
-				{['❤️ Likes', '💬 Comments', '👤 Follows', '🏆 Achievements'].map(
-					type => (
-						<span
-							key={type}
-							className='py-1.5 px-3 bg-bg rounded-full text-xs text-text-muted'
-						>
-							{type}
-						</span>
-					),
-				)}
+				{[
+					`❤️ ${t('notifLikes')}`,
+					`💬 ${t('notifComments')}`,
+					`👤 ${t('notifFollows')}`,
+					`🏆 ${t('notifAchievements')}`,
+				].map(type => (
+					<span
+						key={type}
+						className='py-1.5 px-3 bg-bg rounded-full text-xs text-text-muted'
+					>
+						{type}
+					</span>
+				))}
 			</div>
 		</EmptyState>
 	)
@@ -1031,30 +1097,33 @@ export function AllCaughtUp({
 	onCookNow?: () => void
 	className?: string
 }) {
+	const t = useTranslations('emptyState')
 	return (
 		<EmptyState
 			variant='pending'
-			title='All caught up! 🎉'
-			description="No pending posts. You've claimed all your XP!"
+			title={t('caughtUpTitle')}
+			description={t('caughtUpDesc')}
 			isPositive
 			className={className}
 		>
 			{/* Next Goal */}
 			<div className='mt-5 max-w-xs mx-auto text-left'>
-				<span className='block text-xs text-text-muted mb-2.5'>Next goal:</span>
+				<span className='block text-xs text-text-muted mb-2.5'>
+					{t('nextGoal')}
+				</span>
 				<div className='flex items-center gap-3 p-3.5 bg-bg border border-border rounded-xl'>
 					<span className='text-icon-lg'>🍳</span>
 					<div className='flex-1'>
 						<span className='block text-sm font-semibold text-text'>
-							Cook something new
+							{t('cookSomethingNew')}
 						</span>
-						<span className='text-xs text-text-muted'>
-							Earn more XP to level up!
-						</span>
+						<span className='text-xs text-text-muted'>{t('earnMoreXp')}</span>
 					</div>
 					<button
+						type='button'
 						onClick={onCookNow}
-						className='size-10 flex items-center justify-center bg-primary rounded-lg text-white hover:bg-primary/90 transition-colors'
+						aria-label={t('startCooking')}
+						className='size-10 flex items-center justify-center bg-brand rounded-lg text-white hover:bg-brand/90 transition-colors'
 					>
 						<ChefHat className='size-5' />
 					</button>

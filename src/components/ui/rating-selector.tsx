@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -41,9 +41,9 @@ export const RatingSelector = ({
 				<label
 					key={rating}
 					className={cn(
-						'flex cursor-pointer items-center gap-2 rounded-lg border border-border-subtle px-4 py-3 transition-all hover:border-primary hover:bg-primary/5',
+						'flex cursor-pointer items-center gap-2 rounded-lg border border-border-subtle px-4 py-3 transition-all hover:border-brand hover:bg-brand/5',
 						value === rating &&
-							'border-primary bg-primary/10 shadow-sm ring-1 ring-primary/20',
+							'border-brand bg-brand/10 shadow-sm ring-1 ring-brand/20',
 					)}
 				>
 					<input
@@ -56,7 +56,7 @@ export const RatingSelector = ({
 					/>
 					<Star
 						className={cn(
-							'h-5 w-5 fill-current transition-all',
+							'size-5 fill-current transition-all',
 							value === rating ? 'text-gold' : 'text-text-secondary',
 						)}
 					/>
@@ -69,7 +69,7 @@ export const RatingSelector = ({
 						{rating}+ stars
 					</span>
 					{value === rating && (
-						<div className='ml-auto h-2 w-2 rounded-full bg-primary' />
+						<div className='ml-auto size-2 rounded-full bg-brand' />
 					)}
 				</label>
 			))}

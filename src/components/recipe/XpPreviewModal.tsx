@@ -1,12 +1,20 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Edit3, Loader2, Rocket, Send, Shield, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	BUTTON_SUBTLE_HOVER,
+} from '@/lib/motion'
 import { modKey } from '@/lib/recipeCreateUtils'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { AnimatedNumber } from '@/components/ui/animated-number'
 import {
 	AlertDialog,
 	AlertDialogCancel,
@@ -19,34 +27,9 @@ import {
 import { Portal } from '@/components/ui/portal'
 import type { ParsedRecipe, XpBreakdown } from '@/lib/types/recipeCreate'
 
-// ── CountUp (animated number) ───────────────────────────────────────
-const CountUp = ({
-	value,
-	className,
-}: {
-	value: number
-	className?: string
-}) => {
-	const count = useMotionValue(0)
-	const rounded = useTransform(count, latest => Math.round(latest))
-	const [displayValue, setDisplayValue] = React.useState(0)
+// XP Preview Modal
 
-	React.useEffect(() => {
-		const controls = animate(count, value, {
-			duration: 1.2,
-			ease: 'easeOut',
-		})
-		const unsubscribe = rounded.on('change', v => setDisplayValue(v))
-		return () => {
-			controls.stop()
-			unsubscribe()
-		}
-	}, [value, count, rounded])
-
-	return <span className={className}>{displayValue}</span>
-}
-
-// ── Props ───────────────────────────────────────────────────────────
+// -- Props -----------------------------------------------------------
 interface XpPreviewModalProps {
 	recipe: ParsedRecipe
 	xpBreakdown: XpBreakdown
@@ -69,11 +52,17 @@ export const XpPreviewModal = ({
 	onPublish,
 	isPublishing = false,
 }: XpPreviewModalProps) => {
+	const t = useTranslations('recipe')
 	const [showConfirm, setShowConfirm] = useState(false)
+
+	useEscapeKey(!showConfirm && !isPublishing, onBack)
 
 	return (
 		<Portal>
 			<motion.div
+				role='dialog'
+				aria-modal='true'
+				aria-label={t('xpPreview')}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
@@ -82,13 +71,18 @@ export const XpPreviewModal = ({
 				<motion.div
 					initial={{ scale: 0.9, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
-					className='w-full max-w-md max-h-modal overflow-y-auto rounded-2xl bg-panel-bg p-7'
+					className='w-full max-w-md max-h-modal overflow-y-auto rounded-2xl bg-bg-card p-7'
 				>
 					{/* Header */}
 					<div className='mb-5 flex items-center justify-between'>
-						<h2 className='text-xl font-extrabold text-text'>XP Preview</h2>
+						<h2 className='text-xl font-display font-extrabold text-text'>
+							{t('xpPreview')}
+						</h2>
 						<button
-							onClick={onBack}						aria-label='Close'							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
+							type='button'
+							onClick={onBack}
+							aria-label={t('ariaClose')}
+							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
 						>
 							<X className='size-5' />
 						</button>
@@ -106,14 +100,14 @@ export const XpPreviewModal = ({
 							/>
 						) : (
 							<div className='flex size-20 items-center justify-center rounded-xl bg-bg-elevated text-3xl'>
-								🍳
+								??
 							</div>
 						)}
 						<div className='flex-1'>
 							<h3 className='text-lg font-bold text-text'>{recipe.title}</h3>
 							<p className='text-xs text-text-secondary'>
-								{recipe.cookTime} • {recipe.difficulty} • {recipe.servings}{' '}
-								servings
+								{recipe.cookTime} • {recipe.difficulty} •{' '}
+								{t('servingsLabel', { count: recipe.servings })}
 							</p>
 						</div>
 					</div>
@@ -122,19 +116,20 @@ export const XpPreviewModal = ({
 					<div className='mb-5 rounded-2xl bg-bg p-5'>
 						<div className='mb-4 flex items-center justify-between border-b border-border pb-4'>
 							<span className='text-sm text-text-secondary'>
-								Total Recipe XP
+								{t('totalRecipeXp')}
 							</span>
-							<CountUp
+							<AnimatedNumber
 								value={xpBreakdown.total}
-								className='text-4xl font-black text-primary'
+								duration={1.2}
+								className='text-4xl font-black tabular-nums text-brand'
 							/>
 						</div>
 
 						<div className='mb-4 space-y-3'>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>📊</span>
-									Base ({recipe.difficulty} difficulty)
+									<span className='text-lg'>??</span>
+									{t('baseDifficulty', { difficulty: recipe.difficulty })}
 								</div>
 								<span className='font-bold text-success'>
 									+{xpBreakdown.base}
@@ -142,8 +137,8 @@ export const XpPreviewModal = ({
 							</div>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>📝</span>
-									Steps ({recipe.steps.length} × 10)
+									<span className='text-lg'>??</span>
+									{t('stepsCount', { count: recipe.steps.length })}
 								</div>
 								<span className='font-bold text-success'>
 									+{xpBreakdown.steps}
@@ -151,23 +146,23 @@ export const XpPreviewModal = ({
 							</div>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2.5 text-sm text-text'>
-									<span className='text-lg'>⏱️</span>
-									Time ({recipe.cookTime})
+									<span className='text-lg'>??</span>
+									{t('timeCookTime', { cookTime: recipe.cookTime })}
 								</div>
 								<span className='font-bold text-success'>
 									+{xpBreakdown.time}
 								</span>
 							</div>
-							{(xpBreakdown.techniques || []).map((t, i) => (
+							{(xpBreakdown.techniques || []).map((tech, i) => (
 								<div
 									key={i}
 									className='flex items-center justify-between rounded-lg bg-streak/10 px-3.5 py-2.5'
 								>
 									<div className='flex items-center gap-2.5 text-sm text-text'>
-										<span className='text-lg'>🔥</span>
-										{t.name} technique
+										<span className='text-lg'>??</span>
+										{t('technique', { name: tech.name })}
 									</div>
-									<span className='font-bold text-success'>+{t.xp}</span>
+									<span className='font-bold text-success'>+{tech.xp}</span>
 								</div>
 							))}
 						</div>
@@ -176,13 +171,13 @@ export const XpPreviewModal = ({
 						<div className='flex items-center gap-3 rounded-xl bg-success/10 px-4 py-3.5 text-success'>
 							<Shield className='size-6' />
 							<div className='flex-1'>
-								<strong className='text-sm'>XP Validated</strong>
+								<strong className='text-sm'>{t('xpValidated')}</strong>
 								<span className='block text-xs opacity-80'>
-									Recipe passes anti-cheat checks
+									{t('xpValidatedDesc')}
 								</span>
 							</div>
 							<span className='text-xs font-semibold text-text-secondary'>
-								{xpBreakdown.confidence}% confident
+								{t('xpConfident', { confidence: xpBreakdown.confidence })}
 							</span>
 						</div>
 					</div>
@@ -190,7 +185,7 @@ export const XpPreviewModal = ({
 					{/* Badges Preview */}
 					<div className='mb-4'>
 						<span className='mb-2.5 block text-xs text-text-secondary'>
-							Cooks can earn:
+							{t('cooksCanEarn')}
 						</span>
 						<div className='flex gap-2.5'>
 							{(recipe.detectedBadges || []).map((badge, i) => (
@@ -199,7 +194,7 @@ export const XpPreviewModal = ({
 									initial={{ opacity: 0, scale: 0.8 }}
 									animate={{ opacity: 1, scale: 1 }}
 									transition={{ delay: i * 0.1, ...TRANSITION_SPRING }}
-									whileHover={{ scale: 1.05 }}
+									whileHover={BUTTON_SUBTLE_HOVER}
 									className='flex items-center gap-2 rounded-xl bg-bg px-4 py-2.5'
 								>
 									<span className='text-xl'>{badge.emoji}</span>
@@ -213,15 +208,16 @@ export const XpPreviewModal = ({
 
 					{/* Creator Incentive */}
 					<div className='mb-5 flex items-center gap-3.5 rounded-2xl border border-xp/20 bg-xp/10 px-5 py-4'>
-						<span className='text-3xl'>✨</span>
+						<span className='text-3xl'>?</span>
 						<div>
-							<strong className='text-sm text-xp'>You earn 4% XP</strong>{' '}
+							<strong className='text-sm text-xp'>{t('creatorXpEarn')}</strong>{' '}
 							<span className='text-sm text-text'>
-								when others cook this recipe
+								{t('creatorXpWhenOthersCook')}
 							</span>
 							<span className='block text-xs text-text-secondary'>
-								If 100 people cook this: +
-								{Math.round(xpBreakdown.total * 0.04 * 100)} XP for you!
+								{t('creatorXpProjection', {
+									xp: Math.round(xpBreakdown.total * 0.04 * 100),
+								})}
 							</span>
 						</div>
 					</div>
@@ -229,24 +225,26 @@ export const XpPreviewModal = ({
 					{/* Actions */}
 					<div className='flex gap-3'>
 						<motion.button
+							type='button'
 							onClick={onBack}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Edit3 className='size-4' />
-							Edit Recipe
+							{t('editRecipe')}
 						</motion.button>
 						<motion.button
+							type='button'
 							onClick={() => setShowConfirm(true)}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg'
+							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Send className='size-4' />
-							Publish Recipe
+							{t('publishRecipe')}
 							<kbd className='hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline-block'>
-								{modKey}+↵
+								{modKey}+?
 							</kbd>
 						</motion.button>
 					</div>
@@ -262,15 +260,13 @@ export const XpPreviewModal = ({
 									<Rocket className='size-7 text-white' />
 								</div>
 								<AlertDialogTitle className='text-lg font-bold text-text'>
-									Ready to go live?
+									{t('readyToGoLive')}
 								</AlertDialogTitle>
 								<AlertDialogDescription className='text-sm text-text-secondary'>
-									<span className='font-medium text-text'>{recipe.title}</span>{' '}
-									will be visible to the ChefKix community. You&apos;ll earn{' '}
-									<span className='font-semibold text-xp'>
-										{xpBreakdown.total} XP
-									</span>{' '}
-									when others cook it!
+									{t.rich('publishConfirmDesc', {
+										title: recipe.title,
+										xp: xpBreakdown.total,
+									})}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter className='flex-row gap-3 sm:justify-center'>
@@ -278,9 +274,10 @@ export const XpPreviewModal = ({
 									disabled={isPublishing}
 									className='flex-1 rounded-xl border-border bg-bg text-text-secondary hover:bg-bg-hover disabled:opacity-50'
 								>
-									Wait, go back
+									{t('waitGoBack')}
 								</AlertDialogCancel>
 								<button
+									type='button'
 									onClick={() => onPublish(recipe)}
 									disabled={isPublishing}
 									className='flex-1 inline-flex items-center justify-center rounded-xl bg-gradient-hero px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none'
@@ -288,12 +285,12 @@ export const XpPreviewModal = ({
 									{isPublishing ? (
 										<>
 											<Loader2 className='mr-2 size-4 animate-spin' />
-											Publishing...
+											{t('publishing')}
 										</>
 									) : (
 										<>
 											<Rocket className='mr-2 size-4' />
-											Publish!
+											{t('publishBang')}
 										</>
 									)}
 								</button>

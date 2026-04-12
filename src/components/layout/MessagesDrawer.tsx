@@ -1,6 +1,7 @@
 'use client'
 
 import { Send, X, Search, Loader2, MessageSquare } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import {
 	InputGroup,
@@ -24,6 +25,7 @@ import { PATHS } from '@/constants/paths'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 export const MessagesDrawer = () => {
+	const t = useTranslations('messages')
 	const { user } = useAuth()
 	const { isMessagesDrawerOpen, toggleMessagesDrawer } = useUiStore()
 
@@ -206,24 +208,24 @@ export const MessagesDrawer = () => {
 			{/* Resize handle */}
 			<div
 				onMouseDown={() => setIsResizing(true)}
-				className='absolute left-0 top-0 flex h-full w-2 cursor-ew-resize items-center justify-center hover:bg-primary/10'
+				className='absolute left-0 top-0 flex h-full w-2 cursor-ew-resize items-center justify-center hover:bg-brand/10'
 			>
 				<div className='h-12 w-1 rounded-full bg-border' />
 			</div>
 			<div
 				onMouseDown={() => setIsResizing(true)}
-				className='absolute left-0 top-0 flex h-2 w-full cursor-ns-resize items-center justify-center hover:bg-primary/10'
+				className='absolute left-0 top-0 flex h-2 w-full cursor-ns-resize items-center justify-center hover:bg-brand/10'
 			>
 				<div className='h-1 w-12 rounded-full bg-border' />
 			</div>
 
 			<div className='flex items-center justify-between border-b p-3'>
-				<h3 className='font-semibold'>Messages</h3>
+				<h3 className='font-semibold'>{t('drawerTitle')}</h3>
 				<Button
 					variant='ghost'
 					size='icon'
 					onClick={toggleMessagesDrawer}
-					aria-label='Close messages'
+					aria-label={t('ariaCloseMessages')}
 				>
 					<X className='size-4' />
 				</Button>
@@ -236,7 +238,7 @@ export const MessagesDrawer = () => {
 						<Search className='size-4 text-text-muted' />
 					</InputGroupAddon>
 					<InputGroupInput
-						placeholder='Search conversations...'
+						placeholder={t('searchConversations')}
 						value={searchTerm}
 						onChange={e => setSearchTerm(e.target.value)}
 					/>
@@ -277,8 +279,9 @@ export const MessagesDrawer = () => {
 									<Loader2 className='size-5 animate-spin text-text-secondary' />
 								</div>
 							) : messages.length === 0 ? (
-								<div className='flex h-full items-center justify-center text-sm text-text-secondary'>
-									No messages yet
+								<div className='flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-text-secondary'>
+									<MessageSquare className='size-8 text-text-muted' />
+									{t('noMessagesYet')}
 								</div>
 							) : (
 								<div className='flex flex-col gap-2'>
@@ -290,7 +293,7 @@ export const MessagesDrawer = () => {
 											<div
 												className={`max-w-[70%] rounded-lg p-2 ${
 													message.me
-														? 'rounded-br-none bg-primary text-white'
+														? 'rounded-br-none bg-brand text-white'
 														: 'rounded-bl-none bg-bg-elevated'
 												}`}
 											>
@@ -315,21 +318,22 @@ export const MessagesDrawer = () => {
 								<MessageSquare className='size-8' />
 								<p className='text-sm'>
 									{searchTerm
-										? 'No conversations found'
-										: 'No conversations yet'}
+										? t('noConversationsFound')
+										: t('noConversationsYet')}
 								</p>
 								<Link
 									href={PATHS.COMMUNITY}
 									onClick={toggleMessagesDrawer}
-									className='text-xs text-primary hover:underline'
+									className='text-xs text-brand hover:underline'
 								>
-									Find people to chat with
+									{t('findPeopleToChat')}
 								</Link>
 							</div>
 						) : (
 							<div className='flex flex-col gap-1'>
 								{filteredConversations.map(conv => (
 									<button
+										type='button'
 										key={conv.id}
 										onClick={() => setSelectedConversation(conv)}
 										className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-bg-hover'
@@ -354,7 +358,7 @@ export const MessagesDrawer = () => {
 											)}
 										</div>
 										{conv.unreadCount && conv.unreadCount > 0 && (
-											<span className='flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-white'>
+											<span className='flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
 												{conv.unreadCount}
 											</span>
 										)}
@@ -370,7 +374,7 @@ export const MessagesDrawer = () => {
 					<>
 						<InputGroup className='flex-1'>
 							<InputGroupInput
-								placeholder='Type a message...'
+								placeholder={t('typeMessage')}
 								value={newMessage}
 								onChange={e => setNewMessage(e.target.value)}
 								onKeyDown={handleKeyPress}
@@ -381,6 +385,7 @@ export const MessagesDrawer = () => {
 							size='icon'
 							onClick={handleSendMessage}
 							disabled={!newMessage.trim() || isSending}
+							aria-label={t('sendMessage')}
 						>
 							{isSending ? (
 								<Loader2 className='size-4 animate-spin' />

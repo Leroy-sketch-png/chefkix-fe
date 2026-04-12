@@ -1,14 +1,18 @@
 'use client'
 
 import { Comment as CommentType } from '@/lib/types'
+import { useTranslations } from 'next-intl'
 import { Comment } from './Comment'
 import { CommentSkeleton } from '@/components/ui/skeleton'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { getCommentsByPostId, createComment } from '@/services/comment'
 import { moderateContent } from '@/services/ai'
 import { toast } from 'sonner'
-import { Send, Loader2 } from 'lucide-react'
+import { Send, Loader2, MessageSquare, RefreshCw } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION_S } from '@/lib/motion'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
+import { useAuthGate } from '@/hooks/useAuthGate'
 import { diag } from '@/lib/diagnostics'
 
 interface CommentListProps {
@@ -26,6 +30,7 @@ export const CommentList = ({
 	onCommentCreated,
 	onCommentDeleted,
 }: CommentListProps) => {
+	const t = useTranslations('social')
 	const [comments, setComments] = useState<CommentType[]>([])
 	const [loading, setLoading] = useState(isLoading)
 	const [error, setError] = useState(false)
@@ -33,6 +38,7 @@ export const CommentList = ({
 	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const mentionInputRef = useRef<MentionInputRef>(null)
+	const requireAuth = useAuthGate()
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true)
@@ -44,17 +50,18 @@ export const CommentList = ({
 			setComments(response.data)
 		} else {
 			setError(true)
-			toast.error(response.message || 'Failed to load comments')
+			toast.error(t('failedLoadComments'))
 		}
 
 		setLoading(false)
-	}, [postId])
+	}, [postId, t])
 
 	useEffect(() => {
 		fetchComments()
 	}, [fetchComments])
 
 	const handleSubmitComment = async () => {
+		if (!requireAuth(t('commentOnPostAuth'))) return
 		if (!newComment.trim() || isSubmitting) return
 
 		diag.action('social', 'COMMENT_SUBMIT', {
@@ -66,93 +73,94 @@ export const CommentList = ({
 		setIsSubmitting(true)
 
 		try {
-		// AI content moderation before posting (fail-closed for safety)
-		diag.request('social', '/api/v1/moderate', {
-			contentType: 'comment',
-			contentPreview: newComment.trim().slice(0, 100),
-		})
-
-		const moderationResult = await moderateContent(newComment.trim(), 'comment')
-
-		diag.response(
-			'social',
-			'/api/v1/moderate',
-			{
-				success: moderationResult.success,
-				action: moderationResult.data?.action,
-				reason: moderationResult.data?.reason,
-			},
-			moderationResult.success,
-		)
-
-		// Fail-closed: if moderation API fails, don't allow comment
-		if (!moderationResult.success) {
-			diag.warn('social', 'COMMENT_MODERATION_API_FAILED', {
-				message: 'API failure - fail-closed blocking comment',
+			// AI content moderation before posting (fail-closed for safety)
+			diag.request('social', '/api/v1/moderate', {
+				contentType: 'comment',
+				contentPreview: newComment.trim().slice(0, 100),
 			})
-			toast.error('Unable to verify content. Please try again.')
-			setIsSubmitting(false)
-			return
-		}
 
-		if (moderationResult.data) {
-			if (moderationResult.data.action === 'block') {
-				diag.warn('social', 'COMMENT_BLOCKED_BY_MODERATION', {
-					reason: moderationResult.data.reason,
+			const moderationResult = await moderateContent(
+				newComment.trim(),
+				'comment',
+			)
+
+			diag.response(
+				'social',
+				'/api/v1/moderate',
+				{
+					success: moderationResult.success,
+					action: moderationResult.data?.action,
+					reason: moderationResult.data?.reason,
+				},
+				moderationResult.success,
+			)
+
+			// Fail-closed: if moderation API fails, don't allow comment
+			if (!moderationResult.success) {
+				diag.warn('social', 'COMMENT_MODERATION_API_FAILED', {
+					message: 'API failure - fail-closed blocking comment',
 				})
-				toast.error(
-					moderationResult.data.reason ||
-						'Your comment contains content that violates our community guidelines.',
-				)
+				toast.error(t('moderationVerifyFailed'))
 				setIsSubmitting(false)
 				return
 			}
-			if (moderationResult.data.action === 'flag') {
-				diag.warn('social', 'COMMENT_FLAGGED_BY_MODERATION', {
-					reason: moderationResult.data.reason,
-				})
-				toast.warning(
-					moderationResult.data.reason ||
-						'Your comment may contain sensitive content and will be reviewed.',
-				)
+
+			if (moderationResult.data) {
+				if (moderationResult.data.action === 'block') {
+					diag.warn('social', 'COMMENT_BLOCKED_BY_MODERATION', {
+						reason: moderationResult.data.reason,
+					})
+					toast.error(
+						moderationResult.data.reason || t('moderationBlockComment'),
+					)
+					setIsSubmitting(false)
+					return
+				}
+				if (moderationResult.data.action === 'flag') {
+					diag.warn('social', 'COMMENT_FLAGGED_BY_MODERATION', {
+						reason: moderationResult.data.reason,
+					})
+					toast.warning(
+						moderationResult.data.reason || t('moderationFlagComment'),
+					)
+				}
 			}
-		}
 
-		diag.request('social', 'createComment', {
-			postId,
-			contentLength: newComment.trim().length,
-			taggedUserIds,
-		})
-
-		const response = await createComment(postId, {
-			content: newComment.trim(),
-			taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
-		})
-
-		if (response.success && response.data) {
-			diag.response(
-				'social',
-				'createComment',
-				{
-					commentId: response.data.id,
-					success: true,
-				},
-				true,
-			)
-			setComments(prev => [response.data!, ...prev])
-			setNewComment('')
-			setTaggedUserIds([])
-			mentionInputRef.current?.clear()
-			toast.success('Comment posted!')
-			onCommentCreated?.()
-		} else {
-			diag.error('social', 'COMMENT_CREATE_FAILED', {
-				message: response.message,
+			diag.request('social', 'createComment', {
+				postId,
+				contentLength: newComment.trim().length,
+				taggedUserIds,
 			})
-			toast.error(response.message || 'Failed to post comment')
-		}
+
+			const response = await createComment(postId, {
+				content: newComment.trim(),
+				taggedUserIds: taggedUserIds.length > 0 ? taggedUserIds : undefined,
+			})
+
+			if (response.success && response.data) {
+				diag.response(
+					'social',
+					'createComment',
+					{
+						commentId: response.data.id,
+						success: true,
+					},
+					true,
+				)
+				setComments(prev => [response.data!, ...prev])
+				setNewComment('')
+				setTaggedUserIds([])
+				mentionInputRef.current?.clear()
+				toast.success(t('commentPosted'))
+				onCommentCreated?.()
+			} else {
+				diag.error('social', 'COMMENT_CREATE_FAILED', {
+					message: response.message,
+				})
+				toast.error(t('failedPostComment'))
+			}
 		} catch {
-			toast.error('Failed to post comment')
+			toast.error(t('failedPostComment'))
 		} finally {
 			setIsSubmitting(false)
 		}
@@ -170,8 +178,18 @@ export const CommentList = ({
 
 	if (error) {
 		return (
-			<div className='p-6 text-center text-sm text-destructive'>
-				Failed to load comments. Please try refreshing.
+			<div className='flex flex-col items-center gap-3 p-6 text-center'>
+				<p className='text-sm text-destructive'>
+					{t('failedLoadCommentsRefresh')}
+				</p>
+				<button
+					type='button'
+					onClick={fetchComments}
+					className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
+				>
+					<RefreshCw className='size-3.5' />
+					{t('retryComments')}
+				</button>
 			</div>
 		)
 	}
@@ -187,14 +205,16 @@ export const CommentList = ({
 						onChange={setNewComment}
 						onTaggedUsersChange={setTaggedUserIds}
 						onSubmit={handleSubmitComment}
-						placeholder='Add a comment... (use @ to mention)'
+						placeholder={t('commentPlaceholder')}
 						disabled={isSubmitting}
 						maxLength={500}
 					/>
 					<button
+						type='button'
 						onClick={handleSubmitComment}
 						disabled={!newComment.trim() || isSubmitting}
-						className='grid size-10 place-items-center rounded-lg bg-primary text-white transition-colors hover:bg-primary/90 disabled:opacity-50'
+						className='grid size-10 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+						aria-label={t('commentSubmitAriaLabel')}
 					>
 						{isSubmitting ? (
 							<Loader2 className='size-4 animate-spin' />
@@ -204,30 +224,44 @@ export const CommentList = ({
 					</button>
 				</div>
 				{newComment.length > 0 && (
-					<p className='mt-1 text-right text-xs text-text-muted'>{newComment.length}/500</p>
+					<p
+						className={`mt-1 text-right text-xs ${newComment.length > 400 ? (newComment.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+					>
+						{newComment.length}/500
+					</p>
 				)}
 			</div>
 
 			{/* Comments List */}
 			{comments.length === 0 ? (
-				<div className='p-6 text-center text-sm text-text-secondary'>
-					No comments yet. Be the first to comment!
+				<div className='flex flex-col items-center gap-2 p-6 text-center text-sm text-text-secondary'>
+					<MessageSquare className='size-8 text-text-muted/50' />
+					<p>{t('noCommentsYet')}</p>
 				</div>
 			) : (
-				<div className='max-h-panel-lg space-y-2 overflow-y-auto p-4 md:p-6'>
-					{comments.map(comment => (
-						<Comment
-							key={comment.id || `${comment.userId}-${comment.createdAt}`}
-							comment={comment}
-							postId={postId}
-							currentUserId={currentUserId}
-							onDelete={commentId => {
-								setComments(prev => prev.filter(c => c.id !== commentId))
-								onCommentDeleted?.()
-							}}
-						/>
-					))}
-				</div>
+				<ul className='max-h-panel-lg space-y-2 overflow-y-auto p-4 md:p-6'>
+					<AnimatePresence initial={false}>
+						{comments.map(comment => (
+							<motion.li
+								key={comment.id || `${comment.userId}-${comment.createdAt}`}
+								initial={{ opacity: 0, y: -10 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, height: 0 }}
+								transition={{ duration: DURATION_S.normal }}
+							>
+								<Comment
+									comment={comment}
+									postId={postId}
+									currentUserId={currentUserId}
+									onDelete={commentId => {
+										setComments(prev => prev.filter(c => c.id !== commentId))
+										onCommentDeleted?.()
+									}}
+								/>
+							</motion.li>
+						))}
+					</AnimatePresence>
+				</ul>
 			)}
 		</div>
 	)

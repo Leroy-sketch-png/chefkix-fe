@@ -28,6 +28,7 @@ module.exports = {
 				brand: {
 					DEFAULT: 'var(--color-brand)',
 					hover: 'var(--color-brand-hover)',
+					text: 'var(--color-brand-text)',
 					subtle: 'var(--color-brand-subtle)',
 				},
 
@@ -49,10 +50,12 @@ module.exports = {
 				success: {
 					DEFAULT: 'var(--color-success)',
 					vivid: 'var(--color-success-vivid)',
+					deep: 'var(--color-success-deep)',
 				},
 				warning: {
 					DEFAULT: 'var(--color-warning)',
 					vivid: 'var(--color-warning-vivid)',
+					deep: 'var(--color-warning-deep)',
 				},
 				error: {
 					DEFAULT: 'var(--color-error)',
@@ -66,17 +69,23 @@ module.exports = {
 				// Gaming colors
 				streak: {
 					DEFAULT: 'var(--color-streak)',
+					text: 'var(--color-streak-text)',
 					urgent: 'var(--color-streak-urgent)',
 				},
 				xp: {
 					DEFAULT: 'var(--color-xp)',
+					text: 'var(--color-xp-text)',
 					bonus: 'var(--color-bonus)',
 				},
 				level: {
 					DEFAULT: 'var(--color-level)',
+					text: 'var(--color-level-text)',
 					glow: 'var(--color-level-glow)',
 				},
-				badge: 'var(--color-badge)',
+				badge: {
+					DEFAULT: 'var(--color-badge)',
+					text: 'var(--color-badge-text)',
+				},
 				rare: 'var(--color-rare)',
 				combo: 'var(--color-combo)',
 				legendary: 'var(--color-legendary)',
@@ -401,6 +410,8 @@ module.exports = {
 				glow: 'var(--shadow-glow)',
 				card: 'var(--shadow-card)' /* Subtle lift for cards */,
 				warm: 'var(--shadow-warm)' /* Cozy warm shadow */,
+				modal: 'var(--shadow-modal)' /* Modal/dialog elevation */,
+				badge: 'var(--shadow-badge)' /* Floating badges, chips */,
 			},
 			backdropBlur: {
 				sm: 'var(--blur-sm)',

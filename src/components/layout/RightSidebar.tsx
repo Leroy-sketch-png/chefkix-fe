@@ -1,20 +1,35 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useMemo, useRef } from 'react'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakWidget } from '@/components/streak'
 import { ExpandableDailyChallengeBanner } from '@/components/challenges'
 import { useRouter } from 'next/navigation'
 import { getTodaysChallenge } from '@/services/challenge'
-import { getAllProfiles } from '@/services/profile'
+import {
+	getSuggestedFollows,
+	toggleFollow as toggleFollowApi,
+} from '@/services/social'
 import { getSessionHistory } from '@/services/cookingSession'
-import { toggleFollow as toggleFollowApi } from '@/services/social'
 import { Profile } from '@/lib/types'
 import { logDevError } from '@/lib/dev-log'
 import { cn } from '@/lib/utils'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
 import { usePresence } from '@/hooks/usePresence'
+import { toast } from 'sonner'
+import {
+	AlertTriangle,
+	RefreshCw,
+	ChefHat,
+	Zap,
+	Trophy,
+	Users,
+} from 'lucide-react'
+import { FOLLOW_PULSE, TRANSITION_SPRING } from '@/lib/motion'
 
 // ============================================
 // HELPER: Compute week progress from cooking session history
@@ -75,6 +90,7 @@ function computeWeekProgress(
 // ============================================
 
 export const RightSidebar = () => {
+	const t = useTranslations('common')
 	const { user } = useAuth()
 	const router = useRouter()
 	usePresence() // Send heartbeat while sidebar is mounted
@@ -82,6 +98,8 @@ export const RightSidebar = () => {
 	const followingLockRef = useRef(new Set<string>())
 	const [suggestions, setSuggestions] = useState<Profile[]>([])
 	const [cookDates, setCookDates] = useState<Date[]>([])
+	const [sidebarError, setSidebarError] = useState(false)
+	const [retryCount, setRetryCount] = useState(0)
 	const [dailyChallenge, setDailyChallenge] = useState<{
 		id: string
 		title: string
@@ -96,35 +114,33 @@ export const RightSidebar = () => {
 		if (!user) return
 
 		const fetchData = async () => {
+			setSidebarError(false)
 			try {
 				// Fetch daily challenge, profile suggestions, and session history in parallel
 				const [challengeResponse, profilesResponse, sessionResponse] =
 					await Promise.all([
 						getTodaysChallenge(),
-						// TODO(perf): getAllProfiles() fetches all users just to take 5.
-						// Replace with a dedicated suggestions endpoint with size=5.
-						getAllProfiles(),
+						getSuggestedFollows(5),
 						getSessionHistory({ status: 'all', size: 100 }),
 					])
 
 				if (challengeResponse.success && challengeResponse.data) {
 					const data = challengeResponse.data
-					setDailyChallenge({
-						id: data.id,
-						title: data.title,
-						description: data.description,
-						icon: data.icon,
-						bonusXp: data.bonusXp,
-						endsAt: new Date(data.endsAt),
-					})
+					// Validate shape — API mocks/errors may return Page<T> instead of a challenge object
+					if (typeof data.title === 'string' && data.endsAt) {
+						setDailyChallenge({
+							id: data.id,
+							title: data.title,
+							description: data.description,
+							icon: data.icon,
+							bonusXp: data.bonusXp ?? 0,
+							endsAt: new Date(data.endsAt),
+						})
+					}
 				}
 
 				if (profilesResponse.success && profilesResponse.data) {
-					// Filter out current user and limit to 5 suggestions
-					const filtered = profilesResponse.data
-						.filter(p => p.userId !== user?.userId)
-						.slice(0, 5)
-					setSuggestions(filtered)
+					setSuggestions(profilesResponse.data)
 				}
 
 				// Extract completed session dates for streak calculation
@@ -136,50 +152,54 @@ export const RightSidebar = () => {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch sidebar data:', err)
+				setSidebarError(true)
 			}
 		}
 
 		fetchData()
-	}, [user]) // Re-fetch when user changes (login/logout)
+	}, [user, retryCount]) // Re-fetch when user changes or on retry
 
-	const handleFollow = async (userId: string) => {
-		if (followingLockRef.current.has(userId)) return
-		followingLockRef.current.add(userId)
-		// Optimistic UI update
-		setFollowedIds(prev =>
-			prev.includes(userId)
-				? prev.filter(id => id !== userId)
-				: [...prev, userId],
-		)
-		try {
-			const response = await toggleFollowApi(userId)
-			if (!response.success) {
-				// Revert on failure
-				setFollowedIds(prev =>
-					prev.includes(userId)
-						? prev.filter(id => id !== userId)
-						: [...prev, userId],
-				)
-			}
-		} catch (err) {
-			// Revert on error
+	const handleFollow = useCallback(
+		async (userId: string) => {
+			if (followingLockRef.current.has(userId)) return
+			followingLockRef.current.add(userId)
+			const wasFollowed = followedIds.includes(userId)
+			// Optimistic UI update
 			setFollowedIds(prev =>
 				prev.includes(userId)
 					? prev.filter(id => id !== userId)
 					: [...prev, userId],
 			)
-			logDevError('Failed to toggle follow:', err)
-		} finally {
-			followingLockRef.current.delete(userId)
-		}
-	}
+			try {
+				const response = await toggleFollowApi(userId)
+				if (!response.success) {
+					// Revert on failure
+					setFollowedIds(prev =>
+						prev.includes(userId)
+							? prev.filter(id => id !== userId)
+							: [...prev, userId],
+					)
+					toast.error(wasFollowed ? t('failedToUnfollow') : t('failedToFollow'))
+				}
+			} catch (err) {
+				// Revert on error
+				setFollowedIds(prev =>
+					prev.includes(userId)
+						? prev.filter(id => id !== userId)
+						: [...prev, userId],
+				)
+				logDevError('Failed to toggle follow:', err)
+				toast.error(wasFollowed ? t('failedToUnfollow') : t('failedToFollow'))
+			} finally {
+				followingLockRef.current.delete(userId)
+			}
+		},
+		[followedIds, t],
+	)
 
 	// Compute streak data from user stats + cooking session history
 	const streakData = useMemo(() => {
-		const { weekProgress, isActiveToday } = computeWeekProgress(
-			cookDates,
-			user?.lastCookDate,
-		)
+		const { weekProgress, isActiveToday } = computeWeekProgress(cookDates)
 		const currentStreak = user?.statistics?.streakCount ?? 0
 
 		// Determine streak status (must match StreakWidget props: 'active' | 'at-risk')
@@ -194,84 +214,162 @@ export const RightSidebar = () => {
 			isActiveToday,
 			status,
 		}
-	}, [cookDates, user?.statistics?.streakCount, user?.lastCookDate])
+	}, [cookDates, user?.statistics?.streakCount])
 
 	return (
 		<aside
 			className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-5 xl:flex xl:flex-col xl:gap-5'
-			aria-label='Complementary content'
+			aria-label={t('ariaComplementaryContent')}
 		>
-			{/* Friends Online Widget — real-time via presence heartbeat */}
-			<FriendsOnlineWidget />
-
-			{/* Streak Widget */}
-			<StreakWidget
-				currentStreak={streakData.currentStreak}
-				weekProgress={streakData.weekProgress}
-				isActiveToday={streakData.isActiveToday}
-				status={streakData.status}
-			/>
-
-			{/* Daily Challenge Banner (Expandable) */}
-			{dailyChallenge && (
-				<ExpandableDailyChallengeBanner
-					challenge={dailyChallenge}
-					onFindRecipe={() =>
-						router.push(
-							`/explore?search=${encodeURIComponent(dailyChallenge.title)}`,
-						)
-					}
-				/>
+			{/* Guest experience — compelling sign-up prompt instead of dead space */}
+			{!user && (
+				<>
+					<div className='rounded-radius border border-border-subtle bg-gradient-to-br from-brand/5 via-bg-card to-xp/5 p-6 shadow-card'>
+						<div className='mb-4 flex items-center gap-2'>
+							<ChefHat className='size-6 text-brand' />
+							<h3 className='text-base font-bold text-text'>
+								{t('guestSidebarTitle')}
+							</h3>
+						</div>
+						<p className='mb-5 text-sm leading-relaxed text-text-secondary'>
+							{t('guestSidebarDesc')}
+						</p>
+						<div className='mb-5 flex flex-col gap-2.5'>
+							{[
+								{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
+								{
+									icon: Trophy,
+									text: t('guestBenefitLevel'),
+									color: 'text-level',
+								},
+								{
+									icon: Users,
+									text: t('guestBenefitCommunity'),
+									color: 'text-brand',
+								},
+							].map(({ icon: Icon, text, color }) => (
+								<div key={text} className='flex items-center gap-2.5'>
+									<Icon className={cn('size-4 flex-shrink-0', color)} />
+									<span className='text-sm text-text-secondary'>{text}</span>
+								</div>
+							))}
+						</div>
+						<Link
+							href='/auth/sign-up'
+							className='flex h-10 w-full items-center justify-center rounded-radius bg-brand text-sm font-bold text-white shadow-card transition-all hover:shadow-warm'
+						>
+							{t('guestSidebarCta')}
+						</Link>
+						<Link
+							href='/auth/sign-in'
+							className='mt-2 flex h-9 w-full items-center justify-center rounded-radius text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						>
+							{t('guestSidebarSignIn')}
+						</Link>
+					</div>
+				</>
 			)}
 
-			{/* Trending Creators Card */}
-			{suggestions.length > 0 && (
-				<div className='rounded-radius border border-border-subtle bg-bg-card p-5 shadow-card'>
-					<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
-						Suggested Creators
-					</div>
-					<div className='flex flex-col gap-3'>
-						{suggestions.map(suggestion => {
-							const isFollowed = followedIds.includes(suggestion.userId)
-							return (
-								<div
-									key={suggestion.userId}
-									className='flex items-center gap-3'
-								>
-									<div className='relative size-10 flex-shrink-0 overflow-hidden rounded-full shadow-card transition-transform duration-200 hover:scale-105'>
-										<Image
-											src={suggestion.avatarUrl || '/placeholder-avatar.svg'}
-											alt={suggestion.displayName || suggestion.username}
-											fill
-											sizes='40px'
-											className='object-cover'
-										/>
-									</div>
-									<div className='min-w-0 flex-1'>
-										<strong className='block text-sm leading-tight text-text-primary'>
-											{suggestion.displayName || suggestion.username}
-										</strong>
-										<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-text-secondary'>
-											@{suggestion.username}
-										</span>
-									</div>
-									<button
-										onClick={() => handleFollow(suggestion.userId)}
-										aria-pressed={isFollowed}
-										className={cn(
-											'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95',
-											isFollowed
-												? 'border border-border-medium bg-bg-card text-text-secondary hover:border-error/50 hover:text-error'
-												: 'border-none bg-gradient-primary text-white hover:shadow-card',
-										)}
-									>
-										{isFollowed ? 'Following' : 'Follow'}
-									</button>
-								</div>
-							)
-						})}
-					</div>
-				</div>
+			{/* Authenticated sidebar content */}
+			{user && (
+				<>
+					{/* Sidebar error state — shown when data fetch fails entirely */}
+					{sidebarError && (
+						<div className='flex flex-col items-center gap-3 rounded-radius border border-border-subtle bg-bg-elevated p-4 text-center'>
+							<AlertTriangle className='size-5 text-text-muted' />
+							<p className='text-xs text-text-secondary'>
+								{t('sidebarLoadFailed')}
+							</p>
+							<button
+								type='button'
+								onClick={() => setRetryCount(c => c + 1)}
+								className='flex items-center gap-1.5 rounded-lg bg-bg-card px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-bg-hover'
+							>
+								<RefreshCw className='size-3' />
+								{t('retry')}
+							</button>
+						</div>
+					)}
+
+					{/* Friends Online Widget — real-time via presence heartbeat */}
+					<FriendsOnlineWidget />
+
+					{/* Streak Widget */}
+					<StreakWidget
+						currentStreak={streakData.currentStreak}
+						weekProgress={streakData.weekProgress}
+						isActiveToday={streakData.isActiveToday}
+						status={streakData.status}
+					/>
+
+					{/* Daily Challenge Banner (Expandable) */}
+					{dailyChallenge && (
+						<ExpandableDailyChallengeBanner
+							challenge={dailyChallenge}
+							onFindRecipe={() =>
+								router.push(
+									`/explore?search=${encodeURIComponent(dailyChallenge.title)}`,
+								)
+							}
+						/>
+					)}
+
+					{/* Trending Creators Card */}
+					{suggestions.length > 0 && (
+						<div className='rounded-radius border border-border-subtle bg-bg-card p-5 shadow-card'>
+							<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
+								{t('suggestedCreators')}
+							</div>
+							<div className='flex flex-col gap-3'>
+								{suggestions.map(suggestion => {
+									const isFollowed = followedIds.includes(suggestion.userId)
+									return (
+										<div
+											key={suggestion.userId}
+											className='flex items-center gap-3'
+										>
+											<div className='relative size-10 flex-shrink-0 overflow-hidden rounded-full shadow-card transition-transform duration-200 hover:scale-105'>
+												<Image
+													src={
+														suggestion.avatarUrl || '/placeholder-avatar.svg'
+													}
+													alt={suggestion.displayName || suggestion.username}
+													fill
+													sizes='40px'
+													className='object-cover'
+												/>
+											</div>
+											<div className='min-w-0 flex-1'>
+												<strong className='block text-sm leading-tight text-text-primary'>
+													{suggestion.displayName || suggestion.username}
+												</strong>
+												<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-text-secondary'>
+													@{suggestion.username}
+												</span>
+											</div>
+											<motion.button
+												type='button'
+												onClick={() => handleFollow(suggestion.userId)}
+												aria-pressed={isFollowed}
+												animate={isFollowed ? FOLLOW_PULSE.followed : undefined}
+												initial={false}
+												transition={TRANSITION_SPRING}
+												className={cn(
+													'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
+													isFollowed
+														? 'border border-border-medium bg-bg-card text-text-secondary hover:border-error/50 hover:text-error'
+														: 'border-none bg-gradient-primary text-white hover:shadow-card',
+												)}
+											>
+												{isFollowed ? t('following') : t('follow')}
+											</motion.button>
+										</div>
+									)
+								})}
+							</div>
+						</div>
+					)}
+				</>
 			)}
 		</aside>
 	)

@@ -1,7 +1,11 @@
 import withPWA from '@ducanh2912/next-pwa'
+import createNextIntlPlugin from 'next-intl/plugin'
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	devIndicators: false,
 	images: {
 		dangerouslyAllowSVG: true,
 		contentDispositionType: 'attachment',
@@ -24,9 +28,9 @@ const nextConfig = {
 				hostname: 'example.com',
 			},
 			{
-                protocol: 'https',
-                hostname: 'cdn.chefkix.com',
-            },
+				protocol: 'https',
+				hostname: 'cdn.chefkix.com',
+			},
 		],
 	},
 }
@@ -61,5 +65,31 @@ export default withPWA({
 				},
 			},
 		},
+		{
+			// Cache cooking session data for offline cooking
+			urlPattern: /\/api\/v1\/cooking-sessions\/current/,
+			handler: 'NetworkFirst',
+			options: {
+				cacheName: 'cooking-session',
+				networkTimeoutSeconds: 5,
+				expiration: {
+					maxEntries: 5,
+					maxAgeSeconds: 60 * 60 * 24, // 1 day
+				},
+			},
+		},
+		{
+			// Cache user profile for offline display
+			urlPattern: /\/api\/v1\/auth\/me$/,
+			handler: 'NetworkFirst',
+			options: {
+				cacheName: 'user-profile',
+				networkTimeoutSeconds: 5,
+				expiration: {
+					maxEntries: 1,
+					maxAgeSeconds: 60 * 60 * 24, // 1 day
+				},
+			},
+		},
 	],
-})(nextConfig)
+})(withNextIntl(nextConfig))

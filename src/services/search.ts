@@ -60,6 +60,27 @@ export async function autocompleteSearch(
 	}
 }
 
+export async function getTrendingSearches(
+	limit = 10,
+): Promise<ApiResponse<string[]>> {
+	try {
+		const response = await api.get(API_ENDPOINTS.SEARCH.TRENDING, {
+			params: { limit },
+		})
+		return response.data
+	} catch (error) {
+		const axiosError = error as AxiosError<ApiResponse<string[]>>
+		logDevError('[search] trendingSearches failed', axiosError)
+		return (
+			axiosError.response?.data ?? {
+				success: false,
+				statusCode: 500,
+				message: 'Trending searches failed',
+			}
+		)
+	}
+}
+
 // ── Knowledge Graph: Ingredients ──
 
 export async function searchIngredients(

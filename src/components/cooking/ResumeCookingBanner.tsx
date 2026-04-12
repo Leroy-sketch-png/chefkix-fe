@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
@@ -14,6 +15,7 @@ import {
 	fadeInUp,
 	BUTTON_HOVER,
 	BUTTON_TAP,
+	DURATION_S,
 } from '@/lib/motion'
 import Image from 'next/image'
 
@@ -32,6 +34,8 @@ interface ResumeCookingBannerProps {
 export const ResumeCookingBanner = ({
 	className,
 }: ResumeCookingBannerProps) => {
+	const t = useTranslations('cooking')
+	const tc = useTranslations('common')
 	const [pendingSession, setPendingSession] = useState<CookingSession | null>(
 		null,
 	)
@@ -142,9 +146,10 @@ export const ResumeCookingBanner = ({
 			>
 				{/* Dismiss button */}
 				<button
+					type='button'
 					onClick={handleDismiss}
 					className='absolute right-3 top-3 z-10 rounded-full p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text transition-colors'
-					aria-label='Dismiss'
+					aria-label={tc('ariaDismiss')}
 				>
 					<X className='size-4' />
 				</button>
@@ -157,11 +162,12 @@ export const ResumeCookingBanner = ({
 								src={recipeImage}
 								alt={recipeName}
 								fill
+								sizes='(max-width: 768px) 64px, 80px'
 								className='object-cover'
 							/>
 							{/* Progress ring overlay */}
 							<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
-								<div className='flex size-10 items-center justify-center rounded-full bg-white/90 text-xs font-bold text-brand'>
+							<div className='flex size-10 items-center justify-center rounded-full bg-white/90 text-xs font-bold text-brand tabular-nums'>
 									{progressPercent}%
 								</div>
 							</div>
@@ -177,17 +183,16 @@ export const ResumeCookingBanner = ({
 								<ChefHat className='size-4 text-brand' />
 							)}
 							<h3 className='text-base font-semibold text-text'>
-								{isPaused ? 'Paused Session' : 'Resume Cooking'}
+							{isPaused ? t('pausedSession') : t('resumeCooking')}
 							</h3>
 						</div>
 						<p className='text-sm text-text-secondary'>
-							{recipeName || 'Your recipe'} — Step {pendingSession.currentStep}{' '}
-							of {totalSteps}
+							{recipeName || t('yourRecipe')} — <span className='tabular-nums'>{t('stepOf', { current: pendingSession.currentStep, total: totalSteps })}</span>
 						</p>
 						<div className='flex items-center gap-3 text-xs text-text-muted'>
-							<span className='flex items-center gap-1'>
+							<span className='flex items-center gap-1 tabular-nums'>
 								<Clock className='size-3' />
-								{completedSteps} steps completed
+								{t('stepsCompleted', { count: completedSteps })}
 							</span>
 						</div>
 					</div>
@@ -206,12 +211,12 @@ export const ResumeCookingBanner = ({
 							{isResuming ? (
 								<>
 									<span className='size-4 animate-spin rounded-full border-2 border-white border-t-transparent' />
-									Resuming...
+									{t('resuming')}
 								</>
 							) : (
 								<>
 									<Play className='size-4' />
-									Resume Cooking
+									{t('resumeCooking')}
 								</>
 							)}
 						</Button>
@@ -224,7 +229,7 @@ export const ResumeCookingBanner = ({
 						className='h-full bg-brand'
 						initial={{ width: 0 }}
 						animate={{ width: `${progressPercent}%` }}
-						transition={{ duration: 0.5, ease: 'easeOut' }}
+						transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
 					/>
 				</div>
 			</motion.div>
