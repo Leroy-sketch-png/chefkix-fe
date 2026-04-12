@@ -50,10 +50,12 @@ module.exports = {
 				success: {
 					DEFAULT: 'var(--color-success)',
 					vivid: 'var(--color-success-vivid)',
+					deep: 'var(--color-success-deep)',
 				},
 				warning: {
 					DEFAULT: 'var(--color-warning)',
 					vivid: 'var(--color-warning-vivid)',
+					deep: 'var(--color-warning-deep)',
 				},
 				error: {
 					DEFAULT: 'var(--color-error)',

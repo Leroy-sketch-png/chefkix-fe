@@ -6,10 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format a date into a short relative time string
- * Examples: "just now", "5m", "2h", "3d", "2w", "1mo", "1y"
- */
-/**
  * Locale-aware compact relative time (e.g. "5m ago", "2h ago").
  * Uses Intl.RelativeTimeFormat for automatic localization.
  * @param date - ISO string or Date
@@ -18,11 +14,11 @@ export function cn(...inputs: ClassValue[]) {
 export function formatShortTimeAgo(date: Date | string, locale = 'en'): string {
 	const diffMs = Date.now() - new Date(date).getTime()
 	const diffSec = Math.floor(diffMs / 1000)
-	if (diffSec < 60) return 'just now'
 	const rtf = new Intl.RelativeTimeFormat(locale, {
 		numeric: 'always',
 		style: 'narrow',
 	})
+	if (diffSec < 60) return rtf.format(0, 'second')
 	const diffMin = Math.floor(diffSec / 60)
 	if (diffMin < 60) return rtf.format(-diffMin, 'minute')
 	const diffHour = Math.floor(diffMin / 60)

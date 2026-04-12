@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	devIndicators: false,
 	images: {
 		dangerouslyAllowSVG: true,
 		contentDispositionType: 'attachment',
@@ -27,9 +28,9 @@ const nextConfig = {
 				hostname: 'example.com',
 			},
 			{
-                protocol: 'https',
-                hostname: 'cdn.chefkix.com',
-            },
+				protocol: 'https',
+				hostname: 'cdn.chefkix.com',
+			},
 		],
 	},
 }

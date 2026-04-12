@@ -397,6 +397,18 @@ export function getTotalTime(recipe: {
 }
 
 /**
+ * Format minutes into a human-readable cooking time string.
+ * e.g. 45 → "45 min", 90 → "1h 30m", 870 → "14h 30m", 1440 → "24h"
+ */
+export function formatCookingTime(minutes: number): string {
+	if (!minutes || minutes <= 0) return '0 min'
+	if (minutes < 60) return `${minutes} min`
+	const h = Math.floor(minutes / 60)
+	const m = minutes % 60
+	return m > 0 ? `${h}h ${m}m` : `${h}h`
+}
+
+/**
  * Check if recipe is published
  */
 export function isPublished(recipe: { recipeStatus: RecipeStatus }): boolean {

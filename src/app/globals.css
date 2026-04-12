@@ -30,8 +30,10 @@
 	/* Semantic Colors - VIBRANT & Expressive */
 	--color-success: #10b981; /* Brighter emerald - completed, achievements */
 	--color-success-vivid: #34d399; /* Extra pop for celebrations */
+	--color-success-deep: #047857; /* Darker emerald - AA-contrast on light bg */
 	--color-warning: #f59e0b; /* Richer amber - caution, timers */
 	--color-warning-vivid: #fbbf24; /* Urgent warnings */
+	--color-warning-deep: #b45309; /* Darker amber - AA-contrast on light bg */
 	--color-error: #ef4444; /* Vibrant red - errors, destructive */
 	--color-error-vivid: #f87171; /* Urgent errors */
 	--color-info: #3b82f6; /* Brighter blue - tips, info */
@@ -529,8 +531,10 @@
 	/* Semantic colors - VIVID on dark */
 	--color-success: #34d399;
 	--color-success-vivid: #6ee7b7;
+	--color-success-deep: #34d399; /* Dark mode: lighter for contrast */
 	--color-warning: #fbbf24;
 	--color-warning-vivid: #fcd34d;
+	--color-warning-deep: #fbbf24; /* Dark mode: lighter for contrast */
 	--color-error: #f87171;
 	--color-error-vivid: #fca5a5;
 	--color-info: #60a5fa;
@@ -634,8 +638,10 @@
 	/* ============ SEMANTIC COLORS ============ */
 	--color-success: var(--color-success);
 	--color-success-vivid: var(--color-success-vivid);
+	--color-success-deep: var(--color-success-deep);
 	--color-warning: var(--color-warning);
 	--color-warning-vivid: var(--color-warning-vivid);
+	--color-warning-deep: var(--color-warning-deep);
 	--color-error: var(--color-error);
 	--color-error-vivid: var(--color-error-vivid);
 	--color-info: var(--color-info);
