@@ -4,6 +4,8 @@ import { useEffect, useState, useRef, useCallback, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Post } from '@/lib/types'
 import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
+import { getStoryFeed } from '@/services/story'
+import { UserStoryFeedResponse } from '@/lib/types/story' // 🌟 Import Type chuẩn của Story
 import {
 	getPendingSessions,
 	linkPostToSession,
@@ -62,16 +64,10 @@ import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
-
-// ============================================
-// CONSTANTS
-// ============================================
+import { StoryFeed } from '@/components/story/StoryFeed'
+import { useStoryStore } from '@/store/storyStore'
 
 const POSTS_PER_PAGE = 10
-
-// ============================================
-// TYPES
-// ============================================
 
 interface PendingPostLink {
 	sessionId: string
@@ -81,13 +77,6 @@ interface PendingPostLink {
 
 const PENDING_POST_LINK_KEY = 'pendingPostLink'
 
-// ============================================
-// HELPERS
-// ============================================
-
-/**
- * Calculate pending status based on days remaining
- */
 const getPendingStatus = (
 	daysRemaining: number,
 ): 'urgent' | 'warning' | 'normal' | 'expired' => {
@@ -97,21 +86,16 @@ const getPendingStatus = (
 	return 'normal'
 }
 
-/**
- * Transform SessionHistoryItem to PendingSession format for UI component
- */
 const transformToPendingSession = (
 	session: SessionHistoryItem,
 ): PendingSession => {
 	const daysRemaining = session.daysRemaining ?? 14
 	const cookedAt = new Date(session.completedAt || session.startedAt)
-	// Compute duration from startedAt and completedAt
 	const startTime = new Date(session.startedAt).getTime()
 	const endTime = session.completedAt
 		? new Date(session.completedAt).getTime()
 		: startTime
 	const durationMinutes = Math.round((endTime - startTime) / 60000)
-	// Calculate expiresAt: postDeadline from API or 14 days from completion
 	const expiresAt = session.postDeadline
 		? new Date(session.postDeadline)
 		: new Date(cookedAt.getTime() + 14 * 24 * 60 * 60 * 1000)
@@ -131,15 +115,12 @@ const transformToPendingSession = (
 	}
 }
 
-// ============================================
-// PAGE
-// ============================================
-
 export default function DashboardPage() {
 	const { user } = useAuth()
 	const router = useRouter()
 	const t = useTranslations('dashboard')
 	const [posts, setPosts] = useState<Post[]>([])
+	const [storyUsers, setStoryUsers] = useState<UserStoryFeedResponse[]>([]) // 🌟 State đã được định kiểu chuẩn
 	const [isLoading, setIsLoading] = useState(true)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -156,17 +137,11 @@ export default function DashboardPage() {
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
-	// Onboarding hints - show after initial load completes
 	useOnboardingOrchestrator({ delay: 1200, condition: !isLoading })
 
-	// Filter out posts from blocked users
 	const filteredPosts = useFilterBlockedContent(posts)
-
-	// j/k keyboard navigation for posts
 	const { focusedIndex: focusedPostIndex } = usePostKeyboardNav(filteredPosts)
 
-	// Streak at risk = has active streak AND hasn't cooked within window
-	// Backend computes cookedToday (within 72h window) and hoursUntilStreakBreaks
 	const stats = user?.statistics
 	const hasActiveStreak = (stats?.streakCount ?? 0) > 0
 	const hasStreakAtRisk = hasActiveStreak && !stats?.cookedToday
@@ -208,7 +183,6 @@ export default function DashboardPage() {
 						logDevError('Failed to update recovered newPost payload:', e)
 					}
 				}
-
 				return true
 			}
 
@@ -222,7 +196,66 @@ export default function DashboardPage() {
 		}
 	}, [])
 
-	// Fetch initial page
+	// 🌟 USE-EFFECT ĐỘC LẬP ĐỂ LẤY STORY (Không bao giờ bị crash lây)
+	// 🌟 USE-EFFECT ĐỘC LẬP ĐỂ LẤY STORY
+	// 🌟 USE-EFFECT LẤY STORY (Bulletproof - Bất chấp mọi loại vỏ bọc)
+	// 🌟 USE-EFFECT LẤY STORY (Thuật toán săn tìm mảng tự động)
+	useEffect(() => {
+		let cancelled = false
+
+		const fetchStories = async () => {
+			try {
+				console.log('👉 1. Bắt đầu gọi API getStoryFeed...')
+				const res = await getStoryFeed()
+
+				if (cancelled) return
+				console.log('👉 2. RAW DATA trả về từ Service:', res)
+
+				// Thuật toán quét mọi ngóc ngách để tìm cái mảng array
+				let storyArray = null
+
+				if (Array.isArray(res)) {
+					storyArray = res // Trạng thái đã bóc hết vỏ
+				} else if (res?.data && Array.isArray(res.data)) {
+					storyArray = res.data // Vỏ của API Response
+				} else if (res?.data?.data && Array.isArray(res.data.data)) {
+					storyArray = res.data.data // Bị kẹt vỏ Axios
+				}
+
+				console.log('👉 3. Mảng Array trích xuất được:', storyArray)
+
+				// Nếu tìm thấy mảng hợp lệ
+				if (storyArray && storyArray.length > 0) {
+					const formattedStories: UserStoryFeedResponse[] = storyArray.map(
+						(s: any) => ({
+							userId: s.userId || s.authorId || s.id,
+							displayName: s.displayName || s.username || 'User',
+							avatarUrl: s.avatarUrl,
+							hasUnseenStory: s.hasUnseenStory ?? s.hasUnseen ?? false,
+							hasStories: true, // 🌟 Bắt buộc phải có để StoryAvatar hiện viền
+						}),
+					)
+
+					console.log('👉 4. Data chuấn bị nhét vào State:', formattedStories)
+					setStoryUsers(formattedStories)
+				} else {
+					console.log(
+						'⚠️ Tìm thấy data, nhưng mảng Story đang trống hoặc không map được.',
+					)
+				}
+			} catch (err) {
+				console.error('❌ Lỗi khi gọi API Story feed:', err)
+			}
+		}
+
+		fetchStories()
+
+		return () => {
+			cancelled = true
+		}
+	}, [feedRefreshKey])
+
+	// 🌟 USE-EFFECT ĐỂ LẤY BÀI VIẾT (Đã dọn dẹp phần Story ra ngoài)
 	useEffect(() => {
 		let cancelled = false
 		const fetchInitialData = async () => {
@@ -244,7 +277,6 @@ export default function DashboardPage() {
 					}
 				}
 
-				// Fetch feed posts and pending sessions in parallel
 				const [feedResponse, pendingResponse] = await Promise.all([
 					feedMode === 'following'
 						? getFollowingFeedPosts({
@@ -259,26 +291,17 @@ export default function DashboardPage() {
 
 				if (feedResponse.success && feedResponse.data) {
 					let feedPosts = feedResponse.data
-
-					// Filter to only show PERSONAL posts (not GROUP posts)
 					feedPosts = feedPosts.filter(post => post.postType !== 'GROUP')
 
-					// OPTIMISTIC UPDATE: Check for newly created post with XP
-					// This handles the "Two Truths" problem where the FE has the
-					// correct XP from linkPostToSession, but the social module DB
-					// hasn't been updated yet by the Kafka consumer.
 					const newPostJson = sessionStorage.getItem('newPost')
 					if (newPostJson) {
 						try {
 							const newPost = JSON.parse(newPostJson) as Post
-							// Remove from sessionStorage immediately (one-time use)
 							sessionStorage.removeItem('newPost')
-							// Prepend to feed if not already present
 							const exists = feedPosts.some(p => p.id === newPost.id)
 							if (!exists) {
 								feedPosts = [newPost, ...feedPosts]
 							} else {
-								// Post exists but may have stale xpEarned - update it
 								feedPosts = feedPosts.map(p =>
 									p.id === newPost.id
 										? { ...p, xpEarned: newPost.xpEarned }
@@ -294,7 +317,6 @@ export default function DashboardPage() {
 					setPosts(feedPosts)
 					setIsColdStartFallback(false)
 
-					// COLD-START FALLBACK: If "For You" returns 0 posts, show trending instead
 					if (feedMode === 'forYou' && feedPosts.length === 0) {
 						const trendingResponse = await getFeedPosts({
 							page: 0,
@@ -321,7 +343,6 @@ export default function DashboardPage() {
 						}
 					}
 
-					// Use pagination info from backend - check if current page is the last
 					if (feedResponse.pagination) {
 						setHasMore(!feedResponse.pagination.last)
 					} else {
@@ -365,7 +386,6 @@ export default function DashboardPage() {
 		setIsRetryingPendingXp(false)
 	}
 
-	// Load more posts when scrolling
 	const loadMorePosts = useCallback(async () => {
 		if (isLoadingMore || !hasMore) return
 
@@ -373,7 +393,6 @@ export default function DashboardPage() {
 		const nextPage = currentPage + 1
 
 		try {
-			// When cold-start fallback is active, load more from trending (not forYou)
 			const effectiveMode: 'forYou' | 'latest' | 'trending' =
 				isColdStartFallback
 					? 'trending'
@@ -394,7 +413,6 @@ export default function DashboardPage() {
 						})
 
 			if (response.success && response.data) {
-				// Filter to only show PERSONAL posts (not GROUP posts)
 				const filteredPosts = response.data.filter(
 					post => post.postType !== 'GROUP',
 				)
@@ -419,7 +437,6 @@ export default function DashboardPage() {
 		}
 	}, [isLoadingMore, hasMore, currentPage, feedMode, isColdStartFallback, t])
 
-	// Intersection Observer for infinite scroll
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			entries => {
@@ -444,12 +461,10 @@ export default function DashboardPage() {
 
 	const handlePostCreated = (newPost: Post) => {
 		setPosts(prev => (Array.isArray(prev) ? [newPost, ...prev] : [newPost]))
-		// Dismiss streak banner when user creates a post (cooking activity)
 		setShowStreakBanner(false)
 	}
 
 	const handlePostFromPending = (sessionId: string) => {
-		// Navigate to dedicated post composer with session context for XP unlock
 		startNavigationTransition(() => {
 			router.push(`/post/new?session=${sessionId}`)
 		})
@@ -457,7 +472,6 @@ export default function DashboardPage() {
 
 	const handleDismissPending = () => {
 		setPendingSessions([])
-		// Persist dismissal so it doesn't reappear on page refresh within this session
 		sessionStorage.setItem('chefkix_pending_dismissed', 'true')
 	}
 
@@ -475,18 +489,15 @@ export default function DashboardPage() {
 		)
 	}, [])
 
-	// Interest picker for first-time users
 	const showInterestPicker =
 		!isLoading && user && (!user.preferences || user.preferences.length === 0)
 	const [interestPickerDismissed, setInterestPickerDismissed] = useState(false)
 
-	// Progressive disclosure: hide empty widgets for brand-new users
 	const isNewUser =
 		stats && (stats.currentXP ?? 0) === 0 && (stats.recipeCount ?? 0) === 0
 
 	return (
 		<>
-			{/* Global navigation loading indicator */}
 			<AnimatePresence>
 				{isNavigating && (
 					<motion.div
@@ -519,16 +530,33 @@ export default function DashboardPage() {
 						gradient='orange'
 						marginBottom='md'
 					/>
-					{/* Tonight's Pick Ã¢â‚¬â€ hero recipe suggestion */}
+
+					{/* 🌟 COMPONENT STORY HOÀN CHỈNH */}
+					<div className='mb-6'>
+						<StoryFeed
+							stories={storyUsers}
+							isLoading={isLoading}
+							onStoryClick={storyUser => {
+								const isMe = storyUser.userId === user?.userId
+								// Kiểm tra xem user có story không bằng trường hasUnseenStory, hoặc bạn có thể bổ sung hasStories vào DTO nếu cần
+								const hasStory =
+									storyUser.hasUnseenStory || (storyUser as any).hasStories
+
+								if (isMe && !hasStory) {
+									router.push('/story/create')
+								} else {
+									router.push(`/story/view/${storyUser.userId}`)
+								}
+							}}
+						/>
+					</div>
+
 					<TonightsPick className='mb-6' />
 
-					{/* Seasonal Event Banner Ã¢â‚¬â€ only shown for users with some activity */}
 					{!isNewUser && <SeasonalBanner className='mb-6' />}
 
-					{/* Active Challenges Widget Ã¢â‚¬â€ only shown for users with some activity */}
 					{!isNewUser && <ActiveChallengesWidget className='mb-6' />}
 
-					{/* Onboarding Card Ã¢â‚¬â€ welcome for new users, profile nudge for incomplete profiles */}
 					{isNewUser ? (
 						<motion.div
 							initial={{ opacity: 0, y: 12 }}
@@ -591,7 +619,6 @@ export default function DashboardPage() {
 									</div>
 								</Link>
 							</div>
-							{/* Profile completion nudge Ã¢â‚¬â€ inline for new users */}
 							{user &&
 								(!user.avatarUrl ||
 									user.avatarUrl === '/placeholder-avatar.svg' ||
@@ -625,7 +652,6 @@ export default function DashboardPage() {
 								)}
 						</motion.div>
 					) : (
-						/* Returning users Ã¢â‚¬â€ compact profile completion nudge only */
 						user &&
 						(!user.avatarUrl ||
 							user.avatarUrl === '/placeholder-avatar.svg' ||
@@ -687,9 +713,7 @@ export default function DashboardPage() {
 							</div>
 						</div>
 					)}
-					{/* Resume Cooking Banner - Show when user has an interrupted/paused session */}
 					<ResumeCookingBanner className='mb-6' />
-					{/* Streak Risk Banner - only shown for users with an active streak at risk */}
 					{!isNewUser && hasStreakAtRisk && showStreakBanner && (
 						<StreakRiskBanner
 							currentStreak={stats?.streakCount ?? 0}
@@ -704,7 +728,6 @@ export default function DashboardPage() {
 							className='mb-6'
 						/>
 					)}
-					{/* Pending Posts Section - only for users who have cooked */}
 					{!isNewUser && pendingSessions.length > 0 && (
 						<PendingPostsSection
 							sessions={pendingSessions}
@@ -723,9 +746,7 @@ export default function DashboardPage() {
 						onModeChange={setFeedMode}
 						className='mb-6'
 					/>
-					{/* Since Last Visit Summary - compact recap for returning users */}
 					{!isNewUser && <SinceLastVisitCard className='mb-6' />}
-					{/* Create Post Form */}
 					<div className='mb-4 md:mb-6'>
 						<CreatePostForm
 							onPostCreated={handlePostCreated}
@@ -740,12 +761,10 @@ export default function DashboardPage() {
 							}
 						/>
 					</div>
-					{/* Cold-Start Experience Ã¢â‚¬â€ wraps feed with curated categories for new users */}
 					<ColdStartExperience
 						isAuthenticated={!!user}
 						onColdStartComplete={() => setFeedRefreshKey(k => k + 1)}
 					>
-						{/* Content */}
 						{isLoading && (
 							<div className='space-y-4 md:space-y-6'>
 								<PostCardSkeleton count={3} showImages={false} />
@@ -761,7 +780,6 @@ export default function DashboardPage() {
 								}}
 							/>
 						)}
-						{/* Cold-start banner: shown when forYou is empty but trending has posts */}
 						{!isLoading &&
 							!error &&
 							isColdStartFallback &&
@@ -868,7 +886,6 @@ export default function DashboardPage() {
 									</AnimatePresence>
 								</StaggerContainer>
 
-								{/* Infinite scroll trigger */}
 								<div
 									ref={loadMoreRef}
 									className='flex justify-center py-8'
