@@ -6,6 +6,7 @@ import {
 	StoryHighlight,
 	StoryInteraction,
 	StoryResponse,
+	UserStoryFeedResponse,
 } from '@/lib/types/story'
 
 export const createStory = async (payload: any) => {
@@ -16,12 +17,14 @@ export const createStory = async (payload: any) => {
 }
 
 export const getStoryFeed = async () => {
-	return await api.get<ApiResponse<any[]>>(API_ENDPOINTS.STORIES.FEED)
+	return await api.get<ApiResponse<UserStoryFeedResponse[]>>(
+		API_ENDPOINTS.STORIES.FEED,
+	)
 }
 
 export const getStoriesByUserId = async (userId: string) => {
 	return await api.get<ApiResponse<StoryResponse[]>>(
-		`${API_ENDPOINTS.STORIES.BASE}/${userId}`,
+		`${API_ENDPOINTS.STORIES.BASE}/user/${userId}`,
 	)
 }
 

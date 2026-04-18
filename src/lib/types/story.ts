@@ -25,24 +25,18 @@ export interface Story {
 	userId: string
 	mediaUrl: string
 	mediaType: 'IMAGE' | 'VIDEO'
-	items: StoryItemDto[]
 	createdAt: string
 	expiresAt: string
+	items: StoryItemDto[]
 }
 
 export interface StoryItemDto {
-	id: string // Frontend-only ID for React keys
-	type: 'TEXT' | 'STICKER'
+	type: string
 	x: number
 	y: number
-	width: number | string
-	height: number | string
 	rotation: number
-	data: {
-		text?: string
-		color?: string
-		emoji?: string
-	}
+	scale: number
+	data: Record<string, any>
 }
 
 export interface StoryResponse {
@@ -56,13 +50,18 @@ export interface StoryResponse {
 	expiresAt: string
 }
 
+export interface UserStoryFeedResponse {
+	userId: string
+	displayName: string
+	avatarUrl: string
+	hasUnseenStory: boolean
+}
+
 export interface StoryInteraction {
 	id: string
 	storyId: string
 	userId: string
-	type: 'VIEW' | 'REACTION' | 'REPLY'
-	reactionType?: string
-	text?: string
+	type: 'LIKE' | 'CLAP' | 'WOW' | 'HEART'
 	createdAt: string
 }
 
@@ -70,7 +69,7 @@ export interface StoryHighlight {
 	id: string
 	userId: string
 	title: string
-	coverStoryId: string
+	coverUrl: string
 	storyIds: string[]
 	createdAt: string
 }

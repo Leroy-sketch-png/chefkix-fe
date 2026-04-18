@@ -18,7 +18,9 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import EmojiPicker from 'emoji-picker-react'
 import { Rnd } from 'react-rnd'
-import { createStory } from '@/services/story' // NHỚ IMPORT HÀM AXIOS
+import { useStoryStore } from '@/store/storyStore'
+import { createStory } from '@/services/story'
+import { api } from '@/lib/axios'
 
 interface StoryItem {
 	id: string
@@ -36,27 +38,19 @@ const uploadToCloudinary = async (file: File): Promise<string> => {
 	const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 	const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 
-	if (cloudName && uploadPreset) {
-		const formData = new FormData()
-		formData.append('file', file)
-		formData.append('upload_preset', uploadPreset)
+	if (!cloudName || !uploadPreset) throw new Error('Cloudinary config missing')
 
-		try {
-			const res = await fetch(
-				`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-				{
-					method: 'POST',
-					body: formData,
-				},
-			)
-			const data = await res.json()
-			return data.secure_url
-		} catch (err) {
-			toast.error('Lỗi khi upload ảnh')
-			throw err
-		}
-	}
-	return 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg'
+	const formData = new FormData()
+	formData.append('file', file)
+	formData.append('upload_preset', uploadPreset)
+
+	const res = await fetch(
+		`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+		{ method: 'POST', body: formData },
+	)
+	const data = await res.json()
+	if (!res.ok) throw new Error(data.error?.message || 'Upload failed')
+	return data.secure_url
 }
 
 export function StoryCreator() {
@@ -69,6 +63,7 @@ export function StoryCreator() {
 
 	const [isLoading, setIsLoading] = useState(false)
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+	const fetchStoryFeed = useStoryStore(state => state.fetchStoryFeed)
 
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const stickerInputRef = useRef<HTMLInputElement>(null)
@@ -149,64 +144,59 @@ export function StoryCreator() {
 		)
 
 	const handleSubmit = async () => {
-		if (!mediaPreview) {
+		if (!mediaFile) {
 			toast.error('Vui lòng chọn ảnh nền')
 			return
 		}
 
 		setIsLoading(true)
 		try {
-			const uploadedMediaUrl = mediaFile
-				? await uploadToCloudinary(mediaFile)
-				: mediaPreview
+			const formData = new FormData()
 
-			const processedItems = await Promise.all(
-				items.map(async item => {
-					if (item.type === 'IMAGE_STICKER' && item.file) {
-						const stickerUrl = await uploadToCloudinary(item.file)
-						return { ...item, data: { imageUrl: stickerUrl } }
-					}
-					return item
-				}),
-			)
+			// 1. Gắn file vật lý vào key "file" (khớp với @RequestPart("file") ở BE)
+			formData.append('file', mediaFile)
 
-			const formattedItems = processedItems.map(item => ({
-				type: item.type,
+			// 2. Chuẩn bị dữ liệu metadata
+			const formattedItems = items.map(item => ({
+				type: item.type === 'IMAGE_STICKER' ? 'STICKER' : item.type,
 				x: item.x,
 				y: item.y,
 				rotation: item.rotation,
-				scale: typeof item.width === 'number' ? item.width / 100 : 1,
+				// Tính scale dựa trên chiều rộng (Backend cần số double)
+				scale:
+					typeof item.width === 'string'
+						? parseInt(item.width) / 100
+						: item.width / 100,
 				data: item.data,
 			}))
 
-			const payload = {
-				mediaUrl: uploadedMediaUrl,
+			const storyMetadata = {
 				mediaType: 'IMAGE',
+				linkedRecipeId: null,
 				items: formattedItems,
 			}
 
-			// ĐÃ CHUYỂN VỀ AXIOS ĐỂ TỰ ĐỘNG GẮN TOKEN
-			const response = await createStory(payload)
+			// 3. Gắn metadata vào key "story" dưới dạng Blob JSON (khớp với @RequestPart("story") ở BE)
+			formData.append(
+				'story',
+				new Blob([JSON.stringify(storyMetadata)], {
+					type: 'application/json',
+				}),
+			)
 
-			if (
-				response.data?.success ||
-				response.status === 200 ||
-				response.status === 201
-			) {
-				toast.success('Đăng Story thành công')
+			// 4. Gửi bằng Axios (nó tự xử lý boundary cho Multipart)
+			const response = await api.post('/api/v1/stories', formData, {
+				headers: { 'Content-Type': 'multipart/form-data' },
+			})
+
+			if (response.status === 201 || response.data?.success) {
+				toast.success('Đăng Story thành công!')
+				await fetchStoryFeed()
 				router.push('/dashboard')
-			} else {
-				toast.error('Có lỗi xảy ra khi tạo Story')
 			}
 		} catch (e: any) {
-			console.error('Lỗi khi đăng Story:', e)
-			if (e.response?.status === 401) {
-				toast.error('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!')
-			} else {
-				toast.error(
-					e?.response?.data?.message || 'Có lỗi xảy ra trong quá trình xử lý',
-				)
-			}
+			console.error('Lỗi đăng story:', e)
+			toast.error(e.response?.data?.message || 'Có lỗi xảy ra')
 		} finally {
 			setIsLoading(false)
 		}

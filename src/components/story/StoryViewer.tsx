@@ -13,14 +13,15 @@ import {
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getStoriesByUserId } from '@/services/story'
-import { StoryResponse, Story, StoryItemDto } from '@/lib/types/story'
+import { StoryResponse, StoryItemDto } from '@/lib/types/story'
 import { Rnd } from 'react-rnd'
-import { Progress } from '@/components/ui/progress'
 import { useAuth } from '@/hooks/useAuth'
 import { formatDistanceToNow } from 'date-fns'
 
 interface StoryViewerProps {
 	userId: string
+	authorName?: string
+	authorAvatar?: string
 	onClose: () => void
 	onNextUser?: () => void
 	onPrevUser?: () => void
@@ -29,39 +30,57 @@ interface StoryViewerProps {
 const STORY_DURATION = 7000 // 7 seconds per story
 
 const StoryItemContent = ({ item }: { item: StoryItemDto }) => {
-	const baseStyle: React.CSSProperties = {
-		position: 'absolute',
-		color: item.color || '#FFFFFF',
-		fontFamily: item.fontFamily || 'sans-serif',
-		fontWeight: item.fontWeight || 'normal',
-		textAlign: item.textAlign as any,
-	}
+	const itemData = item.data || {}
 
 	return (
 		<Rnd
-			style={baseStyle}
-			size={{ width: item.width, height: item.height }}
+			size={{
+				width: itemData.width || 'auto',
+				height: itemData.height || 'auto',
+			}}
 			position={{ x: item.x, y: item.y }}
 			rotation={item.rotation}
 			disableDragging
 			disableResizing
-			className='flex items-center justify-center p-2 pointer-events-none'
+			className='flex items-center justify-center pointer-events-none'
 		>
-			{item.type === 'TEXT' && <span>{item.content}</span>}
-			{item.type === 'EMOJI' && (
-				<span style={{ fontSize: '4rem' }}>{item.content}</span>
-			)}
+			<div
+				style={{
+					transform: `scale(${item.scale || 1})`,
+					color: itemData.color || '#ffffff',
+					textAlign: itemData.textAlign || 'center',
+				}}
+			>
+				{/* 🌟 ĐÃ FIX: Đọc đúng key 'text' và 'emoji' từ DB */}
+				{item.type === 'TEXT' && (
+					<span className='font-bold drop-shadow-lg'>{itemData.text}</span>
+				)}
+
+				{(item.type === 'STICKER' || item.type === 'EMOJI') && (
+					<span style={{ fontSize: '4rem' }}>{itemData.emoji}</span>
+				)}
+
+				{/* Nếu sau này bạn có up sticker là ảnh nhỏ */}
+				{item.type === 'IMAGE_STICKER' && (
+					<img
+						src={itemData.imageUrl}
+						className='w-full h-full object-contain'
+					/>
+				)}
+			</div>
 		</Rnd>
 	)
 }
 
 export function StoryViewer({
 	userId,
+	authorName,
+	authorAvatar,
 	onClose,
 	onNextUser,
 	onPrevUser,
 }: StoryViewerProps) {
-	const [storyData, setStoryData] = useState<StoryResponse | null>(null)
+	const [stories, setStories] = useState<StoryResponse[]>([])
 	const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
 	const [isLoading, setIsLoading] = useState(true)
 	const [isPaused, setIsPaused] = useState(false)
@@ -69,7 +88,6 @@ export function StoryViewer({
 	const timerRef = useRef<NodeJS.Timeout | null>(null)
 	const { user: currentUser } = useAuth()
 
-	const stories = storyData?.stories || []
 	const currentStory = stories[currentStoryIndex]
 
 	const goToNextStory = useCallback(() => {
@@ -95,24 +113,38 @@ export function StoryViewer({
 	useEffect(() => {
 		if (!userId) return
 		setIsLoading(true)
-		setStoryData(null)
+		setStories([])
 		setCurrentStoryIndex(0)
 
 		getStoriesByUserId(userId)
-			.then(response => {
-				// Defensive check to ensure response.data is an array
-				if (Array.isArray(response.data)) {
-					setStoryData(response.data)
+			.then((res: any) => {
+				// 🌟 THUẬT TOÁN SĂN TÌM MẢNG (Giống hệt bên Dashboard)
+				let storyArray = null
+
+				if (Array.isArray(res)) {
+					storyArray = res // Đã bóc hết vỏ
+				} else if (res?.data && Array.isArray(res.data)) {
+					storyArray = res.data // Vỏ của ApiResponse (Spring Boot)
+				} else if (res?.data?.data && Array.isArray(res.data.data)) {
+					storyArray = res.data.data // Bị bọc 2 lớp bởi Axios
+				}
+
+				// Kiểm tra xem mảng có story nào không
+				if (storyArray && storyArray.length > 0) {
+					setStories(storyArray) // Cập nhật state thành công!
 				} else {
-					// If data is not an array, treat as no stories and close.
 					console.warn(
-						'Expected an array of stories, but received:',
-						response.data,
+						'⚠️ API gọi thành công nhưng không có Story hoặc sai cấu trúc:',
+						res,
 					)
+					// Chỉ khi nào thật sự KHÔNG CÓ STORY mới đẩy người dùng quay về
 					onClose()
 				}
 			})
-			.catch(() => onClose())
+			.catch(err => {
+				console.error('❌ Lỗi fetch chi tiết story:', err)
+				onClose()
+			})
 			.finally(() => setIsLoading(false))
 	}, [userId, onClose])
 
@@ -142,15 +174,19 @@ export function StoryViewer({
 		}
 	}
 
-	if (isLoading || !storyData || !currentStory) {
+	if (isLoading || stories.length === 0 || !currentStory) {
 		return (
 			<div className='fixed inset-0 bg-black/90 z-[100] flex items-center justify-center'>
-				<div className='animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white'></div>
+				<div className='animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand'></div>
 			</div>
 		)
 	}
 
-	const { user } = storyData
+	const isMe = currentUser?.userId === userId
+	const displayAuthorName = isMe
+		? currentUser.displayName || currentUser.username
+		: authorName || 'Story Author'
+	const displayAuthorAvatar = isMe ? currentUser.avatarUrl : authorAvatar
 
 	return (
 		<AnimatePresence>
@@ -164,28 +200,23 @@ export function StoryViewer({
 				onTouchStart={handleInteractionStart}
 				onTouchEnd={handleInteractionEnd}
 			>
-				{/* Main Viewer */}
 				<div className='relative w-full h-full md:max-w-[420px] md:h-auto md:aspect-[9/16] bg-neutral-900 md:rounded-xl shadow-2xl overflow-hidden'>
-					{/* Background Image */}
-					{currentStory.backgroundImageUrl && (
+					{currentStory.mediaUrl && (
 						<img
-							src={currentStory.backgroundImageUrl}
-							alt='Story background'
+							src={currentStory.mediaUrl}
+							alt='Story media'
 							className='absolute inset-0 w-full h-full object-cover'
 						/>
 					)}
-					{/* Gradient Overlay */}
+
 					<div className='absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/40' />
 
-					{/* Click handlers */}
 					<div className='absolute inset-0 flex' onClick={handleTap}>
 						<div className='w-[30%] h-full' />
 						<div className='w-[70%] h-full' />
 					</div>
 
-					{/* Header */}
 					<div className='absolute top-0 left-0 right-0 p-4 z-10'>
-						{/* Progress Bars */}
 						<div className='flex gap-1 mb-3'>
 							{stories.map((_, index) => (
 								<div
@@ -212,19 +243,22 @@ export function StoryViewer({
 								</div>
 							))}
 						</div>
-						{/* User Info & Controls */}
+
 						<div className='flex items-center justify-between'>
 							<div className='flex items-center gap-3'>
 								<Avatar className='h-10 w-10 border-2 border-white'>
-									<AvatarImage src={user.avatarUrl} />
-									<AvatarFallback>{user.username.charAt(0)}</AvatarFallback>
+									<AvatarImage src={displayAuthorAvatar} />
+									<AvatarFallback>{displayAuthorName.charAt(0)}</AvatarFallback>
 								</Avatar>
 								<div>
-									<p className='font-bold text-white text-sm'>
-										{user.username}
+									<p className='font-bold text-white text-sm drop-shadow-md'>
+										{displayAuthorName}
 									</p>
-									<p className='text-xs text-neutral-300'>
-										{formatDistanceToNow(new Date(currentStory.createdAt))} ago
+									<p className='text-xs text-neutral-200 drop-shadow-md'>
+										{currentStory.createdAt
+											? formatDistanceToNow(new Date(currentStory.createdAt)) +
+												' ago'
+											: 'Just now'}
 									</p>
 								</div>
 							</div>
@@ -251,22 +285,20 @@ export function StoryViewer({
 						</div>
 					</div>
 
-					{/* Story Items */}
 					<div className='absolute inset-0'>
-						{currentStory.items.map(item => (
-							<StoryItemContent key={item.id} item={item} />
+						{/* 🌟 ĐÃ SỬA: Sửa key={item.} thành key={index} để không còn lỗi syntax */}
+						{(currentStory.items || []).map((item, index) => (
+							<StoryItemContent key={index} item={item} />
 						))}
 					</div>
 
-					{/* Footer (Input for own story) */}
-					{currentUser?.id === userId && (
+					{isMe && (
 						<div className='absolute bottom-0 left-0 right-0 p-4 z-10'>
-							{/* Placeholder for reply input */}
+							{/* Placeholder for own story controls / views count */}
 						</div>
 					)}
 				</div>
 
-				{/* Desktop Navigation */}
 				<button
 					onClick={goToPreviousStory}
 					className='absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-black/30 rounded-full p-2 hidden md:block'

@@ -60,19 +60,23 @@ export const StoryFeed = ({
 
 			{/* 2️⃣ DANH SÁCH STORY TỪ API (CỦA MÌNH VÀ CỦA NGƯỜI KHÁC NỐI TIẾP NHAU) */}
 			{stories.map((storyUser, index) => {
-				// Kiểm tra xem Story này có phải là của chính mình không
-				const isMe = storyUser.userId === currentUser?.userId
+				// 🌟 LOGIC SO SÁNH ID CẨN THẬN:
+				// Kiểm tra xem ID của story có trùng với ID của mình không (thử cả .userId và .id)
+				const isMe =
+					!!currentUser &&
+					(storyUser.userId === currentUser.userId ||
+						storyUser.userId === currentUser.userId)
 
 				return (
 					<div
-						key={`${storyUser.userId}-${index}`} // Tránh lỗi trùng key của React
+						key={`${storyUser.userId}-${index}`}
 						className='snap-start shrink-0 cursor-pointer'
-						onClick={() => onStoryClick(storyUser)} // Nhấn vào thì gọi hàm View Story
+						onClick={() => onStoryClick(storyUser)}
 					>
 						<StoryAvatar
 							user={storyUser}
-							isAddButton={false} // Đây là Story thật, không phải nút thêm
-							isCurrentUser={isMe}
+							isAddButton={false}
+							isCurrentUser={isMe} // Truyền kết quả so sánh xuống
 						/>
 					</div>
 				)
