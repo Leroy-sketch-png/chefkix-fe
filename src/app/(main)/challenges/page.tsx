@@ -38,6 +38,7 @@ import {
 	SeasonalChallenge,
 } from '@/services/challenge'
 import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
+import { BlurFade } from '@/components/ui/blur-fade'
 import { formatEventTimeRemaining } from '@/lib/challenge-time'
 import { logDevError } from '@/lib/dev-log'
 
@@ -257,347 +258,353 @@ export default function ChallengesPage() {
 
 						{/* Weekly Challenge Section */}
 						{weeklyChallenge && (
-							<section className='mb-8'>
-								<h2 className='mb-4 text-lg font-bold text-text-primary'>
-									{t('weeklyChallenge')}
-								</h2>
-								<motion.div
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-									className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
-								>
-									<div className='mb-3 flex items-center justify-between'>
-										<div className='flex items-center gap-3'>
-											<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-card shadow-accent-purple/25'>
-												<Trophy className='size-5 text-white' />
+							<BlurFade delay={0.1}>
+								<section className='mb-8'>
+									<h2 className='mb-4 text-lg font-bold text-text-primary'>
+										{t('weeklyChallenge')}
+									</h2>
+									<motion.div
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+										className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
+									>
+										<div className='mb-3 flex items-center justify-between'>
+											<div className='flex items-center gap-3'>
+												<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-card shadow-accent-purple/25'>
+													<Trophy className='size-5 text-white' />
+												</div>
+												<div>
+													<h3 className='text-lg font-bold text-text'>
+														{weeklyChallenge.title}
+													</h3>
+													<p className='text-sm text-text-secondary'>
+														{weeklyChallenge.description}
+													</p>
+												</div>
 											</div>
-											<div>
-												<h3 className='text-lg font-bold text-text'>
-													{weeklyChallenge.title}
-												</h3>
-												<p className='text-sm text-text-secondary'>
-													{weeklyChallenge.description}
-												</p>
+											<div className='text-right'>
+												<span className='tabular-nums text-lg font-bold text-xp'>
+													+{weeklyChallenge.bonusXp} XP
+												</span>
+												{weeklyChallenge.completed && (
+													<p className='text-xs font-semibold text-success'>
+														✓ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
+													</p>
+												)}
 											</div>
 										</div>
-										<div className='text-right'>
-											<span className='tabular-nums text-lg font-bold text-xp'>
-												+{weeklyChallenge.bonusXp} XP
-											</span>
-											{weeklyChallenge.completed && (
-												<p className='text-xs font-semibold text-success'>
-													✓ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
-												</p>
+
+										{/* Progress bar */}
+										<div className='mb-2'>
+											<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
+												<span>
+													{t('progressCount', {
+														progress: weeklyChallenge.progress,
+														target: weeklyChallenge.target,
+													})}
+												</span>
+												<span>
+													{weeklyChallenge.target > 0
+														? Math.round(
+																(weeklyChallenge.progress /
+																	weeklyChallenge.target) *
+																	100,
+															)
+														: 0}
+													%
+												</span>
+											</div>
+											<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+												<motion.div
+													initial={{ width: 0 }}
+													animate={{
+														width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
+													}}
+													transition={{
+														duration: DURATION_S.verySlow,
+														ease: 'easeOut',
+													}}
+													className='h-full rounded-full bg-gradient-indigo'
+												/>
+											</div>
+										</div>
+
+										{/* Time remaining */}
+										<p className='text-xs text-text-muted'>
+											{formatEventTimeRemaining(weeklyChallenge.endsAt, t)}
+										</p>
+
+										{/* CTA: Find matching recipes */}
+										{!weeklyChallenge.completed &&
+											weeklyChallenge.matchingRecipes &&
+											weeklyChallenge.matchingRecipes.length > 0 && (
+												<button
+													type='button'
+													onClick={() =>
+														startNavigationTransition(() => {
+															router.push(
+																`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
+															)
+														})
+													}
+													disabled={isNavigating}
+													className='mt-3 flex items-center gap-1.5 rounded-lg text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+												>
+													{t('findMatchingRecipes')}
+													<ChevronRight className='size-4' />
+												</button>
 											)}
-										</div>
-									</div>
-
-									{/* Progress bar */}
-									<div className='mb-2'>
-										<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
-											<span>
-												{t('progressCount', {
-													progress: weeklyChallenge.progress,
-													target: weeklyChallenge.target,
-												})}
-											</span>
-											<span>
-												{weeklyChallenge.target > 0
-													? Math.round(
-															(weeklyChallenge.progress /
-																weeklyChallenge.target) *
-																100,
-														)
-													: 0}
-												%
-											</span>
-										</div>
-										<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
-											<motion.div
-												initial={{ width: 0 }}
-												animate={{
-													width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
-												}}
-												transition={{
-													duration: DURATION_S.verySlow,
-													ease: 'easeOut',
-												}}
-												className='h-full rounded-full bg-gradient-indigo'
-											/>
-										</div>
-									</div>
-
-									{/* Time remaining */}
-									<p className='text-xs text-text-muted'>
-										{formatEventTimeRemaining(weeklyChallenge.endsAt, t)}
-									</p>
-
-									{/* CTA: Find matching recipes */}
-									{!weeklyChallenge.completed &&
-										weeklyChallenge.matchingRecipes &&
-										weeklyChallenge.matchingRecipes.length > 0 && (
-											<button
-												type='button'
-												onClick={() =>
-													startNavigationTransition(() => {
-														router.push(
-															`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
-														)
-													})
-												}
-												disabled={isNavigating}
-												className='mt-3 flex items-center gap-1.5 rounded-lg text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-											>
-												{t('findMatchingRecipes')}
-												<ChevronRight className='size-4' />
-											</button>
-										)}
-								</motion.div>
-							</section>
+									</motion.div>
+								</section>
+							</BlurFade>
 						)}
 
 						{/* Community Challenges Section */}
 						{communityChallenges.length > 0 && (
-							<section className='mb-8'>
-								<div className='mb-4 flex items-center gap-2'>
-									<Users className='size-5 text-combo' />
-									<h2 className='text-lg font-bold text-text'>
-										{t('communityChallenges')}
-									</h2>
-								</div>
-								<div className='space-y-4'>
-									{communityChallenges.map((ch, i) => (
-										<motion.div
-											key={ch.id}
-											initial={{ opacity: 0, y: 12 }}
-											animate={{ opacity: 1, y: 0 }}
-											transition={{
-												delay: 0.15 + i * 0.08,
-												...TRANSITION_SPRING,
-											}}
-											className='group rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
-										>
-											<div className='mb-3 flex items-center justify-between'>
-												<div className='flex items-center gap-3'>
-													<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
-														{ch.emoji || '👥'}
+							<BlurFade delay={0.15}>
+								<section className='mb-8'>
+									<div className='mb-4 flex items-center gap-2'>
+										<Users className='size-5 text-combo' />
+										<h2 className='text-lg font-bold text-text'>
+											{t('communityChallenges')}
+										</h2>
+									</div>
+									<div className='space-y-4'>
+										{communityChallenges.map((ch, i) => (
+											<motion.div
+												key={ch.id}
+												initial={{ opacity: 0, y: 12 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{
+													delay: 0.15 + i * 0.08,
+													...TRANSITION_SPRING,
+												}}
+												className='group rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+											>
+												<div className='mb-3 flex items-center justify-between'>
+													<div className='flex items-center gap-3'>
+														<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
+															{ch.emoji || '👥'}
+														</div>
+														<div>
+															<h3 className='text-lg font-bold text-text'>
+																{ch.title}
+															</h3>
+															<p className='text-sm text-text-secondary'>
+																{ch.description}
+															</p>
+														</div>
 													</div>
-													<div>
-														<h3 className='text-lg font-bold text-text'>
-															{ch.title}
-														</h3>
-														<p className='text-sm text-text-secondary'>
-															{ch.description}
+													<div className='text-right'>
+														<span className='tabular-nums text-lg font-bold text-xp'>
+															+{ch.rewardXpPerUser} XP
+														</span>
+														<p className='text-xs text-text-muted'>
+															{formatEventTimeRemaining(ch.endsAt, t)}
 														</p>
 													</div>
 												</div>
-												<div className='text-right'>
-													<span className='tabular-nums text-lg font-bold text-xp'>
-														+{ch.rewardXpPerUser} XP
-													</span>
-													<p className='text-xs text-text-muted'>
-														{formatEventTimeRemaining(ch.endsAt, t)}
-													</p>
-												</div>
-											</div>
 
-											{/* Global progress bar */}
-											<div className='mb-2'>
-												<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
-													<span>
-														{ch.currentProgress.toLocaleString()} /{' '}
-														{ch.targetCount.toLocaleString()} {ch.targetUnit}
-													</span>
-													<span className='tabular-nums'>
-														{Math.round(ch.progressPercent)}%
-													</span>
-												</div>
-												<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
-													<motion.div
-														initial={{ width: 0 }}
-														animate={{
-															width: `${Math.min(ch.progressPercent, 100)}%`,
-														}}
-														transition={{
-															duration: DURATION_S.dramatic,
-															ease: 'easeOut',
-														}}
-														className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
-													/>
-												</div>
-											</div>
-
-											{/* Footer: participants + contribution status */}
-											<div className='flex items-center justify-between text-xs text-text-muted'>
-												<span className='flex items-center gap-1'>
-													<Users className='size-3.5' />
-													{t('participantsCount', {
-														count: ch.participantCount,
-													})}
-												</span>
-												{ch.hasContributed ? (
-													<span className='font-medium text-success'>
-														✓ {t('youContributed')}
-													</span>
-												) : (
-													<button
-														type='button'
-														onClick={() =>
-															startNavigationTransition(() => {
-																router.push(
-																	`/explore?q=${encodeURIComponent(ch.title)}`,
-																)
-															})
-														}
-														disabled={isNavigating}
-														className='flex items-center gap-1 rounded-lg font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-													>
-														{t('cookToContribute')}
-														<ChevronRight className='size-3.5' />
-													</button>
-												)}
-											</div>
-										</motion.div>
-									))}
-								</div>
-							</section>
-						)}
-
-						{/* Seasonal Challenges Section */}
-						{seasonalChallenges.length > 0 && (
-							<section className='mb-8'>
-								<div className='mb-4 flex items-center gap-2'>
-									<Leaf className='size-5 text-streak' />
-									<h2 className='text-lg font-bold text-text'>
-										{t('seasonalEvents')}
-									</h2>
-								</div>
-								<div className='space-y-4'>
-									{seasonalChallenges.map((ev, i) => (
-										<motion.div
-											key={ev.id}
-											initial={{ opacity: 0, y: 12 }}
-											animate={{ opacity: 1, y: 0 }}
-											transition={{
-												delay: 0.2 + i * 0.08,
-												...TRANSITION_SPRING,
-											}}
-											className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:shadow-warm'
-										>
-											{/* Hero header — accent color or image */}
-											{ev.heroImageUrl ? (
-												<div
-													className='relative h-28 bg-cover bg-center'
-													style={{
-														backgroundImage: `url(${ev.heroImageUrl})`,
-													}}
-												>
-													<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
-													<div className='absolute bottom-3 left-4 text-xl font-bold text-white'>
-														{ev.emoji} {ev.title}
-													</div>
-												</div>
-											) : (
-												<div
-													className='flex h-20 items-center gap-3 px-5'
-													style={{
-														background: ev.accentColor
-															? `linear-gradient(135deg, ${ev.accentColor}30, ${ev.accentColor}10)`
-															: undefined,
-													}}
-												>
-													<span className='text-3xl'>{ev.emoji || '🌿'}</span>
-													<h3 className='text-lg font-bold text-text'>
-														{ev.title}
-													</h3>
-												</div>
-											)}
-
-											<div className='p-5'>
-												<p className='mb-3 text-sm text-text-secondary'>
-													{ev.description}
-												</p>
-
-												{/* Per-user progress */}
+												{/* Global progress bar */}
 												<div className='mb-2'>
 													<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 														<span>
-															{ev.userProgress} / {ev.targetCount}{' '}
-															{ev.targetUnit}
+															{ch.currentProgress.toLocaleString()} /{' '}
+															{ch.targetCount.toLocaleString()} {ch.targetUnit}
 														</span>
-														<span>
-															{ev.targetCount > 0
-																? Math.round(
-																		(ev.userProgress / ev.targetCount) * 100,
-																	)
-																: 0}
-															%
+														<span className='tabular-nums'>
+															{Math.round(ch.progressPercent)}%
 														</span>
 													</div>
 													<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
 														<motion.div
 															initial={{ width: 0 }}
 															animate={{
-																width: `${ev.targetCount > 0 ? Math.min((ev.userProgress / ev.targetCount) * 100, 100) : 0}%`,
+																width: `${Math.min(ch.progressPercent, 100)}%`,
 															}}
 															transition={{
 																duration: DURATION_S.dramatic,
 																ease: 'easeOut',
 															}}
-															className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
+															className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
 														/>
 													</div>
 												</div>
 
-												{/* Footer */}
+												{/* Footer: participants + contribution status */}
 												<div className='flex items-center justify-between text-xs text-text-muted'>
 													<span className='flex items-center gap-1'>
-														<Clock className='size-3.5' />
-														{formatEventTimeRemaining(ev.endsAt, t)}
+														<Users className='size-3.5' />
+														{t('participantsCount', {
+															count: ch.participantCount,
+														})}
 													</span>
-													<div className='flex items-center gap-2'>
-														{ev.rewardBadgeName && (
-															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-2xs font-semibold text-warning'>
-																🏅 {ev.rewardBadgeName}
-															</span>
-														)}
-														<span className='tabular-nums font-bold text-xp'>
-															+{ev.rewardXp} XP
+													{ch.hasContributed ? (
+														<span className='font-medium text-success'>
+															✓ {t('youContributed')}
 														</span>
-													</div>
-												</div>
-
-												{/* Featured recipes link */}
-												{ev.featuredRecipes &&
-													ev.featuredRecipes.length > 0 && (
+													) : (
 														<button
 															type='button'
 															onClick={() =>
 																startNavigationTransition(() => {
-																	router.push(`/explore?seasonal=${ev.id}`)
+																	router.push(
+																		`/explore?q=${encodeURIComponent(ch.title)}`,
+																	)
 																})
 															}
 															disabled={isNavigating}
-															className='mt-3 flex items-center gap-1 rounded-lg text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+															className='flex items-center gap-1 rounded-lg font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
-															{t('featuredRecipesCount', {
-																count: ev.featuredRecipes.length,
-															})}
+															{t('cookToContribute')}
 															<ChevronRight className='size-3.5' />
 														</button>
 													)}
+												</div>
+											</motion.div>
+										))}
+									</div>
+								</section>
+							</BlurFade>
+						)}
 
-												{ev.userCompleted && (
-													<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-														✓ +{ev.rewardXp} {t('xpAwarded')}
+						{/* Seasonal Challenges Section */}
+						{seasonalChallenges.length > 0 && (
+							<BlurFade delay={0.2}>
+								<section className='mb-8'>
+									<div className='mb-4 flex items-center gap-2'>
+										<Leaf className='size-5 text-streak' />
+										<h2 className='text-lg font-bold text-text'>
+											{t('seasonalEvents')}
+										</h2>
+									</div>
+									<div className='space-y-4'>
+										{seasonalChallenges.map((ev, i) => (
+											<motion.div
+												key={ev.id}
+												initial={{ opacity: 0, y: 12 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{
+													delay: 0.2 + i * 0.08,
+													...TRANSITION_SPRING,
+												}}
+												className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:shadow-warm'
+											>
+												{/* Hero header — accent color or image */}
+												{ev.heroImageUrl ? (
+													<div
+														className='relative h-28 bg-cover bg-center'
+														style={{
+															backgroundImage: `url(${ev.heroImageUrl})`,
+														}}
+													>
+														<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
+														<div className='absolute bottom-3 left-4 text-xl font-bold text-white'>
+															{ev.emoji} {ev.title}
+														</div>
+													</div>
+												) : (
+													<div
+														className='flex h-20 items-center gap-3 px-5'
+														style={{
+															background: ev.accentColor
+																? `linear-gradient(135deg, ${ev.accentColor}30, ${ev.accentColor}10)`
+																: undefined,
+														}}
+													>
+														<span className='text-3xl'>{ev.emoji || '🌿'}</span>
+														<h3 className='text-lg font-bold text-text'>
+															{ev.title}
+														</h3>
 													</div>
 												)}
-											</div>
-										</motion.div>
-									))}
-								</div>
-							</section>
+
+												<div className='p-5'>
+													<p className='mb-3 text-sm text-text-secondary'>
+														{ev.description}
+													</p>
+
+													{/* Per-user progress */}
+													<div className='mb-2'>
+														<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
+															<span>
+																{ev.userProgress} / {ev.targetCount}{' '}
+																{ev.targetUnit}
+															</span>
+															<span>
+																{ev.targetCount > 0
+																	? Math.round(
+																			(ev.userProgress / ev.targetCount) * 100,
+																		)
+																	: 0}
+																%
+															</span>
+														</div>
+														<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+															<motion.div
+																initial={{ width: 0 }}
+																animate={{
+																	width: `${ev.targetCount > 0 ? Math.min((ev.userProgress / ev.targetCount) * 100, 100) : 0}%`,
+																}}
+																transition={{
+																	duration: DURATION_S.dramatic,
+																	ease: 'easeOut',
+																}}
+																className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
+															/>
+														</div>
+													</div>
+
+													{/* Footer */}
+													<div className='flex items-center justify-between text-xs text-text-muted'>
+														<span className='flex items-center gap-1'>
+															<Clock className='size-3.5' />
+															{formatEventTimeRemaining(ev.endsAt, t)}
+														</span>
+														<div className='flex items-center gap-2'>
+															{ev.rewardBadgeName && (
+																<span className='rounded-full bg-warning/15 px-2 py-0.5 text-2xs font-semibold text-warning'>
+																	🏅 {ev.rewardBadgeName}
+																</span>
+															)}
+															<span className='tabular-nums font-bold text-xp'>
+																+{ev.rewardXp} XP
+															</span>
+														</div>
+													</div>
+
+													{/* Featured recipes link */}
+													{ev.featuredRecipes &&
+														ev.featuredRecipes.length > 0 && (
+															<button
+																type='button'
+																onClick={() =>
+																	startNavigationTransition(() => {
+																		router.push(`/explore?seasonal=${ev.id}`)
+																	})
+																}
+																disabled={isNavigating}
+																className='mt-3 flex items-center gap-1 rounded-lg text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+															>
+																{t('featuredRecipesCount', {
+																	count: ev.featuredRecipes.length,
+																})}
+																<ChevronRight className='size-3.5' />
+															</button>
+														)}
+
+													{ev.userCompleted && (
+														<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
+															✓ +{ev.rewardXp} {t('xpAwarded')}
+														</div>
+													)}
+												</div>
+											</motion.div>
+										))}
+									</div>
+								</section>
+							</BlurFade>
 						)}
 
 						{/* Past Challenges link */}

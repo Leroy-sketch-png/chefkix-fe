@@ -31,6 +31,7 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { logDevError } from '@/lib/dev-log'
+import { getStorageJson, removeStorageItem } from '@/lib/storage'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { useTranslations } from 'next-intl'
 
@@ -70,13 +71,12 @@ function CreateRecipeContent() {
 
 	const loadLocalDraft = useCallback(() => {
 		try {
-			const stored = localStorage.getItem('chefkix-recipe-draft')
-			if (!stored) {
+			const parsed = getStorageJson<LocalDraft>('chefkix-recipe-draft')
+			if (!parsed) {
 				setLocalDraft(null)
 				return
 			}
 
-			const parsed = JSON.parse(stored) as LocalDraft
 			if (parsed.type === 'manual' && parsed.data) {
 				setLocalDraft(parsed)
 				return
@@ -85,7 +85,7 @@ function CreateRecipeContent() {
 			setLocalDraft(null)
 		} catch (error) {
 			logDevError('Failed to parse local draft:', error)
-			localStorage.removeItem('chefkix-recipe-draft')
+			removeStorageItem('chefkix-recipe-draft')
 			setLocalDraft(null)
 			toast.error(t('draftCorrupted'))
 		}
@@ -102,7 +102,7 @@ function CreateRecipeContent() {
 				if (cancelled) return
 				if (response.success && response.data) {
 					setSelectedDraft(response.data)
-					localStorage.removeItem('chefkix-recipe-draft')
+					removeStorageItem('chefkix-recipe-draft')
 					setLocalDraft(null)
 					setMode('create')
 				} else {
@@ -134,7 +134,7 @@ function CreateRecipeContent() {
 
 	const handlePublishSuccess = (recipeId: string) => {
 		// Clear local draft on successful publish
-		localStorage.removeItem('chefkix-recipe-draft')
+		removeStorageItem('chefkix-recipe-draft')
 		setLocalDraft(null)
 		// Navigate to the new recipe page
 		router.push(`/recipes/${recipeId}`)
@@ -152,7 +152,7 @@ function CreateRecipeContent() {
 				const response = await getRecipeById(draftId)
 				if (response.success && response.data) {
 					setSelectedDraft(response.data)
-					localStorage.removeItem('chefkix-recipe-draft')
+					removeStorageItem('chefkix-recipe-draft')
 					setLocalDraft(null) // Clear local draft state when using server draft
 					setMode('create')
 				} else {
@@ -176,7 +176,7 @@ function CreateRecipeContent() {
 	}
 
 	const handleDiscardLocalDraft = () => {
-		localStorage.removeItem('chefkix-recipe-draft')
+		removeStorageItem('chefkix-recipe-draft')
 		setLocalDraft(null)
 		setShowDiscardDialog(false)
 	}

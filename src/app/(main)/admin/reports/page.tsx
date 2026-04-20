@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import {
 	getPendingReports,
 	getAllReports,
@@ -71,6 +71,14 @@ export default function ReportsPage() {
 	const [reviewNotes, setReviewNotes] = useState('')
 	const [expandedId, setExpandedId] = useState<string | null>(null)
 
+	const isMountedRef = useRef(true)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [])
+
 	const fetchReports = useCallback(async () => {
 		setLoading(true)
 		try {
@@ -78,12 +86,14 @@ export default function ReportsPage() {
 				getPendingReports(),
 				getAllReports(),
 			])
+			if (!isMountedRef.current) return
 			if (pendingRes.success) setPendingReports(pendingRes.data ?? [])
 			if (allRes.success) setAllReports(allRes.data ?? [])
 		} catch {
+			if (!isMountedRef.current) return
 			toast.error(t('toastLoadReportsFailed'))
 		} finally {
-			setLoading(false)
+			if (isMountedRef.current) setLoading(false)
 		}
 	}, [t])
 

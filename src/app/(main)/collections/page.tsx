@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -57,9 +57,18 @@ export default function CollectionsPage() {
 	const [newDescription, setNewDescription] = useState('')
 	const [newIsPublic, setNewIsPublic] = useState(false)
 
+	const isMountedRef = useRef(true)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [])
+
 	const fetchCollections = useCallback(async () => {
 		try {
 			const response = await getMyCollections()
+			if (!isMountedRef.current) return
 			if (response.success && response.data) {
 				setCollections(response.data)
 				setFetchError(false)
@@ -67,9 +76,11 @@ export default function CollectionsPage() {
 				setFetchError(true)
 			}
 		} catch {
+			if (!isMountedRef.current) return
 			setFetchError(true)
+			toast.error(t('failedToLoadCollections'))
 		} finally {
-			setIsLoading(false)
+			if (isMountedRef.current) setIsLoading(false)
 		}
 	}, [])
 

@@ -289,7 +289,10 @@ export default function MyRecipesPage() {
 					setError(response.message || t('errorLoadRecipes'))
 				}
 			} catch {
-				if (!cancelled) setError(t('errorLoadRecipes'))
+				if (!cancelled) {
+					setError(t('errorLoadRecipes'))
+					toast.error(t('errorLoadRecipes'))
+				}
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
@@ -407,6 +410,7 @@ export default function MyRecipesPage() {
 				<div className='mb-8 flex items-center gap-3'>
 					<button
 						type='button'
+						aria-label='Go back'
 						onClick={() => router.back()}
 						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 					>
@@ -428,7 +432,7 @@ export default function MyRecipesPage() {
 										})
 									}
 									disabled={isNavigating}
-									className='gap-2 bg-gradient-hero text-white shadow-lg shadow-brand/30 disabled:opacity-50'
+									className='gap-2 bg-gradient-hero text-white shadow-warm shadow-brand/30 disabled:opacity-50'
 								>
 									<Plus className='size-4' />
 									{t('createRecipe')}

@@ -19,7 +19,7 @@ import {
 } from '@/services/creator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, ChefHat, BookOpen, Loader2 } from 'lucide-react'
-import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { formatShortTimeAgo } from '@/lib/utils'
 import { ErrorState } from '@/components/ui/error-state'

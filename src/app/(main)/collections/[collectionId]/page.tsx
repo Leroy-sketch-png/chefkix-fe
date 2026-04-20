@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, use } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -61,31 +61,36 @@ export default function CollectionDetailPage({
 		setShowDeleteConfirm(false),
 	)
 
-	const fetchData = useCallback(async () => {
-		try {
-			const [colRes, postsRes] = await Promise.all([
-				getCollectionById(collectionId),
-				getCollectionPosts(collectionId),
-			])
-			if (colRes.success && colRes.data) {
-				setCollection(colRes.data)
-				setEditName(colRes.data.name)
-				setEditDescription(colRes.data.description || '')
-				setEditIsPublic(colRes.data.isPublic)
+	useEffect(() => {
+		let cancelled = false
+		async function fetchData() {
+			try {
+				const [colRes, postsRes] = await Promise.all([
+					getCollectionById(collectionId),
+					getCollectionPosts(collectionId),
+				])
+				if (cancelled) return
+				if (colRes.success && colRes.data) {
+					setCollection(colRes.data)
+					setEditName(colRes.data.name)
+					setEditDescription(colRes.data.description || '')
+					setEditIsPublic(colRes.data.isPublic)
+				}
+				if (postsRes.success && postsRes.data) {
+					setPosts(postsRes.data)
+				}
+			} catch {
+				if (cancelled) return
+				toast.error(t('detailLoadFailed'))
+			} finally {
+				if (!cancelled) setIsLoading(false)
 			}
-			if (postsRes.success && postsRes.data) {
-				setPosts(postsRes.data)
-			}
-		} catch {
-			toast.error(t('detailLoadFailed'))
-		} finally {
-			setIsLoading(false)
+		}
+		fetchData()
+		return () => {
+			cancelled = true
 		}
 	}, [collectionId, t])
-
-	useEffect(() => {
-		fetchData()
-	}, [fetchData])
 
 	const handleUpdate = async () => {
 		if (!editName.trim()) {
@@ -282,7 +287,7 @@ export default function CollectionDetailPage({
 												<button
 													type='button'
 													onClick={() => handleRemovePost(post.id)}
-													className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
+													className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-card backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
 													aria-label={t('removeFromCollection')}
 												>
 													<Trash2 className='size-3.5' />

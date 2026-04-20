@@ -17,6 +17,8 @@ import { NotificationSocketProvider } from '@/components/providers/NotificationS
 import { PushNotificationProvider } from '@/components/providers/PushNotificationProvider'
 import { DemoWidget } from '@/components/dev/DemoWidget'
 
+const SHOW_DEMO_WIDGET = process.env.NEXT_PUBLIC_ENABLE_DEMO_WIDGET === 'true'
+
 export default function MainAppLayout({
 	children,
 }: {
@@ -27,7 +29,7 @@ export default function MainAppLayout({
 			{/* Skip to main content — first focusable element for keyboard users */}
 			<a
 				href='#main-content'
-				className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-tooltip focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:text-white focus:shadow-lg'
+				className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-tooltip focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:text-white focus:shadow-warm'
 			>
 				Skip to main content
 			</a>
@@ -78,7 +80,7 @@ export default function MainAppLayout({
 				<NotificationSocketProvider />
 			</ErrorBoundary>
 			<PushNotificationProvider />
-			<DemoWidget />
+			{SHOW_DEMO_WIDGET ? <DemoWidget /> : null}
 		</div>
 	)
 }

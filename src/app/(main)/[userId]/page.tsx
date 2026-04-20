@@ -44,20 +44,27 @@ const ProfileContent = () => {
 			setNotFound(false)
 			setServerError(false)
 
-			const response = await getProfileByUserId(userId)
+			try {
+				const response = await getProfileByUserId(userId)
 
-			if (cancelled) return
+				if (cancelled) return
 
-			if (response.success && response.data) {
-				setProfile(response.data)
-			} else if (response.statusCode === 404) {
-				setNotFound(true)
-			} else {
-				setServerError(true)
-				toast.error(t('failedToLoadProfile'))
+				if (response.success && response.data) {
+					setProfile(response.data)
+				} else if (response.statusCode === 404) {
+					setNotFound(true)
+				} else {
+					setServerError(true)
+					toast.error(t('failedToLoadProfile'))
+				}
+			} catch {
+				if (!cancelled) {
+					setServerError(true)
+					toast.error(t('failedToLoadProfile'))
+				}
 			}
 
-			setIsLoading(false)
+			if (!cancelled) setIsLoading(false)
 		}
 
 		if (userId) {

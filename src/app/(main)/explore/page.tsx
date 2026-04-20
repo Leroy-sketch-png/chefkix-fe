@@ -67,6 +67,7 @@ import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { useTranslations } from '@/i18n/hooks'
+import { Marquee } from '@/components/ui/marquee'
 
 // ============================================
 // CONSTANTS
@@ -179,7 +180,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 		>
 			<div className='grid gap-4 p-4 sm:gap-6 sm:p-6 md:grid-cols-2 md:p-8'>
 				{/* Left: Image */}
-				<div className='relative aspect-[16/9] overflow-hidden rounded-2xl shadow-lg sm:aspect-[4/3] md:aspect-auto md:h-full md:min-h-[300px]'>
+				<div className='relative aspect-[16/9] overflow-hidden rounded-2xl shadow-warm sm:aspect-[4/3] md:aspect-auto md:h-full md:min-h-[300px]'>
 					<Image
 						src={getRecipeImage(recipe)}
 						alt={recipe.title}
@@ -191,7 +192,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						}}
 					/>
 					{/* Featured badge */}
-					<div className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-brand/90 px-3 py-1.5 text-xs font-semibold text-white shadow-md'>
+					<div className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-brand/90 px-3 py-1.5 text-xs font-semibold text-white shadow-card'>
 						<Flame className='size-4' />
 						{t('featuredToday')}
 					</div>
@@ -203,7 +204,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						{/* XP Badge */}
 						<Badge
 							variant='secondary'
-							className='tabular-nums bg-xp px-3 py-1 text-sm font-semibold text-white shadow-sm'
+							className='tabular-nums bg-xp px-3 py-1 text-sm font-semibold text-white shadow-card'
 						>
 							+{recipe.xpReward || 0} XP
 						</Badge>
@@ -264,7 +265,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							disabled={isCookNavigating}
 							whileHover={isCookNavigating ? undefined : BUTTON_HOVER}
 							whileTap={isCookNavigating ? undefined : BUTTON_TAP}
-							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand/30 disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
+							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-4 py-2.5 text-sm font-bold text-white shadow-warm disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
 						>
 							{isCookNavigating ? (
 								<Loader2 className='size-5 animate-spin' />
@@ -345,7 +346,7 @@ function FilterChips({
 			),
 		}),
 	)
-	if (filters.cookingTimeMax < 120) {
+	if (filters.cookingTimeMax < 1440) {
 		activeFilters.push({
 			type: 'cookingTimeMax',
 			value: String(filters.cookingTimeMax),
@@ -440,7 +441,7 @@ export default function ExplorePage() {
 function ExploreContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const initialQuery = searchParams.get('q') || ''
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -470,7 +471,7 @@ function ExploreContent() {
 		dietary: [],
 		cuisine: [],
 		difficulty: [],
-		cookingTimeMax: 120,
+		cookingTimeMax: 1440,
 		rating: null,
 		foolproofOnly: false,
 	})
@@ -693,7 +694,7 @@ function ExploreContent() {
 					if (filters.dietary.length > 0) {
 						filterParams.dietaryTags = filters.dietary
 					}
-					if (filters.cookingTimeMax < 120) {
+					if (filters.cookingTimeMax < 1440) {
 						filterParams.maxTime = filters.cookingTimeMax
 					}
 					if (filters.foolproofOnly) {
@@ -835,7 +836,7 @@ function ExploreContent() {
 				if (filters.dietary.length > 0) {
 					filterParams.dietaryTags = filters.dietary
 				}
-				if (filters.cookingTimeMax < 120) {
+				if (filters.cookingTimeMax < 1440) {
 					filterParams.maxTime = filters.cookingTimeMax
 				}
 				if (filters.foolproofOnly) {
@@ -1002,7 +1003,7 @@ function ExploreContent() {
 			} else if (type === 'difficulty' && value) {
 				updated.difficulty = prev.difficulty.filter(d => d !== value)
 			} else if (type === 'cookingTimeMax') {
-				updated.cookingTimeMax = 120
+				updated.cookingTimeMax = 1440
 			} else if (type === 'rating') {
 				updated.rating = null
 			} else if (type === 'foolproofOnly') {
@@ -1018,7 +1019,7 @@ function ExploreContent() {
 			dietary: [],
 			cuisine: [],
 			difficulty: [],
-			cookingTimeMax: 120,
+			cookingTimeMax: 1440,
 			rating: null,
 			foolproofOnly: false,
 		})
@@ -1081,7 +1082,7 @@ function ExploreContent() {
 			filters.dietary.length +
 			filters.cuisine.length +
 			filters.difficulty.length +
-			(filters.cookingTimeMax < 120 ? 1 : 0) +
+			(filters.cookingTimeMax < 1440 ? 1 : 0) +
 			(filters.rating !== null ? 1 : 0) +
 			(filters.foolproofOnly ? 1 : 0),
 		[filters],
@@ -1167,7 +1168,7 @@ function ExploreContent() {
 								// Delay to allow dropdown clicks to register
 								setTimeout(() => setShowAutocomplete(false), 200)
 							}}
-							className='h-11 rounded-xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-sm transition-colors focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
+							className='h-11 rounded-xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-card transition-colors focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 						/>
 						{/* Loading indicator or clear button */}
 						<div className='absolute right-12 top-1/2 -translate-y-1/2'>
@@ -1251,7 +1252,7 @@ function ExploreContent() {
 							whileTap={BUTTON_TAP}
 							className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'all'
-									? 'bg-brand text-white shadow-sm'
+									? 'bg-brand text-white shadow-card'
 									: 'border border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
 							}`}
 						>
@@ -1267,7 +1268,7 @@ function ExploreContent() {
 							whileTap={BUTTON_TAP}
 							className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								viewMode === 'trending'
-									? 'bg-xp text-white shadow-sm'
+									? 'bg-xp text-white shadow-card'
 									: 'border border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp'
 							}`}
 						>
@@ -1343,7 +1344,7 @@ function ExploreContent() {
 							<TrendingUp className='size-4 text-brand' />
 							{t('trendingSearches')}
 						</div>
-						<div className='flex flex-wrap gap-2'>
+						<Marquee speed={25} pauseOnHover>
 							{(trendingSearches.length > 0
 								? trendingSearches
 								: [
@@ -1371,7 +1372,7 @@ function ExploreContent() {
 									{term}
 								</motion.button>
 							))}
-						</div>
+						</Marquee>
 					</motion.div>
 				)}
 

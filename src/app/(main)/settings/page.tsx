@@ -46,7 +46,7 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { PATHS } from '@/constants'
-import { logout as logoutService, changePassword } from '@/services/auth'
+import { changePassword, logout as logoutService } from '@/services/auth'
 import {
 	deleteAccount,
 	exportUserData,
@@ -62,6 +62,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { getStorageItem, setStorageItem } from '@/lib/storage'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -484,7 +485,7 @@ export default function SettingsPage() {
 	const [theme, setThemeState] = useState<ThemeMode>('light')
 
 	useEffect(() => {
-		const stored = localStorage.getItem('theme') as ThemeMode | null
+		const stored = getStorageItem('theme') as ThemeMode | null
 		if (stored === 'dark' || stored === 'light' || stored === 'system') {
 			setThemeState(stored)
 		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -494,7 +495,7 @@ export default function SettingsPage() {
 
 	const setTheme = useCallback((mode: ThemeMode) => {
 		setThemeState(mode)
-		localStorage.setItem('theme', mode)
+		setStorageItem('theme', mode)
 		const root = document.documentElement
 		if (mode === 'dark') {
 			root.classList.add('dark')
