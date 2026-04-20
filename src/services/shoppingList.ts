@@ -1,5 +1,6 @@
 import { api } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types/common'
+import { logDevError } from '@/lib/dev-log'
 import {
 	ShoppingListResponse,
 	ShoppingListSummary,
@@ -15,58 +16,93 @@ import { API_ENDPOINTS } from '@/constants'
 export async function createFromMealPlan(
 	req: CreateFromMealPlanRequest,
 ): Promise<ShoppingListResponse> {
-	const res = await api.post<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.FROM_MEAL_PLAN,
-		req,
-	)
-	return res.data.data!
+	try {
+		const res = await api.post<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.FROM_MEAL_PLAN,
+			req,
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] createFromMealPlan failed:', err)
+		throw err
+	}
 }
 
 export async function createFromRecipe(
 	req: CreateFromRecipeRequest,
 ): Promise<ShoppingListResponse> {
-	const res = await api.post<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.FROM_RECIPE,
-		req,
-	)
-	return res.data.data!
+	try {
+		const res = await api.post<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.FROM_RECIPE,
+			req,
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] createFromRecipe failed:', err)
+		throw err
+	}
 }
 
 export async function createCustomList(
 	req: CreateCustomListRequest,
 ): Promise<ShoppingListResponse> {
-	const res = await api.post<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.CUSTOM,
-		req,
-	)
-	return res.data.data!
+	try {
+		const res = await api.post<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.CUSTOM,
+			req,
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] createCustomList failed:', err)
+		throw err
+	}
 }
 
 // ── Read ────────────────────────────────────────────────────────
 
 export async function getUserShoppingLists(): Promise<ShoppingListSummary[]> {
-	const res = await api.get<ApiResponse<ShoppingListSummary[]>>(
-		API_ENDPOINTS.SHOPPING_LISTS.BASE,
-	)
-	return res.data.data ?? []
+	try {
+		const res = await api.get<ApiResponse<ShoppingListSummary[]>>(
+			API_ENDPOINTS.SHOPPING_LISTS.BASE,
+		)
+		return res.data.data ?? []
+	} catch (err) {
+		logDevError('[ShoppingList] getUserShoppingLists failed:', err)
+		return []
+	}
 }
 
 export async function getShoppingListById(
 	id: string,
 ): Promise<ShoppingListResponse> {
-	const res = await api.get<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.GET(id),
-	)
-	return res.data.data!
+	try {
+		const res = await api.get<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.GET(id),
+		)
+		if (!res.data.data) throw new Error('Shopping list not found')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] getShoppingListById failed:', err)
+		throw err
+	}
 }
 
 export async function getSharedShoppingList(
 	shareToken: string,
 ): Promise<ShoppingListResponse> {
-	const res = await api.get<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.SHARED(shareToken),
-	)
-	return res.data.data!
+	try {
+		const res = await api.get<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.SHARED(shareToken),
+		)
+		if (!res.data.data) throw new Error('Shared list not found')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] getSharedShoppingList failed:', err)
+		throw err
+	}
 }
 
 // ── Item Operations ─────────────────────────────────────────────
@@ -75,31 +111,49 @@ export async function toggleShoppingItem(
 	listId: string,
 	itemId: string,
 ): Promise<ShoppingListResponse> {
-	const res = await api.put<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.TOGGLE_ITEM(listId, itemId),
-	)
-	return res.data.data!
+	try {
+		const res = await api.put<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.TOGGLE_ITEM(listId, itemId),
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] toggleShoppingItem failed:', err)
+		throw err
+	}
 }
 
 export async function addCustomItem(
 	listId: string,
 	req: AddCustomItemRequest,
 ): Promise<ShoppingListResponse> {
-	const res = await api.post<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.ADD_ITEM(listId),
-		req,
-	)
-	return res.data.data!
+	try {
+		const res = await api.post<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.ADD_ITEM(listId),
+			req,
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] addCustomItem failed:', err)
+		throw err
+	}
 }
 
 export async function removeShoppingItem(
 	listId: string,
 	itemId: string,
 ): Promise<ShoppingListResponse> {
-	const res = await api.delete<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.REMOVE_ITEM(listId, itemId),
-	)
-	return res.data.data!
+	try {
+		const res = await api.delete<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.REMOVE_ITEM(listId, itemId),
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] removeShoppingItem failed:', err)
+		throw err
+	}
 }
 
 // ── Delete ──────────────────────────────────────────────────────
@@ -113,10 +167,16 @@ export async function deleteShoppingList(listId: string): Promise<void> {
 export async function regenerateShareToken(
 	listId: string,
 ): Promise<ShoppingListResponse> {
-	const res = await api.post<ApiResponse<ShoppingListResponse>>(
-		API_ENDPOINTS.SHOPPING_LISTS.SHARE(listId),
-	)
-	return res.data.data!
+	try {
+		const res = await api.post<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.SHARE(listId),
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] regenerateShareToken failed:', err)
+		throw err
+	}
 }
 
 // ── Commerce (W5.5+W5.8: Grocery Affiliate) ────────────────────
@@ -146,10 +206,16 @@ export async function checkoutShoppingList(
 	listId: string,
 	provider: string = 'affiliate',
 ): Promise<CheckoutResult> {
-	const res = await api.post<ApiResponse<CheckoutResult>>(
-		`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/${listId}/checkout?provider=${encodeURIComponent(provider)}`,
-	)
-	return res.data.data!
+	try {
+		const res = await api.post<ApiResponse<CheckoutResult>>(
+			`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/${listId}/checkout?provider=${encodeURIComponent(provider)}`,
+		)
+		if (!res.data.data) throw new Error('No checkout data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] checkoutShoppingList failed:', err)
+		throw err
+	}
 }
 
 // ── Per-Ingredient Buy Links ─────────────────────────────────────
@@ -176,7 +242,8 @@ export async function getIngredientBuyLinks(
 			ingredients,
 		)
 		return res.data.data ?? {}
-	} catch {
-		return {} // Graceful degradation — no buy links if service unavailable
+	} catch (error) {
+		logDevError('[ShoppingList] ingredient links fetch failed:', error)
+		return {}
 	}
 }

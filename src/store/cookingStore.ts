@@ -969,8 +969,8 @@ export const useCookingStore = create<CookingState>()(
 
 				try {
 					await apiLeaveRoom(roomCode)
-				} catch {
-					// Best effort — clear local state regardless
+				} catch (e) {
+					logDevError('leaveRoom failed', e)
 				}
 
 				set({
@@ -996,8 +996,8 @@ export const useCookingStore = create<CookingState>()(
 							isHost: room.hostUserId === userId,
 						})
 					}
-				} catch {
-					// Silently fail — room may have dissolved
+				} catch (e) {
+					logDevError('refreshRoom failed', e)
 				}
 			},
 

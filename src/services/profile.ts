@@ -1,8 +1,44 @@
 import { api } from '@/lib/axios'
-import { ApiResponse, PaginationMeta, Profile } from '@/lib/types'
+import { ApiResponse, Page, PaginationMeta, Profile } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
+import { getUserFriendlyMessage } from '@/lib/error-utils'
+
+const normalizePaginatedProfiles = (
+	data: Profile[] | Page<Profile> | undefined,
+	pagination?: PaginationMeta,
+): PaginatedProfilesResponse | null => {
+	if (Array.isArray(data)) {
+		return {
+			data,
+			pagination: pagination ?? {
+				page: 0,
+				size: data.length,
+				totalElements: data.length,
+				totalPages: data.length > 0 ? 1 : 0,
+				first: true,
+				last: true,
+			},
+		}
+	}
+
+	if (data && Array.isArray(data.content)) {
+		return {
+			data: data.content,
+			pagination: pagination ?? {
+				page: data.number,
+				size: data.size,
+				totalElements: data.totalElements,
+				totalPages: data.totalPages,
+				first: data.first,
+				last: data.last,
+			},
+		}
+	}
+
+	return null
+}
 
 /**
  * Profile API Service
@@ -49,7 +85,7 @@ export const getProfileByUserId = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -92,7 +128,7 @@ export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -117,7 +153,7 @@ export const getProfilesPaginated = async (
 	}
 > => {
 	try {
-		const response = await api.get<ApiResponse<Profile[]>>(
+		const response = await api.get<ApiResponse<Profile[] | Page<Profile>>>(
 			API_ENDPOINTS.PROFILE.GET_ALL_PAGINATED,
 			{
 				params: {
@@ -128,12 +164,17 @@ export const getProfilesPaginated = async (
 			},
 		)
 
-		if (response.data.success && response.data.data) {
+		const normalized = normalizePaginatedProfiles(
+			response.data.data,
+			response.data.pagination,
+		)
+
+		if (response.data.success && normalized) {
 			return {
 				success: true,
 				statusCode: 200,
-				data: response.data.data,
-				pagination: response.data.pagination,
+				data: normalized.data,
+				pagination: normalized.pagination,
 			}
 		}
 
@@ -145,13 +186,24 @@ export const getProfilesPaginated = async (
 		}
 	} catch (error) {
 		logDevError('unknown failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Profile[]>>
+		const axiosError = error as AxiosError<
+			ApiResponse<Profile[] | Page<Profile>>
+		>
 		if (axiosError.response) {
-			return axiosError.response.data
+			const normalized = normalizePaginatedProfiles(
+				axiosError.response.data?.data,
+				axiosError.response.data?.pagination,
+			)
+
+			return {
+				...axiosError.response.data,
+				data: normalized?.data,
+				pagination: normalized?.pagination,
+			}
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -182,7 +234,7 @@ export const updateProfile = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
