@@ -19,6 +19,7 @@
  */
 
 import { api } from '@/lib/axios'
+import { API_ENDPOINTS } from '@/constants'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 // ============================================================================
@@ -199,7 +200,7 @@ const notifySubscribers = (token: string | null, error: Error | null) => {
 const callRefreshEndpoint = async (): Promise<string> => {
 	// The refresh_token cookie is HttpOnly — JavaScript cannot see it.
 	// The browser sends it automatically with withCredentials: true.
-	const response = await api.post('/api/v1/auth/refresh-token')
+	const response = await api.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN)
 
 	const newAccessToken = response.data?.data?.accessToken
 	if (!newAccessToken) {

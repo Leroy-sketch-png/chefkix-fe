@@ -14,6 +14,7 @@ import {
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
 import { logDevError } from '@/lib/dev-log'
+import { getUserFriendlyMessage } from '@/lib/error-utils'
 
 // Sign-in function
 export const signIn = async (
@@ -33,7 +34,7 @@ export const signIn = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -55,7 +56,7 @@ export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -128,7 +129,7 @@ export const resendOtp = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -157,7 +158,7 @@ export const verifyOtp = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -179,7 +180,7 @@ export const forgotPassword = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -202,7 +203,7 @@ export const verifyOtpPassword = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -225,7 +226,7 @@ export const changePassword = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -248,7 +249,7 @@ export const googleSignIn = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}

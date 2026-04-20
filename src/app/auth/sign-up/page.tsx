@@ -51,7 +51,7 @@ const SignUpPage = () => {
 					<motion.div
 						whileHover={{ rotate: -10, scale: 1.1 }}
 						transition={TRANSITION_SPRING}
-						className='mb-2.5 flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-lg shadow-xp/30 sm:mb-4 sm:size-16'
+						className='mb-2.5 flex size-12 items-center justify-center rounded-2xl bg-gradient-xp shadow-warm shadow-xp/30 sm:mb-4 sm:size-16'
 					>
 						<ChefHat className='size-6 text-white sm:size-8' />
 					</motion.div>
@@ -108,7 +108,7 @@ const SignUpPage = () => {
 				{/* Sign Up Card - NOTE: No backdrop-blur to avoid stacking context issues with modals */}
 				<motion.div
 					variants={staggerItem}
-					className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card p-5 shadow-xl shadow-black/5 sm:p-8'
+					className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card p-5 shadow-warm shadow-black/5 sm:p-8'
 				>
 					<motion.h2
 						initial={{ opacity: 0, y: 10 }}

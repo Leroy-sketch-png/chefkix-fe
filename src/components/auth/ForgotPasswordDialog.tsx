@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -73,6 +73,15 @@ export const ForgotPasswordDialog = ({
 	const resetSchema = useMemo(() => createResetSchema(t), [t])
 	const [step, setStep] = useState<Step>('email')
 	const [email, setEmail] = useState('')
+	const resetDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const closeDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	useEffect(() => {
+		return () => {
+			if (resetDelayRef.current) clearTimeout(resetDelayRef.current)
+			if (closeDelayRef.current) clearTimeout(closeDelayRef.current)
+		}
+	}, [])
 
 	const emailForm = useForm<z.infer<typeof emailSchema>>({
 		resolver: zodResolver(emailSchema),
@@ -112,7 +121,8 @@ export const ForgotPasswordDialog = ({
 
 		if (response.success) {
 			toast.success(t('resetSuccess'))
-			setTimeout(() => {
+			if (resetDelayRef.current) clearTimeout(resetDelayRef.current)
+			resetDelayRef.current = setTimeout(() => {
 				onOpenChange(false)
 				// Reset forms and state
 				setStep('email')
@@ -145,7 +155,8 @@ export const ForgotPasswordDialog = ({
 	const handleClose = () => {
 		onOpenChange(false)
 		// Reset after animation completes
-		setTimeout(() => {
+		if (closeDelayRef.current) clearTimeout(closeDelayRef.current)
+		closeDelayRef.current = setTimeout(() => {
 			setStep('email')
 			setEmail('')
 			emailForm.reset()

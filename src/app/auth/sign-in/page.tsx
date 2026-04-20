@@ -53,7 +53,7 @@ const SignInPage = () => {
 					<motion.div
 						whileHover={{ rotate: 10, scale: 1.1 }}
 						transition={TRANSITION_SPRING}
-						className='flex size-10 items-center justify-center rounded-xl bg-brand shadow-md shadow-brand/20 sm:size-12'
+						className='flex size-10 items-center justify-center rounded-xl bg-brand shadow-warm shadow-brand/20 sm:size-12'
 					>
 						<ChefHat className='size-5 text-white sm:size-6' />
 					</motion.div>
@@ -70,7 +70,7 @@ const SignInPage = () => {
 				{/* Sign In Card */}
 				<motion.div
 					variants={staggerItem}
-					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-lg shadow-black/5 sm:p-8'
+					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-warm shadow-black/5 sm:p-8'
 				>
 					<motion.h2
 						initial={{ opacity: 0, y: 10 }}

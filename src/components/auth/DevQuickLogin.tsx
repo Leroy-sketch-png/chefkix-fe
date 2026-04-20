@@ -8,6 +8,7 @@ import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { logDevError } from '@/lib/dev-log'
 
 const DEMO_ACCOUNTS = [
 	{
@@ -114,13 +115,13 @@ export function DevQuickLogin() {
 			if (profileResponse.success && profileResponse.data) {
 				setUser(profileResponse.data)
 				toast.success(`Logged in as ${username}`)
-				setLoading(true)
 				router.push('/dashboard')
 			} else {
 				toast.error(`Profile fetch failed. Run: seed.bat`)
 				setLoadingUser(null)
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Dev login error:', err)
 			toast.error(`Login error. Is backend running?`)
 			setLoadingUser(null)
 		}
@@ -130,7 +131,7 @@ export function DevQuickLogin() {
 		<div className='fixed bottom-4 right-4 z-50 hidden md:block'>
 			<motion.div
 				layout
-				className='overflow-hidden rounded-xl border border-brand/30 bg-bg-card shadow-xl'
+				className='overflow-hidden rounded-xl border border-brand/30 bg-bg-card shadow-warm'
 				style={{ width: expanded ? 240 : 'auto' }}
 			>
 				{/* Toggle Header */}

@@ -10,6 +10,7 @@ import { motion } from 'framer-motion'
 
 import { Button } from '@/components/ui/button'
 import { AnimatedButton } from '@/components/ui/animated-button'
+import { DividerOr } from '@/components/ui/divider-or'
 import {
 	Form,
 	FormControl,
@@ -400,15 +401,8 @@ export function SignUpForm() {
 							{t('getStarted')}
 						</AnimatedButton>
 					</motion.div>
-					<motion.div
-						variants={staggerItem}
-						className='relative my-5 flex items-center'
-					>
-						<span className='flex-1 border-t border-border-subtle'></span>
-						<span className='mx-4 text-xs leading-normal text-text-muted'>
-							{t('or')}
-						</span>
-						<span className='flex-1 border-t border-border-subtle'></span>
+					<motion.div variants={staggerItem} className='my-5'>
+						<DividerOr>{t('or')}</DividerOr>
 					</motion.div>
 					<motion.div variants={staggerItem} className='w-full'>
 						<GoogleSignInButton
