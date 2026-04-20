@@ -29,12 +29,18 @@ export function StarRating({
 	const displayValue = hoverValue || value
 
 	return (
-		<div className={cn('inline-flex items-center gap-0.5', className)}>
-			{[1, 2, 3, 4, 5].map((star) => (
+		<div
+			role='radiogroup'
+			aria-label='Rating'
+			className={cn('inline-flex items-center gap-0.5', className)}
+		>
+			{' '}
+			{[1, 2, 3, 4, 5].map(star => (
 				<button
 					key={star}
 					type='button'
 					disabled={readOnly}
+					aria-label={`${star} star${star > 1 ? 's' : ''}`}
 					className={cn(
 						'transition-colors duration-150',
 						readOnly ? 'cursor-default' : 'cursor-pointer hover:scale-110',
