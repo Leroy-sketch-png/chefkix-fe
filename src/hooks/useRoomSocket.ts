@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
-import { logDevError } from '@/lib/dev-log'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
 import type { RoomEvent, RoomEventPayload } from '@/lib/types/room'
 import {
 	getFreshWebSocketAccessToken,
@@ -54,11 +54,14 @@ export function useRoomSocket({
 	onEvent,
 	enabled = true,
 }: UseRoomSocketOptions): UseRoomSocketReturn {
-	const { accessToken } = useAuthStore()
+	const { accessToken, isHydrated, isLoading } = useAuthStore()
 	const clientRef = useRef<Client | null>(null)
 	const subscriptionRef = useRef<StompSubscription | null>(null)
+	const reconnectAttemptsRef = useRef(0)
 	const [isConnected, setIsConnected] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+
+	const MAX_RECONNECT_ATTEMPTS = 10
 
 	// Store callback in ref to avoid reconnection on callback change
 	const onEventRef = useRef(onEvent)
@@ -68,7 +71,7 @@ export function useRoomSocket({
 
 	// Connect to WebSocket
 	useEffect(() => {
-		if (!enabled || !accessToken || !roomCode) {
+		if (!enabled || !isHydrated || isLoading || !accessToken || !roomCode) {
 			return
 		}
 
@@ -78,7 +81,9 @@ export function useRoomSocket({
 				const token = await getFreshWebSocketAccessToken()
 				if (!token) {
 					setError(WEBSOCKET_SESSION_EXPIRED_MESSAGE)
-					throw new Error('Missing access token for room socket')
+					setIsConnected(false)
+					client.reconnectDelay = 0
+					return
 				}
 
 				client.connectHeaders = {
@@ -90,11 +95,18 @@ export function useRoomSocket({
 			heartbeatIncoming: 10000,
 			heartbeatOutgoing: 10000,
 			onConnect: () => {
+				reconnectAttemptsRef.current = 0
 				setIsConnected(true)
 				setError(null)
 			},
 			onDisconnect: () => {
 				setIsConnected(false)
+				reconnectAttemptsRef.current++
+				if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+					logDevWarn('[RoomSocket] Max reconnect attempts reached, stopping')
+					client.reconnectDelay = 0
+					setError('Room connection lost — please refresh')
+				}
 			},
 			onStompError: frame => {
 				const errorMessage = getReadableWebSocketError(frame.headers['message'])
@@ -122,7 +134,7 @@ export function useRoomSocket({
 			}
 			setIsConnected(false)
 		}
-	}, [enabled, accessToken, roomCode])
+	}, [enabled, accessToken, roomCode, isHydrated, isLoading])
 
 	// Subscribe to room topic
 	useEffect(() => {

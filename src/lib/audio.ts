@@ -61,9 +61,9 @@ export function playTimerCompleteForStep(stepNumber: number): void {
 	// Major chord root frequencies, rotating through 5 keys
 	const chords: [number, number, number][] = [
 		[523.25, 659.25, 783.99], // C major: C5, E5, G5
-		[587.33, 739.99, 880.00], // D major: D5, F#5, A5
+		[587.33, 739.99, 880.0], // D major: D5, F#5, A5
 		[659.25, 830.61, 987.77], // E major: E5, G#5, B5
-		[698.46, 880.00, 1046.50], // F major: F5, A5, C6
+		[698.46, 880.0, 1046.5], // F major: F5, A5, C6
 		[783.99, 987.77, 1174.66], // G major: G5, B5, D6
 	]
 	const chord = chords[(stepNumber - 1) % chords.length]
@@ -152,16 +152,24 @@ export function notifyTimerUrgent(): void {
  * Check if audio is enabled (user preference)
  */
 export function isAudioEnabled(): boolean {
-	if (typeof localStorage === 'undefined') return true
-	return localStorage.getItem('chefkix-audio-enabled') !== 'false'
+	try {
+		if (typeof localStorage === 'undefined') return true
+		return localStorage.getItem('chefkix-audio-enabled') !== 'false'
+	} catch {
+		return true
+	}
 }
 
 /**
  * Toggle audio enabled state
  */
 export function setAudioEnabled(enabled: boolean): void {
-	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem('chefkix-audio-enabled', String(enabled))
+	try {
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem('chefkix-audio-enabled', String(enabled))
+		}
+	} catch {
+		/* storage unavailable */
 	}
 }
 

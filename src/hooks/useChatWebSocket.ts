@@ -37,12 +37,15 @@ export function useChatWebSocket({
 	userId,
 	enabled = true,
 }: UseChatWebSocketOptions): UseChatWebSocketReturn {
-	const { accessToken } = useAuthStore()
+	const { accessToken, isHydrated, isLoading } = useAuthStore()
 	const clientRef = useRef<Client | null>(null)
 	const subscriptionRef = useRef<StompSubscription | null>(null)
 	const userSubscriptionRef = useRef<StompSubscription | null>(null)
+	const reconnectAttemptsRef = useRef(0)
 	const [isConnected, setIsConnected] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+
+	const MAX_RECONNECT_ATTEMPTS = 10
 
 	// Store callbacks in refs to avoid reconnection on callback change
 	const onMessageRef = useRef(onMessage)
@@ -56,7 +59,7 @@ export function useChatWebSocket({
 
 	// Connect to WebSocket
 	useEffect(() => {
-		if (!enabled || !accessToken) {
+		if (!enabled || !isHydrated || isLoading || !accessToken) {
 			return
 		}
 
@@ -66,7 +69,9 @@ export function useChatWebSocket({
 				const token = await getFreshWebSocketAccessToken()
 				if (!token) {
 					setError(WEBSOCKET_SESSION_EXPIRED_MESSAGE)
-					throw new Error('Missing access token for WebSocket connection')
+					setIsConnected(false)
+					client.reconnectDelay = 0
+					return
 				}
 
 				client.connectHeaders = {
@@ -78,11 +83,18 @@ export function useChatWebSocket({
 			heartbeatIncoming: 10000,
 			heartbeatOutgoing: 10000,
 			onConnect: () => {
+				reconnectAttemptsRef.current = 0
 				setIsConnected(true)
 				setError(null)
 			},
 			onDisconnect: () => {
 				setIsConnected(false)
+				reconnectAttemptsRef.current++
+				if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+					logDevWarn('[WebSocket] Max reconnect attempts reached, stopping')
+					client.reconnectDelay = 0
+					setError('Chat connection lost — please refresh the page')
+				}
 			},
 			onStompError: frame => {
 				const errorMessage = getReadableWebSocketError(frame.headers['message'])
@@ -114,7 +126,7 @@ export function useChatWebSocket({
 			}
 			setIsConnected(false)
 		}
-	}, [enabled, accessToken])
+	}, [enabled, accessToken, isHydrated, isLoading])
 
 	// Subscribe to user-specific topic for new conversations
 	useEffect(() => {

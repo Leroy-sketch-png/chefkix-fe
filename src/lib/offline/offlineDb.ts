@@ -106,7 +106,7 @@ export async function queueRequest(
 	const db = await getDb()
 	const queuedRequest: QueuedRequest = {
 		...request,
-		id: `req-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+		id: `req-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
 		timestamp: Date.now(),
 		retryCount: 0,
 	}

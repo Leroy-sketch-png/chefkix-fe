@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { isFirebaseConfigured, getFCMToken, onForegroundMessage } from '@/lib/firebase'
+import {
+	isFirebaseConfigured,
+	getFCMToken,
+	onForegroundMessage,
+} from '@/lib/firebase'
 import {
 	isNotificationSupported,
 	requestNotificationPermission,
@@ -74,7 +78,7 @@ export function usePushNotifications() {
 		if (!isAuthenticated) return
 		if (!isFirebaseConfigured()) return
 
-		const unsubscribe = onForegroundMessage((payload) => {
+		const unsubscribe = onForegroundMessage(payload => {
 			const title = payload.notification?.title || 'ChefKix'
 			const body = payload.notification?.body || 'You have a new notification'
 			const data = payload.data || {}
@@ -131,11 +135,15 @@ export function usePushNotifications() {
 		if (isAuthenticated) return
 
 		// If we were previously registered, unregister
-		const hadToken = localStorage.getItem(FCM_TOKEN_KEY)
-		if (hadToken) {
-			unregisterPushToken()
-			localStorage.removeItem(FCM_TOKEN_KEY)
-			registeredRef.current = false
+		try {
+			const hadToken = localStorage.getItem(FCM_TOKEN_KEY)
+			if (hadToken) {
+				unregisterPushToken()
+				localStorage.removeItem(FCM_TOKEN_KEY)
+				registeredRef.current = false
+			}
+		} catch {
+			/* storage unavailable */
 		}
 	}, [isAuthenticated])
 
@@ -156,7 +164,11 @@ export function usePushNotifications() {
 
 		const result = await registerPushToken(fcmToken)
 		if (result?.success) {
-			localStorage.setItem(FCM_TOKEN_KEY, fcmToken)
+			try {
+				localStorage.setItem(FCM_TOKEN_KEY, fcmToken)
+			} catch {
+				/* storage unavailable */
+			}
 			registeredRef.current = true
 			return true
 		}
@@ -170,7 +182,11 @@ export function usePushNotifications() {
 	const disablePush = useCallback(async (): Promise<boolean> => {
 		const success = await unregisterPushToken()
 		if (success) {
-			localStorage.removeItem(FCM_TOKEN_KEY)
+			try {
+				localStorage.removeItem(FCM_TOKEN_KEY)
+			} catch {
+				/* storage unavailable */
+			}
 			registeredRef.current = false
 		}
 		return success
