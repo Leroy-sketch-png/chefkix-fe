@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import EmojiPicker from 'emoji-picker-react'
+import EmojiPicker, { Theme } from 'emoji-picker-react'
 import { Rnd } from 'react-rnd'
 import { useStoryStore } from '@/store/storyStore'
 import { createStory } from '@/services/story'
@@ -314,7 +314,7 @@ export function StoryCreator() {
 											onEmojiClick={handleAddEmoji}
 											width={300}
 											height={350}
-											theme='dark'
+											theme={Theme.DARK}
 										/>
 									</div>
 								)}

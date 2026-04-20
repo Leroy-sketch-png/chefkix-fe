@@ -14,6 +14,8 @@ type AnimationPreset =
 	| 'scaleUp'
 	| 'fadeIn'
 
+type TextRevealTag = 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span' | 'div'
+
 interface TextRevealProps {
 	text: string
 	splitBy?: 'word' | 'character'
@@ -22,7 +24,7 @@ interface TextRevealProps {
 	delay?: number
 	duration?: number
 	once?: boolean
-	as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span' | 'div'
+	as?: TextRevealTag
 	className?: string
 }
 
@@ -68,9 +70,10 @@ export function TextReveal({
 	delay = 0,
 	duration = 0.4,
 	once = true,
-	as: Component = 'p',
+	as,
 	className,
 }: TextRevealProps) {
+	const Component = (as ?? 'p') as TextRevealTag
 	const ref = React.useRef<HTMLElement>(null)
 	const inView = useInView(ref, { once, margin: '0px 0px -40px 0px' })
 	const prefersReduced = useReducedMotion()
@@ -89,33 +92,35 @@ export function TextReveal({
 	}, [text, splitBy])
 
 	const { hidden, visible } = presets[preset]
+	const containerClassName = cn('flex flex-wrap', className)
+	const animatedChildren = elements.map((el, i) => (
+		<motion.span
+			key={el.key}
+			initial={hidden}
+			animate={inView ? visible : hidden}
+			transition={{
+				duration,
+				delay: delay + i * stagger,
+				ease: [0.21, 0.47, 0.32, 0.98],
+			}}
+			className={cn(splitBy === 'word' && 'mr-[0.25em]')}
+			aria-hidden
+		>
+			{el.content}
+		</motion.span>
+	))
 
 	if (prefersReduced) {
-		return <Component className={className}>{text}</Component>
+		return React.createElement(Component, { className }, text)
 	}
 
-	return (
-		<Component
-			ref={ref}
-			className={cn('flex flex-wrap', className)}
-			aria-label={text}
-		>
-			{elements.map((el, i) => (
-				<motion.span
-					key={el.key}
-					initial={hidden}
-					animate={inView ? visible : hidden}
-					transition={{
-						duration,
-						delay: delay + i * stagger,
-						ease: [0.21, 0.47, 0.32, 0.98],
-					}}
-					className={cn(splitBy === 'word' && 'mr-[0.25em]')}
-					aria-hidden
-				>
-					{el.content}
-				</motion.span>
-			))}
-		</Component>
+	return React.createElement(
+		Component,
+		{
+			ref: ref as React.Ref<HTMLElement>,
+			className: containerClassName,
+			'aria-label': text,
+		},
+		animatedChildren,
 	)
 }
