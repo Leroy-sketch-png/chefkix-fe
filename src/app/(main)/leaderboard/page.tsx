@@ -19,6 +19,7 @@ import {
 } from '@/services/leaderboard'
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 
 // ============================================
 // PAGE
@@ -26,7 +27,7 @@ import { ErrorState } from '@/components/ui/error-state'
 
 export default function LeaderboardRoute() {
 	const { user } = useAuth()
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const t = useTranslations('leaderboard')
 	const router = useRouter()
 	const [type, setType] = useState<LeaderboardType>('global')
@@ -110,6 +111,12 @@ export default function LeaderboardRoute() {
 			cancelled = true
 		}
 	}, [type, timeframe, retryKey])
+
+	// Auto-refresh leaderboard every 60s for live competition feel
+	useAutoRefresh({
+		interval: 60_000,
+		onRefresh: () => setRetryKey(k => k + 1),
+	})
 
 	// Calculate reset timer (weekly resets on Sunday midnight UTC)
 	const getResetInfo = () => {

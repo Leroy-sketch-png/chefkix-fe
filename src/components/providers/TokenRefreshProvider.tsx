@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/store/authStore'
 import { PATHS } from '@/constants'
 import {
@@ -49,6 +50,7 @@ export const TokenRefreshProvider = ({
 	children,
 }: TokenRefreshProviderProps) => {
 	const { isAuthenticated, accessToken, logout } = useAuthStore()
+	const t = useTranslations('shared')
 	const hasScheduledRef = useRef(false)
 
 	/**
@@ -61,9 +63,9 @@ export const TokenRefreshProvider = ({
 	const onSessionExpired = useCallback(() => {
 		logout()
 		if (typeof window !== 'undefined') {
-			window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent('Session expired. Please sign in again.')}`
+			window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(t('sessionExpiredMessage'))}`
 		}
-	}, [logout])
+	}, [logout, t])
 
 	/**
 	 * Refresh the token (used for visibility change)
@@ -116,9 +118,12 @@ export const TokenRefreshProvider = ({
 
 			// Check if token needs refresh using actual expiry
 			if (shouldRefreshToken(accessToken)) {
-				visibilityRefreshPromise = doRefresh()
-				await visibilityRefreshPromise
-				visibilityRefreshPromise = null
+				try {
+					visibilityRefreshPromise = doRefresh()
+					await visibilityRefreshPromise
+				} finally {
+					visibilityRefreshPromise = null
+				}
 
 				// Re-schedule proactive refresh with the new token
 				const newToken = useAuthStore.getState().accessToken

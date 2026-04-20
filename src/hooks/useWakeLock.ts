@@ -15,7 +15,12 @@ export function useWakeLock(enabled: boolean): void {
 	const wakeLockRef = useRef<WakeLockSentinel | null>(null)
 
 	useEffect(() => {
-		if (!enabled || typeof navigator === 'undefined' || !('wakeLock' in navigator)) return
+		if (
+			!enabled ||
+			typeof navigator === 'undefined' ||
+			!('wakeLock' in navigator)
+		)
+			return
 
 		let released = false
 
@@ -27,7 +32,7 @@ export function useWakeLock(enabled: boolean): void {
 					wakeLockRef.current = null
 				})
 			} catch {
-				// Wake lock request failed (e.g., low battery, background tab)
+				// ignored: wake lock non-critical (low battery, background tab)
 			}
 		}
 

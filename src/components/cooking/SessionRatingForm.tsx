@@ -173,7 +173,7 @@ export function SessionRatingForm({
 				initial={{ scale: 0, rotate: -180 }}
 				animate={{ scale: 1, rotate: 0 }}
 				transition={TRANSITION_BOUNCY}
-				className='mb-4 grid size-20 place-items-center rounded-full bg-gradient-celebration text-4xl shadow-lg'
+				className='mb-4 grid size-20 place-items-center rounded-full bg-gradient-celebration text-4xl shadow-warm'
 			>
 				🎉
 			</motion.div>

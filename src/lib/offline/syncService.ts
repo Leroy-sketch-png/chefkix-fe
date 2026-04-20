@@ -3,6 +3,7 @@
  */
 
 import { api } from '@/lib/axios'
+import { logDevError } from '@/lib/dev-log'
 import {
 	getQueuedRequests,
 	removeQueuedRequest,
@@ -35,7 +36,7 @@ export async function syncQueuedRequests(): Promise<SyncResult> {
 			success++
 		} catch (error) {
 			if (process.env.NODE_ENV === 'development')
-				console.error(`[Sync] Failed to replay request ${request.id}:`, error)
+				logDevError(`[Sync] Failed to replay request ${request.id}:`, error)
 
 			if (request.retryCount >= MAX_RETRIES) {
 				// Give up on this request

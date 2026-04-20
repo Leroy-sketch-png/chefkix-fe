@@ -96,7 +96,13 @@ import {
 } from '@/lib/motion'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { AnimatedNumber } from '@/components/ui/animated-number'
-import { calibrateDifficulty, type CalibrationResult } from '@/services/ml'
+import { ImageLightbox } from '@/components/ui/image-lightbox'
+import { ScrollProgress } from '@/components/ui/scroll-progress'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
+import { RevealOnScroll } from '@/components/ui/reveal-on-scroll'
+import { SparklesEffect } from '@/components/ui/sparkles-effect'
+import { LazySection } from '@/components/ui/lazy-section'
+import { calibrateDifficulty, CalibrationResult } from '@/services/ml'
 import { TipJarButton } from '@/components/tip/TipJarButton'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
@@ -142,7 +148,7 @@ function RecipeDetailContent() {
 		session: activeSession,
 	} = useCookingStore()
 	const { user } = useAuth()
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const autoStartAttempted = useRef(false)
 
 	// Determine cooking button state — only count COMPLETE & ACTIVE sessions
@@ -206,10 +212,34 @@ function RecipeDetailContent() {
 	}, [recipeId, t])
 
 	useEffect(() => {
-		if (recipeId) {
-			fetchRecipe()
+		if (!recipeId) return
+		let cancelled = false
+		setIsLoading(true)
+		setError(null)
+		getRecipeById(recipeId)
+			.then(response => {
+				if (cancelled) return
+				if (response.success && response.data) {
+					setRecipe(response.data)
+					setIsLiked(response.data.isLiked ?? false)
+					setIsSaved(response.data.isSaved ?? false)
+					setLikeCount(response.data.likeCount)
+					setSaveCount(response.data.saveCount)
+					trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
+				} else {
+					setError(t('errorRecipeNotFound'))
+				}
+			})
+			.catch(() => {
+				if (!cancelled) setError(t('errorFailedLoadRecipe'))
+			})
+			.finally(() => {
+				if (!cancelled) setIsLoading(false)
+			})
+		return () => {
+			cancelled = true
 		}
-	}, [recipeId, fetchRecipe])
+	}, [recipeId, t])
 
 	// AI difficulty calibration — fail-open, non-blocking
 	useEffect(() => {
@@ -236,7 +266,7 @@ function RecipeDetailContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [recipe])
+	}, [recipe?.id])
 
 	// Fetch per-ingredient buy links — fail-open, non-blocking
 	useEffect(() => {
@@ -248,13 +278,17 @@ function RecipeDetailContent() {
 			quantity: ing.quantity,
 			unit: ing.unit,
 		}))
-		getIngredientBuyLinks(items).then(links => {
-			if (!cancelled) setIngredientBuyLinks(links)
-		})
+		getIngredientBuyLinks(items)
+			.then(links => {
+				if (!cancelled) setIngredientBuyLinks(links)
+			})
+			.catch(err => {
+				logDevError('Buy links fetch failed (non-critical):', err)
+			})
 		return () => {
 			cancelled = true
 		}
-	}, [recipe])
+	}, [recipe?.id])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
@@ -311,7 +345,7 @@ function RecipeDetailContent() {
 
 	const handleLike = useCallback(async () => {
 		if (isLikeLoading) return
-		if (!requireAuth(t('authActionLike'))) return
+		if (!requireAuth(t('authActionLike'), 'like')) return
 
 		const previousLiked = isLiked
 		const previousCount = likeCount
@@ -344,7 +378,7 @@ function RecipeDetailContent() {
 
 	const handleSave = useCallback(async () => {
 		if (isSaveLoading) return
-		if (!requireAuth(t('authActionSave'))) return
+		if (!requireAuth(t('authActionSave'), 'save')) return
 
 		const previousSaved = isSaved
 		const previousCount = saveCount
@@ -383,29 +417,32 @@ function RecipeDetailContent() {
 	}, [isSaveLoading, isSaved, recipeId, saveCount, requireAuth, t])
 
 	const handleShare = async () => {
+		const shareUrl = `${window.location.origin}/recipes/${recipeId}`
 		if (navigator.share) {
 			try {
 				await navigator.share({
 					title: recipe?.title,
 					text: recipe?.description,
-					url: window.location.href,
+					url: shareUrl,
 				})
 			} catch (err) {
 				if ((err as Error).name !== 'AbortError') {
 					// Share failed for non-cancel reason — fall back to clipboard
 					try {
-						await navigator.clipboard.writeText(window.location.href)
+						await navigator.clipboard.writeText(shareUrl)
 						toast.success(t('toastLinkCopied'))
-					} catch {
+					} catch (err) {
+						logDevError('Clipboard fallback failed:', err)
 						toast.error(t('toastFailedShare'))
 					}
 				}
 			}
 		} else {
 			try {
-				await navigator.clipboard.writeText(window.location.href)
+				await navigator.clipboard.writeText(shareUrl)
 				toast.success(t('toastLinkCopied'))
-			} catch {
+			} catch (err) {
+				logDevError('Clipboard copy failed:', err)
 				toast.error(t('toastFailedCopy'))
 			}
 		}
@@ -438,7 +475,8 @@ function RecipeDetailContent() {
 			} else {
 				toast.error(t('toastFailedRemixRecipe'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Remix error:', err)
 			toast.error(t('toastFailedRemix'))
 		} finally {
 			setIsRemixing(false)
@@ -447,7 +485,7 @@ function RecipeDetailContent() {
 
 	const handleStartCooking = useCallback(async () => {
 		if (isCookingLoading || !recipeId) return
-		if (!requireAuth(t('authActionCook'))) return
+		if (!requireAuth(t('authActionCook'), 'cook')) return
 
 		// If already cooking THIS recipe, just open the panel
 		if (isCurrentlyCooked) {
@@ -477,8 +515,8 @@ function RecipeDetailContent() {
 							),
 						)
 					})
-					.catch(() => {
-						/* non-critical */
+					.catch(err => {
+						logDevError('Recipe cache prefill failed (non-critical):', err)
 					})
 			}
 			// Open docked panel on desktop, expanded on mobile
@@ -520,7 +558,8 @@ function RecipeDetailContent() {
 				const errorMsg = useCookingStore.getState().error
 				toast.error(errorMsg || t('toastFailedCreateRoom'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Create room error:', err)
 			toast.error(t('toastFailedRoom'))
 		} finally {
 			setIsCreatingRoom(false)
@@ -538,7 +577,8 @@ function RecipeDetailContent() {
 			} else {
 				toast.error(t('toastFailedDeleteRecipe'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Delete recipe error:', err)
 			toast.error(t('toastFailedDelete'))
 		} finally {
 			setIsDeleting(false)
@@ -568,7 +608,8 @@ function RecipeDetailContent() {
 				source: 'recipe_detail',
 				items: shoppingList.totalItems,
 			})
-		} catch {
+		} catch (err) {
+			logDevError('Shopping list error:', err)
 			toast.error(t('toastFailedShoppingList'))
 		} finally {
 			setIsAddingToShoppingList(false)
@@ -695,24 +736,17 @@ function RecipeDetailContent() {
 
 	return (
 		<PageTransition>
+			<ScrollProgress />
 			<PageContainer maxWidth='2xl'>
-				{/* Back Button */}
-				<motion.div
-					initial={{ opacity: 0, x: -10 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={TRANSITION_SPRING}
-					className='mb-4'
-				>
-					<Button
-						variant='ghost'
-						size='sm'
-						onClick={() => router.back()}
-						className='gap-2 text-text-secondary hover:text-text'
-					>
-						<ArrowLeft className='size-4' />
-						<span>{t('back')}</span>
-					</Button>
-				</motion.div>
+				{/* Breadcrumb Navigation */}
+				<div className='mb-4'>
+					<Breadcrumbs
+						items={[
+							{ label: 'Explore', href: '/explore' },
+							{ label: recipe.title },
+						]}
+					/>
+				</div>
 
 				{/* Hero Section */}
 				<motion.div
@@ -729,14 +763,20 @@ function RecipeDetailContent() {
 							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
 							className='absolute inset-0'
 						>
-							<Image
+							<ImageLightbox
 								src={getRecipeImage(recipe)}
 								alt={recipe.title}
-								fill
-								sizes='100vw'
-								className='object-cover transition-transform duration-700 group-hover:scale-105'
-								priority
-							/>
+								className='absolute inset-0'
+							>
+								<Image
+									src={getRecipeImage(recipe)}
+									alt={recipe.title}
+									fill
+									sizes='100vw'
+									className='object-cover transition-transform duration-700 group-hover:scale-105'
+									priority
+								/>
+							</ImageLightbox>
 						</motion.div>
 
 						{/* Gradient overlay */}
@@ -748,7 +788,7 @@ function RecipeDetailContent() {
 								initial={{ scale: 0, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
 								transition={{ delay: 0.3, ...TRANSITION_SPRING }}
-								className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-xp px-4 py-2 text-sm font-bold text-white shadow-lg shadow-xp/40'
+								className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-xp px-4 py-2 text-sm font-bold text-white shadow-warm shadow-xp/40'
 							>
 								<Zap className='size-4' />+{recipe.xpReward} XP
 							</motion.div>
@@ -760,7 +800,7 @@ function RecipeDetailContent() {
 							animate={{ scale: 1, opacity: 1 }}
 							transition={{ delay: 0.4, ...TRANSITION_SPRING }}
 							className={cn(
-								'absolute right-4 top-4 rounded-full px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-sm',
+								'absolute right-4 top-4 rounded-full px-4 py-2 text-sm font-bold text-white shadow-warm backdrop-blur-sm',
 								diffConfig.bg,
 								diffConfig.glow,
 							)}
@@ -796,7 +836,7 @@ function RecipeDetailContent() {
 											transition={TRANSITION_SPRING}
 											className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											<div className='grid size-20 place-items-center rounded-full bg-white/90 shadow-2xl transition-all hover:bg-white'>
+											<div className='grid size-20 place-items-center rounded-full bg-white/90 shadow-warm transition-all hover:bg-white'>
 												<Play className='ml-1 size-8 fill-brand text-brand' />
 											</div>
 										</motion.button>
@@ -1097,12 +1137,12 @@ function RecipeDetailContent() {
 										: undefined
 								}
 								className={cn(
-									'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-lg transition-shadow disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
+									'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-warm transition-shadow disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 									isCurrentlyCooked
 										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 										: hasOtherSession
 											? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
-											: 'bg-gradient-hero text-white shadow-brand/30 hover:shadow-xl hover:shadow-brand/40',
+											: 'bg-gradient-hero text-white shadow-brand/30 hover:shadow-warm hover:shadow-brand/40',
 								)}
 							>
 								{isCookingLoading ? (
@@ -1355,7 +1395,9 @@ function RecipeDetailContent() {
 				</motion.div>
 
 				{/* Social Proof — community activity */}
-				<SocialProof recipeId={recipeId} />
+				<RevealOnScroll direction='up'>
+					<SocialProof recipeId={recipeId} />
+				</RevealOnScroll>
 
 				{/* XP Breakdown - Transparency for gamification */}
 				{recipe.xpBreakdown ? (
@@ -1419,22 +1461,24 @@ function RecipeDetailContent() {
 						</div>
 						<div className='mt-4 flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
 							<span className='font-semibold text-white'>{t('xpTotal')}</span>
-							<span className='text-2xl font-black tabular-nums text-white'>
-								+
-								<AnimatedNumber
-									value={(() => {
-										const computed =
-											recipe.xpBreakdown.base +
-											recipe.xpBreakdown.steps +
-											recipe.xpBreakdown.time +
-											(recipe.xpBreakdown.techniques ?? 0)
-										return recipe.xpBreakdown.total > 0
-											? recipe.xpBreakdown.total
-											: computed
-									})()}
-									duration={0.8}
-								/>
-							</span>
+							<SparklesEffect color='white' count={8}>
+								<span className='text-2xl font-black tabular-nums text-white'>
+									+
+									<AnimatedNumber
+										value={(() => {
+											const computed =
+												recipe.xpBreakdown.base +
+												recipe.xpBreakdown.steps +
+												recipe.xpBreakdown.time +
+												(recipe.xpBreakdown.techniques ?? 0)
+											return recipe.xpBreakdown.total > 0
+												? recipe.xpBreakdown.total
+												: computed
+										})()}
+										duration={0.8}
+									/>
+								</span>
+							</SparklesEffect>
 						</div>
 					</motion.div>
 				) : (
@@ -1612,10 +1656,18 @@ function RecipeDetailContent() {
 				</div>
 
 				{/* Community Reviews */}
-				<RecipeReviews recipeId={recipeId} />
+				<LazySection placeholderHeight='300px' rootMargin='200px'>
+					<RevealOnScroll direction='up' delay={0.1}>
+						<RecipeReviews recipeId={recipeId} />
+					</RevealOnScroll>
+				</LazySection>
 
 				{/* Similar Recipes */}
-				<SimilarRecipes recipeId={recipeId} />
+				<LazySection placeholderHeight='300px' rootMargin='200px'>
+					<RevealOnScroll direction='up' delay={0.15}>
+						<SimilarRecipes recipeId={recipeId} />
+					</RevealOnScroll>
+				</LazySection>
 
 				{/* Bottom breathing room for MobileBottomNav */}
 				<div className='pb-40 md:pb-8' />

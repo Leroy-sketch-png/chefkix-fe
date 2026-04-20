@@ -28,7 +28,7 @@ export const RangeSlider = ({
 	const value = controlledValue ?? internalValue
 	const trackRef = useRef<HTMLDivElement>(null)
 
-	const percentage = ((value - min) / (max - min)) * 100
+	const percentage = max === min ? 0 : ((value - min) / (max - min)) * 100
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newValue = parseInt(e.target.value, 10)

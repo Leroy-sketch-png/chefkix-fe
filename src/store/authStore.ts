@@ -90,6 +90,16 @@ export const useAuthStore = create<AuthState>()(
 				import('./notificationStore').then(({ useNotificationStore }) => {
 					useNotificationStore.getState().stopPolling()
 				})
+				// Clear all persisted stores to prevent cross-account data leakage
+				import('./groupStore').then(({ useGroupStore }) => {
+					useGroupStore.getState().clearCurrentGroup()
+				})
+				import('./blockedUsersStore').then(({ useBlockedUsersStore }) => {
+					useBlockedUsersStore.getState().clearBlockedUsers()
+				})
+				import('./cookingStore').then(({ useCookingStore }) => {
+					useCookingStore.getState().clearSession()
+				})
 				set({
 					isAuthenticated: false,
 					user: null,

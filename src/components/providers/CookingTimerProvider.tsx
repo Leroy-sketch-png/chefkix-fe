@@ -74,21 +74,31 @@ export const CookingTimerProvider = () => {
 		hasSyncedRef.current = true
 
 		// Check backend for existing session and restore if found
-		resumeExistingSession().then(resumed => {
-			if (resumed) {
-				// Auto-show cooking UI: docked panel on desktop, mini bar on mobile
-				const isDesktop = window.innerWidth >= 1280
-				if (isDesktop) {
-					openCookingPanel() // Shows CookingPanel in right sidebar
-				} else {
-					setCookingMode('mini') // Shows MiniCookingBar at bottom
+		let cancelled = false
+		resumeExistingSession()
+			.then(resumed => {
+				if (cancelled) return
+				if (resumed) {
+					// Auto-show cooking UI: docked panel on desktop, mini bar on mobile
+					const isDesktop = window.innerWidth >= 1280
+					if (isDesktop) {
+						openCookingPanel() // Shows CookingPanel in right sidebar
+					} else {
+						setCookingMode('mini') // Shows MiniCookingBar at bottom
+					}
+				} else if (session) {
+					// We had a partial session from localStorage but backend says no session exists
+					// Clear the stale partial session
+					useCookingStore.getState().clearSession()
 				}
-			} else if (session) {
-				// We had a partial session from localStorage but backend says no session exists
-				// Clear the stale partial session
-				useCookingStore.getState().clearSession()
-			}
-		})
+			})
+			.catch(() => {
+				/* session resume is best-effort */
+			})
+
+		return () => {
+			cancelled = true
+		}
 	}, [
 		isAuthenticated,
 		session,

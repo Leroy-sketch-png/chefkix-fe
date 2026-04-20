@@ -33,7 +33,7 @@ export const PollCard = ({
 	currentUserId,
 }: PollCardProps) => {
 	const t = useTranslations('social')
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isVoting, setIsVoting] = useState(false)
 

@@ -20,14 +20,19 @@ interface StepPhotoState {
  * Wave 2: Kitchen Protocol — step photo prompts for cooking documentation.
  */
 export function useStepPhotos() {
-	const [state, setState] = useState<StepPhotoState>({ photos: new Map(), totalCount: 0 })
+	const [state, setState] = useState<StepPhotoState>({
+		photos: new Map(),
+		totalCount: 0,
+	})
 	const fileInputRef = useRef<HTMLInputElement | null>(null)
 	const pendingStepRef = useRef<number>(0)
 
 	// Revoke blob URLs on unmount to prevent memory leaks
 	useEffect(() => {
 		return () => {
-			state.photos.forEach(urls => urls.forEach(url => URL.revokeObjectURL(url)))
+			state.photos.forEach(urls =>
+				urls.forEach(url => URL.revokeObjectURL(url)),
+			)
 		}
 		// Cleanup only on unmount — state.photos is intentionally omitted to avoid revoking URLs mid-session
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,6 +53,12 @@ export function useStepPhotos() {
 	const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file || !pendingStepRef.current) return
+
+		// Validate file size (max 10MB)
+		if (file.size > 10 * 1024 * 1024) {
+			e.target.value = ''
+			return
+		}
 
 		const stepNumber = pendingStepRef.current
 		const blobUrl = URL.createObjectURL(file)
@@ -94,7 +105,7 @@ export function useStepPhotos() {
 					})
 					photoData.push({ stepNumber, dataUrl })
 				} catch {
-					// Skip failed conversions
+					// ignored: blob conversion non-critical
 				}
 			}
 		}
@@ -103,7 +114,7 @@ export function useStepPhotos() {
 			try {
 				sessionStorage.setItem(SESSION_KEY, JSON.stringify(photoData))
 			} catch {
-				// sessionStorage full or unavailable
+				// ignored: storage access non-critical
 			}
 		}
 	}, [state.photos])
@@ -117,7 +128,7 @@ export function useStepPhotos() {
 		try {
 			sessionStorage.removeItem(SESSION_KEY)
 		} catch {
-			// Ignore
+			// ignored: storage access non-critical
 		}
 	}, [state.photos])
 

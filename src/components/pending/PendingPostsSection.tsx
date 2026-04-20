@@ -191,7 +191,7 @@ const SinglePendingPost = ({
 					className={cn(
 						'flex items-center gap-2 px-5 py-3 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
 						'bg-brand text-white font-semibold',
-						'shadow-lg shadow-primary/30',
+						'shadow-warm shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
 					whileHover={BUTTON_HOVER}

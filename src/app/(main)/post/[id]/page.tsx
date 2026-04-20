@@ -62,8 +62,31 @@ export default function PostDetailPage() {
 	}, [postId, t])
 
 	useEffect(() => {
-		fetchPost()
-	}, [fetchPost])
+		if (!postId) return
+		let cancelled = false
+		setIsLoading(true)
+		setError(null)
+		getPostById(postId)
+			.then(response => {
+				if (cancelled) return
+				if (response.success && response.data) {
+					setPost(response.data)
+				} else {
+					setError(response.message || t('errorPostNotFound'))
+				}
+			})
+			.catch(() => {
+				if (cancelled) return
+				setError(t('errorLoadPostFailed'))
+				toast.error(t('toastLoadPostFailed'))
+			})
+			.finally(() => {
+				if (!cancelled) setIsLoading(false)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [postId, t])
 
 	const handlePostUpdate = useCallback((updatedPost: Post) => {
 		setPost(updatedPost)

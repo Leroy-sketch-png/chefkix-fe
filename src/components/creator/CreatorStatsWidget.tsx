@@ -7,7 +7,7 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
+import { LIST_ITEM_HOVER, LIST_ITEM_TAP } from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
@@ -63,17 +63,30 @@ export function CreatorStatsWidget({
 					<span className='text-lg font-display font-extrabold text-text'>
 						<AnimatedNumber value={recipesCount} className='tabular-nums' />
 					</span>
-					<span className='text-2xs text-text-secondary'>{t('recipesLabel')}</span>
+					<span className='text-2xs text-text-secondary'>
+						{t('recipesLabel')}
+					</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
 					<span className='text-lg font-display font-extrabold text-text'>
-						<AnimatedNumber value={totalCooks} format={n => n.toLocaleString()} className='tabular-nums' />
+						<AnimatedNumber
+							value={totalCooks}
+							format={n => n.toLocaleString()}
+							className='tabular-nums'
+						/>
 					</span>
-					<span className='text-2xs text-text-secondary'>{t('cooksLabel')}</span>
+					<span className='text-2xs text-text-secondary'>
+						{t('cooksLabel')}
+					</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-success/10 rounded-lg'>
 					<span className='text-lg font-display font-extrabold text-success'>
-						+<AnimatedNumber value={xpEarned} format={n => n.toLocaleString()} className='tabular-nums' />
+						+
+						<AnimatedNumber
+							value={xpEarned}
+							format={n => n.toLocaleString()}
+							className='tabular-nums'
+						/>
 					</span>
 					<span className='text-2xs text-text-secondary'>{t('xpEarned')}</span>
 				</div>
@@ -90,13 +103,19 @@ export function CreatorStatsWidget({
 						className='size-10 rounded-lg object-cover'
 					/>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xs text-text-secondary'>{t('topRecipe')}</span>
+						<span className='text-2xs text-text-secondary'>
+							{t('topRecipe')}
+						</span>
 						<span className='text-sm font-bold text-text truncate'>
 							{topRecipe.title}
 						</span>
 					</div>
 					<span className='text-sm font-semibold text-brand'>
-						<AnimatedNumber value={topRecipe.cookCount} className='tabular-nums' /> cooks
+						<AnimatedNumber
+							value={topRecipe.cookCount}
+							className='tabular-nums'
+						/>{' '}
+						cooks
 					</span>
 				</div>
 			)}

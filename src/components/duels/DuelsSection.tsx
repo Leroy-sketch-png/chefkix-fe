@@ -526,7 +526,7 @@ function CreateDuelModal({
 					animate={{ opacity: 1, scale: 1 }}
 					exit={{ opacity: 0, scale: 0.95 }}
 					transition={TRANSITION_SPRING}
-					className='w-full max-w-md overflow-hidden rounded-2xl bg-bg-card shadow-xl'
+					className='w-full max-w-md overflow-hidden rounded-2xl bg-bg-card shadow-warm'
 				>
 					{/* Header */}
 					<div className='flex items-center justify-between border-b border-border-subtle px-5 py-4'>

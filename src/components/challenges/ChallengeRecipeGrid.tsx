@@ -131,7 +131,7 @@ const ChallengeRecipeCard = ({
 			animate={{ opacity: 1, y: 0 }}
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-xl'
+			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
 		>
 			<Link href={`/recipes/${recipe.id}`} className='block'>
 				{/* Image Container */}
@@ -145,7 +145,7 @@ const ChallengeRecipeCard = ({
 					/>
 
 					{/* Qualifies Badge */}
-					<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-success px-3 py-1.5 text-xs font-bold text-white shadow-lg'>
+					<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-success px-3 py-1.5 text-xs font-bold text-white shadow-warm'>
 						<CheckCircle className='size-3.5' />
 						{t('qualifies')}
 					</div>

@@ -23,6 +23,62 @@ interface PaginatedResponse<T> {
 	hasPrevious: boolean
 }
 
+type SpringPageResponse<T> = {
+	content?: T[]
+	totalElements?: number
+	totalPages?: number
+	number?: number
+	size?: number
+	first?: boolean
+	last?: boolean
+}
+
+type NormalizablePaginatedResponse<T> =
+	| T[]
+	| (Partial<PaginatedResponse<T>> & SpringPageResponse<T>)
+	| null
+	| undefined
+
+function normalizePaginatedResponse<T>(
+	data: NormalizablePaginatedResponse<T>,
+	fallbackSize: number,
+): PaginatedResponse<T> {
+	if (Array.isArray(data)) {
+		return {
+			content: data,
+			totalElements: data.length,
+			totalPages: data.length > 0 ? 1 : 0,
+			currentPage: 0,
+			pageSize: fallbackSize,
+			hasNext: false,
+			hasPrevious: false,
+		}
+	}
+
+	const pageLike = data ?? {}
+
+	const content = pageLike.content ?? []
+	const totalPages = pageLike.totalPages ?? 0
+	const currentPage = pageLike.currentPage ?? pageLike.number ?? 0
+	const pageSize = pageLike.pageSize ?? pageLike.size ?? fallbackSize
+	const hasPrevious =
+		pageLike.hasPrevious ??
+		(typeof pageLike.first === 'boolean' ? !pageLike.first : false)
+	const hasNext =
+		pageLike.hasNext ??
+		(typeof pageLike.last === 'boolean' ? !pageLike.last : false)
+
+	return {
+		content,
+		totalElements: pageLike.totalElements ?? content.length,
+		totalPages,
+		currentPage,
+		pageSize,
+		hasNext,
+		hasPrevious,
+	}
+}
+
 /**
  * Create a new group (owner only)
  */
@@ -102,20 +158,10 @@ export const exploreGroups = async (
 	params.append('page', page.toString())
 	params.append('size', size.toString())
 
-	const response = await api.get<ApiResponse<Group[]>>(
-		`${API_ENDPOINTS.GROUPS.EXPLORE}?${params.toString()}`,
-	)
-	const data = response.data.data ?? []
-	const p = response.data.pagination
-	return {
-		content: data,
-		totalElements: p?.totalElements ?? 0,
-		totalPages: p?.totalPages ?? 0,
-		currentPage: p?.page ?? 0,
-		pageSize: p?.size ?? size,
-		hasNext: !(p?.last ?? true),
-		hasPrevious: !(p?.first ?? true),
-	}
+	const response = await api.get<
+		ApiResponse<PaginatedResponse<Group> | Group[]>
+	>(`${API_ENDPOINTS.GROUPS.EXPLORE}?${params.toString()}`)
+	return normalizePaginatedResponse(response.data.data, size)
 }
 
 /**
@@ -159,20 +205,10 @@ export const getGroupMembers = async (
 	params.append('page', page.toString())
 	params.append('size', size.toString())
 
-	const response = await api.get<ApiResponse<GroupMember[]>>(
-		`${API_ENDPOINTS.GROUPS.GET_MEMBERS(groupId)}?${params.toString()}`,
-	)
-	const data = response.data.data ?? []
-	const p = response.data.pagination
-	return {
-		content: data,
-		totalElements: p?.totalElements ?? 0,
-		totalPages: p?.totalPages ?? 0,
-		currentPage: p?.page ?? 0,
-		pageSize: p?.size ?? size,
-		hasNext: !(p?.last ?? true),
-		hasPrevious: !(p?.first ?? true),
-	}
+	const response = await api.get<
+		ApiResponse<PaginatedResponse<GroupMember> | GroupMember[]>
+	>(`${API_ENDPOINTS.GROUPS.GET_MEMBERS(groupId)}?${params.toString()}`)
+	return normalizePaginatedResponse(response.data.data, size)
 }
 
 /**
@@ -187,20 +223,12 @@ export const getPendingRequests = async (
 	params.append('page', page.toString())
 	params.append('size', size.toString())
 
-	const response = await api.get<ApiResponse<PendingRequest[]>>(
+	const response = await api.get<
+		ApiResponse<PaginatedResponse<PendingRequest> | PendingRequest[]>
+	>(
 		`${API_ENDPOINTS.GROUPS.GET_PENDING_REQUESTS(groupId)}?${params.toString()}`,
 	)
-	const data = response.data.data ?? []
-	const p = response.data.pagination
-	return {
-		content: data,
-		totalElements: p?.totalElements ?? 0,
-		totalPages: p?.totalPages ?? 0,
-		currentPage: p?.page ?? 0,
-		pageSize: p?.size ?? size,
-		hasNext: !(p?.last ?? true),
-		hasPrevious: !(p?.first ?? true),
-	}
+	return normalizePaginatedResponse(response.data.data, size)
 }
 
 /**

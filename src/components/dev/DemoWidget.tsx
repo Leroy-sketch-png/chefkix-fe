@@ -102,7 +102,7 @@ export function DemoWidget() {
 	const pathname = usePathname()
 	const { isAuthenticated, user, accessToken, logout } = useAuthStore()
 
-	// Check backend on mount
+	// Check backend on mount and when widget opens
 	useEffect(() => {
 		const check = async () => {
 			try {
@@ -114,10 +114,13 @@ export function DemoWidget() {
 				setBackendStatus('down')
 			}
 		}
+		// Always check on mount to show initial status
 		check()
+		// Only poll repeatedly when widget is open
+		if (!isOpen) return
 		const interval = setInterval(check, 30000)
 		return () => clearInterval(interval)
-	}, [])
+	}, [isOpen])
 
 	// Close on click outside
 	useEffect(() => {

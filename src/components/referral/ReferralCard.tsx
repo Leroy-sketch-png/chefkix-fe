@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
-import { cn } from '@/lib/utils'
+import { cn, getInitials } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
 	TRANSITION_SPRING,
@@ -61,7 +61,14 @@ export default function ReferralCard() {
 	}, [t])
 
 	useEffect(() => {
-		loadData()
+		let cancelled = false
+		const run = async () => {
+			await loadData()
+		}
+		run()
+		return () => {
+			cancelled = true
+		}
 	}, [loadData])
 
 	const handleCopy = useCallback(async () => {
@@ -178,6 +185,7 @@ export default function ReferralCard() {
 							<Button
 								variant='outline'
 								size='icon'
+								aria-label='Copy referral code'
 								onClick={handleCopy}
 								className='size-11'
 							>
@@ -208,6 +216,7 @@ export default function ReferralCard() {
 							<Button
 								variant='outline'
 								size='icon'
+								aria-label='Share referral code'
 								onClick={handleShare}
 								className='size-11'
 							>
@@ -276,7 +285,7 @@ export default function ReferralCard() {
 											/>
 										) : (
 											<div className='flex size-7 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand'>
-												{r.referredUsername.charAt(0).toUpperCase()}
+												{getInitials(r.referredUsername, 1)}
 											</div>
 										)}
 										<span className='text-sm font-medium text-text'>

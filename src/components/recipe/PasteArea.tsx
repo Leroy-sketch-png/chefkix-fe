@@ -28,6 +28,7 @@ export const PasteArea = ({
 			<textarea
 				value={value}
 				onChange={e => onChange(e.target.value)}
+				maxLength={maxChars}
 				placeholder={t('pasteAreaPlaceholder')}
 				className='min-h-textarea-lg w-full resize-y bg-transparent p-5 text-sm leading-relaxed text-text placeholder:text-text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-inset'
 			/>

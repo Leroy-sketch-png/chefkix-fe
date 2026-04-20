@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Share2, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { TextScramble } from '@/components/ui/text-scramble'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { triggerAchievementConfetti } from '@/lib/confetti'
@@ -139,7 +139,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 		</svg>
 
 		{/* Inner badge */}
-		<div className='absolute inset-5 flex items-center justify-center overflow-hidden rounded-full bg-gradient-celebration shadow-lg shadow-bonus/50'>
+		<div className='absolute inset-5 flex items-center justify-center overflow-hidden rounded-full bg-gradient-celebration shadow-warm shadow-bonus/50'>
 			{/* Old level (exits) */}
 			<motion.span
 				initial={{ y: 0, scale: 1, opacity: 1 }}
@@ -303,7 +303,7 @@ export const LevelUpCelebration = ({
 									transition={{ duration: 1.5, repeat: Infinity }}
 									className='mb-3 bg-gradient-gold bg-clip-text text-4xl font-black text-transparent max-md:text-3xl'
 								>
-									{t('levelUp')}
+									<TextScramble text={t('levelUp')} duration={1200} trigger />
 								</motion.h1>
 								<p className='text-lg text-white/80'>
 									{t('youreNowLevel', { level: newLevel })}
@@ -388,7 +388,7 @@ export const LevelUpCelebration = ({
 									onClick={onContinue}
 									whileHover={STAT_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
-									className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-lg shadow-bonus/50 transition-shadow hover:shadow-xl hover:shadow-bonus/60 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='rounded-2xl bg-gradient-celebration px-8 py-3.5 font-bold text-white shadow-warm shadow-bonus/50 transition-shadow hover:shadow-warm hover:shadow-bonus/60 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{t('continue')}
 								</motion.button>
@@ -425,7 +425,7 @@ export const LevelUpToast = ({
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, y: 20 }}
 			transition={TRANSITION_SPRING}
-			className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-bg-card px-4 py-3 shadow-xl shadow-bonus/20 md:bottom-6'
+			className='fixed bottom-24 left-1/2 z-modal flex -translate-x-1/2 items-center gap-3.5 rounded-2xl border-2 border-bonus bg-bg-card px-4 py-3 shadow-warm shadow-bonus/20 md:bottom-6'
 		>
 			{/* Badge */}
 			<div className='flex size-11 items-center justify-center rounded-full bg-gradient-celebration'>

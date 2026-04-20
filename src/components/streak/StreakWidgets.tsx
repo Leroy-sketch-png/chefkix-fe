@@ -165,8 +165,8 @@ export function StreakRiskBanner({
 					'flex items-center justify-center gap-2 py-3 px-5 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
 					'text-sm font-bold text-white flex-shrink-0 w-full sm:w-auto',
 					isUrgent
-						? 'bg-gradient-to-r from-streak-urgent to-streak-urgent/90 shadow-lg shadow-streak-urgent/30'
-						: 'bg-gradient-to-r from-streak to-streak/90 shadow-lg shadow-streak/30',
+						? 'bg-gradient-to-r from-streak-urgent to-streak-urgent/90 shadow-warm shadow-streak-urgent/30'
+						: 'bg-gradient-to-r from-streak to-streak/90 shadow-warm shadow-streak/30',
 				)}
 			>
 				{isUrgent ? (
@@ -217,7 +217,7 @@ export function StreakSavedToast({
 							'fixed bottom-24 left-1/2 -translate-x-1/2 z-notification',
 							'flex items-center gap-4 py-4 px-6',
 							'bg-bg-card border-2 border-success rounded-2xl',
-							'shadow-2xl shadow-black/30',
+							'shadow-warm shadow-black/30',
 						)}
 						role='status'
 						aria-live='polite'

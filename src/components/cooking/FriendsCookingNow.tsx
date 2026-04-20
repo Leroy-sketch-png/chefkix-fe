@@ -11,6 +11,7 @@ import type { ActiveFriend } from '@/lib/types/heartbeat'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
 
 interface FriendsCookingNowProps {
@@ -49,19 +50,26 @@ export function FriendsCookingNow({
 				// Solo friends: those not in a room (roomCode is null)
 				setSoloFriends(soloRes.data.friends.filter(f => !f.roomCode))
 			}
-		} catch {
-			// Silently fail — this is a non-critical widget
+		} catch (error) {
+			logDevError('[FriendsCookingNow] fetch failed:', error)
 		} finally {
 			setIsLoading(false)
 		}
 	}, [])
 
 	useEffect(() => {
-		fetchAll()
+		let cancelled = false
+		const safeFetch = () => {
+			if (!cancelled) fetchAll()
+		}
+		safeFetch()
 		const interval = setInterval(() => {
-			if (!document.hidden) fetchAll()
+			if (!document.hidden && !cancelled) fetchAll()
 		}, pollInterval)
-		return () => clearInterval(interval)
+		return () => {
+			cancelled = true
+			clearInterval(interval)
+		}
 	}, [fetchAll, pollInterval])
 
 	const totalActive = rooms.length + soloFriends.length

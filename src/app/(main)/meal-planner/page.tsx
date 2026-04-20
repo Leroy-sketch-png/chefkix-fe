@@ -23,6 +23,7 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Portal } from '@/components/ui/portal'
 import { ErrorState } from '@/components/ui/error-state'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
 import {
@@ -97,24 +98,27 @@ export default function MealPlannerPage() {
 		}
 	}, [])
 
+	const isMountedRef = useRef(true)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [])
+
 	// ── Fetch current plan ────────────────────────────────
 
 	const fetchPlan = useCallback(async () => {
 		setFetchError(false)
 		try {
 			const data = await getCurrentMealPlan()
+			if (!isMountedRef.current) return
 			setPlan(data)
 		} catch (err: unknown) {
-			// 404 = no plan for this week (expected), anything else = real error
-			const status = (err as { response?: { status?: number } })?.response
-				?.status
-			if (status === 404) {
-				setPlan(null)
-			} else {
-				setFetchError(true)
-			}
+			if (!isMountedRef.current) return
+			setFetchError(true)
 		} finally {
-			setLoading(false)
+			if (isMountedRef.current) setLoading(false)
 		}
 	}, [])
 
@@ -260,6 +264,8 @@ export default function MealPlannerPage() {
 	const getMeal = (day: PlannedDay, type: MealType): PlannedMeal | null => {
 		return day[type] ?? null
 	}
+	const plannedDays = Array.isArray(plan?.days) ? plan.days : []
+	const hasPlan = plan !== null && plannedDays.length > 0
 
 	// ── Skeleton ──────────────────────────────────────────
 
@@ -311,7 +317,7 @@ export default function MealPlannerPage() {
 						marginBottom='sm'
 						rightAction={
 							<div className='flex flex-wrap items-center gap-2'>
-								{plan && (
+								{hasPlan && (
 									<>
 										<button
 											type='button'
@@ -378,24 +384,25 @@ export default function MealPlannerPage() {
 						<motion.div
 							initial={{ opacity: 0, y: -10 }}
 							animate={{ opacity: 1, y: 0 }}
-							className='flex items-start gap-3 rounded-xl border border-brand/20 bg-brand/5 p-4'
 						>
-							<Sparkles className='mt-0.5 size-4 flex-shrink-0 text-brand' />
-							<div className='flex-1'>
-								<p className='text-sm text-text'>{plan.reasoning}</p>
-								{plan.pantryUtilizationPercent != null &&
-									plan.pantryUtilizationPercent > 0 && (
-										<p className='mt-1 text-xs text-text-muted'>
-											{t('pantryUtilization')}{' '}
-											{Math.round(plan.pantryUtilizationPercent)}%
-										</p>
-									)}
-							</div>
+							<Alert variant='info' className='rounded-xl'>
+								<Sparkles className='size-4' />
+								<AlertDescription>
+									<p className='text-sm text-text'>{plan.reasoning}</p>
+									{plan.pantryUtilizationPercent != null &&
+										plan.pantryUtilizationPercent > 0 && (
+											<p className='mt-1 text-xs text-text-muted'>
+												{t('pantryUtilization')}{' '}
+												{Math.round(plan.pantryUtilizationPercent)}%
+											</p>
+										)}
+								</AlertDescription>
+							</Alert>
 						</motion.div>
 					)}
 
 					{/* ── No Plan State ─────────────────── */}
-					{!plan ? (
+					{!hasPlan ? (
 						<motion.div
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
@@ -429,7 +436,7 @@ export default function MealPlannerPage() {
 								{/* Day Headers */}
 								<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
 									<div /> {/* spacer */}
-									{plan.days.map(day => (
+									{plannedDays.map(day => (
 										<div
 											key={day.dayOfWeek}
 											className='rounded-lg bg-bg-elevated px-3 py-2 text-center text-sm font-semibold text-text'
@@ -451,7 +458,7 @@ export default function MealPlannerPage() {
 												{t(MEAL_LABELS[mealType].labelKey)}
 											</span>
 										</div>
-										{plan.days.map(day => {
+										{plannedDays.map(day => {
 											const meal = getMeal(day, mealType)
 											return (
 												<motion.div

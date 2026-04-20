@@ -1,3 +1,5 @@
+'use client'
+
 import { useAuthStore } from '@/store/authStore'
 
 export const useAuth = () => {
@@ -10,17 +12,19 @@ export const useAuth = () => {
 	const setUser = useAuthStore(state => state.setUser)
 	const logout = useAuthStore(state => state.logout)
 	const setLoading = useAuthStore(state => state.setLoading)
+	const setHydrated = useAuthStore(state => state.setHydrated)
 
 	return {
 		isAuthenticated,
 		user,
 		accessToken,
-		token: accessToken, // Alias for backwards compatibility
+		token: accessToken,
 		isLoading,
 		isHydrated,
 		login,
 		setUser,
 		logout,
 		setLoading,
+		setHydrated,
 	}
 }

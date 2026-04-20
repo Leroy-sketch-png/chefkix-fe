@@ -384,9 +384,7 @@ function MessagesContent() {
 				const response = await getMyConversations()
 				if (cancelled) return
 				if (!response.success || !response.data) {
-					setConversationError(
-						response.message || 'Failed to load conversations',
-					)
+					setConversationError(response.message || t('failedLoadConversations'))
 					setIsLoadingConversations(false)
 					return
 				}
@@ -425,7 +423,7 @@ function MessagesContent() {
 							setShowMobileChat(true)
 						} else {
 							setConversationError(
-								createResponse.message || 'Failed to start conversation',
+								createResponse.message || t('failedStartConversation'),
 							)
 						}
 					}
@@ -434,7 +432,7 @@ function MessagesContent() {
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to initialize chat:', err)
-				setConversationError('Failed to load conversations')
+				setConversationError(t('failedLoadConversations'))
 			} finally {
 				if (!cancelled) setIsLoadingConversations(false)
 			}
@@ -444,7 +442,7 @@ function MessagesContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [targetUserId, retryCount])
+	}, [targetUserId, retryCount, t])
 
 	// Fetch messages when conversation changes
 	const selectedConversationId = selectedConversation?.id
@@ -829,7 +827,7 @@ function MessagesContent() {
 									aria-modal='true'
 									aria-label={t('ariaStartVideoCall')}
 								>
-									<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200'>
+									<div className='relative w-full max-w-5xl bg-bg rounded-2xl shadow-warm animate-in zoom-in-95 duration-200'>
 										<Button
 											variant='ghost'
 											size='icon'

@@ -1,26 +1,37 @@
 import { api } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants'
 import type { TrackingEvent, TrackingEventType } from '@/lib/types/events'
+import { useAuthStore } from '@/store/authStore'
+import app from '@/configs/app'
 
 const BATCH_INTERVAL_MS = 10_000
 const MAX_BATCH_SIZE = 50
 const DWELL_THRESHOLD_MS = 2_000
 const SEARCH_DEBOUNCE_MS = 500
 const TRACKING_OPTOUT_KEY = 'chefkix_tracking_optout'
+const API_BASE_URL = app.API_BASE_URL
 
 export function isTrackingOptedOut(): boolean {
 	if (typeof window === 'undefined') return false
-	return localStorage.getItem(TRACKING_OPTOUT_KEY) === 'true'
+	try {
+		return localStorage.getItem(TRACKING_OPTOUT_KEY) === 'true'
+	} catch {
+		return false
+	}
 }
 
 export function setTrackingOptOut(optOut: boolean) {
 	if (typeof window === 'undefined') return
-	if (optOut) {
-		localStorage.setItem(TRACKING_OPTOUT_KEY, 'true')
-		// Stop tracker immediately
-		destroyEventTracker()
-	} else {
-		localStorage.removeItem(TRACKING_OPTOUT_KEY)
+	try {
+		if (optOut) {
+			localStorage.setItem(TRACKING_OPTOUT_KEY, 'true')
+			// Stop tracker immediately
+			destroyEventTracker()
+		} else {
+			localStorage.removeItem(TRACKING_OPTOUT_KEY)
+		}
+	} catch {
+		/* storage unavailable */
 	}
 }
 
@@ -52,8 +63,11 @@ async function flush() {
 		// Don't re-enqueue on auth errors — user isn't logged in, data would be rejected anyway
 		const status = (err as { response?: { status?: number } })?.response?.status
 		if (status === 401 || status === 403) return
-		// On transient failure, re-enqueue at front for next flush
+		// On transient failure, re-enqueue at front for next flush (capped to prevent unbounded growth)
 		eventQueue.unshift(...batch)
+		if (eventQueue.length > 500) {
+			eventQueue.length = 500
+		}
 	}
 }
 
@@ -61,17 +75,30 @@ function flushBeacon() {
 	if (eventQueue.length === 0) return
 
 	const batch = eventQueue.splice(0)
-	const payload = JSON.stringify({ events: batch })
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
-	const url = `${baseUrl}${API_ENDPOINTS.EVENTS.TRACK}`
+	const accessToken = useAuthStore.getState().accessToken
+	if (!accessToken) return
 
-	if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-		const blob = new Blob([payload], { type: 'application/json' })
-		navigator.sendBeacon(url, blob)
-	}
+	void fetch(`${API_BASE_URL}${API_ENDPOINTS.EVENTS.TRACK}`, {
+		method: 'POST',
+		keepalive: true,
+		credentials: 'include',
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ events: batch }),
+	}).catch(() => {
+		// Best-effort delivery during unload; ignore failures.
+	})
 }
 
 // ─── Public API ─────────────────────────────────────────────────────
+
+function handleVisibilityChange() {
+	if (document.visibilityState === 'hidden') {
+		flushBeacon()
+	}
+}
 
 export function initEventTracker() {
 	if (initialized || typeof window === 'undefined') return
@@ -79,11 +106,7 @@ export function initEventTracker() {
 
 	flushTimer = setInterval(flush, BATCH_INTERVAL_MS)
 
-	window.addEventListener('visibilitychange', () => {
-		if (document.visibilityState === 'hidden') {
-			flushBeacon()
-		}
-	})
+	window.addEventListener('visibilitychange', handleVisibilityChange)
 
 	window.addEventListener('pagehide', flushBeacon)
 
@@ -95,7 +118,24 @@ export function destroyEventTracker() {
 		clearInterval(flushTimer)
 		flushTimer = null
 	}
+	if (typeof window !== 'undefined') {
+		window.removeEventListener('visibilitychange', handleVisibilityChange)
+		window.removeEventListener('pagehide', flushBeacon)
+	}
 	flushBeacon()
+
+	// Clean up dwell timers to prevent leaked timeouts
+	dwellTimers.forEach(t => clearTimeout(t))
+	dwellTimers.clear()
+	dwellStartTimes.clear()
+
+	// Clean up search debounce timer
+	if (searchDebounceTimer) {
+		clearTimeout(searchDebounceTimer)
+		searchDebounceTimer = null
+	}
+
+	lastScrollDepth = 0
 	initialized = false
 }
 

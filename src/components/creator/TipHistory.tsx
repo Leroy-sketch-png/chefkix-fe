@@ -126,30 +126,41 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 		[t],
 	)
 
-	const fetchTips = useCallback(async () => {
-		setIsLoading(true)
-		setError(false)
-		try {
-			const [received, sent] = await Promise.all([
-				getReceivedTips(),
-				getSentTips(),
-			])
-			const [resolvedReceived, resolvedSent] = await Promise.all([
-				resolveTips(received, 'tipperId'),
-				resolveTips(sent, 'creatorId'),
-			])
-			setReceivedTips(resolvedReceived)
-			setSentTips(resolvedSent)
-		} catch (err) {
-			logDevError('Failed to fetch tip history:', err)
-			setError(true)
-		} finally {
-			setIsLoading(false)
-		}
-	}, [resolveTips])
+	const fetchTips = useCallback(
+		async (signal: { cancelled: boolean } = { cancelled: false }) => {
+			setIsLoading(true)
+			setError(false)
+			try {
+				const [received, sent] = await Promise.all([
+					getReceivedTips(),
+					getSentTips(),
+				])
+				const [resolvedReceived, resolvedSent] = await Promise.all([
+					resolveTips(received, 'tipperId'),
+					resolveTips(sent, 'creatorId'),
+				])
+				if (!signal.cancelled) {
+					setReceivedTips(resolvedReceived)
+					setSentTips(resolvedSent)
+				}
+			} catch (err) {
+				if (!signal.cancelled) {
+					logDevError('Failed to fetch tip history:', err)
+					setError(true)
+				}
+			} finally {
+				if (!signal.cancelled) setIsLoading(false)
+			}
+		},
+		[resolveTips],
+	)
 
 	useEffect(() => {
-		fetchTips()
+		const signal = { cancelled: false }
+		fetchTips(signal)
+		return () => {
+			signal.cancelled = true
+		}
 	}, [fetchTips])
 
 	const activeTips = activeTab === 'received' ? receivedTips : sentTips
@@ -237,7 +248,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 						</p>
 						<button
 							type='button'
-							onClick={fetchTips}
+							onClick={() => fetchTips()}
 							className='rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
 						>
 							{t('tryAgain')}

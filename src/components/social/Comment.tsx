@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl'
-import { Comment as CommentType, Reply } from '@/lib/types'
+import { Reply, Comment as CommentType } from '@/lib/types'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
@@ -37,6 +37,7 @@ import {
 import { moderateContent } from '@/services/ai'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { toast } from 'sonner'
+import { logDevError } from '@/lib/dev-log'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -129,7 +130,7 @@ const ReplyItem = ({
 	const [likes, setLikes] = useState(reply.likes)
 	const [isLiked, setIsLiked] = useState(reply.isLiked ?? false)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 
 	const handleLike = async () => {
 		if (!requireAuth(t('likeThisReplyAuth'))) return
@@ -153,7 +154,8 @@ const ReplyItem = ({
 				setLikes(previousLikes)
 				toast.error(t('failedLikeReply'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Reply like error:', err)
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikes(previousLikes)
@@ -253,7 +255,7 @@ export const Comment = ({
 	const [replies, setReplies] = useState<Reply[]>([])
 	const [replyCount, setReplyCount] = useState(comment.replyCount)
 	const mentionInputRef = useRef<MentionInputRef>(null)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 
 	const isOwnComment = currentUserId === comment.userId
 
@@ -296,8 +298,8 @@ export const Comment = ({
 				setLikes(previousLikes)
 				toast.error(t('failedLikeComment'))
 			}
-		} catch {
-			diag.error('social', 'COMMENT_LIKE_ERROR', { error: 'Network error' })
+		} catch (err) {
+			diag.error('social', 'COMMENT_LIKE_ERROR', { error: err })
 			// Revert on error
 			setIsLiked(previousLiked)
 			setLikes(previousLikes)
@@ -331,8 +333,8 @@ export const Comment = ({
 				})
 				toast.error(t('failedDeleteComment'))
 			}
-		} catch {
-			diag.error('social', 'COMMENT_DELETE_ERROR', { error: 'Network error' })
+		} catch (err) {
+			diag.error('social', 'COMMENT_DELETE_ERROR', { error: err })
 			toast.error(t('networkErrorRetry'))
 		} finally {
 			setIsDeleting(false)
@@ -354,7 +356,8 @@ export const Comment = ({
 			} else {
 				toast.error(t('failedLoadReplies'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Load replies error:', err)
 			toast.error(t('failedLoadReplies'))
 		} finally {
 			isLoadingRepliesRef.current = false
@@ -471,7 +474,8 @@ export const Comment = ({
 				})
 				toast.error(t('failedPostReply'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Post reply error:', err)
 			toast.error(t('failedPostReply'))
 		} finally {
 			setIsSubmittingReply(false)
@@ -621,6 +625,7 @@ export const Comment = ({
 									/>
 									<motion.button
 										type='button'
+										aria-label='Send reply'
 										onClick={handleSubmitReply}
 										disabled={!replyContent.trim() || isSubmittingReply}
 										whileHover={

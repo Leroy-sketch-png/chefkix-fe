@@ -572,6 +572,19 @@ module.exports = {
 						transform: 'translateX(-50%) translateY(100px) scale(0.8)',
 					},
 				},
+				marquee: {
+					from: { transform: 'translateX(0)' },
+					to: { transform: 'translateX(calc(-100% - 1rem))' },
+				},
+				'gradient-text': {
+					'0%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
+					'100%': { backgroundPosition: '0% 50%' },
+				},
+				'border-beam': {
+					from: { strokeDashoffset: '0' },
+					to: { strokeDashoffset: '-1080' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -600,6 +613,10 @@ module.exports = {
 				'toast-bounce-in':
 					'toast-bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
 				'toast-slide-out': 'toast-slide-out 0.3s ease-in forwards',
+				marquee:
+					'marquee var(--marquee-duration, 20s) linear var(--marquee-direction, normal) infinite',
+				'gradient-text': 'gradient-text 4s ease infinite',
+				'border-beam': 'border-beam 6s linear infinite',
 			},
 		},
 	},

@@ -14,12 +14,20 @@ export function getRecentSearches(): string[] {
 export function addRecentSearch(term: string) {
 	const trimmed = term.trim()
 	if (!trimmed) return
-	const existing = getRecentSearches().filter(s => s !== trimmed)
-	const updated = [trimmed, ...existing].slice(0, MAX_RECENT_SEARCHES)
-	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+	try {
+		const existing = getRecentSearches().filter(s => s !== trimmed)
+		const updated = [trimmed, ...existing].slice(0, MAX_RECENT_SEARCHES)
+		localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+	} catch {
+		/* storage unavailable */
+	}
 }
 
 export function removeRecentSearch(term: string) {
-	const updated = getRecentSearches().filter(s => s !== term)
-	localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+	try {
+		const updated = getRecentSearches().filter(s => s !== term)
+		localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+	} catch {
+		/* storage unavailable */
+	}
 }

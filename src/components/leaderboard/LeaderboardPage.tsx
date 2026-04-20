@@ -420,7 +420,7 @@ export function LeaderboardPage({
 						initial={{ scale: 0 }}
 						animate={{ scale: 1 }}
 						transition={TRANSITION_SPRING}
-						className='size-16 mb-4 rounded-2xl bg-gradient-xp shadow-lg flex items-center justify-center'
+						className='size-16 mb-4 rounded-2xl bg-gradient-xp shadow-warm flex items-center justify-center'
 					>
 						<ChefHat className='size-8 text-white' />
 					</motion.div>
@@ -434,7 +434,7 @@ export function LeaderboardPage({
 					</p>
 					<Link
 						href={type === 'friends' ? '/community' : '/explore'}
-						className='mt-4 rounded-xl bg-gradient-hero px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-shadow hover:shadow-xl'
+						className='mt-4 rounded-xl bg-gradient-hero px-5 py-2.5 text-sm font-semibold text-white shadow-warm transition-shadow hover:shadow-warm'
 					>
 						{type === 'friends' ? t('findFriends') : t('startCooking')}
 					</Link>

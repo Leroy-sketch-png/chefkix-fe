@@ -33,12 +33,16 @@ import {
 	staggerContainer,
 } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { logDevError } from '@/lib/dev-log'
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import { BorderBeam } from '@/components/ui/border-beam'
 import type { SubscriptionResponse } from '@/lib/types/subscription'
 import {
 	getMySubscription,
 	startTrial,
 	cancelSubscription,
 } from '@/services/subscription'
+import { useModal } from '@/hooks/useModal'
 
 // ============================================
 // FEATURE CONFIG
@@ -148,7 +152,7 @@ export default function PremiumUpgradeCard() {
 	)
 	const [isLoading, setIsLoading] = useState(true)
 	const [isActioning, setIsActioning] = useState(false)
-	const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+	const cancelConfirm = useModal()
 	const [error, setError] = useState<string | null>(null)
 	const t = useTranslations('premium')
 
@@ -159,7 +163,8 @@ export default function PremiumUpgradeCard() {
 			if (response.success && response.data) {
 				setSubscription(response.data)
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Load subscription error:', err)
 			setError(t('errorLoad'))
 		} finally {
 			setIsLoading(false)
@@ -167,8 +172,27 @@ export default function PremiumUpgradeCard() {
 	}, [t])
 
 	useEffect(() => {
-		fetchSubscription()
-	}, [fetchSubscription])
+		let cancelled = false
+		const run = async () => {
+			try {
+				setError(null)
+				const response = await getMySubscription()
+				if (cancelled) return
+				if (response.success && response.data) {
+					setSubscription(response.data)
+				}
+			} catch (err) {
+				logDevError('Load subscription error:', err)
+				if (!cancelled) setError(t('errorLoad'))
+			} finally {
+				if (!cancelled) setIsLoading(false)
+			}
+		}
+		run()
+		return () => {
+			cancelled = true
+		}
+	}, [t])
 
 	const handleStartTrial = async () => {
 		setIsActioning(true)
@@ -178,7 +202,8 @@ export default function PremiumUpgradeCard() {
 				setSubscription(response.data)
 				toast.success(t('toastTrialStarted'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Start trial error:', err)
 			toast.error(t('toastTrialFailed'))
 		} finally {
 			setIsActioning(false)
@@ -191,10 +216,11 @@ export default function PremiumUpgradeCard() {
 			const response = await cancelSubscription()
 			if (response.success && response.data) {
 				setSubscription(response.data)
-				setShowCancelConfirm(false)
+				cancelConfirm.close()
 				toast.success(t('toastCancelled'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Cancel subscription error:', err)
 			toast.error(t('toastCancelFailed'))
 		} finally {
 			setIsActioning(false)
@@ -244,56 +270,68 @@ export default function PremiumUpgradeCard() {
 			className='space-y-6'
 		>
 			{/* Current Plan Banner */}
-			<motion.div
-				variants={FADE_IN_VARIANTS}
-				className={cn(
-					'relative overflow-hidden rounded-xl border p-6',
-					isPremium
-						? 'border-level/30 bg-gradient-to-br from-level/10 via-level/5 to-transparent'
-						: 'border-border-subtle bg-bg-card',
-				)}
-			>
-				<div className='relative z-10 flex items-start justify-between'>
-					<div>
-						<div className='flex items-center gap-2'>
-							{isPremium ? (
-								<Crown className='size-6 text-level' />
-							) : (
-								<Sparkles className='size-6 text-text-muted' />
-							)}
-							<h3 className='text-lg font-bold text-text'>
-								{isPremium ? t('title') : t('titleFree')}
-							</h3>
+			{isPremium ? (
+				<BorderBeam
+					color='var(--color-level)'
+					colorTo='var(--color-brand)'
+					duration={8}
+				>
+					<motion.div
+						variants={FADE_IN_VARIANTS}
+						className='relative overflow-hidden rounded-xl border border-level/30 bg-gradient-to-br from-level/10 via-level/5 to-transparent p-6'
+					>
+						<div className='relative z-10 flex items-start justify-between'>
+							<div>
+								<div className='flex items-center gap-2'>
+									<Crown className='size-6 text-level' />
+									<h3 className='text-lg font-bold text-text'>
+										<AnimatedGradientText>{t('title')}</AnimatedGradientText>
+									</h3>
+								</div>
+								<p className='mt-1 text-sm text-text-secondary'>
+									{isTrialActive
+										? t('statusTrialActive')
+										: cancelledAtPeriodEnd
+											? t('statusCancelled', {
+													date: subscription?.endDate
+														? new Date(
+																subscription.endDate,
+															).toLocaleDateString()
+														: t('endOfPeriod'),
+												})
+											: t('statusActive')}
+								</p>
+							</div>
+							<motion.div
+								animate={{ rotate: [0, 5, -5, 0] }}
+								transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+							>
+								<Crown className='size-10 text-level' />
+							</motion.div>
 						</div>
-						<p className='mt-1 text-sm text-text-secondary'>
-							{isPremium
-								? isTrialActive
-									? t('statusTrialActive')
-									: cancelledAtPeriodEnd
-										? t('statusCancelled', {
-												date: subscription?.endDate
-													? new Date(subscription.endDate).toLocaleDateString()
-													: t('endOfPeriod'),
-											})
-										: t('statusActive')
-								: t('statusFree')}
-						</p>
+						<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent' />
+					</motion.div>
+				</BorderBeam>
+			) : (
+				<motion.div
+					variants={FADE_IN_VARIANTS}
+					className='relative overflow-hidden rounded-xl border border-border-subtle bg-bg-card p-6'
+				>
+					<div className='relative z-10 flex items-start justify-between'>
+						<div>
+							<div className='flex items-center gap-2'>
+								<Sparkles className='size-6 text-text-muted' />
+								<h3 className='text-lg font-bold text-text'>
+									{t('titleFree')}
+								</h3>
+							</div>
+							<p className='mt-1 text-sm text-text-secondary'>
+								{t('statusFree')}
+							</p>
+						</div>
 					</div>
-					{isPremium && (
-						<motion.div
-							animate={{ rotate: [0, 5, -5, 0] }}
-							transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-						>
-							<Crown className='size-10 text-level' />
-						</motion.div>
-					)}
-				</div>
-
-				{/* Subtle shimmer for premium */}
-				{isPremium && (
-					<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent' />
-				)}
-			</motion.div>
+				</motion.div>
+			)}
 
 			{/* Feature Comparison Grid */}
 			<motion.div variants={FADE_IN_VARIANTS} className='space-y-3'>
@@ -401,10 +439,10 @@ export default function PremiumUpgradeCard() {
 
 				{isPremium && !cancelledAtPeriodEnd && (
 					<>
-						{!showCancelConfirm ? (
+						{!cancelConfirm.isOpen ? (
 							<button
 								type='button'
-								onClick={() => setShowCancelConfirm(true)}
+								onClick={cancelConfirm.open}
 								className='w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-secondary hover:underline'
 							>
 								{t('cancelSubscription')}
@@ -439,7 +477,7 @@ export default function PremiumUpgradeCard() {
 										<Button
 											variant='outline'
 											size='sm'
-											onClick={() => setShowCancelConfirm(false)}
+											onClick={cancelConfirm.close}
 										>
 											{t('cancelConfirmKeep')}
 										</Button>

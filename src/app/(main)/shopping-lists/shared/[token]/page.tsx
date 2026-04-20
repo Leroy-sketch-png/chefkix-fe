@@ -81,24 +81,30 @@ export default function SharedShoppingListPage() {
 	// ── Fetch shared list ────────────────────────────────────────
 
 	useEffect(() => {
+		let cancelled = false
 		async function fetchList() {
 			try {
 				setIsLoading(true)
 				setError(null)
 				const data = await getSharedShoppingList(params.token)
+				if (cancelled) return
 				setList(data)
 			} catch (err: unknown) {
+				if (cancelled) return
 				const status =
 					err && typeof err === 'object' && 'response' in err
 						? (err as { response?: { status?: number } }).response?.status
 						: undefined
 				setError(status === 404 || status === 410 ? 'not-found' : 'network')
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 		if (params.token) {
 			fetchList()
+		}
+		return () => {
+			cancelled = true
 		}
 	}, [params.token])
 

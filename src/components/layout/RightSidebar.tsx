@@ -112,6 +112,7 @@ export const RightSidebar = () => {
 	useEffect(() => {
 		// Don't fetch until user is authenticated
 		if (!user) return
+		let cancelled = false
 
 		const fetchData = async () => {
 			setSidebarError(false)
@@ -123,6 +124,7 @@ export const RightSidebar = () => {
 						getSuggestedFollows(5),
 						getSessionHistory({ status: 'all', size: 100 }),
 					])
+				if (cancelled) return
 
 				if (challengeResponse.success && challengeResponse.data) {
 					const data = challengeResponse.data
@@ -152,11 +154,14 @@ export const RightSidebar = () => {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch sidebar data:', err)
-				setSidebarError(true)
+				if (!cancelled) setSidebarError(true)
 			}
 		}
 
 		fetchData()
+		return () => {
+			cancelled = true
+		}
 	}, [user, retryCount]) // Re-fetch when user changes or on retry
 
 	const handleFollow = useCallback(

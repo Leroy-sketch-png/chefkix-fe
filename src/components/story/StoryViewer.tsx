@@ -64,6 +64,7 @@ const StoryItemContent = ({ item }: { item: StoryItemDto }) => {
 				{item.type === 'IMAGE_STICKER' && (
 					<img
 						src={itemData.imageUrl}
+						alt=''
 						className='w-full h-full object-contain'
 					/>
 				)}

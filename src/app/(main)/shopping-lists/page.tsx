@@ -141,16 +141,26 @@ export default function ShoppingListsPage() {
 
 	// ── Fetch lists ────────────────────────────────────────────────────
 
+	const isMountedRef = useRef(true)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [])
+
 	const fetchLists = useCallback(async () => {
 		setFetchError(false)
 		try {
 			const data = await getUserShoppingLists()
+			if (!isMountedRef.current) return
 			setLists(data)
 		} catch {
+			if (!isMountedRef.current) return
 			setFetchError(true)
 			toast.error(t('failedLoad'))
 		} finally {
-			setIsLoading(false)
+			if (isMountedRef.current) setIsLoading(false)
 		}
 	}, [t])
 
@@ -191,6 +201,10 @@ export default function ShoppingListsPage() {
 		setIsCreating(true)
 		try {
 			const plan = await getCurrentMealPlan()
+			if (!plan) {
+				toast.error(t('noMealPlan'))
+				return
+			}
 			const list = await createFromMealPlan({ mealPlanId: plan.id })
 			setSelectedList(list)
 			setShowCreateMenu(false)

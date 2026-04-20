@@ -6,23 +6,34 @@ import {
 	ReferralStatsResponse,
 	RedeemReferralRequest,
 } from '@/lib/types/referral'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // QUERIES
 // ============================================
 
 export async function getMyReferralCode(): Promise<ReferralCodeResponse | null> {
-	const res = await api.get<ApiResponse<ReferralCodeResponse>>(
-		API_ENDPOINTS.REFERRALS.MY_CODE,
-	)
-	return res.data.data ?? null
+	try {
+		const res = await api.get<ApiResponse<ReferralCodeResponse>>(
+			API_ENDPOINTS.REFERRALS.MY_CODE,
+		)
+		return res.data.data ?? null
+	} catch (err) {
+		logDevError('[Referral] getMyReferralCode failed:', err)
+		return null
+	}
 }
 
 export async function getReferralStats(): Promise<ReferralStatsResponse | null> {
-	const res = await api.get<ApiResponse<ReferralStatsResponse>>(
-		API_ENDPOINTS.REFERRALS.STATS,
-	)
-	return res.data.data ?? null
+	try {
+		const res = await api.get<ApiResponse<ReferralStatsResponse>>(
+			API_ENDPOINTS.REFERRALS.STATS,
+		)
+		return res.data.data ?? null
+	} catch (err) {
+		logDevError('[Referral] getReferralStats failed:', err)
+		return null
+	}
 }
 
 // ============================================
@@ -32,9 +43,14 @@ export async function getReferralStats(): Promise<ReferralStatsResponse | null> 
 export async function redeemReferralCode(
 	request: RedeemReferralRequest,
 ): Promise<ReferralCodeResponse | null> {
-	const res = await api.post<ApiResponse<ReferralCodeResponse>>(
-		API_ENDPOINTS.REFERRALS.REDEEM,
-		request,
-	)
-	return res.data.data ?? null
+	try {
+		const res = await api.post<ApiResponse<ReferralCodeResponse>>(
+			API_ENDPOINTS.REFERRALS.REDEEM,
+			request,
+		)
+		return res.data.data ?? null
+	} catch (err) {
+		logDevError('[Referral] redeemReferralCode failed:', err)
+		throw err
+	}
 }

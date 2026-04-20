@@ -11,7 +11,12 @@ import {
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronRight, Sparkles } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import {
+	getStorageItem,
+	setStorageItem,
+	removeStorageItem,
+	getStorageJson,
+} from '@/lib/storage'
 import { Portal } from '@/components/ui/portal'
 import { TRANSITION_SPRING } from '@/lib/motion'
 
@@ -82,27 +87,19 @@ export function FirstVisitHintsProvider({ children }: { children: ReactNode }) {
 
 	// Load persisted state on mount
 	useEffect(() => {
-		if (typeof window === 'undefined') return
-
-		const storedSeen = localStorage.getItem(HINTS_SEEN_KEY)
-		if (storedSeen) {
-			try {
-				setSeenHints(new Set(JSON.parse(storedSeen)))
-			} catch {
-				// Invalid JSON, reset
-				localStorage.removeItem(HINTS_SEEN_KEY)
-			}
+		const parsed = getStorageJson<string[]>(HINTS_SEEN_KEY)
+		if (parsed) {
+			setSeenHints(new Set(parsed))
 		}
 
-		const storedDismissed = localStorage.getItem(HINTS_DISMISSED_ALL_KEY)
-		if (storedDismissed === 'true') {
+		if (getStorageItem(HINTS_DISMISSED_ALL_KEY) === 'true') {
 			setDismissedAll(true)
 		}
 	}, [])
 
 	// Persist seen hints
 	const persistSeenHints = useCallback((hints: Set<string>) => {
-		localStorage.setItem(HINTS_SEEN_KEY, JSON.stringify(Array.from(hints)))
+		setStorageItem(HINTS_SEEN_KEY, JSON.stringify(Array.from(hints)))
 	}, [])
 
 	const showHint = useCallback(
@@ -128,7 +125,7 @@ export function FirstVisitHintsProvider({ children }: { children: ReactNode }) {
 
 	const dismissAllHints = useCallback(() => {
 		setDismissedAll(true)
-		localStorage.setItem(HINTS_DISMISSED_ALL_KEY, 'true')
+		setStorageItem(HINTS_DISMISSED_ALL_KEY, 'true')
 		setActiveHint(null)
 	}, [])
 
@@ -157,8 +154,8 @@ export function FirstVisitHintsProvider({ children }: { children: ReactNode }) {
 		setSeenHints(new Set())
 		setDismissedAll(false)
 		setActiveHint(null)
-		localStorage.removeItem(HINTS_SEEN_KEY)
-		localStorage.removeItem(HINTS_DISMISSED_ALL_KEY)
+		removeStorageItem(HINTS_SEEN_KEY)
+		removeStorageItem(HINTS_DISMISSED_ALL_KEY)
 	}, [])
 
 	return (
@@ -229,7 +226,7 @@ function HintOverlay() {
 						transition={TRANSITION_SPRING}
 						className='fixed left-1/2 top-1/2 z-modal -translate-x-1/2 -translate-y-1/2'
 					>
-						<div className='w-80 overflow-hidden rounded-2xl border border-brand/20 bg-bg-card shadow-xl'>
+						<div className='w-80 overflow-hidden rounded-2xl border border-brand/20 bg-bg-card shadow-warm'>
 							{/* Header */}
 							<div className='relative bg-gradient-to-br from-brand/10 to-streak/10 px-5 py-4'>
 								<button

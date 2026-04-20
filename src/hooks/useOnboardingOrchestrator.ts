@@ -54,7 +54,7 @@ function loadProgress(): OnboardingProgress {
 			return JSON.parse(stored)
 		}
 	} catch {
-		// Invalid JSON, reset
+		// ignored: storage access non-critical
 	}
 
 	return {
@@ -67,7 +67,11 @@ function loadProgress(): OnboardingProgress {
 
 function saveProgress(progress: OnboardingProgress): void {
 	if (typeof window === 'undefined') return
-	localStorage.setItem(ONBOARDING_PROGRESS_KEY, JSON.stringify(progress))
+	try {
+		localStorage.setItem(ONBOARDING_PROGRESS_KEY, JSON.stringify(progress))
+	} catch {
+		/* storage unavailable */
+	}
 }
 
 // ============================================
@@ -100,10 +104,16 @@ export function useOnboardingOrchestrator(options?: {
 	/** Disable automatic hints (for manual control) */
 	disabled?: boolean
 }) {
-	const { delay = 800, condition = true, forceHint, disabled = false } = options ?? {}
+	const {
+		delay = 800,
+		condition = true,
+		forceHint,
+		disabled = false,
+	} = options ?? {}
 
 	const pathname = usePathname()
-	const { showHint, hasHintBeenSeen, hasUserDismissedHints } = useFirstVisitHints()
+	const { showHint, hasHintBeenSeen, hasUserDismissedHints } =
+		useFirstVisitHints()
 	const { isAuthenticated, isHydrated } = useAuth()
 	const hasShownRef = useRef(false)
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -231,7 +241,11 @@ export function useOnboardingOrchestrator(options?: {
 		/** Reset onboarding progress (for testing) */
 		resetProgress: () => {
 			if (typeof window === 'undefined') return
-			localStorage.removeItem(ONBOARDING_PROGRESS_KEY)
+			try {
+				localStorage.removeItem(ONBOARDING_PROGRESS_KEY)
+			} catch {
+				/* storage unavailable */
+			}
 		},
 	}
 }

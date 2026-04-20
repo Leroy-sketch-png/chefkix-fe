@@ -87,23 +87,28 @@ export function DraftsList({
 	const t = useTranslations('recipe')
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchDrafts = async () => {
 			setIsLoading(true)
 			setError(null)
 			try {
 				const response = await getDraftRecipes()
+				if (cancelled) return
 				if (response.success && response.data) {
 					setDrafts(response.data)
 				} else {
 					setError(response.message || t('failedToLoadDrafts'))
 				}
 			} catch (err) {
-				setError(t('failedToLoadDrafts'))
+				if (!cancelled) setError(t('failedToLoadDrafts'))
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 		fetchDrafts()
+		return () => {
+			cancelled = true
+		}
 	}, [t])
 
 	const handleDuplicate = async (draftId: string) => {

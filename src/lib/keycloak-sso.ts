@@ -1,11 +1,11 @@
 import { PATHS } from '@/constants'
+import app from '@/configs/app'
 
 const GOOGLE_STATE_KEY = 'google-oauth-state'
 const GOOGLE_CODE_VERIFIER_KEY = 'google-oauth-code-verifier'
 const GOOGLE_RETURN_TO_KEY = 'google-oauth-return-to'
 
-const KEYCLOAK_URL =
-	process.env.NEXT_PUBLIC_KEYCLOAK_URL || 'http://localhost:8180'
+const KEYCLOAK_URL = app.KEYCLOAK_URL
 const KEYCLOAK_REALM = process.env.NEXT_PUBLIC_KEYCLOAK_REALM || 'nottisn'
 const KEYCLOAK_FRONTEND_CLIENT_ID =
 	process.env.NEXT_PUBLIC_KEYCLOAK_SPA_CLIENT_ID || 'chefkix-frontend'
@@ -49,12 +49,16 @@ export async function startGoogleSignIn(
 	const codeChallenge = await createCodeChallenge(codeVerifier)
 	const redirectUri = `${window.location.origin}${PATHS.AUTH.GOOGLE_CALLBACK}`
 
-	sessionStorage.setItem(GOOGLE_STATE_KEY, state)
-	sessionStorage.setItem(GOOGLE_CODE_VERIFIER_KEY, codeVerifier)
-	if (returnTo && returnTo.startsWith('/')) {
-		sessionStorage.setItem(GOOGLE_RETURN_TO_KEY, returnTo)
-	} else {
-		sessionStorage.removeItem(GOOGLE_RETURN_TO_KEY)
+	try {
+		sessionStorage.setItem(GOOGLE_STATE_KEY, state)
+		sessionStorage.setItem(GOOGLE_CODE_VERIFIER_KEY, codeVerifier)
+		if (returnTo && returnTo.startsWith('/')) {
+			sessionStorage.setItem(GOOGLE_RETURN_TO_KEY, returnTo)
+		} else {
+			sessionStorage.removeItem(GOOGLE_RETURN_TO_KEY)
+		}
+	} catch {
+		/* storage unavailable */
 	}
 
 	const params = new URLSearchParams({
@@ -77,9 +81,16 @@ export async function startGoogleSignIn(
 export function consumeGoogleSignInSession(
 	expectedState: string,
 ): GoogleSsoSession | null {
-	const storedState = sessionStorage.getItem(GOOGLE_STATE_KEY)
-	const codeVerifier = sessionStorage.getItem(GOOGLE_CODE_VERIFIER_KEY)
-	const returnTo = sessionStorage.getItem(GOOGLE_RETURN_TO_KEY)
+	let storedState: string | null = null
+	let codeVerifier: string | null = null
+	let returnTo: string | null = null
+	try {
+		storedState = sessionStorage.getItem(GOOGLE_STATE_KEY)
+		codeVerifier = sessionStorage.getItem(GOOGLE_CODE_VERIFIER_KEY)
+		returnTo = sessionStorage.getItem(GOOGLE_RETURN_TO_KEY)
+	} catch {
+		/* storage unavailable */
+	}
 	const redirectUri = `${window.location.origin}${PATHS.AUTH.GOOGLE_CALLBACK}`
 
 	if (!storedState || storedState !== expectedState || !codeVerifier) {
@@ -95,7 +106,11 @@ export function consumeGoogleSignInSession(
 }
 
 export function clearGoogleSignInSession(): void {
-	sessionStorage.removeItem(GOOGLE_STATE_KEY)
-	sessionStorage.removeItem(GOOGLE_CODE_VERIFIER_KEY)
-	sessionStorage.removeItem(GOOGLE_RETURN_TO_KEY)
+	try {
+		sessionStorage.removeItem(GOOGLE_STATE_KEY)
+		sessionStorage.removeItem(GOOGLE_CODE_VERIFIER_KEY)
+		sessionStorage.removeItem(GOOGLE_RETURN_TO_KEY)
+	} catch {
+		/* storage unavailable */
+	}
 }

@@ -14,10 +14,16 @@ import {
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, BUTTON_SUBTLE_HOVER, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { getStorageItem, setStorageItem } from '@/lib/storage'
+import {
+	TRANSITION_SPRING,
+	BUTTON_SUBTLE_HOVER,
+	BUTTON_SUBTLE_TAP,
+} from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { getActivitySummary } from '@/services/heartbeat'
 import type { NotificationSummaryResponse } from '@/lib/types/heartbeat'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES
@@ -39,17 +45,18 @@ const MIN_ABSENCE_HOURS = 4 // Only show if away for 4+ hours
 // ============================================
 
 function getLastVisit(): Date | null {
-	if (typeof window === 'undefined') return null
-	const stored = localStorage.getItem(LAST_VISIT_KEY)
+	const stored = getStorageItem(LAST_VISIT_KEY)
 	return stored ? new Date(stored) : null
 }
 
 function setLastVisit(): void {
-	if (typeof window === 'undefined') return
-	localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString())
+	setStorageItem(LAST_VISIT_KEY, new Date().toISOString())
 }
 
-function formatTimeSince(date: Date, t: (key: string, params?: Record<string, number>) => string): string {
+function formatTimeSince(
+	date: Date,
+	t: (key: string, params?: Record<string, number>) => string,
+): string {
 	const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60))
 	if (hours < 24) return t('slHoursAgo', { count: hours })
 	const days = Math.floor(hours / 24)
@@ -69,6 +76,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 	const [isDismissed, setIsDismissed] = useState(false)
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchActivity = async () => {
 			const storedLastVisit = getLastVisit()
 			const now = new Date()
@@ -90,6 +98,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 			try {
 				const response = await getActivitySummary(storedLastVisit.toISOString())
 				if (
+					!cancelled &&
 					response.success &&
 					response.data &&
 					response.data.totalNotifications > 0
@@ -98,8 +107,8 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 					setLastVisitDate(storedLastVisit)
 					setIsVisible(true)
 				}
-			} catch {
-				// Non-critical — silently fail, card just won't show
+			} catch (error) {
+				logDevError('[SinceLastVisitCard] fetch failed:', error)
 			}
 
 			// Update last visit time
@@ -107,6 +116,9 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 		}
 
 		fetchActivity()
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	const handleDismiss = () => {
@@ -194,7 +206,9 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 							{t('slWelcomeBack')}
 						</h3>
 						<p className='mb-3 text-xs text-text-muted'>
-							{t('slSinceLastVisit', { timeAgo: formatTimeSince(lastVisit, t) })}
+							{t('slSinceLastVisit', {
+								timeAgo: formatTimeSince(lastVisit, t),
+							})}
 						</p>
 
 						{/* Stats grid */}
@@ -203,9 +217,9 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 								<motion.button
 									type='button'
 									key={label}
-										whileHover={BUTTON_SUBTLE_HOVER}
-										whileTap={BUTTON_SUBTLE_TAP}
-										transition={TRANSITION_SPRING}
+									whileHover={BUTTON_SUBTLE_HOVER}
+									whileTap={BUTTON_SUBTLE_TAP}
+									transition={TRANSITION_SPRING}
 									onClick={() => router.push(href)}
 									className='flex items-center gap-1.5 rounded-lg bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 								>

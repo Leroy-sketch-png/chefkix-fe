@@ -9,6 +9,7 @@ import { motion } from 'framer-motion'
 
 import { Button } from '@/components/ui/button'
 import { AnimatedButton } from '@/components/ui/animated-button'
+import { DividerOr } from '@/components/ui/divider-or'
 import {
 	Form,
 	FormControl,
@@ -31,6 +32,7 @@ import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { useTranslations } from '@/i18n/hooks'
 import { startGoogleSignIn } from '@/lib/keycloak-sso'
+import { logDevError } from '@/lib/dev-log'
 
 function createFormSchema(t: (key: string) => string) {
 	return z.object({
@@ -153,11 +155,9 @@ export function SignInForm() {
 			setUser(profileResponse.data)
 			if (isNewSignup) {
 				toast.success(t('toastWelcomeNew'))
-				setLoading(true)
 				router.push(postLoginPath)
 			} else {
 				toast.success(t('toastWelcomeBack'))
-				setLoading(true)
 				router.push(postLoginPath)
 			}
 			return true
@@ -299,22 +299,15 @@ export function SignInForm() {
 					<motion.div variants={staggerItem}>
 						<AnimatedButton
 							type='submit'
-							className='h-11 w-full rounded-xl bg-brand text-base font-semibold text-white shadow-md shadow-brand/20 transition-all hover:bg-brand/90 hover:shadow-lg hover:shadow-brand/30 sm:h-12'
+							className='h-11 w-full rounded-xl bg-brand text-base font-semibold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow sm:h-12'
 							isLoading={isSubmitting}
 							loadingText={t('signingIn')}
 						>
 							{t('signIn')}
 						</AnimatedButton>
 					</motion.div>
-					<motion.div
-						variants={staggerItem}
-						className='relative my-3 flex items-center sm:my-4'
-					>
-						<span className='flex-1 border-t border-border-subtle'></span>
-						<span className='mx-4 text-xs leading-normal text-text-muted'>
-							{t('or')}
-						</span>
-						<span className='flex-1 border-t border-border-subtle'></span>
+					<motion.div variants={staggerItem} className='my-3 sm:my-4'>
+						<DividerOr>{t('or')}</DividerOr>
 					</motion.div>
 					<motion.div variants={staggerItem}>
 						<GoogleSignInButton
@@ -322,7 +315,8 @@ export function SignInForm() {
 							onClick={async () => {
 								try {
 									await startGoogleSignIn(returnTo)
-								} catch {
+								} catch (err) {
+									logDevError('Google sign-in error:', err)
 									const errorMessage = t('googleSignInFailedRetry')
 									form.setError('root', {
 										type: 'manual',

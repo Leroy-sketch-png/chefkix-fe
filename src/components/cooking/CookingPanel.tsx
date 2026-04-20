@@ -229,7 +229,6 @@ export const CookingPanel = () => {
 		voice.isContinuous,
 		voice.startContinuous,
 		voice.stopContinuous,
-		voice,
 	])
 
 	// Derive state (always compute, even if we won't render)
@@ -267,6 +266,8 @@ export const CookingPanel = () => {
 
 	// Auto-read step instructions via TTS on navigation (Wave 2: Kitchen Protocol)
 	const prevStepRef = useRef(0)
+	const photoPromptTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+	const autoTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 	useEffect(() => {
 		if (!hasActiveSession || !step || cookingMode !== 'docked') return
 		if (prevStepRef.current === currentStepNumber) return
@@ -309,7 +310,13 @@ export const CookingPanel = () => {
 		totalSteps,
 		t,
 	])
-
+	// Cleanup timeout refs on unmount
+	useEffect(() => {
+		return () => {
+			clearTimeout(photoPromptTimerRef.current)
+			clearTimeout(autoTimerRef.current)
+		}
+	}, [])
 	// Timer state
 	const activeTimer = localTimers.get(currentStepNumber)
 	const timerRunning = !!activeTimer
@@ -327,7 +334,11 @@ export const CookingPanel = () => {
 			// Show photo capture prompt — capture step number NOW before navigation changes it
 			setPhotoStepNumber(currentStepNumber)
 			setShowPhotoPrompt(true)
-			setTimeout(() => setShowPhotoPrompt(false), 4000)
+			clearTimeout(photoPromptTimerRef.current)
+			photoPromptTimerRef.current = setTimeout(
+				() => setShowPhotoPrompt(false),
+				4000,
+			)
 
 			if (currentStepNumber < totalSteps) {
 				await navigateToStep('next')
@@ -337,7 +348,8 @@ export const CookingPanel = () => {
 				const nextStep = recipe.steps?.[nextStepNumber - 1]
 				if (nextStep?.timerSeconds && nextStep.timerSeconds > 0) {
 					// Small delay to ensure state is updated before starting timer
-					setTimeout(() => {
+					clearTimeout(autoTimerRef.current)
+					autoTimerRef.current = setTimeout(() => {
 						startTimer(nextStepNumber)
 					}, 100)
 				}
@@ -701,7 +713,7 @@ export const CookingPanel = () => {
 							type='button'
 							onClick={handleComplete}
 							whileTap={BUTTON_TAP}
-							className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white shadow-lg shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white shadow-warm shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Check className='size-5' />
 							{t('cpCompleteCooking')}

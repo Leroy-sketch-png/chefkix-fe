@@ -263,7 +263,6 @@ export const UserProfile = ({
 	initialTab,
 }: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
-	const [isLoading, setIsLoading] = useState(false)
 	const [isFollowLoading, setIsFollowLoading] = useState(false)
 	const [isBlockLoading, setIsBlockLoading] = useState(false)
 	const [activeTab, setActiveTab] = useState(initialTab || 'recipes')
@@ -294,7 +293,7 @@ export const UserProfile = ({
 	const [showBlockConfirm, setShowBlockConfirm] = useState(false)
 
 	const { user: currentUserProfile } = useAuth()
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const router = useRouter()
 	const isOwnProfile = profile.userId === currentUserId
 	const t = useTranslations('profile')
@@ -509,7 +508,7 @@ export const UserProfile = ({
 
 	const handleFollow = async () => {
 		if (isFollowLoading) return
-		if (!requireAuth(t('authActionFollow'))) return
+		if (!requireAuth(t('authActionFollow'), 'follow')) return
 		setIsFollowLoading(true)
 		const wasFollowing = profile.isFollowing
 

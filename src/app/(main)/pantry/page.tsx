@@ -168,8 +168,23 @@ export default function PantryPage() {
 	}, [filterCategory, t])
 
 	useEffect(() => {
-		fetchItems()
-	}, [fetchItems])
+		let cancelled = false
+		getPantryItems(filterCategory ?? undefined)
+			.then(data => {
+				if (!cancelled) setItems(data)
+			})
+			.catch(() => {
+				if (cancelled) return
+				setError(true)
+				toast.error(t('failedToLoadItems'))
+			})
+			.finally(() => {
+				if (!cancelled) setLoading(false)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [filterCategory, t])
 
 	// ── Quick Add ─────────────────────────────────────────
 

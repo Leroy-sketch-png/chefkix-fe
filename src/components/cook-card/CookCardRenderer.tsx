@@ -14,6 +14,7 @@ import {
 	CheckCircle2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from '@/i18n/hooks'
 import { Button } from '@/components/ui/button'
 import { FADE_IN_VARIANTS } from '@/lib/motion'
@@ -167,7 +168,8 @@ async function renderCardToCanvas(
 			ctx.beginPath()
 			ctx.arc(imgCenterX, imgCenterY, imgRadius + 3, 0, Math.PI * 2)
 			ctx.stroke()
-		} catch {
+		} catch (e) {
+			logDevError('CookCard avatar load failed', e)
 			// Fallback placeholder
 			ctx.fillStyle = '#FFF3E0'
 			ctx.beginPath()
@@ -396,8 +398,8 @@ export default function CookCardRenderer({
 						files: [file],
 					})
 					return
-				} catch {
-					// File share not supported — fall through to link share
+				} catch (e) {
+					logDevError('CookCard file share not supported', e)
 				}
 			}
 
@@ -413,7 +415,7 @@ export default function CookCardRenderer({
 				toast.success(t('toastLinkCopied'))
 			}
 		} catch {
-			// User cancelled share — not an error
+			// ignored: user cancelled share dialog
 		} finally {
 			setIsGenerating(false)
 		}

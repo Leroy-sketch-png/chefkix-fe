@@ -40,6 +40,7 @@ import type { TasteProfileResponse } from '@/lib/types/social'
 import { TasteDNAShareCard } from '@/components/profile/TasteDNAShareCard'
 import { LearningNarrative } from '@/components/profile/LearningNarrative'
 import { useTranslations } from '@/i18n/hooks'
+import { SkillBars } from '@/components/ui/skill-bars'
 
 // ── Taste dimensions derived from user activity + preferences ──
 interface TasteDimension {
@@ -99,7 +100,7 @@ function computeTasteDimensions(
 					] ?? 20)
 				: Math.min(100, currentLevel * 10),
 			icon: <ChefHat className='size-4' />,
-			description: prefs?.skillLevel ?? t('dimLevel', { level: currentLevel }),
+			description: prefs?.skillLevel ?? t('dimLevel', { count: currentLevel }),
 		},
 		{
 			label: t('dimSocialChef'),
@@ -329,7 +330,7 @@ export default function TasteProfilePage() {
 						emoji='🧑‍🍳'
 						title={t('signInTasteDNA')}
 						description={t('signInTasteDNADesc')}
-						primaryAction={{ label: t('signIn'), href: '/auth/login' }}
+						primaryAction={{ label: t('signIn'), href: '/auth/sign-in' }}
 					/>
 				</PageContainer>
 			</PageTransition>
@@ -483,34 +484,15 @@ export default function TasteProfilePage() {
 								likes, saves, views, and cooks
 							</p>
 							<div className='space-y-3'>
-								{tasteProfile.cuisineDistribution.map((item, i) => (
-									<motion.div
-										key={item.cuisine}
-										initial={{ opacity: 0, x: -10 }}
-										animate={{ opacity: 1, x: 0 }}
-										transition={{ delay: 0.8 + i * 0.05 }}
-										className='flex items-center gap-3'
-									>
-										<span className='w-24 shrink-0 text-sm font-medium text-text'>
-											{item.cuisine}
-										</span>
-										<div className='h-2.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
-											<motion.div
-												className='h-full rounded-full bg-gradient-to-r from-brand to-brand/60'
-												initial={{ width: 0 }}
-												animate={{ width: `${item.percentage}%` }}
-												transition={{
-													delay: 0.9 + i * 0.05,
-													duration: DURATION_S.slow,
-													ease: 'easeOut',
-												}}
-											/>
-										</div>
-										<span className='w-12 shrink-0 text-right text-xs font-bold text-brand'>
-											{item.percentage.toFixed(0)}%
-										</span>
-									</motion.div>
-								))}
+								<SkillBars
+									skills={tasteProfile.cuisineDistribution.map(item => ({
+										name: item.cuisine,
+										level: Math.round(item.percentage),
+									}))}
+									showPercentage
+									barHeight='md'
+									color='var(--color-brand)'
+								/>
 							</div>
 						</motion.div>
 					)}

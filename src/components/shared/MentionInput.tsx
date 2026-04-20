@@ -353,6 +353,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							placeholder={placeholder}
 							disabled={disabled}
 							rows={rows}
+							maxLength={maxLength ?? 5000}
 							className={cn(
 								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,
@@ -368,6 +369,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							onBlur={handleBlur}
 							placeholder={placeholder}
 							disabled={disabled}
+							maxLength={maxLength ?? 5000}
 							className={cn(
 								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,

@@ -223,7 +223,7 @@ function findSuggestion(query: string): string | null {
 
 const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const t = useTranslations('search')
 
 	const handleSave = async (e: React.MouseEvent) => {
@@ -341,7 +341,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const [following, setFollowing] = useState(person.isFollowing)
 	const followLockRef = useRef(false)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const t = useTranslations('search')
 
 	const handleFollow = async () => {

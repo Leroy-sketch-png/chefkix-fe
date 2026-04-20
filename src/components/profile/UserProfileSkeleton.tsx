@@ -37,7 +37,7 @@ export const UserProfileSkeleton = ({
 					{/* Avatar and Name Row */}
 					<div className='mb-6 flex flex-col items-center gap-6 md:flex-row md:items-end'>
 						{/* Large Avatar */}
-						<Skeleton className='size-32 shrink-0 rounded-full border-4 border-bg-card shadow-lg md:h-40 md:w-40' />
+						<Skeleton className='size-32 shrink-0 rounded-full border-4 border-bg-card shadow-warm md:h-40 md:w-40' />
 
 						{/* Name and Bio Section */}
 						<div className='flex-1 space-y-4 text-center md:text-left'>

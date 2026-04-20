@@ -8,12 +8,12 @@ interface PageContainerProps {
 }
 
 const maxWidthClasses = {
-	sm: 'max-w-sm',
-	md: 'max-w-md',
-	lg: 'max-w-lg',
-	xl: 'max-w-xl',
+	sm: 'max-w-container-sm',
+	md: 'max-w-container-md',
+	lg: 'max-w-container-lg',
+	xl: 'max-w-container-xl',
 	'2xl': 'max-w-7xl',
-	form: 'max-w-form',
+	form: 'max-w-container-form',
 	full: 'max-w-full',
 }
 
