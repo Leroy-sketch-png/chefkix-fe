@@ -39,6 +39,8 @@ import { formDataToRecipe } from '@/lib/recipeTransforms'
 import type { Difficulty } from '@/lib/types/gamification'
 import { calibrateDifficulty } from '@/services/ml'
 import { useTranslations } from 'next-intl'
+import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES
@@ -153,10 +155,11 @@ const SUGGESTED_TAGS = [
 
 // Platform detection for keyboard shortcuts
 const isMac =
-	typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
+	typeof navigator !== 'undefined' &&
+	/Mac|iPhone|iPad/.test(navigator.userAgent)
 const modKey = isMac ? '⌘' : 'Ctrl'
 
-const generateId = () => Math.random().toString(36).substring(2, 9)
+const generateId = () => crypto.randomUUID()
 
 const createEmptyIngredient = (): Ingredient => ({
 	id: generateId(),
@@ -208,6 +211,9 @@ const ImageUpload = ({
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (file) {
+			// Validate file size (max 10MB)
+			if (file.size > 10 * 1024 * 1024) return
+
 			// Revoke previous blob URL if exists
 			if (blobUrlRef.current) {
 				URL.revokeObjectURL(blobUrlRef.current)
@@ -285,8 +291,8 @@ const fetchIngredientOptions = async (
 				category: h.document.category,
 			}))
 		}
-	} catch {
-		// Autocomplete is non-critical — degrade to empty suggestions
+	} catch (err) {
+		logDevError('Ingredient autocomplete failed (non-critical):', err)
 	}
 	return []
 }
@@ -672,6 +678,11 @@ export const RecipeFormDetailed = ({
 		tags: initialData?.tags || [],
 	})
 
+	// Warn before closing tab if user has entered content
+	const isDirty =
+		formData.title.trim().length > 0 || formData.description.trim().length > 0
+	useBeforeUnloadWarning(isDirty && !isSubmitting)
+
 	const updateField = <K extends keyof RecipeFormData>(
 		field: K,
 		value: RecipeFormData[K],
@@ -898,8 +909,8 @@ export const RecipeFormDetailed = ({
 					setPredictedDifficulty(result.data.predictedDifficulty)
 					setDifficultyConfidence(result.data.confidence)
 				}
-			} catch {
-				// ML calibration is non-critical — silently skip
+			} catch (err) {
+				logDevError('ML difficulty calibration failed (non-critical):', err)
 			}
 		}, 1200)
 
@@ -1387,7 +1398,7 @@ export const RecipeFormDetailed = ({
 							disabled={isSubmitting || isSaving}
 							whileHover={isSubmitting ? undefined : BUTTON_HOVER}
 							whileTap={isSubmitting ? undefined : BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-warm disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isSubmitting ? (
 								<Loader2 className='size-4 animate-spin' />

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-import { Group, MemberRole } from '@/lib/types/group'
+import { Group } from '@/lib/types/group'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
@@ -221,7 +221,6 @@ export const GroupHeader = ({
 				title={t('ghLeaveTitle')}
 				description={t('ghLeaveDesc', { name: group.name })}
 				confirmLabel={t('ghLeave')}
-				cancelLabel='Cancel'
 				variant='destructive'
 				onConfirm={handleLeaveGroup}
 				onCancel={() => setShowLeaveConfirm(false)}

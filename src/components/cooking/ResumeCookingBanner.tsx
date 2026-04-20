@@ -18,6 +18,7 @@ import {
 	DURATION_S,
 } from '@/lib/motion'
 import Image from 'next/image'
+import { logDevError } from '@/lib/dev-log'
 
 interface ResumeCookingBannerProps {
 	className?: string
@@ -51,15 +52,18 @@ export const ResumeCookingBanner = ({
 
 	// Check for pending session on mount
 	useEffect(() => {
+		let cancelled = false
+
 		const checkForPendingSession = async () => {
 			// Skip if already have an active session in store or cooking UI is open
 			if (activeStoreSession || cookingMode !== 'hidden') {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 				return
 			}
 
 			try {
 				const response = await getCurrentSession()
+				if (cancelled) return
 				if (
 					response.success &&
 					response.data &&
@@ -71,7 +75,7 @@ export const ResumeCookingBanner = ({
 
 					// Fetch recipe details for display
 					const recipeResponse = await getRecipeById(response.data.recipeId)
-					if (recipeResponse.success && recipeResponse.data) {
+					if (!cancelled && recipeResponse.success && recipeResponse.data) {
 						setRecipeName(recipeResponse.data.title)
 						setRecipeImage(
 							recipeResponse.data.coverImageUrl?.[0] ||
@@ -79,14 +83,17 @@ export const ResumeCookingBanner = ({
 						)
 					}
 				}
-			} catch {
-				// Silently fail - no pending session
+			} catch (error) {
+				logDevError('[ResumeCookingBanner] session check failed:', error)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		checkForPendingSession()
+		return () => {
+			cancelled = true
+		}
 	}, [activeStoreSession, cookingMode])
 
 	const handleResume = async () => {
@@ -167,7 +174,7 @@ export const ResumeCookingBanner = ({
 							/>
 							{/* Progress ring overlay */}
 							<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
-							<div className='flex size-10 items-center justify-center rounded-full bg-white/90 text-xs font-bold text-brand tabular-nums'>
+								<div className='flex size-10 items-center justify-center rounded-full bg-white/90 text-xs font-bold text-brand tabular-nums'>
 									{progressPercent}%
 								</div>
 							</div>
@@ -183,11 +190,17 @@ export const ResumeCookingBanner = ({
 								<ChefHat className='size-4 text-brand' />
 							)}
 							<h3 className='text-base font-semibold text-text'>
-							{isPaused ? t('pausedSession') : t('resumeCooking')}
+								{isPaused ? t('pausedSession') : t('resumeCooking')}
 							</h3>
 						</div>
 						<p className='text-sm text-text-secondary'>
-							{recipeName || t('yourRecipe')} — <span className='tabular-nums'>{t('stepOf', { current: pendingSession.currentStep, total: totalSteps })}</span>
+							{recipeName || t('yourRecipe')} —{' '}
+							<span className='tabular-nums'>
+								{t('stepOf', {
+									current: pendingSession.currentStep,
+									total: totalSteps,
+								})}
+							</span>
 						</p>
 						<div className='flex items-center gap-3 text-xs text-text-muted'>
 							<span className='flex items-center gap-1 tabular-nums'>

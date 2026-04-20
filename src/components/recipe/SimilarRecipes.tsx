@@ -32,19 +32,24 @@ export const SimilarRecipes = ({
 	const t = useTranslations('recipe')
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchSimilar = async () => {
 			try {
 				const res = await getSimilarRecipes(recipeId, 6)
+				if (cancelled) return
 				if (res.success && res.data) {
 					setRecipes(Array.isArray(res.data) ? res.data : [])
 				}
 			} catch (err) {
 				logDevError('Failed to fetch similar recipes:', err)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 		fetchSimilar()
+		return () => {
+			cancelled = true
+		}
 	}, [recipeId])
 
 	if (isLoading) {

@@ -93,10 +93,12 @@ export function LearningPathView({
 		}
 		if (allRecipeIds.length === 0) return
 
+		let cancelled = false
 		const fetchSummaries = async () => {
 			const results = await Promise.allSettled(
 				allRecipeIds.map(id => getRecipeById(id)),
 			)
+			if (cancelled) return
 			const summaries: Record<
 				string,
 				{ title: string; difficulty?: string; coverImageUrl?: string }
@@ -118,6 +120,9 @@ export function LearningPathView({
 			setRecipeSummaries(summaries)
 		}
 		fetchSummaries()
+		return () => {
+			cancelled = true
+		}
 	}, [collection.recipeIds, collection.difficultyProgression])
 
 	const handleEnroll = async () => {

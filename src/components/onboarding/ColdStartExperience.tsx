@@ -4,6 +4,11 @@ import { useState, useEffect, useCallback, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, TrendingUp, Award, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+	getStorageJson,
+	setStorageJson,
+	removeStorageItem,
+} from '@/lib/storage'
 import { TRANSITION_SPRING, CARD_FEED_HOVER, DURATION_S } from '@/lib/motion'
 import { triggerAchievementConfetti } from '@/lib/confetti'
 import { TasteDetector, TasteProfile } from './TasteDetector'
@@ -47,31 +52,15 @@ type ColdStartPhase = 'curated' | 'transitioning' | 'personalized'
 // ============================================
 
 function getColdStartState(): ColdStartState | null {
-	if (typeof window === 'undefined') return null
-	try {
-		const stored = localStorage.getItem(COLD_START_STORAGE_KEY)
-		return stored ? JSON.parse(stored) : null
-	} catch {
-		return null
-	}
+	return getStorageJson<ColdStartState>(COLD_START_STORAGE_KEY)
 }
 
 function setColdStartState(state: ColdStartState) {
-	if (typeof window === 'undefined') return
-	try {
-		localStorage.setItem(COLD_START_STORAGE_KEY, JSON.stringify(state))
-	} catch {
-		// Storage full or blocked
-	}
+	setStorageJson(COLD_START_STORAGE_KEY, state)
 }
 
 function clearColdStartState() {
-	if (typeof window === 'undefined') return
-	try {
-		localStorage.removeItem(COLD_START_STORAGE_KEY)
-	} catch {
-		// Ignore
-	}
+	removeStorageItem(COLD_START_STORAGE_KEY)
 }
 
 // ============================================
@@ -142,7 +131,8 @@ export const ColdStartExperience = ({
 		if (typeof window === 'undefined') return 'personalized'
 		const state = getColdStartState()
 		if (!state) return 'curated'
-		if (state.dismissed || state.interactionCount >= INTERACTION_THRESHOLD) return 'personalized'
+		if (state.dismissed || state.interactionCount >= INTERACTION_THRESHOLD)
+			return 'personalized'
 		return 'curated'
 	})
 	const [interactionCount, setInteractionCount] = useState(() => {
@@ -168,7 +158,7 @@ export const ColdStartExperience = ({
 
 	// Track interactions (call this from parent when user interacts)
 	const recordInteraction = useCallback(() => {
-		setInteractionCount((prev) => {
+		setInteractionCount(prev => {
 			const newCount = prev + 1
 			const state = getColdStartState()
 			setColdStartState({
@@ -191,7 +181,7 @@ export const ColdStartExperience = ({
 						dismissed: true,
 					})
 					onColdStartComplete?.()
-				}, 3000)
+				}, 1500)
 			}
 
 			return newCount
@@ -246,10 +236,10 @@ export const ColdStartExperience = ({
 								<Sparkles className='size-8 text-brand' />
 							</motion.div>
 							<h3 className='mb-2 text-lg font-bold text-text'>
-							{t('csTasteProfileReady')}
-						</h3>
-						<p className='text-sm text-text-secondary'>
-							{t('csFeedPersonalized')}
+								{t('csTasteProfileReady')}
+							</h3>
+							<p className='text-sm text-text-secondary'>
+								{t('csFeedPersonalized')}
 							</p>
 						</motion.div>
 					</motion.div>
@@ -282,10 +272,10 @@ export const ColdStartExperience = ({
 					<div className='space-y-3'>
 						<h3 className='flex items-center gap-2 text-sm font-bold text-text'>
 							<Sparkles className='size-4 text-brand' />
-						{t('csStartHere')}
+							{t('csStartHere')}
 						</h3>
 						<div className='grid gap-3 sm:grid-cols-3'>
-							{CURATED_CATEGORIES.map((category) => (
+							{CURATED_CATEGORIES.map(category => (
 								<motion.div
 									key={category.id}
 									whileHover={CARD_FEED_HOVER}
@@ -304,10 +294,10 @@ export const ColdStartExperience = ({
 											<category.icon className='size-5' />
 										</div>
 										<h4 className='mb-1 font-bold text-text transition-colors group-hover:text-brand'>
-										{t(category.titleKey)}
-									</h4>
-									<p className='text-xs text-text-secondary'>
-										{t(category.descriptionKey)}
+											{t(category.titleKey)}
+										</h4>
+										<p className='text-xs text-text-secondary'>
+											{t(category.descriptionKey)}
 										</p>
 										<div className='mt-2 flex items-center gap-1 text-xs font-medium text-brand opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100'>
 											{t('csExplore')} <ChevronRight className='size-3' />

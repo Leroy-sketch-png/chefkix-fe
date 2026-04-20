@@ -43,29 +43,33 @@ export const MessagesDrawer = () => {
 		useState<Conversation | null>(null)
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [newMessage, setNewMessage] = useState('')
-	const [isLoadingConversations, setIsLoadingConversations] = useState(false)
+	const [isLoadingConversations, setIsLoadingConversations] = useState(true)
 	const [isLoadingMessages, setIsLoadingMessages] = useState(false)
 	const [isSending, setIsSending] = useState(false)
 
 	// Fetch conversations when drawer opens
 	useEffect(() => {
 		if (!isMessagesDrawerOpen) return
+		let cancelled = false
 
 		const fetchConversations = async () => {
 			setIsLoadingConversations(true)
 			try {
 				const response = await getMyConversations()
-				if (response.success && response.data) {
+				if (!cancelled && response.success && response.data) {
 					setConversations(response.data)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch conversations:', err)
 			} finally {
-				setIsLoadingConversations(false)
+				if (!cancelled) setIsLoadingConversations(false)
 			}
 		}
 
 		fetchConversations()
+		return () => {
+			cancelled = true
+		}
 	}, [isMessagesDrawerOpen])
 
 	// Fetch messages when conversation is selected
@@ -75,22 +79,26 @@ export const MessagesDrawer = () => {
 			setMessages([])
 			return
 		}
+		let cancelled = false
 
 		const fetchMessages = async () => {
 			setIsLoadingMessages(true)
 			try {
 				const response = await getMessages(selectedConversationId)
-				if (response.success && response.data) {
+				if (!cancelled && response.success && response.data) {
 					setMessages(response.data)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch messages:', err)
 			} finally {
-				setIsLoadingMessages(false)
+				if (!cancelled) setIsLoadingMessages(false)
 			}
 		}
 
 		fetchMessages()
+		return () => {
+			cancelled = true
+		}
 	}, [selectedConversationId])
 
 	// Scroll to bottom when messages change
@@ -195,7 +203,7 @@ export const MessagesDrawer = () => {
 	return (
 		<div
 			ref={drawerRef}
-			className='fixed bottom-0 right-6 z-popover flex w-drawer h-drawer flex-col rounded-t-lg border bg-card text-card-foreground shadow-lg'
+			className='fixed bottom-0 right-6 z-popover flex w-drawer h-drawer flex-col rounded-t-lg border bg-card text-card-foreground shadow-warm'
 			style={
 				width || height
 					? {

@@ -274,8 +274,8 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					className={cn(
 						'px-5 py-2.5 rounded-xl font-semibold text-sm focus-visible:ring-2 focus-visible:ring-brand/50',
 						isUrgent
-							? 'bg-error text-white shadow-lg shadow-error/30'
-							: 'bg-brand text-white shadow-lg shadow-primary/30',
+							? 'bg-error text-white shadow-warm shadow-error/30'
+							: 'bg-brand text-white shadow-warm shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
 					whileHover={BUTTON_HOVER}
@@ -333,7 +333,7 @@ const CompletedItem = ({
 					{session.postId && (
 						<Image
 							src={session.recipeImage}
-							alt=''
+							alt={session.recipeName || 'Recipe thumbnail'}
 							width={32}
 							height={32}
 							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-bg-card object-cover'

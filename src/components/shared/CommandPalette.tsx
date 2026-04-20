@@ -308,7 +308,7 @@ function useSearchResults(
 					setResults([...recipeResults, ...userResults])
 				}
 			} catch {
-				// Silently handle abort and network errors
+				// ignored: search abort or network error
 			} finally {
 				if (!controller.signal.aborted) {
 					setIsSearching(false)
@@ -337,15 +337,20 @@ function getRecentItems(): string[] {
 	try {
 		return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')
 	} catch {
+		// ignored: storage access non-critical
 		return []
 	}
 }
 
 function addRecentItem(id: string) {
 	if (typeof localStorage === 'undefined') return
-	const items = getRecentItems().filter(i => i !== id)
-	items.unshift(id)
-	localStorage.setItem(RECENT_KEY, JSON.stringify(items.slice(0, MAX_RECENT)))
+	try {
+		const items = getRecentItems().filter(i => i !== id)
+		items.unshift(id)
+		localStorage.setItem(RECENT_KEY, JSON.stringify(items.slice(0, MAX_RECENT)))
+	} catch {
+		/* ignored: storage access non-critical */
+	}
 }
 
 // ============================================
@@ -357,7 +362,7 @@ export function CommandPalette() {
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const isAuthenticated = useAuthStore(s => s.isAuthenticated)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 
 	const allNavItems = useNavigationItems()
 	const allActionItems = useActionItems()
@@ -407,7 +412,8 @@ export function CommandPalette() {
 	}, [open])
 
 	const isMac =
-		typeof navigator !== 'undefined' && navigator.platform?.includes('Mac')
+		typeof navigator !== 'undefined' &&
+		/Mac|iPhone|iPad/.test(navigator.userAgent)
 
 	// Collect recent navigation items
 	const recentIds = getRecentItems()
@@ -441,7 +447,7 @@ export function CommandPalette() {
 					return haystack.includes(search.toLowerCase()) ? 1 : 0
 				}}
 			>
-				<div className='mx-4 w-full max-w-lg overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-xl'>
+				<div className='mx-4 w-full max-w-lg overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-warm'>
 					{/* Search Input */}
 					<div className='flex items-center gap-3 border-b border-border-subtle px-4'>
 						<Search className='size-5 text-text-muted' />

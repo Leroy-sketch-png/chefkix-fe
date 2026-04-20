@@ -32,7 +32,7 @@ import {
 	X,
 } from 'lucide-react'
 import Image from 'next/image'
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { diag } from '@/lib/diagnostics'
 import {
@@ -101,6 +101,8 @@ import { IngredientItem } from './IngredientItem'
 import { StepItem } from './StepItem'
 import { XpPreviewModal } from './XpPreviewModal'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
+import { OverlayLoader } from '@/components/ui/overlay-loader'
+import { StepIndicator } from '@/components/ui/step-indicator'
 
 const CUISINE_OPTIONS: ComboboxOption[] = [
 	'Italian',
@@ -261,6 +263,19 @@ export const RecipeCreateAiFlow = ({
 	// Cover image upload
 	const coverImageRef = React.useRef<HTMLInputElement>(null)
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
+	// Ref for AI parsing progress interval — prevents memory leak on unmount
+	const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+		null,
+	)
+
+	// Cleanup interval on unmount
+	useEffect(() => {
+		return () => {
+			if (progressIntervalRef.current) {
+				clearInterval(progressIntervalRef.current)
+			}
+		}
+	}, [])
 
 	// ── Auto-save ────────────────────────────────────────────────────
 	const autoSavePayload = useMemo(() => {
@@ -393,6 +408,14 @@ export const RecipeCreateAiFlow = ({
 		async (e: React.ChangeEvent<HTMLInputElement>) => {
 			const file = e.target.files?.[0]
 			if (!file || !recipe) return
+
+			// Validate file size (max 10MB)
+			if (file.size > 10 * 1024 * 1024) {
+				toast.error(t('aiFlowImageUploadFailed'), {
+					description: 'File size exceeds 10MB limit',
+				})
+				return
+			}
 
 			diag.image('recipe', 'select', {
 				type: 'cover',
@@ -614,6 +637,7 @@ export const RecipeCreateAiFlow = ({
 		const progressInterval = setInterval(() => {
 			setParsingStep(prev => Math.min(prev + 1, 3))
 		}, 600)
+		progressIntervalRef.current = progressInterval
 
 		try {
 			diag.request('recipe', 'POST /process_recipe', {
@@ -626,8 +650,6 @@ export const RecipeCreateAiFlow = ({
 				response,
 				response.success,
 			)
-
-			clearInterval(progressInterval)
 			setParsingStep(4)
 
 			if (response.success && response.data) {
@@ -672,7 +694,6 @@ export const RecipeCreateAiFlow = ({
 				setStep('input')
 			}
 		} catch (err) {
-			clearInterval(progressInterval)
 			diag.error('recipe', 'AI_PARSE exception', err)
 			toast.error(t('aiFlowParsingFailed'), {
 				description:
@@ -681,6 +702,8 @@ export const RecipeCreateAiFlow = ({
 						: 'Network error. Check your connection.',
 			})
 			setStep('input')
+		} finally {
+			clearInterval(progressInterval)
 		}
 	}, [rawText, t])
 
@@ -1272,6 +1295,19 @@ export const RecipeCreateAiFlow = ({
 				)}
 			</div>
 
+			{/* Step progress */}
+			<StepIndicator
+				steps={[
+					{ label: t('aiFlowInput') },
+					{ label: t('aiFlowProcessing') },
+					{ label: t('aiFlowPreview') },
+					{ label: t('aiFlowXpPreview') },
+				]}
+				currentStep={['input', 'parsing', 'preview', 'xp-preview'].indexOf(
+					step,
+				)}
+			/>
+
 			{/* Step Content - Animated transitions */}
 			<AnimatePresence mode='wait'>
 				{/* Input Step */}
@@ -1346,7 +1382,7 @@ export const RecipeCreateAiFlow = ({
 										className={cn(
 											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											rawText.trim()
-												? 'bg-gradient-hero text-white shadow-lg hover:shadow-xl'
+												? 'bg-gradient-hero text-white shadow-warm hover:shadow-warm'
 												: 'cursor-not-allowed bg-muted/50 text-text-muted',
 										)}
 									>
@@ -1437,7 +1473,7 @@ export const RecipeCreateAiFlow = ({
 													JSON.stringify(draft),
 												)
 											} catch {
-												// localStorage save is best-effort
+												// ignored: localStorage save is best-effort
 											}
 											await handleSaveDraft(parsed)
 										}}
@@ -1808,7 +1844,7 @@ export const RecipeCreateAiFlow = ({
 								disabled={isCalculatingXp}
 								whileHover={isCalculatingXp ? {} : BUTTON_HOVER}
 								whileTap={isCalculatingXp ? {} : BUTTON_TAP}
-								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-xl disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-warm disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{isCalculatingXp ? (
 									<>
@@ -1864,6 +1900,7 @@ export const RecipeCreateAiFlow = ({
 					/>
 				)}
 			</AnimatePresence>
+			<OverlayLoader isOpen={isPublishing} message={t('aiFlowPublishing')} />
 		</div>
 	)
 }

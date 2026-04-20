@@ -157,7 +157,7 @@ const ActiveChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, y: -10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='relative mb-5 overflow-hidden rounded-2xl bg-bg-card shadow-lg'
+			className='relative mb-5 overflow-hidden rounded-2xl bg-bg-card shadow-warm'
 		>
 			<GlowBar />
 
@@ -237,7 +237,7 @@ const ActiveChallengeBanner = ({
 					onClick={onFindRecipe}
 					whileHover={STAT_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
-					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-base font-bold text-white shadow-lg shadow-xp/40 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-base font-bold text-white shadow-warm shadow-xp/40 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 				>
 					<ChefHat className='size-5' />
 					{t('findRecipe')}
@@ -272,7 +272,7 @@ const CompletedChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, y: -10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='relative mb-5 overflow-hidden rounded-2xl border-2 border-success/30 bg-gradient-to-r from-success/10 to-success/5 shadow-lg'
+			className='relative mb-5 overflow-hidden rounded-2xl border-2 border-success/30 bg-gradient-to-r from-success/10 to-success/5 shadow-warm'
 		>
 			<GlowBar isComplete />
 
@@ -417,7 +417,7 @@ const FeaturedChallengeBanner = ({
 		<motion.div
 			initial={{ opacity: 0, scale: 0.98 }}
 			animate={{ opacity: 1, scale: 1 }}
-			className='relative mb-5 min-h-banner overflow-hidden rounded-2xl shadow-2xl'
+			className='relative mb-5 min-h-banner overflow-hidden rounded-2xl shadow-warm'
 		>
 			{/* Background Image */}
 			<div className='absolute inset-0'>
@@ -498,7 +498,7 @@ const FeaturedChallengeBanner = ({
 					onClick={onBrowseRecipes}
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
-					className='inline-flex w-fit items-center gap-2 rounded-xl bg-bg-card px-7 py-4 text-base font-bold text-accent-purple shadow-xl focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+					className='inline-flex w-fit items-center gap-2 rounded-xl bg-bg-card px-7 py-4 text-base font-bold text-accent-purple shadow-warm focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 				>
 					<ChefHat className='size-5' />
 					{t('browseRecipes', { category: challenge.title })}

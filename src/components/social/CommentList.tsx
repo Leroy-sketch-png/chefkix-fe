@@ -38,7 +38,7 @@ export const CommentList = ({
 	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const mentionInputRef = useRef<MentionInputRef>(null)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true)
@@ -61,7 +61,7 @@ export const CommentList = ({
 	}, [fetchComments])
 
 	const handleSubmitComment = async () => {
-		if (!requireAuth(t('commentOnPostAuth'))) return
+		if (!requireAuth(t('commentOnPostAuth'), 'comment')) return
 		if (!newComment.trim() || isSubmitting) return
 
 		diag.action('social', 'COMMENT_SUBMIT', {

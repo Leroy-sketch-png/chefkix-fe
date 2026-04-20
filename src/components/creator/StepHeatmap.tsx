@@ -14,7 +14,12 @@ import {
 	ChevronUp,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, staggerContainer, staggerItem, DURATION_S } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	staggerContainer,
+	staggerItem,
+	DURATION_S,
+} from '@/lib/motion'
 import {
 	getStepHeatmap,
 	StepHeatmapResponse,
@@ -65,20 +70,25 @@ export function StepHeatmap({
 	const t = useTranslations('creator')
 
 	useEffect(() => {
+		let cancelled = false
 		const fetch = async () => {
 			setLoading(true)
 			try {
 				const res = await getStepHeatmap(recipeId)
+				if (cancelled) return
 				if (res.success && res.data) {
 					setData(res.data)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch step heatmap:', err)
 			} finally {
-				setLoading(false)
+				if (!cancelled) setLoading(false)
 			}
 		}
 		fetch()
+		return () => {
+			cancelled = true
+		}
 	}, [recipeId])
 
 	if (loading) {
@@ -128,7 +138,9 @@ export function StepHeatmap({
 			<div className='border-b border-border-subtle p-4'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h3 className='text-sm font-semibold text-text'>{t('stepHeatmap')}</h3>
+						<h3 className='text-sm font-semibold text-text'>
+							{t('stepHeatmap')}
+						</h3>
 						<p className='text-xs text-text-muted'>
 							{recipeTitle ?? data.recipeTitle} &middot; {data.totalSessions}{' '}
 							cook{data.totalSessions !== 1 ? 's' : ''}
@@ -138,7 +150,9 @@ export function StepHeatmap({
 						<div className='flex items-center gap-1.5 rounded-full bg-error/10 px-2.5 py-1'>
 							<AlertTriangle className='size-3.5 text-error' />
 							<span className='text-xs font-medium text-error'>
-								{struggleSteps.length !== 1 ? t('strugglePointsPlural', { n: struggleSteps.length }) : t('strugglePoints', { n: struggleSteps.length })}
+								{struggleSteps.length !== 1
+									? t('strugglePointsPlural', { n: struggleSteps.length })
+									: t('strugglePoints', { n: struggleSteps.length })}
 							</span>
 						</div>
 					)}
@@ -194,7 +208,10 @@ export function StepHeatmap({
 								<motion.div
 									initial={{ width: 0 }}
 									animate={{ width: getBarWidth(step.completionRate) }}
-									transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
+									transition={{
+										duration: DURATION_S.verySlow,
+										ease: 'easeOut',
+									}}
 									className={cn('h-full rounded-full', getBarColor(step))}
 								/>
 							</div>

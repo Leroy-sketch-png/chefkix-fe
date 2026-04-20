@@ -125,7 +125,7 @@ export const ChallengeComplete = ({
 						initial={{ scale: 0.5, y: 50, opacity: 0 }}
 						animate={{ scale: 1, y: 0, opacity: 1 }}
 						transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-						className='relative w-full max-w-modal-md overflow-hidden rounded-2xl bg-bg-card p-8 text-center shadow-2xl'
+						className='relative w-full max-w-modal-md overflow-hidden rounded-2xl bg-bg-card p-8 text-center shadow-warm'
 						role='alertdialog'
 						aria-modal='true'
 						aria-label={t('challengeComplete')}
@@ -142,7 +142,7 @@ export const ChallengeComplete = ({
 								transition={{ duration: 1.5, repeat: Infinity }}
 							/>
 							{/* Badge */}
-							<div className='relative flex h-full w-full items-center justify-center rounded-2xl bg-gradient-indigo shadow-lg shadow-accent-purple/40'>
+							<div className='relative flex h-full w-full items-center justify-center rounded-2xl bg-gradient-indigo shadow-warm shadow-accent-purple/40'>
 								<span className='text-5xl'>{challengeIcon}</span>
 							</div>
 							{/* Checkmark */}
@@ -269,7 +269,7 @@ export const ChallengeComplete = ({
 								onClick={onContinue}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-indigo py-3.5 text-base font-bold text-white shadow-lg shadow-accent-purple/30 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+								className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-indigo py-3.5 text-base font-bold text-white shadow-warm shadow-accent-purple/30 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 							>
 								{t('continueButton')}
 								<ArrowRight className='size-icon-sm' />

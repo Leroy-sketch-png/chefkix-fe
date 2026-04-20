@@ -170,7 +170,7 @@ export const PostCard = ({
 
 	const isOwner = currentUserId === post.userId
 	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
-	const requireAuth = useAuthGate()
+	const { requireAuth, guardAction } = useAuthGate()
 	const t = useTranslations('post')
 
 	// Dwell tracking — fire POST_DWELLED when card is visible for 2+ seconds
@@ -233,7 +233,7 @@ export const PostCard = ({
 
 	const handleLike = useCallback(async () => {
 		if (isLiking) return
-		if (!requireAuth(t('authActionLike'))) return
+		if (!requireAuth(t('authActionLike'), 'like')) return
 
 		setIsLiking(true)
 		const wasLiked = post.isLiked
@@ -293,7 +293,7 @@ export const PostCard = ({
 
 	const handleSave = async () => {
 		if (isSaving) return
-		if (!requireAuth(t('authActionSave'))) return
+		if (!requireAuth(t('authActionSave'), 'save')) return
 
 		// Optimistic update
 		const previousSaved = isSaved
@@ -862,7 +862,7 @@ export const PostCard = ({
 								</p>
 								{(post.tags ?? []).length > 0 && (
 									<div className='flex flex-wrap gap-2'>
-										{post.tags.map(tag => (
+										{post.tags?.map(tag => (
 											<span
 												key={tag}
 												className='rounded-full bg-brand/10 px-3 py-1 text-xs font-medium text-brand'

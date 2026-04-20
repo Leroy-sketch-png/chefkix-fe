@@ -43,22 +43,26 @@ export const SaveToCollectionPicker = ({
 	// Fetch collections when picker opens
 	useEffect(() => {
 		if (!isOpen) return
+		let cancelled = false
 
 		const fetch = async () => {
 			setIsLoading(true)
 			try {
 				const response = await getMyCollections()
-				if (response.success && response.data) {
+				if (!cancelled && response.success && response.data) {
 					setCollections(response.data)
 				}
 			} catch (error) {
 				logDevError('Failed to load collections:', error)
-				toast.error(t('failedLoadCollections'))
+				if (!cancelled) toast.error(t('failedLoadCollections'))
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 		fetch()
+		return () => {
+			cancelled = true
+		}
 	}, [isOpen, t])
 
 	// Focus input when create mode is shown
@@ -236,6 +240,7 @@ export const SaveToCollectionPicker = ({
 								/>
 								<button
 									type='button'
+									aria-label='Create collection'
 									disabled={!newName.trim() || isCreating}
 									onClick={handleCreateAndAdd}
 									className='rounded bg-brand px-2 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'

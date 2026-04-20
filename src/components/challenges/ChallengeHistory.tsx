@@ -79,17 +79,32 @@ interface ChallengeHistoryPageProps {
 // UTILITIES
 // ============================================
 
-const formatDate = (date: Date, locale = 'en-US') => {
-	return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+const formatDateUtil = (date: Date, format: 'short' | 'long' = 'short') => {
+	if (format === 'short') {
+		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+	}
+	return date.toLocaleDateString('en-US', {
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric',
+	})
+}
+
+const isTodayUtil = (date: Date) => {
+	const today = new Date()
+	return (
+		date.getDate() === today.getDate() &&
+		date.getMonth() === today.getMonth() &&
+		date.getFullYear() === today.getFullYear()
+	)
+}
+
+const formatDateShort = (date: Date) => {
+	return formatDateUtil(date, 'short')
 }
 
 const getDayName = (date: Date, locale = 'en-US') => {
 	return date.toLocaleDateString(locale, { weekday: 'short' })
-}
-
-const isToday = (date: Date) => {
-	const today = new Date()
-	return date.toDateString() === today.toDateString()
 }
 
 // ============================================
@@ -130,7 +145,7 @@ const StatCard = ({
 const DayColumn = ({ day }: { day: ChallengeDay }) => {
 	const t = useTranslations('challenge')
 	const locale = useLocale()
-	const isCurrentDay = isToday(day.date)
+	const isCurrentDay = isTodayUtil(day.date)
 	const statusConfig = {
 		completed: {
 			badgeBg: 'bg-gradient-to-br from-success to-success',
@@ -183,7 +198,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 				{getDayName(day.date, locale)}
 			</span>
 			<span className='text-2xs text-text-secondary'>
-				{formatDate(day.date, locale)}
+				{formatDateShort(day.date)}
 			</span>
 
 			{/* Badge */}
@@ -593,7 +608,11 @@ export const ChallengeHistoryPage = ({
 				</h3>
 				<div>
 					{recentDays.map((day, i) => (
-						<HistoryItem key={i} day={day} showTodayBadge={isToday(day.date)} />
+						<HistoryItem
+							key={i}
+							day={day}
+							showTodayBadge={isTodayUtil(day.date)}
+						/>
 					))}
 				</div>
 

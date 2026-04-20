@@ -793,6 +793,10 @@ export const CookingPlayer = () => {
 	// Auto-exits PREP after 30 seconds so the user is never stuck in overview mode.
 	// Also exits PREP immediately when any step is completed (first "Next Step" click).
 	const prepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const photoPromptTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null,
+	)
+	const autoTimerStartRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	useEffect(() => {
 		if (interactionMode !== 'PREP') {
 			if (prepTimeoutRef.current) {
@@ -940,6 +944,15 @@ export const CookingPlayer = () => {
 		}
 	}, [isOpen, interactionMode, setInteractionMode, resetMessyHandsTimer, t])
 
+	// Cleanup photo prompt and auto-timer start refs on unmount
+	useEffect(() => {
+		return () => {
+			if (photoPromptTimeoutRef.current)
+				clearTimeout(photoPromptTimeoutRef.current)
+			if (autoTimerStartRef.current) clearTimeout(autoTimerStartRef.current)
+		}
+	}, [])
+
 	// Handlers - defined before useEffects that reference them
 	const handleNextStep = useCallback(async () => {
 		if (!recipe || isNavigating) return
@@ -979,7 +992,12 @@ export const CookingPlayer = () => {
 			// Show photo capture prompt — capture step number NOW before navigation changes it
 			setPhotoStepNumber(currentStepNumber)
 			setShowPhotoPrompt(true)
-			setTimeout(() => setShowPhotoPrompt(false), 4000)
+			if (photoPromptTimeoutRef.current)
+				clearTimeout(photoPromptTimeoutRef.current)
+			photoPromptTimeoutRef.current = setTimeout(
+				() => setShowPhotoPrompt(false),
+				4000,
+			)
 
 			// Broadcast to co-cooking room
 			if (isInRoom)
@@ -1004,7 +1022,8 @@ export const CookingPlayer = () => {
 						timerSeconds: nextStep.timerSeconds,
 					})
 					// Small delay to ensure state is updated before starting timer
-					setTimeout(() => {
+					if (autoTimerStartRef.current) clearTimeout(autoTimerStartRef.current)
+					autoTimerStartRef.current = setTimeout(() => {
 						startTimer(nextStepNumber)
 					}, 100)
 				}
@@ -1306,8 +1325,8 @@ export const CookingPlayer = () => {
 						oldLevel: completionResult.oldLevel,
 						newLevel: completionResult.newLevel,
 					})
-					// Small delay so level-up celebration shows first
-					await new Promise(resolve => setTimeout(resolve, 2500))
+					// Sequence delay: let level-up celebration animate before showing rewards
+					await new Promise(resolve => setTimeout(resolve, 1000))
 				}
 
 				// Trigger celebration with immediate rewards data
@@ -1474,7 +1493,7 @@ export const CookingPlayer = () => {
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='flex h-full max-h-modal w-full max-w-modal-2xl flex-col overflow-hidden rounded-2xl bg-bg-card shadow-2xl'
+							className='flex h-full max-h-modal w-full max-w-modal-2xl flex-col overflow-hidden rounded-2xl bg-bg-card shadow-warm'
 						>
 							{/* Preview Mode Banner */}
 							{isPreviewMode && (
@@ -2001,7 +2020,7 @@ export const CookingPlayer = () => {
 									whileHover={isNavigating ? undefined : BUTTON_HOVER}
 									whileTap={isNavigating ? undefined : BUTTON_TAP}
 									className={cn(
-										'flex items-center gap-2 rounded-full bg-gradient-hero font-bold text-white shadow-lg shadow-brand/30 transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
+										'flex items-center gap-2 rounded-full bg-gradient-hero font-bold text-white shadow-warm shadow-brand/30 transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
 										kitchenMode || interactionMode === 'MESSY_HANDS'
 											? 'min-h-16 px-10 py-4 text-lg'
 											: 'px-8 py-3',
@@ -2057,7 +2076,7 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-2xl bg-bg-card p-8 shadow-2xl'
+								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-2xl bg-bg-card p-8 shadow-warm'
 							>
 								<SessionRatingForm
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
@@ -2100,7 +2119,7 @@ export const CookingPlayer = () => {
 								initial={{ scale: 0.9, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
 								exit={{ scale: 0.9, opacity: 0 }}
-								className='mx-4 max-w-sm rounded-2xl bg-bg-card p-8 text-center shadow-2xl'
+								className='mx-4 max-w-sm rounded-2xl bg-bg-card p-8 text-center shadow-warm'
 							>
 								<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-error/10 dark:bg-error/20'>
 									<LogOut className='size-8 text-error' />

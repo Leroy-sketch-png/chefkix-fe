@@ -14,26 +14,10 @@ import {
 import { getRecipeSocialProof } from '@/services/heartbeat'
 import type { RecipeSocialProofResponse } from '@/lib/types/heartbeat'
 import { useTranslations } from 'next-intl'
-import { formatShortTimeAgo } from '@/lib/utils'
+import { formatShortTimeAgo, getInitials } from '@/lib/utils'
 
 interface SocialProofProps {
 	recipeId: string
-}
-
-function getInitials(
-	displayName: string | null,
-	username: string | null,
-): string {
-	if (displayName) {
-		return displayName
-			.split(' ')
-			.map(n => n[0])
-			.join('')
-			.slice(0, 2)
-			.toUpperCase()
-	}
-	if (username) return username.slice(0, 2).toUpperCase()
-	return '?'
 }
 
 export function SocialProof({ recipeId }: SocialProofProps) {
@@ -42,11 +26,15 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 
 	useEffect(() => {
 		let cancelled = false
-		getRecipeSocialProof(recipeId).then(res => {
-			if (!cancelled && res.success && res.data) {
-				setData(res.data)
-			}
-		})
+		getRecipeSocialProof(recipeId)
+			.then(res => {
+				if (!cancelled && res.success && res.data) {
+					setData(res.data)
+				}
+			})
+			.catch(() => {
+				/* social proof is non-critical */
+			})
 		return () => {
 			cancelled = true
 		}
@@ -152,7 +140,9 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 													/>
 												)}
 												<AvatarFallback className='text-xs'>
-													{getInitials(cooker.displayName, cooker.username)}
+													{getInitials(
+														cooker.displayName ?? cooker.username ?? '?',
+													)}
 												</AvatarFallback>
 											</Avatar>
 										</motion.div>

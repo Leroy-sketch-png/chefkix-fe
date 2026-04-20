@@ -158,7 +158,7 @@ const AchievementBanner = ({ achievement }: AchievementBannerProps) => {
 			className='mb-5 flex items-center gap-3.5 rounded-2xl border border-accent-purple/30 bg-gradient-to-r from-accent-purple/10 to-accent-purple/5 p-3.5'
 		>
 			{/* Badge icon */}
-			<div className='flex size-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-lg shadow-accent-purple/30'>
+			<div className='flex size-12 items-center justify-center rounded-full bg-gradient-xp text-2xl shadow-warm shadow-accent-purple/30'>
 				{achievement.iconEmoji}
 			</div>
 
@@ -222,8 +222,14 @@ export const ImmediateRewards = ({
 			const files = Array.from(e.target.files || [])
 			if (files.length === 0) return
 
+			// Validate file sizes (max 10MB each)
+			const MAX_PHOTO_SIZE = 10 * 1024 * 1024
+			const validFiles = files.filter(f => f.size <= MAX_PHOTO_SIZE)
+
 			// Limit to 3 photos in modal (can add more on post page)
-			const newFiles = files.slice(0, 3 - capturedPhotos.length)
+			const newFiles = validFiles.slice(0, 3 - capturedPhotos.length)
+			if (newFiles.length === 0) return
+
 			setCapturedPhotos(prev => [...prev, ...newFiles])
 
 			// Generate preview URLs
@@ -636,10 +642,10 @@ export const ImmediateRewards = ({
 									whileHover={isNavigating ? undefined : STAT_ITEM_HOVER}
 									whileTap={isNavigating ? undefined : LIST_ITEM_TAP}
 									className={cn(
-										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-lg shadow-brand/30 transition-shadow focus-visible:ring-2 focus-visible:ring-brand/50',
+										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-warm shadow-brand/30 transition-shadow focus-visible:ring-2 focus-visible:ring-brand/50',
 										isNavigating
 											? 'cursor-wait opacity-80'
-											: 'hover:shadow-xl hover:shadow-brand/40',
+											: 'hover:shadow-warm hover:shadow-brand/40',
 									)}
 								>
 									<div className='flex items-center gap-2.5'>
@@ -708,7 +714,7 @@ export const RewardsToast = ({
 			animate={{ opacity: 1, y: 0, scale: 1 }}
 			exit={{ opacity: 0, y: 20, scale: 0.95 }}
 			transition={TRANSITION_SPRING}
-			className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-bg-card p-1 shadow-xl md:bottom-6'
+			className='fixed bottom-24 left-1/2 z-modal -translate-x-1/2 rounded-2xl bg-bg-card p-1 shadow-warm md:bottom-6'
 		>
 			<div className='flex items-center gap-3 px-4 py-3'>
 				<span className='text-xl'>✅</span>

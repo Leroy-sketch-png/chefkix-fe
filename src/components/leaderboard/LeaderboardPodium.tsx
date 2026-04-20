@@ -5,7 +5,12 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { ChefHat } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, DURATIONS, BUTTON_SUBTLE_HOVER, CROWN_BOUNCE, PODIUM_RISE } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_SUBTLE_HOVER,
+	CROWN_BOUNCE,
+	PODIUM_RISE,
+} from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 
 // ============================================================================
@@ -190,11 +195,11 @@ function PodiumSpot({
 							alt={entry.displayName}
 							width={config.avatarSize}
 							height={config.avatarSize}
-							className='rounded-full border-4 border-bg-card shadow-lg object-cover size-full'
+							className='rounded-full border-4 border-bg-card shadow-warm object-cover size-full'
 							onError={() => setImgError(true)}
 						/>
 					) : (
-						<DefaultAvatar size={config.avatarSize} className='shadow-lg' />
+						<DefaultAvatar size={config.avatarSize} className='shadow-warm' />
 					)}
 				</motion.div>
 
@@ -229,7 +234,11 @@ function PodiumSpot({
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
 				<span className='text-lg font-display font-extrabold tabular-nums text-text'>
-					<AnimatedNumber value={entry.xp} format={n => n.toLocaleString()} duration={1} />
+					<AnimatedNumber
+						value={entry.xp}
+						format={n => n.toLocaleString()}
+						duration={1}
+					/>
 				</span>
 				<span className='text-xs text-text-tertiary'>XP</span>
 			</div>

@@ -42,10 +42,10 @@ export const FollowSuggestionCard = ({
 	const [isFollowing, setIsFollowing] = useState(false)
 	const [isDismissing, setIsDismissing] = useState(false)
 	const displayName = getProfileDisplayName(profile)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 
 	const handleFollowBack = async () => {
-		if (!requireAuth(t('followThisChefAuth'))) return
+		if (!requireAuth(t('followThisChefAuth'), 'follow')) return
 		setIsFollowing(true)
 
 		try {

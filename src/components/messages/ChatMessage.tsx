@@ -123,7 +123,7 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 			exit={{ opacity: 0, scale: 0.8, y: 10 }}
 			transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 			className={cn(
-				'absolute z-dropdown flex gap-1 rounded-full bg-bg-card p-2 shadow-xl ring-1 ring-border',
+				'absolute z-dropdown flex gap-1 rounded-full bg-bg-card p-2 shadow-warm ring-1 ring-border',
 				isOwn ? 'bottom-full right-0 mb-2' : 'bottom-full left-0 mb-2',
 			)}
 		>
@@ -174,7 +174,7 @@ const MessageActions = ({
 			exit={{ opacity: 0, scale: 0.9, y: 5 }}
 			transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 			className={cn(
-				'absolute -top-2 z-dropdown flex gap-1 rounded-xl bg-bg-card p-1.5 shadow-xl ring-1 ring-border backdrop-blur-sm',
+				'absolute -top-2 z-dropdown flex gap-1 rounded-xl bg-bg-card p-1.5 shadow-warm ring-1 ring-border backdrop-blur-sm',
 				isOwn ? 'right-0' : 'left-0',
 			)}
 		>
@@ -279,8 +279,6 @@ export const ChatMessage = ({
 				onOpenChange={setShowDeleteConfirm}
 				title={t('deleteMessage')}
 				description={t('deleteMessageDesc')}
-				confirmLabel='Delete'
-				cancelLabel='Cancel'
 				variant='destructive'
 				onConfirm={handleConfirmDelete}
 			/>

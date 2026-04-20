@@ -389,7 +389,7 @@ export const SessionHeaderCompact = ({
 			onClick={onExpand}
 			whileHover={LIST_ITEM_HOVER}
 			whileTap={LIST_ITEM_TAP}
-			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
 		>
 			{/* Mini progress ring */}
 			<div className='relative size-10'>

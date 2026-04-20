@@ -42,7 +42,7 @@ export const GroupsExploreGrid = ({
 	currentUserId,
 }: GroupsExploreGridProps) => {
 	const [groups, setGroups] = useState<Group[]>([])
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [hasMore, setHasMore] = useState(true)
 	const [page, setPage] = useState(0)
@@ -90,7 +90,11 @@ export const GroupsExploreGrid = ({
 
 	// Initial load and filter changes
 	useEffect(() => {
-		loadGroups(0, false)
+		let cancelled = false
+		if (!cancelled) loadGroups(0, false)
+		return () => {
+			cancelled = true
+		}
 	}, [searchTerm, privacyFilter, sortBy, loadGroups, t])
 
 	const handleLoadMore = () => {
@@ -129,7 +133,7 @@ export const GroupsExploreGrid = ({
 						<motion.button
 							type='button'
 							onClick={() => setShowCreateModal(true)}
-							className='flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-semibold shadow-lg shadow-brand/30 transition-all duration-300 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-brand to-brand/80 hover:from-brand/90 hover:to-brand/70 text-white font-semibold shadow-warm shadow-brand/30 transition-all duration-300 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-brand/50'
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
 							transition={TRANSITION_SPRING}

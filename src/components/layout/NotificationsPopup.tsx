@@ -188,7 +188,7 @@ export const NotificationsPopup = () => {
 		SocialNotification[]
 	>([])
 	const [unreadCount, setUnreadCount] = useState(0)
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
 	const [fetchError, setFetchError] = useState(false)
 
 	useEscapeKey(isNotificationsPopupOpen, toggleNotificationsPopup)
@@ -196,12 +196,14 @@ export const NotificationsPopup = () => {
 	// Fetch notifications when popup opens
 	useEffect(() => {
 		if (!isNotificationsPopupOpen) return
+		let cancelled = false
 
 		const fetchNotifications = async () => {
 			setIsLoading(true)
 			setFetchError(false)
 			try {
 				const response = await getNotifications({ size: 20 })
+				if (cancelled) return
 				if (response.success && response.data) {
 					const { notifications, unreadCount: count } = response.data
 					setUnreadCount(count)
@@ -241,13 +243,16 @@ export const NotificationsPopup = () => {
 				}
 			} catch (err) {
 				logDevError('Failed to fetch notifications:', err)
-				setFetchError(true)
+				if (!cancelled) setFetchError(true)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchNotifications()
+		return () => {
+			cancelled = true
+		}
 	}, [isNotificationsPopupOpen, t])
 
 	if (!isNotificationsPopupOpen) return null

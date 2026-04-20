@@ -120,7 +120,7 @@ export const RecipeFiltersSheet = ({
 								onClick={handleReset}
 								className='mr-8 text-sm font-normal text-text-secondary hover:text-text-primary'
 							>
-								Reset all
+								{t('rfResetAll')}
 							</button>
 						)}
 					</SheetTitle>

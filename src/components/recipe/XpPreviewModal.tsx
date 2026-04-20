@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Edit3, Loader2, Rocket, Send, Shield, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -239,7 +238,7 @@ export const XpPreviewModal = ({
 							onClick={() => setShowConfirm(true)}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Send className='size-4' />
 							{t('publishRecipe')}

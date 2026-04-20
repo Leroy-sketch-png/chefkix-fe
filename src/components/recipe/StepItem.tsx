@@ -307,6 +307,7 @@ export const StepItem = ({
 				<textarea
 					defaultValue={step.instruction}
 					onChange={e => onUpdate({ instruction: e.target.value })}
+					maxLength={2000}
 					placeholder={t('describeStepPlaceholder')}
 					className='min-h-16 w-full resize-none rounded-lg border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>

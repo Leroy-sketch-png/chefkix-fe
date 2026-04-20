@@ -145,7 +145,7 @@ export const MobileBottomNav = () => {
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									className='grid size-12 place-items-center rounded-full bg-gradient-primary text-white shadow-lg shadow-brand/30'
+									className='grid size-12 place-items-center rounded-full bg-gradient-primary text-white shadow-warm shadow-brand/30'
 								>
 									<Icon className='size-6' />
 								</motion.div>
@@ -251,7 +251,7 @@ export const MobileBottomNav = () => {
 							animate={{ y: 0 }}
 							exit={{ y: '100%' }}
 							transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-							className='fixed inset-x-0 bottom-0 z-modal rounded-t-2xl border-t border-border-subtle bg-bg-card pb-[calc(16px+env(safe-area-inset-bottom))] shadow-lg md:hidden'
+							className='fixed inset-x-0 bottom-0 z-modal rounded-t-2xl border-t border-border-subtle bg-bg-card pb-[calc(16px+env(safe-area-inset-bottom))] shadow-warm md:hidden'
 						>
 							{/* Handle */}
 							<div className='flex items-center justify-between px-5 py-4'>

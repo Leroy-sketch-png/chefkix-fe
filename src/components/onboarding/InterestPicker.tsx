@@ -13,6 +13,7 @@ import {
 	Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { setStorageItem } from '@/lib/storage'
 import { updateProfile } from '@/services/profile'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
@@ -143,7 +144,7 @@ export function InterestPicker({
 				} else if (selected.size === 0) {
 					setShowSkipConfirm(true)
 				} else {
-					localStorage.setItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+					setStorageItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
 					onComplete()
 				}
 			}
@@ -184,14 +185,14 @@ export function InterestPicker({
 		}
 		// If has selections or already confirmed, proceed
 		if (dismissible) {
-			localStorage.setItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+			setStorageItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
 		}
 		onComplete()
 	}, [dismissible, onComplete, editMode, selected.size])
 
 	const handleConfirmSkip = useCallback(() => {
 		if (dismissible) {
-			localStorage.setItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+			setStorageItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
 		}
 		onComplete()
 	}, [dismissible, onComplete])
@@ -389,7 +390,7 @@ export function InterestPicker({
 											<motion.div
 												initial={{ scale: 0 }}
 												animate={{ scale: 1 }}
-												className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-brand text-white shadow-lg'
+												className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-brand text-white shadow-warm'
 											>
 												<Check className='size-3.5' strokeWidth={3} />
 											</motion.div>
@@ -454,7 +455,11 @@ export function InterestPicker({
  */
 export function hasInterestPickerBeenDismissed(): boolean {
 	if (typeof window === 'undefined') return false
-	return localStorage.getItem(INTEREST_PICKER_DISMISSED_KEY) === 'true'
+	try {
+		return localStorage.getItem(INTEREST_PICKER_DISMISSED_KEY) === 'true'
+	} catch {
+		/* ignored: storage access non-critical */ return false
+	}
 }
 
 /**
@@ -463,5 +468,9 @@ export function hasInterestPickerBeenDismissed(): boolean {
  */
 export function resetInterestPickerDismissal(): void {
 	if (typeof window === 'undefined') return
-	localStorage.removeItem(INTEREST_PICKER_DISMISSED_KEY)
+	try {
+		localStorage.removeItem(INTEREST_PICKER_DISMISSED_KEY)
+	} catch {
+		/* ignored: storage access non-critical */
+	}
 }

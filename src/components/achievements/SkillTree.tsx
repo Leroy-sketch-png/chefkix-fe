@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
+import { Progress } from '@/components/ui/progress'
 import {
 	Trophy,
 	Lock,
@@ -105,6 +106,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 		useState<AchievementCategory | null>(null)
 
 	useEffect(() => {
+		let cancelled = false
 		const load = async () => {
 			setIsLoading(true)
 			setHasError(false)
@@ -112,15 +114,20 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 				const result = userId
 					? await getUserSkillTree(userId)
 					: await getMySkillTree()
-				setData(result)
+				if (!cancelled) setData(result)
 			} catch {
-				setHasError(true)
-				toast.error(t('failedToLoadSkillTree'))
+				if (!cancelled) {
+					setHasError(true)
+					toast.error(t('failedToLoadSkillTree'))
+				}
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 		load()
+		return () => {
+			cancelled = true
+		}
 	}, [userId, t])
 
 	if (isLoading) return <SkillTreeSkeleton />
@@ -198,16 +205,14 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 				</div>
 				<div className='flex items-center gap-1'>
 					{/* Overall progress */}
-					<div className='h-2.5 w-32 overflow-hidden rounded-full bg-bg-elevated'>
-						<motion.div
-							className='h-full rounded-full bg-gradient-to-r from-xp to-accent-purple'
-							initial={{ width: 0 }}
-							animate={{
-								width: `${data.totalAchievements > 0 ? (data.totalUnlocked / data.totalAchievements) * 100 : 0}%`,
-							}}
-							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
-						/>
-					</div>
+					<Progress
+						value={
+							data.totalAchievements > 0
+								? (data.totalUnlocked / data.totalAchievements) * 100
+								: 0
+						}
+						className='h-2.5 w-32'
+					/>
 				</div>
 			</div>
 

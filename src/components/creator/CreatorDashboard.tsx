@@ -29,6 +29,7 @@ import {
 	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { NumberTicker } from '@/components/ui/number-ticker'
 
 // ============================================================================
 // TYPES
@@ -216,25 +217,23 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 					</span>
 				</div>
 
-				<StatCard
-					icon='👨‍🍳'
-					value={stats.totalCooks.toLocaleString()}
-					label={t('totalCooks')}
-				/>
+				<StatCard icon='👨‍🍳' label={t('totalCooks')}>
+					<NumberTicker value={stats.totalCooks} />
+				</StatCard>
 
 				{/* Creator XP */}
-				<StatCard
-					icon='⚡'
-					value={stats.creatorXpEarned.toLocaleString()}
-					label={t('creatorXpEarned')}
-				/>
+				<StatCard icon='⚡' label={t('creatorXpEarned')}>
+					<NumberTicker value={stats.creatorXpEarned} />
+				</StatCard>
 
 				{/* Avg Rating */}
-				<StatCard
-					icon='⭐'
-					value={stats.avgRating !== null ? stats.avgRating.toFixed(1) : '—'}
-					label={t('avgRating')}
-				/>
+				<StatCard icon='⭐' label={t('avgRating')}>
+					{stats.avgRating !== null ? (
+						<NumberTicker value={stats.avgRating} decimals={1} />
+					) : (
+						'—'
+					)}
+				</StatCard>
 			</div>
 		</div>
 	)
@@ -242,19 +241,19 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 
 function StatCard({
 	icon,
-	value,
 	label,
+	children,
 }: {
 	icon: string
-	value: string
 	label: string
+	children: React.ReactNode
 }) {
 	return (
 		<div className='flex items-center gap-2.5 p-4 bg-bg rounded-xl'>
 			<span className='text-2xl'>{icon}</span>
 			<div className='flex flex-col'>
 				<span className='text-xl font-display font-extrabold tabular-nums text-text'>
-					{value}
+					{children}
 				</span>
 				<span className='text-xs text-text-secondary'>{label}</span>
 			</div>

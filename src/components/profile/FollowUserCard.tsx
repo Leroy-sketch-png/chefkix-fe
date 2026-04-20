@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
@@ -35,7 +35,7 @@ export function FollowUserCard({
 }: FollowUserCardProps) {
 	const router = useRouter()
 	const { user } = useAuth()
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const t = useTranslations('profile')
 	const [isFollowing, setIsFollowing] = useState(profile.isFollowing ?? false)
 	const [isLoading, setIsLoading] = useState(false)
@@ -46,7 +46,7 @@ export function FollowUserCard({
 
 	const handleToggleFollow = async (e: React.MouseEvent) => {
 		e.stopPropagation()
-		if (!requireAuth(t('authActionFollow'))) return
+		if (!requireAuth(t('authActionFollow'), 'follow')) return
 		if (followLockRef.current || isOwnProfile) return
 		followLockRef.current = true
 

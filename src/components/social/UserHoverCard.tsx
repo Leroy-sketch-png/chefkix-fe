@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl'
@@ -40,7 +40,7 @@ export const UserHoverCard = ({
 	currentUserId,
 }: UserHoverCardProps) => {
 	const router = useRouter()
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 	const t = useTranslations('social')
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
@@ -64,7 +64,7 @@ export const UserHoverCard = ({
 	}
 
 	const handleFollowToggle = useCallback(async () => {
-		if (!requireAuth(t('hoverCardFollowGate'))) return
+		if (!requireAuth(t('hoverCardFollowGate'), 'follow')) return
 		if (followLockRef.current || !profile) return
 		followLockRef.current = true
 		setIsFollowLoading(true)
