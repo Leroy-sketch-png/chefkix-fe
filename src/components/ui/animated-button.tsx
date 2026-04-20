@@ -10,10 +10,6 @@ import { BUTTON_HOVER, BUTTON_TAP, TRANSITION_SPRING } from '@/lib/motion'
 interface AnimatedButtonProps extends React.ComponentProps<typeof Button> {
 	isLoading?: boolean
 	loadingText?: string
-	/**
-	 * Add shine effect for premium CTAs
-	 * @default false
-	 */
 	shine?: boolean
 }
 
@@ -30,7 +26,7 @@ export const AnimatedButton = forwardRef<
 		return (
 			<Button ref={ref} disabled={disabled || isLoading} {...props} asChild>
 				<motion.button
-					type='button'
+					// XÓA DÒNG type='button' Ở ĐÂY
 					whileHover={
 						disabled || isLoading || prefersReducedMotion
 							? undefined

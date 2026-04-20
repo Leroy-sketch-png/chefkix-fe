@@ -8,6 +8,7 @@ const RECIPE_SERVICE_PREFIX = `${API_PREFIX}/recipes`
 const SOCIAL_PREFIX = `${API_PREFIX}/social`
 const COLLECTIONS_PREFIX = `${API_PREFIX}/collections`
 const TIPS_PREFIX = `${API_PREFIX}/tips`
+const STORIES_PREFIX = `${API_PREFIX}/stories`
 
 export const API_ENDPOINTS = {
 	AUTH: {
@@ -413,5 +414,12 @@ export const API_ENDPOINTS = {
 		SEND: `${TIPS_PREFIX}/send`,
 		RECEIVED: `${TIPS_PREFIX}/received`,
 		SENT: `${TIPS_PREFIX}/sent`,
+	},
+	STORIES: {
+		BASE: STORIES_PREFIX,
+		CREATE: STORIES_PREFIX,
+		FEED: `${STORIES_PREFIX}/feed`,
+		HIGHLIGHTS: `${STORIES_PREFIX}/highlights`,
+		INTERACTIONS: `${STORIES_PREFIX}/interactions`,
 	},
 } as const
