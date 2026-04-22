@@ -203,7 +203,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 							{activeTab === tab && (
 								<motion.div
 									layoutId='tipHistoryTab'
-									className='absolute inset-0 rounded-md bg-bg-card shadow-sm'
+									className='absolute inset-0 rounded-md bg-bg-card shadow-card'
 									transition={TRANSITION_SPRING}
 								/>
 							)}

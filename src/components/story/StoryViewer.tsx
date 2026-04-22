@@ -177,7 +177,7 @@ export function StoryViewer({
 
 	if (isLoading || stories.length === 0 || !currentStory) {
 		return (
-			<div className='fixed inset-0 bg-black/90 z-[100] flex items-center justify-center'>
+			<div className='fixed inset-0 bg-black/90 z-modal flex items-center justify-center'>
 				<div className='animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand'></div>
 			</div>
 		)
@@ -195,7 +195,7 @@ export function StoryViewer({
 				initial={{ opacity: 0, scale: 0.95 }}
 				animate={{ opacity: 1, scale: 1 }}
 				exit={{ opacity: 0, scale: 0.95 }}
-				className='fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-0 md:p-4'
+				className='fixed inset-0 bg-black/90 z-modal flex items-center justify-center p-0 md:p-4'
 				onMouseDown={handleInteractionStart}
 				onMouseUp={handleInteractionEnd}
 				onTouchStart={handleInteractionStart}

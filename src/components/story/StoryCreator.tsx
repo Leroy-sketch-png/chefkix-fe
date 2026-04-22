@@ -305,7 +305,7 @@ export function StoryCreator() {
 									<span className='text-sm font-medium'>Cảm xúc</span>
 								</button>
 								{showEmojiPicker && (
-									<div className='absolute top-full left-0 mt-2 z-[999] shadow-2xl rounded-xl overflow-hidden'>
+									<div className='absolute top-full left-0 mt-2 z-dropdown shadow-2xl rounded-xl overflow-hidden'>
 										<div
 											className='fixed inset-0 z-[-1]'
 											onClick={() => setShowEmojiPicker(false)}
