@@ -9,6 +9,7 @@ import { API_ENDPOINTS } from '@/constants/api'
 import app from '@/configs/app'
 import { Portal } from '@/components/ui/portal'
 import { BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { useAuthStore } from '@/store/authStore'
 import { useTranslations } from 'next-intl'
 
 // Define the structure of the signaling message to match the Spring Boot backend
@@ -34,6 +35,7 @@ export default function VideoCall({
 	onClose,
 }: VideoCallProps) {
 	const t = useTranslations('messages')
+	const accessToken = useAuthStore(state => state.accessToken)
 	// --- Phase 1: Refs for Media and Connections ---
 	// We use useRef instead of useState for things that don't need to trigger a re-render when they change
 	const localVideoRef = useRef<HTMLVideoElement>(null)
@@ -156,9 +158,15 @@ export default function VideoCall({
 
 	// --- Phase 2: Signaling Client (WebSocket) ---
 	const connectWebSocket = () => {
+		if (!accessToken) {
+			toast.error(t('toastConnectionError'))
+			return
+		}
+
 		const wsBase = app.API_BASE_URL.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}${API_ENDPOINTS.CHAT.VIDEO_SIGNALING_WS}`
-		const ws = new WebSocket(wsUrl)
+		const wsUrl = new URL(`${wsBase}${API_ENDPOINTS.CHAT.VIDEO_SIGNALING_WS}`)
+		wsUrl.searchParams.set('access_token', accessToken)
+		const ws = new WebSocket(wsUrl.toString())
 
 		ws.onopen = () => {
 			// As soon as we connect, tell the backend we are joining this conversation
