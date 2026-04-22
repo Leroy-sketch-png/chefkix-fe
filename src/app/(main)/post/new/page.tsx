@@ -157,9 +157,8 @@ function CreatePostContent() {
 				if (response.success && response.data) {
 					const s = response.data
 
-					// Guard: Check if session was already linked to a post
-					// posted status means XP was already awarded, no point showing it again
-					if (s.status === 'posted') {
+					// Guard: Once the post XP was claimed, the session can no longer be linked again
+					if (s.status === 'posted' || s.status === 'post_deleted') {
 						toast.error(t('toastSessionAlreadyLinked'), {
 							description: t('xpAlreadyAwarded'),
 						})

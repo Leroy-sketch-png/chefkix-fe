@@ -45,7 +45,13 @@ export interface PendingSession {
 	baseXP: number
 	currentXP: number // after decay
 	expiresAt: Date
-	status: 'urgent' | 'warning' | 'normal' | 'expired' | 'abandoned'
+	status:
+		| 'urgent'
+		| 'warning'
+		| 'normal'
+		| 'expired'
+		| 'abandoned'
+		| 'post_deleted'
 	postId?: string
 	rating?: number
 	cookCount?: number
@@ -419,7 +425,11 @@ export const PendingPostsSection = ({
 }: PendingPostsSectionProps) => {
 	// Filter only pending sessions (not expired, not abandoned, not posted)
 	const pendingSessions = sessions.filter(
-		s => !s.postId && s.status !== 'expired' && s.status !== 'abandoned',
+		s =>
+			!s.postId &&
+			s.status !== 'expired' &&
+			s.status !== 'abandoned' &&
+			s.status !== 'post_deleted',
 	)
 
 	if (pendingSessions.length === 0) {
@@ -489,7 +499,11 @@ export const PendingExpandedModal = ({
 	useEscapeKey(isOpen, onClose)
 
 	const pendingSessions = sessions.filter(
-		s => !s.postId && s.status !== 'expired' && s.status !== 'abandoned',
+		s =>
+			!s.postId &&
+			s.status !== 'expired' &&
+			s.status !== 'abandoned' &&
+			s.status !== 'post_deleted',
 	)
 	const totalXP = pendingSessions.reduce((sum, s) => sum + s.currentXP, 0)
 	const urgentSessions = pendingSessions.filter(

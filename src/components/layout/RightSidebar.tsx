@@ -148,7 +148,12 @@ export const RightSidebar = () => {
 				// Extract completed session dates for streak calculation
 				if (sessionResponse.success && sessionResponse.data?.sessions) {
 					const completedDates = sessionResponse.data.sessions
-						.filter(s => s.status === 'completed' || s.status === 'posted')
+						.filter(
+							s =>
+								s.status === 'completed' ||
+								s.status === 'posted' ||
+								s.status === 'post_deleted',
+						)
 						.map(s => new Date(s.completedAt || s.startedAt))
 					setCookDates(completedDates)
 				}

@@ -312,6 +312,7 @@ const CompletedItem = ({
 	const t = useTranslations('history')
 	const isMastered = session.cookCount && session.cookCount >= 5
 	const isReduced = session.cookCount && session.cookCount > 2
+	const postWasRemoved = session.status === 'post_deleted'
 
 	return (
 		<motion.div
@@ -360,6 +361,11 @@ const CompletedItem = ({
 												? 'rd'
 												: 'th',
 								})}
+							</span>
+						)}
+						{postWasRemoved && (
+							<span className='rounded-md bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning'>
+								{t('postRemoved')}
 							</span>
 						)}
 					</span>
@@ -556,9 +562,15 @@ export const CookingHistoryTab = ({
 
 	// Categorize sessions
 	const pendingSessions = sessions.filter(
-		s => !s.postId && s.status !== 'expired' && s.status !== 'abandoned',
+		s =>
+			!s.postId &&
+			s.status !== 'expired' &&
+			s.status !== 'abandoned' &&
+			s.status !== 'post_deleted',
 	)
-	const completedSessions = sessions.filter(s => s.postId)
+	const completedSessions = sessions.filter(
+		s => !!s.postId || s.status === 'post_deleted',
+	)
 	const expiredSessions = sessions.filter(
 		s => s.status === 'expired' || s.status === 'abandoned',
 	)
