@@ -40,6 +40,7 @@ import {
 	ChatMessage as ChatMessageType,
 } from '@/services/chat'
 import { ChatMessage } from '@/components/messages/ChatMessage'
+import { MessagesConversationListItem } from './MessagesConversationListItem'
 import type { Message } from '@/components/messages/ChatMessage'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
@@ -50,141 +51,8 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
-import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
-
-// ============================================
-// HELPERS
-// ============================================
-
-function formatMessageTime(
-	dateString: string,
-	yesterdayLabel = 'Yesterday',
-): string {
-	const date = new Date(dateString)
-	const now = new Date()
-	const diffDays = Math.floor(
-		(now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
-	)
-
-	if (diffDays === 0) {
-		return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-	} else if (diffDays === 1) {
-		return yesterdayLabel
-	} else if (diffDays < 7) {
-		return date.toLocaleDateString([], { weekday: 'short' })
-	} else {
-		return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
-	}
-}
-
-// ============================================
-// SUB-COMPONENTS
-// ============================================
-
-interface ConversationItemProps {
-	conversation: Conversation
-	isSelected: boolean
-	currentUserId: string | undefined
-	onClick: () => void
-}
-
-function ConversationItem({
-	conversation,
-	isSelected,
-	currentUserId,
-	onClick,
-}: ConversationItemProps) {
-	const t = useTranslations('messages')
-	const otherParticipant = conversation.participants.find(
-		p => p.userId !== currentUserId,
-	)
-
-	const name =
-		conversation.conversationName ||
-		(otherParticipant
-			? `${otherParticipant.firstName} ${otherParticipant.lastName}`.trim() ||
-				otherParticipant.username
-			: t('unknownUser'))
-
-	const avatar =
-		conversation.conversationAvatar ||
-		otherParticipant?.avatar ||
-		'/placeholder-avatar.svg'
-	const previewText = conversation.lastMessage?.message || t('noMessagesYet')
-	const previewDate =
-		conversation.lastMessage?.createdDate ||
-		conversation.modifiedDate ||
-		conversation.createdDate
-
-	const hasUnread = conversation.unreadCount && conversation.unreadCount > 0
-
-	return (
-		<motion.button
-			type='button'
-			onClick={onClick}
-			whileHover={LIST_ITEM_HOVER}
-			whileTap={LIST_ITEM_TAP}
-			transition={TRANSITION_SPRING}
-			className={cn(
-				'group flex w-full cursor-pointer items-center gap-2.5 rounded-xl p-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
-				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated',
-			)}
-		>
-			{/* Avatar */}
-			<div className='relative size-11 flex-shrink-0'>
-				<Image
-					src={avatar}
-					alt={name}
-					fill
-					sizes='44px'
-					className='rounded-full object-cover'
-				/>
-			</div>
-
-			{/* Content */}
-			<div className='min-w-0 flex-1'>
-				<div className='flex items-center justify-between gap-2'>
-					<span
-						className={cn(
-							'truncate font-semibold',
-							hasUnread ? 'text-text' : 'text-text-secondary',
-						)}
-					>
-						{name}
-					</span>
-					<span className='tabular-nums flex-shrink-0 text-xs text-text-muted'>
-						{formatMessageTime(previewDate, t('yesterday'))}
-					</span>
-				</div>
-				<p
-					className={cn(
-						'mt-0.5 truncate text-sm',
-						conversation.lastMessage
-							? hasUnread
-								? 'font-medium text-text'
-								: 'text-text-muted'
-							: 'italic text-text-muted',
-					)}
-				>
-					{previewText}
-				</p>
-			</div>
-
-			{/* Unread badge */}
-			{hasUnread && (
-				<span
-					className='flex size-5 flex-shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold tabular-nums text-white'
-					role='status'
-					aria-label={`${conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount} ${t('unreadMessages')}`}
-				>
-					{conversation.unreadCount! > 9 ? '9+' : conversation.unreadCount}
-				</span>
-			)}
-		</motion.button>
-	)
-}
 
 function MessageBubble({
 	message,
@@ -724,7 +592,7 @@ function MessagesContent() {
 										transition={TRANSITION_SPRING}
 										layout
 									>
-										<ConversationItem
+										<MessagesConversationListItem
 											conversation={conv}
 											isSelected={selectedConversation?.id === conv.id}
 											currentUserId={user?.userId}

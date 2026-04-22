@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { ImageWithFallback as Image } from '@/components/ui/image-with-fallback'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import {
 	Clock,
 	ChefHat,
@@ -13,6 +14,7 @@ import {
 	Users,
 	RefreshCw,
 	History,
+	AlertCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -117,6 +119,44 @@ type RecipeCardEnhancedProps =
 	| FeaturedCardProps
 	| CookedCardProps
 	| MiniCardProps
+
+function RecipeCardErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='flex min-h-[18rem] flex-col justify-between rounded-2xl border border-destructive/20 bg-bg-card p-5 shadow-card'
+		>
+			<div className='flex items-start gap-3'>
+				<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+					<AlertCircle className='size-4' />
+				</div>
+				<div className='min-w-0'>
+					<p className='text-sm font-semibold text-text-primary'>
+						{tCommon('somethingWentWrong')}
+					</p>
+					<p className='mt-1 text-sm text-text-secondary'>
+						{error?.message || tCommon('unexpectedError')}
+					</p>
+				</div>
+			</div>
+			<button
+				type='button'
+				onClick={onReset}
+				className='mt-4 inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+			>
+				{tCommon('tryAgain')}
+			</button>
+		</div>
+	)
+}
 
 // ============================================
 // HELPER COMPONENTS
@@ -1036,7 +1076,7 @@ const MiniCard = ({
 // MAIN EXPORT
 // ============================================
 
-export const RecipeCardEnhanced = (props: RecipeCardEnhancedProps) => {
+const RecipeCardEnhancedContent = (props: RecipeCardEnhancedProps) => {
 	switch (props.variant) {
 		case 'feed':
 			return <FeedCard {...props} />
@@ -1052,6 +1092,16 @@ export const RecipeCardEnhanced = (props: RecipeCardEnhancedProps) => {
 			return null
 	}
 }
+
+export const RecipeCardEnhanced = (props: RecipeCardEnhancedProps) => (
+	<ErrorBoundary
+		fallbackRender={({ error, onReset }) => (
+			<RecipeCardErrorFallback error={error} onReset={onReset} />
+		)}
+	>
+		<RecipeCardEnhancedContent {...props} />
+	</ErrorBoundary>
+)
 
 // Export individual variants for direct use
 export { FeedCard, GridCard, FeaturedCard, CookedCard, MiniCard }

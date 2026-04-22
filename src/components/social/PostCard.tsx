@@ -38,6 +38,7 @@ import {
 	Star,
 	Lightbulb,
 	Swords,
+	AlertCircle,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -72,6 +73,7 @@ import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPicker'
 import { StarRating } from '@/components/ui/star-rating'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 
 const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
@@ -124,7 +126,49 @@ const POST_TYPE_BADGE_STYLES: Record<string, string> = {
 	RECIPE_BATTLE: 'bg-error/15 text-error',
 }
 
-export const PostCard = ({
+function PostCardErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<article className='mb-6'>
+			<div
+				role='alert'
+				className='rounded-radius border border-destructive/20 bg-bg-card p-4 shadow-card'
+			>
+				<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+					<div className='flex items-start gap-3'>
+						<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+							<AlertCircle className='size-4' />
+						</div>
+						<div className='min-w-0'>
+							<p className='text-sm font-semibold text-text-primary'>
+								{tCommon('somethingWentWrong')}
+							</p>
+							<p className='mt-1 text-sm text-text-secondary'>
+								{error?.message || tCommon('unexpectedError')}
+							</p>
+						</div>
+					</div>
+					<button
+						type='button'
+						onClick={onReset}
+						className='inline-flex h-10 items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					>
+						{tCommon('tryAgain')}
+					</button>
+				</div>
+			</div>
+		</article>
+	)
+}
+
+const PostCardContent = ({
 	post: initialPost,
 	onUpdate,
 	onDelete,
@@ -1489,3 +1533,13 @@ export const PostCard = ({
 		</>
 	)
 }
+
+export const PostCard = (props: PostCardProps) => (
+	<ErrorBoundary
+		fallbackRender={({ error, onReset }) => (
+			<PostCardErrorFallback error={error} onReset={onReset} />
+		)}
+	>
+		<PostCardContent {...props} />
+	</ErrorBoundary>
+)
