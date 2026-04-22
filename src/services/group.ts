@@ -296,21 +296,20 @@ export const getGroupPosts = async (
 	page: number = 0,
 	size: number = 10,
 ): Promise<{ content: Post[]; totalElements: number; totalPages: number }> => {
+	const params = new URLSearchParams()
+	params.append('page', page.toString())
+	params.append('size', size.toString())
+
 	const response = await api.get<ApiResponse<Post[]>>(
-		`${API_ENDPOINTS.POST.GET_ALL}?page=${page}&size=${size}`,
+		`${API_ENDPOINTS.GROUPS.GET_POSTS(groupId)}?${params.toString()}`,
 	)
 
 	if (!response.data.success || !response.data.data) {
 		return { content: [], totalElements: 0, totalPages: 0 }
 	}
 
-	// Filter to only GROUP posts
-	const groupPosts = (response.data.data ?? []).filter(
-		(post: Post) => post.postType === 'GROUP',
-	)
-
 	return {
-		content: groupPosts,
+		content: response.data.data ?? [],
 		totalElements: response.data.pagination?.totalElements ?? 0,
 		totalPages: response.data.pagination?.totalPages ?? 0,
 	}

@@ -384,6 +384,8 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/group/${groupId}/privacy`,
 		CREATE_POST: (groupId: string) =>
 			`${API_PREFIX}/posts/groups/${groupId}/posts`,
+		GET_POSTS: (groupId: string) =>
+			`${API_PREFIX}/posts/groups/${groupId}/posts`,
 	},
 	COLLECTIONS: {
 		BASE: COLLECTIONS_PREFIX,
