@@ -17,12 +17,9 @@ import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
 	BUTTON_TAP,
-	ICON_BUTTON_HOVER,
-	ICON_BUTTON_TAP,
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-import Image from 'next/image'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -35,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
+import { DraftsListCard } from './DraftsListCard'
 
 interface DraftsListProps {
 	/**
@@ -211,95 +209,14 @@ export function DraftsList({
 						</h3>
 						<AnimatePresence mode='popLayout'>
 							{drafts.map(draft => (
-								<motion.div
+								<DraftsListCard
 									key={draft.id}
-									variants={staggerItem}
-									layout
-									exit={{ opacity: 0, x: -20 }}
-									className='group relative flex items-center gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4 transition-all hover:border-brand/50 hover:bg-bg-elevated'
-								>
-									{/* Thumbnail */}
-									<div className='flex size-16 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-2xl'>
-										{draft.coverImageUrl?.[0] ? (
-											<Image
-												src={draft.coverImageUrl[0]}
-												alt={draft.title}
-												width={64}
-												height={64}
-												className='size-full rounded-xl object-cover'
-											/>
-										) : (
-											<FileText className='size-6 text-text-muted' />
-										)}
-									</div>
-
-									{/* Content */}
-									<button
-										type='button'
-										onClick={() => onSelectDraft(draft.id)}
-										className='flex flex-1 flex-col items-start text-left'
-									>
-										<div className='font-semibold text-text'>
-											{draft.title || t('untitledRecipe')}
-										</div>
-										<div className='flex items-center gap-2 text-xs text-text-muted'>
-											<Clock className='size-3' />
-											<span>
-												{draft.createdAt
-													? t('createdAgo', {
-															time: formatDistanceToNow(
-																new Date(draft.createdAt),
-																{ addSuffix: true },
-															),
-														})
-													: t('draft')}
-											</span>
-										</div>
-										{draft.description && (
-											<div className='mt-1 line-clamp-1 text-sm text-text-secondary'>
-												{draft.description}
-											</div>
-										)}
-									</button>
-
-									{/* Action Buttons */}
-									<div className='flex items-center gap-1 md:opacity-0 transition-opacity md:group-hover:opacity-100 focus-within:opacity-100'>
-										{/* Duplicate Button */}
-										<motion.button
-											type='button'
-											onClick={e => {
-												e.stopPropagation()
-												handleDuplicate(draft.id)
-											}}
-											whileHover={ICON_BUTTON_HOVER}
-											whileTap={ICON_BUTTON_TAP}
-											disabled={duplicatingId === draft.id}
-											title={t('duplicateDraft')}
-											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											<Copy
-												className={cn(
-													'size-4',
-													duplicatingId === draft.id && 'animate-pulse',
-												)}
-											/>
-										</motion.button>
-										{/* Delete Button */}
-										<motion.button
-											type='button'
-											onClick={e => {
-												e.stopPropagation()
-												setDeleteTarget(draft)
-											}}
-											whileHover={ICON_BUTTON_HOVER}
-											whileTap={ICON_BUTTON_TAP}
-											title={t('deleteDraft')}
-											className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											<Trash2 className='size-4' />
-										</motion.button>
-									</div>
-								</motion.div>
+									draft={draft}
+									isDuplicating={duplicatingId === draft.id}
+									onSelectDraft={onSelectDraft}
+									onDuplicate={handleDuplicate}
+									onDelete={setDeleteTarget}
+								/>
 							))}
 						</AnimatePresence>
 					</div>

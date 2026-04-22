@@ -23,6 +23,8 @@ import { logDevError } from '@/lib/dev-log'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { MessagesDrawerConversationListItem } from './MessagesDrawerConversationListItem'
+import { MessagesDrawerMessageBubble } from './MessagesDrawerMessageBubble'
 
 export const MessagesDrawer = () => {
 	const t = useTranslations('messages')
@@ -294,20 +296,10 @@ export const MessagesDrawer = () => {
 							) : (
 								<div className='flex flex-col gap-2'>
 									{messages.map(message => (
-										<div
+										<MessagesDrawerMessageBubble
 											key={message.id}
-											className={`flex items-end ${message.me ? 'justify-end' : 'justify-start'}`}
-										>
-											<div
-												className={`max-w-[70%] rounded-lg p-2 ${
-													message.me
-														? 'rounded-br-none bg-brand text-white'
-														: 'rounded-bl-none bg-bg-elevated'
-												}`}
-											>
-												<p className='text-sm'>{message.message}</p>
-											</div>
-										</div>
+											message={message}
+										/>
 									))}
 									<div ref={messagesEndRef} />
 								</div>
@@ -340,37 +332,14 @@ export const MessagesDrawer = () => {
 						) : (
 							<div className='flex flex-col gap-1'>
 								{filteredConversations.map(conv => (
-									<button
-										type='button'
+									<MessagesDrawerConversationListItem
 										key={conv.id}
+										name={getConversationName(conv)}
+										avatar={getConversationAvatar(conv)}
+										previewText={conv.lastMessage?.message}
+										unreadCount={conv.unreadCount}
 										onClick={() => setSelectedConversation(conv)}
-										className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-bg-hover'
-									>
-										<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full'>
-											<Image
-												src={getConversationAvatar(conv)}
-												alt={getConversationName(conv)}
-												fill
-												sizes='36px'
-												className='object-cover'
-											/>
-										</div>
-										<div className='min-w-0 flex-1'>
-											<p className='truncate text-sm font-medium'>
-												{getConversationName(conv)}
-											</p>
-											{conv.lastMessage && (
-												<p className='truncate text-xs text-text-secondary'>
-													{conv.lastMessage.message}
-												</p>
-											)}
-										</div>
-										{conv.unreadCount && conv.unreadCount > 0 && (
-											<span className='flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
-												{conv.unreadCount}
-											</span>
-										)}
-									</button>
+									/>
 								))}
 							</div>
 						)}

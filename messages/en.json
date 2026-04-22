@@ -4424,6 +4424,7 @@
 		"fullXp": "Full XP!",
 		"reducedXp": "25% ({count}{suffix}+ cook)",
 		"viewPost": "View Post",
+		"postRemoved": "Post removed",
 		"cookAgain": "Cook Again",
 		"abandonedAtStep": "Abandoned at Step {step}",
 		"abandoned": "Abandoned",

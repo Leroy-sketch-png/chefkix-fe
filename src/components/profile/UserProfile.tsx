@@ -192,10 +192,12 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 		status = 'abandoned'
 	} else if (item.status === 'expired') {
 		status = 'expired'
+	} else if (item.status === 'post_deleted') {
+		status = 'post_deleted'
 	}
 
-	// Posted sessions should be filtered out upstream, but handle gracefully
-	if (item.postId) {
+	// Live posted sessions should be filtered out upstream, but handle gracefully
+	if (item.status === 'posted' && item.postId) {
 		status = 'normal' // Already posted
 	}
 
@@ -207,7 +209,8 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 	// the post bonus. The cooking completion XP (baseXpAwarded) was already given
 	// and is NOT shown here — that's "XP Earned" in the stats.
 	const isPending = !item.postId && item.status === 'completed'
-	const isPosted = !!item.postId
+	const isPosted = item.status === 'posted' && !!item.postId
+	const isDeletedPost = item.status === 'post_deleted'
 
 	const decayMultiplier = calculateDecayMultiplier(item.completedAt)
 	const originalPostBonus = item.pendingXp ?? 0
@@ -216,11 +219,12 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 	// For pending: show post bonus (with decay)
 	// For posted: show total XP earned (base + post bonus that was actually awarded)
 	// For abandoned/expired: 0
-	const baseXP = isPending ? originalPostBonus : (item.baseXpAwarded ?? 0)
+	const postedTotalXp = item.xpEarned ?? item.baseXpAwarded ?? 0
+	const baseXP = isPending ? originalPostBonus : postedTotalXp
 	const currentXP = isPending
 		? currentPostBonus
-		: isPosted
-			? (item.xpEarned ?? item.baseXpAwarded ?? 0)
+		: isPosted || isDeletedPost
+			? postedTotalXp
 			: 0
 
 	// Calculate duration from startedAt to completedAt (or now if not completed)
@@ -249,7 +253,7 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 		currentXP,
 		expiresAt,
 		status,
-		postId: item.postId ?? undefined,
+		postId: isPosted ? (item.postId ?? undefined) : undefined,
 	}
 }
 
@@ -351,7 +355,10 @@ export const UserProfile = ({
 					// - Completed (pending): baseXpAwarded (the 30% given at completion)
 					// - Abandoned: 0 (no XP given)
 					const totalXP = response.data.sessions.reduce((sum, s) => {
-						if (s.status === 'posted' && s.postId) {
+						if (
+							(s.status === 'posted' && s.postId) ||
+							s.status === 'post_deleted'
+						) {
 							// Posted: use xpEarned which is base + remaining
 							return sum + (s.xpEarned ?? 0)
 						} else if (s.status === 'completed') {

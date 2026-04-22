@@ -231,8 +231,8 @@ export const ConfirmModal = ({
 					disabled={isLoading}
 					className={cn(
 						'h-11 rounded-lg px-4 text-sm font-semibold leading-normal transition-all hover:-translate-y-0.5 disabled:opacity-50',
-						variant === 'default' && 'bg-brand text-white hover:shadow-md',
-						variant === 'danger' && 'bg-error text-white hover:shadow-md',
+						variant === 'default' && 'bg-brand text-white hover:shadow-warm',
+						variant === 'danger' && 'bg-error text-white hover:shadow-warm',
 					)}
 				>
 					{isLoading ? 'Processing...' : confirmText}
@@ -284,7 +284,7 @@ export const AlertModal = ({
 				<button
 					type='button'
 					onClick={onClose}
-					className='h-11 rounded-lg bg-brand px-4 text-sm font-semibold leading-normal text-white transition-all hover:-translate-y-0.5 hover:shadow-md'
+					className='h-11 rounded-lg bg-brand px-4 text-sm font-semibold leading-normal text-white transition-all hover:-translate-y-0.5 hover:shadow-warm'
 				>
 					{buttonText}
 				</button>

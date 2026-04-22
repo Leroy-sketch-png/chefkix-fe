@@ -9,7 +9,14 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-import { Star, MessageSquare, ChevronDown, Loader2 } from 'lucide-react'
+import {
+	Star,
+	MessageSquare,
+	ChevronDown,
+	Loader2,
+	AlertCircle,
+} from 'lucide-react'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { StarRating } from '@/components/ui/star-rating'
 import { getReviewsForRecipe, getRecipeReviewStats } from '@/services/post'
@@ -21,6 +28,46 @@ import { useTranslations } from 'next-intl'
 
 interface RecipeReviewsProps {
 	recipeId: string
+}
+
+function RecipeReviewErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='rounded-xl border border-destructive/20 bg-bg-elevated/50 p-4'
+		>
+			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+				<div className='flex items-start gap-3'>
+					<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+						<AlertCircle className='size-4' />
+					</div>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{tCommon('somethingWentWrong')}
+						</p>
+						<p className='mt-1 text-sm text-text-secondary'>
+							{error?.message || tCommon('unexpectedError')}
+						</p>
+					</div>
+				</div>
+				<button
+					type='button'
+					onClick={onReset}
+					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-card'
+				>
+					{tCommon('tryAgain')}
+				</button>
+			</div>
+		</div>
+	)
 }
 
 export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
@@ -142,60 +189,64 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 			>
 				<AnimatePresence>
 					{reviews.map(review => (
-						<motion.div
-							key={review.id}
-							variants={staggerItem}
-							className='rounded-xl border border-border-subtle bg-bg-elevated/50 p-4'
-						>
-							<div className='mb-2 flex items-start justify-between'>
-								<Link
-									href={`/${review.userId}`}
-									className='flex items-center gap-2 transition-colors hover:text-brand'
-								>
-									<Avatar className='size-8'>
-										<AvatarImage
-											src={review.avatarUrl}
-											alt={review.displayName}
-										/>
-										<AvatarFallback>
-											{review.displayName
-												?.split(' ')
-												.map(n => n[0])
-												.join('')
-												.toUpperCase()
-												.slice(0, 2) || '??'}
-										</AvatarFallback>
-									</Avatar>
-									<span className='text-sm font-semibold text-text'>
-										{review.displayName || t('reviewUserFallback')}
-									</span>
-								</Link>
-								<div className='flex items-center gap-2'>
-									{review.reviewRating != null && (
-										<StarRating
-											value={review.reviewRating}
-											readOnly
-											size='sm'
-										/>
+						<motion.div key={review.id} variants={staggerItem}>
+							<ErrorBoundary
+								fallbackRender={({ error, onReset }) => (
+									<RecipeReviewErrorFallback error={error} onReset={onReset} />
+								)}
+							>
+								<div className='rounded-xl border border-border-subtle bg-bg-elevated/50 p-4'>
+									<div className='mb-2 flex items-start justify-between'>
+										<Link
+											href={`/${review.userId}`}
+											className='flex items-center gap-2 transition-colors hover:text-brand'
+										>
+											<Avatar className='size-8'>
+												<AvatarImage
+													src={review.avatarUrl}
+													alt={review.displayName}
+												/>
+												<AvatarFallback>
+													{review.displayName
+														?.split(' ')
+														.map(n => n[0])
+														.join('')
+														.toUpperCase()
+														.slice(0, 2) || '??'}
+												</AvatarFallback>
+											</Avatar>
+											<span className='text-sm font-semibold text-text'>
+												{review.displayName || t('reviewUserFallback')}
+											</span>
+										</Link>
+										<div className='flex items-center gap-2'>
+											{review.reviewRating != null && (
+												<StarRating
+													value={review.reviewRating}
+													readOnly
+													size='sm'
+												/>
+											)}
+											<span className='text-xs text-text-muted'>
+												{formatDistanceToNow(new Date(review.createdAt), {
+													addSuffix: true,
+												})}
+											</span>
+										</div>
+									</div>
+									{review.content && (
+										<p className='text-sm leading-relaxed text-text-secondary'>
+											{review.content}
+										</p>
 									)}
-									<span className='text-xs text-text-muted'>
-										{formatDistanceToNow(new Date(review.createdAt), {
-											addSuffix: true,
-										})}
-									</span>
+									{review.likes != null && review.likes > 0 && (
+										<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
+											<MessageSquare className='size-3' />
+											{review.commentCount ?? 0} {t('commentsLabel')}
+										</div>
+									)}
 								</div>
-							</div>
-							{review.content && (
-								<p className='text-sm leading-relaxed text-text-secondary'>
-									{review.content}
-								</p>
-							)}
-							{review.likes != null && review.likes > 0 && (
-								<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
-									<MessageSquare className='size-3' />
-									{review.commentCount ?? 0} {t('commentsLabel')}
-								</div>
-							)}
+							</ErrorBoundary>
 						</motion.div>
 					))}
 				</AnimatePresence>

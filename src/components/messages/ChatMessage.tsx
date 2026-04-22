@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import {
 	Check,
 	CheckCheck,
@@ -13,6 +14,7 @@ import {
 	Share2,
 	Heart,
 	Smile,
+	AlertCircle,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -67,6 +69,46 @@ interface ChatMessageProps {
 	onDelete?: (messageId: string) => void
 	onReply?: (message: Message) => void
 	onCopy?: (content: string) => void
+}
+
+function ChatMessageErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='rounded-xl border border-destructive/20 bg-bg-card p-4 shadow-card'
+		>
+			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+				<div className='flex items-start gap-3'>
+					<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+						<AlertCircle className='size-4' />
+					</div>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{tCommon('somethingWentWrong')}
+						</p>
+						<p className='mt-1 text-sm text-text-secondary'>
+							{error?.message || tCommon('unexpectedError')}
+						</p>
+					</div>
+				</div>
+				<button
+					type='button'
+					onClick={onReset}
+					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+				>
+					{tCommon('tryAgain')}
+				</button>
+			</div>
+		</div>
+	)
 }
 
 // =============================================================================
@@ -232,7 +274,7 @@ const MessageActions = ({
 // CHAT MESSAGE (MAIN EXPORT)
 // =============================================================================
 
-export const ChatMessage = ({
+const ChatMessageContent = ({
 	message,
 	senderAvatar,
 	senderName,
@@ -538,6 +580,16 @@ export const ChatMessage = ({
 		</>
 	)
 }
+
+export const ChatMessage = (props: ChatMessageProps) => (
+	<ErrorBoundary
+		fallbackRender={({ error, onReset }) => (
+			<ChatMessageErrorFallback error={error} onReset={onReset} />
+		)}
+	>
+		<ChatMessageContent {...props} />
+	</ErrorBoundary>
+)
 
 // =============================================================================
 // TYPING INDICATOR

@@ -14,8 +14,6 @@ import {
 	CalendarDays,
 	UtensilsCrossed,
 	FileText,
-	CheckCircle2,
-	Circle,
 	Package,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -23,6 +21,7 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Portal } from '@/components/ui/portal'
 import { ErrorState } from '@/components/ui/error-state'
+import { ShoppingListItemRow } from './ShoppingListItemRow'
 import {
 	AsyncCombobox,
 	type AsyncComboboxOption,
@@ -677,70 +676,13 @@ export default function ShoppingListsPage() {
 											{/* Items */}
 											<ul className='divide-y divide-border-subtle'>
 												{items.map(item => (
-													<motion.li
+													<ShoppingListItemRow
 														key={item.itemId}
-														layout
-														className='group flex items-center gap-3 px-4 py-3'
-													>
-														{/* Checkbox */}
-														<button
-															type='button'
-															onClick={() => handleToggleItem(item.itemId)}
-															role='checkbox'
-															aria-checked={item.checked}
-															aria-label={`${item.ingredient}`}
-															className='flex-shrink-0'
-														>
-															{item.checked ? (
-																<CheckCircle2 className='size-5 text-success' />
-															) : (
-																<Circle className='size-5 text-text-muted transition-colors hover:text-brand' />
-															)}
-														</button>
-														{/* Content */}
-														<div className='flex-1 min-w-0'>
-															<span
-																className={`text-sm transition-all ${
-																	item.checked
-																		? 'text-text-muted line-through'
-																		: 'text-text'
-																}`}
-															>
-																{item.ingredient}
-															</span>
-															{item.quantity && (
-																<span className='ml-2 text-xs text-text-muted'>
-																	({item.quantity})
-																</span>
-															)}
-															{item.recipes.length > 0 && (
-																<div className='mt-0.5 flex flex-wrap gap-1'>
-																	{item.recipes.map(recipe => (
-																		<span
-																			key={recipe}
-																			className='inline-block rounded-full bg-brand/10 px-2 py-0.5 text-2xs font-medium text-brand'
-																		>
-																			{recipe}
-																		</span>
-																	))}
-																</div>
-															)}
-															{item.addedManually && (
-																<span className='ml-1 text-2xs text-text-muted'>
-																	(custom)
-																</span>
-															)}
-														</div>
-														{/* Remove */}
-														<button
-															type='button'
-															onClick={() => handleRemoveItem(item.itemId)}
-															className='flex size-10 flex-shrink-0 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
-															aria-label={t('ariaRemoveItem')}
-														>
-															<Trash2 className='size-4' />
-														</button>
-													</motion.li>
+														item={item}
+														onToggle={handleToggleItem}
+														onRemove={handleRemoveItem}
+														removeAriaLabel={t('ariaRemoveItem')}
+													/>
 												))}
 											</ul>
 										</motion.div>

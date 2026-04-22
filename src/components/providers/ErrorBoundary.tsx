@@ -8,6 +8,7 @@ import { logDevError } from '@/lib/dev-log'
 interface Props {
 	children: ReactNode
 	fallback?: ReactNode
+	fallbackRender?: (props: { error?: Error; onReset: () => void }) => ReactNode
 	onError?: (error: Error, errorInfo: ErrorInfo) => void
 }
 
@@ -57,6 +58,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
 	public render() {
 		if (this.state.hasError) {
+			if (this.props.fallbackRender) {
+				return this.props.fallbackRender({
+					error: this.state.error,
+					onReset: this.handleReset,
+				})
+			}
+
 			if (this.props.fallback) {
 				return this.props.fallback
 			}
