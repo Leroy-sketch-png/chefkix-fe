@@ -267,15 +267,27 @@ export const RecipeCreateAiFlow = ({
 	const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
 		null,
 	)
+	const parseInFlightRef = useRef(false)
+	const publishInFlightRef = useRef(false)
+
+	const clearParseProgressInterval = useCallback(() => {
+		if (progressIntervalRef.current) {
+			clearInterval(progressIntervalRef.current)
+			progressIntervalRef.current = null
+		}
+	}, [])
+
+	const releasePublishLock = useCallback(() => {
+		publishInFlightRef.current = false
+		setIsPublishing(false)
+	}, [])
 
 	// Cleanup interval on unmount
 	useEffect(() => {
 		return () => {
-			if (progressIntervalRef.current) {
-				clearInterval(progressIntervalRef.current)
-			}
+			clearParseProgressInterval()
 		}
-	}, [])
+	}, [clearParseProgressInterval])
 
 	// ── Auto-save ────────────────────────────────────────────────────
 	const autoSavePayload = useMemo(() => {
@@ -631,6 +643,14 @@ export const RecipeCreateAiFlow = ({
 			return
 		}
 
+		if (parseInFlightRef.current) {
+			diag.warn('recipe', 'AI_PARSE aborted - parse already in flight')
+			return
+		}
+
+		parseInFlightRef.current = true
+		clearParseProgressInterval()
+
 		setStep('parsing')
 		setParsingStep(0)
 
@@ -703,9 +723,14 @@ export const RecipeCreateAiFlow = ({
 			})
 			setStep('input')
 		} finally {
-			clearInterval(progressInterval)
+			parseInFlightRef.current = false
+			if (progressIntervalRef.current === progressInterval) {
+				clearParseProgressInterval()
+			} else {
+				clearInterval(progressInterval)
+			}
 		}
-	}, [rawText, t])
+	}, [rawText, t, clearParseProgressInterval])
 
 	// ── XP preview ──────────────────────────────────────────────────
 	const handlePreviewXp = useCallback(async () => {
@@ -857,6 +882,7 @@ export const RecipeCreateAiFlow = ({
 				hasRecipeFromParam: !!recipeToPublish,
 				hasRecipeFromState: !!recipe,
 				isPublishing,
+				publishLocked: publishInFlightRef.current,
 			})
 
 			// Detect stale closure issue
@@ -884,10 +910,11 @@ export const RecipeCreateAiFlow = ({
 					? recipeToPublish
 					: recipe
 
-			if (!finalRecipe || isPublishing) {
+			if (!finalRecipe || publishInFlightRef.current) {
 				diag.warn('recipe', 'PUBLISH aborted', {
 					hasRecipe: !!finalRecipe,
 					isPublishing,
+					publishLocked: publishInFlightRef.current,
 				})
 				return
 			}
@@ -933,6 +960,7 @@ export const RecipeCreateAiFlow = ({
 				return
 			}
 
+			publishInFlightRef.current = true
 			setIsPublishing(true)
 			diag.action('recipe', 'PUBLISH starting multi-step flow', { step: 1 })
 
@@ -953,7 +981,7 @@ export const RecipeCreateAiFlow = ({
 						toast.error(t('aiFlowSaveRecipeFailed'), {
 							description: t('aiFlowCouldNotCreateDraft'),
 						})
-						setIsPublishing(false)
+						releasePublishLock()
 						return
 					}
 					currentDraftId = createResponse.data.id
@@ -994,7 +1022,7 @@ export const RecipeCreateAiFlow = ({
 					toast.error(t('aiFlowSaveRecipeFailed'), {
 						description: errorMessage,
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					return
 				}
 
@@ -1018,7 +1046,7 @@ export const RecipeCreateAiFlow = ({
 							guardResult.data.reasons?.[0] ||
 							'Content violates community guidelines.',
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					return
 				}
 
@@ -1056,7 +1084,7 @@ export const RecipeCreateAiFlow = ({
 					toast.error(t('aiFlowCannotPublish'), {
 						description: issues.join(', '),
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					return
 				}
 
@@ -1115,7 +1143,7 @@ export const RecipeCreateAiFlow = ({
 						description: errorMessage,
 						duration: 5000,
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					diag.action('recipe', 'PUBLISH flow ended (API failure)', {
 						isPublishing: false,
 					})
@@ -1125,7 +1153,7 @@ export const RecipeCreateAiFlow = ({
 				toast.error(t('aiFlowPublishFailed'), {
 					description: t('aiFlowCheckConnection'),
 				})
-				setIsPublishing(false)
+				releasePublishLock()
 				diag.action('recipe', 'PUBLISH flow ended (error)', {
 					isPublishing: false,
 				})
@@ -1138,6 +1166,7 @@ export const RecipeCreateAiFlow = ({
 			hasUnpersistedMedia,
 			onPublishSuccess,
 			buildSavePayload,
+			releasePublishLock,
 			t,
 		],
 	)

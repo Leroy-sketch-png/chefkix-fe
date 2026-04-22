@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
@@ -44,9 +44,17 @@ export function ImageCarousel({
 	const t = useTranslations('common')
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [direction, setDirection] = useState(0)
+	const [failedIndices, setFailedIndices] = useState<number[]>([])
 	const containerRef = useRef<HTMLDivElement>(null)
+	const imageSetKey = images.join('||')
 
 	const hasMultiple = images.length > 1
+	const currentImageHasFailed = failedIndices.includes(currentIndex)
+
+	useEffect(() => {
+		setCurrentIndex(prev => Math.min(prev, Math.max(images.length - 1, 0)))
+		setFailedIndices([])
+	}, [imageSetKey, images.length])
 
 	const goToNext = useCallback(() => {
 		if (!hasMultiple) return
@@ -66,6 +74,14 @@ export function ImageCarousel({
 			setCurrentIndex(index)
 		},
 		[currentIndex],
+	)
+
+	const handleImageError = useCallback(
+		(index: number) => {
+			setFailedIndices(prev => (prev.includes(index) ? prev : [...prev, index]))
+			onImageError?.(index)
+		},
+		[onImageError],
 	)
 
 	// Keyboard navigation
@@ -160,15 +176,28 @@ export function ImageCarousel({
 					onDragEnd={handleDragEnd}
 					className='relative size-full'
 				>
-					<Image
-						src={images[currentIndex]}
-						alt={`${alt} ${currentIndex + 1} of ${images.length}`}
-						fill
-						className='object-cover'
-						sizes='(max-width: 768px) 100vw, 600px'
-						onError={() => onImageError?.(currentIndex)}
-						unoptimized={/^https?:\/\//.test(images[currentIndex] || '')}
-					/>
+					{currentImageHasFailed ? (
+						<div
+							className='absolute inset-0 flex items-center justify-center bg-gradient-to-br from-accent-purple/10 to-bg-elevated'
+							role='img'
+							aria-label={`${alt} ${currentIndex + 1} of ${images.length}`}
+						>
+							<ImageOff
+								className='size-12 text-text-muted'
+								aria-hidden='true'
+							/>
+						</div>
+					) : (
+						<Image
+							src={images[currentIndex]}
+							alt={`${alt} ${currentIndex + 1} of ${images.length}`}
+							fill
+							className='object-cover'
+							sizes='(max-width: 768px) 100vw, 600px'
+							onError={() => handleImageError(currentIndex)}
+							unoptimized={/^https?:\/\//.test(images[currentIndex] || '')}
+						/>
+					)}
 				</motion.div>
 			</AnimatePresence>
 
