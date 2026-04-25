@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, ChefHat, ArrowRight, BookOpen } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Collection } from '@/lib/types/collection'
 import { getFeaturedCollections } from '@/services/collection'
@@ -11,6 +10,7 @@ import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ImageWithFallback } from '@/components/ui/image-with-fallback'
 import { useTranslations } from 'next-intl'
 
 interface SeasonsBestProps {
@@ -36,19 +36,24 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchFeatured = async () => {
 			try {
 				const res = await getFeaturedCollections()
+				if (cancelled) return
 				if (res.success && res.data && res.data.length > 0) {
 					setCollections(res.data)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch featured collections:', err)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 		fetchFeatured()
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	// Graceful degradation: nothing to show = render nothing
@@ -129,7 +134,6 @@ function FeaturedCollectionCard({
 	index,
 }: FeaturedCollectionCardProps) {
 	const t = useTranslations('explore')
-	const [imgError, setImgError] = useState(false)
 	const itemCount =
 		(collection.recipeIds?.length || 0) + (collection.postIds?.length || 0)
 
@@ -147,18 +151,16 @@ function FeaturedCollectionCard({
 			>
 				<div className='relative h-48 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card text-transparent shadow-card transition-shadow duration-300 group-hover:shadow-warm'>
 					{/* Cover image or gradient fallback — text-transparent hides alt text on slow/broken images */}
-					{collection.coverImageUrl && !imgError ? (
-						<Image
-							src={collection.coverImageUrl}
-							alt={collection.name}
-							fill
-							className='object-cover transition-transform duration-500 group-hover:scale-105'
-							sizes='288px'
-							onError={() => setImgError(true)}
-						/>
-					) : (
-						<div className='absolute inset-0 bg-gradient-to-br from-brand/20 via-brand/10 to-transparent' />
-					)}
+					<ImageWithFallback
+						src={collection.coverImageUrl}
+						alt={collection.name}
+						fill
+						className='object-cover transition-transform duration-500 group-hover:scale-105'
+						sizes='288px'
+						fallbackComponent={
+							<div className='absolute inset-0 bg-gradient-to-br from-brand/20 via-brand/10 to-transparent' />
+						}
+					/>
 
 					{/* Gradient overlay for text readability */}
 					<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />

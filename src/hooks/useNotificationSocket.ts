@@ -29,12 +29,16 @@ interface UseNotificationSocketReturn {
  * Replaces HTTP polling with instant push.
  */
 export function useNotificationSocket(): UseNotificationSocketReturn {
-	const { accessToken, user } = useAuthStore()
-	const { incrementUnreadCount, stopPolling } = useNotificationStore()
+	const { accessToken, user, isHydrated, isLoading } = useAuthStore()
+	const { incrementUnreadCount, stopPolling, startPolling } =
+		useNotificationStore()
 	const clientRef = useRef<Client | null>(null)
 	const subscriptionRef = useRef<StompSubscription | null>(null)
+	const reconnectAttemptsRef = useRef(0)
 	const [isConnected, setIsConnected] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+
+	const MAX_RECONNECT_ATTEMPTS = 10
 
 	const userId = user?.userId
 
@@ -52,10 +56,12 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 	handleNotificationRef.current = handleNotification
 	const stopPollingRef = useRef(stopPolling)
 	stopPollingRef.current = stopPolling
+	const startPollingRef = useRef(startPolling)
+	startPollingRef.current = startPolling
 
 	// Connect to WebSocket
 	useEffect(() => {
-		if (!accessToken || !userId) return
+		if (!isHydrated || isLoading || !accessToken || !userId) return
 
 		const client = new Client({
 			brokerURL: getWebSocketUrl(),
@@ -63,7 +69,10 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 				const token = await getFreshWebSocketAccessToken()
 				if (!token) {
 					setError(WEBSOCKET_SESSION_EXPIRED_MESSAGE)
-					throw new Error('Missing access token for notification socket')
+					setIsConnected(false)
+					client.reconnectDelay = 0
+					startPollingRef.current()
+					return
 				}
 
 				client.connectHeaders = {
@@ -75,6 +84,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 			heartbeatIncoming: 10000,
 			heartbeatOutgoing: 10000,
 			onConnect: () => {
+				reconnectAttemptsRef.current = 0
 				setIsConnected(true)
 				setError(null)
 
@@ -97,16 +107,26 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 			},
 			onDisconnect: () => {
 				setIsConnected(false)
+				reconnectAttemptsRef.current++
+				if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+					client.reconnectDelay = 0
+				}
+				// Restart HTTP polling as fallback when WebSocket drops
+				startPollingRef.current()
 			},
 			onStompError: frame => {
 				const errorMessage = getReadableWebSocketError(frame.headers['message'])
 				logDevError('[NotifSocket] STOMP error:', frame.headers['message'])
 				setError(errorMessage)
 				setIsConnected(false)
+				// Restart HTTP polling as fallback
+				startPollingRef.current()
 			},
 			onWebSocketError: () => {
 				setError('WebSocket connection failed')
 				setIsConnected(false)
+				// Restart HTTP polling as fallback
+				startPollingRef.current()
 			},
 		})
 
@@ -124,7 +144,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 			}
 			setIsConnected(false)
 		}
-	}, [accessToken, userId])
+	}, [accessToken, userId, isHydrated, isLoading])
 
 	return { isConnected, error }
 }

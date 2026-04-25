@@ -92,8 +92,7 @@ export function CollectionBuilder({
 	const t = useTranslations('collections')
 	const [name, setName] = useState(initialName)
 	const [description, setDescription] = useState(initialDescription)
-	const [collectionType, setCollectionType] =
-		useState<CollectionType>(initialType)
+	const [collectionType] = useState<CollectionType>(initialType)
 	const [isPublic, setIsPublic] = useState(true)
 	const [stages, setStages] = useState<DifficultyStep[]>(
 		initialStages.length > 0

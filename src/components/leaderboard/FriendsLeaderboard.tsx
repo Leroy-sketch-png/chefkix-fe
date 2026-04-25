@@ -103,24 +103,12 @@ function LeaderboardSummary({
 	const getMessage = () => {
 		if (isGlobal) {
 			if (totalChefs && totalChefs > 1) {
-				return (
-					<>
-						{t('competingWithChef', {n: totalChefs})}
-					</>
-				)
+				return <>{t('competingWithChef', { n: totalChefs })}</>
 			}
-			return (
-				<>
-					{t('firstOnBoard')}
-				</>
-			)
+			return <>{t('firstOnBoard')}</>
 		}
 		if (totalFriends === 0) {
-			return (
-				<>
-					{t('noRivals')}
-				</>
-			)
+			return <>{t('noRivals')}</>
 		}
 		return (
 			<>
@@ -188,7 +176,7 @@ function CatchingUpAlert({
 					/>
 				</div>
 				<span className='text-sm text-text'>
-					{t('xpBehind', {name: competitor.displayName, xp: xpBehind})}
+					{t('xpBehind', { name: competitor.displayName, xp: xpBehind })}
 				</span>
 			</div>
 			{onCookToDefend && (
@@ -277,7 +265,7 @@ export function FriendsLeaderboard({
 						initial={{ scale: 0 }}
 						animate={{ scale: 1 }}
 						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-						className='mb-3 inline-flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-level to-xp shadow-lg'
+						className='mb-3 inline-flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-level to-xp shadow-warm'
 					>
 						<span className='text-3xl'>👑</span>
 					</motion.div>
@@ -349,7 +337,7 @@ export function FriendsLeaderboard({
 						initial={{ scale: 0 }}
 						animate={{ scale: 1 }}
 						transition={TRANSITION_SPRING}
-						className='mb-4 flex size-16 items-center justify-center rounded-2xl bg-gradient-xp shadow-lg'
+						className='mb-4 flex size-16 items-center justify-center rounded-2xl bg-gradient-xp shadow-warm'
 					>
 						<ChefHat className='size-8 text-white' />
 					</motion.div>

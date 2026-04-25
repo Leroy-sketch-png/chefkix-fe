@@ -6,7 +6,7 @@ import { getUserPresence } from '@/services/presence'
 /**
  * Hook to check if a specific user is online.
  * Uses polling with a reasonable interval to avoid hammering the server.
- * 
+ *
  * @param userId - The user ID to check presence for
  * @param enabled - Whether to fetch presence (disable for current user)
  * @returns { isOnline, isLoading }
@@ -42,7 +42,7 @@ export function useUserOnlineStatus(
 					setIsOnline(response.data.online)
 				}
 			} catch {
-				// Silently fail - presence is non-critical
+				// ignored: presence check non-critical
 				if (mountedRef.current) {
 					setIsOnline(false)
 				}

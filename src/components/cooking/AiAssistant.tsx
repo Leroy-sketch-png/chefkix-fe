@@ -8,7 +8,6 @@ import {
 	X,
 	Send,
 	Lightbulb,
-	AlertTriangle,
 	Mic,
 	MicOff,
 	Loader2,
@@ -25,6 +24,10 @@ import {
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 import { askCookingAssistant } from '@/services/ai'
+import {
+	AiAssistantChatMessage,
+	AiAssistantMessage,
+} from './AiAssistantChatMessage'
 
 // ============================================
 // WEB SPEECH API (not in all TS lib versions)
@@ -51,24 +54,7 @@ type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
 // TYPES
 // ============================================
 
-type MessageRole = 'user' | 'assistant'
-type MessageType = 'text' | 'substitution' | 'technique' | 'warning' | 'tip'
-
-interface Message {
-	id: string
-	role: MessageRole
-	type: MessageType
-	content: string
-	timestamp: Date
-	metadata?: {
-		substitution?: {
-			original: string
-			replacement: string
-			ratio?: string
-		}
-		confidence?: number
-	}
-}
+type MessageType = AiAssistantMessage['type']
 
 interface QuickAction {
 	id: string
@@ -120,91 +106,6 @@ const QUICK_ACTIONS: QuickAction[] = [
 // SUB-COMPONENTS
 // ============================================
 
-interface ChatMessageProps {
-	message: Message
-}
-
-const ChatMessage = ({ message }: ChatMessageProps) => {
-	const t = useTranslations('cooking')
-	const isUser = message.role === 'user'
-
-	return (
-		<motion.div
-			initial={{ opacity: 0, y: 10, scale: 0.95 }}
-			animate={{ opacity: 1, y: 0, scale: 1 }}
-			transition={TRANSITION_SPRING}
-			className={cn('flex gap-2', isUser ? 'flex-row-reverse' : 'flex-row')}
-		>
-			{/* Avatar */}
-			<div
-				className={cn(
-					'flex size-8 shrink-0 items-center justify-center rounded-full text-sm',
-					isUser ? 'bg-brand text-white' : 'bg-gradient-indigo text-white',
-				)}
-			>
-				{isUser ? '👤' : '✨'}
-			</div>
-
-			{/* Message content */}
-			<div
-				className={cn(
-					'max-w-[80%] rounded-2xl px-4 py-2.5',
-					isUser ? 'bg-brand text-white' : 'bg-bg-elevated text-text',
-					message.type === 'warning' &&
-						!isUser &&
-						'border border-warning/30 bg-warning/10',
-					message.type === 'tip' &&
-						!isUser &&
-						'border border-success/30 bg-success/10',
-				)}
-			>
-				{/* Type indicator for special messages */}
-				{message.type === 'warning' && (
-					<div className='mb-1.5 flex items-center gap-1.5 text-warning'>
-						<AlertTriangle className='size-4' />
-						<span className='text-xs font-semibold uppercase'>
-							{t('aiWarning')}
-						</span>
-					</div>
-				)}
-				{message.type === 'tip' && (
-					<div className='mb-1.5 flex items-center gap-1.5 text-success'>
-						<Lightbulb className='size-4' />
-						<span className='text-xs font-semibold uppercase'>
-							{t('aiProTip')}
-						</span>
-					</div>
-				)}
-
-				{/* Substitution card */}
-				{message.type === 'substitution' && message.metadata?.substitution && (
-					<div className='mb-2 rounded-lg bg-bg-card p-3'>
-						<p className='text-xs font-medium uppercase text-text-tertiary'>
-							Substitution
-						</p>
-						<div className='mt-1 flex items-center gap-2'>
-							<span className='font-medium line-through opacity-60'>
-								{message.metadata.substitution.original}
-							</span>
-							<span>→</span>
-							<span className='font-bold text-success'>
-								{message.metadata.substitution.replacement}
-							</span>
-						</div>
-						{message.metadata.substitution.ratio && (
-							<p className='mt-1 text-sm text-text-secondary'>
-								{t('aiRatio', { ratio: message.metadata.substitution.ratio })}
-							</p>
-						)}
-					</div>
-				)}
-
-				<p className='text-sm leading-relaxed'>{message.content}</p>
-			</div>
-		</motion.div>
-	)
-}
-
 // Typing indicator
 const TypingIndicator = () => (
 	<motion.div
@@ -252,7 +153,7 @@ export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => {
 			whileTap={ICON_BUTTON_TAP}
 			animate={hasUnreadSuggestion ? AI_BUTTON_PULSE.animate : undefined}
 			className={cn(
-				'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-lg md:bottom-6 focus-visible:ring-2 focus-visible:ring-brand/50',
+				'fixed bottom-24 right-4 z-popover flex size-14 items-center justify-center rounded-full shadow-warm md:bottom-6 focus-visible:ring-2 focus-visible:ring-brand/50',
 				'bg-gradient-indigo text-white',
 			)}
 			aria-label={t('ariaOpenAiAssistant')}
@@ -280,7 +181,7 @@ export const AiAssistant = ({
 	isOpen,
 }: AiAssistantProps) => {
 	const t = useTranslations('cooking')
-	const [messages, setMessages] = useState<Message[]>([])
+	const [messages, setMessages] = useState<AiAssistantMessage[]>([])
 	const [inputValue, setInputValue] = useState('')
 	const [isTyping, setIsTyping] = useState(false)
 	const [isListening, setIsListening] = useState(false)
@@ -325,7 +226,7 @@ export const AiAssistant = ({
 		if (!text) return
 
 		// Add user message
-		const userMessage: Message = {
+		const userMessage: AiAssistantMessage = {
 			id: `user-${Date.now()}`,
 			role: 'user',
 			type: 'text',
@@ -341,7 +242,7 @@ export const AiAssistant = ({
 			const context = `Step ${currentStep}: ${currentStepInstruction}`
 			const response = await askCookingAssistant(text, context)
 
-			const aiResponse: Message = {
+			const aiResponse: AiAssistantMessage = {
 				id: `ai-${Date.now()}`,
 				role: 'assistant',
 				type: determineMessageType(text),
@@ -364,7 +265,7 @@ export const AiAssistant = ({
 
 			// Add tips as follow-up if available
 			if (response.data?.tips && response.data.tips.length > 0) {
-				const tipMessage: Message = {
+				const tipMessage: AiAssistantMessage = {
 					id: `tip-${Date.now()}`,
 					role: 'assistant',
 					type: 'tip',
@@ -374,7 +275,7 @@ export const AiAssistant = ({
 				setMessages(prev => [...prev, tipMessage])
 			}
 		} catch (error) {
-			const errorResponse: Message = {
+			const errorResponse: AiAssistantMessage = {
 				id: `error-${Date.now()}`,
 				role: 'assistant',
 				type: 'warning',
@@ -459,7 +360,7 @@ export const AiAssistant = ({
 						initial='hidden'
 						animate='visible'
 						exit='exit'
-						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-bg-card shadow-xl md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
+						className='fixed inset-x-4 bottom-4 top-20 z-modal mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl bg-bg-card shadow-warm md:inset-x-auto md:right-4 md:top-auto md:h-panel-xl md:max-h-modal-constrained'
 						role='dialog'
 						aria-modal='true'
 						aria-label={t('aiCookingAssistant')}
@@ -503,7 +404,7 @@ export const AiAssistant = ({
 						<div className='flex-1 space-y-4 overflow-y-auto p-4'>
 							<AnimatePresence>
 								{messages.map(message => (
-									<ChatMessage key={message.id} message={message} />
+									<AiAssistantChatMessage key={message.id} message={message} />
 								))}
 							</AnimatePresence>
 

@@ -28,24 +28,28 @@ export const MyGroupsSidebar = ({
 }: MyGroupsSidebarProps) => {
 	const t = useTranslations('groups')
 	const [groups, setGroups] = useState<Group[]>([])
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(() => {
 		if (!currentUserId) return
+		let cancelled = false
 
 		const loadGroups = async () => {
 			setIsLoading(true)
 			try {
 				const response = await getMyGroups(undefined, 0, maxGroups)
-				setGroups(response.content)
+				if (!cancelled) setGroups(response.content)
 			} catch (error) {
 				// Silently fail for sidebar
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		loadGroups()
+		return () => {
+			cancelled = true
+		}
 	}, [currentUserId, maxGroups])
 
 	if (!currentUserId) {

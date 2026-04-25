@@ -9,12 +9,12 @@ import {
 	InputGroupInput,
 } from '@/components/ui/input-group'
 import { EmptyStateGamified } from '@/components/shared'
-import { Search, X, AlertCircle } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TRANSITION_SPRING, staggerContainer } from '@/lib/motion'
+import { staggerContainer } from '@/lib/motion'
 import { getProfilesPaginated } from '@/services/profile'
 
 const PROFILES_PER_PAGE = 20
@@ -27,7 +27,9 @@ type Props = {
 
 export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	const t = useTranslations('discover')
-	const [profiles, setProfiles] = useState<Profile[]>(initialProfiles ?? [])
+	const [profiles, setProfiles] = useState<Profile[]>(
+		Array.isArray(initialProfiles) ? initialProfiles : [],
+	)
 	const [searchTerm, setSearchTerm] = useState('')
 	const [debouncedSearch, setDebouncedSearch] = useState('')
 	const [page, setPage] = useState(0)
@@ -35,6 +37,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	const [isLoading, setIsLoading] = useState(!initialProfiles)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [loadError, setLoadError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 	const hasAnimated = useRef(false)
 
@@ -48,6 +51,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 
 	// Fetch profiles on initial load or search change
 	useEffect(() => {
+		let cancelled = false
 		const fetchProfiles = async () => {
 			setIsLoading(true)
 			setLoadError(false)
@@ -60,6 +64,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 					search: debouncedSearch || undefined,
 				})
 
+				if (cancelled) return
 				if (response.success && response.data) {
 					setProfiles(response.data)
 					if (response.pagination) {
@@ -72,22 +77,27 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 					toast.error(t('toastLoadUsersFailed'))
 				}
 			} catch {
-				setLoadError(true)
-				toast.error(t('toastLoadUsersFailed'))
+				if (!cancelled) {
+					setLoadError(true)
+					toast.error(t('toastLoadUsersFailed'))
+				}
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		// Only fetch if we don't have initial profiles OR if search is active
-		if (!initialProfiles || debouncedSearch) {
+		if (!Array.isArray(initialProfiles) || debouncedSearch) {
 			fetchProfiles()
-		} else if (initialProfiles && !debouncedSearch) {
+		} else if (Array.isArray(initialProfiles) && !debouncedSearch) {
 			// Use initial profiles when no search
 			setProfiles(initialProfiles)
 			setHasMore(false) // Initial profiles are the complete list
 		}
-	}, [debouncedSearch, initialProfiles, t])
+		return () => {
+			cancelled = true
+		}
+	}, [debouncedSearch, initialProfiles, retryKey, t])
 
 	// Load more callback
 	const handleLoadMore = useCallback(async () => {
@@ -106,7 +116,9 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 			if (response.success && response.data) {
 				setProfiles(prev => {
 					const existingIds = new Set(prev.map(p => p.userId))
-					const newProfiles = response.data.filter(p => !existingIds.has(p.userId))
+					const newProfiles = response.data.filter(
+						p => !existingIds.has(p.userId),
+					)
 					return [...prev, ...newProfiles]
 				})
 				setPage(nextPage)
@@ -154,7 +166,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 
 	const handleRetry = () => {
 		setLoadError(false)
-		setDebouncedSearch(prev => prev) // Trigger re-fetch
+		setRetryKey(prev => prev + 1)
 	}
 
 	// Show error state if initial load failed
@@ -205,7 +217,10 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 				</div>
 				<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
 					{Array.from({ length: 8 }).map((_, i) => (
-						<div key={i} className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'>
+						<div
+							key={i}
+							className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'
+						>
 							<div className='flex items-center gap-3'>
 								<Skeleton className='size-10 rounded-full' />
 								<div className='flex-1 space-y-1.5'>
@@ -291,7 +306,10 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 					{isLoadingMore && (
 						<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 py-6'>
 							{Array.from({ length: 4 }).map((_, i) => (
-								<div key={i} className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'>
+								<div
+									key={i}
+									className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'
+								>
 									<div className='flex items-center gap-3'>
 										<Skeleton className='size-10 rounded-full' />
 										<div className='flex-1 space-y-1.5'>

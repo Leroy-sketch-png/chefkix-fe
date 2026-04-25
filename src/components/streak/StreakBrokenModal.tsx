@@ -124,7 +124,7 @@ export function StreakBrokenModal({
 									className={cn(
 										'flex items-center justify-center gap-2 py-4 px-6 rounded-xl focus-visible:ring-2 focus-visible:ring-brand/50',
 										'bg-gradient-streak text-white',
-										'text-base font-bold shadow-lg shadow-streak/30',
+										'text-base font-bold shadow-warm shadow-streak/30',
 									)}
 								>
 									<Flame className='size-5' />

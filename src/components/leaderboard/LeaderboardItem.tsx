@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import {
 	Flame,
 	Utensils,
 	TrendingUp,
 	TrendingDown,
 	ChefHat,
+	AlertCircle,
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -42,6 +44,46 @@ export interface LeaderboardItemProps {
 	xpDiff?: number
 	onClick?: (entry: LeaderboardEntry) => void
 	className?: string
+}
+
+function LeaderboardItemErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='rounded-xl border border-destructive/20 bg-bg-card p-4 shadow-card'
+		>
+			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+				<div className='flex items-start gap-3'>
+					<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+						<AlertCircle className='size-4' />
+					</div>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{tCommon('somethingWentWrong')}
+						</p>
+						<p className='mt-1 text-sm text-text-secondary'>
+							{error?.message || tCommon('unexpectedError')}
+						</p>
+					</div>
+				</div>
+				<button
+					type='button'
+					onClick={onReset}
+					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+				>
+					{tCommon('tryAgain')}
+				</button>
+			</div>
+		</div>
+	)
 }
 
 // ============================================================================
@@ -91,7 +133,7 @@ function AvatarWithFallback({
 // LEADERBOARD ITEM COMPONENT
 // ============================================================================
 
-export function LeaderboardItem({
+function LeaderboardItemContent({
 	entry,
 	variant = 'default',
 	showStats = true,
@@ -205,7 +247,10 @@ export function LeaderboardItem({
 					</div>
 					<div className='flex items-center gap-1 text-sm text-text-secondary'>
 						<Utensils className='size-3.5' />
-						<AnimatedNumber value={entry.recipesCooked} className='tabular-nums' />
+						<AnimatedNumber
+							value={entry.recipesCooked}
+							className='tabular-nums'
+						/>
 					</div>
 				</div>
 			)}
@@ -213,7 +258,11 @@ export function LeaderboardItem({
 			{/* XP */}
 			<div className='min-w-thumbnail-md text-right'>
 				<span className='block text-base font-display font-extrabold text-text'>
-					<AnimatedNumber value={entry.xpThisWeek} format={n => n.toLocaleString()} className='tabular-nums' />
+					<AnimatedNumber
+						value={entry.xpThisWeek}
+						format={n => n.toLocaleString()}
+						className='tabular-nums'
+					/>
 				</span>
 				<span className='text-xs text-text-muted'>{t('xp')}</span>
 				{xpDiff !== undefined && xpDiff < 0 && (
@@ -223,6 +272,18 @@ export function LeaderboardItem({
 				)}
 			</div>
 		</motion.div>
+	)
+}
+
+export function LeaderboardItem(props: LeaderboardItemProps) {
+	return (
+		<ErrorBoundary
+			fallbackRender={({ error, onReset }) => (
+				<LeaderboardItemErrorFallback error={error} onReset={onReset} />
+			)}
+		>
+			<LeaderboardItemContent {...props} />
+		</ErrorBoundary>
 	)
 }
 

@@ -82,15 +82,30 @@ export const QuickPostFAB = ({
 	const battleSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const { user } = useAuthStore()
 
+	// Clean up battle search timeout on unmount
+	useEffect(() => {
+		return () => {
+			if (battleSearchTimeout.current) clearTimeout(battleSearchTimeout.current)
+		}
+	}, [])
+
 	// Dismissible hint — show on first visit
 	const [showHint, setShowHint] = useState(false)
 	useEffect(() => {
-		const dismissed = localStorage.getItem('fab-hint-dismissed')
-		if (!dismissed) setShowHint(true)
+		try {
+			const dismissed = localStorage.getItem('fab-hint-dismissed')
+			if (!dismissed) setShowHint(true)
+		} catch {
+			/* ignored: localStorage restricted */
+		}
 	}, [])
 	const dismissHint = () => {
 		setShowHint(false)
-		localStorage.setItem('fab-hint-dismissed', '1')
+		try {
+			localStorage.setItem('fab-hint-dismissed', '1')
+		} catch {
+			/* restricted */
+		}
 	}
 
 	const MAX_PHOTOS = 5
@@ -180,7 +195,7 @@ export const QuickPostFAB = ({
 					setBattleSearchResults(recipes)
 				}
 			} catch {
-				// Silently fail search
+				// ignored: autocomplete search non-critical
 			} finally {
 				setBattleSearching(false)
 			}
@@ -452,7 +467,7 @@ export const QuickPostFAB = ({
 				>
 					<Camera className='size-6 text-white' />
 					{/* Tooltip on hover (desktop) */}
-					<span className='pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded-lg bg-text px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 sm:block'>
+					<span className='pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded-lg bg-text px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-warm transition-opacity group-hover:opacity-100 sm:block'>
 						{t('fabTooltip')}
 					</span>
 				</motion.button>

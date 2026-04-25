@@ -54,7 +54,7 @@ export const RecipeParsingOverlay = ({
 						<motion.div
 							animate={{ scale: [1, 1.1, 1] }}
 							transition={{ repeat: Infinity, duration: 1.5 }}
-							className='flex size-20 items-center justify-center rounded-2xl bg-gradient-hero text-white shadow-lg'
+							className='flex size-20 items-center justify-center rounded-2xl bg-gradient-hero text-white shadow-warm'
 						>
 							<Wand2 className='size-9' />
 						</motion.div>

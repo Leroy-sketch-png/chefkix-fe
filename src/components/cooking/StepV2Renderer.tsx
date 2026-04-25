@@ -155,7 +155,7 @@ const FullModeRenderer = ({
 					initial={{ opacity: 0, scale: 0.95 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ delay: 0.1 }}
-					className='relative mx-auto mb-4 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-lg'
+					className='relative mx-auto mb-4 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-warm'
 				>
 					<video
 						src={step.videoUrl}
@@ -175,7 +175,7 @@ const FullModeRenderer = ({
 					initial={{ opacity: 0, scale: 0.95 }}
 					animate={{ opacity: 1, scale: 1 }}
 					transition={{ delay: 0.1 }}
-					className='relative mx-auto mb-4 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-lg'
+					className='relative mx-auto mb-4 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-warm'
 				>
 					<Image
 						src={step.imageUrl}
@@ -422,7 +422,7 @@ const KitchenModeRenderer = ({
 		<div className='space-y-6'>
 			{/* Video (auto-plays, useful at distance for visual reference) */}
 			{step.videoUrl && (
-				<div className='relative mx-auto aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-lg'>
+				<div className='relative mx-auto aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-warm'>
 					<video
 						src={step.videoUrl}
 						poster={step.videoThumbnailUrl || undefined}

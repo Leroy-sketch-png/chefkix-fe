@@ -32,7 +32,7 @@ import {
 	X,
 } from 'lucide-react'
 import Image from 'next/image'
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { diag } from '@/lib/diagnostics'
 import {
@@ -101,6 +101,8 @@ import { IngredientItem } from './IngredientItem'
 import { StepItem } from './StepItem'
 import { XpPreviewModal } from './XpPreviewModal'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
+import { OverlayLoader } from '@/components/ui/overlay-loader'
+import { StepIndicator } from '@/components/ui/step-indicator'
 
 const CUISINE_OPTIONS: ComboboxOption[] = [
 	'Italian',
@@ -261,6 +263,31 @@ export const RecipeCreateAiFlow = ({
 	// Cover image upload
 	const coverImageRef = React.useRef<HTMLInputElement>(null)
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
+	// Ref for AI parsing progress interval — prevents memory leak on unmount
+	const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+		null,
+	)
+	const parseInFlightRef = useRef(false)
+	const publishInFlightRef = useRef(false)
+
+	const clearParseProgressInterval = useCallback(() => {
+		if (progressIntervalRef.current) {
+			clearInterval(progressIntervalRef.current)
+			progressIntervalRef.current = null
+		}
+	}, [])
+
+	const releasePublishLock = useCallback(() => {
+		publishInFlightRef.current = false
+		setIsPublishing(false)
+	}, [])
+
+	// Cleanup interval on unmount
+	useEffect(() => {
+		return () => {
+			clearParseProgressInterval()
+		}
+	}, [clearParseProgressInterval])
 
 	// ── Auto-save ────────────────────────────────────────────────────
 	const autoSavePayload = useMemo(() => {
@@ -393,6 +420,14 @@ export const RecipeCreateAiFlow = ({
 		async (e: React.ChangeEvent<HTMLInputElement>) => {
 			const file = e.target.files?.[0]
 			if (!file || !recipe) return
+
+			// Validate file size (max 10MB)
+			if (file.size > 10 * 1024 * 1024) {
+				toast.error(t('aiFlowImageUploadFailed'), {
+					description: 'File size exceeds 10MB limit',
+				})
+				return
+			}
 
 			diag.image('recipe', 'select', {
 				type: 'cover',
@@ -608,12 +643,21 @@ export const RecipeCreateAiFlow = ({
 			return
 		}
 
+		if (parseInFlightRef.current) {
+			diag.warn('recipe', 'AI_PARSE aborted - parse already in flight')
+			return
+		}
+
+		parseInFlightRef.current = true
+		clearParseProgressInterval()
+
 		setStep('parsing')
 		setParsingStep(0)
 
 		const progressInterval = setInterval(() => {
 			setParsingStep(prev => Math.min(prev + 1, 3))
 		}, 600)
+		progressIntervalRef.current = progressInterval
 
 		try {
 			diag.request('recipe', 'POST /process_recipe', {
@@ -626,8 +670,6 @@ export const RecipeCreateAiFlow = ({
 				response,
 				response.success,
 			)
-
-			clearInterval(progressInterval)
 			setParsingStep(4)
 
 			if (response.success && response.data) {
@@ -672,7 +714,6 @@ export const RecipeCreateAiFlow = ({
 				setStep('input')
 			}
 		} catch (err) {
-			clearInterval(progressInterval)
 			diag.error('recipe', 'AI_PARSE exception', err)
 			toast.error(t('aiFlowParsingFailed'), {
 				description:
@@ -681,8 +722,15 @@ export const RecipeCreateAiFlow = ({
 						: 'Network error. Check your connection.',
 			})
 			setStep('input')
+		} finally {
+			parseInFlightRef.current = false
+			if (progressIntervalRef.current === progressInterval) {
+				clearParseProgressInterval()
+			} else {
+				clearInterval(progressInterval)
+			}
 		}
-	}, [rawText, t])
+	}, [rawText, t, clearParseProgressInterval])
 
 	// ── XP preview ──────────────────────────────────────────────────
 	const handlePreviewXp = useCallback(async () => {
@@ -834,6 +882,7 @@ export const RecipeCreateAiFlow = ({
 				hasRecipeFromParam: !!recipeToPublish,
 				hasRecipeFromState: !!recipe,
 				isPublishing,
+				publishLocked: publishInFlightRef.current,
 			})
 
 			// Detect stale closure issue
@@ -861,10 +910,11 @@ export const RecipeCreateAiFlow = ({
 					? recipeToPublish
 					: recipe
 
-			if (!finalRecipe || isPublishing) {
+			if (!finalRecipe || publishInFlightRef.current) {
 				diag.warn('recipe', 'PUBLISH aborted', {
 					hasRecipe: !!finalRecipe,
 					isPublishing,
+					publishLocked: publishInFlightRef.current,
 				})
 				return
 			}
@@ -910,6 +960,7 @@ export const RecipeCreateAiFlow = ({
 				return
 			}
 
+			publishInFlightRef.current = true
 			setIsPublishing(true)
 			diag.action('recipe', 'PUBLISH starting multi-step flow', { step: 1 })
 
@@ -930,7 +981,7 @@ export const RecipeCreateAiFlow = ({
 						toast.error(t('aiFlowSaveRecipeFailed'), {
 							description: t('aiFlowCouldNotCreateDraft'),
 						})
-						setIsPublishing(false)
+						releasePublishLock()
 						return
 					}
 					currentDraftId = createResponse.data.id
@@ -971,7 +1022,7 @@ export const RecipeCreateAiFlow = ({
 					toast.error(t('aiFlowSaveRecipeFailed'), {
 						description: errorMessage,
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					return
 				}
 
@@ -995,7 +1046,7 @@ export const RecipeCreateAiFlow = ({
 							guardResult.data.reasons?.[0] ||
 							'Content violates community guidelines.',
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					return
 				}
 
@@ -1033,7 +1084,7 @@ export const RecipeCreateAiFlow = ({
 					toast.error(t('aiFlowCannotPublish'), {
 						description: issues.join(', '),
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					return
 				}
 
@@ -1092,7 +1143,7 @@ export const RecipeCreateAiFlow = ({
 						description: errorMessage,
 						duration: 5000,
 					})
-					setIsPublishing(false)
+					releasePublishLock()
 					diag.action('recipe', 'PUBLISH flow ended (API failure)', {
 						isPublishing: false,
 					})
@@ -1102,7 +1153,7 @@ export const RecipeCreateAiFlow = ({
 				toast.error(t('aiFlowPublishFailed'), {
 					description: t('aiFlowCheckConnection'),
 				})
-				setIsPublishing(false)
+				releasePublishLock()
 				diag.action('recipe', 'PUBLISH flow ended (error)', {
 					isPublishing: false,
 				})
@@ -1115,6 +1166,7 @@ export const RecipeCreateAiFlow = ({
 			hasUnpersistedMedia,
 			onPublishSuccess,
 			buildSavePayload,
+			releasePublishLock,
 			t,
 		],
 	)
@@ -1272,6 +1324,19 @@ export const RecipeCreateAiFlow = ({
 				)}
 			</div>
 
+			{/* Step progress */}
+			<StepIndicator
+				steps={[
+					{ label: t('aiFlowInput') },
+					{ label: t('aiFlowProcessing') },
+					{ label: t('aiFlowPreview') },
+					{ label: t('aiFlowXpPreview') },
+				]}
+				currentStep={['input', 'parsing', 'preview', 'xp-preview'].indexOf(
+					step,
+				)}
+			/>
+
 			{/* Step Content - Animated transitions */}
 			<AnimatePresence mode='wait'>
 				{/* Input Step */}
@@ -1346,7 +1411,7 @@ export const RecipeCreateAiFlow = ({
 										className={cn(
 											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											rawText.trim()
-												? 'bg-gradient-hero text-white shadow-lg hover:shadow-xl'
+												? 'bg-gradient-hero text-white shadow-warm hover:shadow-warm'
 												: 'cursor-not-allowed bg-muted/50 text-text-muted',
 										)}
 									>
@@ -1437,7 +1502,7 @@ export const RecipeCreateAiFlow = ({
 													JSON.stringify(draft),
 												)
 											} catch {
-												// localStorage save is best-effort
+												// ignored: localStorage save is best-effort
 											}
 											await handleSaveDraft(parsed)
 										}}
@@ -1808,7 +1873,7 @@ export const RecipeCreateAiFlow = ({
 								disabled={isCalculatingXp}
 								whileHover={isCalculatingXp ? {} : BUTTON_HOVER}
 								whileTap={isCalculatingXp ? {} : BUTTON_TAP}
-								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-xl disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-warm disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{isCalculatingXp ? (
 									<>
@@ -1864,6 +1929,7 @@ export const RecipeCreateAiFlow = ({
 					/>
 				)}
 			</AnimatePresence>
+			<OverlayLoader isOpen={isPublishing} message={t('aiFlowPublishing')} />
 		</div>
 	)
 }

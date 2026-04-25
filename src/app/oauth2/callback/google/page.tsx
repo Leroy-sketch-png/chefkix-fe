@@ -30,73 +30,80 @@ const GoogleCallbackContent = () => {
 		}
 
 		const exchangeCode = async () => {
-			const error = searchParams.get('error')
-			const errorDescription = searchParams.get('error_description')
-			const code = searchParams.get('code')
-			const state = searchParams.get('state')
+			try {
+				const error = searchParams.get('error')
+				const errorDescription = searchParams.get('error_description')
+				const code = searchParams.get('code')
+				const state = searchParams.get('state')
 
-			if (error) {
+				if (error) {
+					clearGoogleSignInSession()
+					if (!cancelled) {
+						router.replace(
+							buildSignInUrl(errorDescription || t('googleSignInFailed')),
+						)
+					}
+					return
+				}
+
+				if (!code || !state) {
+					clearGoogleSignInSession()
+					if (!cancelled) {
+						router.replace(buildSignInUrl(t('googleStateInvalid')))
+					}
+					return
+				}
+
+				const session = consumeGoogleSignInSession(state)
+				if (!session) {
+					if (!cancelled) {
+						router.replace(buildSignInUrl(t('googleStateInvalid')))
+					}
+					return
+				}
+
+				const response = await googleSignIn({
+					code,
+					redirectUri: session.redirectUri,
+					codeVerifier: session.codeVerifier,
+				})
 				clearGoogleSignInSession()
+
+				if (!response.success || !response.data?.accessToken) {
+					if (!cancelled) {
+						router.replace(
+							buildSignInUrl(
+								response.message || t('googleSignInFailed'),
+								session.returnTo,
+							),
+						)
+					}
+					return
+				}
+
+				login(response.data.accessToken)
+				const profileResponse = await getMyProfile()
+
+				if (profileResponse.success && profileResponse.data) {
+					setUser(profileResponse.data)
+					setLoading(true)
+					if (!cancelled) {
+						router.replace(session.returnTo || PATHS.DASHBOARD)
+					}
+					return
+				}
+
+				logout()
 				if (!cancelled) {
 					router.replace(
-						buildSignInUrl(errorDescription || t('googleSignInFailed')),
+						buildSignInUrl(t('errorProfileFetchFailed'), session.returnTo),
 					)
 				}
-				return
-			}
-
-			if (!code || !state) {
+			} catch {
 				clearGoogleSignInSession()
 				if (!cancelled) {
-					router.replace(buildSignInUrl(t('googleStateInvalid')))
+					router.replace(buildSignInUrl(t('googleSignInFailed')))
 				}
-				return
-			}
-
-			const session = consumeGoogleSignInSession(state)
-			if (!session) {
-				if (!cancelled) {
-					router.replace(buildSignInUrl(t('googleStateInvalid')))
-				}
-				return
-			}
-
-			const response = await googleSignIn({
-				code,
-				redirectUri: session.redirectUri,
-				codeVerifier: session.codeVerifier,
-			})
-			clearGoogleSignInSession()
-
-			if (!response.success || !response.data?.accessToken) {
-				if (!cancelled) {
-					router.replace(
-						buildSignInUrl(
-							response.message || t('googleSignInFailed'),
-							session.returnTo,
-						),
-					)
-				}
-				return
-			}
-
-			login(response.data.accessToken)
-			const profileResponse = await getMyProfile()
-
-			if (profileResponse.success && profileResponse.data) {
-				setUser(profileResponse.data)
-				setLoading(true)
-				if (!cancelled) {
-					router.replace(session.returnTo || PATHS.DASHBOARD)
-				}
-				return
-			}
-
-			logout()
-			if (!cancelled) {
-				router.replace(
-					buildSignInUrl(t('errorProfileFetchFailed'), session.returnTo),
-				)
 			}
 		}
 

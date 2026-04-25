@@ -3,9 +3,8 @@
 import { useTranslations } from 'next-intl'
 
 import { Group } from '@/lib/types/group'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import Image from 'next/image'
+import { ImageWithFallback } from '@/components/ui/image-with-fallback'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -86,11 +85,12 @@ export const GroupCard = ({
 				<Link href={PATHS.GROUPS.DETAIL(group.id)}>
 					<div className='flex items-center gap-3'>
 						{group.coverImageUrl ? (
-							<Image
+							<ImageWithFallback
 								src={group.coverImageUrl}
 								alt={group.name}
 								width={60}
 								height={60}
+								fallbackType='recipe'
 								className='size-12 rounded-md object-cover'
 							/>
 						) : (
@@ -121,11 +121,12 @@ export const GroupCard = ({
 				transition={TRANSITION_SPRING}
 			>
 				{group.coverImageUrl ? (
-					<Image
+					<ImageWithFallback
 						src={group.coverImageUrl}
 						alt={group.name}
 						width={48}
 						height={48}
+						fallbackType='recipe'
 						className='size-12 rounded object-cover flex-shrink-0'
 					/>
 				) : (
@@ -191,11 +192,12 @@ export const GroupCard = ({
 			{/* Cover Image */}
 			<div className='relative w-full h-40 bg-gradient-to-br from-brand/10 to-brand/5 overflow-hidden'>
 				{group.coverImageUrl ? (
-					<Image
+					<ImageWithFallback
 						src={group.coverImageUrl}
 						alt={group.name}
 						fill
 						sizes='(max-width: 768px) 100vw, 50vw'
+						fallbackType='recipe'
 						className='object-cover'
 					/>
 				) : (

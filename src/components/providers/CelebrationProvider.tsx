@@ -5,6 +5,8 @@ import {
 	useContext,
 	useState,
 	useCallback,
+	useRef,
+	useEffect,
 	ReactNode,
 } from 'react'
 import { useRouter } from 'next/navigation'
@@ -275,6 +277,19 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const [challengeCompleteData, setChallengeCompleteData] =
 		useState<ChallengeCompleteData | null>(null)
 
+	const achievementSoundTimeoutRef = useRef<ReturnType<
+		typeof setTimeout
+	> | null>(null)
+	const streakAutoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	useEffect(() => {
+		return () => {
+			if (achievementSoundTimeoutRef.current)
+				clearTimeout(achievementSoundTimeoutRef.current)
+			if (streakAutoHideRef.current) clearTimeout(streakAutoHideRef.current)
+		}
+	}, [])
+
 	useEscapeKey(streakMilestoneOpen, () => {
 		setStreakMilestoneOpen(false)
 		setStreakMilestoneData(null)
@@ -319,7 +334,12 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		playCelebrationSound()
 		// If there's an unlocked achievement, play achievement sound after a delay
 		if (data.unlockedAchievement) {
-			setTimeout(() => playAchievementSound(), 800)
+			if (achievementSoundTimeoutRef.current)
+				clearTimeout(achievementSoundTimeoutRef.current)
+			achievementSoundTimeoutRef.current = setTimeout(
+				() => playAchievementSound(),
+				800,
+			)
 		}
 	}, [])
 
@@ -329,7 +349,11 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		// Play XP sound for streak bonus
 		playXpSound()
 		// Auto-hide after 4 seconds
-		setTimeout(() => setStreakSavedVisible(false), 4000)
+		if (streakAutoHideRef.current) clearTimeout(streakAutoHideRef.current)
+		streakAutoHideRef.current = setTimeout(
+			() => setStreakSavedVisible(false),
+			4000,
+		)
 	}, [])
 
 	const showStreakMilestone = useCallback((data: StreakMilestoneData) => {

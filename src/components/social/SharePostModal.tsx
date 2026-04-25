@@ -85,23 +85,27 @@ export const SharePostModal = ({
 	// Fetch conversation suggestions
 	useEffect(() => {
 		if (!isOpen) return
+		let cancelled = false
 
 		const fetchSuggestions = async () => {
 			setIsLoading(true)
 			try {
 				const response = await getShareSuggestions(20)
-				if (response.success && response.data) {
+				if (!cancelled && response.success && response.data) {
 					setConversations(response.data)
 				}
 			} catch (error) {
 				logDevError('Failed to fetch share suggestions:', error)
-				toast.error(t('shareLoadFailed'))
+				if (!cancelled) toast.error(t('shareLoadFailed'))
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 
 		fetchSuggestions()
+		return () => {
+			cancelled = true
+		}
 	}, [isOpen, t])
 
 	// Reset state when modal closes
@@ -439,7 +443,7 @@ export const SharePostModal = ({
 															className={cn(
 																'grid size-5.5 place-items-center rounded-full border-2 transition-all sm:size-6',
 																isSelected
-																	? 'scale-110 border-brand bg-brand shadow-lg shadow-brand/30'
+																	? 'scale-110 border-brand bg-brand shadow-warm shadow-brand/30'
 																	: 'border-border group-hover:border-brand/50',
 															)}
 														>
@@ -529,7 +533,7 @@ export const SharePostModal = ({
 								<Button
 									onClick={handleShare}
 									disabled={selectedConversations.size === 0 || isSending}
-									className='w-full gap-2 shadow-lg shadow-brand/20 sm:w-auto'
+									className='w-full gap-2 shadow-warm shadow-brand/20 sm:w-auto'
 								>
 									{isSending ? (
 										<>

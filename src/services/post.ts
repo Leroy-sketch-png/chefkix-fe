@@ -20,6 +20,7 @@ import { API_ENDPOINTS } from '@/constants'
 import { toBackendPagination } from '@/lib/apiUtils'
 import { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
+import { getUserFriendlyMessage } from '@/lib/error-utils'
 
 type PostPageData = {
 	content: Post[]
@@ -195,7 +196,7 @@ export const createPost = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -321,7 +322,7 @@ export const updatePost = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -343,7 +344,7 @@ export const deletePost = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -365,7 +366,7 @@ export const toggleLike = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -407,7 +408,7 @@ export const getFollowingFeedPosts = async (params?: {
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 			data: [],
 		}
@@ -446,7 +447,7 @@ export const getFeedPosts = async (params?: {
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 			data: [],
 		}
@@ -475,7 +476,7 @@ export const toggleSave = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -499,7 +500,7 @@ export const votePoll = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -523,7 +524,7 @@ export const ratePlate = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -569,7 +570,7 @@ export const getPostsByUser = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}
@@ -617,7 +618,7 @@ export const reportPost = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}

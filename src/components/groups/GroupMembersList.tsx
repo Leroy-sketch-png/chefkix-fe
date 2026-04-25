@@ -1,5 +1,6 @@
 ﻿'use client'
 
+import { getInitials } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 
 import { GroupMember, MemberRole } from '@/lib/types/group'
@@ -18,7 +19,6 @@ import { useState, useCallback } from 'react'
 import { kickMember } from '@/services/group'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { TRANSITION_SPRING } from '@/lib/motion'
 import {
 	StaggerContainer,
 	staggerItemVariants,
@@ -137,7 +137,7 @@ export const GroupMembersList = ({
 									alt={member.displayName}
 								/>
 								<AvatarFallback className='bg-brand/10 text-brand'>
-									{member.displayName.charAt(0).toUpperCase()}
+									{getInitials(member.displayName, 1)}
 								</AvatarFallback>
 							</Avatar>
 

@@ -3,12 +3,19 @@
 import { Comment as CommentType } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 import { Comment } from './Comment'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { CommentSkeleton } from '@/components/ui/skeleton'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { getCommentsByPostId, createComment } from '@/services/comment'
 import { moderateContent } from '@/services/ai'
 import { toast } from 'sonner'
-import { Send, Loader2, MessageSquare, RefreshCw } from 'lucide-react'
+import {
+	Send,
+	Loader2,
+	MessageSquare,
+	RefreshCw,
+	AlertCircle,
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
@@ -21,6 +28,46 @@ interface CommentListProps {
 	isLoading?: boolean
 	onCommentCreated?: () => void
 	onCommentDeleted?: () => void
+}
+
+function CommentItemErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='rounded-radius border border-destructive/20 bg-bg-card p-4 shadow-card'
+		>
+			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+				<div className='flex items-start gap-3'>
+					<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+						<AlertCircle className='size-4' />
+					</div>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{tCommon('somethingWentWrong')}
+						</p>
+						<p className='mt-1 text-sm text-text-secondary'>
+							{error?.message || tCommon('unexpectedError')}
+						</p>
+					</div>
+				</div>
+				<button
+					type='button'
+					onClick={onReset}
+					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+				>
+					{tCommon('tryAgain')}
+				</button>
+			</div>
+		</div>
+	)
 }
 
 export const CommentList = ({
@@ -38,7 +85,7 @@ export const CommentList = ({
 	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const mentionInputRef = useRef<MentionInputRef>(null)
-	const requireAuth = useAuthGate()
+	const { requireAuth } = useAuthGate()
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true)
@@ -61,7 +108,7 @@ export const CommentList = ({
 	}, [fetchComments])
 
 	const handleSubmitComment = async () => {
-		if (!requireAuth(t('commentOnPostAuth'))) return
+		if (!requireAuth(t('commentOnPostAuth'), 'comment')) return
 		if (!newComment.trim() || isSubmitting) return
 
 		diag.action('social', 'COMMENT_SUBMIT', {
@@ -249,15 +296,21 @@ export const CommentList = ({
 								exit={{ opacity: 0, height: 0 }}
 								transition={{ duration: DURATION_S.normal }}
 							>
-								<Comment
-									comment={comment}
-									postId={postId}
-									currentUserId={currentUserId}
-									onDelete={commentId => {
-										setComments(prev => prev.filter(c => c.id !== commentId))
-										onCommentDeleted?.()
-									}}
-								/>
+								<ErrorBoundary
+									fallbackRender={({ error, onReset }) => (
+										<CommentItemErrorFallback error={error} onReset={onReset} />
+									)}
+								>
+									<Comment
+										comment={comment}
+										postId={postId}
+										currentUserId={currentUserId}
+										onDelete={commentId => {
+											setComments(prev => prev.filter(c => c.id !== commentId))
+											onCommentDeleted?.()
+										}}
+									/>
+								</ErrorBoundary>
 							</motion.li>
 						))}
 					</AnimatePresence>

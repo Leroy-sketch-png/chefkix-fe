@@ -14,7 +14,8 @@ import type { processRecipe } from '@/services/ai'
 
 // ── Platform detection ──────────────────────────────────────────────
 const isMac =
-	typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
+	typeof navigator !== 'undefined' &&
+	/Mac|iPhone|iPad/.test(navigator.userAgent)
 export const modKey = isMac ? '⌘' : 'Ctrl'
 
 // ── Recalculation threshold ─────────────────────────────────────────

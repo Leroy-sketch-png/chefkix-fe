@@ -23,6 +23,8 @@ import { logDevError } from '@/lib/dev-log'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { MessagesDrawerConversationListItem } from './MessagesDrawerConversationListItem'
+import { MessagesDrawerMessageBubble } from './MessagesDrawerMessageBubble'
 
 export const MessagesDrawer = () => {
 	const t = useTranslations('messages')
@@ -43,29 +45,33 @@ export const MessagesDrawer = () => {
 		useState<Conversation | null>(null)
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [newMessage, setNewMessage] = useState('')
-	const [isLoadingConversations, setIsLoadingConversations] = useState(false)
+	const [isLoadingConversations, setIsLoadingConversations] = useState(true)
 	const [isLoadingMessages, setIsLoadingMessages] = useState(false)
 	const [isSending, setIsSending] = useState(false)
 
 	// Fetch conversations when drawer opens
 	useEffect(() => {
 		if (!isMessagesDrawerOpen) return
+		let cancelled = false
 
 		const fetchConversations = async () => {
 			setIsLoadingConversations(true)
 			try {
 				const response = await getMyConversations()
-				if (response.success && response.data) {
+				if (!cancelled && response.success && response.data) {
 					setConversations(response.data)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch conversations:', err)
 			} finally {
-				setIsLoadingConversations(false)
+				if (!cancelled) setIsLoadingConversations(false)
 			}
 		}
 
 		fetchConversations()
+		return () => {
+			cancelled = true
+		}
 	}, [isMessagesDrawerOpen])
 
 	// Fetch messages when conversation is selected
@@ -75,22 +81,26 @@ export const MessagesDrawer = () => {
 			setMessages([])
 			return
 		}
+		let cancelled = false
 
 		const fetchMessages = async () => {
 			setIsLoadingMessages(true)
 			try {
 				const response = await getMessages(selectedConversationId)
-				if (response.success && response.data) {
+				if (!cancelled && response.success && response.data) {
 					setMessages(response.data)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch messages:', err)
 			} finally {
-				setIsLoadingMessages(false)
+				if (!cancelled) setIsLoadingMessages(false)
 			}
 		}
 
 		fetchMessages()
+		return () => {
+			cancelled = true
+		}
 	}, [selectedConversationId])
 
 	// Scroll to bottom when messages change
@@ -195,7 +205,7 @@ export const MessagesDrawer = () => {
 	return (
 		<div
 			ref={drawerRef}
-			className='fixed bottom-0 right-6 z-popover flex w-drawer h-drawer flex-col rounded-t-lg border bg-card text-card-foreground shadow-lg'
+			className='fixed bottom-0 right-6 z-popover flex w-drawer h-drawer flex-col rounded-t-lg border bg-card text-card-foreground shadow-warm'
 			style={
 				width || height
 					? {
@@ -286,20 +296,10 @@ export const MessagesDrawer = () => {
 							) : (
 								<div className='flex flex-col gap-2'>
 									{messages.map(message => (
-										<div
+										<MessagesDrawerMessageBubble
 											key={message.id}
-											className={`flex items-end ${message.me ? 'justify-end' : 'justify-start'}`}
-										>
-											<div
-												className={`max-w-[70%] rounded-lg p-2 ${
-													message.me
-														? 'rounded-br-none bg-brand text-white'
-														: 'rounded-bl-none bg-bg-elevated'
-												}`}
-											>
-												<p className='text-sm'>{message.message}</p>
-											</div>
-										</div>
+											message={message}
+										/>
 									))}
 									<div ref={messagesEndRef} />
 								</div>
@@ -332,37 +332,14 @@ export const MessagesDrawer = () => {
 						) : (
 							<div className='flex flex-col gap-1'>
 								{filteredConversations.map(conv => (
-									<button
-										type='button'
+									<MessagesDrawerConversationListItem
 										key={conv.id}
+										name={getConversationName(conv)}
+										avatar={getConversationAvatar(conv)}
+										previewText={conv.lastMessage?.message}
+										unreadCount={conv.unreadCount}
 										onClick={() => setSelectedConversation(conv)}
-										className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-bg-hover'
-									>
-										<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full'>
-											<Image
-												src={getConversationAvatar(conv)}
-												alt={getConversationName(conv)}
-												fill
-												sizes='36px'
-												className='object-cover'
-											/>
-										</div>
-										<div className='min-w-0 flex-1'>
-											<p className='truncate text-sm font-medium'>
-												{getConversationName(conv)}
-											</p>
-											{conv.lastMessage && (
-												<p className='truncate text-xs text-text-secondary'>
-													{conv.lastMessage.message}
-												</p>
-											)}
-										</div>
-										{conv.unreadCount && conv.unreadCount > 0 && (
-											<span className='flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
-												{conv.unreadCount}
-											</span>
-										)}
-									</button>
+									/>
 								))}
 							</div>
 						)}

@@ -86,6 +86,13 @@ api.interceptors.response.use(
 	// SUCCESS: Normalize response format
 	(response: AxiosResponse) => {
 		const backendResponse = response.data
+		const isWrappedResponse =
+			backendResponse != null &&
+			typeof backendResponse === 'object' &&
+			('success' in backendResponse ||
+				'statusCode' in backendResponse ||
+				'code' in backendResponse ||
+				'message' in backendResponse)
 
 		// Find the main data payload (handles various backend formats)
 		const data =
@@ -93,7 +100,9 @@ api.interceptors.response.use(
 				? backendResponse.result
 				: backendResponse.data !== undefined
 					? backendResponse.data
-					: backendResponse
+					: isWrappedResponse
+						? null
+						: backendResponse
 
 		response.data = {
 			success: backendResponse.success ?? true,

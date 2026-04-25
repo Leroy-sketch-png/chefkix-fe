@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { toast } from 'sonner'
 import { getBlockedUsers, blockUser, unblockUser } from '@/services/social'
 
 interface BlockedUsersState {
@@ -62,6 +63,7 @@ export const useBlockedUsersStore = create<BlockedUsersState>()(
 					}
 					return false
 				} catch {
+					toast.error('Failed to block user')
 					return false
 				}
 			},
@@ -79,6 +81,7 @@ export const useBlockedUsersStore = create<BlockedUsersState>()(
 					}
 					return false
 				} catch {
+					toast.error('Failed to unblock user')
 					return false
 				}
 			},

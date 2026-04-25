@@ -111,18 +111,26 @@ function CreatePostContent() {
 			const urls: string[] = []
 
 			photoData.forEach(photo => {
-				// Extract base64 data and convert to blob
-				const byteString = atob(photo.data.split(',')[1])
-				const mimeString = photo.data.split(',')[0].split(':')[1].split(';')[0]
-				const ab = new ArrayBuffer(byteString.length)
-				const ia = new Uint8Array(ab)
-				for (let i = 0; i < byteString.length; i++) {
-					ia[i] = byteString.charCodeAt(i)
+				try {
+					if (!photo.data || !photo.data.includes(',')) return
+					// Extract base64 data and convert to blob
+					const byteString = atob(photo.data.split(',')[1])
+					const mimeString = photo.data
+						.split(',')[0]
+						.split(':')[1]
+						.split(';')[0]
+					const ab = new ArrayBuffer(byteString.length)
+					const ia = new Uint8Array(ab)
+					for (let i = 0; i < byteString.length; i++) {
+						ia[i] = byteString.charCodeAt(i)
+					}
+					const blob = new Blob([ab], { type: mimeString })
+					const file = new File([blob], photo.name, { type: photo.type })
+					files.push(file)
+					urls.push(photo.data)
+				} catch {
+					// Skip individual corrupted photos instead of failing all
 				}
-				const blob = new Blob([ab], { type: mimeString })
-				const file = new File([blob], photo.name, { type: photo.type })
-				files.push(file)
-				urls.push(photo.data)
 			})
 
 			setPhotoFiles(files)
@@ -149,9 +157,8 @@ function CreatePostContent() {
 				if (response.success && response.data) {
 					const s = response.data
 
-					// Guard: Check if session was already linked to a post
-					// posted status means XP was already awarded, no point showing it again
-					if (s.status === 'posted') {
+					// Guard: Once the post XP was claimed, the session can no longer be linked again
+					if (s.status === 'posted' || s.status === 'post_deleted') {
 						toast.error(t('toastSessionAlreadyLinked'), {
 							description: t('xpAlreadyAwarded'),
 						})
@@ -200,7 +207,11 @@ function CreatePostContent() {
 		const files = Array.from(e.target.files || [])
 		if (files.length === 0) return
 
-		const selectedFiles = files.slice(0, 5 - photoFiles.length)
+		const MAX_PHOTO_SIZE = 10 * 1024 * 1024 // 10MB
+		const validFiles = files.filter(f => f.size <= MAX_PHOTO_SIZE)
+		const selectedFiles = validFiles.slice(0, 5 - photoFiles.length)
+		if (selectedFiles.length === 0) return
+
 		setPhotoFiles(prev => [...prev, ...selectedFiles])
 
 		selectedFiles.forEach(file => {
@@ -652,7 +663,7 @@ function CreatePostContent() {
 								className={cn(
 									'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
 									session
-										? 'bg-gradient-hero text-white shadow-lg shadow-primary/30'
+										? 'bg-gradient-hero text-white shadow-warm shadow-primary/30'
 										: 'bg-brand text-white',
 								)}
 							>
@@ -674,7 +685,7 @@ function CreatePostContent() {
 											suppressHydrationWarning
 										>
 											{typeof window !== 'undefined' &&
-											navigator.platform?.includes('Mac')
+											/Mac|iPhone|iPad/.test(navigator.userAgent)
 												? '⌘↵'
 												: 'Ctrl+↵'}
 										</kbd>

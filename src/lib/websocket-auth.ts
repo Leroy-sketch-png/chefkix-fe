@@ -4,12 +4,12 @@ import {
 	isTokenExpired,
 } from '@/lib/tokenManager'
 import { useAuthStore } from '@/store/authStore'
+import app from '@/configs/app'
 
 const SESSION_EXPIRED_MESSAGE = 'Session expired. Please sign in again.'
 
 export function getWebSocketUrl(): string {
-	const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
-	const wsBase = apiBase.replace(/^http/, 'ws')
+	const wsBase = app.API_BASE_URL.replace(/^http/, 'ws')
 	return `${wsBase}/api/v1/ws`
 }
 

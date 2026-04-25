@@ -3,6 +3,7 @@ import { ApiResponse, ToggleFollowResponse, Profile } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
 import { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
+import { getUserFriendlyMessage } from '@/lib/error-utils'
 
 /**
  * Social API Service - Instagram-Style Follow Model
@@ -57,7 +58,7 @@ export const toggleFollow = async (
 		}
 		return {
 			success: false,
-			message: 'An unexpected error occurred. Please try again later.',
+			message: getUserFriendlyMessage(error),
 			statusCode: 500,
 		}
 	}

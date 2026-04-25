@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { useCookingStore } from './cookingStore'
+import type { AuthAction } from '@/components/auth/AuthRequiredModal'
 
 // Cooking UI modes:
 // - 'hidden': No active cooking session displayed
@@ -9,6 +10,12 @@ import { useCookingStore } from './cookingStore'
 type CookingMode = 'hidden' | 'mini' | 'docked' | 'expanded'
 
 interface UiState {
+	// Auth gate modal (global singleton)
+	authGateOpen: boolean
+	authGateAction: AuthAction
+	openAuthGate: (action: AuthAction) => void
+	closeAuthGate: () => void
+
 	isMessagesDrawerOpen: boolean
 	toggleMessagesDrawer: () => void
 	isNotificationsPopupOpen: boolean
@@ -28,6 +35,13 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>(set => ({
+	// Auth gate modal
+	authGateOpen: false,
+	authGateAction: 'default' as AuthAction,
+	openAuthGate: (action: AuthAction) =>
+		set({ authGateOpen: true, authGateAction: action }),
+	closeAuthGate: () => set({ authGateOpen: false }),
+
 	isMessagesDrawerOpen: false,
 	toggleMessagesDrawer: () =>
 		set(state => ({ isMessagesDrawerOpen: !state.isMessagesDrawerOpen })),

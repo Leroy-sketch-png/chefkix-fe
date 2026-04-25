@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Edit3, Loader2, Rocket, Send, Shield, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -54,8 +53,24 @@ export const XpPreviewModal = ({
 }: XpPreviewModalProps) => {
 	const t = useTranslations('recipe')
 	const [showConfirm, setShowConfirm] = useState(false)
+	const publishIntentLockRef = useRef(false)
 
 	useEscapeKey(!showConfirm && !isPublishing, onBack)
+
+	useEffect(() => {
+		if (!showConfirm || !isPublishing) {
+			publishIntentLockRef.current = false
+		}
+	}, [showConfirm, isPublishing])
+
+	const handleConfirmPublish = () => {
+		if (publishIntentLockRef.current || isPublishing) {
+			return
+		}
+
+		publishIntentLockRef.current = true
+		onPublish(recipe)
+	}
 
 	return (
 		<Portal>
@@ -239,7 +254,7 @@ export const XpPreviewModal = ({
 							onClick={() => setShowConfirm(true)}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Send className='size-4' />
 							{t('publishRecipe')}
@@ -278,7 +293,7 @@ export const XpPreviewModal = ({
 								</AlertDialogCancel>
 								<button
 									type='button'
-									onClick={() => onPublish(recipe)}
+									onClick={handleConfirmPublish}
 									disabled={isPublishing}
 									className='flex-1 inline-flex items-center justify-center rounded-xl bg-gradient-hero px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none'
 								>

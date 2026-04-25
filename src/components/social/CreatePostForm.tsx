@@ -424,7 +424,7 @@ export const CreatePostForm = ({
 										disabled={!content.trim()}
 										isLoading={isSubmitting}
 										loadingText={t('createPostPosting')}
-										className='shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
+										className='shadow-warm shadow-primary/30 hover:shadow-warm hover:shadow-primary/40'
 										shine
 									>
 										<Send className='mr-2 size-4' />

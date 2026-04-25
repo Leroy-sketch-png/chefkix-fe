@@ -45,7 +45,8 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
  * falls back to new Notification() constructor.
  */
 export async function showTimerNotification(stepTitle: string): Promise<void> {
-	if (!isNotificationSupported() || Notification.permission !== 'granted') return
+	if (!isNotificationSupported() || Notification.permission !== 'granted')
+		return
 
 	// Check user preference for timer alerts
 	if (!getTimerAlertsEnabled()) return
@@ -67,14 +68,14 @@ export async function showTimerNotification(stepTitle: string): Promise<void> {
 			return
 		}
 	} catch {
-		// Fall through to Notification constructor
+		// ignored: SW notification non-critical, fall through to constructor
 	}
 
 	// Fallback: direct Notification constructor
 	try {
 		new Notification('⏰ Timer Complete!', options)
 	} catch {
-		// Browser doesn't support Notification constructor — silent fail
+		// ignored: notification API non-critical
 	}
 }
 

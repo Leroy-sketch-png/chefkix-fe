@@ -234,13 +234,13 @@ export const PostSuccessRewards = ({
 										alt={recipeName}
 										width={112}
 										height={112}
-										className='h-full w-full rounded-2xl object-cover shadow-xl'
+										className='h-full w-full rounded-2xl object-cover shadow-warm'
 									/>
 									<motion.div
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
 										transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
-										className='absolute -bottom-2 -right-2 flex size-10 items-center justify-center rounded-full bg-gradient-level shadow-lg shadow-level/40'
+										className='absolute -bottom-2 -right-2 flex size-10 items-center justify-center rounded-full bg-gradient-level shadow-warm shadow-level/40'
 									>
 										<Check className='size-5 text-white' />
 									</motion.div>

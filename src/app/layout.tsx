@@ -16,6 +16,7 @@ import { FirstVisitHintsProvider } from '@/components/onboarding/FirstVisitHints
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { Toaster } from 'sonner'
+import { GlobalUIEnhancements } from '@/components/shared/GlobalUIEnhancements'
 
 // Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
 // Perfect for a social cooking app - warm but professional
@@ -119,7 +120,7 @@ export default async function RootLayout({
 				{/* Skip to main content link - WCAG 2.4.1 */}
 				<a
 					href='#main-content'
-					className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-tooltip focus:rounded-radius-sm focus:bg-brand focus:px-4 focus:py-2 focus:text-white focus:shadow-lg'
+					className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-tooltip focus:rounded-radius-sm focus:bg-brand focus:px-4 focus:py-2 focus:text-white focus:shadow-warm'
 				>
 					Skip to main content
 				</a>
@@ -133,6 +134,7 @@ export default async function RootLayout({
 											<FirstVisitHintsProvider>
 												{children}
 												<NetworkStatusProvider />
+												<GlobalUIEnhancements />
 											</FirstVisitHintsProvider>
 										</ReducedMotionProvider>
 									</LiveAnnouncerProvider>

@@ -43,12 +43,20 @@ export function TipJarButton({
 	const focusTrapRef = useFocusTrap<HTMLDivElement>(showModal)
 
 	useEffect(() => {
+		let cancelled = false
 		getCreatorTipSettings(creatorId)
 			.then(s => {
-				setSettings(s)
-				setLoaded(true)
+				if (!cancelled) {
+					setSettings(s)
+					setLoaded(true)
+				}
 			})
-			.catch(() => setLoaded(true))
+			.catch(() => {
+				if (!cancelled) setLoaded(true)
+			})
+		return () => {
+			cancelled = true
+		}
 	}, [creatorId])
 
 	// Don't render if tips not enabled or settings not loaded
@@ -59,7 +67,7 @@ export function TipJarButton({
 	const effectiveAmountCents = selectedAmount
 		? selectedAmount * 100
 		: customAmount
-			? Math.round(parseFloat(customAmount) * 100)
+			? Math.round((parseFloat(customAmount) || 0) * 100)
 			: 0
 
 	const handleSend = async () => {

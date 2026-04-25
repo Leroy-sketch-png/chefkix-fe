@@ -47,8 +47,6 @@ interface ChallengeCardProps {
 // HELPER FUNCTIONS
 // ============================================
 
-
-
 const typeConfig: Record<
 	ChallengeType,
 	{ gradient: string; labelColor: string; labelKey: string }
@@ -110,7 +108,7 @@ export const ChallengeCard = ({
 			transition={TRANSITION_SPRING}
 			onClick={onView}
 			className={cn(
-				'relative cursor-pointer overflow-hidden rounded-2xl p-6 text-white shadow-lg',
+				'relative cursor-pointer overflow-hidden rounded-2xl p-6 text-white shadow-warm',
 				`bg-gradient-to-br ${config.gradient}`,
 				(isCompleted || isExpired) && 'opacity-70',
 			)}
@@ -134,7 +132,9 @@ export const ChallengeCard = ({
 				</div>
 
 				{/* Title */}
-				<h3 className='mb-2 text-lg font-display font-extrabold leading-tight'>{title}</h3>
+				<h3 className='mb-2 text-lg font-display font-extrabold leading-tight'>
+					{title}
+				</h3>
 
 				{/* Description */}
 				{description && (
@@ -148,8 +148,8 @@ export const ChallengeCard = ({
 					<div className='mb-4'>
 						<div className='mb-1.5 flex justify-between text-xs'>
 							<span className='opacity-80'>{t('progress')}</span>
-						<span className='font-semibold tabular-nums'>
-							<AnimatedNumber value={progress.current} />/{progress.total}
+							<span className='font-semibold tabular-nums'>
+								<AnimatedNumber value={progress.current} />/{progress.total}
 							</span>
 						</div>
 						<div className='h-2.5 overflow-hidden rounded-full bg-white/20'>
@@ -168,7 +168,9 @@ export const ChallengeCard = ({
 					{/* Bonus XP */}
 					<div className='flex items-center gap-1 rounded-full bg-bonus/30 px-3 py-1.5 shadow-card shadow-bonus/20'>
 						<span>⚡</span>
-						<span className='font-bold tabular-nums text-bonus'>+<AnimatedNumber value={bonusXp} /> XP</span>
+						<span className='font-bold tabular-nums text-bonus'>
+							+<AnimatedNumber value={bonusXp} /> XP
+						</span>
 					</div>
 
 					{/* Time Remaining */}
@@ -196,7 +198,7 @@ export const ChallengeCard = ({
 				{isCompleted ? (
 					<div className='flex items-center justify-center gap-2 rounded-full bg-white/20 py-2.5 text-sm font-bold'>
 						<Trophy className='size-4' />
-							{t('completed')}
+						{t('completed')}
 					</div>
 				) : isExpired ? (
 					<div className='flex items-center justify-center rounded-full bg-white/10 py-2.5 text-sm font-semibold opacity-60'>
@@ -226,7 +228,7 @@ export const ChallengeCard = ({
 			{/* Completed overlay */}
 			{isCompleted && (
 				<div className='absolute inset-0 flex items-center justify-center bg-black/30'>
-					<div className='rounded-full bg-success px-4 py-2 text-sm font-bold shadow-lg'>
+					<div className='rounded-full bg-success px-4 py-2 text-sm font-bold shadow-warm'>
 						✓ {t('completedOverlay')}
 					</div>
 				</div>

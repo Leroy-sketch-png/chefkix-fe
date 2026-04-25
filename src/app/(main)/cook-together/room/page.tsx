@@ -445,7 +445,7 @@ export default function CookingRoomPage() {
 									disabled={isUpgrading}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-info/70 py-4 text-lg font-bold text-white shadow-lg shadow-info/30 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-info/70 py-4 text-lg font-bold text-white shadow-warm shadow-info/30 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<ArrowUpCircle className='size-6' />
 									{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
@@ -456,7 +456,7 @@ export default function CookingRoomPage() {
 									onClick={handleStartCooking}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-lg shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-warm shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<ChefHat className='size-6' />
 									{session ? t('ctContinueCooking') : t('ctStartCooking')}

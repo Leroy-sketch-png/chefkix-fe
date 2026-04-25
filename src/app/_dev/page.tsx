@@ -267,7 +267,7 @@ export default function DevDashboard() {
 			})
 			const loginData = await loginRes.json()
 			if (!loginData.success || !loginData.data?.accessToken) {
-				alert('Login failed: ' + (loginData.message || 'Check credentials'))
+				console.error('Login failed:', loginData.message || 'Check credentials')
 				return
 			}
 			const accessToken = loginData.data.accessToken
@@ -276,7 +276,7 @@ export default function DevDashboard() {
 			})
 			const meData = await meRes.json()
 			if (!meData.success || !meData.data) {
-				alert('Could not fetch user profile')
+				console.error('Could not fetch user profile')
 				return
 			}
 			localStorage.setItem(
@@ -288,7 +288,10 @@ export default function DevDashboard() {
 			)
 			window.location.href = '/dashboard'
 		} catch (err) {
-			alert('Error: ' + (err instanceof Error ? err.message : 'Unknown'))
+			console.error(
+				'Dev login error:',
+				err instanceof Error ? err.message : 'Unknown',
+			)
 		} finally {
 			setIsLoggingInToApp(false)
 		}

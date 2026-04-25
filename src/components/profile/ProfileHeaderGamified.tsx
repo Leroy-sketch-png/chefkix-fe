@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -23,7 +23,7 @@ import {
 import Link from 'next/link'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { TipJarButton } from '@/components/tip/TipJarButton'
-import { cn } from '@/lib/utils'
+import { cn, formatNumber } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -36,6 +36,7 @@ import {
 } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { SparklesEffect } from '@/components/ui/sparkles-effect'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -129,12 +130,6 @@ type ProfileHeaderGamifiedProps =
 // HELPER FUNCTIONS
 // ============================================
 
-const formatNumber = (num: number): string => {
-	if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
-	if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-	return num.toString()
-}
-
 const titleConfig: Record<UserTitle, { gradient: string; labelKey: string }> = {
 	BEGINNER: { gradient: 'bg-text-muted', labelKey: 'titleBeginner' },
 	AMATEUR: { gradient: 'bg-info', labelKey: 'titleAmateur' },
@@ -207,7 +202,9 @@ const LevelRing = ({
 						size === 'default' ? 'text-lg' : 'text-base',
 					)}
 				>
-					{level}
+					<SparklesEffect color='var(--color-xp)' count={6}>
+						{level}
+					</SparklesEffect>
 				</span>
 			</div>
 			<div className='flex flex-col'>
@@ -236,7 +233,7 @@ const StreakBadge = ({ count }: { count: number }) => {
 		<motion.div
 			initial={{ scale: 0.8, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
-			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-streak px-3 py-2 font-display font-semibold text-white shadow-md shadow-streak/30'
+			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-streak px-3 py-2 font-display font-semibold text-white shadow-warm shadow-streak/30'
 		>
 			<span className='text-base'>🔥</span>
 			<span className='text-lg tabular-nums'>{count}</span>
@@ -618,7 +615,7 @@ const OwnProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-lg'>
+		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-warm'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -666,7 +663,7 @@ const OwnProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-warm'
 						onError={e => {
 							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
 						}}
@@ -832,7 +829,7 @@ const OtherUserProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-lg'>
+		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-warm'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -867,7 +864,7 @@ const OtherUserProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
-						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-lg'
+						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-warm'
 						onError={e => {
 							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
 						}}

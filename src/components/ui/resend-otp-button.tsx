@@ -20,16 +20,29 @@ export const ResendOtpButton = ({
 		onResend()
 
 		const endTime = Date.now() + app.OTP_COOLDOWN_SECONDS * 1000
-		localStorage.setItem(app.OTP_STORAGE_KEY, endTime.toString())
+		try {
+			localStorage.setItem(app.OTP_STORAGE_KEY, endTime.toString())
+		} catch {
+			/* restricted */
+		}
 		setCooldown(app.OTP_COOLDOWN_SECONDS)
 	}
 
 	useEffect(() => {
-		const savedTime = localStorage.getItem(app.OTP_STORAGE_KEY)
-		if (savedTime) {
-			const remaining = Math.floor((parseInt(savedTime) - Date.now()) / 1000)
-			if (remaining > 0) setCooldown(remaining)
-			else localStorage.removeItem(app.OTP_STORAGE_KEY)
+		try {
+			const savedTime = localStorage.getItem(app.OTP_STORAGE_KEY)
+			if (savedTime) {
+				const parsed = parseInt(savedTime)
+				if (isNaN(parsed)) {
+					localStorage.removeItem(app.OTP_STORAGE_KEY)
+					return
+				}
+				const remaining = Math.floor((parsed - Date.now()) / 1000)
+				if (remaining > 0) setCooldown(remaining)
+				else localStorage.removeItem(app.OTP_STORAGE_KEY)
+			}
+		} catch {
+			/* ignored: storage access non-critical */
 		}
 
 		if (cooldown === 0) return
@@ -37,7 +50,11 @@ export const ResendOtpButton = ({
 		const interval = setInterval(() => {
 			setCooldown(prev => {
 				if (prev <= 1) {
-					localStorage.removeItem(app.OTP_STORAGE_KEY)
+					try {
+						localStorage.removeItem(app.OTP_STORAGE_KEY)
+					} catch {
+						/* ignored: storage access non-critical */
+					}
 					clearInterval(interval)
 					return 0
 				}

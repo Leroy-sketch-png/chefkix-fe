@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import EmojiPicker from 'emoji-picker-react'
+import EmojiPicker, { Theme } from 'emoji-picker-react'
 import { Rnd } from 'react-rnd'
 import { useStoryStore } from '@/store/storyStore'
 import { createStory } from '@/services/story'
@@ -305,7 +305,7 @@ export function StoryCreator() {
 									<span className='text-sm font-medium'>Cảm xúc</span>
 								</button>
 								{showEmojiPicker && (
-									<div className='absolute top-full left-0 mt-2 z-[999] shadow-2xl rounded-xl overflow-hidden'>
+									<div className='absolute top-full left-0 mt-2 z-dropdown shadow-2xl rounded-xl overflow-hidden'>
 										<div
 											className='fixed inset-0 z-[-1]'
 											onClick={() => setShowEmojiPicker(false)}
@@ -314,7 +314,7 @@ export function StoryCreator() {
 											onEmojiClick={handleAddEmoji}
 											width={300}
 											height={350}
-											theme='dark'
+											theme={Theme.DARK}
 										/>
 									</div>
 								)}

@@ -3,10 +3,17 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { ChefHat } from 'lucide-react'
+import { ChefHat, AlertCircle } from 'lucide-react'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, DURATIONS, BUTTON_SUBTLE_HOVER, CROWN_BOUNCE, PODIUM_RISE } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	BUTTON_SUBTLE_HOVER,
+	CROWN_BOUNCE,
+	PODIUM_RISE,
+} from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { useTranslations } from 'next-intl'
 
 // ============================================================================
 // TYPES
@@ -26,6 +33,46 @@ export interface LeaderboardPodiumProps {
 	entries: PodiumEntry[]
 	onUserClick?: (entry: PodiumEntry) => void
 	className?: string
+}
+
+function PodiumSpotErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='rounded-xl border border-destructive/20 bg-bg-card p-4 shadow-card'
+		>
+			<div className='flex flex-col gap-3'>
+				<div className='flex items-start gap-3'>
+					<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+						<AlertCircle className='size-4' />
+					</div>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{tCommon('somethingWentWrong')}
+						</p>
+						<p className='mt-1 text-sm text-text-secondary'>
+							{error?.message || tCommon('unexpectedError')}
+						</p>
+					</div>
+				</div>
+				<button
+					type='button'
+					onClick={onReset}
+					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+				>
+					{tCommon('tryAgain')}
+				</button>
+			</div>
+		</div>
+	)
 }
 
 // ============================================================================
@@ -190,11 +237,11 @@ function PodiumSpot({
 							alt={entry.displayName}
 							width={config.avatarSize}
 							height={config.avatarSize}
-							className='rounded-full border-4 border-bg-card shadow-lg object-cover size-full'
+							className='rounded-full border-4 border-bg-card shadow-warm object-cover size-full'
 							onError={() => setImgError(true)}
 						/>
 					) : (
-						<DefaultAvatar size={config.avatarSize} className='shadow-lg' />
+						<DefaultAvatar size={config.avatarSize} className='shadow-warm' />
 					)}
 				</motion.div>
 
@@ -229,7 +276,11 @@ function PodiumSpot({
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
 				<span className='text-lg font-display font-extrabold tabular-nums text-text'>
-					<AnimatedNumber value={entry.xp} format={n => n.toLocaleString()} duration={1} />
+					<AnimatedNumber
+						value={entry.xp}
+						format={n => n.toLocaleString()}
+						duration={1}
+					/>
 				</span>
 				<span className='text-xs text-text-tertiary'>XP</span>
 			</div>
@@ -269,11 +320,14 @@ export function LeaderboardPodium({
 			className={cn('flex items-end justify-center gap-3 py-6 px-4', className)}
 		>
 			{sortedEntries.map(entry => (
-				<PodiumSpot
+				<ErrorBoundary
 					key={entry.userId}
-					entry={entry}
-					onUserClick={onUserClick}
-				/>
+					fallbackRender={({ error, onReset }) => (
+						<PodiumSpotErrorFallback error={error} onReset={onReset} />
+					)}
+				>
+					<PodiumSpot entry={entry} onUserClick={onUserClick} />
+				</ErrorBoundary>
 			))}
 		</div>
 	)

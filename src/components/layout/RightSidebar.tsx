@@ -112,6 +112,7 @@ export const RightSidebar = () => {
 	useEffect(() => {
 		// Don't fetch until user is authenticated
 		if (!user) return
+		let cancelled = false
 
 		const fetchData = async () => {
 			setSidebarError(false)
@@ -123,6 +124,7 @@ export const RightSidebar = () => {
 						getSuggestedFollows(5),
 						getSessionHistory({ status: 'all', size: 100 }),
 					])
+				if (cancelled) return
 
 				if (challengeResponse.success && challengeResponse.data) {
 					const data = challengeResponse.data
@@ -146,17 +148,25 @@ export const RightSidebar = () => {
 				// Extract completed session dates for streak calculation
 				if (sessionResponse.success && sessionResponse.data?.sessions) {
 					const completedDates = sessionResponse.data.sessions
-						.filter(s => s.status === 'completed' || s.status === 'posted')
+						.filter(
+							s =>
+								s.status === 'completed' ||
+								s.status === 'posted' ||
+								s.status === 'post_deleted',
+						)
 						.map(s => new Date(s.completedAt || s.startedAt))
 					setCookDates(completedDates)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch sidebar data:', err)
-				setSidebarError(true)
+				if (!cancelled) setSidebarError(true)
 			}
 		}
 
 		fetchData()
+		return () => {
+			cancelled = true
+		}
 	}, [user, retryCount]) // Re-fetch when user changes or on retry
 
 	const handleFollow = useCallback(

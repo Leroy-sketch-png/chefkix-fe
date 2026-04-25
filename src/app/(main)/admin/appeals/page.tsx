@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { getPendingAppeals, reviewAppeal } from '@/services/admin'
 import type { Appeal, AppealDecision } from '@/lib/types/admin'
 import { Badge } from '@/components/ui/badge'
@@ -38,19 +38,34 @@ export default function AppealsPage() {
 	const [loading, setLoading] = useState(true)
 	const [reviewingId, setReviewingId] = useState<string | null>(null)
 	const [expandedId, setExpandedId] = useState<string | null>(null)
-	const [reviewNotes, setReviewNotes] = useState('')
+	const [reviewNotesMap, setReviewNotesMap] = useState<Record<string, string>>(
+		{},
+	)
+	const getReviewNotes = (id: string) => reviewNotesMap[id] ?? ''
+	const setReviewNotes = (id: string, value: string) =>
+		setReviewNotesMap(prev => ({ ...prev, [id]: value }))
+
+	const isMountedRef = useRef(true)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [])
 
 	const fetchAppeals = useCallback(async () => {
 		setLoading(true)
 		try {
 			const res = await getPendingAppeals()
+			if (!isMountedRef.current) return
 			if (res.success) {
 				setAppeals(res.data ?? [])
 			}
 		} catch {
+			if (!isMountedRef.current) return
 			toast.error(t('toastLoadAppealsFailed'))
 		} finally {
-			setLoading(false)
+			if (isMountedRef.current) setLoading(false)
 		}
 	}, [t])
 
@@ -61,16 +76,17 @@ export default function AppealsPage() {
 	const handleReview = async (appealId: string, decision: AppealDecision) => {
 		setReviewingId(appealId)
 		try {
+			const notes = getReviewNotes(appealId)
 			const res = await reviewAppeal(appealId, {
 				decision,
-				notes: reviewNotes || undefined,
+				notes: notes || undefined,
 			})
 			if (res.success) {
 				toast.success(
 					decision === 'approved' ? t('toastApproved') : t('toastRejected'),
 				)
 				setExpandedId(null)
-				setReviewNotes('')
+				setReviewNotes(appealId, '')
 				await fetchAppeals()
 			}
 		} catch {
@@ -293,8 +309,10 @@ export default function AppealsPage() {
 									{appeal.status === 'pending' && (
 										<div className='space-y-3 border-t border-border-subtle pt-3'>
 											<textarea
-												value={reviewNotes}
-												onChange={e => setReviewNotes(e.target.value)}
+												value={getReviewNotes(appeal.id)}
+												onChange={e =>
+													setReviewNotes(appeal.id, e.target.value)
+												}
 												placeholder={t('reviewNotesPlaceholder')}
 												className='w-full resize-none rounded-lg border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
 												rows={2}

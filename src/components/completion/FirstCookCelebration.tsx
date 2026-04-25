@@ -210,7 +210,7 @@ const JourneyNodeComponent = ({ node }: { node: JourneyNode }) => (
 			className={cn(
 				'flex size-11 items-center justify-center rounded-full border-3 text-lg font-display font-extrabold',
 				node.status === 'done' &&
-					'border-success bg-gradient-to-br from-success to-success/80 text-white shadow-lg shadow-success/40',
+					'border-success bg-gradient-to-br from-success to-success/80 text-white shadow-warm shadow-success/40',
 				node.status === 'upcoming' &&
 					'border-dashed border-success bg-bg-card text-success',
 				node.status === 'locked' &&
@@ -303,7 +303,7 @@ export const FirstCookCelebration = ({
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='relative z-10 w-full max-w-xl overflow-y-auto rounded-2xl bg-bg-card p-10 shadow-2xl max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-full max-md:rounded-b-none max-md:p-6'
+							className='relative z-10 w-full max-w-xl overflow-y-auto rounded-2xl bg-bg-card p-10 shadow-warm max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:max-h-sheet-full max-md:rounded-b-none max-md:p-6'
 						>
 							{/* Burst animation + badge */}
 							<div className='relative mx-auto mb-6 size-28 max-md:h-24 max-md:w-24'>
@@ -312,7 +312,7 @@ export const FirstCookCelebration = ({
 									initial={{ scale: 0, rotate: -180 }}
 									animate={{ scale: 1, rotate: 0 }}
 									transition={{ ...TRANSITION_BOUNCY, delay: 0.3 }}
-									className='absolute inset-0 flex items-center justify-center rounded-full bg-gradient-gold shadow-lg shadow-gold/40'
+									className='absolute inset-0 flex items-center justify-center rounded-full bg-gradient-gold shadow-warm shadow-gold/40'
 								>
 									<span className='text-5xl max-md:text-4xl'>👨‍🍳</span>
 								</motion.div>
@@ -400,7 +400,7 @@ export const FirstCookCelebration = ({
 									onClick={onPostNow}
 									whileHover={STAT_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
-									className='mb-3.5 flex w-full items-center justify-center gap-3.5 rounded-2xl bg-gradient-to-r from-brand to-brand/85 px-7 py-5 text-white shadow-lg shadow-brand/30 transition-shadow hover:shadow-xl hover:shadow-brand/40 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='mb-3.5 flex w-full items-center justify-center gap-3.5 rounded-2xl bg-gradient-to-r from-brand to-brand/85 px-7 py-5 text-white shadow-warm shadow-brand/30 transition-shadow hover:shadow-warm hover:shadow-brand/40 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Camera className='size-7' />
 									<div className='flex flex-col items-start gap-0.5'>

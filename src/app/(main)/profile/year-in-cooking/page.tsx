@@ -27,8 +27,9 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { EmptyStateGamified } from '@/components/shared'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/useAuth'
-import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
+import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { getProfileDisplayName } from '@/lib/types/profile'
+import { logDevError } from '@/lib/dev-log'
 
 // ── Card slide data ──
 interface RecapCard {
@@ -431,7 +432,8 @@ export default function YearInCookingPage() {
 				setTimeout(() => setCopied(false), 2000)
 				toast.success(t('toastCopiedClipboard'))
 			}
-		} catch {
+		} catch (err) {
+			logDevError('Share failed:', err)
 			toast.error(t('toastShareFailed'))
 		} finally {
 			setIsGenerating(false)
@@ -462,7 +464,8 @@ export default function YearInCookingPage() {
 			a.click()
 			URL.revokeObjectURL(url)
 			toast.success(t('toastDownloaded'))
-		} catch {
+		} catch (err) {
+			logDevError('Download failed:', err)
 			toast.error(t('toastDownloadFailed'))
 		} finally {
 			setIsGenerating(false)
@@ -616,7 +619,7 @@ export default function YearInCookingPage() {
 							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(-1)}
-							className='absolute left-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='absolute left-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg-card/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-bg-card focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaPrevious')}
 						>
 							<ChevronLeft className='size-5' />
@@ -627,7 +630,7 @@ export default function YearInCookingPage() {
 							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(1)}
-							className='absolute right-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='absolute right-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg-card/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-bg-card focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaNext')}
 						>
 							<ChevronRight className='size-5' />

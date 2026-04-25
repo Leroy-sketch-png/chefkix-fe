@@ -82,6 +82,9 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 		const containerRef = useRef<HTMLDivElement>(null)
 		const listboxId = useId()
 		const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+		const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+		const isMountedRef = useRef(true)
+		const requestSequenceRef = useRef(0)
 
 		const [isOpen, setIsOpen] = useState(false)
 		const [isLoading, setIsLoading] = useState(false)
@@ -104,6 +107,21 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 			},
 		}))
 
+		useEffect(() => {
+			return () => {
+				isMountedRef.current = false
+				requestSequenceRef.current += 1
+
+				if (debounceRef.current) {
+					clearTimeout(debounceRef.current)
+				}
+
+				if (blurTimeoutRef.current) {
+					clearTimeout(blurTimeoutRef.current)
+				}
+			}
+		}, [])
+
 		// Update dropdown position
 		useEffect(() => {
 			if (isOpen && containerRef.current) {
@@ -122,25 +140,52 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 		// Debounced fetch
 		useEffect(() => {
 			if (debounceRef.current) clearTimeout(debounceRef.current)
+			requestSequenceRef.current += 1
+			const requestId = requestSequenceRef.current
+			const query = value.trim()
 
-			if (value.trim().length < minChars) {
-				setOptions([])
-				setIsLoading(false)
+			if (query.length < minChars) {
+				if (isMountedRef.current && requestId === requestSequenceRef.current) {
+					setOptions([])
+					setHasError(false)
+					setIsLoading(false)
+				}
 				return
 			}
 
 			setIsLoading(true)
+			setHasError(false)
 			debounceRef.current = setTimeout(async () => {
 				try {
-					const results = await fetchOptions(value.trim())
+					const results = await fetchOptions(query)
+
+					if (
+						!isMountedRef.current ||
+						requestId !== requestSequenceRef.current
+					) {
+						return
+					}
+
 					setOptions(results)
 					setSelectedIndex(0)
 					setHasError(false)
 				} catch {
+					if (
+						!isMountedRef.current ||
+						requestId !== requestSequenceRef.current
+					) {
+						return
+					}
+
 					setOptions([])
 					setHasError(true)
 				} finally {
-					setIsLoading(false)
+					if (
+						isMountedRef.current &&
+						requestId === requestSequenceRef.current
+					) {
+						setIsLoading(false)
+					}
 				}
 			}, debounceMs)
 
@@ -151,6 +196,11 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 
 		const selectOption = useCallback(
 			(option: AsyncComboboxOption) => {
+				if (blurTimeoutRef.current) {
+					clearTimeout(blurTimeoutRef.current)
+					blurTimeoutRef.current = null
+				}
+
 				onChange(option.label)
 				onSelect(option)
 				setIsOpen(false)
@@ -198,11 +248,25 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 		}
 
 		const handleFocus = () => {
+			if (blurTimeoutRef.current) {
+				clearTimeout(blurTimeoutRef.current)
+				blurTimeoutRef.current = null
+			}
+
 			if (value.trim().length >= minChars) setIsOpen(true)
 		}
 
 		const handleBlur = () => {
-			setTimeout(() => setIsOpen(false), 150)
+			if (blurTimeoutRef.current) {
+				clearTimeout(blurTimeoutRef.current)
+			}
+
+			blurTimeoutRef.current = setTimeout(() => {
+				if (isMountedRef.current) {
+					setIsOpen(false)
+				}
+				blurTimeoutRef.current = null
+			}, 150)
 		}
 
 		return (

@@ -15,6 +15,7 @@ export type SessionStatus =
 	| 'completed'
 	| 'abandoned'
 	| 'posted'
+	| 'post_deleted'
 	| 'expired'
 
 export interface TimerEvent {
@@ -221,7 +222,7 @@ export const getSessionById = async (
 
 /**
  * Get session history with optional status filter.
- * @param status Filter by status: 'completed' | 'posted' | 'expired' | 'abandoned' | 'all'
+ * @param status Filter by status: 'completed' | 'posted' | 'post_deleted' | 'expired' | 'abandoned' | 'all'
  */
 export const getSessionHistory = async (params?: {
 	status?: SessionStatus | 'all'
@@ -270,8 +271,9 @@ export const getPendingSessions = async (): Promise<
 	try {
 		const response = await getSessionHistory({ status: 'completed' })
 		if (response.success && response.data) {
-			// Filter out sessions that already have a postId
-			const pending = response.data.sessions.filter(s => !s.postId)
+			const pending = response.data.sessions.filter(
+				s => s.status === 'completed' && !s.postId,
+			)
 			return {
 				success: true,
 				message: 'Pending sessions fetched',

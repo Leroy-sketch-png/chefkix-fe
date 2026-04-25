@@ -34,6 +34,13 @@ import { getTrendingRecipes } from '@/services/recipe'
 import { Recipe, formatCookingTime } from '@/lib/types/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
 import { logDevError } from '@/lib/dev-log'
+import { TextLoop } from '@/components/ui/text-loop'
+import { DotPattern } from '@/components/ui/dot-pattern'
+import { HighlightOnScroll } from '@/components/ui/highlight-on-scroll'
+import { CountUpStats } from '@/components/ui/count-up-stats'
+import { AnnouncementBanner } from '@/components/ui/announcement-banner'
+import { NoiseOverlay } from '@/components/ui/noise-overlay'
+import { TextReveal } from '@/components/ui/text-reveal'
 
 // ============================================
 // TYPES
@@ -220,23 +227,29 @@ export default function HomePage() {
 
 	// Fetch trending recipes for preview
 	useEffect(() => {
+		let cancelled = false
 		const fetchTrending = async () => {
 			setRecipesError(null)
 			try {
 				const res = await getTrendingRecipes({ limit: 4 })
+				if (cancelled) return
 				if (res.success && res.data) {
 					setTrendingRecipes(res.data.slice(0, 4))
 				} else {
 					setRecipesError(res.message || t('couldNotLoadDefault'))
 				}
 			} catch (err) {
+				if (cancelled) return
 				logDevError('Landing page: failed to fetch trending recipes', err)
 				setRecipesError(t('couldNotConnect'))
 			} finally {
-				setRecipesLoading(false)
+				if (!cancelled) setRecipesLoading(false)
 			}
 		}
 		fetchTrending()
+		return () => {
+			cancelled = true
+		}
 	}, [t])
 
 	// Authenticated users get redirected
@@ -247,7 +260,7 @@ export default function HomePage() {
 					initial={{ scale: 0.8, opacity: 0 }}
 					animate={{ scale: 1, opacity: 1 }}
 					transition={TRANSITION_SPRING}
-					className='flex size-16 items-center justify-center rounded-2xl bg-gradient-hero shadow-lg shadow-brand/30'
+					className='flex size-16 items-center justify-center rounded-2xl bg-gradient-hero shadow-warm shadow-brand/30'
 				>
 					<ChefHat className='size-8 text-white' />
 				</motion.div>
@@ -257,8 +270,27 @@ export default function HomePage() {
 
 	return (
 		<div className='relative min-h-screen bg-bg'>
+			{/* Subtle dot pattern background */}
+			<DotPattern
+				fade
+				spacing={24}
+				radius={0.8}
+				color='var(--text-muted)'
+				className='absolute inset-0 opacity-[0.15]'
+			/>
+			{/* Warm noise texture for depth */}
+			<NoiseOverlay opacity={0.03} />
+
 			{/* Content */}
 			<div className='relative'>
+				{/* Launch banner */}
+				<AnnouncementBanner
+					variant='brand'
+					storageKey='chefkix-launch-banner'
+					href='/auth/sign-up'
+					message={t('launchBanner')}
+				/>
+
 				{/* Navigation */}
 				<nav className='flex items-center justify-between px-6 py-4 md:px-12 md:py-6'>
 					<div className='flex items-center gap-2'>
@@ -295,7 +327,7 @@ export default function HomePage() {
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-hero shadow-xl shadow-brand/30'
+							className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-hero shadow-warm shadow-brand/30'
 						>
 							<ChefHat className='size-8 text-white' />
 						</motion.div>
@@ -305,10 +337,12 @@ export default function HomePage() {
 						variants={staggerItem}
 						className='mb-4 text-3xl font-extrabold leading-tight text-text md:text-4xl lg:text-5xl'
 					>
-						{t('heroTitle1')}
-						<br />
+						{t('heroTitle1')}{' '}
 						<span className='bg-gradient-hero-text bg-clip-text text-transparent'>
-							{t('heroTitle2')}
+							<TextLoop
+								texts={[t('heroTitlePro'), t('heroTitleGamer')]}
+								interval={2500}
+							/>
 						</span>
 					</motion.h1>
 
@@ -443,7 +477,11 @@ export default function HomePage() {
 								</span>
 							</div>
 							<h2 className='text-2xl font-bold text-text md:text-3xl'>
-								{t('everythingYouNeed')}
+								<HighlightOnScroll
+									text={t('everythingYouNeed')}
+									as='span'
+									className='text-2xl font-bold md:text-3xl'
+								/>
 							</h2>
 						</div>
 
@@ -472,7 +510,11 @@ export default function HomePage() {
 								</span>
 							</div>
 							<h2 className='mb-2 text-2xl font-bold text-text md:text-3xl'>
-								{t('cookModeGuides')}
+								<TextReveal
+									text={t('cookModeGuides')}
+									preset='slideUp'
+									as='span'
+								/>
 							</h2>
 							<p className='text-text-secondary'>{t('neverLosePlaceDesc')}</p>
 						</div>
@@ -483,7 +525,7 @@ export default function HomePage() {
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
 							transition={TRANSITION_SPRING}
-							className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card shadow-xl'
+							className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card shadow-warm'
 						>
 							{/* Demo Header */}
 							<div className='flex items-center justify-between border-b border-border-subtle bg-bg-elevated/50 px-6 py-4'>
@@ -596,10 +638,11 @@ export default function HomePage() {
 								animate={{ scale: 1, opacity: 1 }}
 								exit={{ scale: 0.9, opacity: 0 }}
 								onClick={e => e.stopPropagation()}
-								className='relative w-full max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-xl'
+								className='relative w-full max-w-sm rounded-3xl bg-bg-card p-8 text-center shadow-warm'
 							>
 								<button
 									type='button'
+									aria-label='Close demo'
 									onClick={() => setShowCookModeDemo(false)}
 									className='absolute right-4 top-4 rounded-full p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 								>
@@ -638,6 +681,23 @@ export default function HomePage() {
 				{/* Bottom CTA */}
 				<section className='px-6 py-16 text-center md:px-12'>
 					<div className='mx-auto max-w-lg'>
+						{/* Community stats */}
+						<div className='mx-auto mb-12 max-w-md'>
+							<CountUpStats
+								columns={3}
+								stats={[
+									{ value: 500, label: t('recipesAvailable'), suffix: '+' },
+									{ value: 50, label: t('activeCooks'), suffix: '+' },
+									{
+										value: 4.8,
+										label: t('avgRating'),
+										prefix: '★ ',
+										decimals: 1,
+									},
+								]}
+							/>
+						</div>
+
 						<motion.div
 							initial={{ scale: 0 }}
 							whileInView={{ scale: 1 }}

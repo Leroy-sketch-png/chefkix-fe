@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
+import { ImageWithFallback as Image } from '@/components/ui/image-with-fallback'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import {
 	Clock,
 	ChefHat,
@@ -13,6 +14,7 @@ import {
 	Users,
 	RefreshCw,
 	History,
+	AlertCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -39,9 +41,11 @@ import {
 // ============================================
 
 import type { Difficulty } from '@/lib/types/gamification'
-import { formatCookingTime, type QualityTier } from '@/lib/types/recipe'
+import { formatCookingTime } from '@/lib/types/recipe'
 import { resolveBadgesWithFallback } from '@/lib/data/badgeRegistry'
 import { QualityBadge } from './QualityBadge'
+
+type QualityTier = 'Foolproof' | 'Great' | 'Good' | 'Fair' | 'Needs Work'
 
 interface RecipeAuthor {
 	id: string
@@ -116,6 +120,44 @@ type RecipeCardEnhancedProps =
 	| CookedCardProps
 	| MiniCardProps
 
+function RecipeCardErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='flex min-h-[18rem] flex-col justify-between rounded-2xl border border-destructive/20 bg-bg-card p-5 shadow-card'
+		>
+			<div className='flex items-start gap-3'>
+				<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+					<AlertCircle className='size-4' />
+				</div>
+				<div className='min-w-0'>
+					<p className='text-sm font-semibold text-text-primary'>
+						{tCommon('somethingWentWrong')}
+					</p>
+					<p className='mt-1 text-sm text-text-secondary'>
+						{error?.message || tCommon('unexpectedError')}
+					</p>
+				</div>
+			</div>
+			<button
+				type='button'
+				onClick={onReset}
+				className='mt-4 inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+			>
+				{tCommon('tryAgain')}
+			</button>
+		</div>
+	)
+}
+
 // ============================================
 // HELPER COMPONENTS
 // ============================================
@@ -132,7 +174,7 @@ const XPBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand/90 font-bold text-white shadow-md',
+				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand/90 font-bold text-white shadow-warm',
 				size === 'large' ? 'px-4 py-2 text-base' : 'px-2.5 py-1 text-xs',
 			)}
 		>
@@ -224,7 +266,7 @@ const MasteryBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br px-3 py-2 text-xs font-bold text-white shadow-lg',
+				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-br px-3 py-2 text-xs font-bold text-white shadow-warm',
 				`${config[level].gradient}`,
 			)}
 		>
@@ -361,7 +403,7 @@ const FeedCard = ({
 		<motion.article
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='relative overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-xl'
+			className='relative overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -376,6 +418,7 @@ const FeedCard = ({
 					<Image
 						src={imageUrl}
 						alt={title}
+						fallbackType='recipe'
 						fill
 						className='object-cover'
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
@@ -414,6 +457,7 @@ const FeedCard = ({
 									<Image
 										src={author.avatarUrl}
 										alt={author.name}
+										fallbackType='avatar'
 										width={24}
 										height={24}
 										className='size-6 rounded-full'
@@ -495,7 +539,7 @@ const GridCard = ({
 		<motion.article
 			whileHover={CARD_GRID_HOVER}
 			transition={TRANSITION_SPRING}
-			className='overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-xl'
+			className='overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -510,6 +554,7 @@ const GridCard = ({
 					<Image
 						src={imageUrl}
 						alt={title}
+						fallbackType='recipe'
 						fill
 						className='object-cover'
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
@@ -582,6 +627,7 @@ const GridCard = ({
 							<Image
 								src={author.avatarUrl}
 								alt={author.name}
+								fallbackType='avatar'
 								width={28}
 								height={28}
 								className='size-7 rounded-full'
@@ -669,7 +715,7 @@ const FeaturedCard = ({
 		<motion.article
 			whileHover={CARD_FEATURED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='overflow-hidden rounded-2xl shadow-2xl'
+			className='overflow-hidden rounded-2xl shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -679,6 +725,7 @@ const FeaturedCard = ({
 					<Image
 						src={imageUrl}
 						alt={title}
+						fallbackType='recipe'
 						fill
 						sizes='(max-width: 768px) 100vw, 50vw'
 						className='object-cover'
@@ -697,7 +744,7 @@ const FeaturedCard = ({
 					{/* XP + Difficulty badges */}
 					<div className='absolute right-5 top-5 flex flex-col items-end gap-2.5'>
 						{xpReward != null && xpReward > 0 && (
-							<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-lg shadow-success/40'>
+							<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-warm shadow-success/40'>
 								<span className='text-lg'>⚡</span>
 								<span className='tabular-nums'>{xpReward} XP</span>
 							</div>
@@ -789,6 +836,7 @@ const FeaturedCard = ({
 								<Image
 									src={author.avatarUrl}
 									alt={author.name}
+									fallbackType='avatar'
 									width={48}
 									height={48}
 									className='size-12 rounded-full border-2 border-white/30'
@@ -814,7 +862,7 @@ const FeaturedCard = ({
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
 							transition={TRANSITION_SPRING}
-							className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-xl shadow-brand/40 md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-warm shadow-brand/40 md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Play className='size-5 md:size-6' />
 							{t('startCooking')}
@@ -859,6 +907,7 @@ const CookedCard = ({
 					<Image
 						src={imageUrl}
 						alt={title}
+						fallbackType='recipe'
 						fill
 						sizes='(max-width: 768px) 100vw, 33vw'
 						className='object-cover'
@@ -980,6 +1029,7 @@ const MiniCard = ({
 				<Image
 					src={imageUrl}
 					alt={title}
+					fallbackType='recipe'
 					width={56}
 					height={56}
 					className='size-14 flex-shrink-0 rounded-lg object-cover'
@@ -1026,7 +1076,7 @@ const MiniCard = ({
 // MAIN EXPORT
 // ============================================
 
-export const RecipeCardEnhanced = (props: RecipeCardEnhancedProps) => {
+const RecipeCardEnhancedContent = (props: RecipeCardEnhancedProps) => {
 	switch (props.variant) {
 		case 'feed':
 			return <FeedCard {...props} />
@@ -1042,6 +1092,16 @@ export const RecipeCardEnhanced = (props: RecipeCardEnhancedProps) => {
 			return null
 	}
 }
+
+export const RecipeCardEnhanced = (props: RecipeCardEnhancedProps) => (
+	<ErrorBoundary
+		fallbackRender={({ error, onReset }) => (
+			<RecipeCardErrorFallback error={error} onReset={onReset} />
+		)}
+	>
+		<RecipeCardEnhancedContent {...props} />
+	</ErrorBoundary>
+)
 
 // Export individual variants for direct use
 export { FeedCard, GridCard, FeaturedCard, CookedCard, MiniCard }

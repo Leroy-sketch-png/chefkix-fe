@@ -91,8 +91,51 @@ export function ActiveChallengesWidget({
 	}, [])
 
 	useEffect(() => {
-		fetchChallenges()
-	}, [fetchChallenges])
+		let cancelled = false
+		const load = async () => {
+			setHasError(false)
+			setLoaded(false)
+			try {
+				const [dailyRes, weeklyRes] = await Promise.all([
+					getTodaysChallenge().catch(() => null),
+					getWeeklyChallenge().catch(() => null),
+				])
+				if (cancelled) return
+
+				if (!dailyRes && !weeklyRes) {
+					setHasError(true)
+				} else {
+					if (
+						dailyRes?.success &&
+						dailyRes.data &&
+						typeof dailyRes.data.title === 'string' &&
+						dailyRes.data.endsAt &&
+						!dailyRes.data.completed
+					) {
+						setDaily(dailyRes.data)
+					}
+					if (
+						weeklyRes?.success &&
+						weeklyRes.data &&
+						typeof weeklyRes.data.title === 'string' &&
+						!weeklyRes.data.completed
+					) {
+						setWeekly(weeklyRes.data)
+					}
+				}
+			} catch (err) {
+				if (cancelled) return
+				logDevError('Failed to fetch challenges for widget:', err)
+				setHasError(true)
+			} finally {
+				if (!cancelled) setLoaded(true)
+			}
+		}
+		load()
+		return () => {
+			cancelled = true
+		}
+	}, [])
 
 	// Don't render if still loading
 	if (!loaded) return null

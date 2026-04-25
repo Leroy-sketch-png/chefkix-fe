@@ -2,10 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChefHat, Clock, Flame, Star, Sparkles } from 'lucide-react'
+import {
+	ChefHat,
+	Clock,
+	Flame,
+	Star,
+	Sparkles,
+	AlertCircle,
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Recipe } from '@/lib/types/recipe'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { getSimilarRecipes } from '@/services/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
 import {
@@ -23,6 +31,46 @@ interface SimilarRecipesProps {
 	className?: string
 }
 
+function SimilarRecipeCardErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='rounded-2xl border border-destructive/20 bg-bg-card p-4 shadow-card'
+		>
+			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+				<div className='flex items-start gap-3'>
+					<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+						<AlertCircle className='size-4' />
+					</div>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{tCommon('somethingWentWrong')}
+						</p>
+						<p className='mt-1 text-sm text-text-secondary'>
+							{error?.message || tCommon('unexpectedError')}
+						</p>
+					</div>
+				</div>
+				<button
+					type='button'
+					onClick={onReset}
+					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+				>
+					{tCommon('tryAgain')}
+				</button>
+			</div>
+		</div>
+	)
+}
+
 export const SimilarRecipes = ({
 	recipeId,
 	className,
@@ -32,19 +80,24 @@ export const SimilarRecipes = ({
 	const t = useTranslations('recipe')
 
 	useEffect(() => {
+		let cancelled = false
 		const fetchSimilar = async () => {
 			try {
 				const res = await getSimilarRecipes(recipeId, 6)
+				if (cancelled) return
 				if (res.success && res.data) {
 					setRecipes(Array.isArray(res.data) ? res.data : [])
 				}
 			} catch (err) {
 				logDevError('Failed to fetch similar recipes:', err)
 			} finally {
-				setIsLoading(false)
+				if (!cancelled) setIsLoading(false)
 			}
 		}
 		fetchSimilar()
+		return () => {
+			cancelled = true
+		}
 	}, [recipeId])
 
 	if (isLoading) {
@@ -95,7 +148,14 @@ export const SimilarRecipes = ({
 				className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'
 			>
 				{recipes.map(recipe => (
-					<SimilarRecipeCard key={recipe.id} recipe={recipe} />
+					<ErrorBoundary
+						key={recipe.id}
+						fallbackRender={({ error, onReset }) => (
+							<SimilarRecipeCardErrorFallback error={error} onReset={onReset} />
+						)}
+					>
+						<SimilarRecipeCard recipe={recipe} />
+					</ErrorBoundary>
 				))}
 			</motion.div>
 		</div>

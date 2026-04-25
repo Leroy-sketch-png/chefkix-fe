@@ -17,7 +17,6 @@ import { useTranslations } from 'next-intl'
 import { useUiStore } from '@/store/uiStore'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { logout as logoutService } from '@/services/auth'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
@@ -34,6 +33,7 @@ import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
+import { logout as logoutService } from '@/services/auth'
 import { toast } from 'sonner'
 import { autocompleteSearch } from '@/services/search'
 import { useNotificationStore } from '@/store/notificationStore'
@@ -118,7 +118,7 @@ export const Topbar = () => {
 				setHighlightIndex(-1)
 				setShowSuggestions(true)
 			} catch {
-				// Silently fail — typeahead is an enhancement
+				// ignored: typeahead is non-critical
 			} finally {
 				setIsSearching(false)
 			}
@@ -243,11 +243,12 @@ export const Topbar = () => {
 	// Fetch unread message counts on mount and periodically
 	useEffect(() => {
 		if (!user) return
+		let cancelled = false
 
 		const fetchMessageCounts = async () => {
 			try {
 				const convResponse = await getMyConversations()
-				if (convResponse.success && convResponse.data) {
+				if (!cancelled && convResponse.success && convResponse.data) {
 					const totalUnread = convResponse.data.reduce(
 						(sum, conv) => sum + (conv.unreadCount || 0),
 						0,
@@ -261,7 +262,10 @@ export const Topbar = () => {
 
 		fetchMessageCounts()
 		const interval = setInterval(fetchMessageCounts, 60000)
-		return () => clearInterval(interval)
+		return () => {
+			cancelled = true
+			clearInterval(interval)
+		}
 	}, [user])
 
 	const handleLogout = async () => {
@@ -377,7 +381,7 @@ export const Topbar = () => {
 						<div
 							id='search-suggestions-dropdown'
 							role='listbox'
-							className='fixed z-dropdown overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-lg'
+							className='fixed z-dropdown overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-warm'
 							style={{
 								top: dropdownPosition.top,
 								left: dropdownPosition.left,
@@ -653,7 +657,7 @@ export const Topbar = () => {
 							</defs>
 						</svg>
 						{/* Avatar - sm size on all breakpoints to fit inside h-18 nav */}
-						<Avatar size='sm' className='hidden shadow-lg md:flex'>
+						<Avatar size='sm' className='hidden shadow-warm md:flex'>
 							<AvatarImage
 								src={user.avatarUrl || '/placeholder-avatar.svg'}
 								alt={user.displayName || 'User'}
@@ -692,7 +696,7 @@ export const Topbar = () => {
 								onClick={() => setShowUserMenu(false)}
 							/>
 							<div
-								className='fixed z-dropdown w-48 overflow-hidden rounded-radius border border-border-subtle bg-bg-card shadow-lg animate-in fade-in-0 zoom-in-95'
+								className='fixed z-dropdown w-48 overflow-hidden rounded-radius border border-border-subtle bg-bg-card shadow-warm animate-in fade-in-0 zoom-in-95'
 								style={{
 									top: `${menuPosition.top}px`,
 									right: `${menuPosition.right}px`,

@@ -14,6 +14,7 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { PostCard } from '@/components/social/PostCard'
 import { PollCard } from '@/components/social/PollCard'
 import { RecentCookCard } from '@/components/social/RecentCookCard'
@@ -41,6 +42,7 @@ import {
 	BookOpen,
 	Camera,
 	PenLine,
+	AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
@@ -113,6 +115,48 @@ const transformToPendingSession = (
 		status: getPendingStatus(daysRemaining),
 		postId: session.postId || undefined,
 	}
+}
+
+function FeedItemErrorFallback({
+	error,
+	onReset,
+}: {
+	error?: Error
+	onReset: () => void
+}) {
+	const tCommon = useTranslations('common')
+
+	return (
+		<div
+			role='alert'
+			className='rounded-radius border border-destructive/20 bg-bg-card p-4 shadow-card'
+		>
+			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+				<div className='flex items-start gap-3'>
+					<div className='rounded-full bg-destructive/10 p-2 text-destructive'>
+						<AlertCircle className='size-4' />
+					</div>
+					<div className='min-w-0'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{tCommon('somethingWentWrong')}
+						</p>
+						<p className='mt-1 text-sm text-text-secondary'>
+							{error?.message || tCommon('unexpectedError')}
+						</p>
+					</div>
+				</div>
+				<Button
+					type='button'
+					variant='outline'
+					size='sm'
+					onClick={onReset}
+					className='h-10 px-4'
+				>
+					{tCommon('tryAgain')}
+				</Button>
+			</div>
+		</div>
+	)
 }
 
 export default function DashboardPage() {
@@ -865,22 +909,31 @@ export default function DashboardPage() {
 														'ring-2 ring-brand/50 shadow-warm',
 												)}
 											>
-												{post.postType === 'POLL' ? (
-													<PollCard
-														post={post}
-														onUpdate={handlePostUpdate}
-														currentUserId={user?.userId}
-													/>
-												) : post.postType === 'RECENT_COOK' ? (
-													<RecentCookCard post={post} />
-												) : (
-													<PostCard
-														post={post}
-														onUpdate={handlePostUpdate}
-														onDelete={handlePostDelete}
-														currentUserId={user?.userId}
-													/>
-												)}
+												<ErrorBoundary
+													fallbackRender={({ error, onReset }) => (
+														<FeedItemErrorFallback
+															error={error}
+															onReset={onReset}
+														/>
+													)}
+												>
+													{post.postType === 'POLL' ? (
+														<PollCard
+															post={post}
+															onUpdate={handlePostUpdate}
+															currentUserId={user?.userId}
+														/>
+													) : post.postType === 'RECENT_COOK' ? (
+														<RecentCookCard post={post} />
+													) : (
+														<PostCard
+															post={post}
+															onUpdate={handlePostUpdate}
+															onDelete={handlePostDelete}
+															currentUserId={user?.userId}
+														/>
+													)}
+												</ErrorBoundary>
 											</motion.div>
 										))}
 									</AnimatePresence>

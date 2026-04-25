@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, ChevronRight, Trophy, X } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { Progress } from '@/components/ui/progress'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -38,7 +39,8 @@ function isDismissed(challengeId: string): boolean {
 	try {
 		const dismissed = sessionStorage.getItem(DISMISSED_KEY)
 		return dismissed === challengeId
-	} catch {
+	} catch (err) {
+		logDevError('sessionStorage read error:', err)
 		return false
 	}
 }
@@ -46,7 +48,8 @@ function isDismissed(challengeId: string): boolean {
 function dismissBanner(challengeId: string): void {
 	try {
 		sessionStorage.setItem(DISMISSED_KEY, challengeId)
-	} catch {
+	} catch (err) {
+		logDevError('sessionStorage write error:', err)
 		// sessionStorage not available
 	}
 }
@@ -171,17 +174,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 											{progressPercent}%
 										</span>
 									</div>
-									<div className='h-2 overflow-hidden rounded-full bg-bg-elevated'>
-										<motion.div
-											initial={{ width: 0 }}
-											animate={{ width: `${progressPercent}%` }}
-											transition={{
-												duration: DURATION_S.verySlow,
-												ease: 'easeOut',
-											}}
-											className='h-full rounded-full bg-gradient-brand'
-										/>
-									</div>
+									<Progress value={progressPercent} className='h-2' />
 								</div>
 							)}
 

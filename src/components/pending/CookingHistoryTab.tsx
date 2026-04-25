@@ -274,8 +274,8 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 					className={cn(
 						'px-5 py-2.5 rounded-xl font-semibold text-sm focus-visible:ring-2 focus-visible:ring-brand/50',
 						isUrgent
-							? 'bg-error text-white shadow-lg shadow-error/30'
-							: 'bg-brand text-white shadow-lg shadow-primary/30',
+							? 'bg-error text-white shadow-warm shadow-error/30'
+							: 'bg-brand text-white shadow-warm shadow-primary/30',
 					)}
 					onClick={() => onPost(session.id)}
 					whileHover={BUTTON_HOVER}
@@ -312,6 +312,7 @@ const CompletedItem = ({
 	const t = useTranslations('history')
 	const isMastered = session.cookCount && session.cookCount >= 5
 	const isReduced = session.cookCount && session.cookCount > 2
+	const postWasRemoved = session.status === 'post_deleted'
 
 	return (
 		<motion.div
@@ -333,7 +334,7 @@ const CompletedItem = ({
 					{session.postId && (
 						<Image
 							src={session.recipeImage}
-							alt=''
+							alt={session.recipeName || 'Recipe thumbnail'}
 							width={32}
 							height={32}
 							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-bg-card object-cover'
@@ -360,6 +361,11 @@ const CompletedItem = ({
 												? 'rd'
 												: 'th',
 								})}
+							</span>
+						)}
+						{postWasRemoved && (
+							<span className='rounded-md bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning'>
+								{t('postRemoved')}
 							</span>
 						)}
 					</span>
@@ -556,9 +562,15 @@ export const CookingHistoryTab = ({
 
 	// Categorize sessions
 	const pendingSessions = sessions.filter(
-		s => !s.postId && s.status !== 'expired' && s.status !== 'abandoned',
+		s =>
+			!s.postId &&
+			s.status !== 'expired' &&
+			s.status !== 'abandoned' &&
+			s.status !== 'post_deleted',
 	)
-	const completedSessions = sessions.filter(s => s.postId)
+	const completedSessions = sessions.filter(
+		s => !!s.postId || s.status === 'post_deleted',
+	)
 	const expiredSessions = sessions.filter(
 		s => s.status === 'expired' || s.status === 'abandoned',
 	)

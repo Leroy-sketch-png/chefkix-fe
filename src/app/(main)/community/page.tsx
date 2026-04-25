@@ -46,7 +46,6 @@ import {
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
-import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 

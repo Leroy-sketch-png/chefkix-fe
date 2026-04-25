@@ -499,6 +499,12 @@ export const OVERLAY_BACKDROP = {
 	exit: { opacity: 0, transition: { duration: 0.15 } },
 }
 
+// Aliases for .tmp naming compatibility
+/** Modal entrance animation (alias for CELEBRATION_MODAL) */
+export const MODAL_ENTRANCE = CELEBRATION_MODAL
+/** Pulse ring for floating action buttons (alias for AI_BUTTON_PULSE) */
+export const PULSE_RING = AI_BUTTON_PULSE
+
 // ============================================
 // STAGGER ANIMATION VARIANTS
 // ============================================
@@ -757,7 +763,11 @@ export function getMotionHoverTap(
  */
 export function getMotionVariants(
 	shouldReduce: boolean,
-	variants: { hidden?: Record<string, unknown>; visible?: Record<string, unknown>; exit?: Record<string, unknown> },
+	variants: {
+		hidden?: Record<string, unknown>
+		visible?: Record<string, unknown>
+		exit?: Record<string, unknown>
+	},
 ) {
 	if (!shouldReduce) return variants
 

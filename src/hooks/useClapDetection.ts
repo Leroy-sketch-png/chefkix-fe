@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
+import { logDevError } from '@/lib/dev-log'
 
 interface UseClapDetectionOptions {
 	/** Whether clap detection is active */
@@ -57,7 +58,9 @@ export function useClapDetection({
 			streamRef.current = null
 		}
 		if (audioContextRef.current) {
-			audioContextRef.current.close().catch(() => {})
+			audioContextRef.current
+				.close()
+				.catch(err => logDevError('Failed to close AudioContext:', err))
 			audioContextRef.current = null
 		}
 		analyserRef.current = null
@@ -70,7 +73,10 @@ export function useClapDetection({
 		}
 
 		// Check for Web Audio + getUserMedia support
-		if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+		if (
+			typeof window === 'undefined' ||
+			!navigator.mediaDevices?.getUserMedia
+		) {
 			return
 		}
 
@@ -147,7 +153,7 @@ export function useClapDetection({
 
 				rafRef.current = requestAnimationFrame(detect)
 			} catch {
-				// Microphone permission denied or unavailable — silently fail
+				// ignored: media API non-critical
 			}
 		}
 

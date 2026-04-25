@@ -92,8 +92,7 @@ export function CollectionBuilder({
 	const t = useTranslations('collections')
 	const [name, setName] = useState(initialName)
 	const [description, setDescription] = useState(initialDescription)
-	const [collectionType, setCollectionType] =
-		useState<CollectionType>(initialType)
+	const [collectionType] = useState<CollectionType>(initialType)
 	const [isPublic, setIsPublic] = useState(true)
 	const [stages, setStages] = useState<DifficultyStep[]>(
 		initialStages.length > 0
@@ -509,6 +508,7 @@ function StageItem({
 
 				<button
 					type='button'
+					aria-label='Remove stage'
 					onClick={() => onRemove(stageIndex)}
 					className='rounded-lg p-1.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
 				>
@@ -530,6 +530,7 @@ function StageItem({
 								</span>
 								<button
 									type='button'
+									aria-label='Remove recipe'
 									onClick={() => onRemoveRecipe(stageIndex, recipeId)}
 									className='rounded p-1 text-text-muted hover:bg-destructive/10 hover:text-destructive'
 								>

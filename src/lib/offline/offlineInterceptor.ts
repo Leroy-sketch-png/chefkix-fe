@@ -11,6 +11,7 @@
 import { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { api } from '../axios'
 import { queueRequest, isIndexedDBAvailable } from './offlineDb'
+import { logDevError } from '@/lib/dev-log'
 
 // Endpoints that are safe to queue for offline replay
 const QUEUEABLE_PATTERNS = [
@@ -92,7 +93,7 @@ export function installOfflineInterceptor(): void {
 					}
 				} catch (queueError) {
 					if (process.env.NODE_ENV === 'development')
-						console.error('[Offline] Failed to queue request:', queueError)
+						logDevError('[Offline] Failed to queue request:', queueError)
 					// Don't swallow — reject so caller knows the action wasn't saved
 					return Promise.reject(error)
 				}

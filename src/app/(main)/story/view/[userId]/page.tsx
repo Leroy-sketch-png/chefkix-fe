@@ -20,7 +20,7 @@ export default function ViewStoryPage({
 	const { name, avatar } = use(searchParams)
 
 	return (
-		<div className='fixed inset-0 z-[100] bg-black'>
+		<div className='fixed inset-0 z-modal bg-black'>
 			<StoryViewer
 				userId={userId}
 				authorName={name} // 🌟 Chuyền vào cho Viewer

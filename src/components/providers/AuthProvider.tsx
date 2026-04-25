@@ -69,21 +69,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				return
 			}
 
-			// CRITICAL: Wait for any visibility-triggered token refresh to complete
-			// This prevents race conditions where we call getMyProfile() with an expired token
-			// while TokenRefreshProvider is already refreshing it
-			await waitForVisibilityRefresh()
+			try {
+				// CRITICAL: Wait for any visibility-triggered token refresh to complete
+				// This prevents race conditions where we call getMyProfile() with an expired token
+				// while TokenRefreshProvider is already refreshing it
+				await waitForVisibilityRefresh()
 
-			// Token exists - if we don't have user data, fetch it.
-			if (!user) {
-				const profileResponse = await getMyProfile()
-				if (profileResponse.success && profileResponse.data) {
-					setUser(profileResponse.data)
-				} else {
-					// Failed to fetch profile (token invalid/expired), logout
-					logDevError('[AuthProvider] Profile fetch failed, logging out')
-					logout()
+				// Token exists - if we don't have user data, fetch it.
+				if (!user) {
+					const profileResponse = await getMyProfile()
+					if (profileResponse.success && profileResponse.data) {
+						setUser(profileResponse.data)
+					} else {
+						// Failed to fetch profile (token invalid/expired), logout
+						logDevError('[AuthProvider] Profile fetch failed, logging out')
+						logout()
+					}
 				}
+			} catch (err) {
+				logDevError('[AuthProvider] Session validation failed:', err)
+				logout()
 			}
 
 			// We're done loading

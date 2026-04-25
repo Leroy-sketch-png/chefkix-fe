@@ -44,7 +44,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 				set({ unreadCount: response.data, lastFetched: Date.now() })
 			}
 		} catch {
-			// Silently fail - don't break the app for notification count
+			// ignored: non-critical notification badge
 		}
 	},
 

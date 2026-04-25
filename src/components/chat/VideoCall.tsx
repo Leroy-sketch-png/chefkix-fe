@@ -6,8 +6,10 @@ import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { API_ENDPOINTS } from '@/constants/api'
+import app from '@/configs/app'
 import { Portal } from '@/components/ui/portal'
-import { BUTTON_HOVER, BUTTON_TAP, ICON_BUTTON_HOVER, ICON_BUTTON_TAP } from '@/lib/motion'
+import { BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
+import { useAuthStore } from '@/store/authStore'
 import { useTranslations } from 'next-intl'
 
 // Define the structure of the signaling message to match the Spring Boot backend
@@ -33,6 +35,7 @@ export default function VideoCall({
 	onClose,
 }: VideoCallProps) {
 	const t = useTranslations('messages')
+	const accessToken = useAuthStore(state => state.accessToken)
 	// --- Phase 1: Refs for Media and Connections ---
 	// We use useRef instead of useState for things that don't need to trigger a re-render when they change
 	const localVideoRef = useRef<HTMLVideoElement>(null)
@@ -49,7 +52,9 @@ export default function VideoCall({
 			ringtoneRef.current = new Audio('/sounds/ringtone.mp3')
 			ringtoneRef.current.loop = true
 		}
-		ringtoneRef.current.play().catch(() => {})
+		ringtoneRef.current.play().catch(() => {
+			/* Autoplay blocked by browser policy — expected */
+		})
 	}, [])
 	const stopRingtone = useCallback(() => {
 		if (ringtoneRef.current) {
@@ -153,10 +158,15 @@ export default function VideoCall({
 
 	// --- Phase 2: Signaling Client (WebSocket) ---
 	const connectWebSocket = () => {
-		const apiBase = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
-		const wsBase = apiBase.replace(/^http/, 'ws')
-		const wsUrl = `${wsBase}${API_ENDPOINTS.CHAT.VIDEO_SIGNALING_WS}`
-		const ws = new WebSocket(wsUrl)
+		if (!accessToken) {
+			toast.error(t('toastConnectionError'))
+			return
+		}
+
+		const wsBase = app.API_BASE_URL.replace(/^http/, 'ws')
+		const wsUrl = new URL(`${wsBase}${API_ENDPOINTS.CHAT.VIDEO_SIGNALING_WS}`)
+		wsUrl.searchParams.set('access_token', accessToken)
+		const ws = new WebSocket(wsUrl.toString())
 
 		ws.onopen = () => {
 			// As soon as we connect, tell the backend we are joining this conversation
@@ -185,14 +195,10 @@ export default function VideoCall({
 						break
 					case 'answer':
 						stopRingtone()
-						await handleReceiveAnswer(
-							message.data as RTCSessionDescriptionInit,
-						)
+						await handleReceiveAnswer(message.data as RTCSessionDescriptionInit)
 						break
 					case 'ice-candidate':
-						await handleNewICECandidateMsg(
-							message.data as RTCIceCandidateInit,
-						)
+						await handleNewICECandidateMsg(message.data as RTCIceCandidateInit)
 						break
 					case 'leave':
 						stopRingtone()
@@ -210,10 +216,19 @@ export default function VideoCall({
 
 		ws.onerror = error => {
 			logDevError('WebSocket Error:', error)
+			toast.error(t('toastConnectionError'))
 		}
 
-		ws.onclose = () => {
+		ws.onclose = event => {
 			setIsJoined(false)
+			// Only attempt reconnect for abnormal closures (not user-initiated)
+			if (event.code !== 1000 && event.code !== 1001) {
+				logDevError(
+					'[VideoCall] WebSocket closed abnormally:',
+					event.code,
+					event.reason,
+				)
+			}
 		}
 	}
 
@@ -429,75 +444,77 @@ export default function VideoCall({
 		<div className='flex flex-col items-center justify-center p-4 bg-bg space-y-4 rounded-xl shadow-card border border-border-subtle w-full max-w-4xl mx-auto relative'>
 			{/* Incoming Call Overlay */}
 			<AnimatePresence>
-			{isReceivingCall && !isCallActive && (
-				<Portal>
-				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					className='fixed inset-0 z-modal flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm'
-				>
-					<div className='size-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
-						<div className='size-16 bg-brand rounded-full flex items-center justify-center'>
-							<svg
-								xmlns='http://www.w3.org/2000/svg'
-								width='32'
-								height='32'
-								viewBox='0 0 24 24'
-								fill='none'
-								stroke='currentColor'
-								strokeWidth='2'
-								strokeLinecap='round'
-								strokeLinejoin='round'
-								className='text-white'
-							>
-								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
-							</svg>
-						</div>
-					</div>
-					<h2 className='text-white text-2xl font-bold mb-8'>
-						{t('incomingCall')}
-					</h2>
-					<div className='flex gap-6'>
-						<motion.button
-							type='button'
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							onClick={rejectCall}
-							className='px-6 py-3 bg-error text-white rounded-full font-medium shadow-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+				{isReceivingCall && !isCallActive && (
+					<Portal>
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className='fixed inset-0 z-modal flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm'
 						>
-							Decline
-						</motion.button>
-						<motion.button
-							type='button'
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							onClick={acceptCall}
-							className='px-6 py-3 bg-success text-white rounded-full font-medium shadow-lg flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-brand/50'
-						>
-							<svg
-								xmlns='http://www.w3.org/2000/svg'
-								width='20'
-								height='20'
-								viewBox='0 0 24 24'
-								fill='none'
-								stroke='currentColor'
-								strokeWidth='2'
-								strokeLinecap='round'
-								strokeLinejoin='round'
-								className='text-white'
-							>
-								<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
-							</svg>
-							Answer
-						</motion.button>
-					</div>
-				</motion.div>
-				</Portal>
-			)}
+							<div className='size-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
+								<div className='size-16 bg-brand rounded-full flex items-center justify-center'>
+									<svg
+										xmlns='http://www.w3.org/2000/svg'
+										width='32'
+										height='32'
+										viewBox='0 0 24 24'
+										fill='none'
+										stroke='currentColor'
+										strokeWidth='2'
+										strokeLinecap='round'
+										strokeLinejoin='round'
+										className='text-white'
+									>
+										<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
+									</svg>
+								</div>
+							</div>
+							<h2 className='text-white text-2xl font-bold mb-8'>
+								{t('incomingCall')}
+							</h2>
+							<div className='flex gap-6'>
+								<motion.button
+									type='button'
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									onClick={rejectCall}
+									className='px-6 py-3 bg-error text-white rounded-full font-medium shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									Decline
+								</motion.button>
+								<motion.button
+									type='button'
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									onClick={acceptCall}
+									className='px-6 py-3 bg-success text-white rounded-full font-medium shadow-warm flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									<svg
+										xmlns='http://www.w3.org/2000/svg'
+										width='20'
+										height='20'
+										viewBox='0 0 24 24'
+										fill='none'
+										stroke='currentColor'
+										strokeWidth='2'
+										strokeLinecap='round'
+										strokeLinejoin='round'
+										className='text-white'
+									>
+										<path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'></path>
+									</svg>
+									Answer
+								</motion.button>
+							</div>
+						</motion.div>
+					</Portal>
+				)}
 			</AnimatePresence>
 
-			<h2 className='text-2xl font-semibold text-brand mb-2'>{t('videoCallTitle')}</h2>
+			<h2 className='text-2xl font-semibold text-brand mb-2'>
+				{t('videoCallTitle')}
+			</h2>
 
 			{/* Media Stage */}
 			<div className='relative w-full aspect-video bg-bg-elevated rounded-lg overflow-hidden flex items-center justify-center shadow-inner'>
@@ -510,7 +527,7 @@ export default function VideoCall({
 				/>
 
 				{/* Local Video (Small Picture-in-Picture / Bottom Right) */}
-				<div className='absolute bottom-4 right-4 w-1/4 max-w-[200px] aspect-video bg-bg-elevated rounded-lg overflow-hidden border-2 border-brand shadow-lg'>
+				<div className='absolute bottom-4 right-4 w-1/4 max-w-[200px] aspect-video bg-bg-elevated rounded-lg overflow-hidden border-2 border-brand shadow-warm'>
 					<video
 						ref={localVideoRef}
 						autoPlay
