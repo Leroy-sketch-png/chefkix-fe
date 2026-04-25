@@ -50,6 +50,29 @@ export interface StoryResponse {
 	expiresAt: string
 }
 
+export enum ReactionType {
+	LIKE = 'LIKE',
+	LOVE = 'LOVE',
+	HAHA = 'HAHA',
+	WOW = 'WOW',
+	SAD = 'SAD',
+	ANGRY = 'ANGRY',
+}
+
+// Request body when sending a reaction to a story
+export interface StoryReactionRequest {
+	storyId: string
+	reactionType: ReactionType | string
+}
+
+// Request body when sending a reply (message) to a story
+export interface StoryReplyRequest {
+	storyId: string
+	message: string
+	// Optional: id of message being replied to or metadata
+	replyToMessageId?: string
+}
+
 export interface UserStoryFeedResponse {
 	userId: string
 	displayName: string
