@@ -13,10 +13,30 @@ import {
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getStoriesByUserId } from '@/services/story'
+import { sendStoryReaction, sendStoryReply } from '@/services/story'
 import { StoryResponse, StoryItemDto } from '@/lib/types/story'
 import { Rnd } from 'react-rnd'
 import { useAuth } from '@/hooks/useAuth'
 import { formatDistanceToNow } from 'date-fns'
+import StoryInteractionBar from '@/components/story/StoryInteractionBar'
+import { Heart, Smile, Zap, Frown, ThumbsDown } from 'lucide-react'
+import FlyingReaction from './FlyingReaction' // Đảm bảo bạn đã import component này
+
+// 1. Định nghĩa kiểu dữ liệu cho một sticker đang bay
+export interface FlyingReactionState {
+	id: number
+	icon: React.ReactNode
+	xOffset: number // Tọa độ trục X để icon bay lên đúng vị trí nút vừa bấm
+}
+
+// 2. Map các Reaction Type với Icon tương ứng (Thêm fill để icon có màu đặc bên trong)
+const reactionIcons: Record<string, React.ReactNode> = {
+	LOVE: <Heart className='text-pink-400' fill='currentColor' />,
+	HAHA: <Smile className='text-yellow-300' fill='currentColor' />,
+	WOW: <Zap className='text-indigo-300' fill='currentColor' />,
+	SAD: <Frown className='text-blue-300' fill='currentColor' />,
+	ANGRY: <ThumbsDown className='text-red-400' fill='currentColor' />,
+}
 
 interface StoryViewerProps {
 	userId: string
@@ -86,6 +106,9 @@ export function StoryViewer({
 	const [isLoading, setIsLoading] = useState(true)
 	const [isPaused, setIsPaused] = useState(false)
 	const [isMuted, setIsMuted] = useState(true)
+	const [flyingReactions, setFlyingReactions] = useState<FlyingReactionState[]>(
+		[],
+	)
 	const timerRef = useRef<NodeJS.Timeout | null>(null)
 	const { user: currentUser } = useAuth()
 
@@ -164,6 +187,35 @@ export function StoryViewer({
 	const handleInteractionStart = () => setIsPaused(true)
 	const handleInteractionEnd = () => setIsPaused(false)
 
+	const handleReact = async (
+		type: string,
+		event: React.MouseEvent<HTMLButtonElement>,
+	) => {
+		const buttonRect = event.currentTarget.getBoundingClientRect()
+		const screenCenterX = window.innerWidth / 2
+		const storyWidth = 400 // Kích thước md:max-w-[400px] của bạn
+		const storyLeftEdge = screenCenterX - storyWidth / 2
+
+		const relativeX = buttonRect.left - storyLeftEdge + buttonRect.width / 2
+
+		const newReaction: FlyingReactionState = {
+			id: Date.now() + Math.random(),
+			icon: reactionIcons[type] || reactionIcons['LOVE'],
+			xOffset: relativeX,
+		}
+		setFlyingReactions(prev => [...prev, newReaction])
+
+		try {
+			await sendStoryReaction(currentStory.id, type)
+		} catch (err) {
+			console.error('Failed to send story reaction', err)
+		}
+	}
+
+	const removeReaction = useCallback((id: number) => {
+		setFlyingReactions(prev => prev.filter(r => r.id !== id))
+	}, [])
+
 	const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
 		const { clientX, currentTarget } = e
 		const { left, width } = currentTarget.getBoundingClientRect()
@@ -201,7 +253,7 @@ export function StoryViewer({
 				onTouchStart={handleInteractionStart}
 				onTouchEnd={handleInteractionEnd}
 			>
-				<div className='relative w-full h-full md:max-w-[420px] md:h-auto md:aspect-[9/16] bg-neutral-900 md:rounded-xl shadow-2xl overflow-hidden'>
+				<div className='relative w-full h-full md:max-w-[400px] md:h-[80vh] bg-neutral-900 md:rounded-xl shadow-2xl overflow-hidden mx-auto'>
 					{currentStory.mediaUrl && (
 						<img
 							src={currentStory.mediaUrl}
@@ -293,13 +345,44 @@ export function StoryViewer({
 						))}
 					</div>
 
-					{isMe && (
-						<div className='absolute bottom-0 left-0 right-0 p-4 z-10'>
-							{/* Placeholder for own story controls / views count */}
+					<div className='absolute inset-0 pointer-events-none overflow-hidden z-30'>
+						{flyingReactions.map(reaction => (
+							<FlyingReaction
+								key={reaction.id}
+								id={reaction.id}
+								icon={reaction.icon}
+								xOffset={reaction.xOffset}
+								onAnimationComplete={removeReaction}
+							/>
+						))}
+					</div>
+
+					{isMe ? (
+						<div className='absolute bottom-0 left-0 right-0 p-4 z-40'>
+							{/* Own story controls placeholder (Sau này bạn có thể thêm nút "Xóa" hoặc "Người đã xem" ở đây) */}
+						</div>
+					) : (
+						<div className='absolute bottom-0 left-0 right-0 p-4 z-40'>
+							<StoryInteractionBar
+								// SỬA QUAN TRỌNG NHẤT: Trỏ trực tiếp vào hàm handleReact đã viết ở trên
+								onReact={handleReact}
+								onReply={async (text: string) => {
+									try {
+										await sendStoryReply({
+											storyId: currentStory.id,
+											message: text,
+										})
+										// (Tùy chọn) Hiển thị Toast thông báo "Đã gửi tin nhắn"
+									} catch (err) {
+										console.error('Failed to send story reply', err)
+									}
+								}}
+							/>
 						</div>
 					)}
-				</div>
-
+				</div>{' '}
+				{/* Đóng thẻ div chứa nội dung Story */}
+				{/* Các nút Next/Prev (Giữ nguyên của bạn) */}
 				<button
 					onClick={goToPreviousStory}
 					className='absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-black/30 rounded-full p-2 hidden md:block'

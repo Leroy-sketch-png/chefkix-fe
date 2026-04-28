@@ -7,6 +7,7 @@ import {
 	StoryInteraction,
 	StoryResponse,
 	UserStoryFeedResponse,
+	StoryReplyRequest,
 } from '@/lib/types/story'
 
 export const createStory = async (payload: any) => {
@@ -28,9 +29,31 @@ export const getStoriesByUserId = async (userId: string) => {
 	)
 }
 
-export const reactToStory = async (storyId: string, reactionType: string) => {
-	return await api.post<ApiResponse<StoryInteraction>>(
-		`${API_ENDPOINTS.STORIES.INTERACTIONS}/${storyId}/react`,
-		{ reactionType },
+export const sendStoryReaction = async (
+	storyId: string,
+	reactionType: string,
+) => {
+	return await api.post<ApiResponse<string>>(
+		`${API_ENDPOINTS.STORIES.BASE}/${storyId}/reactions?type=${reactionType}`,
+	)
+}
+
+/**
+ * Gửi tin nhắn trả lời Story (Khớp với @PostMapping("/{storyId}/replies"))
+ * Lưu ý: Backend dùng @RequestBody StoryReplyRequest
+ */
+export const sendStoryReply = async (payload: StoryReplyRequest) => {
+	return await api.post<ApiResponse<string>>(
+		`${API_ENDPOINTS.STORIES.BASE}/${payload.storyId}/replies`,
+		payload,
+	)
+}
+
+/**
+ * Ghi nhận lượt xem Story (Khớp với @PostMapping("/{storyId}/views"))
+ */
+export const recordStoryView = async (storyId: string) => {
+	return await api.post<ApiResponse<string>>(
+		`${API_ENDPOINTS.STORIES.BASE}/${storyId}/views`,
 	)
 }
