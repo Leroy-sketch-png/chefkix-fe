@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Heart, Smile, Zap, Frown, ThumbsDown } from 'lucide-react'
 
 interface Props {
-	onReact: (type: string, event: React.MouseEvent<HTMLButtonElement>) => void
+	onReact: (type: string) => void
 	onReply: (text: string) => void
 }
 
@@ -30,36 +30,36 @@ export default function StoryInteractionBar({ onReact, onReply }: Props) {
 
 			<div className='flex items-center gap-2'>
 				<button
-					onClick={e => onReact('LOVE', e)}
-					className='p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
+					onClick={() => onReact('LOVE')}
+					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='love'
 				>
 					<Heart size={18} className='text-pink-400' />
 				</button>
 				<button
-					onClick={e => onReact('HAHA', e)}
-					className='p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
+					onClick={() => onReact('HAHA')}
+					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='haha'
 				>
 					<Smile size={18} className='text-yellow-300' />
 				</button>
 				<button
-					onClick={e => onReact('WOW', e)}
-					className='p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
+					onClick={() => onReact('WOW')}
+					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='wow'
 				>
 					<Zap size={18} className='text-indigo-300' />
 				</button>
 				<button
-					onClick={e => onReact('SAD', e)}
-					className='p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
+					onClick={() => onReact('SAD')}
+					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='sad'
 				>
 					<Frown size={18} className='text-blue-300' />
 				</button>
 				<button
-					onClick={e => onReact('ANGRY', e)}
-					className='p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors'
+					onClick={() => onReact('ANGRY')}
+					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='angry'
 				>
 					<ThumbsDown size={18} className='text-red-400' />
