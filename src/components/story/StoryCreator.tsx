@@ -29,6 +29,13 @@ interface StoryItem {
 	y: number
 	width: number | string
 	height: number | string
+
+	// --- 3 BIẾN MỚI THÊM VÀO ---
+	baseWidth?: number
+	baseHeight?: number
+	scale?: number
+	// ---------------------------
+
 	rotation: number
 	data: Record<string, any>
 	file?: File
@@ -151,32 +158,45 @@ export function StoryCreator() {
 
 		setIsLoading(true)
 		try {
+			// 1. Chờ upload toàn bộ ảnh sticker lên Cloudinary (Nếu có)
+			// 1. Chờ upload toàn bộ ảnh sticker lên Cloudinary (Nếu có)
+			const processedItems = await Promise.all(
+				items.map(async item => {
+					let finalImageUrl = item.data?.imageUrl
+
+					if (item.type === 'IMAGE_STICKER' && item.file) {
+						finalImageUrl = await uploadToCloudinary(item.file)
+					}
+
+					return {
+						type: item.type === 'IMAGE_STICKER' ? 'STICKER' : item.type,
+						x: item.x,
+						y: item.y,
+						rotation: item.rotation || 0,
+						// LẤY SCALE, WIDTH, HEIGHT TỪ ITEM, KHÔNG PHẢI ITEM.DATA
+						scale: item.scale || 1,
+						data: {
+							...(item.data || {}),
+							imageUrl: finalImageUrl,
+							width: item.baseWidth || item.width,
+							height: item.baseHeight || item.height,
+						},
+					}
+				}),
+			)
+
+			// 2. Đóng gói FormData
 			const formData = new FormData()
-
-			// 1. Gắn file vật lý vào key "file" (khớp với @RequestPart("file") ở BE)
 			formData.append('file', mediaFile)
-
-			// 2. Chuẩn bị dữ liệu metadata
-			const formattedItems = items.map(item => ({
-				type: item.type === 'IMAGE_STICKER' ? 'STICKER' : item.type,
-				x: item.x,
-				y: item.y,
-				rotation: item.rotation,
-				// Tính scale dựa trên chiều rộng (Backend cần số double)
-				scale:
-					typeof item.width === 'string'
-						? parseInt(item.width) / 100
-						: item.width / 100,
-				data: item.data,
-			}))
 
 			const storyMetadata = {
 				mediaType: 'IMAGE',
 				linkedRecipeId: null,
-				items: formattedItems,
+				imageScale: imageScale, // Gửi tỷ lệ của ảnh nền
+				imageRotation: imageRotation, // Gửi góc xoay của ảnh nền
+				items: processedItems,
 			}
 
-			// 3. Gắn metadata vào key "story" dưới dạng Blob JSON (khớp với @RequestPart("story") ở BE)
 			formData.append(
 				'story',
 				new Blob([JSON.stringify(storyMetadata)], {
@@ -184,7 +204,7 @@ export function StoryCreator() {
 				}),
 			)
 
-			// 4. Gửi bằng Axios (nó tự xử lý boundary cho Multipart)
+			// 3. Gửi lên Backend
 			const response = await api.post('/api/v1/stories', formData, {
 				headers: { 'Content-Type': 'multipart/form-data' },
 			})
