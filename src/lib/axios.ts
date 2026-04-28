@@ -44,18 +44,19 @@ export const api = axios.create({
 })
 
 /**
- * Separate axios instance for the Python AI service (port 8000).
- * AI endpoints (process_recipe, calculate_metas, cooking_assistant, moderate)
- * live on the AI service, NOT the monolith.
- * Authenticated via shared API key (X-AI-Service-Key header).
+ * Separate axios instance for AI features.
+ * Browser requests go through the frontend's same-origin proxy so the AI key
+ * stays server-side. Server-side calls target that same proxy via localhost.
  */
+const aiProxyBaseUrl =
+	typeof window === 'undefined'
+		? process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+		: ''
+
 export const aiApi = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000',
+	baseURL: aiProxyBaseUrl,
 	headers: {
 		'Content-Type': 'application/json',
-		...(process.env.NEXT_PUBLIC_AI_SERVICE_API_KEY && {
-			'X-AI-Service-Key': process.env.NEXT_PUBLIC_AI_SERVICE_API_KEY,
-		}),
 	},
 	timeout: 60_000, // AI calls can take longer (Gemini processing)
 })
@@ -150,7 +151,10 @@ api.interceptors.response.use(
 			const result = await refreshAccessToken(
 				// onTokenRefreshed: Update store with new token
 				(newToken: string) => {
-					useAuthStore.setState({ accessToken: newToken })
+					useAuthStore.setState({
+						accessToken: newToken,
+						isAuthenticated: true,
+					})
 				},
 				// onSessionExpired: Clear auth state and redirect
 				() => {

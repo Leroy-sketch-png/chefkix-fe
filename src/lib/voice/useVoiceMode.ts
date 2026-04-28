@@ -31,7 +31,7 @@ export interface UseVoiceModeReturn {
 	/** Toggle push-to-talk listening on/off */
 	toggleListening: () => void
 	/** Start always-on continuous listening (auto-restarts on end) */
-	startContinuous: () => void
+	startContinuous: (options?: { force?: boolean }) => void
 	/** Stop continuous listening */
 	stopContinuous: () => void
 	/** Whether in continuous listening mode */
@@ -47,6 +47,9 @@ export interface UseVoiceModeReturn {
 	setShowHelp: (show: boolean) => void
 }
 
+let microphonePermissionDenied = false
+let voiceAutoStartEnabled = false
+
 export function useVoiceMode(): UseVoiceModeReturn {
 	const [isListening, setIsListening] = useState(false)
 	const [isContinuous, setIsContinuous] = useState(false)
@@ -55,7 +58,9 @@ export function useVoiceMode(): UseVoiceModeReturn {
 	const recognitionRef = useRef<VoiceRecognition | null>(null)
 
 	// Refs for stable callbacks in continuous mode (avoids stale closures)
-	const handleResultRef = useRef<(transcript: string, confidence: number) => void>(() => {})
+	const handleResultRef = useRef<
+		(transcript: string, confidence: number) => void
+	>(() => {})
 	const handleErrorRef = useRef<(error: string) => void>(() => {})
 
 	const {
@@ -72,6 +77,13 @@ export function useVoiceMode(): UseVoiceModeReturn {
 
 	const supported = isVoiceSupported()
 	const hasTTS = isTTSSupported()
+	const handleListeningChange = useCallback((listening: boolean) => {
+		setIsListening(listening)
+		if (listening) {
+			voiceAutoStartEnabled = true
+			microphonePermissionDenied = false
+		}
+	}, [])
 
 	const speak = useCallback(
 		async (text: string) => {
@@ -220,7 +232,9 @@ export function useVoiceMode(): UseVoiceModeReturn {
 					setInteractionMode(entering ? 'MESSY_HANDS' : 'ACTIVE')
 					setLastEvent({
 						type: 'command',
-						message: entering ? 'Messy Hands mode — voice primary' : 'Clean hands — touch restored',
+						message: entering
+							? 'Messy Hands mode — voice primary'
+							: 'Clean hands — touch restored',
 						icon: entering ? '🙌' : '✋',
 					})
 					if (entering) {
@@ -272,6 +286,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 
 	const handleError = useCallback((error: string) => {
 		if (error === 'not-allowed') {
+			microphonePermissionDenied = true
 			setLastEvent({ type: 'error', message: 'Microphone access denied' })
 			setIsListening(false)
 			setIsContinuous(false)
@@ -301,38 +316,52 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			onResult: handleResult,
 			onError: handleError,
 			onEnd: () => setIsListening(false),
-			onListeningChange: setIsListening,
+			onListeningChange: handleListeningChange,
 		})
 
 		recognitionRef.current = rec
 		rec.start()
-	}, [supported, isListening, handleResult, handleError])
+	}, [supported, isListening, handleResult, handleError, handleListeningChange])
 
 	// Continuous listening: always-on voice recognition that auto-restarts
-	const startContinuous = useCallback(() => {
-		if (!supported || isContinuous) return
+	const startContinuous = useCallback(
+		(options?: { force?: boolean }) => {
+			if (!supported || isContinuous) return
+			if (!options?.force && !voiceAutoStartEnabled) {
+				return
+			}
 
-		// Stop any existing recognition
-		recognitionRef.current?.stop()
+			if (microphonePermissionDenied && !options?.force) {
+				return
+			}
 
-		const rec = new VoiceRecognition({
-			language: 'en-US',
-			continuous: true,
-			// Use refs to avoid stale closures — continuous recognition is long-lived
-			onResult: (t, c) => handleResultRef.current(t, c),
-			onError: (e) => handleErrorRef.current(e),
-			onEnd: () => {
-				// Only fires when intentionally stopped (continuous auto-restarts otherwise)
-				setIsListening(false)
-				setIsContinuous(false)
-			},
-			onListeningChange: setIsListening,
-		})
+			if (options?.force) {
+				microphonePermissionDenied = false
+			}
 
-		recognitionRef.current = rec
-		rec.start()
-		setIsContinuous(true)
-	}, [supported, isContinuous])
+			// Stop any existing recognition
+			recognitionRef.current?.stop()
+
+			const rec = new VoiceRecognition({
+				language: 'en-US',
+				continuous: true,
+				// Use refs to avoid stale closures — continuous recognition is long-lived
+				onResult: (t, c) => handleResultRef.current(t, c),
+				onError: e => handleErrorRef.current(e),
+				onEnd: () => {
+					// Only fires when intentionally stopped (continuous auto-restarts otherwise)
+					setIsListening(false)
+					setIsContinuous(false)
+				},
+				onListeningChange: handleListeningChange,
+			})
+
+			recognitionRef.current = rec
+			rec.start()
+			setIsContinuous(true)
+		},
+		[supported, isContinuous, handleListeningChange],
+	)
 
 	const stopContinuous = useCallback(() => {
 		recognitionRef.current?.stop()

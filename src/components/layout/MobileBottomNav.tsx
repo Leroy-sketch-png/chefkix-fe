@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Home,
@@ -12,6 +12,7 @@ import {
 	Menu,
 	Target,
 	Users,
+	Trophy,
 	ChefHat,
 	Package,
 	CalendarDays,
@@ -28,6 +29,7 @@ import {
 	ICON_BUTTON_TAP,
 	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
+import { PATHS } from '@/constants'
 import { Portal } from '@/components/ui/portal'
 import { useTranslations } from '@/i18n/hooks'
 import { useAuth } from '@/hooks/useAuth'
@@ -85,7 +87,12 @@ const guestNavItems: NavItem[] = [
 		labelKey: 'community',
 	},
 	{
-		href: '/auth/sign-up',
+		href: PATHS.LEADERBOARD,
+		icon: Trophy,
+		labelKey: 'leaderboard',
+	},
+	{
+		href: PATHS.AUTH.SIGN_UP,
 		icon: UserPlus,
 		labelKey: 'getStarted',
 	},
@@ -94,6 +101,7 @@ const guestNavItems: NavItem[] = [
 const moreMenuItems: NavItem[] = [
 	{ href: '/challenges', icon: Target, labelKey: 'challenges' },
 	{ href: '/community', icon: Users, labelKey: 'community' },
+	{ href: PATHS.LEADERBOARD, icon: Trophy, labelKey: 'leaderboard' },
 	{ href: '/cook-together', icon: ChefHat, labelKey: 'cookTogether' },
 	{ href: '/messages', icon: MessageCircle, labelKey: 'messages' },
 	{ href: '/pantry', icon: Package, labelKey: 'pantry' },
@@ -104,10 +112,13 @@ const moreMenuItems: NavItem[] = [
 
 export const MobileBottomNav = () => {
 	const pathname = usePathname()
+	const searchParams = useSearchParams()
 	const router = useRouter()
 	const [showMore, setShowMore] = useState(false)
 	const t = useTranslations('nav')
 	const { isAuthenticated } = useAuth()
+	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 
 	// Use different nav items for guests vs authenticated users
 	const activeNavItems = isAuthenticated ? navItems : guestNavItems
@@ -130,6 +141,10 @@ export const MobileBottomNav = () => {
 			>
 				{activeNavItems.map(item => {
 					const Icon = item.icon
+					const href =
+						!isAuthenticated && item.href === PATHS.AUTH.SIGN_UP
+							? guestSignUpHref
+							: item.href
 					const active = isActive(item.href)
 					const label = t(item.labelKey)
 
@@ -138,7 +153,7 @@ export const MobileBottomNav = () => {
 						return (
 							<Link
 								key={item.href}
-								href={item.href}
+								href={href}
 								className='relative -mt-3 flex max-w-20 flex-1 flex-col items-center justify-center gap-1 self-start'
 							>
 								<motion.div
@@ -159,7 +174,7 @@ export const MobileBottomNav = () => {
 					return (
 						<Link
 							key={item.href}
-							href={item.href}
+							href={href}
 							aria-current={active ? 'page' : undefined}
 							className={cn(
 								'group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-radius px-2 py-1.5 text-center',

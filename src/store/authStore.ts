@@ -127,6 +127,15 @@ export const useAuthStore = create<AuthState>()(
 							state.user = null
 						}
 
+						// A persisted access token is the source of truth for session presence.
+						// Repair stale flags so auth-dependent UI doesn't split between guest and user states.
+						if (state.accessToken && !state.isAuthenticated) {
+							logDevWarn(
+								'[authStore] Repairing stale isAuthenticated flag from persisted token',
+							)
+							state.isAuthenticated = true
+						}
+
 						// NOTE: We do NOT set axios headers here. The request interceptor
 						// in axios.ts reads from this store for every request.
 						// This avoids circular dependency: authStore <-> axios

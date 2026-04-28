@@ -9,6 +9,10 @@ import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import type { UseVoiceModeReturn } from '@/lib/voice'
 
+const VOICE_TOAST_DEDUPE_MS = 3000
+let lastVoiceToastKey: string | null = null
+let lastVoiceToastAt = 0
+
 /**
  * Floating mic button for CookingPlayer voice control.
  * Shows pulsing coral ring when listening.
@@ -27,6 +31,16 @@ export function VoiceModeButton({
 	useEffect(() => {
 		if (!voice.isSupported || !voice.lastEvent) return
 		const { type, message } = voice.lastEvent
+		const toastKey = `${type}:${message}`
+		const now = Date.now()
+		if (
+			lastVoiceToastKey === toastKey &&
+			now - lastVoiceToastAt < VOICE_TOAST_DEDUPE_MS
+		) {
+			return
+		}
+		lastVoiceToastKey = toastKey
+		lastVoiceToastAt = now
 		switch (type) {
 			case 'command':
 				toast.success(message)
@@ -50,7 +64,7 @@ export function VoiceModeButton({
 			voice.toggleListening()
 		} else {
 			// Default to continuous in cooking context
-			voice.startContinuous()
+			voice.startContinuous({ force: true })
 		}
 	}
 

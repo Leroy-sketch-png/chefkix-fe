@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -181,131 +181,117 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			.slice(0, 2) ?? []
 
 	return (
-		<GlowCard className={className} intensity={0.2}>
-			<Spotlight size={250} opacity={0.08}>
-				<motion.div
-					className='group relative overflow-hidden transition-all'
-					whileHover={CARD_FEED_HOVER}
-					transition={TRANSITION_SPRING}
+		<GlowCard
+			className={cn(
+				'overflow-hidden border-0 p-0 relative shadow-2xl rounded-[2rem]',
+				className,
+			)}
+			intensity={0.3}
+		>
+			<motion.div
+				className='group relative h-[360px] w-full cursor-pointer'
+				whileHover={{ scale: 0.99 }}
+				transition={TRANSITION_SPRING}
+			>
+				<Link
+					href={`/recipes/${recipe.id}?cook=true`}
+					className='relative block h-full'
+					aria-label={t('tpCookAriaLabel', { title: recipe.title })}
 				>
-					<Link
-						href={`/recipes/${recipe.id}?cook=true`}
-						className='block'
-						aria-label={t('tpCookAriaLabel', { title: recipe.title })}
-					>
-						<div className='flex gap-3 p-3 sm:gap-4 sm:p-4 md:p-5'>
-							{/* Recipe Image */}
-							<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl sm:size-24 md:size-32'>
-								<Image
-									src={coverImage}
-									alt={recipe.title}
-									fill
-									className='object-cover transition-transform duration-500 group-hover:scale-110'
-									sizes='128px'
-									onError={() => setImgError(true)}
-								/>
-								{/* Cook CTA overlay */}
-								<div className='absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/30'>
-									<motion.div
-										className='rounded-full bg-brand p-2.5 opacity-100 shadow-warm transition-opacity duration-300 md:p-3 md:opacity-0 md:group-hover:opacity-100'
-										whileHover={ICON_BUTTON_HOVER}
-										whileTap={ICON_BUTTON_TAP}
-										transition={TRANSITION_SPRING}
-									>
-										<Play className='size-5 text-white' fill='white' />
-									</motion.div>
-								</div>
-								{/* Quality badge - show Foolproof tier */}
-								{recipe.qualityTier === 'Foolproof' && (
-									<div className='absolute bottom-2 left-2'>
-										<QualityBadge
-											tier='Foolproof'
-											size='sm'
-											showLabel={false}
-											animate={false}
-										/>
-									</div>
-								)}
-							</div>
+					{/* Full-bleed Background Image */}
+					<Image
+						src={coverImage}
+						alt={recipe.title}
+						fill
+						className='object-cover transition-transform duration-700 group-hover:scale-105 group-hover:-rotate-1'
+						sizes='(max-width: 768px) 100vw, 50vw'
+						onError={() => setImgError(true)}
+						priority
+					/>
 
-							{/* Recipe Info */}
-							<div className='flex min-w-0 flex-1 flex-col justify-between gap-1.5 sm:gap-2'>
-								{/* Label + Confidence */}
-								<div className='flex flex-wrap items-center justify-between gap-2'>
-									<div className='flex items-center gap-1.5'>
-										<Sparkles className='size-3.5 text-streak' />
-										<span className='text-xs font-semibold text-streak'>
-											{t('tpLabel')}
-										</span>
-									</div>
-									{confidenceScore >= 0.8 && (
-										<span className='flex shrink-0 items-center gap-1 text-xs text-success'>
-											<TrendingUp className='size-3' />
-											{t('tpGreatMatch')}
-										</span>
-									)}
-								</div>
+					{/* Deep Gradient Overlays for readability and premium feel */}
+					<div className='absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300' />
+					<div className='absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent opacity-50' />
 
-								{/* Title */}
-								<h3
-									className='line-clamp-2 text-base font-bold leading-snug text-text transition-colors group-hover:text-brand sm:text-lg'
-									title={recipe.title}
-								>
-									{recipe.title}
-								</h3>
+					{/* Top Label */}
+					<div className='absolute top-5 left-5 z-10'>
+						<div className='inline-flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 text-sm font-bold text-white shadow-lg'>
+							<Sparkles className='size-4 text-streak' />
+							<span className='bg-gradient-to-r from-streak to-combo bg-clip-text text-transparent'>
+								{t('tpLabel')}
+							</span>
+						</div>
+					</div>
 
-								{/* Why Recommended — hide when signals cover the same info */}
-								{whyRecommended && visibleSignals.length === 0 && (
-									<p className='line-clamp-1 text-xs leading-snug text-text-secondary sm:text-sm'>
-										{whyRecommended}
-									</p>
-								)}
-
-								{/* Match Signals as tags (skip whyRecommended to avoid duplication) */}
-								{visibleSignals.length > 0 && (
-									<div className='flex flex-wrap gap-1.5'>
-										{visibleSignals.slice(0, 2).map((signal, idx) => (
-											<span
-												key={idx}
-												title={signal}
-												className='inline-flex max-w-full truncate rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium leading-tight text-brand'
-											>
-												{signal}
-											</span>
-										))}
-									</div>
-								)}
-
-								{/* Stats row */}
-								<div className='grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs tabular-nums text-text-muted sm:flex sm:flex-wrap sm:items-center'>
-									{totalTime > 0 && (
-										<span className='flex items-center gap-1 whitespace-nowrap'>
-											<Clock className='size-3.5' />
-											{t('tpMin', { count: totalTime })}
-										</span>
-									)}
-									<span className='flex items-center gap-1 whitespace-nowrap'>
-										<Flame className='size-3.5' />
-										{difficulty}
-									</span>
-									{(recipe.averageRating ?? 0) > 0 && (
-										<span className='flex items-center gap-1 whitespace-nowrap'>
-											<Star className='size-3.5 fill-warning text-warning' />
-											{recipe.averageRating?.toFixed(1)}
-										</span>
-									)}
-									{recipe.cookCount > 0 && (
-										<span className='flex items-center gap-1 whitespace-nowrap'>
-											<ChefHat className='size-3.5' />
-											{t('tpCooked', { count: recipe.cookCount })}
-										</span>
-									)}
-								</div>
+					{/* Top Right Confidence Badge */}
+					{confidenceScore >= 0.8 && (
+						<div className='absolute top-5 right-5 z-10'>
+							<div className='inline-flex items-center gap-1.5 rounded-full bg-success/20 backdrop-blur-md border border-success/30 px-3 py-1.5 text-xs font-bold text-success shadow-lg'>
+								<TrendingUp className='size-3.5' />
+								{t('tpGreatMatch')}
 							</div>
 						</div>
-					</Link>
-				</motion.div>
-			</Spotlight>
+					)}
+
+					{/* Center Hover Play Button */}
+					<div className='absolute inset-0 flex items-center justify-center z-20 pointer-events-none'>
+						<motion.div className='rounded-full bg-brand/90 p-5 shadow-[0_0_40px_rgba(var(--brand),0.6)] opacity-0 scale-50 transition-all duration-300 group-hover:opacity-100 group-hover:scale-100 backdrop-blur-sm'>
+							<Play className='size-8 text-white ml-1' fill='white' />
+						</motion.div>
+					</div>
+
+					{/* Content at Bottom */}
+					<div className='absolute inset-x-0 bottom-0 p-6 sm:p-8 flex flex-col gap-3 z-10'>
+						<h3
+							className='line-clamp-2 text-3xl font-black leading-tight text-white drop-shadow-md sm:text-4xl'
+							title={recipe.title}
+						>
+							{recipe.title}
+						</h3>
+
+						{/* Match Signals */}
+						{visibleSignals.length > 0 && (
+							<div className='flex flex-wrap gap-2 mt-1'>
+								{visibleSignals.slice(0, 3).map((signal, idx) => (
+									<span
+										key={idx}
+										title={signal}
+										className='inline-flex items-center rounded-full bg-white/20 backdrop-blur-md border border-white/20 px-3 py-1 text-xs font-bold text-white shadow-sm'
+									>
+										{signal}
+									</span>
+								))}
+							</div>
+						)}
+
+						{/* Stats row */}
+						<div className='mt-2 flex flex-wrap items-center gap-4 text-sm font-bold text-white/90 drop-shadow-sm'>
+							{totalTime > 0 && (
+								<span className='flex items-center gap-1.5'>
+									<Clock className='size-4 text-white/70' />
+									{t('tpMin', { count: totalTime })}
+								</span>
+							)}
+							<span className='flex items-center gap-1.5'>
+								<Flame className='size-4 text-streak' />
+								{difficulty}
+							</span>
+							{(recipe.averageRating ?? 0) > 0 && (
+								<span className='flex items-center gap-1.5'>
+									<Star className='size-4 fill-warning text-warning' />
+									{recipe.averageRating?.toFixed(1)}
+								</span>
+							)}
+							{recipe.cookCount > 0 && (
+								<span className='flex items-center gap-1.5'>
+									<ChefHat className='size-4 text-white/70' />
+									{t('tpCooked', { count: recipe.cookCount })}
+								</span>
+							)}
+						</div>
+					</div>
+				</Link>
+			</motion.div>
 		</GlowCard>
 	)
 }

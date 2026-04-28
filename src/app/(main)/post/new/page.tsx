@@ -33,6 +33,7 @@ import { trackEvent } from '@/lib/eventTracker'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { triggerSuccessConfetti } from '@/lib/confetti'
+import { hasClaimablePostXp } from '@/lib/cookingXp'
 import {
 	TRANSITION_SPRING,
 	fadeInUp,
@@ -374,6 +375,10 @@ function CreatePostContent() {
 		return { text: t('deadlineHours', { hours }), urgent: true, warning: true }
 	}
 
+	const hasPendingSessionXp = session
+		? hasClaimablePostXp(session.pendingXp)
+		: false
+
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='md'>
@@ -447,10 +452,17 @@ function CreatePostContent() {
 										{session.recipeTitle}
 									</h3>
 									<div className='flex flex-wrap items-center gap-3'>
-										<span className='flex items-center gap-1.5 rounded-lg bg-success/10 px-2.5 py-1 text-sm font-bold text-success'>
-											<Trophy className='size-3.5' />+
-											{Math.round(session.pendingXp)} XP
-										</span>
+										{hasPendingSessionXp ? (
+											<span className='flex items-center gap-1.5 rounded-lg bg-success/10 px-2.5 py-1 text-sm font-bold text-success'>
+												<Trophy className='size-3.5' />+
+												{Math.round(session.pendingXp)} XP
+											</span>
+										) : (
+											<span className='flex items-center gap-1.5 rounded-lg bg-warning/10 px-2.5 py-1 text-sm font-semibold text-warning'>
+												<Sparkles className='size-3.5' />
+												{t('sessionXpExhaustedBadge')}
+											</span>
+										)}
 										{getTimeLeft() && (
 											<span
 												className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${
@@ -471,7 +483,9 @@ function CreatePostContent() {
 							<div className='border-t border-brand/10 bg-brand/5 px-4 py-2.5'>
 								<p className='flex items-center gap-2 text-sm text-brand'>
 									<Sparkles className='size-4' />
-									{t('addPhotosForXp')}
+									{hasPendingSessionXp
+										? t('addPhotosForXp')
+										: t('sessionXpExhaustedHint')}
 								</p>
 							</div>
 						</motion.div>
@@ -676,9 +690,11 @@ function CreatePostContent() {
 									<>
 										<Send className='size-4' />
 										{session
-											? t('postAndClaimXp', {
-													xp: Math.round(session.pendingXp),
-												})
+											? hasPendingSessionXp
+												? t('postAndClaimXp', {
+														xp: Math.round(session.pendingXp),
+													})
+												: t('postButton')
 											: t('postButton')}
 										<kbd
 											className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
@@ -704,7 +720,8 @@ function CreatePostContent() {
 							transition={{ delay: 0.2 }}
 							className='mt-4 text-center text-sm text-text-secondary'
 						>
-							💡 {t('xpPhotoHint')}
+							💡{' '}
+							{hasPendingSessionXp ? t('xpPhotoHint') : t('xpPhotoHintNoBonus')}
 						</motion.p>
 					)}
 				</div>

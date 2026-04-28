@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Home,
@@ -10,6 +10,7 @@ import {
 	Target,
 	PlusSquare,
 	Users,
+	Trophy,
 	ChefHat,
 	MessageCircle,
 	Settings,
@@ -23,6 +24,7 @@ import {
 	FolderHeart,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { PATHS } from '@/constants'
 import {
 	TRANSITION_SPRING,
 	ICON_BUTTON_HOVER,
@@ -70,6 +72,7 @@ const secondaryNavItems: NavItem[] = [
 		requiresAuth: true,
 	},
 	{ href: '/community', icon: Users, labelKey: 'community' },
+	{ href: PATHS.LEADERBOARD, icon: Trophy, labelKey: 'leaderboard' },
 	{
 		href: '/cook-together',
 		icon: ChefHat,
@@ -111,9 +114,13 @@ const adminNavItem: NavItem = {
 
 export const LeftSidebar = () => {
 	const pathname = usePathname()
+	const searchParams = useSearchParams()
 	const { user, isAuthenticated } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
 	const t = useTranslations('nav')
+	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
+	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 
 	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
 	const isSecondaryActive = useMemo(() => {
@@ -288,13 +295,13 @@ export const LeftSidebar = () => {
 				<div className='mt-auto flex w-full flex-col items-center gap-2 pt-4'>
 					<div className='mx-auto mb-2 h-px w-8 bg-border-subtle' />
 					<Link
-						href='/auth/sign-in'
+						href={guestSignInHref}
 						className='flex h-11 w-full items-center justify-center rounded-radius text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 					>
 						{t('signIn')}
 					</Link>
 					<Link
-						href='/auth/sign-up'
+						href={guestSignUpHref}
 						className='flex h-11 w-full items-center justify-center whitespace-nowrap rounded-radius bg-brand text-xs font-bold text-white shadow-card transition-all hover:shadow-warm'
 					>
 						{t('getStarted')}

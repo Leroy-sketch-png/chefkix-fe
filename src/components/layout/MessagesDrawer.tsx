@@ -23,6 +23,7 @@ import { logDevError } from '@/lib/dev-log'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { Portal } from '@/components/ui/portal'
 import { MessagesDrawerConversationListItem } from './MessagesDrawerConversationListItem'
 import { MessagesDrawerMessageBubble } from './MessagesDrawerMessageBubble'
 
@@ -143,18 +144,36 @@ export const MessagesDrawer = () => {
 	}, [isResizing])
 
 	// Helper functions
+	const getParticipantName = useCallback(
+		(participant: Conversation['participants'][number]) => {
+			return (
+				`${participant.firstName} ${participant.lastName}`.trim() ||
+				participant.username
+			)
+		},
+		[],
+	)
+
 	const getConversationName = useCallback(
 		(conv: Conversation) => {
 			if (conv.conversationName) return conv.conversationName
-			const otherParticipant = conv.participants.find(
+			const otherParticipants = conv.participants.filter(
 				p => p.userId !== user?.userId,
 			)
-			return otherParticipant
-				? `${otherParticipant.firstName} ${otherParticipant.lastName}`.trim() ||
-						otherParticipant.username
-				: 'Unknown'
+
+			if (conv.type === 'GROUP') {
+				const names = otherParticipants.slice(0, 2).map(getParticipantName)
+				if (names.length === 0) return 'Group chat'
+				const extraCount = otherParticipants.length - names.length
+				return extraCount > 0
+					? `${names.join(', ')} +${extraCount}`
+					: names.join(', ')
+			}
+
+			const otherParticipant = otherParticipants[0]
+			return otherParticipant ? getParticipantName(otherParticipant) : 'Unknown'
 		},
-		[user?.userId],
+		[getParticipantName, user?.userId],
 	)
 
 	const getConversationAvatar = useCallback(
@@ -203,185 +222,187 @@ export const MessagesDrawer = () => {
 	if (!isMessagesDrawerOpen) return null
 
 	return (
-		<div
-			ref={drawerRef}
-			className='fixed bottom-0 right-6 z-popover flex w-drawer h-drawer flex-col rounded-t-lg border bg-card text-card-foreground shadow-warm'
-			style={
-				width || height
-					? {
-							width: width ? `${width}px` : undefined,
-							height: height ? `${height}px` : undefined,
-						}
-					: undefined
-			}
-		>
-			{/* Resize handle */}
+		<Portal>
 			<div
-				onMouseDown={() => setIsResizing(true)}
-				className='absolute left-0 top-0 flex h-full w-2 cursor-ew-resize items-center justify-center hover:bg-brand/10'
+				ref={drawerRef}
+				className='fixed inset-x-2 top-20 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-modal flex h-auto w-auto flex-col rounded-lg border bg-card text-card-foreground shadow-warm md:inset-x-auto md:bottom-0 md:right-6 md:top-auto md:h-drawer md:w-drawer md:rounded-t-lg'
+				style={
+					width || height
+						? {
+								width: width ? `${width}px` : undefined,
+								height: height ? `${height}px` : undefined,
+							}
+						: undefined
+				}
 			>
-				<div className='h-12 w-1 rounded-full bg-border' />
-			</div>
-			<div
-				onMouseDown={() => setIsResizing(true)}
-				className='absolute left-0 top-0 flex h-2 w-full cursor-ns-resize items-center justify-center hover:bg-brand/10'
-			>
-				<div className='h-1 w-12 rounded-full bg-border' />
-			</div>
-
-			<div className='flex items-center justify-between border-b p-3'>
-				<h3 className='font-semibold'>{t('drawerTitle')}</h3>
-				<Button
-					variant='ghost'
-					size='icon'
-					onClick={toggleMessagesDrawer}
-					aria-label={t('ariaCloseMessages')}
+				{/* Resize handle */}
+				<div
+					onMouseDown={() => setIsResizing(true)}
+					className='absolute left-0 top-0 hidden h-full w-2 cursor-ew-resize items-center justify-center hover:bg-brand/10 md:flex'
 				>
-					<X className='size-4' />
-				</Button>
-			</div>
+					<div className='h-12 w-1 rounded-full bg-border' />
+				</div>
+				<div
+					onMouseDown={() => setIsResizing(true)}
+					className='absolute left-0 top-0 hidden h-2 w-full cursor-ns-resize items-center justify-center hover:bg-brand/10 md:flex'
+				>
+					<div className='h-1 w-12 rounded-full bg-border' />
+				</div>
 
-			{/* Search conversations */}
-			<div className='border-b p-3'>
-				<InputGroup>
-					<InputGroupAddon align='inline-start'>
-						<Search className='size-4 text-text-muted' />
-					</InputGroupAddon>
-					<InputGroupInput
-						placeholder={t('searchConversations')}
-						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
-					/>
-				</InputGroup>
-			</div>
+				<div className='flex items-center justify-between border-b p-3'>
+					<h3 className='font-semibold'>{t('drawerTitle')}</h3>
+					<Button
+						variant='ghost'
+						size='icon'
+						onClick={toggleMessagesDrawer}
+						aria-label={t('ariaCloseMessages')}
+					>
+						<X className='size-4' />
+					</Button>
+				</div>
 
-			<div className='flex-1 overflow-y-auto'>
-				{selectedConversation ? (
-					// Chat view
-					<div className='flex h-full flex-col'>
-						{/* Chat header */}
-						<div className='flex items-center gap-2 border-b p-2'>
-							<Button
-								variant='ghost'
-								size='sm'
-								onClick={() => setSelectedConversation(null)}
-								className='h-7 px-2 text-xs'
-							>
-								← Back
-							</Button>
-							<div className='relative size-6 overflow-hidden rounded-full'>
-								<Image
-									src={getConversationAvatar(selectedConversation)}
-									alt={getConversationName(selectedConversation)}
-									fill
-									sizes='24px'
-									className='object-cover'
-								/>
+				{/* Search conversations */}
+				<div className='border-b p-3'>
+					<InputGroup>
+						<InputGroupAddon align='inline-start'>
+							<Search className='size-4 text-text-muted' />
+						</InputGroupAddon>
+						<InputGroupInput
+							placeholder={t('searchConversations')}
+							value={searchTerm}
+							onChange={e => setSearchTerm(e.target.value)}
+						/>
+					</InputGroup>
+				</div>
+
+				<div className='flex-1 overflow-y-auto'>
+					{selectedConversation ? (
+						// Chat view
+						<div className='flex h-full flex-col'>
+							{/* Chat header */}
+							<div className='flex items-center gap-2 border-b p-2'>
+								<Button
+									variant='ghost'
+									size='sm'
+									onClick={() => setSelectedConversation(null)}
+									className='h-7 px-2 text-xs'
+								>
+									← Back
+								</Button>
+								<div className='relative size-6 overflow-hidden rounded-full'>
+									<Image
+										src={getConversationAvatar(selectedConversation)}
+										alt={getConversationName(selectedConversation)}
+										fill
+										sizes='24px'
+										className='object-cover'
+									/>
+								</div>
+								<span className='text-sm font-medium'>
+									{getConversationName(selectedConversation)}
+								</span>
 							</div>
-							<span className='text-sm font-medium'>
-								{getConversationName(selectedConversation)}
-							</span>
+							{/* Messages */}
+							<div className='flex-1 overflow-y-auto p-3'>
+								{isLoadingMessages ? (
+									<div className='flex h-full items-center justify-center'>
+										<Loader2 className='size-5 animate-spin text-text-secondary' />
+									</div>
+								) : messages.length === 0 ? (
+									<div className='flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-text-secondary'>
+										<MessageSquare className='size-8 text-text-muted' />
+										{t('noMessagesYet')}
+									</div>
+								) : (
+									<div className='flex flex-col gap-2'>
+										{messages.map(message => (
+											<MessagesDrawerMessageBubble
+												key={message.id}
+												message={message}
+											/>
+										))}
+										<div ref={messagesEndRef} />
+									</div>
+								)}
+							</div>
 						</div>
-						{/* Messages */}
-						<div className='flex-1 overflow-y-auto p-3'>
-							{isLoadingMessages ? (
-								<div className='flex h-full items-center justify-center'>
+					) : (
+						// Conversations list
+						<div className='p-2'>
+							{isLoadingConversations ? (
+								<div className='flex items-center justify-center py-8'>
 									<Loader2 className='size-5 animate-spin text-text-secondary' />
 								</div>
-							) : messages.length === 0 ? (
-								<div className='flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-text-secondary'>
-									<MessageSquare className='size-8 text-text-muted' />
-									{t('noMessagesYet')}
+							) : filteredConversations.length === 0 ? (
+								<div className='flex flex-col items-center justify-center gap-2 py-8 text-center text-text-secondary'>
+									<MessageSquare className='size-8' />
+									<p className='text-sm'>
+										{searchTerm
+											? t('noConversationsFound')
+											: t('noConversationsYet')}
+									</p>
+									<Link
+										href={PATHS.COMMUNITY}
+										onClick={toggleMessagesDrawer}
+										className='text-xs text-brand hover:underline'
+									>
+										{t('findPeopleToChat')}
+									</Link>
 								</div>
 							) : (
-								<div className='flex flex-col gap-2'>
-									{messages.map(message => (
-										<MessagesDrawerMessageBubble
-											key={message.id}
-											message={message}
+								<div className='flex flex-col gap-1'>
+									{filteredConversations.map(conv => (
+										<MessagesDrawerConversationListItem
+											key={conv.id}
+											name={getConversationName(conv)}
+											avatar={getConversationAvatar(conv)}
+											previewText={conv.lastMessage?.message}
+											unreadCount={conv.unreadCount}
+											onClick={() => setSelectedConversation(conv)}
 										/>
 									))}
-									<div ref={messagesEndRef} />
 								</div>
 							)}
 						</div>
-					</div>
-				) : (
-					// Conversations list
-					<div className='p-2'>
-						{isLoadingConversations ? (
-							<div className='flex items-center justify-center py-8'>
-								<Loader2 className='size-5 animate-spin text-text-secondary' />
-							</div>
-						) : filteredConversations.length === 0 ? (
-							<div className='flex flex-col items-center justify-center gap-2 py-8 text-center text-text-secondary'>
-								<MessageSquare className='size-8' />
-								<p className='text-sm'>
-									{searchTerm
-										? t('noConversationsFound')
-										: t('noConversationsYet')}
-								</p>
-								<Link
-									href={PATHS.COMMUNITY}
-									onClick={toggleMessagesDrawer}
-									className='text-xs text-brand hover:underline'
-								>
-									{t('findPeopleToChat')}
-								</Link>
-							</div>
-						) : (
-							<div className='flex flex-col gap-1'>
-								{filteredConversations.map(conv => (
-									<MessagesDrawerConversationListItem
-										key={conv.id}
-										name={getConversationName(conv)}
-										avatar={getConversationAvatar(conv)}
-										previewText={conv.lastMessage?.message}
-										unreadCount={conv.unreadCount}
-										onClick={() => setSelectedConversation(conv)}
-									/>
-								))}
-							</div>
-						)}
-					</div>
-				)}
-			</div>
-			<div className='flex items-center gap-2 border-t p-3'>
-				{selectedConversation ? (
-					<>
-						<InputGroup className='flex-1'>
-							<InputGroupInput
-								placeholder={t('typeMessage')}
-								value={newMessage}
-								onChange={e => setNewMessage(e.target.value)}
-								onKeyDown={handleKeyPress}
-								disabled={isSending}
-							/>
-						</InputGroup>
-						<Button
-							size='icon'
-							onClick={handleSendMessage}
-							disabled={!newMessage.trim() || isSending}
-							aria-label={t('sendMessage')}
+					)}
+				</div>
+				<div className='flex items-center gap-2 border-t p-3'>
+					{selectedConversation ? (
+						<>
+							<InputGroup className='flex-1'>
+								<InputGroupInput
+									placeholder={t('typeMessage')}
+									value={newMessage}
+									onChange={e => setNewMessage(e.target.value)}
+									onKeyDown={handleKeyPress}
+									disabled={isSending}
+								/>
+							</InputGroup>
+							<Button
+								size='icon'
+								onClick={handleSendMessage}
+								disabled={!newMessage.trim() || isSending}
+								aria-label={t('sendMessage')}
+							>
+								{isSending ? (
+									<Loader2 className='size-4 animate-spin' />
+								) : (
+									<Send className='size-4' />
+								)}
+							</Button>
+						</>
+					) : (
+						<Link
+							href={PATHS.MESSAGES}
+							onClick={toggleMessagesDrawer}
+							className='flex w-full items-center justify-center gap-2 rounded-lg bg-bg-elevated py-2 text-sm font-medium transition-colors hover:bg-muted/80'
 						>
-							{isSending ? (
-								<Loader2 className='size-4 animate-spin' />
-							) : (
-								<Send className='size-4' />
-							)}
-						</Button>
-					</>
-				) : (
-					<Link
-						href={PATHS.MESSAGES}
-						onClick={toggleMessagesDrawer}
-						className='flex w-full items-center justify-center gap-2 rounded-lg bg-bg-elevated py-2 text-sm font-medium transition-colors hover:bg-muted/80'
-					>
-						<MessageSquare className='size-4' />
-						Open Full Messages
-					</Link>
-				)}
+							<MessageSquare className='size-4' />
+							Open Full Messages
+						</Link>
+					)}
+				</div>
 			</div>
-		</div>
+		</Portal>
 	)
 }

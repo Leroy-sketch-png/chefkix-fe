@@ -9,10 +9,22 @@ interface RecipeApiResponse {
 		title: string
 		description?: string
 		difficulty?: string
-		coverImageUrl?: string
+		coverImageUrl?: string | string[]
 		estimatedTimeMinutes?: number
 		authorDisplayName?: string
 	}
+}
+
+function normalizeMediaUrl(value?: string | string[]): string | undefined {
+	if (Array.isArray(value)) {
+		return value.find(
+			entry => typeof entry === 'string' && entry.trim().length > 0,
+		)
+	}
+
+	return typeof value === 'string' && value.trim().length > 0
+		? value
+		: undefined
 }
 
 export async function generateMetadata({
@@ -34,6 +46,8 @@ export async function generateMetadata({
 
 		if (!recipe) return {}
 
+		const coverImageUrl = normalizeMediaUrl(recipe.coverImageUrl)
+
 		const title = recipe.title
 		const description = recipe.description
 			? recipe.description.slice(0, 160)
@@ -46,9 +60,9 @@ export async function generateMetadata({
 				title: `${title} | Chefkix`,
 				description,
 				type: 'article',
-				...(recipe.coverImageUrl && {
+				...(coverImageUrl && {
 					images: [
-						{ url: recipe.coverImageUrl, width: 1200, height: 630, alt: title },
+						{ url: coverImageUrl, width: 1200, height: 630, alt: title },
 					],
 				}),
 			},
@@ -56,7 +70,7 @@ export async function generateMetadata({
 				card: 'summary_large_image',
 				title: `${title} | Chefkix`,
 				description,
-				...(recipe.coverImageUrl && { images: [recipe.coverImageUrl] }),
+				...(coverImageUrl && { images: [coverImageUrl] }),
 			},
 		}
 	} catch {

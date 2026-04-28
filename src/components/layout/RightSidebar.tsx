@@ -6,9 +6,10 @@ import { motion } from 'framer-motion'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
+import { PATHS } from '@/constants'
 import { StreakWidget } from '@/components/streak'
 import { ExpandableDailyChallengeBanner } from '@/components/challenges'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getTodaysChallenge } from '@/services/challenge'
 import {
 	getSuggestedFollows,
@@ -93,7 +94,12 @@ export const RightSidebar = () => {
 	const t = useTranslations('common')
 	const { user } = useAuth()
 	const router = useRouter()
+	const pathname = usePathname()
+	const searchParams = useSearchParams()
 	usePresence() // Send heartbeat while sidebar is mounted
+	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
+	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 	const [followedIds, setFollowedIds] = useState<string[]>([])
 	const followingLockRef = useRef(new Set<string>())
 	const [suggestions, setSuggestions] = useState<Profile[]>([])
@@ -265,13 +271,13 @@ export const RightSidebar = () => {
 							))}
 						</div>
 						<Link
-							href='/auth/sign-up'
+							href={guestSignUpHref}
 							className='flex h-10 w-full items-center justify-center rounded-radius bg-brand text-sm font-bold text-white shadow-card transition-all hover:shadow-warm'
 						>
 							{t('guestSidebarCta')}
 						</Link>
 						<Link
-							href='/auth/sign-in'
+							href={guestSignInHref}
 							className='mt-2 flex h-9 w-full items-center justify-center rounded-radius text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 						>
 							{t('guestSidebarSignIn')}

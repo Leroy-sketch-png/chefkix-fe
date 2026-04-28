@@ -213,6 +213,7 @@ export function useChatWebSocket({
 			const payload: Record<string, string> = {
 				conversationId,
 				message,
+				type: 'TEXT',
 			}
 			if (replyToId) {
 				payload.replyToId = replyToId

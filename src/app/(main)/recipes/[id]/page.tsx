@@ -310,6 +310,12 @@ function RecipeDetailContent() {
 			return
 		}
 
+		if (isSessionActive) {
+			const isDesktop = window.innerWidth >= 1280
+			isDesktop ? openCookingPanel() : expandCookingPanel()
+			return
+		}
+
 		let cancelled = false
 		// Start cooking session
 		const initCooking = async () => {
@@ -334,6 +340,7 @@ function RecipeDetailContent() {
 		recipe,
 		recipeId,
 		isCookingLoading,
+		isSessionActive,
 		startCooking,
 		openCookingPanel,
 		expandCookingPanel,
@@ -753,10 +760,10 @@ function RecipeDetailContent() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
+					className='mb-8 overflow-hidden rounded-[2rem] border-[6px] border-bg/80 bg-bg-card shadow-2xl relative'
 				>
 					{/* Hero Image with overlay */}
-					<div className='group relative h-72 w-full overflow-hidden md:h-96'>
+					<div className='group relative h-[450px] w-full overflow-hidden md:h-[550px]'>
 						<motion.div
 							initial={{ scale: 1.1 }}
 							animate={{ scale: 1 }}
@@ -766,21 +773,22 @@ function RecipeDetailContent() {
 							<ImageLightbox
 								src={getRecipeImage(recipe)}
 								alt={recipe.title}
-								className='absolute inset-0'
+								className='absolute inset-0 w-full h-full'
 							>
 								<Image
 									src={getRecipeImage(recipe)}
 									alt={recipe.title}
 									fill
 									sizes='100vw'
-									className='object-cover transition-transform duration-700 group-hover:scale-105'
+									className='object-cover transition-transform duration-[15s] ease-linear group-hover:scale-110 group-hover:rotate-1'
 									priority
 								/>
 							</ImageLightbox>
 						</motion.div>
 
-						{/* Gradient overlay */}
-						<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
+						{/* Deep Cinematic Gradient overlays */}
+						<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent' />
+						<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent opacity-50' />
 
 						{/* XP Badge - top left */}
 						{recipe.xpReward != null && recipe.xpReward > 0 && (
@@ -788,9 +796,12 @@ function RecipeDetailContent() {
 								initial={{ scale: 0, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
 								transition={{ delay: 0.3, ...TRANSITION_SPRING }}
-								className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-xp px-4 py-2 text-sm font-bold text-white shadow-warm shadow-xp/40'
+								className='absolute left-6 top-6 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-4 py-2 text-sm font-bold text-white shadow-xl'
 							>
-								<Zap className='size-4' />+{recipe.xpReward} XP
+								<Zap className='size-4 text-streak' />
+								<span className='bg-gradient-to-r from-streak to-combo bg-clip-text text-transparent'>
+									+{recipe.xpReward} XP
+								</span>
 							</motion.div>
 						)}
 
@@ -800,15 +811,14 @@ function RecipeDetailContent() {
 							animate={{ scale: 1, opacity: 1 }}
 							transition={{ delay: 0.4, ...TRANSITION_SPRING }}
 							className={cn(
-								'absolute right-4 top-4 rounded-full px-4 py-2 text-sm font-bold text-white shadow-warm backdrop-blur-sm',
-								diffConfig.bg,
-								diffConfig.glow,
+								'absolute right-6 top-6 rounded-full px-4 py-2 text-sm font-bold text-white shadow-xl backdrop-blur-md border border-white/20',
+								diffConfig.bg.replace('bg-', 'bg-').concat('/80'),
 							)}
 						>
 							{recipe.difficulty}
 						</motion.div>
 
-						{/* Video play button overlay - opens video or starts cooking */}
+						{/* Video play button overlay */}
 						{recipe.videoUrl && recipe.videoUrl.length > 0 && (
 							<TooltipProvider delayDuration={100}>
 								<Tooltip>
@@ -816,9 +826,7 @@ function RecipeDetailContent() {
 										<motion.button
 											type='button'
 											onClick={() => {
-												// Get the first video URL from the array
 												const firstVideoUrl = recipe.videoUrl?.[0]
-												// If it's a valid URL, open it; otherwise start cooking
 												if (firstVideoUrl?.startsWith('http')) {
 													window.open(
 														firstVideoUrl,
@@ -826,7 +834,6 @@ function RecipeDetailContent() {
 														'noopener,noreferrer',
 													)
 												} else {
-													// Video is embedded in cooking mode
 													handleStartCooking()
 													toast.info(t('toastWatchVideoInCookingMode'))
 												}
@@ -834,10 +841,10 @@ function RecipeDetailContent() {
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											transition={TRANSITION_SPRING}
-											className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50 z-20'
 										>
-											<div className='grid size-20 place-items-center rounded-full bg-white/90 shadow-warm transition-all hover:bg-white'>
-												<Play className='ml-1 size-8 fill-brand text-brand' />
+											<div className='grid size-24 place-items-center rounded-full bg-black/30 backdrop-blur-md border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.2)] transition-all hover:bg-white/40 hover:scale-105'>
+												<Play className='ml-1 size-10 fill-white text-white drop-shadow-md' />
 											</div>
 										</motion.button>
 									</TooltipTrigger>
@@ -847,16 +854,14 @@ function RecipeDetailContent() {
 								</Tooltip>
 							</TooltipProvider>
 						)}
-					</div>
 
-					<div className='p-6 md:p-8'>
-						{/* Title & Author */}
-						<div className='mb-6'>
+						{/* Floating Content Block inside Hero */}
+						<div className='absolute bottom-0 left-0 right-0 p-6 md:p-10 flex flex-col justify-end z-10'>
 							<motion.h1
 								initial={{ opacity: 0, y: 10 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: 0.2 }}
-								className='mb-3 text-3xl font-serif font-bold text-text md:text-4xl'
+								className='mb-4 text-4xl font-black text-white drop-shadow-lg md:text-5xl lg:text-6xl leading-[1.1] tracking-tight'
 							>
 								{recipe.title}
 							</motion.h1>
@@ -864,10 +869,15 @@ function RecipeDetailContent() {
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
 								transition={{ delay: 0.3 }}
-								className='mb-4 leading-relaxed text-text-secondary'
+								className='mb-2 max-w-3xl text-lg font-medium leading-relaxed text-white/90 drop-shadow-md'
 							>
 								{recipe.description}
 							</motion.p>
+						</div>
+					</div>
+
+					<div className='px-6 pt-6 pb-6 md:px-10 md:pt-8 md:pb-8 bg-bg-card'>
+						<div className='mb-6'>
 							{recipe.author && (
 								<motion.div
 									initial={{ opacity: 0, x: -10 }}

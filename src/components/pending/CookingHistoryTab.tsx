@@ -25,6 +25,7 @@ import {
 	DURATION_S,
 } from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { getOrdinalSuffix, getRepeatCookXpTier } from '@/lib/cookingXp'
 import type { PendingSession } from './PendingPostsSection'
 
 // =============================================================================
@@ -310,8 +311,18 @@ const CompletedItem = ({
 	onCookAgain,
 }: CompletedItemProps) => {
 	const t = useTranslations('history')
-	const isMastered = session.cookCount && session.cookCount >= 5
-	const isReduced = session.cookCount && session.cookCount > 2
+	const isMastered = session.cookCount != null && session.cookCount >= 5
+	const repeatTier = getRepeatCookXpTier(session.cookCount)
+	const repeatXpLabel =
+		repeatTier === 'full'
+			? t('fullXp')
+			: repeatTier === 'half'
+				? t('halfXp')
+				: repeatTier === 'quarter'
+					? t('quarterXp')
+					: repeatTier === 'exhausted'
+						? t('exhaustedXp')
+						: t('xpAwarded')
 	const postWasRemoved = session.status === 'post_deleted'
 
 	return (
@@ -354,12 +365,7 @@ const CompletedItem = ({
 							<span className='text-xs font-semibold text-text-secondary bg-bg-elevated px-2 py-0.5 rounded-md'>
 								{t('nthCook', {
 									count: session.cookCount,
-									suffix:
-										session.cookCount === 2
-											? 'nd'
-											: session.cookCount === 3
-												? 'rd'
-												: 'th',
+									suffix: getOrdinalSuffix(session.cookCount),
 								})}
 							</span>
 						)}
@@ -394,17 +400,18 @@ const CompletedItem = ({
 							className='tabular-nums'
 						/>
 					</span>
-					{!isReduced && (
-						<span className='block text-xs text-success'>{t('fullXp')}</span>
-					)}
-					{isReduced && (
-						<span className='block text-xs text-text-secondary'>
-							{t('reducedXp', {
-								count: session.cookCount,
-								suffix: session.cookCount === 2 ? 'nd' : 'rd',
-							})}
-						</span>
-					)}
+					<span
+						className={cn(
+							'block text-xs',
+							repeatTier === 'exhausted'
+								? 'font-semibold text-warning'
+								: repeatTier === 'full'
+									? 'text-success'
+									: 'text-text-secondary',
+						)}
+					>
+						{repeatXpLabel}
+					</span>
 				</div>
 
 				{/* View Post Button */}

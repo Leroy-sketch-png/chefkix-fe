@@ -30,6 +30,7 @@ import {
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { hasClaimablePostXp } from '@/lib/cookingXp'
 
 // =============================================================================
 // TYPES
@@ -131,6 +132,7 @@ const SinglePendingPost = ({
 	onDismiss,
 }: SinglePendingProps) => {
 	const t = useTranslations('pending')
+	const hasClaimableXp = hasClaimablePostXp(session.currentXP)
 	return (
 		<motion.section
 			className={cn(
@@ -146,7 +148,7 @@ const SinglePendingPost = ({
 				<div className='flex items-center gap-2'>
 					<span className='text-lg'>📸</span>
 					<h3 className='text-base font-bold text-text'>
-						{t('pdPostToUnlock')}
+						{hasClaimableXp ? t('pdPostToUnlock') : t('pdPostToShare')}
 					</h3>
 				</div>
 				{onDismiss && (
@@ -182,9 +184,15 @@ const SinglePendingPost = ({
 						{getTimeSinceCook(session.cookedAt, t)}
 					</span>
 					<div className='flex items-center gap-3'>
-						<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg tabular-nums'>
-							+<AnimatedNumber value={session.currentXP} /> XP
-						</span>
+						{hasClaimableXp ? (
+							<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg tabular-nums'>
+								+<AnimatedNumber value={session.currentXP} /> XP
+							</span>
+						) : (
+							<span className='text-sm font-semibold text-warning bg-warning/10 px-2 py-1 rounded-lg'>
+								{t('pdNoXpLeft')}
+							</span>
+						)}
 						<span className='flex items-center gap-1 text-sm text-text-secondary'>
 							<Clock className='h-3.5 w-3.5' />
 							{getTimeLeft(session.expiresAt, t)}
@@ -205,7 +213,7 @@ const SinglePendingPost = ({
 					transition={TRANSITION_SPRING}
 				>
 					<Camera className='size-4' />
-					{t('pdPostNow')}
+					{hasClaimableXp ? t('pdPostNow') : t('pdPost')}
 				</motion.button>
 			</div>
 		</motion.section>
@@ -230,9 +238,12 @@ const MultiplePendingPosts = ({
 	onViewAll,
 }: MultiplePendingProps) => {
 	const t = useTranslations('pending')
-	const urgentSessions = sessions.filter(s => s.status === 'urgent')
+	const urgentSessions = sessions.filter(
+		s => s.status === 'urgent' && hasClaimablePostXp(s.currentXP),
+	)
 	const previewSessions = sessions.slice(0, 2)
 	const remaining = sessions.length - previewSessions.length
+	const hasClaimableXp = totalXP > 0
 
 	return (
 		<motion.section
@@ -257,9 +268,15 @@ const MultiplePendingPosts = ({
 					<h3 className='text-base font-bold text-text'>
 						{t('pdRecipesWaiting', { count: sessions.length })}
 					</h3>
-					<span className='text-sm font-semibold text-success bg-success/10 px-2 py-1 rounded-full tabular-nums'>
-						{t('pdXpAvailable', { xp: totalXP })}
-					</span>
+					{hasClaimableXp ? (
+						<span className='text-sm font-semibold text-success bg-success/10 px-2 py-1 rounded-full tabular-nums'>
+							{t('pdXpAvailable', { xp: totalXP })}
+						</span>
+					) : (
+						<span className='text-sm font-semibold text-warning bg-warning/10 px-2 py-1 rounded-full'>
+							{t('pdNoXpAvailable')}
+						</span>
+					)}
 				</div>
 				<motion.button
 					type='button'
@@ -301,7 +318,8 @@ const MultiplePendingPosts = ({
 							<span
 								className={cn(
 									'text-xs',
-									session.status === 'urgent'
+									session.status === 'urgent' &&
+										hasClaimablePostXp(session.currentXP)
 										? 'text-error font-semibold'
 										: 'text-text-secondary',
 								)}
@@ -309,14 +327,21 @@ const MultiplePendingPosts = ({
 								{getTimeLeft(session.expiresAt, t)}
 							</span>
 						</div>
-						<span className='text-sm font-bold text-success tabular-nums'>
-							+<AnimatedNumber value={session.currentXP} />
-						</span>
+						{hasClaimablePostXp(session.currentXP) ? (
+							<span className='text-sm font-bold text-success tabular-nums'>
+								+<AnimatedNumber value={session.currentXP} />
+							</span>
+						) : (
+							<span className='text-xs font-semibold text-warning'>
+								{t('pdNoXp')}
+							</span>
+						)}
 						<motion.button
 							type='button'
 							className={cn(
 								'px-3 py-1.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
-								session.status === 'urgent'
+								session.status === 'urgent' &&
+									hasClaimablePostXp(session.currentXP)
 									? 'bg-error text-white'
 									: 'bg-brand text-white',
 							)}
@@ -361,11 +386,12 @@ const ManyPendingPosts = ({
 	onViewAll,
 }: ManyPendingProps) => {
 	const t = useTranslations('pending')
+	const hasClaimableXp = totalXP > 0
 	return (
 		<motion.section
 			className={cn(
 				'bg-bg-card border border-border rounded-2xl overflow-hidden',
-				urgentCount > 0
+				hasClaimableXp && urgentCount > 0
 					? 'border-l-4 border-l-error'
 					: 'border-l-4 border-l-warning',
 			)}
@@ -376,12 +402,12 @@ const ManyPendingPosts = ({
 			<div
 				className={cn(
 					'flex items-center gap-3 px-4 py-3',
-					urgentCount > 0
+					hasClaimableXp && urgentCount > 0
 						? 'bg-gradient-to-r from-error/10 to-transparent'
 						: 'bg-gradient-to-r from-warning/10 to-transparent',
 				)}
 			>
-				{urgentCount > 0 && (
+				{hasClaimableXp && urgentCount > 0 && (
 					<div className='flex items-center gap-2'>
 						<span className='text-lg'>🚨</span>
 						<span className='text-sm font-semibold text-error'>
@@ -391,7 +417,9 @@ const ManyPendingPosts = ({
 				)}
 
 				<span className='flex-1 text-sm text-text-secondary text-right'>
-					{t('pdPendingXp', { count: sessions.length, xp: totalXP })}
+					{hasClaimableXp
+						? t('pdPendingXp', { count: sessions.length, xp: totalXP })
+						: t('pdPendingNoXp', { count: sessions.length })}
 				</span>
 
 				<motion.button
@@ -437,7 +465,9 @@ export const PendingPostsSection = ({
 	}
 
 	const totalXP = pendingSessions.reduce((sum, s) => sum + s.currentXP, 0)
-	const urgentCount = pendingSessions.filter(s => s.status === 'urgent').length
+	const urgentCount = pendingSessions.filter(
+		s => s.status === 'urgent' && hasClaimablePostXp(s.currentXP),
+	).length
 
 	// Render based on count
 	if (pendingSessions.length === 1) {
@@ -507,8 +537,11 @@ export const PendingExpandedModal = ({
 	)
 	const totalXP = pendingSessions.reduce((sum, s) => sum + s.currentXP, 0)
 	const urgentSessions = pendingSessions.filter(
-		s => s.status === 'urgent' || s.status === 'warning',
+		s =>
+			hasClaimablePostXp(s.currentXP) &&
+			(s.status === 'urgent' || s.status === 'warning'),
 	)
+	const hasClaimableXp = totalXP > 0
 
 	return (
 		<AnimatePresence>
@@ -536,10 +569,14 @@ export const PendingExpandedModal = ({
 									{t('pdPendingPosts')}
 								</h2>
 								<span className='text-sm text-text-secondary'>
-									{t('pdRecipesXpAvailable', {
-										count: pendingSessions.length,
-										xp: totalXP,
-									})}
+									{hasClaimableXp
+										? t('pdRecipesXpAvailable', {
+												count: pendingSessions.length,
+												xp: totalXP,
+											})
+										: t('pdPendingNoXp', {
+												count: pendingSessions.length,
+											})}
 								</span>
 								<motion.button
 									type='button'
@@ -581,23 +618,24 @@ export const PendingExpandedModal = ({
 										variants={fadeInUp}
 									>
 										{/* Urgency Tag */}
-										{(session.status === 'urgent' ||
-											session.status === 'warning') && (
-											<div
-												className={cn(
-													'px-4 py-2 text-xs font-bold uppercase tracking-wide text-white',
-													session.status === 'urgent'
-														? 'bg-gradient-to-r from-error to-error/80'
-														: 'bg-gradient-to-r from-warning to-warning/80',
-												)}
-											>
-												{session.status === 'urgent'
-													? t('pdExpiresIn', {
-															time: getTimeLeft(session.expiresAt, t),
-														})
-													: getTimeLeft(session.expiresAt, t)}
-											</div>
-										)}
+										{hasClaimablePostXp(session.currentXP) &&
+											(session.status === 'urgent' ||
+												session.status === 'warning') && (
+												<div
+													className={cn(
+														'px-4 py-2 text-xs font-bold uppercase tracking-wide text-white',
+														session.status === 'urgent'
+															? 'bg-gradient-to-r from-error to-error/80'
+															: 'bg-gradient-to-r from-warning to-warning/80',
+													)}
+												>
+													{session.status === 'urgent'
+														? t('pdExpiresIn', {
+																time: getTimeLeft(session.expiresAt, t),
+															})
+														: getTimeLeft(session.expiresAt, t)}
+												</div>
+											)}
 
 										{/* Content */}
 										<div className='flex items-center gap-4 p-4'>
@@ -640,16 +678,22 @@ export const PendingExpandedModal = ({
 													)}
 											</div>
 											<div className='text-right'>
-												<span
-													className={cn(
-														'block text-lg font-bold tabular-nums',
-														session.status === 'urgent'
-															? 'text-error'
-															: 'text-success',
-													)}
-												>
-													+<AnimatedNumber value={session.currentXP} /> XP
-												</span>
+												{hasClaimablePostXp(session.currentXP) ? (
+													<span
+														className={cn(
+															'block text-lg font-bold tabular-nums',
+															session.status === 'urgent'
+																? 'text-error'
+																: 'text-success',
+														)}
+													>
+														+<AnimatedNumber value={session.currentXP} /> XP
+													</span>
+												) : (
+													<span className='block text-sm font-semibold text-warning'>
+														{t('pdNoXp')}
+													</span>
+												)}
 												{/* Only show original if there's actual decay */}
 												{session.currentXP < session.baseXP &&
 													session.currentXP > 0 && (
@@ -662,7 +706,8 @@ export const PendingExpandedModal = ({
 												type='button'
 												className={cn(
 													'px-4 py-2.5 rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
-													session.status === 'urgent'
+													session.status === 'urgent' &&
+														hasClaimablePostXp(session.currentXP)
 														? 'bg-error text-white'
 														: 'bg-brand text-white',
 												)}
@@ -671,7 +716,8 @@ export const PendingExpandedModal = ({
 												whileTap={BUTTON_SUBTLE_TAP}
 												transition={TRANSITION_SPRING}
 											>
-												{session.status === 'urgent'
+												{session.status === 'urgent' &&
+												hasClaimablePostXp(session.currentXP)
 													? t('pdPostNowUrgent')
 													: t('pdPost')}
 											</motion.button>
@@ -683,7 +729,7 @@ export const PendingExpandedModal = ({
 							{/* Footer */}
 							<div className='p-5 border-t border-border bg-muted/30'>
 								<p className='text-sm text-text-secondary text-center mb-4'>
-									{t('pdTipFooter')}
+									{hasClaimableXp ? t('pdTipFooter') : t('pdTipFooterNoXp')}
 								</p>
 								<motion.button
 									type='button'

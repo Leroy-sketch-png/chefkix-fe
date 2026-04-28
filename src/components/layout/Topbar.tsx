@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useTranslations } from 'next-intl'
 import { useUiStore } from '@/store/uiStore'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getMyConversations } from '@/services/chat'
 import { CookingIndicator } from '@/components/cooking/CookingIndicator'
@@ -43,18 +43,27 @@ import { getRecentSearches, addRecentSearch } from '@/lib/recentSearches'
 export const Topbar = () => {
 	const { user } = useAuth()
 	const t = useTranslations('topbar')
+	const pathname = usePathname()
+	const searchParams = useSearchParams()
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [showUserMenu, setShowUserMenu] = useState(false)
 
 	useEscapeKey(showUserMenu, () => setShowUserMenu(false))
-	const { unreadCount: unreadNotifications, fetchUnreadCount } =
-		useNotificationStore()
+	const {
+		unreadCount: unreadNotifications,
+		startPolling: startNotificationPolling,
+		stopPolling: stopNotificationPolling,
+	} = useNotificationStore()
 	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
 	const avatarButtonRef = useRef<HTMLButtonElement>(null)
 	const [unreadMessages, setUnreadMessages] = useState(0)
 	const router = useRouter()
 	const { logout } = useAuth()
+	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
+	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
+	const brandHref = user ? PATHS.DASHBOARD : PATHS.EXPLORE
 
 	// Typeahead state
 	const [suggestions, setSuggestions] = useState<{
@@ -235,10 +244,16 @@ export const Topbar = () => {
 		[showSuggestions, flatItems, highlightIndex, selectItem],
 	)
 
-	// Fetch notification count via store (WebSocket keeps it updated after mount)
+	// Keep notification badge in sync across mobile and desktop shells.
 	useEffect(() => {
-		if (user) fetchUnreadCount()
-	}, [fetchUnreadCount, user])
+		if (user) {
+			startNotificationPolling()
+		} else {
+			stopNotificationPolling()
+		}
+
+		return () => stopNotificationPolling()
+	}, [startNotificationPolling, stopNotificationPolling, user])
 
 	// Fetch unread message counts on mount and periodically
 	useEffect(() => {
@@ -295,7 +310,7 @@ export const Topbar = () => {
 		>
 			{/* Animated Logo */}
 			<Link
-				href='/dashboard'
+				href={brandHref}
 				className='flex items-center gap-2 md:absolute md:left-6'
 			>
 				<motion.div
@@ -727,13 +742,13 @@ export const Topbar = () => {
 			{!user && (
 				<div className='ml-auto flex shrink-0 items-center gap-1 md:gap-2'>
 					<Link
-						href={PATHS.AUTH.SIGN_IN}
+						href={guestSignInHref}
 						className='whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-semibold'
 					>
 						{t('tbSignIn')}
 					</Link>
 					<Link
-						href={PATHS.AUTH.SIGN_UP}
+						href={guestSignUpHref}
 						className='whitespace-nowrap rounded-lg bg-brand px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-brand/90 md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-bold md:shadow-card md:hover:shadow-warm'
 					>
 						{t('tbGetStarted')}

@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		isHydrated,
 		accessToken,
 		user,
+		login,
 		logout,
 		setLoading,
 		setUser,
@@ -75,6 +76,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				// while TokenRefreshProvider is already refreshing it
 				await waitForVisibilityRefresh()
 
+				// Repair stale auth flags when the token exists but the persisted auth state drifted.
+				if (!isAuthenticated) {
+					login(accessToken)
+				}
+
 				// Token exists - if we don't have user data, fetch it.
 				if (!user) {
 					const profileResponse = await getMyProfile()
@@ -97,7 +103,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		}
 
 		validateSession()
-	}, [isHydrated, accessToken, user, logout, setLoading, setUser])
+	}, [
+		isHydrated,
+		accessToken,
+		isAuthenticated,
+		user,
+		login,
+		logout,
+		setLoading,
+		setUser,
+	])
 
 	// This effect handles redirection logic AFTER the initial session validation.
 	useEffect(() => {

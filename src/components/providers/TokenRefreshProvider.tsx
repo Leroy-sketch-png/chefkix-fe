@@ -57,7 +57,7 @@ export const TokenRefreshProvider = ({
 	 * Callbacks for TokenManager
 	 */
 	const onTokenRefreshed = useCallback((newToken: string) => {
-		useAuthStore.setState({ accessToken: newToken })
+		useAuthStore.setState({ accessToken: newToken, isAuthenticated: true })
 	}, [])
 
 	const onSessionExpired = useCallback(() => {

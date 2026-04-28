@@ -424,9 +424,9 @@ export const CookingPanel = () => {
 	return (
 		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card xl:flex xl:flex-col'>
 			{/* Header */}
-			<div className='relative bg-gradient-hero p-4 text-white'>
+			<div className='bg-gradient-hero p-4 text-white'>
 				{/* Controls */}
-				<div className='absolute right-2 top-2 flex gap-1'>
+				<div className='mb-3 flex justify-end gap-1'>
 					<button
 						type='button'
 						onClick={() => setKitchenMode(k => !k)}
@@ -480,7 +480,7 @@ export const CookingPanel = () => {
 				</div>
 
 				{/* Recipe Info */}
-				<div className='flex items-center gap-3'>
+				<div className='flex items-start gap-3'>
 					<div className='grid size-10 place-items-center rounded-xl bg-white/20'>
 						<ChefHat className='size-5' />
 					</div>

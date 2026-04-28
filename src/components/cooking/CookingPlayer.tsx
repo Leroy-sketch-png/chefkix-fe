@@ -1554,7 +1554,7 @@ export const CookingPlayer = () => {
 								/>
 
 								{/* AI Assist Button + Mode Indicator */}
-								<div className='absolute left-4 top-4 flex items-center gap-2'>
+								<div className='absolute left-4 top-4 z-20 flex items-center gap-2'>
 									<motion.button
 										type='button'
 										onClick={() => setShowAiAssist(true)}
@@ -1568,7 +1568,7 @@ export const CookingPlayer = () => {
 								</div>
 
 								{/* Header buttons group */}
-								<div className='absolute right-4 top-4 flex items-center gap-2'>
+								<div className='absolute right-4 top-4 z-20 flex items-center gap-2'>
 									{/* Kitchen-Distance Mode Toggle (Wave 2: Kitchen Protocol) */}
 									<motion.button
 										type='button'
@@ -1651,12 +1651,12 @@ export const CookingPlayer = () => {
 								{!isPreviewMode && (
 									<XpPreview
 										xp={recipe.xpReward ?? 0}
-										className='absolute right-4 bottom-4'
+										className='absolute bottom-4 right-4 hidden md:flex'
 									/>
 								)}
 
 								{/* Recipe Info */}
-								<div className='relative z-10 pt-8 text-center'>
+								<div className='relative z-10 px-4 pt-8 text-center md:px-0'>
 									<motion.h2
 										initial={{ opacity: 0, y: -10 }}
 										animate={{ opacity: 1, y: 0 }}
@@ -1664,7 +1664,7 @@ export const CookingPlayer = () => {
 									>
 										{recipe.title}
 									</motion.h2>
-									<div className='mt-3 flex flex-wrap items-center justify-center gap-4 text-sm opacity-90 md:gap-6'>
+									<div className='mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm opacity-90 md:gap-x-6'>
 										<span className='flex items-center gap-1.5'>
 											<User className='size-4' />{' '}
 											{recipe.author?.displayName ?? t('authorFallback')}
@@ -1677,6 +1677,13 @@ export const CookingPlayer = () => {
 											<BarChart2 className='size-4' /> {recipe.difficulty}
 										</span>
 									</div>
+
+									{!isPreviewMode && (
+										<XpPreview
+											xp={recipe.xpReward ?? 0}
+											className='mx-auto mt-3 inline-flex md:hidden'
+										/>
+									)}
 
 									{/* Co-cooking participants */}
 									{isInRoom && roomCode && (

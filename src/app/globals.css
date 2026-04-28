@@ -355,6 +355,11 @@
 	--z-notification: 9500;
 	--z-tooltip: 9900;
 
+	/* Sonner hardcodes an extreme z-index. Keep modal actions above transient toasts. */
+	[data-sonner-toaster] {
+		z-index: calc(var(--z-modal) - 1) !important;
+	}
+
 	/* Elevated surface tokens */
 	--bg-elev: var(--bg-elevated);
 	--surface: var(--bg-card);

@@ -16,14 +16,38 @@ const SignInPage = () => {
 	return (
 		<div className='relative flex min-h-screen flex-col items-center justify-start overflow-hidden bg-bg px-4 pb-8 pt-16 sm:justify-center sm:py-10'>
 			<DevQuickLogin />
-			{/* Back to browsing escape hatch — guests must never be trapped */}
-			<Link
-				href={returnTo && returnTo.startsWith('/') ? returnTo : '/explore'}
-				className='absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-radius px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-			>
-				<ArrowLeft className='size-4' />
-				{t('backToBrowsing')}
-			</Link>
+			{/* Primary Escape Hatch: High-visibility exit for guests to restore 'Tree' integrity */}
+			<div className='absolute left-4 top-4 z-20 flex items-center gap-2 sm:left-8 sm:top-8'>
+				<Link
+					href='/welcome'
+					className='flex size-10 items-center justify-center rounded-full bg-bg-card border border-border-subtle text-text-secondary shadow-sm transition-all hover:border-brand hover:text-brand hover:shadow-warm sm:size-12'
+					title={t('backToWelcome')}
+				>
+					<ArrowLeft className='size-5' />
+				</Link>
+
+				<Link
+					href={(() => {
+						const protectedRoutes = [
+							'/create',
+							'/dashboard',
+							'/profile',
+							'/settings',
+							'/notifications',
+							'/messages',
+							'/pantry',
+							'/meal-planner',
+						]
+						const isProtected = protectedRoutes.some(route =>
+							returnTo?.startsWith(route),
+						)
+						return returnTo && !isProtected ? returnTo : '/explore'
+					})()}
+					className='hidden h-10 items-center rounded-full bg-bg-card/50 border border-border-subtle px-5 text-sm font-bold text-text-secondary backdrop-blur-md transition-all hover:bg-brand/10 hover:border-brand hover:text-brand sm:flex sm:h-12'
+				>
+					{t('exploreAsGuest')}
+				</Link>
+			</div>
 			{/* Warm gradient background */}
 			<div className='absolute inset-0 bg-gradient-to-br from-brand/5 via-bg to-xp/5' />
 

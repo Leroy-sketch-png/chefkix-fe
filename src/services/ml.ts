@@ -6,8 +6,10 @@
 import { aiApi } from '@/lib/axios'
 import { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
-import { AxiosError } from 'axios'
-import { logDevError } from '@/lib/dev-log'
+import {
+	getDirectAiPreflightFailure,
+	handleDirectAiError,
+} from './directAiClient'
 
 // ── Difficulty Calibration ──────────────────────────────────────────────────
 
@@ -35,6 +37,9 @@ export interface CalibrationResult {
 export const calibrateDifficulty = async (
 	data: CalibrationRequest,
 ): Promise<ApiResponse<CalibrationResult>> => {
+	const preflightFailure = getDirectAiPreflightFailure<CalibrationResult>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<CalibrationResult>>(
 			API_ENDPOINTS.ML.CALIBRATE_DIFFICULTY,
@@ -42,14 +47,10 @@ export const calibrateDifficulty = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<CalibrationResult>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Difficulty calibration failed',
-			statusCode: 500,
-		}
+		return handleDirectAiError<CalibrationResult>(
+			error,
+			'Difficulty calibration failed',
+		)
 	}
 }
 
@@ -69,6 +70,9 @@ export const guardContent = async (
 	text: string,
 	contentType: 'post' | 'comment' | 'recipe' | 'chat' = 'post',
 ): Promise<ApiResponse<ContentGuardResult>> => {
+	const preflightFailure = getDirectAiPreflightFailure<ContentGuardResult>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<ContentGuardResult>>(
 			API_ENDPOINTS.ML.CONTENT_GUARD,
@@ -76,13 +80,9 @@ export const guardContent = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<ContentGuardResult>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Content guard check failed',
-			statusCode: 500,
-		}
+		return handleDirectAiError<ContentGuardResult>(
+			error,
+			'Content guard check failed',
+		)
 	}
 }

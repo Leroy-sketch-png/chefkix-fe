@@ -84,20 +84,37 @@ function ConversationItem({
 	onClick,
 }: MessagesConversationListItemProps) {
 	const t = useTranslations('messages')
-	const otherParticipant = conversation.participants.find(
+	const otherParticipants = conversation.participants.filter(
 		p => p.userId !== currentUserId,
 	)
 
+	const getParticipantName = (
+		participant: Conversation['participants'][number],
+	) => {
+		return (
+			`${participant.firstName} ${participant.lastName}`.trim() ||
+			participant.username
+		)
+	}
+
 	const name =
 		conversation.conversationName ||
-		(otherParticipant
-			? `${otherParticipant.firstName} ${otherParticipant.lastName}`.trim() ||
-				otherParticipant.username
-			: t('unknownUser'))
+		(conversation.type === 'GROUP'
+			? (() => {
+					const names = otherParticipants.slice(0, 2).map(getParticipantName)
+					if (names.length === 0) return 'Group chat'
+					const extraCount = otherParticipants.length - names.length
+					return extraCount > 0
+						? `${names.join(', ')} +${extraCount}`
+						: names.join(', ')
+				})()
+			: otherParticipants[0]
+				? getParticipantName(otherParticipants[0])
+				: t('unknownUser'))
 
 	const avatar =
 		conversation.conversationAvatar ||
-		otherParticipant?.avatar ||
+		otherParticipants[0]?.avatar ||
 		'/placeholder-avatar.svg'
 	const previewText = conversation.lastMessage?.message || t('noMessagesYet')
 	const previewDate =

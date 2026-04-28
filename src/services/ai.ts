@@ -7,8 +7,10 @@
 import { aiApi } from '@/lib/axios'
 import type { ApiResponse } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants/api'
-import type { AxiosError } from 'axios'
-import { logDevError } from '@/lib/dev-log'
+import {
+	getDirectAiPreflightFailure,
+	handleDirectAiError,
+} from './directAiClient'
 
 // ============================================
 // TYPES
@@ -276,6 +278,9 @@ export interface ModerateResponse {
 export const processRecipe = async (
 	rawText: string,
 ): Promise<ApiResponse<ProcessedRecipe>> => {
+	const preflightFailure = getDirectAiPreflightFailure<ProcessedRecipe>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<ProcessedRecipe>>(
 			API_ENDPOINTS.AI.PROCESS_RECIPE,
@@ -283,43 +288,10 @@ export const processRecipe = async (
 		)
 		return response.data
 	} catch (error) {
-		const axiosError = error as AxiosError<ApiResponse<ProcessedRecipe>>
-
-		// Extract meaningful error info
-		const status = axiosError.response?.status
-		const errorMessage = axiosError.message || 'Unknown error'
-		const responseData = axiosError.response?.data
-
-		logDevError(
-			'[ai.processRecipe] Error:',
-			`Status: ${status || 'N/A'}`,
-			`Message: ${errorMessage}`,
-			responseData ? JSON.stringify(responseData) : 'No response data',
+		return handleDirectAiError<ProcessedRecipe>(
+			error,
+			'Failed to process recipe',
 		)
-
-		// Handle specific HTTP status codes with user-friendly messages
-		if (status === 401) {
-			return {
-				success: false,
-				message: 'Please log in to use AI recipe parsing.',
-				statusCode: 401,
-			}
-		}
-
-		if (status === 503 || status === 502) {
-			return {
-				success: false,
-				message: 'AI service is temporarily unavailable. Please try again.',
-				statusCode: status,
-			}
-		}
-
-		if (axiosError.response?.data) return axiosError.response.data
-		return {
-			success: false,
-			message: `Failed to process recipe: ${errorMessage}`,
-			statusCode: status || 500,
-		}
 	}
 }
 
@@ -330,6 +302,9 @@ export const processRecipe = async (
 export const calculateMetas = async (
 	recipe: CalculateMetasRequest,
 ): Promise<ApiResponse<CalculateMetasResponse>> => {
+	const preflightFailure = getDirectAiPreflightFailure<CalculateMetasResponse>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<CalculateMetasResponse>>(
 			API_ENDPOINTS.AI.CALCULATE_METAS,
@@ -337,14 +312,10 @@ export const calculateMetas = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<CalculateMetasResponse>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to calculate recipe metas',
-			statusCode: 500,
-		}
+		return handleDirectAiError<CalculateMetasResponse>(
+			error,
+			'Failed to calculate recipe metas',
+		)
 	}
 }
 
@@ -355,6 +326,9 @@ export const calculateMetas = async (
 export const validateRecipe = async (
 	recipe: ValidateRecipeRequest,
 ): Promise<ApiResponse<ValidateRecipeResponse>> => {
+	const preflightFailure = getDirectAiPreflightFailure<ValidateRecipeResponse>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<ValidateRecipeResponse>>(
 			API_ENDPOINTS.AI.VALIDATE_RECIPE,
@@ -362,14 +336,10 @@ export const validateRecipe = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<ValidateRecipeResponse>>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to validate recipe',
-			statusCode: 500,
-		}
+		return handleDirectAiError<ValidateRecipeResponse>(
+			error,
+			'Failed to validate recipe',
+		)
 	}
 }
 
@@ -381,6 +351,10 @@ export const askCookingAssistant = async (
 	query: string,
 	context: string,
 ): Promise<ApiResponse<CookingAssistantResponse>> => {
+	const preflightFailure =
+		getDirectAiPreflightFailure<CookingAssistantResponse>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<CookingAssistantResponse>>(
 			API_ENDPOINTS.AI.COOKING_ASSISTANT,
@@ -388,16 +362,10 @@ export const askCookingAssistant = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<
-			ApiResponse<CookingAssistantResponse>
-		>
-		if (axiosError.response) return axiosError.response.data
-		return {
-			success: false,
-			message: 'AI assistant unavailable',
-			statusCode: 500,
-		}
+		return handleDirectAiError<CookingAssistantResponse>(
+			error,
+			'AI assistant unavailable',
+		)
 	}
 }
 
@@ -409,6 +377,9 @@ export const moderateContent = async (
 	text: string,
 	contentType: ContentType,
 ): Promise<ApiResponse<ModerateResponse>> => {
+	const preflightFailure = getDirectAiPreflightFailure<ModerateResponse>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<ModerateResponse>>(
 			API_ENDPOINTS.AI.MODERATE,
@@ -416,12 +387,10 @@ export const moderateContent = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('[Moderation] Service unavailable:', error)
-		return {
-			success: false,
-			message: 'Moderation service unavailable. Please try again.',
-			statusCode: 503,
-		}
+		return handleDirectAiError<ModerateResponse>(
+			error,
+			'Moderation service unavailable. Please try again.',
+		)
 	}
 }
 
@@ -435,6 +404,9 @@ export const suggestSubstitutions = async (
 	recipeContext?: string,
 	dietaryTags?: string[],
 ): Promise<ApiResponse<SubstitutionResponse>> => {
+	const preflightFailure = getDirectAiPreflightFailure<SubstitutionResponse>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<SubstitutionResponse>>(
 			API_ENDPOINTS.AI.SUGGEST_SUBSTITUTIONS,
@@ -447,14 +419,10 @@ export const suggestSubstitutions = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<SubstitutionResponse>>
-		if (axiosError.response?.data) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to suggest substitutions',
-			statusCode: 500,
-		}
+		return handleDirectAiError<SubstitutionResponse>(
+			error,
+			'Failed to suggest substitutions',
+		)
 	}
 }
 
@@ -464,6 +432,9 @@ export const suggestSubstitutions = async (
 export const remixRecipe = async (
 	request: RemixRecipeRequest,
 ): Promise<ApiResponse<RemixRecipeResponse>> => {
+	const preflightFailure = getDirectAiPreflightFailure<RemixRecipeResponse>()
+	if (preflightFailure) return preflightFailure
+
 	try {
 		const response = await aiApi.post<ApiResponse<RemixRecipeResponse>>(
 			API_ENDPOINTS.AI.REMIX_RECIPE,
@@ -471,13 +442,9 @@ export const remixRecipe = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<RemixRecipeResponse>>
-		if (axiosError.response?.data) return axiosError.response.data
-		return {
-			success: false,
-			message: 'Failed to remix recipe',
-			statusCode: 500,
-		}
+		return handleDirectAiError<RemixRecipeResponse>(
+			error,
+			'Failed to remix recipe',
+		)
 	}
 }

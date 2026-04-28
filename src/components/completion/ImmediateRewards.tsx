@@ -40,6 +40,7 @@ import {
 import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
+import { hasClaimablePostXp, isNoRecipeXpRun } from '@/lib/cookingXp'
 import type { Badge } from '@/lib/types/gamification'
 
 // ============================================
@@ -264,6 +265,8 @@ export const ImmediateRewards = ({
 	// Calculate totals
 	const earnedNow = immediateXp + streakBonus
 	const pendingTotal = pendingXp + creatorTipXp
+	const canUnlockPostXp = hasClaimablePostXp(pendingXp, creatorTipXp)
+	const noRecipeXpThisRun = isNoRecipeXpRun(immediateXp, pendingXp)
 
 	// Build reward rows
 	const rewards: RewardRow[] = [
@@ -289,14 +292,16 @@ export const ImmediateRewards = ({
 	}
 
 	// Locked rewards
-	rewards.push({
-		type: 'pending',
-		label: t('postReward'),
-		description: t('shareToUnlock'),
-		xpAmount: pendingXp,
-		isLocked: true,
-		icon: <Lock className='size-5 text-text-muted' />,
-	})
+	if (pendingXp > 0) {
+		rewards.push({
+			type: 'pending',
+			label: t('postReward'),
+			description: t('shareToUnlock'),
+			xpAmount: pendingXp,
+			isLocked: true,
+			icon: <Lock className='size-5 text-text-muted' />,
+		})
+	}
 
 	if (creatorTipXp > 0 && creatorHandle) {
 		rewards.push({
@@ -308,6 +313,9 @@ export const ImmediateRewards = ({
 			icon: <Gift className='size-5 text-text-muted' />,
 		})
 	}
+
+	const unlockedRewards = rewards.filter(reward => !reward.isLocked)
+	const lockedRewards = rewards.filter(reward => reward.isLocked)
 
 	return (
 		<AnimatePresence>
@@ -363,21 +371,39 @@ export const ImmediateRewards = ({
 								</p>
 							</div>
 
+							{!canUnlockPostXp && (
+								<motion.div
+									initial={{ opacity: 0, y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: 0.25, ...TRANSITION_SPRING }}
+									className='mb-4 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3'
+								>
+									<span className='block text-sm font-semibold text-warning'>
+										{noRecipeXpThisRun
+											? t('masteryExhaustedTitle')
+											: t('noPostBonusTitle')}
+									</span>
+									<span className='mt-1 block text-xs text-text-secondary'>
+										{noRecipeXpThisRun
+											? t('masteryExhaustedBody')
+											: t('noPostBonusBody')}
+									</span>
+								</motion.div>
+							)}
+
 							{/* Rewards Stack */}
 							<div className='mb-4 space-y-1 rounded-2xl bg-bg-elevated p-2'>
 								{/* Unlocked rewards */}
-								{rewards
-									.filter(r => !r.isLocked)
-									.map((reward, i) => (
-										<RewardRowComponent
-											key={reward.type}
-											reward={reward}
-											animationDelay={0.2 + i * 0.1}
-										/>
-									))}
+								{unlockedRewards.map((reward, i) => (
+									<RewardRowComponent
+										key={reward.type}
+										reward={reward}
+										animationDelay={0.2 + i * 0.1}
+									/>
+								))}
 
 								{/* XP Breakdown (how immediate XP was calculated) */}
-								{xpBreakdown && (
+								{xpBreakdown && !noRecipeXpThisRun && (
 									<motion.div
 										initial={{ opacity: 0, height: 0 }}
 										animate={{ opacity: 1, height: 'auto' }}
@@ -444,42 +470,44 @@ export const ImmediateRewards = ({
 									</motion.div>
 								)}
 
-								{/* Divider with XP split explainer */}
-								<div className='flex items-center gap-3 px-3.5 py-2'>
-									<div className='h-px flex-1 bg-border' />
-									<TooltipProvider>
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<span className='flex cursor-help items-center gap-1 text-xs uppercase tracking-wide text-text-muted'>
-													{t('postToUnlockMore')}
-													<Info className='size-3' />
-												</span>
-											</TooltipTrigger>
-											<TooltipContent
-												side='bottom'
-												className='max-w-xs text-center'
-											>
-												<p className='text-sm'>
-													<strong>{t('whyLocked')}</strong>
-													<br />
-													{t('whyLockedExplain')}
-												</p>
-											</TooltipContent>
-										</Tooltip>
-									</TooltipProvider>
-									<div className='h-px flex-1 bg-border' />
-								</div>
+								{lockedRewards.length > 0 && (
+									<>
+										{/* Divider with XP split explainer */}
+										<div className='flex items-center gap-3 px-3.5 py-2'>
+											<div className='h-px flex-1 bg-border' />
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<span className='flex cursor-help items-center gap-1 text-xs uppercase tracking-wide text-text-muted'>
+															{t('postToUnlockMore')}
+															<Info className='size-3' />
+														</span>
+													</TooltipTrigger>
+													<TooltipContent
+														side='bottom'
+														className='max-w-xs text-center'
+													>
+														<p className='text-sm'>
+															<strong>{t('whyLocked')}</strong>
+															<br />
+															{t('whyLockedExplain')}
+														</p>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+											<div className='h-px flex-1 bg-border' />
+										</div>
 
-								{/* Locked rewards */}
-								{rewards
-									.filter(r => r.isLocked)
-									.map((reward, i) => (
-										<RewardRowComponent
-											key={reward.type}
-											reward={reward}
-											animationDelay={0.5 + i * 0.1}
-										/>
-									))}
+										{/* Locked rewards */}
+										{lockedRewards.map((reward, i) => (
+											<RewardRowComponent
+												key={reward.type}
+												reward={reward}
+												animationDelay={0.5 + i * 0.1}
+											/>
+										))}
+									</>
+								)}
 							</div>
 
 							{/* Totals */}
@@ -513,21 +541,25 @@ export const ImmediateRewards = ({
 							</div>
 
 							{/* Deadline warning */}
-							<motion.div
-								initial={{ opacity: 0, y: 8 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.8, ...TRANSITION_SPRING }}
-								className='mb-4 flex items-center justify-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning'
-							>
-								<Clock className='size-4' />
-								<span>
-									{postDeadlineHours >= 24
-										? t('postWithinDays', {
-												count: Math.floor(postDeadlineHours / 24),
-											})
-										: t('postWithinHours', { count: postDeadlineHours })}
-								</span>
-							</motion.div>
+							{canUnlockPostXp && (
+								<motion.div
+									initial={{ opacity: 0, y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: 0.8, ...TRANSITION_SPRING }}
+									className='mb-4 flex items-center justify-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning'
+								>
+									<Clock className='size-4' />
+									<span>
+										{postDeadlineHours >= 24
+											? t('postWithinDays', {
+													count: Math.floor(postDeadlineHours / 24),
+												})
+											: t('postWithinHours', {
+													count: postDeadlineHours,
+												})}
+									</span>
+								</motion.div>
+							)}
 
 							{/* Achievement banner */}
 							{unlockedAchievement && (
@@ -596,7 +628,7 @@ export const ImmediateRewards = ({
 
 								{capturedPhotos.length === 0 && (
 									<p className='mt-2 text-xs text-text-muted'>
-										Snap a photo now! 2+ photos = 100% bonus XP 📷
+										{canUnlockPostXp ? t('photoHintZero') : t('photoHintNoXp')}
 									</p>
 								)}
 								{capturedPhotos.length === 1 && (
@@ -604,9 +636,9 @@ export const ImmediateRewards = ({
 										{t('photoHintOne')}
 									</p>
 								)}
-								{capturedPhotos.length >= 2 && (
+								{capturedPhotos.length >= 2 && canUnlockPostXp && (
 									<p className='mt-2 text-xs text-success'>
-										✓ Full photo bonus unlocked!
+										{t('photoHintFull')}
 									</p>
 								)}
 							</div>
@@ -666,7 +698,7 @@ export const ImmediateRewards = ({
 													: t('shareYourCreation')}
 										</span>
 									</div>
-									{!isNavigating && (
+									{!isNavigating && canUnlockPostXp && (
 										<span className='shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
 											{t('unlockXp', { amount: pendingTotal })}
 										</span>

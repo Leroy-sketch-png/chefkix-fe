@@ -31,6 +31,10 @@ const nextConfig = {
 				protocol: 'https',
 				hostname: 'cdn.chefkix.com',
 			},
+			{
+				protocol: 'https',
+				hostname: 'i.pravatar.cc',
+			},
 		],
 	},
 }
