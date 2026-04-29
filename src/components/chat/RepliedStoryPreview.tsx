@@ -3,37 +3,48 @@ import Link from 'next/link'
 
 interface Props {
 	storyId: string
+	storyOwnerId?: string // Thêm cái này nếu bạn đang dùng logic truyền cả 2 ID
 	thumbnailUrl?: string
-	title?: string // Đổi tên prop cho chuẩn xác với dữ liệu BE gửi
+	title?: string
 }
 
 export default function RepliedStoryPreview({
 	storyId,
+	storyOwnerId,
 	thumbnailUrl,
-	title = 'Đã phản hồi tin',
+	title,
 }: Props) {
 	if (!thumbnailUrl || !storyId) return null
 
-	return (
-		<Link href={`/stories/${storyId}`} className='block mb-1 cursor-pointer'>
-			{/* Sử dụng bg-black/5 cho nền sáng, và bg-white/10 cho nền tối */}
-			<div className='flex items-center gap-2.5 p-1.5 pr-4 rounded-2xl bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors max-w-[240px]'>
-				{/* Thumbnail Story: Hình chữ nhật đứng, bo góc nhẹ */}
-				<img
-					src={thumbnailUrl}
-					alt='story thumbnail'
-					className='w-11 h-16 object-cover rounded-xl shadow-sm border border-black/5 dark:border-white/10 flex-shrink-0'
-				/>
+	// Tạo href linh hoạt: Có ownerId thì truyền cả hai, không thì truyền một
+	const linkHref = `/story/view/${storyOwnerId}?startAt=${storyId}`
 
-				<div className='flex flex-col justify-center'>
-					{/* In thẳng title từ BE gửi (VD: "Đã phản hồi tin của bạn") */}
-					<span className='text-[13px] font-semibold text-neutral-800 dark:text-neutral-200 leading-snug line-clamp-2'>
-						{title}
+	return (
+		<Link
+			href={linkHref} // ✅ SỬA LẠI THÀNH DÒNG NÀY
+			className='group block w-fit mb-1 transition-transform active:scale-95'
+		>
+			<div className='relative flex items-center gap-3 p-2 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-black/5 dark:border-white/10 shadow-sm'>
+				{/* Thumbnail Story - Tỷ lệ đứng 9:16 */}
+				<div className='relative w-10 h-16 flex-shrink-0 overflow-hidden rounded-lg border border-black/5'>
+					<img
+						src={thumbnailUrl}
+						alt='story thumb'
+						className='w-full h-full object-cover group-hover:scale-110 transition-transform duration-300'
+					/>
+				</div>
+
+				<div className='flex flex-col pr-2'>
+					<span className='text-[13px] font-medium text-neutral-900 dark:text-neutral-100 leading-tight'>
+						{title || 'Đã phản hồi tin của bạn'}
 					</span>
-					<span className='text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5'>
-						Nhấn để xem tin
+					<span className='text-[11px] text-neutral-500 dark:text-neutral-400 mt-1'>
+						Xem tin →
 					</span>
 				</div>
+
+				{/* Hiệu ứng overlay khi hover */}
+				<div className='absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors' />
 			</div>
 		</Link>
 	)
