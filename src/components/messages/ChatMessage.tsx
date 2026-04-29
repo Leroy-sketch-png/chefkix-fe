@@ -483,39 +483,32 @@ const ChatMessageContent = ({
 								</motion.div>
 							</Link>
 						) : (
-							// TEXT: Enhanced bubble (ĐÃ TÍCH HỢP STORY PREVIEW)
+							// TEXT: Enhanced bubble (Tích hợp Story Preview)
 							<div
 								className={cn(
-									'flex flex-col gap-1',
+									'flex flex-col gap-0.5', // gap nhỏ để story và tin nhắn nhìn như một khối
 									message.isOwn ? 'items-end' : 'items-start',
 								)}
 							>
-								{/* 🌟 Hiển thị Thumbnail Story nếu có */}
-								{/* 🌟 Hiển thị Thumbnail Story nếu có */}
+								{/* Story Preview Area */}
 								{message.sharedPostImage && message.relatedId && (
 									<RepliedStoryPreview
 										storyId={message.relatedId}
 										thumbnailUrl={message.sharedPostImage}
-										// Truyền trực tiếp title từ BE ("Đã phản hồi tin của bạn")
-										title={
-											message.sharedPostTitle ||
-											(message.isOwn
-												? 'Bạn đã phản hồi tin'
-												: 'Đã phản hồi tin')
-										}
+										// Logic title: Ưu tiên title từ BE, nếu không có thì mới tự gen
+										title={message.sharedPostTitle}
 									/>
 								)}
 
-								{/* Bong bóng Text Message mặc định */}
+								{/* Bong bóng tin nhắn Text */}
 								<motion.div
 									initial={{ scale: 0.9, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
-									transition={{ type: 'spring', stiffness: 400, damping: 25 }}
 									className={cn(
-										'rounded-2xl px-4 py-2.5 shadow-card',
+										'rounded-2xl px-4 py-2.5 shadow-sm',
 										message.isOwn
-											? 'rounded-br-md bg-brand text-white shadow-brand/10'
-											: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
+											? 'rounded-br-md bg-brand text-white'
+											: 'rounded-bl-md bg-bg-elevated text-text ring-1 ring-border/50',
 									)}
 								>
 									<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>
