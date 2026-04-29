@@ -13,7 +13,7 @@ import {
 	VolumeX,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getStoriesByUserId } from '@/services/story'
+import { getStoriesByUserId, getStoryById } from '@/services/story'
 import { sendStoryReaction, sendStoryReply } from '@/services/story'
 import { StoryResponse, StoryItemDto } from '@/lib/types/story'
 import { Rnd } from 'react-rnd'
@@ -43,6 +43,7 @@ interface StoryViewerProps {
 	userId: string
 	authorName?: string
 	authorAvatar?: string
+	startAtStoryId?: string | null
 	onClose: () => void
 	onNextUser?: () => void
 	onPrevUser?: () => void
@@ -89,6 +90,7 @@ export function StoryViewer({
 	userId,
 	authorName,
 	authorAvatar,
+	startAtStoryId,
 	onClose,
 	onNextUser,
 	onPrevUser,
@@ -137,42 +139,99 @@ export function StoryViewer({
 	// ----------------------------------------
 
 	useEffect(() => {
-		if (!userId) return
-		setIsLoading(true)
-		setStories([])
-		setCurrentStoryIndex(0)
+		// Nếu không có thông tin gì thì đóng luôn để tránh lỗi
+		if (!userId && !startAtStoryId) {
+			onClose()
+			return
+		}
 
-		getStoriesByUserId(userId)
-			.then((res: any) => {
-				// 🌟 THUẬT TOÁN SĂN TÌM MẢNG (Giống hệt bên Dashboard)
-				let storyArray = null
+		const fetchStoriesData = async () => {
+			setIsLoading(true)
+			setStories([])
+			setCurrentStoryIndex(0)
 
-				if (Array.isArray(res)) {
-					storyArray = res // Đã bóc hết vỏ
-				} else if (res?.data && Array.isArray(res.data)) {
-					storyArray = res.data // Vỏ của ApiResponse (Spring Boot)
-				} else if (res?.data?.data && Array.isArray(res.data.data)) {
-					storyArray = res.data.data // Bị bọc 2 lớp bởi Axios
+			try {
+				let isStoryFound = false // Cờ đánh dấu đã tìm thấy Story chưa
+
+				// =========================================================
+				// ƯU TIÊN 1: LẤY THEO USER ID (Để có mảng quẹt trái/phải)
+				// =========================================================
+				if (userId) {
+					const res = await getStoriesByUserId(userId)
+
+					// 🌟 THUẬT TOÁN SĂN TÌM MẢNG (Giữ nguyên logic "vibe coding" của bạn)
+					let storyArray = null
+					if (Array.isArray(res)) {
+						storyArray = res
+					} else if (res?.data && Array.isArray(res.data)) {
+						storyArray = res.data
+					} else if (res?.data?.data && Array.isArray(res.data.data)) {
+						storyArray = res.data.data
+					}
+
+					if (storyArray && storyArray.length > 0) {
+						if (startAtStoryId) {
+							// Săn tìm đúng cái bài đang được reply
+							const targetIndex = storyArray.findIndex(
+								(s: any) => s.id === startAtStoryId,
+							)
+							if (targetIndex !== -1) {
+								setStories(storyArray)
+								setCurrentStoryIndex(targetIndex)
+								isStoryFound = true
+							}
+							// Nếu targetIndex === -1 tức là bài đó đã hết hạn, ta KHÔNG setStories
+							// mà để nó trôi xuống bước Fallback bên dưới.
+						} else {
+							// Xem từ Dashboard bình thường
+							setStories(storyArray)
+							setCurrentStoryIndex(0)
+							isStoryFound = true
+						}
+					}
 				}
 
-				// Kiểm tra xem mảng có story nào không
-				if (storyArray && storyArray.length > 0) {
-					setStories(storyArray) // Cập nhật state thành công!
-				} else {
-					console.warn(
-						'⚠️ API gọi thành công nhưng không có Story hoặc sai cấu trúc:',
-						res,
-					)
-					// Chỉ khi nào thật sự KHÔNG CÓ STORY mới đẩy người dùng quay về
+				// =========================================================
+				// ƯU TIÊN 2 (FALLBACK): TÌM THEO ID LẺ
+				// (Chạy khi User hết story active HOẶC bài đó đã quá 24h)
+				// =========================================================
+				if (!isStoryFound && startAtStoryId) {
+					const res = await getStoryById(startAtStoryId) // Gọi API lấy lẻ
+
+					// Bóc vỏ tương tự cho Object đơn
+					let singleStory = null
+					if (res?.data?.data) {
+						singleStory = res.data.data
+					} else if (res?.data) {
+						singleStory = res.data
+					} else {
+						singleStory = res
+					}
+
+					if (singleStory && singleStory.id) {
+						setStories([singleStory]) // Gói vào mảng 1 phần tử
+						setCurrentStoryIndex(0)
+						isStoryFound = true
+					}
+				}
+
+				// =========================================================
+				// CHỐT HẠ: KHÔNG TÌM THẤY GÌ
+				// =========================================================
+				if (!isStoryFound) {
+					console.warn('⚠️ Story đã bị xóa hoàn toàn hoặc API lỗi.')
 					onClose()
 				}
-			})
-			.catch(err => {
+			} catch (err) {
 				console.error('❌ Lỗi fetch chi tiết story:', err)
 				onClose()
-			})
-			.finally(() => setIsLoading(false))
-	}, [userId, onClose])
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchStoriesData()
+	}, [userId, startAtStoryId, onClose])
 
 	useEffect(() => {
 		if (timerRef.current) {

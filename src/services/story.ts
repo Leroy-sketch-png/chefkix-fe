@@ -29,6 +29,12 @@ export const getStoriesByUserId = async (userId: string) => {
 	)
 }
 
+// Trong file services/story.ts
+export const getStoryById = async (storyId: string) => {
+	// Đảm bảo BASE_URL khớp với cấu hình của bạn
+	return await api.get<ApiResponse<StoryResponse>>(`/api/v1/stories/${storyId}`)
+}
+
 export const sendStoryReaction = async (
 	storyId: string,
 	reactionType: string,
