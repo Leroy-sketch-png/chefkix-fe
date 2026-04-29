@@ -42,11 +42,9 @@ export const sendStoryReaction = async (
  * Gửi tin nhắn trả lời Story (Khớp với @PostMapping("/{storyId}/replies"))
  * Lưu ý: Backend dùng @RequestBody StoryReplyRequest
  */
-export const sendStoryReply = async (payload: StoryReplyRequest) => {
-	return await api.post<ApiResponse<string>>(
-		`${API_ENDPOINTS.STORIES.BASE}/${payload.storyId}/replies`,
-		payload,
-	)
+export const sendStoryReply = (storyId: string, text: string) => {
+	// Truyền storyId qua URL và text qua Body
+	return api.post(`/api/v1/stories/${storyId}/replies`, { text })
 }
 
 /**

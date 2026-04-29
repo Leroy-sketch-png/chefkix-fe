@@ -74,7 +74,7 @@ export interface StoryReactionRequest {
 // Request body when sending a reply (message) to a story
 export interface StoryReplyRequest {
 	storyId: string
-	message: string
+	text: string
 	// Optional: id of message being replied to or metadata
 	replyToMessageId?: string
 }
