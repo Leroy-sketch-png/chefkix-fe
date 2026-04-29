@@ -16,6 +16,7 @@ import {
 	Smile,
 	AlertCircle,
 } from 'lucide-react'
+import RepliedStoryPreview from '../chat/RepliedStoryPreview'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -482,22 +483,46 @@ const ChatMessageContent = ({
 								</motion.div>
 							</Link>
 						) : (
-							// TEXT: Enhanced bubble
-							<motion.div
-								initial={{ scale: 0.9, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+							// TEXT: Enhanced bubble (ĐÃ TÍCH HỢP STORY PREVIEW)
+							<div
 								className={cn(
-									'rounded-2xl px-4 py-2.5 shadow-card',
-									message.isOwn
-										? 'rounded-br-md bg-brand text-white shadow-brand/10'
-										: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
+									'flex flex-col gap-1',
+									message.isOwn ? 'items-end' : 'items-start',
 								)}
 							>
-								<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>
-									{message.content}
-								</p>
-							</motion.div>
+								{/* 🌟 Hiển thị Thumbnail Story nếu có */}
+								{/* 🌟 Hiển thị Thumbnail Story nếu có */}
+								{message.sharedPostImage && message.relatedId && (
+									<RepliedStoryPreview
+										storyId={message.relatedId}
+										thumbnailUrl={message.sharedPostImage}
+										// Truyền trực tiếp title từ BE ("Đã phản hồi tin của bạn")
+										title={
+											message.sharedPostTitle ||
+											(message.isOwn
+												? 'Bạn đã phản hồi tin'
+												: 'Đã phản hồi tin')
+										}
+									/>
+								)}
+
+								{/* Bong bóng Text Message mặc định */}
+								<motion.div
+									initial={{ scale: 0.9, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+									className={cn(
+										'rounded-2xl px-4 py-2.5 shadow-card',
+										message.isOwn
+											? 'rounded-br-md bg-brand text-white shadow-brand/10'
+											: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
+									)}
+								>
+									<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>
+										{message.content}
+									</p>
+								</motion.div>
+							</div>
 						)}
 
 						{/* Reactions */}
