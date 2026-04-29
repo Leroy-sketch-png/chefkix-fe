@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Toast } from '../ui/toast'
 import {
 	X,
 	ChevronLeft,
@@ -189,12 +190,15 @@ export function StoryViewer({
 	const handleInteractionEnd = () => setIsPaused(false)
 
 	const handleReact = async (
-		type: string,
-		event: React.MouseEvent<HTMLButtonElement>,
+		event: React.MouseEvent<HTMLButtonElement>, // Event lên trước
+		type: string, // Type ra sau
 	) => {
+		// Kiểm tra xem event có tồn tại không để tránh crash
+		if (!event || !event.currentTarget) return
+
 		const buttonRect = event.currentTarget.getBoundingClientRect()
 		const screenCenterX = window.innerWidth / 2
-		const storyWidth = 400 // Kích thước md:max-w-[400px] của bạn
+		const storyWidth = 400
 		const storyLeftEdge = screenCenterX - storyWidth / 2
 
 		const relativeX = buttonRect.left - storyLeftEdge + buttonRect.width / 2
@@ -381,15 +385,12 @@ export function StoryViewer({
 					) : (
 						<div className='absolute bottom-0 left-0 right-0 p-4 z-40'>
 							<StoryInteractionBar
-								// SỬA QUAN TRỌNG NHẤT: Trỏ trực tiếp vào hàm handleReact đã viết ở trên
 								onReact={handleReact}
-								onReply={async (text: string) => {
+								onReply={async (content: string) => {
 									try {
-										await sendStoryReply({
-											storyId: currentStory.id,
-											message: text,
-										})
-										// (Tùy chọn) Hiển thị Toast thông báo "Đã gửi tin nhắn"
+										// Đảm bảo truyền đúng tham số
+										await sendStoryReply(currentStory.id, content)
+										toast.success('Đã gửi phản hồi')
 									} catch (err) {
 										console.error('Failed to send story reply', err)
 									}

@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { Heart, Smile, Zap, Frown, ThumbsDown } from 'lucide-react'
 
 interface Props {
-	onReact: (type: string) => void
+	// 🌟 SỬA Ở ĐÂY: Thêm biến 'e' vào hàm onReact để truyền tọa độ
+	onReact: (e: React.MouseEvent<HTMLButtonElement>, type: string) => void
 	onReply: (text: string) => void
 }
 
@@ -30,35 +31,36 @@ export default function StoryInteractionBar({ onReact, onReply }: Props) {
 
 			<div className='flex items-center gap-2'>
 				<button
-					onClick={() => onReact('LOVE')}
+					// 🌟 SỬA Ở ĐÂY: Truyền biến 'e' vào onReact
+					onClick={e => onReact(e, 'LOVE')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='love'
 				>
 					<Heart size={18} className='text-pink-400' />
 				</button>
 				<button
-					onClick={() => onReact('HAHA')}
+					onClick={e => onReact(e, 'HAHA')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='haha'
 				>
 					<Smile size={18} className='text-yellow-300' />
 				</button>
 				<button
-					onClick={() => onReact('WOW')}
+					onClick={e => onReact(e, 'WOW')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='wow'
 				>
 					<Zap size={18} className='text-indigo-300' />
 				</button>
 				<button
-					onClick={() => onReact('SAD')}
+					onClick={e => onReact(e, 'SAD')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='sad'
 				>
 					<Frown size={18} className='text-blue-300' />
 				</button>
 				<button
-					onClick={() => onReact('ANGRY')}
+					onClick={e => onReact(e, 'ANGRY')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='angry'
 				>
