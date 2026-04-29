@@ -4,6 +4,7 @@ declare module 'use-sound' {
 		playbackRate?: number
 		interrupt?: boolean
 		soundEnabled?: boolean
+		loop?: boolean
 		sprite?: Record<string, [number, number]>
 		onplay?: () => void
 		onend?: () => void
