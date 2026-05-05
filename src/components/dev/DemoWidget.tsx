@@ -3,91 +3,19 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
+import {
+	DEMO_BASE_URL,
+	DEMO_PITCH_SHORTCUTS,
+	DEMO_ROUTES,
+	DEMO_WIDGET_ACCOUNTS,
+	resolveDemoShortcut,
+	type DemoPitchShortcut,
+} from './demo-config'
 
 // Only render in development
 const IS_DEV = process.env.NODE_ENV === 'development'
 
-const BASE = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
-
-interface QuickRoute {
-	label: string
-	path: string
-	icon: string
-	description: string
-}
-
-const DEMO_ROUTES: QuickRoute[] = [
-	{
-		label: 'Dashboard',
-		path: '/dashboard',
-		icon: '🏠',
-		description: 'Home feed & activity',
-	},
-	{
-		label: 'Explore',
-		path: '/explore',
-		icon: '🔍',
-		description: 'Discover recipes & creators',
-	},
-	{
-		label: 'Create Recipe',
-		path: '/create',
-		icon: '✏️',
-		description: 'Recipe editor',
-	},
-	{
-		label: 'Challenges',
-		path: '/challenges',
-		icon: '🏆',
-		description: 'Daily & seasonal',
-	},
-	{
-		label: 'Messages',
-		path: '/messages',
-		icon: '💬',
-		description: 'Chat conversations',
-	},
-	{
-		label: 'Profile',
-		path: '/profile',
-		icon: '👤',
-		description: 'User profile & stats',
-	},
-	{
-		label: 'Leaderboard',
-		path: '/leaderboard',
-		icon: '📊',
-		description: 'Rankings & XP',
-	},
-	{
-		label: 'Pantry',
-		path: '/pantry',
-		icon: '🥫',
-		description: 'Ingredient tracking',
-	},
-	{
-		label: 'Settings',
-		path: '/settings',
-		icon: '⚙️',
-		description: 'Preferences',
-	},
-	{
-		label: 'Creator Studio',
-		path: '/creator',
-		icon: '🎬',
-		description: 'Analytics & tools',
-	},
-	{
-		label: 'Meal Planner',
-		path: '/meal-planner',
-		icon: '📅',
-		description: 'Weekly meals',
-	},
-]
-
-const TEST_ACCOUNTS = [
-	{ label: 'Test User', username: 'testuser', password: 'test123' },
-]
+const BASE = DEMO_BASE_URL
 
 export function DemoWidget() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -96,6 +24,7 @@ export function DemoWidget() {
 		'checking' | 'up' | 'down'
 	>('checking')
 	const [isLoggingIn, setIsLoggingIn] = useState(false)
+	const [activeShortcut, setActiveShortcut] = useState<string | null>(null)
 	const [flashMessage, setFlashMessage] = useState<string | null>(null)
 	const panelRef = useRef<HTMLDivElement>(null)
 	const router = useRouter()
@@ -140,7 +69,7 @@ export function DemoWidget() {
 	}, [])
 
 	const quickLogin = useCallback(
-		async (username: string, password: string) => {
+		async (username: string, password: string, redirectTo = '/dashboard') => {
 			setIsLoggingIn(true)
 			try {
 				const loginRes = await fetch(`${BASE}/api/v1/auth/login`, {
@@ -174,8 +103,10 @@ export function DemoWidget() {
 						version: 0,
 					}),
 				)
-				flash('Logged in! Refreshing...')
-				setTimeout(() => window.location.reload(), 500)
+				flash('Logged in! Opening demo route...')
+				setTimeout(() => {
+					window.location.href = redirectTo
+				}, 300)
 			} catch (err) {
 				flash('Error: ' + (err instanceof Error ? err.message : 'Network'))
 			} finally {
@@ -193,8 +124,40 @@ export function DemoWidget() {
 		[router],
 	)
 
-	// Only render in dev mode, hide on /_dev page
-	if (!IS_DEV || pathname === '/_dev') return null
+	const openPitchShortcut = useCallback(
+		async (shortcut: DemoPitchShortcut) => {
+			if (shortcut.requiresAuth && !accessToken) {
+				flash('Log in to use this demo step')
+				return
+			}
+
+			setActiveShortcut(shortcut.label)
+			try {
+				const resolved = await resolveDemoShortcut(shortcut, accessToken)
+				if (resolved.copiedText) {
+					await navigator.clipboard.writeText(resolved.copiedText)
+				}
+				if (resolved.watchUrl) {
+					flash('Watch URL copied for second screen')
+				} else if (resolved.notice) {
+					flash(resolved.notice)
+				}
+				navigateTo(resolved.path)
+			} catch (err) {
+				flash(
+					'Could not open demo step: ' +
+						(err instanceof Error ? err.message : 'Unknown error'),
+				)
+			} finally {
+				setActiveShortcut(null)
+			}
+		},
+		[accessToken, flash, navigateTo],
+	)
+
+	// Only render in dev mode, hide on cockpit pages
+	if (!IS_DEV || pathname === '/_dev' || pathname === '/demo-cockpit')
+		return null
 
 	if (isMinimized) {
 		return (
@@ -395,10 +358,12 @@ export function DemoWidget() {
 									>
 										Not authenticated
 									</div>
-									{TEST_ACCOUNTS.map(acc => (
+									{DEMO_WIDGET_ACCOUNTS.map(acc => (
 										<button
 											key={acc.username}
-											onClick={() => quickLogin(acc.username, acc.password)}
+											onClick={() =>
+												quickLogin(acc.username, acc.password, acc.defaultRoute)
+											}
 											disabled={isLoggingIn || backendStatus !== 'up'}
 											style={{
 												width: '100%',
@@ -422,6 +387,9 @@ export function DemoWidget() {
 												: `⚡ Login as ${acc.label}`}
 										</button>
 									))}
+									<div style={{ fontSize: 10, color: '#8b949e', marginTop: 6 }}>
+										More personas and commands live in /_dev.
+									</div>
 									{backendStatus !== 'up' && (
 										<div
 											style={{ fontSize: 10, color: '#f85149', marginTop: 4 }}
@@ -486,6 +454,73 @@ export function DemoWidget() {
 							</div>
 						</div>
 
+						{/* Pitch Flow */}
+						<div style={{ padding: '8px', borderTop: '1px solid #21262d' }}>
+							<div
+								style={{
+									fontSize: 10,
+									color: '#8b949e',
+									textTransform: 'uppercase',
+									letterSpacing: 1,
+									padding: '4px 8px',
+									fontWeight: 600,
+								}}
+							>
+								Pitch Flow
+							</div>
+							<div style={{ display: 'grid', gap: 4 }}>
+								{DEMO_PITCH_SHORTCUTS.map(shortcut => {
+									const disabled =
+										activeShortcut === shortcut.label ||
+										(Boolean(shortcut.requiresAuth) && !isAuthenticated)
+
+									return (
+										<button
+											key={shortcut.label}
+											onClick={() => openPitchShortcut(shortcut)}
+											disabled={disabled}
+											style={{
+												padding: '8px 10px',
+												background: disabled ? '#11161d' : '#0d1117',
+												border: `1px solid ${disabled ? '#21262d' : '#30363d'}`,
+												borderRadius: 6,
+												cursor: disabled ? 'not-allowed' : 'pointer',
+												textAlign: 'left',
+												display: 'flex',
+												alignItems: 'center',
+												gap: 8,
+												color: '#e6edf3',
+											}}
+										>
+											<span style={{ fontSize: 16 }}>{shortcut.icon}</span>
+											<div style={{ flex: 1 }}>
+												<div style={{ fontSize: 11, fontWeight: 600 }}>
+													{shortcut.label}
+												</div>
+												<div style={{ fontSize: 9, color: '#8b949e' }}>
+													{shortcut.description}
+												</div>
+											</div>
+											<span style={{ color: '#8b949e', fontSize: 11 }}>
+												{activeShortcut === shortcut.label ? '...' : '→'}
+											</span>
+										</button>
+									)
+								})}
+							</div>
+							{!isAuthenticated && (
+								<div
+									style={{
+										fontSize: 10,
+										color: '#8b949e',
+										padding: '6px 8px 0',
+									}}
+								>
+									Most shortcuts expect a logged-in demo persona.
+								</div>
+							)}
+						</div>
+
 						{/* Quick Actions */}
 						<div
 							style={{
@@ -495,7 +530,7 @@ export function DemoWidget() {
 						>
 							<div style={{ display: 'flex', gap: 6 }}>
 								<button
-									onClick={() => navigateTo('/_dev')}
+									onClick={() => navigateTo('/demo-cockpit')}
 									style={{ ...btnAction, background: '#1f6feb', flex: 1 }}
 								>
 									🔧 Full Dashboard

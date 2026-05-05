@@ -19,6 +19,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
+import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 
 function CookTogetherContent() {
@@ -32,6 +33,7 @@ function CookTogetherContent() {
 	const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const { roomCode, isInRoom, joinRoom } = useCookingStore()
+	const authHydrated = useAuthStore(s => s.isHydrated)
 
 	// Clean up copy timer on unmount
 	useEffect(() => {
@@ -52,6 +54,9 @@ function CookTogetherContent() {
 	useEffect(() => {
 		const urlRoomCode = searchParams.get('roomCode')
 		const urlRole = searchParams.get('role')
+		if (!authHydrated) {
+			return
+		}
 		if (urlRoomCode && !isInRoom && !isJoining) {
 			let cancelled = false
 			const autoJoin = async () => {
@@ -81,7 +86,7 @@ function CookTogetherContent() {
 				cancelled = true
 			}
 		}
-	}, [searchParams, isInRoom, isJoining, joinRoom, router, t])
+	}, [authHydrated, searchParams, isInRoom, isJoining, joinRoom, router, t])
 
 	// Auto-focus the input on mount
 	useEffect(() => {

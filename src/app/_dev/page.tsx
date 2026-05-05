@@ -1,7 +1,25 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { notFound } from 'next/navigation'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { notFound, useSearchParams } from 'next/navigation'
+import {
+	DEMO_ACCOUNTS,
+	DEMO_BASE_URL,
+	DEMO_PITCH_BEATS,
+	DEMO_PITCH_SHORTCUTS,
+	getBeatReadinessChecks,
+	getBeatReadinessStatus,
+	getDemoAccount,
+	getDemoPitchShortcut,
+	loadDemoReadinessReport,
+	resetDemoReadinessCache,
+	resolveDemoShortcut,
+	type DemoReadinessReport,
+	type DemoReadinessStatus,
+	type DemoPitchShortcut,
+} from '@/components/dev/demo-config'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/store/authStore'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface ServiceStatus {
@@ -21,14 +39,6 @@ interface ApiTestResult {
 	latency?: number
 }
 
-interface TestAccount {
-	label: string
-	username: string
-	password: string
-	email: string
-	description: string
-}
-
 // ─── Constants ──────────────────────────────────────────────────────────────
 const SERVICES: Omit<ServiceStatus, 'status'>[] = [
 	{ name: 'Frontend (Next.js)', port: 3000 },
@@ -39,16 +49,6 @@ const SERVICES: Omit<ServiceStatus, 'status'>[] = [
 	{ name: 'Redis', port: 6379 },
 	{ name: 'Kafka', port: 9094 },
 	{ name: 'Typesense (Search)', port: 8108 },
-]
-
-const TEST_ACCOUNTS: TestAccount[] = [
-	{
-		label: 'Default Test User',
-		username: 'testuser',
-		password: 'test123',
-		email: 'test@chefkix.com',
-		description: 'Primary test account with seed data',
-	},
 ]
 
 const HEALTH_ENDPOINTS = [
@@ -155,7 +155,58 @@ const QUICK_LINKS = [
 ]
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-const BASE = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+const BASE = DEMO_BASE_URL
+
+function getReadinessTone(status: DemoReadinessStatus | null): {
+	label: string
+	background: string
+	border: string
+	color: string
+} {
+	switch (status) {
+		case 'ready':
+			return {
+				label: 'Ready',
+				background: '#23863622',
+				border: '#23863666',
+				color: '#3fb950',
+			}
+		case 'warning':
+			return {
+				label: 'Watch',
+				background: '#d299221f',
+				border: '#d2992266',
+				color: '#d29922',
+			}
+		case 'blocked':
+			return {
+				label: 'Blocked',
+				background: '#f851491f',
+				border: '#f8514966',
+				color: '#f85149',
+			}
+		default:
+			return {
+				label: 'Unknown',
+				background: '#21262d',
+				border: '#30363d',
+				color: '#8b949e',
+			}
+	}
+}
+
+function formatReadinessTimestamp(value: string | null | undefined): string {
+	if (!value) {
+		return 'No report yet'
+	}
+
+	const parsed = new Date(value)
+	if (Number.isNaN(parsed.getTime())) {
+		return value
+	}
+
+	return parsed.toLocaleString()
+}
 
 async function checkServiceHealth(
 	port: number,
@@ -165,13 +216,13 @@ async function checkServiceHealth(
 		// For HTTP services we can test, use fetch. For TCP-only (Mongo, Redis, Kafka), proxy through monolith health
 		if ([3000, 8080, 8000, 8180, 8108].includes(port)) {
 			const urlMap: Record<number, string> = {
-				3000: '/',
-				8080: '/api/v1/actuator/health',
+				3000: 'http://localhost:3000',
+				8080: `${BASE}/api/v1/actuator/health`,
 				8000: 'http://localhost:8000/health',
 				8180: 'http://localhost:8180/realms/nottisn',
 				8108: 'http://localhost:8108/health',
 			}
-			const url = port === 3000 ? urlMap[port] : urlMap[port]
+			const url = urlMap[port]
 			const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
 			const latency = Date.now() - start
 			if (port === 8108 && res.status === 503) {
@@ -193,6 +244,8 @@ export default function DevDashboard() {
 		notFound()
 	}
 
+	const searchParams = useSearchParams()
+
 	const [services, setServices] = useState<ServiceStatus[]>(
 		SERVICES.map(s => ({ ...s, status: 'checking' as const })),
 	)
@@ -207,7 +260,48 @@ export default function DevDashboard() {
 	const [copied, setCopied] = useState<string | null>(null)
 	const [isRunningApiTests, setIsRunningApiTests] = useState(false)
 	const [isLoggingInToApp, setIsLoggingInToApp] = useState(false)
+	const [activeShortcut, setActiveShortcut] = useState<string | null>(null)
 	const [lastCheck, setLastCheck] = useState<Date | null>(null)
+	const [readinessReport, setReadinessReport] =
+		useState<DemoReadinessReport | null>(null)
+	const [isLoadingReadiness, setIsLoadingReadiness] = useState(true)
+	const [isRefreshingReadiness, setIsRefreshingReadiness] = useState(false)
+	const autorunShortcutRef = useRef<string | null>(null)
+	const accessToken = useAuthStore(state => state.accessToken)
+	const authHydrated = useAuthStore(state => state.isHydrated)
+	const currentUsername = useAuthStore(state => state.user?.username)
+
+	useEffect(() => {
+		if (!authHydrated) {
+			return
+		}
+
+		if (accessToken && accessToken !== token) {
+			setToken(accessToken)
+			return
+		}
+
+		if (accessToken || typeof window === 'undefined') {
+			return
+		}
+
+		try {
+			const persistedRaw = window.localStorage.getItem('auth-storage')
+			if (!persistedRaw) {
+				return
+			}
+
+			const persisted = JSON.parse(persistedRaw) as {
+				state?: { accessToken?: string | null }
+			}
+			const persistedToken = persisted.state?.accessToken
+			if (persistedToken) {
+				setToken(persistedToken)
+			}
+		} catch {
+			// Ignore malformed dev auth storage and allow manual login flow.
+		}
+	}, [accessToken, authHydrated, token])
 
 	// Copy to clipboard
 	const copy = useCallback((text: string, label: string) => {
@@ -215,6 +309,27 @@ export default function DevDashboard() {
 		setCopied(label)
 		setTimeout(() => setCopied(null), 2000)
 	}, [])
+
+	const loadReadiness = useCallback(async (forceRefresh = false) => {
+		if (forceRefresh) {
+			setIsRefreshingReadiness(true)
+			resetDemoReadinessCache()
+		} else {
+			setIsLoadingReadiness(true)
+		}
+
+		try {
+			const report = await loadDemoReadinessReport()
+			setReadinessReport(report)
+		} finally {
+			setIsLoadingReadiness(false)
+			setIsRefreshingReadiness(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		void loadReadiness(false)
+	}, [loadReadiness])
 
 	// Check all service health
 	const checkServices = useCallback(async () => {
@@ -256,46 +371,128 @@ export default function DevDashboard() {
 	}, [])
 
 	// Login and inject session directly into the app
-	const loginToApp = useCallback(async (username: string, password: string) => {
-		setIsLoggingInToApp(true)
-		try {
-			const loginRes = await fetch(`${BASE}/api/v1/auth/login`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
-				body: JSON.stringify({ emailOrUsername: username, password }),
-			})
-			const loginData = await loginRes.json()
-			if (!loginData.success || !loginData.data?.accessToken) {
-				console.error('Login failed:', loginData.message || 'Check credentials')
+	const loginToApp = useCallback(
+		async (username: string, password: string, redirectTo = '/dashboard') => {
+			setIsLoggingInToApp(true)
+			try {
+				const loginRes = await fetch(`${BASE}/api/v1/auth/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					credentials: 'include',
+					body: JSON.stringify({ emailOrUsername: username, password }),
+				})
+				const loginData = await loginRes.json()
+				if (!loginData.success || !loginData.data?.accessToken) {
+					console.error(
+						'Login failed:',
+						loginData.message || 'Check credentials',
+					)
+					return
+				}
+				const accessToken = loginData.data.accessToken
+				setToken(accessToken)
+				const meRes = await fetch(`${BASE}/api/v1/auth/me`, {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				})
+				const meData = await meRes.json()
+				if (!meData.success || !meData.data) {
+					console.error('Could not fetch user profile')
+					return
+				}
+				localStorage.setItem(
+					'auth-storage',
+					JSON.stringify({
+						state: { isAuthenticated: true, accessToken, user: meData.data },
+						version: 0,
+					}),
+				)
+				window.location.href = redirectTo
+			} catch (err) {
+				console.error(
+					'Dev login error:',
+					err instanceof Error ? err.message : 'Unknown',
+				)
+			} finally {
+				setIsLoggingInToApp(false)
+			}
+		},
+		[],
+	)
+
+	const openPitchShortcut = useCallback(
+		async (shortcut: DemoPitchShortcut) => {
+			setActiveShortcut(shortcut.label)
+			try {
+				const resolved = await resolveDemoShortcut(shortcut, token)
+				if (resolved.copiedText) {
+					await navigator.clipboard.writeText(resolved.copiedText)
+				}
+				if (resolved.watchUrl) {
+					toast.success('Watch URL copied for second screen')
+				} else if (resolved.notice) {
+					toast.success(resolved.notice)
+				}
+				window.location.href = resolved.path
+			} catch (err) {
+				toast.error(err instanceof Error ? err.message : 'Demo shortcut failed')
+				console.error(
+					'Demo shortcut failed:',
+					err instanceof Error ? err.message : 'Unknown error',
+				)
+			} finally {
+				setActiveShortcut(null)
+			}
+		},
+		[token],
+	)
+
+	const openPitchBeatAction = useCallback(
+		async (shortcut: DemoPitchShortcut, personaUsername: string) => {
+			if (personaUsername && currentUsername !== personaUsername) {
+				const persona = getDemoAccount(personaUsername)
+				if (!persona) {
+					toast.error(`Missing demo account for ${personaUsername}`)
+					return
+				}
+
+				await loginToApp(
+					persona.username,
+					persona.password,
+					`/demo-cockpit?autorun=${shortcut.id}`,
+				)
 				return
 			}
-			const accessToken = loginData.data.accessToken
-			const meRes = await fetch(`${BASE}/api/v1/auth/me`, {
-				headers: { Authorization: `Bearer ${accessToken}` },
-			})
-			const meData = await meRes.json()
-			if (!meData.success || !meData.data) {
-				console.error('Could not fetch user profile')
-				return
-			}
-			localStorage.setItem(
-				'auth-storage',
-				JSON.stringify({
-					state: { isAuthenticated: true, accessToken, user: meData.data },
-					version: 0,
-				}),
-			)
-			window.location.href = '/dashboard'
-		} catch (err) {
-			console.error(
-				'Dev login error:',
-				err instanceof Error ? err.message : 'Unknown',
-			)
-		} finally {
-			setIsLoggingInToApp(false)
+
+			await openPitchShortcut(shortcut)
+		},
+		[currentUsername, loginToApp, openPitchShortcut],
+	)
+
+	useEffect(() => {
+		const autorunShortcutId = searchParams.get('autorun')
+
+		if (!autorunShortcutId) {
+			autorunShortcutRef.current = null
+			return
 		}
-	}, [])
+
+		if (autorunShortcutRef.current === autorunShortcutId) {
+			return
+		}
+
+		const shortcut = getDemoPitchShortcut(autorunShortcutId)
+		if (!shortcut) {
+			autorunShortcutRef.current = autorunShortcutId
+			return
+		}
+
+		if (shortcut.requiresAuth && !token) {
+			return
+		}
+
+		autorunShortcutRef.current = autorunShortcutId
+		void openPitchShortcut(shortcut)
+	}, [openPitchShortcut, searchParams, token])
 
 	// Run all API tests
 	const runApiTests = useCallback(async () => {
@@ -583,7 +780,7 @@ export default function DevDashboard() {
 						>
 							Test Accounts
 						</h2>
-						{TEST_ACCOUNTS.map(account => (
+						{DEMO_ACCOUNTS.map(account => (
 							<div
 								key={account.username}
 								style={{
@@ -608,7 +805,11 @@ export default function DevDashboard() {
 									<div style={{ display: 'flex', gap: 6 }}>
 										<button
 											onClick={() =>
-												loginToApp(account.username, account.password)
+												loginToApp(
+													account.username,
+													account.password,
+													account.defaultRoute,
+												)
 											}
 											disabled={isLoggingInToApp}
 											style={{
@@ -804,6 +1005,677 @@ export default function DevDashboard() {
 								))}
 							</div>
 						</div>
+					</div>
+				</div>
+
+				{/* Demo Flow Shortcuts */}
+				<div
+					style={{
+						background: '#161b22',
+						border: '1px solid #30363d',
+						borderRadius: 8,
+						padding: 16,
+					}}
+				>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							marginBottom: 12,
+						}}
+					>
+						<div>
+							<h2
+								style={{
+									fontSize: 14,
+									fontWeight: 600,
+									margin: 0,
+									color: '#8b949e',
+									textTransform: 'uppercase',
+									letterSpacing: 1,
+								}}
+							>
+								Investor Demo Shortcuts
+							</h2>
+							<p style={{ margin: '6px 0 0', fontSize: 12, color: '#8b949e' }}>
+								Use these after quick login to move through the safest pitch
+								path.
+							</p>
+						</div>
+						<span style={{ fontSize: 12, color: '#58a6ff' }}>
+							Ctrl+K also works in the app
+						</span>
+					</div>
+					<div
+						style={{
+							display: 'grid',
+							gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+							gap: 8,
+						}}
+					>
+						{DEMO_PITCH_SHORTCUTS.map(shortcut => {
+							const disabled =
+								activeShortcut === shortcut.label ||
+								(Boolean(shortcut.requiresAuth) && !token)
+
+							return (
+								<button
+									key={shortcut.label}
+									onClick={() => openPitchShortcut(shortcut)}
+									disabled={disabled}
+									style={{
+										background: disabled ? '#11161d' : '#0d1117',
+										border: `1px solid ${disabled ? '#21262d' : '#30363d'}`,
+										borderRadius: 8,
+										padding: 12,
+										color: '#e6edf3',
+										textAlign: 'left',
+										cursor: disabled ? 'not-allowed' : 'pointer',
+										display: 'grid',
+										gap: 6,
+									}}
+								>
+									<div
+										style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+									>
+										<span style={{ fontSize: 16 }}>{shortcut.icon}</span>
+										<span style={{ fontSize: 13, fontWeight: 600 }}>
+											{shortcut.label}
+										</span>
+									</div>
+									<span
+										style={{ fontSize: 11, color: '#8b949e', lineHeight: 1.4 }}
+									>
+										{shortcut.description}
+									</span>
+									<span style={{ fontSize: 11, color: '#58a6ff' }}>
+										{activeShortcut === shortcut.label
+											? 'Opening...'
+											: 'Open in app'}
+									</span>
+								</button>
+							)
+						})}
+					</div>
+					{!token && (
+						<p style={{ margin: '10px 0 0', fontSize: 12, color: '#d29922' }}>
+							Log in to unlock the authenticated demo steps.
+						</p>
+					)}
+				</div>
+
+				{/* Pitch Command Board */}
+				<div
+					style={{
+						background: '#161b22',
+						border: '1px solid #30363d',
+						borderRadius: 8,
+						padding: 16,
+					}}
+				>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'flex-start',
+							gap: 16,
+							marginBottom: 12,
+							flexWrap: 'wrap',
+						}}
+					>
+						<div>
+							<h2
+								style={{
+									fontSize: 14,
+									fontWeight: 600,
+									margin: 0,
+									color: '#8b949e',
+									textTransform: 'uppercase',
+									letterSpacing: 1,
+								}}
+							>
+								Pitch Command Board
+							</h2>
+							<p style={{ margin: '6px 0 0', fontSize: 12, color: '#8b949e' }}>
+								Six live beats. One control room. Click proof, then say the
+								money line.
+							</p>
+						</div>
+						<div
+							style={{
+								display: 'grid',
+								gap: 8,
+								minWidth: 220,
+							}}
+						>
+							<div
+								style={{
+									padding: '8px 10px',
+									background: '#0d1117',
+									border: '1px solid #30363d',
+									borderRadius: 8,
+									display: 'grid',
+									gap: 4,
+									fontSize: 12,
+									color: '#e6edf3',
+								}}
+							>
+								<span style={{ color: '#8b949e' }}>Current persona</span>
+								<span style={{ fontWeight: 700 }}>
+									{currentUsername || 'Not authenticated'}
+								</span>
+							</div>
+							<button
+								onClick={() => void loadReadiness(true)}
+								disabled={isRefreshingReadiness}
+								style={{
+									background: isRefreshingReadiness ? '#21262d' : '#1f6feb',
+									border: 'none',
+									color: '#fff',
+									padding: '8px 10px',
+									borderRadius: 8,
+									cursor: isRefreshingReadiness ? 'not-allowed' : 'pointer',
+									fontSize: 12,
+									fontWeight: 700,
+								}}
+							>
+								{isRefreshingReadiness
+									? 'Refreshing readiness...'
+									: 'Reload readiness'}
+							</button>
+						</div>
+					</div>
+					<div
+						style={{
+							background: '#0d1117',
+							border: '1px solid #30363d',
+							borderRadius: 10,
+							padding: 12,
+							display: 'grid',
+							gap: 10,
+							marginBottom: 12,
+						}}
+					>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								gap: 12,
+								flexWrap: 'wrap',
+							}}
+						>
+							<div style={{ display: 'grid', gap: 4 }}>
+								<span
+									style={{
+										fontSize: 11,
+										color: '#8b949e',
+										textTransform: 'uppercase',
+										letterSpacing: 0.8,
+									}}
+								>
+									Scene readiness
+								</span>
+								<span style={{ fontSize: 13, color: '#e6edf3' }}>
+									{isLoadingReadiness
+										? 'Loading the latest investor-demo report...'
+										: readinessReport
+											? `Generated ${formatReadinessTimestamp(readinessReport.generatedAt)}`
+											: 'Run demo-prep.bat to generate demo-readiness.json'}
+								</span>
+							</div>
+							{readinessReport && (
+								<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+									{[
+										{
+											label: 'Ready',
+											value: readinessReport.summary.ready,
+											background: '#23863622',
+											border: '#23863666',
+											color: '#3fb950',
+										},
+										{
+											label: 'Warnings',
+											value: readinessReport.summary.warning,
+											background: '#d299221f',
+											border: '#d2992266',
+											color: '#d29922',
+										},
+										{
+											label: 'Blocked',
+											value: readinessReport.summary.blocked,
+											background: '#f851491f',
+											border: '#f8514966',
+											color: '#f85149',
+										},
+									].map(item => (
+										<span
+											key={item.label}
+											style={{
+												padding: '4px 8px',
+												borderRadius: 999,
+												background: item.background,
+												border: `1px solid ${item.border}`,
+												color: item.color,
+												fontSize: 11,
+												fontWeight: 700,
+											}}
+										>
+											{item.label}: {item.value}
+										</span>
+									))}
+								</div>
+							)}
+						</div>
+						{!isLoadingReadiness && !readinessReport && (
+							<div
+								style={{
+									padding: '10px 12px',
+									background: '#1c1510',
+									border: '1px solid #5a3a18',
+									borderRadius: 8,
+									fontSize: 12,
+									color: '#d29922',
+									lineHeight: 1.5,
+								}}
+							>
+								No readiness report is present. Run demo-prep.bat before the
+								investor session so this board can fail closed.
+							</div>
+						)}
+					</div>
+					<div
+						style={{
+							display: 'grid',
+							gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+							gap: 12,
+						}}
+					>
+						{DEMO_PITCH_BEATS.map(beat => {
+							const persona = getDemoAccount(beat.personaUsername)
+							const readinessStatus = getBeatReadinessStatus(
+								beat,
+								readinessReport,
+							)
+							const readinessTone = getReadinessTone(readinessStatus)
+							const readinessChecks = getBeatReadinessChecks(
+								beat,
+								readinessReport,
+							)
+
+							return (
+								<div
+									key={beat.id}
+									style={{
+										background: '#0d1117',
+										border: `1px solid ${readinessTone.border}`,
+										borderRadius: 10,
+										padding: 14,
+										display: 'grid',
+										gap: 12,
+									}}
+								>
+									<div style={{ display: 'grid', gap: 8 }}>
+										<div
+											style={{
+												display: 'flex',
+												gap: 8,
+												alignItems: 'center',
+												flexWrap: 'wrap',
+											}}
+										>
+											<span
+												style={{
+													background: '#1f6feb22',
+													border: '1px solid #1f6feb66',
+													color: '#79c0ff',
+													padding: '2px 8px',
+													borderRadius: 999,
+													fontSize: 11,
+													fontWeight: 700,
+												}}
+											>
+												{beat.phase}
+											</span>
+											<span style={{ fontSize: 11, color: '#8b949e' }}>
+												{beat.minutes}
+											</span>
+											{persona && (
+												<span
+													style={{
+														background:
+															currentUsername === persona.username
+																? '#23863622'
+																: '#d299221f',
+														border:
+															currentUsername === persona.username
+																? '1px solid #23863666'
+																: '1px solid #d2992266',
+														color:
+															currentUsername === persona.username
+																? '#3fb950'
+																: '#d29922',
+														padding: '2px 8px',
+														borderRadius: 999,
+														fontSize: 11,
+														fontWeight: 600,
+													}}
+												>
+													{persona.label}
+												</span>
+											)}
+											<span
+												style={{
+													background: readinessTone.background,
+													border: `1px solid ${readinessTone.border}`,
+													color: readinessTone.color,
+													padding: '2px 8px',
+													borderRadius: 999,
+													fontSize: 11,
+													fontWeight: 700,
+												}}
+											>
+												{readinessTone.label}
+											</span>
+										</div>
+										<h3 style={{ margin: 0, fontSize: 18, color: '#e6edf3' }}>
+											{beat.title}
+										</h3>
+									</div>
+
+									<div>
+										<div
+											style={{
+												fontSize: 11,
+												color: '#8b949e',
+												marginBottom: 4,
+												textTransform: 'uppercase',
+												letterSpacing: 0.8,
+											}}
+										>
+											Live proof
+										</div>
+										<p
+											style={{
+												margin: 0,
+												fontSize: 13,
+												color: '#e6edf3',
+												lineHeight: 1.55,
+											}}
+										>
+											{beat.proof}
+										</p>
+									</div>
+
+									<div
+										style={{
+											background: '#11161d',
+											border: '1px solid #21262d',
+											borderRadius: 8,
+											padding: 10,
+											display: 'grid',
+											gap: 8,
+										}}
+									>
+										<div>
+											<div
+												style={{
+													fontSize: 11,
+													color: '#8b949e',
+													marginBottom: 4,
+													textTransform: 'uppercase',
+													letterSpacing: 0.8,
+												}}
+											>
+												Presenter line
+											</div>
+											<p
+												style={{
+													margin: 0,
+													fontSize: 13,
+													color: '#e6edf3',
+													lineHeight: 1.55,
+												}}
+											>
+												{beat.presenterLine}
+											</p>
+										</div>
+										<div>
+											<div
+												style={{
+													fontSize: 11,
+													color: '#8b949e',
+													marginBottom: 4,
+													textTransform: 'uppercase',
+													letterSpacing: 0.8,
+												}}
+											>
+												Investor translation
+											</div>
+											<p
+												style={{
+													margin: 0,
+													fontSize: 13,
+													color: '#79c0ff',
+													lineHeight: 1.55,
+												}}
+											>
+												{beat.investorTranslation}
+											</p>
+										</div>
+									</div>
+
+									<div
+										style={{
+											background: '#11161d',
+											border: '1px solid #21262d',
+											borderRadius: 8,
+											padding: 10,
+											display: 'grid',
+											gap: 8,
+										}}
+									>
+										<div
+											style={{
+												fontSize: 11,
+												color: '#8b949e',
+												textTransform: 'uppercase',
+												letterSpacing: 0.8,
+											}}
+										>
+											Scene readiness checks
+										</div>
+										{readinessChecks.length > 0 ? (
+											readinessChecks.map(check => {
+												const checkTone = getReadinessTone(check.status)
+
+												return (
+													<div
+														key={check.id}
+														style={{
+															padding: '8px 10px',
+															borderRadius: 8,
+															background: '#0d1117',
+															border: `1px solid ${checkTone.border}`,
+															display: 'grid',
+															gap: 6,
+														}}
+													>
+														<div
+															style={{
+																display: 'flex',
+																justifyContent: 'space-between',
+																gap: 8,
+																alignItems: 'center',
+																flexWrap: 'wrap',
+															}}
+														>
+															<span
+																style={{
+																	fontSize: 12,
+																	fontWeight: 700,
+																	color: '#e6edf3',
+																}}
+															>
+																{check.label}
+															</span>
+															<span
+																style={{
+																	padding: '2px 8px',
+																	borderRadius: 999,
+																	background: checkTone.background,
+																	border: `1px solid ${checkTone.border}`,
+																	color: checkTone.color,
+																	fontSize: 10,
+																	fontWeight: 700,
+																	textTransform: 'uppercase',
+																	letterSpacing: 0.6,
+																}}
+															>
+																{checkTone.label}
+															</span>
+														</div>
+														<span
+															style={{
+																fontSize: 12,
+																color: '#8b949e',
+																lineHeight: 1.5,
+															}}
+														>
+															{check.detail}
+														</span>
+														{check.target && (
+															<span style={{ fontSize: 11, color: '#79c0ff' }}>
+																{check.target}
+															</span>
+														)}
+													</div>
+												)
+											})
+										) : (
+											<div
+												style={{
+													fontSize: 12,
+													color: '#8b949e',
+													lineHeight: 1.5,
+												}}
+											>
+												No probe data mapped to this beat yet.
+											</div>
+										)}
+									</div>
+
+									<div
+										style={{
+											padding: '10px 12px',
+											background:
+												readinessStatus === 'blocked' ? '#2d1117' : '#1c1510',
+											border:
+												readinessStatus === 'blocked'
+													? '1px solid #f8514966'
+													: '1px solid #5a3a18',
+											borderRadius: 8,
+											fontSize: 12,
+											color:
+												readinessStatus === 'blocked' ? '#f85149' : '#d29922',
+											lineHeight: 1.5,
+										}}
+									>
+										<strong>Fallback:</strong> {beat.fallbackNote}
+									</div>
+
+									<div style={{ display: 'grid', gap: 8 }}>
+										<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+											{beat.actions.map(actionId => {
+												const shortcut = getDemoPitchShortcut(actionId)
+												if (!shortcut) {
+													return null
+												}
+
+												const isBusy =
+													activeShortcut === shortcut.label || isLoggingInToApp
+
+												return (
+													<button
+														key={shortcut.id}
+														onClick={() =>
+															openPitchBeatAction(
+																shortcut,
+																beat.personaUsername,
+															)
+														}
+														disabled={isBusy}
+														style={{
+															background: isBusy ? '#21262d' : '#1f6feb',
+															border: 'none',
+															color: '#fff',
+															padding: '8px 12px',
+															borderRadius: 8,
+															cursor: isBusy ? 'not-allowed' : 'pointer',
+															fontSize: 12,
+															fontWeight: 600,
+															display: 'flex',
+															alignItems: 'center',
+															gap: 6,
+														}}
+													>
+														<span>{shortcut.icon}</span>
+														<span>{shortcut.label}</span>
+													</button>
+												)
+											})}
+										</div>
+										<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+											<button
+												onClick={() =>
+													copy(beat.presenterLine, `presenter-${beat.id}`)
+												}
+												style={{
+													background: '#21262d',
+													border: '1px solid #30363d',
+													color:
+														copied === `presenter-${beat.id}`
+															? '#3fb950'
+															: '#e6edf3',
+													padding: '7px 10px',
+													borderRadius: 8,
+													cursor: 'pointer',
+													fontSize: 12,
+													fontWeight: 600,
+												}}
+											>
+												{copied === `presenter-${beat.id}`
+													? 'Presenter line copied'
+													: 'Copy presenter line'}
+											</button>
+											<button
+												onClick={() =>
+													copy(beat.investorTranslation, `investor-${beat.id}`)
+												}
+												style={{
+													background: '#0d1117',
+													border: '1px solid #1f6feb66',
+													color:
+														copied === `investor-${beat.id}`
+															? '#3fb950'
+															: '#79c0ff',
+													padding: '7px 10px',
+													borderRadius: 8,
+													cursor: 'pointer',
+													fontSize: 12,
+													fontWeight: 600,
+												}}
+											>
+												{copied === `investor-${beat.id}`
+													? 'Investor line copied'
+													: 'Copy investor translation'}
+											</button>
+										</div>
+									</div>
+								</div>
+							)
+						})}
 					</div>
 				</div>
 
@@ -1226,6 +2098,11 @@ export default function DevDashboard() {
 						</h2>
 						<div style={{ display: 'grid', gap: 6 }}>
 							{[
+								{
+									label: 'Investor demo prep',
+									cmd: 'demo-prep.bat',
+									dir: 'chefkix-infrastructure/',
+								},
 								{
 									label: 'Boot everything',
 									cmd: 'dev.bat',

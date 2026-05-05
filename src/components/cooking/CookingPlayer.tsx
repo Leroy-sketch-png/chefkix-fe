@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
 import { useUiStore } from '@/store/uiStore'
@@ -526,6 +527,8 @@ const ActiveTimersBadge = ({
 // ============================================
 
 export const CookingPlayer = () => {
+	const pathname = usePathname()
+	const isRoomRoute = pathname === '/cook-together/room'
 	const { cookingMode, closeCookingPanel } = useUiStore()
 	const { shouldReduceMotion: prefersReducedMotion } =
 		useReducedMotionPreference()
@@ -574,9 +577,9 @@ export const CookingPlayer = () => {
 		sendSessionCompleted,
 		isConnected: isRoomConnected,
 	} = useRoomSocket({
-		roomCode: isInRoom ? roomCode : null,
+		roomCode: isInRoom && isRoomRoute ? roomCode : null,
 		onEvent: () => {}, // Room page handles incoming events
-		enabled: isInRoom && !isPreviewMode,
+		enabled: isInRoom && isRoomRoute && !isPreviewMode,
 	})
 
 	// Warn users before leaving page during active cooking session (skip in preview)

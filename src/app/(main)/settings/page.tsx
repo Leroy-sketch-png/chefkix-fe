@@ -44,7 +44,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { PATHS } from '@/constants'
 import { changePassword, logout as logoutService } from '@/services/auth'
 import {
@@ -134,6 +134,19 @@ interface TabConfig {
 	labelKey: string
 	icon: typeof User
 	descriptionKey: string
+}
+
+function isSettingsTab(value: string | null): value is SettingsTab {
+	return (
+		value === 'account' ||
+		value === 'privacy' ||
+		value === 'notifications' ||
+		value === 'cooking' ||
+		value === 'appearance' ||
+		value === 'referral' ||
+		value === 'premium' ||
+		value === 'verification'
+	)
 }
 
 // ============================================
@@ -434,6 +447,7 @@ const ButtonGroup = <T extends string>({
 export default function SettingsPage() {
 	const { user, setUser, logout } = useAuth()
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const { setMotionPreference } = useReducedMotionPreference()
 	const t = useTranslations('settings')
 
@@ -483,6 +497,23 @@ export default function SettingsPage() {
 	// Theme management
 	type ThemeMode = 'light' | 'dark' | 'system'
 	const [theme, setThemeState] = useState<ThemeMode>('light')
+
+	const handleTabChange = useCallback(
+		(tab: SettingsTab) => {
+			setActiveTab(tab)
+			const targetPath =
+				tab === 'account' ? PATHS.SETTINGS : `${PATHS.SETTINGS}?tab=${tab}`
+			router.replace(targetPath, { scroll: false })
+		},
+		[router],
+	)
+
+	useEffect(() => {
+		const requestedTab = searchParams.get('tab')
+		if (isSettingsTab(requestedTab) && requestedTab !== activeTab) {
+			setActiveTab(requestedTab)
+		}
+	}, [activeTab, searchParams])
 
 	useEffect(() => {
 		const stored = getStorageItem('theme') as ThemeMode | null
@@ -986,7 +1017,7 @@ export default function SettingsPage() {
 										aria-controls={`tabpanel-${tab.id}`}
 										whileHover={NAV_ITEM_HOVER}
 										whileTap={LIST_ITEM_TAP}
-										onClick={() => setActiveTab(tab.id)}
+										onClick={() => handleTabChange(tab.id)}
 										title={t(tab.labelKey)}
 										className={cn(
 											'flex min-w-[4.25rem] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-brand/50 lg:min-w-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left',

@@ -46,6 +46,8 @@ public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
+public/demo-manifest.json
+public/demo-readiness.json
 # Dev build/debug artifacts (temp terminal output files)
 _*.txt
 

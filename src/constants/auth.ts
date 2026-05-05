@@ -16,6 +16,9 @@ export const PUBLIC_ROUTES = [
 	PATHS.LEADERBOARD, // Leaderboard (backend allows guest GET)
 ]
 
+const DEV_ONLY_PUBLIC_ROUTES =
+	process.env.NODE_ENV === 'development' ? ['/_dev', '/demo-cockpit'] : []
+
 // Dynamic route prefixes that don't require authentication (matched with startsWith)
 export const PUBLIC_ROUTE_PREFIXES = [
 	'/recipes/', // Recipe detail pages: /recipes/[id]
@@ -79,6 +82,7 @@ const KNOWN_ROUTE_SEGMENTS = new Set([
  */
 export function isPublicRoutePath(pathname: string): boolean {
 	if (PUBLIC_ROUTES.includes(pathname)) return true
+	if (DEV_ONLY_PUBLIC_ROUTES.includes(pathname)) return true
 	// Check prefix matches, but exclude explicitly protected sub-routes
 	if (PUBLIC_ROUTE_PREFIXES.some(prefix => pathname.startsWith(prefix))) {
 		if (

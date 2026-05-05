@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Toast } from '../ui/toast'
+import { toast } from 'sonner'
 import {
 	X,
 	ChevronLeft,
