@@ -13,6 +13,26 @@ interface AuthProviderProps {
 	children: React.ReactNode
 }
 
+const getTokenSubject = (token: string | null): string | null => {
+	if (!token) {
+		return null
+	}
+
+	try {
+		const [, payload] = token.split('.')
+		if (!payload) {
+			return null
+		}
+
+		const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+		const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
+		const decoded = JSON.parse(window.atob(padded)) as { sub?: string }
+		return typeof decoded.sub === 'string' ? decoded.sub : null
+	} catch {
+		return null
+	}
+}
+
 /**
  * AuthProvider handles:
  * 1. Session validation on app load (checking persisted tokens)
@@ -81,8 +101,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 					login(accessToken)
 				}
 
-				// Token exists - if we don't have user data, fetch it.
-				if (!user) {
+				const tokenSubject = getTokenSubject(accessToken)
+				const hasUserMismatch = Boolean(
+					user && tokenSubject && user.userId !== tokenSubject,
+				)
+
+				if (hasUserMismatch) {
+					logDevWarn(
+						'[AuthProvider] Repairing stale persisted user for current token subject',
+					)
+				}
+
+				// Token exists - fetch the profile if we have no user data or the persisted user belongs to another token.
+				if (!user || hasUserMismatch) {
 					const profileResponse = await getMyProfile()
 					if (profileResponse.success && profileResponse.data) {
 						setUser(profileResponse.data)

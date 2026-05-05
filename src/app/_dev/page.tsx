@@ -2,6 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { notFound } from 'next/navigation'
+import {
+	DEMO_ACCOUNTS,
+	DEMO_BASE_URL,
+	DEMO_PITCH_SHORTCUTS,
+	resolveDemoShortcut,
+	type DemoPitchShortcut,
+} from '@/components/dev/demo-config'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/store/authStore'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface ServiceStatus {
@@ -21,14 +30,6 @@ interface ApiTestResult {
 	latency?: number
 }
 
-interface TestAccount {
-	label: string
-	username: string
-	password: string
-	email: string
-	description: string
-}
-
 // ─── Constants ──────────────────────────────────────────────────────────────
 const SERVICES: Omit<ServiceStatus, 'status'>[] = [
 	{ name: 'Frontend (Next.js)', port: 3000 },
@@ -39,16 +40,6 @@ const SERVICES: Omit<ServiceStatus, 'status'>[] = [
 	{ name: 'Redis', port: 6379 },
 	{ name: 'Kafka', port: 9094 },
 	{ name: 'Typesense (Search)', port: 8108 },
-]
-
-const TEST_ACCOUNTS: TestAccount[] = [
-	{
-		label: 'Default Test User',
-		username: 'testuser',
-		password: 'test123',
-		email: 'test@chefkix.com',
-		description: 'Primary test account with seed data',
-	},
 ]
 
 const HEALTH_ENDPOINTS = [
@@ -155,7 +146,7 @@ const QUICK_LINKS = [
 ]
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-const BASE = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+const BASE = DEMO_BASE_URL
 
 async function checkServiceHealth(
 	port: number,
@@ -165,13 +156,13 @@ async function checkServiceHealth(
 		// For HTTP services we can test, use fetch. For TCP-only (Mongo, Redis, Kafka), proxy through monolith health
 		if ([3000, 8080, 8000, 8180, 8108].includes(port)) {
 			const urlMap: Record<number, string> = {
-				3000: '/',
-				8080: '/api/v1/actuator/health',
+				3000: 'http://localhost:3000',
+				8080: `${BASE}/api/v1/actuator/health`,
 				8000: 'http://localhost:8000/health',
 				8180: 'http://localhost:8180/realms/nottisn',
 				8108: 'http://localhost:8108/health',
 			}
-			const url = port === 3000 ? urlMap[port] : urlMap[port]
+			const url = urlMap[port]
 			const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
 			const latency = Date.now() - start
 			if (port === 8108 && res.status === 503) {
@@ -207,7 +198,42 @@ export default function DevDashboard() {
 	const [copied, setCopied] = useState<string | null>(null)
 	const [isRunningApiTests, setIsRunningApiTests] = useState(false)
 	const [isLoggingInToApp, setIsLoggingInToApp] = useState(false)
+	const [activeShortcut, setActiveShortcut] = useState<string | null>(null)
 	const [lastCheck, setLastCheck] = useState<Date | null>(null)
+	const accessToken = useAuthStore(state => state.accessToken)
+	const authHydrated = useAuthStore(state => state.isHydrated)
+
+	useEffect(() => {
+		if (!authHydrated) {
+			return
+		}
+
+		if (accessToken && accessToken !== token) {
+			setToken(accessToken)
+			return
+		}
+
+		if (accessToken || typeof window === 'undefined') {
+			return
+		}
+
+		try {
+			const persistedRaw = window.localStorage.getItem('auth-storage')
+			if (!persistedRaw) {
+				return
+			}
+
+			const persisted = JSON.parse(persistedRaw) as {
+				state?: { accessToken?: string | null }
+			}
+			const persistedToken = persisted.state?.accessToken
+			if (persistedToken) {
+				setToken(persistedToken)
+			}
+		} catch {
+			// Ignore malformed dev auth storage and allow manual login flow.
+		}
+	}, [accessToken, authHydrated, token])
 
 	// Copy to clipboard
 	const copy = useCallback((text: string, label: string) => {
@@ -256,46 +282,80 @@ export default function DevDashboard() {
 	}, [])
 
 	// Login and inject session directly into the app
-	const loginToApp = useCallback(async (username: string, password: string) => {
-		setIsLoggingInToApp(true)
-		try {
-			const loginRes = await fetch(`${BASE}/api/v1/auth/login`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
-				body: JSON.stringify({ emailOrUsername: username, password }),
-			})
-			const loginData = await loginRes.json()
-			if (!loginData.success || !loginData.data?.accessToken) {
-				console.error('Login failed:', loginData.message || 'Check credentials')
-				return
+	const loginToApp = useCallback(
+		async (username: string, password: string, redirectTo = '/dashboard') => {
+			setIsLoggingInToApp(true)
+			try {
+				const loginRes = await fetch(`${BASE}/api/v1/auth/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					credentials: 'include',
+					body: JSON.stringify({ emailOrUsername: username, password }),
+				})
+				const loginData = await loginRes.json()
+				if (!loginData.success || !loginData.data?.accessToken) {
+					console.error(
+						'Login failed:',
+						loginData.message || 'Check credentials',
+					)
+					return
+				}
+				const accessToken = loginData.data.accessToken
+				setToken(accessToken)
+				const meRes = await fetch(`${BASE}/api/v1/auth/me`, {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				})
+				const meData = await meRes.json()
+				if (!meData.success || !meData.data) {
+					console.error('Could not fetch user profile')
+					return
+				}
+				localStorage.setItem(
+					'auth-storage',
+					JSON.stringify({
+						state: { isAuthenticated: true, accessToken, user: meData.data },
+						version: 0,
+					}),
+				)
+				window.location.href = redirectTo
+			} catch (err) {
+				console.error(
+					'Dev login error:',
+					err instanceof Error ? err.message : 'Unknown',
+				)
+			} finally {
+				setIsLoggingInToApp(false)
 			}
-			const accessToken = loginData.data.accessToken
-			const meRes = await fetch(`${BASE}/api/v1/auth/me`, {
-				headers: { Authorization: `Bearer ${accessToken}` },
-			})
-			const meData = await meRes.json()
-			if (!meData.success || !meData.data) {
-				console.error('Could not fetch user profile')
-				return
+		},
+		[],
+	)
+
+	const openPitchShortcut = useCallback(
+		async (shortcut: DemoPitchShortcut) => {
+			setActiveShortcut(shortcut.label)
+			try {
+				const resolved = await resolveDemoShortcut(shortcut, token)
+				if (resolved.copiedText) {
+					await navigator.clipboard.writeText(resolved.copiedText)
+				}
+				if (resolved.watchUrl) {
+					toast.success('Watch URL copied for second screen')
+				} else if (resolved.notice) {
+					toast.success(resolved.notice)
+				}
+				window.location.href = resolved.path
+			} catch (err) {
+				toast.error(err instanceof Error ? err.message : 'Demo shortcut failed')
+				console.error(
+					'Demo shortcut failed:',
+					err instanceof Error ? err.message : 'Unknown error',
+				)
+			} finally {
+				setActiveShortcut(null)
 			}
-			localStorage.setItem(
-				'auth-storage',
-				JSON.stringify({
-					state: { isAuthenticated: true, accessToken, user: meData.data },
-					version: 0,
-				}),
-			)
-			window.location.href = '/dashboard'
-		} catch (err) {
-			console.error(
-				'Dev login error:',
-				err instanceof Error ? err.message : 'Unknown',
-			)
-		} finally {
-			setIsLoggingInToApp(false)
-		}
-	}, [])
+		},
+		[token],
+	)
 
 	// Run all API tests
 	const runApiTests = useCallback(async () => {
@@ -583,7 +643,7 @@ export default function DevDashboard() {
 						>
 							Test Accounts
 						</h2>
-						{TEST_ACCOUNTS.map(account => (
+						{DEMO_ACCOUNTS.map(account => (
 							<div
 								key={account.username}
 								style={{
@@ -608,7 +668,11 @@ export default function DevDashboard() {
 									<div style={{ display: 'flex', gap: 6 }}>
 										<button
 											onClick={() =>
-												loginToApp(account.username, account.password)
+												loginToApp(
+													account.username,
+													account.password,
+													account.defaultRoute,
+												)
 											}
 											disabled={isLoggingInToApp}
 											style={{
@@ -805,6 +869,103 @@ export default function DevDashboard() {
 							</div>
 						</div>
 					</div>
+				</div>
+
+				{/* Demo Flow Shortcuts */}
+				<div
+					style={{
+						background: '#161b22',
+						border: '1px solid #30363d',
+						borderRadius: 8,
+						padding: 16,
+					}}
+				>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							marginBottom: 12,
+						}}
+					>
+						<div>
+							<h2
+								style={{
+									fontSize: 14,
+									fontWeight: 600,
+									margin: 0,
+									color: '#8b949e',
+									textTransform: 'uppercase',
+									letterSpacing: 1,
+								}}
+							>
+								Investor Demo Shortcuts
+							</h2>
+							<p style={{ margin: '6px 0 0', fontSize: 12, color: '#8b949e' }}>
+								Use these after quick login to move through the safest pitch
+								path.
+							</p>
+						</div>
+						<span style={{ fontSize: 12, color: '#58a6ff' }}>
+							Ctrl+K also works in the app
+						</span>
+					</div>
+					<div
+						style={{
+							display: 'grid',
+							gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+							gap: 8,
+						}}
+					>
+						{DEMO_PITCH_SHORTCUTS.map(shortcut => {
+							const disabled =
+								activeShortcut === shortcut.label ||
+								(Boolean(shortcut.requiresAuth) && !token)
+
+							return (
+								<button
+									key={shortcut.label}
+									onClick={() => openPitchShortcut(shortcut)}
+									disabled={disabled}
+									style={{
+										background: disabled ? '#11161d' : '#0d1117',
+										border: `1px solid ${disabled ? '#21262d' : '#30363d'}`,
+										borderRadius: 8,
+										padding: 12,
+										color: '#e6edf3',
+										textAlign: 'left',
+										cursor: disabled ? 'not-allowed' : 'pointer',
+										display: 'grid',
+										gap: 6,
+									}}
+								>
+									<div
+										style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+									>
+										<span style={{ fontSize: 16 }}>{shortcut.icon}</span>
+										<span style={{ fontSize: 13, fontWeight: 600 }}>
+											{shortcut.label}
+										</span>
+									</div>
+									<span
+										style={{ fontSize: 11, color: '#8b949e', lineHeight: 1.4 }}
+									>
+										{shortcut.description}
+									</span>
+									<span style={{ fontSize: 11, color: '#58a6ff' }}>
+										{activeShortcut === shortcut.label
+											? 'Opening...'
+											: 'Open in app'}
+									</span>
+								</button>
+							)
+						})}
+					</div>
+					{!token && (
+						<p style={{ margin: '10px 0 0', fontSize: 12, color: '#d29922' }}>
+							Log in to unlock the authenticated demo steps.
+						</p>
+					)}
 				</div>
 
 				{/* Row 2: API Health Tests */}
@@ -1226,6 +1387,11 @@ export default function DevDashboard() {
 						</h2>
 						<div style={{ display: 'grid', gap: 6 }}>
 							{[
+								{
+									label: 'Investor demo prep',
+									cmd: 'demo-prep.bat',
+									dir: 'chefkix-infrastructure/',
+								},
 								{
 									label: 'Boot everything',
 									cmd: 'dev.bat',
