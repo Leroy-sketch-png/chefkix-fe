@@ -16,6 +16,7 @@ import {
 	Smile,
 	AlertCircle,
 } from 'lucide-react'
+import RepliedStoryPreview from '../chat/RepliedStoryPreview'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -482,22 +483,39 @@ const ChatMessageContent = ({
 								</motion.div>
 							</Link>
 						) : (
-							// TEXT: Enhanced bubble
-							<motion.div
-								initial={{ scale: 0.9, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+							// TEXT: Enhanced bubble (Tích hợp Story Preview)
+							<div
 								className={cn(
-									'rounded-2xl px-4 py-2.5 shadow-card',
-									message.isOwn
-										? 'rounded-br-md bg-brand text-white shadow-brand/10'
-										: 'rounded-bl-md bg-bg-elevated text-text shadow-border/5 ring-1 ring-border/50',
+									'flex flex-col gap-0.5', // gap nhỏ để story và tin nhắn nhìn như một khối
+									message.isOwn ? 'items-end' : 'items-start',
 								)}
 							>
-								<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>
-									{message.content}
-								</p>
-							</motion.div>
+								{/* Story Preview Area */}
+								{message.sharedPostImage && message.relatedId && (
+									<RepliedStoryPreview
+										storyId={message.relatedId}
+										thumbnailUrl={message.sharedPostImage}
+										// Logic title: Ưu tiên title từ BE, nếu không có thì mới tự gen
+										title={message.sharedPostTitle}
+									/>
+								)}
+
+								{/* Bong bóng tin nhắn Text */}
+								<motion.div
+									initial={{ scale: 0.9, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									className={cn(
+										'rounded-2xl px-4 py-2.5 shadow-sm',
+										message.isOwn
+											? 'rounded-br-md bg-brand text-white'
+											: 'rounded-bl-md bg-bg-elevated text-text ring-1 ring-border/50',
+									)}
+								>
+									<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>
+										{message.content}
+									</p>
+								</motion.div>
+							</div>
 						)}
 
 						{/* Reactions */}

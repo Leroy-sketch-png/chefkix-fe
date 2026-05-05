@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Heart, Smile, Zap, Frown, ThumbsDown } from 'lucide-react'
 
 interface Props {
-	onReact: (type: string, event: React.MouseEvent<HTMLButtonElement>) => void
+	onReact: (event: React.MouseEvent<HTMLButtonElement>, type: string) => void
 	onReply: (text: string) => void
 }
 
@@ -30,35 +30,35 @@ export default function StoryInteractionBar({ onReact, onReply }: Props) {
 
 			<div className='flex items-center gap-2'>
 				<button
-					onClick={event => onReact('LOVE', event)}
+					onClick={event => onReact(event, 'LOVE')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='love'
 				>
 					<Heart size={18} className='text-pink-400' />
 				</button>
 				<button
-					onClick={event => onReact('HAHA', event)}
+					onClick={event => onReact(event, 'HAHA')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='haha'
 				>
 					<Smile size={18} className='text-yellow-300' />
 				</button>
 				<button
-					onClick={event => onReact('WOW', event)}
+					onClick={event => onReact(event, 'WOW')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='wow'
 				>
 					<Zap size={18} className='text-indigo-300' />
 				</button>
 				<button
-					onClick={event => onReact('SAD', event)}
+					onClick={event => onReact(event, 'SAD')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='sad'
 				>
 					<Frown size={18} className='text-blue-300' />
 				</button>
 				<button
-					onClick={event => onReact('ANGRY', event)}
+					onClick={event => onReact(event, 'ANGRY')}
 					className='p-2 rounded-full bg-white/10 hover:bg-white/20'
 					aria-label='angry'
 				>

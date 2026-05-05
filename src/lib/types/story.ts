@@ -4,6 +4,8 @@
 export interface StoryCreateRequest {
 	mediaUrl: string
 	mediaType: 'IMAGE' | 'VIDEO'
+	imageScale?: number // Thêm trường này
+	imageRotation?: number
 	linkedRecipeId?: string
 	items: StoryOverlayItem[] // Danh sách text, stickers...
 }
@@ -25,6 +27,8 @@ export interface Story {
 	userId: string
 	mediaUrl: string
 	mediaType: 'IMAGE' | 'VIDEO'
+	imageScale?: number // Thêm trường này
+	imageRotation?: number
 	createdAt: string
 	expiresAt: string
 	items: StoryItemDto[]
@@ -44,6 +48,8 @@ export interface StoryResponse {
 	userId: string
 	mediaUrl: string
 	mediaType: 'IMAGE' | 'VIDEO'
+	imageScale?: number // Thêm trường này
+	imageRotation?: number
 	linkedRecipeId?: string
 	items: StoryItemDto[]
 	createdAt: string
@@ -68,7 +74,7 @@ export interface StoryReactionRequest {
 // Request body when sending a reply (message) to a story
 export interface StoryReplyRequest {
 	storyId: string
-	message: string
+	text: string
 	// Optional: id of message being replied to or metadata
 	replyToMessageId?: string
 }

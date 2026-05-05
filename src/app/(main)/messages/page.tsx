@@ -28,6 +28,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
 import VideoCall from '@/components/chat/VideoCall'
+import AvatarImage from '@/components/messages/AvatarImage'
 import {
 	getMyConversations,
 	getMessages,
@@ -652,17 +653,15 @@ function MessagesContent() {
 							</Button>
 
 							{/* User info */}
+							{/* User info */}
 							<div className='relative size-10 flex-shrink-0'>
-								<Image
+								<AvatarImage
 									src={selectedInfo.avatar}
 									alt={selectedInfo.name}
 									fill
 									sizes='40px'
 									className='rounded-full object-cover'
-									onError={e => {
-										;(e.target as HTMLImageElement).src =
-											'/placeholder-avatar.svg'
-									}}
+									fallbackSrc='/placeholder-avatar.svg' // Tuỳ chọn, nếu không truyền sẽ lấy default trong component
 								/>
 							</div>
 							<div className='min-w-0 flex-1'>

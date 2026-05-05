@@ -1307,3 +1307,19 @@ select {
 @utility max-h-panel-lg {
 	max-height: var(--h-panel-lg);
 }
+
+@keyframes story-progress {
+	from {
+		width: 0%;
+	}
+	to {
+		width: 100%;
+	}
+}
+
+.animate-story-progress {
+	animation-name: story-progress;
+	animation-timing-function: linear;
+	/* Giữ trạng thái cuối cùng (100%) sau khi chạy xong */
+	animation-fill-mode: forwards;
+}

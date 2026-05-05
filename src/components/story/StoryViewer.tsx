@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 import {
 	X,
 	ChevronLeft,
@@ -12,7 +13,7 @@ import {
 	VolumeX,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getStoriesByUserId } from '@/services/story'
+import { getStoriesByUserId, getStoryById } from '@/services/story'
 import { sendStoryReaction, sendStoryReply } from '@/services/story'
 import { StoryResponse, StoryItemDto } from '@/lib/types/story'
 import { Rnd } from 'react-rnd'
@@ -42,6 +43,7 @@ interface StoryViewerProps {
 	userId: string
 	authorName?: string
 	authorAvatar?: string
+	startAtStoryId?: string | null
 	onClose: () => void
 	onNextUser?: () => void
 	onPrevUser?: () => void
@@ -53,43 +55,34 @@ const StoryItemContent = ({ item }: { item: StoryItemDto }) => {
 	const itemData = item.data || {}
 
 	return (
-		<Rnd
-			size={{
+		// Chỉ dùng thẻ div và truyền className + style.
+		// XÓA HẾT disableResizing, disableDragging, position... đi
+		<div
+			className='absolute pointer-events-none flex items-center justify-center'
+			style={{
+				left: `${item.x}px`,
+				top: `${item.y}px`,
+				transform: `rotate(${item.rotation || 0}deg) scale(${item.scale || 1})`,
+				transformOrigin: 'top left',
+				color: itemData.color || '#ffffff',
 				width: itemData.width || 'auto',
 				height: itemData.height || 'auto',
 			}}
-			position={{ x: item.x, y: item.y }}
-			rotation={item.rotation}
-			disableDragging
-			disableResizing
-			className='flex items-center justify-center pointer-events-none'
 		>
-			<div
-				style={{
-					transform: `scale(${item.scale || 1})`,
-					color: itemData.color || '#ffffff',
-					textAlign: itemData.textAlign || 'center',
-				}}
-			>
-				{/* 🌟 ĐÃ FIX: Đọc đúng key 'text' và 'emoji' từ DB */}
-				{item.type === 'TEXT' && (
-					<span className='font-bold drop-shadow-lg'>{itemData.text}</span>
-				)}
-
-				{(item.type === 'STICKER' || item.type === 'EMOJI') && (
-					<span style={{ fontSize: '4rem' }}>{itemData.emoji}</span>
-				)}
-
-				{/* Nếu sau này bạn có up sticker là ảnh nhỏ */}
-				{item.type === 'IMAGE_STICKER' && (
-					<img
-						src={itemData.imageUrl}
-						alt=''
-						className='w-full h-full object-contain'
-					/>
-				)}
-			</div>
-		</Rnd>
+			{item.type === 'TEXT' && (
+				<span className='font-bold drop-shadow-lg'>{itemData.text}</span>
+			)}
+			{(item.type === 'STICKER' || item.type === 'EMOJI') && (
+				<span style={{ fontSize: '4rem' }}>{itemData.emoji}</span>
+			)}
+			{item.type === 'IMAGE_STICKER' && (
+				<img
+					src={itemData.imageUrl}
+					alt='sticker'
+					className='w-full h-full object-contain'
+				/>
+			)}
+		</div>
 	)
 }
 
@@ -97,6 +90,7 @@ export function StoryViewer({
 	userId,
 	authorName,
 	authorAvatar,
+	startAtStoryId,
 	onClose,
 	onNextUser,
 	onPrevUser,
@@ -114,63 +108,130 @@ export function StoryViewer({
 
 	const currentStory = stories[currentStoryIndex]
 
+	// --- COPY ĐOẠN NÀY THAY THẾ 2 HÀM CŨ ---
 	const goToNextStory = useCallback(() => {
-		setCurrentStoryIndex(prev => {
-			if (prev < stories.length - 1) {
-				return prev + 1
+		// Kiểm tra điều kiện ở ngoài State Updater
+		if (currentStoryIndex < stories.length - 1) {
+			setCurrentStoryIndex(currentStoryIndex + 1)
+		} else {
+			// Nếu đã hết Story thì mới gọi đóng hoặc chuyển user
+			if (onNextUser) {
+				onNextUser()
+			} else {
+				onClose()
 			}
-			onNextUser ? onNextUser() : onClose()
-			return prev
-		})
-	}, [stories.length, onClose, onNextUser])
+		}
+	}, [currentStoryIndex, stories.length, onNextUser, onClose])
 
-	const goToPreviousStory = () => {
-		setCurrentStoryIndex(prev => {
-			if (prev > 0) {
-				return prev - 1
+	const goToPreviousStory = useCallback(() => {
+		// Kiểm tra điều kiện ở ngoài State Updater
+		if (currentStoryIndex > 0) {
+			setCurrentStoryIndex(currentStoryIndex - 1)
+		} else {
+			// Đang ở Story đầu tiên thì lùi user hoặc đóng
+			if (onPrevUser) {
+				onPrevUser()
+			} else {
+				onClose()
 			}
-			onPrevUser ? onPrevUser() : onClose()
-			return prev
-		})
-	}
+		}
+	}, [currentStoryIndex, onPrevUser, onClose])
+	// ----------------------------------------
 
 	useEffect(() => {
-		if (!userId) return
-		setIsLoading(true)
-		setStories([])
-		setCurrentStoryIndex(0)
+		// Nếu không có thông tin gì thì đóng luôn để tránh lỗi
+		if (!userId && !startAtStoryId) {
+			onClose()
+			return
+		}
 
-		getStoriesByUserId(userId)
-			.then((res: any) => {
-				// 🌟 THUẬT TOÁN SĂN TÌM MẢNG (Giống hệt bên Dashboard)
-				let storyArray = null
+		const fetchStoriesData = async () => {
+			setIsLoading(true)
+			setStories([])
+			setCurrentStoryIndex(0)
 
-				if (Array.isArray(res)) {
-					storyArray = res // Đã bóc hết vỏ
-				} else if (res?.data && Array.isArray(res.data)) {
-					storyArray = res.data // Vỏ của ApiResponse (Spring Boot)
-				} else if (res?.data?.data && Array.isArray(res.data.data)) {
-					storyArray = res.data.data // Bị bọc 2 lớp bởi Axios
+			try {
+				let isStoryFound = false // Cờ đánh dấu đã tìm thấy Story chưa
+
+				// =========================================================
+				// ƯU TIÊN 1: LẤY THEO USER ID (Để có mảng quẹt trái/phải)
+				// =========================================================
+				if (userId) {
+					const res = await getStoriesByUserId(userId)
+
+					// 🌟 THUẬT TOÁN SĂN TÌM MẢNG (Giữ nguyên logic "vibe coding" của bạn)
+					let storyArray = null
+					if (Array.isArray(res)) {
+						storyArray = res
+					} else if (res?.data && Array.isArray(res.data)) {
+						storyArray = res.data
+					} else if (res?.data?.data && Array.isArray(res.data.data)) {
+						storyArray = res.data.data
+					}
+
+					if (storyArray && storyArray.length > 0) {
+						if (startAtStoryId) {
+							// Săn tìm đúng cái bài đang được reply
+							const targetIndex = storyArray.findIndex(
+								(s: any) => s.id === startAtStoryId,
+							)
+							if (targetIndex !== -1) {
+								setStories(storyArray)
+								setCurrentStoryIndex(targetIndex)
+								isStoryFound = true
+							}
+							// Nếu targetIndex === -1 tức là bài đó đã hết hạn, ta KHÔNG setStories
+							// mà để nó trôi xuống bước Fallback bên dưới.
+						} else {
+							// Xem từ Dashboard bình thường
+							setStories(storyArray)
+							setCurrentStoryIndex(0)
+							isStoryFound = true
+						}
+					}
 				}
 
-				// Kiểm tra xem mảng có story nào không
-				if (storyArray && storyArray.length > 0) {
-					setStories(storyArray) // Cập nhật state thành công!
-				} else {
-					console.warn(
-						'⚠️ API gọi thành công nhưng không có Story hoặc sai cấu trúc:',
-						res,
-					)
-					// Chỉ khi nào thật sự KHÔNG CÓ STORY mới đẩy người dùng quay về
+				// =========================================================
+				// ƯU TIÊN 2 (FALLBACK): TÌM THEO ID LẺ
+				// (Chạy khi User hết story active HOẶC bài đó đã quá 24h)
+				// =========================================================
+				if (!isStoryFound && startAtStoryId) {
+					const res = await getStoryById(startAtStoryId) // Gọi API lấy lẻ
+
+					// Bóc vỏ tương tự cho Object đơn
+					let singleStory = null
+					if (res?.data?.data) {
+						singleStory = res.data.data
+					} else if (res?.data) {
+						singleStory = res.data
+					} else {
+						singleStory = res
+					}
+
+					if (singleStory && singleStory.id) {
+						setStories([singleStory]) // Gói vào mảng 1 phần tử
+						setCurrentStoryIndex(0)
+						isStoryFound = true
+					}
+				}
+
+				// =========================================================
+				// CHỐT HẠ: KHÔNG TÌM THẤY GÌ
+				// =========================================================
+				if (!isStoryFound) {
+					console.warn('⚠️ Story đã bị xóa hoàn toàn hoặc API lỗi.')
 					onClose()
 				}
-			})
-			.catch(err => {
+			} catch (err) {
 				console.error('❌ Lỗi fetch chi tiết story:', err)
 				onClose()
-			})
-			.finally(() => setIsLoading(false))
-	}, [userId, onClose])
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchStoriesData()
+	}, [userId, startAtStoryId, onClose])
 
 	useEffect(() => {
 		if (timerRef.current) {
@@ -188,12 +249,15 @@ export function StoryViewer({
 	const handleInteractionEnd = () => setIsPaused(false)
 
 	const handleReact = async (
-		type: string,
-		event: React.MouseEvent<HTMLButtonElement>,
+		event: React.MouseEvent<HTMLButtonElement>, // Event lên trước
+		type: string, // Type ra sau
 	) => {
+		// Kiểm tra xem event có tồn tại không để tránh crash
+		if (!event || !event.currentTarget) return
+
 		const buttonRect = event.currentTarget.getBoundingClientRect()
 		const screenCenterX = window.innerWidth / 2
-		const storyWidth = 400 // Kích thước md:max-w-[400px] của bạn
+		const storyWidth = 400
 		const storyLeftEdge = screenCenterX - storyWidth / 2
 
 		const relativeX = buttonRect.left - storyLeftEdge + buttonRect.width / 2
@@ -254,12 +318,21 @@ export function StoryViewer({
 				onTouchEnd={handleInteractionEnd}
 			>
 				<div className='relative w-full h-full md:max-w-[400px] md:h-[80vh] bg-neutral-900 md:rounded-xl shadow-2xl overflow-hidden mx-auto'>
+					{/* Lớp nền Ảnh/Video */}
 					{currentStory.mediaUrl && (
-						<img
-							src={currentStory.mediaUrl}
-							alt='Story media'
-							className='absolute inset-0 w-full h-full object-cover'
-						/>
+						<div className='absolute inset-0 overflow-hidden bg-black flex items-center justify-center'>
+							<img
+								src={currentStory.mediaUrl}
+								alt='Story media'
+								className='w-full h-full object-cover pointer-events-none'
+								style={{
+									// Áp dụng thông số từ DB, mặc định scale 1 và rotate 0 nếu rỗng
+									transform: `scale(${currentStory.imageScale || 1}) rotate(${currentStory.imageRotation || 0}deg)`,
+									transformOrigin: 'center center', // Xoay từ tâm ảnh
+									transition: 'transform 0.3s ease', // Làm mượt lúc mới load
+								}}
+							/>
+						</div>
 					)}
 
 					<div className='absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/40' />
@@ -269,32 +342,39 @@ export function StoryViewer({
 						<div className='w-[70%] h-full' />
 					</div>
 
-					<div className='absolute top-0 left-0 right-0 p-4 z-10'>
+					{/* Header: Thanh Progress Bar */}
+					<div className='absolute top-0 left-0 right-0 p-4 z-10 pointer-events-none'>
 						<div className='flex gap-1 mb-3'>
-							{stories.map((_, index) => (
-								<div
-									key={index}
-									className='flex-1 bg-white/30 rounded-full h-1'
-								>
-									<motion.div
-										className='bg-white h-1 rounded-full'
-										initial={{ width: '0%' }}
-										animate={{
-											width:
-												index < currentStoryIndex
-													? '100%'
-													: index === currentStoryIndex
-														? '100%'
-														: '0%',
-										}}
-										transition={
-											index === currentStoryIndex && !isPaused
-												? { duration: STORY_DURATION / 1000, ease: 'linear' }
-												: { duration: 0 }
-										}
-									/>
-								</div>
-							))}
+							{stories.map((_, index) => {
+								const isActive = index === currentStoryIndex
+								const isPast = index < currentStoryIndex
+
+								return (
+									<div
+										key={index}
+										className='flex-1 bg-white/30 rounded-full h-1 overflow-hidden'
+									>
+										<div
+											// KEY ĐỘNG LÀ BẮT BUỘC: Ép React vẽ lại thanh mới khi chuyển Story
+											key={`progress-${index}-${isActive ? 'playing' : 'stopped'}`}
+											// Chỉ thêm class animation khi thanh này đang active
+											className={`bg-white h-full rounded-full ${isActive ? 'animate-story-progress' : ''}`}
+											style={{
+												// Nếu là story cũ -> full 100%. Nếu là story chưa tới -> 0%.
+												width: isPast ? '100%' : '0%',
+
+												// Thời gian chạy (vd: 5000ms)
+												animationDuration: isActive
+													? `${STORY_DURATION}ms`
+													: '0s',
+
+												// CHÌA KHÓA PAUSE: Khi isPaused = true, CSS sẽ "đóng băng" thanh chạy tại chỗ
+												animationPlayState: isPaused ? 'paused' : 'running',
+											}}
+										/>
+									</div>
+								)
+							})}
 						</div>
 
 						<div className='flex items-center justify-between'>
@@ -364,15 +444,12 @@ export function StoryViewer({
 					) : (
 						<div className='absolute bottom-0 left-0 right-0 p-4 z-40'>
 							<StoryInteractionBar
-								// SỬA QUAN TRỌNG NHẤT: Trỏ trực tiếp vào hàm handleReact đã viết ở trên
 								onReact={handleReact}
-								onReply={async (text: string) => {
+								onReply={async (content: string) => {
 									try {
-										await sendStoryReply({
-											storyId: currentStory.id,
-											message: text,
-										})
-										// (Tùy chọn) Hiển thị Toast thông báo "Đã gửi tin nhắn"
+										// Đảm bảo truyền đúng tham số
+										await sendStoryReply(currentStory.id, content)
+										toast.success('Đã gửi phản hồi')
 									} catch (err) {
 										console.error('Failed to send story reply', err)
 									}

@@ -13,6 +13,9 @@ interface StoryFeedUser {
 interface StoryStore {
 	storyUsers: StoryFeedUser[]
 	fetchStoryFeed: () => Promise<void>
+
+	// 🌟 THÊM HÀM NÀY VÀO INTERFACE
+	markStoryAsViewed: (storyId: string, userId: string) => Promise<void>
 }
 
 const formatStoryUser = (s: any): StoryFeedUser => ({
@@ -25,6 +28,7 @@ const formatStoryUser = (s: any): StoryFeedUser => ({
 
 export const useStoryStore = create<StoryStore>(set => ({
 	storyUsers: [],
+
 	fetchStoryFeed: async () => {
 		try {
 			const res = await getStoryFeed()
@@ -33,6 +37,23 @@ export const useStoryStore = create<StoryStore>(set => ({
 			}
 		} catch (err) {
 			logDevError('Lỗi khi lấy Story feed:', err)
+		}
+	},
+
+	// 🌟 THÊM LOGIC XỬ LÝ ĐỔI MÀU CAM -> XÁM TẠI ĐÂY
+	markStoryAsViewed: async (storyId: string, userId: string) => {
+		try {
+			// (Tùy chọn) Nếu Backend của bạn có API lưu lịch sử xem thì gọi ở đây
+			// await api.post(`/api/v1/stories/${storyId}/view`);
+
+			// Ép React vẽ lại giao diện lập tức: Đổi hasUnseen của người này thành false
+			set(state => ({
+				storyUsers: state.storyUsers.map(user =>
+					user.id === userId ? { ...user, hasUnseen: false } : user,
+				),
+			}))
+		} catch (err) {
+			logDevError('Lỗi khi đánh dấu đã xem:', err)
 		}
 	},
 }))
