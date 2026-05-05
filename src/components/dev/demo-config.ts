@@ -48,6 +48,19 @@ export interface DemoPitchShortcut {
 	requiresAuth?: boolean
 }
 
+export interface DemoPitchBeat {
+	id: string
+	phase: string
+	minutes: string
+	title: string
+	personaUsername: string
+	proof: string
+	presenterLine: string
+	investorTranslation: string
+	fallbackNote: string
+	actions: string[]
+}
+
 interface DemoManifestUser {
 	userId: string
 	profilePath: string
@@ -401,6 +414,115 @@ export const DEMO_PITCH_SHORTCUTS: DemoPitchShortcut[] = [
 		requiresAuth: true,
 	},
 ]
+
+export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
+	{
+		id: 'conversion-moat',
+		phase: 'Phase 1',
+		minutes: '0-4 min',
+		title: 'Cold Start To Kitchen Moat',
+		personaUsername: 'testuser',
+		proof:
+			"Show the welcome flow, land on Tonight's Pick, then jump straight into the hero recipe so the audience sees conversion turn into a guided cooking session.",
+		presenterLine:
+			'Cold traffic does not hit a dead recipe index. In seconds, ChefKix turns intent into a personalized cooking loop we can hold for the full session.',
+		investorTranslation:
+			'We are not a utility search result. We are a retention engine that captures both discovery and execution time.',
+		fallbackNote:
+			"If the welcome flow is already complete, open Dashboard first and narrate the same story from Tonight's Pick.",
+		actions: ['cold-start', 'dashboard', 'hero-recipe'],
+	},
+	{
+		id: 'taste-graph',
+		phase: 'Phase 2',
+		minutes: '4-7 min',
+		title: 'Semantic Search And Taste Graph',
+		personaUsername: 'testuser',
+		proof:
+			'Use the cozy-winter-food query, then pivot to Taste DNA and Year In Cooking to show that ChefKix compounds behavior into a proprietary preference graph.',
+		presenterLine:
+			'Every search, save, and cooking session sharpens the graph. The product gets more personal because the data gets richer.',
+		investorTranslation:
+			'This is the data moat: a behavioral food graph that improves recommendations, creator targeting, and future monetization.',
+		fallbackNote:
+			'If search latency spikes, go straight to Taste DNA and explain that the graph powers what the user already sees across the app.',
+		actions: ['semantic-search', 'taste-dna', 'year-in-cooking'],
+	},
+	{
+		id: 'viral-loop',
+		phase: 'Phase 3',
+		minutes: '7-11 min',
+		title: 'Co-Cook And Social Gravity',
+		personaUsername: 'testuser',
+		proof:
+			'Start a room, copy the second-screen watch URL, then show taste compatibility and messages to frame ChefKix as participatory social media, not solitary meal prep.',
+		presenterLine:
+			'Users are not just browsing recipes. They are inviting friends, comparing taste overlap, and giving each other reasons to return.',
+		investorTranslation:
+			'This is zero-CAC growth behavior: multiplayer cooking, social proof, and relationship surfaces that manufacture return visits.',
+		fallbackNote:
+			'If room creation hits a local state conflict, pivot to Taste Compatibility and Messages. The social loop story still lands cleanly.',
+		actions: ['co-cook', 'taste-compatibility', 'messages', 'referral'],
+	},
+	{
+		id: 'commerce-intent',
+		phase: 'Phase 4',
+		minutes: '11-14 min',
+		title: 'Pantry To Commerce Intent',
+		personaUsername: 'testuser',
+		proof:
+			'Open pantry, generate a meal plan, then jump to a shopping list to show the system converting ingredient reality into monetizable purchase intent.',
+		presenterLine:
+			'We meet the user at the exact moment they realize what is missing, and that is the cleanest commerce moment in food.',
+		investorTranslation:
+			'This is the revenue bridge: pantry intelligence becomes basket intent without waiting for ad clicks or generic sponsorships.',
+		fallbackNote:
+			'If meal-plan generation is slow, stay in Pantry and explain that the same inventory powers the missing-ingredients shopping jump.',
+		actions: ['pantry', 'meal-planner', 'shopping-list'],
+	},
+	{
+		id: 'creator-engine',
+		phase: 'Phase 5',
+		minutes: '14-17 min',
+		title: 'Creator Rewards And Defensible UGC',
+		personaUsername: 'chef_minh',
+		proof:
+			'Switch to Chef Minh, open creator heatmaps, then show review and battle surfaces to prove ChefKix rewards creators with tools and trust signals other platforms skip.',
+		presenterLine:
+			'Creators do not just publish here. They get analytics, verified participation signals, and better reasons to build an audience on our rails.',
+		investorTranslation:
+			'This is the UGC supply flywheel: stronger creator tooling means better content, which improves retention and monetization.',
+		fallbackNote:
+			'If you need a faster path, open Creator Heatmap first and explain reviews and battles as the trust layer on top of creator growth.',
+		actions: ['creator-heatmap', 'recipe-review', 'recipe-battle'],
+	},
+	{
+		id: 'trust-layer',
+		phase: 'Phase 6',
+		minutes: '17-20 min',
+		title: 'Operational Trust And Enterprise Control',
+		personaUsername: 'admin_demo',
+		proof:
+			'Switch to the admin persona and open reports, bans, and appeals so the room sees that moderation, escalation, and platform trust are already operational surfaces.',
+		presenterLine:
+			'Consumer social products break when trust is manual. We already have the control plane in place.',
+		investorTranslation:
+			'This is what lets the product scale globally without linear moderation headcount or brand-safety panic.',
+		fallbackNote:
+			'If time is tight, open Reports only and narrate bans and appeals as adjacent control surfaces on the same trust stack.',
+		actions: ['admin-reports', 'admin-bans', 'admin-appeals'],
+	},
+]
+
+export function getDemoAccount(username: string): DemoAccount | undefined {
+	return DEMO_ACCOUNTS.find(account => account.username === username)
+}
+
+export function getDemoPitchShortcut(
+	id: string,
+): DemoPitchShortcut | undefined {
+	return DEMO_PITCH_SHORTCUTS.find(shortcut => shortcut.id === id)
+}
 
 interface RecipeCandidate {
 	id?: string
