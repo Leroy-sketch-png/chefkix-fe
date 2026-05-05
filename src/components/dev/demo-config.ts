@@ -59,6 +59,31 @@ export interface DemoPitchBeat {
 	investorTranslation: string
 	fallbackNote: string
 	actions: string[]
+	readinessCheckIds: string[]
+}
+
+export type DemoReadinessStatus = 'ready' | 'warning' | 'blocked'
+
+export interface DemoReadinessCheck {
+	id: string
+	label: string
+	status: DemoReadinessStatus
+	severity: 'critical' | 'important' | 'optional'
+	detail: string
+	target?: string | null
+	personaUsername?: string | null
+	count?: number
+}
+
+export interface DemoReadinessReport {
+	generatedAt: string
+	summary: {
+		total: number
+		ready: number
+		warning: number
+		blocked: number
+	}
+	checks: DemoReadinessCheck[]
 }
 
 interface DemoManifestUser {
@@ -101,6 +126,7 @@ export const DEMO_BASE_URL =
 	process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
 
 const DEMO_MANIFEST_URL = '/demo-manifest.json'
+const DEMO_READINESS_URL = '/demo-readiness.json'
 
 export const DEMO_ACCOUNTS: DemoAccount[] = [
 	{
@@ -431,6 +457,11 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		fallbackNote:
 			"If the welcome flow is already complete, open Dashboard first and narrate the same story from Tonight's Pick.",
 		actions: ['cold-start', 'dashboard', 'hero-recipe'],
+		readinessCheckIds: [
+			'welcome-route',
+			'dashboard-tonight-pick',
+			'hero-recipe-route',
+		],
 	},
 	{
 		id: 'taste-graph',
@@ -447,6 +478,11 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		fallbackNote:
 			'If search latency spikes, go straight to Taste DNA and explain that the graph powers what the user already sees across the app.',
 		actions: ['semantic-search', 'taste-dna', 'year-in-cooking'],
+		readinessCheckIds: [
+			'semantic-search',
+			'taste-profile',
+			'year-in-cooking-route',
+		],
 	},
 	{
 		id: 'viral-loop',
@@ -463,6 +499,7 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		fallbackNote:
 			'If room creation hits a local state conflict, pivot to Taste Compatibility and Messages. The social loop story still lands cleanly.',
 		actions: ['co-cook', 'taste-compatibility', 'messages', 'referral'],
+		readinessCheckIds: ['co-cook-probe', 'messages', 'referral-code'],
 	},
 	{
 		id: 'commerce-intent',
@@ -479,6 +516,7 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		fallbackNote:
 			'If meal-plan generation is slow, stay in Pantry and explain that the same inventory powers the missing-ingredients shopping jump.',
 		actions: ['pantry', 'meal-planner', 'shopping-list'],
+		readinessCheckIds: ['pantry-data', 'shopping-lists-data'],
 	},
 	{
 		id: 'creator-engine',
@@ -495,6 +533,12 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		fallbackNote:
 			'If you need a faster path, open Creator Heatmap first and explain reviews and battles as the trust layer on top of creator growth.',
 		actions: ['creator-heatmap', 'recipe-review', 'recipe-battle'],
+		readinessCheckIds: [
+			'creator-stats',
+			'creator-heatmap',
+			'recipe-review-post',
+			'recipe-battle-post',
+		],
 	},
 	{
 		id: 'trust-layer',
@@ -511,6 +555,7 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		fallbackNote:
 			'If time is tight, open Reports only and narrate bans and appeals as adjacent control surfaces on the same trust stack.',
 		actions: ['admin-reports', 'admin-bans', 'admin-appeals'],
+		readinessCheckIds: ['admin-reports', 'admin-user-bans', 'admin-appeals'],
 	},
 ]
 
@@ -540,6 +585,18 @@ const PREFERRED_RECIPE_TITLES = [
 ]
 
 let demoManifestPromise: Promise<DemoManifest | null> | null = null
+let demoReadinessPromise: Promise<DemoReadinessReport | null> | null = null
+
+function getReadinessStatusRank(status: DemoReadinessStatus): number {
+	switch (status) {
+		case 'blocked':
+			return 3
+		case 'warning':
+			return 2
+		default:
+			return 1
+	}
+}
 
 function normalizeRecipeCandidates(payload: unknown): RecipeCandidate[] {
 	if (!payload || typeof payload !== 'object') {
@@ -634,6 +691,58 @@ async function loadDemoManifest(): Promise<DemoManifest | null> {
 	}
 
 	return demoManifestPromise
+}
+
+export async function loadDemoReadinessReport(): Promise<DemoReadinessReport | null> {
+	if (!demoReadinessPromise) {
+		demoReadinessPromise = fetch(DEMO_READINESS_URL, {
+			cache: 'no-store',
+			signal: AbortSignal.timeout(5000),
+		})
+			.then(async response => {
+				if (!response.ok) {
+					return null
+				}
+
+				return (await response.json()) as DemoReadinessReport
+			})
+			.catch(() => null)
+	}
+
+	return demoReadinessPromise
+}
+
+export function resetDemoReadinessCache(): void {
+	demoReadinessPromise = null
+}
+
+export function getBeatReadinessChecks(
+	beat: DemoPitchBeat,
+	report: DemoReadinessReport | null,
+): DemoReadinessCheck[] {
+	if (!report) {
+		return []
+	}
+
+	const checkIds = new Set(beat.readinessCheckIds)
+	return report.checks.filter(check => checkIds.has(check.id))
+}
+
+export function getBeatReadinessStatus(
+	beat: DemoPitchBeat,
+	report: DemoReadinessReport | null,
+): DemoReadinessStatus | null {
+	const checks = getBeatReadinessChecks(beat, report)
+	if (checks.length === 0) {
+		return null
+	}
+
+	return checks.reduce<DemoReadinessStatus>((current, check) => {
+		return getReadinessStatusRank(check.status) >
+			getReadinessStatusRank(current)
+			? check.status
+			: current
+	}, 'ready')
 }
 
 async function fetchRecipeCandidates(

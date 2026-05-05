@@ -7,9 +7,15 @@ import {
 	DEMO_BASE_URL,
 	DEMO_PITCH_BEATS,
 	DEMO_PITCH_SHORTCUTS,
+	getBeatReadinessChecks,
+	getBeatReadinessStatus,
 	getDemoAccount,
 	getDemoPitchShortcut,
+	loadDemoReadinessReport,
+	resetDemoReadinessCache,
 	resolveDemoShortcut,
+	type DemoReadinessReport,
+	type DemoReadinessStatus,
 	type DemoPitchShortcut,
 } from '@/components/dev/demo-config'
 import { toast } from 'sonner'
@@ -151,6 +157,57 @@ const QUICK_LINKS = [
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const BASE = DEMO_BASE_URL
 
+function getReadinessTone(status: DemoReadinessStatus | null): {
+	label: string
+	background: string
+	border: string
+	color: string
+} {
+	switch (status) {
+		case 'ready':
+			return {
+				label: 'Ready',
+				background: '#23863622',
+				border: '#23863666',
+				color: '#3fb950',
+			}
+		case 'warning':
+			return {
+				label: 'Watch',
+				background: '#d299221f',
+				border: '#d2992266',
+				color: '#d29922',
+			}
+		case 'blocked':
+			return {
+				label: 'Blocked',
+				background: '#f851491f',
+				border: '#f8514966',
+				color: '#f85149',
+			}
+		default:
+			return {
+				label: 'Unknown',
+				background: '#21262d',
+				border: '#30363d',
+				color: '#8b949e',
+			}
+	}
+}
+
+function formatReadinessTimestamp(value: string | null | undefined): string {
+	if (!value) {
+		return 'No report yet'
+	}
+
+	const parsed = new Date(value)
+	if (Number.isNaN(parsed.getTime())) {
+		return value
+	}
+
+	return parsed.toLocaleString()
+}
+
 async function checkServiceHealth(
 	port: number,
 ): Promise<{ up: boolean; latency: number; detail?: string }> {
@@ -205,6 +262,10 @@ export default function DevDashboard() {
 	const [isLoggingInToApp, setIsLoggingInToApp] = useState(false)
 	const [activeShortcut, setActiveShortcut] = useState<string | null>(null)
 	const [lastCheck, setLastCheck] = useState<Date | null>(null)
+	const [readinessReport, setReadinessReport] =
+		useState<DemoReadinessReport | null>(null)
+	const [isLoadingReadiness, setIsLoadingReadiness] = useState(true)
+	const [isRefreshingReadiness, setIsRefreshingReadiness] = useState(false)
 	const autorunShortcutRef = useRef<string | null>(null)
 	const accessToken = useAuthStore(state => state.accessToken)
 	const authHydrated = useAuthStore(state => state.isHydrated)
@@ -248,6 +309,27 @@ export default function DevDashboard() {
 		setCopied(label)
 		setTimeout(() => setCopied(null), 2000)
 	}, [])
+
+	const loadReadiness = useCallback(async (forceRefresh = false) => {
+		if (forceRefresh) {
+			setIsRefreshingReadiness(true)
+			resetDemoReadinessCache()
+		} else {
+			setIsLoadingReadiness(true)
+		}
+
+		try {
+			const report = await loadDemoReadinessReport()
+			setReadinessReport(report)
+		} finally {
+			setIsLoadingReadiness(false)
+			setIsRefreshingReadiness(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		void loadReadiness(false)
+	}, [loadReadiness])
 
 	// Check all service health
 	const checkServices = useCallback(async () => {
@@ -1062,22 +1144,146 @@ export default function DevDashboard() {
 						</div>
 						<div
 							style={{
-								padding: '8px 10px',
-								background: '#0d1117',
-								border: '1px solid #30363d',
-								borderRadius: 8,
 								display: 'grid',
-								gap: 4,
-								fontSize: 12,
-								color: '#e6edf3',
-								minWidth: 180,
+								gap: 8,
+								minWidth: 220,
 							}}
 						>
-							<span style={{ color: '#8b949e' }}>Current persona</span>
-							<span style={{ fontWeight: 700 }}>
-								{currentUsername || 'Not authenticated'}
-							</span>
+							<div
+								style={{
+									padding: '8px 10px',
+									background: '#0d1117',
+									border: '1px solid #30363d',
+									borderRadius: 8,
+									display: 'grid',
+									gap: 4,
+									fontSize: 12,
+									color: '#e6edf3',
+								}}
+							>
+								<span style={{ color: '#8b949e' }}>Current persona</span>
+								<span style={{ fontWeight: 700 }}>
+									{currentUsername || 'Not authenticated'}
+								</span>
+							</div>
+							<button
+								onClick={() => void loadReadiness(true)}
+								disabled={isRefreshingReadiness}
+								style={{
+									background: isRefreshingReadiness ? '#21262d' : '#1f6feb',
+									border: 'none',
+									color: '#fff',
+									padding: '8px 10px',
+									borderRadius: 8,
+									cursor: isRefreshingReadiness ? 'not-allowed' : 'pointer',
+									fontSize: 12,
+									fontWeight: 700,
+								}}
+							>
+								{isRefreshingReadiness
+									? 'Refreshing readiness...'
+									: 'Reload readiness'}
+							</button>
 						</div>
+					</div>
+					<div
+						style={{
+							background: '#0d1117',
+							border: '1px solid #30363d',
+							borderRadius: 10,
+							padding: 12,
+							display: 'grid',
+							gap: 10,
+							marginBottom: 12,
+						}}
+					>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								gap: 12,
+								flexWrap: 'wrap',
+							}}
+						>
+							<div style={{ display: 'grid', gap: 4 }}>
+								<span
+									style={{
+										fontSize: 11,
+										color: '#8b949e',
+										textTransform: 'uppercase',
+										letterSpacing: 0.8,
+									}}
+								>
+									Scene readiness
+								</span>
+								<span style={{ fontSize: 13, color: '#e6edf3' }}>
+									{isLoadingReadiness
+										? 'Loading the latest investor-demo report...'
+										: readinessReport
+											? `Generated ${formatReadinessTimestamp(readinessReport.generatedAt)}`
+											: 'Run demo-prep.bat to generate demo-readiness.json'}
+								</span>
+							</div>
+							{readinessReport && (
+								<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+									{[
+										{
+											label: 'Ready',
+											value: readinessReport.summary.ready,
+											background: '#23863622',
+											border: '#23863666',
+											color: '#3fb950',
+										},
+										{
+											label: 'Warnings',
+											value: readinessReport.summary.warning,
+											background: '#d299221f',
+											border: '#d2992266',
+											color: '#d29922',
+										},
+										{
+											label: 'Blocked',
+											value: readinessReport.summary.blocked,
+											background: '#f851491f',
+											border: '#f8514966',
+											color: '#f85149',
+										},
+									].map(item => (
+										<span
+											key={item.label}
+											style={{
+												padding: '4px 8px',
+												borderRadius: 999,
+												background: item.background,
+												border: `1px solid ${item.border}`,
+												color: item.color,
+												fontSize: 11,
+												fontWeight: 700,
+											}}
+										>
+											{item.label}: {item.value}
+										</span>
+									))}
+								</div>
+							)}
+						</div>
+						{!isLoadingReadiness && !readinessReport && (
+							<div
+								style={{
+									padding: '10px 12px',
+									background: '#1c1510',
+									border: '1px solid #5a3a18',
+									borderRadius: 8,
+									fontSize: 12,
+									color: '#d29922',
+									lineHeight: 1.5,
+								}}
+							>
+								No readiness report is present. Run demo-prep.bat before the
+								investor session so this board can fail closed.
+							</div>
+						)}
 					</div>
 					<div
 						style={{
@@ -1088,13 +1294,22 @@ export default function DevDashboard() {
 					>
 						{DEMO_PITCH_BEATS.map(beat => {
 							const persona = getDemoAccount(beat.personaUsername)
+							const readinessStatus = getBeatReadinessStatus(
+								beat,
+								readinessReport,
+							)
+							const readinessTone = getReadinessTone(readinessStatus)
+							const readinessChecks = getBeatReadinessChecks(
+								beat,
+								readinessReport,
+							)
 
 							return (
 								<div
 									key={beat.id}
 									style={{
 										background: '#0d1117',
-										border: '1px solid #30363d',
+										border: `1px solid ${readinessTone.border}`,
 										borderRadius: 10,
 										padding: 14,
 										display: 'grid',
@@ -1150,6 +1365,19 @@ export default function DevDashboard() {
 													{persona.label}
 												</span>
 											)}
+											<span
+												style={{
+													background: readinessTone.background,
+													border: `1px solid ${readinessTone.border}`,
+													color: readinessTone.color,
+													padding: '2px 8px',
+													borderRadius: 999,
+													fontSize: 11,
+													fontWeight: 700,
+												}}
+											>
+												{readinessTone.label}
+											</span>
 										</div>
 										<h3 style={{ margin: 0, fontSize: 18, color: '#e6edf3' }}>
 											{beat.title}
@@ -1240,12 +1468,117 @@ export default function DevDashboard() {
 
 									<div
 										style={{
+											background: '#11161d',
+											border: '1px solid #21262d',
+											borderRadius: 8,
+											padding: 10,
+											display: 'grid',
+											gap: 8,
+										}}
+									>
+										<div
+											style={{
+												fontSize: 11,
+												color: '#8b949e',
+												textTransform: 'uppercase',
+												letterSpacing: 0.8,
+											}}
+										>
+											Scene readiness checks
+										</div>
+										{readinessChecks.length > 0 ? (
+											readinessChecks.map(check => {
+												const checkTone = getReadinessTone(check.status)
+
+												return (
+													<div
+														key={check.id}
+														style={{
+															padding: '8px 10px',
+															borderRadius: 8,
+															background: '#0d1117',
+															border: `1px solid ${checkTone.border}`,
+															display: 'grid',
+															gap: 6,
+														}}
+													>
+														<div
+															style={{
+																display: 'flex',
+																justifyContent: 'space-between',
+																gap: 8,
+																alignItems: 'center',
+																flexWrap: 'wrap',
+															}}
+														>
+															<span
+																style={{
+																	fontSize: 12,
+																	fontWeight: 700,
+																	color: '#e6edf3',
+																}}
+															>
+																{check.label}
+															</span>
+															<span
+																style={{
+																	padding: '2px 8px',
+																	borderRadius: 999,
+																	background: checkTone.background,
+																	border: `1px solid ${checkTone.border}`,
+																	color: checkTone.color,
+																	fontSize: 10,
+																	fontWeight: 700,
+																	textTransform: 'uppercase',
+																	letterSpacing: 0.6,
+																}}
+															>
+																{checkTone.label}
+															</span>
+														</div>
+														<span
+															style={{
+																fontSize: 12,
+																color: '#8b949e',
+																lineHeight: 1.5,
+															}}
+														>
+															{check.detail}
+														</span>
+														{check.target && (
+															<span style={{ fontSize: 11, color: '#79c0ff' }}>
+																{check.target}
+															</span>
+														)}
+													</div>
+												)
+											})
+										) : (
+											<div
+												style={{
+													fontSize: 12,
+													color: '#8b949e',
+													lineHeight: 1.5,
+												}}
+											>
+												No probe data mapped to this beat yet.
+											</div>
+										)}
+									</div>
+
+									<div
+										style={{
 											padding: '10px 12px',
-											background: '#1c1510',
-											border: '1px solid #5a3a18',
+											background:
+												readinessStatus === 'blocked' ? '#2d1117' : '#1c1510',
+											border:
+												readinessStatus === 'blocked'
+													? '1px solid #f8514966'
+													: '1px solid #5a3a18',
 											borderRadius: 8,
 											fontSize: 12,
-											color: '#d29922',
+											color:
+												readinessStatus === 'blocked' ? '#f85149' : '#d29922',
 											lineHeight: 1.5,
 										}}
 									>
