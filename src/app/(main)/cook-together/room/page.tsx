@@ -39,9 +39,13 @@ export default function CookingRoomPage() {
 	const [copied, setCopied] = useState(false)
 	const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([])
 	const [isUpgrading, setIsUpgrading] = useState(false)
+	const [storeHydrated, setStoreHydrated] = useState(() =>
+		useCookingStore.persist.hasHydrated(),
+	)
 	const activityEndRef = useRef<HTMLDivElement>(null)
 	const { openCookingPanel, expandCookingPanel } = useUiStore()
 	const currentUserId = useAuthStore(s => s.user?.userId)
+	const authHydrated = useAuthStore(s => s.isHydrated)
 
 	const {
 		roomCode,
@@ -61,12 +65,27 @@ export default function CookingRoomPage() {
 	const cookCount = participants.filter(p => p.role !== 'SPECTATOR').length
 	const spectatorCount = participants.filter(p => p.role === 'SPECTATOR').length
 
+	useEffect(() => {
+		if (storeHydrated) {
+			return
+		}
+
+		const unsubscribe = useCookingStore.persist.onFinishHydration(() => {
+			setStoreHydrated(true)
+		})
+
+		return unsubscribe
+	}, [storeHydrated])
+
 	// Redirect if not in a room
 	useEffect(() => {
+		if (!authHydrated || !storeHydrated) {
+			return
+		}
 		if (!isInRoom || !roomCode) {
 			router.replace('/cook-together')
 		}
-	}, [isInRoom, roomCode, router])
+	}, [authHydrated, isInRoom, roomCode, router, storeHydrated])
 
 	// Auto-scroll activity feed
 	useEffect(() => {
@@ -238,6 +257,10 @@ export default function CookingRoomPage() {
 		await leaveRoom()
 		router.replace('/cook-together')
 	}, [leaveRoom, router])
+
+	if (!authHydrated || !storeHydrated) {
+		return null
+	}
 
 	if (!isInRoom || !roomCode) {
 		return null // Redirect will happen via useEffect

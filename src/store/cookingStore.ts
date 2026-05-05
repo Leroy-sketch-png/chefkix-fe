@@ -1082,9 +1082,14 @@ export const useCookingStore = create<CookingState>()(
 							recipeId: state.session.recipeId,
 						}
 					: null,
+				recipe: state.recipe,
 				checkedIngredients: state.checkedIngredients,
 				localTimers: Array.from(state.localTimers.entries()),
 				stepRenderMode: state.stepRenderMode,
+				roomCode: state.roomCode,
+				participants: state.participants,
+				isInRoom: state.isInRoom,
+				isHost: state.isHost,
 			}),
 			merge: (persisted: unknown, currentState: CookingState) => {
 				const p = persisted as Partial<
