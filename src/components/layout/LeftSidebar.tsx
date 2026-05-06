@@ -243,69 +243,73 @@ export const LeftSidebar = () => {
 
 	return (
 		<nav
-			className='hidden border-r border-border-subtle bg-bg-card px-3 py-6 md:flex md:w-nav md:flex-col md:items-center md:gap-4'
+			className='hidden min-h-0 border-r border-border-subtle bg-bg-card px-3 py-6 md:flex md:w-nav md:flex-col md:items-center md:gap-4'
 			aria-label={t('ariaMainNavigation')}
 		>
-			{/* Primary navigation — filtered for auth state */}
-			{visiblePrimaryItems.map(renderNavItem)}
+			<div className='flex min-h-0 w-full flex-1 flex-col items-center gap-4 overflow-y-auto overscroll-contain pb-2'>
+				{/* Primary navigation — filtered for auth state */}
+				{visiblePrimaryItems.map(renderNavItem)}
 
-			{/* More toggle — only show if there are secondary items */}
-			{secondaryItems.length > 0 && (
-				<button
-					type='button'
-					onClick={() => setShowMore(prev => !prev)}
-					className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-radius px-1 py-1.5 text-xs font-medium leading-tight text-text-secondary transition-colors duration-300 hover:text-text-primary'
-					title={showMore ? t('showLess') : t('more')}
-					aria-expanded={showMore}
-				>
-					<motion.div
-						whileHover={{
-							...ICON_BUTTON_HOVER,
-							scale: 1.15,
-						}}
-						whileTap={ICON_BUTTON_TAP}
-						transition={TRANSITION_SPRING}
+				{/* More toggle — only show if there are secondary items */}
+				{secondaryItems.length > 0 && (
+					<button
+						type='button'
+						onClick={() => setShowMore(prev => !prev)}
+						className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-radius px-1 py-1.5 text-xs font-medium leading-tight text-text-secondary transition-colors duration-300 hover:text-text-primary'
+						title={showMore ? t('showLess') : t('more')}
+						aria-expanded={showMore}
 					>
-						<MoreHorizontal className='size-6' />
-					</motion.div>
-					<div className='text-2xs leading-tight'>
-						{showMore ? t('less') : t('more')}
-					</div>
-				</button>
-			)}
-
-			{/* Secondary navigation (collapsible) */}
-			<AnimatePresence>
-				{showMore && secondaryItems.length > 0 && (
-					<motion.div
-						initial={{ opacity: 0, height: 0 }}
-						animate={{ opacity: 1, height: 'auto' }}
-						exit={{ opacity: 0, height: 0 }}
-						transition={TRANSITION_SPRING}
-						className='flex w-full flex-col items-center gap-4 overflow-hidden'
-					>
-						<div className='mx-auto h-px w-8 bg-border-subtle' />
-						{secondaryItems.map(renderNavItem)}
-					</motion.div>
+						<motion.div
+							whileHover={{
+								...ICON_BUTTON_HOVER,
+								scale: 1.15,
+							}}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+						>
+							<MoreHorizontal className='size-6' />
+						</motion.div>
+						<div className='text-2xs leading-tight'>
+							{showMore ? t('less') : t('more')}
+						</div>
+					</button>
 				)}
-			</AnimatePresence>
+
+				{/* Secondary navigation (collapsible) */}
+				<AnimatePresence>
+					{showMore && secondaryItems.length > 0 && (
+						<motion.div
+							initial={{ opacity: 0, height: 0 }}
+							animate={{ opacity: 1, height: 'auto' }}
+							exit={{ opacity: 0, height: 0 }}
+							transition={TRANSITION_SPRING}
+							className='flex w-full flex-col items-center gap-4 overflow-hidden'
+						>
+							<div className='mx-auto h-px w-8 bg-border-subtle' />
+							{secondaryItems.map(renderNavItem)}
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</div>
 
 			{/* Guest CTA — sign in / get started at the bottom of sidebar */}
 			{!isAuthenticated && (
-				<div className='mt-auto flex w-full flex-col items-center gap-2 pt-4'>
+				<div className='w-full flex-shrink-0 pt-4'>
 					<div className='mx-auto mb-2 h-px w-8 bg-border-subtle' />
-					<Link
-						href={guestSignInHref}
-						className='flex h-11 w-full items-center justify-center rounded-radius text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-					>
-						{t('signIn')}
-					</Link>
-					<Link
-						href={guestSignUpHref}
-						className='flex h-11 w-full items-center justify-center whitespace-nowrap rounded-radius bg-brand text-xs font-bold text-white shadow-card transition-all hover:shadow-warm'
-					>
-						{t('getStarted')}
-					</Link>
+					<div className='flex w-full flex-col items-center gap-2'>
+						<Link
+							href={guestSignInHref}
+							className='flex h-11 w-full items-center justify-center rounded-radius text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						>
+							{t('signIn')}
+						</Link>
+						<Link
+							href={guestSignUpHref}
+							className='flex h-11 w-full items-center justify-center whitespace-nowrap rounded-radius bg-brand text-xs font-bold text-white shadow-card transition-all hover:shadow-warm'
+						>
+							{t('getStarted')}
+						</Link>
+					</div>
 				</div>
 			)}
 		</nav>

@@ -31,6 +31,7 @@ import { useTranslations } from '@/i18n/hooks'
 import { formatShortTimeAgo } from '@/lib/utils'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
+import { Portal } from '@/components/ui/portal'
 
 type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
 
@@ -278,7 +279,7 @@ export const NotificationsPopup = () => {
 	}
 
 	return (
-		<>
+		<Portal>
 			{/* Backdrop */}
 			<div
 				className='fixed inset-0 z-popover'
@@ -287,7 +288,7 @@ export const NotificationsPopup = () => {
 			/>
 
 			{/* Dropdown */}
-			<div className='fixed right-2 top-16 z-popover w-[calc(100vw-16px)] max-w-md animate-slideInDown overflow-hidden rounded-radius border border-border bg-card text-card-foreground shadow-glow md:absolute md:right-6 md:w-96'>
+			<div className='fixed right-2 top-16 z-popover w-[calc(100vw-16px)] max-w-md animate-slideInDown overflow-hidden rounded-radius border border-border bg-card text-card-foreground shadow-glow md:right-6 md:w-96'>
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border p-4'>
 					<div className='flex items-center gap-2'>
@@ -573,6 +574,6 @@ export const NotificationsPopup = () => {
 					</Link>
 				</div>
 			</div>
-		</>
+		</Portal>
 	)
 }

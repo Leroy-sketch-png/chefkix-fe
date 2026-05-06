@@ -141,6 +141,7 @@ interface ChallengeReminderNotification extends BaseNotification {
 	challengeDescription: string
 	xpBonusPercent: number
 	hoursRemaining: number
+	timeLabel?: string
 	onSeeRecipes?: () => void
 }
 
@@ -786,6 +787,7 @@ const ChallengeReminderItem = ({
 	challengeDescription,
 	xpBonusPercent,
 	hoursRemaining,
+	timeLabel,
 	timestamp,
 	isRead,
 	onSeeRecipes,
@@ -811,16 +813,20 @@ const ChallengeReminderItem = ({
 						<> {challengeDescription}</>
 					)}
 				</p>
-				<div className='mt-1.5 flex items-center gap-2'>
-					{xpBonusPercent > 0 && (
-						<MetaTag className='bg-xp/15 text-xp'>
-							{t('challengeXPBonus', { percent: xpBonusPercent })}
-						</MetaTag>
-					)}
-					<span className='text-xs text-text-muted'>
-						{t('endsInHours', { count: hoursRemaining })}
-					</span>
-				</div>
+				{(xpBonusPercent > 0 || timeLabel || hoursRemaining > 0) && (
+					<div className='mt-1.5 flex flex-wrap items-center gap-2'>
+						{xpBonusPercent > 0 && (
+							<MetaTag className='bg-xp/15 text-xp'>
+								{t('challengeXPBonus', { percent: xpBonusPercent })}
+							</MetaTag>
+						)}
+						{(timeLabel || hoursRemaining > 0) && (
+							<span className='text-xs text-text-muted'>
+								{timeLabel || t('endsInHours', { count: hoursRemaining })}
+							</span>
+						)}
+					</div>
+				)}
 			</div>
 
 			{/* Action */}

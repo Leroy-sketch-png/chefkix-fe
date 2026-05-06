@@ -112,6 +112,53 @@ function parseDaysFromContent(content?: string): number {
 	return m ? parseInt(m[1], 10) : 0
 }
 
+function parseHoursFromContent(content?: string): number {
+	if (!content) return 0
+	const hourMatch = content.match(/(\d+)\s*hours?\s*(?:remaining|left)/i)
+	if (hourMatch) return parseInt(hourMatch[1], 10)
+	const dayMatch = content.match(/(\d+)\s*days?\s*(?:remaining|left)/i)
+	if (dayMatch) return parseInt(dayMatch[1], 10) * 24
+	if (/tomorrow/i.test(content)) return 24
+	return 0
+}
+
+function parseChallengeContent(content?: string): {
+	title?: string
+	description?: string
+	timeLabel?: string
+} {
+	if (!content) return {}
+	const normalized = content.replace(/\s+/g, ' ').trim()
+
+	const availableMatch = normalized.match(
+		/new daily challenge:\s*(.+?)\s+[—-]\s+(.+?)(?:\s*\(bonus:.*\))?$/i,
+	)
+	if (availableMatch) {
+		return {
+			title: availableMatch[1].trim(),
+			description: availableMatch[2].trim(),
+		}
+	}
+
+	const reminderPatterns = [
+		/today's challenge:\s*(.+?)\s+[—-]\s+(.+)$/i,
+		/challenge ending soon:\s*(.+?)\s+[—-]\s+(.+)$/i,
+		/challenge ending tomorrow:\s*(.+?)\s+[—-]\s+(.+)$/i,
+	]
+
+	for (const pattern of reminderPatterns) {
+		const match = normalized.match(pattern)
+		if (match) {
+			return {
+				title: match[1].trim(),
+				timeLabel: match[2].trim().replace(/[!.]+$/, ''),
+			}
+		}
+	}
+
+	return {}
+}
+
 // Transform API notification to gamified format
 const transformToGamifiedNotification = (
 	notif: APINotification,
@@ -178,7 +225,9 @@ const transformToGamifiedNotification = (
 				type: 'streak_warning',
 				streakCount:
 					(data.streakCount as number) || parseStreakFromContent(notif.content),
-				hoursRemaining: (data.hoursRemaining as number) || 0,
+				hoursRemaining:
+					(data.hoursRemaining as number) ||
+					parseHoursFromContent(notif.content),
 				timestamp,
 				isRead: notif.isRead,
 			}
@@ -202,17 +251,24 @@ const transformToGamifiedNotification = (
 			} as GamifiedNotification
 		}
 		case 'CHALLENGE_AVAILABLE':
-		case 'CHALLENGE_REMINDER':
+		case 'CHALLENGE_REMINDER': {
+			const parsed = parseChallengeContent(notif.content)
 			return {
 				id: notif.id,
 				type: 'challenge_reminder',
-				challengeTitle: (data.challengeTitle as string) || 'Challenge',
-				challengeDescription: (data.challengeDescription as string) || '',
+				challengeTitle:
+					(data.challengeTitle as string) || parsed.title || 'Challenge',
+				challengeDescription:
+					(data.challengeDescription as string) || parsed.description || '',
 				xpBonusPercent: (data.xpBonusPercent as number) || 0,
-				hoursRemaining: (data.hoursRemaining as number) || 24,
+				hoursRemaining:
+					(data.hoursRemaining as number) ||
+					parseHoursFromContent(parsed.timeLabel || notif.content),
+				timeLabel: parsed.timeLabel,
 				timestamp,
 				isRead: notif.isRead,
 			}
+		}
 		case 'WEEKEND_NUDGE':
 			return {
 				id: notif.id,
@@ -840,6 +896,39 @@ export default function NotificationsPage() {
 										extraProps.onFindRecipe = () =>
 											startNavigationTransition(() => {
 												router.push('/explore')
+											})
+									}
+									if (notif.type === 'badge_unlocked') {
+										extraProps.onViewBadge = () =>
+											startNavigationTransition(() => {
+												router.push('/profile/badges')
+											})
+									}
+									if (
+										notif.type === 'post_deadline' ||
+										notif.type === 'post_deadline_urgent'
+									) {
+										extraProps.onPostNow = () =>
+											startNavigationTransition(() => {
+												router.push('/create')
+											})
+									}
+									if (notif.type === 'challenge_reminder') {
+										extraProps.onSeeRecipes = () =>
+											startNavigationTransition(() => {
+												router.push('/challenges')
+											})
+									}
+									if (notif.type === 'weekend_nudge') {
+										extraProps.onExplore = () =>
+											startNavigationTransition(() => {
+												router.push('/explore')
+											})
+									}
+									if (notif.type === 'pantry_expiring') {
+										extraProps.onViewPantry = () =>
+											startNavigationTransition(() => {
+												router.push('/pantry')
 											})
 									}
 									return (

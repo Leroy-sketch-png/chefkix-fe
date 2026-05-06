@@ -10,13 +10,19 @@ interface TextLoopProps {
 	/** Interval in ms between transitions */
 	interval?: number
 	className?: string
+	textClassName?: string
 }
 
 /**
  * Rotating text that smoothly transitions between an array of strings.
  * Used for hero section taglines, loading messages, tip cycling.
  */
-export function TextLoop({ texts, interval = 3000, className }: TextLoopProps) {
+export function TextLoop({
+	texts,
+	interval = 3000,
+	className,
+	textClassName,
+}: TextLoopProps) {
 	const [index, setIndex] = React.useState(0)
 
 	React.useEffect(() => {
@@ -36,7 +42,7 @@ export function TextLoop({ texts, interval = 3000, className }: TextLoopProps) {
 					animate={{ y: 0, opacity: 1 }}
 					exit={{ y: '-100%', opacity: 0 }}
 					transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
-					className='inline-block'
+					className={cn('inline-block', textClassName)}
 				>
 					{texts[index]}
 				</motion.span>

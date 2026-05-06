@@ -338,12 +338,11 @@ export default function HomePage() {
 						className='mb-4 text-3xl font-extrabold leading-tight text-text md:text-4xl lg:text-5xl'
 					>
 						{t('heroTitle1')}{' '}
-						<span className='bg-gradient-hero-text bg-clip-text text-transparent'>
-							<TextLoop
-								texts={[t('heroTitlePro'), t('heroTitleGamer')]}
-								interval={2500}
-							/>
-						</span>
+						<TextLoop
+							texts={[t('heroTitlePro'), t('heroTitleGamer')]}
+							interval={2500}
+							textClassName='bg-gradient-hero-text bg-clip-text text-transparent'
+						/>
 					</motion.h1>
 
 					<motion.p

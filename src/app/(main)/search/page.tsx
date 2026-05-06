@@ -832,7 +832,7 @@ function SearchContent() {
 							</Link>
 
 							<Link
-								href='/dashboard'
+								href='/feed'
 								className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
