@@ -297,12 +297,12 @@ export default function HomePage() {
 						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-hero'>
 							<ChefHat className='size-5 text-white' />
 						</div>
-						<span className='text-xl font-bold text-text'>ChefKix</span>
+						<span className='text-xl font-bold text-text-primary'>ChefKix</span>
 					</div>
 					<div className='flex items-center gap-3'>
 						<Link
 							href='/auth/sign-in'
-							className='rounded-radius px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:text-text'
+							className='rounded-radius px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary'
 						>
 							{t('signIn')}
 						</Link>
@@ -335,7 +335,7 @@ export default function HomePage() {
 
 					<motion.h1
 						variants={staggerItem}
-						className='mb-4 text-3xl font-extrabold leading-tight text-text md:text-4xl lg:text-5xl'
+						className='mb-4 text-3xl font-extrabold leading-tight text-text-primary md:text-4xl lg:text-5xl'
 					>
 						{t('heroTitle1')}{' '}
 						<TextLoop
@@ -365,7 +365,7 @@ export default function HomePage() {
 						</Link>
 						<Link
 							href='/explore'
-							className='flex items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text shadow-card transition-all hover:shadow-warm'
+							className='flex items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text-primary shadow-card transition-all hover:shadow-warm'
 						>
 							{t('browseRecipes')}
 						</Link>
@@ -377,7 +377,7 @@ export default function HomePage() {
 					<div className='mb-6 flex items-center justify-between'>
 						<div className='flex items-center gap-2'>
 							<TrendingUp className='size-5 text-brand' />
-							<h2 className='text-xl font-bold text-text'>
+							<h2 className='text-xl font-bold text-text-primary'>
 								{t('trendingTonight')}
 							</h2>
 						</div>
@@ -408,7 +408,7 @@ export default function HomePage() {
 					) : recipesError ? (
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
 							<AlertTriangle className='mx-auto mb-3 size-10 text-warning' />
-							<p className='mb-2 font-medium text-text'>
+							<p className='mb-2 font-medium text-text-primary'>
 								{t('couldntLoadRecipes')}
 							</p>
 							<p className='mb-4 text-sm text-text-secondary'>{recipesError}</p>
@@ -475,7 +475,7 @@ export default function HomePage() {
 									{t('builtForHomeCooks')}
 								</span>
 							</div>
-							<h2 className='text-2xl font-bold text-text md:text-3xl'>
+							<h2 className='text-2xl font-bold text-text-primary md:text-3xl'>
 								<HighlightOnScroll
 									text={t('everythingYouNeed')}
 									as='span'
@@ -508,7 +508,7 @@ export default function HomePage() {
 									{t('seeHowItWorks')}
 								</span>
 							</div>
-							<h2 className='mb-2 text-2xl font-bold text-text md:text-3xl'>
+							<h2 className='mb-2 text-2xl font-bold text-text-primary md:text-3xl'>
 								<TextReveal
 									text={t('cookModeGuides')}
 									preset='slideUp'
@@ -533,7 +533,7 @@ export default function HomePage() {
 										<ChefHat className='size-5 text-brand' />
 									</div>
 									<div>
-										<h3 className='font-bold text-text'>
+										<h3 className='font-bold text-text-primary'>
 											{t('classicPastaDemo')}
 										</h3>
 										<p className='text-xs text-text-muted'>
@@ -559,7 +559,9 @@ export default function HomePage() {
 											{t('currentStep')}
 										</span>
 									</div>
-									<p className='text-lg text-text'>{t('demoInstruction')}</p>
+									<p className='text-lg text-text-primary'>
+										{t('demoInstruction')}
+									</p>
 								</div>
 
 								{/* Demo Timer */}
@@ -571,7 +573,7 @@ export default function HomePage() {
 										<p className='text-sm font-medium text-text-secondary'>
 											{t('timer')}
 										</p>
-										<p className='text-2xl font-bold tabular-nums text-text'>
+										<p className='text-2xl font-bold tabular-nums text-text-primary'>
 											8:00
 										</p>
 									</div>
@@ -643,14 +645,14 @@ export default function HomePage() {
 									type='button'
 									aria-label='Close demo'
 									onClick={() => setShowCookModeDemo(false)}
-									className='absolute right-4 top-4 rounded-full p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+									className='absolute right-4 top-4 rounded-full p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 								>
 									<X className='size-5' />
 								</button>
 								<div className='mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-brand/10'>
 									<Timer className='size-8 text-brand' />
 								</div>
-								<h3 className='mb-2 text-xl font-bold text-text'>
+								<h3 className='mb-2 text-xl font-bold text-text-primary'>
 									{t('timerStarted')}
 								</h3>
 								<p className='mb-6 text-text-secondary'>
@@ -706,7 +708,7 @@ export default function HomePage() {
 						>
 							<Flame className='size-8 text-white' />
 						</motion.div>
-						<h2 className='mb-3 text-2xl font-bold text-text md:text-3xl'>
+						<h2 className='mb-3 text-2xl font-bold text-text-primary md:text-3xl'>
 							{t('kitchenWaiting')}
 						</h2>
 						<p className='mb-6 text-text-secondary'>{t('bottomCtaDesc')}</p>
@@ -730,26 +732,26 @@ export default function HomePage() {
 								<div className='flex size-8 items-center justify-center rounded-xl bg-gradient-hero'>
 									<ChefHat className='size-4 text-white' />
 								</div>
-								<span className='font-bold text-text'>ChefKix</span>
+								<span className='font-bold text-text-primary'>ChefKix</span>
 							</div>
 
 							{/* Footer links */}
 							<div className='flex flex-wrap gap-x-8 gap-y-2 text-sm'>
 								<Link
 									href='/explore'
-									className='text-text-muted transition-colors hover:text-text'
+									className='text-text-muted transition-colors hover:text-text-primary'
 								>
 									{t('browseRecipes')}
 								</Link>
 								<Link
 									href='/auth/sign-up'
-									className='text-text-muted transition-colors hover:text-text'
+									className='text-text-muted transition-colors hover:text-text-primary'
 								>
 									{t('createAccount')}
 								</Link>
 								<Link
 									href='/auth/sign-in'
-									className='text-text-muted transition-colors hover:text-text'
+									className='text-text-muted transition-colors hover:text-text-primary'
 								>
 									{t('signIn')}
 								</Link>

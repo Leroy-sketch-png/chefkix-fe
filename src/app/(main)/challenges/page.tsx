@@ -281,7 +281,7 @@ export default function ChallengesPage() {
 													<Trophy className='size-5 text-white' />
 												</div>
 												<div>
-													<h3 className='text-lg font-bold text-text'>
+													<h3 className='text-lg font-bold text-text-primary'>
 														{weeklyChallenge.title}
 													</h3>
 													<p className='text-sm text-text-secondary'>
@@ -393,7 +393,7 @@ export default function ChallengesPage() {
 															{ch.emoji || '👥'}
 														</div>
 														<div>
-															<h3 className='text-lg font-bold text-text'>
+															<h3 className='text-lg font-bold text-text-primary'>
 																{ch.title}
 															</h3>
 															<p className='text-sm text-text-secondary'>
@@ -518,7 +518,7 @@ export default function ChallengesPage() {
 														}}
 													>
 														<span className='text-3xl'>{ev.emoji || '🌿'}</span>
-														<h3 className='text-lg font-bold text-text'>
+														<h3 className='text-lg font-bold text-text-primary'>
 															{ev.title}
 														</h3>
 													</div>
@@ -628,7 +628,7 @@ export default function ChallengesPage() {
 											<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
 										</div>
 										<div>
-											<h3 className='font-semibold text-text'>
+											<h3 className='font-semibold text-text-primary'>
 												{t('challengeHistory')}
 											</h3>
 											<p className='text-sm text-text-muted'>
