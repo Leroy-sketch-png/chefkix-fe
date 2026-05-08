@@ -30,7 +30,10 @@ import { useAuth } from '@/hooks/useAuth'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { getProfileDisplayName } from '@/lib/types/profile'
 import { logDevError } from '@/lib/dev-log'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ── Card slide data ──
 interface RecapCard {
@@ -508,18 +511,18 @@ export default function YearInCookingPage() {
 						tone='streak'
 					>
 						<div className='flex items-center gap-3'>
-						<motion.button
-							type='button'
-							onClick={() => router.back()}
-							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-							aria-label={t('ariaGoBack')}
-						>
-							<ArrowLeft className='size-5' />
-						</motion.button>
-						<h1 className='text-xl font-bold text-text'>
-							{t('yearInCooking')}
-						</h1>
+							<motion.button
+								type='button'
+								onClick={() => router.back()}
+								whileTap={BUTTON_SUBTLE_TAP}
+								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+								aria-label={t('ariaGoBack')}
+							>
+								<ArrowLeft className='size-5' />
+							</motion.button>
+							<h1 className='text-xl font-bold text-text'>
+								{t('yearInCooking')}
+							</h1>
 						</div>
 					</PremiumSurface>
 					<EmptyStateGamified
@@ -545,23 +548,23 @@ export default function YearInCookingPage() {
 					className='mb-6 p-3 md:p-4'
 				>
 					<div className='flex items-center gap-3'>
-					<motion.button
-						type='button'
-						onClick={() => router.back()}
-						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-						aria-label={t('ariaGoBack')}
-					>
-						<ArrowLeft className='size-5' />
-					</motion.button>
-					<div className='flex-1'>
-						<h1 className='text-xl font-bold text-text'>
-							{t('yearInCooking')}
-						</h1>
-						<p className='text-sm text-text-muted'>
-							{page + 1} / {cards.length}
-						</p>
-					</div>
+						<motion.button
+							type='button'
+							onClick={() => router.back()}
+							whileTap={BUTTON_SUBTLE_TAP}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoBack')}
+						>
+							<ArrowLeft className='size-5' />
+						</motion.button>
+						<div className='flex-1'>
+							<h1 className='text-xl font-bold text-text'>
+								{t('yearInCooking')}
+							</h1>
+							<p className='text-sm text-text-muted'>
+								{page + 1} / {cards.length}
+							</p>
+						</div>
 					</div>
 				</PremiumSurface>
 
@@ -576,34 +579,34 @@ export default function YearInCookingPage() {
 						className='mb-3'
 					/>
 					<div className='relative overflow-hidden rounded-2xl'>
-					{/* Progress dots */}
-					<div className='mb-4 flex justify-center gap-1.5'>
-						{cards.map((c, i) => (
-							<button
-								type='button'
-								key={c.id}
-								onClick={() => setPage([i, i > page ? 1 : -1])}
-								className={`h-1.5 rounded-full transition-all duration-300 ${
-									i === page
-										? 'w-6 bg-brand'
-										: i < page
-											? 'w-1.5 bg-brand/40'
-											: 'w-1.5 bg-border'
-								}`}
-								aria-label={t('yicGoToCard', { num: i + 1 })}
-							/>
-						))}
+						{/* Progress dots */}
+						<div className='mb-4 flex justify-center gap-1.5'>
+							{cards.map((c, i) => (
+								<button
+									type='button'
+									key={c.id}
+									onClick={() => setPage([i, i > page ? 1 : -1])}
+									className={`h-1.5 rounded-full transition-all duration-300 ${
+										i === page
+											? 'w-6 bg-brand'
+											: i < page
+												? 'w-1.5 bg-brand/40'
+												: 'w-1.5 bg-border'
+									}`}
+									aria-label={t('yicGoToCard', { num: i + 1 })}
+								/>
+							))}
 						</div>
-				</div>
-			</PremiumSurface>
+					</div>
+				</PremiumSurface>
 
-			<PremiumSurface
-				eyebrow='Export'
-				chipText='Share-ready'
-				showOrbs={false}
-				className='p-3 md:p-4'
-			>
-						<div className='flex justify-center gap-3'>
+				<PremiumSurface
+					eyebrow='Export'
+					chipText='Share-ready'
+					showOrbs={false}
+					className='p-3 md:p-4'
+				>
+					<div className='flex justify-center gap-3'>
 						<AnimatePresence initial={false} custom={direction} mode='wait'>
 							<motion.div
 								key={page}
@@ -666,47 +669,47 @@ export default function YearInCookingPage() {
 							<ChevronRight className='size-5' />
 						</motion.button>
 					)}
-				</div>
 
-				{/* Share / Download */}
-				<div className='flex justify-center gap-3'>
-					<motion.button
-						type='button'
-						whileTap={BUTTON_SUBTLE_TAP}
-						onClick={handleDownload}
-						disabled={isGenerating}
-						className='flex items-center gap-2 rounded-xl border border-border bg-bg-card px-5 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-					>
-						{isGenerating ? (
-							<Loader2 className='size-4 animate-spin' />
-						) : (
-							<Download className='size-4' />
-						)}
-						{t('yicDownload')}
-					</motion.button>
-					<motion.button
-						type='button'
-						whileTap={BUTTON_SUBTLE_TAP}
-						onClick={handleShare}
-						disabled={isGenerating}
-						className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-					>
-						{copied ? (
-							<Check className='size-4' />
-						) : isGenerating ? (
-							<Loader2 className='size-4 animate-spin' />
-						) : (
-							<Share2 className='size-4' />
-						)}
-						{copied ? t('yicCopied') : t('yicShare')}
-					</motion.button>
-				</div>
+					{/* Share / Download */}
+					<div className='flex justify-center gap-3'>
+						<motion.button
+							type='button'
+							whileTap={BUTTON_SUBTLE_TAP}
+							onClick={handleDownload}
+							disabled={isGenerating}
+							className='flex items-center gap-2 rounded-xl border border-border bg-bg-card px-5 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						>
+							{isGenerating ? (
+								<Loader2 className='size-4 animate-spin' />
+							) : (
+								<Download className='size-4' />
+							)}
+							{t('yicDownload')}
+						</motion.button>
+						<motion.button
+							type='button'
+							whileTap={BUTTON_SUBTLE_TAP}
+							onClick={handleShare}
+							disabled={isGenerating}
+							className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						>
+							{copied ? (
+								<Check className='size-4' />
+							) : isGenerating ? (
+								<Loader2 className='size-4 animate-spin' />
+							) : (
+								<Share2 className='size-4' />
+							)}
+							{copied ? t('yicCopied') : t('yicShare')}
+						</motion.button>
+					</div>
 
-				{/* Hint */}
-			<p className='mt-4 text-center text-xs text-text-muted'>
-				{t('yicKeyboardHint')}
-			</p>
-		</PremiumSurface>
+					{/* Hint */}
+					<p className='mt-4 text-center text-xs text-text-muted'>
+						{t('yicKeyboardHint')}
+					</p>
+				</PremiumSurface>
+			</PageContainer>
 		</PageTransition>
 	)
 }
