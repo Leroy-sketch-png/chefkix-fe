@@ -194,7 +194,7 @@ function LeaderboardItemContent({
 
 			{/* User Info */}
 			<div className='flex flex-1 items-center gap-3'>
-				<div className='relative size-11 flex-shrink-0 overflow-hidden rounded-full'>
+				<div className='relative size-11 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-border-subtle'>
 					<AvatarWithFallback
 						src={entry.avatarUrl}
 						alt={entry.displayName}
@@ -202,7 +202,7 @@ function LeaderboardItemContent({
 					/>
 				</div>
 				<div className='flex flex-col'>
-					<span className='text-base font-bold text-text'>
+					<span className='text-base font-bold text-text-primary'>
 						{isCurrentUser ? t('you') : entry.displayName}
 					</span>
 					<span className='text-xs text-text-tertiary'>
@@ -257,7 +257,7 @@ function LeaderboardItemContent({
 
 			{/* XP */}
 			<div className='min-w-thumbnail-md text-right'>
-				<span className='block text-base font-bold tracking-tight text-text'>
+				<span className='block text-base font-bold tracking-tight text-text-primary'>
 					<AnimatedNumber
 						value={entry.xpThisWeek}
 						format={n => n.toLocaleString()}

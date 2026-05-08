@@ -570,11 +570,11 @@ const SocialNotificationItem = ({
 
 			{/* Content */}
 			<div className='flex-1 min-w-0'>
-				<p className='text-sm text-text'>
-					<span className='font-semibold text-text'>{user}</span>{' '}
+				<p className='text-sm text-text-primary'>
+					<span className='font-semibold text-text-primary'>{user}</span>{' '}
 					<span className='text-text-secondary'>{action}</span>
 					{target && (
-						<span className='font-medium text-text'>
+						<span className='font-medium text-text-primary'>
 							{' '}
 							&ldquo;{target}&rdquo;
 						</span>

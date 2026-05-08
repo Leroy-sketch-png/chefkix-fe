@@ -214,13 +214,15 @@ export function SignUpForm() {
 							name='firstName'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>{t('firstName')}</FormLabel>
+									<FormLabel className='text-sm font-medium text-text-primary'>
+										{t('firstName')}
+									</FormLabel>
 									<FormControl>
 										<Input
 											placeholder={t('firstNamePlaceholder')}
 											autoComplete='given-name'
 											{...field}
-											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
@@ -232,13 +234,15 @@ export function SignUpForm() {
 							name='lastName'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>{t('lastName')}</FormLabel>
+									<FormLabel className='text-sm font-medium text-text-primary'>
+										{t('lastName')}
+									</FormLabel>
 									<FormControl>
 										<Input
 											placeholder={t('lastNamePlaceholder')}
 											autoComplete='family-name'
 											{...field}
-											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
@@ -252,7 +256,9 @@ export function SignUpForm() {
 							name='username'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>{t('username')}</FormLabel>
+									<FormLabel className='text-sm font-medium text-text-primary'>
+										{t('username')}
+									</FormLabel>
 									<FormControl>
 										<div className='relative'>
 											<Input
@@ -263,7 +269,7 @@ export function SignUpForm() {
 												spellCheck={false}
 												{...field}
 												className={cn(
-													'h-11 rounded-xl border-border-medium bg-bg-elevated pr-10 text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20',
+													'h-11 rounded-xl border-border-medium bg-bg-elevated pr-10 text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20',
 													usernameStatus === 'taken' &&
 														'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20',
 													usernameStatus === 'available' &&
@@ -313,7 +319,9 @@ export function SignUpForm() {
 							name='email'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>{t('email')}</FormLabel>
+									<FormLabel className='text-sm font-medium text-text-primary'>
+										{t('email')}
+									</FormLabel>
 									<FormControl>
 										<Input
 											placeholder={t('emailPlaceholder')}
@@ -323,7 +331,7 @@ export function SignUpForm() {
 											autoCorrect='off'
 											spellCheck={false}
 											{...field}
-											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
@@ -337,13 +345,15 @@ export function SignUpForm() {
 							name='password'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>{t('password')}</FormLabel>
+									<FormLabel className='text-sm font-medium text-text-primary'>
+										{t('password')}
+									</FormLabel>
 									<FormControl>
 										<PasswordInput
 											placeholder={t('createSecurePassword')}
 											autoComplete='new-password'
 											{...field}
-											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
+											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									{/* Password strength meter */}

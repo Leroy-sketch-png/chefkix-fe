@@ -309,7 +309,7 @@ export const StepItem = ({
 					onChange={e => onUpdate({ instruction: e.target.value })}
 					maxLength={2000}
 					placeholder={t('describeStepPlaceholder')}
-					className='min-h-16 w-full resize-none rounded-xl border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='min-h-16 w-full resize-none rounded-xl border border-border-subtle bg-bg-card p-3 text-sm text-text-primary placeholder:text-text-muted focus:border-brand/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-colors'
 				/>
 
 				{/* Timer & Technique Tags */}
@@ -348,7 +348,7 @@ export const StepItem = ({
 							<button
 								type='button'
 								onClick={handleTimerSave}
-								className='ml-1 rounded bg-brand px-2 py-0.5 text-xs font-semibold text-white'
+								className='ml-1 rounded-xl bg-brand px-2 py-0.5 text-xs font-semibold text-white'
 							>
 								✓
 							</button>

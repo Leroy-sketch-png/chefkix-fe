@@ -82,7 +82,7 @@ const SignInPage = () => {
 						<ChefHat className='size-5 text-white sm:size-6' />
 					</motion.div>
 					<motion.h1
-						className='text-xl font-bold text-text sm:text-2xl'
+						className='text-xl font-bold text-text-primary sm:text-2xl'
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2 }}

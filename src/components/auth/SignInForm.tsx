@@ -247,7 +247,7 @@ export function SignInForm() {
 							name='emailOrUsername'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>
+									<FormLabel className='text-sm font-medium text-text-primary'>
 										{t('emailOrUsername')}
 									</FormLabel>
 									<FormControl>
@@ -272,7 +272,9 @@ export function SignInForm() {
 							name='password'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-text'>{t('password')}</FormLabel>
+									<FormLabel className='text-sm font-medium text-text-primary'>
+										{t('password')}
+									</FormLabel>
 									<FormControl>
 										<PasswordInput
 											placeholder={t('passwordPlaceholder')}

@@ -1398,7 +1398,7 @@ export const RecipeFormDetailed = ({
 							disabled={isSubmitting || isSaving}
 							whileHover={isSubmitting ? undefined : BUTTON_HOVER}
 							whileTap={isSubmitting ? undefined : BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero px-6 py-3 font-bold text-white shadow-warm disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 font-bold text-white shadow-[0_2px_12px_rgba(255,90,54,0.4)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_20px_rgba(255,90,54,0.45)] disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none sm:flex-none focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isSubmitting ? (
 								<Loader2 className='size-4 animate-spin' />
