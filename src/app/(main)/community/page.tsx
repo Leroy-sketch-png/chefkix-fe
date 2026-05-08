@@ -224,7 +224,7 @@ export default function CommunityPage() {
 						exit={{ opacity: 0 }}
 						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
 					>
-						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(255,90,54,0.4)]'>
 							<Loader2 className='size-4 animate-spin' />
 							{t('loading')}
 						</div>
@@ -254,35 +254,39 @@ export default function CommunityPage() {
 								isAuthenticated ? 'grid-cols-4' : 'grid-cols-2',
 							)}
 						>
-						<TabsTrigger value='discover' className='gap-2'>
-							<Search className='size-4' />
-							<span className={isAuthenticated ? 'hidden sm:inline' : 'inline'}>
-								{t('discover')}
-							</span>
-						</TabsTrigger>
-						{isAuthenticated && (
-							<TabsTrigger value='friends' className='gap-2'>
-								<Users className='size-4' />
-								<span className='hidden sm:inline'>{t('friends')}</span>
-								{friends.length > 0 && (
-									<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium tabular-nums text-brand'>
-										{friends.length}
-									</span>
-								)}
+							<TabsTrigger value='discover' className='gap-2'>
+								<Search className='size-4' />
+								<span
+									className={isAuthenticated ? 'hidden sm:inline' : 'inline'}
+								>
+									{t('discover')}
+								</span>
 							</TabsTrigger>
-						)}
-						{isAuthenticated && (
-							<TabsTrigger value='groups' className='gap-2'>
-								<UsersRound className='size-4' />
-								<span className='hidden sm:inline'>{t('groups')}</span>
+							{isAuthenticated && (
+								<TabsTrigger value='friends' className='gap-2'>
+									<Users className='size-4' />
+									<span className='hidden sm:inline'>{t('friends')}</span>
+									{friends.length > 0 && (
+										<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium tabular-nums text-brand'>
+											{friends.length}
+										</span>
+									)}
+								</TabsTrigger>
+							)}
+							{isAuthenticated && (
+								<TabsTrigger value='groups' className='gap-2'>
+									<UsersRound className='size-4' />
+									<span className='hidden sm:inline'>{t('groups')}</span>
+								</TabsTrigger>
+							)}
+							<TabsTrigger value='leaderboard' className='gap-2'>
+								<Trophy className='size-4' />
+								<span
+									className={isAuthenticated ? 'hidden sm:inline' : 'inline'}
+								>
+									{t('leaderboard')}
+								</span>
 							</TabsTrigger>
-						)}
-						<TabsTrigger value='leaderboard' className='gap-2'>
-							<Trophy className='size-4' />
-							<span className={isAuthenticated ? 'hidden sm:inline' : 'inline'}>
-								{t('leaderboard')}
-							</span>
-						</TabsTrigger>
 						</TabsList>
 					</PremiumSurface>
 

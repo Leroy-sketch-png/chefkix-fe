@@ -502,7 +502,7 @@ export default function CookCardRenderer({
 
 				{/* Content */}
 				<div className='px-5 pb-5 pt-3 text-center'>
-					<h3 className='text-lg font-serif font-bold text-text'>
+					<h3 className='text-lg font-serif font-bold text-text-primary'>
 						{data.recipeTitle}
 					</h3>
 					<p className='mt-1 text-sm text-text-secondary'>
@@ -515,7 +515,7 @@ export default function CookCardRenderer({
 							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<Flame className='size-4 text-xp' />
-									<span className='text-sm font-bold text-text'>
+									<span className='text-sm font-bold text-text-primary'>
 										+{data.xpEarned}
 									</span>
 								</div>
@@ -526,7 +526,7 @@ export default function CookCardRenderer({
 							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<Clock className='size-4 text-brand' />
-									<span className='text-sm font-bold text-text'>
+									<span className='text-sm font-bold text-text-primary'>
 										{cookTimeStr}
 									</span>
 								</div>
@@ -537,7 +537,7 @@ export default function CookCardRenderer({
 							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<CheckCircle2 className='size-4 text-success' />
-									<span className='text-sm font-bold text-text'>
+									<span className='text-sm font-bold text-text-primary'>
 										{data.stepsCompleted}/{data.totalSteps}
 									</span>
 								</div>
@@ -548,7 +548,7 @@ export default function CookCardRenderer({
 							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<ChefHat className='size-4 text-warning' />
-									<span className='text-sm font-bold text-text'>
+									<span className='text-sm font-bold text-text-primary'>
 										{data.difficulty}
 									</span>
 								</div>
@@ -601,7 +601,7 @@ export default function CookCardRenderer({
 					onClick={handleDownload}
 					disabled={isGenerating}
 					variant='outline'
-					className='flex-1'
+					className='flex-1 text-text-primary hover:text-brand'
 				>
 					{isGenerating ? (
 						<Loader2 className='mr-2 size-4 animate-spin' />
@@ -613,7 +613,7 @@ export default function CookCardRenderer({
 				<Button
 					onClick={handleShare}
 					disabled={isGenerating}
-					className='flex-1 bg-brand text-white hover:bg-brand/90'
+					className='flex-1 bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
 				>
 					{isGenerating ? (
 						<Loader2 className='mr-2 size-4 animate-spin' />

@@ -126,7 +126,10 @@ const StatCard = ({
 		<span className='text-xl'>{icon}</span>
 		<div className='flex flex-col'>
 			<span
-				className={cn('text-lg font-bold tracking-tight text-text', colorClass)}
+				className={cn(
+					'text-lg font-bold tracking-tight text-text-primary',
+					colorClass,
+				)}
 			>
 				{value}
 			</span>
@@ -228,7 +231,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 				)}
 			</div>
 
-			<span className='max-w-full truncate text-2xs font-semibold text-text'>
+			<span className='max-w-full truncate text-2xs font-semibold text-text-primary'>
 				{day.challenge?.title ?? '—'}
 			</span>
 			<span className={cn('text-2xs font-bold', config.xpClass)}>
@@ -263,7 +266,7 @@ export const ChallengeHistorySection = ({
 			{/* Header */}
 			<div className='mb-5 flex items-center justify-between'>
 				<div className='flex items-center gap-3'>
-					<h3 className='flex items-center gap-2 text-lg font-bold text-text'>
+					<h3 className='flex items-center gap-2 text-lg font-bold text-text-primary'>
 						<CalendarCheck className='size-5 text-brand' />
 						{t('challengeHistory')}
 					</h3>
@@ -323,7 +326,7 @@ export const ChallengeHistorySection = ({
 				<div className='flex items-center justify-between rounded-xl border border-streak/20 bg-gradient-to-r from-streak/10 to-transparent px-5 py-4'>
 					<div className='flex items-center gap-3.5'>
 						<span className='text-3xl'>🎯</span>
-						<div className='text-sm text-text'>
+						<div className='text-sm text-text-primary'>
 							<strong className='text-streak'>
 								{daysToNextBadge > 1
 									? t('unlockBadgePlural', { n: daysToNextBadge })
@@ -474,12 +477,12 @@ export const ChallengeHistoryPage = ({
 						type='button'
 						onClick={onBack}
 						aria-label={t('goBack')}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text'
+						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-primary transition-colors hover:bg-bg-elevated'
 					>
 						<ArrowLeft className='size-5' />
 					</button>
 				)}
-				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text'>
+				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text-primary'>
 					{t('challengeHistory')}
 				</h1>
 			</div>
@@ -501,7 +504,7 @@ export const ChallengeHistoryPage = ({
 					<div className='grid grid-cols-3 gap-3'>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>🔥</span>
-							<span className='text-xl font-bold tracking-tight text-text'>
+							<span className='text-xl font-bold tracking-tight text-text-primary'>
 								{stats.currentStreak}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -510,7 +513,7 @@ export const ChallengeHistoryPage = ({
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>🏆</span>
-							<span className='text-xl font-bold tracking-tight text-text'>
+							<span className='text-xl font-bold tracking-tight text-text-primary'>
 								{stats.bestStreak}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -519,7 +522,7 @@ export const ChallengeHistoryPage = ({
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>⚡</span>
-							<span className='text-xl font-bold tracking-tight text-text'>
+							<span className='text-xl font-bold tracking-tight text-text-primary'>
 								{stats.totalBonusXp.toLocaleString()}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -556,11 +559,11 @@ export const ChallengeHistoryPage = ({
 					<button
 						type='button'
 						onClick={() => onMonthChange?.('prev')}
-						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text'
+						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text-primary transition-colors hover:bg-bg-elevated'
 					>
 						<ChevronLeft className='size-4' />
 					</button>
-					<span className='text-lg font-bold text-text'>
+					<span className='text-lg font-bold text-text-primary'>
 						{currentMonth.toLocaleDateString(locale, {
 							month: 'long',
 							year: 'numeric',
@@ -569,7 +572,7 @@ export const ChallengeHistoryPage = ({
 					<button
 						type='button'
 						onClick={() => onMonthChange?.('next')}
-						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text'
+						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text-primary transition-colors hover:bg-bg-elevated'
 					>
 						<ChevronRight className='size-4' />
 					</button>
@@ -600,7 +603,7 @@ export const ChallengeHistoryPage = ({
 
 			{/* Recent History List */}
 			<div className='rounded-2xl bg-bg-card p-6'>
-				<h3 className='mb-5 text-base font-bold text-text'>
+				<h3 className='mb-5 text-base font-bold text-text-primary'>
 					{t('recentChallenges')}
 				</h3>
 				<div>
@@ -620,7 +623,7 @@ export const ChallengeHistoryPage = ({
 						disabled={isLoadingMore}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-muted/30 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isLoadingMore ? t('loading') : t('loadMore')}
 						<ChevronDown className='size-4' />
