@@ -83,7 +83,7 @@ export const FollowSuggestionCard = ({
 			<motion.div
 				whileHover={CARD_HOVER}
 				transition={TRANSITION_SPRING}
-				className='group flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card transition-all duration-300 hover:shadow-warm md:p-6'
+				className='group flex items-center justify-between rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card transition-all duration-300 hover:shadow-warm md:p-6'
 			>
 				<Link
 					href={`/${profile.userId}`}

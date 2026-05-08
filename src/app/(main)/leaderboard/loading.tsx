@@ -1,4 +1,4 @@
-﻿import { PageContainer } from '@/components/layout/PageContainer'
+import { PageContainer } from '@/components/layout/PageContainer'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Loading() {

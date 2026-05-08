@@ -76,7 +76,7 @@ export function FollowUserCard({
 			whileHover={CARD_HOVER}
 			transition={TRANSITION_SPRING}
 			onClick={() => router.push(`/${profile.userId}`)}
-			className='flex cursor-pointer items-center gap-3 rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm'
+			className='flex cursor-pointer items-center gap-3 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card transition-all hover:shadow-warm hover:border-border-medium'
 		>
 			<Avatar size='md'>
 				{profile.avatarUrl && (

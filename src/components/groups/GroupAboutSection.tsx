@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -36,7 +36,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 		>
 			{/* Description */}
 			{group.description && (
-				<div className='bg-bg-card rounded-lg p-6 border border-border'>
+				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 					<h3 className='font-bold text-lg text-text mb-3'>{t('gaDescription')}</h3>
 					<p className='text-text-secondary leading-relaxed'>
 						{group.description}
@@ -52,7 +52,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 					onClick={onViewMembers}
 				whileHover={LIST_ITEM_HOVER}
 				whileTap={LIST_ITEM_TAP}
-					className='bg-bg-card rounded-lg p-6 border border-border hover:border-brand/50 transition-all text-left focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card hover:border-brand/50 transition-all text-left focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<div className='flex items-start gap-4'>
 						<div className='p-3 bg-brand/10 rounded-lg'>
@@ -69,7 +69,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				</motion.button>
 
 				{/* Creation Date Card */}
-				<div className='bg-bg-card rounded-lg p-6 border border-border'>
+				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 					<div className='flex items-start gap-4'>
 						<div className='p-3 bg-brand/10 rounded-lg'>
 							<Clock className='size-6 text-brand' />
@@ -83,7 +83,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			</div>
 
 			{/* Privacy */}
-			<div className='bg-bg-card rounded-lg p-6 border border-border'>
+			<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 				<div className='flex items-start gap-4'>
 					<div className='p-3 bg-brand/10 rounded-lg'>
 						{group.privacyType === 'PRIVATE' ? (
@@ -110,7 +110,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 
 			{/* Tags */}
 			{group.tags && group.tags.length > 0 && (
-				<div className='bg-bg-card rounded-lg p-6 border border-border'>
+				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 					<h3 className='font-bold text-text mb-4'>{t('gaTags')}</h3>
 					<div className='flex flex-wrap gap-2'>
 						{group.tags.map((tag) => (
@@ -127,7 +127,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 
 			{/* Rules Section - Will be populated from backend later */}
 			{group.rules && group.rules.length > 0 && (
-				<div className='bg-bg-card rounded-lg p-6 border border-border'>
+				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 					<h3 className='font-bold text-lg text-text mb-4'>{t('gaGroupRules')}</h3>
 					<div className='space-y-3'>
 						{group.rules.map((rule, index) => (
@@ -146,3 +146,4 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 		</motion.div>
 	)
 }
+

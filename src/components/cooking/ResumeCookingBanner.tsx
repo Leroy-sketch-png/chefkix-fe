@@ -141,8 +141,8 @@ export const ResumeCookingBanner = ({
 			<motion.div
 				className={cn(
 					'relative overflow-hidden rounded-2xl border',
-					'bg-gradient-to-r from-brand/10 via-brand/5 to-transparent',
-					'border-brand/20 shadow-warm',
+					'bg-gradient-to-r from-brand/12 via-brand/6 to-bg-elevated/40',
+					'border-brand/25 shadow-[0_4px_20px_rgba(255,90,54,0.15)]',
 					className,
 				)}
 				variants={fadeInUp}
@@ -219,7 +219,7 @@ export const ResumeCookingBanner = ({
 						<Button
 							onClick={handleResume}
 							disabled={isResuming}
-							className='w-full gap-2 bg-brand text-white hover:bg-brand/90 md:w-auto'
+							className='w-full gap-2 bg-gradient-to-r from-brand to-brand/85 text-white shadow-[0_4px_14px_rgba(255,90,54,0.4)] hover:shadow-[0_6px_20px_rgba(255,90,54,0.55)] md:w-auto'
 						>
 							{isResuming ? (
 								<>

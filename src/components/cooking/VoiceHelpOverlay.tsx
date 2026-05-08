@@ -12,7 +12,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
  * Voice command reference sheet.
  * Shows available commands and their aliases.
  *
- * Spec: vision_and_spec/22-voice-mode.txt §2
+ * Spec: vision_and_spec/22-voice-mode.txt Section 2
  */
 export function VoiceHelpOverlay({
 	show,
@@ -52,7 +52,7 @@ export function VoiceHelpOverlay({
 							animate={{ scale: 1, opacity: 1 }}
 							exit={{ scale: 0.9, opacity: 0 }}
 							onClick={e => e.stopPropagation()}
-							className='mx-4 w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
+							className='mx-4 w-full max-w-sm rounded-2xl bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-warm border border-border-subtle/80 ring-1 ring-white/8'
 						>
 							<div className='mb-4 flex items-center justify-between'>
 								<h3
@@ -99,3 +99,4 @@ export function VoiceHelpOverlay({
 		</AnimatePresence>
 	)
 }
+

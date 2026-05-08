@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { X } from 'lucide-react'
 import type { Ingredient } from '@/lib/types/recipeCreate'

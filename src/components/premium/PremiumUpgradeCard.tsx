@@ -315,7 +315,7 @@ export default function PremiumUpgradeCard() {
 			) : (
 				<motion.div
 					variants={FADE_IN_VARIANTS}
-					className='relative overflow-hidden rounded-xl border border-border-subtle bg-bg-card p-6'
+					className='relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 				>
 					<div className='relative z-10 flex items-start justify-between'>
 						<div>
@@ -362,7 +362,7 @@ export default function PremiumUpgradeCard() {
 									'flex items-center gap-3 rounded-lg border px-4 py-2.5 transition-colors',
 									isPremiumOnly
 										? 'border-level/20 bg-level/5'
-										: 'border-border-subtle bg-bg-card',
+										: 'border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60',
 								)}
 							>
 								<div
@@ -501,3 +501,4 @@ export default function PremiumUpgradeCard() {
 		</motion.div>
 	)
 }
+

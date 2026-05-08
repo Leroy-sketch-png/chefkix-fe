@@ -117,13 +117,13 @@ interface PostCardProps {
 }
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
-	QUICK: 'bg-warning/15 text-warning-deep',
-	POLL: 'bg-info/15 text-info',
-	RECENT_COOK: 'bg-brand/15 text-brand',
-	GROUP: 'bg-accent-purple/15 text-accent-purple',
-	RECIPE_REVIEW: 'bg-warning/20 text-warning-deep',
-	QUICK_TIP: 'bg-success/15 text-success-deep',
-	RECIPE_BATTLE: 'bg-error/15 text-error',
+	QUICK: 'bg-warning/18 text-warning-deep border border-warning/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	POLL: 'bg-info/18 text-info border border-info/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	RECENT_COOK: 'bg-brand/18 text-brand border border-brand/20 shadow-[0_1px_4px_rgba(255,90,54,0.15)]',
+	GROUP: 'bg-accent-purple/18 text-accent-purple border border-accent-purple/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	RECIPE_REVIEW: 'bg-warning/22 text-warning-deep border border-warning/25 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	QUICK_TIP: 'bg-success/18 text-success-deep border border-success/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	RECIPE_BATTLE: 'bg-error/18 text-error border border-error/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
 }
 
 function PostCardErrorFallback({
@@ -670,7 +670,7 @@ const PostCardContent = ({
 			>
 				<motion.div
 					whileHover={CARD_FEED_HOVER}
-					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'
+					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/50 shadow-card transition-all duration-300 hover:shadow-warm'
 				>
 					{/* Header */}
 					<div className='flex items-center justify-between p-4 md:p-6'>
@@ -1310,7 +1310,7 @@ const PostCardContent = ({
 						)}
 
 					{/* Actions */}
-					<div className='flex gap-1.5 border-t border-border-subtle bg-bg-card px-3 py-2'>
+					<div className='flex gap-1.5 border-t border-border-subtle/60 bg-gradient-to-r from-bg-card via-bg-card to-bg-elevated/40 px-3 py-2'>
 						<motion.button
 							type='button'
 							ref={likeButtonRef}

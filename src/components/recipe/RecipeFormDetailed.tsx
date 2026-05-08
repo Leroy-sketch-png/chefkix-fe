@@ -936,7 +936,7 @@ export const RecipeFormDetailed = ({
 
 			<form
 				onSubmit={handleSubmit}
-				className='rounded-2xl border border-border bg-bg-card p-6 md:p-10'
+				className='rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/40 p-6 shadow-card md:p-10'
 				noValidate
 			>
 				{/* Basic Info Section */}

@@ -223,7 +223,7 @@ export function CollectionBuilder({
 			</div>
 
 			{/* Basic info */}
-			<div className='space-y-4 rounded-xl border border-border-subtle bg-bg-card p-5 shadow-card'>
+			<div className='space-y-4 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 				<div>
 					<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
 						Name
@@ -263,17 +263,17 @@ export function CollectionBuilder({
 
 			{/* Stats preview */}
 			<div className='grid grid-cols-3 gap-4'>
-				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
+				<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 p-4 text-center shadow-card'>
 					<ChefHat className='mx-auto mb-1.5 size-5 text-text-muted' />
 					<p className='text-xl font-bold text-text'>{totalRecipes}</p>
 					<p className='text-xs text-text-muted'>{t('builderRecipes')}</p>
 				</div>
-				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
+				<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 p-4 text-center shadow-card'>
 					<Clock className='mx-auto mb-1.5 size-5 text-text-muted' />
 					<p className='text-xl font-bold text-text'>{stages.length}</p>
 					<p className='text-xs text-text-muted'>{t('builderStages')}</p>
 				</div>
-				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
+				<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 p-4 text-center shadow-card'>
 					<Zap className='mx-auto mb-1.5 size-5 text-xp' />
 					<p className='text-xl font-bold text-xp'>{totalXp}</p>
 					<p className='text-xs text-text-muted'>{t('builderTotalXp')}</p>
@@ -335,7 +335,7 @@ export function CollectionBuilder({
 						initial={{ scale: 0.95, y: 10 }}
 						animate={{ scale: 1, y: 0 }}
 						transition={TRANSITION_SPRING}
-						className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
+						className='w-full max-w-sm rounded-2xl bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-warm border border-border-subtle/80 ring-1 ring-white/8'
 						onClick={e => e.stopPropagation()}
 					>
 						<h3 className='mb-4 text-lg font-bold text-text'>
@@ -421,9 +421,7 @@ export function CollectionBuilder({
 	)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // StageItem Sub-component
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface StageItemProps {
 	stage: DifficultyStep
@@ -453,7 +451,7 @@ function StageItem({
 			value={stage}
 			dragListener={false}
 			dragControls={controls}
-			className='rounded-xl border border-border-subtle bg-bg-card shadow-card'
+			className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 shadow-card'
 		>
 			{/* Stage header */}
 			<div className='flex items-center gap-3 p-4'>
@@ -544,3 +542,4 @@ function StageItem({
 }
 
 export default CollectionBuilder
+

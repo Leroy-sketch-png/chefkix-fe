@@ -43,7 +43,7 @@ function SimilarRecipeCardErrorFallback({
 	return (
 		<div
 			role='alert'
-			className='rounded-2xl border border-destructive/20 bg-bg-card p-4 shadow-card'
+			className='rounded-2xl border border-destructive/20 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'
 		>
 			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
 				<div className='flex items-start gap-3'>
@@ -113,7 +113,7 @@ export const SimilarRecipes = ({
 					{[1, 2, 3].map(i => (
 						<div
 							key={i}
-							className='animate-pulse rounded-2xl border border-border-subtle bg-bg-card shadow-card'
+							className='animate-pulse rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card'
 						>
 							<div className='h-40 rounded-t-2xl bg-bg-elevated' />
 							<div className='space-y-2 p-4'>
@@ -174,7 +174,7 @@ function SimilarRecipeCard({ recipe }: { recipe: Recipe }) {
 			variants={staggerItem}
 			whileHover={CARD_HOVER}
 			transition={TRANSITION_SPRING}
-			className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all hover:shadow-warm'
+			className='group overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/60 shadow-card transition-all hover:shadow-warm'
 		>
 			<Link href={`/recipes/${recipe.id}`} className='block'>
 				<div className='relative h-40 overflow-hidden'>

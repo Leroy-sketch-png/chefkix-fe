@@ -16,6 +16,7 @@ import { EventTrackerProvider } from '@/components/providers/EventTrackerProvide
 import { NotificationSocketProvider } from '@/components/providers/NotificationSocketProvider'
 import { PushNotificationProvider } from '@/components/providers/PushNotificationProvider'
 import { DemoWidget } from '@/components/dev/DemoWidget'
+import { AppShell } from '@/components/layout/AppShell'
 
 const SHOW_DEMO_WIDGET = process.env.NEXT_PUBLIC_ENABLE_DEMO_WIDGET === 'true'
 
@@ -25,7 +26,7 @@ export default function MainAppLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<div className='flex h-screen w-full flex-col overflow-hidden bg-background'>
+		<>
 			{/* Skip to main content — first focusable element for keyboard users */}
 			<a
 				href='#main-content'
@@ -33,26 +34,27 @@ export default function MainAppLayout({
 			>
 				Skip to main content
 			</a>
-			{/* Topbar fixed at top, spans full width */}
-			<ErrorBoundary>
-				<Topbar />
-			</ErrorBoundary>
-			{/* Main content area with sidebars - scrollable */}
-			<div className='flex flex-1 overflow-hidden'>
-				<ErrorBoundary>
-					<LeftSidebar />
-				</ErrorBoundary>
-				<main
-					id='main-content'
-					className='flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 pb-28 md:pb-4 lg:gap-6 lg:p-6 lg:pb-6'
-				>
-					<ErrorBoundary>{children}</ErrorBoundary>
-				</main>
-				{/* Conditional: CookingPanel (when cooking) or RightSidebar (default) */}
-				<ErrorBoundary>
-					<CookingSidebarSwitch />
-				</ErrorBoundary>
-			</div>
+
+			<AppShell
+				header={
+					<ErrorBoundary>
+						<Topbar />
+					</ErrorBoundary>
+				}
+				sidebar={
+					<ErrorBoundary>
+						<LeftSidebar />
+					</ErrorBoundary>
+				}
+				rightPanel={
+					<ErrorBoundary>
+						<CookingSidebarSwitch />
+					</ErrorBoundary>
+				}
+			>
+				<ErrorBoundary>{children}</ErrorBoundary>
+			</AppShell>
+
 			{/* Global overlays and drawers - wrapped in error boundaries to prevent crashes */}
 			<ErrorBoundary>
 				<MessagesDrawer />
@@ -81,6 +83,6 @@ export default function MainAppLayout({
 			</ErrorBoundary>
 			<PushNotificationProvider />
 			{SHOW_DEMO_WIDGET ? <DemoWidget /> : null}
-		</div>
+		</>
 	)
 }

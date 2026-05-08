@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import CookCardRenderer from '@/components/cook-card/CookCardRenderer'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { useTranslations } from '@/i18n/hooks'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 
 function CookCardContent() {
 	const t = useTranslations('cooking')
@@ -35,8 +36,13 @@ function CookCardContent() {
 	return (
 		<PageTransition>
 			<PageContainer>
-				{/* Header with PageHeader */}
-				<div className='mb-6 flex items-center gap-3'>
+				<PremiumSurface
+					eyebrow='Cook Card'
+					chipText='Share-ready'
+					tone='xp'
+					className='mb-6 p-3 md:p-4'
+				>
+					<div className='flex items-center gap-3'>
 					<motion.button
 						type='button'
 						onClick={() => router.back()}
@@ -58,10 +64,18 @@ function CookCardContent() {
 						/>
 					</div>
 				</div>
+			</PremiumSurface>
 
-				<div className='mx-auto max-w-md'>
-					<CookCardRenderer sessionId={sessionId} />
-				</div>
+				<PremiumSurface
+					eyebrow='Card Preview'
+					chipText='Live'
+					className='mx-auto max-w-2xl p-3 md:p-4'
+					showOrbs={false}
+				>
+					<div className='mx-auto max-w-md'>
+						<CookCardRenderer sessionId={sessionId} />
+					</div>
+				</PremiumSurface>
 
 				<div className='pb-40 md:pb-8' />
 			</PageContainer>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { getInitials } from '@/lib/utils'
 import { useTranslations } from 'next-intl'

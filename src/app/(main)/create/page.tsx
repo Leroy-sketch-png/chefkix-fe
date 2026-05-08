@@ -8,6 +8,7 @@ import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
@@ -219,13 +220,20 @@ function CreateRecipeContent() {
 								marginBottom='md'
 							/>
 
+							<SurfaceSectionHeader
+								className='mb-4'
+								eyebrow='Creation Studio'
+								chipText='Draft-ready'
+							/>
+
 							{/* Local Draft Recovery Card */}
 							{localDraft && (
 								<motion.div
 									initial={{ opacity: 0, y: -10 }}
 									animate={{ opacity: 1, y: 0 }}
-									className='mb-6 overflow-hidden rounded-2xl border-2 border-streak/60 bg-gradient-to-r from-streak/10 to-streak/5 p-5'
+									className='mb-6 relative overflow-hidden rounded-2xl border-2 border-streak/60 bg-gradient-to-r from-streak/10 via-bg-card to-streak/5 p-5 shadow-card'
 								>
+									<div className='pointer-events-none absolute -right-8 -top-8 size-28 rounded-full bg-streak/20 blur-2xl' />
 									<div className='flex items-start gap-4'>
 										<div className='flex size-12 items-center justify-center rounded-xl bg-streak/20'>
 											<FileText className='size-6 text-streak' />

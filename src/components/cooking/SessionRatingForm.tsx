@@ -189,7 +189,7 @@ export function SessionRatingForm({
 				initial={{ scale: 0 }}
 				animate={{ scale: 1 }}
 				transition={{ delay: 0.2, ...TRANSITION_BOUNCY }}
-				className='mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-xp px-6 py-3 text-xl font-bold text-white shadow-card'
+				className='mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-xp px-6 py-3 text-xl font-bold text-white shadow-[0_4px_20px_rgba(var(--xp),0.4)]'
 			>
 				<Zap className='size-6' /> {t('cpXp', { xp: xpEarned })}
 			</motion.div>
@@ -261,7 +261,7 @@ export function SessionRatingForm({
 							value={notes}
 							onChange={e => setNotes(e.target.value)}
 							placeholder={t('notePlaceholder')}
-							className='w-full resize-none rounded-xl border border-border-subtle bg-bg p-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
+							className='w-full resize-none rounded-xl border border-border-subtle/80 bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
 							rows={2}
 							maxLength={500}
 						/>

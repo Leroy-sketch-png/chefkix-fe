@@ -166,7 +166,7 @@ export function LearningPathView({
 	return (
 		<div className='space-y-6'>
 			{/* Header with stats */}
-			<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
+			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
 				{/* Collection info */}
 				<div className='mb-4 flex items-start justify-between'>
 					<div>
@@ -362,9 +362,7 @@ export function LearningPathView({
 	)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Sub-components
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface StageCardProps {
 	stage: DifficultyStep
@@ -399,7 +397,7 @@ function StageCard({
 	return (
 		<motion.div
 			{...CARD_HOVER}
-			className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card'
+			className='overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/60 shadow-card'
 		>
 			{/* Stage header */}
 			<button
@@ -537,3 +535,4 @@ function RecipeRow({
 }
 
 export default LearningPathView
+

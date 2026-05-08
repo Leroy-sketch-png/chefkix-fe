@@ -17,6 +17,7 @@ import {
 } from '@/services/challenge'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ============================================
 // HELPERS
@@ -132,14 +133,26 @@ export default function ChallengeHistoryPageRoute() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				<ChallengeHistoryPage
-					days={days}
-					stats={stats}
-					currentMonth={currentMonth}
-					onMonthChange={handleMonthChange}
-					onBack={() => router.back()}
-					isLoadingMore={isLoadingMore}
-				/>
+				<PremiumSurface
+					eyebrow='Challenge Timeline'
+					chipText={`${days.length} logged days`}
+					tone='streak'
+					className='p-3 md:p-4'
+				>
+					<SurfaceSectionHeader
+						eyebrow='Consistency View'
+						chipText='Month navigation + streak context'
+						className='mb-3'
+					/>
+					<ChallengeHistoryPage
+						days={days}
+						stats={stats}
+						currentMonth={currentMonth}
+						onMonthChange={handleMonthChange}
+						onBack={() => router.back()}
+						isLoadingMore={isLoadingMore}
+					/>
+				</PremiumSurface>
 
 				<div className='pb-40 md:pb-8' />
 			</PageContainer>

@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 const STATUS_CONFIG: Record<
 	string,
@@ -99,13 +100,20 @@ export default function AppealsPage() {
 	if (loading) {
 		return (
 			<PageContainer maxWidth='2xl'>
-				<PageHeader
-					icon={Scale}
-					title={t('appealsTitle')}
-					subtitle={t('appealsSubtitle')}
-					gradient='blue'
-					marginBottom='md'
-				/>
+				<PremiumSurface
+					eyebrow='Moderation Console'
+					chipText='Appeals'
+					tone='blue'
+					className='mb-6 p-3 md:p-4'
+				>
+					<PageHeader
+						icon={Scale}
+						title={t('appealsTitle')}
+						subtitle={t('appealsSubtitle')}
+						gradient='blue'
+						marginBottom='sm'
+					/>
+				</PremiumSurface>
 				<div className='space-y-3'>
 					{Array.from({ length: 4 }).map((_, i) => (
 						<Skeleton key={i} className='h-24 w-full rounded-xl' />
@@ -118,13 +126,20 @@ export default function AppealsPage() {
 	if (appeals.length === 0) {
 		return (
 			<PageContainer maxWidth='2xl'>
-				<PageHeader
-					icon={Scale}
-					title={t('appealsTitle')}
-					subtitle={t('appealsSubtitle')}
-					gradient='blue'
-					marginBottom='md'
-				/>
+				<PremiumSurface
+					eyebrow='Moderation Console'
+					chipText='Appeals'
+					tone='blue'
+					className='mb-6 p-3 md:p-4'
+				>
+					<PageHeader
+						icon={Scale}
+						title={t('appealsTitle')}
+						subtitle={t('appealsSubtitle')}
+						gradient='blue'
+						marginBottom='sm'
+					/>
+				</PremiumSurface>
 				<div className='flex flex-col items-center gap-3 py-16 text-center'>
 					<div className='grid size-12 place-items-center rounded-full bg-success/10'>
 						<Scale className='size-6 text-success' />
@@ -146,14 +161,31 @@ export default function AppealsPage() {
 
 	return (
 		<PageContainer maxWidth='2xl'>
-			<PageHeader
-				icon={Scale}
-				title={t('appealsTitle')}
-				subtitle={t('appealsSubtitle')}
-				gradient='blue'
-				marginBottom='md'
-			/>
-			<div className='space-y-3'>
+			<PremiumSurface
+				eyebrow='Moderation Console'
+				chipText='Appeals'
+				tone='blue'
+				className='mb-6 p-3 md:p-4'
+			>
+				<PageHeader
+					icon={Scale}
+					title={t('appealsTitle')}
+					subtitle={t('appealsSubtitle')}
+					gradient='blue'
+					marginBottom='sm'
+				/>
+			</PremiumSurface>
+			<PremiumSurface
+				eyebrow='Appeal Queue'
+				chipText={`${appeals.length} pending`}
+				className='p-3 md:p-4'
+			>
+				<SurfaceSectionHeader
+					eyebrow='Review Actions'
+					chipText='Approve or reject'
+					className='mb-3'
+				/>
+				<div className='space-y-3'>
 				<div className='mb-4 flex items-center justify-between'>
 					<p className='text-sm text-text-muted'>
 						{t('pendingAppealsCount', { count: appeals.length })}
@@ -345,7 +377,8 @@ export default function AppealsPage() {
 						</div>
 					)
 				})}
-			</div>
+				</div>
+			</PremiumSurface>
 
 			<div className='pb-40 md:pb-8' />
 		</PageContainer>

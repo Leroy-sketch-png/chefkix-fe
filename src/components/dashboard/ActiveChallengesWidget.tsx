@@ -145,7 +145,7 @@ export function ActiveChallengesWidget({
 		return (
 			<div
 				className={cn(
-					'flex items-center justify-between rounded-radius border border-border-subtle bg-bg-card p-4 text-sm text-text-muted shadow-card',
+					'flex items-center justify-between rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 text-sm text-text-muted shadow-card',
 					className,
 				)}
 			>
@@ -175,7 +175,7 @@ export function ActiveChallengesWidget({
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card',
+				'rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card',
 				className,
 			)}
 		>

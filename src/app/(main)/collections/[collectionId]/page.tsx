@@ -31,6 +31,7 @@ import {
 } from '@/services/collection'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 export default function CollectionDetailPage({
 	params,
@@ -194,23 +195,34 @@ export default function CollectionDetailPage({
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
-					{/* Back button */}
-					<button
-						type='button'
-						onClick={() => router.back()}
-						className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
+					<PremiumSurface
+						eyebrow='Collection Detail'
+						chipText={collection.name}
+						showOrbs={false}
+						className='p-2 md:p-3'
+						tone='blue'
 					>
-						<ArrowLeft className='size-4' />
-						{t('detailBack')}
-					</button>
+						<button
+							type='button'
+							onClick={() => router.back()}
+							className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
+						>
+							<ArrowLeft className='size-4' />
+							{t('detailBack')}
+						</button>
+					</PremiumSurface>
 
 					{/* Learning Path View - completely different layout */}
 					{isLearningPath ? (
 						<LearningPathView collection={collection} isOwner={isOwner} />
 					) : (
 						<>
-							{/* BOOKMARK Collection Header */}
-							<div className='flex items-start justify-between'>
+							<PremiumSurface
+								eyebrow='Collection Meta'
+								chipText={`${collection.itemCount} ${collection.itemCount === 1 ? t('postSingle') : t('postPlural')}`}
+								className='p-3 md:p-4'
+							>
+								<div className='flex items-start justify-between'>
 								<div>
 									<div className='flex items-center gap-2'>
 										<h1 className='text-2xl font-bold text-text'>
@@ -261,7 +273,8 @@ export default function CollectionDetailPage({
 										</button>
 									</div>
 								)}
-							</div>
+								</div>
+							</PremiumSurface>
 
 							{/* Posts */}
 							{posts.length === 0 ? (
@@ -276,7 +289,17 @@ export default function CollectionDetailPage({
 									}}
 								/>
 							) : (
-								<div className='space-y-4'>
+								<PremiumSurface
+									eyebrow='Collected Posts'
+									chipText={`${posts.length} items`}
+									className='p-3 md:p-4'
+								>
+									<SurfaceSectionHeader
+										eyebrow='Saved Feed'
+										chipText='Organize and curate'
+										className='mb-3'
+									/>
+									<div className='space-y-4'>
 									{posts.map(post => (
 										<div key={post.id} className='relative'>
 											<PostCard
@@ -295,7 +318,8 @@ export default function CollectionDetailPage({
 											)}
 										</div>
 									))}
-								</div>
+									</div>
+								</PremiumSurface>
 							)}
 						</>
 					)}

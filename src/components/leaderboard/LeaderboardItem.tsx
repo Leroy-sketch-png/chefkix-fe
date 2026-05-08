@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -58,7 +58,7 @@ function LeaderboardItemErrorFallback({
 	return (
 		<div
 			role='alert'
-			className='rounded-xl border border-destructive/20 bg-bg-card p-4 shadow-card'
+			className='rounded-xl border border-destructive/20 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'
 		>
 			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
 				<div className='flex items-start gap-3'>
@@ -212,12 +212,12 @@ function LeaderboardItemContent({
 
 				{/* Badges */}
 				{isCurrentUser && !isLeading && (
-					<span className='rounded-lg bg-xp px-2 py-0.5 text-xs font-bold text-white shadow-card shadow-xp/30'>
+					<span className='rounded-lg bg-gradient-xp px-2 py-0.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--xp),0.45)]'>
 						You
 					</span>
 				)}
 				{isLeading && (
-					<span className='rounded-lg bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-card shadow-medal-gold/30'>
+					<span className='rounded-lg bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--medal-gold),0.45)]'>
 						🔥 Leading!
 					</span>
 				)}

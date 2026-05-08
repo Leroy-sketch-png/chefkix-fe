@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -137,7 +137,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 			{/* Stats Grid */}
 			<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 				{/* New Cooks */}
-				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
+				<div className='flex items-center gap-3 p-3.5 bg-gradient-to-br from-bg-card/60 to-bg-elevated/40 rounded-xl border border-border-subtle/60'>
 					<span className='text-icon-lg'>👨‍🍳</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-display font-extrabold text-success'>
@@ -164,7 +164,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 				</div>
 
 				{/* XP Earned */}
-				<div className='flex items-center gap-3 p-3.5 bg-bg-card/50 rounded-xl'>
+				<div className='flex items-center gap-3 p-3.5 bg-gradient-to-br from-bg-card/60 to-bg-elevated/40 rounded-xl border border-border-subtle/60'>
 					<span className='text-icon-lg'>⚡</span>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xl font-display font-extrabold text-text'>
@@ -201,11 +201,11 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 	const t = useTranslations('creator')
 	return (
-		<div className='bg-bg-card rounded-xl p-6 mb-6'>
+		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
 			<h3 className='text-lg font-bold text-text mb-4'>{t('lifetimeStats')}</h3>
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
 				{/* Recipes Published - Large */}
-				<div className='col-span-2 sm:col-span-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-bg rounded-xl text-center'>
+				<div className='col-span-2 sm:col-span-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-gradient-to-br from-bg-elevated/80 to-bg/80 rounded-xl text-center'>
 					<div className='flex items-center gap-2'>
 						<span className='text-4xl font-black tabular-nums text-brand'>
 							<AnimatedNumber value={stats.recipesPublished} duration={0.8} />
@@ -328,7 +328,7 @@ function TopRecipeSection({
 }) {
 	const t = useTranslations('creator')
 	return (
-		<div className='bg-bg-card rounded-xl p-6 mb-6'>
+		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>🏆 Top Recipe</h3>
 				{onViewAllRecipes && (
@@ -425,7 +425,7 @@ function RecipePerformanceSection({
 }) {
 	const t = useTranslations('creator')
 	return (
-		<div className='bg-bg-card rounded-xl p-6 mb-6'>
+		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>
 					{t('recipePerformance')}
@@ -573,7 +573,7 @@ function RecentCooksSection({
 }) {
 	const t = useTranslations('creator')
 	return (
-		<div className='bg-bg-card rounded-xl p-6 mb-6'>
+		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
 			<div className='flex items-center justify-between mb-4'>
 				<h3 className='text-lg font-bold text-text'>{t('recentCooks')}</h3>
 				{onViewAll && (
@@ -768,3 +768,4 @@ export function CreatorDashboard({
 }
 
 export default CreatorDashboard
+

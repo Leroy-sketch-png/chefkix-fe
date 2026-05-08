@@ -1289,7 +1289,7 @@ export const RecipeCreateAiFlow = ({
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex size-10 items-center justify-center rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 text-text shadow-card focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
@@ -1382,7 +1382,7 @@ export const RecipeCreateAiFlow = ({
 									animate='animate'
 									exit='exit'
 									transition={CONTENT_SWITCH_TRANSITION}
-									className='rounded-2xl bg-bg-card p-6'
+									className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 								>
 									<div className='mb-4'>
 										<h3 className='text-lg font-bold text-text'>
@@ -1575,7 +1575,7 @@ export const RecipeCreateAiFlow = ({
 						</div>
 
 						{/* Recipe Card */}
-						<div className='rounded-2xl bg-bg-card p-6'>
+						<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
 							{/* Cover Image */}
 							<div className='mb-5'>
 								{recipe.coverImageUrl ? (
@@ -1763,7 +1763,7 @@ export const RecipeCreateAiFlow = ({
 						</div>
 
 						{/* Ingredients Section */}
-						<div className='rounded-2xl bg-bg-card p-6'>
+						<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
 							<div className='mb-4 flex items-center justify-between'>
 								<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>
 									<ShoppingBasket className='size-5 text-brand' />
@@ -1802,7 +1802,7 @@ export const RecipeCreateAiFlow = ({
 						</div>
 
 						{/* Steps Section */}
-						<div className='rounded-2xl bg-bg-card p-6'>
+						<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
 							<div className='mb-4 flex items-center justify-between'>
 								<div className='flex items-center gap-4'>
 									<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>

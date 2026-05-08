@@ -41,6 +41,7 @@ import { TasteDNAShareCard } from '@/components/profile/TasteDNAShareCard'
 import { LearningNarrative } from '@/components/profile/LearningNarrative'
 import { useTranslations } from '@/i18n/hooks'
 import { SkillBars } from '@/components/ui/skill-bars'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ── Taste dimensions derived from user activity + preferences ──
 interface TasteDimension {
@@ -343,8 +344,13 @@ export default function TasteProfilePage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Header with back button */}
-				<div className='mb-8 flex items-center gap-3'>
+				<PremiumSurface
+					eyebrow='Taste Intelligence'
+					chipText='Live Behavioral Profile'
+					className='mb-8 p-3 md:p-4'
+					tone='xp'
+				>
+					<div className='flex items-center gap-3'>
 					<motion.button
 						type='button'
 						onClick={() => router.back()}
@@ -365,6 +371,7 @@ export default function TasteProfilePage() {
 						/>
 					</div>
 				</div>
+			</PremiumSurface>
 
 				{/* Blank-slate state — new user, no data yet */}
 				{isBlankProfile && (
@@ -388,11 +395,17 @@ export default function TasteProfilePage() {
 
 				{/* Radar Chart — only show when user has actual data */}
 				{!isBlankProfile && (
-					<motion.div
+					<PremiumSurface
+						eyebrow='Taste DNA Radar'
+						chipText={topDimension ? `Top: ${topDimension.label}` : 'Calibrating'}
+						className='mx-auto mb-8 max-w-sm p-4 sm:p-6'
+						showOrbs={false}
+					>
+						<motion.div
 						initial={{ opacity: 0, scale: 0.9 }}
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-						className='mx-auto mb-8 max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'
+						className='mx-auto max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'
 					>
 						<TasteRadar dimensions={dimensions} />
 						{topDimension && (
@@ -403,7 +416,8 @@ export default function TasteProfilePage() {
 								</span>
 							</p>
 						)}
-					</motion.div>
+						</motion.div>
+					</PremiumSurface>
 				)}
 
 				{/* Shareable Card */}
@@ -423,7 +437,17 @@ export default function TasteProfilePage() {
 
 				{/* Dimension Breakdown */}
 				{!isBlankProfile && (
-					<div className='space-y-3'>
+					<PremiumSurface
+						eyebrow='Dimension Breakdown'
+						chipText={`${dimensions.length} traits`}
+						className='p-3 md:p-4'
+					>
+						<SurfaceSectionHeader
+							eyebrow='Trait Signals'
+							chipText='Behavior + preferences'
+							className='mb-3'
+						/>
+						<div className='space-y-3'>
 						{dimensions.map((dim, i) => (
 							<motion.div
 								key={dim.label}
@@ -462,18 +486,25 @@ export default function TasteProfilePage() {
 								</p>
 							</motion.div>
 						))}
-					</div>
+						</div>
+					</PremiumSurface>
 				)}
 
 				{/* Cuisine DNA — Real behavioral data from 5-signal taste vector */}
 				{tasteProfile &&
 					tasteProfile.cuisineDistribution &&
 					tasteProfile.cuisineDistribution.length > 0 && (
-						<motion.div
+						<PremiumSurface
+							eyebrow='Cuisine DNA'
+							chipText={`${tasteProfile.totalInteractions ?? 0} interactions`}
+							tone='blue'
+							className='mt-8 p-3 md:p-4'
+						>
+							<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.7 }}
-							className='mt-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+							className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
 						>
 							<h2 className='mb-4 flex items-center gap-2 font-semibold text-text'>
 								<Globe className='size-5 text-brand' />
@@ -494,7 +525,8 @@ export default function TasteProfilePage() {
 									color='var(--color-brand)'
 								/>
 							</div>
-						</motion.div>
+							</motion.div>
+						</PremiumSurface>
 					)}
 
 				{/* Learning Narrative */}

@@ -210,7 +210,7 @@ const NotifWrapper = ({
 		animate={{ opacity: 1, x: 0 }}
 		whileHover={LIST_ITEM_HOVER}
 		className={cn(
-			'relative grid grid-cols-[auto,minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 rounded-2xl border border-border-subtle bg-bg-card px-3.5 py-2.5 transition-colors hover:bg-bg-elevated sm:flex sm:gap-4 sm:py-3',
+				'relative grid grid-cols-[auto,minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 px-3.5 py-2.5 transition-colors hover:bg-bg-elevated sm:flex sm:gap-4 sm:py-3',
 			!isRead && 'bg-brand/5',
 			className,
 		)}
@@ -285,7 +285,7 @@ const ActionButton = ({
 		whileHover={BUTTON_HOVER}
 		whileTap={BUTTON_TAP}
 		className={cn(
-			'col-start-2 inline-flex min-h-9 w-fit items-center justify-center gap-1.5 justify-self-start self-start rounded-full border border-border-subtle bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50 sm:min-h-10 sm:px-3.5 sm:py-2 sm:text-sm',
+				'col-start-2 inline-flex min-h-9 w-fit items-center justify-center gap-1.5 justify-self-start self-start rounded-full border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50 sm:min-h-10 sm:px-3.5 sm:py-2 sm:text-sm',
 			className,
 		)}
 	>

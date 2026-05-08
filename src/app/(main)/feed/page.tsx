@@ -6,6 +6,7 @@ import { Flame, Loader2, MessageSquare, Sparkles } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { ErrorState } from '@/components/ui/error-state'
 import { PostCard } from '@/components/social/PostCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
@@ -154,7 +155,8 @@ export default function FeedPage() {
 					marginBottom='sm'
 					showSparkles={false}
 					rightAction={
-						<div className='flex gap-1.5'>
+						<div className='rounded-full border border-border-subtle bg-bg-card/70 p-1 shadow-card backdrop-blur-sm'>
+							<div className='flex gap-1.5'>
 							<Button
 								type='button'
 								size='sm'
@@ -175,6 +177,7 @@ export default function FeedPage() {
 								<Flame className='size-3' />
 								Trending
 							</Button>
+							</div>
 						</div>
 					}
 				/>
@@ -198,6 +201,11 @@ export default function FeedPage() {
 					</div>
 				) : (
 					<>
+						<SurfaceSectionHeader
+							className='mb-3'
+							eyebrow='Live Feed'
+							chipText={`${posts.length} posts`}
+						/>
 						<div className='space-y-4'>
 							{posts.map(post => (
 								<PostCard

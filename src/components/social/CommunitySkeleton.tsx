@@ -56,7 +56,7 @@ export const CommunitySkeleton = () => {
  */
 const UserCardSkeleton = () => {
 	return (
-		<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6'>
+		<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card md:p-6'>
 			<div className='flex items-center gap-4'>
 				<Skeleton className='size-16 flex-shrink-0 rounded-full' />
 				<div className='flex-1 space-y-2'>

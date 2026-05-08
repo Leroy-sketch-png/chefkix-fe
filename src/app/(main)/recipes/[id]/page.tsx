@@ -18,6 +18,7 @@ import {
 } from '@/services/shoppingList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
@@ -745,15 +746,20 @@ function RecipeDetailContent() {
 		<PageTransition>
 			<ScrollProgress />
 			<PageContainer maxWidth='2xl'>
-				{/* Breadcrumb Navigation */}
-				<div className='mb-4'>
+				<PremiumSurface
+					eyebrow='Recipe Detail'
+					chipText='Cooking workspace'
+					showOrbs={false}
+					className='mb-4 p-2 md:p-3'
+					tone='blue'
+				>
 					<Breadcrumbs
 						items={[
 							{ label: 'Explore', href: '/explore' },
 							{ label: recipe.title },
 						]}
 					/>
-				</div>
+				</PremiumSurface>
 
 				{/* Hero Section */}
 				<motion.div

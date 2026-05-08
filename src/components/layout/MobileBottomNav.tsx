@@ -136,9 +136,13 @@ export const MobileBottomNav = () => {
 	return (
 		<>
 			<nav
-				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle bg-bg-card px-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl md:hidden'
+				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle bg-bg-card/88 px-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-10px_40px_rgba(15,10,8,0.08)] backdrop-blur-2xl md:hidden'
 				aria-label={t('ariaMobileNavigation')}
 			>
+				<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
+				<div className='pointer-events-none absolute -right-10 -top-14 size-32 rounded-full bg-xp/10 blur-3xl' />
+				<div className='pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-brand/35 to-transparent' />
+
 				{activeNavItems.map(item => {
 					const Icon = item.icon
 					const href =
@@ -160,7 +164,7 @@ export const MobileBottomNav = () => {
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									className='grid size-12 place-items-center rounded-full bg-gradient-primary text-white shadow-warm shadow-brand/30'
+									className='grid size-12 place-items-center rounded-full border border-white/30 bg-gradient-primary text-white shadow-[0_10px_30px_rgba(255,90,54,0.45)]'
 								>
 									<Icon className='size-6' />
 								</motion.div>
@@ -177,9 +181,11 @@ export const MobileBottomNav = () => {
 							href={href}
 							aria-current={active ? 'page' : undefined}
 							className={cn(
-								'group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-radius px-2 py-1.5 text-center',
+								'group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
 								isAuthenticated && 'max-w-20',
-								active ? 'text-brand' : 'text-text-secondary',
+								active
+									? 'bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
+									: 'text-text-secondary hover:bg-bg-elevated/70',
 							)}
 						>
 							{/* Active indicator dot */}
@@ -216,8 +222,10 @@ export const MobileBottomNav = () => {
 						type='button'
 						onClick={() => setShowMore(true)}
 						className={cn(
-							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-radius px-2 py-1.5 text-center',
-							isMoreActive ? 'text-brand' : 'text-text-secondary',
+							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
+							isMoreActive
+								? 'bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
+								: 'text-text-secondary hover:bg-bg-elevated/70',
 						)}
 					>
 						<motion.div
@@ -233,6 +241,7 @@ export const MobileBottomNav = () => {
 							whileHover={ICON_BUTTON_HOVER}
 							whileTap={ICON_BUTTON_TAP}
 							transition={TRANSITION_SPRING}
+							className='relative'
 						>
 							<Menu
 								className={cn(
@@ -266,10 +275,12 @@ export const MobileBottomNav = () => {
 							animate={{ y: 0 }}
 							exit={{ y: '100%' }}
 							transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-							className='fixed inset-x-0 bottom-0 z-modal rounded-t-2xl border-t border-border-subtle bg-bg-card pb-[calc(16px+env(safe-area-inset-bottom))] shadow-warm md:hidden'
+							className='fixed inset-x-0 bottom-0 z-modal overflow-hidden rounded-t-3xl border-t border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/70 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-warm ring-1 ring-white/10 backdrop-blur-xl md:hidden'
 						>
+							<div className='pointer-events-none absolute -left-8 -top-16 size-28 rounded-full bg-brand/10 blur-3xl' />
+							<div className='pointer-events-none absolute -right-8 -bottom-14 size-28 rounded-full bg-xp/10 blur-3xl' />
 							{/* Handle */}
-							<div className='flex items-center justify-between px-5 py-4'>
+							<div className='relative flex items-center justify-between px-5 py-4'>
 								<span className='text-lg font-bold text-text'>{t('more')}</span>
 								<button
 									type='button'
@@ -281,7 +292,7 @@ export const MobileBottomNav = () => {
 								</button>
 							</div>
 							{/* Menu items grid - 3 cols on small, 4 on wider */}
-							<div className='grid grid-cols-3 gap-2 px-4 sm:grid-cols-4'>
+							<div className='relative grid grid-cols-3 gap-2 px-4 sm:grid-cols-4'>
 								{moreMenuItems.map(item => {
 									const Icon = item.icon
 									const active = isActive(item.href)
@@ -295,10 +306,10 @@ export const MobileBottomNav = () => {
 												router.push(item.href)
 											}}
 											className={cn(
-												'flex flex-col items-center gap-2 rounded-xl p-3 transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
+												'flex flex-col items-center gap-2 rounded-xl border border-transparent p-3 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 												active
-													? 'bg-brand/10 text-brand'
-													: 'text-text-secondary hover:bg-bg-elevated',
+													? 'border-brand/20 bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
+													: 'text-text-secondary hover:border-border-subtle hover:bg-bg-elevated/70',
 											)}
 										>
 											<Icon className='size-6' />

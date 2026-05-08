@@ -133,7 +133,7 @@ export function LearningNarrative({ statistics, displayName, memberSince }: Lear
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
-			className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+			className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 		>
 			<h3 className='mb-4 flex items-center gap-2 font-semibold text-text'>
 				<BookOpen className='size-5 text-gaming-xp' />

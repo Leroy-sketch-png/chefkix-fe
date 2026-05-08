@@ -18,7 +18,7 @@ interface SeasonsBestProps {
 }
 
 /**
- * "Season's Best" — Featured curated collections on Explore.
+ * "Season's Best" -- Featured curated collections on Explore.
  *
  * Fetches admin-curated collections (isFeatured=true) from
  * GET /api/v1/collections/featured. Each collection has:
@@ -149,8 +149,8 @@ function FeaturedCollectionCard({
 				href={`/collections/${collection.id}`}
 				className='group block w-72 snap-start flex-shrink-0'
 			>
-				<div className='relative h-48 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card text-transparent shadow-card transition-shadow duration-300 group-hover:shadow-warm'>
-					{/* Cover image or gradient fallback — text-transparent hides alt text on slow/broken images */}
+				<div className='relative h-48 overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card to-bg-elevated/60 text-transparent shadow-card transition-shadow duration-300 group-hover:shadow-warm'>
+					{/* Cover image or gradient fallback -- text-transparent hides alt text on slow/broken images */}
 					<ImageWithFallback
 						src={collection.coverImageUrl}
 						alt={collection.name}
@@ -218,9 +218,10 @@ function FeaturedCollectionCard({
 // ============================================
 
 function formatSeasonTag(tag: string): string {
-	// "summer-2025" → "Summer 2025", "holiday-baking" → "Holiday Baking"
+	// "summer-2025" -> "Summer 2025", "holiday-baking" -> "Holiday Baking"
 	return tag
 		.split('-')
 		.map(word => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(' ')
 }
+

@@ -33,6 +33,7 @@ import { useAuthGate } from '@/hooks/useAuthGate'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { RecipeCardEnhanced } from '@/components/recipe'
 import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
 import { TonightsPick } from '@/components/dashboard/TonightsPick'
@@ -1087,8 +1088,6 @@ function ExploreContent() {
 			(filters.foolproofOnly ? 1 : 0),
 		[filters],
 	)
-	const exploreControlShellClassName =
-		'mb-6 rounded-[2rem] border border-border-subtle bg-bg-card/70 p-4 shadow-card backdrop-blur-sm'
 	const modeButtonClassName = (isActive: boolean, accent: 'brand' | 'xp') =>
 		[
 			'flex h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
@@ -1140,158 +1139,159 @@ function ExploreContent() {
 					transition={{ delay: 0.1, ...TRANSITION_SPRING }}
 					className={exploreControlShellClassName}
 				>
-					<div className='space-y-4'>
+					<div className='pointer-events-none absolute -left-14 -top-16 size-36 rounded-full bg-brand/10 blur-3xl' />
+					<div className='pointer-events-none absolute -right-16 -bottom-20 size-40 rounded-full bg-xp/10 blur-3xl' />
+					<div className='relative space-y-4'>
+						<div className='flex items-center justify-between gap-3'>
+							<p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted'>
+								Discovery Controls
+							</p>
+							<span className='inline-flex h-6 items-center rounded-full border border-border-subtle bg-bg-elevated px-2.5 text-xs font-semibold text-text-secondary tabular-nums'>
+								{activeFiltersCount} Active
+							</span>
+						</div>
 						<div className='group relative'>
 							<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
-							<Input
-								ref={searchInputRef}
-								placeholder={t('searchPlaceholder')}
-								aria-label={t('searchPlaceholder')}
-								role='combobox'
-								aria-expanded={
-									showAutocomplete && autocompleteSuggestions.length > 0
-								}
-								aria-autocomplete='list'
-								aria-controls='explore-autocomplete-listbox'
-								aria-activedescendant={
-									selectedSuggestionIndex >= 0
-										? `explore-suggestion-${selectedSuggestionIndex}`
-										: undefined
-								}
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
-								onKeyDown={handleSearchKeyDown}
-								onFocus={() => {
-									if (autocompleteSuggestions.length > 0)
-										setShowAutocomplete(true)
-								}}
-								onBlur={() => {
-									setTimeout(() => setShowAutocomplete(false), 200)
-								}}
-								className='h-12 rounded-2xl border-border-medium bg-bg-card pl-12 pr-20 text-text shadow-card transition-colors focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
-							/>
-							<div className='absolute right-12 top-1/2 -translate-y-1/2'>
-								{isSearching ? (
-									<Loader2 className='size-5 animate-spin text-brand' />
-								) : searchQuery ? (
-									<motion.button
-										type='button'
-										onClick={handleClearSearch}
-										whileTap={BUTTON_TAP}
-										className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-										aria-label={t('ariaClearSearch')}
+							<PremiumSurface
+										className='mb-6 rounded-[2rem] bg-bg-card/85 p-4 backdrop-blur-xl'
+										eyebrow='Discovery Controls'
+										chipText={`${activeFiltersCount} Active`}
 									>
-										<X className='size-4' />
-									</motion.button>
-								) : null}
-							</div>
-							<kbd className='absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-md border border-border-medium bg-bg-elevated px-2 py-1 text-xs text-text-muted sm:block'>
-								/
-							</kbd>
+										<div className='space-y-4'>
+											<div className='group relative'>
+												<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
+												<Input
+													ref={searchInputRef}
+													placeholder={t('searchPlaceholder')}
+													aria-label={t('searchPlaceholder')}
+													role='combobox'
+													aria-expanded={
+														showAutocomplete && autocompleteSuggestions.length > 0
+													}
+													aria-autocomplete='list'
+													aria-controls='explore-autocomplete-listbox'
+													aria-activedescendant={
+														selectedSuggestionIndex >= 0
+															? `explore-suggestion-${selectedSuggestionIndex}`
+															: undefined
+													}
+													value={searchQuery}
+													onChange={e => setSearchQuery(e.target.value)}
+													onKeyDown={handleSearchKeyDown}
+													onFocus={() => {
+														if (autocompleteSuggestions.length > 0) {
+															setShowAutocomplete(true)
+														}
+													}}
+													className='h-12 rounded-xl border-border-medium bg-bg-elevated/80 pl-12 pr-10 text-base transition-all focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+												/>
+												{searchQuery && (
+													<button
+														type='button'
+														onClick={clearSearch}
+														className='absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+														aria-label={t('clearSearch')}
+													>
+														<X className='size-4' />
+													</button>
+												)}
+											</div>
 
-							<AnimatePresence>
-								{showAutocomplete && autocompleteSuggestions.length > 0 && (
-									<motion.div
-										ref={autocompleteRef}
-										role='listbox'
-										id='explore-autocomplete-listbox'
-										aria-label={t('searchPlaceholder')}
-										initial={{ opacity: 0, y: -4 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, y: -4 }}
-										transition={{ duration: 0.15 }}
-										className='absolute left-0 right-0 top-full z-dropdown mt-1 overflow-hidden rounded-2xl border border-border-medium bg-bg-card shadow-warm'
-									>
-										{autocompleteSuggestions.map((suggestion, index) => (
-											<button
-												type='button'
-												key={suggestion}
-												id={`explore-suggestion-${index}`}
-												role='option'
-												aria-selected={index === selectedSuggestionIndex}
-												onMouseDown={e => {
-													e.preventDefault()
-													setSearchQuery(suggestion)
-													setDebouncedSearch(suggestion)
-													setShowAutocomplete(false)
-												}}
-												className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand ${
-													index === selectedSuggestionIndex
-														? 'bg-brand/10 text-brand'
-														: 'text-text hover:bg-bg-elevated'
-												}`}
-											>
-												<Search className='size-4 flex-shrink-0 text-text-muted' />
-												<span className='truncate'>{suggestion}</span>
-											</button>
-										))}
-									</motion.div>
-								)}
-							</AnimatePresence>
-						</div>
+											{/* Autocomplete Dropdown */}
+											{showAutocomplete && autocompleteSuggestions.length > 0 && (
+												<div
+													id='explore-autocomplete-listbox'
+													role='listbox'
+													className='absolute z-dropdown mt-1 max-h-64 w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-border-subtle bg-bg-card shadow-xl'
+												>
+													{autocompleteSuggestions.map((suggestion, index) => (
+														<button
+															key={`${suggestion.type}-${suggestion.value}-${index}`}
+															id={`explore-suggestion-${index}`}
+															role='option'
+															aria-selected={selectedSuggestionIndex === index}
+															onClick={() => handleSuggestionSelect(suggestion)}
+															className={`flex w-full items-center gap-3 border-b border-border-subtle p-3 text-left transition-colors last:border-b-0 ${
+																selectedSuggestionIndex === index
+																	? 'bg-brand/10'
+																	: 'hover:bg-bg-hover'
+															}`}
+														>
+															<div className='flex size-8 items-center justify-center rounded-full bg-brand/10 text-brand'>
+																{suggestion.type === 'recipe' ? (
+																	<ChefHat className='size-4' />
+																) : suggestion.type === 'ingredient' ? (
+																	<Sparkles className='size-4' />
+																) : (
+																	<Search className='size-4' />
+																)}
+															</div>
+															<div className='min-w-0 flex-1'>
+																<p className='truncate text-sm font-medium text-text'>
+																	{suggestion.value}
+																</p>
+																{suggestion.meta && (
+																	<p className='truncate text-xs text-text-muted'>
+																		{suggestion.meta}
+																	</p>
+																)}
+															</div>
+														</button>
+													))}
+												</div>
+											)}
 
-						<div className='grid grid-cols-2 gap-2'>
-							<motion.button
-								type='button'
-								onClick={() => {
-									setViewMode('all')
-									setPage(1)
-								}}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className={modeButtonClassName(viewMode === 'all', 'brand')}
-							>
-								{t('allRecipes')}
-							</motion.button>
-							<motion.button
-								type='button'
-								onClick={() => {
-									setViewMode('trending')
-									setPage(1)
-								}}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className={modeButtonClassName(viewMode === 'trending', 'xp')}
-							>
-								<TrendingUp className='size-4' />
-								{t('trending')}
-							</motion.button>
-						</div>
+											{/* Control Row */}
+											<div className='flex flex-wrap items-center justify-between gap-3'>
+												<div className='flex items-center gap-2'>
+													<button
+														type='button'
+														onClick={() => setSearchMode('all')}
+														className={modeButtonClassName(searchMode === 'all', 'brand')}
+													>
+														<TrendingUp className='size-4' />
+														{t('allRecipes')}
+													</button>
+													<button
+														type='button'
+														onClick={() => setSearchMode('trending')}
+														className={modeButtonClassName(searchMode === 'trending', 'xp')}
+													>
+														<Flame className='size-4' />
+														{t('trending')}
+													</button>
+												</div>
 
-						<div className='grid grid-cols-2 gap-2'>
-							<div className='min-w-0'>
-								<RecipeFiltersSheet
-									initialFilters={filters}
-									onApply={handleFiltersApply}
-								/>
-							</div>
-
-							{viewMode === 'all' ? (
-								<div className='relative min-w-0'>
-									<select
-										value={sortBy}
-										onChange={e => {
-											setSortBy(e.target.value)
-											setPage(1)
-										}}
-										className='h-11 w-full appearance-none rounded-xl border border-border-medium bg-bg-card py-2 pl-4 pr-10 text-sm font-medium text-text-secondary transition-colors hover:border-brand focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
-									>
-										<option value='newest'>{t('newest')}</option>
-										<option value='popular'>{t('mostCooked')}</option>
-										<option value='rating'>{t('topRated')}</option>
-										<option value='quickest'>{t('quickest')}</option>
-									</select>
-									<ChevronDown className='pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+												<RecipeFiltersSheet
+													filters={filters}
+													onApplyFilters={applyFilters}
+													onClearFilters={clearFilters}
+													activeFiltersCount={activeFiltersCount}
+													trigger={
+														<Button
+															variant='outline'
+															size='sm'
+															className='gap-2 rounded-xl'
+														>
+															<ChevronDown className='size-4' />
+															{t('filters')}
+															{activeFiltersCount > 0 && (
+																<Badge
+																	variant='secondary'
+																	className='ml-1 h-5 min-w-5 px-1.5 text-[10px]'
+																>
+																	{activeFiltersCount}
+																</Badge>
+															)}
+														</Button>
+													}
+												/>
+											</div>
+										</div>
+									</PremiumSurface>
 								</div>
-							) : (
-								<div className='flex h-11 items-center justify-center rounded-xl border border-dashed border-border-medium bg-bg-elevated/40 px-4 text-sm font-medium text-text-muted'>
-									{t('trending')}
-								</div>
-							)}
-						</div>
-					</div>
-				</motion.section>
-
+							</div>
+						</motion.section>
 				{/* Filter Chips & Result Count */}
 				<AnimatePresence>
 					{(activeFiltersCount > 0 || debouncedSearch) && !isLoading && (

@@ -27,6 +27,7 @@ import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 const REASON_LABEL_KEYS: Record<string, string> = {
 	fraud: 'reasonFraud',
@@ -136,15 +137,32 @@ export default function ReportsPage() {
 
 	return (
 		<PageContainer maxWidth='2xl'>
-			<PageHeader
-				icon={AlertTriangle}
-				title={t('reportsTitle')}
-				subtitle={t('reportsSubtitle')}
-				gradient='orange'
-				marginBottom='md'
-			/>
-			<Tabs value={activeTab} onValueChange={setActiveTab}>
-				<div className='mb-4 flex items-center justify-between'>
+			<PremiumSurface
+				eyebrow='Moderation Console'
+				chipText='Reports'
+				tone='streak'
+				className='mb-6 p-3 md:p-4'
+			>
+				<PageHeader
+					icon={AlertTriangle}
+					title={t('reportsTitle')}
+					subtitle={t('reportsSubtitle')}
+					gradient='orange'
+					marginBottom='sm'
+				/>
+			</PremiumSurface>
+			<PremiumSurface
+				eyebrow='Report Streams'
+				chipText={activeTab === 'pending' ? `${pendingReports.length} pending` : `${allReports.length} total`}
+				className='p-3 md:p-4'
+			>
+				<SurfaceSectionHeader
+					eyebrow='Review Pipeline'
+					chipText='Pending and historical'
+					className='mb-3'
+				/>
+				<Tabs value={activeTab} onValueChange={setActiveTab}>
+					<div className='mb-4 flex items-center justify-between'>
 					<TabsList>
 						<TabsTrigger value='pending'>
 							{t('tabPending')}
@@ -164,9 +182,9 @@ export default function ReportsPage() {
 					>
 						{t('refresh')}
 					</Button>
-				</div>
+					</div>
 
-				<TabsContent value='pending'>
+					<TabsContent value='pending'>
 					<ReportList
 						reports={reports}
 						loading={loading}
@@ -178,8 +196,8 @@ export default function ReportsPage() {
 						onReview={handleReview}
 						showActions
 					/>
-				</TabsContent>
-				<TabsContent value='all'>
+					</TabsContent>
+					<TabsContent value='all'>
 					<ReportList
 						reports={reports}
 						loading={loading}
@@ -191,8 +209,9 @@ export default function ReportsPage() {
 						onReview={handleReview}
 						showActions={false}
 					/>
-				</TabsContent>
-			</Tabs>
+					</TabsContent>
+				</Tabs>
+			</PremiumSurface>
 
 			<div className='pb-40 md:pb-8' />
 		</PageContainer>

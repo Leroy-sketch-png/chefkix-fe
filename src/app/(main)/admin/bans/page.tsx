@@ -20,6 +20,7 @@ import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 export default function BansPage() {
 	const t = useTranslations('admin')
@@ -102,36 +103,60 @@ export default function BansPage() {
 
 	return (
 		<PageContainer maxWidth='2xl'>
-			<PageHeader
-				icon={Shield}
-				title={t('bansTitle')}
-				subtitle={t('bansSubtitle')}
-				gradient='gray'
-				marginBottom='md'
-			/>
+			<PremiumSurface
+				eyebrow='Moderation Console'
+				chipText='Bans'
+				tone='streak'
+				className='mb-6 p-3 md:p-4'
+			>
+				<PageHeader
+					icon={Shield}
+					title={t('bansTitle')}
+					subtitle={t('bansSubtitle')}
+					gradient='gray'
+					marginBottom='sm'
+				/>
+			</PremiumSurface>
 			<div className='space-y-6'>
 				{/* Search bar */}
-				<div className='flex gap-2'>
-					<div className='relative flex-1'>
-						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-						<input
-							type='text'
-							value={userId}
-							onChange={e => setUserId(e.target.value)}
-							onKeyDown={e => e.key === 'Enter' && searchBans()}
-							placeholder={t('searchPlaceholder')}
-							aria-label={t('searchPlaceholder')}
-							className='w-full rounded-xl border border-border-subtle bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
-						/>
+				<PremiumSurface
+					eyebrow='User Lookup'
+					chipText={searched ? 'Results Loaded' : 'Awaiting Search'}
+					className='p-3 md:p-4'
+					showOrbs={false}
+				>
+					<div className='flex gap-2'>
+						<div className='relative flex-1'>
+							<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+							<input
+								type='text'
+								value={userId}
+								onChange={e => setUserId(e.target.value)}
+								onKeyDown={e => e.key === 'Enter' && searchBans()}
+								placeholder={t('searchPlaceholder')}
+								aria-label={t('searchPlaceholder')}
+								className='w-full rounded-xl border border-border-subtle bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
+							/>
+						</div>
+						<Button onClick={searchBans} disabled={loading} className='gap-1.5'>
+							<Search className='size-4' />
+							{t('search')}
+						</Button>
 					</div>
-					<Button onClick={searchBans} disabled={loading} className='gap-1.5'>
-						<Search className='size-4' />
-						{t('search')}
-					</Button>
-				</div>
+				</PremiumSurface>
 
 				{/* Results */}
-				{loading ? (
+				<PremiumSurface
+					eyebrow='Ban Timeline'
+					chipText={loading ? 'Loading' : searched ? `${bans.length} records` : 'No query yet'}
+					className='p-3 md:p-4'
+				>
+					<SurfaceSectionHeader
+						eyebrow='Enforcement Events'
+						chipText='Issue, review, revoke'
+						className='mb-3'
+					/>
+					{loading ? (
 					<div className='space-y-3'>
 						{Array.from({ length: 3 }).map((_, i) => (
 							<Skeleton key={i} className='h-20 w-full rounded-xl' />
@@ -326,6 +351,7 @@ export default function BansPage() {
 						<p className='text-xs text-text-muted'>{t('lookUpSubtitle')}</p>
 					</div>
 				)}
+				</PremiumSurface>
 			</div>
 
 			<div className='pb-40 md:pb-8' />

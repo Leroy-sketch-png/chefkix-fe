@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
@@ -174,7 +174,7 @@ const XPBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand/90 font-bold text-white shadow-warm',
+				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-brand/80 font-bold text-white shadow-[0_2px_12px_rgba(255,90,54,0.5)] backdrop-blur-sm',
 				size === 'large' ? 'px-4 py-2 text-base' : 'px-2.5 py-1 text-xs',
 			)}
 		>
@@ -203,7 +203,7 @@ const DifficultyIndicator = ({
 	const config = difficultyConfig[difficulty] ?? difficultyConfig.Beginner
 
 	return (
-		<div className='absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm'>
+		<div className='absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm ring-1 ring-white/10'>
 			<span className={cn('size-1.5 rounded-full', config.bgColor)} />
 			{showLabel && <span>{difficulty || 'Beginner'}</span>}
 		</div>
@@ -403,7 +403,7 @@ const FeedCard = ({
 		<motion.article
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='relative overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-warm'
+			className='relative overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -423,20 +423,8 @@ const FeedCard = ({
 						className='object-cover'
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 					/>
-					<XPBadge xp={xpReward} />
-					<DifficultyIndicator difficulty={difficulty} />
-					{/* Quality badge - only show Foolproof tier */}
-					{qualityTier === 'Foolproof' && (
-						<div className='absolute right-3 top-3'>
-							<QualityBadge
-								tier='Foolproof'
-								size='sm'
-								showLabel
-								showScore={false}
-								animate={false}
-							/>
-						</div>
-					)}
+				{/* Gradient overlay — fades image into card content */}
+				<div className='pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent' />
 				</motion.div>
 
 				{/* Content */}
@@ -539,7 +527,7 @@ const GridCard = ({
 		<motion.article
 			whileHover={CARD_GRID_HOVER}
 			transition={TRANSITION_SPRING}
-			className='overflow-hidden rounded-2xl bg-bg-card shadow-card hover:shadow-warm'
+			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}

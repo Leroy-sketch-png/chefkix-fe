@@ -30,7 +30,7 @@ function DraftsListCardFallback({
 	return (
 		<div
 			role='alert'
-			className='rounded-2xl border border-destructive/20 bg-bg-card p-4 shadow-card'
+			className='rounded-2xl border border-destructive/20 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/50 p-4 shadow-card'
 		>
 			<div className='flex flex-col gap-2'>
 				<div className='flex items-start gap-2'>
@@ -72,7 +72,7 @@ function DraftsListCardContent({
 			variants={staggerItem}
 			layout
 			exit={{ opacity: 0, x: -20 }}
-			className='group relative flex items-center gap-4 rounded-2xl border border-border-subtle bg-bg-card p-4 transition-all hover:border-brand/50 hover:bg-bg-elevated'
+			className='group relative flex items-center gap-4 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 transition-all hover:border-brand/40 hover:shadow-warm hover:bg-bg-elevated/80'
 		>
 			<div className='flex size-16 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-2xl'>
 				{draft.coverImageUrl?.[0] ? (

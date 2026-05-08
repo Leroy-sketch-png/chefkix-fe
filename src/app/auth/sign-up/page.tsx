@@ -132,13 +132,20 @@ const SignUpPage = () => {
 				{/* Sign Up Card - NOTE: No backdrop-blur to avoid stacking context issues with modals */}
 				<motion.div
 					variants={staggerItem}
-					className='overflow-hidden rounded-3xl border border-border-subtle bg-bg-card p-5 shadow-warm shadow-black/5 sm:p-8'
+					className='relative overflow-hidden rounded-3xl border border-border-subtle/80 bg-gradient-to-br from-bg-card/98 via-bg-card to-bg-elevated/70 p-5 shadow-warm shadow-black/5 sm:p-8'
 				>
+					{/* Ambient orbs — pointer-events-none so they can't block anything */}
+					<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
+					<div className='pointer-events-none absolute -bottom-16 -right-12 size-32 rounded-full bg-xp/10 blur-3xl' />
+					{/* Top sheen */}
+					<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/25 via-white/8 to-transparent' />
+					{/* Inner ring highlight */}
+					<div className='pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/18' />
 					<motion.h2
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.3 }}
-						className='mb-2 text-center text-xl font-bold text-text sm:text-2xl'
+						className='relative z-10 mb-2 text-center text-xl font-bold text-text sm:text-2xl'
 					>
 						{t('signUpPageTitle')}
 					</motion.h2>
@@ -146,11 +153,13 @@ const SignUpPage = () => {
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						transition={{ delay: 0.4 }}
-						className='mb-5 text-center text-sm leading-relaxed text-text-secondary sm:mb-6 sm:text-base'
+						className='relative z-10 mb-5 text-center text-sm leading-relaxed text-text-secondary sm:mb-6 sm:text-base'
 					>
 						{t('signUpPageSubtitle')}
 					</motion.p>
-					<SignUpForm />
+					<div className='relative z-10'>
+						<SignUpForm />
+					</div>
 				</motion.div>
 			</motion.div>
 		</div>

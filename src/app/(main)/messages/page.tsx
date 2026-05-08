@@ -8,6 +8,10 @@ import { Portal } from '@/components/ui/portal'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PageTransition } from '@/components/layout/PageTransition'
 import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
+import {
 	MessageCircle,
 	Send,
 	Loader2,
@@ -528,30 +532,38 @@ function MessagesContent() {
 				}`}
 			>
 				{/* Sidebar Header with PageHeader */}
-				<header className='flex-shrink-0 border-b border-border-subtle p-4'>
-					<PageHeader
-						icon={MessageCircle}
-						title={t('title')}
-						subtitle=''
-						gradient='blue'
-						marginBottom='sm'
-						className='mb-0'
-					/>
-					{/* Search */}
-					<div className='relative mt-3'>
-						<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-						<Input
-							placeholder={t('searchConversations')}
-							aria-label={t('searchConversations')}
-							value={searchQuery}
-							onChange={e => setSearchQuery(e.target.value)}
-							className='bg-bg-elevated pl-9'
-						/>
-					</div>
+				<header className='flex-shrink-0 border-b border-border-subtle p-3'>
+					<PremiumSurface tone='blue'>
+						<div>
+							<PageHeader
+								icon={MessageCircle}
+								title={t('title')}
+								subtitle=''
+								gradient='blue'
+								marginBottom='sm'
+								className='mb-0'
+							/>
+							{/* Search */}
+							<div className='relative mt-3'>
+								<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+								<Input
+									placeholder={t('searchConversations')}
+									aria-label={t('searchConversations')}
+									value={searchQuery}
+									onChange={e => setSearchQuery(e.target.value)}
+									className='h-11 rounded-xl border-border-medium bg-bg-elevated/80 pl-9'
+								/>
+							</div>
+						</div>
+					</PremiumSurface>
 				</header>
 
 				{/* Conversations List - Scrollable */}
 				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-24 md:pb-2'>
+					<SurfaceSectionHeader
+						className='mb-2 px-2'
+						eyebrow='Active Conversations'
+					/>
 					{isLoadingConversations ? (
 						<div className='space-y-2 px-2'>
 							{Array.from({ length: 5 }).map((_, i) => (

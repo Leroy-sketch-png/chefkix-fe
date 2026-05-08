@@ -23,7 +23,7 @@ interface FriendsCookingNowProps {
 /**
  * "Friends Cooking Now" widget for the dashboard.
  * Shows active rooms where followed users are currently cooking.
- * Per spec: 24-advanced-multiplayer.txt §5
+ * Per spec: 24-advanced-multiplayer.txt Section 5
  */
 export function FriendsCookingNow({
 	className,
@@ -78,7 +78,7 @@ export function FriendsCookingNow({
 	if (!isLoading && totalActive === 0) return null
 
 	// Loading skeleton
-	if (isLoading) return null // Don't show skeleton for this widget — it appears asynchronously
+	if (isLoading) return null // Don't show skeleton for this widget -- it appears asynchronously
 
 	return (
 		<motion.div
@@ -86,7 +86,7 @@ export function FriendsCookingNow({
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-5',
+				'rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card md:p-5',
 				className,
 			)}
 		>
@@ -241,7 +241,7 @@ export function FriendsCookingNow({
 	)
 }
 
-// ── Helpers ──
+// Helpers
 
 function formatParticipantNames(names: string[]): string {
 	if (names.length <= 2) return names.join(' & ')
@@ -260,3 +260,4 @@ function formatMinutesAgo(
 		? t('hoursMinutesShort', { hours, minutes: remaining })
 		: t('hoursShort', { hours })
 }
+

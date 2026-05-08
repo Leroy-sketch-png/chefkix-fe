@@ -24,6 +24,7 @@ import { logDevError } from '@/lib/dev-log'
 import { formatShortTimeAgo } from '@/lib/utils'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ============================================
 // HELPERS
@@ -284,69 +285,106 @@ export default function CreatorRoute() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='xl'>
-				{/* Header with back button using PageHeader */}
-				<div className='mb-6 flex items-center gap-3'>
-					<motion.button
-						type='button'
-						onClick={() =>
-							startNavigationTransition(() => {
-								router.push('/dashboard')
-							})
-						}
-						disabled={isNavigating}
-						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-11 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-						aria-label={t('ariaGoToDashboard')}
+				<PremiumSurface
+					eyebrow='Creator Studio'
+					chipText='Performance Center'
+					tone='xp'
+					className='mb-6 p-3 md:p-4'
+				>
+					<div className='flex items-center gap-3'>
+						<motion.button
+							type='button'
+							onClick={() =>
+								startNavigationTransition(() => {
+									router.push('/dashboard')
+								})
+							}
+							disabled={isNavigating}
+							whileTap={BUTTON_SUBTLE_TAP}
+							className='flex size-11 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoToDashboard')}
+						>
+							<ArrowLeft className='size-5' />
+						</motion.button>
+						<div className='flex-1'>
+							<PageHeader
+								icon={ChefHat}
+								title={t('dashboardTitle')}
+								subtitle={t('dashboardSubtitle')}
+								gradient='purple'
+								marginBottom='sm'
+								className='mb-0'
+							/>
+						</div>
+					</div>
+				</PremiumSurface>
+
+				<div className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]'>
+					<PremiumSurface
+						eyebrow='Growth Dashboard'
+						chipText='Live'
+						className='p-3 md:p-4'
 					>
-						<ArrowLeft className='size-5' />
-					</motion.button>
-					<div className='flex-1'>
-						<PageHeader
-							icon={ChefHat}
-							title={t('dashboardTitle')}
-							subtitle={t('dashboardSubtitle')}
-							gradient='purple'
-							marginBottom='sm'
-							className='mb-0'
+						<CreatorDashboard
+							weekHighlight={weekHighlight}
+							lifetimeStats={lifetimeStats}
+							creatorBadges={creatorBadges}
+							topRecipe={topRecipe}
+							recipePerformance={recipePerformance}
+							recentCooks={recentCooks}
+							onCreateRecipe={() =>
+								startNavigationTransition(() => {
+									router.push('/create')
+								})
+							}
+							onRecipeClick={id =>
+								startNavigationTransition(() => {
+									router.push(`/recipes/${id}`)
+								})
+							}
+							onViewAllRecipes={() =>
+								startNavigationTransition(() => {
+									router.push('/creator/recipes')
+								})
+							}
+							onViewStepAnalytics={id =>
+								setHeatmapRecipeId(prev => (prev === id ? null : id))
+							}
 						/>
+					</PremiumSurface>
+
+					<div className='space-y-6'>
+						<PremiumSurface
+							eyebrow='Recipe Intelligence'
+							chipText={heatmapRecipeId ? 'Focused Recipe' : 'Select Recipe'}
+							tone='blue'
+							className='p-3 md:p-4'
+						>
+							{heatmapRecipeId ? (
+								<StepHeatmap
+									recipeId={heatmapRecipeId}
+									recipeTitle={
+										recipePerformance.find(r => r.id === heatmapRecipeId)?.title
+									}
+								/>
+							) : (
+								<SurfaceSectionHeader
+									eyebrow='No Recipe Selected'
+									chipText='Open step analytics from leaderboard cards'
+								/>
+							)}
+						</PremiumSurface>
+
+						<PremiumSurface
+							eyebrow='Tip Intelligence'
+							chipText='Recent Signals'
+							tone='streak'
+							className='p-3 md:p-4'
+						>
+							<TipHistory className='mt-0' />
+						</PremiumSurface>
 					</div>
 				</div>
-				<CreatorDashboard
-					weekHighlight={weekHighlight}
-					lifetimeStats={lifetimeStats}
-					creatorBadges={creatorBadges}
-					topRecipe={topRecipe}
-					recipePerformance={recipePerformance}
-					recentCooks={recentCooks}
-					onCreateRecipe={() =>
-						startNavigationTransition(() => {
-							router.push('/create')
-						})
-					}
-					onRecipeClick={id =>
-						startNavigationTransition(() => {
-							router.push(`/recipes/${id}`)
-						})
-					}
-					onViewAllRecipes={() =>
-						startNavigationTransition(() => {
-							router.push('/creator/recipes')
-						})
-					}
-					onViewStepAnalytics={id =>
-						setHeatmapRecipeId(prev => (prev === id ? null : id))
-					}
-				/>
-				{heatmapRecipeId && (
-					<StepHeatmap
-						recipeId={heatmapRecipeId}
-						recipeTitle={
-							recipePerformance.find(r => r.id === heatmapRecipeId)?.title
-						}
-						className='mt-6'
-					/>
-				)}
-				<TipHistory className='mt-6' />
 
 				{/* Bottom breathing room for MobileBottomNav */}
 				<div className='pb-40 md:pb-8' />

@@ -10,6 +10,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 /**
  * Groups explore page
@@ -33,15 +34,33 @@ export default function GroupsExplorePage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				{/* Header */}
-				<PageHeader
-					icon={Users}
-					title={t('groupsTitle')}
-					subtitle={t('groupsSubtitle')}
-					gradient='green'
-				/>
+				<PremiumSurface
+					eyebrow='Community Hubs'
+					chipText='Group Discovery'
+					tone='success'
+					className='mb-6 p-3 md:p-4'
+				>
+					<PageHeader
+						icon={Users}
+						title={t('groupsTitle')}
+						subtitle={t('groupsSubtitle')}
+						gradient='green'
+						marginBottom='sm'
+					/>
+				</PremiumSurface>
 
-				<GroupsExploreGrid currentUserId={user?.userId} />
+				<PremiumSurface
+					eyebrow='Available Groups'
+					chipText='Join or Create'
+					className='p-3 md:p-4'
+				>
+					<SurfaceSectionHeader
+						eyebrow='Social Spaces'
+						chipText='Live'
+						className='mb-3'
+					/>
+					<GroupsExploreGrid currentUserId={user?.userId} />
+				</PremiumSurface>
 
 				{/* Bottom breathing room for MobileBottomNav */}
 				<div className='pb-40 md:pb-8' />

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 
-// ─── Action Configurations ──────────────────────────
+// Action Configurations
 
 interface ActionConfig {
 	icon: LucideIcon
@@ -62,7 +62,7 @@ const ACTION_CONFIGS: Record<string, ActionConfig> = {
 
 export type AuthAction = keyof typeof ACTION_CONFIGS
 
-// ─── Component ──────────────────────────────────────
+// Component
 
 interface AuthRequiredModalProps {
 	isOpen: boolean
@@ -121,7 +121,7 @@ export function AuthRequiredModal({
 							exit={{ opacity: 0, scale: 0.95, y: 10 }}
 							transition={TRANSITION_SPRING}
 							className={cn(
-								'relative z-10 mx-4 w-full max-w-sm rounded-xl border border-border-subtle bg-bg-card p-6 shadow-warm',
+								'relative z-10 mx-4 w-full max-w-sm rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-warm ring-1 ring-white/8',
 								className,
 							)}
 							role='dialog'
@@ -180,3 +180,4 @@ export function AuthRequiredModal({
 		</AnimatePresence>
 	)
 }
+

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -33,6 +33,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { useNotificationStore } from '@/store/notificationStore'
 import { useTranslations } from '@/i18n/hooks'
+import { cn } from '@/lib/utils'
 
 interface NavItem {
 	href: string | ((userId?: string) => string)
@@ -191,45 +192,43 @@ export const LeftSidebar = () => {
 			<Link
 				key={item.labelKey}
 				href={href}
-				className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-radius px-1 py-1.5 text-xs font-medium leading-tight text-text-secondary transition-colors duration-300 hover:text-text-primary data-[active=true]:text-brand'
+				className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-medium leading-tight text-text-secondary transition-all duration-300 hover:text-text data-[active=true]:text-brand'
 				data-active={active}
 				aria-current={active ? 'page' : undefined}
 				title={label}
 			>
-				{/* Active indicator bar */}
+				{/* Pill background on active/hover */}
 				<motion.div
-					className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r-sm bg-brand'
+					className='pointer-events-none absolute inset-0 rounded-xl'
 					initial={false}
 					animate={{
-						height: active ? '70%' : '0%',
+						backgroundColor: active
+							? 'rgba(255,90,54,0.12)'
+							: 'rgba(255,90,54,0)',
 					}}
+					transition={{ duration: 0.25 }}
+				/>
+				{/* Left accent bar */}
+				<motion.div
+					className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r bg-brand'
+					initial={false}
+					animate={{ height: active ? '55%' : '0%' }}
 					transition={TRANSITION_SPRING}
 				/>
-				{/* Background glow on active */}
+				{/* Glow halo behind icon on active */}
+				{active && (
+					<div className='pointer-events-none absolute inset-x-2 top-1 h-7 rounded-lg bg-brand/8 blur-md' />
+				)}
+				{/* Icon */}
 				<motion.div
-					className='pointer-events-none absolute inset-0 rounded-radius bg-gradient-to-r from-brand/10 to-transparent opacity-0'
-					initial={false}
-					animate={{
-						opacity: active ? 1 : 0,
-					}}
-					transition={{
-						duration: 0.3,
-					}}
-				/>
-				{/* Icon with hover animation */}
-				<motion.div
-					whileHover={{
-						...ICON_BUTTON_HOVER,
-						scale: 1.15,
-					}}
+					whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
 					whileTap={ICON_BUTTON_TAP}
 					transition={TRANSITION_SPRING}
 					className='relative'
 				>
-					<Icon className='size-6 transition-all duration-300' />
-					{/* Unread badge for notifications */}
+					<Icon className={cn('size-5 transition-all duration-300', active && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]')} />
 					{item.showBadge && unreadCount > 0 && (
-						<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white'>
+						<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white shadow-[0_2px_6px_rgba(255,90,54,0.5)]'>
 							{unreadCount > 9 ? '9+' : unreadCount}
 						</span>
 					)}
@@ -243,10 +242,29 @@ export const LeftSidebar = () => {
 
 	return (
 		<nav
-			className='hidden min-h-0 border-r border-border-subtle bg-bg-card px-3 py-6 md:flex md:w-nav md:flex-col md:items-center md:gap-4'
+			className='relative hidden min-h-0 overflow-hidden bg-bg-card/88 px-3 py-6 backdrop-blur-xl md:flex md:w-nav md:flex-col md:items-center md:gap-4'
 			aria-label={t('ariaMainNavigation')}
 		>
-			<div className='flex min-h-0 w-full flex-1 flex-col items-center gap-4 overflow-y-auto overscroll-contain pb-2'>
+			{/* Ambient orbs */}
+			<div className='pointer-events-none absolute -left-8 -top-16 size-32 rounded-full bg-brand/8 blur-3xl' />
+			<div className='pointer-events-none absolute -bottom-12 -right-8 size-28 rounded-full bg-xp/8 blur-3xl' />
+
+			{/* Gradient right border line */}
+			<div className='pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-border-subtle to-transparent' />
+
+			{/* Top sheen */}
+			<div className='pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/20 to-transparent dark:from-white/5' />
+
+			{/* ChefHat brand mark */}
+			<motion.div
+				className='relative z-10 mb-2 flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand/70 shadow-[0_4px_12px_rgba(255,90,54,0.35)]'
+				whileHover={{ scale: 1.08 }}
+				transition={TRANSITION_SPRING}
+			>
+				<ChefHat className='size-5 text-white' />
+			</motion.div>
+
+			<div className='relative z-10 flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto overscroll-contain pb-2'>
 				{/* Primary navigation — filtered for auth state */}
 				{visiblePrimaryItems.map(renderNavItem)}
 
@@ -255,19 +273,38 @@ export const LeftSidebar = () => {
 					<button
 						type='button'
 						onClick={() => setShowMore(prev => !prev)}
-						className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-radius px-1 py-1.5 text-xs font-medium leading-tight text-text-secondary transition-colors duration-300 hover:text-text-primary'
+						className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-medium leading-tight text-text-secondary transition-all duration-300 hover:text-text data-[active=true]:text-brand'
 						title={showMore ? t('showLess') : t('more')}
 						aria-expanded={showMore}
+						data-active={showMore}
 					>
 						<motion.div
-							whileHover={{
-								...ICON_BUTTON_HOVER,
-								scale: 1.15,
+							className='pointer-events-none absolute inset-0 rounded-xl'
+							initial={false}
+							animate={{
+								backgroundColor: showMore
+									? 'rgba(255,90,54,0.12)'
+									: 'rgba(255,90,54,0)',
 							}}
+							transition={{ duration: 0.25 }}
+						/>
+						<motion.div
+							className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r bg-brand'
+							initial={false}
+							animate={{ height: showMore ? '55%' : '0%' }}
+							transition={TRANSITION_SPRING}
+						/>
+						<motion.div
+							whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
 							whileTap={ICON_BUTTON_TAP}
 							transition={TRANSITION_SPRING}
 						>
-							<MoreHorizontal className='size-6' />
+							<MoreHorizontal
+								className={cn(
+									'size-5 transition-all duration-300',
+									showMore && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
+								)}
+							/>
 						</motion.div>
 						<div className='text-2xs leading-tight'>
 							{showMore ? t('less') : t('more')}
@@ -283,9 +320,9 @@ export const LeftSidebar = () => {
 							animate={{ opacity: 1, height: 'auto' }}
 							exit={{ opacity: 0, height: 0 }}
 							transition={TRANSITION_SPRING}
-							className='flex w-full flex-col items-center gap-4 overflow-hidden'
+							className='flex w-full flex-col items-center gap-1 overflow-hidden'
 						>
-							<div className='mx-auto h-px w-8 bg-border-subtle' />
+							<div className='my-1 mx-auto h-px w-8 bg-gradient-to-r from-transparent via-border-subtle to-transparent' />
 							{secondaryItems.map(renderNavItem)}
 						</motion.div>
 					)}
@@ -294,19 +331,20 @@ export const LeftSidebar = () => {
 
 			{/* Guest CTA — sign in / get started at the bottom of sidebar */}
 			{!isAuthenticated && (
-				<div className='w-full flex-shrink-0 pt-4'>
-					<div className='mx-auto mb-2 h-px w-8 bg-border-subtle' />
+				<div className='relative z-10 w-full flex-shrink-0 pt-4'>
+					<div className='mx-auto mb-2 h-px w-8 bg-gradient-to-r from-transparent via-border-subtle to-transparent' />
 					<div className='flex w-full flex-col items-center gap-2'>
 						<Link
 							href={guestSignInHref}
-							className='flex h-11 w-full items-center justify-center rounded-radius text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+							className='flex h-10 w-full items-center justify-center rounded-radius border border-border-subtle/60 text-xs font-semibold text-text-secondary transition-all hover:border-brand/30 hover:bg-brand/5 hover:text-brand'
 						>
 							{t('signIn')}
 						</Link>
 						<Link
 							href={guestSignUpHref}
-							className='flex h-11 w-full items-center justify-center whitespace-nowrap rounded-radius bg-brand text-xs font-bold text-white shadow-card transition-all hover:shadow-warm'
+							className='relative flex h-10 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-radius bg-gradient-to-br from-brand to-brand/80 text-xs font-bold text-white shadow-[0_4px_14px_rgba(255,90,54,0.4)] transition-all hover:shadow-[0_6px_20px_rgba(255,90,54,0.5)]'
 						>
+							<span className='pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/15 to-white/0 opacity-0 transition-opacity hover:opacity-100' />
 							{t('getStarted')}
 						</Link>
 					</div>

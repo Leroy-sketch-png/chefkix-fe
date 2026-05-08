@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import app from '@/configs/app'
 import { useEffect, useState } from 'react'

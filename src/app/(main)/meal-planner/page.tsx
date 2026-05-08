@@ -21,6 +21,10 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 import { Portal } from '@/components/ui/portal'
 import { ErrorState } from '@/components/ui/error-state'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -266,6 +270,12 @@ export default function MealPlannerPage() {
 	}
 	const plannedDays = Array.isArray(plan?.days) ? plan.days : []
 	const hasPlan = plan !== null && plannedDays.length > 0
+	const totalMealsPlanned = plannedDays.reduce((sum, day) => {
+		return (
+			sum +
+			MEAL_TYPES.reduce((count, type) => (day[type] ? count + 1 : count), 0)
+		)
+	}, 0)
 
 	// ── Skeleton ──────────────────────────────────────────
 
@@ -315,61 +325,66 @@ export default function MealPlannerPage() {
 						subtitle={t('subtitle')}
 						gradient='green'
 						marginBottom='sm'
-						rightAction={
-							<div className='flex flex-wrap items-center gap-2'>
-								{hasPlan && (
-									<>
-										<button
-											type='button'
-											onClick={handleShowShopping}
-											className='flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80'
-										>
-											<ShoppingCart className='size-4' />
-											{t('shoppingList')}
-										</button>
-										<button
-											type='button'
-											onClick={() => setConfirmingDelete(true)}
-											className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20'
-										>
-											<Trash2 className='size-4' />
-											{t('clear')}
-										</button>
-									</>
-								)}
-								<button
-									type='button'
-									onClick={() => setUseAI(prev => !prev)}
-									className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-										useAI
-											? 'bg-brand/15 text-brand'
-											: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
-									}`}
-									title={
-										useAI
-											? 'AI-powered generation (uses your pantry + Gemini)'
-											: 'Quick generation (shuffles existing recipes)'
-									}
-								>
-									<Sparkles className='size-4' />
-									{useAI ? t('aiMode') : t('quickMode')}
-								</button>
-								<button
-									type='button'
-									onClick={handleGenerate}
-									disabled={generating}
-									className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
-								>
-									{generating ? (
-										<RefreshCw className='size-4 animate-spin' />
-									) : (
-										<ChefHat className='size-4' />
-									)}
-									{plan ? t('regenerate') : t('generatePlan')}
-								</button>
-							</div>
-						}
 					/>
+
+					<PremiumSurface
+						eyebrow='Planning Controls'
+						chipText={hasPlan ? `${plannedDays.length} days` : 'No plan yet'}
+						tone='success'
+					>
+						<div className='flex flex-wrap items-center gap-2 lg:gap-2.5'>
+							{hasPlan && (
+								<>
+									<button
+										type='button'
+										onClick={handleShowShopping}
+										className='flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80 lg:px-3.5 lg:py-2'
+									>
+										<ShoppingCart className='size-4' />
+										{t('shoppingList')}
+									</button>
+									<button
+										type='button'
+										onClick={() => setConfirmingDelete(true)}
+										className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 lg:px-3.5 lg:py-2'
+									>
+										<Trash2 className='size-4' />
+										{t('clear')}
+									</button>
+								</>
+							)}
+							<button
+								type='button'
+								onClick={() => setUseAI(prev => !prev)}
+								className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors lg:px-3.5 lg:py-2 ${
+									useAI
+										? 'bg-brand/15 text-brand'
+										: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
+								}`}
+								title={
+									useAI
+										? 'AI-powered generation (uses your pantry + Gemini)'
+										: 'Quick generation (shuffles existing recipes)'
+								}
+							>
+								<Sparkles className='size-4' />
+								{useAI ? t('aiMode') : t('quickMode')}
+							</button>
+							<button
+								type='button'
+								onClick={handleGenerate}
+								disabled={generating}
+								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 lg:px-4.5 lg:py-2'
+							>
+								{generating ? (
+									<RefreshCw className='size-4 animate-spin' />
+								) : (
+									<ChefHat className='size-4' />
+								)}
+								{plan ? t('regenerate') : t('generatePlan')}
+							</button>
+						</div>
+					</PremiumSurface>
 
 					{/* ── AI Mode Notice ─────────────────── */}
 					{useAI && !plan?.reasoning && (
@@ -431,8 +446,15 @@ export default function MealPlannerPage() {
 						</motion.div>
 					) : (
 						/* ── 7-Day Grid ──────────────────── */
-						<div className='overflow-x-auto scrollbar-hide'>
-							<div className='min-w-[900px]'>
+						<div className='grid gap-4 xl:grid-cols-[1fr_280px]'>
+							<PremiumSurface
+								eyebrow='Week Matrix'
+								chipText={`${plannedDays.length} days`}
+								tone='success'
+								className='p-4'
+							>
+								<div className='overflow-x-auto scrollbar-hide'>
+									<div className='min-w-[900px]'>
 								{/* Day Headers */}
 								<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
 									<div /> {/* spacer */}
@@ -510,7 +532,38 @@ export default function MealPlannerPage() {
 										})}
 									</div>
 								))}
-							</div>
+									</div>
+								</div>
+							</PremiumSurface>
+
+							<PremiumSurface
+								eyebrow='Plan Intelligence'
+								chipText={useAI ? 'AI Guided' : 'Quick Mode'}
+								className='hidden h-fit p-4 xl:block xl:sticky xl:top-24'
+								showOrbs={false}
+							>
+								<div className='space-y-3'>
+									<div className='rounded-xl border border-border-subtle bg-bg-elevated p-3'>
+										<p className='text-xs font-semibold uppercase tracking-[0.14em] text-text-muted'>
+											Meals Planned
+										</p>
+										<p className='mt-1 text-2xl font-extrabold text-text'>
+											{totalMealsPlanned}
+										</p>
+									</div>
+									<div className='rounded-xl border border-border-subtle bg-bg-elevated p-3'>
+										<p className='text-xs font-semibold uppercase tracking-[0.14em] text-text-muted'>
+											Shopping Checked
+										</p>
+										<p className='mt-1 text-2xl font-extrabold text-text'>
+											{checkedItems.size}
+										</p>
+									</div>
+									<p className='text-xs leading-relaxed text-text-secondary'>
+										Use this side panel to read planning state at a glance while keeping the weekly matrix visible.
+									</p>
+								</div>
+							</PremiumSurface>
 						</div>
 					)}
 
@@ -522,21 +575,17 @@ export default function MealPlannerPage() {
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 20 }}
 								transition={TRANSITION_SPRING}
-								className='rounded-xl border border-border-subtle bg-bg-card p-5 shadow-warm'
+								className='shadow-warm'
 							>
-								<div className='mb-4 flex items-center justify-between'>
-									<div className='flex items-center gap-2'>
-										<ShoppingCart className='size-5 text-brand' />
-										<h2 className='text-lg font-semibold text-text'>
-											{t('shoppingList')}
-										</h2>
-										{shoppingList.length > 0 && (
-											<span className='rounded-full bg-bg-elevated px-2 py-0.5 text-xs text-text-secondary'>
-												{t('itemsCount', { count: shoppingList.length })}
-											</span>
-										)}
-									</div>
-									<div className='flex items-center gap-2'>
+								<PremiumSurface tone='success' className='p-5'>
+									<div className='mb-4 flex items-center justify-between'>
+										<SurfaceSectionHeader
+											eyebrow={t('shoppingList')}
+											chipText={t('itemsCount', { count: shoppingList.length })}
+											className='mb-0'
+											chipClassName='bg-bg-elevated'
+										/>
+										<div className='flex items-center gap-2'>
 										<button
 											type='button'
 											onClick={copyShoppingList}
@@ -557,8 +606,8 @@ export default function MealPlannerPage() {
 										>
 											<X className='size-4' />
 										</button>
+										</div>
 									</div>
-								</div>
 
 								{loadingShopping ? (
 									<div className='space-y-2'>
@@ -626,6 +675,7 @@ export default function MealPlannerPage() {
 										))}
 									</ul>
 								)}
+								</PremiumSurface>
 							</motion.div>
 						)}
 					</AnimatePresence>

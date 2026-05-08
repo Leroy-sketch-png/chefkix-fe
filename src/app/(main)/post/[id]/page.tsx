@@ -16,6 +16,7 @@ import { motion } from 'framer-motion'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 
 /**
  * Post Detail Page
@@ -123,12 +124,18 @@ export default function PostDetailPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='md' className='py-6'>
-				{/* Back Navigation - This is a SECONDARY page, so back button is appropriate */}
-				<motion.div
+				<PremiumSurface
+					eyebrow='Post Detail'
+					chipText='Conversation View'
+					className='mb-4 p-2 md:p-3'
+					tone='blue'
+					showOrbs={false}
+				>
+					<motion.div
 					initial={{ opacity: 0, x: -10 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-4'
+					className=''
 				>
 					<Button
 						variant='ghost'
@@ -139,21 +146,27 @@ export default function PostDetailPage() {
 						<ArrowLeft className='size-4' />
 						<span>{t('backLabel')}</span>
 					</Button>
-				</motion.div>
+					</motion.div>
+				</PremiumSurface>
 
-				{/* Post Card */}
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+				<PremiumSurface
+					eyebrow='Post Content'
+					chipText='Live comments'
+					className='p-2 md:p-3'
 				>
-					<PostCard
-						post={post}
-						onUpdate={handlePostUpdate}
-						onDelete={handlePostDelete}
-						currentUserId={user?.userId}
-					/>
-				</motion.div>
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+					>
+						<PostCard
+							post={post}
+							onUpdate={handlePostUpdate}
+							onDelete={handlePostDelete}
+							currentUserId={user?.userId}
+						/>
+					</motion.div>
+				</PremiumSurface>
 
 				<div className='pb-40 md:pb-8' />
 			</PageContainer>

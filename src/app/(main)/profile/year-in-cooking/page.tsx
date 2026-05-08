@@ -30,6 +30,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { getProfileDisplayName } from '@/lib/types/profile'
 import { logDevError } from '@/lib/dev-log'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ── Card slide data ──
 interface RecapCard {
@@ -500,7 +501,13 @@ export default function YearInCookingPage() {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
-					<div className='mb-8 flex items-center gap-3'>
+					<PremiumSurface
+						eyebrow='Year In Cooking'
+						chipText='No recap yet'
+						className='mb-8 p-3 md:p-4'
+						tone='streak'
+					>
+						<div className='flex items-center gap-3'>
 						<motion.button
 							type='button'
 							onClick={() => router.back()}
@@ -513,7 +520,8 @@ export default function YearInCookingPage() {
 						<h1 className='text-xl font-bold text-text'>
 							{t('yearInCooking')}
 						</h1>
-					</div>
+						</div>
+					</PremiumSurface>
 					<EmptyStateGamified
 						variant='cooking'
 						title={t('yearJustBeginning')}
@@ -530,8 +538,13 @@ export default function YearInCookingPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='sm'>
-				{/* Header */}
-				<div className='mb-6 flex items-center gap-3'>
+				<PremiumSurface
+					eyebrow='Year In Cooking'
+					chipText={`${page + 1}/${cards.length}`}
+					tone='streak'
+					className='mb-6 p-3 md:p-4'
+				>
+					<div className='flex items-center gap-3'>
 					<motion.button
 						type='button'
 						onClick={() => router.back()}
@@ -549,10 +562,20 @@ export default function YearInCookingPage() {
 							{page + 1} / {cards.length}
 						</p>
 					</div>
-				</div>
+					</div>
+				</PremiumSurface>
 
-				{/* Card carousel */}
-				<div className='relative mb-6 overflow-hidden rounded-2xl'>
+				<PremiumSurface
+					eyebrow='Recap Carousel'
+					chipText='Arrow keys supported'
+					className='mb-6 p-3 md:p-4'
+				>
+					<SurfaceSectionHeader
+						eyebrow='Story Cards'
+						chipText='Swipe through highlights'
+						className='mb-3'
+					/>
+					<div className='relative overflow-hidden rounded-2xl'>
 					{/* Progress dots */}
 					<div className='mb-4 flex justify-center gap-1.5'>
 						{cards.map((c, i) => (
@@ -570,10 +593,17 @@ export default function YearInCookingPage() {
 								aria-label={t('yicGoToCard', { num: i + 1 })}
 							/>
 						))}
-					</div>
+						</div>
+				</div>
+			</PremiumSurface>
 
-					{/* Card */}
-					<div className='relative min-h-96'>
+			<PremiumSurface
+				eyebrow='Export'
+				chipText='Share-ready'
+				showOrbs={false}
+				className='p-3 md:p-4'
+			>
+						<div className='flex justify-center gap-3'>
 						<AnimatePresence initial={false} custom={direction} mode='wait'>
 							<motion.div
 								key={page}
@@ -673,12 +703,10 @@ export default function YearInCookingPage() {
 				</div>
 
 				{/* Hint */}
-				<p className='mt-4 text-center text-xs text-text-muted'>
-					{t('yicKeyboardHint')}
-				</p>
-
-				<div className='pb-40 md:pb-8' />
-			</PageContainer>
+			<p className='mt-4 text-center text-xs text-text-muted'>
+				{t('yicKeyboardHint')}
+			</p>
+		</PremiumSurface>
 		</PageTransition>
 	)
 }

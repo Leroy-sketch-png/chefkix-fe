@@ -49,7 +49,7 @@ export function FriendsOnlineWidget() {
 
 	if (loading) {
 		return (
-			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'>
+			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'>
 				<div className='mb-3 flex items-center gap-2'>
 					<Skeleton className='h-4 w-24' />
 				</div>
@@ -67,7 +67,7 @@ export function FriendsOnlineWidget() {
 
 	if (friends.length === 0) {
 		return (
-			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'>
+			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'>
 				<div className='mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-text-primary'>
 					<Users className='size-4 text-text-secondary' />
 					{t('friendsOnline')}
@@ -83,7 +83,7 @@ export function FriendsOnlineWidget() {
 	const browsing = friends.filter(f => f.activity !== 'cooking')
 
 	return (
-		<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'>
+		<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'>
 			<div className='mb-3 flex items-center justify-between'>
 				<div className='flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-text-primary'>
 					<Users className='size-4 text-text-secondary' />
@@ -96,7 +96,7 @@ export function FriendsOnlineWidget() {
 
 			<div className='space-y-1.5'>
 				<AnimatePresence mode='popLayout'>
-					{/* Cooking friends first — highlighted */}
+					{/* Cooking friends first -- highlighted */}
 					{cooking.map(friend => (
 						<motion.div
 							key={friend.userId}
@@ -174,3 +174,4 @@ export function FriendsOnlineWidget() {
 		</div>
 	)
 }
+

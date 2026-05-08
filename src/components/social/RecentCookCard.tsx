@@ -26,7 +26,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 	return (
 		<motion.div
 			layout
-			className='group -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card transition-all duration-300'
+			className='group -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/50 transition-all duration-300 hover:shadow-warm'
 		>
 			<div className='flex items-center gap-3 p-3 md:p-4'>
 				{/* Cover image thumbnail */}

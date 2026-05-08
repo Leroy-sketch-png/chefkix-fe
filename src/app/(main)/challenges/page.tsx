@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -20,6 +20,10 @@ import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 import {
 	DailyChallengeBanner,
 	ActiveBattlesSection,
@@ -260,9 +264,11 @@ export default function ChallengesPage() {
 						{weeklyChallenge && (
 							<BlurFade delay={0.1}>
 								<section className='mb-8'>
-									<h2 className='mb-4 text-lg font-bold text-text-primary'>
-										{t('weeklyChallenge')}
-									</h2>
+									<SurfaceSectionHeader
+										className='mb-4'
+										eyebrow={t('weeklyChallenge')}
+										chipText={`+${weeklyChallenge.bonusXp} XP`}
+									/>
 									<motion.div
 										initial={{ opacity: 0, y: 10 }}
 										animate={{ opacity: 1, y: 0 }}
@@ -364,12 +370,11 @@ export default function ChallengesPage() {
 						{communityChallenges.length > 0 && (
 							<BlurFade delay={0.15}>
 								<section className='mb-8'>
-									<div className='mb-4 flex items-center gap-2'>
-										<Users className='size-5 text-combo' />
-										<h2 className='text-lg font-bold text-text'>
-											{t('communityChallenges')}
-										</h2>
-									</div>
+									<SurfaceSectionHeader
+										className='mb-4'
+										eyebrow={t('communityChallenges')}
+										chipText={`${communityChallenges.length} live`}
+									/>
 									<div className='space-y-4'>
 										{communityChallenges.map((ch, i) => (
 											<motion.div
@@ -473,12 +478,11 @@ export default function ChallengesPage() {
 						{seasonalChallenges.length > 0 && (
 							<BlurFade delay={0.2}>
 								<section className='mb-8'>
-									<div className='mb-4 flex items-center gap-2'>
-										<Leaf className='size-5 text-streak' />
-										<h2 className='text-lg font-bold text-text'>
-											{t('seasonalEvents')}
-										</h2>
-									</div>
+									<SurfaceSectionHeader
+										className='mb-4'
+										eyebrow={t('seasonalEvents')}
+										chipText={`${seasonalChallenges.length} seasons`}
+									/>
 									<div className='space-y-4'>
 										{seasonalChallenges.map((ev, i) => (
 											<motion.div
@@ -609,25 +613,32 @@ export default function ChallengesPage() {
 
 						{/* Past Challenges link */}
 						<section>
-							<Link
-								href='/challenges/history'
-								className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+							<PremiumSurface
+								eyebrow='Archive Access'
+								chipText='Past Seasons'
+								showOrbs={false}
+								className='p-3'
 							>
-								<div className='flex items-center gap-3'>
-									<div className='flex size-11 items-center justify-center rounded-xl bg-bg-elevated transition-colors group-hover:bg-brand/10'>
-										<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
+								<Link
+									href='/challenges/history'
+									className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+								>
+									<div className='flex items-center gap-3'>
+										<div className='flex size-11 items-center justify-center rounded-xl bg-bg-elevated transition-colors group-hover:bg-brand/10'>
+											<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
+										</div>
+										<div>
+											<h3 className='font-semibold text-text'>
+												{t('challengeHistory')}
+											</h3>
+											<p className='text-sm text-text-muted'>
+												{t('challengeHistoryDesc')}
+											</p>
+										</div>
 									</div>
-									<div>
-										<h3 className='font-semibold text-text'>
-											{t('challengeHistory')}
-										</h3>
-										<p className='text-sm text-text-muted'>
-											{t('challengeHistoryDesc')}
-										</p>
-									</div>
-								</div>
-								<ChevronRight className='size-5 text-text-muted transition-colors group-hover:text-brand' />
-							</Link>
+									<ChevronRight className='size-5 text-text-muted transition-colors group-hover:text-brand' />
+								</Link>
+							</PremiumSurface>
 						</section>
 					</>
 				)}

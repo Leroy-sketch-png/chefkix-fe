@@ -492,7 +492,7 @@ export const QuickPostFAB = ({
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 100 }}
 								transition={TRANSITION_SPRING}
-								className='w-full max-w-lg rounded-t-2xl border border-border-subtle bg-bg-card p-5 shadow-card sm:rounded-2xl'
+								className='w-full max-w-lg rounded-t-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card/97 to-bg-card p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:rounded-2xl'
 								onClick={e => e.stopPropagation()}
 							>
 								{/* Header */}
@@ -778,7 +778,7 @@ export const QuickPostFAB = ({
 
 											{/* Recipe search dropdown */}
 											{battlePickingSlot && (
-												<div className='rounded-xl border border-brand/20 bg-bg-card p-3 shadow-card'>
+																<div className='rounded-xl border border-brand/20 bg-gradient-to-br from-brand/6 via-bg-card to-bg-elevated/60 p-3 shadow-card'>
 													<input
 														type='text'
 														aria-label={t('fabBattleSearchPlaceholder')}

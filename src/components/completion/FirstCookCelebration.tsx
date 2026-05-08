@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, Fragment } from 'react'
 import { useTranslations } from 'next-intl'

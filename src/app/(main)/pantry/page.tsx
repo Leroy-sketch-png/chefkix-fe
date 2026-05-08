@@ -24,6 +24,10 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -444,6 +448,11 @@ export default function PantryPage() {
 						}
 					/>
 
+					<SurfaceSectionHeader
+						eyebrow='Pantry Control Center'
+						chipText={`${items.length} items tracked`}
+					/>
+
 					{/* ── Expiry Warning Banner ─────────── */}
 					{expiringCount > 0 && (
 						<motion.div
@@ -468,7 +477,8 @@ export default function PantryPage() {
 					)}
 
 					{/* ── Quick Add Bar ─────────────────── */}
-					<motion.div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card sm:p-4'>
+					<motion.div>
+						<PremiumSurface tone='success' className='bg-bg-card/85 sm:p-4'>
 						<div className='grid grid-cols-[1fr_4.5rem] gap-2 sm:flex sm:flex-wrap sm:items-end sm:gap-3'>
 							<div className='col-span-2 sm:flex-1 sm:min-w-[180px]'>
 								<label
@@ -578,6 +588,7 @@ export default function PantryPage() {
 								{t('addButton')}
 							</motion.button>
 						</div>
+						</PremiumSurface>
 					</motion.div>
 
 					{/* ── Search + Category Filter ──────── */}

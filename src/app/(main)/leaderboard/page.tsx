@@ -20,6 +20,7 @@ import {
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ============================================
 // PAGE
@@ -155,19 +156,31 @@ export default function LeaderboardRoute() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
-				<LeaderboardPage
-					entries={entries}
-					isLoading={isLoading}
-					myRank={myRank}
-					resetInfo={getResetInfo()}
-					type={type}
-					timeframe={timeframe}
-					onTypeChange={handleTypeChange}
-					onTimeframeChange={setTimeframe}
-					onUserClick={entry => router.push(`/${entry.userId}`)}
-					onBack={() => router.back()}
-					onCookNow={() => router.push('/explore')}
-				/>
+				<PremiumSurface
+					eyebrow='Rank Arena'
+					chipText={`${type.toUpperCase()} · ${timeframe.toUpperCase()}`}
+					className='p-3 md:p-4'
+					tone='xp'
+				>
+					<SurfaceSectionHeader
+						eyebrow='Competition'
+						chipText={`${entries.length} chefs`}
+						className='mb-3'
+					/>
+					<LeaderboardPage
+						entries={entries}
+						isLoading={isLoading}
+						myRank={myRank}
+						resetInfo={getResetInfo()}
+						type={type}
+						timeframe={timeframe}
+						onTypeChange={handleTypeChange}
+						onTimeframeChange={setTimeframe}
+						onUserClick={entry => router.push(`/${entry.userId}`)}
+						onBack={() => router.back()}
+						onCookNow={() => router.push('/explore')}
+					/>
+				</PremiumSurface>
 
 				{/* Bottom breathing room for MobileBottomNav */}
 				<div className='pb-40 md:pb-8' />

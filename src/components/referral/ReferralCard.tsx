@@ -131,7 +131,7 @@ export default function ReferralCard() {
 	if (isLoading) {
 		return (
 			<div className='space-y-5'>
-				<div className='rounded-xl border border-border-subtle bg-bg-card p-5 shadow-card space-y-4'>
+				<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card space-y-4'>
 					<Skeleton className='h-5 w-36 rounded-lg' />
 					<Skeleton className='h-12 w-full rounded-lg' />
 					<div className='flex gap-3'>
@@ -156,7 +156,7 @@ export default function ReferralCard() {
 			className='space-y-5'
 		>
 			{/* Your Referral Code */}
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-5 shadow-card'>
+			<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 				<div className='mb-4 flex items-center gap-2'>
 					<div className='flex size-8 items-center justify-center rounded-lg bg-brand/10'>
 						<Gift className='size-4 text-brand' />
@@ -229,7 +229,7 @@ export default function ReferralCard() {
 
 			{/* Referral Stats */}
 			{stats && (
-				<div className='rounded-xl border border-border-subtle bg-bg-card p-5 shadow-card'>
+				<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 					<div className='mb-4 flex items-center gap-2'>
 						<div className='flex size-8 items-center justify-center rounded-lg bg-xp/10'>
 							<Trophy className='size-4 text-xp' />
@@ -303,7 +303,7 @@ export default function ReferralCard() {
 			)}
 
 			{/* Redeem Code */}
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-5 shadow-card'>
+			<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 				<div className='mb-4 flex items-center gap-2'>
 					<div className='flex size-8 items-center justify-center rounded-lg bg-streak/10'>
 						<Sparkles className='size-4 text-streak' />

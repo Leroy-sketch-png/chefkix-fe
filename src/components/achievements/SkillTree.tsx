@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -187,7 +187,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 	return (
 		<div className='space-y-6'>
 			{/* Summary Bar */}
-			<div className='flex items-center justify-between rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+			<div className='flex items-center justify-between rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'>
 				<div className='flex items-center gap-3'>
 					<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-xp to-accent-purple text-xl text-white shadow-card'>
 						<Trophy className='size-6' />
@@ -305,7 +305,7 @@ function SkillPathCard({
 	return (
 		<motion.div
 			className={cn(
-				'overflow-hidden rounded-xl border bg-bg-card shadow-card transition-colors',
+				'overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/60 shadow-card transition-colors',
 				isComplete ? 'border-success/40' : `${meta.borderColor}`,
 			)}
 			whileHover={CARD_HOVER}
@@ -549,7 +549,7 @@ function SkillTreeSkeleton() {
 	return (
 		<div className='space-y-6'>
 			{/* Summary skeleton */}
-			<div className='flex items-center justify-between rounded-xl border border-border-subtle bg-bg-card p-4'>
+			<div className='flex items-center justify-between rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4'>
 				<div className='flex items-center gap-3'>
 					<Skeleton className='size-12 rounded-xl' />
 					<div>
@@ -569,7 +569,7 @@ function SkillTreeSkeleton() {
 			{[1, 2, 3].map(i => (
 				<div
 					key={i}
-					className='rounded-xl border border-border-subtle bg-bg-card p-4'
+					className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4'
 				>
 					<div className='flex items-center gap-3'>
 						<Skeleton className='size-10 rounded-lg' />

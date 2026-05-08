@@ -331,7 +331,7 @@ export const CookingPanel = () => {
 		try {
 			await completeStep(currentStepNumber)
 
-			// Show photo capture prompt — capture step number NOW before navigation changes it
+			// Show photo capture prompt -- capture step number NOW before navigation changes it
 			setPhotoStepNumber(currentStepNumber)
 			setShowPhotoPrompt(true)
 			clearTimeout(photoPromptTimerRef.current)
@@ -354,7 +354,7 @@ export const CookingPanel = () => {
 					}, 100)
 				}
 			} else {
-				// Session complete in docked mode — persist photos then expand for rating
+				// Session complete in docked mode -- persist photos then expand for rating
 				await stepPhotos.persistForPostCreation()
 			}
 		} finally {
@@ -605,7 +605,7 @@ export const CookingPanel = () => {
 					{step?.description}
 				</p>
 
-				{/* Tips — Adaptive: hidden in condensed mode */}
+				{/* Tips -- Adaptive: hidden in condensed mode */}
 				{step?.tips && instructionDetail !== 'condensed' && (
 					<div
 						className={cn(
@@ -634,7 +634,7 @@ export const CookingPanel = () => {
 
 				{/* Ingredients Checklist */}
 				{step?.ingredients && step.ingredients.length > 0 && (
-					<div className='rounded-xl border border-border-subtle bg-bg-card p-3'>
+					<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 p-3'>
 						<h5 className='mb-2 flex items-center gap-2 text-sm font-semibold'>
 							<span>🧾</span> {t('cpIngredients')}
 						</h5>
@@ -669,7 +669,7 @@ export const CookingPanel = () => {
 					{liveAnnouncement}
 				</div>
 
-				{/* Step Photo Capture — hidden input + compact prompt (Wave 2: Kitchen Protocol) */}
+				{/* Step Photo Capture -- hidden input + compact prompt (Wave 2: Kitchen Protocol) */}
 				<input
 					ref={stepPhotos.fileInputRef}
 					type='file'
@@ -816,3 +816,4 @@ export const CookingPanel = () => {
 		</aside>
 	)
 }
+

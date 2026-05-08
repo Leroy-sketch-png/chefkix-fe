@@ -41,6 +41,7 @@ import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
@@ -1000,11 +1001,17 @@ export default function SettingsPage() {
 						transition={TRANSITION_SPRING}
 						className='relative'
 					>
-						<div
-							role='tablist'
-							aria-label={t('title')}
-							className='flex gap-1.5 overflow-x-auto pb-1 lg:pb-0 lg:flex-col rounded-radius border border-border-subtle bg-bg-card p-1.5 shadow-card h-fit lg:sticky lg:top-24 scrollbar-hide lg:p-2 lg:gap-2'
+						<PremiumSurface
+							className='h-fit p-1.5 lg:sticky lg:top-24 lg:p-2'
+							eyebrow='Settings Rail'
+							chipText={`${TABS.length} tabs`}
+							showOrbs={false}
 						>
+							<div
+								role='tablist'
+								aria-label={t('title')}
+								className='flex gap-1.5 overflow-x-auto pb-1 pr-6 lg:pr-0 lg:pb-0 lg:flex-col scrollbar-hide lg:gap-2'
+							>
 							{TABS.map(tab => {
 								const Icon = tab.icon
 								const isActive = activeTab === tab.id
@@ -1020,7 +1027,7 @@ export default function SettingsPage() {
 										onClick={() => handleTabChange(tab.id)}
 										title={t(tab.labelKey)}
 										className={cn(
-											'flex min-w-[4.25rem] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-brand/50 lg:min-w-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left',
+											'flex min-w-[6.25rem] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-2.5 py-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-brand/50 lg:min-w-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left',
 											isActive
 												? 'bg-brand/10 text-brand font-semibold'
 												: 'text-text-secondary hover:bg-bg-hover hover:text-text',
@@ -1048,7 +1055,7 @@ export default function SettingsPage() {
 								whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
 								onClick={handleLogout}
 								disabled={isLoggingOut}
-								className='flex min-w-[4.25rem] flex-shrink-0 flex-col items-center gap-1 rounded-lg px-2 py-2 text-center text-error transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 lg:min-w-0 lg:flex-row lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left'
+								className='flex min-w-[6.25rem] flex-shrink-0 flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-center text-error transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 lg:min-w-0 lg:flex-row lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left'
 							>
 								{isLoggingOut ? (
 									<Loader2 className='size-5 flex-shrink-0 animate-spin' />
@@ -1059,7 +1066,8 @@ export default function SettingsPage() {
 									{isLoggingOut ? t('signingOut') : t('signOut')}
 								</p>
 							</motion.button>
-						</div>
+							</div>
+						</PremiumSurface>
 						{/* Scroll fade indicator (mobile only) */}
 						<div className='pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-bg-card to-transparent lg:hidden' />
 					</motion.nav>

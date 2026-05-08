@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -92,7 +92,7 @@ function LeaderboardTabs({
 
 	return (
 		<div
-			className='flex gap-2 p-1.5 bg-bg-card rounded-2xl mb-4'
+			className='mb-4 flex gap-2 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-1.5 shadow-card'
 			role='tablist'
 			aria-label={t('tabTypeLabel')}
 		>
@@ -142,7 +142,7 @@ function TimeframeToggle({
 
 	return (
 		<div
-			className='relative flex p-1 bg-bg-card rounded-xl mb-5'
+			className='relative mb-5 flex rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 p-1 shadow-card'
 			role='tablist'
 			aria-label={t('tabTimeframeLabel')}
 		>
@@ -254,7 +254,7 @@ function MyRankBanner({
 function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
 	const t = useTranslations('leaderboard')
 	return (
-		<div className='flex items-center justify-center gap-2 py-3.5 bg-bg-card rounded-xl mt-4 text-sm text-text-muted'>
+		<div className='mt-4 flex items-center justify-center gap-2 rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 py-3.5 text-sm text-text-muted'>
 			<Clock className='size-icon-sm' />
 			<span>
 				{t('resetsIn')}{' '}
@@ -312,7 +312,7 @@ export function LeaderboardPage({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='size-10 flex items-center justify-center rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 text-text shadow-card focus-visible:ring-2 focus-visible:ring-brand/50'
 						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
@@ -327,7 +327,7 @@ export function LeaderboardPage({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onShare}
-						className='size-10 flex items-center justify-center bg-bg-card border border-border rounded-xl text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='size-10 flex items-center justify-center rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 text-text-muted shadow-card focus-visible:ring-2 focus-visible:ring-brand/50'
 						aria-label={t('ariaShareLeaderboard')}
 					>
 						<Share2 className='size-5' />
@@ -353,7 +353,7 @@ export function LeaderboardPage({
 			{isLoading ? (
 				<>
 					<LeaderboardPodiumSkeleton />
-					<div className='bg-bg-card rounded-2xl p-2'>
+					<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-2 shadow-card'>
 						{[1, 2, 3, 4, 5].map(i => (
 							<LeaderboardItemSkeleton key={i} />
 						))}
@@ -381,7 +381,7 @@ export function LeaderboardPage({
 						variants={staggerContainer}
 						initial={false}
 						animate='visible'
-						className='bg-bg-card rounded-2xl p-2'
+						className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-2 shadow-card'
 					>
 						{listEntries.map((entry, index) => (
 							<motion.div

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -76,7 +76,7 @@ export const GroupHeader = ({
 
 	return (
 		<motion.div
-			className='bg-bg-card rounded-xl border border-border overflow-hidden'
+			className='bg-gradient-to-b from-bg-card to-bg-elevated/50 rounded-2xl border border-border-subtle/80 overflow-hidden shadow-warm ring-1 ring-white/8'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: DURATION_S.smooth }}

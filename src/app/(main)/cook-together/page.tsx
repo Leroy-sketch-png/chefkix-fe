@@ -21,6 +21,7 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 function CookTogetherContent() {
 	const router = useRouter()
@@ -142,22 +143,35 @@ function CookTogetherContent() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
-				{/* Header */}
-				<PageHeader
-					icon={Users}
-					title={t('ctTitle')}
-					subtitle={t('ctSubtitle')}
-					gradient='orange'
-				/>
+				<PremiumSurface
+					eyebrow='Co-Cooking'
+					chipText='Live Rooms'
+					tone='streak'
+					className='mb-6 p-3 md:p-4'
+				>
+					<PageHeader
+						icon={Users}
+						title={t('ctTitle')}
+						subtitle={t('ctSubtitle')}
+						gradient='orange'
+						marginBottom='sm'
+					/>
+				</PremiumSurface>
 
 				<AnimatePresence>
 					{roomCode && (
-						<motion.div
+						<PremiumSurface
+							eyebrow='Active Room'
+							chipText={roomCode}
+							className='mb-6 p-0'
+							tone='success'
+						>
+							<motion.div
 							initial={{ opacity: 0, y: -10 }}
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -10 }}
 							transition={TRANSITION_SPRING}
-							className='mb-6 rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
+							className='rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
 						>
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-3'>
@@ -196,12 +210,18 @@ function CookTogetherContent() {
 									</button>
 								</div>
 							</div>
-						</motion.div>
+							</motion.div>
+						</PremiumSurface>
 					)}
 				</AnimatePresence>
 
 				{/* Join a Room Card */}
-				<motion.div
+				<PremiumSurface
+					eyebrow='Join A Room'
+					chipText='6-character code'
+					className='p-0'
+				>
+					<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.1, ...TRANSITION_SPRING }}
@@ -263,15 +283,27 @@ function CookTogetherContent() {
 					</div>
 
 					<p className='mt-3 text-xs text-text-muted'>{t('ctRoomCodeHint')}</p>
-				</motion.div>
+					</motion.div>
+				</PremiumSurface>
 
 				{/* How It Works */}
-				<motion.div
+				<PremiumSurface
+					eyebrow='Flow'
+					chipText='Create, invite, cook'
+					className='mt-6 p-0'
+					tone='blue'
+				>
+					<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-					className='mt-6 rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
+					className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 				>
+					<SurfaceSectionHeader
+						eyebrow='How It Works'
+						chipText='3 steps'
+						className='mb-4'
+					/>
 					<div className='mb-6 flex items-center gap-3'>
 						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-streak'>
 							<Sparkles className='size-5 text-white' />
@@ -315,7 +347,8 @@ function CookTogetherContent() {
 							</motion.div>
 						))}
 					</div>
-				</motion.div>
+					</motion.div>
+				</PremiumSurface>
 
 				<div className='pb-40 md:pb-8' />
 			</PageContainer>

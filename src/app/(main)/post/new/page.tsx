@@ -42,6 +42,7 @@ import {
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 
 interface SessionInfo {
 	id: string
@@ -383,8 +384,13 @@ function CreatePostContent() {
 		<PageTransition>
 			<PageContainer maxWidth='md'>
 				<div className='py-6'>
-					{/* Header with PageHeader */}
-					<div className='mb-6 flex items-center gap-3'>
+					<PremiumSurface
+						eyebrow='Post Composer'
+						chipText={session ? 'Session Linked' : 'Quick Post'}
+						className='mb-6 p-3 md:p-4'
+						tone='brand'
+					>
+						<div className='flex items-center gap-3'>
 						<motion.button
 							type='button'
 							onClick={() => router.back()}
@@ -409,23 +415,32 @@ function CreatePostContent() {
 							/>
 						</div>
 					</div>
+				</PremiumSurface>
 
 					{/* Session Info Card (if linking to session) */}
 					{isLoadingSession && (
-						<div className='mb-6 flex items-center justify-center rounded-2xl border border-border-subtle bg-bg-card p-8'>
+						<PremiumSurface className='mb-6 p-6 md:p-8' eyebrow='Session Context'>
+							<div className='flex items-center justify-center'>
 							<Loader2 className='size-6 animate-spin text-brand' />
 							<span className='ml-3 text-text-secondary'>
 								{t('loadingSession')}
 							</span>
-						</div>
+							</div>
+						</PremiumSurface>
 					)}
 
 					{session && !isLoadingSession && (
-						<motion.div
+						<PremiumSurface
+							eyebrow='Cook Session'
+							chipText={hasPendingSessionXp ? 'XP Claim Available' : 'No Bonus XP'}
+							tone='success'
+							className='mb-6 p-0'
+						>
+							<motion.div
 							variants={fadeInUp}
 							initial='hidden'
 							animate='visible'
-							className='mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 to-transparent'
+							className='overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 to-transparent'
 						>
 							<div className='flex items-center gap-4 p-4'>
 								{session.recipeImage && (
@@ -488,17 +503,24 @@ function CreatePostContent() {
 										: t('sessionXpExhaustedHint')}
 								</p>
 							</div>
-						</motion.div>
+							</motion.div>
+						</PremiumSurface>
 					)}
 
 					{/* Recipe Review — Rate this recipe (optional, only when linking a session) */}
 					{session && !isLoadingSession && (
-						<motion.div
+						<PremiumSurface
+							eyebrow='Recipe Review'
+							chipText={reviewRating > 0 ? `${reviewRating}/5` : 'Optional'}
+							tone='streak'
+							className='mb-6 p-0'
+						>
+							<motion.div
 							variants={fadeInUp}
 							initial='hidden'
 							animate='visible'
 							transition={{ delay: 0.05 }}
-							className='mb-6 overflow-hidden rounded-2xl border border-warning/30/20 bg-gradient-to-br from-warning/5 to-transparent'
+							className='overflow-hidden rounded-2xl border border-warning/30/20 bg-gradient-to-br from-warning/5 to-transparent'
 						>
 							<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
 								<Star className='size-5 text-warning' />
@@ -537,17 +559,23 @@ function CreatePostContent() {
 									</motion.span>
 								)}
 							</div>
-						</motion.div>
+							</motion.div>
+						</PremiumSurface>
 					)}
 
 					{/* Post Form */}
-					<motion.div
-						variants={fadeInUp}
-						initial='hidden'
-						animate='visible'
-						transition={{ delay: 0.1 }}
-						className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
+					<PremiumSurface
+						eyebrow='Publish Draft'
+						chipText={`${content.length}/2000`}
+						className='p-0'
 					>
+						<motion.div
+							variants={fadeInUp}
+							initial='hidden'
+							animate='visible'
+							transition={{ delay: 0.1 }}
+							className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
+						>
 						{/* Author header */}
 						<div className='flex items-center gap-3 border-b border-border-subtle p-4'>
 							<Avatar className='size-12 ring-2 ring-brand/10'>
@@ -709,7 +737,8 @@ function CreatePostContent() {
 								)}
 							</AnimatedButton>
 						</div>
-					</motion.div>
+						</motion.div>
+					</PremiumSurface>
 
 					{/* XP Info (if session) */}
 					{session && (

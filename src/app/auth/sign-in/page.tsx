@@ -94,17 +94,26 @@ const SignInPage = () => {
 				{/* Sign In Card */}
 				<motion.div
 					variants={staggerItem}
-					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-warm shadow-black/5 sm:p-8'
+					className='relative overflow-hidden rounded-3xl border border-border-subtle/80 bg-gradient-to-br from-bg-card/97 via-bg-card/92 to-bg-elevated/70 p-5 shadow-warm shadow-black/5 backdrop-blur-sm sm:p-8'
 				>
+					{/* Ambient orbs */}
+					<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
+					<div className='pointer-events-none absolute -bottom-16 -right-12 size-32 rounded-full bg-xp/10 blur-3xl' />
+					{/* Top sheen */}
+					<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/30 via-white/10 to-transparent dark:from-white/8' />
+					{/* Inner ring */}
+					<div className='pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 dark:ring-white/8' />
 					<motion.h2
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.3 }}
-						className='mb-5 text-center text-lg font-bold text-text sm:mb-6 sm:text-xl'
+						className='relative z-10 mb-5 text-center text-lg font-bold text-text sm:mb-6 sm:text-xl'
 					>
 						{t('pageTitle')}
 					</motion.h2>
-					<SignInForm />
+					<div className='relative z-10'>
+						<SignInForm />
+					</div>
 				</motion.div>
 			</motion.div>
 		</div>

@@ -10,6 +10,7 @@ import { UserProfile } from '@/components/profile/UserProfile'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { Profile } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -103,7 +104,13 @@ const ProfileContent = () => {
 	return (
 		<>
 			{!isOwnProfile && (
-				<div className='mx-auto w-full max-w-xl pt-4'>
+				<PremiumSurface
+					eyebrow='User Profile'
+					chipText='Secondary View'
+					className='mx-auto mt-4 w-full max-w-xl p-2 md:p-3'
+					showOrbs={false}
+					tone='blue'
+				>
 					<button
 						type='button'
 						onClick={() => router.back()}
@@ -113,7 +120,7 @@ const ProfileContent = () => {
 						<ArrowLeft className='size-4' />
 						<span>{t('back')}</span>
 					</button>
-				</div>
+				</PremiumSurface>
 			)}
 			<UserProfile
 				profile={profile}

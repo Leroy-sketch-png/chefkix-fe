@@ -308,9 +308,13 @@ export const Topbar = () => {
 
 	return (
 		<header
-			className='relative flex h-16 w-full flex-shrink-0 items-center justify-start gap-1.5 overflow-hidden border-b border-border-subtle bg-bg-card px-3 md:h-18 md:justify-center md:gap-4 md:px-6'
+			className='relative flex h-16 w-full flex-shrink-0 items-center justify-start gap-1.5 overflow-hidden border-b border-border-subtle bg-bg-card/85 px-3 backdrop-blur-xl md:h-18 md:justify-center md:gap-4 md:px-6'
 			role='banner'
 		>
+			<div className='pointer-events-none absolute -left-16 -top-20 size-44 rounded-full bg-brand/10 blur-3xl' />
+			<div className='pointer-events-none absolute -right-20 -top-16 size-44 rounded-full bg-xp/10 blur-3xl' />
+			<div className='pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand/25 to-transparent' />
+
 			{/* Animated Logo */}
 			<Link
 				href={brandHref}
@@ -763,72 +767,74 @@ export const Topbar = () => {
 
 			{/* Communication Icons - authenticated users only */}
 			{user && (
-				<div className='flex gap-2 md:gap-3'>
-					{!isNotificationsPage && (
-						<motion.button
-							type='button'
-							onClick={toggleNotificationsPopup}
-							whileHover={ICON_BUTTON_HOVER}
-							whileTap={ICON_BUTTON_TAP}
-							transition={TRANSITION_SPRING}
-							className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
-							aria-label={
-								unreadNotifications > 0
-									? t('tbNotificationsUnread', { count: unreadNotifications })
-									: t('tbNotifications')
-							}
-						>
-							<motion.div
-								key={unreadNotifications}
-								animate={
-									unreadNotifications > 0 ? BELL_SHAKE.animate : undefined
+				<div className='rounded-xl border border-border-subtle/80 bg-bg-elevated/65 p-1 shadow-card backdrop-blur-sm md:rounded-2xl md:p-1.5'>
+					<div className='flex gap-1.5 md:gap-2'>
+						{!isNotificationsPage && (
+							<motion.button
+								type='button'
+								onClick={toggleNotificationsPopup}
+								whileHover={ICON_BUTTON_HOVER}
+								whileTap={ICON_BUTTON_TAP}
+								transition={TRANSITION_SPRING}
+								className='relative grid size-9 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-card hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:size-10 md:rounded-xl'
+								aria-label={
+									unreadNotifications > 0
+										? t('tbNotificationsUnread', { count: unreadNotifications })
+										: t('tbNotifications')
 								}
 							>
-								<Bell className='size-4 md:size-5' />
-							</motion.div>
-							{unreadNotifications > 0 && (
-								<motion.span
-									initial={{ scale: 0 }}
-									animate={{ scale: 1 }}
-									transition={TRANSITION_SPRING}
-									className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
-									aria-live='polite'
-									aria-atomic='true'
+								<motion.div
+									key={unreadNotifications}
+									animate={
+										unreadNotifications > 0 ? BELL_SHAKE.animate : undefined
+									}
 								>
-									{unreadNotifications > 99 ? '99+' : unreadNotifications}
-								</motion.span>
-							)}
-						</motion.button>
-					)}
-					{!isMessagesPage && (
-						<motion.button
-							type='button'
-							onClick={toggleMessagesDrawer}
-							whileHover={ICON_BUTTON_HOVER}
-							whileTap={ICON_BUTTON_TAP}
-							transition={TRANSITION_SPRING}
-							className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
-							aria-label={
-								unreadMessages > 0
-									? t('tbMessagesUnread', { count: unreadMessages })
-									: t('tbMessages')
-							}
-						>
-							<MessageCircle className='size-4 md:size-5' />
-							{unreadMessages > 0 && (
-								<motion.span
-									initial={{ scale: 0 }}
-									animate={{ scale: 1 }}
-									transition={TRANSITION_SPRING}
-									className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
-									aria-live='polite'
-									aria-atomic='true'
-								>
-									{unreadMessages > 99 ? '99+' : unreadMessages}
-								</motion.span>
-							)}
-						</motion.button>
-					)}
+									<Bell className='size-4 md:size-5' />
+								</motion.div>
+								{unreadNotifications > 0 && (
+									<motion.span
+										initial={{ scale: 0 }}
+										animate={{ scale: 1 }}
+										transition={TRANSITION_SPRING}
+										className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+										aria-live='polite'
+										aria-atomic='true'
+									>
+										{unreadNotifications > 99 ? '99+' : unreadNotifications}
+									</motion.span>
+								)}
+							</motion.button>
+						)}
+						{!isMessagesPage && (
+							<motion.button
+								type='button'
+								onClick={toggleMessagesDrawer}
+								whileHover={ICON_BUTTON_HOVER}
+								whileTap={ICON_BUTTON_TAP}
+								transition={TRANSITION_SPRING}
+								className='relative grid size-9 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-card hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50 md:size-10 md:rounded-xl'
+								aria-label={
+									unreadMessages > 0
+										? t('tbMessagesUnread', { count: unreadMessages })
+										: t('tbMessages')
+								}
+							>
+								<MessageCircle className='size-4 md:size-5' />
+								{unreadMessages > 0 && (
+									<motion.span
+										initial={{ scale: 0 }}
+										animate={{ scale: 1 }}
+										transition={TRANSITION_SPRING}
+										className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+										aria-live='polite'
+										aria-atomic='true'
+									>
+										{unreadMessages > 99 ? '99+' : unreadMessages}
+									</motion.span>
+								)}
+							</motion.button>
+						)}
+					</div>
 				</div>
 			)}
 		</header>

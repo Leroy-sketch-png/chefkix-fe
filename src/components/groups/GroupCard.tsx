@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -78,7 +78,7 @@ export const GroupCard = ({
 	if (variant === 'compact') {
 		return (
 			<motion.div
-				className='bg-bg-card rounded-lg p-4 border border-border-subtle hover:border-brand transition-colors'
+				className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-4 border border-border-subtle/80 hover:border-brand/40 hover:shadow-warm transition-all'
 				whileHover={CARD_HOVER}
 				transition={TRANSITION_SPRING}
 			>
@@ -116,7 +116,7 @@ export const GroupCard = ({
 	if (variant === 'horizontal') {
 		return (
 			<motion.div
-				className='bg-bg-card rounded-lg p-3 border border-border-subtle flex items-center gap-3'
+				className='bg-gradient-to-br from-bg-card to-bg-elevated/60 rounded-2xl p-3 border border-border-subtle/80 flex items-center gap-3'
 				whileHover={CARD_HOVER}
 				transition={TRANSITION_SPRING}
 			>
@@ -185,7 +185,7 @@ export const GroupCard = ({
 	// Default variant
 	return (
 		<motion.div
-			className='bg-bg-card rounded-xl border border-border-subtle overflow-hidden hover:border-brand transition-colors h-full flex flex-col pb-8'
+			className='bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/50 rounded-2xl border border-border-subtle/80 overflow-hidden hover:border-brand/40 hover:shadow-warm transition-all h-full flex flex-col pb-8'
 			whileHover={CARD_HOVER}
 			transition={TRANSITION_SPRING}
 		>
@@ -312,3 +312,4 @@ export const GroupCard = ({
 		</motion.div>
 	)
 }
+

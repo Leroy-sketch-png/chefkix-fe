@@ -615,7 +615,7 @@ const OwnProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-warm'>
+		<div className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -829,7 +829,7 @@ const OtherUserProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl bg-bg-card shadow-warm'>
+		<div className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8'>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -1097,3 +1097,4 @@ export const ProfileHeaderGamified = (props: ProfileHeaderGamifiedProps) => {
 
 // Export individual variants for direct use
 export { OwnProfileHeader, OtherUserProfileHeader, MiniProfileHeader }
+

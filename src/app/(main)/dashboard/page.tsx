@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef, useCallback, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,6 +14,7 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { PostCard } from '@/components/social/PostCard'
 import { PollCard } from '@/components/social/PollCard'
@@ -702,32 +703,41 @@ export default function DashboardPage() {
 								initial={{ opacity: 0, y: 12 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-								className='mb-6 flex flex-wrap items-center gap-3 rounded-radius border border-border-subtle bg-bg-card px-4 py-3 shadow-card'
+								className='mb-6'
 							>
-								<span className='text-xs font-semibold text-text-secondary'>
-									{t('obProfileNudge')}
-								</span>
-								{(!user.avatarUrl ||
-									user.avatarUrl === '/placeholder-avatar.svg') && (
-									<Link
-										href='/settings'
-										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-									>
-										<Camera className='size-3.5' />
+								<PremiumSurface
+									className='px-4 py-3'
+									eyebrow='Profile Boost'
+									chipText='Action Needed'
+									showOrbs={false}
+								>
+									<div className='flex flex-wrap items-center gap-3'>
+										<span className='text-xs font-semibold text-text-secondary'>
+											{t('obProfileNudge')}
+										</span>
+										{(!user.avatarUrl ||
+											user.avatarUrl === '/placeholder-avatar.svg') && (
+											<Link
+												href='/settings'
+												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+											>
+												<Camera className='size-3.5' />
 
-										{t('obAddPhoto')}
-									</Link>
-								)}
-								{!user.bio && (
-									<Link
-										href='/settings'
-										className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-									>
-										<PenLine className='size-3.5' />
+												{t('obAddPhoto')}
+											</Link>
+										)}
+										{!user.bio && (
+											<Link
+												href='/settings'
+												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+											>
+												<PenLine className='size-3.5' />
 
-										{t('obWriteBio')}
-									</Link>
-								)}
+												{t('obWriteBio')}
+											</Link>
+										)}
+									</div>
+								</PremiumSurface>
 							</motion.div>
 						)
 					)}
@@ -783,13 +793,23 @@ export default function DashboardPage() {
 							className='mb-6'
 						/>
 					)}
-					<FeedModeTabBar
-						activeMode={feedMode}
-						onModeChange={setFeedMode}
-						className='mb-6'
-					/>
+					<PremiumSurface
+						className='mb-6 p-3 md:p-4'
+						eyebrow='Feed Controls'
+						chipText={feedMode === 'following' ? 'Following' : 'For You'}
+						showOrbs={false}
+					>
+						<FeedModeTabBar
+							activeMode={feedMode}
+							onModeChange={setFeedMode}
+						/>
+					</PremiumSurface>
 					{!isNewUser && <SinceLastVisitCard className='mb-6' />}
-					<div className='mb-4 md:mb-6'>
+					<PremiumSurface
+						className='mb-4 p-3 md:mb-6 md:p-4'
+						eyebrow='Creator Composer'
+						chipText='Ready to post'
+					>
 						<CreatePostForm
 							onPostCreated={handlePostCreated}
 							currentUser={
@@ -798,11 +818,11 @@ export default function DashboardPage() {
 											userId: user.userId ?? '',
 											displayName: user.displayName || user.username || 'User',
 											avatarUrl: user.avatarUrl,
-										}
+									  }
 									: undefined
 							}
 						/>
-					</div>
+					</PremiumSurface>
 					<ColdStartExperience
 						isAuthenticated={!!user}
 						onColdStartComplete={() => setFeedRefreshKey(k => k + 1)}

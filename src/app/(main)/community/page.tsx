@@ -6,6 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
@@ -239,12 +243,17 @@ export default function CommunityPage() {
 				/>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-					<TabsList
-						className={cn(
-							'mb-6 grid w-full lg:w-auto',
-							isAuthenticated ? 'grid-cols-4' : 'grid-cols-2',
-						)}
+					<PremiumSurface
+						className='mb-6'
+						eyebrow='Community Modes'
+						chipText={`${leaderboardEntries.length} ranked`}
 					>
+						<TabsList
+							className={cn(
+								'grid w-full lg:w-auto',
+								isAuthenticated ? 'grid-cols-4' : 'grid-cols-2',
+							)}
+						>
 						<TabsTrigger value='discover' className='gap-2'>
 							<Search className='size-4' />
 							<span className={isAuthenticated ? 'hidden sm:inline' : 'inline'}>
@@ -274,7 +283,8 @@ export default function CommunityPage() {
 								{t('leaderboard')}
 							</span>
 						</TabsTrigger>
-					</TabsList>
+						</TabsList>
+					</PremiumSurface>
 
 					<TabsContent value='discover' className='mt-0 animate-fadeIn'>
 						{/* UserDiscoveryClient handles its own data fetching with pagination */}
@@ -286,13 +296,11 @@ export default function CommunityPage() {
 						className='mt-0 space-y-8 animate-fadeIn'
 					>
 						<section>
-							<div className='mb-4 flex items-center gap-2'>
-								<UserPlus className='size-5 text-xp' />
-								<h2 className='text-xl font-semibold'>
-									{t('followBackSuggestions')}{' '}
-									{followers.length > 0 && `(${followers.length})`}
-								</h2>
-							</div>
+							<SurfaceSectionHeader
+								className='mb-4'
+								eyebrow={t('followBackSuggestions')}
+								chipText={`${followers.length}`}
+							/>
 							{followers.length === 0 ? (
 								<EmptyStateGamified
 									variant='feed'
@@ -327,12 +335,11 @@ export default function CommunityPage() {
 						{/* {t('suggestedForYou')} — AI-powered user discovery */}
 						{suggestedFollows.length > 0 && (
 							<section>
-								<div className='mb-4 flex items-center gap-2'>
-									<Sparkles className='size-5 text-brand' />
-									<h2 className='text-xl font-semibold'>
-										{t('suggestedForYou')}
-									</h2>
-								</div>
+								<SurfaceSectionHeader
+									className='mb-4'
+									eyebrow={t('suggestedForYou')}
+									chipText={`${suggestedFollows.length}`}
+								/>
 								<StaggerContainer staggerDelay={0.05}>
 									<AnimatePresence mode='popLayout'>
 										<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
@@ -352,12 +359,11 @@ export default function CommunityPage() {
 						)}
 
 						<section>
-							<div className='mb-4 flex items-center gap-2'>
-								<Users className='size-5 text-xp' />
-								<h2 className='text-xl font-semibold'>
-									{t('myFriends')} {friends.length > 0 && `(${friends.length})`}
-								</h2>
-							</div>
+							<SurfaceSectionHeader
+								className='mb-4'
+								eyebrow={t('myFriends')}
+								chipText={`${friends.length}`}
+							/>
 							{friends.length === 0 ? (
 								<EmptyStateGamified
 									variant='feed'

@@ -38,7 +38,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 			<UserHoverCard userId={profile.userId} currentUserId={user?.userId}>
 				<Link href={profile.userId ? `/${profile.userId}` : '/dashboard'}>
 					<motion.div
-						className='cursor-pointer rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm md:p-6'
+						className='cursor-pointer rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card transition-all hover:shadow-warm md:p-6'
 						whileHover={CARD_FEED_HOVER}
 						transition={TRANSITION_SPRING}
 					>

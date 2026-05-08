@@ -91,7 +91,7 @@ export const PollCard = ({
 		<motion.div
 			layout
 			whileHover={CARD_FEED_HOVER}
-			className='group -mx-4 sm:mx-0 sm:rounded-radius border-y sm:border border-border-medium bg-bg-card p-4 transition-all duration-300 md:p-6'
+			className='group -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/50 p-4 transition-all duration-300 hover:shadow-warm md:p-6'
 		>
 			{/* Header */}
 			<div className='mb-3 flex items-center gap-3'>

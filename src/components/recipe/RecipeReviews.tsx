@@ -140,7 +140,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 
 	if (isLoading) {
 		return (
-			<div className='mb-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
+			<div className='mb-8 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
 				<div className='flex items-center gap-3'>
 					<div className='size-6 animate-pulse rounded bg-bg-elevated' />
 					<div className='h-6 w-40 animate-pulse rounded bg-bg-elevated' />
@@ -154,7 +154,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ delay: 0.6 }}
-			className='mb-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+			className='mb-8 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 		>
 			{/* Header with aggregate stats */}
 			<div className='mb-6 flex items-center justify-between'>

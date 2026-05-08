@@ -32,6 +32,7 @@ import { PATHS } from '@/constants'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 /**
  * Group Detail Page - Facebook Style
@@ -198,12 +199,17 @@ export default function GroupDetailPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='xl' className='py-8 pb-48'>
-				{/* Group Header */}
-				<motion.div
+				<PremiumSurface
+					eyebrow='Group Space'
+					chipText={group.name}
+					className='mb-8 p-3 md:p-4'
+					tone='success'
+				>
+					<motion.div
 					initial={{ opacity: 0, y: -20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-8'
+					className=''
 				>
 					<GroupHeader
 						group={group}
@@ -211,14 +217,24 @@ export default function GroupDetailPage() {
 						onSettingsClick={() => setShowSettings(true)}
 						onLeaveGroup={() => router.push('/groups')}
 					/>
-				</motion.div>
+					</motion.div>
+				</PremiumSurface>
 
-				{/* Tabs Section */}
-				<motion.div
+				<PremiumSurface
+					eyebrow='Group Workspace'
+					chipText={activeTab}
+					className='mb-20 p-3 md:p-4'
+				>
+					<SurfaceSectionHeader
+						eyebrow='About, Members, Posts'
+						chipText='Collaborative board'
+						className='mb-3'
+					/>
+					<motion.div
 					initial={{ opacity: 0, y: 10 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-20'
+					className=''
 				>
 					<Tabs
 						value={activeTab}
@@ -343,7 +359,8 @@ export default function GroupDetailPage() {
 							)}
 						</TabsContent>
 					</Tabs>
-				</motion.div>
+					</motion.div>
+				</PremiumSurface>
 
 				{/* Settings Modal - Only for admins */}
 				{isAdmin && (

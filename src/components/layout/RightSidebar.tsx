@@ -234,13 +234,20 @@ export const RightSidebar = () => {
 
 	return (
 		<aside
-			className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card p-5 xl:flex xl:flex-col xl:gap-5'
+			className='relative hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle/60 bg-bg-card/90 p-5 backdrop-blur-xl xl:flex xl:flex-col xl:gap-5'
 			aria-label={t('ariaComplementaryContent')}
 		>
+			{/* Ambient orbs */}
+			<div className='pointer-events-none absolute -right-10 -top-16 size-36 rounded-full bg-brand/8 blur-3xl' />
+			<div className='pointer-events-none absolute -bottom-14 -left-8 size-28 rounded-full bg-xp/8 blur-3xl' />
+			{/* Gradient left border */}
+			<div className='pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-border-subtle to-transparent' />
 			{/* Guest experience — compelling sign-up prompt instead of dead space */}
 			{!user && (
-				<>
-					<div className='rounded-radius border border-border-subtle bg-gradient-to-br from-brand/5 via-bg-card to-xp/5 p-6 shadow-card'>
+				<div className='relative z-10 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-brand/8 via-bg-card to-xp/8 p-6 shadow-card'>
+					<p className='mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+						Guest Mode
+					</p>
 						<div className='mb-4 flex items-center gap-2'>
 							<ChefHat className='size-6 text-brand' />
 							<h3 className='text-base font-bold text-text'>
@@ -272,26 +279,25 @@ export const RightSidebar = () => {
 						</div>
 						<Link
 							href={guestSignUpHref}
-							className='flex h-10 w-full items-center justify-center rounded-radius bg-brand text-sm font-bold text-white shadow-card transition-all hover:shadow-warm'
+							className='flex h-10 w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-[0_6px_18px_rgba(255,90,54,0.38)] transition-all hover:shadow-[0_8px_24px_rgba(255,90,54,0.5)]'
 						>
 							{t('guestSidebarCta')}
 						</Link>
 						<Link
 							href={guestSignInHref}
-							className='mt-2 flex h-9 w-full items-center justify-center rounded-radius text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+							className='mt-2 flex h-9 w-full items-center justify-center rounded-xl border border-border-subtle/80 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
 						>
 							{t('guestSidebarSignIn')}
 						</Link>
-					</div>
-				</>
+				</div>
 			)}
 
 			{/* Authenticated sidebar content */}
 			{user && (
-				<>
+				<div className='relative z-10 space-y-5'>
 					{/* Sidebar error state — shown when data fetch fails entirely */}
 					{sidebarError && (
-						<div className='flex flex-col items-center gap-3 rounded-radius border border-border-subtle bg-bg-elevated p-4 text-center'>
+						<div className='flex flex-col items-center gap-3 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 p-4 text-center shadow-card'>
 							<AlertTriangle className='size-5 text-text-muted' />
 							<p className='text-xs text-text-secondary'>
 								{t('sidebarLoadFailed')}
@@ -332,7 +338,7 @@ export const RightSidebar = () => {
 
 					{/* Trending Creators Card */}
 					{suggestions.length > 0 && (
-						<div className='rounded-radius border border-border-subtle bg-bg-card p-5 shadow-card'>
+						<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 							<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
 								{t('suggestedCreators')}
 							</div>
@@ -371,7 +377,7 @@ export const RightSidebar = () => {
 												initial={false}
 												transition={TRANSITION_SPRING}
 												className={cn(
-													'relative h-9 overflow-hidden rounded-radius px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
+													'relative h-9 overflow-hidden rounded-xl px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
 													isFollowed
 														? 'border border-border-medium bg-bg-card text-text-secondary hover:border-error/50 hover:text-error'
 														: 'border-none bg-gradient-primary text-white hover:shadow-card',
@@ -385,7 +391,7 @@ export const RightSidebar = () => {
 							</div>
 						</div>
 					)}
-				</>
+								</div>
 			)}
 		</aside>
 	)

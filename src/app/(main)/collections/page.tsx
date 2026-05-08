@@ -17,6 +17,10 @@ import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Portal } from '@/components/ui/portal'
@@ -189,6 +193,11 @@ export default function CollectionsPage() {
 						marginBottom='sm'
 					/>
 
+					<SurfaceSectionHeader
+						eyebrow='Collection Library'
+						chipText={`${collections.length} collections`}
+					/>
+
 					{/* Collections Grid */}
 					{collections.length === 0 ? (
 						<EmptyState
@@ -203,15 +212,20 @@ export default function CollectionsPage() {
 							}}
 						/>
 					) : (
-						<div className='grid gap-4 sm:grid-cols-2'>
-							{collections.map(collection => (
-								<motion.div
-									key={collection.id}
-									className='group relative cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card transition-all hover:shadow-warm'
-									whileHover={CARD_HOVER}
-									transition={TRANSITION_SPRING}
-									onClick={() => router.push(`/collections/${collection.id}`)}
-								>
+						<PremiumSurface
+							eyebrow='Curated Boards'
+							chipText={`${collections.length} active`}
+							className='p-4 md:p-5'
+						>
+							<div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+								{collections.map(collection => (
+									<motion.div
+										key={collection.id}
+										className='group relative cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card transition-all hover:shadow-warm'
+										whileHover={CARD_HOVER}
+										transition={TRANSITION_SPRING}
+										onClick={() => router.push(`/collections/${collection.id}`)}
+									>
 									{/* Cover image or placeholder */}
 									<div className='relative h-32 bg-bg-elevated'>
 										{collection.coverImageUrl ? (
@@ -277,9 +291,10 @@ export default function CollectionsPage() {
 											{t('postCount', { count: collection.itemCount })}
 										</p>
 									</div>
-								</motion.div>
-							))}
-						</div>
+									</motion.div>
+								))}
+							</div>
+						</PremiumSurface>
 					)}
 				</div>
 

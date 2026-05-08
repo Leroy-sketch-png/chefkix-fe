@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -108,7 +108,7 @@ export function StepHeatmap({
 		return (
 			<div
 				className={cn(
-					'rounded-xl border border-border-subtle bg-bg-card p-6 text-center',
+					'rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 text-center shadow-card',
 					className,
 				)}
 			>
@@ -130,7 +130,7 @@ export function StepHeatmap({
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'rounded-xl border border-border-subtle bg-bg-card shadow-card',
+				'rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card',
 				className,
 			)}
 		>
@@ -281,3 +281,4 @@ export function StepHeatmap({
 }
 
 export default StepHeatmap
+

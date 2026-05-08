@@ -25,6 +25,7 @@ import { useUiStore } from '@/store/uiStore'
 import { useRoomSocket } from '@/hooks/useRoomSocket'
 import type { RoomEvent } from '@/lib/types/room'
 import { toast } from 'sonner'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 interface ActivityItem {
 	id: string
@@ -301,8 +302,12 @@ export default function CookingRoomPage() {
 					)}
 				</AnimatePresence>
 
-				{/* Header with PageHeader */}
-				<div className='mb-8'>
+				<PremiumSurface
+					eyebrow='Room Session'
+					chipText={roomCode}
+					tone='streak'
+					className='mb-8 p-3 md:p-4'
+				>
 					<PageHeader
 						icon={Users}
 						title={t('ctCookingRoom')}
@@ -312,7 +317,6 @@ export default function CookingRoomPage() {
 						showSparkles={false}
 						showBack
 					/>
-					{/* Connection status row */}
 					<div className='mt-2 flex items-center gap-2 text-text-secondary'>
 						<span
 							className={`flex items-center gap-1 text-sm ${isConnected ? 'text-success' : 'text-text-muted'}`}
@@ -332,15 +336,20 @@ export default function CookingRoomPage() {
 							</>
 						)}
 					</div>
-				</div>
+				</PremiumSurface>
 
 				<div className='grid gap-6 lg:grid-cols-3'>
 					{/* Room Card — Main column */}
-					<motion.div
+					<PremiumSurface
+						eyebrow='Cook Controls'
+						chipText={isSpectator ? 'Watching' : 'Cooking'}
+						className='p-0 lg:col-span-2'
+					>
+						<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-						className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8 lg:col-span-2'
+						className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 					>
 						{/* Recipe Info */}
 						{recipe && (
@@ -514,15 +523,27 @@ export default function CookingRoomPage() {
 								<span className='hidden sm:inline'>{t('ctLeave')}</span>
 							</motion.button>
 						</div>
-					</motion.div>
+						</motion.div>
+					</PremiumSurface>
 
 					{/* Live Activity Feed — Side panel */}
-					<motion.div
+					<PremiumSurface
+						eyebrow='Activity Feed'
+						chipText={isConnected ? 'Live' : 'Reconnecting'}
+						className='p-0 lg:col-span-1'
+						tone='blue'
+					>
+						<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-						className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card lg:col-span-1'
+						className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'
 					>
+						<SurfaceSectionHeader
+							eyebrow='Room Events'
+							chipText={`${activityFeed.length} events`}
+							className='mb-3'
+						/>
 						<div className='mb-3 flex items-center gap-2'>
 							<Activity className='size-4 text-brand' />
 							<h3 className='text-sm font-semibold uppercase tracking-wider text-text-muted'>
@@ -554,7 +575,8 @@ export default function CookingRoomPage() {
 							)}
 							<div ref={activityEndRef} />
 						</div>
-					</motion.div>
+						</motion.div>
+					</PremiumSurface>
 				</div>
 
 				<div className='pb-40 md:pb-8' />

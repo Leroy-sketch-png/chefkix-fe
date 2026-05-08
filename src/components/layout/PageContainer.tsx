@@ -3,11 +3,13 @@ import { ReactNode } from 'react'
 
 interface PageContainerProps {
 	children: ReactNode
-	maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'form' | 'full'
+	maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'form' | 'full'
+	center?: boolean
 	className?: string
 }
 
 const maxWidthClasses = {
+	xs: 'max-w-lg',
 	sm: 'max-w-container-sm',
 	md: 'max-w-container-md',
 	lg: 'max-w-container-lg',
@@ -20,10 +22,18 @@ const maxWidthClasses = {
 export const PageContainer = ({
 	children,
 	maxWidth = 'lg', // Default to 800px social-media-style center
+	center = true,
 	className,
 }: PageContainerProps) => {
 	return (
-		<div className={cn('mx-auto w-full', maxWidthClasses[maxWidth], className)}>
+		<div
+			className={cn(
+				'w-full',
+				center && 'mx-auto',
+				maxWidthClasses[maxWidth],
+				className,
+			)}
+		>
 			{children}
 		</div>
 	)

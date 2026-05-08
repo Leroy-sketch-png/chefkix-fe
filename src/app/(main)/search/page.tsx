@@ -65,6 +65,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { useAuthGate } from '@/hooks/useAuthGate'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ============================================
 // TYPES
@@ -675,8 +676,12 @@ function SearchContent() {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
-					{/* Search input always visible */}
-					<div className='mx-auto mt-2 mb-5 max-w-xl'>
+					<PremiumSurface
+						eyebrow='Discovery Search'
+						chipText='Refine as you type'
+						className='mx-auto mt-2 mb-5 max-w-xl p-3 md:p-4'
+						showOrbs={false}
+					>
 						<div className='relative'>
 							<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
 							<input
@@ -699,11 +704,15 @@ function SearchContent() {
 								</motion.button>
 							)}
 						</div>
-					</div>
+					</PremiumSurface>
 
 					{/* Recent searches */}
 					{recentSearches.length > 0 && (
-						<div className='mx-auto mb-8 max-w-xl'>
+						<PremiumSurface
+							eyebrow='Recent Searches'
+							chipText={`${recentSearches.length} saved`}
+							className='mx-auto mb-6 max-w-xl p-3 md:p-4'
+						>
 							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
 								<History className='size-4' />
 								<span className='text-sm font-semibold'>
@@ -736,11 +745,20 @@ function SearchContent() {
 									</div>
 								))}
 							</div>
-						</div>
+						</PremiumSurface>
 					)}
 
-					{/* Suggestions */}
-					<div className='mx-auto mb-6 max-w-xl'>
+					<PremiumSurface
+						eyebrow='Smart Suggestions'
+						chipText='Trending + shortcuts'
+						className='mx-auto mb-6 max-w-xl p-3 md:p-4'
+					>
+						<SurfaceSectionHeader
+							eyebrow='Suggestion Packs'
+							chipText='Tap to launch'
+							className='mb-3'
+						/>
+						<div className='mx-auto mb-6 max-w-xl'>
 						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
 							<TrendingUp className='size-4' />
 							<span className='text-sm font-semibold'>{t('suggestions')}</span>
@@ -758,9 +776,9 @@ function SearchContent() {
 								</motion.button>
 							))}
 						</div>
-					</div>
+						</div>
 
-					<div className='mx-auto mb-6 max-w-xl'>
+						<div className='mx-auto mb-6 max-w-xl'>
 						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
 							<Flame className='size-4 text-streak' />
 							<span className='text-sm font-semibold'>
@@ -790,9 +808,9 @@ function SearchContent() {
 								</motion.button>
 							))}
 						</div>
-					</div>
+						</div>
 
-					<div className='mx-auto mb-8 max-w-xl'>
+						<div className='mx-auto mb-2 max-w-xl'>
 						<div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
 							<Link
 								href='/explore'
@@ -845,7 +863,8 @@ function SearchContent() {
 								</div>
 							</Link>
 						</div>
-					</div>
+						</div>
+					</PremiumSurface>
 					<div className='pb-24 md:pb-8' />
 				</PageContainer>
 			</PageTransition>
@@ -877,8 +896,14 @@ function SearchContent() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='lg'>
-				{/* Header - Secondary page pattern with back button */}
-				<div className='mb-6'>
+				<PremiumSurface
+					eyebrow='Search Workspace'
+					chipText={`${totalResults} results`}
+					className='mb-6 p-3 md:p-4'
+					tone='blue'
+				>
+					{/* Header - Secondary page pattern with back button */}
+					<div>
 					{/* Editable search input - users can refine from within the page */}
 					<div className='mb-4 flex items-center gap-3'>
 						<motion.button
@@ -930,20 +955,25 @@ function SearchContent() {
 						<Sparkles className='size-4 text-streak' />
 						{totalResults} results found
 					</p>
-				</div>
+					</div>
+				</PremiumSurface>
 
-				{/* Tabs */}
-				<FeedTabBar<SearchTab>
-					tabs={tabs}
-					activeTab={activeTab}
-					onTabChange={setActiveTab}
-					variant='underline'
-					size='lg'
-					className='mb-8'
-				/>
+				<PremiumSurface
+					eyebrow='Result Streams'
+					chipText={activeTab}
+					className='p-3 md:p-4'
+				>
+					<FeedTabBar<SearchTab>
+						tabs={tabs}
+						activeTab={activeTab}
+						onTabChange={setActiveTab}
+						variant='underline'
+						size='lg'
+						className='mb-6'
+					/>
 
-				{/* Results */}
-				<AnimatePresence mode='wait'>
+					{/* Results */}
+					<AnimatePresence mode='wait'>
 					{isLoading ? (
 						<motion.div
 							key='loading-skeleton'
@@ -1189,7 +1219,8 @@ function SearchContent() {
 							)}
 						</>
 					)}
-				</AnimatePresence>
+					</AnimatePresence>
+				</PremiumSurface>
 			</PageContainer>
 		</PageTransition>
 	)

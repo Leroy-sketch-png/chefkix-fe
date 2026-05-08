@@ -205,7 +205,7 @@ function DuelCard({
 		<motion.div
 			whileHover={CARD_HOVER}
 			transition={TRANSITION_SPRING}
-			className='group rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card transition-all duration-300 hover:shadow-warm md:p-5'
+			className='group rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card transition-all duration-300 hover:shadow-warm md:p-5'
 		>
 			{/* Header: opponent + status badge */}
 			<div className='mb-3 flex items-center justify-between'>
@@ -333,7 +333,7 @@ function DuelCard({
 						whileTap={BUTTON_TAP}
 						disabled={acting}
 						onClick={handleDecline}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
 					>
 						<X className='size-4' />
 						{t('decline')}
@@ -347,7 +347,7 @@ function DuelCard({
 					whileTap={BUTTON_TAP}
 					disabled={acting}
 					onClick={handleCancel}
-					className='w-full rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
+					className='w-full rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50'
 				>
 					{t('cancelChallenge')}
 				</motion.button>
@@ -372,7 +372,7 @@ function DuelCard({
 
 function DuelCardSkeleton() {
 	return (
-		<div className='animate-pulse rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card md:p-5'>
+		<div className='animate-pulse rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card md:p-5'>
 			<div className='mb-3 flex items-center justify-between'>
 				<div className='flex items-center gap-3'>
 					<div className='size-10 rounded-full bg-bg-elevated' />
@@ -526,7 +526,7 @@ function CreateDuelModal({
 					animate={{ opacity: 1, scale: 1 }}
 					exit={{ opacity: 0, scale: 0.95 }}
 					transition={TRANSITION_SPRING}
-					className='w-full max-w-md overflow-hidden rounded-2xl bg-bg-card shadow-warm'
+					className='w-full max-w-md overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/70 shadow-warm ring-1 ring-white/8'
 				>
 					{/* Header */}
 					<div className='flex items-center justify-between border-b border-border-subtle px-5 py-4'>
@@ -887,7 +887,7 @@ export function DuelsSection() {
 			) : invites.length === 0 &&
 			  activeDuels.length === 0 &&
 			  history.length === 0 ? (
-				<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
+				<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-8 text-center shadow-card'>
 					<Swords className='mx-auto mb-3 size-10 text-text-muted' />
 					<p className='mb-1 font-semibold text-text'>{t('noDuels')}</p>
 					<p className='mb-4 text-sm text-text-secondary'>

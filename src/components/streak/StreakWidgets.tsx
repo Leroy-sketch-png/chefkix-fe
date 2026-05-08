@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -445,7 +445,7 @@ export function StreakWidget({
 	return (
 		<div
 			className={cn(
-				'bg-bg-card border border-border rounded-2xl p-5',
+				'bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 border border-border-subtle/80 rounded-2xl p-5 shadow-card',
 				className,
 			)}
 		>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -203,7 +203,7 @@ export const GroupsExploreGrid = ({
 					{Array.from({ length: 6 }).map((_, i) => (
 						<div
 							key={i}
-							className='rounded-radius border border-border-subtle bg-bg-card shadow-card overflow-hidden'
+							className='overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card'
 						>
 							<Skeleton className='h-32 w-full' />
 							<div className='p-4 space-y-3'>

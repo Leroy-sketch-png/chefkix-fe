@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useTranslations } from 'next-intl'
 
@@ -42,7 +42,7 @@ export function CreatorStatsWidget({
 }: CreatorStatsWidgetProps) {
 	const t = useTranslations('creator')
 	return (
-		<div className={cn('bg-bg-card rounded-2xl p-5', className)}>
+		<div className={cn('bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-5 border border-border-subtle/80 shadow-card', className)}>
 			{/* Header */}
 			<div className='flex items-center gap-2 mb-4'>
 				<span className='text-xl'>??</span>
@@ -205,3 +205,4 @@ export function CreatorXPNotification({
 }
 
 export default CreatorStatsWidget
+

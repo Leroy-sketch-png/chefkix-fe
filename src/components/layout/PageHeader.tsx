@@ -129,48 +129,60 @@ export function PageHeader({
 				<button
 					type='button'
 					onClick={() => router.back()}
-					className='mb-3 flex items-center gap-1 text-sm text-text-secondary transition-colors hover:text-text'
+					className='mb-3 inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3 py-1.5 text-sm font-medium text-text-secondary shadow-card transition-colors hover:bg-bg-elevated hover:text-text'
 				>
 					<ArrowLeft className='size-4' />
 					<span>{t('back')}</span>
 				</button>
 			)}
-			<div className='mb-1.5 flex flex-wrap items-center justify-between gap-3 sm:mb-2'>
-				<div className='flex items-center gap-2.5 sm:gap-3'>
-					{/* Icon Box */}
-					<motion.div
-						initial={{ scale: 0 }}
-						animate={{
-							scale: 1,
-							...(iconAnimation?.rotate && { rotate: iconAnimation.rotate }),
-						}}
-						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-						className={cn(
-							'flex size-9 items-center justify-center rounded-xl shadow-card sm:size-10',
-							bg,
-							shadow,
-						)}
-					>
-						<Icon className='size-4 text-white sm:size-5' />
-					</motion.div>
 
-					{/* Title */}
-					<h1 className='text-lg font-bold text-text sm:text-2xl'>{title}</h1>
-				</div>
+			<div className='relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/80 p-3 shadow-card backdrop-blur-sm sm:p-4'>
+				<div className='pointer-events-none absolute -left-12 -top-12 size-32 rounded-full bg-brand/10 blur-2xl' />
+				<div className='pointer-events-none absolute -bottom-16 -right-10 size-36 rounded-full bg-xp/10 blur-3xl' />
 
-				{/* Right Action */}
-				{rightAction}
-			</div>
+				<div className='relative'>
+					<div className='mb-1.5 flex flex-wrap items-center justify-between gap-3 sm:mb-2'>
+						<div className='flex min-w-0 items-center gap-2.5 sm:gap-3'>
+							{/* Icon Box */}
+							<motion.div
+								initial={{ scale: 0.92, opacity: 0 }}
+								animate={{
+									scale: 1,
+									opacity: 1,
+									...(iconAnimation?.rotate && { rotate: iconAnimation.rotate }),
+								}}
+								transition={{ delay: 0.15, ...TRANSITION_SPRING }}
+								className={cn(
+									'flex size-10 items-center justify-center rounded-xl shadow-card sm:size-11',
+									bg,
+									shadow,
+								)}
+							>
+								<Icon className='size-5 text-white sm:size-5' />
+							</motion.div>
 
-			{/* Subtitle */}
-			{subtitle && (
-				<p className='flex items-start gap-2 text-sm leading-relaxed text-text-secondary sm:text-base'>
-					{ActualSubtitleIcon && (
-						<ActualSubtitleIcon className='mt-0.5 size-4 shrink-0 text-streak' />
+							<div className='min-w-0'>
+								<h1 className='truncate text-lg font-extrabold tracking-tight text-text sm:text-2xl'>
+									{title}
+								</h1>
+							</div>
+						</div>
+
+						{/* Right Action */}
+						{rightAction}
+					</div>
+
+					{/* Subtitle */}
+					{subtitle && (
+						<p className='flex items-start gap-2 text-sm leading-relaxed text-text-secondary sm:text-base'>
+							{ActualSubtitleIcon && (
+								<ActualSubtitleIcon className='mt-0.5 size-4 shrink-0 text-streak' />
+							)}
+							<span className='max-w-prose'>{subtitle}</span>
+						</p>
 					)}
-					{subtitle}
-				</p>
-			)}
+				</div>
+			</div>
 		</motion.div>
 	)
 }

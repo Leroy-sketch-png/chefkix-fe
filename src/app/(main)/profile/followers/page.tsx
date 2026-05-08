@@ -23,6 +23,7 @@ import { Users, UserCheck, Heart, ArrowLeft, Sparkles } from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 type Tab = 'followers' | 'following' | 'friends'
 
@@ -228,8 +229,13 @@ function FollowersContent() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='md'>
-				{/* Header with PageHeader */}
-				<div className='mb-6 flex items-center gap-3'>
+				<PremiumSurface
+					eyebrow='Social Graph'
+					chipText={`${data.followers.length + data.following.length} total links`}
+					tone='xp'
+					className='mb-6 p-3 md:p-4'
+				>
+					<div className='flex items-center gap-3'>
 					<motion.button
 						type='button'
 						onClick={() => router.back()}
@@ -250,40 +256,57 @@ function FollowersContent() {
 						/>
 					</div>
 				</div>
+			</PremiumSurface>
 
-				{/* Tab Buttons */}
-				<div className='mb-6 flex gap-2 rounded-radius border border-border-subtle bg-bg-elevated p-1'>
-					{TABS.map(tab => (
-						<button
-							type='button'
-							key={tab.key}
-							onClick={() => setActiveTab(tab.key)}
-							className={cn(
-								'flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-								activeTab === tab.key
-									? 'bg-bg-card text-text shadow-card'
-									: 'text-text-muted hover:text-text-secondary',
-							)}
-						>
-							{tab.icon}
-							{t(tab.labelKey)}
-							<span
+				<PremiumSurface
+					eyebrow='Network Lanes'
+					chipText={t(TABS.find(tab => tab.key === activeTab)?.labelKey || 'tabFollowers')}
+					className='mb-6 p-3 md:p-4'
+					showOrbs={false}
+				>
+					<div className='flex gap-2 rounded-radius border border-border-subtle bg-bg-elevated p-1'>
+						{TABS.map(tab => (
+							<button
+								type='button'
+								key={tab.key}
+								onClick={() => setActiveTab(tab.key)}
 								className={cn(
-									'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold',
+									'flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
 									activeTab === tab.key
-										? 'bg-brand/15 text-brand'
-										: 'bg-bg-elevated text-text-muted',
+										? 'bg-bg-card text-text shadow-card'
+										: 'text-text-muted hover:text-text-secondary',
 								)}
 							>
-								{data[tab.key].length}
-							</span>
-						</button>
-					))}
-				</div>
+								{tab.icon}
+								{t(tab.labelKey)}
+								<span
+									className={cn(
+										'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold',
+										activeTab === tab.key
+											? 'bg-brand/15 text-brand'
+											: 'bg-bg-elevated text-text-muted',
+									)}
+								>
+									{data[tab.key].length}
+								</span>
+							</button>
+						))}
+					</div>
+				</PremiumSurface>
 
 				{/* Content */}
-				<AnimatePresence mode='wait'>
-					<motion.div
+				<PremiumSurface
+					eyebrow='People Results'
+					chipText={isLoading ? 'Loading' : `${currentList.length} profiles`}
+					className='p-3 md:p-4'
+				>
+					<SurfaceSectionHeader
+						eyebrow='Relationship Actions'
+						chipText='Follow, unfollow, connect'
+						className='mb-3'
+					/>
+					<AnimatePresence mode='wait'>
+						<motion.div
 						key={activeTab}
 						initial={{ opacity: 0, y: 8 }}
 						animate={{ opacity: 1, y: 0 }}
@@ -360,8 +383,9 @@ function FollowersContent() {
 								))}
 							</StaggerContainer>
 						)}
-					</motion.div>
-				</AnimatePresence>
+						</motion.div>
+					</AnimatePresence>
+				</PremiumSurface>
 
 				<div className='pb-40 md:pb-8' />
 			</PageContainer>

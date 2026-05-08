@@ -39,6 +39,7 @@ import {
 	DURATION_S,
 } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ============================================
 // BADGE CATALOG PAGE
@@ -370,7 +371,12 @@ export default function BadgeCatalogPage() {
 				{/* Header */}
 				<div className='sticky top-0 z-sticky border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
 					<PageContainer maxWidth='xl'>
-						<div className='py-4'>
+						<PremiumSurface
+							eyebrow='Badge Vault'
+							chipText={`${earnedCount}/${totalBadges} unlocked`}
+							tone='xp'
+							className='my-4 p-3 md:p-4'
+						>
 							{/* Back + PageHeader */}
 							<div className='mb-4 flex items-center gap-3'>
 								<motion.button
@@ -397,6 +403,12 @@ export default function BadgeCatalogPage() {
 									/>
 								</div>
 							</div>
+
+							<SurfaceSectionHeader
+								eyebrow='Discover and Filter'
+								chipText='Category, rarity, earned'
+								className='mb-3'
+							/>
 
 							{/* Progress Bar */}
 							<div className='h-2 overflow-hidden rounded-full bg-bg-hover'>
@@ -490,14 +502,19 @@ export default function BadgeCatalogPage() {
 									</button>
 								</div>
 							</div>
-						</div>
+						</PremiumSurface>
 					</PageContainer>
 				</div>
 
 				{/* Badge Grid */}
 				<PageContainer maxWidth='xl' className='py-6'>
-					<AnimatePresence mode='popLayout'>
-						{filteredBadges.length === 0 ? (
+					<PremiumSurface
+						eyebrow='Collected Badges'
+						chipText={`${filteredBadges.length} visible`}
+						className='p-3 md:p-4'
+					>
+						<AnimatePresence mode='popLayout'>
+							{filteredBadges.length === 0 ? (
 							<motion.div
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
@@ -514,7 +531,7 @@ export default function BadgeCatalogPage() {
 									{t('noBadgesHint')}
 								</p>
 							</motion.div>
-						) : (
+							) : (
 							<motion.div
 								layout
 								className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
@@ -546,13 +563,20 @@ export default function BadgeCatalogPage() {
 									)
 								})}
 							</motion.div>
-						)}
-					</AnimatePresence>
+							)}
+						</AnimatePresence>
+					</PremiumSurface>
 				</PageContainer>
 
 				{/* Rarity Legend */}
 				<PageContainer maxWidth='xl' className='pb-8'>
-					<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+					<PremiumSurface
+						eyebrow='Progress Legend'
+						chipText='Rarity Guide'
+						tone='streak'
+						className='p-3 md:p-4'
+					>
+						<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
 						<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
 							<Star className='size-4 text-xp' />
 							{t('rarityGuide')}
@@ -578,7 +602,8 @@ export default function BadgeCatalogPage() {
 								)
 							})}
 						</div>
-					</div>
+						</div>
+					</PremiumSurface>
 
 					<div className='pb-40 md:pb-8' />
 				</PageContainer>

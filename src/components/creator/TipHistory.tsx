@@ -169,7 +169,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 
 	return (
 		<div
-			className={`rounded-radius border border-border bg-bg-card shadow-card ${className}`}
+			className={`rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card ${className}`}
 		>
 			{/* Header */}
 			<div className='border-b border-border-subtle p-4 md:p-6'>
@@ -376,3 +376,4 @@ function TipListItem({
 		</motion.div>
 	)
 }
+

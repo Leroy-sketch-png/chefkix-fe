@@ -20,6 +20,7 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -809,12 +810,20 @@ export default function NotificationsPage() {
 
 				{/* Filter Tabs */}
 				<div className='sticky top-mobile-header z-sticky -mx-3 mb-3 bg-bg/95 px-3 pb-2 pt-1 backdrop-blur-xl sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pt-0 sm:pb-0'>
-					<FilterTabs
-						activeFilter={activeFilter}
-						onFilterChange={setActiveFilter}
-						counts={counts}
-					/>
-					<div className='pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-bg to-transparent sm:hidden' />
+					<PremiumSurface
+						eyebrow='Notification Streams'
+						chipText={`${counts.unread} unread`}
+						chipClassName='bg-bg-elevated'
+					>
+						<div className='relative'>
+							<FilterTabs
+								activeFilter={activeFilter}
+								onFilterChange={setActiveFilter}
+								counts={counts}
+							/>
+							<div className='pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-bg to-transparent sm:hidden' />
+						</div>
+					</PremiumSurface>
 				</div>
 
 				{/* Loading State — content-shaped skeleton */}

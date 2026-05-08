@@ -42,7 +42,7 @@ const normalizeRecommendationText = (value?: string | null) =>
 		.trim()
 
 /**
- * "Tonight's Pick" hero card — personalized daily recipe recommendation.
+ * "Tonight's Pick" hero card -- personalized daily recipe recommendation.
  *
  * BE uses 5-signal scoring (RecipeService.scoreTonightsPick):
  * - Taste match (0.30): user preferences + cuisine history
@@ -57,7 +57,7 @@ const normalizeRecommendationText = (value?: string | null) =>
  * - matchSignals: string[] (all matching signals)
  * - confidenceScore: number (0-1)
  *
- * Degrades gracefully: unauthenticated → trending + seasonal + quality only.
+ * Degrades gracefully: unauthenticated -> trending + seasonal + quality only.
  */
 export const TonightsPick = ({ className }: TonightsPickProps) => {
 	const t = useTranslations('dashboard')
@@ -97,7 +97,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		return (
 			<div
 				className={cn(
-					'rounded-2xl border border-border-subtle bg-bg-card',
+					'rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card',
 					className,
 				)}
 			>
@@ -121,7 +121,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		return (
 			<div
 				className={cn(
-					'relative overflow-hidden rounded-2xl border border-brand/20 bg-bg-card p-5 shadow-card',
+					'relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/6 via-bg-card to-bg-elevated/60 p-5 shadow-card',
 					className,
 				)}
 			>
@@ -299,3 +299,4 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		</GlowCard>
 	)
 }
+

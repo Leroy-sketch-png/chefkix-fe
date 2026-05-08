@@ -42,7 +42,7 @@ function CommentItemErrorFallback({
 	return (
 		<div
 			role='alert'
-			className='rounded-radius border border-destructive/20 bg-bg-card p-4 shadow-card'
+			className='rounded-2xl border border-destructive/20 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'
 		>
 			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
 				<div className='flex items-start gap-3'>

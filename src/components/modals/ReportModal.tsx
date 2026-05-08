@@ -198,7 +198,7 @@ export const ReportModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl bg-bg-card'
+							className='max-h-modal w-full max-w-modal-lg overflow-y-auto rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/70 shadow-warm ring-1 ring-white/8'
 						>
 							{submitted ? (
 								// Confirmation View
@@ -422,7 +422,7 @@ export const ReportLimitModal = ({
 							animate='visible'
 							exit='exit'
 							onClick={e => e.stopPropagation()}
-							className='w-full max-w-modal-sm rounded-2xl bg-bg-card p-7 text-center'
+							className='w-full max-w-modal-sm rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-7 text-center shadow-warm ring-1 ring-white/8'
 						>
 							<div className='mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
 								<AlertCircle className='size-8' />
@@ -475,7 +475,7 @@ export const AccountRestrictedNotice = ({
 	const offenseLabels = [t('ar1st'), t('ar2nd'), t('ar3rd'), t('ar4th')]
 
 	return (
-		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-2xl bg-bg-card'>
+		<div className='mx-auto max-w-modal-lg overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/70 shadow-card ring-1 ring-white/8'>
 			{/* Header */}
 			<div
 				className={cn(

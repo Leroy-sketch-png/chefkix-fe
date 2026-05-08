@@ -64,6 +64,7 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ============================================
 // RECIPE CARD COMPONENT
@@ -406,8 +407,13 @@ export default function MyRecipesPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				{/* Header with PageHeader + back button + create action */}
-				<div className='mb-8 flex items-center gap-3'>
+				<PremiumSurface
+					eyebrow='Creator Recipes'
+					chipText={`${recipes.length} total`}
+					tone='xp'
+					className='mb-6 p-3 md:p-4'
+				>
+					<div className='flex items-center gap-3'>
 					<button
 						type='button'
 						aria-label='Go back'
@@ -441,14 +447,21 @@ export default function MyRecipesPage() {
 						/>
 					</div>
 				</div>
+			</PremiumSurface>
 
 				{/* Filters */}
 				{recipes.length > 0 && (
-					<motion.div
+					<PremiumSurface
+						eyebrow='Recipe Controls'
+						chipText={searchQuery ? 'Filtered' : 'All Visible'}
+						className='mb-6 p-3 md:p-4'
+						showOrbs={false}
+					>
+						<motion.div
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.1 }}
-						className='mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
+						className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
 					>
 						<div className='relative flex-1 sm:max-w-xs'>
 							<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
@@ -472,7 +485,8 @@ export default function MyRecipesPage() {
 								<SelectItem value='views'>{t('sortMostViewed')}</SelectItem>
 							</SelectContent>
 						</Select>
-					</motion.div>
+						</motion.div>
+					</PremiumSurface>
 				)}
 
 				{/* Recipes Grid */}
@@ -514,23 +528,34 @@ export default function MyRecipesPage() {
 						</p>
 					</motion.div>
 				) : (
-					<motion.div
-						variants={staggerContainer}
-						initial='hidden'
-						animate='visible'
-						className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'
+					<PremiumSurface
+						eyebrow='Recipe Library'
+						chipText={`${filteredRecipes.length} shown`}
+						className='p-3 md:p-4'
 					>
-						{filteredRecipes.map(recipe => (
-							<RecipeManageCard
-								key={recipe.id}
-								recipe={recipe}
-								onDelete={handleDelete}
-								onDuplicate={handleDuplicate}
-								isDeleting={deletingId === recipe.id}
-								isDuplicating={duplicatingId === recipe.id}
-							/>
-						))}
-					</motion.div>
+						<SurfaceSectionHeader
+							eyebrow='Manage and Publish'
+							chipText='Edit, duplicate, delete'
+							className='mb-3'
+						/>
+						<motion.div
+							variants={staggerContainer}
+							initial='hidden'
+							animate='visible'
+							className='grid gap-6 sm:grid-cols-2 xl:grid-cols-3'
+						>
+							{filteredRecipes.map(recipe => (
+								<RecipeManageCard
+									key={recipe.id}
+									recipe={recipe}
+									onDelete={handleDelete}
+									onDuplicate={handleDuplicate}
+									isDeleting={deletingId === recipe.id}
+									isDuplicating={duplicatingId === recipe.id}
+								/>
+							))}
+						</motion.div>
+					</PremiumSurface>
 				)}
 
 				<div className='pb-40 md:pb-8' />

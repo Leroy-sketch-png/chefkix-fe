@@ -61,6 +61,7 @@ import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
+import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 
 // ── Source badge colors ──────────────────────────────────────────────
 
@@ -434,8 +435,13 @@ export default function ShoppingListsPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<div className='space-y-6 py-6'>
-						{/* Header */}
-						<div className='flex items-center justify-between'>
+						<PremiumSurface
+							eyebrow='List Detail'
+							chipText={`${selectedList.totalItems} items`}
+							className='p-3 md:p-4'
+							tone='blue'
+						>
+							<div className='flex items-center justify-between'>
 							<div className='flex items-center gap-3'>
 								<button
 									type='button'
@@ -488,7 +494,8 @@ export default function ShoppingListsPage() {
 									{shareSuccess ? t('linkCopied') : t('share')}
 								</button>
 							</div>
-						</div>
+							</div>
+						</PremiumSurface>
 
 						{/* Grocery checkout CTA */}
 						{uncheckedItems.length > 0 && (
@@ -646,50 +653,58 @@ export default function ShoppingListsPage() {
 							)}
 						</AnimatePresence>
 
-						{/* Items grouped by category */}
-						{selectedList.items.length === 0 ? (
-							<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
-								<Package className='mx-auto mb-3 size-12 text-text-muted/40' />
-								<p className='text-text-muted'>{t('emptyList')}</p>
-							</div>
-						) : (
-							<div className='space-y-4'>
-								{Object.entries(groupedItems).map(([category, items]) => {
-									const config =
-										CATEGORY_CONFIG[category] || CATEGORY_CONFIG.Other
-									return (
-										<motion.div
-											key={category}
-											layout
-											className='rounded-xl border border-border-subtle bg-bg-card shadow-card'
-										>
-											{/* Category header */}
-											<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3'>
-												<span className='text-lg'>{config.icon}</span>
-												<span className='text-sm font-semibold text-text'>
-													{category}
-												</span>
-												<span className='ml-auto text-xs text-text-muted'>
-													{items.filter(i => i.checked).length}/{items.length}
-												</span>
-											</div>
-											{/* Items */}
-											<ul className='divide-y divide-border-subtle'>
-												{items.map(item => (
-													<ShoppingListItemRow
-														key={item.itemId}
-														item={item}
-														onToggle={handleToggleItem}
-														onRemove={handleRemoveItem}
-														removeAriaLabel={t('ariaRemoveItem')}
-													/>
-												))}
-											</ul>
-										</motion.div>
-									)
-								})}
-							</div>
-						)}
+						<PremiumSurface
+							eyebrow='Categorized Items'
+							chipText={`${Object.keys(groupedItems).length} sections`}
+							className='p-3 md:p-4'
+						>
+							<SurfaceSectionHeader
+								eyebrow='Smart Grouping'
+								chipText={`${selectedList.checkedItems}/${selectedList.totalItems} checked`}
+								className='mb-3'
+							/>
+							{selectedList.items.length === 0 ? (
+								<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
+									<Package className='mx-auto mb-3 size-12 text-text-muted/40' />
+									<p className='text-text-muted'>{t('emptyList')}</p>
+								</div>
+							) : (
+								<div className='space-y-4'>
+									{Object.entries(groupedItems).map(([category, items]) => {
+										const config =
+											CATEGORY_CONFIG[category] || CATEGORY_CONFIG.Other
+										return (
+											<motion.div
+												key={category}
+												layout
+												className='rounded-xl border border-border-subtle bg-bg-card shadow-card'
+											>
+												<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3'>
+													<span className='text-lg'>{config.icon}</span>
+													<span className='text-sm font-semibold text-text'>
+														{category}
+													</span>
+													<span className='ml-auto text-xs text-text-muted'>
+														{items.filter(i => i.checked).length}/{items.length}
+													</span>
+												</div>
+												<ul className='divide-y divide-border-subtle'>
+													{items.map(item => (
+														<ShoppingListItemRow
+															key={item.itemId}
+															item={item}
+															onToggle={handleToggleItem}
+															onRemove={handleRemoveItem}
+															removeAriaLabel={t('ariaRemoveItem')}
+														/>
+													))}
+												</ul>
+											</motion.div>
+										)
+									})}
+								</div>
+							)}
+						</PremiumSurface>
 					</div>
 				</PageContainer>
 			</PageTransition>
@@ -702,14 +717,19 @@ export default function ShoppingListsPage() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
-					{/* Header */}
-					<PageHeader
-						icon={ShoppingCart}
-						title={t('title')}
-						subtitle={t('subtitle', { count: lists.length })}
-						gradient='blue'
-						marginBottom='sm'
-						rightAction={
+					<PremiumSurface
+						eyebrow='Pantry Operations'
+						chipText={`${lists.length} lists`}
+						tone='blue'
+						className='p-3 md:p-4'
+					>
+						<PageHeader
+							icon={ShoppingCart}
+							title={t('title')}
+							subtitle={t('subtitle', { count: lists.length })}
+							gradient='blue'
+							marginBottom='sm'
+							rightAction={
 							<div className='relative'>
 								<motion.button
 									type='button'
@@ -799,8 +819,9 @@ export default function ShoppingListsPage() {
 									)}
 								</AnimatePresence>
 							</div>
-						}
-					/>
+							}
+						/>
+					</PremiumSurface>
 
 					{/* Empty state */}
 					{lists.length === 0 ? (
@@ -819,7 +840,12 @@ export default function ShoppingListsPage() {
 							</button>
 						</div>
 					) : (
-						<div className='grid gap-4 sm:grid-cols-2'>
+						<PremiumSurface
+							eyebrow='Active Lists'
+							chipText='Tap to open'
+							className='p-3 md:p-4'
+						>
+							<div className='grid gap-4 sm:grid-cols-2'>
 							{lists.map(list => {
 								const sourceConf =
 									SOURCE_CONFIG[list.source] || SOURCE_CONFIG.Custom
@@ -888,7 +914,8 @@ export default function ShoppingListsPage() {
 									</motion.div>
 								)
 							})}
-						</div>
+							</div>
+						</PremiumSurface>
 					)}
 				</div>
 
