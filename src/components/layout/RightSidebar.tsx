@@ -248,47 +248,47 @@ export const RightSidebar = () => {
 					<p className='mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
 						Guest Mode
 					</p>
-						<div className='mb-4 flex items-center gap-2'>
-							<ChefHat className='size-6 text-brand' />
-							<h3 className='text-base font-bold text-text'>
-								{t('guestSidebarTitle')}
-							</h3>
-						</div>
-						<p className='mb-5 text-sm leading-relaxed text-text-secondary'>
-							{t('guestSidebarDesc')}
-						</p>
-						<div className='mb-5 flex flex-col gap-2.5'>
-							{[
-								{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
-								{
-									icon: Trophy,
-									text: t('guestBenefitLevel'),
-									color: 'text-level',
-								},
-								{
-									icon: Users,
-									text: t('guestBenefitCommunity'),
-									color: 'text-brand',
-								},
-							].map(({ icon: Icon, text, color }) => (
-								<div key={text} className='flex items-center gap-2.5'>
-									<Icon className={cn('size-4 flex-shrink-0', color)} />
-									<span className='text-sm text-text-secondary'>{text}</span>
-								</div>
-							))}
-						</div>
-						<Link
-							href={guestSignUpHref}
-							className='flex h-10 w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-[0_6px_18px_rgba(255,90,54,0.38)] transition-all hover:shadow-[0_8px_24px_rgba(255,90,54,0.5)]'
-						>
-							{t('guestSidebarCta')}
-						</Link>
-						<Link
-							href={guestSignInHref}
-							className='mt-2 flex h-9 w-full items-center justify-center rounded-xl border border-border-subtle/80 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-						>
-							{t('guestSidebarSignIn')}
-						</Link>
+					<div className='mb-4 flex items-center gap-2'>
+						<ChefHat className='size-6 text-brand' />
+						<h3 className='text-base font-bold text-text'>
+							{t('guestSidebarTitle')}
+						</h3>
+					</div>
+					<p className='mb-5 text-sm leading-relaxed text-text-secondary'>
+						{t('guestSidebarDesc')}
+					</p>
+					<div className='mb-5 flex flex-col gap-2.5'>
+						{[
+							{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
+							{
+								icon: Trophy,
+								text: t('guestBenefitLevel'),
+								color: 'text-level',
+							},
+							{
+								icon: Users,
+								text: t('guestBenefitCommunity'),
+								color: 'text-brand',
+							},
+						].map(({ icon: Icon, text, color }) => (
+							<div key={text} className='flex items-center gap-2.5'>
+								<Icon className={cn('size-4 flex-shrink-0', color)} />
+								<span className='text-sm text-text-secondary'>{text}</span>
+							</div>
+						))}
+					</div>
+					<Link
+						href={guestSignUpHref}
+						className='flex h-10 w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-[0_6px_18px_rgba(255,90,54,0.38)] transition-all hover:shadow-[0_8px_24px_rgba(255,90,54,0.5)]'
+					>
+						{t('guestSidebarCta')}
+					</Link>
+					<Link
+						href={guestSignInHref}
+						className='mt-2 flex h-9 w-full items-center justify-center rounded-xl border border-border-subtle/80 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+					>
+						{t('guestSidebarSignIn')}
+					</Link>
 				</div>
 			)}
 
@@ -338,9 +338,17 @@ export const RightSidebar = () => {
 
 					{/* Trending Creators Card */}
 					{suggestions.length > 0 && (
-						<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
-							<div className='mb-4 text-sm font-bold uppercase leading-tight tracking-wide text-text-primary'>
-								{t('suggestedCreators')}
+						<div className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+							<div className='mb-3.5 flex items-center justify-between'>
+								<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+									{t('suggestedCreators')}
+								</p>
+								<Link
+									href={PATHS.COMMUNITY ?? '/community'}
+									className='text-[11px] font-medium text-brand hover:underline'
+								>
+									{t('seeAll')}
+								</Link>
 							</div>
 							<div className='flex flex-col gap-3'>
 								{suggestions.map(suggestion => {
@@ -348,24 +356,24 @@ export const RightSidebar = () => {
 									return (
 										<div
 											key={suggestion.userId}
-											className='flex items-center gap-3'
+											className='flex items-center gap-2.5'
 										>
-											<div className='relative size-10 flex-shrink-0 overflow-hidden rounded-full shadow-card transition-transform duration-200 hover:scale-105'>
+											<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-border-subtle transition-all duration-200 hover:ring-border-medium'>
 												<Image
 													src={
 														suggestion.avatarUrl || '/placeholder-avatar.svg'
 													}
 													alt={suggestion.displayName || suggestion.username}
 													fill
-													sizes='40px'
+													sizes='36px'
 													className='object-cover'
 												/>
 											</div>
 											<div className='min-w-0 flex-1'>
-												<strong className='block text-sm leading-tight text-text-primary'>
+												<strong className='block truncate text-[13px] font-semibold leading-tight text-text-primary'>
 													{suggestion.displayName || suggestion.username}
 												</strong>
-												<span className='block overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-text-secondary'>
+												<span className='block truncate text-[11px] leading-normal text-text-muted'>
 													@{suggestion.username}
 												</span>
 											</div>
@@ -377,10 +385,10 @@ export const RightSidebar = () => {
 												initial={false}
 												transition={TRANSITION_SPRING}
 												className={cn(
-													'relative h-9 overflow-hidden rounded-xl px-4 text-xs font-semibold shadow-card transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
+													'relative h-8 shrink-0 overflow-hidden rounded-full px-3.5 text-[11px] font-semibold transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
 													isFollowed
-														? 'border border-border-medium bg-bg-card text-text-secondary hover:border-error/50 hover:text-error'
-														: 'border-none bg-gradient-primary text-white hover:shadow-card',
+														? 'border border-border-medium bg-bg-elevated text-text-secondary hover:border-error/50 hover:text-error'
+														: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90',
 												)}
 											>
 												{isFollowed ? t('following') : t('follow')}
@@ -391,7 +399,7 @@ export const RightSidebar = () => {
 							</div>
 						</div>
 					)}
-								</div>
+				</div>
 			)}
 		</aside>
 	)

@@ -177,78 +177,74 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
 			transition={TRANSITION_SPRING}
-			className='relative mb-6 overflow-hidden rounded-2xl border border-brand/15 bg-bg-card shadow-card md:mb-8'
+			className='relative mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-warm md:mb-8'
 		>
-			<div className='grid gap-4 p-4 sm:gap-6 sm:p-6 md:grid-cols-2 md:p-8'>
+			<div className='grid gap-4 p-4 sm:gap-5 sm:p-5 md:grid-cols-2 md:p-6'>
 				{/* Left: Image */}
-				<div className='relative aspect-[16/9] overflow-hidden rounded-2xl shadow-warm sm:aspect-[4/3] md:aspect-auto md:h-full md:min-h-[300px]'>
+				<div className='relative aspect-[16/9] overflow-hidden rounded-xl shadow-card sm:aspect-[4/3] md:aspect-auto md:h-full md:min-h-[300px]'>
 					<Image
 						src={getRecipeImage(recipe)}
 						alt={recipe.title}
 						fill
-						className='object-cover'
+						className='object-cover transition-transform duration-700 hover:scale-[1.03]'
 						sizes='(max-width: 768px) 100vw, 50vw'
 						onError={e => {
 							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
 						}}
 					/>
+					{/* Scrim top for badge readability */}
+					<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/30 to-transparent' />
 					{/* Featured badge */}
-					<div className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-brand/90 px-3 py-1.5 text-xs font-semibold text-white shadow-card'>
-						<Flame className='size-4' />
+					<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,90,54,0.5)] backdrop-blur-sm'>
+						<Flame className='size-3.5' />
 						{t('featuredToday')}
 					</div>
 				</div>
 
 				{/* Right: Content */}
 				<div className='flex flex-col justify-center'>
-					<div className='mb-3 flex flex-wrap items-center gap-2'>
+					<p className='mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-brand'>
+						{t('featuredToday')}
+					</p>
+					<div className='mb-3 flex flex-wrap items-center gap-1.5'>
 						{/* XP Badge */}
-						<Badge
-							variant='secondary'
-							className='tabular-nums bg-xp px-3 py-1 text-sm font-semibold text-white shadow-card'
-						>
-							+{recipe.xpReward || 0} XP
-						</Badge>
+						<span className='inline-flex items-center gap-1 rounded-full bg-xp/15 px-2.5 py-1 text-xs font-bold text-xp'>
+							⚡ +{recipe.xpReward || 0} XP
+						</span>
 						{/* Difficulty */}
-						<Badge
-							variant='outline'
-							className='border-border-medium bg-bg-elevated'
-						>
+						<span className='inline-flex items-center rounded-full bg-bg-elevated px-2.5 py-1 text-xs font-medium text-text-secondary'>
 							{t(
 								DIFFICULTY_API_TO_DISPLAY_KEYS[recipe.difficulty] ||
 									recipe.difficulty,
 							)}
-						</Badge>
+						</span>
 						{/* Time */}
-						<Badge
-							variant='outline'
-							className='flex items-center gap-1 border-border-medium bg-bg-elevated'
-						>
+						<span className='inline-flex items-center gap-1 rounded-full bg-bg-elevated px-2.5 py-1 text-xs font-medium text-text-secondary'>
 							<Clock className='size-3' />
 							{formatCookingTime(getTotalTime(recipe))}
-						</Badge>
+						</span>
 					</div>
 
-					<h2 className='mb-2 text-xl font-serif font-bold text-text sm:mb-3 sm:text-2xl md:text-3xl'>
+					<h2 className='mb-2.5 text-xl font-bold leading-tight tracking-tight text-text-primary sm:mb-3 sm:text-2xl md:text-3xl'>
 						{recipe.title}
 					</h2>
 
-					<p className='mb-4 line-clamp-2 text-sm text-text-secondary sm:mb-6 sm:line-clamp-3 sm:text-base'>
+					<p className='mb-4 line-clamp-2 text-sm leading-relaxed text-text-secondary sm:mb-5 sm:line-clamp-3 sm:text-[15px]'>
 						{recipe.description}
 					</p>
 
 					{/* Author */}
 					{recipe.author?.displayName && (
-						<div className='mb-4 flex items-center gap-2.5 sm:mb-6 sm:gap-3'>
+						<div className='mb-4 flex items-center gap-2.5 sm:mb-5'>
 							<Image
 								src={recipe.author.avatarUrl || '/placeholder-avatar.svg'}
 								alt={recipe.author.displayName}
-								width={40}
-								height={40}
-								className='size-10 rounded-full border-2 border-border-subtle object-cover sm:size-12'
+								width={36}
+								height={36}
+								className='size-9 rounded-full ring-2 ring-border-subtle object-cover'
 							/>
 							<div>
-								<p className='text-sm font-medium text-text'>
+								<p className='text-sm font-semibold text-text-primary'>
 									{recipe.author.displayName}
 								</p>
 								<p className='text-xs text-text-muted'>
@@ -259,14 +255,14 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 					)}
 
 					{/* Actions */}
-					<div className='flex gap-3'>
+					<div className='flex gap-2.5'>
 						<motion.button
 							type='button'
 							onClick={() => startCookTransition(() => onCook(recipe.id))}
 							disabled={isCookNavigating}
 							whileHover={isCookNavigating ? undefined : BUTTON_HOVER}
 							whileTap={isCookNavigating ? undefined : BUTTON_TAP}
-							className='flex items-center gap-2 rounded-xl bg-gradient-hero px-4 py-2.5 text-sm font-bold text-white shadow-warm disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(255,90,54,0.4)] transition-all disabled:cursor-not-allowed disabled:opacity-70 hover:bg-brand/90 hover:shadow-[0_6px_20px_rgba(255,90,54,0.5)] focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-5 sm:py-3 sm:text-[15px]'
 						>
 							{isCookNavigating ? (
 								<Loader2 className='size-5 animate-spin' />
@@ -285,11 +281,11 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							disabled={isNavigating}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='rounded-xl border-2 border-border-medium bg-bg-card px-4 py-2.5 text-sm font-semibold text-text hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-6 sm:py-3 sm:text-base'
+							className='rounded-xl border border-border-medium bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-all hover:border-brand/40 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-5 sm:py-3 sm:text-[15px]'
 						>
 							{isNavigating ? (
 								<>
-									<Loader2 className='inline size-5 animate-spin mr-2' />
+									<Loader2 className='inline size-4 animate-spin mr-1.5' />
 									{t('loading')}
 								</>
 							) : (
@@ -1153,145 +1149,151 @@ function ExploreContent() {
 						<div className='group relative'>
 							<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
 							<PremiumSurface
-										className='mb-6 rounded-[2rem] bg-bg-card/85 p-4 backdrop-blur-xl'
-										eyebrow='Discovery Controls'
-										chipText={`${activeFiltersCount} Active`}
-									>
-										<div className='space-y-4'>
-											<div className='group relative'>
-												<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
-												<Input
-													ref={searchInputRef}
-													placeholder={t('searchPlaceholder')}
-													aria-label={t('searchPlaceholder')}
-													role='combobox'
-													aria-expanded={
-														showAutocomplete && autocompleteSuggestions.length > 0
-													}
-													aria-autocomplete='list'
-													aria-controls='explore-autocomplete-listbox'
-													aria-activedescendant={
-														selectedSuggestionIndex >= 0
-															? `explore-suggestion-${selectedSuggestionIndex}`
-															: undefined
-													}
-													value={searchQuery}
-													onChange={e => setSearchQuery(e.target.value)}
-													onKeyDown={handleSearchKeyDown}
-													onFocus={() => {
-														if (autocompleteSuggestions.length > 0) {
-															setShowAutocomplete(true)
-														}
-													}}
-													className='h-12 rounded-xl border-border-medium bg-bg-elevated/80 pl-12 pr-10 text-base transition-all focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/50'
-												/>
-												{searchQuery && (
-													<button
-														type='button'
-														onClick={clearSearch}
-														className='absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-														aria-label={t('clearSearch')}
-													>
-														<X className='size-4' />
-													</button>
-												)}
-											</div>
+								className='mb-6 rounded-[2rem] bg-bg-card/85 p-4 backdrop-blur-xl'
+								eyebrow='Discovery Controls'
+								chipText={`${activeFiltersCount} Active`}
+							>
+								<div className='space-y-4'>
+									<div className='group relative'>
+										<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
+										<Input
+											ref={searchInputRef}
+											placeholder={t('searchPlaceholder')}
+											aria-label={t('searchPlaceholder')}
+											role='combobox'
+											aria-expanded={
+												showAutocomplete && autocompleteSuggestions.length > 0
+											}
+											aria-autocomplete='list'
+											aria-controls='explore-autocomplete-listbox'
+											aria-activedescendant={
+												selectedSuggestionIndex >= 0
+													? `explore-suggestion-${selectedSuggestionIndex}`
+													: undefined
+											}
+											value={searchQuery}
+											onChange={e => setSearchQuery(e.target.value)}
+											onKeyDown={handleSearchKeyDown}
+											onFocus={() => {
+												if (autocompleteSuggestions.length > 0) {
+													setShowAutocomplete(true)
+												}
+											}}
+											className='h-12 rounded-xl border-border-medium bg-bg-elevated/80 pl-12 pr-10 text-base transition-all focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+										/>
+										{searchQuery && (
+											<button
+												type='button'
+												onClick={clearSearch}
+												className='absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+												aria-label={t('clearSearch')}
+											>
+												<X className='size-4' />
+											</button>
+										)}
+									</div>
 
-											{/* Autocomplete Dropdown */}
-											{showAutocomplete && autocompleteSuggestions.length > 0 && (
-												<div
-													id='explore-autocomplete-listbox'
-													role='listbox'
-													className='absolute z-dropdown mt-1 max-h-64 w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-border-subtle bg-bg-card shadow-xl'
+									{/* Autocomplete Dropdown */}
+									{showAutocomplete && autocompleteSuggestions.length > 0 && (
+										<div
+											id='explore-autocomplete-listbox'
+											role='listbox'
+											className='absolute z-dropdown mt-1 max-h-64 w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-border-subtle bg-bg-card shadow-xl'
+										>
+											{autocompleteSuggestions.map((suggestion, index) => (
+												<button
+													key={`${suggestion.type}-${suggestion.value}-${index}`}
+													id={`explore-suggestion-${index}`}
+													role='option'
+													aria-selected={selectedSuggestionIndex === index}
+													onClick={() => handleSuggestionSelect(suggestion)}
+													className={`flex w-full items-center gap-3 border-b border-border-subtle p-3 text-left transition-colors last:border-b-0 ${
+														selectedSuggestionIndex === index
+															? 'bg-brand/10'
+															: 'hover:bg-bg-hover'
+													}`}
 												>
-													{autocompleteSuggestions.map((suggestion, index) => (
-														<button
-															key={`${suggestion.type}-${suggestion.value}-${index}`}
-															id={`explore-suggestion-${index}`}
-															role='option'
-															aria-selected={selectedSuggestionIndex === index}
-															onClick={() => handleSuggestionSelect(suggestion)}
-															className={`flex w-full items-center gap-3 border-b border-border-subtle p-3 text-left transition-colors last:border-b-0 ${
-																selectedSuggestionIndex === index
-																	? 'bg-brand/10'
-																	: 'hover:bg-bg-hover'
-															}`}
-														>
-															<div className='flex size-8 items-center justify-center rounded-full bg-brand/10 text-brand'>
-																{suggestion.type === 'recipe' ? (
-																	<ChefHat className='size-4' />
-																) : suggestion.type === 'ingredient' ? (
-																	<Sparkles className='size-4' />
-																) : (
-																	<Search className='size-4' />
-																)}
-															</div>
-															<div className='min-w-0 flex-1'>
-																<p className='truncate text-sm font-medium text-text'>
-																	{suggestion.value}
-																</p>
-																{suggestion.meta && (
-																	<p className='truncate text-xs text-text-muted'>
-																		{suggestion.meta}
-																	</p>
-																)}
-															</div>
-														</button>
-													))}
-												</div>
-											)}
-
-											{/* Control Row */}
-											<div className='flex flex-wrap items-center justify-between gap-3'>
-												<div className='flex items-center gap-2'>
-													<button
-														type='button'
-														onClick={() => setSearchMode('all')}
-														className={modeButtonClassName(searchMode === 'all', 'brand')}
-													>
-														<TrendingUp className='size-4' />
-														{t('allRecipes')}
-													</button>
-													<button
-														type='button'
-														onClick={() => setSearchMode('trending')}
-														className={modeButtonClassName(searchMode === 'trending', 'xp')}
-													>
-														<Flame className='size-4' />
-														{t('trending')}
-													</button>
-												</div>
-
-												<RecipeFiltersSheet
-													filters={filters}
-													onApplyFilters={applyFilters}
-													onClearFilters={clearFilters}
-													activeFiltersCount={activeFiltersCount}
-													trigger={
-														<Button
-															variant='outline'
-															size='sm'
-															className='gap-2 rounded-xl'
-														>
-															<ChevronDown className='size-4' />
-															{t('filters')}
-															{activeFiltersCount > 0 && (
-																<Badge
-																	variant='secondary'
-																	className='ml-1 h-5 min-w-5 px-1.5 text-[10px]'
-																>
-																	{activeFiltersCount}
-																</Badge>
-															)}
-														</Button>
-													}
-												/>
-											</div>
+													<div className='flex size-8 items-center justify-center rounded-full bg-brand/10 text-brand'>
+														{suggestion.type === 'recipe' ? (
+															<ChefHat className='size-4' />
+														) : suggestion.type === 'ingredient' ? (
+															<Sparkles className='size-4' />
+														) : (
+															<Search className='size-4' />
+														)}
+													</div>
+													<div className='min-w-0 flex-1'>
+														<p className='truncate text-sm font-medium text-text'>
+															{suggestion.value}
+														</p>
+														{suggestion.meta && (
+															<p className='truncate text-xs text-text-muted'>
+																{suggestion.meta}
+															</p>
+														)}
+													</div>
+												</button>
+											))}
 										</div>
-									</PremiumSurface>
+									)}
+
+									{/* Control Row */}
+									<div className='flex flex-wrap items-center justify-between gap-3'>
+										<div className='flex items-center gap-2'>
+											<button
+												type='button'
+												onClick={() => setSearchMode('all')}
+												className={modeButtonClassName(
+													searchMode === 'all',
+													'brand',
+												)}
+											>
+												<TrendingUp className='size-4' />
+												{t('allRecipes')}
+											</button>
+											<button
+												type='button'
+												onClick={() => setSearchMode('trending')}
+												className={modeButtonClassName(
+													searchMode === 'trending',
+													'xp',
+												)}
+											>
+												<Flame className='size-4' />
+												{t('trending')}
+											</button>
+										</div>
+
+										<RecipeFiltersSheet
+											filters={filters}
+											onApplyFilters={applyFilters}
+											onClearFilters={clearFilters}
+											activeFiltersCount={activeFiltersCount}
+											trigger={
+												<Button
+													variant='outline'
+													size='sm'
+													className='gap-2 rounded-xl'
+												>
+													<ChevronDown className='size-4' />
+													{t('filters')}
+													{activeFiltersCount > 0 && (
+														<Badge
+															variant='secondary'
+															className='ml-1 h-5 min-w-5 px-1.5 text-[10px]'
+														>
+															{activeFiltersCount}
+														</Badge>
+													)}
+												</Button>
+											}
+										/>
+									</div>
 								</div>
-							</div>
-						</motion.section>
+							</PremiumSurface>
+						</div>
+					</div>
+				</motion.section>
 				{/* Filter Chips & Result Count */}
 				<AnimatePresence>
 					{(activeFiltersCount > 0 || debouncedSearch) && !isLoading && (

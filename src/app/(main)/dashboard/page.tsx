@@ -605,94 +605,105 @@ export default function DashboardPage() {
 							initial={{ opacity: 0, y: 12 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={TRANSITION_SPRING}
-							className='mb-6 rounded-radius border border-brand/30 bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-5'
+							className='mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 shadow-card'
 						>
-							<h2 className='text-lg font-bold text-text'>
-								{t('obWelcome', {
-									name: user?.displayName || user?.firstName || user?.username,
-								})}
-							</h2>
-
-							<p className='mt-1 text-sm text-text-secondary'>{t('obHowTo')}</p>
-							<div className='mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3'>
-								<Link
-									href='/explore'
-									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-								>
-									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 transition-colors group-hover:bg-brand/20'>
-										<BookOpen className='size-5 text-brand' />
-									</div>
-									<div>
-										<span className='text-sm font-medium text-text'>
-											{t('obBrowse')}
-										</span>
-										<p className='text-xs text-text-muted'>
-											{t('obBrowseDesc')}
-										</p>
-									</div>
-								</Link>
-								<Link
-									href='/explore?difficulty=Beginner'
-									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-								>
-									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10 transition-colors group-hover:bg-xp/20'>
-										<ChefHat className='size-5 text-xp' />
-									</div>
-									<div>
-										<span className='text-sm font-medium text-text'>
-											{t('obTryFirst')}
-										</span>
-										<p className='text-xs text-text-muted'>
-											{t('obTryFirstDesc')}
-										</p>
-									</div>
-								</Link>
-								<Link
-									href='/community'
-									className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-bg-card'
-								>
-									<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 transition-colors group-hover:bg-streak/20'>
-										<Users className='size-5 text-streak' />
-									</div>
-									<div>
-										<span className='text-sm font-medium text-text'>
-											{t('obJoin')}
-										</span>
-										<p className='text-xs text-text-muted'>{t('obJoinDesc')}</p>
-									</div>
-								</Link>
+							<div className='border-b border-brand/10 bg-brand/5 px-5 py-3'>
+								<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-brand'>
+									{t('obJoin')}
+								</p>
+								<h2 className='text-base font-bold text-text-primary'>
+									{t('obWelcome', {
+										name:
+											user?.displayName || user?.firstName || user?.username,
+									})}
+								</h2>
+								<p className='mt-0.5 text-sm text-text-secondary'>
+									{t('obHowTo')}
+								</p>
 							</div>
-							{user &&
-								(!user.avatarUrl ||
-									user.avatarUrl === '/placeholder-avatar.svg' ||
-									!user.bio) && (
-									<div className='mt-4 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-3'>
-										<span className='text-xs font-medium text-text-muted'>
-											{t('obQuickWins')}
-										</span>
-										{(!user.avatarUrl ||
-											user.avatarUrl === '/placeholder-avatar.svg') && (
-											<Link
-												href='/settings'
-												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-											>
-												<Camera className='size-3.5' />
+							<div className='p-4'>
+								<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-3'>
+									<Link
+										href='/explore'
+										className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-brand/8 hover:shadow-card'
+									>
+										<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 transition-colors group-hover:bg-brand/20'>
+											<BookOpen className='size-[18px] text-brand' />
+										</div>
+										<div>
+											<span className='text-sm font-semibold text-text-primary'>
+												{t('obBrowse')}
+											</span>
+											<p className='text-xs text-text-muted'>
+												{t('obBrowseDesc')}
+											</p>
+										</div>
+									</Link>
+									<Link
+										href='/explore?difficulty=Beginner'
+										className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-xp/8 hover:shadow-card'
+									>
+										<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-xp/10 transition-colors group-hover:bg-xp/20'>
+											<ChefHat className='size-[18px] text-xp' />
+										</div>
+										<div>
+											<span className='text-sm font-semibold text-text-primary'>
+												{t('obTryFirst')}
+											</span>
+											<p className='text-xs text-text-muted'>
+												{t('obTryFirstDesc')}
+											</p>
+										</div>
+									</Link>
+									<Link
+										href='/community'
+										className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-streak/8 hover:shadow-card'
+									>
+										<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-streak/10 transition-colors group-hover:bg-streak/20'>
+											<Users className='size-[18px] text-streak' />
+										</div>
+										<div>
+											<span className='text-sm font-semibold text-text-primary'>
+												{t('obJoin')}
+											</span>
+											<p className='text-xs text-text-muted'>
+												{t('obJoinDesc')}
+											</p>
+										</div>
+									</Link>
+								</div>
+								{user &&
+									(!user.avatarUrl ||
+										user.avatarUrl === '/placeholder-avatar.svg' ||
+										!user.bio) && (
+										<div className='mt-3.5 flex flex-wrap items-center gap-2 border-t border-border-subtle/60 pt-3.5'>
+											<span className='text-xs font-medium text-text-muted'>
+												{t('obQuickWins')}
+											</span>
+											{(!user.avatarUrl ||
+												user.avatarUrl === '/placeholder-avatar.svg') && (
+												<Link
+													href='/settings'
+													className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:bg-brand/10 hover:text-brand'
+												>
+													<Camera className='size-3.5' />
 
-												{t('obAddPhoto')}
-											</Link>
-										)}
-										{!user.bio && (
-											<Link
-												href='/settings'
-												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
-											>
-												<PenLine className='size-3.5' />
+													{t('obAddPhoto')}
+												</Link>
+											)}
+											{!user.bio && (
+												<Link
+													href='/settings'
+													className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:bg-brand/10 hover:text-brand'
+												>
+													<PenLine className='size-3.5' />
 
-												{t('obWriteBio')}
-											</Link>
-										)}
-									</div>
-								)}
+													{t('obWriteBio')}
+												</Link>
+											)}
+										</div>
+									)}
+							</div>
 						</motion.div>
 					) : (
 						user &&
@@ -799,10 +810,7 @@ export default function DashboardPage() {
 						chipText={feedMode === 'following' ? 'Following' : 'For You'}
 						showOrbs={false}
 					>
-						<FeedModeTabBar
-							activeMode={feedMode}
-							onModeChange={setFeedMode}
-						/>
+						<FeedModeTabBar activeMode={feedMode} onModeChange={setFeedMode} />
 					</PremiumSurface>
 					{!isNewUser && <SinceLastVisitCard className='mb-6' />}
 					<PremiumSurface
@@ -818,7 +826,7 @@ export default function DashboardPage() {
 											userId: user.userId ?? '',
 											displayName: user.displayName || user.username || 'User',
 											avatarUrl: user.avatarUrl,
-									  }
+										}
 									: undefined
 							}
 						/>

@@ -403,7 +403,7 @@ const FeedCard = ({
 		<motion.article
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='relative overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card hover:shadow-warm'
+			className='relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -420,11 +420,12 @@ const FeedCard = ({
 						alt={title}
 						fallbackType='recipe'
 						fill
-						className='object-cover'
+						className='object-cover transition-transform duration-500'
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 					/>
-				{/* Gradient overlay — fades image into card content */}
-				<div className='pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent' />
+					{/* Scrim — top fade for XP badge readability, bottom fade for card blend */}
+					<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/25 to-transparent' />
+					<div className='pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent' />
 				</motion.div>
 
 				{/* Content */}
@@ -527,7 +528,7 @@ const GridCard = ({
 		<motion.article
 			whileHover={CARD_GRID_HOVER}
 			transition={TRANSITION_SPRING}
-			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card hover:shadow-warm'
+			className='group/recipe overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -539,6 +540,8 @@ const GridCard = ({
 					whileHover={IMAGE_ZOOM_LARGE_HOVER}
 					transition={TRANSITION_SPRING}
 				>
+					<div className='pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-black/30 to-transparent' />
+					<div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-black/40 to-transparent' />
 					<Image
 						src={imageUrl}
 						alt={title}
@@ -566,7 +569,9 @@ const GridCard = ({
 
 				{/* Content */}
 				<div className='p-4'>
-					<h3 className='mb-1.5 text-base font-serif font-bold'>{title}</h3>
+					<h3 className='mb-1.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
+						{title}
+					</h3>
 					{description && (
 						<p className='mb-2 line-clamp-2 text-sm leading-relaxed text-text-muted'>
 							{description}
@@ -632,7 +637,7 @@ const GridCard = ({
 			</Link>
 
 			{/* Actions - more subtle, card is already clickable */}
-			<div className='flex gap-2 px-4 pb-4'>
+			<div className='flex gap-2 border-t border-border-subtle/60 px-4 py-3'>
 				<motion.button
 					type='button'
 					onClick={e => {
@@ -642,7 +647,7 @@ const GridCard = ({
 					}}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-brand/30 bg-brand/5 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand hover:text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand py-2 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.45)] focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Play className='size-4' />
 					{t('startCooking')}
@@ -659,10 +664,10 @@ const GridCard = ({
 					transition={TRANSITION_SPRING}
 					aria-label={isSaved ? t('removeFromSaved') : t('saveRecipe')}
 					className={cn(
-						'flex size-11 items-center justify-center rounded-lg border focus-visible:ring-2 focus-visible:ring-brand/50',
+						'flex size-9 items-center justify-center rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 						isSaved
-							? 'border-brand bg-brand/10 text-brand'
-							: 'border-border bg-bg-elevated text-text-muted hover:border-brand hover:bg-brand/10 hover:text-brand',
+							? 'bg-gold/15 text-gold'
+							: 'text-text-muted hover:bg-gold/10 hover:text-gold',
 					)}
 				>
 					<motion.div
@@ -882,9 +887,9 @@ const CookedCard = ({
 	const t = useTranslations('recipe')
 	return (
 		<motion.article
-			whileHover={CARD_FEATURED_HOVER}
+			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='overflow-hidden rounded-2xl border-2 border-xp/30 bg-bg-card shadow-card hover:border-xp/50 hover:shadow-xp/15'
+			className='overflow-hidden rounded-2xl border border-xp/25 bg-bg-card shadow-card transition-all duration-300 hover:border-xp/45 hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -908,7 +913,9 @@ const CookedCard = ({
 
 				{/* Content */}
 				<div className='p-4'>
-					<h3 className='mb-4 text-lg font-serif font-bold'>{title}</h3>
+					<h3 className='mb-3.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
+						{title}
+					</h3>
 
 					{/* Mastery progress */}
 					<div className='mb-4'>
@@ -948,7 +955,7 @@ const CookedCard = ({
 					</div>
 
 					{/* XP summary */}
-					<div className='mb-4 flex items-center justify-between rounded-lg bg-success/10 px-3 py-2.5 text-sm'>
+					<div className='mb-4 flex items-center justify-between rounded-xl bg-success/10 px-3 py-2.5 text-sm'>
 						<span className='font-bold tabular-nums text-success'>
 							{t('xpEarned', { xp: mastery.totalXpEarned })}
 						</span>
@@ -963,15 +970,15 @@ const CookedCard = ({
 			</Link>
 
 			{/* Actions */}
-			<div className='flex gap-2 px-4 pb-4'>
+			<div className='flex gap-2 border-t border-border-subtle/60 px-4 py-3'>
 				<motion.button
 					type='button'
 					onClick={onCookAgain}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-xp py-3 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-xp py-2.5 text-sm font-bold text-white shadow-[0_2px_8px_rgba(99,102,241,0.35)] transition-all hover:bg-xp/90 hover:shadow-[0_4px_12px_rgba(99,102,241,0.45)] focus-visible:ring-2 focus-visible:ring-xp/50'
 				>
-					<RefreshCw className='size-4' />
+					<RefreshCw className='size-[15px]' />
 					{t('cookAgain')}
 				</motion.button>
 				<motion.button
@@ -980,10 +987,10 @@ const CookedCard = ({
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
 					transition={TRANSITION_SPRING}
-					className='flex size-11 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex size-9 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp focus-visible:ring-2 focus-visible:ring-xp/50'
 					aria-label={t('viewCookingHistory')}
 				>
-					<History className='size-5' />
+					<History className='size-[15px]' />
 				</motion.button>
 			</div>
 		</motion.article>
@@ -1006,9 +1013,9 @@ const MiniCard = ({
 	const t = useTranslations('recipe')
 	return (
 		<motion.article
-			whileHover={CARD_HOVER}
+			whileHover={{ y: -2 }}
 			transition={TRANSITION_SPRING}
-			className='flex items-center gap-3.5 rounded-xl border border-border bg-bg-card p-3 hover:border-brand'
+			className='flex items-center gap-3 rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card transition-all duration-200 hover:border-brand/30 hover:shadow-warm'
 		>
 			<Link
 				href={`/recipes/${id}`}
@@ -1023,7 +1030,9 @@ const MiniCard = ({
 					className='size-14 flex-shrink-0 rounded-lg object-cover'
 				/>
 				<div className='min-w-0 flex-1'>
-					<h4 className='mb-1 truncate text-sm font-semibold'>{title}</h4>
+					<h4 className='mb-1 truncate text-[13px] font-semibold leading-tight text-text-primary'>
+						{title}
+					</h4>
 					<div className='flex items-center gap-2.5 text-xs'>
 						{xpReward != null && xpReward > 0 && (
 							<span className='font-semibold tabular-nums text-success'>
@@ -1052,7 +1061,7 @@ const MiniCard = ({
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
 				aria-label={t('startCookingLabel')}
-				className='flex size-11 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				<Play className='size-4' />
 			</motion.button>

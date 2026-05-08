@@ -1,7 +1,14 @@
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
-type SurfaceTone = 'brand' | 'xp' | 'success' | 'streak' | 'blue'
+type SurfaceTone =
+	| 'brand'
+	| 'xp'
+	| 'success'
+	| 'streak'
+	| 'blue'
+	| 'glass'
+	| 'depth'
 
 interface SurfaceSectionHeaderProps {
 	eyebrow: string
@@ -54,6 +61,20 @@ const toneClasses: Record<
 		right: 'bg-info/14',
 		border: 'border-info/15',
 		gradient: 'from-bg-card/97 via-bg-card/90 to-bg-elevated/75',
+	},
+	/** Glass: transparent frosted surface — use over image backgrounds or colorful sections */
+	glass: {
+		left: 'bg-white/8',
+		right: 'bg-white/4',
+		border: 'border-white/15',
+		gradient: 'from-white/12 via-white/8 to-white/4',
+	},
+	/** Depth: darker, contrasty — use for featured/hero sections that need weight */
+	depth: {
+		left: 'bg-brand/8',
+		right: 'bg-xp/8',
+		border: 'border-border-medium',
+		gradient: 'from-bg-elevated/95 via-bg-elevated/90 to-bg/85',
 	},
 }
 

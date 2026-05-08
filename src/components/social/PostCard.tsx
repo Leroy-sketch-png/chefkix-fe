@@ -117,13 +117,19 @@ interface PostCardProps {
 }
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
-	QUICK: 'bg-warning/18 text-warning-deep border border-warning/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	QUICK:
+		'bg-warning/18 text-warning-deep border border-warning/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
 	POLL: 'bg-info/18 text-info border border-info/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
-	RECENT_COOK: 'bg-brand/18 text-brand border border-brand/20 shadow-[0_1px_4px_rgba(255,90,54,0.15)]',
-	GROUP: 'bg-accent-purple/18 text-accent-purple border border-accent-purple/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
-	RECIPE_REVIEW: 'bg-warning/22 text-warning-deep border border-warning/25 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
-	QUICK_TIP: 'bg-success/18 text-success-deep border border-success/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
-	RECIPE_BATTLE: 'bg-error/18 text-error border border-error/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	RECENT_COOK:
+		'bg-brand/18 text-brand border border-brand/20 shadow-[0_1px_4px_rgba(255,90,54,0.15)]',
+	GROUP:
+		'bg-accent-purple/18 text-accent-purple border border-accent-purple/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	RECIPE_REVIEW:
+		'bg-warning/22 text-warning-deep border border-warning/25 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	QUICK_TIP:
+		'bg-success/18 text-success-deep border border-success/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+	RECIPE_BATTLE:
+		'bg-error/18 text-error border border-error/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
 }
 
 function PostCardErrorFallback({
@@ -670,40 +676,50 @@ const PostCardContent = ({
 			>
 				<motion.div
 					whileHover={CARD_FEED_HOVER}
-					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/50 shadow-card transition-all duration-300 hover:shadow-warm'
+					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/40 shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 				>
+					{/* Warm top-edge accent — barely visible but adds depth */}
+					<div className='pointer-events-none absolute inset-x-0 top-0 hidden h-px bg-gradient-to-r from-transparent via-border-medium/50 to-transparent sm:block' />
 					{/* Header */}
-					<div className='flex items-center justify-between p-4 md:p-6'>
+					<div className='flex items-center justify-between px-4 py-3.5 md:px-5 md:py-4'>
 						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
 							<Link
 								href={post.userId ? `/${post.userId}` : '/dashboard'}
-								className='flex items-center gap-3 transition-opacity hover:opacity-80'
+								className='flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80'
 							>
-								<Avatar
-									size='sm'
-									className='transition-all group-hover:opacity-90'
-								>
-									<AvatarImage
-										src={post.avatarUrl || '/placeholder-avatar.svg'}
-										alt={post.displayName || 'User'}
-									/>
-									<AvatarFallback>
-										{post.displayName
-											?.split(' ')
-											.map(n => n[0])
-											.join('')
-											.toUpperCase()
-											.slice(0, 2) || 'U'}
-									</AvatarFallback>
-								</Avatar>
-								<div>
-									<div className='flex items-center gap-1 text-base font-bold leading-tight text-text-primary'>
+								<div className='relative shrink-0'>
+									<Avatar
+										size='sm'
+										className='ring-2 ring-border-subtle transition-all group-hover:ring-border-medium'
+									>
+										<AvatarImage
+											src={post.avatarUrl || '/placeholder-avatar.svg'}
+											alt={post.displayName || 'User'}
+										/>
+										<AvatarFallback>
+											{post.displayName
+												?.split(' ')
+												.map(n => n[0])
+												.join('')
+												.toUpperCase()
+												.slice(0, 2) || 'U'}
+										</AvatarFallback>
+									</Avatar>
+									{/* Cook post indicator — small dot on avatar */}
+									{post.postType === 'RECENT_COOK' && (
+										<span className='absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-brand ring-2 ring-bg-card flex items-center justify-center'>
+											<ChefHat className='size-2 text-white' />
+										</span>
+									)}
+								</div>
+								<div className='min-w-0'>
+									<div className='flex items-center gap-1.5 text-sm font-semibold leading-tight text-text-primary'>
 										<span className='truncate'>
 											{post.displayName || t('unknownUser')}
 										</span>
 										{post.isVerified && <VerifiedBadge size='sm' />}
 									</div>
-									<div className='flex items-center gap-2 text-sm leading-normal text-text-secondary'>
+									<div className='mt-0.5 flex flex-wrap items-center gap-1.5 text-xs leading-normal text-text-muted'>
 										{post.postType && post.postType !== 'PERSONAL' && (
 											<span
 												className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium ${POST_TYPE_BADGE_STYLES[post.postType] || 'bg-bg-elevated text-text-muted'}`}
@@ -752,9 +768,11 @@ const PostCardContent = ({
 												)}
 											</span>
 										)}
-										{formatDistanceToNow(new Date(post.createdAt), {
-											addSuffix: true,
-										})}
+										<span>
+											{formatDistanceToNow(new Date(post.createdAt), {
+												addSuffix: true,
+											})}
+										</span>
 										{canEdit && <EditCountdown createdAt={createdAt} />}
 									</div>
 								</div>
@@ -851,7 +869,7 @@ const PostCardContent = ({
 
 					{/* Content */}
 					{isEditing ? (
-						<div className='space-y-3 border-t border-border-subtle p-4 md:p-6'>
+						<div className='space-y-3 border-t border-border-subtle px-4 py-4 md:px-5'>
 							<textarea
 								value={editContent}
 								onChange={e => setEditContent(e.target.value)}
@@ -900,16 +918,16 @@ const PostCardContent = ({
 						</div>
 					) : (
 						<>
-							<div className='space-y-3 px-4 pb-3 md:px-6'>
-								<p className='whitespace-pre-wrap leading-relaxed text-text-primary'>
+							<div className='space-y-3 px-4 py-1 pb-3 md:px-5'>
+								<p className='whitespace-pre-wrap text-[15px] leading-[1.65] tracking-[0.01em] text-text-primary'>
 									{post.content}
 								</p>
 								{(post.tags ?? []).length > 0 && (
-									<div className='flex flex-wrap gap-2'>
+									<div className='flex flex-wrap gap-1.5'>
 										{post.tags?.map(tag => (
 											<span
 												key={tag}
-												className='rounded-full bg-brand/10 px-3 py-1 text-xs font-medium text-brand'
+												className='inline-flex items-center rounded-full border border-brand/15 bg-brand/8 px-2.5 py-1 text-xs font-medium text-brand transition-colors hover:border-brand/30 hover:bg-brand/15'
 											>
 												#{tag}
 											</span>
@@ -1310,7 +1328,7 @@ const PostCardContent = ({
 						)}
 
 					{/* Actions */}
-					<div className='flex gap-1.5 border-t border-border-subtle/60 bg-gradient-to-r from-bg-card via-bg-card to-bg-elevated/40 px-3 py-2'>
+					<div className='flex items-stretch gap-0.5 border-t border-border-subtle/70 bg-bg-card/80 px-2 py-1.5'>
 						<motion.button
 							type='button'
 							ref={likeButtonRef}
@@ -1320,10 +1338,10 @@ const PostCardContent = ({
 							aria-label={
 								post.isLiked ? t('unlikePostLabel') : t('likePostLabel')
 							}
-							className={`group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
+							className={`group/btn flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								post.isLiked
-									? 'text-brand'
-									: 'text-text-secondary hover:bg-bg-hover hover:text-brand'
+									? 'text-destructive'
+									: 'text-text-secondary hover:bg-brand/8 hover:text-brand'
 							}`}
 						>
 							<motion.div
@@ -1332,17 +1350,16 @@ const PostCardContent = ({
 								initial={false}
 							>
 								<Heart
-									className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
+									className={`size-[18px] transition-all duration-200 ${
 										post.isLiked
 											? 'fill-destructive stroke-destructive'
-											: 'group-hover/btn:fill-destructive group-hover/btn:stroke-destructive'
+											: 'group-hover/btn:fill-brand/25 group-hover/btn:stroke-brand'
 									}`}
 								/>
 							</motion.div>
-							<AnimatedNumber
-								value={post.likes ?? 0}
-								className='tabular-nums'
-							/>
+							<span className='tabular-nums'>
+								<AnimatedNumber value={post.likes ?? 0} className='' />
+							</span>
 						</motion.button>
 
 						<motion.button
@@ -1352,13 +1369,18 @@ const PostCardContent = ({
 							aria-label={
 								showComments ? t('hideCommentsLabel') : t('showCommentsLabel')
 							}
-							className='group/btn flex h-11 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+							className={`group/btn flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 ${
+								showComments ? 'text-brand' : 'text-text-secondary'
+							}`}
 						>
-							<MessageSquare className='size-5 transition-all duration-300 group-hover/btn:scale-125 group-hover/btn:fill-brand group-hover/btn:stroke-brand' />
-							<AnimatedNumber
-								value={post.commentCount ?? 0}
-								className='tabular-nums'
+							<MessageSquare
+								className={`size-[18px] transition-all duration-200 group-hover/btn:stroke-brand ${
+									showComments ? 'fill-brand/20 stroke-brand' : ''
+								}`}
 							/>
+							<span className='tabular-nums'>
+								<AnimatedNumber value={post.commentCount ?? 0} className='' />
+							</span>
 						</motion.button>
 
 						{/* Share button with dropdown menu */}
@@ -1369,16 +1391,16 @@ const PostCardContent = ({
 								onClick={handleShareMenuToggle}
 								whileTap={BUTTON_SUBTLE_TAP}
 								aria-label={t('sharePost')}
-								className='group/btn flex h-11 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='group/btn flex h-10 w-full items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium text-text-secondary transition-all hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<motion.div
 									variants={SEND_WHOOSH}
 									animate={showShareMenu ? 'sending' : 'initial'}
 									initial={false}
 								>
-									<Send className='size-5' />
+									<Send className='size-[18px] transition-all duration-200 group-hover/btn:stroke-brand' />
 								</motion.div>
-								<span>{t('share')}</span>
+								<span className='hidden xs:inline'>{t('share')}</span>
 							</motion.button>
 
 							{/* Share options menu */}
@@ -1436,10 +1458,10 @@ const PostCardContent = ({
 							aria-label={
 								isSaved ? t('removeSavedPostLabel') : t('savePostLabel')
 							}
-							className={`group/btn flex h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
+							className={`group/btn flex h-10 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								isSaved
-									? 'flex-1 text-brand'
-									: 'flex-1 text-text-secondary hover:bg-bg-hover hover:text-brand'
+									? 'flex-1 text-gold'
+									: 'flex-1 text-text-secondary hover:bg-gold/8 hover:text-gold'
 							}`}
 						>
 							<motion.div
@@ -1448,10 +1470,10 @@ const PostCardContent = ({
 								initial={false}
 							>
 								<Bookmark
-									className={`size-5 transition-all duration-300 group-hover/btn:scale-125 ${
+									className={`size-[18px] transition-all duration-200 ${
 										isSaved
 											? 'fill-gold stroke-gold'
-											: 'group-hover/btn:fill-gold group-hover/btn:stroke-gold'
+											: 'group-hover/btn:fill-gold/25 group-hover/btn:stroke-gold'
 									}`}
 								/>
 							</motion.div>
@@ -1477,9 +1499,9 @@ const PostCardContent = ({
 									}}
 									whileTap={BUTTON_SUBTLE_TAP}
 									aria-label={t('addToCollection')}
-									className='flex h-11 items-center justify-center overflow-hidden rounded-lg px-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex h-10 items-center justify-center overflow-hidden rounded-xl px-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
-									<FolderPlus className='size-4' />
+									<FolderPlus className='size-[18px]' />
 								</motion.button>
 							)}
 						</AnimatePresence>

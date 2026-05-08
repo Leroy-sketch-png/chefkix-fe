@@ -149,7 +149,9 @@ export function PageHeader({
 								animate={{
 									scale: 1,
 									opacity: 1,
-									...(iconAnimation?.rotate && { rotate: iconAnimation.rotate }),
+									...(iconAnimation?.rotate && {
+										rotate: iconAnimation.rotate,
+									}),
 								}}
 								transition={{ delay: 0.15, ...TRANSITION_SPRING }}
 								className={cn(
@@ -162,7 +164,7 @@ export function PageHeader({
 							</motion.div>
 
 							<div className='min-w-0'>
-								<h1 className='truncate text-lg font-extrabold tracking-tight text-text sm:text-2xl'>
+								<h1 className='truncate text-xl font-bold tracking-tight text-text-primary sm:text-2xl'>
 									{title}
 								</h1>
 							</div>
