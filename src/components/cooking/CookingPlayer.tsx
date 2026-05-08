@@ -1754,7 +1754,7 @@ export const CookingPlayer = () => {
 										>
 											<span className='text-5xl'>📋</span>
 											<div className='text-center'>
-												<h3 className='text-xl font-bold text-text'>
+												<h3 className='text-xl font-bold text-text-primary'>
 													{t('readyToCook')}
 												</h3>
 												<p className='mt-1 text-sm text-text-secondary'>
@@ -1774,7 +1774,7 @@ export const CookingPlayer = () => {
 																.map((ing, i) => (
 																	<li
 																		key={i}
-																		className='flex items-center gap-2 text-sm text-text'
+																		className='flex items-center gap-2 text-sm text-text-primary'
 																	>
 																		<span className='size-1.5 rounded-full bg-brand flex-shrink-0' />
 																		<span>
@@ -1797,7 +1797,7 @@ export const CookingPlayer = () => {
 												onClick={() => setInteractionMode('ACTIVE')}
 												whileHover={BUTTON_HOVER}
 												whileTap={BUTTON_TAP}
-												className='rounded-full bg-gradient-hero px-10 py-3 font-bold text-white shadow-card shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+												className='rounded-full bg-brand px-10 py-3 font-bold text-white shadow-[0_2px_12px_rgba(255,90,54,0.4)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_20px_rgba(255,90,54,0.45)] focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{t('letsCook')}
 											</motion.button>
@@ -2017,7 +2017,7 @@ export const CookingPlayer = () => {
 										kitchenMode ? 'size-14' : 'size-10',
 										interactionMode === 'MESSY_HANDS'
 											? 'bg-warning/30 text-warning ring-2 ring-warning/50'
-											: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
+											: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text-primary',
 									)}
 								>
 									<Hand className={kitchenMode ? 'size-7' : 'size-5'} />

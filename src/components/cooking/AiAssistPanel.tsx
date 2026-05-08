@@ -117,7 +117,7 @@ export function AiAssistPanel({
 						<div className='flex items-center justify-between border-b border-border-subtle px-5 py-3'>
 							<div className='flex items-center gap-2'>
 								<Sparkles className='size-5 text-brand' />
-								<h3 className='font-semibold text-text'>
+								<h3 className='font-semibold text-text-primary'>
 									{t('aiChefAssistant')}
 								</h3>
 							</div>
@@ -125,7 +125,7 @@ export function AiAssistPanel({
 								type='button'
 								onClick={onClose}
 								aria-label={t('ariaCloseAiAssistant')}
-								className='grid size-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+								className='grid size-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary'
 							>
 								<X className='size-4' />
 							</button>
@@ -145,7 +145,9 @@ export function AiAssistPanel({
 							{result ? (
 								<div className='space-y-4'>
 									<div className='rounded-xl bg-bg-elevated p-4'>
-										<p className='leading-relaxed text-text'>{result.answer}</p>
+										<p className='leading-relaxed text-text-primary'>
+											{result.answer}
+										</p>
 									</div>
 
 									{result.tips.length > 0 && (

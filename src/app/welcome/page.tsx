@@ -79,7 +79,7 @@ const HeroSection = () => {
 							<span>{t('heroTagline')}</span>
 						</div>
 
-						<h1 className='mb-6 text-6xl md:text-7xl lg:text-8xl font-black leading-[1.1] tracking-tight text-text'>
+						<h1 className='mb-6 text-6xl md:text-7xl lg:text-8xl font-black leading-[1.1] tracking-tight text-text-primary'>
 							{t('heroTitle1')}{' '}
 							<span className='bg-gradient-to-r from-brand via-xp to-combo bg-clip-text text-transparent drop-shadow-sm'>
 								{t('heroTitlePro')}
@@ -379,7 +379,7 @@ const FeaturesSection = () => {
 								>
 									<Icon className='size-7 text-white' />
 								</div>
-								<h3 className='mb-3 text-xl font-bold text-text'>
+								<h3 className='mb-3 text-xl font-bold text-text-primary'>
 									{t(feature.titleKey)}
 								</h3>
 								<p className='leading-relaxed text-text-secondary'>
@@ -469,7 +469,7 @@ const HowItWorksSection = () => {
 											{step.number}
 										</span>
 									</div>
-									<h3 className='mb-3 text-xl font-bold text-text'>
+									<h3 className='mb-3 text-xl font-bold text-text-primary'>
 										{t(step.titleKey)}
 									</h3>
 									<p className='text-text-secondary'>
