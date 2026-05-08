@@ -34,7 +34,7 @@ export default function AuthError({
 					</div>
 				</div>
 
-				<h2 className='mb-2 text-xl font-bold text-text'>
+				<h2 className='mb-2 text-xl font-bold text-text-primary'>
 					{t('authErrorTitle')}
 				</h2>
 				<p className='mb-6 text-sm leading-relaxed text-text-secondary'>

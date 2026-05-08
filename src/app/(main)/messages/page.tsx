@@ -136,7 +136,9 @@ function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
 				<Sparkles className='size-10 text-white' />
 			</motion.div>
 			<div>
-				<h2 className='text-xl font-bold text-text'>{t('welcomeTitle')}</h2>
+				<h2 className='text-xl font-bold text-text-primary'>
+					{t('welcomeTitle')}
+				</h2>
 				<p className='mt-2 text-text-secondary'>
 					{hasConversations ? t('selectConversation') : t('startConversation')}
 				</p>
