@@ -58,7 +58,7 @@ export const MyGroupsSidebar = ({
 
 	return (
 		<motion.div
-			className='bg-bg-card rounded-lg border border-border p-4 space-y-4'
+			className='bg-bg-card rounded-xl border border-border p-4 space-y-4'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: DURATION_S.smooth }}

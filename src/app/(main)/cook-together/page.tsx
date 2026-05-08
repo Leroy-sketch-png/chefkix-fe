@@ -21,7 +21,10 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 function CookTogetherContent() {
 	const router = useRouter()
@@ -167,49 +170,49 @@ function CookTogetherContent() {
 							tone='success'
 						>
 							<motion.div
-							initial={{ opacity: 0, y: -10 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: -10 }}
-							transition={TRANSITION_SPRING}
-							className='rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
-						>
-							<div className='flex items-center justify-between'>
-								<div className='flex items-center gap-3'>
-									<div className='flex size-10 items-center justify-center rounded-xl bg-brand/10'>
-										<ChefHat className='size-5 text-brand' />
+								initial={{ opacity: 0, y: -10 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -10 }}
+								transition={TRANSITION_SPRING}
+								className='rounded-radius border border-brand/20 bg-brand/5 p-4 shadow-card md:p-6'
+							>
+								<div className='flex items-center justify-between'>
+									<div className='flex items-center gap-3'>
+										<div className='flex size-10 items-center justify-center rounded-xl bg-brand/10'>
+											<ChefHat className='size-5 text-brand' />
+										</div>
+										<div>
+											<p className='text-sm font-medium text-text-secondary'>
+												Your Active Room
+											</p>
+											<p className='font-mono text-2xl font-bold tracking-widest text-brand'>
+												{roomCode}
+											</p>
+										</div>
 									</div>
-									<div>
-										<p className='text-sm font-medium text-text-secondary'>
-											Your Active Room
-										</p>
-										<p className='font-mono text-2xl font-bold tracking-widest text-brand'>
-											{roomCode}
-										</p>
+									<div className='flex gap-2'>
+										<button
+											type='button'
+											onClick={handleCopyRoomCode}
+											className='flex items-center gap-2 rounded-xl bg-bg-card px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg-elevated'
+										>
+											{copied ? (
+												<Check className='size-4 text-success' />
+											) : (
+												<Copy className='size-4' />
+											)}
+											{copied ? t('ctCopied') : t('ctShareCode')}
+										</button>
+										<button
+											type='button'
+											onClick={() => router.push('/cook-together/room')}
+											className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
+										>
+											{t('ctReturnToRoom')}
+											<ArrowRight className='size-4' />
+										</button>
 									</div>
 								</div>
-								<div className='flex gap-2'>
-									<button
-										type='button'
-										onClick={handleCopyRoomCode}
-										className='flex items-center gap-2 rounded-xl bg-bg-card px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg-elevated'
-									>
-										{copied ? (
-											<Check className='size-4 text-success' />
-										) : (
-											<Copy className='size-4' />
-										)}
-										{copied ? t('ctCopied') : t('ctShareCode')}
-									</button>
-									<button
-										type='button'
-										onClick={() => router.push('/cook-together/room')}
-										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
-									>
-										{t('ctReturnToRoom')}
-										<ArrowRight className='size-4' />
-									</button>
-								</div>
-							</div>
 							</motion.div>
 						</PremiumSurface>
 					)}
@@ -222,67 +225,71 @@ function CookTogetherContent() {
 					className='p-0'
 				>
 					<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-					className='group rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6 md:p-8'
-				>
-					<div className='mb-6 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-info to-accent-purple'>
-							<Share2 className='size-5 text-white' />
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+						className='group rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6 md:p-8'
+					>
+						<div className='mb-6 flex items-center gap-3'>
+							<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-info to-accent-purple'>
+								<Share2 className='size-5 text-white' />
+							</div>
+							<div>
+								<h2 className='text-xl font-bold text-text'>
+									{t('ctJoinRoom')}
+								</h2>
+								<p className='text-sm text-text-secondary'>
+									{t('ctJoinRoomDesc')}
+								</p>
+							</div>
 						</div>
-						<div>
-							<h2 className='text-xl font-bold text-text'>{t('ctJoinRoom')}</h2>
-							<p className='text-sm text-text-secondary'>
-								{t('ctJoinRoomDesc')}
-							</p>
+
+						<div className='flex gap-2 sm:gap-3'>
+							<input
+								ref={inputRef}
+								type='text'
+								value={roomCodeInput}
+								onChange={e =>
+									setRoomCodeInput(e.target.value.toUpperCase().slice(0, 6))
+								}
+								onKeyDown={handleKeyDown}
+								placeholder={t('ctRoomCodePlaceholder')}
+								maxLength={6}
+								aria-label={t('ctRoomCodeLabel')}
+								className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg px-3 py-2.5 font-mono text-base tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 sm:px-4 sm:py-3 sm:text-xl'
+								disabled={isJoining}
+							/>
+							<button
+								type='button'
+								onClick={handleJoin}
+								disabled={isJoining || roomCodeInput.trim().length < 6}
+								className='flex flex-shrink-0 items-center gap-2 rounded-xl bg-brand px-3 py-2.5 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-3'
+							>
+								{isJoining ? (
+									<motion.div
+										animate={{ rotate: 360 }}
+										transition={{
+											duration: 1,
+											repeat: Infinity,
+											ease: 'linear',
+										}}
+									>
+										<ChefHat className='size-5' />
+									</motion.div>
+								) : (
+									<ArrowRight className='size-5' />
+								)}
+								{isJoining ? (
+									t('ctJoining')
+								) : (
+									<span className='hidden sm:inline'>{t('ctJoin')}</span>
+								)}
+							</button>
 						</div>
-					</div>
 
-					<div className='flex gap-2 sm:gap-3'>
-						<input
-							ref={inputRef}
-							type='text'
-							value={roomCodeInput}
-							onChange={e =>
-								setRoomCodeInput(e.target.value.toUpperCase().slice(0, 6))
-							}
-							onKeyDown={handleKeyDown}
-							placeholder={t('ctRoomCodePlaceholder')}
-							maxLength={6}
-							aria-label={t('ctRoomCodeLabel')}
-							className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg px-3 py-2.5 font-mono text-base tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 sm:px-4 sm:py-3 sm:text-xl'
-							disabled={isJoining}
-						/>
-						<button
-							type='button'
-							onClick={handleJoin}
-							disabled={isJoining || roomCodeInput.trim().length < 6}
-							className='flex flex-shrink-0 items-center gap-2 rounded-xl bg-brand px-3 py-2.5 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-3'
-						>
-							{isJoining ? (
-								<motion.div
-									animate={{ rotate: 360 }}
-									transition={{
-										duration: 1,
-										repeat: Infinity,
-										ease: 'linear',
-									}}
-								>
-									<ChefHat className='size-5' />
-								</motion.div>
-							) : (
-								<ArrowRight className='size-5' />
-							)}
-							{isJoining ? (
-								t('ctJoining')
-							) : (
-								<span className='hidden sm:inline'>{t('ctJoin')}</span>
-							)}
-						</button>
-					</div>
-
-					<p className='mt-3 text-xs text-text-muted'>{t('ctRoomCodeHint')}</p>
+						<p className='mt-3 text-xs text-text-muted'>
+							{t('ctRoomCodeHint')}
+						</p>
 					</motion.div>
 				</PremiumSurface>
 
@@ -294,59 +301,61 @@ function CookTogetherContent() {
 					tone='blue'
 				>
 					<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-					className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
-				>
-					<SurfaceSectionHeader
-						eyebrow='How It Works'
-						chipText='3 steps'
-						className='mb-4'
-					/>
-					<div className='mb-6 flex items-center gap-3'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-streak'>
-							<Sparkles className='size-5 text-white' />
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+						className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
+					>
+						<SurfaceSectionHeader
+							eyebrow='How It Works'
+							chipText='3 steps'
+							className='mb-4'
+						/>
+						<div className='mb-6 flex items-center gap-3'>
+							<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-streak'>
+								<Sparkles className='size-5 text-white' />
+							</div>
+							<h2 className='text-xl font-bold text-text'>
+								{t('ctHowItWorks')}
+							</h2>
 						</div>
-						<h2 className='text-xl font-bold text-text'>{t('ctHowItWorks')}</h2>
-					</div>
 
-					<div className='grid gap-4 md:grid-cols-3'>
-						{[
-							{
-								step: '1',
-								title: t('ctStep1Title'),
-								desc: t('ctStep1Desc'),
-							},
-							{
-								step: '2',
-								title: t('ctStep2Title'),
-								desc: t('ctStep2Desc'),
-							},
-							{
-								step: '3',
-								title: t('ctStep3Title'),
-								desc: t('ctStep3Desc'),
-							},
-						].map((item, i) => (
-							<motion.div
-								key={item.step}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{
-									delay: 0.3 + i * 0.1,
-									...TRANSITION_SPRING,
-								}}
-								className='rounded-xl border border-border-subtle/50 bg-bg p-4'
-							>
-								<div className='mb-3 flex size-8 items-center justify-center rounded-lg bg-brand/10 font-bold text-brand'>
-									{item.step}
-								</div>
-								<h3 className='mb-1 font-semibold text-text'>{item.title}</h3>
-								<p className='text-sm text-text-secondary'>{item.desc}</p>
-							</motion.div>
-						))}
-					</div>
+						<div className='grid gap-4 md:grid-cols-3'>
+							{[
+								{
+									step: '1',
+									title: t('ctStep1Title'),
+									desc: t('ctStep1Desc'),
+								},
+								{
+									step: '2',
+									title: t('ctStep2Title'),
+									desc: t('ctStep2Desc'),
+								},
+								{
+									step: '3',
+									title: t('ctStep3Title'),
+									desc: t('ctStep3Desc'),
+								},
+							].map((item, i) => (
+								<motion.div
+									key={item.step}
+									initial={{ opacity: 0, y: 20 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{
+										delay: 0.3 + i * 0.1,
+										...TRANSITION_SPRING,
+									}}
+									className='rounded-xl border border-border-subtle/50 bg-bg p-4'
+								>
+									<div className='mb-3 flex size-8 items-center justify-center rounded-xl bg-brand/10 font-bold text-brand'>
+										{item.step}
+									</div>
+									<h3 className='mb-1 font-semibold text-text'>{item.title}</h3>
+									<p className='text-sm text-text-secondary'>{item.desc}</p>
+								</motion.div>
+							))}
+						</div>
 					</motion.div>
 				</PremiumSurface>
 

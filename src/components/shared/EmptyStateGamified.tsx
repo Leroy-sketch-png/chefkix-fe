@@ -759,9 +759,9 @@ export function EmptyState({
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
-				'text-center py-12 px-6 bg-bg-card rounded-xl border border-border my-6',
+				'my-6 rounded-2xl border border-border-subtle bg-bg-card px-6 py-12 text-center shadow-card',
 				isPositive &&
-					'bg-gradient-to-b from-success/5 to-brand/2 border-success/20',
+					'border-success/20 bg-gradient-to-b from-success/5 to-brand/2',
 				className,
 			)}
 		>
@@ -769,10 +769,10 @@ export function EmptyState({
 			{displayIllustration && <div className='mb-6'>{displayIllustration}</div>}
 
 			{/* Title & Description */}
-			<h3 className='text-xl font-display font-extrabold text-text mb-2'>
+			<h3 className='mb-2 text-xl font-bold tracking-tight text-text-primary'>
 				{title}
 			</h3>
-			<p className='text-base text-text-muted mb-6 max-w-xs mx-auto leading-relaxed'>
+			<p className='mx-auto mb-6 max-w-xs text-[15px] leading-relaxed text-text-secondary'>
 				{description}
 			</p>
 
@@ -788,7 +788,7 @@ export function EmptyState({
 								type='button'
 								key={index}
 								onClick={() => onSuggestionClick?.(suggestion)}
-								className='py-2 px-4 bg-bg border border-border rounded-full text-sm text-text hover:bg-brand hover:border-brand hover:text-white transition-colors'
+								className='rounded-full border border-border-subtle px-4 py-2 text-sm text-text transition-colors hover:border-brand/30 hover:text-brand'
 							>
 								{suggestion}
 							</button>
@@ -804,9 +804,8 @@ export function EmptyState({
 						<Link
 							href={primaryAction.href}
 							className={cn(
-								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
-								'bg-brand text-white text-base font-bold',
-								'transition-all hover:bg-brand/90',
+								'inline-flex items-center gap-2 rounded-xl px-7 py-3.5',
+								'bg-brand text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
 							)}
 						>
 							{primaryAction.icon}
@@ -817,9 +816,8 @@ export function EmptyState({
 							type='button'
 							onClick={primaryAction.onClick}
 							className={cn(
-								'inline-flex items-center gap-2 py-3.5 px-7 rounded-xl',
-								'bg-brand text-white text-base font-bold',
-								'transition-all hover:bg-brand/90',
+								'inline-flex items-center gap-2 rounded-xl px-7 py-3.5',
+								'bg-brand text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
 								isPositive && 'animate-pulse',
 							)}
 						>
@@ -838,7 +836,7 @@ export function EmptyState({
 							<Link
 								key={index}
 								href={action.href}
-								className='inline-flex items-center gap-2 py-3 px-5 bg-bg border border-border rounded-xl text-sm font-semibold text-text hover:bg-border transition-colors'
+								className='inline-flex items-center gap-2 rounded-xl border border-border-medium px-5 py-3 text-sm font-semibold text-text transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
 							>
 								{action.icon}
 								{action.label}
@@ -848,7 +846,7 @@ export function EmptyState({
 								type='button'
 								key={index}
 								onClick={action.onClick}
-								className='inline-flex items-center gap-2 py-3 px-5 bg-bg border border-border rounded-xl text-sm font-semibold text-text hover:bg-border transition-colors'
+								className='inline-flex items-center gap-2 rounded-xl border border-border-medium px-5 py-3 text-sm font-semibold text-text transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
 							>
 								{action.icon}
 								{action.label}
@@ -1003,7 +1001,7 @@ export function EmptyCookingHistory({
 							alt={beginnerRecipe.title}
 							width={48}
 							height={48}
-							className='size-12 rounded-lg object-cover'
+							className='size-12 rounded-xl object-cover'
 						/>
 						<div className='text-left'>
 							<span className='block text-sm font-semibold text-text'>
@@ -1045,7 +1043,7 @@ export function EmptySaved({
 				{[t('savedStep1'), t('savedStep2'), t('savedStep3')].map(
 					(step, index) => (
 						<div key={index} className='flex items-center gap-2'>
-							<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-lg'>
+							<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-xl'>
 								<span className='size-icon-md flex items-center justify-center bg-brand text-white rounded-full text-xs font-bold'>
 									{index + 1}
 								</span>
@@ -1123,7 +1121,7 @@ export function AllCaughtUp({
 						type='button'
 						onClick={onCookNow}
 						aria-label={t('startCooking')}
-						className='size-10 flex items-center justify-center bg-brand rounded-lg text-white hover:bg-brand/90 transition-colors'
+						className='size-10 flex items-center justify-center bg-brand rounded-xl text-white hover:bg-brand/90 transition-colors'
 					>
 						<ChefHat className='size-5' />
 					</button>

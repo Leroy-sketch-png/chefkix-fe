@@ -239,7 +239,7 @@ function HintOverlay() {
 								</button>
 
 								<div className='flex items-center gap-2'>
-									<div className='flex size-8 items-center justify-center rounded-lg bg-brand/20'>
+									<div className='flex size-8 items-center justify-center rounded-xl bg-brand/20'>
 										<Sparkles className='size-4 text-brand' />
 									</div>
 									<span className='text-xs font-bold uppercase tracking-wider text-brand'>
@@ -276,7 +276,7 @@ function HintOverlay() {
 											activeHint.action?.onClick()
 											dismissHint()
 										}}
-										className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90'
+										className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90'
 									>
 										{activeHint.action.label}
 										<ChevronRight className='size-4' />
@@ -285,7 +285,7 @@ function HintOverlay() {
 									<button
 										type='button'
 										onClick={dismissHint}
-										className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90'
+										className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand/90'
 									>
 										{t('hintGotIt')}
 										<ChevronRight className='size-4' />

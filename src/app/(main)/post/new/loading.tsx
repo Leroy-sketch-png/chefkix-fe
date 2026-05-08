@@ -7,7 +7,7 @@ export default function Loading() {
 			{/* Back button + header */}
 			<div className='mb-6'>
 				<Skeleton className='mb-4 h-5 w-20 rounded' />
-				<Skeleton className='h-8 w-56 rounded-lg' />
+				<Skeleton className='h-8 w-56 rounded-xl' />
 				<Skeleton className='mt-2 h-5 w-72 rounded' />
 			</div>
 

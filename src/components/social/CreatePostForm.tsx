@@ -296,7 +296,7 @@ export const CreatePostForm = ({
 										initial={{ opacity: 0, scale: 0.8 }}
 										animate={{ opacity: 1, scale: 1 }}
 										exit={{ opacity: 0, scale: 0.8 }}
-										className='group relative aspect-square overflow-hidden rounded-lg'
+										className='group relative aspect-square overflow-hidden rounded-xl border border-border-subtle'
 									>
 										<Image
 											src={url}
@@ -309,9 +309,9 @@ export const CreatePostForm = ({
 											type='button'
 											onClick={() => removePhoto(index)}
 											aria-label={`Remove photo ${index + 1}`}
-											className='absolute right-1 top-1 size-9 rounded-full bg-text-brand/60 text-bg-card opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+											className='absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-70 backdrop-blur-sm transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 										>
-											<X className='mx-auto size-5' />
+											<X className='size-3.5' />
 										</button>
 									</motion.div>
 								))}
@@ -341,7 +341,7 @@ export const CreatePostForm = ({
 										value={videoUrl}
 										onChange={e => setVideoUrl(e.target.value)}
 										placeholder='https://...'
-										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
+										className='h-11 w-full rounded-xl border border-border-subtle bg-bg-elevated px-3 text-sm text-text-primary caret-brand transition-colors focus:border-brand/30 focus:outline-none'
 									/>
 								</div>
 								<div>
@@ -357,7 +357,7 @@ export const CreatePostForm = ({
 										value={tags}
 										onChange={e => setTags(e.target.value)}
 										placeholder={t('tagsPlaceholder')}
-										className='h-11 w-full rounded-lg bg-bg-card px-3 text-sm text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
+										className='h-11 w-full rounded-xl border border-border-subtle bg-bg-elevated px-3 text-sm text-text-primary caret-brand transition-colors focus:border-brand/30 focus:outline-none'
 									/>
 								</div>
 							</motion.div>
@@ -366,14 +366,14 @@ export const CreatePostForm = ({
 				</div>
 
 				{/* Footer Actions */}
-				<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
-					<div className='flex gap-2'>
-						<label className='group relative size-11 cursor-pointer rounded-lg transition-colors hover:bg-bg-card'>
+				<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated/70 px-4 py-3'>
+					<div className='flex gap-1.5'>
+						<label className='group relative flex size-10 cursor-pointer items-center justify-center rounded-xl transition-colors hover:bg-brand/8'>
 							<span className='sr-only'>{t('createPostAddPhotos')}</span>
-							<ImageIcon className='mx-auto mt-2.5 size-5 text-text-secondary transition-colors group-hover:text-brand' />
+							<ImageIcon className='size-[18px] text-text-secondary transition-colors group-hover:text-brand' />
 							{photoFiles.length > 0 && (
 								<span
-									className={`absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full text-xs font-bold text-white ${
+									className={`absolute -right-1 -top-1 flex size-4.5 items-center justify-center rounded-full text-[10px] font-bold text-white ${
 										photoFiles.length >= MAX_PHOTO_COUNT
 											? 'bg-error'
 											: 'bg-brand'
@@ -396,22 +396,22 @@ export const CreatePostForm = ({
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
 							aria-label={t('createPostToggleVideo')}
-							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
+							className={`flex size-10 items-center justify-center rounded-xl transition-colors hover:bg-brand/8 ${
 								showAdvanced ? 'bg-brand/10 text-brand' : 'text-text-secondary'
 							}`}
 						>
-							<Video className='mx-auto size-5' />
+							<Video className='size-[18px]' />
 						</button>
 
 						<button
 							type='button'
 							onClick={() => setShowAdvanced(!showAdvanced)}
 							aria-label={t('createPostToggleTags')}
-							className={`size-11 rounded-lg transition-colors hover:bg-bg-card ${
+							className={`flex size-10 items-center justify-center rounded-xl transition-colors hover:bg-brand/8 ${
 								showAdvanced ? 'bg-brand/10 text-brand' : 'text-text-secondary'
 							}`}
 						>
-							<Tag className='mx-auto size-5' />
+							<Tag className='size-[18px]' />
 						</button>
 					</div>
 

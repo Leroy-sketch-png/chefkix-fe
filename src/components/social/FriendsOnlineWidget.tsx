@@ -89,7 +89,10 @@ export function FriendsOnlineWidget() {
 					<Users className='size-4 text-text-secondary' />
 					{t('friendsOnline')}
 				</div>
-				<span className='rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold tabular-nums text-success' aria-label={t('onlineCount', { count: friends.length })}>
+				<span
+					className='rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold tabular-nums text-success'
+					aria-label={t('onlineCount', { count: friends.length })}
+				>
 					{friends.length}
 				</span>
 			</div>
@@ -107,7 +110,7 @@ export function FriendsOnlineWidget() {
 						>
 							<Link
 								href={`/${friend.userId}`}
-								className='flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-bg-elevated'
+								className='flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
 								<div className='relative'>
 									<Avatar className='size-7'>
@@ -120,7 +123,10 @@ export function FriendsOnlineWidget() {
 												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
-									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' aria-hidden='true' />
+									<span
+										className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success'
+										aria-hidden='true'
+									/>
 								</div>
 								<div className='min-w-0 flex-1'>
 									<p className='truncate text-xs font-medium text-text-primary'>
@@ -148,7 +154,7 @@ export function FriendsOnlineWidget() {
 						>
 							<Link
 								href={`/${friend.userId}`}
-								className='flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-bg-elevated'
+								className='flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
 								<div className='relative'>
 									<Avatar className='size-7'>
@@ -161,7 +167,10 @@ export function FriendsOnlineWidget() {
 												friend.username)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
-									<span className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success' aria-hidden='true' />
+									<span
+										className='absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-bg-card bg-success'
+										aria-hidden='true'
+									/>
 								</div>
 								<p className='min-w-0 flex-1 truncate text-xs font-medium text-text-primary'>
 									{friend.displayName || friend.username}
@@ -174,4 +183,3 @@ export function FriendsOnlineWidget() {
 		</div>
 	)
 }
-

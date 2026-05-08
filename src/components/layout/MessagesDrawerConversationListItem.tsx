@@ -25,7 +25,7 @@ function MessagesDrawerConversationListItemFallback({
 	return (
 		<div
 			role='alert'
-			className='rounded-lg border border-destructive/20 bg-bg-card p-2 shadow-card'
+			className='rounded-xl border border-destructive/20 bg-bg-card p-2 shadow-card'
 		>
 			<div className='flex flex-col gap-2'>
 				<div className='flex items-start gap-2'>
@@ -44,7 +44,7 @@ function MessagesDrawerConversationListItemFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-9 w-fit items-center justify-center rounded-lg border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-9 w-fit items-center justify-center rounded-xl border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -64,7 +64,7 @@ function MessagesDrawerConversationListItemContent({
 		<button
 			type='button'
 			onClick={onClick}
-			className='flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors hover:bg-bg-hover'
+			className='flex w-full items-center gap-2 rounded-xl p-2 text-left transition-colors hover:bg-bg-hover'
 		>
 			<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full'>
 				<Image

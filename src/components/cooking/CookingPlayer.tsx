@@ -163,7 +163,7 @@ const StepDots = ({
 						}}
 						transition={TRANSITION_SPRING}
 						className={cn(
-							'relative grid flex-shrink-0 place-items-center rounded-lg text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
+							'relative grid flex-shrink-0 place-items-center rounded-xl text-xs font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 							// 44px minimum touch targets for accessibility
 							isCurrent
 								? 'h-11 w-14 bg-white text-brand shadow-card'

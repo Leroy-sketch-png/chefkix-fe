@@ -208,7 +208,7 @@ const JourneyNodeComponent = ({ node }: { node: JourneyNode }) => (
 		{/* Marker */}
 		<div
 			className={cn(
-				'flex size-11 items-center justify-center rounded-full border-3 text-lg font-display font-extrabold',
+				'flex size-11 items-center justify-center rounded-full border-3 text-lg font-bold tracking-tight',
 				node.status === 'done' &&
 					'border-success bg-gradient-to-br from-success to-success/80 text-white shadow-warm shadow-success/40',
 				node.status === 'upcoming' &&
@@ -320,7 +320,7 @@ export const FirstCookCelebration = ({
 
 							{/* Title */}
 							<div className='mb-7 text-center'>
-								<h1 className='mb-2 bg-gradient-gold bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
+								<h1 className='mb-2 bg-gradient-gold bg-clip-text text-3xl font-bold tracking-tight text-transparent max-md:text-2xl'>
 									{t('youreAChefNow')}
 								</h1>
 								<p className='text-text-muted'>{t('firstDishComplete')}</p>
@@ -360,7 +360,7 @@ export const FirstCookCelebration = ({
 
 							{/* Pending XP teaser */}
 							<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-xp/30 bg-gradient-to-r from-xp/10 to-bonus/10 p-4'>
-								<div className='flex size-10 items-center justify-center rounded-lg bg-bg-card text-xp'>
+								<div className='flex size-10 items-center justify-center rounded-xl bg-bg-card text-xp'>
 									<Lock className='size-5' />
 								</div>
 								<div className='flex-1'>

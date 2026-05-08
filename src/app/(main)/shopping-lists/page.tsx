@@ -61,7 +61,10 @@ import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ── Source badge colors ──────────────────────────────────────────────
 
@@ -396,7 +399,7 @@ export default function ShoppingListsPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<div className='space-y-6 py-6'>
-						<div className='h-8 w-48 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='h-8 w-48 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='grid gap-4 sm:grid-cols-2'>
 							{[1, 2, 3, 4].map(i => (
 								<div
@@ -442,58 +445,59 @@ export default function ShoppingListsPage() {
 							tone='blue'
 						>
 							<div className='flex items-center justify-between'>
-							<div className='flex items-center gap-3'>
-								<button
-									type='button'
-									onClick={() => {
-										setSelectedList(null)
-										fetchLists()
-									}}
-									className='rounded-lg p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-									aria-label={t('backToLists')}
-								>
-									<ArrowLeft className='size-5' />
-								</button>
-								<div>
-									<h1 className='text-xl font-bold text-text'>
-										{selectedList.name}
-									</h1>
-									<p className='text-sm text-text-muted'>
-										{t('itemsChecked', {
-											checked: selectedList.items.filter(i => i.checked).length,
-											total: selectedList.totalItems,
-										})}
-									</p>
+								<div className='flex items-center gap-3'>
+									<button
+										type='button'
+										onClick={() => {
+											setSelectedList(null)
+											fetchLists()
+										}}
+										className='rounded-xl p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+										aria-label={t('backToLists')}
+									>
+										<ArrowLeft className='size-5' />
+									</button>
+									<div>
+										<h1 className='text-xl font-bold text-text'>
+											{selectedList.name}
+										</h1>
+										<p className='text-sm text-text-muted'>
+											{t('itemsChecked', {
+												checked: selectedList.items.filter(i => i.checked)
+													.length,
+												total: selectedList.totalItems,
+											})}
+										</p>
+									</div>
 								</div>
-							</div>
-							<div className='flex items-center gap-2'>
-								<button
-									type='button'
-									onClick={handleCopyList}
-									className='flex items-center gap-1.5 rounded-lg border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-									title={t('copyList')}
-								>
-									{copySuccess ? (
-										<Check className='size-4 text-success' />
-									) : (
-										<Copy className='size-4' />
-									)}
-									{copySuccess ? t('copied') : t('copy')}
-								</button>
-								<button
-									type='button'
-									onClick={handleShare}
-									className='flex items-center gap-1.5 rounded-lg border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-									title={t('shareList')}
-								>
-									{shareSuccess ? (
-										<Check className='size-4 text-success' />
-									) : (
-										<Share2 className='size-4' />
-									)}
-									{shareSuccess ? t('linkCopied') : t('share')}
-								</button>
-							</div>
+								<div className='flex items-center gap-2'>
+									<button
+										type='button'
+										onClick={handleCopyList}
+										className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
+										title={t('copyList')}
+									>
+										{copySuccess ? (
+											<Check className='size-4 text-success' />
+										) : (
+											<Copy className='size-4' />
+										)}
+										{copySuccess ? t('copied') : t('copy')}
+									</button>
+									<button
+										type='button'
+										onClick={handleShare}
+										className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
+										title={t('shareList')}
+									>
+										{shareSuccess ? (
+											<Check className='size-4 text-success' />
+										) : (
+											<Share2 className='size-4' />
+										)}
+										{shareSuccess ? t('linkCopied') : t('share')}
+									</button>
+								</div>
 							</div>
 						</PremiumSurface>
 
@@ -542,7 +546,7 @@ export default function ShoppingListsPage() {
 											setIsCheckingOut(false)
 										}
 									}}
-									className='flex-shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
+									className='flex-shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
 								>
 									{isCheckingOut ? t('processing') : t('shopNow')}
 								</button>
@@ -616,14 +620,14 @@ export default function ShoppingListsPage() {
 													}))
 												}
 												placeholder={t('quantityPlaceholder')}
-												className='w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+												className='w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 											/>
 										</div>
 										<button
 											type='button'
 											onClick={handleAddItem}
 											disabled={!newItemForm.ingredient.trim()}
-											className='rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+											className='rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 										>
 											{t('add')}
 										</button>
@@ -633,7 +637,7 @@ export default function ShoppingListsPage() {
 												setShowAddItem(false)
 												setNewItemForm({ ingredient: '' })
 											}}
-											className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-elevated'
+											className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-elevated'
 										>
 											<X className='size-4' />
 										</button>
@@ -730,95 +734,99 @@ export default function ShoppingListsPage() {
 							gradient='blue'
 							marginBottom='sm'
 							rightAction={
-							<div className='relative'>
-								<motion.button
-									type='button'
-									onClick={() => setShowCreateMenu(!showCreateMenu)}
-									className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
-									whileHover={BUTTON_SUBTLE_HOVER}
-									whileTap={BUTTON_SUBTLE_TAP}
-								>
-									<Plus className='size-4' />
-									{t('newList')}
-								</motion.button>
+								<div className='relative'>
+									<motion.button
+										type='button'
+										onClick={() => setShowCreateMenu(!showCreateMenu)}
+										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
+										whileHover={BUTTON_SUBTLE_HOVER}
+										whileTap={BUTTON_SUBTLE_TAP}
+									>
+										<Plus className='size-4' />
+										{t('newList')}
+									</motion.button>
 
-								{/* Create dropdown */}
-								<AnimatePresence>
-									{showCreateMenu && (
-										<>
-											<div
-												className='fixed inset-0 z-dropdown'
-												onClick={() => {
-													setShowCreateMenu(false)
-													setShowCustomNameInput(false)
-													setCustomListName('')
-												}}
-											/>
-											<motion.div
-												initial={{ opacity: 0, y: -8, scale: 0.95 }}
-												animate={{ opacity: 1, y: 0, scale: 1 }}
-												exit={{ opacity: 0, y: -8, scale: 0.95 }}
-												transition={{ duration: DURATION_S.fast }}
-												className='absolute right-0 top-full z-dropdown mt-2 w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
-											>
-												<button
-													type='button'
-													onClick={handleCreateFromMealPlan}
-													disabled={isCreating}
-													className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+									{/* Create dropdown */}
+									<AnimatePresence>
+										{showCreateMenu && (
+											<>
+												<div
+													className='fixed inset-0 z-dropdown'
+													onClick={() => {
+														setShowCreateMenu(false)
+														setShowCustomNameInput(false)
+														setCustomListName('')
+													}}
+												/>
+												<motion.div
+													initial={{ opacity: 0, y: -8, scale: 0.95 }}
+													animate={{ opacity: 1, y: 0, scale: 1 }}
+													exit={{ opacity: 0, y: -8, scale: 0.95 }}
+													transition={{ duration: DURATION_S.fast }}
+													className='absolute right-0 top-full z-dropdown mt-2 w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
 												>
-													<CalendarDays className='size-4 text-info' />
-													<div>
-														<div className='font-medium'>
-															{t('fromMealPlan')}
+													<button
+														type='button'
+														onClick={handleCreateFromMealPlan}
+														disabled={isCreating}
+														className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+													>
+														<CalendarDays className='size-4 text-info' />
+														<div>
+															<div className='font-medium'>
+																{t('fromMealPlan')}
+															</div>
+															<div className='text-xs text-text-muted'>
+																{t('mealPlanDesc')}
+															</div>
 														</div>
-														<div className='text-xs text-text-muted'>
-															{t('mealPlanDesc')}
+													</button>
+													<button
+														type='button'
+														onClick={() => setShowCustomNameInput(true)}
+														disabled={isCreating}
+														className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
+													>
+														<FileText className='size-4 text-success' />
+														<div>
+															<div className='font-medium'>
+																{t('customList')}
+															</div>
+															<div className='text-xs text-text-muted'>
+																{t('customListDesc')}
+															</div>
 														</div>
-													</div>
-												</button>
-												<button
-													type='button'
-													onClick={() => setShowCustomNameInput(true)}
-													disabled={isCreating}
-													className='flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
-												>
-													<FileText className='size-4 text-success' />
-													<div>
-														<div className='font-medium'>{t('customList')}</div>
-														<div className='text-xs text-text-muted'>
-															{t('customListDesc')}
+													</button>
+													{showCustomNameInput && (
+														<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
+															<input
+																value={customListName}
+																onChange={e =>
+																	setCustomListName(e.target.value)
+																}
+																placeholder={t('listNamePlaceholder')}
+																aria-label={t('listNamePlaceholder')}
+																className='flex-1 rounded-xl border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+																onKeyDown={e =>
+																	e.key === 'Enter' && handleCreateCustom()
+																}
+																autoFocus
+															/>
+															<button
+																type='button'
+																onClick={handleCreateCustom}
+																disabled={!customListName.trim() || isCreating}
+																className='rounded-xl bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
+															>
+																Create
+															</button>
 														</div>
-													</div>
-												</button>
-												{showCustomNameInput && (
-													<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
-														<input
-															value={customListName}
-															onChange={e => setCustomListName(e.target.value)}
-															placeholder={t('listNamePlaceholder')}
-															aria-label={t('listNamePlaceholder')}
-															className='flex-1 rounded-lg border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-															onKeyDown={e =>
-																e.key === 'Enter' && handleCreateCustom()
-															}
-															autoFocus
-														/>
-														<button
-															type='button'
-															onClick={handleCreateCustom}
-															disabled={!customListName.trim() || isCreating}
-															className='rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
-														>
-															Create
-														</button>
-													</div>
-												)}
-											</motion.div>
-										</>
-									)}
-								</AnimatePresence>
-							</div>
+													)}
+												</motion.div>
+											</>
+										)}
+									</AnimatePresence>
+								</div>
 							}
 						/>
 					</PremiumSurface>
@@ -846,74 +854,74 @@ export default function ShoppingListsPage() {
 							className='p-3 md:p-4'
 						>
 							<div className='grid gap-4 sm:grid-cols-2'>
-							{lists.map(list => {
-								const sourceConf =
-									SOURCE_CONFIG[list.source] || SOURCE_CONFIG.Custom
-								const SourceIcon = sourceConf.icon
-								const listProgress =
-									list.totalItems > 0
-										? Math.round((list.checkedItems / list.totalItems) * 100)
-										: 0
-								return (
-									<motion.div
-										key={list.id}
-										className='group relative cursor-pointer rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm md:p-5'
-										whileHover={CARD_HOVER}
-										transition={TRANSITION_SPRING}
-										onClick={() => handleOpenList(list.id)}
-									>
-										{/* Source badge */}
-										<div className='mb-3 flex items-center justify-between'>
-											<span
-												className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sourceConf.color} ${sourceConf.bg}`}
-											>
-												<SourceIcon className='size-3' />
-												{list.source}
-											</span>
-											<button
-												type='button'
-												onClick={e => {
-													e.stopPropagation()
-													setConfirmingDeleteId(list.id)
-												}}
-												className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
-												aria-label={t('ariaDeleteList')}
-											>
-												<Trash2 className='size-4' />
-											</button>
-										</div>
-
-										{/* Title */}
-										<h3 className='mb-1 text-base font-semibold text-text'>
-											{list.name}
-										</h3>
-
-										{/* Stats */}
-										<p className='mb-3 text-xs text-text-muted'>
-											{list.checkedItems}/{list.totalItems} items ·{' '}
-											{new Date(list.createdAt).toLocaleDateString()}
-										</p>
-
-										{/* Mini progress bar */}
-										{list.totalItems > 0 && (
-											<div className='overflow-hidden rounded-full bg-bg-elevated'>
-												<div
-													className='h-1.5 rounded-full bg-gradient-primary transition-all duration-500'
-													style={{ width: `${listProgress}%` }}
-												/>
+								{lists.map(list => {
+									const sourceConf =
+										SOURCE_CONFIG[list.source] || SOURCE_CONFIG.Custom
+									const SourceIcon = sourceConf.icon
+									const listProgress =
+										list.totalItems > 0
+											? Math.round((list.checkedItems / list.totalItems) * 100)
+											: 0
+									return (
+										<motion.div
+											key={list.id}
+											className='group relative cursor-pointer rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm md:p-5'
+											whileHover={CARD_HOVER}
+											transition={TRANSITION_SPRING}
+											onClick={() => handleOpenList(list.id)}
+										>
+											{/* Source badge */}
+											<div className='mb-3 flex items-center justify-between'>
+												<span
+													className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sourceConf.color} ${sourceConf.bg}`}
+												>
+													<SourceIcon className='size-3' />
+													{list.source}
+												</span>
+												<button
+													type='button'
+													onClick={e => {
+														e.stopPropagation()
+														setConfirmingDeleteId(list.id)
+													}}
+													className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
+													aria-label={t('ariaDeleteList')}
+												>
+													<Trash2 className='size-4' />
+												</button>
 											</div>
-										)}
 
-										{/* Completion indicator */}
-										{listProgress === 100 && list.totalItems > 0 && (
-											<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success'>
-												<Check className='size-3' />
-												{t('complete')}
-											</div>
-										)}
-									</motion.div>
-								)
-							})}
+											{/* Title */}
+											<h3 className='mb-1 text-base font-semibold text-text'>
+												{list.name}
+											</h3>
+
+											{/* Stats */}
+											<p className='mb-3 text-xs text-text-muted'>
+												{list.checkedItems}/{list.totalItems} items ·{' '}
+												{new Date(list.createdAt).toLocaleDateString()}
+											</p>
+
+											{/* Mini progress bar */}
+											{list.totalItems > 0 && (
+												<div className='overflow-hidden rounded-full bg-bg-elevated'>
+													<div
+														className='h-1.5 rounded-full bg-gradient-primary transition-all duration-500'
+														style={{ width: `${listProgress}%` }}
+													/>
+												</div>
+											)}
+
+											{/* Completion indicator */}
+											{listProgress === 100 && list.totalItems > 0 && (
+												<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success'>
+													<Check className='size-3' />
+													{t('complete')}
+												</div>
+											)}
+										</motion.div>
+									)
+								})}
 							</div>
 						</PremiumSurface>
 					)}
@@ -957,7 +965,7 @@ export default function ShoppingListsPage() {
 										<button
 											type='button'
 											onClick={() => setConfirmingDeleteId(null)}
-											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+											className='rounded-xl px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
 										>
 											{t('cancel')}
 										</button>
@@ -965,7 +973,7 @@ export default function ShoppingListsPage() {
 											type='button'
 											onClick={() => handleDeleteList(confirmingDeleteId)}
 											disabled={isDeletingList}
-											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
+											className='rounded-xl bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
 										>
 											{isDeletingList ? t('deleting') : t('delete')}
 										</button>

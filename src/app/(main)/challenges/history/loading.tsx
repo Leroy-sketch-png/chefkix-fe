@@ -7,7 +7,7 @@ export default function Loading() {
 			{/* Back button + title */}
 			<div className='mb-6 flex items-center gap-3'>
 				<Skeleton className='size-10 rounded-full' />
-				<Skeleton className='h-8 w-48 rounded-lg' />
+				<Skeleton className='h-8 w-48 rounded-xl' />
 			</div>
 
 			{/* Stats summary cards */}
@@ -30,7 +30,7 @@ export default function Loading() {
 			{/* Calendar grid (7 cols x 5 rows) */}
 			<div className='grid grid-cols-7 gap-2'>
 				{Array.from({ length: 35 }).map((_, i) => (
-					<Skeleton key={i} className='aspect-square rounded-lg' />
+					<Skeleton key={i} className='aspect-square rounded-xl' />
 				))}
 			</div>
 		</PageContainer>

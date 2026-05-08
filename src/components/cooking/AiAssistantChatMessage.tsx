@@ -61,7 +61,7 @@ function AiAssistantChatMessageFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-9 w-fit items-center justify-center rounded-lg border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-9 w-fit items-center justify-center rounded-xl border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -122,7 +122,7 @@ function AiAssistantChatMessageContent({
 				)}
 
 				{message.type === 'substitution' && message.metadata?.substitution && (
-					<div className='mb-2 rounded-lg bg-bg-card p-3'>
+					<div className='mb-2 rounded-xl bg-bg-card p-3'>
 						<p className='text-xs font-medium uppercase text-text-tertiary'>
 							Substitution
 						</p>

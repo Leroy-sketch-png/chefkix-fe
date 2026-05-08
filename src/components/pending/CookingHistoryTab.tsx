@@ -147,7 +147,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 				>
 					<span
 						className={cn(
-							'block text-2xl md:text-3xl font-display font-extrabold',
+							'block text-2xl md:text-3xl font-bold tracking-tight',
 							stat.highlight ? 'text-brand' : 'text-foreground',
 						)}
 					>
@@ -254,7 +254,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0 min-w-thumbnail-lg'>
-					<span className='block text-xl font-display font-extrabold text-success'>
+					<span className='block text-xl font-bold tracking-tight text-success'>
 						+
 						<AnimatedNumber
 							value={session.currentXP}
@@ -348,7 +348,7 @@ const CompletedItem = ({
 							alt={session.recipeName || 'Recipe thumbnail'}
 							width={32}
 							height={32}
-							className='absolute -bottom-1 -right-1 rounded-lg border-2 border-bg-card object-cover'
+							className='absolute -bottom-1 -right-1 rounded-xl border-2 border-bg-card object-cover'
 						/>
 					)}
 				</div>
@@ -393,7 +393,7 @@ const CompletedItem = ({
 
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0'>
-					<span className='block text-xl font-display font-extrabold text-success'>
+					<span className='block text-xl font-bold tracking-tight text-success'>
 						+
 						<AnimatedNumber
 							value={session.currentXP}
@@ -537,7 +537,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						{t('tryAgain')}
 					</motion.button>
 				) : (
-					<span className='text-xs text-text-secondary px-4 py-2.5 bg-muted/50 rounded-lg'>
+					<span className='text-xs text-text-secondary px-4 py-2.5 bg-muted/50 rounded-xl'>
 						{t('notPosted')}
 					</span>
 				)}
@@ -670,7 +670,7 @@ export const CookingHistoryTab = ({
 					<div className='flex gap-2'>
 						<select
 							aria-label={t('filterTimeRange')}
-							className='px-3 py-2 bg-bg-card border border-border rounded-lg text-sm text-text cursor-pointer'
+							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text cursor-pointer'
 							value={filter.timeRange}
 							onChange={e =>
 								handleFilterChange({
@@ -685,7 +685,7 @@ export const CookingHistoryTab = ({
 						</select>
 						<select
 							aria-label={t('filterSortBy')}
-							className='px-3 py-2 bg-bg-card border border-border rounded-lg text-sm text-text cursor-pointer'
+							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text cursor-pointer'
 							value={filter.sortBy}
 							onChange={e =>
 								handleFilterChange({

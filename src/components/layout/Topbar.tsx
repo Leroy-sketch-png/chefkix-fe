@@ -332,7 +332,7 @@ export const Topbar = () => {
 					>
 						<ChefHat className='size-4 text-white md:size-5' />
 					</motion.div>
-					<div className='font-display text-lg font-extrabold leading-none tracking-tight md:text-2xl'>
+					<div className='font-display text-lg font-bold tracking-tight leading-none tracking-tight md:text-2xl'>
 						<span className='bg-gradient-to-r from-brand to-brand/80 bg-clip-text text-transparent'>
 							Chef
 						</span>
@@ -483,7 +483,7 @@ export const Topbar = () => {
 														alt={r.title}
 														width={36}
 														height={36}
-														className='size-9 flex-shrink-0 rounded-lg object-cover'
+														className='size-9 flex-shrink-0 rounded-xl object-cover'
 													/>
 													<span className='truncate text-sm font-medium text-text'>
 														{r.title}
@@ -752,13 +752,13 @@ export const Topbar = () => {
 				<div className='ml-auto flex shrink-0 items-center gap-1 md:gap-2'>
 					<Link
 						href={guestSignInHref}
-						className='whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-semibold'
+						className='whitespace-nowrap rounded-xl px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-semibold'
 					>
 						{t('tbSignIn')}
 					</Link>
 					<Link
 						href={guestSignUpHref}
-						className='hidden whitespace-nowrap rounded-lg bg-brand px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-brand/90 md:inline-flex md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-bold md:shadow-card md:hover:shadow-warm'
+						className='hidden whitespace-nowrap rounded-xl bg-brand px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-brand/90 md:inline-flex md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-bold md:shadow-card md:hover:shadow-warm'
 					>
 						{t('tbGetStarted')}
 					</Link>
@@ -776,7 +776,7 @@ export const Topbar = () => {
 								whileHover={ICON_BUTTON_HOVER}
 								whileTap={ICON_BUTTON_TAP}
 								transition={TRANSITION_SPRING}
-								className='relative grid size-9 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-card hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:size-10 md:rounded-xl'
+								className='relative grid size-9 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-card hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:size-10 md:rounded-xl'
 								aria-label={
 									unreadNotifications > 0
 										? t('tbNotificationsUnread', { count: unreadNotifications })
@@ -812,7 +812,7 @@ export const Topbar = () => {
 								whileHover={ICON_BUTTON_HOVER}
 								whileTap={ICON_BUTTON_TAP}
 								transition={TRANSITION_SPRING}
-								className='relative grid size-9 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-card hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50 md:size-10 md:rounded-xl'
+								className='relative grid size-9 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-card hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50 md:size-10 md:rounded-xl'
 								aria-label={
 									unreadMessages > 0
 										? t('tbMessagesUnread', { count: unreadMessages })

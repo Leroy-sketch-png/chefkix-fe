@@ -1294,7 +1294,7 @@ export const RecipeCreateAiFlow = ({
 						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
-				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
+				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text'>
 					{step === 'preview'
 						? t('aiFlowReviewRecipe')
 						: t('aiFlowCreateRecipe')}
@@ -1309,7 +1309,7 @@ export const RecipeCreateAiFlow = ({
 							disabled={isSaving || saveStatus === 'saving'}
 							whileHover={isSaving ? undefined : BUTTON_HOVER}
 							whileTap={isSaving ? undefined : BUTTON_TAP}
-							className='flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isSaving || saveStatus === 'saving'
 								? t('aiFlowSaving')
@@ -1610,7 +1610,7 @@ export const RecipeCreateAiFlow = ({
 											type='button'
 											onClick={() => coverImageRef.current?.click()}
 											disabled={isUploadingCover}
-											className='absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-black/60 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/80 disabled:opacity-50'
+											className='absolute bottom-3 right-3 flex items-center gap-1.5 rounded-xl bg-black/60 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/80 disabled:opacity-50'
 										>
 											<ImagePlus className='size-3.5' />
 											{t('aiFlowChange')}
@@ -1686,7 +1686,7 @@ export const RecipeCreateAiFlow = ({
 
 							{/* Meta Row */}
 							<div className='mb-4 flex flex-wrap gap-2.5'>
-								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
+								<div className='flex items-center gap-1.5 rounded-xl bg-bg px-2 py-1'>
 									<Clock className='size-4 text-text-secondary' />
 									<input
 										type='text'
@@ -1699,7 +1699,7 @@ export const RecipeCreateAiFlow = ({
 									/>
 								</div>
 								<div
-									className='group relative flex items-center gap-1.5 rounded-lg bg-bg px-3.5 py-2 cursor-help'
+									className='group relative flex items-center gap-1.5 rounded-xl bg-bg px-3.5 py-2 cursor-help'
 									title={t('aiFlowDifficultyTitle')}
 								>
 									<Signal className='size-4 text-text-secondary' />
@@ -1708,7 +1708,7 @@ export const RecipeCreateAiFlow = ({
 									</span>
 									<Lock className='size-3 text-text-secondary/50' />
 								</div>
-								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
+								<div className='flex items-center gap-1.5 rounded-xl bg-bg px-2 py-1'>
 									<Utensils className='size-4 text-text-secondary' />
 									<input
 										type='number'
@@ -1727,7 +1727,7 @@ export const RecipeCreateAiFlow = ({
 										{t('aiFlowServings')}
 									</span>
 								</div>
-								<div className='flex items-center gap-1.5 rounded-lg bg-bg px-2 py-1'>
+								<div className='flex items-center gap-1.5 rounded-xl bg-bg px-2 py-1'>
 									<span>🌍</span>
 									<Combobox
 										value={recipe.cuisine}
@@ -1754,7 +1754,7 @@ export const RecipeCreateAiFlow = ({
 										animate={{ opacity: 1, scale: 1 }}
 										transition={{ delay: i * 0.1, ...TRANSITION_SPRING }}
 										whileHover={BUTTON_SUBTLE_HOVER}
-										className='rounded-lg border border-brand/20 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand cursor-default'
+										className='rounded-xl border border-brand/20 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand cursor-default'
 									>
 										{badge.emoji} {badge.name}
 									</motion.span>
@@ -1774,7 +1774,7 @@ export const RecipeCreateAiFlow = ({
 									onClick={addIngredient}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Plus className='size-4' />
 									{t('aiFlowAdd')}
@@ -1831,7 +1831,7 @@ export const RecipeCreateAiFlow = ({
 									onClick={addStep}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Plus className='size-4' />
 									{t('aiFlowAddStep')}
@@ -1890,7 +1890,7 @@ export const RecipeCreateAiFlow = ({
 												: t('aiFlowPreviewPublish')}
 										</span>
 										{recipe.xpReward && !hasEdited ? (
-											<span className='rounded-lg bg-white/20 px-3 py-1 text-sm font-display font-extrabold text-white'>
+											<span className='rounded-xl bg-white/20 px-3 py-1 text-sm font-bold tracking-tight text-white'>
 												{recipe.xpReward} XP
 											</span>
 										) : (

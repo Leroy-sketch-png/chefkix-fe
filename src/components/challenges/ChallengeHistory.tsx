@@ -126,10 +126,7 @@ const StatCard = ({
 		<span className='text-xl'>{icon}</span>
 		<div className='flex flex-col'>
 			<span
-				className={cn(
-					'text-lg font-display font-extrabold text-text',
-					colorClass,
-				)}
+				className={cn('text-lg font-bold tracking-tight text-text', colorClass)}
 			>
 				{value}
 			</span>
@@ -190,7 +187,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			)}
 		>
 			{isCurrentDay && (
-				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-brand px-2 py-0.5 text-2xs font-bold text-white'>
+				<span className='absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-xl bg-brand px-2 py-0.5 text-2xs font-bold text-white'>
 					{t('today')}
 				</span>
 			)}
@@ -343,7 +340,7 @@ export const ChallengeHistorySection = ({
 							onClick={onPreviewTomorrow}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-streak px-4 py-2.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center gap-1.5 rounded-xl bg-streak px-4 py-2.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{t('previewTomorrow')}
 							<ArrowRight className='size-4' />
@@ -374,7 +371,7 @@ const HistoryItem = ({
 		<div className='flex gap-4 border-b border-border py-4 last:border-b-0'>
 			{/* Date */}
 			<div className='flex min-w-thumbnail-sm flex-col items-center'>
-				<span className='text-xl font-display font-extrabold leading-none text-text'>
+				<span className='text-xl font-bold tracking-tight leading-none text-text'>
 					{day.date.getDate()}
 				</span>
 				<span className='text-xs text-text-secondary'>
@@ -482,7 +479,7 @@ export const ChallengeHistoryPage = ({
 						<ArrowLeft className='size-5' />
 					</button>
 				)}
-				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
+				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text'>
 					{t('challengeHistory')}
 				</h1>
 			</div>
@@ -504,7 +501,7 @@ export const ChallengeHistoryPage = ({
 					<div className='grid grid-cols-3 gap-3'>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>🔥</span>
-							<span className='text-xl font-display font-extrabold text-text'>
+							<span className='text-xl font-bold tracking-tight text-text'>
 								{stats.currentStreak}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -513,7 +510,7 @@ export const ChallengeHistoryPage = ({
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>🏆</span>
-							<span className='text-xl font-display font-extrabold text-text'>
+							<span className='text-xl font-bold tracking-tight text-text'>
 								{stats.bestStreak}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -522,7 +519,7 @@ export const ChallengeHistoryPage = ({
 						</div>
 						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
 							<span className='text-xl'>⚡</span>
-							<span className='text-xl font-display font-extrabold text-text'>
+							<span className='text-xl font-bold tracking-tight text-text'>
 								{stats.totalBonusXp.toLocaleString()}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -559,7 +556,7 @@ export const ChallengeHistoryPage = ({
 					<button
 						type='button'
 						onClick={() => onMonthChange?.('prev')}
-						className='flex size-8 items-center justify-center rounded-lg border border-border bg-bg text-text'
+						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text'
 					>
 						<ChevronLeft className='size-4' />
 					</button>
@@ -572,7 +569,7 @@ export const ChallengeHistoryPage = ({
 					<button
 						type='button'
 						onClick={() => onMonthChange?.('next')}
-						className='flex size-8 items-center justify-center rounded-lg border border-border bg-bg text-text'
+						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text'
 					>
 						<ChevronRight className='size-4' />
 					</button>

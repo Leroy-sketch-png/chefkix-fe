@@ -395,7 +395,7 @@ export const MessagesDrawer = () => {
 						<Link
 							href={PATHS.MESSAGES}
 							onClick={toggleMessagesDrawer}
-							className='flex w-full items-center justify-center gap-2 rounded-lg bg-bg-elevated py-2 text-sm font-medium transition-colors hover:bg-muted/80'
+							className='flex w-full items-center justify-center gap-2 rounded-xl bg-bg-elevated py-2 text-sm font-medium transition-colors hover:bg-muted/80'
 						>
 							<MessageSquare className='size-4' />
 							Open Full Messages

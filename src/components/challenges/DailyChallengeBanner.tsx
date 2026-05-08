@@ -169,7 +169,7 @@ const ActiveChallengeBanner = ({
 						<span className='text-xs font-bold uppercase tracking-wide text-accent-purple'>
 							{t('dailyChallenge')}
 						</span>
-						<h3 className='text-xl font-display font-extrabold'>
+						<h3 className='text-xl font-bold tracking-tight'>
 							{challenge.title}
 						</h3>
 					</div>
@@ -184,7 +184,7 @@ const ActiveChallengeBanner = ({
 				<div className='mb-4 flex gap-6'>
 					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/20 to-xp/20 px-3.5 py-2 shadow-card shadow-bonus/20'>
 						<span>⚡</span>
-						<span className='tabular-nums text-base font-display font-extrabold text-xp'>
+						<span className='tabular-nums text-base font-bold tracking-tight text-xp'>
 							+{challenge.bonusXp || 0} XP
 						</span>
 						<span className='text-xs text-bonus'>bonus</span>
@@ -249,7 +249,7 @@ const ActiveChallengeBanner = ({
 				type='button'
 				onClick={onMinimize}
 				aria-label={t('minimize')}
-				className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted transition-colors hover:bg-border'
+				className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-xl border border-border bg-bg-elevated text-text-muted transition-colors hover:bg-border'
 			>
 				<ChevronUp className='size-4' />
 			</button>
@@ -300,7 +300,7 @@ const CompletedChallengeBanner = ({
 						<span className='text-xs font-bold uppercase tracking-wide text-success'>
 							{t('challengeComplete')}
 						</span>
-						<h3 className='text-xl font-display font-extrabold'>
+						<h3 className='text-xl font-bold tracking-tight'>
 							{challenge.title}
 						</h3>
 					</div>
@@ -314,7 +314,7 @@ const CompletedChallengeBanner = ({
 							alt={completedWith.recipeTitle}
 							width={48}
 							height={48}
-							className='size-12 rounded-lg object-cover'
+							className='size-12 rounded-xl object-cover'
 						/>
 						<div className='flex flex-col'>
 							<span className='text-xs text-text-muted'>
@@ -326,7 +326,7 @@ const CompletedChallengeBanner = ({
 						</div>
 					</div>
 					<div className='text-right'>
-						<span className='block tabular-nums text-xl font-display font-extrabold text-xp'>
+						<span className='block tabular-nums text-xl font-bold tracking-tight text-xp'>
 							+{challenge.bonusXp} XP
 						</span>
 						<span className='text-xs text-text-muted'>{t('bonusEarned')}</span>
@@ -335,7 +335,7 @@ const CompletedChallengeBanner = ({
 
 				{/* Streak Teaser */}
 				{streakCount > 0 && (
-					<div className='flex items-center justify-center gap-2 rounded-lg bg-streak/10 px-3 py-2.5'>
+					<div className='flex items-center justify-center gap-2 rounded-xl bg-streak/10 px-3 py-2.5'>
 						<span className='text-lg'>🔥</span>
 						<span className='text-sm font-semibold text-streak'>
 							{t('streakDays', { n: streakCount })}
@@ -348,7 +348,7 @@ const CompletedChallengeBanner = ({
 			<button
 				type='button'
 				onClick={onViewHistory}
-				className='absolute right-4 top-4 flex items-center gap-1 rounded-lg border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+				className='absolute right-4 top-4 flex items-center gap-1 rounded-xl border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 			>
 				{t('viewHistory')}
 				<ChevronRight className='size-4' />
@@ -393,7 +393,7 @@ const CompactChallengeBanner = ({
 					type='button'
 					onClick={onExpand}
 					aria-label={t('expand')}
-					className='flex size-8 items-center justify-center rounded-lg border border-border text-text-muted transition-colors hover:bg-bg-elevated'
+					className='flex size-8 items-center justify-center rounded-xl border border-border text-text-muted transition-colors hover:bg-bg-elevated'
 				>
 					<ChevronDown className='size-4' />
 				</button>
@@ -447,7 +447,7 @@ const FeaturedChallengeBanner = ({
 						<span className='text-xs font-bold uppercase tracking-wide text-white/70'>
 							{challenge.eventLabel ?? t('weekendChallenge')}
 						</span>
-						<h2 className='text-2xl font-display font-extrabold text-white'>
+						<h2 className='text-2xl font-bold tracking-tight text-white'>
 							{challenge.title}
 						</h2>
 					</div>
@@ -460,7 +460,7 @@ const FeaturedChallengeBanner = ({
 				<div className='mb-5 flex gap-6'>
 					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/30 to-xp/30 px-4 py-2.5 shadow-card shadow-bonus/30'>
 						<span>⚡</span>
-						<span className='tabular-nums text-xl font-display font-extrabold text-xp drop-shadow-glow'>
+						<span className='tabular-nums text-xl font-bold tracking-tight text-xp drop-shadow-glow'>
 							+{challenge.bonusXp || 0} XP
 						</span>
 						<span className='text-xs text-bonus'>bonus</span>

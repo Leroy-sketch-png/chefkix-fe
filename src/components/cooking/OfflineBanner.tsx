@@ -45,7 +45,7 @@ export const OfflineBanner = memo(function OfflineBanner({
 						className={cn(
 							'flex items-center justify-center gap-2 text-sm',
 							variant === 'subtle'
-								? 'rounded-lg bg-warning/10 px-3 py-1.5 text-warning'
+								? 'rounded-xl bg-warning/10 px-3 py-1.5 text-warning'
 								: 'text-warning',
 						)}
 						role='status'

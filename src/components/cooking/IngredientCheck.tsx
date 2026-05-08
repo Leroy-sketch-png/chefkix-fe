@@ -55,7 +55,7 @@ export const IngredientCheck = ({
 					? 'var(--color-success)'
 					: 'var(--border-medium)',
 			}}
-			className='grid size-6 flex-shrink-0 place-items-center rounded-lg border-2'
+			className='grid size-6 flex-shrink-0 place-items-center rounded-xl border-2'
 		>
 			<AnimatePresence>
 				{isChecked && (

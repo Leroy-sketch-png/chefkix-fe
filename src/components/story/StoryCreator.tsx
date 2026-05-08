@@ -253,7 +253,7 @@ export function StoryCreator() {
 						/>
 						<Button
 							onClick={() => fileInputRef.current?.click()}
-							className='w-full bg-[#3A3B3C] hover:bg-[#4E4F50] text-[#E4E6EB] font-semibold h-12 flex items-center justify-center gap-2 rounded-lg'
+							className='w-full bg-[#3A3B3C] hover:bg-[#4E4F50] text-[#E4E6EB] font-semibold h-12 flex items-center justify-center gap-2 rounded-xl'
 						>
 							<ImageIcon className='w-5 h-5' />
 							{mediaPreview ? 'Thay đổi ảnh nền' : 'Chọn ảnh nền'}
@@ -277,7 +277,7 @@ export function StoryCreator() {
 									step='0.1'
 									value={imageScale}
 									onChange={e => setImageScale(Number(e.target.value))}
-									className='w-full accent-blue-500 h-1 bg-[#3A3B3C] rounded-lg appearance-none cursor-pointer'
+									className='w-full accent-blue-500 h-1 bg-[#3A3B3C] rounded-xl appearance-none cursor-pointer'
 								/>
 							</div>
 
@@ -292,7 +292,7 @@ export function StoryCreator() {
 									step='1'
 									value={imageRotation}
 									onChange={e => setImageRotation(Number(e.target.value))}
-									className='w-full accent-blue-500 h-1 bg-[#3A3B3C] rounded-lg appearance-none cursor-pointer'
+									className='w-full accent-blue-500 h-1 bg-[#3A3B3C] rounded-xl appearance-none cursor-pointer'
 								/>
 							</div>
 						</div>
@@ -363,7 +363,7 @@ export function StoryCreator() {
 					<Button
 						onClick={handleSubmit}
 						disabled={isLoading || !mediaPreview}
-						className='w-full bg-[#0866FF] hover:bg-[#0054D1] text-white font-semibold h-11 rounded-lg text-[15px]'
+						className='w-full bg-[#0866FF] hover:bg-[#0054D1] text-white font-semibold h-11 rounded-xl text-[15px]'
 					>
 						{isLoading ? 'Đang xử lý...' : 'Chia sẻ lên Tin'}
 					</Button>
@@ -448,7 +448,7 @@ export function StoryCreator() {
 									/>
 								)}
 
-								<div className='absolute -top-12 right-0 hidden group-hover:flex gap-1.5 bg-black/60 p-1 rounded-lg backdrop-blur-sm border border-white/10'>
+								<div className='absolute -top-12 right-0 hidden group-hover:flex gap-1.5 bg-black/60 p-1 rounded-xl backdrop-blur-sm border border-white/10'>
 									<Button
 										variant='ghost'
 										size='icon'

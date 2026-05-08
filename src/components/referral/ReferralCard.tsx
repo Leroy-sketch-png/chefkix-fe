@@ -132,17 +132,17 @@ export default function ReferralCard() {
 		return (
 			<div className='space-y-5'>
 				<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card space-y-4'>
-					<Skeleton className='h-5 w-36 rounded-lg' />
-					<Skeleton className='h-12 w-full rounded-lg' />
+					<Skeleton className='h-5 w-36 rounded-xl' />
+					<Skeleton className='h-12 w-full rounded-xl' />
 					<div className='flex gap-3'>
-						<Skeleton className='h-10 w-24 rounded-lg' />
-						<Skeleton className='h-10 w-24 rounded-lg' />
+						<Skeleton className='h-10 w-24 rounded-xl' />
+						<Skeleton className='h-10 w-24 rounded-xl' />
 					</div>
 				</div>
 				<div className='grid grid-cols-3 gap-3'>
-					<Skeleton className='h-20 w-full rounded-lg' />
-					<Skeleton className='h-20 w-full rounded-lg' />
-					<Skeleton className='h-20 w-full rounded-lg' />
+					<Skeleton className='h-20 w-full rounded-xl' />
+					<Skeleton className='h-20 w-full rounded-xl' />
+					<Skeleton className='h-20 w-full rounded-xl' />
 				</div>
 			</div>
 		)
@@ -158,7 +158,7 @@ export default function ReferralCard() {
 			{/* Your Referral Code */}
 			<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 				<div className='mb-4 flex items-center gap-2'>
-					<div className='flex size-8 items-center justify-center rounded-lg bg-brand/10'>
+					<div className='flex size-8 items-center justify-center rounded-xl bg-brand/10'>
 						<Gift className='size-4 text-brand' />
 					</div>
 					<h3 className='text-lg font-semibold text-text'>
@@ -175,7 +175,7 @@ export default function ReferralCard() {
 					<div className='flex items-center gap-3'>
 						<motion.div
 							whileHover={CARD_HOVER}
-							className='flex-1 rounded-lg border-2 border-brand/30 bg-brand/5 px-4 py-3 text-center'
+							className='flex-1 rounded-xl border-2 border-brand/30 bg-brand/5 px-4 py-3 text-center'
 						>
 							<span className='font-mono text-xl font-bold tracking-widest text-brand'>
 								{codeData.code}
@@ -231,7 +231,7 @@ export default function ReferralCard() {
 			{stats && (
 				<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 					<div className='mb-4 flex items-center gap-2'>
-						<div className='flex size-8 items-center justify-center rounded-lg bg-xp/10'>
+						<div className='flex size-8 items-center justify-center rounded-xl bg-xp/10'>
 							<Trophy className='size-4 text-xp' />
 						</div>
 						<h3 className='text-lg font-semibold text-text'>
@@ -240,7 +240,7 @@ export default function ReferralCard() {
 					</div>
 
 					<div className='mb-4 grid grid-cols-2 gap-3'>
-						<div className='rounded-lg bg-bg-elevated p-3 text-center'>
+						<div className='rounded-xl bg-bg-elevated p-3 text-center'>
 							<p className='text-2xl font-bold text-text'>
 								{stats.totalReferrals}
 							</p>
@@ -249,7 +249,7 @@ export default function ReferralCard() {
 								Friends Invited
 							</p>
 						</div>
-						<div className='rounded-lg bg-bg-elevated p-3 text-center'>
+						<div className='rounded-xl bg-bg-elevated p-3 text-center'>
 							<p className='text-2xl font-bold text-xp'>
 								{stats.totalXpEarned}
 							</p>
@@ -272,7 +272,7 @@ export default function ReferralCard() {
 									initial={{ opacity: 0, x: -10 }}
 									animate={{ opacity: 1, x: 0 }}
 									transition={{ ...TRANSITION_SPRING, delay: i * 0.05 }}
-									className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'
+									className='flex items-center justify-between rounded-xl bg-bg-elevated px-3 py-2'
 								>
 									<div className='flex items-center gap-2'>
 										{r.referredAvatar ? (
@@ -305,7 +305,7 @@ export default function ReferralCard() {
 			{/* Redeem Code */}
 			<div className='rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 				<div className='mb-4 flex items-center gap-2'>
-					<div className='flex size-8 items-center justify-center rounded-lg bg-streak/10'>
+					<div className='flex size-8 items-center justify-center rounded-xl bg-streak/10'>
 						<Sparkles className='size-4 text-streak' />
 					</div>
 					<h3 className='text-lg font-semibold text-text'>

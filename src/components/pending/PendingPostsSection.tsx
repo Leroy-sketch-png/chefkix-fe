@@ -185,11 +185,11 @@ const SinglePendingPost = ({
 					</span>
 					<div className='flex items-center gap-3'>
 						{hasClaimableXp ? (
-							<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-lg tabular-nums'>
+							<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-xl tabular-nums'>
 								+<AnimatedNumber value={session.currentXP} /> XP
 							</span>
 						) : (
-							<span className='text-sm font-semibold text-warning bg-warning/10 px-2 py-1 rounded-lg'>
+							<span className='text-sm font-semibold text-warning bg-warning/10 px-2 py-1 rounded-xl'>
 								{t('pdNoXpLeft')}
 							</span>
 						)}
@@ -280,7 +280,7 @@ const MultiplePendingPosts = ({
 				</div>
 				<motion.button
 					type='button'
-					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
@@ -313,7 +313,7 @@ const MultiplePendingPosts = ({
 								alt={session.recipeName}
 								width={44}
 								height={44}
-								className='size-11 rounded-lg object-cover'
+								className='size-11 rounded-xl object-cover'
 							/>
 							<div className='flex-1 min-w-0'>
 								<span className='block text-sm font-semibold text-text'>
@@ -342,7 +342,7 @@ const MultiplePendingPosts = ({
 							<motion.button
 								type='button'
 								className={cn(
-									'px-3 py-1.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
+									'px-3 py-1.5 rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 									session.status === 'urgent' && hasSessionClaimableXp
 										? 'bg-error text-white'
 										: hasSessionClaimableXp
@@ -429,7 +429,7 @@ const ManyPendingPosts = ({
 
 				<motion.button
 					type='button'
-					className='flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}

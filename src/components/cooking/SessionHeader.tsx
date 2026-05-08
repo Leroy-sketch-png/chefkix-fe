@@ -276,7 +276,7 @@ export const SessionHeader = ({
 						>
 							<div
 								className={cn(
-									'flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold',
+									'flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold',
 									state === 'PAUSED' && 'bg-black/20 text-white',
 									state === 'IDLE_WARNING' && 'bg-black/30 text-white',
 								)}
@@ -389,7 +389,7 @@ export const SessionHeaderCompact = ({
 			onClick={onExpand}
 			whileHover={LIST_ITEM_HOVER}
 			whileTap={LIST_ITEM_TAP}
-			className='flex w-full items-center gap-3 rounded-xl bg-gradient-brand p-3 text-left text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
+			className='flex w-full items-center gap-3 rounded-xl bg-brand p-3 text-left text-white shadow-[0_2px_12px_rgba(255,90,54,0.4)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.45)] focus-visible:ring-2 focus-visible:ring-brand/50'
 		>
 			{/* Mini progress ring */}
 			<div className='relative size-10'>

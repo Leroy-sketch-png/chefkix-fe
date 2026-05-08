@@ -132,7 +132,7 @@ export const ChallengeCard = ({
 				</div>
 
 				{/* Title */}
-				<h3 className='mb-2 text-lg font-display font-extrabold leading-tight'>
+				<h3 className='mb-2 text-lg font-bold tracking-tight leading-tight'>
 					{title}
 				</h3>
 
@@ -245,7 +245,7 @@ export const ChallengeCardSkeleton = () => (
 	<div className='animate-pulse rounded-2xl bg-bg-elevated p-6'>
 		<div className='mb-4 flex items-start justify-between'>
 			<div className='h-4 w-24 rounded bg-border-subtle' />
-			<div className='size-8 rounded-lg bg-border-subtle' />
+			<div className='size-8 rounded-xl bg-border-subtle' />
 		</div>
 		<div className='mb-2 h-6 w-3/4 rounded bg-border-subtle' />
 		<div className='mb-4 h-4 w-full rounded bg-border-subtle' />

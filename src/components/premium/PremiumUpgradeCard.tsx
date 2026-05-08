@@ -231,13 +231,13 @@ export default function PremiumUpgradeCard() {
 	if (isLoading) {
 		return (
 			<div className='space-y-6'>
-				<div className='h-8 w-48 animate-pulse rounded-lg bg-bg-elevated' />
+				<div className='h-8 w-48 animate-pulse rounded-xl bg-bg-elevated' />
 				<div className='h-32 animate-pulse rounded-xl bg-bg-elevated' />
 				<div className='grid gap-3'>
 					{Array.from({ length: 5 }).map((_, i) => (
 						<div
 							key={i}
-							className='h-16 animate-pulse rounded-lg bg-bg-elevated'
+							className='h-16 animate-pulse rounded-xl bg-bg-elevated'
 						/>
 					))}
 				</div>
@@ -359,7 +359,7 @@ export default function PremiumUpgradeCard() {
 								key={feature.labelKey}
 								variants={FADE_IN_VARIANTS}
 								className={cn(
-									'flex items-center gap-3 rounded-lg border px-4 py-2.5 transition-colors',
+									'flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors',
 									isPremiumOnly
 										? 'border-level/20 bg-level/5'
 										: 'border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60',
@@ -367,7 +367,7 @@ export default function PremiumUpgradeCard() {
 							>
 								<div
 									className={cn(
-										'flex size-7 shrink-0 items-center justify-center rounded-lg',
+										'flex size-7 shrink-0 items-center justify-center rounded-xl',
 										isPremiumOnly
 											? 'bg-level/10 text-level'
 											: 'bg-bg-elevated text-text-muted',
@@ -454,7 +454,7 @@ export default function PremiumUpgradeCard() {
 									animate={{ opacity: 1, height: 'auto' }}
 									exit={{ opacity: 0, height: 0 }}
 									transition={TRANSITION_SPRING}
-									className='overflow-hidden rounded-lg border border-error/20 bg-error/5 p-4'
+									className='overflow-hidden rounded-xl border border-error/20 bg-error/5 p-4'
 								>
 									<p className='text-sm font-medium text-error'>
 										{t('cancelConfirmTitle')}
@@ -501,4 +501,3 @@ export default function PremiumUpgradeCard() {
 		</motion.div>
 	)
 }
-

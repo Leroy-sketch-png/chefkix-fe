@@ -192,7 +192,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 									<motion.span
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='inline-flex items-center gap-1 rounded-lg bg-brand px-2.5 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-warm sm:px-3'
+										className='inline-flex items-center gap-1 rounded-xl bg-brand px-2.5 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-warm sm:px-3'
 									>
 										{challenge.userCompleted
 											? td('sbViewDetails')

@@ -188,7 +188,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 				</div>
 
 				{/* Tabs */}
-				<div className='flex gap-1 rounded-lg bg-bg-elevated p-1'>
+				<div className='flex gap-1 rounded-xl bg-bg-elevated p-1'>
 					{(['received', 'sent'] as const).map(tab => (
 						<button
 							type='button'
@@ -249,7 +249,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 						<button
 							type='button'
 							onClick={() => fetchTips()}
-							className='rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
+							className='rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90'
 						>
 							{t('tryAgain')}
 						</button>
@@ -307,7 +307,7 @@ function TipListItem({
 			variants={staggerItem}
 			whileHover={LIST_ITEM_HOVER}
 			whileTap={LIST_ITEM_TAP}
-			className='group flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-bg-elevated'
+			className='group flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated'
 		>
 			{/* Avatar */}
 			<Link href={`/${userId}`} className='flex-shrink-0'>
@@ -376,4 +376,3 @@ function TipListItem({
 		</motion.div>
 	)
 }
-

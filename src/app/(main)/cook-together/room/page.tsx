@@ -25,7 +25,10 @@ import { useUiStore } from '@/store/uiStore'
 import { useRoomSocket } from '@/hooks/useRoomSocket'
 import type { RoomEvent } from '@/lib/types/room'
 import { toast } from 'sonner'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 interface ActivityItem {
 	id: string
@@ -293,7 +296,7 @@ export default function CookingRoomPage() {
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								disabled={isUpgrading}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-bold text-white shadow-card transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-sm font-bold text-white shadow-card transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<ArrowUpCircle className='size-4' />
 								{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
@@ -346,183 +349,183 @@ export default function CookingRoomPage() {
 						className='p-0 lg:col-span-2'
 					>
 						<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-						className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
-					>
-						{/* Recipe Info */}
-						{recipe && (
-							<div className='mb-6 flex items-center gap-4'>
-								<div className='flex size-14 items-center justify-center rounded-2xl bg-brand/10'>
-									<ChefHat className='size-7 text-brand' />
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+							className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
+						>
+							{/* Recipe Info */}
+							{recipe && (
+								<div className='mb-6 flex items-center gap-4'>
+									<div className='flex size-14 items-center justify-center rounded-2xl bg-brand/10'>
+										<ChefHat className='size-7 text-brand' />
+									</div>
+									<div>
+										<h2 className='text-xl font-bold text-text'>
+											{recipe.title}
+										</h2>
+										<p className='text-sm text-text-secondary'>
+											{t('ctRecipeInfo', {
+												steps: totalSteps,
+												minutes: recipe.totalTimeMinutes ?? 0,
+											})}
+										</p>
+									</div>
 								</div>
-								<div>
-									<h2 className='text-xl font-bold text-text'>
-										{recipe.title}
-									</h2>
-									<p className='text-sm text-text-secondary'>
-										{t('ctRecipeInfo', {
-											steps: totalSteps,
-											minutes: recipe.totalTimeMinutes ?? 0,
-										})}
-									</p>
-								</div>
-							</div>
-						)}
-
-						{/* Participants */}
-						<div className='mb-6'>
-							<h3 className='mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted'>
-								{t('ctCooksCount', { count: cookCount })}
-								{spectatorCount > 0 && (
-									<span className='ml-2 font-normal normal-case text-info'>
-										{t('ctPlusSpectators', { count: spectatorCount })}
-									</span>
-								)}
-							</h3>
-							<div className='space-y-3'>
-								{participants.map(p => {
-									const pIsSpectator = p.role === 'SPECTATOR'
-									return (
-										<motion.div
-											key={p.userId}
-											initial={{ opacity: 0, x: -10 }}
-											animate={{ opacity: 1, x: 0 }}
-											className={`flex items-center gap-3 rounded-xl p-3 ${
-												pIsSpectator
-													? 'border border-info/20 bg-info/10'
-													: 'bg-bg'
-											}`}
-										>
-											<div className='relative'>
-												{p.avatarUrl ? (
-													<Image
-														src={p.avatarUrl}
-														alt={p.displayName}
-														width={40}
-														height={40}
-														unoptimized
-														className={`size-10 rounded-full object-cover ${pIsSpectator ? 'opacity-75' : ''}`}
-													/>
-												) : (
-													<div
-														className={`flex size-10 items-center justify-center rounded-full ${
-															pIsSpectator ? 'bg-info/15' : 'bg-brand/10'
-														}`}
-													>
-														{pIsSpectator ? (
-															<Eye className='size-5 text-info' />
-														) : (
-															<ChefHat className='size-5 text-brand' />
-														)}
-													</div>
-												)}
-											</div>
-											<div className='flex-1'>
-												<div className='flex items-center gap-2'>
-													<span className='font-medium text-text'>
-														{p.displayName}
-													</span>
-													{p.isHost && (
-														<span className='rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning'>
-															{t('ctHost')}
-														</span>
-													)}
-													{pIsSpectator && (
-														<span className='rounded-full bg-info/15 px-2 py-0.5 text-xs font-medium text-info'>
-															{t('ctWatchingBadge')}
-														</span>
-													)}
-													{p.userId === currentUserId && (
-														<span className='rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'>
-															{t('ctYou')}
-														</span>
-													)}
-												</div>
-												<p className='text-xs text-text-muted'>
-													{pIsSpectator
-														? t('ctSpectating')
-														: t('ctStepOf', {
-																current: p.currentStep,
-																total: totalSteps,
-															})}
-												</p>
-											</div>
-											{/* Progress — only for cooks */}
-											{!pIsSpectator && (
-												<div className='text-right'>
-													<div className='h-1.5 w-16 overflow-hidden rounded-full bg-border-subtle'>
-														<div
-															className='h-full rounded-full bg-brand transition-all duration-500'
-															style={{
-																width: `${totalSteps > 0 ? (p.currentStep / totalSteps) * 100 : 0}%`,
-															}}
-														/>
-													</div>
-												</div>
-											)}
-										</motion.div>
-									)
-								})}
-							</div>
-						</div>
-
-						{/* Actions */}
-						<div className='flex gap-3'>
-							{isSpectator ? (
-								<motion.button
-									type='button'
-									onClick={handleUpgradeToCook}
-									disabled={isUpgrading}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-info/70 py-4 text-lg font-bold text-white shadow-warm shadow-info/30 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									<ArrowUpCircle className='size-6' />
-									{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
-								</motion.button>
-							) : (
-								<motion.button
-									type='button'
-									onClick={handleStartCooking}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-warm shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									<ChefHat className='size-6' />
-									{session ? t('ctContinueCooking') : t('ctStartCooking')}
-								</motion.button>
 							)}
 
-							<motion.button
-								type='button'
-								onClick={handleCopyCode}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className='flex items-center gap-2 rounded-xl border-2 border-border-medium px-5 py-4 font-semibold transition-all hover:border-brand hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
-							>
-								{copied ? (
-									<Check className='size-5 text-success' />
-								) : (
-									<Copy className='size-5' />
-								)}
-								<span className='hidden sm:inline'>
-									{copied ? t('ctCopied') : t('ctShare')}
-								</span>
-							</motion.button>
+							{/* Participants */}
+							<div className='mb-6'>
+								<h3 className='mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted'>
+									{t('ctCooksCount', { count: cookCount })}
+									{spectatorCount > 0 && (
+										<span className='ml-2 font-normal normal-case text-info'>
+											{t('ctPlusSpectators', { count: spectatorCount })}
+										</span>
+									)}
+								</h3>
+								<div className='space-y-3'>
+									{participants.map(p => {
+										const pIsSpectator = p.role === 'SPECTATOR'
+										return (
+											<motion.div
+												key={p.userId}
+												initial={{ opacity: 0, x: -10 }}
+												animate={{ opacity: 1, x: 0 }}
+												className={`flex items-center gap-3 rounded-xl p-3 ${
+													pIsSpectator
+														? 'border border-info/20 bg-info/10'
+														: 'bg-bg'
+												}`}
+											>
+												<div className='relative'>
+													{p.avatarUrl ? (
+														<Image
+															src={p.avatarUrl}
+															alt={p.displayName}
+															width={40}
+															height={40}
+															unoptimized
+															className={`size-10 rounded-full object-cover ${pIsSpectator ? 'opacity-75' : ''}`}
+														/>
+													) : (
+														<div
+															className={`flex size-10 items-center justify-center rounded-full ${
+																pIsSpectator ? 'bg-info/15' : 'bg-brand/10'
+															}`}
+														>
+															{pIsSpectator ? (
+																<Eye className='size-5 text-info' />
+															) : (
+																<ChefHat className='size-5 text-brand' />
+															)}
+														</div>
+													)}
+												</div>
+												<div className='flex-1'>
+													<div className='flex items-center gap-2'>
+														<span className='font-medium text-text'>
+															{p.displayName}
+														</span>
+														{p.isHost && (
+															<span className='rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning'>
+																{t('ctHost')}
+															</span>
+														)}
+														{pIsSpectator && (
+															<span className='rounded-full bg-info/15 px-2 py-0.5 text-xs font-medium text-info'>
+																{t('ctWatchingBadge')}
+															</span>
+														)}
+														{p.userId === currentUserId && (
+															<span className='rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'>
+																{t('ctYou')}
+															</span>
+														)}
+													</div>
+													<p className='text-xs text-text-muted'>
+														{pIsSpectator
+															? t('ctSpectating')
+															: t('ctStepOf', {
+																	current: p.currentStep,
+																	total: totalSteps,
+																})}
+													</p>
+												</div>
+												{/* Progress — only for cooks */}
+												{!pIsSpectator && (
+													<div className='text-right'>
+														<div className='h-1.5 w-16 overflow-hidden rounded-full bg-border-subtle'>
+															<div
+																className='h-full rounded-full bg-brand transition-all duration-500'
+																style={{
+																	width: `${totalSteps > 0 ? (p.currentStep / totalSteps) * 100 : 0}%`,
+																}}
+															/>
+														</div>
+													</div>
+												)}
+											</motion.div>
+										)
+									})}
+								</div>
+							</div>
 
-							<motion.button
-								type='button'
-								onClick={handleLeave}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className='flex items-center gap-2 rounded-xl border-2 border-error/30 px-5 py-4 font-semibold text-error transition-all hover:border-error hover:bg-error/5 focus-visible:ring-2 focus-visible:ring-brand/50'
-							>
-								<LogOut className='size-5' />
-								<span className='hidden sm:inline'>{t('ctLeave')}</span>
-							</motion.button>
-						</div>
+							{/* Actions */}
+							<div className='flex gap-3'>
+								{isSpectator ? (
+									<motion.button
+										type='button'
+										onClick={handleUpgradeToCook}
+										disabled={isUpgrading}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-info/70 py-4 text-lg font-bold text-white shadow-warm shadow-info/30 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+									>
+										<ArrowUpCircle className='size-6' />
+										{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
+									</motion.button>
+								) : (
+									<motion.button
+										type='button'
+										onClick={handleStartCooking}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-warm shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+									>
+										<ChefHat className='size-6' />
+										{session ? t('ctContinueCooking') : t('ctStartCooking')}
+									</motion.button>
+								)}
+
+								<motion.button
+									type='button'
+									onClick={handleCopyCode}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className='flex items-center gap-2 rounded-xl border-2 border-border-medium px-5 py-4 font-semibold transition-all hover:border-brand hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									{copied ? (
+										<Check className='size-5 text-success' />
+									) : (
+										<Copy className='size-5' />
+									)}
+									<span className='hidden sm:inline'>
+										{copied ? t('ctCopied') : t('ctShare')}
+									</span>
+								</motion.button>
+
+								<motion.button
+									type='button'
+									onClick={handleLeave}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className='flex items-center gap-2 rounded-xl border-2 border-error/30 px-5 py-4 font-semibold text-error transition-all hover:border-error hover:bg-error/5 focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									<LogOut className='size-5' />
+									<span className='hidden sm:inline'>{t('ctLeave')}</span>
+								</motion.button>
+							</div>
 						</motion.div>
 					</PremiumSurface>
 
@@ -534,47 +537,47 @@ export default function CookingRoomPage() {
 						tone='blue'
 					>
 						<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-						className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'
-					>
-						<SurfaceSectionHeader
-							eyebrow='Room Events'
-							chipText={`${activityFeed.length} events`}
-							className='mb-3'
-						/>
-						<div className='mb-3 flex items-center gap-2'>
-							<Activity className='size-4 text-brand' />
-							<h3 className='text-sm font-semibold uppercase tracking-wider text-text-muted'>
-								{t('ctLiveActivity')}
-							</h3>
-							{isConnected && (
-								<span className='ml-auto inline-block size-2 animate-pulse rounded-full bg-success' />
-							)}
-						</div>
-						<div className='max-h-80 space-y-2 overflow-y-auto pr-1 lg:max-h-[28rem]'>
-							{activityFeed.length === 0 ? (
-								<p className='py-8 text-center text-sm text-text-muted'>
-									{t('ctWaitingActivity')}
-								</p>
-							) : (
-								activityFeed.map(item => (
-									<motion.div
-										key={item.id}
-										initial={{ opacity: 0, x: 10 }}
-										animate={{ opacity: 1, x: 0 }}
-										className='flex items-start gap-2 rounded-lg bg-bg px-3 py-2'
-									>
-										<span className='text-base'>{item.emoji}</span>
-										<span className='text-sm text-text-secondary'>
-											{item.text}
-										</span>
-									</motion.div>
-								))
-							)}
-							<div ref={activityEndRef} />
-						</div>
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'
+						>
+							<SurfaceSectionHeader
+								eyebrow='Room Events'
+								chipText={`${activityFeed.length} events`}
+								className='mb-3'
+							/>
+							<div className='mb-3 flex items-center gap-2'>
+								<Activity className='size-4 text-brand' />
+								<h3 className='text-sm font-semibold uppercase tracking-wider text-text-muted'>
+									{t('ctLiveActivity')}
+								</h3>
+								{isConnected && (
+									<span className='ml-auto inline-block size-2 animate-pulse rounded-full bg-success' />
+								)}
+							</div>
+							<div className='max-h-80 space-y-2 overflow-y-auto pr-1 lg:max-h-[28rem]'>
+								{activityFeed.length === 0 ? (
+									<p className='py-8 text-center text-sm text-text-muted'>
+										{t('ctWaitingActivity')}
+									</p>
+								) : (
+									activityFeed.map(item => (
+										<motion.div
+											key={item.id}
+											initial={{ opacity: 0, x: 10 }}
+											animate={{ opacity: 1, x: 0 }}
+											className='flex items-start gap-2 rounded-xl bg-bg px-3 py-2'
+										>
+											<span className='text-base'>{item.emoji}</span>
+											<span className='text-sm text-text-secondary'>
+												{item.text}
+											</span>
+										</motion.div>
+									))
+								)}
+								<div ref={activityEndRef} />
+							</div>
 						</motion.div>
 					</PremiumSurface>
 				</div>

@@ -275,13 +275,13 @@ export const PostDeadlineCard = ({
 				{/* XP Badge */}
 				<div
 					className={cn(
-						'flex-shrink-0 rounded-lg px-3 py-2 text-center',
+						'flex-shrink-0 rounded-xl px-3 py-2 text-center',
 						config.xpBgClass,
 					)}
 				>
 					<span
 						className={cn(
-							'block text-xl font-display font-extrabold leading-none',
+							'block text-xl font-bold tracking-tight leading-none',
 							config.xpTextClass,
 						)}
 					>
@@ -394,7 +394,7 @@ export const PostDeadlineStack = ({
 								return (
 									<div
 										key={post.id}
-										className='flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/30'
+										className='flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted/30'
 									>
 										{post.recipeImageUrl ? (
 											<Image
@@ -402,10 +402,10 @@ export const PostDeadlineStack = ({
 												alt={post.recipeName}
 												width={40}
 												height={40}
-												className='size-10 rounded-lg object-cover'
+												className='size-10 rounded-xl object-cover'
 											/>
 										) : (
-											<div className='flex size-10 items-center justify-center rounded-lg bg-bg-elevated text-lg'>
+											<div className='flex size-10 items-center justify-center rounded-xl bg-bg-elevated text-lg'>
 												🍳
 											</div>
 										)}
@@ -431,7 +431,7 @@ export const PostDeadlineStack = ({
 											whileHover={BUTTON_SUBTLE_HOVER}
 											whileTap={BUTTON_SUBTLE_TAP}
 											transition={TRANSITION_SPRING}
-											className='rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{t('postAction')}
 										</motion.button>
@@ -528,7 +528,7 @@ export const PostDeadlineMobileStrip = ({
 				onClick={onPost}
 				whileTap={BUTTON_SUBTLE_TAP}
 				transition={TRANSITION_SPRING}
-				className='rounded-lg bg-brand px-3.5 py-1.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='rounded-xl bg-brand px-3.5 py-1.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				{t('postAction')}
 			</motion.button>

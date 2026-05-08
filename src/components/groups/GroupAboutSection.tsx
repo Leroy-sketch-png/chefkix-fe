@@ -18,7 +18,10 @@ interface GroupAboutSectionProps {
  * Shows description, privacy, member count, creation date, tags
  * Similar to Facebook group About tab
  */
-export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionProps) {
+export function GroupAboutSection({
+	group,
+	onViewMembers,
+}: GroupAboutSectionProps) {
 	const t = useTranslations('groups')
 	const createdDate = new Date(group.createdAt)
 	const formattedDate = createdDate.toLocaleDateString('en-US', {
@@ -37,7 +40,9 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			{/* Description */}
 			{group.description && (
 				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
-					<h3 className='font-bold text-lg text-text mb-3'>{t('gaDescription')}</h3>
+					<h3 className='font-bold text-lg text-text mb-3'>
+						{t('gaDescription')}
+					</h3>
 					<p className='text-text-secondary leading-relaxed'>
 						{group.description}
 					</p>
@@ -50,16 +55,18 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				<motion.button
 					type='button'
 					onClick={onViewMembers}
-				whileHover={LIST_ITEM_HOVER}
-				whileTap={LIST_ITEM_TAP}
+					whileHover={LIST_ITEM_HOVER}
+					whileTap={LIST_ITEM_TAP}
 					className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card hover:border-brand/50 transition-all text-left focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<div className='flex items-start gap-4'>
-						<div className='p-3 bg-brand/10 rounded-lg'>
+						<div className='p-3 bg-brand/10 rounded-xl'>
 							<Users className='size-6 text-brand' />
 						</div>
 						<div>
-							<p className='text-sm text-text-secondary mb-1'>{t('gaMembers')}</p>
+							<p className='text-sm text-text-secondary mb-1'>
+								{t('gaMembers')}
+							</p>
 							<p className='text-2xl font-bold tabular-nums text-text'>
 								{group.memberCount.toLocaleString()}
 							</p>
@@ -71,11 +78,13 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				{/* Creation Date Card */}
 				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 					<div className='flex items-start gap-4'>
-						<div className='p-3 bg-brand/10 rounded-lg'>
+						<div className='p-3 bg-brand/10 rounded-xl'>
 							<Clock className='size-6 text-brand' />
 						</div>
 						<div>
-							<p className='text-sm text-text-secondary mb-1'>{t('gaCreated')}</p>
+							<p className='text-sm text-text-secondary mb-1'>
+								{t('gaCreated')}
+							</p>
 							<p className='font-semibold text-text'>{formattedDate}</p>
 						</div>
 					</div>
@@ -85,7 +94,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			{/* Privacy */}
 			<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 				<div className='flex items-start gap-4'>
-					<div className='p-3 bg-brand/10 rounded-lg'>
+					<div className='p-3 bg-brand/10 rounded-xl'>
 						{group.privacyType === 'PRIVATE' ? (
 							<Lock className='size-6 text-brand' />
 						) : (
@@ -93,7 +102,9 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 						)}
 					</div>
 					<div>
-						<p className='text-sm text-text-secondary mb-1'>{t('privacyLabel')}</p>
+						<p className='text-sm text-text-secondary mb-1'>
+							{t('privacyLabel')}
+						</p>
 						<p className='font-semibold text-text'>
 							{group.privacyType === 'PRIVATE'
 								? t('gaPrivateGroup')
@@ -113,7 +124,7 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
 					<h3 className='font-bold text-text mb-4'>{t('gaTags')}</h3>
 					<div className='flex flex-wrap gap-2'>
-						{group.tags.map((tag) => (
+						{group.tags.map(tag => (
 							<span
 								key={tag}
 								className='px-4 py-2 bg-brand/10 text-brand text-sm font-medium rounded-full hover:bg-brand/20 transition-colors'
@@ -128,7 +139,9 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 			{/* Rules Section - Will be populated from backend later */}
 			{group.rules && group.rules.length > 0 && (
 				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
-					<h3 className='font-bold text-lg text-text mb-4'>{t('gaGroupRules')}</h3>
+					<h3 className='font-bold text-lg text-text mb-4'>
+						{t('gaGroupRules')}
+					</h3>
 					<div className='space-y-3'>
 						{group.rules.map((rule, index) => (
 							<div key={index} className='flex gap-3'>
@@ -146,4 +159,3 @@ export function GroupAboutSection({ group, onViewMembers }: GroupAboutSectionPro
 		</motion.div>
 	)
 }
-

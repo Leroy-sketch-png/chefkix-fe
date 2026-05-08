@@ -65,7 +65,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { useAuthGate } from '@/hooks/useAuthGate'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ============================================
 // TYPES
@@ -759,110 +762,114 @@ function SearchContent() {
 							className='mb-3'
 						/>
 						<div className='mx-auto mb-6 max-w-xl'>
-						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-							<TrendingUp className='size-4' />
-							<span className='text-sm font-semibold'>{t('suggestions')}</span>
-						</div>
-						<div className='flex flex-wrap gap-2'>
-							{SEARCH_SUGGESTIONS.map(term => (
-								<motion.button
-									type='button'
-									key={term}
-									onClick={() => handleSuggestionClick(term)}
-									whileTap={BUTTON_TAP}
-									className='min-h-10 rounded-full border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-medium text-text transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									{term}
-								</motion.button>
-							))}
-						</div>
+							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+								<TrendingUp className='size-4' />
+								<span className='text-sm font-semibold'>
+									{t('suggestions')}
+								</span>
+							</div>
+							<div className='flex flex-wrap gap-2'>
+								{SEARCH_SUGGESTIONS.map(term => (
+									<motion.button
+										type='button'
+										key={term}
+										onClick={() => handleSuggestionClick(term)}
+										whileTap={BUTTON_TAP}
+										className='min-h-10 rounded-full border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-medium text-text transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
+									>
+										{term}
+									</motion.button>
+								))}
+							</div>
 						</div>
 
 						<div className='mx-auto mb-6 max-w-xl'>
-						<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-							<Flame className='size-4 text-streak' />
-							<span className='text-sm font-semibold'>
-								{t('trendingSearches')}
-							</span>
-						</div>
-						<div className='grid grid-cols-2 gap-2'>
-							{TRENDING_SEARCH_TERMS.map(({ term, icon: Icon, iconClass }) => (
-								<motion.button
-									type='button'
-									key={term}
-									onClick={() => handleSuggestionClick(term)}
-									whileTap={BUTTON_TAP}
-									className='group flex items-center gap-2 rounded-2xl border border-border-subtle bg-bg-card p-3 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									<span
-										className={cn(
-											'flex size-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105',
-											iconClass,
-										)}
-									>
-										<Icon className='size-4' />
-									</span>
-									<span className='text-sm font-semibold text-text'>
-										{term}
-									</span>
-								</motion.button>
-							))}
-						</div>
+							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+								<Flame className='size-4 text-streak' />
+								<span className='text-sm font-semibold'>
+									{t('trendingSearches')}
+								</span>
+							</div>
+							<div className='grid grid-cols-2 gap-2'>
+								{TRENDING_SEARCH_TERMS.map(
+									({ term, icon: Icon, iconClass }) => (
+										<motion.button
+											type='button'
+											key={term}
+											onClick={() => handleSuggestionClick(term)}
+											whileTap={BUTTON_TAP}
+											className='group flex items-center gap-2 rounded-2xl border border-border-subtle bg-bg-card p-3 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+										>
+											<span
+												className={cn(
+													'flex size-8 flex-shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105',
+													iconClass,
+												)}
+											>
+												<Icon className='size-4' />
+											</span>
+											<span className='text-sm font-semibold text-text'>
+												{term}
+											</span>
+										</motion.button>
+									),
+								)}
+							</div>
 						</div>
 
 						<div className='mx-auto mb-2 max-w-xl'>
-						<div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
-							<Link
-								href='/explore'
-								className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-							>
-								<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
-									<BookOpen className='size-4' />
-								</span>
-								<div className='min-w-0'>
-									<p className='text-sm font-semibold text-text'>
-										{t('tabRecipes')}
-									</p>
-									<p className='text-caption text-text-secondary'>
-										{t('exploreAll')}
-									</p>
-								</div>
-							</Link>
+							<div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
+								<Link
+									href='/explore'
+									className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
+										<BookOpen className='size-4' />
+									</span>
+									<div className='min-w-0'>
+										<p className='text-sm font-semibold text-text'>
+											{t('tabRecipes')}
+										</p>
+										<p className='text-caption text-text-secondary'>
+											{t('exploreAll')}
+										</p>
+									</div>
+								</Link>
 
-							<Link
-								href='/community'
-								className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-							>
-								<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
-									<Users className='size-4' />
-								</span>
-								<div className='min-w-0'>
-									<p className='text-sm font-semibold text-text'>
-										{t('tabPeople')}
-									</p>
-									<p className='text-caption text-text-secondary'>
-										{t('discoverPeople')}
-									</p>
-								</div>
-							</Link>
+								<Link
+									href='/community'
+									className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
+										<Users className='size-4' />
+									</span>
+									<div className='min-w-0'>
+										<p className='text-sm font-semibold text-text'>
+											{t('tabPeople')}
+										</p>
+										<p className='text-caption text-text-secondary'>
+											{t('discoverPeople')}
+										</p>
+									</div>
+								</Link>
 
-							<Link
-								href='/feed'
-								className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-							>
-								<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
-									<ImageIcon className='size-4' />
-								</span>
-								<div className='min-w-0'>
-									<p className='text-sm font-semibold text-text'>
-										{t('tabPosts')}
-									</p>
-									<p className='text-caption text-text-secondary'>
-										{t('viewFeed')}
-									</p>
-								</div>
-							</Link>
-						</div>
+								<Link
+									href='/feed'
+									className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
+										<ImageIcon className='size-4' />
+									</span>
+									<div className='min-w-0'>
+										<p className='text-sm font-semibold text-text'>
+											{t('tabPosts')}
+										</p>
+										<p className='text-caption text-text-secondary'>
+											{t('viewFeed')}
+										</p>
+									</div>
+								</Link>
+							</div>
 						</div>
 					</PremiumSurface>
 					<div className='pb-24 md:pb-8' />
@@ -904,57 +911,57 @@ function SearchContent() {
 				>
 					{/* Header - Secondary page pattern with back button */}
 					<div>
-					{/* Editable search input - users can refine from within the page */}
-					<div className='mb-4 flex items-center gap-3'>
-						<motion.button
-							type='button'
-							onClick={() => router.back()}
-							whileTap={BUTTON_TAP}
-							className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-							aria-label={t('goBack')}
-						>
-							<ArrowLeft className='size-5' />
-						</motion.button>
-						<div className='relative flex-1'>
-							<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
-							<input
-								type='text'
-								value={searchInput}
-								onChange={e => handleSearchInputChange(e.target.value)}
-								placeholder={t('searchPlaceholder')}
-								aria-label={t('searchPlaceholder')}
-								className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
-							/>
-							{searchInput && (
-								<motion.button
-									type='button'
-									onClick={() => handleSearchInputChange('')}
-									whileTap={BUTTON_TAP}
-									className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-									aria-label={t('clearSearch')}
-								>
-									<X className='size-4' />
-								</motion.button>
-							)}
+						{/* Editable search input - users can refine from within the page */}
+						<div className='mb-4 flex items-center gap-3'>
+							<motion.button
+								type='button'
+								onClick={() => router.back()}
+								whileTap={BUTTON_TAP}
+								className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+								aria-label={t('goBack')}
+							>
+								<ArrowLeft className='size-5' />
+							</motion.button>
+							<div className='relative flex-1'>
+								<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
+								<input
+									type='text'
+									value={searchInput}
+									onChange={e => handleSearchInputChange(e.target.value)}
+									placeholder={t('searchPlaceholder')}
+									aria-label={t('searchPlaceholder')}
+									className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
+								/>
+								{searchInput && (
+									<motion.button
+										type='button'
+										onClick={() => handleSearchInputChange('')}
+										whileTap={BUTTON_TAP}
+										className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+										aria-label={t('clearSearch')}
+									>
+										<X className='size-4' />
+									</motion.button>
+								)}
+							</div>
 						</div>
-					</div>
-					<div className='mb-2 flex items-center gap-3'>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={TRANSITION_SPRING}
-							className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
-						>
-							<Search className='size-6 text-white' />
-						</motion.div>
-						<h1 className='text-3xl font-bold text-text'>
-							Results for &quot;{query}&quot;
-						</h1>
-					</div>
-					<p className='flex items-center gap-2 tabular-nums text-text-secondary'>
-						<Sparkles className='size-4 text-streak' />
-						{totalResults} results found
-					</p>
+						<div className='mb-2 flex items-center gap-3'>
+							<motion.div
+								initial={{ scale: 0 }}
+								animate={{ scale: 1 }}
+								transition={TRANSITION_SPRING}
+								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
+							>
+								<Search className='size-6 text-white' />
+							</motion.div>
+							<h1 className='text-3xl font-bold text-text'>
+								Results for &quot;{query}&quot;
+							</h1>
+						</div>
+						<p className='flex items-center gap-2 tabular-nums text-text-secondary'>
+							<Sparkles className='size-4 text-streak' />
+							{totalResults} results found
+						</p>
 					</div>
 				</PremiumSurface>
 
@@ -974,251 +981,251 @@ function SearchContent() {
 
 					{/* Results */}
 					<AnimatePresence mode='wait'>
-					{isLoading ? (
-						<motion.div
-							key='loading-skeleton'
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							transition={{ duration: DURATION_S.fast }}
-						>
-							{activeTab === 'recipes' && (
-								<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
-									{Array.from({ length: 6 }).map((_, i) => (
-										<div
-											key={i}
-											className='overflow-hidden rounded-radius border border-border-subtle bg-bg-card'
-										>
-											<Skeleton className='aspect-[4/3] w-full' />
-											<div className='space-y-3 p-4'>
-												<Skeleton className='h-5 w-full' />
-												<Skeleton className='h-5 w-3/4' />
-												<Skeleton className='h-4 w-24' />
-											</div>
-										</div>
-									))}
-								</div>
-							)}
-							{activeTab === 'people' && (
-								<div className='space-y-4'>
-									{Array.from({ length: 4 }).map((_, i) => (
-										<div
-											key={i}
-											className='flex items-center gap-4 rounded-2xl bg-bg-card p-4'
-										>
-											<Skeleton className='size-14 shrink-0 rounded-full' />
-											<div className='flex-1 space-y-2'>
-												<Skeleton className='h-5 w-32' />
-												<Skeleton className='h-4 w-24' />
-												<Skeleton className='h-4 w-48' />
-											</div>
-											<Skeleton className='h-9 w-24 rounded-xl' />
-										</div>
-									))}
-								</div>
-							)}
-							{activeTab === 'posts' && (
-								<div className='space-y-3'>
-									{Array.from({ length: 4 }).map((_, i) => (
-										<div
-											key={i}
-											className='rounded-2xl bg-bg-card p-4 space-y-3'
-										>
-											<div className='flex items-center gap-3'>
-												<Skeleton className='size-10 rounded-full' />
-												<div className='flex-1 space-y-1'>
-													<Skeleton className='h-4 w-28' />
-													<Skeleton className='h-3 w-20' />
+						{isLoading ? (
+							<motion.div
+								key='loading-skeleton'
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								transition={{ duration: DURATION_S.fast }}
+							>
+								{activeTab === 'recipes' && (
+									<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+										{Array.from({ length: 6 }).map((_, i) => (
+											<div
+												key={i}
+												className='overflow-hidden rounded-radius border border-border-subtle bg-bg-card'
+											>
+												<Skeleton className='aspect-[4/3] w-full' />
+												<div className='space-y-3 p-4'>
+													<Skeleton className='h-5 w-full' />
+													<Skeleton className='h-5 w-3/4' />
+													<Skeleton className='h-4 w-24' />
 												</div>
 											</div>
-											<Skeleton className='h-4 w-full' />
-											<Skeleton className='h-4 w-3/4' />
-											<Skeleton className='aspect-video w-full rounded-xl' />
-										</div>
-									))}
-								</div>
-							)}
-						</motion.div>
-					) : (
-						<>
-							{activeTab === 'recipes' && (
-								<motion.div
-									key='recipes'
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -10 }}
-									transition={{ duration: DURATION_S.normal }}
-								>
-									{results.recipes.length > 0 ? (
-										<StaggerContainer staggerDelay={0.05}>
-											<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
-												{results.recipes.map(recipe => (
-													<RecipeResultCard key={recipe.id} recipe={recipe} />
-												))}
+										))}
+									</div>
+								)}
+								{activeTab === 'people' && (
+									<div className='space-y-4'>
+										{Array.from({ length: 4 }).map((_, i) => (
+											<div
+												key={i}
+												className='flex items-center gap-4 rounded-2xl bg-bg-card p-4'
+											>
+												<Skeleton className='size-14 shrink-0 rounded-full' />
+												<div className='flex-1 space-y-2'>
+													<Skeleton className='h-5 w-32' />
+													<Skeleton className='h-4 w-24' />
+													<Skeleton className='h-4 w-48' />
+												</div>
+												<Skeleton className='h-9 w-24 rounded-xl' />
 											</div>
-										</StaggerContainer>
-									) : (
-										<>
-											{suggestion && (
-												<motion.p
-													initial={{ opacity: 0 }}
-													animate={{ opacity: 1 }}
-													className='mb-4 text-center text-sm text-text-secondary'
-												>
-													Did you mean{' '}
-													<motion.button
-														type='button'
-														onClick={() => {
-															isInternalNav.current = true
-															setSearchInput(suggestion)
-															startNavigationTransition(() => {
-																router.push(
-																	`/search?q=${encodeURIComponent(suggestion)}`,
-																)
-															})
-														}}
-														disabled={isNavigating}
-														whileTap={BUTTON_TAP}
-														className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+										))}
+									</div>
+								)}
+								{activeTab === 'posts' && (
+									<div className='space-y-3'>
+										{Array.from({ length: 4 }).map((_, i) => (
+											<div
+												key={i}
+												className='rounded-2xl bg-bg-card p-4 space-y-3'
+											>
+												<div className='flex items-center gap-3'>
+													<Skeleton className='size-10 rounded-full' />
+													<div className='flex-1 space-y-1'>
+														<Skeleton className='h-4 w-28' />
+														<Skeleton className='h-3 w-20' />
+													</div>
+												</div>
+												<Skeleton className='h-4 w-full' />
+												<Skeleton className='h-4 w-3/4' />
+												<Skeleton className='aspect-video w-full rounded-xl' />
+											</div>
+										))}
+									</div>
+								)}
+							</motion.div>
+						) : (
+							<>
+								{activeTab === 'recipes' && (
+									<motion.div
+										key='recipes'
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: -10 }}
+										transition={{ duration: DURATION_S.normal }}
+									>
+										{results.recipes.length > 0 ? (
+											<StaggerContainer staggerDelay={0.05}>
+												<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+													{results.recipes.map(recipe => (
+														<RecipeResultCard key={recipe.id} recipe={recipe} />
+													))}
+												</div>
+											</StaggerContainer>
+										) : (
+											<>
+												{suggestion && (
+													<motion.p
+														initial={{ opacity: 0 }}
+														animate={{ opacity: 1 }}
+														className='mb-4 text-center text-sm text-text-secondary'
 													>
-														{suggestion}
-													</motion.button>
-													?
-												</motion.p>
-											)}
-											<EmptyStateGamified
-												variant='search'
-												title={t('noRecipes')}
-												description={t('noRecipesDesc', { query })}
-												primaryAction={{
-													label: t('exploreAll'),
-													href: '/explore',
-												}}
-											/>
-										</>
-									)}
-								</motion.div>
-							)}
+														Did you mean{' '}
+														<motion.button
+															type='button'
+															onClick={() => {
+																isInternalNav.current = true
+																setSearchInput(suggestion)
+																startNavigationTransition(() => {
+																	router.push(
+																		`/search?q=${encodeURIComponent(suggestion)}`,
+																	)
+																})
+															}}
+															disabled={isNavigating}
+															whileTap={BUTTON_TAP}
+															className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+														>
+															{suggestion}
+														</motion.button>
+														?
+													</motion.p>
+												)}
+												<EmptyStateGamified
+													variant='search'
+													title={t('noRecipes')}
+													description={t('noRecipesDesc', { query })}
+													primaryAction={{
+														label: t('exploreAll'),
+														href: '/explore',
+													}}
+												/>
+											</>
+										)}
+									</motion.div>
+								)}
 
-							{activeTab === 'people' && (
-								<motion.div
-									key='people'
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -10 }}
-									transition={{ duration: DURATION_S.normal }}
-								>
-									{results.people.length > 0 ? (
-										<StaggerContainer staggerDelay={0.05}>
-											<div className='space-y-4'>
-												{results.people.map(person => (
-													<PersonResultCard key={person.id} person={person} />
-												))}
-											</div>
-										</StaggerContainer>
-									) : (
-										<>
-											{suggestion && (
-												<motion.p
-													initial={{ opacity: 0 }}
-													animate={{ opacity: 1 }}
-													className='mb-4 text-center text-sm text-text-secondary'
-												>
-													Did you mean{' '}
-													<motion.button
-														type='button'
-														onClick={() => {
-															isInternalNav.current = true
-															setSearchInput(suggestion)
-															startNavigationTransition(() => {
-																router.push(
-																	`/search?q=${encodeURIComponent(suggestion)}`,
-																)
-															})
-														}}
-														disabled={isNavigating}
-														whileTap={BUTTON_TAP}
-														className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+								{activeTab === 'people' && (
+									<motion.div
+										key='people'
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: -10 }}
+										transition={{ duration: DURATION_S.normal }}
+									>
+										{results.people.length > 0 ? (
+											<StaggerContainer staggerDelay={0.05}>
+												<div className='space-y-4'>
+													{results.people.map(person => (
+														<PersonResultCard key={person.id} person={person} />
+													))}
+												</div>
+											</StaggerContainer>
+										) : (
+											<>
+												{suggestion && (
+													<motion.p
+														initial={{ opacity: 0 }}
+														animate={{ opacity: 1 }}
+														className='mb-4 text-center text-sm text-text-secondary'
 													>
-														{suggestion}
-													</motion.button>
-													?
-												</motion.p>
-											)}
-											<EmptyStateGamified
-												variant='search'
-												title={t('noPeople')}
-												description={t('noPeopleDesc', { query })}
-												primaryAction={{
-													label: t('discoverPeople'),
-													href: '/community',
-												}}
-											/>
-										</>
-									)}
-								</motion.div>
-							)}
+														Did you mean{' '}
+														<motion.button
+															type='button'
+															onClick={() => {
+																isInternalNav.current = true
+																setSearchInput(suggestion)
+																startNavigationTransition(() => {
+																	router.push(
+																		`/search?q=${encodeURIComponent(suggestion)}`,
+																	)
+																})
+															}}
+															disabled={isNavigating}
+															whileTap={BUTTON_TAP}
+															className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+														>
+															{suggestion}
+														</motion.button>
+														?
+													</motion.p>
+												)}
+												<EmptyStateGamified
+													variant='search'
+													title={t('noPeople')}
+													description={t('noPeopleDesc', { query })}
+													primaryAction={{
+														label: t('discoverPeople'),
+														href: '/community',
+													}}
+												/>
+											</>
+										)}
+									</motion.div>
+								)}
 
-							{activeTab === 'posts' && (
-								<motion.div
-									key='posts'
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -10 }}
-									transition={{ duration: DURATION_S.normal }}
-								>
-									{results.posts.length > 0 ? (
-										<StaggerContainer staggerDelay={0.05}>
-											<div className='space-y-3'>
-												{results.posts.map(post => (
-													<PostResultCard key={post.id} post={post} />
-												))}
-											</div>
-										</StaggerContainer>
-									) : (
-										<>
-											{suggestion && (
-												<motion.p
-													initial={{ opacity: 0 }}
-													animate={{ opacity: 1 }}
-													className='mb-4 text-center text-sm text-text-secondary'
-												>
-													Did you mean{' '}
-													<motion.button
-														type='button'
-														onClick={() => {
-															isInternalNav.current = true
-															setSearchInput(suggestion)
-															startNavigationTransition(() => {
-																router.push(
-																	`/search?q=${encodeURIComponent(suggestion)}`,
-																)
-															})
-														}}
-														disabled={isNavigating}
-														whileTap={BUTTON_TAP}
-														className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+								{activeTab === 'posts' && (
+									<motion.div
+										key='posts'
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: -10 }}
+										transition={{ duration: DURATION_S.normal }}
+									>
+										{results.posts.length > 0 ? (
+											<StaggerContainer staggerDelay={0.05}>
+												<div className='space-y-3'>
+													{results.posts.map(post => (
+														<PostResultCard key={post.id} post={post} />
+													))}
+												</div>
+											</StaggerContainer>
+										) : (
+											<>
+												{suggestion && (
+													<motion.p
+														initial={{ opacity: 0 }}
+														animate={{ opacity: 1 }}
+														className='mb-4 text-center text-sm text-text-secondary'
 													>
-														{suggestion}
-													</motion.button>
-													?
-												</motion.p>
-											)}
-											<EmptyStateGamified
-												variant='search'
-												title={t('noPosts')}
-												description={t('noPostsDesc', { query })}
-												primaryAction={{
-													label: t('viewFeed'),
-													href: '/dashboard',
-												}}
-											/>
-										</>
-									)}
-								</motion.div>
-							)}
-						</>
-					)}
+														Did you mean{' '}
+														<motion.button
+															type='button'
+															onClick={() => {
+																isInternalNav.current = true
+																setSearchInput(suggestion)
+																startNavigationTransition(() => {
+																	router.push(
+																		`/search?q=${encodeURIComponent(suggestion)}`,
+																	)
+																})
+															}}
+															disabled={isNavigating}
+															whileTap={BUTTON_TAP}
+															className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+														>
+															{suggestion}
+														</motion.button>
+														?
+													</motion.p>
+												)}
+												<EmptyStateGamified
+													variant='search'
+													title={t('noPosts')}
+													description={t('noPostsDesc', { query })}
+													primaryAction={{
+														label: t('viewFeed'),
+														href: '/dashboard',
+													}}
+												/>
+											</>
+										)}
+									</motion.div>
+								)}
+							</>
+						)}
 					</AnimatePresence>
 				</PremiumSurface>
 			</PageContainer>

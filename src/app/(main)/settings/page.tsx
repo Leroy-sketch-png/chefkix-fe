@@ -312,7 +312,7 @@ const SettingsCard = ({
 		)}
 	>
 		<div className='mb-4'>
-			<h2 className='text-lg font-semibold text-text'>{title}</h2>
+			<h2 className='text-base font-semibold text-text-primary'>{title}</h2>
 			{description && (
 				<p className='mt-1 text-sm text-text-secondary'>{description}</p>
 			)}
@@ -421,7 +421,7 @@ const ButtonGroup = <T extends string>({
 					whileTap={option.disabled ? undefined : BUTTON_TAP}
 					onClick={() => !option.disabled && onChange(option.value)}
 					className={cn(
-						'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+						'flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 						option.disabled
 							? 'cursor-not-allowed opacity-40 bg-bg-elevated text-text-secondary'
 							: value === option.value
@@ -1012,60 +1012,60 @@ export default function SettingsPage() {
 								aria-label={t('title')}
 								className='flex gap-1.5 overflow-x-auto pb-1 pr-6 lg:pr-0 lg:pb-0 lg:flex-col scrollbar-hide lg:gap-2'
 							>
-							{TABS.map(tab => {
-								const Icon = tab.icon
-								const isActive = activeTab === tab.id
-								return (
-									<motion.button
-										type='button'
-										key={tab.id}
-										role='tab'
-										aria-selected={isActive}
-										aria-controls={`tabpanel-${tab.id}`}
-										whileHover={NAV_ITEM_HOVER}
-										whileTap={LIST_ITEM_TAP}
-										onClick={() => handleTabChange(tab.id)}
-										title={t(tab.labelKey)}
-										className={cn(
-											'flex min-w-[6.25rem] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-2.5 py-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-brand/50 lg:min-w-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left',
-											isActive
-												? 'bg-brand/10 text-brand font-semibold'
-												: 'text-text-secondary hover:bg-bg-hover hover:text-text',
-										)}
-									>
-										<Icon
+								{TABS.map(tab => {
+									const Icon = tab.icon
+									const isActive = activeTab === tab.id
+									return (
+										<motion.button
+											type='button'
+											key={tab.id}
+											role='tab'
+											aria-selected={isActive}
+											aria-controls={`tabpanel-${tab.id}`}
+											whileHover={NAV_ITEM_HOVER}
+											whileTap={LIST_ITEM_TAP}
+											onClick={() => handleTabChange(tab.id)}
+											title={t(tab.labelKey)}
 											className={cn(
-												'size-5 flex-shrink-0',
-												isActive ? 'text-brand' : 'text-text-secondary',
+												'flex min-w-[6.25rem] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2.5 py-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-brand/50 lg:min-w-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-xl lg:px-4 lg:py-3 lg:text-left',
+												isActive
+													? 'bg-brand/10 text-brand font-semibold'
+													: 'text-text-secondary hover:bg-bg-hover hover:text-text',
 											)}
-										/>
-										<p className='text-xs font-medium leading-tight lg:text-sm'>
-											{t(tab.labelKey)}
-										</p>
-									</motion.button>
-								)
-							})}
+										>
+											<Icon
+												className={cn(
+													'size-5 flex-shrink-0',
+													isActive ? 'text-brand' : 'text-text-secondary',
+												)}
+											/>
+											<p className='text-xs font-medium leading-tight lg:text-sm'>
+												{t(tab.labelKey)}
+											</p>
+										</motion.button>
+									)
+								})}
 
-							{/* Divider + Sign Out */}
-							<div className='hidden lg:block my-1 h-px bg-border-subtle' />
-							<div className='lg:hidden my-1 w-px bg-border-subtle' />
-							<motion.button
-								type='button'
-								whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
-								whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
-								onClick={handleLogout}
-								disabled={isLoggingOut}
-								className='flex min-w-[6.25rem] flex-shrink-0 flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-center text-error transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 lg:min-w-0 lg:flex-row lg:gap-3 lg:rounded-lg lg:px-4 lg:py-3 lg:text-left'
-							>
-								{isLoggingOut ? (
-									<Loader2 className='size-5 flex-shrink-0 animate-spin' />
-								) : (
-									<LogOut className='size-5 flex-shrink-0' />
-								)}
-								<p className='text-xs font-medium leading-tight lg:text-sm'>
-									{isLoggingOut ? t('signingOut') : t('signOut')}
-								</p>
-							</motion.button>
+								{/* Divider + Sign Out */}
+								<div className='hidden lg:block my-1 h-px bg-border-subtle' />
+								<div className='lg:hidden my-1 w-px bg-border-subtle' />
+								<motion.button
+									type='button'
+									whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
+									whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
+									onClick={handleLogout}
+									disabled={isLoggingOut}
+									className='flex min-w-[6.25rem] flex-shrink-0 flex-col items-center gap-1 rounded-xl px-2.5 py-2 text-center text-error transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 lg:min-w-0 lg:flex-row lg:gap-3 lg:rounded-xl lg:px-4 lg:py-3 lg:text-left'
+								>
+									{isLoggingOut ? (
+										<Loader2 className='size-5 flex-shrink-0 animate-spin' />
+									) : (
+										<LogOut className='size-5 flex-shrink-0' />
+									)}
+									<p className='text-xs font-medium leading-tight lg:text-sm'>
+										{isLoggingOut ? t('signingOut') : t('signOut')}
+									</p>
+								</motion.button>
 							</div>
 						</PremiumSurface>
 						{/* Scroll fade indicator (mobile only) */}
@@ -1109,7 +1109,7 @@ export default function SettingsPage() {
 												>
 													<div
 														className={cn(
-															'relative h-28 w-full overflow-hidden rounded-lg border-2 bg-gradient-warm transition-all sm:h-32',
+															'relative h-28 w-full overflow-hidden rounded-2xl border-2 bg-gradient-warm transition-all sm:h-32',
 															coverImageUrl
 																? 'border-border-subtle'
 																: 'border-dashed border-border-subtle',
@@ -1934,7 +1934,7 @@ export default function SettingsPage() {
 											}
 										/>
 										{settings.cooking.allergies.length > 0 && (
-											<div className='mt-3 flex items-center gap-2 rounded-lg bg-warning/10 p-3 text-warning'>
+											<div className='mt-3 flex items-center gap-2 rounded-xl bg-warning/10 p-3 text-warning'>
 												<AlertTriangle className='size-4' />
 												<span className='text-sm'>
 													{t('allergyWarning', {
@@ -2131,7 +2131,7 @@ export default function SettingsPage() {
 														</span>
 													</div>
 													{verificationStatus.status === 'APPROVED' && (
-														<div className='flex items-center gap-2 rounded-lg bg-success/5 p-3'>
+														<div className='flex items-center gap-2 rounded-xl bg-success/5 p-3'>
 															<BadgeCheck className='size-5 text-info' />
 															<p className='text-sm font-medium text-success'>
 																{t('verifiedSuccess')}

@@ -221,7 +221,7 @@ export const ConfirmModal = ({
 					type='button'
 					onClick={onClose}
 					disabled={isLoading}
-					className='h-11 rounded-lg px-4 text-sm font-semibold leading-normal text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50'
+					className='h-11 rounded-xl px-4 text-sm font-semibold leading-normal text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50'
 				>
 					{cancelText}
 				</button>
@@ -230,7 +230,7 @@ export const ConfirmModal = ({
 					onClick={onConfirm}
 					disabled={isLoading}
 					className={cn(
-						'h-11 rounded-lg px-4 text-sm font-semibold leading-normal transition-all hover:-translate-y-0.5 disabled:opacity-50',
+						'h-11 rounded-xl px-4 text-sm font-semibold leading-normal transition-all hover:-translate-y-0.5 disabled:opacity-50',
 						variant === 'default' && 'bg-brand text-white hover:shadow-warm',
 						variant === 'danger' && 'bg-error text-white hover:shadow-warm',
 					)}
@@ -284,7 +284,7 @@ export const AlertModal = ({
 				<button
 					type='button'
 					onClick={onClose}
-					className='h-11 rounded-lg bg-brand px-4 text-sm font-semibold leading-normal text-white transition-all hover:-translate-y-0.5 hover:shadow-warm'
+					className='h-11 rounded-xl bg-brand px-4 text-sm font-semibold leading-normal text-white transition-all hover:-translate-y-0.5 hover:shadow-warm'
 				>
 					{buttonText}
 				</button>

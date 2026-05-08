@@ -56,7 +56,7 @@ const CreateStoryCard = ({
 					<img
 						src={avatarUrl}
 						alt='Your story avatar'
-						className='size-8 rounded-lg object-cover'
+						className='size-8 rounded-xl object-cover'
 					/>
 				</div>
 				{!fullWidth ? (

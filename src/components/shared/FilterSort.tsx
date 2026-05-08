@@ -99,7 +99,8 @@ export const FilterBar = ({
 	]
 
 	const selectedSort =
-		sortOptions.find(opt => opt.value === sortValue)?.label || t('fsSortPopular')
+		sortOptions.find(opt => opt.value === sortValue)?.label ||
+		t('fsSortPopular')
 
 	return (
 		<div
@@ -125,7 +126,10 @@ export const FilterBar = ({
 
 			{/* Sort Dropdown - Simplified for now, can be enhanced with Radix UI dropdown */}
 			<div className='relative'>
-				<button type='button' className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-brand hover:bg-bg-elevated'>
+				<button
+					type='button'
+					className='flex h-11 items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-4 text-sm font-semibold leading-normal transition-all hover:border-brand hover:bg-bg-elevated'
+				>
 					<ArrowUpDown className='size-4.5 text-text-secondary' />
 					<span>{selectedSort}</span>
 					<ChevronDown className='size-4.5 text-text-secondary' />
@@ -138,7 +142,7 @@ export const FilterBar = ({
 					type='button'
 					onClick={() => onViewModeChange?.('grid')}
 					className={cn(
-						'size-11 rounded-lg p-2 transition-all',
+						'size-11 rounded-xl p-2 transition-all',
 						viewMode === 'grid'
 							? 'bg-bg-card text-brand'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
@@ -151,7 +155,7 @@ export const FilterBar = ({
 					type='button'
 					onClick={() => onViewModeChange?.('list')}
 					className={cn(
-						'size-11 rounded-lg p-2 transition-all',
+						'size-11 rounded-xl p-2 transition-all',
 						viewMode === 'list'
 							? 'bg-bg-card text-brand'
 							: 'text-text-secondary hover:bg-bg-card hover:text-text-primary',
@@ -164,7 +168,11 @@ export const FilterBar = ({
 
 			{/* Results Count */}
 			<div className='ml-auto text-sm leading-normal text-text-secondary'>
-				{t('fsShowing', { start: currentStart, end: currentEnd, total: totalResults })}
+				{t('fsShowing', {
+					start: currentStart,
+					end: currentEnd,
+					total: totalResults,
+				})}
 			</div>
 		</div>
 	)
@@ -217,7 +225,7 @@ export const ActiveFilters = ({
 				<button
 					type='button'
 					onClick={onClearAll}
-					className='h-11 rounded-lg px-3 text-xs font-semibold leading-normal text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary'
+					className='h-11 rounded-xl px-3 text-xs font-semibold leading-normal text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary'
 				>
 					Clear all
 				</button>
@@ -328,7 +336,7 @@ export const CheckboxFilter = ({
 	onChange,
 }: CheckboxFilterProps) => {
 	return (
-		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-bg-hover'>
+		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-xl p-2.5 transition-colors hover:bg-bg-hover'>
 			<input
 				type='checkbox'
 				checked={checked}
@@ -364,7 +372,7 @@ export const RadioFilter = ({
 	onChange,
 }: RadioFilterProps) => {
 	return (
-		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5 transition-colors hover:bg-bg-hover'>
+		<label className='mb-2 flex cursor-pointer items-center gap-2.5 rounded-xl p-2.5 transition-colors hover:bg-bg-hover'>
 			<input
 				type='radio'
 				name={name}

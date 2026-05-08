@@ -547,7 +547,7 @@ function CreateDuelModal({
 							type='button'
 							onClick={onClose}
 							aria-label={t('closeModal')}
-							className='rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-elevated'
+							className='rounded-xl p-1.5 text-text-muted transition-colors hover:bg-bg-elevated'
 						>
 							<X className='size-5' />
 						</button>

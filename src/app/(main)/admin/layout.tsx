@@ -72,7 +72,7 @@ export default function AdminLayout({
 							key={item.href}
 							href={item.href}
 							className={cn(
-								'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+								'flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
 								isActive
 									? 'bg-bg-card text-text shadow-card'
 									: 'text-text-muted hover:text-text',

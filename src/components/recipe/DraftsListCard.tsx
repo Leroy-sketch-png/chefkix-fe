@@ -49,7 +49,7 @@ function DraftsListCardFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-9 w-fit items-center justify-center rounded-lg border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-9 w-fit items-center justify-center rounded-xl border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -126,7 +126,7 @@ function DraftsListCardContent({
 					whileTap={ICON_BUTTON_TAP}
 					disabled={isDuplicating}
 					title={t('duplicateDraft')}
-					className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex size-9 items-center justify-center rounded-xl text-text-muted transition-all hover:bg-brand/10 hover:text-brand disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Copy className={cn('size-4', isDuplicating && 'animate-pulse')} />
 				</motion.button>
@@ -139,7 +139,7 @@ function DraftsListCardContent({
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					title={t('deleteDraft')}
-					className='flex size-9 items-center justify-center rounded-lg text-text-muted transition-all hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex size-9 items-center justify-center rounded-xl text-text-muted transition-all hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Trash2 className='size-4' />
 				</motion.button>

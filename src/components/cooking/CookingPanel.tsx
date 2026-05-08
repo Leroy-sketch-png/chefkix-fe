@@ -126,7 +126,7 @@ const CompactStepDots = ({
 					key={stepNum}
 					onClick={() => onStepClick(stepNum)}
 					className={cn(
-						'grid size-7 place-items-center rounded-lg text-xs font-bold transition-all hover:scale-110',
+						'grid size-7 place-items-center rounded-xl text-xs font-bold transition-all hover:scale-110',
 						isCompleted
 							? 'bg-success text-white'
 							: isCurrent
@@ -431,7 +431,7 @@ export const CookingPanel = () => {
 						type='button'
 						onClick={() => setKitchenMode(k => !k)}
 						className={cn(
-							'grid size-10 place-items-center rounded-lg transition-colors',
+							'grid size-10 place-items-center rounded-xl transition-colors',
 							kitchenMode ? 'bg-white/40' : 'bg-white/20 hover:bg-white/30',
 						)}
 						title={kitchenMode ? t('cpKitchenOn') : t('cpKitchenOff')}
@@ -447,7 +447,7 @@ export const CookingPanel = () => {
 						type='button'
 						onClick={cycleInstructionDetail}
 						className={cn(
-							'grid size-10 place-items-center rounded-lg transition-colors',
+							'grid size-10 place-items-center rounded-xl transition-colors',
 							instructionDetail === 'detailed'
 								? 'bg-success/40'
 								: instructionDetail === 'condensed'
@@ -462,7 +462,7 @@ export const CookingPanel = () => {
 					<button
 						type='button'
 						onClick={expandCookingPanel}
-						className='grid size-10 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
+						className='grid size-10 place-items-center rounded-xl bg-white/20 transition-colors hover:bg-white/30'
 						title={t('cpExpand')}
 						aria-label={t('cpExpand')}
 					>
@@ -471,7 +471,7 @@ export const CookingPanel = () => {
 					<button
 						type='button'
 						onClick={closeCookingPanel}
-						className='grid size-10 place-items-center rounded-lg bg-white/20 transition-colors hover:bg-white/30'
+						className='grid size-10 place-items-center rounded-xl bg-white/20 transition-colors hover:bg-white/30'
 						title={t('cpClose')}
 						aria-label={t('cpClose')}
 					>
@@ -816,4 +816,3 @@ export const CookingPanel = () => {
 		</aside>
 	)
 }
-

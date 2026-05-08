@@ -17,7 +17,7 @@ export default function BansLoading() {
 				>
 					<div className='flex items-center justify-between gap-3'>
 						<div className='flex items-center gap-3'>
-							<Skeleton className='size-10 rounded-lg' />
+							<Skeleton className='size-10 rounded-xl' />
 							<div className='space-y-2'>
 								<div className='flex items-center gap-2'>
 									<Skeleton className='h-4 w-24' />

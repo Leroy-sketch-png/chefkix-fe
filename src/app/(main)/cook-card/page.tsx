@@ -43,28 +43,28 @@ function CookCardContent() {
 					className='mb-6 p-3 md:p-4'
 				>
 					<div className='flex items-center gap-3'>
-					<motion.button
-						type='button'
-						onClick={() => router.back()}
-						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-						aria-label={t('ariaGoBack')}
-					>
-						<ArrowLeft className='size-5' />
-					</motion.button>
-					<div className='flex-1'>
-						<PageHeader
-							icon={Award}
-							title={t('cookCardTitle')}
-							subtitle={t('cookCardSubtitle')}
-							gradient='warm'
-							subtitleIcon={Sparkles}
-							marginBottom='sm'
-							className='mb-0'
-						/>
+						<motion.button
+							type='button'
+							onClick={() => router.back()}
+							whileTap={BUTTON_SUBTLE_TAP}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoBack')}
+						>
+							<ArrowLeft className='size-5' />
+						</motion.button>
+						<div className='flex-1'>
+							<PageHeader
+								icon={Award}
+								title={t('cookCardTitle')}
+								subtitle={t('cookCardSubtitle')}
+								gradient='warm'
+								subtitleIcon={Sparkles}
+								marginBottom='sm'
+								className='mb-0'
+							/>
+						</div>
 					</div>
-				</div>
-			</PremiumSurface>
+				</PremiumSurface>
 
 				<PremiumSurface
 					eyebrow='Card Preview'
@@ -89,7 +89,7 @@ export default function CookCardPage() {
 			fallback={
 				<PageContainer>
 					<div className='mx-auto max-w-md space-y-4'>
-						<div className='h-6 w-40 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='h-6 w-40 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='aspect-[4/5] w-full animate-pulse rounded-xl bg-bg-elevated' />
 					</div>
 				</PageContainer>

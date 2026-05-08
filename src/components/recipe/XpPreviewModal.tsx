@@ -90,14 +90,14 @@ export const XpPreviewModal = ({
 				>
 					{/* Header */}
 					<div className='mb-5 flex items-center justify-between'>
-						<h2 className='text-xl font-display font-extrabold text-text'>
+						<h2 className='text-xl font-bold tracking-tight text-text'>
 							{t('xpPreview')}
 						</h2>
 						<button
 							type='button'
 							onClick={onBack}
 							aria-label={t('ariaClose')}
-							className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-secondary'
+							className='flex size-9 items-center justify-center rounded-xl bg-bg text-text-secondary'
 						>
 							<X className='size-5' />
 						</button>
@@ -171,7 +171,7 @@ export const XpPreviewModal = ({
 							{(xpBreakdown.techniques || []).map((tech, i) => (
 								<div
 									key={i}
-									className='flex items-center justify-between rounded-lg bg-streak/10 px-3.5 py-2.5'
+									className='flex items-center justify-between rounded-xl bg-streak/10 px-3.5 py-2.5'
 								>
 									<div className='flex items-center gap-2.5 text-sm text-text'>
 										<span className='text-lg'>??</span>

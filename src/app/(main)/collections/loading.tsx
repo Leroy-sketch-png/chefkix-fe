@@ -7,7 +7,7 @@ export default function Loading() {
 			<div className='space-y-6 py-6'>
 				{/* Header */}
 				<div className='space-y-2'>
-					<Skeleton className='h-9 w-44 rounded-lg' />
+					<Skeleton className='h-9 w-44 rounded-xl' />
 					<Skeleton className='h-5 w-72 rounded' />
 				</div>
 

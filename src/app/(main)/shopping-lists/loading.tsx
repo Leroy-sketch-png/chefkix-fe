@@ -6,7 +6,7 @@ export default function Loading() {
 		<PageContainer maxWidth='lg'>
 			{/* Header */}
 			<div className='mb-6 space-y-2'>
-				<Skeleton className='h-9 w-48 rounded-lg' />
+				<Skeleton className='h-9 w-48 rounded-xl' />
 				<Skeleton className='h-5 w-72 rounded' />
 			</div>
 

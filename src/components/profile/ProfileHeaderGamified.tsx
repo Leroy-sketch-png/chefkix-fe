@@ -198,7 +198,7 @@ const LevelRing = ({
 				</svg>
 				<span
 					className={cn(
-						'absolute inset-0 flex items-center justify-center font-display font-extrabold text-white',
+						'absolute inset-0 flex items-center justify-center font-bold tracking-tight text-white',
 						size === 'default' ? 'text-lg' : 'text-base',
 					)}
 				>
@@ -274,7 +274,7 @@ const StatsRow = ({
 }) => {
 	const t = useTranslations('profile')
 	return (
-		<div className='flex flex-col gap-4 border-y border-border bg-bg-elevated px-4 py-5 sm:flex-row sm:items-center sm:gap-0 md:px-6'>
+		<div className='flex flex-col gap-4 border-y border-border-subtle bg-bg-elevated/60 px-4 py-4 sm:flex-row sm:items-center sm:gap-0 md:px-6'>
 			{/* Social Stats */}
 			<div className='flex gap-6 md:gap-8'>
 				{isOwnProfile ? (
@@ -282,7 +282,7 @@ const StatsRow = ({
 						href='/profile/followers?tab=followers'
 						className='flex flex-col transition-opacity hover:opacity-70'
 					>
-						<span className='text-xl font-display font-extrabold tabular-nums'>
+						<span className='text-xl font-bold tracking-tight tabular-nums'>
 							<AnimatedNumber value={social.followers} format={formatNumber} />
 						</span>
 						<span className='text-xs text-text-muted'>
@@ -291,7 +291,7 @@ const StatsRow = ({
 					</Link>
 				) : (
 					<div className='flex flex-col'>
-						<span className='text-xl font-display font-extrabold tabular-nums'>
+						<span className='text-xl font-bold tracking-tight tabular-nums'>
 							<AnimatedNumber value={social.followers} format={formatNumber} />
 						</span>
 						<span className='text-xs text-text-muted'>
@@ -304,7 +304,7 @@ const StatsRow = ({
 						href='/profile/followers?tab=following'
 						className='flex flex-col transition-opacity hover:opacity-70'
 					>
-						<span className='text-xl font-display font-extrabold tabular-nums'>
+						<span className='text-xl font-bold tracking-tight tabular-nums'>
 							<AnimatedNumber value={social.following} format={formatNumber} />
 						</span>
 						<span className='text-xs text-text-muted'>
@@ -313,7 +313,7 @@ const StatsRow = ({
 					</Link>
 				) : (
 					<div className='flex flex-col'>
-						<span className='text-xl font-display font-extrabold tabular-nums'>
+						<span className='text-xl font-bold tracking-tight tabular-nums'>
 							<AnimatedNumber value={social.following} format={formatNumber} />
 						</span>
 						<span className='text-xs text-text-muted'>
@@ -329,7 +329,7 @@ const StatsRow = ({
 			{/* Cooking Stats */}
 			<div className='flex gap-6 md:gap-8'>
 				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold text-success tabular-nums'>
+					<span className='text-xl font-bold tracking-tight text-success tabular-nums'>
 						<AnimatedNumber
 							value={cooking.recipesCooked}
 							format={formatNumber}
@@ -342,7 +342,7 @@ const StatsRow = ({
 					</span>
 				</div>
 				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold tabular-nums'>
+					<span className='text-xl font-bold tracking-tight tabular-nums'>
 						<AnimatedNumber
 							value={cooking.recipesCreated}
 							format={formatNumber}
@@ -356,7 +356,7 @@ const StatsRow = ({
 				</div>
 				{cooking.mastered !== undefined && (
 					<div className='flex flex-col'>
-						<span className='text-xl font-display font-extrabold tabular-nums'>
+						<span className='text-xl font-bold tracking-tight tabular-nums'>
 							<AnimatedNumber value={cooking.mastered} format={formatNumber} />
 						</span>
 						<span className='text-xs text-text-muted'>{t('mastered')}</span>
@@ -382,20 +382,16 @@ const XPProgressBar = ({
 	const t = useTranslations('profile')
 	return (
 		<div className='px-6 py-4'>
-			<div className='relative mb-2 h-2.5 overflow-hidden rounded-full bg-border'>
+			<div className='relative mb-2.5 h-2 overflow-hidden rounded-full bg-border-subtle'>
 				<motion.div
-					className='h-full rounded-full bg-gradient-to-r from-brand to-streak'
+					className='h-full rounded-full bg-gradient-to-r from-brand via-brand to-streak'
 					initial={{ width: 0 }}
 					animate={{ width: `${progressPercent}%` }}
 					transition={{ duration: DURATION_S.slow }}
 				/>
-				{/* Next level milestone marker */}
-				<div className='absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
-					<div className='h-4 w-1 rounded-sm bg-text-muted' />
-				</div>
 			</div>
-			<div className='flex justify-between text-sm'>
-				<span className='font-display font-semibold text-brand'>
+			<div className='flex justify-between text-xs'>
+				<span className='font-bold tabular-nums text-brand'>
 					{t('xpLabel', { xp: formatNumber(currentXP) })}
 				</span>
 				<span className='text-text-muted'>
@@ -424,8 +420,10 @@ const BadgesShowcase = ({
 	return (
 		<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
 			{!compact && (
-				<div className='mb-4 flex items-center justify-between'>
-					<h3 className='text-sm font-bold'>{t('badgesTitle')}</h3>
+				<div className='mb-3 flex items-center justify-between'>
+					<h3 className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+						{t('badgesTitle')}
+					</h3>
 					{isOwnProfile && totalBadges > 0 ? (
 						<Link
 							href='/profile/badges'
@@ -673,14 +671,16 @@ const OwnProfileHeader = ({
 
 				{/* Info */}
 				<div className='flex-1 pt-14'>
-					<h1 className='truncate text-2xl font-display font-extrabold'>
+					<h1 className='truncate text-2xl font-bold tracking-tight text-text-primary'>
 						{user.displayName}
 					</h1>
-					<p className='mt-1 truncate text-sm text-text-muted'>
+					<p className='mt-0.5 truncate text-sm text-text-muted'>
 						@{user.username}
 					</p>
 					{user.bio && (
-						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
+						<p className='mt-2 text-sm leading-relaxed text-text-secondary'>
+							{user.bio}
+						</p>
 					)}
 				</div>
 
@@ -691,7 +691,7 @@ const OwnProfileHeader = ({
 						onClick={onEditProfile}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='group flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-border focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='group flex items-center gap-1.5 rounded-xl border border-border-medium bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						title={`${t('phEditProfile')} (${modKey}+E)`}
 					>
 						<Settings className='size-4' />
@@ -706,7 +706,7 @@ const OwnProfileHeader = ({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex h-10 w-10 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						aria-label={t('shareProfileAria')}
 					>
 						<Share2 className='size-4' />
@@ -766,7 +766,7 @@ const OwnProfileHeader = ({
 						onClick={onPostPending}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='rounded-lg bg-error px-4 py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='rounded-xl bg-error px-4 py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{t('postNow')}
 					</motion.button>
@@ -875,18 +875,20 @@ const OtherUserProfileHeader = ({
 				{/* Info */}
 				<div className='flex-1 pt-14'>
 					<div className='flex items-center gap-2'>
-						<h1 className='truncate text-2xl font-display font-extrabold'>
+						<h1 className='truncate text-2xl font-bold tracking-tight text-text-primary'>
 							{user.displayName}
 						</h1>
 						{user.isVerified && (
 							<VerifiedBadge className='flex-shrink-0 text-info' />
 						)}
 					</div>
-					<p className='mt-1 truncate text-sm text-text-muted'>
+					<p className='mt-0.5 truncate text-sm text-text-muted'>
 						@{user.username}
 					</p>
 					{user.bio && (
-						<p className='mt-2 text-sm leading-relaxed'>{user.bio}</p>
+						<p className='mt-2 text-sm leading-relaxed text-text-secondary'>
+							{user.bio}
+						</p>
 					)}
 				</div>
 
@@ -899,10 +901,10 @@ const OtherUserProfileHeader = ({
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className={cn(
-							'flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
+							'flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 							isFollowing
-								? 'border border-border bg-bg-elevated hover:bg-border'
-								: 'bg-brand text-white',
+								? 'border border-border-medium bg-bg-elevated hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
+								: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90',
 						)}
 					>
 						{isFollowing ? (
@@ -916,7 +918,7 @@ const OtherUserProfileHeader = ({
 					</motion.button>
 					{/* Mutual Follow Badge (Instagram model: mutual follow = friends) */}
 					{isMutualFollow && (
-						<div className='flex items-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm font-semibold text-success'>
+						<div className='flex items-center gap-1.5 rounded-xl border border-success/25 bg-success/10 px-3 py-2.5 text-sm font-semibold text-success'>
 							<Users className='size-4' />
 							{t('friends')}
 						</div>
@@ -928,7 +930,7 @@ const OtherUserProfileHeader = ({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex h-10 w-10 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageCircle className='size-4' />
 					</motion.button>
@@ -946,10 +948,10 @@ const OtherUserProfileHeader = ({
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className={cn(
-							'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
+							'flex h-10 w-10 items-center justify-center rounded-xl border transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 							isBlocked
 								? 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
-								: 'border-border bg-bg-elevated text-text-muted hover:bg-border hover:text-destructive',
+								: 'border-border-medium bg-bg-elevated text-text-muted hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive',
 						)}
 						title={isBlocked ? t('unblockUser') : t('blockUser')}
 					>
@@ -1017,7 +1019,7 @@ const MiniProfileHeader = ({
 					height={48}
 					className='size-12 rounded-full object-cover'
 				/>
-				<span className='absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border-2 border-bg-card bg-success text-2xs font-display font-extrabold text-white'>
+				<span className='absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border-2 border-bg-card bg-success text-2xs font-bold tracking-tight text-white'>
 					{level}
 				</span>
 			</div>
@@ -1031,7 +1033,7 @@ const MiniProfileHeader = ({
 					)}
 					<span
 						className={cn(
-							'rounded-lg px-2 py-0.5 text-2xs font-bold uppercase text-white',
+							'rounded-xl px-2 py-0.5 text-2xs font-bold uppercase text-white',
 							config.gradient,
 						)}
 					>
@@ -1066,7 +1068,7 @@ const MiniProfileHeader = ({
 				animate={isFollowing ? FOLLOW_PULSE.followed : undefined}
 				transition={TRANSITION_SPRING}
 				className={cn(
-					'rounded-lg px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
+					'rounded-xl px-4 py-2 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
 					isFollowing
 						? 'border border-border bg-bg-elevated hover:bg-border'
 						: 'bg-brand text-white',
@@ -1097,4 +1099,3 @@ export const ProfileHeaderGamified = (props: ProfileHeaderGamifiedProps) => {
 
 // Export individual variants for direct use
 export { OwnProfileHeader, OtherUserProfileHeader, MiniProfileHeader }
-

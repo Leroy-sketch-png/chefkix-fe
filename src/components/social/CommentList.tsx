@@ -61,7 +61,7 @@ function CommentItemErrorFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-10 w-fit items-center justify-center rounded-xl border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -232,7 +232,7 @@ export const CommentList = ({
 				<button
 					type='button'
 					onClick={fetchComments}
-					className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
+					className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
 				>
 					<RefreshCw className='size-3.5' />
 					{t('retryComments')}
@@ -260,7 +260,7 @@ export const CommentList = ({
 						type='button'
 						onClick={handleSubmitComment}
 						disabled={!newComment.trim() || isSubmitting}
-						className='grid size-10 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+						className='grid size-10 place-items-center rounded-xl bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 						aria-label={t('commentSubmitAriaLabel')}
 					>
 						{isSubmitting ? (

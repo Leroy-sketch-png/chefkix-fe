@@ -164,7 +164,7 @@ function PostCardErrorFallback({
 					<button
 						type='button'
 						onClick={onReset}
-						className='inline-flex h-10 items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='inline-flex h-10 items-center justify-center rounded-xl border border-border-subtle px-4 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{tCommon('tryAgain')}
 					</button>
@@ -873,7 +873,7 @@ const PostCardContent = ({
 							<textarea
 								value={editContent}
 								onChange={e => setEditContent(e.target.value)}
-								className='min-h-textarea w-full resize-none rounded-lg bg-bg-card p-3 text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
+								className='min-h-textarea w-full resize-none rounded-xl bg-bg-card p-3 text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
 								placeholder={t('editPostPlaceholder')}
 								aria-label={t('editPostPlaceholder')}
 								maxLength={2000}
@@ -888,7 +888,7 @@ const PostCardContent = ({
 							<input
 								value={editTags}
 								onChange={e => setEditTags(e.target.value)}
-								className='w-full rounded-lg bg-bg-card px-3 py-2 text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
+								className='w-full rounded-xl bg-bg-card px-3 py-2 text-text-primary caret-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/10'
 								placeholder={t('tagsPlaceholder')}
 								aria-label={t('tagsPlaceholder')}
 								maxLength={200}
@@ -898,7 +898,7 @@ const PostCardContent = ({
 									type='button'
 									onClick={handleEdit}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='h-11 flex-1 rounded-lg bg-brand px-4 font-medium text-white transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='h-11 flex-1 rounded-xl bg-brand px-4 font-medium text-white transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{t('save')}
 								</motion.button>
@@ -910,7 +910,7 @@ const PostCardContent = ({
 										setEditTags((post.tags ?? []).join(', '))
 									}}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='h-11 flex-1 rounded-lg border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='h-11 flex-1 rounded-xl border border-border-subtle bg-bg-card px-4 font-medium text-text-primary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{t('cancel')}
 								</motion.button>
@@ -969,10 +969,10 @@ const PostCardContent = ({
 													<div className='flex flex-col items-center gap-2'>
 														<Link
 															href={`/recipes/${post.battleRecipeIdA}`}
-															className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'
+															className='group/recipe flex flex-col items-center gap-2 rounded-xl p-2 transition-colors hover:bg-bg-hover'
 														>
 															{post.battleRecipeImageA && (
-																<div className='relative size-16 overflow-hidden rounded-lg'>
+																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
 																		src={post.battleRecipeImageA}
 																		alt={
@@ -1014,7 +1014,7 @@ const PostCardContent = ({
 																whileTap={BUTTON_TAP}
 																onClick={() => handleBattleVote('A')}
 																disabled={isVotingBattle}
-																className={`rounded-lg px-4 py-2.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${isVotingBattle ? 'animate-pulse opacity-60' : ''} ${
+																className={`rounded-xl px-4 py-2.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${isVotingBattle ? 'animate-pulse opacity-60' : ''} ${
 																	userVote === 'A'
 																		? 'bg-brand text-white shadow-glow'
 																		: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'
@@ -1047,10 +1047,10 @@ const PostCardContent = ({
 													<div className='flex flex-col items-center gap-2'>
 														<Link
 															href={`/recipes/${post.battleRecipeIdB}`}
-															className='group/recipe flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-bg-hover'
+															className='group/recipe flex flex-col items-center gap-2 rounded-xl p-2 transition-colors hover:bg-bg-hover'
 														>
 															{post.battleRecipeImageB && (
-																<div className='relative size-16 overflow-hidden rounded-lg'>
+																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
 																		src={post.battleRecipeImageB}
 																		alt={
@@ -1092,7 +1092,7 @@ const PostCardContent = ({
 																whileTap={BUTTON_TAP}
 																onClick={() => handleBattleVote('B')}
 																disabled={isVotingBattle}
-																className={`rounded-lg px-4 py-2.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${isVotingBattle ? 'animate-pulse opacity-60' : ''} ${
+																className={`rounded-xl px-4 py-2.5 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${isVotingBattle ? 'animate-pulse opacity-60' : ''} ${
 																	userVote === 'B'
 																		? 'bg-brand text-white shadow-glow'
 																		: 'border border-border-subtle bg-bg-card text-text-secondary hover:border-brand hover:text-brand'

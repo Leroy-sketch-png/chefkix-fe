@@ -140,7 +140,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 				<div className='flex items-center gap-3 p-3.5 bg-gradient-to-br from-bg-card/60 to-bg-elevated/40 rounded-xl border border-border-subtle/60'>
 					<span className='text-icon-lg'>👨‍🍳</span>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xl font-display font-extrabold text-success'>
+						<span className='text-2xl font-bold tracking-tight text-success'>
 							+<AnimatedNumber value={data.newCooks} className='tabular-nums' />
 						</span>
 						<span className='text-xs text-text-secondary'>{t('newCooks')}</span>
@@ -167,7 +167,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 				<div className='flex items-center gap-3 p-3.5 bg-gradient-to-br from-bg-card/60 to-bg-elevated/40 rounded-xl border border-border-subtle/60'>
 					<span className='text-icon-lg'>⚡</span>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xl font-display font-extrabold text-text'>
+						<span className='text-2xl font-bold tracking-tight text-text'>
 							+<AnimatedNumber value={data.xpEarned} className='tabular-nums' />
 						</span>
 						<span className='text-xs text-text-secondary'>{t('xpEarned')}</span>
@@ -252,7 +252,7 @@ function StatCard({
 		<div className='flex items-center gap-2.5 p-4 bg-bg rounded-xl'>
 			<span className='text-2xl'>{icon}</span>
 			<div className='flex flex-col'>
-				<span className='text-xl font-display font-extrabold tabular-nums text-text'>
+				<span className='text-xl font-bold tracking-tight tabular-nums text-text'>
 					{children}
 				</span>
 				<span className='text-xs text-text-secondary'>{label}</span>
@@ -356,7 +356,7 @@ function TopRecipeSection({
 					className='w-full sm:size-thumbnail-2xl rounded-2xl object-cover mx-auto sm:mx-0'
 				/>{' '}
 				<div className='flex-1 flex flex-col gap-2 items-center sm:items-start text-center sm:text-left'>
-					<h4 className='text-xl font-display font-extrabold text-text'>
+					<h4 className='text-xl font-bold tracking-tight text-text'>
 						{recipe.title}
 					</h4>
 					<div className='flex gap-3'>
@@ -371,7 +371,7 @@ function TopRecipeSection({
 					</div>
 					<div className='flex gap-6 mt-auto justify-center sm:justify-start'>
 						<div className='flex flex-col'>
-							<span className='text-xl font-display font-extrabold text-brand'>
+							<span className='text-xl font-bold tracking-tight text-brand'>
 								<AnimatedNumber
 									value={recipe.cookCount}
 									className='tabular-nums'
@@ -382,7 +382,7 @@ function TopRecipeSection({
 							</span>
 						</div>
 						<div className='flex flex-col'>
-							<span className='text-xl font-display font-extrabold text-brand'>
+							<span className='text-xl font-bold tracking-tight text-brand'>
 								<AnimatedNumber
 									value={recipe.xpGenerated}
 									format={n => n.toLocaleString()}
@@ -394,7 +394,7 @@ function TopRecipeSection({
 							</span>
 						</div>
 						<div className='flex flex-col'>
-							<span className='text-xl font-display font-extrabold text-brand'>
+							<span className='text-xl font-bold tracking-tight text-brand'>
 								{recipe.rating.toFixed(1)}
 							</span>
 							<span className='text-xs text-text-secondary'>
@@ -432,7 +432,7 @@ function RecipePerformanceSection({
 				</h3>
 				<button
 					type='button'
-					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-lg text-sm text-text'
+					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-xl text-sm text-text'
 				>
 					<ArrowUpDown className='w-3.5 h-3.5 text-text-secondary' />
 					{t('mostCooked')}
@@ -468,7 +468,7 @@ function RecipePerformanceSection({
 								recipe.needsAttention && 'border-l-3 border-l-amber-500',
 							)}
 						>
-							<span className='w-7 text-base font-display font-extrabold text-text-secondary text-center'>
+							<span className='w-7 text-base font-bold tracking-tight text-text-secondary text-center'>
 								{recipe.rank}
 							</span>{' '}
 							<Image
@@ -485,7 +485,7 @@ function RecipePerformanceSection({
 								{recipe.badge && (
 									<span
 										className={cn(
-											'inline-flex w-fit px-2 py-0.5 rounded-lg text-xs font-semibold',
+											'inline-flex w-fit px-2 py-0.5 rounded-xl text-xs font-semibold',
 											recipe.badge.type === 'milestone' &&
 												'bg-info/10 text-info',
 											recipe.badge.type === 'trending' &&
@@ -500,7 +500,7 @@ function RecipePerformanceSection({
 							</div>
 							<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-									<span className='text-base font-display font-extrabold text-text'>
+									<span className='text-base font-bold tracking-tight text-text'>
 										<AnimatedNumber
 											value={recipe.cookCount}
 											className='tabular-nums'
@@ -511,7 +511,7 @@ function RecipePerformanceSection({
 									</span>
 								</div>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-									<span className='text-base font-display font-extrabold text-text'>
+									<span className='text-base font-bold tracking-tight text-text'>
 										+
 										<AnimatedNumber
 											value={recipe.xpGenerated}
@@ -530,7 +530,7 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onViewStepAnalytics(recipe.id)
 									}}
-									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-xl text-text-secondary hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 									aria-label={t('viewStepAnalytics')}
 									title={t('viewStepAnalytics')}
 								>
@@ -546,7 +546,7 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onImproveRecipe(recipe.id)
 									}}
-									className='size-9 flex items-center justify-center border border-border-subtle rounded-lg text-text-secondary hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-xl text-text-secondary hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 									aria-label={t('ariaImproveRecipe')}
 								>
 									<Edit3 className='size-4' />
@@ -626,7 +626,7 @@ function RecentCooksSection({
 								</span>
 							</div>
 							<div className='text-right'>
-								<span className='block text-base font-display font-extrabold text-success'>
+								<span className='block text-base font-bold tracking-tight text-success'>
 									+
 									<AnimatedNumber
 										value={cook.xpEarned}
@@ -768,4 +768,3 @@ export function CreatorDashboard({
 }
 
 export default CreatorDashboard
-

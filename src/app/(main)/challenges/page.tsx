@@ -321,7 +321,7 @@ export default function ChallengesPage() {
 													%
 												</span>
 											</div>
-											<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+											<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
 												<motion.div
 													initial={{ width: 0 }}
 													animate={{
@@ -355,7 +355,7 @@ export default function ChallengesPage() {
 														})
 													}
 													disabled={isNavigating}
-													className='mt-3 flex items-center gap-1.5 rounded-lg text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+													className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 												>
 													{t('findMatchingRecipes')}
 													<ChevronRight className='size-4' />
@@ -422,7 +422,7 @@ export default function ChallengesPage() {
 															{Math.round(ch.progressPercent)}%
 														</span>
 													</div>
-													<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+													<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
 														<motion.div
 															initial={{ width: 0 }}
 															animate={{
@@ -460,7 +460,7 @@ export default function ChallengesPage() {
 																})
 															}
 															disabled={isNavigating}
-															className='flex items-center gap-1 rounded-lg font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+															className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
 															{t('cookToContribute')}
 															<ChevronRight className='size-3.5' />
@@ -545,7 +545,7 @@ export default function ChallengesPage() {
 																%
 															</span>
 														</div>
-														<div className='h-2.5 overflow-hidden rounded-full bg-bg-elevated'>
+														<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
 															<motion.div
 																initial={{ width: 0 }}
 																animate={{
@@ -589,7 +589,7 @@ export default function ChallengesPage() {
 																	})
 																}
 																disabled={isNavigating}
-																className='mt-3 flex items-center gap-1 rounded-lg text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+																className='mt-3 flex items-center gap-1 rounded-xl text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 															>
 																{t('featuredRecipesCount', {
 																	count: ev.featuredRecipes.length,
@@ -599,7 +599,7 @@ export default function ChallengesPage() {
 														)}
 
 													{ev.userCompleted && (
-														<div className='mt-3 rounded-lg bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
+														<div className='mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
 															✓ +{ev.rewardXp} {t('xpAwarded')}
 														</div>
 													)}

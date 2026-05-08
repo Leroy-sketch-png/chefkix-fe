@@ -7,9 +7,9 @@ export default function Loading() {
 			<div className='mb-6'>
 				<div className='mb-2 flex items-center gap-3'>
 					<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
-					<div className='h-9 w-32 animate-pulse rounded-lg bg-bg-elevated/40' />
+					<div className='h-9 w-32 animate-pulse rounded-xl bg-bg-elevated/40' />
 				</div>
-				<div className='h-5 w-72 animate-pulse rounded-lg bg-bg-elevated/40' />
+				<div className='h-5 w-72 animate-pulse rounded-xl bg-bg-elevated/40' />
 			</div>
 
 			{/* Group card grid */}

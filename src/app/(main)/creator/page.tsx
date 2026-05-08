@@ -24,7 +24,10 @@ import { logDevError } from '@/lib/dev-log'
 import { formatShortTimeAgo } from '@/lib/utils'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ============================================
 // HELPERS
@@ -185,7 +188,7 @@ export default function CreatorRoute() {
 					<div className='mb-6 flex items-center gap-3'>
 						<div className='size-10 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated' />
-						<div className='h-8 w-48 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='h-8 w-48 animate-pulse rounded-xl bg-bg-elevated' />
 					</div>
 					<div className='space-y-4'>
 						{[0, 1, 2, 3].map(i => (

@@ -77,7 +77,7 @@ function LeaderboardItemErrorFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-10 w-fit items-center justify-center rounded-xl border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -168,7 +168,7 @@ function LeaderboardItemContent({
 			{/* Rank */}
 			<span
 				className={cn(
-					'w-8 text-center text-base font-display font-extrabold',
+					'w-8 text-center text-base font-bold tracking-tight',
 					isCurrentUser ? 'text-xp' : 'text-text-tertiary',
 				)}
 			>
@@ -212,12 +212,12 @@ function LeaderboardItemContent({
 
 				{/* Badges */}
 				{isCurrentUser && !isLeading && (
-					<span className='rounded-lg bg-gradient-xp px-2 py-0.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--xp),0.45)]'>
+					<span className='rounded-xl bg-gradient-xp px-2 py-0.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--xp),0.45)]'>
 						You
 					</span>
 				)}
 				{isLeading && (
-					<span className='rounded-lg bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--medal-gold),0.45)]'>
+					<span className='rounded-xl bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--medal-gold),0.45)]'>
 						🔥 Leading!
 					</span>
 				)}
@@ -257,7 +257,7 @@ function LeaderboardItemContent({
 
 			{/* XP */}
 			<div className='min-w-thumbnail-md text-right'>
-				<span className='block text-base font-display font-extrabold text-text'>
+				<span className='block text-base font-bold tracking-tight text-text'>
 					<AnimatedNumber
 						value={entry.xpThisWeek}
 						format={n => n.toLocaleString()}

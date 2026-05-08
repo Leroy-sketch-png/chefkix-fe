@@ -11,18 +11,18 @@ export default function Loading() {
 						<div className='size-10 animate-pulse rounded-xl bg-bg-elevated/40' />
 						<div className='size-12 animate-pulse rounded-2xl bg-bg-elevated/40' />
 						<div className='space-y-1'>
-							<div className='h-9 w-36 animate-pulse rounded-lg bg-bg-elevated/40' />
-							<div className='h-5 w-28 animate-pulse rounded-lg bg-bg-elevated/40' />
+							<div className='h-9 w-36 animate-pulse rounded-xl bg-bg-elevated/40' />
+							<div className='h-5 w-28 animate-pulse rounded-xl bg-bg-elevated/40' />
 						</div>
 					</div>
-					<div className='h-10 w-36 animate-pulse rounded-lg bg-bg-elevated/40' />
+					<div className='h-10 w-36 animate-pulse rounded-xl bg-bg-elevated/40' />
 				</div>
 			</div>
 
 			{/* Filters skeleton */}
 			<div className='mb-6 flex items-center justify-between'>
-				<div className='h-10 w-64 animate-pulse rounded-lg bg-bg-elevated/40' />
-				<div className='h-10 w-40 animate-pulse rounded-lg bg-bg-elevated/40' />
+				<div className='h-10 w-64 animate-pulse rounded-xl bg-bg-elevated/40' />
+				<div className='h-10 w-40 animate-pulse rounded-xl bg-bg-elevated/40' />
 			</div>
 
 			{/* Recipe grid skeleton */}
@@ -41,9 +41,9 @@ export default function Loading() {
 								<Skeleton className='h-6 w-20 rounded-full' />
 							</div>
 							<div className='flex gap-2 pt-2'>
-								<Skeleton className='h-9 flex-1 rounded-lg' />
-								<Skeleton className='size-9 rounded-lg' />
-								<Skeleton className='size-9 rounded-lg' />
+								<Skeleton className='h-9 flex-1 rounded-xl' />
+								<Skeleton className='size-9 rounded-xl' />
+								<Skeleton className='size-9 rounded-xl' />
 							</div>
 						</div>
 					</div>

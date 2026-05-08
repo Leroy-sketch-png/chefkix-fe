@@ -211,13 +211,13 @@ export const ReportModal = ({
 									>
 										<CheckCircle className='size-7' />
 									</motion.div>
-									<h3 className='mb-2 text-lg font-extrabold'>
+									<h3 className='mb-2 text-lg font-bold tracking-tight'>
 										{t('rmSubmitted')}
 									</h3>
 									<p className='mb-4 text-sm leading-relaxed text-text-muted'>
 										{t('rmThanks')}
 									</p>
-									<div className='mb-4 rounded-lg bg-bg-elevated p-4 text-left'>
+									<div className='mb-4 rounded-xl bg-bg-elevated p-4 text-left'>
 										<h4 className='mb-2 text-sm font-bold'>
 											{t('rmWhatsNext')}
 										</h4>
@@ -232,7 +232,7 @@ export const ReportModal = ({
 										onClick={handleClose}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='w-full rounded-lg bg-gradient-xp py-3 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='w-full rounded-xl bg-gradient-xp py-3 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{t('rmDone')}
 									</motion.button>
@@ -241,13 +241,15 @@ export const ReportModal = ({
 								// Report Form
 								<>
 									<div className='flex items-center justify-between border-b border-border p-4 md:p-5'>
-										<h2 className='text-lg font-extrabold'>{t('rmTitle')}</h2>
+										<h2 className='text-lg font-bold tracking-tight'>
+											{t('rmTitle')}
+										</h2>
 										<motion.button
 											type='button'
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-8 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='flex size-8 items-center justify-center rounded-xl bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 											aria-label={t('rmCloseAriaLabel')}
 										>
 											<X className='size-4' />
@@ -286,7 +288,7 @@ export const ReportModal = ({
 													<label
 														key={reason.value}
 														className={cn(
-															'flex cursor-pointer items-start gap-3 rounded-lg border-2 border-transparent bg-bg-elevated p-3 transition-all',
+															'flex cursor-pointer items-start gap-3 rounded-xl border-2 border-transparent bg-bg-elevated p-3 transition-all',
 															selectedReason === reason.value
 																? 'border-xp bg-xp/10'
 																: 'hover:border-border',
@@ -335,7 +337,7 @@ export const ReportModal = ({
 												onChange={e => setDetails(e.target.value)}
 												placeholder={t('rmDetailsPlaceholder')}
 												maxLength={1000}
-												className='min-h-20 w-full resize-y rounded-lg border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-colors focus:border-accent-purple'
+												className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg-elevated p-3 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-colors focus:border-accent-purple'
 											/>
 											{details.length > 0 && (
 												<p
@@ -347,7 +349,7 @@ export const ReportModal = ({
 										</div>
 
 										{/* Trust Signal */}
-										<div className='mb-4 flex items-start gap-2 rounded-lg bg-xp/10 p-3'>
+										<div className='mb-4 flex items-start gap-2 rounded-xl bg-xp/10 p-3'>
 											<Shield className='mt-0.5 size-4 flex-shrink-0 text-xp' />
 											<span className='text-xs leading-relaxed text-text-muted'>
 												{t('rmTrustSignal')}
@@ -365,7 +367,7 @@ export const ReportModal = ({
 											whileTap={
 												selectedReason && !isSubmitting ? { scale: 0.98 } : {}
 											}
-											className='flex w-full items-center justify-center gap-2 rounded-lg bg-error py-3 text-sm font-bold text-white disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='flex w-full items-center justify-center gap-2 rounded-xl bg-error py-3 text-sm font-bold text-white disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{isSubmitting ? (
 												<Loader2 className='size-4 animate-spin' />
@@ -427,11 +429,13 @@ export const ReportLimitModal = ({
 							<div className='mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-warning/10 text-warning'>
 								<AlertCircle className='size-8' />
 							</div>
-							<h3 className='mb-3 text-xl font-extrabold'>{t('rlTitle')}</h3>
+							<h3 className='mb-3 text-xl font-bold tracking-tight'>
+								{t('rlTitle')}
+							</h3>
 							<p className='mb-5 text-sm leading-relaxed text-text-muted'>
 								{t('rlDescription')}
 							</p>
-							<div className='mb-5 flex items-center justify-center gap-2 rounded-lg bg-bg-elevated p-3 text-sm text-text-muted'>
+							<div className='mb-5 flex items-center justify-center gap-2 rounded-xl bg-bg-elevated p-3 text-sm text-text-muted'>
 								<Clock className='size-icon-sm' />
 								<span>
 									{t('rlResetIn')}{' '}
@@ -499,7 +503,7 @@ export const AccountRestrictedNotice = ({
 						<AlertTriangle className='size-9' />
 					)}
 				</div>
-				<h2 className='text-2xl font-extrabold'>
+				<h2 className='text-2xl font-bold tracking-tight'>
 					{isPermanent ? t('arBanned') : t('arRestricted')}
 				</h2>
 			</div>
@@ -520,7 +524,7 @@ export const AccountRestrictedNotice = ({
 					</div>
 					<div className='flex justify-between border-b border-border py-2.5'>
 						<span className='text-sm text-text-muted'>{t('arOffense')}</span>
-						<span className='rounded-lg bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning'>
+						<span className='rounded-xl bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning'>
 							{offenseLabels[Math.min(violation.offense - 1, 3)]}
 						</span>
 					</div>
@@ -684,7 +688,7 @@ export const AppealModal = ({
 									>
 										<CheckCircle className='size-9' />
 									</motion.div>
-									<h3 className='mb-3 text-xl font-extrabold'>
+									<h3 className='mb-3 text-xl font-bold tracking-tight'>
 										{t('apSubmitted')}
 									</h3>
 									<p className='mb-6 leading-relaxed text-text-muted'>
@@ -697,7 +701,7 @@ export const AppealModal = ({
 											<span className='text-sm text-text-muted'>
 												{t('apStatus')}
 											</span>
-											<span className='rounded-lg bg-warning/10 px-3 py-1.5 text-xs font-bold text-warning'>
+											<span className='rounded-xl bg-warning/10 px-3 py-1.5 text-xs font-bold text-warning'>
 												{t('apUnderReview')}
 											</span>
 										</div>
@@ -724,13 +728,15 @@ export const AppealModal = ({
 								// Appeal Form
 								<>
 									<div className='flex items-center justify-between border-b border-border p-7'>
-										<h2 className='text-xl font-extrabold'>{t('apTitle')}</h2>
+										<h2 className='text-xl font-bold tracking-tight'>
+											{t('apTitle')}
+										</h2>
 										<motion.button
 											type='button'
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-9 items-center justify-center rounded-lg bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='flex size-9 items-center justify-center rounded-xl bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 											aria-label={t('apCloseAriaLabel')}
 										>
 											<X className='size-5' />
@@ -873,7 +879,7 @@ export const ContentRemovedNotice = ({
 			<div className='p-5'>
 				<p className='mb-3.5 text-sm text-text-muted'>{t('crDescription')}</p>
 
-				<div className='mb-4 inline-flex items-center gap-2 rounded-lg bg-bg-elevated px-4 py-2.5 text-sm font-semibold text-error'>
+				<div className='mb-4 inline-flex items-center gap-2 rounded-xl bg-bg-elevated px-4 py-2.5 text-sm font-semibold text-error'>
 					<AlertCircle className='size-4' />
 					<span>{violationType}</span>
 				</div>
@@ -881,7 +887,7 @@ export const ContentRemovedNotice = ({
 				{/* Content Preview */}
 				<div className='mb-3.5 flex items-center gap-3.5 rounded-xl bg-bg-elevated p-3.5'>
 					{thumbnailUrl && (
-						<div className='relative size-thumbnail-md overflow-hidden rounded-lg opacity-50'>
+						<div className='relative size-thumbnail-md overflow-hidden rounded-xl opacity-50'>
 							<Image
 								src={thumbnailUrl}
 								alt={`Preview of reported content: ${contentTitle || 'content'}`}
@@ -897,7 +903,7 @@ export const ContentRemovedNotice = ({
 					</div>
 				</div>
 
-				<p className='rounded-lg bg-warning/10 p-3 text-sm font-semibold text-warning'>
+				<p className='rounded-xl bg-warning/10 p-3 text-sm font-semibold text-warning'>
 					{t('crRepeatedWarning')}
 				</p>
 			</div>
@@ -909,7 +915,7 @@ export const ContentRemovedNotice = ({
 					onClick={onLearnGuidelines}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex-1 rounded-lg border border-border py-3 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex-1 rounded-xl border border-border py-3 text-sm font-semibold text-text-muted focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{t('crLearnGuidelines')}
 				</motion.button>
@@ -918,7 +924,7 @@ export const ContentRemovedNotice = ({
 					onClick={onDismiss}
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
-					className='flex-1 rounded-lg bg-bg-elevated py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex-1 rounded-xl bg-bg-elevated py-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{t('crDismiss')}
 				</motion.button>

@@ -392,7 +392,7 @@ export default function PantryPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<div className='space-y-6 py-6'>
-						<div className='h-10 w-48 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='h-10 w-48 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='h-14 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='grid gap-3'>
 							{Array.from({ length: 6 }).map((_, i) => (
@@ -429,7 +429,7 @@ export default function PantryPage() {
 										type='button'
 										onClick={() => setShowClearExpiredConfirm(true)}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='flex items-center gap-1.5 rounded-xl bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<Trash2 className='size-4' />
 										{t('clearExpired', { count: expiredCount })}
@@ -439,7 +439,7 @@ export default function PantryPage() {
 									type='button'
 									onClick={loadSuggestions}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex items-center gap-1.5 rounded-xl bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Sparkles className='size-4' />
 									{t('whatCanICook')}
@@ -479,115 +479,116 @@ export default function PantryPage() {
 					{/* ── Quick Add Bar ─────────────────── */}
 					<motion.div>
 						<PremiumSurface tone='success' className='bg-bg-card/85 sm:p-4'>
-						<div className='grid grid-cols-[1fr_4.5rem] gap-2 sm:flex sm:flex-wrap sm:items-end sm:gap-3'>
-							<div className='col-span-2 sm:flex-1 sm:min-w-[180px]'>
-								<label
-									htmlFor='pantry-ingredient'
-									className='mb-0.5 block text-xs font-medium text-text-secondary'
+							<div className='grid grid-cols-[1fr_4.5rem] gap-2 sm:flex sm:flex-wrap sm:items-end sm:gap-3'>
+								<div className='col-span-2 sm:flex-1 sm:min-w-[180px]'>
+									<label
+										htmlFor='pantry-ingredient'
+										className='mb-0.5 block text-xs font-medium text-text-secondary'
+									>
+										{t('labelIngredient')}
+									</label>
+									<AsyncCombobox
+										id='pantry-ingredient'
+										ref={quickAddRef}
+										value={quickAddName}
+										onChange={setQuickAddName}
+										onSelect={option => {
+											setQuickAddName(option.label)
+											const cat =
+												option.category || suggestCategory(option.label)
+											if (cat !== 'other') setQuickAddCategory(cat)
+										}}
+										fetchOptions={fetchIngredientOptions}
+										minChars={1}
+										onKeyDown={e => {
+											if (e.key === 'Enter') handleQuickAdd()
+										}}
+										placeholder={t('ingredientPlaceholder')}
+									/>
+								</div>
+								<div className='sm:w-20'>
+									<label
+										htmlFor='pantry-qty'
+										className='mb-0.5 block text-xs font-medium text-text-secondary'
+									>
+										{t('labelQty')}
+									</label>
+									<input
+										id='pantry-qty'
+										value={quickAddQty}
+										onChange={e => setQuickAddQty(e.target.value)}
+										onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
+										placeholder='2'
+										type='number'
+										className='w-full rounded-xl border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+									/>
+								</div>
+								<div className='sm:w-24'>
+									<label
+										htmlFor='pantry-unit'
+										className='mb-0.5 block text-xs font-medium text-text-secondary'
+									>
+										{t('labelUnit')}
+									</label>
+									<input
+										id='pantry-unit'
+										value={quickAddUnit}
+										onChange={e => setQuickAddUnit(e.target.value)}
+										onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
+										placeholder={t('unitPlaceholder')}
+										className='w-full rounded-xl border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+									/>
+								</div>
+								<div className='sm:w-32'>
+									<label
+										htmlFor='pantry-category'
+										className='mb-0.5 block text-xs font-medium text-text-secondary'
+									>
+										{t('labelCategory')}
+									</label>
+									<select
+										id='pantry-category'
+										value={quickAddCategory}
+										onChange={e => setQuickAddCategory(e.target.value)}
+										className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+									>
+										{CATEGORIES.map(c => (
+											<option
+												key={c.key}
+												value={c.key}
+												className='bg-bg-card text-text'
+											>
+												{c.emoji} {t(c.labelKey)}
+											</option>
+										))}
+									</select>
+								</div>
+								<div className='sm:w-36'>
+									<label
+										htmlFor='pantry-expiry'
+										className='mb-0.5 block text-xs font-medium text-text-secondary'
+									>
+										{t('labelExpiry')}
+									</label>
+									<input
+										id='pantry-expiry'
+										type='date'
+										value={quickAddExpiry}
+										onChange={e => setQuickAddExpiry(e.target.value)}
+										className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+									/>
+								</div>
+								<motion.button
+									type='button'
+									onClick={handleQuickAdd}
+									whileTap={BUTTON_TAP}
+									disabled={!quickAddName.trim() || isAdding}
+									className='col-span-2 flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-1.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.25)] transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:col-span-1 sm:self-end'
 								>
-									{t('labelIngredient')}
-								</label>
-								<AsyncCombobox
-									id='pantry-ingredient'
-									ref={quickAddRef}
-									value={quickAddName}
-									onChange={setQuickAddName}
-									onSelect={option => {
-										setQuickAddName(option.label)
-										const cat = option.category || suggestCategory(option.label)
-										if (cat !== 'other') setQuickAddCategory(cat)
-									}}
-									fetchOptions={fetchIngredientOptions}
-									minChars={1}
-									onKeyDown={e => {
-										if (e.key === 'Enter') handleQuickAdd()
-									}}
-									placeholder={t('ingredientPlaceholder')}
-								/>
+									<Plus className='size-4' />
+									{t('addButton')}
+								</motion.button>
 							</div>
-							<div className='sm:w-20'>
-								<label
-									htmlFor='pantry-qty'
-									className='mb-0.5 block text-xs font-medium text-text-secondary'
-								>
-									{t('labelQty')}
-								</label>
-								<input
-									id='pantry-qty'
-									value={quickAddQty}
-									onChange={e => setQuickAddQty(e.target.value)}
-									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
-									placeholder='2'
-									type='number'
-									className='w-full rounded-lg border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-								/>
-							</div>
-							<div className='sm:w-24'>
-								<label
-									htmlFor='pantry-unit'
-									className='mb-0.5 block text-xs font-medium text-text-secondary'
-								>
-									{t('labelUnit')}
-								</label>
-								<input
-									id='pantry-unit'
-									value={quickAddUnit}
-									onChange={e => setQuickAddUnit(e.target.value)}
-									onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
-									placeholder={t('unitPlaceholder')}
-									className='w-full rounded-lg border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-								/>
-							</div>
-							<div className='sm:w-32'>
-								<label
-									htmlFor='pantry-category'
-									className='mb-0.5 block text-xs font-medium text-text-secondary'
-								>
-									{t('labelCategory')}
-								</label>
-								<select
-									id='pantry-category'
-									value={quickAddCategory}
-									onChange={e => setQuickAddCategory(e.target.value)}
-									className='w-full rounded-lg border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-								>
-									{CATEGORIES.map(c => (
-										<option
-											key={c.key}
-											value={c.key}
-											className='bg-bg-card text-text'
-										>
-											{c.emoji} {t(c.labelKey)}
-										</option>
-									))}
-								</select>
-							</div>
-							<div className='sm:w-36'>
-								<label
-									htmlFor='pantry-expiry'
-									className='mb-0.5 block text-xs font-medium text-text-secondary'
-								>
-									{t('labelExpiry')}
-								</label>
-								<input
-									id='pantry-expiry'
-									type='date'
-									value={quickAddExpiry}
-									onChange={e => setQuickAddExpiry(e.target.value)}
-									className='w-full rounded-lg border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-								/>
-							</div>
-							<motion.button
-								type='button'
-								onClick={handleQuickAdd}
-								whileTap={BUTTON_TAP}
-								disabled={!quickAddName.trim() || isAdding}
-								className='col-span-2 flex items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:col-span-1 sm:self-end'
-							>
-								<Plus className='size-4' />
-								{t('addButton')}
-							</motion.button>
-						</div>
 						</PremiumSurface>
 					</motion.div>
 
@@ -600,7 +601,7 @@ export default function PantryPage() {
 								onChange={e => setSearchQuery(e.target.value)}
 								placeholder={t('searchPlaceholder')}
 								aria-label={t('searchPlaceholder')}
-								className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-10 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+								className='w-full rounded-xl border border-border-subtle bg-bg py-2 pl-10 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 							/>
 						</div>
 						<div
@@ -857,7 +858,7 @@ export default function PantryPage() {
 										{Array.from({ length: 3 }).map((_, i) => (
 											<div
 												key={i}
-												className='h-20 animate-pulse rounded-lg bg-bg-elevated'
+												className='h-20 animate-pulse rounded-xl bg-bg-elevated'
 											/>
 										))}
 									</div>
@@ -875,7 +876,7 @@ export default function PantryPage() {
 												onClick={() =>
 													router.push(`/recipes/${match.recipeId}`)
 												}
-												className='flex items-center gap-4 rounded-lg border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+												className='flex items-center gap-4 rounded-xl border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												{match.coverImageUrl && (
 													<Image
@@ -884,7 +885,7 @@ export default function PantryPage() {
 														width={56}
 														height={56}
 														unoptimized
-														className='size-14 rounded-lg object-cover'
+														className='size-14 rounded-xl object-cover'
 													/>
 												)}
 												<div className='flex-1'>
@@ -923,7 +924,7 @@ export default function PantryPage() {
 														handleAddToShoppingList(match.recipeId, e)
 													}
 													aria-label={t('addToShoppingList')}
-													className='grid size-10 flex-shrink-0 place-items-center rounded-lg border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
+													className='grid size-10 flex-shrink-0 place-items-center rounded-xl border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
 												>
 													{addingToListId === match.recipeId ? (
 														<Loader2 className='size-4 animate-spin text-text-muted' />
@@ -983,7 +984,7 @@ export default function PantryPage() {
 											type='button'
 											onClick={() => setConfirmingDeleteId(null)}
 											whileTap={BUTTON_SUBTLE_TAP}
-											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='rounded-xl px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{t('cancelEdit')}
 										</motion.button>
@@ -992,7 +993,7 @@ export default function PantryPage() {
 											onClick={() => handleDelete(confirmingDeleteId)}
 											whileTap={BUTTON_SUBTLE_TAP}
 											disabled={isDeletingId === confirmingDeleteId}
-											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='rounded-xl bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{isDeletingId === confirmingDeleteId
 												? t('deleting')
@@ -1044,7 +1045,7 @@ export default function PantryPage() {
 											type='button'
 											onClick={() => setShowClearExpiredConfirm(false)}
 											whileTap={BUTTON_SUBTLE_TAP}
-											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='rounded-xl px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{t('cancelEdit')}
 										</motion.button>
@@ -1053,7 +1054,7 @@ export default function PantryPage() {
 											onClick={handleClearExpired}
 											whileTap={BUTTON_SUBTLE_TAP}
 											disabled={isClearingExpired}
-											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='rounded-xl bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
 											{isClearingExpired ? t('clearing') : t('clearAll')}
 										</motion.button>

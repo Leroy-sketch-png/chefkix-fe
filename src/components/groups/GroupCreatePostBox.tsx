@@ -114,7 +114,7 @@ export function GroupCreatePostBox({
 		<motion.div
 			initial={{ opacity: 0, y: -10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='bg-bg-card rounded-lg p-6 border border-border mb-6 shadow-card'
+			className='bg-bg-card rounded-xl p-6 border border-border mb-6 shadow-card'
 		>
 			<div className='mb-4'>
 				<p className='text-sm font-medium text-text mb-3'>
@@ -171,4 +171,3 @@ export function GroupCreatePostBox({
 		</motion.div>
 	)
 }
-

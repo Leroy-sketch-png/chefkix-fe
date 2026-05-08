@@ -114,7 +114,7 @@ function LeagueHeader({
 				<div className='flex flex-col'>
 					<span
 						className={cn(
-							'text-lg font-display font-extrabold capitalize',
+							'text-lg font-bold tracking-tight capitalize',
 							config.textColor,
 						)}
 					>
@@ -153,7 +153,7 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 	return (
 		<div className='flex flex-col sm:flex-row gap-2 mb-5'>
 			{leagueInfo.nextTier && (
-				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-success/10 rounded-lg text-xs font-semibold text-success'>
+				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-success/10 rounded-xl text-xs font-semibold text-success'>
 					<ChevronUp className='size-3.5' />
 					<span>
 						{t('topNPromote', {
@@ -163,12 +163,12 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 					</span>
 				</div>
 			)}
-			<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-info/10 rounded-lg text-xs font-semibold text-info'>
+			<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-info/10 rounded-xl text-xs font-semibold text-info'>
 				<Shield className='size-3.5' />
 				<span>{t('safeZone')}</span>
 			</div>
 			{leagueInfo.prevTier && (
-				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-error/10 rounded-lg text-xs font-semibold text-error'>
+				<div className='flex-1 flex items-center gap-1.5 py-2.5 px-3 bg-error/10 rounded-xl text-xs font-semibold text-error'>
 					<ChevronDown className='size-3.5' />
 					<span>
 						{t('bottomNDemote', {
@@ -224,7 +224,7 @@ function ZoneSection({
 			{/* Zone Label */}
 			<div
 				className={cn(
-					'flex items-center gap-2 py-2 px-3 rounded-lg mb-3 text-sm font-bold',
+					'flex items-center gap-2 py-2 px-3 rounded-xl mb-3 text-sm font-bold',
 					style.bg,
 					style.text,
 				)}
@@ -269,7 +269,7 @@ function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className='flex items-center justify-center gap-2 py-3 bg-error/10 rounded-lg text-sm text-error'
+			className='flex items-center justify-center gap-2 py-3 bg-error/10 rounded-xl text-sm text-error'
 		>
 			<AlertTriangle className='size-4' />
 			<span>{t('xpToLeave', { xp: xpNeeded })}</span>

@@ -391,40 +391,43 @@ function CreatePostContent() {
 						tone='brand'
 					>
 						<div className='flex items-center gap-3'>
-						<motion.button
-							type='button'
-							onClick={() => router.back()}
-							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-							aria-label={t('ariaGoBack')}
-						>
-							<ArrowLeft className='size-5' />
-						</motion.button>
-						<div className='flex-1'>
-							<PageHeader
-								icon={session ? ChefHat : PenSquare}
-								title={session ? t('shareYourCreation') : t('createPost')}
-								subtitle={
-									session
-										? t('subtitleSharePhotos')
-										: t('subtitleShareCommunity')
-								}
-								gradient='pink'
-								marginBottom='sm'
-								className='mb-0'
-							/>
+							<motion.button
+								type='button'
+								onClick={() => router.back()}
+								whileTap={BUTTON_SUBTLE_TAP}
+								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+								aria-label={t('ariaGoBack')}
+							>
+								<ArrowLeft className='size-5' />
+							</motion.button>
+							<div className='flex-1'>
+								<PageHeader
+									icon={session ? ChefHat : PenSquare}
+									title={session ? t('shareYourCreation') : t('createPost')}
+									subtitle={
+										session
+											? t('subtitleSharePhotos')
+											: t('subtitleShareCommunity')
+									}
+									gradient='pink'
+									marginBottom='sm'
+									className='mb-0'
+								/>
+							</div>
 						</div>
-					</div>
-				</PremiumSurface>
+					</PremiumSurface>
 
 					{/* Session Info Card (if linking to session) */}
 					{isLoadingSession && (
-						<PremiumSurface className='mb-6 p-6 md:p-8' eyebrow='Session Context'>
+						<PremiumSurface
+							className='mb-6 p-6 md:p-8'
+							eyebrow='Session Context'
+						>
 							<div className='flex items-center justify-center'>
-							<Loader2 className='size-6 animate-spin text-brand' />
-							<span className='ml-3 text-text-secondary'>
-								{t('loadingSession')}
-							</span>
+								<Loader2 className='size-6 animate-spin text-brand' />
+								<span className='ml-3 text-text-secondary'>
+									{t('loadingSession')}
+								</span>
 							</div>
 						</PremiumSurface>
 					)}
@@ -432,77 +435,79 @@ function CreatePostContent() {
 					{session && !isLoadingSession && (
 						<PremiumSurface
 							eyebrow='Cook Session'
-							chipText={hasPendingSessionXp ? 'XP Claim Available' : 'No Bonus XP'}
+							chipText={
+								hasPendingSessionXp ? 'XP Claim Available' : 'No Bonus XP'
+							}
 							tone='success'
 							className='mb-6 p-0'
 						>
 							<motion.div
-							variants={fadeInUp}
-							initial='hidden'
-							animate='visible'
-							className='overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 to-transparent'
-						>
-							<div className='flex items-center gap-4 p-4'>
-								{session.recipeImage && (
-									<Image
-										src={session.recipeImage}
-										alt={session.recipeTitle}
-										width={80}
-										height={80}
-										className='size-20 rounded-xl object-cover'
-										onError={e => {
-											;(e.target as HTMLImageElement).src =
-												'/placeholder-recipe.svg'
-										}}
-									/>
-								)}
-								<div className='flex-1'>
-									<div className='mb-1 flex items-center gap-2'>
-										<ChefHat className='size-4 text-brand' />
-										<span className='text-sm font-medium text-text-secondary'>
-											{t('cookedLabel')}
-										</span>
-									</div>
-									<h3 className='mb-2 text-lg font-bold text-text'>
-										{session.recipeTitle}
-									</h3>
-									<div className='flex flex-wrap items-center gap-3'>
-										{hasPendingSessionXp ? (
-											<span className='flex items-center gap-1.5 rounded-lg bg-success/10 px-2.5 py-1 text-sm font-bold text-success'>
-												<Trophy className='size-3.5' />+
-												{Math.round(session.pendingXp)} XP
+								variants={fadeInUp}
+								initial='hidden'
+								animate='visible'
+								className='overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 to-transparent'
+							>
+								<div className='flex items-center gap-4 p-4'>
+									{session.recipeImage && (
+										<Image
+											src={session.recipeImage}
+											alt={session.recipeTitle}
+											width={80}
+											height={80}
+											className='size-20 rounded-xl object-cover'
+											onError={e => {
+												;(e.target as HTMLImageElement).src =
+													'/placeholder-recipe.svg'
+											}}
+										/>
+									)}
+									<div className='flex-1'>
+										<div className='mb-1 flex items-center gap-2'>
+											<ChefHat className='size-4 text-brand' />
+											<span className='text-sm font-medium text-text-secondary'>
+												{t('cookedLabel')}
 											</span>
-										) : (
-											<span className='flex items-center gap-1.5 rounded-lg bg-warning/10 px-2.5 py-1 text-sm font-semibold text-warning'>
-												<Sparkles className='size-3.5' />
-												{t('sessionXpExhaustedBadge')}
-											</span>
-										)}
-										{getTimeLeft() && (
-											<span
-												className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${
-													getTimeLeft()!.urgent
-														? 'bg-error/10 text-error'
-														: getTimeLeft()!.warning
-															? 'bg-warning/10 text-warning'
-															: 'text-text-secondary'
-												}`}
-											>
-												<Clock className='size-3.5' />
-												{getTimeLeft()!.text}
-											</span>
-										)}
+										</div>
+										<h3 className='mb-2 text-lg font-bold text-text'>
+											{session.recipeTitle}
+										</h3>
+										<div className='flex flex-wrap items-center gap-3'>
+											{hasPendingSessionXp ? (
+												<span className='flex items-center gap-1.5 rounded-xl bg-success/10 px-2.5 py-1 text-sm font-bold text-success'>
+													<Trophy className='size-3.5' />+
+													{Math.round(session.pendingXp)} XP
+												</span>
+											) : (
+												<span className='flex items-center gap-1.5 rounded-xl bg-warning/10 px-2.5 py-1 text-sm font-semibold text-warning'>
+													<Sparkles className='size-3.5' />
+													{t('sessionXpExhaustedBadge')}
+												</span>
+											)}
+											{getTimeLeft() && (
+												<span
+													className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-sm font-semibold ${
+														getTimeLeft()!.urgent
+															? 'bg-error/10 text-error'
+															: getTimeLeft()!.warning
+																? 'bg-warning/10 text-warning'
+																: 'text-text-secondary'
+													}`}
+												>
+													<Clock className='size-3.5' />
+													{getTimeLeft()!.text}
+												</span>
+											)}
+										</div>
 									</div>
 								</div>
-							</div>
-							<div className='border-t border-brand/10 bg-brand/5 px-4 py-2.5'>
-								<p className='flex items-center gap-2 text-sm text-brand'>
-									<Sparkles className='size-4' />
-									{hasPendingSessionXp
-										? t('addPhotosForXp')
-										: t('sessionXpExhaustedHint')}
-								</p>
-							</div>
+								<div className='border-t border-brand/10 bg-brand/5 px-4 py-2.5'>
+									<p className='flex items-center gap-2 text-sm text-brand'>
+										<Sparkles className='size-4' />
+										{hasPendingSessionXp
+											? t('addPhotosForXp')
+											: t('sessionXpExhaustedHint')}
+									</p>
+								</div>
 							</motion.div>
 						</PremiumSurface>
 					)}
@@ -516,49 +521,49 @@ function CreatePostContent() {
 							className='mb-6 p-0'
 						>
 							<motion.div
-							variants={fadeInUp}
-							initial='hidden'
-							animate='visible'
-							transition={{ delay: 0.05 }}
-							className='overflow-hidden rounded-2xl border border-warning/30/20 bg-gradient-to-br from-warning/5 to-transparent'
-						>
-							<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
-								<Star className='size-5 text-warning' />
-								<div>
-									<h4 className='text-sm font-bold text-text'>
-										{t('rateRecipe')}
-									</h4>
-									<p className='text-xs text-text-muted'>
-										{t('rateRecipeSubtext', {
-											recipeName: session.recipeTitle,
-										})}
-									</p>
+								variants={fadeInUp}
+								initial='hidden'
+								animate='visible'
+								transition={{ delay: 0.05 }}
+								className='overflow-hidden rounded-2xl border border-warning/30/20 bg-gradient-to-br from-warning/5 to-transparent'
+							>
+								<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
+									<Star className='size-5 text-warning' />
+									<div>
+										<h4 className='text-sm font-bold text-text'>
+											{t('rateRecipe')}
+										</h4>
+										<p className='text-xs text-text-muted'>
+											{t('rateRecipeSubtext', {
+												recipeName: session.recipeTitle,
+											})}
+										</p>
+									</div>
 								</div>
-							</div>
-							<div className='flex items-center gap-3 px-4 pb-4'>
-								<StarRating
-									value={reviewRating}
-									onChange={setReviewRating}
-									size='md'
-								/>
-								{reviewRating > 0 && (
-									<motion.span
-										initial={{ opacity: 0, x: -10 }}
-										animate={{ opacity: 1, x: 0 }}
-										className='text-sm font-medium text-warning'
-									>
-										{reviewRating === 5
-											? t('ratingAmazing')
-											: reviewRating === 4
-												? t('ratingGreat')
-												: reviewRating === 3
-													? t('ratingGood')
-													: reviewRating === 2
-														? t('ratingOkay')
-														: t('ratingPoor')}
-									</motion.span>
-								)}
-							</div>
+								<div className='flex items-center gap-3 px-4 pb-4'>
+									<StarRating
+										value={reviewRating}
+										onChange={setReviewRating}
+										size='md'
+									/>
+									{reviewRating > 0 && (
+										<motion.span
+											initial={{ opacity: 0, x: -10 }}
+											animate={{ opacity: 1, x: 0 }}
+											className='text-sm font-medium text-warning'
+										>
+											{reviewRating === 5
+												? t('ratingAmazing')
+												: reviewRating === 4
+													? t('ratingGreat')
+													: reviewRating === 3
+														? t('ratingGood')
+														: reviewRating === 2
+															? t('ratingOkay')
+															: t('ratingPoor')}
+										</motion.span>
+									)}
+								</div>
 							</motion.div>
 						</PremiumSurface>
 					)}
@@ -576,167 +581,169 @@ function CreatePostContent() {
 							transition={{ delay: 0.1 }}
 							className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 						>
-						{/* Author header */}
-						<div className='flex items-center gap-3 border-b border-border-subtle p-4'>
-							<Avatar className='size-12 ring-2 ring-brand/10'>
-								<AvatarImage
-									src={user?.avatarUrl}
-									alt={user?.displayName || 'You'}
-								/>
-								<AvatarFallback>
-									{user?.displayName
-										?.split(' ')
-										.map(n => n[0])
-										.join('')
-										.toUpperCase()
-										.slice(0, 2) || 'YO'}
-								</AvatarFallback>
-							</Avatar>
-							<div>
-								<div className='font-semibold text-text'>
-									{user?.displayName || user?.username || 'You'}
-								</div>
-								<div className='text-sm text-text-secondary'>
-									{session
-										? t('sharingRecipe', { title: session.recipeTitle })
-										: t('shareYourCreationShort')}
+							{/* Author header */}
+							<div className='flex items-center gap-3 border-b border-border-subtle p-4'>
+								<Avatar className='size-12 ring-2 ring-brand/10'>
+									<AvatarImage
+										src={user?.avatarUrl}
+										alt={user?.displayName || 'You'}
+									/>
+									<AvatarFallback>
+										{user?.displayName
+											?.split(' ')
+											.map(n => n[0])
+											.join('')
+											.toUpperCase()
+											.slice(0, 2) || 'YO'}
+									</AvatarFallback>
+								</Avatar>
+								<div>
+									<div className='font-semibold text-text'>
+										{user?.displayName || user?.username || 'You'}
+									</div>
+									<div className='text-sm text-text-secondary'>
+										{session
+											? t('sharingRecipe', { title: session.recipeTitle })
+											: t('shareYourCreationShort')}
+									</div>
 								</div>
 							</div>
-						</div>
 
-						{/* Content textarea */}
-						<div className='px-4 pb-4'>
-							<textarea
-								value={content}
-								onChange={e => setContent(e.target.value)}
-								onKeyDown={e => {
-									if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-										e.preventDefault()
-										handleSubmit()
+							{/* Content textarea */}
+							<div className='px-4 pb-4'>
+								<textarea
+									value={content}
+									onChange={e => setContent(e.target.value)}
+									onKeyDown={e => {
+										if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+											e.preventDefault()
+											handleSubmit()
+										}
+									}}
+									aria-label={t('postContentLabel')}
+									maxLength={2000}
+									placeholder={
+										session
+											? t('placeholderWithSession', {
+													title: session.recipeTitle,
+												})
+											: t('placeholderGeneric')
 									}
-								}}
-								aria-label={t('postContentLabel')}
-								maxLength={2000}
-								placeholder={
-									session
-										? t('placeholderWithSession', {
-												title: session.recipeTitle,
-											})
-										: t('placeholderGeneric')
-								}
-								className='min-h-textarea-sm w-full resize-none rounded-lg bg-transparent py-2 text-text placeholder-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-								autoFocus
-							/>
-							<p
-								aria-live='polite'
-								aria-atomic='true'
-								className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
-							>
-								{content.length}/2000
-							</p>
-
-							{/* Photo Previews */}
-							<AnimatePresence>
-								{previewUrls.length > 0 && (
-									<motion.div
-										initial={{ opacity: 0, height: 0 }}
-										animate={{ opacity: 1, height: 'auto' }}
-										exit={{ opacity: 0, height: 0 }}
-										className='mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3'
-									>
-										{previewUrls.map((url, index) => (
-											<motion.div
-												key={url}
-												initial={{ opacity: 0, scale: 0.8 }}
-												animate={{ opacity: 1, scale: 1 }}
-												exit={{ opacity: 0, scale: 0.8 }}
-												className='group relative aspect-square overflow-hidden rounded-xl'
-											>
-												<Image
-													src={url}
-													alt={`Preview ${index + 1}`}
-													fill
-													sizes='120px'
-													className='object-cover'
-												/>
-												<motion.button
-													type='button'
-													onClick={() => removePhoto(index)}
-													className='absolute right-1 top-1 flex size-9 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
-													whileHover={ICON_BUTTON_HOVER}
-													whileTap={ICON_BUTTON_TAP}
-													aria-label={`Remove photo ${index + 1}`}
-												>
-													<X className='size-4' />
-												</motion.button>
-											</motion.div>
-										))}
-									</motion.div>
-								)}
-							</AnimatePresence>
-						</div>
-
-						{/* Footer actions */}
-						<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
-							<label
-								className={cn(
-									'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-card hover:text-brand',
-									photoFiles.length >= 5 && 'cursor-not-allowed opacity-50',
-								)}
-							>
-								<Camera className='size-5' />
-								{t('addPhotosCount', { count: photoFiles.length })}
-								<input
-									type='file'
-									accept='image/*'
-									multiple
-									onChange={handlePhotoSelect}
-									aria-label={t('addPhotosCount', { count: photoFiles.length })}
-									className='hidden'
-									disabled={photoFiles.length >= 5}
+									className='min-h-textarea-sm w-full resize-none rounded-xl bg-transparent py-2 text-text placeholder-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									autoFocus
 								/>
-							</label>
+								<p
+									aria-live='polite'
+									aria-atomic='true'
+									className={`mt-1 text-right text-xs ${content.length > 1600 ? (content.length >= 2000 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+								>
+									{content.length}/2000
+								</p>
 
-							<AnimatedButton
-								onClick={handleSubmit}
-								disabled={
-									isSubmitting || (!content.trim() && photoFiles.length === 0)
-								}
-								className={cn(
-									'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
-									session
-										? 'bg-gradient-hero text-white shadow-warm shadow-primary/30'
-										: 'bg-brand text-white',
-								)}
-							>
-								{isSubmitting ? (
-									<>
-										<Loader2 className='size-4 animate-spin' />
-										{t('posting')}
-									</>
-								) : (
-									<>
-										<Send className='size-4' />
-										{session
-											? hasPendingSessionXp
-												? t('postAndClaimXp', {
-														xp: Math.round(session.pendingXp),
-													})
-												: t('postButton')
-											: t('postButton')}
-										<kbd
-											className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
-											suppressHydrationWarning
+								{/* Photo Previews */}
+								<AnimatePresence>
+									{previewUrls.length > 0 && (
+										<motion.div
+											initial={{ opacity: 0, height: 0 }}
+											animate={{ opacity: 1, height: 'auto' }}
+											exit={{ opacity: 0, height: 0 }}
+											className='mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3'
 										>
-											{typeof window !== 'undefined' &&
-											/Mac|iPhone|iPad/.test(navigator.userAgent)
-												? '⌘↵'
-												: 'Ctrl+↵'}
-										</kbd>
-									</>
-								)}
-							</AnimatedButton>
-						</div>
+											{previewUrls.map((url, index) => (
+												<motion.div
+													key={url}
+													initial={{ opacity: 0, scale: 0.8 }}
+													animate={{ opacity: 1, scale: 1 }}
+													exit={{ opacity: 0, scale: 0.8 }}
+													className='group relative aspect-square overflow-hidden rounded-xl'
+												>
+													<Image
+														src={url}
+														alt={`Preview ${index + 1}`}
+														fill
+														sizes='120px'
+														className='object-cover'
+													/>
+													<motion.button
+														type='button'
+														onClick={() => removePhoto(index)}
+														className='absolute right-1 top-1 flex size-9 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+														whileHover={ICON_BUTTON_HOVER}
+														whileTap={ICON_BUTTON_TAP}
+														aria-label={`Remove photo ${index + 1}`}
+													>
+														<X className='size-4' />
+													</motion.button>
+												</motion.div>
+											))}
+										</motion.div>
+									)}
+								</AnimatePresence>
+							</div>
+
+							{/* Footer actions */}
+							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-hover p-3'>
+								<label
+									className={cn(
+										'flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-card hover:text-brand',
+										photoFiles.length >= 5 && 'cursor-not-allowed opacity-50',
+									)}
+								>
+									<Camera className='size-5' />
+									{t('addPhotosCount', { count: photoFiles.length })}
+									<input
+										type='file'
+										accept='image/*'
+										multiple
+										onChange={handlePhotoSelect}
+										aria-label={t('addPhotosCount', {
+											count: photoFiles.length,
+										})}
+										className='hidden'
+										disabled={photoFiles.length >= 5}
+									/>
+								</label>
+
+								<AnimatedButton
+									onClick={handleSubmit}
+									disabled={
+										isSubmitting || (!content.trim() && photoFiles.length === 0)
+									}
+									className={cn(
+										'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
+										session
+											? 'bg-gradient-hero text-white shadow-warm shadow-primary/30'
+											: 'bg-brand text-white',
+									)}
+								>
+									{isSubmitting ? (
+										<>
+											<Loader2 className='size-4 animate-spin' />
+											{t('posting')}
+										</>
+									) : (
+										<>
+											<Send className='size-4' />
+											{session
+												? hasPendingSessionXp
+													? t('postAndClaimXp', {
+															xp: Math.round(session.pendingXp),
+														})
+													: t('postButton')
+												: t('postButton')}
+											<kbd
+												className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
+												suppressHydrationWarning
+											>
+												{typeof window !== 'undefined' &&
+												/Mac|iPhone|iPad/.test(navigator.userAgent)
+													? '⌘↵'
+													: 'Ctrl+↵'}
+											</kbd>
+										</>
+									)}
+								</AnimatedButton>
+							</div>
 						</motion.div>
 					</PremiumSurface>
 

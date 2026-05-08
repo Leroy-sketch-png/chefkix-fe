@@ -217,7 +217,7 @@ export const LeftSidebar = () => {
 				/>
 				{/* Glow halo behind icon on active */}
 				{active && (
-					<div className='pointer-events-none absolute inset-x-2 top-1 h-7 rounded-lg bg-brand/8 blur-md' />
+					<div className='pointer-events-none absolute inset-x-2 top-1 h-7 rounded-xl bg-brand/8 blur-md' />
 				)}
 				{/* Icon */}
 				<motion.div
@@ -226,7 +226,12 @@ export const LeftSidebar = () => {
 					transition={TRANSITION_SPRING}
 					className='relative'
 				>
-					<Icon className={cn('size-5 transition-all duration-300', active && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]')} />
+					<Icon
+						className={cn(
+							'size-5 transition-all duration-300',
+							active && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
+						)}
+					/>
 					{item.showBadge && unreadCount > 0 && (
 						<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white shadow-[0_2px_6px_rgba(255,90,54,0.5)]'>
 							{unreadCount > 9 ? '9+' : unreadCount}

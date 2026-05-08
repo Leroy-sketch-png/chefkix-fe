@@ -26,7 +26,7 @@ export default function RepliedStoryPreview({
 		>
 			<div className='relative flex items-center gap-3 p-2 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-black/5 dark:border-white/10 shadow-sm'>
 				{/* Thumbnail Story - Tỷ lệ đứng 9:16 */}
-				<div className='relative w-10 h-16 flex-shrink-0 overflow-hidden rounded-lg border border-black/5'>
+				<div className='relative w-10 h-16 flex-shrink-0 overflow-hidden rounded-xl border border-black/5'>
 					<img
 						src={thumbnailUrl}
 						alt='story thumb'

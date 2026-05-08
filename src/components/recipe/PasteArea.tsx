@@ -36,7 +36,7 @@ export const PasteArea = ({
 				<button
 					type='button'
 					onClick={onPaste}
-					className='flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg'
+					className='flex items-center gap-2 rounded-xl border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg'
 				>
 					<Clipboard className='size-4' />
 					{t('pasteFromClipboard')}

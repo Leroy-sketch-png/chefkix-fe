@@ -467,7 +467,7 @@ export const QuickPostFAB = ({
 				>
 					<Camera className='size-6 text-white' />
 					{/* Tooltip on hover (desktop) */}
-					<span className='pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded-lg bg-text px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-warm transition-opacity group-hover:opacity-100 sm:block'>
+					<span className='pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded-xl bg-text px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-warm transition-opacity group-hover:opacity-100 sm:block'>
 						{t('fabTooltip')}
 					</span>
 				</motion.button>
@@ -523,7 +523,7 @@ export const QuickPostFAB = ({
 										onClick={handleClose}
 										disabled={isSubmitting}
 										aria-label={t('fabClose')}
-										className='grid size-10 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text disabled:cursor-not-allowed disabled:opacity-50'
+										className='grid size-10 place-items-center rounded-xl text-text-muted transition-colors hover:bg-bg-elevated hover:text-text disabled:cursor-not-allowed disabled:opacity-50'
 									>
 										<X className='size-5' />
 									</button>
@@ -548,7 +548,7 @@ export const QuickPostFAB = ({
 											key={key}
 											onClick={() => setMode(key)}
 											className={cn(
-												'flex flex-1 items-center justify-center gap-1 rounded-lg py-2 text-xs font-medium transition-all sm:text-sm sm:gap-1.5',
+												'flex flex-1 items-center justify-center gap-1 rounded-xl py-2 text-xs font-medium transition-all sm:text-sm sm:gap-1.5',
 												mode === key
 													? 'bg-bg-card text-text shadow-card'
 													: 'text-text-muted hover:text-text',
@@ -618,7 +618,7 @@ export const QuickPostFAB = ({
 									<>
 										{/* Tip Content */}
 										<div className='mb-3'>
-											<div className='mb-2 flex items-center gap-2 rounded-lg bg-warning/10 px-3 py-2'>
+											<div className='mb-2 flex items-center gap-2 rounded-xl bg-warning/10 px-3 py-2'>
 												<Lightbulb className='size-4 shrink-0 text-warning' />
 												<span className='text-xs text-warning'>
 													{t('fabTipInfoText')}
@@ -725,7 +725,7 @@ export const QuickPostFAB = ({
 													<button
 														type='button'
 														onClick={() => setBattlePickingSlot('A')}
-														className='flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-brand/30 bg-brand/5 py-2 text-sm font-medium text-brand transition-colors hover:bg-brand/10'
+														className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-brand/30 bg-brand/5 py-2 text-sm font-medium text-brand transition-colors hover:bg-brand/10'
 													>
 														<Search className='size-4' />
 														{t('fabBattleSearchRecipes')}
@@ -768,7 +768,7 @@ export const QuickPostFAB = ({
 													<button
 														type='button'
 														onClick={() => setBattlePickingSlot('B')}
-														className='flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-secondary/30 bg-secondary/5 py-2 text-sm font-medium text-secondary transition-colors hover:bg-secondary/10'
+														className='flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-secondary/30 bg-secondary/5 py-2 text-sm font-medium text-secondary transition-colors hover:bg-secondary/10'
 													>
 														<Search className='size-4' />
 														{t('fabBattleSearchRecipes')}
@@ -778,7 +778,7 @@ export const QuickPostFAB = ({
 
 											{/* Recipe search dropdown */}
 											{battlePickingSlot && (
-																<div className='rounded-xl border border-brand/20 bg-gradient-to-br from-brand/6 via-bg-card to-bg-elevated/60 p-3 shadow-card'>
+												<div className='rounded-xl border border-brand/20 bg-gradient-to-br from-brand/6 via-bg-card to-bg-elevated/60 p-3 shadow-card'>
 													<input
 														type='text'
 														aria-label={t('fabBattleSearchPlaceholder')}
@@ -786,7 +786,7 @@ export const QuickPostFAB = ({
 														onChange={e => handleBattleSearch(e.target.value)}
 														placeholder={t('fabBattleSearchPlaceholder')}
 														autoFocus
-														className='mb-2 w-full rounded-lg border border-border-subtle bg-bg-elevated p-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+														className='mb-2 w-full rounded-xl border border-border-subtle bg-bg-elevated p-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 													/>
 													{battleSearching && (
 														<div className='flex items-center justify-center py-3'>
@@ -801,7 +801,7 @@ export const QuickPostFAB = ({
 																		type='button'
 																		key={recipe.id}
 																		onClick={() => selectBattleRecipe(recipe)}
-																		className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-text transition-colors hover:bg-bg-elevated'
+																		className='flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-text transition-colors hover:bg-bg-elevated'
 																	>
 																		<ChefHat className='size-4 shrink-0 text-brand' />
 																		{recipe.title}
@@ -950,7 +950,7 @@ export const QuickPostFAB = ({
 									whileHover={isSubmitting ? undefined : BUTTON_HOVER}
 									whileTap={isSubmitting ? undefined : BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-brand py-3 font-semibold text-white transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{isSubmitting ? (
 										<>

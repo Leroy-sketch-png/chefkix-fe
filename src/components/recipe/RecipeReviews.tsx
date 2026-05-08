@@ -61,7 +61,7 @@ function RecipeReviewErrorFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-card'
+					className='inline-flex h-10 w-fit items-center justify-center rounded-xl border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-card'
 				>
 					{tCommon('tryAgain')}
 				</button>

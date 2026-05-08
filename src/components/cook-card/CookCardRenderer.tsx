@@ -425,7 +425,7 @@ export default function CookCardRenderer({
 	if (isLoading) {
 		return (
 			<div className={cn('space-y-4', compact ? 'p-4' : 'p-6')}>
-				<div className='h-6 w-40 animate-pulse rounded-lg bg-bg-elevated' />
+				<div className='h-6 w-40 animate-pulse rounded-xl bg-bg-elevated' />
 				<div className='aspect-[4/5] w-full max-w-sm animate-pulse rounded-xl bg-bg-elevated' />
 			</div>
 		)
@@ -512,7 +512,7 @@ export default function CookCardRenderer({
 					{/* Stats */}
 					<div className='mt-4 grid grid-cols-2 gap-2'>
 						{data.xpEarned > 0 && (
-							<div className='rounded-lg bg-bg-elevated px-3 py-2'>
+							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<Flame className='size-4 text-xp' />
 									<span className='text-sm font-bold text-text'>
@@ -523,7 +523,7 @@ export default function CookCardRenderer({
 							</div>
 						)}
 						{cookTimeStr && (
-							<div className='rounded-lg bg-bg-elevated px-3 py-2'>
+							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<Clock className='size-4 text-brand' />
 									<span className='text-sm font-bold text-text'>
@@ -534,7 +534,7 @@ export default function CookCardRenderer({
 							</div>
 						)}
 						{data.totalSteps != null && (
-							<div className='rounded-lg bg-bg-elevated px-3 py-2'>
+							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<CheckCircle2 className='size-4 text-success' />
 									<span className='text-sm font-bold text-text'>
@@ -545,7 +545,7 @@ export default function CookCardRenderer({
 							</div>
 						)}
 						{data.difficulty && (
-							<div className='rounded-lg bg-bg-elevated px-3 py-2'>
+							<div className='rounded-xl bg-bg-elevated px-3 py-2'>
 								<div className='flex items-center justify-center gap-1'>
 									<ChefHat className='size-4 text-warning' />
 									<span className='text-sm font-bold text-text'>

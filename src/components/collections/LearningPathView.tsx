@@ -492,7 +492,7 @@ function RecipeRow({
 	return (
 		<motion.div
 			whileHover={!isLocked ? { backgroundColor: 'var(--bg-elevated)' } : {}}
-			className={`flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors ${
+			className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors ${
 				isLocked ? 'opacity-50' : 'cursor-pointer'
 			}`}
 			onClick={isLocked ? undefined : onStart}
@@ -524,7 +524,7 @@ function RecipeRow({
 						e.stopPropagation()
 						onStart()
 					}}
-					className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand/20'
+					className='flex items-center gap-1.5 rounded-xl bg-brand/10 px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand/20'
 				>
 					<Play className='size-3' />
 					Start
@@ -535,4 +535,3 @@ function RecipeRow({
 }
 
 export default LearningPathView
-

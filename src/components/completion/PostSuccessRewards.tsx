@@ -105,7 +105,7 @@ const XPRowComponent = ({ row, index }: { row: XPRow; index: number }) => (
 		animate={{ opacity: 1, x: 0 }}
 		transition={{ ...TRANSITION_SPRING, delay: 0.3 + index * 0.1 }}
 		className={cn(
-			'flex items-center justify-between rounded-lg px-3 py-2.5',
+			'flex items-center justify-between rounded-xl px-3 py-2.5',
 			row.isHighlight && 'border border-success/20 bg-success/10',
 		)}
 	>
@@ -245,7 +245,7 @@ export const PostSuccessRewards = ({
 										<Check className='size-5 text-white' />
 									</motion.div>
 								</div>
-								<h1 className='mb-2 text-3xl font-display font-extrabold'>
+								<h1 className='mb-2 text-3xl font-bold tracking-tight'>
 									{t('posted')}
 								</h1>
 								<p className='text-text-muted'>
@@ -288,7 +288,7 @@ export const PostSuccessRewards = ({
 											initial={{ scale: 0.5, opacity: 0 }}
 											animate={{ scale: 1, opacity: 1 }}
 											transition={{ ...TRANSITION_BOUNCY, delay: 0.8 }}
-											className='text-2xl font-display font-extrabold text-xp'
+											className='text-2xl font-bold tracking-tight text-xp'
 										>
 											+{totalXp} XP
 										</motion.span>
@@ -354,14 +354,14 @@ export const PostSuccessRewards = ({
 											<button
 												type='button'
 												onClick={onViewPost}
-												className='flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
+												className='flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
 											>
 												{t('viewPost')}
 												<ArrowRight className='size-4' />
 											</button>
 										)}
 									</div>
-									<div className='overflow-hidden rounded-lg border border-border bg-bg-card'>
+									<div className='overflow-hidden rounded-xl border border-border bg-bg-card'>
 										<div className='flex items-center gap-2.5 p-3'>
 											<Image
 												src={postPreview.authorAvatar}

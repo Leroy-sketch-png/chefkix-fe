@@ -17,7 +17,7 @@ export const CommunitySkeleton = () => {
 			<div className='mb-6'>
 				<div className='mb-2 flex items-center gap-3'>
 					<Skeleton className='size-12 rounded-2xl' />
-					<Skeleton className='h-9 w-48 rounded-lg' />
+					<Skeleton className='h-9 w-48 rounded-xl' />
 				</div>
 				<div className='flex items-center gap-2'>
 					<Skeleton className='size-4 rounded' />

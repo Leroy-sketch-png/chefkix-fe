@@ -216,7 +216,7 @@ export function CollectionBuilder({
 					type='button'
 					onClick={onCancel}
 					aria-label={t('builderClose')}
-					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+					className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
 				>
 					<X className='size-5' />
 				</button>
@@ -289,7 +289,7 @@ export function CollectionBuilder({
 					<button
 						type='button'
 						onClick={() => setShowAddStage(true)}
-						className='flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
+						className='flex items-center gap-1.5 rounded-xl bg-brand/10 px-3 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/20'
 					>
 						<Plus className='size-4' />
 						{t('builderAddStage')}
@@ -470,7 +470,7 @@ function StageItem({
 							onChange={e => onUpdateLabel(stageIndex, e.target.value)}
 							onBlur={() => setIsEditing(false)}
 							onKeyDown={e => e.key === 'Enter' && setIsEditing(false)}
-							className='w-full rounded-lg border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='w-full rounded-xl border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 							autoFocus
 						/>
 					) : (
@@ -501,7 +501,7 @@ function StageItem({
 				<button
 					type='button'
 					onClick={() => onRemove(stageIndex)}
-					className='rounded-lg p-1.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
+					className='rounded-xl p-1.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
 				>
 					<Trash2 className='size-4' />
 				</button>
@@ -514,7 +514,7 @@ function StageItem({
 						{stage.recipeIds.map((recipeId, idx) => (
 							<div
 								key={recipeId}
-								className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'
+								className='flex items-center justify-between rounded-xl bg-bg-elevated px-3 py-2'
 							>
 								<span className='text-sm text-text'>
 									Recipe {idx + 1}: {recipeId.slice(0, 8)}...
@@ -542,4 +542,3 @@ function StageItem({
 }
 
 export default CollectionBuilder
-

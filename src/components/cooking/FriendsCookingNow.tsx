@@ -143,7 +143,7 @@ export function FriendsCookingNow({
 											`/cook-together?roomCode=${room.roomCode}&role=SPECTATOR`,
 										)
 									}
-									className='flex items-center gap-1 rounded-lg bg-bg-elevated px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80 hover:text-text'
+									className='flex items-center gap-1 rounded-xl bg-bg-elevated px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80 hover:text-text'
 									title={t('friendWatch')}
 									aria-label={t('friendWatchAria', {
 										names: formatParticipantNames(room.participantNames),
@@ -157,7 +157,7 @@ export function FriendsCookingNow({
 									onClick={() =>
 										router.push(`/cook-together?roomCode=${room.roomCode}`)
 									}
-									className='flex items-center gap-1 rounded-lg bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/20'
+									className='flex items-center gap-1 rounded-xl bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/20'
 									title={t('friendJoin')}
 									aria-label={t('friendJoinAria', {
 										names: formatParticipantNames(room.participantNames),
@@ -260,4 +260,3 @@ function formatMinutesAgo(
 		? t('hoursMinutesShort', { hours, minutes: remaining })
 		: t('hoursShort', { hours })
 }
-

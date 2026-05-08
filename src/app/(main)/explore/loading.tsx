@@ -7,7 +7,7 @@ export default function Loading() {
 		<PageContainer maxWidth='2xl'>
 			{/* Page Header */}
 			<div className='mb-4 space-y-2 md:mb-6'>
-				<Skeleton className='h-9 w-40 rounded-lg' />
+				<Skeleton className='h-9 w-40 rounded-xl' />
 				<Skeleton className='h-5 w-72 rounded' />
 			</div>
 
@@ -17,7 +17,7 @@ export default function Loading() {
 					<Skeleton className='aspect-[16/9] w-full rounded-xl sm:aspect-[4/3]' />
 					<div className='space-y-3'>
 						<Skeleton className='h-4 w-20 rounded' />
-						<Skeleton className='h-7 w-3/4 rounded-lg' />
+						<Skeleton className='h-7 w-3/4 rounded-xl' />
 						<Skeleton className='h-4 w-full rounded' />
 						<div className='flex gap-3 pt-2'>
 							<Skeleton className='h-10 w-28 rounded-xl' />
@@ -33,7 +33,7 @@ export default function Loading() {
 			{/* Season's Best collections skeleton */}
 			<div className='mb-6'>
 				<div className='mb-4 flex items-center justify-between'>
-					<Skeleton className='h-7 w-40 rounded-lg' />
+					<Skeleton className='h-7 w-40 rounded-xl' />
 					<Skeleton className='h-5 w-16 rounded' />
 				</div>
 				<div className='flex gap-4 overflow-hidden'>

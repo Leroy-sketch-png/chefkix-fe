@@ -425,7 +425,7 @@ export const AiAssistant = ({
 											type='button'
 											key={action.id}
 											onClick={() => handleQuickAction(action)}
-											className='flex items-center gap-2 rounded-lg bg-bg-card p-3 text-left text-sm transition-colors hover:bg-bg-hover'
+											className='flex items-center gap-2 rounded-xl bg-bg-card p-3 text-left text-sm transition-colors hover:bg-bg-hover'
 										>
 											<span className='text-lg'>{action.icon}</span>
 											<span className='font-medium'>{t(action.labelKey)}</span>

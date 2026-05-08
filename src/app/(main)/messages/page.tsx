@@ -630,7 +630,7 @@ function MessagesContent() {
 									</p>
 									<Link
 										href='/community'
-										className='mt-2 inline-flex items-center gap-1.5 rounded-lg border border-brand/20 bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/15'
+										className='mt-2 inline-flex items-center gap-1.5 rounded-xl border border-brand/20 bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/15'
 									>
 										<Users className='size-3.5' />
 										{t('discoverChefs')}
@@ -799,7 +799,7 @@ function MessagesContent() {
 						<footer className='flex-shrink-0 border-t border-border-subtle bg-bg-card p-3 md:p-4'>
 							{/* Reply Preview */}
 							{replyingTo && (
-								<div className='mb-2 flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2'>
+								<div className='mb-2 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand/5 px-3 py-2'>
 									<div className='min-w-0 flex-1'>
 										<p className='truncate text-xs font-medium text-brand'>
 											Replying to{' '}

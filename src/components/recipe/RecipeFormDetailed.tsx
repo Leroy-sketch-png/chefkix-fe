@@ -928,7 +928,7 @@ export const RecipeFormDetailed = ({
 		<div className={cn('mx-auto max-w-form p-6 md:p-10', className)}>
 			{/* Header */}
 			<div className='mb-10'>
-				<h1 className='text-3xl font-display font-extrabold text-text md:text-4xl'>
+				<h1 className='text-3xl font-bold tracking-tight text-text md:text-4xl'>
 					{t('formCreateTitle')}
 				</h1>
 				<p className='mt-2 text-text-secondary'>{t('formCreateSubtitle')}</p>

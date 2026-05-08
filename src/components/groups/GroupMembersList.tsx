@@ -97,7 +97,7 @@ export const GroupMembersList = ({
 				{Array.from({ length: 5 }).map((_, i) => (
 					<div
 						key={i}
-						className='bg-bg-card rounded-lg p-4 border border-border flex items-center justify-between'
+						className='bg-bg-card rounded-xl p-4 border border-border flex items-center justify-between'
 					>
 						<div className='flex items-center gap-3'>
 							<Skeleton className='size-10 rounded-full' />
@@ -127,7 +127,7 @@ export const GroupMembersList = ({
 				<motion.div
 					key={member.userId}
 					variants={staggerItemVariants}
-					className='bg-bg-card rounded-lg p-4 border border-border hover:border-brand/50 transition-colors flex items-center justify-between'
+					className='bg-bg-card rounded-xl p-4 border border-border hover:border-brand/50 transition-colors flex items-center justify-between'
 				>
 					<Link href={`/${member.userId}`} className='flex-1'>
 						<div className='flex items-center gap-3 cursor-pointer'>

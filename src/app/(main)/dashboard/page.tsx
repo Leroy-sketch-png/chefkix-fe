@@ -730,7 +730,7 @@ export default function DashboardPage() {
 											user.avatarUrl === '/placeholder-avatar.svg') && (
 											<Link
 												href='/settings'
-												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+												className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
 											>
 												<Camera className='size-3.5' />
 
@@ -740,7 +740,7 @@ export default function DashboardPage() {
 										{!user.bio && (
 											<Link
 												href='/settings'
-												className='inline-flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
+												className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-brand/10 hover:text-brand'
 											>
 												<PenLine className='size-3.5' />
 

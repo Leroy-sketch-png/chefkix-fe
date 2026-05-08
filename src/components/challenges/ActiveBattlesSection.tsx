@@ -55,7 +55,7 @@ function BattleCard({ battle, index }: { battle: Post; index: number }) {
 				<div className='flex items-center justify-between px-5 pt-4 pb-3'>
 					<div className='flex items-center gap-2.5'>
 						<div
-							className={`flex size-9 items-center justify-center rounded-lg ${
+							className={`flex size-9 items-center justify-center rounded-xl ${
 								heat === 'hot'
 									? 'bg-brand/15 text-brand'
 									: heat === 'warm'
@@ -247,7 +247,7 @@ export function ActiveBattlesSection() {
 								className='rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 							>
 								<div className='flex items-center gap-3 px-5 pt-4 pb-3'>
-									<Skeleton className='size-9 rounded-lg' />
+									<Skeleton className='size-9 rounded-xl' />
 									<div className='flex-1 space-y-1.5'>
 										<Skeleton className='h-4 w-2/3' />
 										<Skeleton className='h-3 w-1/3' />

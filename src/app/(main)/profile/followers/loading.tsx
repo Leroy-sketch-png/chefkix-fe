@@ -7,7 +7,7 @@ export default function Loading() {
 			{/* Back button + title */}
 			<div className='mb-6 flex items-center gap-3'>
 				<Skeleton className='size-10 rounded-full' />
-				<Skeleton className='h-8 w-48 rounded-lg' />
+				<Skeleton className='h-8 w-48 rounded-xl' />
 			</div>
 
 			{/* Tabs */}

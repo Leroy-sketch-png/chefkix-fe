@@ -65,7 +65,7 @@ export function ConfirmDialog({
 				<AlertDialogFooter>
 					<AlertDialogCancel
 						onClick={handleCancel}
-						className='rounded-lg border-border bg-bg-elevated hover:bg-bg-hover'
+						className='rounded-xl border-border bg-bg-elevated hover:bg-bg-hover'
 					>
 						{cancelLabel ?? t('cdCancel')}
 					</AlertDialogCancel>
@@ -73,8 +73,8 @@ export function ConfirmDialog({
 						onClick={handleConfirm}
 						className={
 							variant === 'destructive'
-								? 'rounded-lg bg-error text-white hover:bg-error/90'
-								: 'rounded-lg bg-brand text-white hover:bg-brand/90'
+								? 'rounded-xl bg-error text-white hover:bg-error/90'
+								: 'rounded-xl bg-brand text-white hover:bg-brand/90'
 						}
 					>
 						{confirmLabel ?? t('cdConfirm')}

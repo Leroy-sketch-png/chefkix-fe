@@ -16,10 +16,10 @@ export default function BadgesLoading() {
 					</div>
 					<Skeleton className='mt-4 h-2 w-full rounded-full' />
 					<div className='mt-4 flex flex-wrap gap-2'>
-						<Skeleton className='h-10 flex-1 min-w-search rounded-lg' />
-						<Skeleton className='h-10 w-36 rounded-lg' />
-						<Skeleton className='h-10 w-32 rounded-lg' />
-						<Skeleton className='h-10 w-28 rounded-lg' />
+						<Skeleton className='h-10 flex-1 min-w-search rounded-xl' />
+						<Skeleton className='h-10 w-36 rounded-xl' />
+						<Skeleton className='h-10 w-32 rounded-xl' />
+						<Skeleton className='h-10 w-28 rounded-xl' />
 					</div>
 				</div>
 			</div>

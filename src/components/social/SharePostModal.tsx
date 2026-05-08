@@ -244,7 +244,7 @@ export const SharePostModal = ({
 								<motion.button
 									type='button'
 									onClick={onClose}
-									className='grid size-8 flex-shrink-0 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='grid size-8 flex-shrink-0 place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9 focus-visible:ring-2 focus-visible:ring-brand/50'
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									aria-label={t('shareCloseLabel')}
@@ -266,7 +266,7 @@ export const SharePostModal = ({
 								>
 									<div className='flex gap-2.5 sm:gap-3'>
 										{postImage && (
-											<div className='relative size-16 flex-shrink-0 overflow-hidden rounded-lg ring-2 ring-brand/20 sm:size-20'>
+											<div className='relative size-16 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-brand/20 sm:size-20'>
 												<Image
 													src={postImage}
 													alt={t('sharePostPreviewAlt')}
@@ -513,7 +513,7 @@ export const SharePostModal = ({
 								<div className='flex items-center gap-2'>
 									{selectedConversations.size > 0 ? (
 										<>
-											<div className='grid size-7 flex-shrink-0 place-items-center rounded-lg bg-brand/10 sm:size-8'>
+											<div className='grid size-7 flex-shrink-0 place-items-center rounded-xl bg-brand/10 sm:size-8'>
 												<span className='text-xs font-bold text-brand sm:text-sm'>
 													{selectedConversations.size}
 												</span>

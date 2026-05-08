@@ -273,7 +273,7 @@ const StepQualityIndicatorComponent = ({
 				whileHover={LIST_ITEM_HOVER}
 				whileTap={LIST_ITEM_TAP}
 				className={cn(
-					'flex items-center gap-2 rounded-lg border px-3 py-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+					'flex items-center gap-2 rounded-xl border px-3 py-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 					config.bgColor,
 					config.borderColor,
 					isExpanded && 'ring-2 ring-offset-1',
@@ -299,7 +299,7 @@ const StepQualityIndicatorComponent = ({
 						animate={{ opacity: 1, y: 0, height: 'auto' }}
 						exit={{ opacity: 0, y: -8, height: 0 }}
 						transition={TRANSITION_SMOOTH}
-						className='mt-2 overflow-hidden rounded-lg border border-border bg-bg-card p-3 shadow-card'
+						className='mt-2 overflow-hidden rounded-xl border border-border bg-bg-card p-3 shadow-card'
 					>
 						<p className='mb-2 text-xs font-medium text-text-secondary'>
 							{t('sqiSuggestionsToImprove')}

@@ -284,7 +284,7 @@ export default function MealPlannerPage() {
 			<PageTransition>
 				<PageContainer maxWidth='xl'>
 					<div className='space-y-6 py-6'>
-						<div className='h-10 w-52 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='h-10 w-52 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='grid grid-cols-7 gap-3'>
 							{Array.from({ length: 21 }).map((_, i) => (
 								<div
@@ -338,7 +338,7 @@ export default function MealPlannerPage() {
 									<button
 										type='button'
 										onClick={handleShowShopping}
-										className='flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80 lg:px-3.5 lg:py-2'
+										className='flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80 lg:px-3.5 lg:py-2'
 									>
 										<ShoppingCart className='size-4' />
 										{t('shoppingList')}
@@ -346,7 +346,7 @@ export default function MealPlannerPage() {
 									<button
 										type='button'
 										onClick={() => setConfirmingDelete(true)}
-										className='flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 lg:px-3.5 lg:py-2'
+										className='flex items-center gap-1.5 rounded-xl bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 lg:px-3.5 lg:py-2'
 									>
 										<Trash2 className='size-4' />
 										{t('clear')}
@@ -356,7 +356,7 @@ export default function MealPlannerPage() {
 							<button
 								type='button'
 								onClick={() => setUseAI(prev => !prev)}
-								className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors lg:px-3.5 lg:py-2 ${
+								className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors lg:px-3.5 lg:py-2 ${
 									useAI
 										? 'bg-brand/15 text-brand'
 										: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
@@ -374,7 +374,7 @@ export default function MealPlannerPage() {
 								type='button'
 								onClick={handleGenerate}
 								disabled={generating}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 lg:px-4.5 lg:py-2'
+								className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 lg:px-4.5 lg:py-2'
 							>
 								{generating ? (
 									<RefreshCw className='size-4 animate-spin' />
@@ -455,83 +455,85 @@ export default function MealPlannerPage() {
 							>
 								<div className='overflow-x-auto scrollbar-hide'>
 									<div className='min-w-[900px]'>
-								{/* Day Headers */}
-								<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
-									<div /> {/* spacer */}
-									{plannedDays.map(day => (
-										<div
-											key={day.dayOfWeek}
-											className='rounded-lg bg-bg-elevated px-3 py-2 text-center text-sm font-semibold text-text'
-										>
-											{day.dayOfWeek.slice(0, 3)}
-										</div>
-									))}
-								</div>
-
-								{/* Meal Rows */}
-								{MEAL_TYPES.map(mealType => (
-									<div
-										key={mealType}
-										className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'
-									>
-										<div className='flex items-center justify-center gap-1 text-sm font-medium text-text-secondary'>
-											<span>{MEAL_LABELS[mealType].emoji}</span>
-											<span className='hidden lg:inline'>
-												{t(MEAL_LABELS[mealType].labelKey)}
-											</span>
-										</div>
-										{plannedDays.map(day => {
-											const meal = getMeal(day, mealType)
-											return (
-												<motion.div
-													key={`${day.dayOfWeek}-${mealType}`}
-													whileHover={CARD_HOVER}
-													className='group relative rounded-xl border border-border-subtle bg-bg-card p-3 text-left shadow-card transition-colors hover:border-brand/30'
+										{/* Day Headers */}
+										<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
+											<div /> {/* spacer */}
+											{plannedDays.map(day => (
+												<div
+													key={day.dayOfWeek}
+													className='rounded-xl bg-bg-elevated px-3 py-2 text-center text-sm font-semibold text-text'
 												>
-													<button
-														type='button'
-														onClick={() =>
-															meal?.recipeId &&
-															router.push(`/recipes/${meal.recipeId}`)
-														}
-														className='w-full text-left'
-													>
-														{meal ? (
-															<>
-																<p className='line-clamp-2 text-xs font-medium text-text'>
-																	{meal.title}
-																</p>
-																<div className='mt-1.5 flex items-center gap-1.5 text-2xs text-text-muted'>
-																	<Clock className='size-3' />
-																	{formatCookingTime(meal.totalTimeMinutes)}
-																	{meal.aiGenerated && (
-																		<span className='rounded bg-info/10 px-1 py-0.5 text-info'>
-																			AI
-																		</span>
-																	)}
-																</div>
-															</>
-														) : (
-															<p className='text-sm text-text-muted/50'>+</p>
-														)}
-													</button>
-													{/* Swap button */}
-													<button
-														type='button'
-														onClick={e => {
-															e.stopPropagation()
-															handleSwapClick(day.dayOfWeek, mealType)
-														}}
-														aria-label={t('swapMeal')}
-														className='absolute right-1 top-1 rounded-md p-2 text-text-muted opacity-70 transition-all hover:bg-bg-elevated hover:text-brand active:opacity-100 md:opacity-60 md:group-hover:opacity-100 focus-visible:opacity-100'
-													>
-														<Shuffle className='size-4' />
-													</button>
-												</motion.div>
-											)
-										})}
-									</div>
-								))}
+													{day.dayOfWeek.slice(0, 3)}
+												</div>
+											))}
+										</div>
+
+										{/* Meal Rows */}
+										{MEAL_TYPES.map(mealType => (
+											<div
+												key={mealType}
+												className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'
+											>
+												<div className='flex items-center justify-center gap-1 text-sm font-medium text-text-secondary'>
+													<span>{MEAL_LABELS[mealType].emoji}</span>
+													<span className='hidden lg:inline'>
+														{t(MEAL_LABELS[mealType].labelKey)}
+													</span>
+												</div>
+												{plannedDays.map(day => {
+													const meal = getMeal(day, mealType)
+													return (
+														<motion.div
+															key={`${day.dayOfWeek}-${mealType}`}
+															whileHover={CARD_HOVER}
+															className='group relative rounded-xl border border-border-subtle bg-bg-card p-3 text-left shadow-card transition-colors hover:border-brand/30'
+														>
+															<button
+																type='button'
+																onClick={() =>
+																	meal?.recipeId &&
+																	router.push(`/recipes/${meal.recipeId}`)
+																}
+																className='w-full text-left'
+															>
+																{meal ? (
+																	<>
+																		<p className='line-clamp-2 text-xs font-medium text-text'>
+																			{meal.title}
+																		</p>
+																		<div className='mt-1.5 flex items-center gap-1.5 text-2xs text-text-muted'>
+																			<Clock className='size-3' />
+																			{formatCookingTime(meal.totalTimeMinutes)}
+																			{meal.aiGenerated && (
+																				<span className='rounded bg-info/10 px-1 py-0.5 text-info'>
+																					AI
+																				</span>
+																			)}
+																		</div>
+																	</>
+																) : (
+																	<p className='text-sm text-text-muted/50'>
+																		+
+																	</p>
+																)}
+															</button>
+															{/* Swap button */}
+															<button
+																type='button'
+																onClick={e => {
+																	e.stopPropagation()
+																	handleSwapClick(day.dayOfWeek, mealType)
+																}}
+																aria-label={t('swapMeal')}
+																className='absolute right-1 top-1 rounded-md p-2 text-text-muted opacity-70 transition-all hover:bg-bg-elevated hover:text-brand active:opacity-100 md:opacity-60 md:group-hover:opacity-100 focus-visible:opacity-100'
+															>
+																<Shuffle className='size-4' />
+															</button>
+														</motion.div>
+													)
+												})}
+											</div>
+										))}
 									</div>
 								</div>
 							</PremiumSurface>
@@ -547,7 +549,7 @@ export default function MealPlannerPage() {
 										<p className='text-xs font-semibold uppercase tracking-[0.14em] text-text-muted'>
 											Meals Planned
 										</p>
-										<p className='mt-1 text-2xl font-extrabold text-text'>
+										<p className='mt-1 text-2xl font-bold tabular-nums text-text-primary'>
 											{totalMealsPlanned}
 										</p>
 									</div>
@@ -555,12 +557,13 @@ export default function MealPlannerPage() {
 										<p className='text-xs font-semibold uppercase tracking-[0.14em] text-text-muted'>
 											Shopping Checked
 										</p>
-										<p className='mt-1 text-2xl font-extrabold text-text'>
+										<p className='mt-1 text-2xl font-bold tabular-nums text-text-primary'>
 											{checkedItems.size}
 										</p>
 									</div>
 									<p className='text-xs leading-relaxed text-text-secondary'>
-										Use this side panel to read planning state at a glance while keeping the weekly matrix visible.
+										Use this side panel to read planning state at a glance while
+										keeping the weekly matrix visible.
 									</p>
 								</div>
 							</PremiumSurface>
@@ -586,95 +589,95 @@ export default function MealPlannerPage() {
 											chipClassName='bg-bg-elevated'
 										/>
 										<div className='flex items-center gap-2'>
-										<button
-											type='button'
-											onClick={copyShoppingList}
-											className='flex items-center gap-1.5 rounded-lg bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80'
-										>
-											{copiedList ? (
-												<Check className='size-3.5' />
-											) : (
-												<Copy className='size-3.5' />
-											)}
-											{copiedList ? t('copied') : t('copyList')}
-										</button>
-										<button
-											type='button'
-											onClick={() => setShowShopping(false)}
-											aria-label={t('closeShoppingList')}
-											className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
-										>
-											<X className='size-4' />
-										</button>
+											<button
+												type='button'
+												onClick={copyShoppingList}
+												className='flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80'
+											>
+												{copiedList ? (
+													<Check className='size-3.5' />
+												) : (
+													<Copy className='size-3.5' />
+												)}
+												{copiedList ? t('copied') : t('copyList')}
+											</button>
+											<button
+												type='button'
+												onClick={() => setShowShopping(false)}
+												aria-label={t('closeShoppingList')}
+												className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
+											>
+												<X className='size-4' />
+											</button>
 										</div>
 									</div>
 
-								{loadingShopping ? (
-									<div className='space-y-2'>
-										{Array.from({ length: 5 }).map((_, i) => (
-											<div
-												key={i}
-												className='h-10 animate-pulse rounded-lg bg-bg-elevated'
-											/>
-										))}
-									</div>
-								) : shoppingList.length === 0 ? (
-									<div className='flex flex-col items-center gap-2 py-8 text-center'>
-										<Check className='size-8 text-green-500' />
-										<p className='text-sm font-medium text-text-secondary'>
-											{t('allCovered')}
-										</p>
-									</div>
-								) : (
-									<ul className='divide-y divide-border-subtle'>
-										{shoppingList.map(item => (
-											<li
-												key={item.ingredient}
-												className='flex items-center gap-3 py-2.5'
-											>
-												<button
-													type='button'
-													onClick={() => toggleChecked(item.ingredient)}
-													className={`flex size-5 items-center justify-center rounded border transition-colors ${
-														checkedItems.has(item.ingredient)
-															? 'border-brand bg-brand text-white'
-															: 'border-border-subtle bg-bg hover:border-brand/50'
-													}`}
+									{loadingShopping ? (
+										<div className='space-y-2'>
+											{Array.from({ length: 5 }).map((_, i) => (
+												<div
+													key={i}
+													className='h-10 animate-pulse rounded-xl bg-bg-elevated'
+												/>
+											))}
+										</div>
+									) : shoppingList.length === 0 ? (
+										<div className='flex flex-col items-center gap-2 py-8 text-center'>
+											<Check className='size-8 text-green-500' />
+											<p className='text-sm font-medium text-text-secondary'>
+												{t('allCovered')}
+											</p>
+										</div>
+									) : (
+										<ul className='divide-y divide-border-subtle'>
+											{shoppingList.map(item => (
+												<li
+													key={item.ingredient}
+													className='flex items-center gap-3 py-2.5'
 												>
-													{checkedItems.has(item.ingredient) && (
-														<Check className='size-3' />
-													)}
-												</button>
-												<div className='flex-1'>
-													<span
-														className={`font-medium ${
+													<button
+														type='button'
+														onClick={() => toggleChecked(item.ingredient)}
+														className={`flex size-5 items-center justify-center rounded border transition-colors ${
 															checkedItems.has(item.ingredient)
-																? 'text-text-muted line-through'
-																: 'text-text'
+																? 'border-brand bg-brand text-white'
+																: 'border-border-subtle bg-bg hover:border-brand/50'
 														}`}
 													>
-														{item.ingredient}
-													</span>
-													{item.quantity && (
-														<span className='ml-2 text-xs text-text-secondary'>
-															({item.quantity})
-														</span>
-													)}
-												</div>
-												<div className='flex flex-wrap gap-1'>
-													{item.recipes.map(recipe => (
+														{checkedItems.has(item.ingredient) && (
+															<Check className='size-3' />
+														)}
+													</button>
+													<div className='flex-1'>
 														<span
-															key={recipe}
-															className='rounded bg-bg-elevated px-1.5 py-0.5 text-2xs text-text-muted'
+															className={`font-medium ${
+																checkedItems.has(item.ingredient)
+																	? 'text-text-muted line-through'
+																	: 'text-text'
+															}`}
 														>
-															{recipe}
+															{item.ingredient}
 														</span>
-													))}
-												</div>
-											</li>
-										))}
-									</ul>
-								)}
+														{item.quantity && (
+															<span className='ml-2 text-xs text-text-secondary'>
+																({item.quantity})
+															</span>
+														)}
+													</div>
+													<div className='flex flex-wrap gap-1'>
+														{item.recipes.map(recipe => (
+															<span
+																key={recipe}
+																className='rounded bg-bg-elevated px-1.5 py-0.5 text-2xs text-text-muted'
+															>
+																{recipe}
+															</span>
+														))}
+													</div>
+												</li>
+											))}
+										</ul>
+									)}
 								</PremiumSurface>
 							</motion.div>
 						)}
@@ -736,7 +739,7 @@ export default function MealPlannerPage() {
 												value={swapSearch}
 												onChange={e => setSwapSearch(e.target.value)}
 												aria-label={t('searchRecipes')}
-												className='w-full rounded-lg border border-border-subtle bg-bg py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
+												className='w-full rounded-xl border border-border-subtle bg-bg py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
 											/>
 										</div>
 									</div>
@@ -761,9 +764,9 @@ export default function MealPlannerPage() {
 														key={recipe.id}
 														onClick={() => handleSwapSelect(recipe)}
 														disabled={isSwapping}
-														className='flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-bg-elevated disabled:opacity-50'
+														className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated disabled:opacity-50'
 													>
-														<div className='flex size-10 items-center justify-center rounded-lg bg-brand/10'>
+														<div className='flex size-10 items-center justify-center rounded-xl bg-brand/10'>
 															<ChefHat className='size-5 text-brand' />
 														</div>
 														<div className='min-w-0 flex-1'>
@@ -830,7 +833,7 @@ export default function MealPlannerPage() {
 										<button
 											type='button'
 											onClick={() => setConfirmingDelete(false)}
-											className='rounded-lg px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+											className='rounded-xl px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
 										>
 											{t('cancel')}
 										</button>
@@ -838,7 +841,7 @@ export default function MealPlannerPage() {
 											type='button'
 											onClick={handleDelete}
 											disabled={isDeleting}
-											className='rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
+											className='rounded-xl bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
 										>
 											{isDeleting ? t('deleting') : t('delete')}
 										</button>

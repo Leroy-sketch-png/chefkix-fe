@@ -148,7 +148,7 @@ function TimeframeToggle({
 		>
 			{/* Sliding indicator */}
 			<motion.div
-				className='absolute top-1 h-[calc(100%-8px)] bg-bg rounded-lg'
+				className='absolute top-1 h-[calc(100%-8px)] bg-bg rounded-xl'
 				initial={false}
 				animate={{
 					left: `calc(${activeIndex * 33.33}% + 4px)`,
@@ -208,13 +208,13 @@ function MyRankBanner({
 			{/* Stats */}
 			<div className='flex gap-5'>
 				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold text-text'>
+					<span className='text-xl font-bold tracking-tight text-text'>
 						{myRank.xpThisWeek}
 					</span>
 					<span className='text-xs text-text-muted'>{t('xpThisWeek')}</span>
 				</div>
 				<div className='flex flex-col'>
-					<span className='text-xl font-display font-extrabold text-text'>
+					<span className='text-xl font-bold tracking-tight text-text'>
 						{myRank.recipesCooked}
 					</span>
 					<span className='text-xs text-text-muted'>{t('recipesCooked')}</span>
@@ -235,7 +235,7 @@ function MyRankBanner({
 					whileTap={LIST_ITEM_TAP}
 					onClick={onCookNow}
 					className={cn(
-						'py-2 px-4 rounded-lg text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50',
+						'py-2 px-4 rounded-xl text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50',
 						'bg-gradient-xp',
 						'w-full sm:w-auto',
 					)}
@@ -318,7 +318,7 @@ export function LeaderboardPage({
 						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
-				<h1 className='flex-1 text-2xl font-display font-extrabold text-text'>
+				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text'>
 					{t('title')}
 				</h1>
 				{onShare && (

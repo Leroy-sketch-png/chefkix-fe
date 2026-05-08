@@ -103,7 +103,7 @@ function ChatMessageErrorFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-10 w-fit items-center justify-center rounded-xl border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -224,7 +224,7 @@ const MessageActions = ({
 			<motion.button
 				type='button'
 				onClick={onReact}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
@@ -235,7 +235,7 @@ const MessageActions = ({
 			<motion.button
 				type='button'
 				onClick={onReply}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
@@ -246,7 +246,7 @@ const MessageActions = ({
 			<motion.button
 				type='button'
 				onClick={onCopy}
-				className='rounded-lg p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
@@ -258,7 +258,7 @@ const MessageActions = ({
 				<motion.button
 					type='button'
 					onClick={onDelete}
-					className='rounded-lg p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='rounded-xl p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
 					whileHover={ICON_BUTTON_HOVER}
 					whileTap={ICON_BUTTON_TAP}
 					transition={TRANSITION_SPRING}

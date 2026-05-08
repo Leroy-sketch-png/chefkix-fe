@@ -9,9 +9,9 @@ export default function Loading() {
 				<div className='mb-2 flex items-center gap-3'>
 					<Skeleton className='size-10 rounded-xl' />
 					<Skeleton className='size-12 rounded-2xl' />
-					<Skeleton className='h-9 w-40 rounded-lg' />
+					<Skeleton className='h-9 w-40 rounded-xl' />
 				</div>
-				<Skeleton className='h-6 w-64 rounded-lg' />
+				<Skeleton className='h-6 w-64 rounded-xl' />
 			</div>
 
 			{/* Filter tabs skeleton */}
@@ -34,7 +34,7 @@ export default function Loading() {
 							<Skeleton className='h-5 w-3/4' />
 							<Skeleton className='h-4 w-1/2' />
 						</div>
-						<Skeleton className='size-8 rounded-lg' />
+						<Skeleton className='size-8 rounded-xl' />
 					</div>
 				))}
 			</div>

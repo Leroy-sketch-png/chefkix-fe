@@ -164,7 +164,7 @@ export function SubstitutionButton({
 										{substitutions.map(sub => (
 											<li
 												key={sub.name}
-												className='rounded-lg bg-bg-elevated p-2.5'
+												className='rounded-xl bg-bg-elevated p-2.5'
 											>
 												<div className='flex items-center justify-between'>
 													<span className='text-sm font-medium text-text'>

@@ -286,7 +286,7 @@ export const MobileBottomNav = () => {
 									type='button'
 									onClick={() => setShowMore(false)}
 									aria-label={t('ariaCloseMenu')}
-									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='grid size-8 place-items-center rounded-xl text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<X className='size-5' />
 								</button>

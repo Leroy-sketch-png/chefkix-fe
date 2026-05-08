@@ -161,7 +161,7 @@ export const ChallengeComplete = ({
 							<span className='mb-1 block text-xs font-bold uppercase tracking-wider text-xp'>
 								{t('dailyChallengeTitle')}
 							</span>
-							<h2 className='text-2xl font-display font-extrabold'>
+							<h2 className='text-2xl font-bold tracking-tight'>
 								{t('completeTitle')} 🎯
 							</h2>
 						</div>
@@ -325,7 +325,7 @@ export const ChallengeCompleteInline = ({
 					</span>
 				</div>
 				<div className='text-right'>
-					<span className='block tabular-nums text-xl font-display font-extrabold text-success'>
+					<span className='block tabular-nums text-xl font-bold tracking-tight text-success'>
 						+{bonusXp} XP
 					</span>
 					<span className='text-xs text-text-muted'>{t('bonus')}</span>
@@ -333,7 +333,7 @@ export const ChallengeCompleteInline = ({
 			</div>
 
 			{/* Streak Info */}
-			<div className='flex items-center gap-2 rounded-lg bg-streak/10 px-3.5 py-2.5 text-sm'>
+			<div className='flex items-center gap-2 rounded-xl bg-streak/10 px-3.5 py-2.5 text-sm'>
 				<span className='text-base'>🔥</span>
 				<span className='tabular-nums font-semibold text-streak'>
 					{t('streakCount', { count: streakCount })}

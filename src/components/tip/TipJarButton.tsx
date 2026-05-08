@@ -112,7 +112,7 @@ export function TipJarButton({
 					'transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 					isRecipe
 						? 'grid size-14 place-items-center rounded-xl border-2 border-border-medium hover:border-brand hover:bg-brand/10'
-						: 'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-lg border border-border bg-bg-elevated text-text-muted hover:bg-brand/10 hover:text-brand hover:border-brand/30',
+						: 'flex h-avatar-sm w-avatar-sm items-center justify-center rounded-xl border border-border bg-bg-elevated text-text-muted hover:bg-brand/10 hover:text-brand hover:border-brand/30',
 				)}
 				title={t('supportTitle', { creatorName })}
 				aria-label={t('supportTitle', { creatorName })}
@@ -204,7 +204,7 @@ export function TipJarButton({
 											setCustomAmount(e.target.value)
 											setSelectedAmount(null)
 										}}
-										className='w-full rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+										className='w-full rounded-xl border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 									/>
 								</div>
 
@@ -216,7 +216,7 @@ export function TipJarButton({
 										onChange={e => setMessage(e.target.value)}
 										maxLength={200}
 										rows={2}
-										className='w-full resize-none rounded-lg border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='w-full resize-none rounded-xl border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 									/>
 								</div>
 

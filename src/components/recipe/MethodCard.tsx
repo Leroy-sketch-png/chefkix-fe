@@ -53,7 +53,7 @@ export const MethodCard = ({
 			</span>
 		</div>
 		{badge && (
-			<span className='absolute -top-2 right-3 rounded-lg bg-gradient-hero px-2.5 py-1 text-2xs font-bold text-white'>
+			<span className='absolute -top-2 right-3 rounded-xl bg-gradient-hero px-2.5 py-1 text-2xs font-bold text-white'>
 				{badge}
 			</span>
 		)}

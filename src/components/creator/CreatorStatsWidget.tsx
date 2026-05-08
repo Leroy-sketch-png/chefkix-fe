@@ -42,7 +42,12 @@ export function CreatorStatsWidget({
 }: CreatorStatsWidgetProps) {
 	const t = useTranslations('creator')
 	return (
-		<div className={cn('bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-5 border border-border-subtle/80 shadow-card', className)}>
+		<div
+			className={cn(
+				'bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-5 border border-border-subtle/80 shadow-card',
+				className,
+			)}
+		>
 			{/* Header */}
 			<div className='flex items-center gap-2 mb-4'>
 				<span className='text-xl'>??</span>
@@ -51,7 +56,7 @@ export function CreatorStatsWidget({
 				</span>
 				<Link
 					href={dashboardUrl}
-					className='size-7 flex items-center justify-center bg-bg rounded-lg text-text-secondary hover:text-text transition-colors'
+					className='size-7 flex items-center justify-center bg-bg rounded-xl text-text-secondary hover:text-text transition-colors'
 				>
 					<ArrowRight className='size-4' />
 				</Link>
@@ -59,16 +64,16 @@ export function CreatorStatsWidget({
 
 			{/* Stats Row */}
 			<div className='flex gap-3 mb-4'>
-				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
-					<span className='text-lg font-display font-extrabold text-text'>
+				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-xl'>
+					<span className='text-lg font-bold tracking-tight text-text'>
 						<AnimatedNumber value={recipesCount} className='tabular-nums' />
 					</span>
 					<span className='text-2xs text-text-secondary'>
 						{t('recipesLabel')}
 					</span>
 				</div>
-				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-lg'>
-					<span className='text-lg font-display font-extrabold text-text'>
+				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-xl'>
+					<span className='text-lg font-bold tracking-tight text-text'>
 						<AnimatedNumber
 							value={totalCooks}
 							format={n => n.toLocaleString()}
@@ -79,8 +84,8 @@ export function CreatorStatsWidget({
 						{t('cooksLabel')}
 					</span>
 				</div>
-				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-success/10 rounded-lg'>
-					<span className='text-lg font-display font-extrabold text-success'>
+				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-success/10 rounded-xl'>
+					<span className='text-lg font-bold tracking-tight text-success'>
 						+
 						<AnimatedNumber
 							value={xpEarned}
@@ -100,7 +105,7 @@ export function CreatorStatsWidget({
 						alt={topRecipe.title}
 						width={40}
 						height={40}
-						className='size-10 rounded-lg object-cover'
+						className='size-10 rounded-xl object-cover'
 					/>
 					<div className='flex-1 flex flex-col'>
 						<span className='text-2xs text-text-secondary'>
@@ -195,7 +200,7 @@ export function CreatorXPNotification({
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onView}
-					className='py-2 px-3.5 bg-xp rounded-lg text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='py-2 px-3.5 bg-xp rounded-xl text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					View
 				</motion.button>
@@ -205,4 +210,3 @@ export function CreatorXPNotification({
 }
 
 export default CreatorStatsWidget
-

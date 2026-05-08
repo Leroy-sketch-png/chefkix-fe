@@ -155,7 +155,7 @@ const ChallengeRecipeCard = ({
 						<span className='tabular-nums text-xs font-bold text-white'>
 							{recipe.baseXp} XP
 						</span>
-						<span className='tabular-nums rounded-lg bg-success/20 px-1.5 py-0.5 text-2xs font-bold text-success'>
+						<span className='tabular-nums rounded-xl bg-success/20 px-1.5 py-0.5 text-2xs font-bold text-success'>
 							+{recipe.bonusXp}
 						</span>
 					</div>
@@ -234,7 +234,7 @@ const ChallengeRecipeCard = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-lg bg-gradient-brand px-4 py-2.5 text-xs font-semibold text-white shadow-card transition-shadow hover:shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2'
+							className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-xs font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.3)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2'
 						>
 							<Play className='size-4' />
 							{t('cook')}
@@ -316,7 +316,7 @@ export const ChallengeRecipeGrid = ({
 							<span className='text-2xs font-bold uppercase tracking-wide text-brand'>
 								{challenge.type}
 							</span>
-							<h1 className='my-1 text-2xl font-display font-extrabold text-text md:text-3xl'>
+							<h1 className='my-1 text-2xl font-bold tracking-tight text-text md:text-3xl'>
 								{challenge.title}
 							</h1>
 							<p className='text-sm text-text-secondary'>
@@ -329,7 +329,7 @@ export const ChallengeRecipeGrid = ({
 					<div className='text-right'>
 						<div className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-4 py-2.5'>
 							<span className='text-lg'>⚡</span>
-							<span className='text-xl font-display font-extrabold text-success'>
+							<span className='text-xl font-bold tracking-tight text-success'>
 								+{challenge.bonusXp} XP
 							</span>
 							<span className='text-xs text-text-secondary'>bonus</span>
@@ -377,7 +377,7 @@ export const ChallengeRecipeGrid = ({
 								prev === 'xp' ? 'time' : prev === 'time' ? 'rating' : 'xp',
 							)
 						}
-						className='flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+						className='flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 					>
 						<ArrowUpDown className='size-3.5' />
 						{sortBy === 'xp'
@@ -415,7 +415,7 @@ export const ChallengeRecipeGrid = ({
 							{topPick.bonusXp} XP bonus
 						</span>
 						<span className='text-text-secondary'>=</span>
-						<span className='tabular-nums rounded-full bg-brand/10 px-3 py-1 text-lg font-display font-extrabold text-brand'>
+						<span className='tabular-nums rounded-full bg-brand/10 px-3 py-1 text-lg font-bold tracking-tight text-brand'>
 							{topPickTotalXp} XP
 						</span>
 					</div>

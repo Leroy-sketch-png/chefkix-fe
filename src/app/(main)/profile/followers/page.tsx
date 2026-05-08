@@ -23,7 +23,10 @@ import { Users, UserCheck, Heart, ArrowLeft, Sparkles } from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 type Tab = 'followers' | 'following' | 'friends'
 
@@ -236,31 +239,33 @@ function FollowersContent() {
 					className='mb-6 p-3 md:p-4'
 				>
 					<div className='flex items-center gap-3'>
-					<motion.button
-						type='button'
-						onClick={() => router.back()}
-						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-						aria-label={t('ariaGoBack')}
-					>
-						<ArrowLeft className='size-5' />
-					</motion.button>
-					<div className='flex-1'>
-						<PageHeader
-							icon={Users}
-							title={t('networkTitle')}
-							subtitle={t('networkSubtitle')}
-							gradient='purple'
-							marginBottom='sm'
-							className='mb-0'
-						/>
+						<motion.button
+							type='button'
+							onClick={() => router.back()}
+							whileTap={BUTTON_SUBTLE_TAP}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoBack')}
+						>
+							<ArrowLeft className='size-5' />
+						</motion.button>
+						<div className='flex-1'>
+							<PageHeader
+								icon={Users}
+								title={t('networkTitle')}
+								subtitle={t('networkSubtitle')}
+								gradient='purple'
+								marginBottom='sm'
+								className='mb-0'
+							/>
+						</div>
 					</div>
-				</div>
-			</PremiumSurface>
+				</PremiumSurface>
 
 				<PremiumSurface
 					eyebrow='Network Lanes'
-					chipText={t(TABS.find(tab => tab.key === activeTab)?.labelKey || 'tabFollowers')}
+					chipText={t(
+						TABS.find(tab => tab.key === activeTab)?.labelKey || 'tabFollowers',
+					)}
 					className='mb-6 p-3 md:p-4'
 					showOrbs={false}
 				>
@@ -271,7 +276,7 @@ function FollowersContent() {
 								key={tab.key}
 								onClick={() => setActiveTab(tab.key)}
 								className={cn(
-									'flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+									'flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
 									activeTab === tab.key
 										? 'bg-bg-card text-text shadow-card'
 										: 'text-text-muted hover:text-text-secondary',
@@ -307,82 +312,82 @@ function FollowersContent() {
 					/>
 					<AnimatePresence mode='wait'>
 						<motion.div
-						key={activeTab}
-						initial={{ opacity: 0, y: 8 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: -8 }}
-						transition={TRANSITION_SPRING}
-					>
-						{isLoading ? (
-							<FollowersSkeleton />
-						) : error ? (
-							<ErrorState
-								title={t('failedToLoad', { tab: activeTab })}
-								message={error}
-								onRetry={() => fetchTab(activeTab)}
-							/>
-						) : currentList.length === 0 ? (
-							<div className='space-y-6'>
-								{/* Suggested follows section — shown on empty following/friends tabs */}
-								{(activeTab === 'following' || activeTab === 'friends') &&
-								suggestionsLoading ? (
-									<FollowersSkeleton />
-								) : (activeTab === 'following' || activeTab === 'friends') &&
-								  visibleSuggestions.length > 0 ? (
-									<div className='space-y-4'>
-										<div className='flex items-center gap-2 text-text-secondary'>
-											<Sparkles className='size-4 text-brand' />
-											<h3 className='text-sm font-semibold'>
-												{activeTab === 'following'
-													? t('chefsYouMightLike')
-													: t('followChefsToMakeFriends')}
-											</h3>
+							key={activeTab}
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={TRANSITION_SPRING}
+						>
+							{isLoading ? (
+								<FollowersSkeleton />
+							) : error ? (
+								<ErrorState
+									title={t('failedToLoad', { tab: activeTab })}
+									message={error}
+									onRetry={() => fetchTab(activeTab)}
+								/>
+							) : currentList.length === 0 ? (
+								<div className='space-y-6'>
+									{/* Suggested follows section — shown on empty following/friends tabs */}
+									{(activeTab === 'following' || activeTab === 'friends') &&
+									suggestionsLoading ? (
+										<FollowersSkeleton />
+									) : (activeTab === 'following' || activeTab === 'friends') &&
+									  visibleSuggestions.length > 0 ? (
+										<div className='space-y-4'>
+											<div className='flex items-center gap-2 text-text-secondary'>
+												<Sparkles className='size-4 text-brand' />
+												<h3 className='text-sm font-semibold'>
+													{activeTab === 'following'
+														? t('chefsYouMightLike')
+														: t('followChefsToMakeFriends')}
+												</h3>
+											</div>
+											<StaggerContainer className='space-y-3'>
+												{visibleSuggestions.map(profile => (
+													<FollowSuggestionCard
+														key={profile.userId}
+														profile={profile}
+														variant='suggested'
+														onFollowBack={handleSuggestionFollowed}
+														onDismiss={handleSuggestionDismissed}
+													/>
+												))}
+											</StaggerContainer>
 										</div>
-										<StaggerContainer className='space-y-3'>
-											{visibleSuggestions.map(profile => (
-												<FollowSuggestionCard
-													key={profile.userId}
-													profile={profile}
-													variant='suggested'
-													onFollowBack={handleSuggestionFollowed}
-													onDismiss={handleSuggestionDismissed}
-												/>
-											))}
-										</StaggerContainer>
-									</div>
-								) : (
-									<EmptyStateGamified
-										title={t('noFollowersYet', { tab: activeTab })}
-										description={
-											activeTab === 'followers'
-												? t('followersEmptyDesc')
-												: activeTab === 'following'
-													? t('followingEmptyDesc')
-													: t('friendsEmptyDesc')
-										}
-										illustration={
-											TABS.find(t => t.key === activeTab)?.icon || (
-												<Users className='size-6' />
-											)
-										}
-									/>
-								)}
-							</div>
-						) : (
-							<StaggerContainer className='space-y-3'>
-								{currentList.map(profile => (
-									<FollowUserCard
-										key={profile.userId}
-										profile={profile}
-										isMutual={
-											activeTab === 'friends' ||
-											profile.relationshipStatus === 'FRIENDS'
-										}
-										onFollowChange={handleFollowChange}
-									/>
-								))}
-							</StaggerContainer>
-						)}
+									) : (
+										<EmptyStateGamified
+											title={t('noFollowersYet', { tab: activeTab })}
+											description={
+												activeTab === 'followers'
+													? t('followersEmptyDesc')
+													: activeTab === 'following'
+														? t('followingEmptyDesc')
+														: t('friendsEmptyDesc')
+											}
+											illustration={
+												TABS.find(t => t.key === activeTab)?.icon || (
+													<Users className='size-6' />
+												)
+											}
+										/>
+									)}
+								</div>
+							) : (
+								<StaggerContainer className='space-y-3'>
+									{currentList.map(profile => (
+										<FollowUserCard
+											key={profile.userId}
+											profile={profile}
+											isMutual={
+												activeTab === 'friends' ||
+												profile.relationshipStatus === 'FRIENDS'
+											}
+											onFollowChange={handleFollowChange}
+										/>
+									))}
+								</StaggerContainer>
+							)}
 						</motion.div>
 					</AnimatePresence>
 				</PremiumSurface>
@@ -400,8 +405,8 @@ export default function FollowersPage() {
 				<PageContainer maxWidth='lg'>
 					<div className='space-y-6 py-6'>
 						<div className='space-y-3'>
-							<Skeleton className='h-8 w-48 rounded-lg' />
-							<Skeleton className='h-5 w-72 rounded-lg' />
+							<Skeleton className='h-8 w-48 rounded-xl' />
+							<Skeleton className='h-5 w-72 rounded-xl' />
 						</div>
 						<div className='grid gap-4 sm:grid-cols-2'>
 							{Array.from({ length: 6 }).map((_, i) => (

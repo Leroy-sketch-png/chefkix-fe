@@ -363,7 +363,7 @@ export const ImmediateRewards = ({
 								>
 									👨‍🍳
 								</motion.div>
-								<h1 className='mb-2 bg-gradient-to-r from-success to-success/80 bg-clip-text text-3xl font-display font-extrabold text-transparent max-md:text-2xl'>
+								<h1 className='mb-2 bg-gradient-to-r from-success to-success/80 bg-clip-text text-3xl font-bold tracking-tight text-transparent max-md:text-2xl'>
 									{t('niceWorkChef')}
 								</h1>
 								<p className='text-text-muted'>
@@ -521,7 +521,7 @@ export const ImmediateRewards = ({
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
 										{t('earnedNow')}
 									</span>
-									<span className='block text-2xl font-display font-extrabold tabular-nums text-success'>
+									<span className='block text-2xl font-bold tracking-tight tabular-nums text-success'>
 										<AnimatedNumber value={earnedNow} duration={1.2} /> XP
 									</span>
 								</motion.div>
@@ -534,7 +534,7 @@ export const ImmediateRewards = ({
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
 										{t('pending')}
 									</span>
-									<span className='block text-2xl font-display font-extrabold tabular-nums text-brand/70'>
+									<span className='block text-2xl font-bold tracking-tight tabular-nums text-brand/70'>
 										<AnimatedNumber value={pendingTotal} duration={1.2} /> XP
 									</span>
 								</motion.div>
@@ -546,7 +546,7 @@ export const ImmediateRewards = ({
 									initial={{ opacity: 0, y: 8 }}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{ delay: 0.8, ...TRANSITION_SPRING }}
-									className='mb-4 flex items-center justify-center gap-2 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning'
+									className='mb-4 flex items-center justify-center gap-2 rounded-xl bg-warning/10 px-4 py-3 text-sm text-warning'
 								>
 									<Clock className='size-4' />
 									<span>
@@ -761,7 +761,7 @@ export const RewardsToast = ({
 					onClick={onPostNow}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
-					className='rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{t('postNow')}
 				</motion.button>

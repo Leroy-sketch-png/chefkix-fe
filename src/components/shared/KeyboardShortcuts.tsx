@@ -114,7 +114,7 @@ export const KeyboardShortcuts = () => {
 					{shortcuts.map((shortcut, index) => (
 						<div
 							key={index}
-							className='flex items-center justify-between rounded-lg border border-border-subtle bg-bg-subtle p-3'
+							className='flex items-center justify-between rounded-xl border border-border-subtle bg-bg-subtle p-3'
 						>
 							<span className='text-sm text-text-primary'>
 								{t(shortcut.description)}

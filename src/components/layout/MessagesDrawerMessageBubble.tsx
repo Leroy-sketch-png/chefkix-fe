@@ -21,7 +21,7 @@ function MessagesDrawerMessageBubbleFallback({
 	return (
 		<div
 			role='alert'
-			className='rounded-lg border border-destructive/20 bg-bg-card p-2 shadow-card'
+			className='rounded-xl border border-destructive/20 bg-bg-card p-2 shadow-card'
 		>
 			<div className='flex flex-col gap-2'>
 				<div className='flex items-start gap-2'>
@@ -40,7 +40,7 @@ function MessagesDrawerMessageBubbleFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-9 w-fit items-center justify-center rounded-lg border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-9 w-fit items-center justify-center rounded-xl border border-border-subtle px-3 text-xs font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -57,7 +57,7 @@ function MessagesDrawerMessageBubbleContent({
 			className={`flex items-end ${message.me ? 'justify-end' : 'justify-start'}`}
 		>
 			<div
-				className={`max-w-[70%] rounded-lg p-2 ${
+				className={`max-w-[70%] rounded-xl p-2 ${
 					message.me
 						? 'rounded-br-none bg-brand text-white'
 						: 'rounded-bl-none bg-bg-elevated'

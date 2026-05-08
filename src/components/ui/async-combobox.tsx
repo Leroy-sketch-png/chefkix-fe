@@ -289,7 +289,7 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 						placeholder={placeholder}
 						disabled={disabled}
 						className={cn(
-							'w-full rounded-lg border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand',
+							'w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand',
 							icon && 'pl-9',
 							className,
 						)}
@@ -318,7 +318,7 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: 4 }}
 									transition={{ duration: DURATION_S.fast }}
-									className='fixed z-dropdown overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
+									className='fixed z-dropdown overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-warm'
 									style={{
 										top: `${dropdownPosition.top}px`,
 										left: `${dropdownPosition.left}px`,

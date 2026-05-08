@@ -39,7 +39,10 @@ import {
 	DURATION_S,
 } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ============================================
 // BADGE CATALOG PAGE
@@ -433,7 +436,7 @@ export default function BadgeCatalogPage() {
 										placeholder={t('searchPlaceholder')}
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
-										className='w-full rounded-lg border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20'
+										className='w-full rounded-xl border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20'
 									/>
 								</div>
 
@@ -447,7 +450,7 @@ export default function BadgeCatalogPage() {
 												e.target.value as BadgeCategory | 'ALL',
 											)
 										}
-										className='min-w-0 flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
 									>
 										<option className='bg-bg-card text-text' value='ALL'>
 											{t('allCategories')}
@@ -470,7 +473,7 @@ export default function BadgeCatalogPage() {
 										onChange={e =>
 											setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
 										}
-										className='min-w-0 flex-1 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
 									>
 										<option className='bg-bg-card text-text' value='ALL'>
 											{t('allRarities')}
@@ -491,7 +494,7 @@ export default function BadgeCatalogPage() {
 										type='button'
 										onClick={() => setShowEarnedOnly(!showEarnedOnly)}
 										className={cn(
-											'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+											'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors',
 											showEarnedOnly
 												? 'border-success bg-success/10 text-success'
 												: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
@@ -515,54 +518,54 @@ export default function BadgeCatalogPage() {
 					>
 						<AnimatePresence mode='popLayout'>
 							{filteredBadges.length === 0 ? (
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className='flex flex-col items-center justify-center py-20 text-center'
-							>
-								<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
-									<Search className='size-8 text-text-muted' />
-								</div>
-								<p className='mt-4 font-semibold text-text'>
-									{t('noBadgesFound')}
-								</p>
-								<p className='mt-1 text-sm text-text-muted'>
-									{t('noBadgesHint')}
-								</p>
-							</motion.div>
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0 }}
+									className='flex flex-col items-center justify-center py-20 text-center'
+								>
+									<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
+										<Search className='size-8 text-text-muted' />
+									</div>
+									<p className='mt-4 font-semibold text-text'>
+										{t('noBadgesFound')}
+									</p>
+									<p className='mt-1 text-sm text-text-muted'>
+										{t('noBadgesHint')}
+									</p>
+								</motion.div>
 							) : (
-							<motion.div
-								layout
-								className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-							>
-								{filteredBadges.map((badge, index) => {
-									const isEarned =
-										earnedBadgeIds.has(badge.id) ||
-										earnedBadgeIds.has(badge.name) ||
-										earnedBadgeIds.has(badge.name.toLowerCase())
-									return (
-										<motion.div
-											key={badge.id || `badge-${index}`}
-											layout
-											initial={{ opacity: 0, y: 20 }}
-											animate={{ opacity: 1, y: 0 }}
-											exit={{ opacity: 0, scale: 0.9 }}
-											transition={{ delay: Math.min(index * 0.02, 0.3) }}
-										>
-											<BadgeCard
-												badge={badge}
-												isEarned={isEarned}
-												earnedAt={
-													badgeTimestamps[badge.id] ??
-													badgeTimestamps[badge.name] ??
-													undefined
-												}
-											/>
-										</motion.div>
-									)
-								})}
-							</motion.div>
+								<motion.div
+									layout
+									className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+								>
+									{filteredBadges.map((badge, index) => {
+										const isEarned =
+											earnedBadgeIds.has(badge.id) ||
+											earnedBadgeIds.has(badge.name) ||
+											earnedBadgeIds.has(badge.name.toLowerCase())
+										return (
+											<motion.div
+												key={badge.id || `badge-${index}`}
+												layout
+												initial={{ opacity: 0, y: 20 }}
+												animate={{ opacity: 1, y: 0 }}
+												exit={{ opacity: 0, scale: 0.9 }}
+												transition={{ delay: Math.min(index * 0.02, 0.3) }}
+											>
+												<BadgeCard
+													badge={badge}
+													isEarned={isEarned}
+													earnedAt={
+														badgeTimestamps[badge.id] ??
+														badgeTimestamps[badge.name] ??
+														undefined
+													}
+												/>
+											</motion.div>
+										)
+									})}
+								</motion.div>
 							)}
 						</AnimatePresence>
 					</PremiumSurface>
@@ -577,31 +580,34 @@ export default function BadgeCatalogPage() {
 						className='p-3 md:p-4'
 					>
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
-						<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
-							<Star className='size-4 text-xp' />
-							{t('rarityGuide')}
-						</h3>
-						<div className='flex flex-wrap gap-2'>
-							{RARITY_ORDER.map(rarity => {
-								const config = RARITY_CONFIG[rarity]
-								return (
-									<div
-										key={rarity}
-										className={cn(
-											'flex items-center gap-2 rounded-lg border px-3 py-1.5',
-											config.bgClass,
-											config.borderClass,
-										)}
-									>
-										<span
-											className={cn('text-xs font-semibold', config.textClass)}
+							<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
+								<Star className='size-4 text-xp' />
+								{t('rarityGuide')}
+							</h3>
+							<div className='flex flex-wrap gap-2'>
+								{RARITY_ORDER.map(rarity => {
+									const config = RARITY_CONFIG[rarity]
+									return (
+										<div
+											key={rarity}
+											className={cn(
+												'flex items-center gap-2 rounded-xl border px-3 py-1.5',
+												config.bgClass,
+												config.borderClass,
+											)}
 										>
-											{t(config.labelKey)}
-										</span>
-									</div>
-								)
-							})}
-						</div>
+											<span
+												className={cn(
+													'text-xs font-semibold',
+													config.textClass,
+												)}
+											>
+												{t(config.labelKey)}
+											</span>
+										</div>
+									)
+								})}
+							</div>
 						</div>
 					</PremiumSurface>
 

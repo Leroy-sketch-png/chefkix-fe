@@ -8,7 +8,7 @@ export default function Loading() {
 			<div className='mb-6'>
 				<div className='mb-2 flex items-center gap-3'>
 					<Skeleton className='size-10 rounded-xl' />
-					<Skeleton className='h-8 w-40 rounded-lg' />
+					<Skeleton className='h-8 w-40 rounded-xl' />
 				</div>
 				<Skeleton className='h-5 w-64 rounded' />
 			</div>

@@ -9,11 +9,11 @@ export default function Loading() {
 				<Skeleton className='h-6 w-96' />
 			</div>
 			<div className='grid gap-6 md:grid-cols-2'>
-				<Skeleton className='h-96 w-full rounded-lg' />
+				<Skeleton className='h-96 w-full rounded-xl' />
 				<div className='space-y-4'>
-					<Skeleton className='h-32 w-full rounded-lg' />
-					<Skeleton className='h-32 w-full rounded-lg' />
-					<Skeleton className='h-32 w-full rounded-lg' />
+					<Skeleton className='h-32 w-full rounded-xl' />
+					<Skeleton className='h-32 w-full rounded-xl' />
+					<Skeleton className='h-32 w-full rounded-xl' />
 				</div>
 			</div>
 		</PageContainer>

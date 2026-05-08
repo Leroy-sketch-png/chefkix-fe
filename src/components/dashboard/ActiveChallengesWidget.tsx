@@ -156,7 +156,7 @@ export function ActiveChallengesWidget({
 				<button
 					type='button'
 					onClick={fetchChallenges}
-					className='flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/10'
+					className='flex items-center gap-1 rounded-xl px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/10'
 					aria-label={t('retry')}
 				>
 					<RefreshCw className='size-3' />
@@ -198,9 +198,9 @@ export function ActiveChallengesWidget({
 				{daily && (
 					<Link
 						href='/challenges'
-						className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-brand/5'
+						className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-colors hover:bg-brand/5'
 					>
-						<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-streak/10 text-lg'>
+						<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-streak/10 text-lg'>
 							{daily.icon || <Flame className='size-4 text-streak' />}
 						</div>
 						<div className='min-w-0 flex-1'>
@@ -230,9 +230,9 @@ export function ActiveChallengesWidget({
 				{weekly && (
 					<Link
 						href='/challenges'
-						className='group flex items-center gap-3 rounded-lg bg-bg-elevated p-3 transition-colors hover:bg-brand/5'
+						className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-colors hover:bg-brand/5'
 					>
-						<div className='grid size-9 shrink-0 place-items-center rounded-lg bg-xp/10'>
+						<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-xp/10'>
 							<Trophy className='size-4 text-xp' />
 						</div>
 						<div className='min-w-0 flex-1'>

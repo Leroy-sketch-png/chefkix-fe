@@ -709,7 +709,7 @@ export const UserProfile = ({
 								{[1, 2, 3].map(i => (
 									<div
 										key={i}
-										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
+										className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
 									>
 										<Skeleton className='h-48 w-full' />
 										<div className='space-y-3 p-4'>
@@ -739,7 +739,7 @@ export const UserProfile = ({
 								{userRecipes.map(recipe => (
 									<div
 										key={recipe.id}
-										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-card'
+										className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-card'
 									>
 										<div className='relative h-48 w-full'>
 											<Image
@@ -789,7 +789,7 @@ export const UserProfile = ({
 								{[1, 2, 3].map(i => (
 									<div
 										key={i}
-										className='rounded-lg border border-border-subtle bg-bg-card p-4'
+										className='rounded-xl border border-border-subtle bg-bg-card p-4'
 									>
 										<div className='flex items-center gap-3'>
 											<Skeleton className='size-10 rounded-full' />
@@ -857,7 +857,7 @@ export const UserProfile = ({
 				{activeTab === 'saved' && (
 					<>
 						{!isOwnProfile ? (
-							<div className='flex h-48 items-center justify-center rounded-lg border border-dashed border-border-subtle'>
+							<div className='flex h-48 items-center justify-center rounded-xl border border-dashed border-border-subtle'>
 								<p className='text-text-muted'>{t('savedPrivate')}</p>
 							</div>
 						) : (
@@ -868,7 +868,7 @@ export const UserProfile = ({
 										type='button'
 										onClick={() => setSavedSubTab('recipes')}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+										className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 											savedSubTab === 'recipes'
 												? 'bg-brand text-white'
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
@@ -881,7 +881,7 @@ export const UserProfile = ({
 										type='button'
 										onClick={() => setSavedSubTab('posts')}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+										className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 											savedSubTab === 'posts'
 												? 'bg-brand text-white'
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
@@ -902,7 +902,7 @@ export const UserProfile = ({
 												{[1, 2, 3, 4].map(i => (
 													<div
 														key={i}
-														className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
+														className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
 													>
 														<Skeleton className='h-40 w-full' />
 														<div className='p-4'>
@@ -928,7 +928,7 @@ export const UserProfile = ({
 												{savedRecipes.map(recipe => (
 													<div
 														key={recipe.id}
-														className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-card'
+														className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
 														onClick={() => router.push(`/recipes/${recipe.id}`)}
 													>
 														<div className='relative h-40 overflow-hidden'>
@@ -973,7 +973,7 @@ export const UserProfile = ({
 												{[1, 2, 3].map(i => (
 													<div
 														key={i}
-														className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card p-4'
+														className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card p-4'
 													>
 														<div className='flex items-center gap-3'>
 															<Skeleton className='size-10 rounded-full' />
@@ -1020,7 +1020,7 @@ export const UserProfile = ({
 								{[1, 2, 3, 4].map(i => (
 									<div
 										key={i}
-										className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card'
+										className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
 									>
 										<Skeleton className='h-40 w-full' />
 										<div className='p-4'>
@@ -1043,7 +1043,7 @@ export const UserProfile = ({
 								{likedRecipes.map(recipe => (
 									<div
 										key={recipe.id}
-										className='group cursor-pointer overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-all hover:shadow-card'
+										className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
 										onClick={() => router.push(`/recipes/${recipe.id}`)}
 									>
 										<div className='relative h-40 overflow-hidden'>
@@ -1086,7 +1086,7 @@ export const UserProfile = ({
 
 						{/* Earned Badges */}
 						<div>
-							<h3 className='mb-4 flex items-center gap-2 text-lg font-bold text-text'>
+							<h3 className='mb-4 flex items-center gap-2 text-lg font-bold text-text-primary'>
 								<Trophy className='size-5 text-xp' />
 								{t('earnedBadges', { count: profileUser.badges.length })}
 							</h3>
@@ -1144,7 +1144,7 @@ export const UserProfile = ({
 							<div className='flex justify-center'>
 								<Link
 									href='/profile/badges'
-									className='flex items-center gap-2 rounded-lg bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-card'
+									className='flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-card'
 								>
 									<Trophy className='size-5' />
 									{t('viewBadgeCatalog', { count: getAllBadges().length })}

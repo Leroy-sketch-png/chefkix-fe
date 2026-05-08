@@ -144,7 +144,7 @@ export function AiAssistPanel({
 							{/* Result */}
 							{result ? (
 								<div className='space-y-4'>
-									<div className='rounded-lg bg-bg-elevated p-4'>
+									<div className='rounded-xl bg-bg-elevated p-4'>
 										<p className='leading-relaxed text-text'>{result.answer}</p>
 									</div>
 
@@ -176,7 +176,7 @@ export function AiAssistPanel({
 									</button>
 								</div>
 							) : error ? (
-								<div className='rounded-lg bg-error/10 p-4 text-sm text-error'>
+								<div className='rounded-xl bg-error/10 p-4 text-sm text-error'>
 									{error}
 									<button
 										type='button'
@@ -223,7 +223,7 @@ export function AiAssistPanel({
 										onKeyDown={handleKeyDown}
 										placeholder={t('aiInputPlaceholder')}
 										disabled={isLoading}
-										className='flex-1 rounded-lg bg-bg-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
+										className='flex-1 rounded-xl bg-bg-elevated px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
 									/>
 									<button
 										type='button'
@@ -231,7 +231,7 @@ export function AiAssistPanel({
 										disabled={!query.trim() || isLoading}
 										aria-label={t('aiSendMessage')}
 										className={cn(
-											'grid size-9 place-items-center rounded-lg transition-colors',
+											'grid size-9 place-items-center rounded-xl transition-colors',
 											query.trim() && !isLoading
 												? 'bg-brand text-white hover:bg-brand-hover'
 												: 'bg-bg-elevated text-text-muted',

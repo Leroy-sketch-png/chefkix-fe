@@ -41,7 +41,10 @@ import { TasteDNAShareCard } from '@/components/profile/TasteDNAShareCard'
 import { LearningNarrative } from '@/components/profile/LearningNarrative'
 import { useTranslations } from '@/i18n/hooks'
 import { SkillBars } from '@/components/ui/skill-bars'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ── Taste dimensions derived from user activity + preferences ──
 interface TasteDimension {
@@ -351,27 +354,27 @@ export default function TasteProfilePage() {
 					tone='xp'
 				>
 					<div className='flex items-center gap-3'>
-					<motion.button
-						type='button'
-						onClick={() => router.back()}
-						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-						aria-label={t('ariaGoBack')}
-					>
-						<ArrowLeft className='size-5' />
-					</motion.button>
-					<div className='flex-1'>
-						<PageHeader
-							icon={Sparkles}
-							title={t('tasteDNA')}
-							subtitle={t('tasteDNASubtitle')}
-							gradient='purple'
-							marginBottom='sm'
-							className='mb-0'
-						/>
+						<motion.button
+							type='button'
+							onClick={() => router.back()}
+							whileTap={BUTTON_SUBTLE_TAP}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							aria-label={t('ariaGoBack')}
+						>
+							<ArrowLeft className='size-5' />
+						</motion.button>
+						<div className='flex-1'>
+							<PageHeader
+								icon={Sparkles}
+								title={t('tasteDNA')}
+								subtitle={t('tasteDNASubtitle')}
+								gradient='purple'
+								marginBottom='sm'
+								className='mb-0'
+							/>
+						</div>
 					</div>
-				</div>
-			</PremiumSurface>
+				</PremiumSurface>
 
 				{/* Blank-slate state — new user, no data yet */}
 				{isBlankProfile && (
@@ -397,25 +400,27 @@ export default function TasteProfilePage() {
 				{!isBlankProfile && (
 					<PremiumSurface
 						eyebrow='Taste DNA Radar'
-						chipText={topDimension ? `Top: ${topDimension.label}` : 'Calibrating'}
+						chipText={
+							topDimension ? `Top: ${topDimension.label}` : 'Calibrating'
+						}
 						className='mx-auto mb-8 max-w-sm p-4 sm:p-6'
 						showOrbs={false}
 					>
 						<motion.div
-						initial={{ opacity: 0, scale: 0.9 }}
-						animate={{ opacity: 1, scale: 1 }}
-						transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-						className='mx-auto max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'
-					>
-						<TasteRadar dimensions={dimensions} />
-						{topDimension && (
-							<p className='mt-4 text-center text-sm text-text-secondary'>
-								Your strongest trait:{' '}
-								<span className='font-semibold text-brand'>
-									{topDimension.label}
-								</span>
-							</p>
-						)}
+							initial={{ opacity: 0, scale: 0.9 }}
+							animate={{ opacity: 1, scale: 1 }}
+							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							className='mx-auto max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'
+						>
+							<TasteRadar dimensions={dimensions} />
+							{topDimension && (
+								<p className='mt-4 text-center text-sm text-text-secondary'>
+									Your strongest trait:{' '}
+									<span className='font-semibold text-brand'>
+										{topDimension.label}
+									</span>
+								</p>
+							)}
 						</motion.div>
 					</PremiumSurface>
 				)}
@@ -448,44 +453,46 @@ export default function TasteProfilePage() {
 							className='mb-3'
 						/>
 						<div className='space-y-3'>
-						{dimensions.map((dim, i) => (
-							<motion.div
-								key={dim.label}
-								initial={{ opacity: 0, x: -20 }}
-								animate={{ opacity: 1, x: 0 }}
-								transition={{ delay: 0.4 + i * 0.08 }}
-								whileHover={CARD_HOVER}
-								className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
-							>
-								<div className='mb-2 flex items-center justify-between'>
-									<div className='flex items-center gap-2'>
-										<div className='grid size-8 place-items-center rounded-lg bg-brand/10 text-brand'>
-											{dim.icon}
+							{dimensions.map((dim, i) => (
+								<motion.div
+									key={dim.label}
+									initial={{ opacity: 0, x: -20 }}
+									animate={{ opacity: 1, x: 0 }}
+									transition={{ delay: 0.4 + i * 0.08 }}
+									whileHover={CARD_HOVER}
+									className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
+								>
+									<div className='mb-2 flex items-center justify-between'>
+										<div className='flex items-center gap-2'>
+											<div className='grid size-8 place-items-center rounded-xl bg-brand/10 text-brand'>
+												{dim.icon}
+											</div>
+											<span className='font-semibold text-text'>
+												{dim.label}
+											</span>
 										</div>
-										<span className='font-semibold text-text'>{dim.label}</span>
+										<span className='text-sm font-bold text-brand'>
+											{dim.value}%
+										</span>
 									</div>
-									<span className='text-sm font-bold text-brand'>
-										{dim.value}%
-									</span>
-								</div>
-								{/* Progress bar */}
-								<div className='h-2 overflow-hidden rounded-full bg-bg-elevated'>
-									<motion.div
-										className='h-full rounded-full bg-gradient-to-r from-brand to-brand/70'
-										initial={{ width: 0 }}
-										animate={{ width: `${dim.value}%` }}
-										transition={{
-											delay: 0.6 + i * 0.08,
-											duration: DURATION_S.slow,
-											ease: 'easeOut',
-										}}
-									/>
-								</div>
-								<p className='mt-1 text-xs text-text-muted'>
-									{dim.description}
-								</p>
-							</motion.div>
-						))}
+									{/* Progress bar */}
+									<div className='h-2 overflow-hidden rounded-full bg-bg-elevated'>
+										<motion.div
+											className='h-full rounded-full bg-gradient-to-r from-brand to-brand/70'
+											initial={{ width: 0 }}
+											animate={{ width: `${dim.value}%` }}
+											transition={{
+												delay: 0.6 + i * 0.08,
+												duration: DURATION_S.slow,
+												ease: 'easeOut',
+											}}
+										/>
+									</div>
+									<p className='mt-1 text-xs text-text-muted'>
+										{dim.description}
+									</p>
+								</motion.div>
+							))}
 						</div>
 					</PremiumSurface>
 				)}
@@ -501,30 +508,30 @@ export default function TasteProfilePage() {
 							className='mt-8 p-3 md:p-4'
 						>
 							<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.7 }}
-							className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
-						>
-							<h2 className='mb-4 flex items-center gap-2 font-semibold text-text'>
-								<Globe className='size-5 text-brand' />
-								Your Cuisine DNA
-							</h2>
-							<p className='mb-4 text-xs text-text-muted'>
-								Based on {tasteProfile.totalInteractions ?? 0} interactions —
-								likes, saves, views, and cooks
-							</p>
-							<div className='space-y-3'>
-								<SkillBars
-									skills={tasteProfile.cuisineDistribution.map(item => ({
-										name: item.cuisine,
-										level: Math.round(item.percentage),
-									}))}
-									showPercentage
-									barHeight='md'
-									color='var(--color-brand)'
-								/>
-							</div>
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.7 }}
+								className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
+							>
+								<h2 className='mb-4 flex items-center gap-2 font-semibold text-text'>
+									<Globe className='size-5 text-brand' />
+									Your Cuisine DNA
+								</h2>
+								<p className='mb-4 text-xs text-text-muted'>
+									Based on {tasteProfile.totalInteractions ?? 0} interactions —
+									likes, saves, views, and cooks
+								</p>
+								<div className='space-y-3'>
+									<SkillBars
+										skills={tasteProfile.cuisineDistribution.map(item => ({
+											name: item.cuisine,
+											level: Math.round(item.percentage),
+										}))}
+										showPercentage
+										barHeight='md'
+										color='var(--color-brand)'
+									/>
+								</div>
 							</motion.div>
 						</PremiumSurface>
 					)}

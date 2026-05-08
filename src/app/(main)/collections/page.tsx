@@ -135,7 +135,7 @@ export default function CollectionsPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<div className='space-y-6 py-6'>
-						<div className='h-8 w-48 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='h-8 w-48 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='grid gap-4 sm:grid-cols-2'>
 							{[1, 2, 3, 4].map(i => (
 								<div
@@ -182,7 +182,7 @@ export default function CollectionsPage() {
 							<motion.button
 								type='button'
 								onClick={() => setShowCreateModal(true)}
-								className='flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
 								whileHover={BUTTON_SUBTLE_HOVER}
 								whileTap={BUTTON_SUBTLE_TAP}
 							>
@@ -226,71 +226,71 @@ export default function CollectionsPage() {
 										transition={TRANSITION_SPRING}
 										onClick={() => router.push(`/collections/${collection.id}`)}
 									>
-									{/* Cover image or placeholder */}
-									<div className='relative h-32 bg-bg-elevated'>
-										{collection.coverImageUrl ? (
-											<NextImage
-												src={collection.coverImageUrl}
-												alt={collection.name}
-												fill
-												sizes='(max-width: 768px) 100vw, 50vw'
-												className='object-cover'
-												unoptimized
-											/>
-										) : (
-											<div className='flex size-full items-center justify-center'>
-												<ImageIcon className='size-10 text-text-muted/20' />
+										{/* Cover image or placeholder */}
+										<div className='relative h-32 bg-bg-elevated'>
+											{collection.coverImageUrl ? (
+												<NextImage
+													src={collection.coverImageUrl}
+													alt={collection.name}
+													fill
+													sizes='(max-width: 768px) 100vw, 50vw'
+													className='object-cover'
+													unoptimized
+												/>
+											) : (
+												<div className='flex size-full items-center justify-center'>
+													<ImageIcon className='size-10 text-text-muted/20' />
+												</div>
+											)}
+											<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent' />
+											{/* Visibility badge */}
+											<div className='absolute left-3 top-3'>
+												<span
+													className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+														collection.isPublic
+															? 'bg-success/100/20 text-success'
+															: 'bg-white/20 text-white'
+													}`}
+												>
+													{collection.isPublic ? (
+														<Globe className='size-3' />
+													) : (
+														<Lock className='size-3' />
+													)}
+													{collection.isPublic ? t('public') : t('private')}
+												</span>
 											</div>
-										)}
-										<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent' />
-										{/* Visibility badge */}
-										<div className='absolute left-3 top-3'>
-											<span
-												className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-													collection.isPublic
-														? 'bg-success/100/20 text-success'
-														: 'bg-white/20 text-white'
-												}`}
-											>
-												{collection.isPublic ? (
-													<Globe className='size-3' />
-												) : (
-													<Lock className='size-3' />
-												)}
-												{collection.isPublic ? t('public') : t('private')}
-											</span>
 										</div>
-									</div>
 
-									{/* Info */}
-									<div className='p-4'>
-										<div className='flex items-start justify-between'>
-											<div className='min-w-0 flex-1'>
-												<h3 className='truncate font-semibold text-text'>
-													{collection.name}
-												</h3>
-												{collection.description && (
-													<p className='mt-1 line-clamp-1 text-sm text-text-muted'>
-														{collection.description}
-													</p>
-												)}
+										{/* Info */}
+										<div className='p-4'>
+											<div className='flex items-start justify-between'>
+												<div className='min-w-0 flex-1'>
+													<h3 className='truncate font-semibold text-text'>
+														{collection.name}
+													</h3>
+													{collection.description && (
+														<p className='mt-1 line-clamp-1 text-sm text-text-muted'>
+															{collection.description}
+														</p>
+													)}
+												</div>
+												<button
+													type='button'
+													onClick={e => {
+														e.stopPropagation()
+														setConfirmingDeleteId(collection.id)
+													}}
+													className='ml-2 flex-shrink-0 rounded-md p-1 text-text-muted transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+													aria-label={t('deleteTitle')}
+												>
+													<Trash2 className='size-4' />
+												</button>
 											</div>
-											<button
-												type='button'
-												onClick={e => {
-													e.stopPropagation()
-													setConfirmingDeleteId(collection.id)
-												}}
-												className='ml-2 flex-shrink-0 rounded-md p-1 text-text-muted transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
-												aria-label={t('deleteTitle')}
-											>
-												<Trash2 className='size-4' />
-											</button>
+											<p className='mt-2 text-xs text-text-muted'>
+												{t('postCount', { count: collection.itemCount })}
+											</p>
 										</div>
-										<p className='mt-2 text-xs text-text-muted'>
-											{t('postCount', { count: collection.itemCount })}
-										</p>
-									</div>
 									</motion.div>
 								))}
 							</div>

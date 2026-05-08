@@ -9,9 +9,9 @@ export default function Loading() {
 				<div className='mb-2 flex items-center gap-3'>
 					<Skeleton className='size-10 rounded-xl' />
 					<Skeleton className='size-12 rounded-2xl' />
-					<Skeleton className='h-9 w-40 rounded-lg' />
+					<Skeleton className='h-9 w-40 rounded-xl' />
 				</div>
-				<Skeleton className='h-6 w-48 rounded-lg' />
+				<Skeleton className='h-6 w-48 rounded-xl' />
 			</div>
 
 			{/* Tabs skeleton */}

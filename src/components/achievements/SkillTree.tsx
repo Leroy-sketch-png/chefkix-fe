@@ -193,7 +193,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 						<Trophy className='size-6' />
 					</div>
 					<div>
-						<p className='text-2xl font-display font-extrabold text-text'>
+						<p className='text-2xl font-bold tracking-tight text-text'>
 							{data.totalUnlocked}
 							<span className='text-base font-normal text-text-muted'>
 								{' '}
@@ -320,7 +320,7 @@ function SkillPathCard({
 				{/* Category Icon */}
 				<div
 					className={cn(
-						'flex size-10 items-center justify-center rounded-lg text-lg',
+						'flex size-10 items-center justify-center rounded-xl text-lg',
 						meta.bgColor,
 					)}
 				>
@@ -425,8 +425,8 @@ function AchievementNodeCard({
 	// Hidden achievements show ??? until unlocked
 	if (node.hidden && !node.unlocked) {
 		return (
-			<div className='flex items-center gap-3 rounded-lg border border-dashed border-border bg-bg-elevated/50 p-3'>
-				<div className='flex size-9 items-center justify-center rounded-lg bg-bg text-text-muted'>
+			<div className='flex items-center gap-3 rounded-xl border border-dashed border-border bg-bg-elevated/50 p-3'>
+				<div className='flex size-9 items-center justify-center rounded-xl bg-bg text-text-muted'>
 					<Lock className='size-4' />
 				</div>
 				<div>
@@ -452,7 +452,7 @@ function AchievementNodeCard({
 			<div className='relative flex flex-col items-center'>
 				<div
 					className={cn(
-						'flex size-9 items-center justify-center rounded-lg text-lg shadow-card',
+						'flex size-9 items-center justify-center rounded-xl text-lg shadow-card',
 						node.unlocked
 							? `bg-gradient-to-br ${TIER_COLORS[node.tier] || TIER_COLORS[1]} text-white`
 							: isInProgress
@@ -572,7 +572,7 @@ function SkillTreeSkeleton() {
 					className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4'
 				>
 					<div className='flex items-center gap-3'>
-						<Skeleton className='size-10 rounded-lg' />
+						<Skeleton className='size-10 rounded-xl' />
 						<div className='flex-1'>
 							<Skeleton className='h-4 w-40' />
 							<Skeleton className='mt-2 h-1.5 w-full rounded-full' />

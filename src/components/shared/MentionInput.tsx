@@ -355,7 +355,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							rows={rows}
 							maxLength={maxLength ?? 5000}
 							className={cn(
-								'w-full resize-none rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
+								'w-full resize-none rounded-xl bg-bg-input px-3 py-2 pr-8 text-sm leading-relaxed text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,
 							)}
 						/>
@@ -371,7 +371,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 							disabled={disabled}
 							maxLength={maxLength ?? 5000}
 							className={cn(
-								'w-full rounded-lg bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
+								'w-full rounded-xl bg-bg-input px-3 py-2 pr-8 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30',
 								className,
 							)}
 						/>
@@ -396,7 +396,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 4 }}
 								transition={{ duration: DURATION_S.fast }}
-								className='fixed z-dropdown overflow-hidden rounded-lg border border-border-subtle bg-bg-card shadow-warm'
+								className='fixed z-dropdown overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-warm'
 								style={{
 									bottom: `calc(100vh - ${dropdownPosition.top}px + 4px)`,
 									left: `${dropdownPosition.left}px`,

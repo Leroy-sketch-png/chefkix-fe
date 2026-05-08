@@ -305,7 +305,7 @@ export const RightSidebar = () => {
 							<button
 								type='button'
 								onClick={() => setRetryCount(c => c + 1)}
-								className='flex items-center gap-1.5 rounded-lg bg-bg-card px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-bg-hover'
+								className='flex items-center gap-1.5 rounded-xl bg-bg-card px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-bg-hover'
 							>
 								<RefreshCw className='size-3' />
 								{t('retry')}

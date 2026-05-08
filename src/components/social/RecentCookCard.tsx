@@ -33,7 +33,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 				{coverImage && (
 					<Link
 						href={`/recipes/${post.recipeId}`}
-						className='relative size-14 flex-shrink-0 overflow-hidden rounded-lg md:size-16'
+						className='relative size-14 flex-shrink-0 overflow-hidden rounded-xl md:size-16'
 					>
 						<Image
 							src={coverImage}
@@ -47,7 +47,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 
 				{/* ChefHat icon if no cover */}
 				{!coverImage && (
-					<div className='flex size-14 flex-shrink-0 items-center justify-center rounded-lg bg-brand/10 md:size-16'>
+					<div className='flex size-14 flex-shrink-0 items-center justify-center rounded-xl bg-brand/10 md:size-16'>
 						<ChefHat className='size-6 text-brand' />
 					</div>
 				)}

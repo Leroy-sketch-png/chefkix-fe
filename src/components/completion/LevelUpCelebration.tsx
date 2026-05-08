@@ -434,7 +434,7 @@ export const LevelUpToast = ({
 
 			{/* Content */}
 			<div className='flex flex-col'>
-				<span className='text-base font-display font-extrabold'>
+				<span className='text-base font-bold tracking-tight'>
 					{t('levelToast', { level })}
 				</span>
 				<span className='text-sm text-text-muted'>{t('youreProgressing')}</span>
@@ -444,7 +444,7 @@ export const LevelUpToast = ({
 			<button
 				type='button'
 				onClick={onView}
-				className='rounded-lg bg-gradient-celebration px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
+				className='rounded-xl bg-gradient-celebration px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90'
 			>
 				{t('viewAction')}
 			</button>

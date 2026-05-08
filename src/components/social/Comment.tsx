@@ -189,7 +189,7 @@ const ReplyItem = ({
 			</UserHoverCard>
 
 			<div className='flex-1 space-y-1'>
-				<div className='rounded-lg bg-bg-subtle p-2'>
+				<div className='rounded-xl bg-bg-subtle p-2'>
 					<UserHoverCard userId={reply.userId} currentUserId={currentUserId}>
 						<span className='text-xs font-semibold text-text-primary hover:underline'>
 							{reply.displayName}
@@ -517,7 +517,7 @@ export const Comment = ({
 				</UserHoverCard>
 
 				<div className='flex-1 space-y-1'>
-					<div className='group relative rounded-lg bg-bg-subtle p-3'>
+					<div className='group relative rounded-xl bg-bg-subtle p-3'>
 						<div className='flex items-start justify-between'>
 							<div>
 								<UserHoverCard
@@ -633,7 +633,7 @@ export const Comment = ({
 										}
 										whileTap={isSubmittingReply ? undefined : BUTTON_SUBTLE_TAP}
 										transition={TRANSITION_SPRING}
-										className='grid size-9 place-items-center rounded-lg bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='grid size-9 place-items-center rounded-xl bg-brand text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{isSubmittingReply ? (
 											<Loader2 className='size-4 animate-spin' />

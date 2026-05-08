@@ -65,7 +65,7 @@ export function StreakBrokenModal({
 							</div>
 
 							{/* Title */}
-							<h2 className='text-2xl font-display font-extrabold text-text mb-2'>
+							<h2 className='text-2xl font-bold tracking-tight text-text mb-2'>
 								{t('sbTitle')}
 							</h2>
 							<p className='text-sm text-text-secondary mb-6'>
@@ -100,7 +100,7 @@ export function StreakBrokenModal({
 
 							{/* Best Streak */}
 							{bestStreak && bestStreak > lostStreak && (
-								<div className='mb-6 flex items-center justify-center gap-2 rounded-lg bg-success/10 px-4 py-3'>
+								<div className='mb-6 flex items-center justify-center gap-2 rounded-xl bg-success/10 px-4 py-3'>
 									<span className='text-xs text-text-secondary'>
 										{t('sbBestStreak')}
 									</span>

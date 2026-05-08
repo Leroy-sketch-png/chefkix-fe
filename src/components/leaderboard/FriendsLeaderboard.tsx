@@ -133,7 +133,7 @@ function LeaderboardSummary({
 					className={cn(
 						'flex items-center gap-1.5 py-2 px-3.5 focus-visible:ring-2 focus-visible:ring-brand/50',
 						'bg-gradient-xp',
-						'rounded-lg text-sm font-semibold text-white',
+						'rounded-xl text-sm font-semibold text-white',
 					)}
 				>
 					<UserPlus className='size-4' />
@@ -185,7 +185,7 @@ function CatchingUpAlert({
 					whileHover={LIST_ITEM_HOVER}
 					whileTap={LIST_ITEM_TAP}
 					onClick={onCookToDefend}
-					className='py-2 px-3.5 bg-streak rounded-lg text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='py-2 px-3.5 bg-streak rounded-xl text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					Cook to defend 🍳
 				</motion.button>

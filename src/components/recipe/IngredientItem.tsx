@@ -62,7 +62,7 @@ export const IngredientItem = ({
 				type='button'
 				onClick={onRemove}
 				aria-label={t('removeIngredient')}
-				className='flex size-7 items-center justify-center rounded-lg text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 hover:text-error'
+				className='flex size-7 items-center justify-center rounded-xl text-text-secondary md:opacity-0 transition-all md:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 hover:text-error'
 			>
 				<X className='size-4' />
 			</button>

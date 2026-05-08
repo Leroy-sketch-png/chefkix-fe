@@ -66,7 +66,7 @@ function PodiumSpotErrorFallback({
 				<button
 					type='button'
 					onClick={onReset}
-					className='inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+					className='inline-flex h-10 w-fit items-center justify-center rounded-xl border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 				>
 					{tCommon('tryAgain')}
 				</button>
@@ -247,7 +247,7 @@ function PodiumSpot({
 
 				{/* Rank Badge - with inline gradient styling */}
 				<div
-					className='absolute -bottom-1 left-1/2 -translate-x-1/2 flex size-6 items-center justify-center rounded-full text-xs font-display font-extrabold text-white border-2 border-bg-card'
+					className='absolute -bottom-1 left-1/2 -translate-x-1/2 flex size-6 items-center justify-center rounded-full text-xs font-bold tracking-tight text-white border-2 border-bg-card'
 					style={{
 						...config.rankBadge,
 						textShadow: '0 1px 2px rgba(0,0,0,0.4)',
@@ -258,7 +258,7 @@ function PodiumSpot({
 
 				{/* Level Badge - BULLETPROOF inline styling */}
 				<div
-					className='absolute top-0 -right-1 px-1.5 py-0.5 rounded-lg text-2xs font-bold text-white'
+					className='absolute top-0 -right-1 px-1.5 py-0.5 rounded-xl text-2xs font-bold text-white'
 					style={{
 						...config.levelBadge,
 						textShadow: '0 1px 2px rgba(0,0,0,0.3)',
@@ -275,7 +275,7 @@ function PodiumSpot({
 
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
-				<span className='text-lg font-display font-extrabold tabular-nums text-text'>
+				<span className='text-lg font-bold tracking-tight tabular-nums text-text'>
 					<AnimatedNumber
 						value={entry.xp}
 						format={n => n.toLocaleString()}

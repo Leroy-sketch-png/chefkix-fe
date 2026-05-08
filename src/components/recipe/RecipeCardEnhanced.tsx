@@ -150,7 +150,7 @@ function RecipeCardErrorFallback({
 			<button
 				type='button'
 				onClick={onReset}
-				className='mt-4 inline-flex h-10 w-fit items-center justify-center rounded-lg border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
+				className='mt-4 inline-flex h-10 w-fit items-center justify-center rounded-xl border border-border-subtle px-4 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 			>
 				{tCommon('tryAgain')}
 			</button>
@@ -757,7 +757,7 @@ const FeaturedCard = ({
 
 					{/* Content overlay */}
 					<div className='absolute inset-x-0 bottom-0 z-10 p-6 md:p-8'>
-						<h3 className='mb-3 text-2xl font-display font-extrabold text-white drop-shadow-md md:text-3xl'>
+						<h3 className='mb-3 text-2xl font-bold tracking-tight text-white drop-shadow-md md:text-3xl'>
 							{title}
 						</h3>
 						{description && (
@@ -1019,7 +1019,7 @@ const MiniCard = ({
 		>
 			<Link
 				href={`/recipes/${id}`}
-				className='flex flex-1 items-center gap-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg'
+				className='flex flex-1 items-center gap-3.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-xl'
 			>
 				<Image
 					src={imageUrl}
@@ -1027,7 +1027,7 @@ const MiniCard = ({
 					fallbackType='recipe'
 					width={56}
 					height={56}
-					className='size-14 flex-shrink-0 rounded-lg object-cover'
+					className='size-14 flex-shrink-0 rounded-xl object-cover'
 				/>
 				<div className='min-w-0 flex-1'>
 					<h4 className='mb-1 truncate text-[13px] font-semibold leading-tight text-text-primary'>
@@ -1042,7 +1042,7 @@ const MiniCard = ({
 						<span className='text-text-muted'>{cookTimeMinutes} min</span>
 						<span
 							className={cn(
-								'rounded-lg px-2 py-0.5 font-semibold',
+								'rounded-xl px-2 py-0.5 font-semibold',
 								difficulty === 'Beginner' && 'bg-success/10 text-success',
 								difficulty === 'Intermediate' && 'bg-warning/10 text-warning',
 								difficulty === 'Advanced' && 'bg-error/10 text-error',

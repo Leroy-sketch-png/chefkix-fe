@@ -592,9 +592,9 @@ function CommandRow({
 		<Command.Item
 			value={item.id}
 			onSelect={onSelect}
-			className='flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-text transition-colors data-[selected=true]:bg-brand/10 data-[selected=true]:text-brand'
+			className='flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-text transition-colors data-[selected=true]:bg-brand/10 data-[selected=true]:text-brand'
 		>
-			<span className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-bg-elevated text-text-secondary'>
+			<span className='flex size-8 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-text-secondary'>
 				{item.icon}
 			</span>
 			<div className='min-w-0 flex-1'>

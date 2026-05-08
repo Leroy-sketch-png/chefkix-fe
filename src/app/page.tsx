@@ -107,7 +107,7 @@ const FeatureCard = ({
 		>
 			<div
 				className={cn(
-					'flex size-10 shrink-0 items-center justify-center rounded-lg',
+					'flex size-10 shrink-0 items-center justify-center rounded-xl',
 					feature.accent,
 				)}
 			>
@@ -428,7 +428,7 @@ export default function HomePage() {
 										.catch(() => setRecipesError(t('couldNotConnect')))
 										.finally(() => setRecipesLoading(false))
 								}}
-								className='inline-flex items-center gap-2 rounded-lg bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
+								className='inline-flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
 							>
 								<RefreshCw className='size-4' />
 								{t('tryAgain')}
@@ -589,7 +589,7 @@ export default function HomePage() {
 								<div className='flex items-center justify-between'>
 									<button
 										type='button'
-										className='rounded-lg border border-border-subtle px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+										className='rounded-xl border border-border-subtle px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
 									>
 										{t('previous')}
 									</button>
@@ -601,7 +601,7 @@ export default function HomePage() {
 									</div>
 									<button
 										type='button'
-										className='flex items-center gap-2 rounded-lg bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
+										className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
 									>
 										{t('nextStep')}
 										<ArrowRight className='size-4' />
@@ -727,7 +727,7 @@ export default function HomePage() {
 						<div className='flex flex-col gap-6 md:flex-row md:items-start md:justify-between'>
 							{/* Brand */}
 							<div className='flex items-center gap-2'>
-								<div className='flex size-8 items-center justify-center rounded-lg bg-gradient-hero'>
+								<div className='flex size-8 items-center justify-center rounded-xl bg-gradient-hero'>
 									<ChefHat className='size-4 text-white' />
 								</div>
 								<span className='font-bold text-text'>ChefKix</span>

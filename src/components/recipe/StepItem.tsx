@@ -188,7 +188,7 @@ export const StepItem = ({
 	// ── Render ──────────────────────────────────────────────────────
 	return (
 		<div className='group flex gap-3.5 rounded-2xl bg-bg p-4'>
-			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-hero text-sm font-display font-extrabold text-white shadow-card'>
+			<div className='flex size-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-hero text-sm font-bold tracking-tight text-white shadow-card'>
 				{index + 1}
 			</div>
 			<div className='flex-1 space-y-3'>
@@ -201,7 +201,7 @@ export const StepItem = ({
 							width={400}
 							height={128}
 							className={cn(
-								'h-32 w-full rounded-lg object-cover',
+								'h-32 w-full rounded-xl object-cover',
 								isUploadingImage && 'opacity-60',
 							)}
 						/>
@@ -227,7 +227,7 @@ export const StepItem = ({
 						type='button'
 						onClick={() => fileInputRef.current?.click()}
 						disabled={isUploadingImage}
-						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex h-20 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isUploadingImage ? (
 							<>
@@ -259,7 +259,7 @@ export const StepItem = ({
 							controls
 							muted
 							playsInline
-							className='h-32 w-full rounded-lg object-cover'
+							className='h-32 w-full rounded-xl object-cover'
 						/>
 						<button
 							type='button'
@@ -280,7 +280,7 @@ export const StepItem = ({
 						type='button'
 						onClick={() => videoInputRef.current?.click()}
 						disabled={isUploadingVideo}
-						className='flex h-20 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
+						className='flex h-20 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{isUploadingVideo ? (
 							<>
@@ -309,13 +309,13 @@ export const StepItem = ({
 					onChange={e => onUpdate({ instruction: e.target.value })}
 					maxLength={2000}
 					placeholder={t('describeStepPlaceholder')}
-					className='min-h-16 w-full resize-none rounded-lg border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='min-h-16 w-full resize-none rounded-xl border border-border bg-bg-card p-3 text-sm text-text placeholder:text-text-secondary/50 focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 
 				{/* Timer & Technique Tags */}
 				<div className='flex flex-wrap gap-2.5'>
 					{isEditingTimer ? (
-						<div className='flex items-center gap-1.5 rounded-lg border border-brand bg-brand/5 px-2 py-1'>
+						<div className='flex items-center gap-1.5 rounded-xl border border-brand bg-brand/5 px-2 py-1'>
 							<Timer className='size-3.5 text-brand' />
 							<input
 								type='number'
@@ -354,7 +354,7 @@ export const StepItem = ({
 							</button>
 						</div>
 					) : timerSeconds ? (
-						<div className='flex items-center gap-1 rounded-lg bg-brand/10 px-3 py-1.5'>
+						<div className='flex items-center gap-1 rounded-xl bg-brand/10 px-3 py-1.5'>
 							<button
 								type='button'
 								onClick={openTimerEditor}
@@ -376,14 +376,14 @@ export const StepItem = ({
 						<button
 							type='button'
 							onClick={openTimerEditor}
-							className='flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand'
+							className='flex items-center gap-1.5 rounded-xl border border-dashed border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-brand hover:text-brand'
 						>
 							<Timer className='size-3.5' />
 							{t('addTimer')}
 						</button>
 					)}
 					{step.technique && (
-						<span className='rounded-lg bg-streak/10 px-3 py-1.5 text-xs font-semibold text-streak'>
+						<span className='rounded-xl bg-streak/10 px-3 py-1.5 text-xs font-semibold text-streak'>
 							🔥 {step.technique}
 						</span>
 					)}
@@ -393,7 +393,7 @@ export const StepItem = ({
 				<button
 					type='button'
 					aria-label={t('dragToReorder')}
-					className='flex size-8 cursor-grab items-center justify-center rounded-lg text-text-secondary/70 transition-colors hover:bg-muted/30 hover:text-text-secondary active:cursor-grabbing'
+					className='flex size-8 cursor-grab items-center justify-center rounded-xl text-text-secondary/70 transition-colors hover:bg-muted/30 hover:text-text-secondary active:cursor-grabbing'
 				>
 					<GripVertical className='size-4' />
 				</button>
@@ -401,7 +401,7 @@ export const StepItem = ({
 					type='button'
 					onClick={onRemove}
 					aria-label={t('removeStep')}
-					className='flex size-8 items-center justify-center rounded-lg text-text-secondary/50 transition-colors hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex size-8 items-center justify-center rounded-xl text-text-secondary/50 transition-colors hover:bg-error/10 hover:text-error focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Trash2 className='size-4' />
 				</button>

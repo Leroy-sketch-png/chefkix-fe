@@ -27,7 +27,10 @@ import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useTranslations } from 'next-intl'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 const REASON_LABEL_KEYS: Record<string, string> = {
 	fraud: 'reasonFraud',
@@ -153,7 +156,11 @@ export default function ReportsPage() {
 			</PremiumSurface>
 			<PremiumSurface
 				eyebrow='Report Streams'
-				chipText={activeTab === 'pending' ? `${pendingReports.length} pending` : `${allReports.length} total`}
+				chipText={
+					activeTab === 'pending'
+						? `${pendingReports.length} pending`
+						: `${allReports.length} total`
+				}
 				className='p-3 md:p-4'
 			>
 				<SurfaceSectionHeader
@@ -163,52 +170,52 @@ export default function ReportsPage() {
 				/>
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
 					<div className='mb-4 flex items-center justify-between'>
-					<TabsList>
-						<TabsTrigger value='pending'>
-							{t('tabPending')}
-							{pendingReports.length > 0 && (
-								<Badge variant='destructive' className='ml-2 text-xs'>
-									{pendingReports.length}
-								</Badge>
-							)}
-						</TabsTrigger>
-						<TabsTrigger value='all'>{t('tabAllReports')}</TabsTrigger>
-					</TabsList>
-					<Button
-						variant='outline'
-						size='sm'
-						onClick={fetchReports}
-						disabled={loading}
-					>
-						{t('refresh')}
-					</Button>
+						<TabsList>
+							<TabsTrigger value='pending'>
+								{t('tabPending')}
+								{pendingReports.length > 0 && (
+									<Badge variant='destructive' className='ml-2 text-xs'>
+										{pendingReports.length}
+									</Badge>
+								)}
+							</TabsTrigger>
+							<TabsTrigger value='all'>{t('tabAllReports')}</TabsTrigger>
+						</TabsList>
+						<Button
+							variant='outline'
+							size='sm'
+							onClick={fetchReports}
+							disabled={loading}
+						>
+							{t('refresh')}
+						</Button>
 					</div>
 
 					<TabsContent value='pending'>
-					<ReportList
-						reports={reports}
-						loading={loading}
-						expandedId={expandedId}
-						setExpandedId={setExpandedId}
-						reviewingId={reviewingId}
-						reviewNotes={reviewNotes}
-						setReviewNotes={setReviewNotes}
-						onReview={handleReview}
-						showActions
-					/>
+						<ReportList
+							reports={reports}
+							loading={loading}
+							expandedId={expandedId}
+							setExpandedId={setExpandedId}
+							reviewingId={reviewingId}
+							reviewNotes={reviewNotes}
+							setReviewNotes={setReviewNotes}
+							onReview={handleReview}
+							showActions
+						/>
 					</TabsContent>
 					<TabsContent value='all'>
-					<ReportList
-						reports={reports}
-						loading={loading}
-						expandedId={expandedId}
-						setExpandedId={setExpandedId}
-						reviewingId={reviewingId}
-						reviewNotes={reviewNotes}
-						setReviewNotes={setReviewNotes}
-						onReview={handleReview}
-						showActions={false}
-					/>
+						<ReportList
+							reports={reports}
+							loading={loading}
+							expandedId={expandedId}
+							setExpandedId={setExpandedId}
+							reviewingId={reviewingId}
+							reviewNotes={reviewNotes}
+							setReviewNotes={setReviewNotes}
+							onReview={handleReview}
+							showActions={false}
+						/>
 					</TabsContent>
 				</Tabs>
 			</PremiumSurface>
@@ -278,12 +285,12 @@ function ReportList({
 						{/* Report header */}
 						<button
 							type='button'
-							className='flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg text-left focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl text-left focus-visible:ring-2 focus-visible:ring-brand/50'
 							onClick={() => setExpandedId(isExpanded ? null : report.id)}
 							aria-expanded={isExpanded}
 						>
 							<div className='flex items-center gap-3'>
-								<div className='grid size-10 place-items-center rounded-lg bg-warning/10'>
+								<div className='grid size-10 place-items-center rounded-xl bg-warning/10'>
 									<TargetIcon className='size-5 text-warning' />
 								</div>
 								<div>
@@ -343,7 +350,7 @@ function ReportList({
 										<span className='font-medium text-text-muted'>
 											{t('detailsLabel')}
 										</span>
-										<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
+										<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text'>
 											{report.details}
 										</p>
 									</div>
@@ -377,7 +384,7 @@ function ReportList({
 										<span className='font-medium text-text-muted'>
 											{t('reviewNotesLabel')}
 										</span>
-										<p className='mt-0.5 rounded-lg bg-bg-elevated p-3 text-text'>
+										<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text'>
 											{report.reviewNotes}
 										</p>
 									</div>
@@ -392,7 +399,7 @@ function ReportList({
 											placeholder={t('reviewNotesPlaceholder')}
 											aria-label={t('reviewNotesPlaceholder')}
 											maxLength={1000}
-											className='w-full resize-none rounded-lg border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
+											className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
 											rows={2}
 										/>
 										<div className='flex flex-wrap gap-2'>
