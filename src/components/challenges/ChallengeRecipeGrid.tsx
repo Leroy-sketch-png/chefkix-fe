@@ -9,6 +9,7 @@ import {
 	CheckCircle,
 	Clock,
 	Play,
+	Sparkles,
 	Star,
 	Users,
 	Zap,
@@ -131,7 +132,7 @@ const ChallengeRecipeCard = ({
 			animate={{ opacity: 1, y: 0 }}
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
-			className='group overflow-hidden rounded-2xl border-2 border-transparent bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
+			className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
 			<Link href={`/recipes/${recipe.id}`} className='block'>
 				{/* Image Container */}
@@ -143,6 +144,7 @@ const ChallengeRecipeCard = ({
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
 					/>
+					<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
 
 					{/* Qualifies Badge */}
 					<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-success px-3 py-1.5 text-xs font-bold text-white shadow-warm'>
@@ -222,7 +224,7 @@ const ChallengeRecipeCard = ({
 								alt={recipe.author.name}
 								width={28}
 								height={28}
-								className='rounded-full'
+								className='rounded-full ring-2 ring-border-subtle'
 							/>
 							<span className='text-xs text-text-primary'>
 								{recipe.author.name}
@@ -298,7 +300,7 @@ export const ChallengeRecipeGrid = ({
 	return (
 		<div className={cn('space-y-5', className)}>
 			{/* Header */}
-			<div className='rounded-2xl bg-bg-card p-5'>
+			<div className='rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 				{onBack && (
 					<button
 						type='button'
@@ -315,7 +317,7 @@ export const ChallengeRecipeGrid = ({
 					<div className='flex items-start gap-4'>
 						<span className='text-5xl'>{challenge.emoji}</span>
 						<div>
-							<span className='text-2xs font-bold uppercase tracking-wide text-brand'>
+							<span className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
 								{challenge.type}
 							</span>
 							<h1 className='my-1 text-2xl font-bold tracking-tight text-text-primary md:text-3xl'>
@@ -329,8 +331,8 @@ export const ChallengeRecipeGrid = ({
 
 					{/* Reward */}
 					<div className='text-right'>
-						<div className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-4 py-2.5'>
-							<span className='text-lg'>⚡</span>
+						<div className='mb-2 inline-flex items-center gap-1.5 rounded-full border border-success/25 bg-success/10 px-4 py-2.5'>
+							<Sparkles className='size-4 text-success' />
 							<span className='text-xl font-bold tracking-tight text-success'>
 								+{challenge.bonusXp} XP
 							</span>
@@ -348,7 +350,7 @@ export const ChallengeRecipeGrid = ({
 				</div>
 
 				{/* Filter/Sort */}
-				<div className='flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4'>
+				<div className='flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle pt-4'>
 					<div className='flex flex-wrap gap-2'>
 						<FilterChip
 							label={t('filterAll')}
@@ -379,7 +381,7 @@ export const ChallengeRecipeGrid = ({
 								prev === 'xp' ? 'time' : prev === 'time' ? 'rating' : 'xp',
 							)
 						}
-						className='flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+						className='flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs text-text-secondary transition-all hover:border-brand/30 hover:bg-bg hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 					>
 						<ArrowUpDown className='size-3.5' />
 						{sortBy === 'xp'
@@ -406,7 +408,7 @@ export const ChallengeRecipeGrid = ({
 
 			{/* XP Potential Footer */}
 			{topPick && (
-				<div className='rounded-2xl bg-bg-card px-5 py-4'>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card px-5 py-4 shadow-card'>
 					<div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
 						<span className='text-text-secondary'>{t('topPickXp')}</span>
 						<span className='tabular-nums font-semibold text-text-primary'>
